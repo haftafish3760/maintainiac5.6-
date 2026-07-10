@@ -93,15 +93,20 @@ int runReusableParsingQaHandoffStatus(
   final expectedLocalRefreshFiles = {
     'docs/reusable_parsing_qa_checkpoint.json',
     'docs/reusable_parsing_qa_checkpoint.md',
+    'docs/reusable_parsing_qa_handoff_index.md',
+    'docs/reusable_parsing_qa_handoff_marker.md',
     'docs/reusable_parsing_qa_mac_handoff_packet.json',
+    'docs/reusable_parsing_qa_mac_runbook.md',
+    'docs/reusable_parsing_qa_scope_boundary.md',
   };
   final hasLocalModifiedFiles = localModifiedFiles.isNotEmpty;
-  final expectedLocalDocsRefreshDirty =
-      hasLocalModifiedFiles &&
-      localModifiedFiles.every(expectedLocalRefreshFiles.contains);
   final windowsWorkingBranch =
       checkpointJson['windowsWorkingBranch']?.toString() ??
       'codex/inventory-parser-backup-20260702-2056';
+  final expectedLocalDocsRefreshDirty =
+      hasLocalModifiedFiles &&
+      currentBranch == windowsWorkingBranch &&
+      localModifiedFiles.every(expectedLocalRefreshFiles.contains);
   final checkpointTotalRemainingChecked =
       (checkpointJson['totalRemainingChecked'] as num?)?.toInt() ?? 0;
   final checkpointNextTradesByRemainingGap = _stringList(

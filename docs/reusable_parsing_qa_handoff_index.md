@@ -1,6 +1,6 @@
 # Reusable Parsing QA Handoff Index
 
-Last updated: 2026-07-09 11:16 PM EDT
+Last updated: 2026-07-09 11:17 PM EDT
 
 This is the single first file the Mac Mini side should open.
 

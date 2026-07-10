@@ -1,10 +1,10 @@
 # Reusable Parsing QA Checkpoint
 
-Last updated: 2026-07-09 11:16 PM EDT
+Last updated: 2026-07-09 11:17 PM EDT
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Windows execution commit: `6e7cf23`
+- Windows execution commit: `0e27ecf`
 - Validated floor commit: `8e9771d`
 - Ready for Mac measurement wave: `true`
 - Ready to claim 90-95 percent: `false`
@@ -34,7 +34,11 @@ these local docs to be modified until the next artifact-sync commit:
 
 - `docs/reusable_parsing_qa_checkpoint.json`
 - `docs/reusable_parsing_qa_checkpoint.md`
+- `docs/reusable_parsing_qa_handoff_index.md`
+- `docs/reusable_parsing_qa_handoff_marker.md`
 - `docs/reusable_parsing_qa_mac_handoff_packet.json`
+- `docs/reusable_parsing_qa_mac_runbook.md`
+- `docs/reusable_parsing_qa_scope_boundary.md`
 
 If the live handoff is healthy, `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
 will report `expectedLocalDocsRefreshDirty: true` for this state.

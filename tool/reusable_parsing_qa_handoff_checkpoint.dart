@@ -115,7 +115,11 @@ int runReusableParsingQaHandoffCheckpoint(
     'expectedLocalDocsRefreshFiles': const [
       'docs/reusable_parsing_qa_checkpoint.json',
       'docs/reusable_parsing_qa_checkpoint.md',
+      'docs/reusable_parsing_qa_handoff_index.md',
+      'docs/reusable_parsing_qa_handoff_marker.md',
       'docs/reusable_parsing_qa_mac_handoff_packet.json',
+      'docs/reusable_parsing_qa_mac_runbook.md',
+      'docs/reusable_parsing_qa_scope_boundary.md',
     ],
     'firstMacMeasurementCommand': firstMacMeasurementCommand,
     'windowsNextActions': windowsNextActions,

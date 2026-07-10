@@ -83,6 +83,14 @@ void main() {
       contains('docs/reusable_parsing_qa_checkpoint.json'),
     );
     expect(
+      (checkpoint['expectedLocalDocsRefreshFiles'] as List<Object?>),
+      contains('docs/reusable_parsing_qa_handoff_index.md'),
+    );
+    expect(
+      (checkpoint['expectedLocalDocsRefreshFiles'] as List<Object?>),
+      contains('docs/reusable_parsing_qa_mac_runbook.md'),
+    );
+    expect(
       (checkpoint['firstMacMeasurementCommand'] as List<Object?>).join(' '),
       contains('tool/work_supply_parser_qa_run_generated_fixtures.dart'),
     );

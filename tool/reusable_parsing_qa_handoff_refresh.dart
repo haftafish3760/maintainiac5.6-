@@ -515,7 +515,11 @@ This runbook is the plain-English companion to:
     Windows-side sync/restamp unless another signal says otherwise:
     - `docs/reusable_parsing_qa_checkpoint.json`
     - `docs/reusable_parsing_qa_checkpoint.md`
+    - `docs/reusable_parsing_qa_handoff_index.md`
+    - `docs/reusable_parsing_qa_handoff_marker.md`
     - `docs/reusable_parsing_qa_mac_handoff_packet.json`
+    - `docs/reusable_parsing_qa_mac_runbook.md`
+    - `docs/reusable_parsing_qa_scope_boundary.md`
     Use `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .` to
     confirm that this is the expected local refresh state by checking for
     `expectedLocalDocsRefreshDirty: true`.
@@ -596,7 +600,11 @@ docs to be locally modified before the next artifact-sync commit:
 
 - `docs/reusable_parsing_qa_checkpoint.json`
 - `docs/reusable_parsing_qa_checkpoint.md`
+- `docs/reusable_parsing_qa_handoff_index.md`
+- `docs/reusable_parsing_qa_handoff_marker.md`
 - `docs/reusable_parsing_qa_mac_handoff_packet.json`
+- `docs/reusable_parsing_qa_mac_runbook.md`
+- `docs/reusable_parsing_qa_scope_boundary.md`
 
 That state is expected when the live execution checkpoint moved forward and the
 local branch has refreshed the handoff packet/checkpoint for the Mac Mini. The

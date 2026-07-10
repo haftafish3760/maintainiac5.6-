@@ -81,6 +81,7 @@ void main() {
       validatedFloorCommit: 'abc1234',
       validatedFloorLabel:
           'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
+      currentBranchOverride: 'codex/inventory-parser-backup-20260702-2056',
     );
 
     final marker = File(
@@ -282,6 +283,7 @@ void main() {
       validatedFloorCommit: 'abc1234',
       validatedFloorLabel:
           'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
+      currentBranchOverride: 'codex/inventory-parser-backup-20260702-2056',
     );
 
     Process.runSync('git', ['add', '.'], workingDirectory: root.path);
@@ -290,13 +292,22 @@ void main() {
       ['commit', '-m', 'clean fixture state'],
       workingDirectory: root.path,
     );
+    _restampExecutionHead(root.path);
 
     _rewriteJsonPretty('${root.path}/docs/reusable_parsing_qa_checkpoint.json');
     final checkpointMd = File('${root.path}/docs/reusable_parsing_qa_checkpoint.md');
     checkpointMd.writeAsStringSync('${checkpointMd.readAsStringSync()}\n');
+    final handoffIndex = File('${root.path}/docs/reusable_parsing_qa_handoff_index.md');
+    handoffIndex.writeAsStringSync('${handoffIndex.readAsStringSync()}\n');
+    final handoffMarker = File('${root.path}/docs/reusable_parsing_qa_handoff_marker.md');
+    handoffMarker.writeAsStringSync('${handoffMarker.readAsStringSync()}\n');
     _rewriteJsonPretty(
       '${root.path}/docs/reusable_parsing_qa_mac_handoff_packet.json',
     );
+    final runbook = File('${root.path}/docs/reusable_parsing_qa_mac_runbook.md');
+    runbook.writeAsStringSync('${runbook.readAsStringSync()}\n');
+    final boundary = File('${root.path}/docs/reusable_parsing_qa_scope_boundary.md');
+    boundary.writeAsStringSync('${boundary.readAsStringSync()}\n');
 
     final stdout = _MemorySink();
     final stderr = _MemorySink();
@@ -314,6 +325,10 @@ void main() {
     expect(
       payload['localModifiedFiles'].toString(),
       contains('docs/reusable_parsing_qa_checkpoint.json'),
+    );
+    expect(
+      payload['localModifiedFiles'].toString(),
+      contains('docs/reusable_parsing_qa_handoff_index.md'),
     );
     expect(payload['expectedLocalDocsRefreshDirty'], isTrue);
   });
@@ -353,6 +368,7 @@ void _writeHandoffFixture(
     workingDirectory: root.path,
   );
   File('${root.path}/README.txt').writeAsStringSync('handoff fixture');
+  File('${root.path}/.gitignore').writeAsStringSync('build/\n');
   Process.runSync('git', ['add', '.'], workingDirectory: root.path);
   Process.runSync('git', ['commit', '-m', 'fixture'], workingDirectory: root.path);
   if (currentBranchOverride != null) {
@@ -512,6 +528,47 @@ void _rewriteJsonPretty(String path) {
   final file = File(path);
   final decoded = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
   file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(decoded));
+}
+
+void _restampExecutionHead(String rootPath) {
+  final headShort =
+      Process.runSync(
+        'git',
+        ['rev-parse', '--short', 'HEAD'],
+        workingDirectory: rootPath,
+      ).stdout
+          .toString()
+          .trim();
+  final currentBranch =
+      Process.runSync(
+        'git',
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
+        workingDirectory: rootPath,
+      ).stdout
+          .toString()
+          .trim();
+
+  _writeJson('$rootPath/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
+    'reusableBaselineBranch': 'codex/reusable-parsing-qa-foundation',
+    'reusableValidatedFloorCommit': 'abc1234',
+    'inventoryExecutionBranch': currentBranch,
+    'inventoryExecutionCommit': headShort,
+    'branch': currentBranch,
+    'commit': headShort,
+    'readyForMacMeasurementWave': true,
+    'readyToClaimNinetyPlus': false,
+    'totalRemainingChecked': 38,
+    'nextTradesByRemainingGap': ['hvac'],
+  });
+
+  final script = File(
+    '$rootPath/build/parser_qa_pipeline/peh_core_mac_handoff.sh',
+  )..parent.createSync(recursive: true);
+  script.writeAsStringSync('''
+#!/usr/bin/env bash
+# Branch: $currentBranch
+# Commit: $headShort
+''');
 }
 
 class _MemorySink implements IOSink {
