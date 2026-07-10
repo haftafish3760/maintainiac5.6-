@@ -21,6 +21,37 @@ List<String> uniqueNormalizedReceiptPhotoPaths(Iterable<String> photoPaths) {
   return UnmodifiableListView(uniquePaths);
 }
 
+class ReceiptPhotoImportOrderPlan {
+  const ReceiptPhotoImportOrderPlan._({
+    required this.existingPhotoPaths,
+    required this.importedPhotoPaths,
+    required this.mergedPhotoPaths,
+  });
+
+  factory ReceiptPhotoImportOrderPlan.build({
+    required Iterable<String> existingPhotoPaths,
+    required Iterable<String> importedPhotoPaths,
+  }) {
+    final existing = uniqueNormalizedReceiptPhotoPaths(existingPhotoPaths);
+    final merged = uniqueNormalizedReceiptPhotoPaths([
+      ...existing,
+      ...importedPhotoPaths,
+    ]);
+    return ReceiptPhotoImportOrderPlan._(
+      existingPhotoPaths: existing,
+      importedPhotoPaths: List.unmodifiable(merged.skip(existing.length)),
+      mergedPhotoPaths: merged,
+    );
+  }
+
+  final List<String> existingPhotoPaths;
+  final List<String> importedPhotoPaths;
+  final List<String> mergedPhotoPaths;
+
+  bool get hasNewPhotos => importedPhotoPaths.isNotEmpty;
+  int get firstImportedPhotoIndex => existingPhotoPaths.length;
+}
+
 bool receiptPhotoPathsAreUniqueAndNormalized(List<String> photoPaths) {
   final uniquePaths = uniqueNormalizedReceiptPhotoPaths(photoPaths);
   if (uniquePaths.length != photoPaths.length) return false;

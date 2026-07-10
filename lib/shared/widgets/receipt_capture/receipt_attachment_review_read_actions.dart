@@ -8,18 +8,20 @@ extension _ReceiptAttachmentReviewReadActions
     Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath =
         const {},
   }) async {
-    final firstNewPhotoIndex = uniqueNormalizedReceiptPhotoPaths(
-      _photoPaths,
-    ).length;
+    final importOrder = ReceiptPhotoImportOrderPlan.build(
+      existingPhotoPaths: _photoPaths,
+      importedPhotoPaths: paths,
+    );
+    if (!importOrder.hasNewPhotos) return true;
     final previousPhotoIdByPath = {..._photoIdByPath};
     final previousPhotoReadStateByPath = {..._photoReadStateByPath};
     final result = await Navigator.of(context).push<ReceiptPhotoReviewResult>(
       appNativeRoute(
         context,
         ReceiptPhotoReviewScreen(
-          initialPhotoPaths: [..._photoPaths, ...paths],
+          initialPhotoPaths: importOrder.mergedPhotoPaths,
           initialDataSaverLevel: _dataSaverLevel,
-          initialSelectedIndex: firstNewPhotoIndex,
+          initialSelectedIndex: importOrder.firstImportedPhotoIndex,
           initialQualityChecksByPath: {
             ..._photoQualityByPath,
             ...initialQualityChecksByPath,

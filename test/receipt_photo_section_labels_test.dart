@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_photo_path_identity.dart';
 
 void main() {
   test('receipt review uses plain multi-photo wording', () async {
@@ -89,6 +90,29 @@ void main() {
       () => picked.paths.add('/tmp/advance-email-extra.png'),
       throwsUnsupportedError,
     );
+  });
+
+  test('receipt import order removes existing duplicates before review', () {
+    final plan = ReceiptPhotoImportOrderPlan.build(
+      existingPhotoPaths: const ['/tmp/receipt-top.png'],
+      importedPhotoPaths: const [
+        '/tmp/receipt-top.png',
+        '/tmp/receipt-middle.png',
+        '/tmp/receipt-middle.png',
+        '/tmp/receipt-bottom.png',
+      ],
+    );
+
+    expect(plan.mergedPhotoPaths, const [
+      '/tmp/receipt-top.png',
+      '/tmp/receipt-middle.png',
+      '/tmp/receipt-bottom.png',
+    ]);
+    expect(plan.importedPhotoPaths, const [
+      '/tmp/receipt-middle.png',
+      '/tmp/receipt-bottom.png',
+    ]);
+    expect(plan.firstImportedPhotoIndex, 1);
   });
 
   test(
