@@ -12,7 +12,7 @@ bool _isAdministrativeRow(String lower) {
     r'change due|subtotal|sub total|sales tax|tax|impuesto|'
     r'total|amount paid|balance due|begin bal|beginning bal|ending bal|'
     r'end bal|thank you|survey|tel|terminal|account|transaction|'
-    r'transaction amt|trans|ref(?:erence)?|trace|batch|driver id|'
+    r'transaction amt|trans|ref(?:erence)?|trace|batch|driver id|efs\s+conductor|comdata\s+autorizaci[oó]n|'
     r'vehicle id|vehicle no|unit no|truck no|tractor no|trailer no|'
     r'vin|license plate|plate|tag no|club card|alt id|customer id|cust id|'
     r'fleet card|cashback|cash back|gift card|store card|'
