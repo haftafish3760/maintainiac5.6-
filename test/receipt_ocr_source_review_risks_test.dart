@@ -63,7 +63,7 @@ void main() {
       );
       expect(
         result.acceptedPhotoHandoffActionLabel,
-        'Check readability, then review receipt details and mark Business, Personal, or Mixed.',
+        'Check the multi-photo receipt order before OCR reads the receipt.',
       );
       expect(
         result.acceptedPhotoHandoffNextStepLabel,
@@ -71,11 +71,11 @@ void main() {
       );
       expect(
         result.acceptedPhotoHandoffProcessingLabel,
-        'Receipt details stay paused until the OCR source handoff is reviewed.',
+        'Receipt details stay paused until the user confirms the receipt section order.',
       );
       expect(
         result.acceptedPhotoHandoffRouteResultLabel,
-        'Receipt details can open only after the OCR source handoff is reviewed.',
+        'Receipt details can open only after the receipt section order is reviewed.',
       );
       expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
       expect(
@@ -88,17 +88,17 @@ void main() {
       );
       expect(
         result.acceptedPhotoHandoffRoute,
-        'photo_review_ocr_source_review_required',
+        'photo_review_section_order_review_required',
       );
       expect(
         result.acceptedPhotoHandoffNextScreen,
-        'receipt_photo_ocr_source_review',
+        'receipt_photo_section_order_review',
       );
       expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
       expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);
       expect(
         result.acceptedPhotoHandoffUserAction,
-        'review_ocr_source_handoff',
+        'review_receipt_section_order',
       );
       expect(
         result.receiptReaderHandoffCounts,
