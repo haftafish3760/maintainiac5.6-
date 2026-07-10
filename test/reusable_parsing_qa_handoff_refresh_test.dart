@@ -195,10 +195,19 @@ void main() {
       runbook,
       contains('docs/reusable_parsing_qa_checkpoint.md'),
     );
+    expect(
+      runbook,
+      contains('reusable_parsing_qa_handoff_summary.dart'),
+    );
     expect(index, contains('- Validated floor commit: `abc1234`'));
     expect(index, contains('- Branch: `codex/reusable-parsing-qa-foundation`'));
     expect(index, contains('docs/reusable_parsing_qa_scope_boundary.md'));
     expect(index, contains('docs/reusable_parsing_qa_checkpoint.md'));
+    expect(index, contains('reusable_parsing_qa_handoff_summary.dart'));
+    expect(
+      boundary,
+      contains('tool/reusable_parsing_qa_handoff_summary.dart'),
+    );
   }, timeout: const Timeout(Duration(seconds: 10)));
 }
 

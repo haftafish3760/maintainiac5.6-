@@ -419,6 +419,10 @@ This runbook is the plain-English companion to:
 7. On the Windows execution branch, run
    `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
    and require `parityOk: true` before trusting the live PEH Mac packet.
+8. For one concise checkpoint readout, run
+   `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+   and confirm the remaining gap, blockers, and execution commit match the
+   packet you plan to follow.
 
 ## What Windows Already Finished
 
@@ -512,6 +516,7 @@ Open these in order:
 4. `docs/reusable_parsing_qa_mac_runbook.md`
 5. `docs/reusable_parsing_qa_mac_handoff_packet.json`
 6. `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
+7. `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
 
 What this means:
 
@@ -522,6 +527,8 @@ What this means:
 - The packet is the machine-readable source of exact Mac-side commands.
 - The handoff status command is the machine-checkable summary of doc alignment,
   and on the Windows execution branch it also enforces PEH packet parity.
+- The handoff summary command is the one-command readout of current blocker
+  state, remaining gap, and exact execution checkpoint.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.
@@ -555,6 +562,7 @@ consumed by the Mac Mini lane without rebuilding them from scratch:
 - `tool/reusable_parsing_qa_handoff_refresh.dart`
 - `tool/reusable_parsing_qa_handoff_parity.dart`
 - `tool/reusable_parsing_qa_handoff_status.dart`
+- `tool/reusable_parsing_qa_handoff_summary.dart`
 - `docs/reusable_parsing_qa_handoff_index.md`
 - `docs/reusable_parsing_qa_handoff_marker.md`
 - `docs/reusable_parsing_qa_scope_boundary.md`
