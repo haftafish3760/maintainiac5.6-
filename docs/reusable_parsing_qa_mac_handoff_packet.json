@@ -189,7 +189,7 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 22:15 EDT",
+  "generatedAtEdt": "2026-07-09 22:33 EDT",
   "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
   "reusableFoundationPaths": [
     "test/support/parser_qa_platform/",
@@ -220,5 +220,5 @@
   ],
   "checkpointJsonPath": "docs/reusable_parsing_qa_checkpoint.json",
   "checkpointMarkdownPath": "docs/reusable_parsing_qa_checkpoint.md",
-  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 8e9771d --commit-full 8e9771d922e67927cf5dc9efacfe213a542202cb --label \"Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion\" --updated-at \"2026-07-09 22:15 EDT\""
+  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 8e9771d --commit-full 8e9771d922e67927cf5dc9efacfe213a542202cb --label \"Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion\" --updated-at \"2026-07-09 22:33 EDT\""
 }
