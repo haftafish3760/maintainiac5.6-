@@ -16,6 +16,9 @@ Mini lane.
 The Mac Mini side should start from `codex/reusable-parsing-qa-foundation`
 unless a newer handoff marker says otherwise.
 
+Companion machine-readable packet:
+`docs/reusable_parsing_qa_mac_handoff_packet.json`
+
 ## Handoff Rule
 
 When the Mac Mini lane starts, this file is the first thing it should read.
@@ -62,6 +65,8 @@ work that benefits from heavier validation or broader parser-domain reuse:
 3. Reuse shared parser-platform pieces for future parser domains such as fuel,
    maintenance, invoice/estimate import, and other text-to-structured-data
    flows.
+4. Use the machine-readable packet for the exact current Mac-side command order
+   instead of copying commands out of old chat or stale artifacts.
 
 ## Do Not Duplicate On Mac Mini
 
