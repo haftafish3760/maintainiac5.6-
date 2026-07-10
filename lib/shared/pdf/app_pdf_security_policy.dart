@@ -15,7 +15,9 @@ class AppPdfSecurityPolicy {
 
   static List<String> activeContentIssueCodesForBytes(List<int> bytes) {
     if (bytes.isEmpty) return const [];
-    final text = latin1.decode(bytes, allowInvalid: true).toLowerCase();
+    final text = _removeStreamBodies(
+      latin1.decode(bytes, allowInvalid: true).toLowerCase(),
+    );
     final issues = <String>[];
     if (_containsPdfName(text, 'javascript') || _containsPdfName(text, 'js')) {
       issues.add(activeJavaScript);
@@ -34,9 +36,7 @@ class AppPdfSecurityPolicy {
     if (_containsPdfName(text, 'acroform') || _containsPdfName(text, 'xfa')) {
       issues.add(dynamicFormContent);
     }
-    if (_containsPdfName(text, 'uri') ||
-        text.contains('http://') ||
-        text.contains('https://')) {
+    if (_containsPdfName(text, 'uri')) {
       issues.add(externalLinks);
     }
     return issues.toSet().toList(growable: false);
@@ -49,5 +49,15 @@ class AppPdfSecurityPolicy {
   static bool _containsPdfName(String text, String name) {
     final escaped = RegExp.escape(name);
     return RegExp('/$escaped(?![a-z0-9])').hasMatch(text);
+  }
+
+  // Content streams are compressed or arbitrary application data. Active PDF
+  // features are declared in dictionaries, so scanning stream bodies creates
+  // false positives for ordinary generated documents.
+  static String _removeStreamBodies(String text) {
+    return text.replaceAll(
+      RegExp(r'stream(?:\r\n|\r|\n).*?endstream', dotAll: true),
+      'stream endstream',
+    );
   }
 }

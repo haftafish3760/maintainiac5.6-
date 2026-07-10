@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
-import '../../../shared/documents/app_generated_pdf_archive_service.dart';
 import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 import '../../../shared/pdf/app_generated_pdf_preview_screen.dart';
@@ -28,7 +27,6 @@ class InvoiceFormScreen extends StatefulWidget {
     this.recordId,
     this.pdfPreviewFactory = const InvoicePdfPreviewFactory(),
     this.pdfPreviewService = const AppGeneratedPdfService(),
-    this.pdfArchiveService = const AppGeneratedPdfArchiveService(),
     super.key,
   });
 
@@ -36,7 +34,6 @@ class InvoiceFormScreen extends StatefulWidget {
   final String? recordId;
   final InvoicePdfPreviewFactory pdfPreviewFactory;
   final AppGeneratedPdfService pdfPreviewService;
-  final AppGeneratedPdfArchiveService pdfArchiveService;
 
   @override
   State<InvoiceFormScreen> createState() => _InvoiceFormScreenState();
@@ -350,48 +347,28 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         record: saved,
       );
       final generatedRecord = await _ledger!.saveRecord(
-        saved.recordPdfGenerated(document),
-      );
-      if (!mounted) return false;
-      setState(() => _record = generatedRecord);
-      final archived = await widget.pdfArchiveService.archive(
-        document,
-        title: document.title,
-      );
-      final archiveHash = archived.fileHashSha256.trim().isEmpty
-          ? sha256.convert(document.bytes).toString()
-          : archived.fileHashSha256;
-      final linked = await _ledger!.saveRecord(
-        generatedRecord.recordPdfArchived(
-          pdfKind: document.kind.name,
-          fileName: document.safeFileName,
-          byteSize: archived.attachment.byteSize ?? document.byteSize,
-          fileHashSha256: archiveHash,
+        saved.recordPdfGenerated(
+          document,
+          fileHashSha256: sha256.convert(document.bytes).toString(),
         ),
       );
       if (!mounted) return false;
-      setState(() => _record = linked);
+      setState(() => _record = generatedRecord);
       _showMessage(
-        linked.isEstimate
-            ? 'Estimate saved with permanent PDF proof.'
-            : 'Invoice saved with permanent PDF proof.',
+        generatedRecord.isEstimate
+            ? 'Estimate saved. The PDF will be created when you preview or send it.'
+            : 'Invoice saved. The PDF will be created when you preview or send it.',
       );
       return true;
-    } on AppGeneratedPdfArchiveException catch (error) {
-      if (!mounted) return false;
-      await _recordPdfFailure(
-        record: _record ?? record,
-        reasonCode: 'archive_validation_failed',
-      );
-      _showMessage(error.message);
-      return false;
     } catch (_) {
       if (!mounted) return false;
       await _recordPdfFailure(
         record: _record ?? record,
-        reasonCode: 'archive_unknown_failure',
+        reasonCode: 'finalize_pdf_metadata_failed',
       );
-      _showMessage('That invoice PDF could not be saved.');
+      _showMessage(
+        'The invoice was saved, but its PDF metadata could not be recorded.',
+      );
       return false;
     }
   }

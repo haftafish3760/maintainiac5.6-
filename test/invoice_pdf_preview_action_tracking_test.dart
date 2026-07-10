@@ -1,19 +1,14 @@
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_store.dart';
 import 'package:maintaniac/screens/invoices/home/invoice_form_screen.dart';
-import 'package:maintaniac/shared/documents/app_document_models.dart';
-import 'package:maintaniac/shared/documents/app_document_store.dart';
-import 'package:maintaniac/shared/documents/app_generated_pdf_archive_service.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
-import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:share_plus/share_plus.dart';
 
 void main() {
@@ -192,13 +187,12 @@ void main() {
     },
   );
 
-  testWidgets('final save records generated and archived pdf proof events', (
+  testWidgets('final save records PDF metadata without archiving a PDF', (
     tester,
   ) async {
     final appState = AppStateController();
     final odometer = GlobalOdometerController();
     final ledger = InvoiceLedgerStore.memory();
-    final documentStore = AppDocumentStore.memory();
     addTearDown(appState.dispose);
     addTearDown(odometer.dispose);
 
@@ -211,7 +205,9 @@ void main() {
             controller: ledger,
             child: MaterialApp(
               home: InvoiceFormScreen(
-                pdfArchiveService: _FakeArchiveService(store: documentStore),
+                pdfPreviewService: _FakeGeneratedPdfService(
+                  tempPath: '/tmp/maintainiac-invoice-final-save.pdf',
+                ),
               ),
             ),
           ),
@@ -230,7 +226,7 @@ void main() {
     await _pumpUntil(
       tester,
       () => ledger.records.single.pdfEvents
-          .where((event) => event.type == InvoicePdfDeliveryEventType.archived)
+          .where((event) => event.type == InvoicePdfDeliveryEventType.generated)
           .isNotEmpty,
       attempts: 120,
     );
@@ -245,13 +241,11 @@ void main() {
     expect(record.documentHashSha256, hasLength(64), reason: eventSummary);
     expect(record.pdfEvents.map((event) => event.type), [
       InvoicePdfDeliveryEventType.generated,
-      InvoicePdfDeliveryEventType.archived,
     ]);
-    expect(record.pdfEvents.last.fileHashSha256, record.documentHashSha256);
-    expect(record.pdfEvents.last.byteSize, greaterThan(0));
+    expect(record.pdfEvents.single.fileHashSha256, hasLength(64));
+    expect(record.pdfEvents.single.byteSize, greaterThan(0));
     expect(record.toMap().containsKey('pdfBytes'), isFalse);
     expect(record.toMap().containsKey('pdfPath'), isFalse);
-    expect(documentStore.records, hasLength(1));
   });
 }
 
@@ -314,54 +308,5 @@ class _FakeGeneratedPdfService extends AppGeneratedPdfService {
   @override
   Future<bool> print(AppGeneratedPdfDocument document) async {
     return printResult;
-  }
-}
-
-class _FakeArchiveService extends AppGeneratedPdfArchiveService {
-  const _FakeArchiveService({required AppDocumentStore store})
-    : super(store: store);
-
-  @override
-  Future<AppDocumentArchiveResult> archive(
-    AppGeneratedPdfDocument document, {
-    AppDocumentKind? kind,
-    String title = '',
-    String notes = '',
-  }) async {
-    final hash = sha256.convert(document.bytes).toString();
-    final now = DateTime.now();
-    final attachment = ReceiptAttachmentRecord(
-      id: 'fake-${document.sourceRecordId}-pdf',
-      path: '/tmp/${document.safeFileName}',
-      kind: ReceiptAttachmentKind.pdf,
-      dataSaverLevel: ReceiptDataSaverLevel.original,
-      createdAt: now,
-      displayName: document.safeFileName,
-      originalFileName: document.safeFileName,
-      mimeType: 'application/pdf',
-      byteSize: document.byteSize,
-      fileHash: hash,
-      linkedModule: document.sourceModule,
-      linkedRecordId: document.sourceRecordId,
-      storageState: ReceiptAttachmentStorageState.permanent,
-      promotedAt: now,
-      readState: ReceiptAttachmentReadState.notRead,
-    );
-    final record = AppDocumentRecord(
-      id: 'DOC-${document.kind.name}-${document.sourceRecordId}',
-      kind: kind ?? AppDocumentKind.invoiceDocument,
-      title: title.trim().isEmpty ? document.title : title.trim(),
-      notes: notes,
-      sourceLabel: 'Generated PDF',
-      createdAt: now,
-      updatedAt: now,
-      attachments: [attachment],
-    );
-    final saved = await store!.saveRecord(record);
-    return AppDocumentArchiveResult(
-      document: saved,
-      attachment: attachment,
-      fileHashSha256: hash,
-    );
   }
 }

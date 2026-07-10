@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/pdf/app_generated_pdf_share_content.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_export_file_writer.dart';
@@ -214,6 +215,13 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
     ),
   );
   final bytes = await pdf.save();
+  final share = AppGeneratedPdfShareContent.expenseExport(
+    rangeStart: snapshot.range.start,
+    rangeEnd: snapshot.range.end,
+    receiptCount: snapshot.receiptCount,
+    lineCount: snapshot.lineCount,
+    total: '\$${snapshot.total.toStringAsFixed(2)}',
+  );
   final fileName =
       'maintainiac_expense_export_${_fileDate(snapshot.range.start)}_to_${_fileDate(snapshot.range.end)}.pdf';
   return AppGeneratedPdfDocument(
@@ -223,23 +231,29 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
     bytes: bytes,
     createdAt: snapshot.exportedAt,
     sourceModule: 'expenses',
-    shareSubject: _shareSubject(snapshot),
-    shareText: _shareBody(snapshot),
+    shareSubject: share.subject,
+    shareText: share.text,
   );
 }
 
 String _shareSubject(ExpenseExportSnapshot snapshot) {
-  return 'Maintainiac expense export ${_date(snapshot.range.start)} - ${_date(snapshot.range.end)}';
+  return AppGeneratedPdfShareContent.expenseExport(
+    rangeStart: snapshot.range.start,
+    rangeEnd: snapshot.range.end,
+    receiptCount: snapshot.receiptCount,
+    lineCount: snapshot.lineCount,
+    total: '\$${snapshot.total.toStringAsFixed(2)}',
+  ).subject;
 }
 
 String _shareBody(ExpenseExportSnapshot snapshot) {
-  return [
-    'Maintainiac expense export',
-    'Date range: ${_date(snapshot.range.start)} - ${_date(snapshot.range.end)}',
-    'Receipts: ${snapshot.receiptCount}',
-    'Line items: ${snapshot.lineCount}',
-    'Total: \$${snapshot.total.toStringAsFixed(2)}',
-  ].join('\n');
+  return AppGeneratedPdfShareContent.expenseExport(
+    rangeStart: snapshot.range.start,
+    rangeEnd: snapshot.range.end,
+    receiptCount: snapshot.receiptCount,
+    lineCount: snapshot.lineCount,
+    total: '\$${snapshot.total.toStringAsFixed(2)}',
+  ).text;
 }
 
 String _exportPackageName(ExpenseExportSnapshot snapshot) {
