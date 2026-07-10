@@ -55,6 +55,12 @@ void main() {
     );
     expect(summary['branch'], 'feature/test');
     expect(summary['commit'], 'abc123');
+    expect(summary['inventoryExecutionBranch'], 'feature/test');
+    expect(summary['inventoryExecutionCommit'], 'abc123');
+    expect(summary['reusableBaselineBranch'], isNotEmpty);
+    expect(summary['reusableCheckpointMarkdownPath'], 'docs/reusable_parsing_qa_checkpoint.md');
+    expect(summary['reusableHandoffMarkerPath'], 'docs/reusable_parsing_qa_handoff_marker.md');
+    expect((summary['executionOrder'] as List).length, greaterThanOrEqualTo(4));
     expect(summary['measurementCommandCount'], 4);
     expect(summary['rollupCommandCount'], 2);
     expect(summary['refreshCommand'].toString(), contains('work_supply_parser_qa_peh_core_refresh.dart'));
@@ -104,6 +110,8 @@ void main() {
     );
     expect(summary['branch'], isNotEmpty);
     expect((summary['commit'] as String).length, greaterThanOrEqualTo(7));
+    expect(summary['inventoryExecutionBranch'], summary['branch']);
+    expect(summary['inventoryExecutionCommit'], summary['commit']);
   });
 
   test('PEH Mac handoff packet blocks missing readiness baseline', () {
