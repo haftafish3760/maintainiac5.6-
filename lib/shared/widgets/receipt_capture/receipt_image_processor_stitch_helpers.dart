@@ -5,7 +5,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
   required img.Image next,
   required int targetWidth,
 }) {
-  const comparisonWidth = 420;
+  const comparisonWidth = 320;
   final sampleWidth = math.min(
     comparisonWidth,
     math.min(previous.width, next.width),
