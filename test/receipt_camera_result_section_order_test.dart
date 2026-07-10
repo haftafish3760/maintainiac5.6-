@@ -492,6 +492,48 @@ void main() {
     expect(result.receiptSectionOrderNeedsReview, isTrue);
   });
 
+  test('removal metadata with duplicate remaining sections requires review', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/middle.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/middle-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/middle-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+        warning: 'Review removed receipt section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/middle.jpg': {
+          'receiptRemoveOriginalSectionNumber': 2,
+          'receiptRemoveFinalSectionNumber': 1,
+          'receiptRemoveFinalSectionCount': 2,
+          'receiptRemoveRemainingSectionOriginalNumber': 1,
+          'receiptRemoveSectionShifted': true,
+        },
+        '/tmp/bottom.jpg': {
+          'receiptRemoveOriginalSectionNumber': 2,
+          'receiptRemoveFinalSectionNumber': 2,
+          'receiptRemoveFinalSectionCount': 3,
+          'receiptRemoveRemainingSectionOriginalNumber': 1,
+          'receiptRemoveSectionShifted': true,
+        },
+      },
+    );
+
+    expect(
+      result
+          .receiptSectionOrderCounts['remove_invalid_duplicate_remaining_original_section'],
+      1,
+    );
+    expect(
+      result
+          .receiptSectionOrderCounts['remove_invalid_inconsistent_final_section_count'],
+      1,
+    );
+    expect(result.receiptSectionOrderOutcome, 'remove_order_invalid');
+    expect(result.receiptSectionOrderNeedsReview, isTrue);
+  });
+
   test('manual reorder metadata is summarized without leaking paths', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg', '/tmp/middle.jpg'],

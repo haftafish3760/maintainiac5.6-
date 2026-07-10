@@ -200,6 +200,12 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
 
   Map<String, int> get receiptSectionOrderCounts {
     final counts = <String, int>{};
+    final removalFinalSections = <int>{};
+    final removalFinalSectionCounts = <int>{};
+    final removalRemainingOriginalSections = <int>{};
+    var hasRemovalMetadata = false;
+    var hasDuplicateRemovalFinalSection = false;
+    var hasDuplicateRemovalRemainingOriginalSection = false;
     for (final diagnostics in captureDiagnosticsByPhotoPath.values) {
       final sectionCount = _diagnosticPositiveInt(
         diagnostics['receiptSectionCount'],
@@ -287,6 +293,28 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final removalFinalCount = _diagnosticPositiveInt(
         diagnostics['receiptRemoveFinalSectionCount'],
       );
+      final currentHasRemovalMetadata =
+          removalOriginalSection != null ||
+          removalFinalSection != null ||
+          removalRemainingOriginalSection != null ||
+          removalFinalCount != null ||
+          diagnostics.containsKey('receiptRemoveSectionShifted');
+      if (currentHasRemovalMetadata) {
+        hasRemovalMetadata = true;
+        if (removalFinalSection != null &&
+            !removalFinalSections.add(removalFinalSection)) {
+          hasDuplicateRemovalFinalSection = true;
+        }
+        if (removalFinalCount != null) {
+          removalFinalSectionCounts.add(removalFinalCount);
+        }
+        if (removalRemainingOriginalSection != null &&
+            !removalRemainingOriginalSections.add(
+              removalRemainingOriginalSection,
+            )) {
+          hasDuplicateRemovalRemainingOriginalSection = true;
+        }
+      }
       if (sectionCount != null) {
         final bucket = sectionCount <= 1
             ? 'single_section'
@@ -486,6 +514,37 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       }
       for (final code in _receiptRemovalInvalidOrderCodes(diagnostics)) {
         counts[code] = (counts[code] ?? 0) + 1;
+      }
+    }
+    if (hasRemovalMetadata) {
+      if (hasDuplicateRemovalFinalSection) {
+        counts['remove_invalid_duplicate_final_section'] =
+            (counts['remove_invalid_duplicate_final_section'] ?? 0) + 1;
+      }
+      if (hasDuplicateRemovalRemainingOriginalSection) {
+        counts['remove_invalid_duplicate_remaining_original_section'] =
+            (counts['remove_invalid_duplicate_remaining_original_section'] ??
+                0) +
+            1;
+      }
+      if (removalFinalSectionCounts.length > 1) {
+        counts['remove_invalid_inconsistent_final_section_count'] =
+            (counts['remove_invalid_inconsistent_final_section_count'] ?? 0) +
+            1;
+      }
+      if (removalFinalSectionCounts.length == 1) {
+        final expectedCount = removalFinalSectionCounts.single;
+        if (removalFinalSections.length == expectedCount) {
+          final hasEveryFinalSection = Iterable<int>.generate(
+            expectedCount,
+            (index) => index + 1,
+          ).every(removalFinalSections.contains);
+          if (!hasEveryFinalSection) {
+            counts['remove_invalid_non_contiguous_final_sections'] =
+                (counts['remove_invalid_non_contiguous_final_sections'] ?? 0) +
+                1;
+          }
+        }
       }
     }
     final hasTrackedMultiSection = counts.keys.any(
