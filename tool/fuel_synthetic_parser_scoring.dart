@@ -187,6 +187,17 @@ _FuelSyntheticReport _scoreFuelReceipts(List<_FuelSyntheticReceipt> cases) {
         issues.add('personal_convenience_line_not_personal_use');
       }
     }
+    if (receipt.expectPrivateIdentity) {
+      final leakedIdentityLine = parsed.lines.any((line) {
+        return RegExp(
+          r'\b(member|driver\s+id|vehicle\s+id|vin|license\s+plate)\b',
+          caseSensitive: false,
+        ).hasMatch(line.description);
+      });
+      if (leakedIdentityLine) {
+        issues.add('private_identity_leaked_as_item_description');
+      }
+    }
     if (receipt.expectedParkingFee != null) {
       final parkingLines = parsed.lines.where(
         (line) => line.category == 'Parking',
