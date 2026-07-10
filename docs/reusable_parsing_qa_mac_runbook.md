@@ -27,6 +27,10 @@ This runbook is the plain-English companion to:
    `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
    and confirm the remaining gap, blockers, and execution commit match the
    packet you plan to follow.
+9. If the Windows execution commit advanced and the packet/script pair needs
+   to be refreshed together, run
+   `dart run tool/work_supply_parser_qa_peh_core_restamp_handoff.dart --root .`
+   before handing the wave back to the Mac Mini.
 
 ## What Windows Already Finished
 
