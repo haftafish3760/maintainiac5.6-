@@ -24,6 +24,13 @@ void main() {
         [
           'dart',
           'run',
+          'tool/work_supply_parser_qa_run_generated_fixtures.dart',
+          '--fixture',
+          'build/parser_qa_generated/work_supply_parser/hvac/residential/core/en-US/generated_fixtures.json',
+        ],
+        [
+          'dart',
+          'run',
           'tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart',
           '--root',
           '.',
@@ -76,11 +83,16 @@ void main() {
       contains('docs/reusable_parsing_qa_checkpoint.json'),
     );
     expect(
+      (checkpoint['firstMacMeasurementCommand'] as List<Object?>).join(' '),
+      contains('tool/work_supply_parser_qa_run_generated_fixtures.dart'),
+    );
+    expect(
       (checkpoint['nextTradesByRemainingGap'] as List<Object?>),
       contains('hvac'),
     );
     expect(markdown, contains('## Windows Next'));
     expect(markdown, contains('## Mac Mini Next'));
+    expect(markdown, contains('## First Mac Measurement Command'));
     expect(markdown, contains('## Expected Local Windows Refresh State'));
     expect(markdown, contains('hvac'));
     expect(markdown, contains('Windows execution commit: `deadbee`'));

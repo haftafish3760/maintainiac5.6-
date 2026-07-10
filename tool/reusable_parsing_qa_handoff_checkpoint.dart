@@ -66,6 +66,8 @@ int runReusableParsingQaHandoffCheckpoint(
   final nextTrades = _stringList(gap['nextTradesByRemainingGap']);
   final readinessActions = _stringList(readiness['nextActions']);
   final macMiniNextCommands = _commandLists(packet['macMiniNextCommands']);
+  final firstMacMeasurementCommand =
+      macMiniNextCommands.isEmpty ? const <String>[] : macMiniNextCommands.first;
   final hasPostMacRefresh = macMiniNextCommands.any(
     (command) => command.contains('tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart'),
   );
@@ -115,6 +117,7 @@ int runReusableParsingQaHandoffCheckpoint(
       'docs/reusable_parsing_qa_checkpoint.md',
       'docs/reusable_parsing_qa_mac_handoff_packet.json',
     ],
+    'firstMacMeasurementCommand': firstMacMeasurementCommand,
     'windowsNextActions': windowsNextActions,
     'macMiniNextActions': macNextActions,
     'generatedAtEdt': packet['generatedAtEdt'] ?? 'unknown',
@@ -149,6 +152,9 @@ String _markdownCheckpoint(Map<String, Object?> checkpoint) {
   final nextTrades = _stringList(checkpoint['nextTradesByRemainingGap']);
   final expectedLocalDocs =
       _stringList(checkpoint['expectedLocalDocsRefreshFiles']);
+  final firstMacMeasurementCommand = _stringList(
+    checkpoint['firstMacMeasurementCommand'],
+  );
   return '''# Reusable Parsing QA Checkpoint
 
 Last updated: ${checkpoint['generatedAtEdt']}
@@ -169,6 +175,10 @@ ${windowsNext.map((item) => '- $item').join('\n')}
 ## Mac Mini Next
 
 ${macNext.map((item) => '- $item').join('\n')}
+
+## First Mac Measurement Command
+
+`${firstMacMeasurementCommand.join(' ')}`
 
 ## Expected Local Windows Refresh State
 
