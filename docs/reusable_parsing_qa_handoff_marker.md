@@ -1,6 +1,6 @@
 # Reusable Parsing QA Handoff Marker
 
-Last updated: 2026-07-09 22:46 EDT
+Last updated: 2026-07-09 22:58 EDT
 
 Purpose: prevent duplicate work between the Windows parser/QA lane and the Mac
 Mini lane.

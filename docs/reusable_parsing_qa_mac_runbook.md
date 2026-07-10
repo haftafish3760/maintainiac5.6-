@@ -1,6 +1,6 @@
 # Reusable Parsing QA Mac Mini Runbook
 
-Last updated: 2026-07-09 22:46 EDT
+Last updated: 2026-07-09 22:58 EDT
 
 This runbook is the plain-English companion to:
 
@@ -23,6 +23,10 @@ This runbook is the plain-English companion to:
 7. On the Windows execution branch, run
    `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
    and require `parityOk: true` before trusting the live PEH Mac packet.
+8. For one concise checkpoint readout, run
+   `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+   and confirm the remaining gap, blockers, and execution commit match the
+   packet you plan to follow.
 
 ## What Windows Already Finished
 

@@ -1,6 +1,6 @@
 # Reusable Parsing QA Scope Boundary
 
-Last updated: 2026-07-09 22:46 EDT
+Last updated: 2026-07-09 22:58 EDT
 
 This file is the explicit boundary between reusable parser QA foundation work
 and inventory-specific Windows work.
@@ -20,6 +20,7 @@ consumed by the Mac Mini lane without rebuilding them from scratch:
 - `tool/reusable_parsing_qa_handoff_refresh.dart`
 - `tool/reusable_parsing_qa_handoff_parity.dart`
 - `tool/reusable_parsing_qa_handoff_status.dart`
+- `tool/reusable_parsing_qa_handoff_summary.dart`
 - `docs/reusable_parsing_qa_handoff_index.md`
 - `docs/reusable_parsing_qa_handoff_marker.md`
 - `docs/reusable_parsing_qa_scope_boundary.md`
