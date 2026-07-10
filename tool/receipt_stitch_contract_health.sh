@@ -104,7 +104,23 @@ run_transformed_phone_windows() {
 
 run_long_stack() {
   echo "Receipt stitch long-stack health"
-  run_flutter_test long-stack test/receipt_stitching_long_stack_test.dart
+  local test_file=test/receipt_stitching_long_stack_test.dart
+  run_flutter_test long-stack-core "$test_file" \
+    --name 'stitches five ordered long-receipt sections into one OCR source'
+  run_flutter_test long-stack-cap "$test_file" \
+    --name 'falls back before writing a five-section stitch over the pixel cap'
+  run_flutter_test long-stack-drift "$test_file" \
+    --name 'stitches five ordered long-receipt sections with handheld drift'
+  run_flutter_test long-stack-worn "$test_file" \
+    --name 'stitches four faded worn long-receipt sections with delayed overlap'
+  run_flutter_test long-stack-transforms "$test_file" \
+    --name 'stitches four long-receipt sections with mixed handheld transforms'
+  run_flutter_test long-stack-phone "$test_file" \
+    --name 'stitches phone-window captures cropped from one tall receipt'
+  run_flutter_test long-stack-side-crops "$test_file" \
+    --name 'stitches six phone-window captures with alternating side crops'
+  run_flutter_test long-stack-exposure-crops "$test_file" \
+    --name 'stitches six phone-window captures with mixed exposure and side crops'
   echo "Receipt stitch long-stack health: PASS"
 }
 

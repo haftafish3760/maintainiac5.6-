@@ -67,6 +67,14 @@ void main() {
     expect(source, contains('run_flutter_test phone-window'));
     expect(source, contains('run_flutter_test phone-window-fast'));
     expect(source, contains('run_flutter_test long-stack'));
+    expect(source, contains('run_flutter_test long-stack-core'));
+    expect(source, contains('run_flutter_test long-stack-cap'));
+    expect(source, contains('run_flutter_test long-stack-drift'));
+    expect(source, contains('run_flutter_test long-stack-worn'));
+    expect(source, contains('run_flutter_test long-stack-transforms'));
+    expect(source, contains('run_flutter_test long-stack-phone'));
+    expect(source, contains('run_flutter_test long-stack-side-crops'));
+    expect(source, contains('run_flutter_test long-stack-exposure-crops'));
     expect(source, contains('test/receipt_stitching_extreme_aspect_ratio_test.dart'));
     expect(source, contains('run_flutter_test bad-input'));
     expect(source, contains('run_flutter_test handoff'));
