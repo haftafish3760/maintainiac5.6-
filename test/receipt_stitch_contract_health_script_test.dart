@@ -163,6 +163,10 @@ void main() {
     expect(source, contains('Receipt stitch phone-window health: PASS'));
     expect(source, contains('phone_windows_fast)'));
     expect(source, contains('Receipt stitch phone-window fast health'));
+    expect(source, contains('passenger_seat)'));
+    expect(source, contains('Receipt stitch passenger-seat health'));
+    expect(source, contains('receipt_stitching_passenger_seat_test.dart'));
+    expect(source, contains('Receipt stitch passenger-seat health: PASS'));
     expect(
       source,
       contains(
@@ -354,6 +358,7 @@ void main() {
     expect(coreEnd, greaterThan(coreStart));
     final coreSource = source.substring(coreStart, coreEnd);
     expect(coreSource, contains('run_bad_inputs'));
+    expect(coreSource, contains('run_passenger_seat'));
     expect(coreSource, contains('run_manual_overlap'));
     expect(coreSource, contains('run_duplicates'));
     expect(coreSource, contains('run_size_caps'));
@@ -377,6 +382,7 @@ void main() {
     expect(source, contains('run_ugly_long_receipts'));
     expect(source, contains('run_section_order'));
     expect(source, contains('run_bad_inputs'));
+    expect(source, contains('run_passenger_seat'));
     expect(source, contains('run_manual_overlap'));
     expect(source, contains('run_duplicates'));
     expect(source, contains('run_handoff'));
@@ -385,7 +391,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|transformed_phone_windows|long_stack|extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|passenger_seat|transformed_phone_windows|long_stack|extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
@@ -417,6 +423,7 @@ void main() {
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
     expect(source, contains('receipt_stitching_worn_receipt_test.dart'));
     expect(source, contains('receipt_stitching_ugly_long_receipt_test.dart'));
+    expect(source, contains('receipt_stitching_passenger_seat_test.dart'));
     expect(source, contains('receipt_stitching_store_receipt_shape_test.dart'));
     expect(source, contains('receipt_stitching_long_stack_test.dart'));
     expect(
