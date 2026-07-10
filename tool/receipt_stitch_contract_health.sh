@@ -207,6 +207,7 @@ run_handoff() {
     test/receipt_stitching_artifact_copy_contract_test.dart \
     test/receipt_stitching_result_contract_test.dart \
     test/receipt_stitching_ocr_source_contract_test.dart \
+    test/receipt_stitching_exception_fallback_contract_test.dart \
     test/receipt_ocr_source_section_order_handoff_test.dart
   echo "Receipt stitch handoff health: PASS"
 }
@@ -349,6 +350,7 @@ run_full() {
     test/receipt_stitching_manual_overlap_test.dart \
     test/receipt_stitching_duplicate_safety_test.dart \
     test/receipt_stitching_ocr_source_contract_test.dart \
+    test/receipt_stitching_exception_fallback_contract_test.dart \
     test/receipt_stitching_scale_rotation_test.dart \
     test/receipt_stitching_size_cap_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \

@@ -44,6 +44,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   final decoded = <img.Image>[];
   final decodedBytes = <List<int>>[];
   final decodedSources = <img.Image>[];
+  final confidences = <double>[];
+  final pairResults = <ReceiptStitchPairResult>[];
+  var activePairIndex = -1;
   try {
     for (final path in inputPaths) {
       final bytes = await ReceiptImageProcessor._readFileBytes(path);
@@ -130,8 +133,6 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     var expectedHeight = normalized.first.height;
     final overlaps = <int>[];
     final horizontalOffsets = <int>[];
-    final confidences = <double>[];
-    final pairResults = <ReceiptStitchPairResult>[];
     ReceiptStitchResult? oversizedFallback() => _oversizedStitchFallback(
       inputPaths: inputPaths,
       targetWidth: targetWidth,
@@ -146,6 +147,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
 
     for (var index = 1; index < prepared.length; index++) {
       final pairIndex = index - 1;
+      activePairIndex = pairIndex;
       final previous = normalized[pairIndex];
       final manualOverlap = _manualOverlapFor(
         previous: previous,
@@ -226,6 +228,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       }
     }
 
+    activePairIndex = -1;
     final horizontalPlacements = _stitchHorizontalPlacements(horizontalOffsets);
     final minPlacementX = horizontalPlacements.reduce(math.min);
     final maxPlacementX = horizontalPlacements
@@ -292,6 +295,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       warning:
           'Receipt photos could not be stitched safely. Receipt details will use them separately.',
       fallbackReasonCode: 'stitch_exception',
+      confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
+      failedPairIndex: activePairIndex >= 0 ? activePairIndex : null,
+      pairs: pairResults,
     );
   }
 }

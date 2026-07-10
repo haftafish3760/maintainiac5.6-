@@ -80,7 +80,10 @@ void main() {
     expect(zoomAndTilt.diagnosticCode, 'zoom_and_straighten_adjusted');
     expect(zoomAndTilt.userCheckLabel, contains('zoom difference'));
     expect(zoomAndTilt.userCheckLabel, contains('slight tilt'));
-    expect(fallback.summaryLabel, contains('Receipt sections will be reviewed separately.'));
+    expect(
+      fallback.summaryLabel,
+      contains('Receipt sections will be reviewed separately.'),
+    );
     expect(fallback.ocrSourceContractCode, 'fallback_ordered_sources_ready');
     expect(fallback.hasValidOcrSourceContract, isTrue);
     expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
@@ -472,5 +475,4 @@ void main() {
     expect(finalResult.stitchedSizeLabel, '900 x 2100');
     expect(finalResult.pairs.single.summaryLabel, contains('91%'));
   });
-
 }
