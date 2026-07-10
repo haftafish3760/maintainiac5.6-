@@ -222,4 +222,38 @@ void main() {
       expect(cache['new:fullImages'], [1, 2, 3]);
     },
   );
+
+  test('resolver deduplicates repeated and concurrent image fetches', () async {
+    var fetchCalls = 0;
+    final resolver = AppGeneratedPdfImageResolver(
+      fetch: ({required attachmentId, required mode}) async {
+        fetchCalls += 1;
+        await Future<void>.delayed(const Duration(milliseconds: 1));
+        return Uint8List.fromList([attachmentId.length, mode.index]);
+      },
+    );
+
+    final results = await Future.wait([
+      resolver.resolve(
+        attachmentId: 'same-photo',
+        mode: AppGeneratedPdfExportMode.thumbnails,
+      ),
+      resolver.resolve(
+        attachmentId: 'same-photo',
+        mode: AppGeneratedPdfExportMode.thumbnails,
+      ),
+    ]);
+
+    expect(fetchCalls, 1);
+    expect(results[0], [10, 1]);
+    expect(results[1], [10, 1]);
+    expect(
+      await resolver.resolve(
+        attachmentId: 'same-photo',
+        mode: AppGeneratedPdfExportMode.thumbnails,
+      ),
+      [10, 1],
+    );
+    expect(fetchCalls, 1);
+  });
 }

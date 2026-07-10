@@ -24,7 +24,7 @@ class AppGeneratedPdfImageResolutionException implements Exception {
 }
 
 class AppGeneratedPdfImageResolver {
-  const AppGeneratedPdfImageResolver({
+  AppGeneratedPdfImageResolver({
     required this.fetch,
     this.cacheRead,
     this.cacheWrite,
@@ -36,6 +36,8 @@ class AppGeneratedPdfImageResolver {
   final AppGeneratedPdfImageLoader fetch;
   final AppGeneratedPdfImageCacheRead? cacheRead;
   final AppGeneratedPdfImageCacheWrite? cacheWrite;
+  final Map<String, Uint8List> _memoryCache = {};
+  final Map<String, Future<Uint8List>> _inFlight = {};
 
   Future<Uint8List> resolve({
     required String attachmentId,
@@ -43,9 +45,36 @@ class AppGeneratedPdfImageResolver {
     bool allowFullImageDownload = false,
   }) async {
     final cacheKey = '$attachmentId:${mode.name}';
+    final memoryCached = _memoryCache[cacheKey];
+    if (memoryCached != null) return memoryCached;
+
+    final active = _inFlight[cacheKey];
+    if (active != null) return active;
+
+    final resolution = _resolveAndCache(
+      cacheKey: cacheKey,
+      attachmentId: attachmentId,
+      mode: mode,
+      allowFullImageDownload: allowFullImageDownload,
+    );
+    _inFlight[cacheKey] = resolution;
+    try {
+      return await resolution;
+    } finally {
+      _inFlight.remove(cacheKey);
+    }
+  }
+
+  Future<Uint8List> _resolveAndCache({
+    required String cacheKey,
+    required String attachmentId,
+    required AppGeneratedPdfExportMode mode,
+    required bool allowFullImageDownload,
+  }) async {
     final cached = await cacheRead?.call(cacheKey);
     if (cached != null && cached.isNotEmpty) {
       _validateBytes(cached, mode);
+      _memoryCache[cacheKey] = cached;
       return cached;
     }
     if (mode == AppGeneratedPdfExportMode.fullImages &&
@@ -59,6 +88,7 @@ class AppGeneratedPdfImageResolver {
       throw const AppGeneratedPdfImageResolutionException('image_unavailable');
     }
     _validateBytes(fetched, mode);
+    _memoryCache[cacheKey] = fetched;
     try {
       await cacheWrite?.call(cacheKey, fetched);
     } catch (_) {
