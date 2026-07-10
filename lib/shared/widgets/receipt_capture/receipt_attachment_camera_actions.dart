@@ -80,6 +80,7 @@ extension _ReceiptAttachmentCameraActions
           initialPhotoPaths: _photoPaths,
           initialQualityChecksByPath: _photoQualityByPath,
           initialDataSaverLevel: _dataSaverLevel,
+          uiConfig: widget.uiConfig,
           forceAssistedReceiptFill: settings?.appAssistedEnabledFor(
             widget.area,
           ),

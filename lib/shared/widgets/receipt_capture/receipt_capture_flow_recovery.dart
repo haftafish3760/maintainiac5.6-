@@ -104,6 +104,9 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
                 ...reviewOpeningDiagnostics,
               },
               assistedReceiptFill: assistedReceiptFill,
+              uiConfig:
+                  options.uiConfig?.review ??
+                  const ReceiptPhotoReviewUiConfig(),
             ),
           ),
         );

@@ -39,6 +39,7 @@ class ReceiptCaptureFlowOptions {
     this.initialCaptureDiagnosticsByPath = const {},
     this.initialSelectedIndex = 0,
     this.initialDataSaverLevel,
+    this.uiConfig,
     this.forceAssistedReceiptFill,
     this.forceLongReceiptMode,
     this.forceAutoCapture,
@@ -59,6 +60,7 @@ class ReceiptCaptureFlowOptions {
   final Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath;
   final int initialSelectedIndex;
   final ReceiptDataSaverLevel? initialDataSaverLevel;
+  final ReceiptCaptureUiConfig? uiConfig;
   final bool? forceAssistedReceiptFill;
   final bool? forceLongReceiptMode;
   final bool? forceAutoCapture;
@@ -147,6 +149,7 @@ class ReceiptCaptureContinuationGuide {
       initialCaptureDiagnosticsByPath: options.initialCaptureDiagnosticsByPath,
       initialSelectedIndex: options.initialSelectedIndex,
       initialDataSaverLevel: options.initialDataSaverLevel,
+      uiConfig: options.uiConfig,
       forceAssistedReceiptFill: options.forceAssistedReceiptFill,
       forceLongReceiptMode: options.forceLongReceiptMode,
       forceAutoCapture: options.forceAutoCapture,

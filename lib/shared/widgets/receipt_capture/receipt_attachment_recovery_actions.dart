@@ -38,6 +38,7 @@ extension _ReceiptAttachmentRecoveryActions
             _photoCaptureDiagnosticsByPath,
           ),
           initialDataSaverLevel: _dataSaverLevel,
+          uiConfig: widget.uiConfig,
         ),
       );
       _publishSharedReceiptCaptureDiagnostic(result);

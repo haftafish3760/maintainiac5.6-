@@ -224,6 +224,8 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
               ...reviewOpeningDiagnostics,
             },
             assistedReceiptFill: cameraSettings.assistedReceiptFill,
+            uiConfig:
+                options.uiConfig?.review ?? const ReceiptPhotoReviewUiConfig(),
           ),
         ),
       );
