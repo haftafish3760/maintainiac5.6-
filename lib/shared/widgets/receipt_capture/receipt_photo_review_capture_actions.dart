@@ -26,6 +26,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         : _photoPaths[selectedPhotoIndex];
     final picked = await _pickReceiptPhotos(
       alignmentGuidePhotoPath: guidePhotoPath,
+      showAlignmentGuide: false,
     );
     if (picked.paths.isEmpty || !_reviewWorkActive) return;
     final insertPlan = guidePhotoPath == null
@@ -119,13 +120,14 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     String? nextSectionGuidePhotoPath,
     String? alignmentReasonCode,
     String? alignmentGuidance,
+    bool showAlignmentGuide = true,
   }) async {
     if (_openingCamera) return const _PickedReceiptPhotos.empty();
     _updateReviewState(() => _openingCamera = true);
     ReceiptPhotoCoverageDecision? coverageDecision;
     try {
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-      if (alignmentGuidePhotoPath != null) {
+      if (alignmentGuidePhotoPath != null && showAlignmentGuide) {
         coverageDecision = _coverageDecisionForPhoto(alignmentGuidePhotoPath);
         final shouldContinue = await _showLongReceiptAlignmentGuide(
           alignmentGuidePhotoPath,

@@ -5,6 +5,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_camera_capture_layout_source_readers.dart';
 
 void main() {
+  test('add another photo opens capture without an intermediate guide', () async {
+    final captureActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_capture_actions.dart',
+    ).readAsString();
+
+    expect(
+      captureActions,
+      contains(
+        'alignmentGuidePhotoPath: guidePhotoPath,\n      showAlignmentGuide: false,',
+      ),
+    );
+    expect(captureActions, contains('bool showAlignmentGuide = true'));
+    expect(
+      captureActions,
+      contains('alignmentGuidePhotoPath != null && showAlignmentGuide'),
+    );
+  });
+
   test('photo review bottom controls stay capped by mode', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final controls = [
@@ -82,9 +100,18 @@ void main() {
     expect(reviewScreen, contains('boundaryMargin: const EdgeInsets.all(48)'));
     expect(reviewScreen, contains('void _togglePhotoPreviewZoom()'));
     expect(reviewScreen, contains('void _resetPhotoPreviewZoom()'));
-    expect(reviewScreen, contains('onHideControls: _openingCamera || _savingPhotos'));
-    expect(reviewScreen, contains('final interactionLocked = _openingCamera || _savingPhotos;'));
-    expect(reviewScreen, contains('if (interactionLocked && _controlsVisible) return;'));
+    expect(
+      reviewScreen,
+      contains('onHideControls: _openingCamera || _savingPhotos'),
+    );
+    expect(
+      reviewScreen,
+      contains('final interactionLocked = _openingCamera || _savingPhotos;'),
+    );
+    expect(
+      reviewScreen,
+      contains('if (interactionLocked && _controlsVisible) return;'),
+    );
     expect(reviewScreen, contains('if (interactionLocked) {'));
     expect(reviewScreen, contains('_controlsVisible = true;'));
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
@@ -103,7 +130,10 @@ void main() {
     expect(controls, contains('thumbVisibility: true'));
     expect(controls, contains('trackVisibility: true'));
     expect(controls, contains('enabled: !openingCamera && !savingPhotos'));
-    expect(controls, contains('previewEnabled: !openingCamera && !savingPhotos'));
+    expect(
+      controls,
+      contains('previewEnabled: !openingCamera && !savingPhotos'),
+    );
     expect(controls, contains('enabled: !openingCamera && !savingPhotos'));
   });
 
@@ -167,12 +197,12 @@ void main() {
       previewControls,
       contains('Add another receipt photo if the receipt continues'),
     );
-    expect(controls, contains('final interactionLocked = openingCamera || savingPhotos;'));
-    expect(previewControls, contains('OutlinedButton.icon'));
     expect(
-      previewControls,
-      contains('_ReceiptPhotoSectionLabels.retakeLabel'),
+      controls,
+      contains('final interactionLocked = openingCamera || savingPhotos;'),
     );
+    expect(previewControls, contains('OutlinedButton.icon'));
+    expect(previewControls, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
     expect(
       previewControls,
       contains('_ReceiptPhotoSectionLabels.retakeSemanticLabel'),
@@ -182,9 +212,15 @@ void main() {
     expect(previewControls, contains('message: retakeSemanticLabel'));
     expect(previewControls, contains('label: retakeSemanticLabel'));
     expect(previewControls, contains("'Opening receipt details'"));
-    expect(previewControls, contains('onPressed: savingPhotos ? null : onContinue'));
+    expect(
+      previewControls,
+      contains('onPressed: savingPhotos ? null : onContinue'),
+    );
     expect(controls, contains('onTap: interactionLocked'));
-    expect(controls, contains('onAddPhoto: interactionLocked ? null : onAddPhoto'));
+    expect(
+      controls,
+      contains('onAddPhoto: interactionLocked ? null : onAddPhoto'),
+    );
     expect(controls, contains('onOrder: interactionLocked'));
     expect(controls, contains('onMatch: interactionLocked'));
     expect(controls, contains('onCrop: interactionLocked'));
@@ -193,10 +229,10 @@ void main() {
     expect(commonControls, contains("const Text('Opening')"));
     expect(commonControls, isNot(contains("'Opening receipt review'")));
     expect(controls, contains(': continueLabel'));
-    expect(previewControls, contains(r"'Photo $current of $total'"));
+    expect(previewControls, contains(r"'Section $current of $total'"));
     expect(previewControls, isNot(contains(r"'$current/$total'")));
     expect(previewControls, contains("label: 'Add Another Photo'"));
-    expect(previewControls, contains("'Photo \$current of \$total'"));
+    expect(previewControls, contains("'Section \$current of \$total'"));
     expect(commonControls, contains("'Add Another Photo' =>"));
     expect(
       commonControls,
@@ -226,14 +262,14 @@ void main() {
         'if (total > 1)\n                const PopupMenuItem(\n                  value: _ReceiptReviewMenuAction.remove,',
       ),
     );
-    expect(reviewScreen, contains('final effectiveSelectedIndex = _photoPaths.isEmpty'));
+    expect(
+      reviewScreen,
+      contains('final effectiveSelectedIndex = _photoPaths.isEmpty'),
+    );
     expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt Photo'));
     expect(previewControls, contains('Crop Current'));
-    expect(
-      controls,
-      contains('selectedIndex: effectiveSelectedIndex'),
-    );
+    expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
     expect(
       controls,
       contains(
@@ -251,12 +287,7 @@ void main() {
       ),
     );
     expect(controls, contains('or use this photo only if '));
-    expect(
-      controls,
-      contains(
-        'it already shows the full receipt.',
-      ),
-    );
+    expect(controls, contains('it already shows the full receipt.'));
     expect(controls, contains('Saved locally for recovery.'));
     expect(controls, contains('captureSurface.startsWith'));
     expect(controls, contains('maintainiac_native_receipt_camera'));
@@ -269,10 +300,7 @@ void main() {
         'Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.',
       ),
     );
-    expect(
-      controls,
-      contains("return 'Use Receipt';"),
-    );
+    expect(controls, contains("return 'Use Receipt';"));
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains("secondary: 'Bottom Section'"));
     expect(
@@ -291,10 +319,19 @@ void main() {
     expect(modeControls, contains('Photo Order'));
     expect(modeControls, contains('Match Photos'));
     expect(modeControls, contains('final bool enabled;'));
-    expect(modeControls, contains('enabled ? () => onSelected(_ReceiptReviewMode.preview) : null'));
-    expect(modeControls, contains('enabled ? () => onSelected(_ReceiptReviewMode.crop) : null'));
+    expect(
+      modeControls,
+      contains('enabled ? () => onSelected(_ReceiptReviewMode.preview) : null'),
+    );
+    expect(
+      modeControls,
+      contains('enabled ? () => onSelected(_ReceiptReviewMode.crop) : null'),
+    );
     expect(modeControls, contains('enabled && photoCount > 1'));
-    expect(modeControls, contains('onPressed: previewEnabled ? onBackToPreview : null'));
+    expect(
+      modeControls,
+      contains('onPressed: previewEnabled ? onBackToPreview : null'),
+    );
     expect(sectionLabels, contains('Receipt Sections'));
     expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
     expect(sectionLabels, contains('Add Next Receipt Photo'));
@@ -304,9 +341,17 @@ void main() {
     );
     expect(sectionLabels, contains('Add Another Photo'));
     expect(contextControls, contains('Add Another Photo'));
-    expect(contextControls, contains('canRemove && !openingCamera ? onRemove : null'));
+    expect(
+      contextControls,
+      contains('canRemove && !openingCamera ? onRemove : null'),
+    );
     expect(orderControls, contains('final interactionLocked = openingCamera;'));
-    expect(orderControls, contains('onTap: interactionLocked ? null : () => onPhotoSelected(index)'));
+    expect(
+      orderControls,
+      contains(
+        'onTap: interactionLocked ? null : () => onPhotoSelected(index)',
+      ),
+    );
     expect(orderControls, contains('canMoveEarlier && !interactionLocked'));
     expect(orderControls, contains('canMoveLater && !interactionLocked'));
     expect(
@@ -314,17 +359,17 @@ void main() {
       contains('disabled: openingCamera || effectiveSavingPhotos'),
     );
     expect(cropAndProofControls, contains('final bool enabled;'));
-    expect(cropAndProofControls, contains('onTap: enabled ? () => onSelected(level) : null'));
+    expect(
+      cropAndProofControls,
+      contains('onTap: enabled ? () => onSelected(level) : null'),
+    );
     expect(controls, isNot(contains('Add Another Receipt Photo')));
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, isNot(contains('Read Receipt')));
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
-    expect(
-      previewControls,
-      contains('onPressed: openingCamera'),
-    );
+    expect(previewControls, contains('onPressed: openingCamera'));
     expect(
       previewControls,
       contains(': () => onModeChanged(_ReceiptReviewMode.crop)'),
@@ -366,7 +411,10 @@ void main() {
       controls,
       contains('Use Match Photos to check whether one combined receipt image'),
     );
-    expect(controls, contains('Use Receipt will use one combined receipt image.'));
+    expect(
+      controls,
+      contains('Use Receipt will use one combined receipt image.'),
+    );
     expect(controls, contains('ordered sections from top to bottom'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
