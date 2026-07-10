@@ -58,6 +58,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_handoff_readiness.dart';
   static const _pehCoreMeasurementGapPath =
       'tool/work_supply_parser_qa_peh_core_measurement_gap.dart';
+  static const _reusableHandoffParityPath =
+      'tool/reusable_parsing_qa_handoff_parity.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -357,6 +359,14 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--output',
       'build/parser_qa_pipeline/peh_core_measurement_gap.json',
     ]),
+    _CommandContract('reusable_handoff_parity', [
+      'dart run tool/reusable_parsing_qa_handoff_parity.dart',
+      '--root',
+      '--checkpoint',
+      'docs/reusable_parsing_qa_checkpoint.json',
+      '--peh-packet',
+      'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -554,6 +564,21 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'rollupCommandCount',
         'blockingFindings',
         'nextActions',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'reusable_handoff_parity_readout',
+      path: _reusableHandoffParityPath,
+      tokens: [
+        'QA_REUSABLE_PARSING_HANDOFF_PARITY',
+        'checkpointPath',
+        'pehPacketPath',
+        'validatedFloorCommit',
+        'packetReusableValidatedFloorCommit',
+        'packetInventoryExecutionBranch',
+        'parityOk',
+        'findingCount',
+        'findings',
       ],
     ),
     _ToolSourceContract(
@@ -916,6 +941,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreClaimReadinessPath: _read(_pehCoreClaimReadinessPath, failures),
       _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
       _pehCoreMeasurementGapPath: _read(_pehCoreMeasurementGapPath, failures),
+      _reusableHandoffParityPath: _read(_reusableHandoffParityPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {
