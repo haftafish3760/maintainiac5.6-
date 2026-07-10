@@ -327,7 +327,8 @@ internal fun ReceiptCameraActivity.formatReceiptBytes(bytes: Long): String {
 
 internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
     settingsResetCount += 1
-    assistedReceiptFill = true
+    // Receipt Assist remains opt-in, even after restoring camera defaults.
+    assistedReceiptFill = false
     receiptPhotoBackupEnabled = false
     longReceiptMode = canUseLongReceiptMode()
     autoCaptureEnabled = false
