@@ -132,6 +132,9 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     final nextGuidePhotoPath = receiptNativeCameraLocalImagePathOrNull(
       nextSectionGuidePhotoPath,
     );
+    final normalizedPreviousReason = previousSectionReasonCode
+        ?.trim()
+        .toLowerCase();
     final hasPreviousGuide =
         previousSectionGhostGuideEnabled &&
         longReceiptMode &&
@@ -203,8 +206,9 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
           ? previousGuidePhotoPath
           : null,
       nextSectionGuidePhotoPath:
-          previousSectionGhostGuideEnabled &&
-              longReceiptMode &&
+          normalizedPreviousReason ==
+                  'retake_middle_with_previous_next_context' &&
+              hasPreviousGuide &&
               nextGuidePhotoPath != null &&
               nextGuidePhotoPath != previousGuidePhotoPath
           ? nextGuidePhotoPath

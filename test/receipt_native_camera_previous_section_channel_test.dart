@@ -197,4 +197,39 @@ void main() {
       expect(sentArguments['nextSectionGhostOverlayTopFraction'], .80);
     },
   );
+
+  test('native session suppresses second guide outside middle retakes', () {
+    const capabilities = ReceiptNativeCameraCapabilities(
+      engine: ReceiptNativeCameraEngine.cameraX,
+      available: true,
+      cameraPermissionGranted: true,
+      hasRearCamera: true,
+      supportsContinuousFocus: true,
+    );
+    final bottomRetake = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.standard(),
+      nativeCapabilities: capabilities,
+      previousSectionGuidePhotoPath: '/tmp/section-two.jpg',
+      nextSectionGuidePhotoPath: '/tmp/section-four.jpg',
+      previousSectionReasonCode: 'retake_bottom_with_previous_context',
+    );
+    final continuation = const ReceiptNativeCameraSettings().sessionFor(
+      deviceCapability: const ReceiptDeviceCapability.standard(),
+      nativeCapabilities: capabilities,
+      previousSectionGuidePhotoPath: '/tmp/section-two.jpg',
+      nextSectionGuidePhotoPath: '/tmp/section-four.jpg',
+      previousSectionReasonCode: 'manual_add_photo_continuation',
+    );
+
+    expect(bottomRetake.hasNextSectionGuide, isFalse);
+    expect(continuation.hasNextSectionGuide, isFalse);
+    expect(
+      bottomRetake.nativeControlContractTags,
+      isNot(contains('two_sided_section_ghost')),
+    );
+    expect(
+      continuation.nativeControlContractTags,
+      isNot(contains('next_section_ghost')),
+    );
+  });
 }
