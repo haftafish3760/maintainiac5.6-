@@ -84,4 +84,38 @@ void main() {
       'Confirm the inserted receipt section appears after the selected section. Receipt details open immediately after that confirmation.',
     );
   });
+
+  test('removal follow-through labels stay explicit after stitch fallback', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
+        warning: 'Review remaining receipt section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/bottom.jpg': {
+          'receiptRemoveOriginalSectionNumber': 2,
+          'receiptRemoveFinalSectionNumber': 2,
+          'receiptRemoveFinalSectionCount': 2,
+          'receiptRemoveRemainingSectionOriginalNumber': 3,
+          'receiptRemoveSectionShifted': true,
+          'receiptRemoveOrderPolicy':
+              'remove_selected_section_preserve_remaining_order',
+        },
+      },
+    );
+
+    expect(result.receiptSectionOrderHasFollowThroughAction, isTrue);
+    expect(
+      result.acceptedPhotoHandoffNextStepLabel,
+      'Confirm the remaining receipt section order after removal before continuing. Then receipt details open.',
+    );
+    expect(
+      result.acceptedPhotoHandoffRouteResultLabel,
+      'Confirm the remaining receipt section order after removal before continuing. Receipt details open immediately after that confirmation.',
+    );
+  });
 }
