@@ -4,9 +4,9 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "baselineCommit": "fe15ba3",
-  "baselineCommitFull": "fe15ba396d3d444ced7f708c5f2273f31538a2b2",
-  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:05 EDT: embed baseline commit in Mac handoff packet",
+  "baselineCommit": "8ca321c",
+  "baselineCommitFull": "8ca321c0aa5210eb932620ff84cbfc77cf1c5d10",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:06 EDT: sync all handoff artifacts to latest baseline",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
   "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
@@ -189,5 +189,5 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 20:06 EDT"
+  "generatedAtEdt": "2026-07-09 20:07 EDT"
 }
