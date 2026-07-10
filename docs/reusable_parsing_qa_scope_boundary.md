@@ -1,6 +1,6 @@
 # Reusable Parsing QA Scope Boundary
 
-Last updated: 2026-07-09 22:33 EDT
+Last updated: 2026-07-09 22:40 EDT
 
 This file is the explicit boundary between reusable parser QA foundation work
 and inventory-specific Windows work.
