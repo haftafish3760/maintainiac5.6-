@@ -80,7 +80,8 @@ void main() {
     expect((summary['executionOrder'] as List).length, greaterThanOrEqualTo(4));
     expect(summary['measurementCommandCount'], 4);
     expect(summary['rollupCommandCount'], 2);
-    expect(summary['refreshCommand'].toString(), contains('work_supply_parser_qa_peh_core_refresh.dart'));
+    expect(summary['refreshCommand'].toString(), contains('work_supply_parser_qa_peh_core_post_mac_refresh.dart'));
+    expect(summary['refreshCommand'].toString(), contains('--root'));
     expect(stdout.content, contains('QA_PEH_CORE_MAC_HANDOFF_PACKET'));
   });
 

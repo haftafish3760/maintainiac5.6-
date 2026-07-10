@@ -31,6 +31,10 @@ This runbook is the plain-English companion to:
    to be refreshed together, run
    `dart run tool/work_supply_parser_qa_peh_core_restamp_handoff.dart --root .`
    before handing the wave back to the Mac Mini.
+10. After the Mac Mini copies its rollups back to Windows, run
+    `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .`
+    so the PEH refresh, reusable checkpoint, reusable status, and reusable
+    summary all move together instead of being refreshed piecemeal.
 
 ## What Windows Already Finished
 

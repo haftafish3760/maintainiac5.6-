@@ -106,6 +106,14 @@ dart run tool/work_supply_parser_qa_generated_run_status.dart \
   --output build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json
 ```
 
+After the rollup file exists on Windows, refresh the downstream PEH and
+reusable handoff artifacts with one command:
+
+```bash
+dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart \
+  --root .
+```
+
 HVAC minimum pass criteria:
 
 - expected cells: `2`

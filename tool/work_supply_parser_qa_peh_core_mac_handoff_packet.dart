@@ -102,7 +102,9 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
   final refreshCommand = [
     'dart',
     'run',
-    'tool/work_supply_parser_qa_peh_core_refresh.dart',
+    'tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart',
+    '--root',
+    '.',
     '--mac-wave',
     macWavePath,
     '--windows-status',

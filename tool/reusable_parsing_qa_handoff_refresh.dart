@@ -75,6 +75,11 @@ int runReusableParsingQaHandoffRefresh(
   packet['baselineCommitFull'] = commitFull;
   packet['baselineCommitLabel'] = label;
   packet['generatedAtEdt'] = updatedAt;
+  packet['windowsWorkingBranch'] =
+      pehPacket['inventoryExecutionBranch'] ??
+      pehPacket['branch'] ??
+      packet['windowsWorkingBranch'] ??
+      'codex/inventory-parser-backup-20260702-2056';
 
   packetFile.writeAsStringSync(
     const JsonEncoder.withIndent('  ').convert(packet),
