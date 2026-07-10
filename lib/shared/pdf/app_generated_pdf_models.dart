@@ -14,6 +14,8 @@ enum AppGeneratedPdfKind {
   customerStatement,
 }
 
+enum AppGeneratedPdfSignatureState { notRequired, unsigned, signed, stale }
+
 class AppGeneratedPdfDocument {
   const AppGeneratedPdfDocument({
     required this.kind,
@@ -25,6 +27,8 @@ class AppGeneratedPdfDocument {
     this.sourceRecordId = '',
     this.shareSubject = '',
     this.shareText = '',
+    this.documentRevisionHashSha256 = '',
+    this.signatureState = AppGeneratedPdfSignatureState.notRequired,
   });
 
   final AppGeneratedPdfKind kind;
@@ -36,6 +40,8 @@ class AppGeneratedPdfDocument {
   final String sourceRecordId;
   final String shareSubject;
   final String shareText;
+  final String documentRevisionHashSha256;
+  final AppGeneratedPdfSignatureState signatureState;
 
   String get kindLabel {
     return switch (kind) {
@@ -63,6 +69,10 @@ class AppGeneratedPdfDocument {
       AppGeneratedPdfValidationReport.inspect(bytes);
 
   bool get isSendablePdf => validation.isValid;
+
+  bool get requiresCustomerSignature =>
+      signatureState == AppGeneratedPdfSignatureState.unsigned ||
+      signatureState == AppGeneratedPdfSignatureState.stale;
 }
 
 class AppGeneratedPdfFileName {

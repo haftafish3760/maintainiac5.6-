@@ -71,6 +71,12 @@ class InvoicePdfPreviewFactory {
       sourceRecordId: record.id,
       shareSubject: share.subject,
       shareText: share.text,
+      documentRevisionHashSha256: record.documentRevisionHashSha256,
+      signatureState: record.customerSignature.isPresent
+          ? record.customerSignatureIsValid
+                ? AppGeneratedPdfSignatureState.signed
+                : AppGeneratedPdfSignatureState.stale
+          : AppGeneratedPdfSignatureState.unsigned,
     );
   }
 

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_pdf_preview_factory.dart';
+import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 
 void main() {
   test('customer signature binds to the invoice content revision', () {
@@ -42,6 +44,20 @@ void main() {
     expect(
       changed.documentRevisionHashSha256,
       isNot(record.documentRevisionHashSha256),
+    );
+  });
+
+  test('invoice PDF metadata exposes the current signature state', () async {
+    final record = _record();
+    final document = await const InvoicePdfPreviewFactory().buildRecordPreview(
+      record: record,
+    );
+
+    expect(document.signatureState, AppGeneratedPdfSignatureState.unsigned);
+    expect(document.requiresCustomerSignature, isTrue);
+    expect(
+      document.documentRevisionHashSha256,
+      record.documentRevisionHashSha256,
     );
   });
 }
