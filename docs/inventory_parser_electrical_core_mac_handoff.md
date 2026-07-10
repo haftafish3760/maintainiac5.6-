@@ -1,6 +1,6 @@
 # Electrical Core Mac Validation Handoff
 
-Generated: 2026-07-09 10:16 PM EDT
+Generated: 2026-07-09 10:35 PM EDT
 
 ## Scope
 
@@ -12,16 +12,16 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `97a1ad3`
+- Commit: `4427f5a`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 10:16 PM EDT: narrow Mac PEH wave to remaining gap`
+  `Reusable parsing QA 2026-07-09 10:35 PM EDT: sync reusable handoff to hvac-only wave`
 
 Cross-check the live reusable handoff packet before running anything on Mac:
 
 - `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
 - expected:
   - `handoffClean=true`
-  - `windowsExecutionCommit=97a1ad3`
+  - `windowsExecutionCommit=4427f5a`
   - `totalRemainingChecked=38`
   - `nextTradesByRemainingGap=["hvac"]`
 
@@ -90,11 +90,12 @@ Branch-level PEH checkpoint status also exists:
 - `build/parser_qa_pipeline/peh_core_windows_status_rollup.json`
   - ready for Mac measurement wave: `true`
   - ready to claim `90-95%`: `false`
-  - Electrical remains sample-sized until the broader Mac wave clears.
+  - Electrical already meets the current checked-case target on Windows and is
+    excluded from the narrowed active Mac wave.
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `97a1ad3`.
+Run from the repo root on the Mac after checking out commit `4427f5a`.
 
 ## Current Active Mac Wave
 
@@ -121,44 +122,13 @@ flutter test test/work_supply_electrical_core_readiness_audit_test.dart
 
 ## Mac Follow-Through
 
-After the audit test is green on Mac, the next Mac-side task is to generate or
-validate the measured Electrical Core generated-fixture status layer before any
-`90-95%` accuracy claim is attached to Electrical.
+After the audit test is green on Mac, stop unless a later checkpoint reopens
+Electrical in the measurement gap. Electrical is already satisfied at the
+current Windows checkpoint and is intentionally excluded from the narrowed
+active Mac wave.
 
-Do not treat the readiness audit alone as the final accuracy proof.
-
-Use these exact next-step commands to raise Electrical measured coverage from
-the current `12` checked cases to at least `50` checked cases:
-
-```bash
-dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
-  --fixture build/parser_qa_generated/work_supply_parser/electrical/residential/core/en-US/generated_fixtures.json \
-  --max-cases 25 \
-  --chunk-size 25 \
-  --min-pass-rate 0.90 \
-  --timeout-ms 900000 \
-  --stale-report-timeout-ms 240000 \
-  --report-dir build/parser_qa_reports/generated_fixtures/mac_electrical_core_en_us_25
-```
-
-```bash
-dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
-  --fixture build/parser_qa_generated/work_supply_parser/electrical/residential/core/es-US/generated_fixtures.json \
-  --max-cases 25 \
-  --chunk-size 25 \
-  --min-pass-rate 0.90 \
-  --timeout-ms 900000 \
-  --stale-report-timeout-ms 240000 \
-  --report-dir build/parser_qa_reports/generated_fixtures/mac_electrical_core_es_us_25
-```
-
-Expected minimum result from those two commands together:
-
-- total checked: `50`
-- total failures: `0`
-- rollup gate: `generated_run_status --min-pass-rate 0.90`
-- each aggregate pass rate: at least `0.9000`
-- local-only safety flags all false
+Do not rerun the Electrical 25-case Mac wave unless the live handoff summary
+shows Electrical back inside `nextTradesByRemainingGap`.
 
 Canonical plan:
 
