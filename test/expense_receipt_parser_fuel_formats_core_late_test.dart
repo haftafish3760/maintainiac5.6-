@@ -80,6 +80,7 @@ ODOMETER 94820
     final fuel = parsed.lines.single;
     expect(fuel.category, 'Fuel');
     expect(fuel.fuelType, 'Gasoline');
+    expect(fuel.description, contains('90'));
     expect(fuel.quantity, 6.25);
     expect(fuel.unit, 'gallon');
     expect(fuel.unitPrice, 4.299);
@@ -91,7 +92,7 @@ ODOMETER 94820
 Gasolinera Del Norte
 06/25/2026
 Bomba 1
-Producto Gasolina Sin Etanol
+Producto Gasolina Sin Etanol 90
 Galones 5.125
 Precio/Galón 3.199
 Venta Combustible 16.39
@@ -103,6 +104,7 @@ Odometro 95110
     final spanishFuel = spanish.lines.single;
     expect(spanishFuel.category, 'Fuel');
     expect(spanishFuel.fuelType, 'Gasoline');
+    expect(spanishFuel.description, contains('90'));
     expect(spanishFuel.quantity, 5.125);
     expect(spanishFuel.unitPrice, 3.199);
     expect(spanishFuel.subtotal, 16.39);
