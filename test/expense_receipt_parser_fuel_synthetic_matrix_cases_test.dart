@@ -240,6 +240,64 @@ Odometro 60210
     );
   });
 
+  test('keeps fuel intact on a long mixed convenience-store ticket', () {
+    final parsed = parseExpenseReceiptText('''
+LOVE'S TRAVEL STOP
+07/02/2026
+PUMP 14
+PRODUCT ON-ROAD DIESEL
+GALLONS 12.750
+PRICE/GAL 3.789
+FUEL SALE 48.31
+COFFEE LARGE 2.49
+BOTTLED WATER 1.50
+TURKEY SANDWICH 6.99
+POTATO CHIPS 2.29
+WINDSHIELD WASHER FLUID 5.99
+AIR FRESHENER 4.49
+CAR WASH DELUXE 12.00
+PROTEIN BAR 3.19
+BAG ICE 2.99
+REWARDS DISCOUNT -0.50
+SALES TAX 1.42
+SUBTOTAL 89.74
+TOTAL 91.16
+VISA CREDIT 91.16
+PREAUTH HOLD 150.00
+AUTH APPROVED 884221
+TANK NOT FULL
+ODOMETER 231920
+''');
+
+    final fuelLines = parsed.lines
+        .where((line) => line.category == 'Fuel')
+        .toList();
+    expect(fuelLines, hasLength(1));
+    final fuel = fuelLines.single;
+    expect(fuel.fuelType, 'Diesel');
+    expect(fuel.quantity, 12.75);
+    expect(fuel.unitPrice, 3.789);
+    expect(fuel.subtotal, 48.31);
+    expect(fuel.odometerReading, 231920);
+    expect(fuel.fillType, 'Partial fill');
+    expect(parsed.lines.map((line) => line.category), contains('Meals'));
+    expect(
+      parsed.lines.map((line) => line.category),
+      contains('Vehicle Supplies'),
+    );
+    expect(parsed.enteredTax, 1.42);
+    expect(parsed.enteredTotal, 91.16);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+    expect(
+      parsed.diagnostics.parserTaskCount('parser_expense_family_mixed_receipt'),
+      greaterThan(0),
+    );
+    expect(
+      parsed.diagnostics.parserTaskCount('auth_detail_line_excluded'),
+      greaterThan(0),
+    );
+  });
+
   test('keeps Spanish fuel discounts as receipt adjustments', () {
     final parsed = parseExpenseReceiptText('''
 La Estrella Fuel
