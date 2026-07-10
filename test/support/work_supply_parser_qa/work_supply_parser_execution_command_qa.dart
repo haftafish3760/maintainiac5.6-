@@ -60,6 +60,10 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_measurement_gap.dart';
   static const _reusableHandoffParityPath =
       'tool/reusable_parsing_qa_handoff_parity.dart';
+  static const _reusableHandoffStatusPath =
+      'tool/reusable_parsing_qa_handoff_status.dart';
+  static const _reusableHandoffSummaryPath =
+      'tool/reusable_parsing_qa_handoff_summary.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -367,6 +371,16 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--peh-packet',
       'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
     ]),
+    _CommandContract('reusable_handoff_status', [
+      'dart run tool/reusable_parsing_qa_handoff_status.dart',
+      '--root',
+      '.',
+    ]),
+    _CommandContract('reusable_handoff_summary', [
+      'dart run tool/reusable_parsing_qa_handoff_summary.dart',
+      '--root',
+      '.',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -579,6 +593,38 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'parityOk',
         'findingCount',
         'findings',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'reusable_handoff_status_readout',
+      path: _reusableHandoffStatusPath,
+      tokens: [
+        'QA_REUSABLE_PARSING_HANDOFF_STATUS',
+        'docsAligned',
+        'parityApplicable',
+        'parityOk',
+        'packetExecutionHeadAligned',
+        'scriptExecutionHeadAligned',
+        'checkpointTotalRemainingChecked',
+        'packetTotalRemainingChecked',
+        'checkpointNextTradesByRemainingGap',
+        'packetNextTradesByRemainingGap',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'reusable_handoff_summary_readout',
+      path: _reusableHandoffSummaryPath,
+      tokens: [
+        'QA_REUSABLE_PARSING_HANDOFF_SUMMARY',
+        'handoffClean',
+        'statusExit',
+        'totalRemainingChecked',
+        'nextTradesByRemainingGap',
+        'claimBlockingFindings',
+        'claimNextActions',
+        'measurementCommandCount',
+        'rollupCommandCount',
+        'firstMeasurementCommand',
       ],
     ),
     _ToolSourceContract(
@@ -942,6 +988,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreHandoffReadinessPath: _read(_pehCoreHandoffReadinessPath, failures),
       _pehCoreMeasurementGapPath: _read(_pehCoreMeasurementGapPath, failures),
       _reusableHandoffParityPath: _read(_reusableHandoffParityPath, failures),
+      _reusableHandoffStatusPath: _read(_reusableHandoffStatusPath, failures),
+      _reusableHandoffSummaryPath: _read(_reusableHandoffSummaryPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {
