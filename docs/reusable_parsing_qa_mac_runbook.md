@@ -56,12 +56,13 @@ Do not rebuild these unless a new regression proves they are wrong:
 4. Continue broader reusable receipt/parsing-core extraction only after the
    current PEH measurement lane is advanced from this checkpoint.
 
-### Merchant Extraction Ownership
+## Merchant Extraction Ownership
 
 - Do not start a separate merchant-extraction buildout while PEH measurement is
   still the active blocker.
 - If the immediate task is inventory receipt parsing for merchant-style lines,
-  abbreviations, or context boosts, treat it as Work Supplies parser ownership.
+  abbreviations, or context boosts, treat it as Work Supplies parser
+  ownership.
 - If the follow-up task is a shared merchant extraction layer meant to power
   multiple receipt/parser domains, treat it as reusable parser QA/platform
   ownership after the current PEH handoff step is complete.
