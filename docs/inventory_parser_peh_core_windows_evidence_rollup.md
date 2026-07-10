@@ -140,25 +140,24 @@ proves otherwise.
   - missing trades: `0`
   - unsafe trades: `0`
   - failed trades: `0`
-  - under-target trades: `2`
-  - sample-sized trades: `2`
+  - under-target trades: `1`
+  - sample-sized trades: `1`
   - ready for Mac measurement wave: `true`
   - ready to claim `90-95%`: `false`
 - All three PEH Core trades currently have clean Windows-side readiness audits.
 - Plumbing has stronger measured Windows evidence than the other two trades.
-- Electrical and HVAC already have clean measured sample rollups on disk.
-- Electrical and HVAC still need broader measured generated-fixture validation
-  before any professional `90-95%` accuracy claim is attached to them.
+- Electrical already meets the current checked-case target on Windows.
+- HVAC already has a clean measured sample rollup on disk but still needs the
+  broader measured generated-fixture validation before any professional
+  `90-95%` accuracy claim is attached to it.
 
 ## Next Professional Steps
 
 1. Use Mac to rerun the focused Plumbing runtime proof that still stalls on
    Windows.
-2. Use Mac to expand Electrical Core measured generated validation beyond the
-   current `6 + 6` sample (`12` checked total).
-3. Use Mac to expand HVAC Core measured generated validation beyond the current
+2. Use Mac to expand HVAC Core measured generated validation beyond the current
    `6 + 6` sample (`12` checked total).
-4. After broader measured evidence exists for Electrical and HVAC, write branch
+3. After broader measured evidence exists for HVAC, write branch
    level generated-status rollups for all PEH Core trades.
 
 ## Next Measurement Targets
@@ -171,16 +170,15 @@ stopping at smoke-sized samples.
   - Reconfirm the focused Menards sanitary-tee runtime proof on Mac.
   - Keep the existing `100`-case measured benchmark green.
 - Electrical Core
-  - Raise measured generated coverage from `12` total checked cases to at least
-    `50` checked cases across `en-US` and `es-US`.
-  - Enforce the reusable rollup gate with `--min-pass-rate 0.90`.
-  - Maintain `0` failures and local-only safety flags.
+  - Keep the current `50` checked-case Windows evidence as the satisfied floor.
+  - Do not reopen Electrical on Mac unless a newer handoff summary puts it back
+    into `nextTradesByRemainingGap`.
 - HVAC Core
   - Raise measured generated coverage from `12` total checked cases to at least
     `50` checked cases across `en-US` and `es-US`.
   - Enforce the reusable rollup gate with `--min-pass-rate 0.90`.
   - Maintain `0` failures and local-only safety flags.
 - PEH rollup threshold
-  - Do not describe Electrical or HVAC as `90-95%` ready until their measured
-    generated evidence is materially larger than the current smoke-sized sample
-    set and still clears the requested floor.
+  - Do not describe HVAC as `90-95%` ready until its measured generated
+    evidence is materially larger than the current smoke-sized sample set and
+    still clears the requested floor.

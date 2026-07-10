@@ -69,6 +69,7 @@ int runReusableParsingQaHandoffRefresh(
   final pehPacket = _readOptionalJson(
     _resolve(root, 'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json'),
   );
+  final expectedOutputsFromPacket = _stringList(pehPacket['expectedOutputs']);
   packet['primaryBranch'] = branch;
   packet['baselineCommit'] = commit;
   packet['baselineCommitFull'] = commitFull;
@@ -101,6 +102,7 @@ int runReusableParsingQaHandoffRefresh(
       updatedAt: updatedAt,
       branch: branch,
       commit: commit,
+      expectedOutputs: expectedOutputsFromPacket,
     ),
     flush: true,
   );
@@ -114,6 +116,7 @@ int runReusableParsingQaHandoffRefresh(
       branch: branch,
       commit: commit,
       boundaryPath: 'docs/reusable_parsing_qa_scope_boundary.md',
+      expectedOutputs: expectedOutputsFromPacket,
     ),
     flush: true,
   );
@@ -443,7 +446,11 @@ String _runbookContents({
   required String branch,
   required String commit,
   required String boundaryPath,
+  required List<String> expectedOutputs,
 }) {
+  final outputLines = expectedOutputs
+      .map((path) => '- `$path`')
+      .join('\n');
   return '''# Reusable Parsing QA Mac Mini Runbook
 
 Last updated: $updatedAt
@@ -489,7 +496,7 @@ Do not rebuild these unless a new regression proves they are wrong:
 
 1. Run the heavier PEH generated-fixture measurement wave from the reusable
    parsing baseline.
-2. Roll up the Electrical and HVAC Mac wave results.
+2. Roll up the active Mac measurement wave results.
 3. Refresh the PEH status stack after the Mac wave outputs exist.
 4. Continue broader reusable receipt/parsing-core extraction only after the
    current PEH measurement lane is advanced from this checkpoint.
@@ -514,11 +521,7 @@ Do not rebuild these unless a new regression proves they are wrong:
 
 The current packet expects these outputs to exist after the Mac wave:
 
-- `build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json`
-- `build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json`
-- `build/parser_qa_pipeline/peh_core_mac_wave_status.json`
-- `build/parser_qa_pipeline/peh_core_merged_status_rollup.json`
-- `build/parser_qa_pipeline/peh_core_claim_readiness.json`
+$outputLines
 
 ## Ownership Boundary
 
@@ -589,7 +592,11 @@ String _boundaryContents({
   required String updatedAt,
   required String branch,
   required String commit,
+  required List<String> expectedOutputs,
 }) {
+  final outputLines = expectedOutputs
+      .map((path) => '- `$path`')
+      .join('\n');
   return '''# Reusable Parsing QA Scope Boundary
 
 Last updated: $updatedAt
@@ -637,11 +644,7 @@ new regression or handoff explicitly says otherwise:
 The Mac Mini lane is expected to produce or refresh these heavier validation
 artifacts from the reusable baseline:
 
-- `build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json`
-- `build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json`
-- `build/parser_qa_pipeline/peh_core_mac_wave_status.json`
-- `build/parser_qa_pipeline/peh_core_merged_status_rollup.json`
-- `build/parser_qa_pipeline/peh_core_claim_readiness.json`
+$outputLines
 
 ## Rule
 

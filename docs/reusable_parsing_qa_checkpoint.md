@@ -1,6 +1,6 @@
 # Reusable Parsing QA Checkpoint
 
-Last updated: 2026-07-09 22:58 EDT
+Last updated: 2026-07-09 11:58 PM EDT
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Windows working branch: `codex/inventory-parser-backup-20260702-2056`
@@ -14,7 +14,7 @@ Last updated: 2026-07-09 22:58 EDT
 
 - Keep Windows ownership on inventory-specific Work Supplies parser/code hardening.
 - Do not claim 90-95 percent PEH readiness until the Mac wave closes the remaining measured gaps.
-- Keep the branch below a 90-95 percent claim until Electrical and HVAC clear their broader measured Mac wave.
+- Keep the branch below a 90-95 percent claim until the hvac remaining measured Mac wave clears.
 
 ## Mac Mini Next
 

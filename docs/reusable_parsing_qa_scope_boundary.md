@@ -45,7 +45,6 @@ new regression or handoff explicitly says otherwise:
 The Mac Mini lane is expected to produce or refresh these heavier validation
 artifacts from the reusable baseline:
 
-- `build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json`
 - `build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json`
 - `build/parser_qa_pipeline/peh_core_mac_wave_status.json`
 - `build/parser_qa_pipeline/peh_core_merged_status_rollup.json`

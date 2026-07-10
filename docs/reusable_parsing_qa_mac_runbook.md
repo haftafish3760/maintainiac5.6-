@@ -43,7 +43,7 @@ Do not rebuild these unless a new regression proves they are wrong:
 
 1. Run the heavier PEH generated-fixture measurement wave from the reusable
    parsing baseline.
-2. Roll up the Electrical and HVAC Mac wave results.
+2. Roll up the active Mac measurement wave results.
 3. Refresh the PEH status stack after the Mac wave outputs exist.
 4. Continue broader reusable receipt/parsing-core extraction only after the
    current PEH measurement lane is advanced from this checkpoint.
@@ -68,7 +68,6 @@ Do not rebuild these unless a new regression proves they are wrong:
 
 The current packet expects these outputs to exist after the Mac wave:
 
-- `build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json`
 - `build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json`
 - `build/parser_qa_pipeline/peh_core_mac_wave_status.json`
 - `build/parser_qa_pipeline/peh_core_merged_status_rollup.json`

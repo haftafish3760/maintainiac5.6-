@@ -24,7 +24,7 @@ void main() {
       'readyForMacMeasurementWave': true,
       'readyToClaimNinetyPlus': false,
       'nextActions': [
-        'Keep the branch below a 90-95 percent claim until Electrical and HVAC clear their broader measured Mac wave.',
+        'Keep the branch below a 90-95 percent claim until the hvac remaining measured Mac wave clears.',
       ],
     });
     _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_measurement_gap.json', {

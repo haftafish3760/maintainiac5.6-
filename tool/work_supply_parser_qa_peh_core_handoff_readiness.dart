@@ -56,6 +56,11 @@ int runWorkSupplyParserQaPehCoreHandoffReadiness(
 
   final findings = <String>[];
   final nextActions = <String>[];
+  final selectedTrades =
+      (macWave['selectedTrades'] as List<dynamic>? ?? const <dynamic>[])
+          .map((trade) => trade.toString())
+          .where((trade) => trade.isNotEmpty)
+          .toList(growable: false);
 
   final readyForMacMeasurementWave =
       windows['readyForMacMeasurementWave'] == true;
@@ -65,8 +70,11 @@ int runWorkSupplyParserQaPehCoreHandoffReadiness(
 
   final readyToClaimNinetyPlus = windows['readyToClaimNinetyPlus'] == true;
   if (!readyToClaimNinetyPlus) {
+    final waveLabel = selectedTrades.isEmpty
+        ? 'the remaining measured Mac wave'
+        : '${selectedTrades.join(', ')} remaining measured Mac wave';
     nextActions.add(
-      'Keep the branch below a 90-95 percent claim until Electrical and HVAC clear their broader measured Mac wave.',
+      'Keep the branch below a 90-95 percent claim until the $waveLabel clears.',
     );
   }
 
@@ -75,11 +83,6 @@ int runWorkSupplyParserQaPehCoreHandoffReadiness(
     findings.add('unexpected_trade_count');
   }
 
-  final selectedTrades =
-      (macWave['selectedTrades'] as List<dynamic>? ?? const <dynamic>[])
-          .map((trade) => trade.toString())
-          .where((trade) => trade.isNotEmpty)
-          .toList(growable: false);
   if (selectedTrades.isEmpty) {
     findings.add('missing_selected_trades');
   }

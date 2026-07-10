@@ -283,6 +283,18 @@ void main() {
       boundary,
       contains('tool/reusable_parsing_qa_handoff_summary.dart'),
     );
+    expect(
+      runbook,
+      contains('Roll up the active Mac measurement wave results.'),
+    );
+    expect(
+      runbook,
+      isNot(contains('mac_electrical_core_generated_run_status_25.json')),
+    );
+    expect(
+      boundary,
+      isNot(contains('mac_electrical_core_generated_run_status_25.json')),
+    );
   }, timeout: const Timeout(Duration(seconds: 10)));
 }
 
