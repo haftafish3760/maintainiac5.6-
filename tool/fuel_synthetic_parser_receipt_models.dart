@@ -214,11 +214,25 @@ const _products = [
     basePrice: 4.149,
   ),
   _FuelSyntheticProduct(
+    label: 'HPR DIESEL',
+    spanishLabel: 'Diésel HPR',
+    fuelType: 'Diesel',
+    unit: 'gallon',
+    basePrice: 3.989,
+  ),
+  _FuelSyntheticProduct(
     label: 'DEF FLUID',
     spanishLabel: 'Fluido DEF',
     fuelType: 'DEF',
     unit: 'gallon',
     basePrice: 4.299,
+  ),
+  _FuelSyntheticProduct(
+    label: 'DIESEL EXHAUST FLUID',
+    spanishLabel: 'Fluido de Escape Diesel',
+    fuelType: 'DEF',
+    unit: 'gallon',
+    basePrice: 4.319,
   ),
   _FuelSyntheticProduct(
     label: 'KEROSENE',

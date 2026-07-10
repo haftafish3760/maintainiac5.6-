@@ -151,6 +151,7 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\betanol\b'), 'ethanol')
       .replaceAll(RegExp(r'\bdi[eé]sel\b'), 'diesel')
       .replaceAll(RegExp(r'\bd[1i][eé]sel\b'), 'diesel')
+      .replaceAll(RegExp(r'\bfluido\s+de\s+escape\s+diesel\b'), 'def')
       .replaceAll(RegExp(r'\bpr[e3]c1[o0]\b'), 'price')
       .replaceAll(RegExp(r'\b(?:precio|price)\s+efectivo\b'), 'cash price')
       .replaceAll(RegExp(r'\b(?:precio|price)\s+cr[eé]dito\b'), 'credit price')
