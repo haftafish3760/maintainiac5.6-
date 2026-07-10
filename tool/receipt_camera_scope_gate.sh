@@ -34,10 +34,12 @@ while IFS= read -r path; do
     lib/shared/widgets/receipt_capture/* | \
     test/helpers/receipt_native_* | \
     test/helpers/receipt_recovery_handoff_fixture.dart | \
-    test/helpers/receipt_stitching_* | \
-    test/receipt_capture_flow_barcode_handoff_test.dart | \
-    test/receipt_capture_flow_ocr_source_count_test.dart | \
-    test/receipt_attachment_panel_actions_test.dart | \
+	    test/helpers/receipt_stitching_* | \
+	    test/receipt_capture_flow_assist_opt_in_contract_test.dart | \
+	    test/receipt_capture_flow_barcode_handoff_test.dart | \
+	    test/receipt_capture_flow_ocr_source_count_test.dart | \
+	    test/receipt_attachment_panel_actions_test.dart | \
+	    test/receipt_import_source_sheet_test.dart | \
     test/receipt_camera_dataset_qa_gate_contract_test.dart | \
     test/receipt_camera_* | \
     test/receipt_native_* | \

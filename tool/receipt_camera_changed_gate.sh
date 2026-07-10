@@ -285,10 +285,13 @@ while IFS= read -r path; do
     tool/receipt_quiet_batch.sh | \
     tool/receipt_quiet_batch_status.sh | \
     tool/receipt_quiet_batch_final_summary.sh | \
+    test/receipt_camera_changed_gate_script_contract_test.dart | \
     test/receipt_camera_changed_gate_contract_test.dart | \
+    test/receipt_camera_changed_gate_native_contract_test.dart | \
     test/receipt_camera_dataset_qa_gate_contract_test.dart | \
     test/receipt_camera_changed_route_coverage_gate_test.dart | \
     test/receipt_camera_qa_gate_contract_test.dart | \
+    test/receipt_camera_qa_gate_stitch_contract_test.dart | \
     test/receipt_camera_qa_gate_execution_test.dart | \
     test/receipt_camera_qa_gate_execution_runtime_test.dart | \
     test/receipt_quiet_batch_final_summary_script_test.dart | \

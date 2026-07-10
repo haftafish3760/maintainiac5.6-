@@ -114,7 +114,7 @@ void main() {
     expect(
       firstUseSheet,
       contains(
-        'Receipt Assist reads the photo and suggests totals and lines. You review everything before saving.',
+        'Receipt Assist reads the accepted photo and suggests totals and lines. You review everything before saving.',
       ),
     );
     expect(
@@ -145,18 +145,18 @@ void main() {
     expect(firstUseSheet, isNot(contains('high quality')));
     expect(firstUseSheet, isNot(contains('maximum savings')));
 
-    expect(settingsSheet, contains('Saved Receipt Proof Size'));
+    expect(settingsSheet, contains('Saved Proof Size'));
     expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
-    expect(settingsSheet, contains('if (hasSavedReceiptProof) ...['));
+    expect(settingsSheet, contains('if (!hasSavedReceiptProof) ...['));
     expect(
       settingsSheet,
       contains(
-        'Saved proof size appears after you capture or attach a receipt first.',
+        'After a receipt photo is attached, the review screen shows the actual proof size',
       ),
     );
     expect(
       settingsSheet,
-      contains('OCR still uses the clearest receipt source first'),
+      contains('OCR still reads from the clearest source first'),
     );
 
     final introHelperStart = cameraActions.indexOf(

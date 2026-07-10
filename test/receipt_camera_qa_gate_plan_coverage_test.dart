@@ -65,6 +65,7 @@ void main() {
         .where(
           (line) =>
               line.startsWith('quick ') ||
+              line.startsWith('stitch ') ||
               line.startsWith('milestone ') ||
               line.startsWith('full '),
         )

@@ -24,7 +24,7 @@ void main() {
     await tester.tap(find.text('Add Receipt'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Capture or upload receipt'), findsOneWidget);
+    expect(find.textContaining('Choose the source first'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
     expect(find.text('Help'), findsOneWidget);
     expect(find.text('Capture Photo'), findsOneWidget);
@@ -60,7 +60,7 @@ void main() {
     await tester.tap(find.text('Got It'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Capture or upload receipt'), findsOneWidget);
+    expect(find.textContaining('Choose the source first'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
   });
 
@@ -89,7 +89,7 @@ void main() {
 
     await tester.tap(find.text('Add Receipt'));
     await tester.pumpAndSettle();
-    expect(find.text('Capture or upload receipt'), findsOneWidget);
+    expect(find.textContaining('Choose the source first'), findsOneWidget);
     expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
 
@@ -102,7 +102,7 @@ void main() {
     await tester.tap(find.text('Got It'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Capture or upload receipt'), findsOneWidget);
+    expect(find.textContaining('Choose the source first'), findsOneWidget);
   });
 
   testWidgets('paste slash text opens paste or text file chooser', (

@@ -257,10 +257,13 @@ quick_tests=(
   test/receipt_photo_section_labels_test.dart
   test/receipt_camera_ios_native_asset_preflight_contract_test.dart
   test/receipt_camera_real_device_snapshot_contract_test.dart
+  test/receipt_camera_changed_gate_script_contract_test.dart
   test/receipt_camera_changed_gate_contract_test.dart
+  test/receipt_camera_changed_gate_native_contract_test.dart
   test/receipt_camera_changed_route_coverage_gate_test.dart
   test/receipt_camera_dataset_qa_gate_contract_test.dart
   test/receipt_camera_qa_gate_contract_test.dart
+  test/receipt_camera_qa_gate_stitch_contract_test.dart
   test/receipt_camera_qa_gate_execution_test.dart
   test/receipt_camera_qa_gate_plan_coverage_test.dart
   test/receipt_camera_qa_gate_scope_and_failure_contract_test.dart
@@ -342,6 +345,9 @@ stitch_tests=(
   test/receipt_camera_phase6_stitching_handoff_contract_test.dart
   test/receipt_camera_fixture_matrix_test.dart
   test/receipt_camera_result_frozen_handoff_counts_test.dart
+  test/receipt_camera_result_insert_invalid_context_test.dart
+  test/receipt_camera_result_manual_reorder_order_test.dart
+  test/receipt_camera_result_removal_order_test.dart
   test/receipt_camera_result_stitch_handoff_followthrough_test.dart
   test/receipt_camera_stitch_candidate_metadata_test.dart
   test/receipt_camera_result_stitch_scanner_test.dart
@@ -353,16 +359,29 @@ stitch_tests=(
   test/receipt_native_camera_previous_section_channel_test.dart
   test/receipt_photo_section_labels_test.dart
   test/receipt_photo_review_retake_order_test.dart
+  test/receipt_stitch_contract_health_script_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
+  test/receipt_stitching_artifact_copy_contract_test.dart
+  test/receipt_stitching_bad_input_test.dart
   test/receipt_stitching_duplicate_safety_test.dart
+  test/receipt_stitching_exception_fallback_contract_test.dart
+  test/receipt_stitching_extreme_aspect_ratio_test.dart
   test/receipt_stitching_horizontal_drift_test.dart
   test/receipt_stitching_horizontal_placement_test.dart
   test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
+  test/receipt_stitching_ocr_source_contract_test.dart
+  test/receipt_stitching_phone_window_edge_crop_test.dart
   test/receipt_stitching_phone_window_safety_test.dart
+  test/receipt_stitching_real_fixture_probe_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_scale_rotation_test.dart
+  test/receipt_stitching_size_cap_test.dart
+  test/receipt_stitching_store_receipt_shape_test.dart
   test/receipt_stitching_test.dart
+  test/receipt_stitching_transformed_phone_window_test.dart
+  test/receipt_stitching_ugly_long_receipt_test.dart
+  test/receipt_stitching_uploaded_screenshot_test.dart
   test/receipt_stitching_variants_test.dart
   test/receipt_stitching_weak_overlap_safety_test.dart
   test/receipt_stitching_worn_receipt_test.dart
@@ -422,6 +441,7 @@ line_cap_paths=(
   "${camera_source_roots[@]}"
   "${quick_tests[@]}"
   "${milestone_only_tests[@]}"
+  "${stitch_tests[@]}"
   "${full_only_tests[@]}"
 )
 
@@ -479,6 +499,7 @@ print_plan_for_mode() {
       print_test_pack quick "${quick_tests[@]}"
       print_test_pack milestone "${milestone_only_tests[@]}"
       if [[ "$mode" == "full" ]]; then
+        print_test_pack stitch "${stitch_tests[@]}"
         print_test_pack full "${full_only_tests[@]}"
       fi
       ;;
@@ -882,6 +903,7 @@ run_milestone() {
 
 run_full() {
   run_milestone
+  run_stitch
   run_flutter_tests "${full_only_tests[@]}"
   bash tool/receipt_camera_real_device_snapshot.sh
   bash tool/android_receipt_camera_compile_gate.sh

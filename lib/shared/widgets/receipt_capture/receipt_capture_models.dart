@@ -7,6 +7,7 @@ part 'receipt_capture_review_result_handoff_labels.dart';
 part 'receipt_capture_review_result_metadata.dart';
 part 'receipt_capture_review_result_brain_install_metadata.dart';
 part 'receipt_capture_review_result_native_signals.dart';
+part 'receipt_capture_review_result_section_order_counts.dart';
 part 'receipt_capture_review_result_section_order_helpers.dart';
 part 'receipt_capture_review_result_section_order_review.dart';
 part 'receipt_capture_review_result_completion.dart';

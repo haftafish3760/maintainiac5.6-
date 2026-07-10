@@ -25,7 +25,7 @@ void main() {
 
     expect(bottomControls, contains('Color(0x30000000)'));
     expect(bottomControls, contains('Color(0x54000000)'));
-    expect(bottomBar, contains('Color(0xB8050607)'));
+    expect(bottomBar, isNot(contains('Color(0xB8050607)')));
     expect(guidance, contains('Color(0xB8050607)'));
     expect(bottomControls, contains('stops: [0, .16, .78, 1]'));
     expect(shell, isNot(contains('Color(0x52000000)')));
@@ -109,95 +109,92 @@ void main() {
     },
   );
 
-  test(
-    'ocr source handoff helpers stay aligned across receipt paths',
-    () async {
-      final flow = await readReceiptCaptureFlowSource();
-      final importActions = await readReceiptAttachmentImportActionsSource();
-      final panelSignals = await File(
-        'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
-      ).readAsString();
-      final panelRisks = await File(
-        'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart',
-      ).readAsString();
+  test('ocr source handoff helpers stay aligned across receipt paths', () async {
+    final flow = await readReceiptCaptureFlowSource();
+    final importActions = await readReceiptAttachmentImportActionsSource();
+    final panelSignals = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_signals.dart',
+    ).readAsString();
+    final panelRisks = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_risk_flags.dart',
+    ).readAsString();
 
-      for (final token in const [
-        'proof_data_saver_',
-        'receipt_review_depth_',
-        'native_recovery_',
-        'native_recovery_recovered_photos',
-        'native_recovery_multiple_sections',
-        'native_camera_ui_health_available',
-        'native_camera_ui_',
-        'ocr_source_small_proof_copy_review_required',
-        'ocr_source_proof_data_saver_',
-        'ocr_source_native_recovery_',
-        'ocr_source_native_recovery_multiple_sections',
-        "code.contains('quality_guard')",
-        "code.contains('decode_failed')",
-        "code.contains('skipped')",
-        'bool _isNativeCameraUiRisk(String value)',
-      ]) {
-        expect(flow, contains(token), reason: 'main flow missing $token');
-        expect(
-          importActions,
-          contains(token),
-          reason: 'import-action flow missing $token',
-        );
-      }
-      for (final token in const [
-        'native_recovery_freshness_',
-        'native_recovery_storage_',
-        'native_capture_source_health_available',
-        'native_capture_source_',
-        'ocr_source_native_capture_storage_saver',
-        'ocr_source_native_capture_older_phone',
-        'ocr_source_phone_camera_backup',
-        "freshness == 'stale'",
-        "storageStatus == 'partial_photos_available'",
-      ]) {
-        expect(flow, contains(token), reason: 'main flow missing $token');
-      }
-      for (final token in const [
-        'native_recovery_freshness_',
-        'native_recovery_storage_',
-      ]) {
-        expect(
-          panelSignals,
-          contains(token),
-          reason: 'attachment panel signals missing $token',
-        );
-      }
-      for (final token in const [
-        "freshness == 'stale'",
-        "storageStatus == 'partial_photos_available'",
-      ]) {
-        expect(
-          panelRisks,
-          contains(token),
-          reason: 'attachment panel risks missing $token',
-        );
-      }
-      final nativeStaging = await readReceiptNativeCaptureStagingSource();
-      expect(nativeStaging, contains('resume_review_before_receipt_details'));
+    for (final token in const [
+      'proof_data_saver_',
+      'receipt_review_depth_',
+      'native_recovery_',
+      'native_recovery_recovered_photos',
+      'native_recovery_multiple_sections',
+      'native_camera_ui_health_available',
+      'native_camera_ui_',
+      'ocr_source_small_proof_copy_review_required',
+      'ocr_source_proof_data_saver_',
+      'ocr_source_native_recovery_',
+      'ocr_source_native_recovery_multiple_sections',
+      "code.contains('quality_guard')",
+      "code.contains('decode_failed')",
+      "code.contains('skipped')",
+      'bool _isNativeCameraUiRisk(String value)',
+    ]) {
+      expect(flow, contains(token), reason: 'main flow missing $token');
       expect(
-        nativeStaging,
-        contains('resume_review_keeps_photos_available_before_receipt_details'),
+        importActions,
+        contains(token),
+        reason: 'import-action flow missing $token',
       );
-      expect(nativeStaging, isNot(contains('before_receipt_read')));
-      for (final token in const [
-        'nativeCaptureSourcePolicyCounts',
-        'nativeCaptureSourcePolicyOutcome',
-        '_nativeCaptureSourcePoliciesFor',
-      ]) {
-        expect(
-          await readReceiptCaptureModelsSource(),
-          contains(token),
-          reason: 'review result model missing $token',
-        );
-      }
-    },
-  );
+    }
+    for (final token in const [
+      'native_recovery_freshness_',
+      'native_recovery_storage_',
+      'native_capture_source_health_available',
+      'native_capture_source_',
+      'ocr_source_native_capture_storage_saver',
+      'ocr_source_native_capture_older_phone',
+      'ocr_source_phone_camera_backup',
+      "freshness == 'stale'",
+      "storageStatus == 'partial_photos_available'",
+    ]) {
+      expect(flow, contains(token), reason: 'main flow missing $token');
+    }
+    for (final token in const [
+      'native_recovery_freshness_',
+      'native_recovery_storage_',
+    ]) {
+      expect(
+        panelSignals,
+        contains(token),
+        reason: 'attachment panel signals missing $token',
+      );
+    }
+    for (final token in const [
+      "freshness == 'stale'",
+      "storageStatus == 'partial_photos_available'",
+    ]) {
+      expect(
+        panelRisks,
+        contains(token),
+        reason: 'attachment panel risks missing $token',
+      );
+    }
+    final nativeStaging = await readReceiptNativeCaptureStagingSource();
+    expect(nativeStaging, contains('resume_review_before_receipt_details'));
+    expect(
+      nativeStaging,
+      contains('resume_review_keeps_photos_available_before_receipt_details'),
+    );
+    expect(nativeStaging, isNot(contains('before_receipt_read')));
+    for (final token in const [
+      'nativeCaptureSourcePolicyCounts',
+      'nativeCaptureSourcePolicyOutcome',
+      '_nativeCaptureSourcePoliciesFor',
+    ]) {
+      expect(
+        await readReceiptCaptureModelsSource(),
+        contains(token),
+        reason: 'review result model missing $token',
+      );
+    }
+  });
 
   test(
     'add another photo carries partial receipt reason to ghost guide',
