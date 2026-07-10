@@ -100,8 +100,8 @@ Generated from the current Windows-side evidence on 2026-07-09.
    proof is exhausted.
 2. Preserve the refreshed Plumbing `100`-case measured status artifact with the
    `0.90` pass-rate gate.
-3. Preserve the refreshed Electrical sample rollup at `12` checked cases and
-   keep it clearly labeled as sample-sized evidence, not final proof.
+3. Preserve the refreshed Electrical trade rollup at `50/50` checked cases,
+   `0` failures, `1.0000` pass rate, and `88` parser calls.
 4. Preserve the refreshed HVAC sample rollup at `12` checked cases and keep it
    clearly labeled as sample-sized evidence, not final proof.
 5. Hand off the next broader Electrical/HVAC measurement wave to Mac using the
@@ -123,7 +123,7 @@ order unless a shared parser rule blocks the active step.
    - `peh_core_measurement_gap.json`
    - Current remaining checked coverage:
      - Plumbing: `0`
-     - Electrical: `38`
+     - Electrical: `0`
      - HVAC: `38`
 3. Keep the harness-governance layer enforcing those artifacts and fields.
 4. Do not claim `90-95%` PEH readiness while Electrical/HVAC are still below
