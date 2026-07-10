@@ -167,13 +167,18 @@ TOTAL 27.99
     final gasohol = parseExpenseReceiptText('''
 FUEL STATION
 07/01/2026
-GASOHOL 87 8.000 @ 3.500 28.00
+GASOHOL 87
+GALLONS 8.000
+PRICE/GAL 3.500
+FUEL SALE 28.00
 TOTAL 28.00
 ''');
 
     expect(gasohol.lines, hasLength(1));
     expect(gasohol.lines.single.fuelType, 'Gasoline');
+    expect(gasohol.lines.single.description, contains('87'));
     expect(gasohol.lines.single.quantity, 8);
+    expect(gasohol.lines.single.unitPrice, 3.5);
   });
 
   test('parses hyphenated ethanol and ethanol-free dispenser labels', () {

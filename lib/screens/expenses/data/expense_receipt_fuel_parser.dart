@@ -368,7 +368,7 @@ String? _dieselRoadClassificationFor(List<String> receiptRows) {
 
 String? _fuelOctaneFor(List<String> receiptRows) {
   final gasolineGrade = RegExp(
-    r'\b(?:reg|regular|unleaded|unl|mid|mid[-\s]?grade|plus|prem|premium|super|supreme|suprema|'
+    r'\b(?:reg|regular|unleaded|unl|mid|mid[-\s]?grade|plus|prem|premium|super|supreme|suprema|gasohol|'
     r'rec(?:reational)?\s+fuel|marine\s+(?:gas|fuel)|non[-\s]?ethanol|ethanol[-\s]?free|sin\s+(?:etanol|ethanol)|e[-\s]?0)\s*'
     r'(?:octane\s*)?(8[7-9]|9[0-4])\b',
   );
