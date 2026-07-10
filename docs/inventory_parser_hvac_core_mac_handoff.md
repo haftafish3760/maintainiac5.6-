@@ -1,6 +1,6 @@
 # HVAC Core Mac Validation Handoff
 
-Generated: 2026-07-09 22:58 EDT
+Generated: 2026-07-09 10:16 PM EDT
 
 ## Scope
 
@@ -12,16 +12,16 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `9d7b22f`
+- Commit: `97a1ad3`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 10:58 PM EDT: sync refreshed handoff templates to docs`
+  `Reusable parsing QA 2026-07-09 10:16 PM EDT: narrow Mac PEH wave to remaining gap`
 
 Cross-check the live reusable handoff packet before running anything on Mac:
 
 - `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
 - expected:
   - `handoffClean=true`
-  - `windowsExecutionCommit=9d7b22f`
+  - `windowsExecutionCommit=97a1ad3`
   - `totalRemainingChecked=38`
   - `nextTradesByRemainingGap=["hvac"]`
 
@@ -89,7 +89,7 @@ Branch-level PEH checkpoint status also exists:
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `9d7b22f`.
+Run from the repo root on the Mac after checking out commit `97a1ad3`.
 
 ```bash
 dart format --set-exit-if-changed \
@@ -126,7 +126,7 @@ dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
   --min-pass-rate 0.90 \
   --timeout-ms 900000 \
   --stale-report-timeout-ms 240000 \
-  --report-dir build/parser_qa_reports/generated_fixtures/mac_hvac_core_en_us_25
+  --report-dir build/parser_qa_pipeline/mac_peh_core_measurement_25/hvac/residential/core/en-US/reports
 ```
 
 ```bash
@@ -137,7 +137,7 @@ dart run tool/work_supply_parser_qa_run_generated_fixtures.dart \
   --min-pass-rate 0.90 \
   --timeout-ms 900000 \
   --stale-report-timeout-ms 240000 \
-  --report-dir build/parser_qa_reports/generated_fixtures/mac_hvac_core_es_us_25
+  --report-dir build/parser_qa_pipeline/mac_peh_core_measurement_25/hvac/residential/core/es-US/reports
 ```
 
 Expected minimum result from those two commands together:

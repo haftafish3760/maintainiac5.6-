@@ -1,6 +1,6 @@
 # Electrical Core Mac Validation Handoff
 
-Generated: 2026-07-09 22:58 EDT
+Generated: 2026-07-09 10:16 PM EDT
 
 ## Scope
 
@@ -12,16 +12,16 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `9d7b22f`
+- Commit: `97a1ad3`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 10:58 PM EDT: sync refreshed handoff templates to docs`
+  `Reusable parsing QA 2026-07-09 10:16 PM EDT: narrow Mac PEH wave to remaining gap`
 
 Cross-check the live reusable handoff packet before running anything on Mac:
 
 - `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
 - expected:
   - `handoffClean=true`
-  - `windowsExecutionCommit=9d7b22f`
+  - `windowsExecutionCommit=97a1ad3`
   - `totalRemainingChecked=38`
   - `nextTradesByRemainingGap=["hvac"]`
 
@@ -94,7 +94,14 @@ Branch-level PEH checkpoint status also exists:
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `9d7b22f`.
+Run from the repo root on the Mac after checking out commit `97a1ad3`.
+
+## Current Active Mac Wave
+
+Electrical is already satisfied at the current Windows checkpoint. The live PEH
+Mac wave is now intentionally narrowed to HVAC only, so do not rerun the
+Electrical 25-case Mac wave unless a later checkpoint reopens Electrical in the
+measurement gap.
 
 ```bash
 dart format --set-exit-if-changed \
