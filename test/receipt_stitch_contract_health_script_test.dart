@@ -67,6 +67,7 @@ void main() {
     expect(source, contains('run_flutter_test phone-window'));
     expect(source, contains('run_flutter_test phone-window-fast'));
     expect(source, contains('run_flutter_test long-stack'));
+    expect(source, contains('test/receipt_stitching_extreme_aspect_ratio_test.dart'));
     expect(source, contains('run_flutter_test bad-input'));
     expect(source, contains('run_flutter_test handoff'));
     expect(source, contains('run_flutter_test full'));
@@ -101,6 +102,9 @@ void main() {
     expect(source, contains('Receipt stitch size-cap health: PASS'));
     expect(source, contains('long_stack)'));
     expect(source, contains('Receipt stitch long-stack health: PASS'));
+    expect(source, contains('extreme_aspect_ratio)'));
+    expect(source, contains('Receipt stitch extreme-aspect-ratio health'));
+    expect(source, contains('receipt_stitching_extreme_aspect_ratio_test.dart'));
     expect(source, contains('bad_inputs)'));
     expect(source, contains('Receipt stitch bad-input health'));
     expect(source, contains('receipt_stitching_bad_input_test.dart'));
@@ -351,7 +355,7 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|transformed_phone_windows|long_stack|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|transformed_phone_windows|long_stack|extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));
