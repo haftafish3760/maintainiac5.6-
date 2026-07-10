@@ -18,6 +18,10 @@ void main() {
     _writeJson('build/parser_qa_pipeline/packet.json', {
       'branch': 'feature/test',
       'commit': 'abc123',
+      'reusableBaselineBranch': 'codex/reusable-parsing-qa-foundation',
+      'reusableValidatedFloorCommit': 'floor123',
+      'reusableHandoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
+      'reusableCheckpointMarkdownPath': 'docs/reusable_parsing_qa_checkpoint.md',
       'measurementCommands': [
         {
           'trade': 'electrical',
@@ -49,6 +53,14 @@ void main() {
     expect(exit, 0);
     final script = File('build/parser_qa_pipeline/run.sh').readAsStringSync();
     expect(script, contains('feature/test'));
+    expect(
+      script,
+      contains('echo "Read reusable baseline marker first: docs/reusable_parsing_qa_handoff_marker.md"'),
+    );
+    expect(
+      script,
+      contains('echo "Reusable baseline branch: codex/reusable-parsing-qa-foundation @ floor123"'),
+    );
     expect(script, contains("echo \"Measurement: electrical en-US\""));
     expect(script, contains("'dart' 'run' 'tool/foo.dart' '--report-dir' 'tmp/reports'"));
     expect(script, contains("echo \"Rollup: electrical\""));
