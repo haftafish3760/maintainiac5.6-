@@ -156,6 +156,30 @@ void main() {
     );
   });
 
+  test('Google Vision receipt limit stays bounded and stale-safe', () async {
+    final settings = await ReceiptCaptureSettingsController.create();
+
+    expect(settings.googleVisionAccess, isFalse);
+    expect(settings.monthlyGoogleVisionLimit, 30);
+
+    await settings.setGoogleVisionAccess(true);
+    await settings.setMonthlyGoogleVisionLimit(900);
+
+    expect(settings.googleVisionAccess, isTrue);
+    expect(settings.monthlyGoogleVisionLimit, 500);
+
+    await settings.setMonthlyGoogleVisionLimit(-12);
+
+    expect(settings.monthlyGoogleVisionLimit, 0);
+
+    final box = await Hive.openBox<dynamic>(
+      ReceiptCaptureSettingsController.boxName,
+    );
+    await box.put('monthly_google_vision_limit', 'not_an_int');
+
+    expect(settings.monthlyGoogleVisionLimit, 30);
+  });
+
   test('auto capture preference enables assisted camera mode', () async {
     final settings = await ReceiptCaptureSettingsController.create();
 
