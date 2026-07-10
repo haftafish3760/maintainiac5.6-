@@ -78,6 +78,7 @@ int runReusableParsingQaHandoffStatus(
   final pehPacket =
       jsonDecode(pehPacketFile.readAsStringSync()) as Map<String, Object?>;
   final pehScript = pehScriptFile.readAsStringSync();
+  final checkpointJson = _readCheckpointJson(root);
 
   final branch = packet['primaryBranch']?.toString() ?? 'unknown-branch';
   final validatedFloor = packet['baselineCommit']?.toString() ?? 'unknown';
@@ -89,8 +90,24 @@ int runReusableParsingQaHandoffStatus(
   final currentBranch =
       _gitValue(['rev-parse', '--abbrev-ref', 'HEAD'], root) ?? 'unknown-branch';
   final windowsWorkingBranch =
-      _readCheckpointField(root, 'windowsWorkingBranch') ??
+      checkpointJson['windowsWorkingBranch']?.toString() ??
       'codex/inventory-parser-backup-20260702-2056';
+  final checkpointTotalRemainingChecked =
+      (checkpointJson['totalRemainingChecked'] as num?)?.toInt() ?? 0;
+  final checkpointNextTradesByRemainingGap = _stringList(
+    checkpointJson['nextTradesByRemainingGap'],
+  );
+  final packetCurrentMeasurementState =
+      (packet['currentMeasurementState'] as Map?)?.cast<String, Object?>() ??
+      const {};
+  final packetTotalRemainingChecked =
+      (packetCurrentMeasurementState['totalRemainingChecked'] as num?)?.toInt() ??
+      0;
+  final packetNextTradesByRemainingGap = _stringList(
+    packetCurrentMeasurementState['nextTradesByRemainingGap'],
+  );
+  final claimBlockingFindings = _stringList(packet['claimBlockingFindings']);
+  final claimNextActions = _stringList(packet['claimNextActions']);
   final packetExecutionCommit =
       pehPacket['inventoryExecutionCommit']?.toString() ??
       pehPacket['commit']?.toString() ??
@@ -152,6 +169,18 @@ int runReusableParsingQaHandoffStatus(
             'reusable_parsing_qa_handoff_sync.dart',
           ) ==
           true &&
+      packet['artifactInputs'] is Map &&
+      ((packet['artifactInputs'] as Map)['claimReadiness']?.toString() ==
+          'build/parser_qa_pipeline/peh_core_claim_readiness.json') &&
+      packetCurrentMeasurementState['nextTradeByGap']?.toString().isNotEmpty ==
+          true &&
+      packetTotalRemainingChecked == checkpointTotalRemainingChecked &&
+      _sameStrings(
+        packetNextTradesByRemainingGap,
+        checkpointNextTradesByRemainingGap,
+      ) &&
+      claimBlockingFindings.isNotEmpty &&
+      claimNextActions.isNotEmpty &&
       packet['checkpointMarkdownPath']?.toString() ==
           'docs/reusable_parsing_qa_checkpoint.md';
 
@@ -179,6 +208,10 @@ int runReusableParsingQaHandoffStatus(
     'validatedFloorLabel': validatedFloorLabel,
     'headCommit': headShort,
     'headCommitFull': headFull,
+    'checkpointTotalRemainingChecked': checkpointTotalRemainingChecked,
+    'checkpointNextTradesByRemainingGap': checkpointNextTradesByRemainingGap,
+    'packetTotalRemainingChecked': packetTotalRemainingChecked,
+    'packetNextTradesByRemainingGap': packetNextTradesByRemainingGap,
     'docsAligned': agrees,
     'parityApplicable': parityApplicable,
     'parityOk': parityApplicable ? (paritySummary?['parityOk'] == true) : null,
@@ -226,6 +259,33 @@ String _value(List<String> args, String key, String fallback) {
   return fallback;
 }
 
+Map<String, Object?> _readCheckpointJson(String root) {
+  final file = File(_join(root, 'docs/reusable_parsing_qa_checkpoint.json'));
+  if (!file.existsSync()) return const {};
+  final decoded = jsonDecode(file.readAsStringSync());
+  if (decoded is Map<String, Object?>) return decoded;
+  if (decoded is Map) return decoded.cast<String, Object?>();
+  return const {};
+}
+
+List<String> _stringList(Object? value) {
+  if (value is List) {
+    return value
+        .map((entry) => entry?.toString() ?? '')
+        .where((entry) => entry.isNotEmpty)
+        .toList(growable: false);
+  }
+  return const [];
+}
+
+bool _sameStrings(List<String> left, List<String> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
+}
+
 String? _gitValue(List<String> command, String root) {
   final result = Process.runSync(
     'git',
@@ -267,16 +327,6 @@ String _join(String root, String path) {
     return '$normalizedRoot$normalizedPath';
   }
   return '$normalizedRoot${Platform.pathSeparator}$normalizedPath';
-}
-
-String? _readCheckpointField(String root, String key) {
-  final file = File(_join(root, 'docs/reusable_parsing_qa_checkpoint.json'));
-  if (!file.existsSync()) return null;
-  final decoded = jsonDecode(file.readAsStringSync());
-  if (decoded is Map && decoded[key] != null) {
-    return decoded[key].toString();
-  }
-  return null;
 }
 
 String? _extractScriptCommentValue(String source, String prefix) {

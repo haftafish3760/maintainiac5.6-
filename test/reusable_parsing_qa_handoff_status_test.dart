@@ -38,6 +38,10 @@ void main() {
       payload['validatedFloorLabel'],
       'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
     );
+    expect(payload['checkpointTotalRemainingChecked'], 38);
+    expect(payload['packetTotalRemainingChecked'], 38);
+    expect(payload['checkpointNextTradesByRemainingGap'].toString(), contains('hvac'));
+    expect(payload['packetNextTradesByRemainingGap'].toString(), contains('hvac'));
     expect(payload['docsAligned'], isTrue);
     expect(payload['parityApplicable'], isFalse);
     expect(payload['parityOk'], isNull);
@@ -357,6 +361,16 @@ void _writeHandoffFixture(
               'dart run tool/reusable_parsing_qa_handoff_sync.dart --root .',
           'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
           'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
+          'artifactInputs': {
+            'claimReadiness': 'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+          },
+          'currentMeasurementState': {
+            'nextTradeByGap': 'hvac',
+            'nextTradesByRemainingGap': ['hvac'],
+            'totalRemainingChecked': 38,
+          },
+          'claimBlockingFindings': ['trade_not_ready:hvac'],
+          'claimNextActions': ['Keep the hvac Mac wave running.'],
         }),
       );
 
@@ -367,6 +381,8 @@ void _writeHandoffFixture(
     'windowsWorkingBranch': windowsWorkingBranch,
     'readyForMacMeasurementWave': true,
     'readyToClaimNinetyPlus': false,
+    'totalRemainingChecked': 38,
+    'nextTradesByRemainingGap': ['hvac'],
   });
 
   _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
