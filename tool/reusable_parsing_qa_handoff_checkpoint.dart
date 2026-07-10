@@ -62,14 +62,23 @@ int runReusableParsingQaHandoffCheckpoint(
 
   final nextTrades = _stringList(gap['nextTradesByRemainingGap']);
   final readinessActions = _stringList(readiness['nextActions']);
+  final macMiniNextCommands = _commandLists(packet['macMiniNextCommands']);
+  final hasPostMacRefresh = macMiniNextCommands.any(
+    (command) => command.contains('tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart'),
+  );
   final macNextActions = <String>[
     'Run the Mac PEH measurement wave commands from the packet on branch '
         '${packet['primaryBranch']}.',
     if (nextTrades.isNotEmpty)
       'Prioritize ${nextTrades.join(', ')} because they still have measured '
           'coverage gaps.',
-    'Refresh Mac wave status, merged rollup, and PEH claim readiness artifacts '
-        'after the heavier run finishes.',
+    if (hasPostMacRefresh)
+      'After the heavier run finishes, execute '
+          '`dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .` '
+          'to rebuild the PEH and reusable handoff artifacts together.'
+    else
+      'Refresh Mac wave status, merged rollup, and PEH claim readiness artifacts '
+          'after the heavier run finishes.',
   ];
   final windowsNextActions = <String>[
     'Keep Windows ownership on inventory-specific Work Supplies parser/code '
@@ -149,6 +158,14 @@ ${macNext.map((item) => '- $item').join('\n')}
 List<String> _stringList(Object? value) {
   if (value is! List) return const [];
   return [for (final item in value) '$item'];
+}
+
+List<List<String>> _commandLists(Object? value) {
+  if (value is! List) return const [];
+  return [
+    for (final entry in value)
+      if (entry is List) [for (final part in entry) '$part'],
+  ];
 }
 
 String _value(List<String> args, String key, String fallback) {

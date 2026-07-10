@@ -19,6 +19,15 @@ void main() {
       'baselineCommitLabel':
           'Reusable parsing QA 2026-07-09 20:24 EDT: add scope boundary handoff map',
       'generatedAtEdt': '2026-07-09 20:24 EDT',
+      'macMiniNextCommands': [
+        [
+          'dart',
+          'run',
+          'tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart',
+          '--root',
+          '.',
+        ],
+      ],
     });
     _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_handoff_readiness.json', {
       'readyForMacMeasurementWave': true,
@@ -67,6 +76,12 @@ void main() {
     expect(markdown, contains('## Windows Next'));
     expect(markdown, contains('## Mac Mini Next'));
     expect(markdown, contains('hvac'));
+    expect(
+      markdown,
+      contains(
+        'dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .',
+      ),
+    );
   });
 }
 

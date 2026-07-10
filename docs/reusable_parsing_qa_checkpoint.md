@@ -20,4 +20,4 @@ Last updated: 2026-07-09 11:58 PM EDT
 
 - Run the Mac PEH measurement wave commands from the packet on branch codex/reusable-parsing-qa-foundation.
 - Prioritize hvac because they still have measured coverage gaps.
-- Refresh Mac wave status, merged rollup, and PEH claim readiness artifacts after the heavier run finishes.
+- After the heavier run finishes, execute `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .` to rebuild the PEH and reusable handoff artifacts together.
