@@ -90,7 +90,7 @@ void main() {
     expect(reviewScreen, contains('Expanded(\n                child: Stack('));
     expect(reviewScreen, isNot(contains('_reviewSurfaceBottomPadding')));
     expect(uiConfig, contains('class ReceiptPhotoReviewUiConfig'));
-    expect(uiConfig, contains('bool keepControlsOutsidePreview'));
+    expect(uiConfig, isNot(contains('keepControlsOutsidePreview')));
     expect(uiConfig, contains('String addPhotoLabel'));
     expect(reviewScreen, contains('_reviewPreviewCacheWidth(context)'));
     expect(reviewScreen, contains('targetWidth.clamp(900, 2600)'));

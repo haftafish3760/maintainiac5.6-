@@ -15,7 +15,6 @@ class ReceiptPhotoReviewUiConfig {
     this.showTopBar = true,
     this.showDecisionGuidance = true,
     this.showSecondaryTools = true,
-    this.keepControlsOutsidePreview = true,
     this.topBarBottomSpacing = 4,
     this.previewControlsSinglePhotoHeight = 156,
     this.previewControlsMultiPhotoHeight = 178,
@@ -43,7 +42,6 @@ class ReceiptPhotoReviewUiConfig {
   final bool showTopBar;
   final bool showDecisionGuidance;
   final bool showSecondaryTools;
-  final bool keepControlsOutsidePreview;
   final double topBarBottomSpacing;
   final double previewControlsSinglePhotoHeight;
   final double previewControlsMultiPhotoHeight;
@@ -76,7 +74,6 @@ class ReceiptPhotoReviewUiConfig {
     bool? showTopBar,
     bool? showDecisionGuidance,
     bool? showSecondaryTools,
-    bool? keepControlsOutsidePreview,
     double? topBarBottomSpacing,
     double? previewControlsSinglePhotoHeight,
     double? previewControlsMultiPhotoHeight,
@@ -107,8 +104,6 @@ class ReceiptPhotoReviewUiConfig {
       showTopBar: showTopBar ?? this.showTopBar,
       showDecisionGuidance: showDecisionGuidance ?? this.showDecisionGuidance,
       showSecondaryTools: showSecondaryTools ?? this.showSecondaryTools,
-      keepControlsOutsidePreview:
-          keepControlsOutsidePreview ?? this.keepControlsOutsidePreview,
       topBarBottomSpacing: topBarBottomSpacing ?? this.topBarBottomSpacing,
       previewControlsSinglePhotoHeight:
           previewControlsSinglePhotoHeight ??
