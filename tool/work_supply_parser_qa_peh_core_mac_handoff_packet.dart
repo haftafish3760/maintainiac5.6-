@@ -78,14 +78,26 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
       (macWave['measurementCommands'] as List<dynamic>? ?? const <dynamic>[]);
   final rollupCommands =
       (macWave['rollupCommands'] as List<dynamic>? ?? const <dynamic>[]);
+  final selectedTrades =
+      (macWave['selectedTrades'] as List<dynamic>? ?? const <dynamic>[])
+          .map((trade) => trade.toString())
+          .where((trade) => trade.isNotEmpty)
+          .toList(growable: false);
 
   final expectedOutputs = [
-    'build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json',
-    'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+    for (final trade in selectedTrades)
+      'build/parser_qa_pipeline/mac_${trade}_core_generated_run_status_25.json',
     'build/parser_qa_pipeline/peh_core_mac_wave_status.json',
     'build/parser_qa_pipeline/peh_core_merged_status_rollup.json',
     'build/parser_qa_pipeline/peh_core_claim_readiness.json',
   ];
+
+  final electricalRefreshStatus = selectedTrades.contains('electrical')
+      ? 'build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json'
+      : 'build/parser_qa_pipeline/windows_electrical_core_generated_run_status_50.json';
+  final hvacRefreshStatus = selectedTrades.contains('hvac')
+      ? 'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json'
+      : 'build/parser_qa_pipeline/hvac_core_generated_run_status_samples.json';
 
   final refreshCommand = [
     'dart',
@@ -98,9 +110,9 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
     '--plumbing-status',
     'build/parser_qa_pipeline/plumbing_core_generated_run_status.json',
     '--electrical-status',
-    'build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json',
+    electricalRefreshStatus,
     '--hvac-status',
-    'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+    hvacRefreshStatus,
   ];
 
   final summary = {
@@ -147,6 +159,7 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
     'claimNextActions': claimReadiness['nextActions'] ?? const <Object>[],
     'measurementCommandCount': measurementCommands.length,
     'rollupCommandCount': rollupCommands.length,
+    'selectedTrades': selectedTrades,
     'measurementCommands': measurementCommands,
     'rollupCommands': rollupCommands,
     'expectedOutputs': expectedOutputs,

@@ -4,10 +4,13 @@ import 'dart:io';
 const _usage =
     'dart run tool/work_supply_parser_qa_peh_core_mac_wave_commands.dart '
     '[--output build/parser_qa_pipeline/peh_core_mac_wave_commands.json] '
+    '[--measurement-gap build/parser_qa_pipeline/peh_core_measurement_gap.json] '
+    '[--trades electrical,hvac] '
     '[--max-cases 25] [--chunk-size 25] [--min-pass-rate 0.90] '
     '[--timeout-ms 900000] [--stale-report-timeout-ms 240000]';
 
 const _locales = ['en-US', 'es-US'];
+const _supportedTrades = ['electrical', 'hvac'];
 
 Future<void> main(List<String> args) async {
   final exit = runWorkSupplyParserQaPehCoreMacWaveCommands(
@@ -40,6 +43,12 @@ int runWorkSupplyParserQaPehCoreMacWaveCommands(
     'output',
     'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
   );
+  final measurementGapPath = _value(
+    args,
+    'measurement-gap',
+    'build/parser_qa_pipeline/peh_core_measurement_gap.json',
+  );
+  final tradesOverride = _csv(_optionalValue(args, 'trades') ?? '');
 
   if (maxCases <= 0 ||
       chunkSize <= 0 ||
@@ -55,8 +64,14 @@ int runWorkSupplyParserQaPehCoreMacWaveCommands(
     return 64;
   }
 
+  final selection = _selectTrades(
+    tradesOverride: tradesOverride,
+    measurementGapPath: measurementGapPath,
+  );
+  final selectedTrades = selection.trades;
+
   final measurementCommands = [
-    for (final trade in ['electrical', 'hvac'])
+    for (final trade in selectedTrades)
       for (final locale in _locales)
         {
           'trade': trade,
@@ -84,7 +99,7 @@ int runWorkSupplyParserQaPehCoreMacWaveCommands(
   ];
 
   final rollups = [
-    for (final trade in ['electrical', 'hvac'])
+    for (final trade in selectedTrades)
       {
         'trade': trade,
         'command': [
@@ -115,6 +130,9 @@ int runWorkSupplyParserQaPehCoreMacWaveCommands(
   final summary = {
     'schemaVersion': 1,
     'report': 'work_supply_parser_qa_peh_core_mac_wave_commands',
+    'selectedTrades': selectedTrades,
+    'selectionSource': selection.source,
+    'measurementGapPath': measurementGapPath,
     'maxCases': maxCases,
     'chunkSize': chunkSize,
     'minPassRate': minPassRate,
@@ -147,6 +165,53 @@ int runWorkSupplyParserQaPehCoreMacWaveCommands(
   return 0;
 }
 
+_TradeSelection _selectTrades({
+  required List<String> tradesOverride,
+  required String measurementGapPath,
+}) {
+  final normalizedOverride = tradesOverride
+      .map((trade) => trade.trim().toLowerCase())
+      .where(_supportedTrades.contains)
+      .toList(growable: false);
+  if (normalizedOverride.isNotEmpty) {
+    return _TradeSelection(normalizedOverride, 'explicit_trades');
+  }
+
+  final gapFile = File(measurementGapPath);
+  if (gapFile.existsSync()) {
+    final decoded = jsonDecode(gapFile.readAsStringSync());
+    if (decoded is Map) {
+      final nextTrades = (decoded['nextTradesByRemainingGap'] as List<dynamic>? ??
+              const <dynamic>[])
+          .map((trade) => trade.toString().trim().toLowerCase())
+          .where(_supportedTrades.contains)
+          .toList(growable: false);
+      if (nextTrades.isNotEmpty) {
+        return _TradeSelection(nextTrades, 'measurement_gap');
+      }
+    }
+  }
+
+  return const _TradeSelection(_supportedTrades, 'default_all_remaining_peh_trades');
+}
+
+List<String> _csv(String value) {
+  return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .toList(growable: false);
+}
+
+String? _optionalValue(List<String> args, String key) {
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+    if (arg == '--$key' && index + 1 < args.length) return args[index + 1];
+    if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
+  }
+  return null;
+}
+
 String _value(List<String> args, String key, String fallback) {
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
@@ -154,4 +219,11 @@ String _value(List<String> args, String key, String fallback) {
     if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
   }
   return fallback;
+}
+
+class _TradeSelection {
+  const _TradeSelection(this.trades, this.source);
+
+  final List<String> trades;
+  final String source;
 }

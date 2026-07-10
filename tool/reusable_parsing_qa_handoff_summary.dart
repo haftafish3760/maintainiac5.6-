@@ -59,9 +59,16 @@ int runReusableParsingQaHandoffSummary(
   final currentMeasurementState =
       (docsPacket['currentMeasurementState'] as Map?)?.cast<String, Object?>() ??
       const {};
-  final firstMeasurementCommand = ((docsPacket['macMiniNextCommands'] as List?) ??
+  final firstMeasurementCommand = ((pehPacket['measurementCommands'] as List?) ??
+          (docsPacket['macMiniNextCommands'] as List?) ??
           const <Object?>[])
       .cast<Object?>()
+      .map((entry) {
+        if (entry is Map && entry['command'] is List) {
+          return (entry['command'] as List).cast<Object?>();
+        }
+        return entry;
+      })
       .firstWhere(
         (entry) => entry is List && entry.isNotEmpty,
         orElse: () => const <Object?>[],

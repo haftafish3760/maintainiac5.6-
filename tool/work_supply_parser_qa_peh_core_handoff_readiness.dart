@@ -75,14 +75,42 @@ int runWorkSupplyParserQaPehCoreHandoffReadiness(
     findings.add('unexpected_trade_count');
   }
 
+  final selectedTrades =
+      (macWave['selectedTrades'] as List<dynamic>? ?? const <dynamic>[])
+          .map((trade) => trade.toString())
+          .where((trade) => trade.isNotEmpty)
+          .toList(growable: false);
+  if (selectedTrades.isEmpty) {
+    findings.add('missing_selected_trades');
+  }
+
   final measurementCommandCount =
       (macWave['measurementCommandCount'] as int?) ?? 0;
-  if (measurementCommandCount != 4) {
+  final measurementCommands =
+      (macWave['measurementCommands'] as List<dynamic>? ?? const <dynamic>[])
+          .whereType<Map>()
+          .map((entry) => entry.cast<String, Object?>())
+          .toList(growable: false);
+  final measurementTrades = measurementCommands
+      .map((command) => command['trade']?.toString() ?? '')
+      .where((trade) => trade.isNotEmpty)
+      .toSet();
+  if (measurementCommandCount <= 0 ||
+      !selectedTrades.every(measurementTrades.contains)) {
     findings.add('unexpected_measurement_command_count');
   }
 
   final rollupCommandCount = (macWave['rollupCommandCount'] as int?) ?? 0;
-  if (rollupCommandCount != 2) {
+  final rollupCommands =
+      (macWave['rollupCommands'] as List<dynamic>? ?? const <dynamic>[])
+          .whereType<Map>()
+          .map((entry) => entry.cast<String, Object?>())
+          .toList(growable: false);
+  final rollupTrades = rollupCommands
+      .map((command) => command['trade']?.toString() ?? '')
+      .where((trade) => trade.isNotEmpty)
+      .toSet();
+  if (rollupCommandCount <= 0 || !selectedTrades.every(rollupTrades.contains)) {
     findings.add('unexpected_rollup_command_count');
   }
 
@@ -101,13 +129,17 @@ int runWorkSupplyParserQaPehCoreHandoffReadiness(
     'readyForMacMeasurementWave': readyForMacMeasurementWave,
     'readyToClaimNinetyPlus': readyToClaimNinetyPlus,
     'tradeCount': tradeCount,
+    'selectedTrades': selectedTrades,
     'measurementCommandCount': measurementCommandCount,
     'rollupCommandCount': rollupCommandCount,
     'handoffReady':
         readyForMacMeasurementWave &&
         tradeCount == 3 &&
-        measurementCommandCount == 4 &&
-        rollupCommandCount == 2 &&
+        selectedTrades.isNotEmpty &&
+        measurementCommandCount > 0 &&
+        rollupCommandCount > 0 &&
+        selectedTrades.every(measurementTrades.contains) &&
+        selectedTrades.every(rollupTrades.contains) &&
         plumbingFocusedRuntimeCommand != null &&
         plumbingFocusedRuntimeCommand.isNotEmpty,
     'blockingFindings': findings,

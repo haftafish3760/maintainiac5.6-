@@ -21,8 +21,16 @@ void main() {
       'tradeCount': 3,
     });
     _writeJson('build/parser_qa_pipeline/mac.json', {
-      'measurementCommandCount': 4,
-      'rollupCommandCount': 2,
+      'selectedTrades': ['hvac'],
+      'measurementCommandCount': 2,
+      'measurementCommands': [
+        {'trade': 'hvac'},
+        {'trade': 'hvac'},
+      ],
+      'rollupCommandCount': 1,
+      'rollupCommands': [
+        {'trade': 'hvac'},
+      ],
       'plumbingFocusedRuntimeCommand': ['flutter', 'test'],
     });
 
@@ -64,8 +72,13 @@ void main() {
       'tradeCount': 2,
     });
     _writeJson('build/parser_qa_pipeline/mac.json', {
+      'selectedTrades': ['hvac'],
       'measurementCommandCount': 3,
+      'measurementCommands': [
+        {'trade': 'hvac'},
+      ],
       'rollupCommandCount': 1,
+      'rollupCommands': <Map<String, Object?>>[],
       'plumbingFocusedRuntimeCommand': <String>[],
     });
 

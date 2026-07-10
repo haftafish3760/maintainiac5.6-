@@ -11,6 +11,8 @@ void main() {
 
     final exit = runWorkSupplyParserQaPehCoreMacWaveCommands(
       const [
+        '--trades',
+        'electrical,hvac',
         '--max-cases',
         '25',
         '--chunk-size',
@@ -24,6 +26,8 @@ void main() {
 
     expect(exit, 0);
     final summary = _extract(stdout.content);
+    expect(summary['selectedTrades'], ['electrical', 'hvac']);
+    expect(summary['selectionSource'], 'explicit_trades');
     expect(summary['measurementCommandCount'], 4);
     expect(summary['rollupCommandCount'], 2);
     expect(summary['maxCases'], 25);
@@ -61,7 +65,7 @@ void main() {
     final output = '${root.path}/mac_wave.json';
 
     final exit = runWorkSupplyParserQaPehCoreMacWaveCommands(
-      ['--output', output],
+      ['--output', output, '--trades', 'electrical,hvac'],
       stdout: _MemorySink(),
       stderr: _MemorySink(),
     );
@@ -71,6 +75,36 @@ void main() {
         jsonDecode(File(output).readAsStringSync()) as Map<String, Object?>;
     expect(summary['measurementCommandCount'], 4);
     expect(summary['rollupCommandCount'], 2);
+  });
+
+  test('PEH Mac wave commands can narrow to the remaining gap trades', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_peh_mac_wave_gap_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+
+    final gapFile = File('build/parser_qa_pipeline/peh_core_measurement_gap.json')
+      ..parent.createSync(recursive: true);
+    gapFile.writeAsStringSync(jsonEncode({
+      'nextTradesByRemainingGap': ['hvac'],
+    }));
+
+    final stdout = _MemorySink();
+    final exit = runWorkSupplyParserQaPehCoreMacWaveCommands(
+      const [],
+      stdout: stdout,
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final summary = _extract(stdout.content);
+    expect(summary['selectedTrades'], ['hvac']);
+    expect(summary['selectionSource'], 'measurement_gap');
+    expect(summary['measurementCommandCount'], 2);
+    expect(summary['rollupCommandCount'], 1);
   });
 
   test('PEH Mac wave commands reject invalid pass-rate gates', () {
