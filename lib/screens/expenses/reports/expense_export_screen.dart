@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/pdf/app_generated_pdf_export_estimator.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../data/expense_export_file_writer.dart';
@@ -81,6 +82,10 @@ class _ExpenseExportScreenState extends State<ExpenseExportScreen> {
           const SizedBox(height: 8),
           _ExportPreviewPanel(
             snapshot: snapshot,
+            pdfEstimate: estimateExpenseExportPdf(
+              snapshot: snapshot,
+              mode: AppGeneratedPdfExportMode.textOnly,
+            ),
             canExport: canExport,
             cloudUsedThisMonth: exportStore.cloudExportsUsedInMonth(
               DateTime.now(),

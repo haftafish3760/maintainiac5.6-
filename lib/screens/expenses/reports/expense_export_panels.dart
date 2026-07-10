@@ -84,12 +84,14 @@ class _ExportDestinationPanel extends StatelessWidget {
 class _ExportPreviewPanel extends StatelessWidget {
   const _ExportPreviewPanel({
     required this.snapshot,
+    required this.pdfEstimate,
     required this.canExport,
     required this.cloudUsedThisMonth,
     required this.onExport,
   });
 
   final ExpenseExportSnapshot snapshot;
+  final AppGeneratedPdfExportEstimate pdfEstimate;
   final bool canExport;
   final int cloudUsedThisMonth;
   final VoidCallback? onExport;
@@ -127,6 +129,16 @@ class _ExportPreviewPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
+          Text(
+            'PDF summary estimate: ${_formatBytes(pdfEstimate.estimatedPdfBytes)}',
+            style: const TextStyle(
+              color: Color(0xFFE8ECEE),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 3),
           Text(
             snapshot.source == ExpenseExportSource.localDevice
                 ? 'Local device export. Unlimited and does not use backup-service reads.'
@@ -173,6 +185,13 @@ class _ExportPreviewPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).ceil()} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }
 
