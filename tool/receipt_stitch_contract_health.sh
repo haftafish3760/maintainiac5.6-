@@ -171,7 +171,11 @@ run_section_order() {
   echo "Receipt stitch section-order health"
   run_flutter_test section-order \
     test/receipt_photo_review_retake_order_test.dart \
+    test/receipt_photo_review_removal_order_test.dart \
     test/receipt_camera_result_section_order_test.dart \
+    test/receipt_camera_result_removal_order_test.dart \
+    test/receipt_camera_result_manual_reorder_order_test.dart \
+    test/receipt_camera_result_insert_invalid_context_test.dart \
     test/receipt_camera_result_section_order_follow_through_test.dart \
     test/receipt_camera_result_section_order_invalid_context_test.dart
   echo "Receipt stitch section-order health: PASS"
@@ -258,7 +262,11 @@ run_source_size() {
     test/receipt_camera_stitch_candidate_metadata_test.dart
     test/receipt_native_camera_session_limits_test.dart
     test/receipt_photo_review_retake_order_test.dart
+    test/receipt_photo_review_removal_order_test.dart
+    test/receipt_camera_result_removal_order_test.dart
+    test/receipt_camera_result_manual_reorder_order_test.dart
     test/receipt_camera_result_section_order_test.dart
+    test/receipt_camera_result_insert_invalid_context_test.dart
     test/receipt_camera_result_section_order_follow_through_test.dart
     test/receipt_camera_result_section_order_invalid_context_test.dart
     test/receipt_continuation_ghost_handoff_contract_test.dart
@@ -286,6 +294,7 @@ run_milestone() {
   run_bad_inputs
   run_manual_overlap
   run_duplicates
+  run_ghost_handoff
   run_handoff
   echo "Receipt stitch milestone health: PASS"
 }
@@ -318,9 +327,15 @@ run_full() {
   run_source_size
   run_flutter_test full \
     test/receipt_native_camera_session_limits_test.dart \
+    test/receipt_native_camera_previous_section_channel_test.dart \
     test/receipt_capture_flow_shareability_test.dart \
+    test/receipt_camera_result_continuation_handoff_test.dart \
     test/receipt_camera_phase5_long_receipt_contract_test.dart \
     test/receipt_photo_review_retake_order_test.dart \
+    test/receipt_photo_review_removal_order_test.dart \
+    test/receipt_camera_result_removal_order_test.dart \
+    test/receipt_camera_result_manual_reorder_order_test.dart \
+    test/receipt_camera_result_insert_invalid_context_test.dart \
     test/receipt_camera_result_section_order_test.dart \
     test/receipt_camera_result_section_order_follow_through_test.dart \
     test/receipt_camera_result_section_order_invalid_context_test.dart \
@@ -349,7 +364,8 @@ run_full() {
     test/receipt_camera_result_stitch_handoff_followthrough_test.dart \
     test/receipt_camera_stitch_candidate_metadata_test.dart \
     test/receipt_continuation_ghost_handoff_contract_test.dart \
-    test/receipt_stitch_fallback_metadata_test.dart
+    test/receipt_stitch_fallback_metadata_test.dart \
+    test/receipt_ocr_source_section_order_handoff_test.dart
   echo "Receipt stitch contract health: PASS"
 }
 
