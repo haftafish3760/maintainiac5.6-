@@ -80,6 +80,16 @@ int runReusableParsingQaHandoffRefresh(
       pehPacket['branch'] ??
       packet['windowsWorkingBranch'] ??
       'codex/inventory-parser-backup-20260702-2056';
+  packet['currentExecutionBranch'] =
+      pehPacket['inventoryExecutionBranch'] ??
+      pehPacket['branch'] ??
+      packet['currentExecutionBranch'] ??
+      packet['windowsWorkingBranch'];
+  packet['currentExecutionCommit'] =
+      pehPacket['inventoryExecutionCommit'] ??
+      pehPacket['commit'] ??
+      packet['currentExecutionCommit'] ??
+      'unknown';
 
   packetFile.writeAsStringSync(
     const JsonEncoder.withIndent('  ').convert(packet),

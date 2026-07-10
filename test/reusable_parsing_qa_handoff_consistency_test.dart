@@ -48,6 +48,8 @@ void main() {
     expect(packet['baselineCommit'], markerCommit);
     expect(packet['baselineCommit'], runbookCommit);
     expect(packet['baselineCommit'], indexCommit);
+    expect(packet['currentExecutionBranch'], isNotEmpty);
+    expect(packet['currentExecutionCommit'], isNotEmpty);
 
     expect(
       index,
@@ -109,6 +111,10 @@ void main() {
     expect(
       checkpoint,
       contains('## Mac Mini Next'),
+    );
+    expect(
+      checkpoint,
+      contains('Windows execution commit: `'),
     );
     expect(
       packet['runbookPath'],

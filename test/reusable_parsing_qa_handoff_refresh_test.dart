@@ -65,6 +65,9 @@ void main() {
       ..writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert({
           'selectedTrades': ['hvac'],
+          'inventoryExecutionBranch':
+              'codex/inventory-parser-backup-20260702-2056',
+          'inventoryExecutionCommit': 'deadbee',
           'measurementCommandCount': 2,
           'rollupCommandCount': 1,
           'measurementCommands': [
@@ -168,6 +171,11 @@ void main() {
       'Reusable parsing QA 2026-07-09 21:00 EDT: refresh handoff artifacts',
     );
     expect(packet['generatedAtEdt'], '2026-07-09 21:00 EDT');
+    expect(
+      packet['currentExecutionBranch'],
+      'codex/inventory-parser-backup-20260702-2056',
+    );
+    expect(packet['currentExecutionCommit'], 'deadbee');
     expect(
       packet['scopeBoundaryPath'],
       'docs/reusable_parsing_qa_scope_boundary.md',
