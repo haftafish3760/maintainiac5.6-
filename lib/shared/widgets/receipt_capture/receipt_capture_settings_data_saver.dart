@@ -3,10 +3,17 @@ part of 'receipt_capture_settings_store.dart';
 extension ReceiptCaptureSettingsDataSaver on ReceiptCaptureSettingsController {
   ReceiptDataSaverLevel get defaultDataSaverLevel {
     final saved = _box.get(_Keys.defaultDataSaverLevel) as String?;
-    if (saved == null || saved.isEmpty) {
+    final normalized = saved?.trim();
+    if (normalized == null ||
+        normalized.isEmpty ||
+        !_isKnownDataSaverLevelName(normalized)) {
       return _deviceCapability.recommendedDataSaverLevel;
     }
-    return ReceiptDataSaverLevel.fromName(saved);
+    return ReceiptDataSaverLevel.fromName(normalized);
+  }
+
+  bool _isKnownDataSaverLevelName(String name) {
+    return ReceiptDataSaverLevel.values.any((level) => level.name == name);
   }
 
   ReceiptProofTargetSizePolicy get defaultDataSaverProofTargetSizePolicy {

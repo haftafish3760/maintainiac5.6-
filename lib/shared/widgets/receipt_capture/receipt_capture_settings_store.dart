@@ -116,7 +116,10 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
 
   bool get defaultDataSaverUsesDeviceRecommendation {
     final saved = _box.get(_Keys.defaultDataSaverLevel) as String?;
-    return saved == null || saved.isEmpty;
+    final normalized = saved?.trim();
+    return normalized == null ||
+        normalized.isEmpty ||
+        !ReceiptDataSaverLevel.values.any((level) => level.name == normalized);
   }
 
   Future<void> useRecommendedDataSaverLevel() async {

@@ -141,6 +141,21 @@ void main() {
     expect(settings.receiptCapabilityTier, ReceiptCapabilityTier.light);
   });
 
+  test('invalid saved proof size falls back to device recommendation', () async {
+    final box = await Hive.openBox<dynamic>(
+      ReceiptCaptureSettingsController.boxName,
+    );
+    await box.put('default_data_saver_level', ' stale_proof_size ');
+
+    final settings = await ReceiptCaptureSettingsController.create();
+
+    expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
+    expect(
+      settings.defaultDataSaverLevel,
+      settings.deviceCapability.recommendedDataSaverLevel,
+    );
+  });
+
   test('auto capture preference enables assisted camera mode', () async {
     final settings = await ReceiptCaptureSettingsController.create();
 
