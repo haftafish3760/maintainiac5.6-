@@ -2,6 +2,7 @@ part of 'receipt_photo_review_screen.dart';
 
 class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   const _ReceiptPreviewPrimaryRow({
+    required this.uiConfig,
     required this.current,
     required this.total,
     required this.statusIcon,
@@ -16,6 +17,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.onContinue,
   });
 
+  final ReceiptPhotoReviewUiConfig uiConfig;
   final int current;
   final int total;
   final IconData statusIcon;
@@ -32,9 +34,9 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shouldAddNextSection = coverageDecision.shouldPromptForMorePhotos;
-    final retakeLabel = _ReceiptPhotoSectionLabels.retakeLabel(
-      index: current - 1,
-      total: total,
+    final retakeLabel = uiConfig.labelFor(
+      'retake',
+      _ReceiptPhotoSectionLabels.retakeLabel(index: current - 1, total: total),
     );
     final retakeSemanticLabel = _ReceiptPhotoSectionLabels.retakeSemanticLabel(
       index: current - 1,
@@ -43,8 +45,8 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add Bottom Section'
         : shouldAddNextSection
-        ? 'Add Another Photo'
-        : 'Add Another Photo';
+        ? uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel)
+        : uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel);
     final addPhotoTooltip = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
         : shouldAddNextSection
@@ -55,9 +57,9 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         : Icons.check_rounded;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF0D1316),
+        color: uiConfig.controlsBackgroundColor,
         borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: const Color(0xFF344047)),
+        border: Border.all(color: uiConfig.controlsBorderColor),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(8, compact ? 4 : 6, 8, compact ? 4 : 6),
@@ -186,10 +188,17 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               )
-                            : _ReceiptNextReviewLabel(label: continueLabel),
+                            : _ReceiptNextReviewLabel(
+                                label: uiConfig.labelFor(
+                                  'continue',
+                                  continueLabel == 'Use Receipt'
+                                      ? uiConfig.useReceiptLabel
+                                      : continueLabel,
+                                ),
+                              ),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, 38),
-                          backgroundColor: const Color(0xFF28A745),
+                          backgroundColor: uiConfig.primaryActionColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6),

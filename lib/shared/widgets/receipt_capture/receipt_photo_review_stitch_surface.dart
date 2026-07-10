@@ -63,7 +63,5 @@ extension _ReceiptPhotoReviewStitchSurface on _ReceiptPhotoReviewScreenState {
         : _manualOverlapFractions[pairIndex] ?? .22;
   }
 
-  double _stitchSurfaceBottomInset(BuildContext context) {
-    return _controlsVisible ? _reviewSurfaceBottomPadding(context) : 18;
-  }
+  double _stitchSurfaceBottomInset(BuildContext _) => 18;
 }

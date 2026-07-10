@@ -46,6 +46,9 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final uiConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
+    ).readAsString();
     final orderControls =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_order_controls.dart',
@@ -58,30 +61,37 @@ void main() {
       reviewScreen,
       contains('double _reviewBottomControlsMaxHeight(BuildContext context)'),
     );
-    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .22'));
+    expect(
+      reviewScreen,
+      contains('widget.uiConfig.previewControlsHeightFraction'),
+    );
     expect(
       reviewScreen,
       contains('relying on a hidden scroll-only continuation path'),
     );
-    expect(reviewScreen, contains('_ReceiptReviewMode.crop => 78.0'));
+    expect(reviewScreen, contains('widget.uiConfig.cropControlsHeight'));
     expect(reviewScreen, contains('_ReceiptReviewMode.order => .18'));
     expect(reviewScreen, contains('_ReceiptReviewMode.stitch => .20'));
     expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => .20'));
     expect(
       reviewScreen,
-      contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0',
-      ),
+      contains('widget.uiConfig.previewControlsMultiPhotoHeight'),
     );
-    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => 168.0'));
+    expect(reviewScreen, contains('widget.uiConfig.dataSaverControlsHeight'));
     expect(
       reviewScreen,
       contains('return proportional < absolute ? proportional : absolute;'),
     );
     expect(
       reviewScreen,
-      contains('_controlsVisible ? _reviewSurfaceBottomPadding(context) : 0'),
+      contains('backgroundColor: widget.uiConfig.previewBackgroundColor'),
     );
+    expect(reviewScreen, contains('body: SafeArea(\n          child: Column('));
+    expect(reviewScreen, contains('Expanded(\n                child: Stack('));
+    expect(reviewScreen, isNot(contains('_reviewSurfaceBottomPadding')));
+    expect(uiConfig, contains('class ReceiptPhotoReviewUiConfig'));
+    expect(uiConfig, contains('bool keepControlsOutsidePreview'));
+    expect(uiConfig, contains('String addPhotoLabel'));
     expect(reviewScreen, contains('_reviewPreviewCacheWidth(context)'));
     expect(reviewScreen, contains('targetWidth.clamp(900, 2600)'));
     expect(reviewScreen, contains('filterQuality: FilterQuality.medium'));

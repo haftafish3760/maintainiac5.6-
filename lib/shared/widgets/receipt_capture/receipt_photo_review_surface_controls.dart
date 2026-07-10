@@ -3,6 +3,7 @@ part of 'receipt_photo_review_screen.dart';
 extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
   Widget _buildReviewBottomControls(String photoPath) {
     final controls = _ReceiptReviewBottomControls(
+      uiConfig: widget.uiConfig,
       photoPaths: _photoPaths,
       selectedIndex: _selectedIndex,
       dataSaverLevel: _dataSaverLevel,
@@ -60,18 +61,22 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
     final proportional =
         safeHeight *
         switch (_reviewMode) {
-          _ReceiptReviewMode.preview => .22,
+          _ReceiptReviewMode.preview =>
+            widget.uiConfig.previewControlsHeightFraction,
           _ReceiptReviewMode.crop => .10,
           _ReceiptReviewMode.order => .18,
           _ReceiptReviewMode.stitch => .20,
           _ReceiptReviewMode.dataSaver => .20,
         };
     final absolute = switch (_reviewMode) {
-      _ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0,
-      _ReceiptReviewMode.crop => 78.0,
-      _ReceiptReviewMode.order => 142.0,
-      _ReceiptReviewMode.stitch => 164.0,
-      _ReceiptReviewMode.dataSaver => 168.0,
+      _ReceiptReviewMode.preview =>
+        _photoPaths.length > 1
+            ? widget.uiConfig.previewControlsMultiPhotoHeight
+            : widget.uiConfig.previewControlsSinglePhotoHeight,
+      _ReceiptReviewMode.crop => widget.uiConfig.cropControlsHeight,
+      _ReceiptReviewMode.order => widget.uiConfig.orderControlsHeight,
+      _ReceiptReviewMode.stitch => widget.uiConfig.stitchControlsHeight,
+      _ReceiptReviewMode.dataSaver => widget.uiConfig.dataSaverControlsHeight,
     };
     return proportional < absolute ? proportional : absolute;
   }
@@ -104,9 +109,5 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       quality: _qualityChecksByPath[photoPath],
       diagnostics: _captureDiagnosticsByPath[photoPath],
     );
-  }
-
-  double _reviewSurfaceBottomPadding(BuildContext context) {
-    return _reviewBottomControlsMaxHeight(context) + 4;
   }
 }

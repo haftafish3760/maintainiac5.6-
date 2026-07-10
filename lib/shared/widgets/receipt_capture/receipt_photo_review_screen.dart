@@ -19,6 +19,7 @@ import 'receipt_native_camera_service.dart';
 import 'receipt_picker_status.dart';
 import 'receipt_photo_review_retake_order.dart';
 import 'receipt_photo_path_identity.dart';
+import 'receipt_photo_review_ui_config.dart';
 import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
 import 'receipt_storage_guard.dart';
@@ -89,6 +90,7 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
     this.initialQualityChecksByPath = const {},
     this.initialCaptureDiagnosticsByPath = const {},
     this.assistedReceiptFill = false,
+    this.uiConfig = const ReceiptPhotoReviewUiConfig(),
   });
 
   final List<String> initialPhotoPaths;
@@ -99,6 +101,7 @@ class ReceiptPhotoReviewScreen extends StatefulWidget {
   final Map<String, ReceiptPhotoQualityCheck> initialQualityChecksByPath;
   final Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath;
   final bool assistedReceiptFill;
+  final ReceiptPhotoReviewUiConfig uiConfig;
 
   @override
   State<ReceiptPhotoReviewScreen> createState() =>

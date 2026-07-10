@@ -2,6 +2,7 @@ part of 'receipt_photo_review_screen.dart';
 
 class _ReceiptReviewBottomControls extends StatelessWidget {
   const _ReceiptReviewBottomControls({
+    required this.uiConfig,
     required this.photoPaths,
     required this.selectedIndex,
     required this.dataSaverLevel,
@@ -40,6 +41,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     required this.onContinue,
   });
 
+  final ReceiptPhotoReviewUiConfig uiConfig;
   final List<String> photoPaths;
   final int selectedIndex;
   final ReceiptDataSaverLevel dataSaverLevel;
@@ -113,6 +115,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     }
     if (reviewMode == _ReceiptReviewMode.preview) {
       return _ReceiptPreviewActionTray(
+        uiConfig: uiConfig,
         photoPaths: photoPaths,
         selectedIndex: selectedIndex,
         selectedQualityCheck: selectedQualityCheck,

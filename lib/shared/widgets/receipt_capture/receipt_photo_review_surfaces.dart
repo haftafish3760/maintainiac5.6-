@@ -86,22 +86,12 @@ extension _ReceiptPhotoReviewSurfaces on _ReceiptPhotoReviewScreenState {
     }
     return DecoratedBox(
       decoration: const BoxDecoration(color: Color(0xFF050607)),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            0,
-            58,
-            0,
-            _controlsVisible ? _reviewSurfaceBottomPadding(context) : 0,
-          ),
-          child: ReceiptEdgeCropper(
-            imageBytes: imageBytes,
-            imageSize: imageSize,
-            cropRect: _cropRect,
-            onCropRectChanged: _setCropRectFromCropper,
-            onDisplayRectChanged: _setCropDisplayRectFromCropper,
-          ),
-        ),
+      child: ReceiptEdgeCropper(
+        imageBytes: imageBytes,
+        imageSize: imageSize,
+        cropRect: _cropRect,
+        onCropRectChanged: _setCropRectFromCropper,
+        onDisplayRectChanged: _setCropDisplayRectFromCropper,
       ),
     );
   }

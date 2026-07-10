@@ -2,6 +2,7 @@ part of 'receipt_photo_review_screen.dart';
 
 class _ReceiptPreviewActionTray extends StatelessWidget {
   const _ReceiptPreviewActionTray({
+    required this.uiConfig,
     required this.photoPaths,
     required this.selectedIndex,
     required this.selectedQualityCheck,
@@ -18,6 +19,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     required this.onContinue,
   });
 
+  final ReceiptPhotoReviewUiConfig uiConfig;
   final List<String> photoPaths;
   final int selectedIndex;
   final ReceiptPhotoQualityCheck? selectedQualityCheck;
@@ -60,9 +62,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     final isOverLocalPhotoLimit =
         hasMultiplePhotos && photoCount > deviceCapability.maxLocalPhotoCount;
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Color(0xE8050607),
-        border: Border(top: BorderSide(color: Color(0x99344047))),
+      decoration: BoxDecoration(
+        color: uiConfig.controlsBackgroundColor,
+        border: Border(top: BorderSide(color: uiConfig.controlsBorderColor)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
@@ -73,14 +75,17 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _ReceiptReviewDecisionHeader(
-                  photoCount: photoCount,
-                  coverageDecision: coverageDecision,
-                  continueLabel: continueLabel,
-                  compact: compactControls,
-                ),
-                SizedBox(height: compactControls ? 5 : 7),
+                if (uiConfig.showDecisionGuidance) ...[
+                  _ReceiptReviewDecisionHeader(
+                    photoCount: photoCount,
+                    coverageDecision: coverageDecision,
+                    continueLabel: continueLabel,
+                    compact: compactControls,
+                  ),
+                  SizedBox(height: compactControls ? 5 : 7),
+                ],
                 _ReceiptPreviewPrimaryRow(
+                  uiConfig: uiConfig,
                   current: effectiveSelectedIndex + 1,
                   total: photoCount,
                   statusIcon: statusIcon,
@@ -109,7 +114,8 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                             deviceCapability: deviceCapability,
                           ),
                         ],
-                        if (hasMultiplePhotos) ...[
+                        if (hasMultiplePhotos &&
+                            uiConfig.showSecondaryTools) ...[
                           const SizedBox(height: 5),
                           _ReceiptMultiPhotoActionRail(
                             selectedIndex: selectedIndex,
@@ -128,7 +134,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           SizedBox(
-                            height: compactControls ? 42 : 50,
+                            height: compactControls
+                                ? 42
+                                : uiConfig.photoThumbnailHeight,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: photoPaths.length,

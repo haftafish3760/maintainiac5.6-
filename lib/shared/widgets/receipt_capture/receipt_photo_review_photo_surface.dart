@@ -23,39 +23,29 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
               }
             });
           },
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                0,
-                56,
-                0,
-                _controlsVisible ? _reviewSurfaceBottomPadding(context) : 0,
-              ),
-              child: InteractiveViewer(
-                transformationController: _photoPreviewTransformController,
-                minScale: 1,
-                maxScale: 6,
-                boundaryMargin: const EdgeInsets.all(48),
-                child: SizedBox.expand(
-                  child: Image.file(
-                    File(photoPath),
-                    fit: BoxFit.contain,
-                    cacheWidth: _reviewPreviewCacheWidth(context),
-                    filterQuality: FilterQuality.medium,
-                    gaplessPlayback: true,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Text(
-                          'Receipt image could not be previewed.',
-                          style: TextStyle(
-                            color: Color(0xFFE8ECEE),
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+          child: InteractiveViewer(
+            transformationController: _photoPreviewTransformController,
+            minScale: 1,
+            maxScale: 6,
+            boundaryMargin: const EdgeInsets.all(48),
+            child: SizedBox.expand(
+              child: Image.file(
+                File(photoPath),
+                fit: BoxFit.contain,
+                cacheWidth: _reviewPreviewCacheWidth(context),
+                filterQuality: FilterQuality.medium,
+                gaplessPlayback: true,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Text(
+                      'Receipt image could not be previewed.',
+                      style: TextStyle(
+                        color: Color(0xFFE8ECEE),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
