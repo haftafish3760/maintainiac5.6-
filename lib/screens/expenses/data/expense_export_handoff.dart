@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 import '../../../shared/pdf/app_generated_pdf_export_estimator.dart';
+import '../../../shared/pdf/app_generated_pdf_image_loader.dart';
 import '../../../shared/pdf/app_generated_pdf_share_content.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/storage/app_storage_guard.dart';
@@ -196,8 +197,15 @@ Future<List<int>> _buildZipBytes(ExpenseExportFileSet files) async {
 }
 
 Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
-  ExpenseExportSnapshot snapshot,
-) async {
+  ExpenseExportSnapshot snapshot, {
+  AppGeneratedPdfExportMode mode = AppGeneratedPdfExportMode.textOnly,
+  AppGeneratedPdfImageLoader? imageLoader,
+}) async {
+  final imageSections = await _loadReceiptImageSections(
+    snapshot: snapshot,
+    mode: mode,
+    imageLoader: imageLoader,
+  );
   final pdf = pw.Document();
   pdf.addPage(
     pw.MultiPage(
@@ -238,6 +246,15 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
                 ],
           ],
         ),
+        if (imageSections.isNotEmpty) ...[
+          pw.SizedBox(height: 18),
+          pw.Text(
+            'Receipt Images',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 8),
+          ...imageSections,
+        ],
       ],
     ),
   );
@@ -261,6 +278,54 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
     shareSubject: share.subject,
     shareText: share.text,
   );
+}
+
+Future<List<pw.Widget>> _loadReceiptImageSections({
+  required ExpenseExportSnapshot snapshot,
+  required AppGeneratedPdfExportMode mode,
+  required AppGeneratedPdfImageLoader? imageLoader,
+}) async {
+  if (mode == AppGeneratedPdfExportMode.textOnly) return const [];
+  final loader = imageLoader;
+  if (loader == null) {
+    throw const AppGeneratedPdfException(
+      'This receipt image PDF export needs an image source before it can be generated.',
+    );
+  }
+  final sections = <pw.Widget>[];
+  for (final receipt in snapshot.receipts) {
+    for (final attachment in receipt.attachments.where(
+      (item) => item.isPhoto,
+    )) {
+      final bytes = await loader(attachmentId: attachment.id, mode: mode);
+      if (bytes == null || bytes.isEmpty) {
+        throw AppGeneratedPdfException(
+          'Receipt image ${attachment.id} was not available for this PDF export.',
+        );
+      }
+      final image = pw.MemoryImage(bytes);
+      sections.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 12),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('${receipt.merchantName} - ${attachment.id}'),
+              pw.SizedBox(height: 4),
+              pw.Image(
+                image,
+                height: mode == AppGeneratedPdfExportMode.thumbnails
+                    ? 120
+                    : 420,
+                fit: pw.BoxFit.contain,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+  return sections;
 }
 
 String _shareSubject(ExpenseExportSnapshot snapshot) {
