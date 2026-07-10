@@ -1,10 +1,10 @@
 # Reusable Parsing QA Checkpoint
 
-Last updated: 2026-07-09 21:11 EDT
+Last updated: 2026-07-09 21:26 EDT
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Validated floor commit: `610a2f0`
+- Validated floor commit: `8e9771d`
 - Ready for Mac measurement wave: `true`
 - Ready to claim 90-95 percent: `false`
 - Remaining measured gap count: `38`

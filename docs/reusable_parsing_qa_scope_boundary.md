@@ -1,6 +1,6 @@
 # Reusable Parsing QA Scope Boundary
 
-Last updated: 2026-07-09 21:11 EDT
+Last updated: 2026-07-09 21:26 EDT
 
 This file is the explicit boundary between reusable parser QA foundation work
 and inventory-specific Windows work.
@@ -8,7 +8,7 @@ and inventory-specific Windows work.
 Validated floor:
 
 - Branch: `codex/reusable-parsing-qa-foundation`
-- Validated floor commit: `610a2f0`
+- Validated floor commit: `8e9771d`
 
 ## Reusable Parser QA Foundation
 
