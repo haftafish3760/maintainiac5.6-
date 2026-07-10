@@ -198,4 +198,31 @@ ODOMETER 100120
     expect(fuel.odometerReading, 100120);
     expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
   });
+
+  test(
+    'parses spaced mid grade gasoline without treating octane as volume',
+    () {
+      final parsed = parseExpenseReceiptText('''
+EXXON
+06/30/2026
+PUMP 12
+MID GRADE 89
+GALLONS 9.250
+PRICE/GAL 3.719
+FUEL SALE 34.40
+TOTAL 34.40
+ODOMETER 100480
+''');
+
+      expect(parsed.lines, hasLength(1));
+      final fuel = parsed.lines.single;
+      expect(fuel.category, 'Fuel');
+      expect(fuel.fuelType, 'Gasoline');
+      expect(fuel.quantity, 9.25);
+      expect(fuel.unitPrice, 3.719);
+      expect(fuel.subtotal, 34.40);
+      expect(fuel.odometerReading, 100480);
+      expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+    },
+  );
 }
