@@ -104,7 +104,9 @@ void main() {
           'refreshCommand': [
             'dart',
             'run',
-            'tool/work_supply_parser_qa_peh_core_refresh.dart',
+            'tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart',
+            '--root',
+            '.',
             '--hvac-status',
             'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
           ],

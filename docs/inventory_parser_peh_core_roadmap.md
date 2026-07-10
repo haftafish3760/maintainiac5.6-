@@ -198,9 +198,10 @@ order unless a shared parser rule blocks the active step.
    - Electrical source: Mac rollup
    - HVAC source: Mac rollup
 5. Refresh the downstream PEH truth stack through
-   `work_supply_parser_qa_peh_core_refresh.dart` whenever new Mac evidence
-   lands, so Mac-wave status, merged rollup, and claim readiness are rebuilt
-   together.
+   `work_supply_parser_qa_peh_core_post_mac_refresh.dart` whenever new Mac
+   evidence lands, so the Mac-wave status, merged rollup, claim readiness,
+   reusable checkpoint, reusable status, and reusable handoff summary are
+   rebuilt together from one canonical post-wave command.
 6. Publish the external run contract through
    `peh_core_mac_handoff_packet.json` so the Mac side gets one canonical
    machine-readable packet instead of scattered commands.
