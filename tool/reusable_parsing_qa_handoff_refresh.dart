@@ -336,6 +336,9 @@ This runbook is the plain-English companion to:
    Windows-next versus Mac-next checkpoint from live PEH evidence.
 6. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
+7. On the Windows execution branch, run
+   `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
+   and require `parityOk: true` before trusting the live PEH Mac packet.
 
 ## What Windows Already Finished
 
@@ -360,7 +363,7 @@ Do not rebuild these unless a new regression proves they are wrong:
 ## Current Measurement Reality
 
 - Plumbing already has the stronger Windows-side generated evidence.
-- Electrical already has the current Windows-side sample-sized proof.
+- Electrical already has the stronger Windows-side measured evidence.
 - HVAC is the remaining top measured gap from the current PEH artifacts.
 - The branch is ready for a Mac measurement wave.
 - The branch is not yet ready for a `90-95%` claim across PEH.
@@ -428,6 +431,7 @@ Open these in order:
 3. `docs/reusable_parsing_qa_checkpoint.md`
 4. `docs/reusable_parsing_qa_mac_runbook.md`
 5. `docs/reusable_parsing_qa_mac_handoff_packet.json`
+6. `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
 
 What this means:
 
@@ -436,6 +440,8 @@ What this means:
 - The checkpoint file is the current Windows-next versus Mac-next state.
 - The runbook is the plain-English execution sequence.
 - The packet is the machine-readable source of exact Mac-side commands.
+- The handoff status command is the machine-checkable summary of doc alignment,
+  and on the Windows execution branch it also enforces PEH packet parity.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.
@@ -467,6 +473,7 @@ consumed by the Mac Mini lane without rebuilding them from scratch:
 - `test/support/parser_qa_platform/`
 - `test/support/qa_harness/`
 - `tool/reusable_parsing_qa_handoff_refresh.dart`
+- `tool/reusable_parsing_qa_handoff_parity.dart`
 - `tool/reusable_parsing_qa_handoff_status.dart`
 - `docs/reusable_parsing_qa_handoff_index.md`
 - `docs/reusable_parsing_qa_handoff_marker.md`

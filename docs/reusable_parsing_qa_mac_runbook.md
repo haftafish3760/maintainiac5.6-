@@ -44,7 +44,7 @@ Do not rebuild these unless a new regression proves they are wrong:
 ## Current Measurement Reality
 
 - Plumbing already has the stronger Windows-side generated evidence.
-- Electrical already has the current Windows-side sample-sized proof.
+- Electrical already has the stronger Windows-side measured evidence.
 - HVAC is the remaining top measured gap from the current PEH artifacts.
 - The branch is ready for a Mac measurement wave.
 - The branch is not yet ready for a `90-95%` claim across PEH.
