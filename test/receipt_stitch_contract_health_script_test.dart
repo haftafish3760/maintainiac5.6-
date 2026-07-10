@@ -3,6 +3,21 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('stitch overlap comparison stays bounded for quiet QA gates', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/'
+      'receipt_image_processor_stitch_helpers.dart',
+    ).readAsStringSync();
+
+    final match = RegExp(
+      r'const comparisonWidth = (\d+);',
+    ).firstMatch(source);
+
+    expect(match, isNotNull);
+    final comparisonWidth = int.parse(match!.group(1)!);
+    expect(comparisonWidth, lessThanOrEqualTo(320));
+  });
+
   test('receipt stitch contract health script runs stitch and handoff tests', () {
     final script = File('tool/receipt_stitch_contract_health.sh');
     final realProbeScript = File('tool/receipt_stitch_real_probe.sh');
