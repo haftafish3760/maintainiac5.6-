@@ -312,6 +312,13 @@ const _products = [
     basePrice: 2.689,
   ),
   _FuelSyntheticProduct(
+    label: 'M85',
+    spanishLabel: 'Metanol M85',
+    fuelType: 'Methanol',
+    unit: 'gallon',
+    basePrice: 2.499,
+  ),
+  _FuelSyntheticProduct(
     label: 'H2 HYDROGEN FUEL',
     spanishLabel: 'Hidrogeno H2',
     fuelType: 'Hydrogen',

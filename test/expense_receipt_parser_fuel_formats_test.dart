@@ -9,6 +9,7 @@ part 'expense_receipt_parser_fuel_formats_edge_cases_test.dart';
 part 'expense_receipt_parser_fuel_formats_metered_ev_test.dart';
 part 'expense_receipt_parser_fuel_formats_hydrogen_test.dart';
 part 'expense_receipt_parser_fuel_formats_propane_test.dart';
+part 'expense_receipt_parser_fuel_formats_methanol_test.dart';
 
 void main() {
   _registerFuelFormatCoreTests();
@@ -19,4 +20,5 @@ void main() {
   _registerFuelFormatMeteredEvTests();
   _registerFuelFormatHydrogenTests();
   _registerFuelFormatPropaneTests();
+  _registerFuelFormatMethanolTests();
 }

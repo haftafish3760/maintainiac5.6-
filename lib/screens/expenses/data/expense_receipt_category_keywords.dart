@@ -17,7 +17,7 @@ final _categoryRules = [
       r'non ethanol|rec fuel|recreational fuel|marine gas|marine fuel|e0|'
       r'cng|lng|compressed natural gas|liquefied natural gas|'
       r'gas natural comprimido|renewable natural gas|rng|gge|dge|'
-      r'propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[- ]?5|'
+      r'propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[- ]?5|methanol|m85|m100|'
       r'hydrogen|h2 fuel|fuel cell|kg h2|h35|h70|'
       r'e[- ]?10|e[- ]?15|e[- ]?20|e[- ]?30|e[- ]?50|e[- ]?85|'
       r'flex fuel|flexfuel|gasohol|ethanol|'
