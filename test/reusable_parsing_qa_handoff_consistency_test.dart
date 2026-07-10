@@ -89,6 +89,10 @@ void main() {
       contains('Companion plain-English runbook:'),
     );
     expect(
+      marker,
+      contains('expectedLocalDocsRefreshDirty: true'),
+    );
+    expect(
       boundary,
       contains('Validated floor commit: `$markerCommit`'),
     );
@@ -199,6 +203,10 @@ void main() {
     expect(
       index,
       contains('branch tip is authoritative'),
+    );
+    expect(
+      index,
+      contains('expectedLocalDocsRefreshDirty: true'),
     );
   });
 }

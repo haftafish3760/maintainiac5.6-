@@ -384,6 +384,11 @@ The current Windows-next versus Mac-next checkpoint lives in
 Windows should refresh the full handoff stack with
 `dart run tool/reusable_parsing_qa_handoff_sync.dart ...` instead of running
 separate refresh and checkpoint commands by hand.
+If the local Windows workspace shows only the refreshed handoff docs as dirty,
+confirm the state with
+`dart run tool/reusable_parsing_qa_handoff_summary.dart --root .` and require
+`expectedLocalDocsRefreshDirty: true` before treating that local drift as a
+problem.
 
 ## Completed On Windows
 
@@ -638,6 +643,9 @@ What this means:
   and on the Windows execution branch it also enforces PEH packet parity.
 - The handoff summary command is the one-command readout of current blocker
   state, remaining gap, and exact execution checkpoint.
+- The handoff summary also tells you when the local Windows worktree is only in
+  the expected refreshed-doc state by reporting
+  `expectedLocalDocsRefreshDirty: true`.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.

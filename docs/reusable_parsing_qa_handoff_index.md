@@ -32,6 +32,9 @@ What this means:
   and on the Windows execution branch it also enforces PEH packet parity.
 - The handoff summary command is the one-command readout of current blocker
   state, remaining gap, and exact execution checkpoint.
+- The handoff summary also tells you when the local Windows worktree is only in
+  the expected refreshed-doc state by reporting
+  `expectedLocalDocsRefreshDirty: true`.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.

@@ -3,7 +3,7 @@
   "report": "reusable_parsing_qa_handoff_checkpoint",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "windowsExecutionCommit": "c226305",
+  "windowsExecutionCommit": "d7ef999",
   "validatedFloorCommit": "8e9771d",
   "validatedFloorLabel": "Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion",
   "readyForMacMeasurementWave": true,

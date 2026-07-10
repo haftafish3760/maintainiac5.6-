@@ -43,6 +43,11 @@ The current Windows-next versus Mac-next checkpoint lives in
 Windows should refresh the full handoff stack with
 `dart run tool/reusable_parsing_qa_handoff_sync.dart ...` instead of running
 separate refresh and checkpoint commands by hand.
+If the local Windows workspace shows only the refreshed handoff docs as dirty,
+confirm the state with
+`dart run tool/reusable_parsing_qa_handoff_summary.dart --root .` and require
+`expectedLocalDocsRefreshDirty: true` before treating that local drift as a
+problem.
 
 ## Completed On Windows
 

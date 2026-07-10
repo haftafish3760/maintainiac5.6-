@@ -4,7 +4,7 @@ Last updated: 2026-07-09 11:58 PM EDT
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Windows execution commit: `c226305`
+- Windows execution commit: `d7ef999`
 - Validated floor commit: `8e9771d`
 - Ready for Mac measurement wave: `true`
 - Ready to claim 90-95 percent: `false`
