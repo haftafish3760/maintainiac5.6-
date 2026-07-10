@@ -1,6 +1,6 @@
 # Reusable Parsing QA Handoff Index
 
-Last updated: 2026-07-09 11:17 PM EDT
+Last updated: 2026-07-09 11:25 PM EDT
 
 This is the single first file the Mac Mini side should open.
 
@@ -20,6 +20,7 @@ Open these in order:
 5. `docs/reusable_parsing_qa_mac_handoff_packet.json`
 6. `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
 7. `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+8. `dart run tool/reusable_parsing_qa_mac_handoff_brief.dart --root .`
 
 What this means:
 
@@ -32,6 +33,9 @@ What this means:
   and on the Windows execution branch it also enforces PEH packet parity.
 - The handoff summary command is the one-command readout of current blocker
   state, remaining gap, and exact execution checkpoint.
+- The Mac handoff brief command is the one-command readout of exactly what the
+  Mac Mini should read first, run next, and expect back from the current
+  Windows checkpoint.
 - The handoff summary also tells you when the local Windows worktree is only in
   the expected refreshed-doc state by reporting
   `expectedLocalDocsRefreshDirty: true`.

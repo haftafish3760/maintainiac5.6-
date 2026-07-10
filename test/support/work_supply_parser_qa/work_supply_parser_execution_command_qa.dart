@@ -68,6 +68,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/reusable_parsing_qa_handoff_status.dart';
   static const _reusableHandoffSummaryPath =
       'tool/reusable_parsing_qa_handoff_summary.dart';
+  static const _reusableMacHandoffBriefPath =
+      'tool/reusable_parsing_qa_mac_handoff_brief.dart';
 
   static const _environmentVariables = [
     'PARSER_QA_STRICT',
@@ -433,6 +435,11 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--root',
       '.',
     ]),
+    _CommandContract('reusable_mac_handoff_brief', [
+      'dart run tool/reusable_parsing_qa_mac_handoff_brief.dart',
+      '--root',
+      '.',
+    ]),
   ];
 
   static const _toolSourceContracts = [
@@ -712,6 +719,29 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'measurementCommandCount',
         'rollupCommandCount',
         'firstMeasurementCommand',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'reusable_mac_handoff_brief_readout',
+      path: _reusableMacHandoffBriefPath,
+      tokens: [
+        'QA_REUSABLE_PARSING_MAC_HANDOFF_BRIEF',
+        'primaryBranch',
+        'validatedFloorCommit',
+        'windowsExecutionCommit',
+        'readyForMacMeasurementWave',
+        'readyToClaimNinetyPlus',
+        'nextTradesByRemainingGap',
+        'totalRemainingChecked',
+        'claimBlockingFindings',
+        'claimNextActions',
+        'measurementCommandCount',
+        'rollupCommandCount',
+        'macMiniExpectedOutputs',
+        'readFirst',
+        'firstMeasurementCommand',
+        'macMiniNextCommands',
+        'expectedLocalDocsRefreshFiles',
       ],
     ),
     _ToolSourceContract(
@@ -1079,6 +1109,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _reusableHandoffParityPath: _read(_reusableHandoffParityPath, failures),
       _reusableHandoffStatusPath: _read(_reusableHandoffStatusPath, failures),
       _reusableHandoffSummaryPath: _read(_reusableHandoffSummaryPath, failures),
+      _reusableMacHandoffBriefPath: _read(_reusableMacHandoffBriefPath, failures),
     };
     checked += _toolSourceContracts.length;
     for (final contract in _toolSourceContracts) {

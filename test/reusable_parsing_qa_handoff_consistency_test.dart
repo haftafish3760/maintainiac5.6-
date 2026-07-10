@@ -216,6 +216,14 @@ void main() {
       index,
       contains('expectedLocalDocsRefreshDirty: true'),
     );
+    expect(
+      runbook,
+      contains('reusable_parsing_qa_mac_handoff_brief.dart'),
+    );
+    expect(
+      index,
+      contains('reusable_parsing_qa_mac_handoff_brief.dart'),
+    );
   });
 }
 

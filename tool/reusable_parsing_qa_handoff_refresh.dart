@@ -500,18 +500,22 @@ This runbook is the plain-English companion to:
    `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
    and confirm the remaining gap, blockers, and execution commit match the
    packet you plan to follow.
-9. If the Windows execution commit advanced and the packet/script pair needs
+9. If you want one compact “what do I run next on the Mac Mini?” packet, run
+   `dart run tool/reusable_parsing_qa_mac_handoff_brief.dart --root .`
+   and use that readout instead of reconstructing the next wave from multiple
+   docs by hand.
+10. If the Windows execution commit advanced and the packet/script pair needs
    to be refreshed together, prefer
    `dart run tool/work_supply_parser_qa_finalize_live_handoff.dart --root . --branch $branch --commit $commit --commit-full <full sha> --label "<validated floor label>" --updated-at "YYYY-MM-DD HH:MM EDT"`
    before handing the wave back to the Mac Mini.
-10. If you need only the packet/script restamp without the reusable sync and
+11. If you need only the packet/script restamp without the reusable sync and
     summary wrapper, run
     `dart run tool/work_supply_parser_qa_peh_core_restamp_handoff.dart --root .`.
-11. After the Mac Mini copies its rollups back to Windows, run
+12. After the Mac Mini copies its rollups back to Windows, run
     `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .`
     so the PEH refresh, reusable checkpoint, reusable status, and reusable
     summary all move together instead of being refreshed piecemeal.
-12. Treat the following locally modified docs as normal immediately after a
+13. Treat the following locally modified docs as normal immediately after a
     Windows-side sync/restamp unless another signal says otherwise:
     - `docs/reusable_parsing_qa_checkpoint.json`
     - `docs/reusable_parsing_qa_checkpoint.md`
@@ -651,6 +655,7 @@ Open these in order:
 5. `docs/reusable_parsing_qa_mac_handoff_packet.json`
 6. `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
 7. `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+8. `dart run tool/reusable_parsing_qa_mac_handoff_brief.dart --root .`
 
 What this means:
 
@@ -663,6 +668,9 @@ What this means:
   and on the Windows execution branch it also enforces PEH packet parity.
 - The handoff summary command is the one-command readout of current blocker
   state, remaining gap, and exact execution checkpoint.
+- The Mac handoff brief command is the one-command readout of exactly what the
+  Mac Mini should read first, run next, and expect back from the current
+  Windows checkpoint.
 - The handoff summary also tells you when the local Windows worktree is only in
   the expected refreshed-doc state by reporting
   `expectedLocalDocsRefreshDirty: true`.
