@@ -18,6 +18,8 @@ void main() {
       'windowsWorkingBranch': 'codex/inventory-parser-backup-20260702-2056',
       'readyForMacMeasurementWave': true,
       'readyToClaimNinetyPlus': false,
+      'totalRemainingChecked': 38,
+      'nextTradesByRemainingGap': ['hvac'],
     });
     _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
       'reusableBaselineBranch': 'codex/reusable-parsing-qa-foundation',
@@ -25,6 +27,8 @@ void main() {
       'inventoryExecutionBranch': 'codex/inventory-parser-backup-20260702-2056',
       'readyForMacMeasurementWave': true,
       'readyToClaimNinetyPlus': false,
+      'totalRemainingChecked': 38,
+      'nextTradesByRemainingGap': ['hvac'],
     });
 
     final stdout = _MemorySink();
@@ -54,6 +58,8 @@ void main() {
       'windowsWorkingBranch': 'codex/inventory-parser-backup-20260702-2056',
       'readyForMacMeasurementWave': true,
       'readyToClaimNinetyPlus': false,
+      'totalRemainingChecked': 38,
+      'nextTradesByRemainingGap': ['hvac'],
     });
     _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
       'reusableBaselineBranch': 'codex/reusable-parsing-qa-foundation',
@@ -61,6 +67,8 @@ void main() {
       'inventoryExecutionBranch': 'codex/inventory-parser-backup-20260702-2056',
       'readyForMacMeasurementWave': false,
       'readyToClaimNinetyPlus': false,
+      'totalRemainingChecked': 12,
+      'nextTradesByRemainingGap': ['electrical'],
     });
 
     final stdout = _MemorySink();
@@ -78,6 +86,8 @@ void main() {
     expect(payload['findingCount'], greaterThanOrEqualTo(2));
     expect(payload['findings'].toString(), contains('reusable validated floor mismatch'));
     expect(payload['findings'].toString(), contains('readyForMacMeasurementWave mismatch'));
+    expect(payload['findings'].toString(), contains('totalRemainingChecked mismatch'));
+    expect(payload['findings'].toString(), contains('nextTradesByRemainingGap mismatch'));
   });
 }
 

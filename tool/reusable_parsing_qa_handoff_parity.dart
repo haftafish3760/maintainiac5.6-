@@ -67,6 +67,11 @@ int runReusableParsingQaHandoffParity(
       checkpoint['readyForMacMeasurementWave'] == true;
   final readyToClaimNinetyPlus =
       checkpoint['readyToClaimNinetyPlus'] == true;
+  final totalRemainingChecked =
+      (checkpoint['totalRemainingChecked'] as num?)?.toInt() ?? 0;
+  final nextTradesByRemainingGap = _stringList(
+    checkpoint['nextTradesByRemainingGap'],
+  );
 
   final packetReusableBranch =
       pehPacket['reusableBaselineBranch']?.toString() ??
@@ -82,6 +87,11 @@ int runReusableParsingQaHandoffParity(
       pehPacket['readyForMacMeasurementWave'] == true;
   final packetReadyToClaimNinetyPlus =
       pehPacket['readyToClaimNinetyPlus'] == true;
+  final packetTotalRemainingChecked =
+      (pehPacket['totalRemainingChecked'] as num?)?.toInt() ?? 0;
+  final packetNextTradesByRemainingGap = _stringList(
+    pehPacket['nextTradesByRemainingGap'],
+  );
 
   final findings = <String>[
     if (packetReusableBranch != primaryBranch)
@@ -94,6 +104,10 @@ int runReusableParsingQaHandoffParity(
       'readyForMacMeasurementWave mismatch: checkpoint=$readyForMacMeasurementWave packet=$packetReadyForMacMeasurementWave',
     if (packetReadyToClaimNinetyPlus != readyToClaimNinetyPlus)
       'readyToClaimNinetyPlus mismatch: checkpoint=$readyToClaimNinetyPlus packet=$packetReadyToClaimNinetyPlus',
+    if (packetTotalRemainingChecked != totalRemainingChecked)
+      'totalRemainingChecked mismatch: checkpoint=$totalRemainingChecked packet=$packetTotalRemainingChecked',
+    if (!_sameStrings(packetNextTradesByRemainingGap, nextTradesByRemainingGap))
+      'nextTradesByRemainingGap mismatch: checkpoint=${nextTradesByRemainingGap.join(",")} packet=${packetNextTradesByRemainingGap.join(",")}',
   ];
 
   final summary = {
@@ -109,6 +123,10 @@ int runReusableParsingQaHandoffParity(
     'packetInventoryExecutionBranch': packetInventoryBranch,
     'readyForMacMeasurementWave': readyForMacMeasurementWave,
     'readyToClaimNinetyPlus': readyToClaimNinetyPlus,
+    'totalRemainingChecked': totalRemainingChecked,
+    'nextTradesByRemainingGap': nextTradesByRemainingGap,
+    'packetTotalRemainingChecked': packetTotalRemainingChecked,
+    'packetNextTradesByRemainingGap': packetNextTradesByRemainingGap,
     'parityOk': findings.isEmpty,
     'findingCount': findings.length,
     'findings': findings,
@@ -119,6 +137,24 @@ int runReusableParsingQaHandoffParity(
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
   return findings.isEmpty ? 0 : 1;
+}
+
+List<String> _stringList(Object? value) {
+  if (value is List) {
+    return value
+        .map((entry) => entry?.toString() ?? '')
+        .where((entry) => entry.isNotEmpty)
+        .toList(growable: false);
+  }
+  return const [];
+}
+
+bool _sameStrings(List<String> left, List<String> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
 }
 
 String _value(List<String> args, String key, String fallback) {
