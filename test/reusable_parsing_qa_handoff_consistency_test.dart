@@ -126,6 +126,14 @@ void main() {
     );
     expect(
       checkpoint,
+      contains('## First Mac Measurement Command'),
+    );
+    expect(
+      checkpoint,
+      contains('tool/work_supply_parser_qa_run_generated_fixtures.dart'),
+    );
+    expect(
+      checkpoint,
       contains('## Expected Local Windows Refresh State'),
     );
     expect(
