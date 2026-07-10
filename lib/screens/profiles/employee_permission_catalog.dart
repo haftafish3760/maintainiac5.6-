@@ -184,8 +184,8 @@ List<EmployeePermissionArea> get employeePermissionCatalog => [
       ),
       _item(
         'invoicePdfFiles',
-        'invoice PDF files',
-        'Generated PDF files for invoices.',
+        'invoice PDF delivery',
+        'Temporary generated PDFs used for preview, sharing, and export.',
         [
           PermissionVerb.view,
           PermissionVerb.share,

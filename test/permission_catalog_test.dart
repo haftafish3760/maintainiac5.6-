@@ -340,15 +340,15 @@ void main() {
       await tester.tap(find.text('Invoices').first);
       await tester.pumpAndSettle();
 
-      expect(find.text('invoice PDF files'), findsOneWidget);
-      expect(find.text('View invoice pdf files'), findsOneWidget);
+      expect(find.text('invoice PDF delivery'), findsOneWidget);
+      expect(find.text('View invoice pdf delivery'), findsOneWidget);
 
       expect(
-        find.text('Can they view other employees\' invoice pdf files?'),
+        find.text('Can they view other employees\' invoice pdf delivery?'),
         findsOneWidget,
       );
       await tester.tap(
-        find.text('Can they view other employees\' invoice pdf files?'),
+        find.text('Can they view other employees\' invoice pdf delivery?'),
       );
       await tester.pumpAndSettle();
 

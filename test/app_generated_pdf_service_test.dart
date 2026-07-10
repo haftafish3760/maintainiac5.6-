@@ -8,9 +8,6 @@ import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_pdf_preview_factory.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
-import 'package:maintaniac/shared/documents/app_document_models.dart';
-import 'package:maintaniac/shared/documents/app_document_store.dart';
-import 'package:maintaniac/shared/documents/app_generated_pdf_archive_service.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 
@@ -18,21 +15,16 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory temporaryDirectory;
-  late Directory documentsDirectory;
 
   setUp(() async {
     temporaryDirectory = await Directory.systemTemp.createTemp(
       'generated_pdf_service_',
-    );
-    documentsDirectory = await Directory.systemTemp.createTemp(
-      'generated_pdf_archive_',
     );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
           (call) async => switch (call.method) {
             'getTemporaryDirectory' => temporaryDirectory.path,
-            'getApplicationDocumentsDirectory' => documentsDirectory.path,
             _ => null,
           },
         );
@@ -46,9 +38,6 @@ void main() {
         );
     if (await temporaryDirectory.exists()) {
       await temporaryDirectory.delete(recursive: true);
-    }
-    if (await documentsDirectory.exists()) {
-      await documentsDirectory.delete(recursive: true);
     }
   });
 
@@ -209,40 +198,9 @@ void main() {
     expect(await newFile.exists(), isTrue);
   });
 
-  test('generated invoice PDF archives as a permanent app document', () async {
-    final store = AppDocumentStore.memory();
-    final document = AppGeneratedPdfDocument(
-      kind: AppGeneratedPdfKind.invoice,
-      title: 'Invoice INV-42',
-      fileName: 'invoice_INV-42.pdf',
-      bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
-      createdAt: DateTime(2026, 6, 15),
-      sourceModule: 'invoices',
-      sourceRecordId: 'invoice_42',
-    );
-
-    final archived = await AppGeneratedPdfArchiveService(
-      store: store,
-    ).archive(document);
-
-    expect(archived.document.kind, AppDocumentKind.invoiceDocument);
-    expect(archived.document.id, 'DOC-invoice-invoice_42');
-    expect(archived.attachment.linkedModule, 'invoices');
-    expect(archived.attachment.linkedRecordId, 'invoice_42');
-    expect(archived.attachment.fileHash, archived.fileHashSha256);
-    expect(archived.attachment.storageState.name, 'permanent');
-    expect(await File(archived.attachment.path).exists(), isTrue);
-    expect(
-      archived.attachment.path,
-      contains('app_documents/invoices/generated_pdfs'),
-    );
-    expect(store.recordById('DOC-invoice-invoice_42'), isNotNull);
-  });
-
   test(
-    'record invoice PDF is sendable, safe-named, archived, and not stored in ledger',
+    'record invoice PDF is sendable, safe-named, temporary, and not stored in ledger',
     () async {
-      final store = AppDocumentStore.memory();
       final record = _invoiceRecord(
         id: 'invoice_lifecycle',
         number: 'INV/42:ACME*June?',
@@ -268,67 +226,6 @@ void main() {
         document,
       );
       expect(await File(generated.path).length(), document.byteSize);
-
-      final archived = await AppGeneratedPdfArchiveService(
-        store: store,
-      ).archive(document);
-
-      expect(archived.document.kind, AppDocumentKind.invoiceDocument);
-      expect(archived.document.id, 'DOC-invoice-invoice_lifecycle');
-      expect(archived.attachment.linkedModule, 'invoices');
-      expect(archived.attachment.linkedRecordId, 'invoice_lifecycle');
-      expect(archived.attachment.originalFileName, document.safeFileName);
-      expect(archived.attachment.byteSize, document.byteSize);
-      expect(archived.fileHashSha256, hasLength(64));
-      expect(await File(archived.attachment.path).exists(), isTrue);
-      expect(store.recordById(archived.document.id), isNotNull);
-    },
-  );
-
-  test('record estimate PDF archives as invoice document proof', () async {
-    final store = AppDocumentStore.memory();
-    final record = _invoiceRecord(
-      id: 'estimate_lifecycle',
-      number: 'EST-12',
-      type: InvoiceDocumentType.estimate,
-    );
-
-    final document = await const InvoicePdfPreviewFactory().buildRecordPreview(
-      record: record,
-    );
-    final archived = await AppGeneratedPdfArchiveService(
-      store: store,
-    ).archive(document);
-
-    expect(document.kind, AppGeneratedPdfKind.estimate);
-    expect(document.title, 'Estimate EST-12');
-    expect(document.sourceRecordId, 'estimate_lifecycle');
-    expect(document.validation.isValid, isTrue);
-    expect(archived.document.kind, AppDocumentKind.invoiceDocument);
-    expect(archived.document.id, 'DOC-estimate-estimate_lifecycle');
-    expect(archived.attachment.linkedRecordId, 'estimate_lifecycle');
-    expect(archived.fileHashSha256, hasLength(64));
-  });
-
-  test(
-    'generated PDF archive refuses invalid PDFs before permanent save',
-    () async {
-      final store = AppDocumentStore.memory();
-      final document = AppGeneratedPdfDocument(
-        kind: AppGeneratedPdfKind.invoice,
-        title: 'Invoice INV-BAD',
-        fileName: 'invoice_bad.pdf',
-        bytes: Uint8List.fromList('not a pdf'.codeUnits),
-        createdAt: DateTime(2026, 6, 15),
-        sourceModule: 'invoices',
-        sourceRecordId: 'invoice_bad',
-      );
-
-      await expectLater(
-        AppGeneratedPdfArchiveService(store: store).archive(document),
-        throwsA(isA<AppGeneratedPdfArchiveException>()),
-      );
-      expect(store.recordById('DOC-invoice-invoice_bad'), isNull);
     },
   );
 }
