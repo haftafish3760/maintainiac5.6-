@@ -29,6 +29,7 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       _photoPaths
         ..clear()
         ..addAll(removalPlan.photoPaths);
+      _captureDiagnosticsByPath.remove(removalPlan.removedPhotoPath);
       _captureDiagnosticsByPath.addAll(
         _mergeOrderCaptureDiagnostics(
           _captureDiagnosticsByPath,

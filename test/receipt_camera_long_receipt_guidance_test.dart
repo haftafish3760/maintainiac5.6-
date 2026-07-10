@@ -67,14 +67,13 @@ void main() {
     expect(sources.modeControls, contains("label: 'Match Photos'"));
     expect(
       sources.reviewControls,
-      contains("return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Receipt';"),
+      contains(
+        "return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Receipt';",
+      ),
     );
     expect(sources.reviewControls, contains('waitingForStitch'));
     expect(sources.reviewControls, contains('continueEnabled'));
-    expect(
-      sources.reviewControls,
-      contains("return 'Use Receipt';"),
-    );
+    expect(sources.reviewControls, contains("return 'Use Receipt';"));
     expect(
       sources.reviewControls,
       isNot(contains('Choose The Best Receipt Photo')),
@@ -119,7 +118,9 @@ void main() {
     expect(sources.reviewActions, contains('alignmentGuidance:'));
     expect(
       sources.captureActions,
-      contains('final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);'),
+      contains(
+        'final selectedPhotoIndex = _selectedIndex.clamp(0, _photoPaths.length - 1);',
+      ),
     );
     expect(
       sources.captureActions,
@@ -146,6 +147,16 @@ void main() {
     expect(
       sources.reviewActions,
       contains('final movePlan = ReceiptPhotoMoveOrderPlan.build('),
+    );
+    expect(
+      sources.reviewActions,
+      contains(
+        '_captureDiagnosticsByPath.remove(removalPlan.removedPhotoPath)',
+      ),
+    );
+    expect(
+      sources.reviewActions,
+      contains('captureDiagnosticsForRemainingPaths'),
     );
     expect(
       sources.captureActions,
@@ -186,11 +197,11 @@ void main() {
     expect(sources.reviewActions, contains('Retake Bottom Receipt Section'));
     expect(sources.reviewActions, contains('Retake Section'));
     expect(sources.reviewActions, contains('Line Up The Next Receipt Photo'));
-    expect(sources.reviewControls, contains('Add Bottom Section'));
+    expect(sources.reviewPreviewControls, contains('Add Bottom Section'));
     expect(
       sources.reviewPreviewControls,
       contains(
-        'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before receipt details',
+        'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
     expect(
@@ -244,9 +255,7 @@ void main() {
     );
     expect(
       sources.reviewScreen,
-      contains(
-        'start on the actual captured photo preview so',
-      ),
+      contains('start on the actual captured photo preview so'),
     );
     expect(
       sources.reviewScreen,
