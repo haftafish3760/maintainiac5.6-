@@ -162,12 +162,22 @@ void main() {
     final script = File(
       'build/parser_qa_pipeline/peh_core_mac_handoff.sh',
     ).readAsStringSync();
+    final boundary = File(
+      'docs/reusable_parsing_qa_scope_boundary.md',
+    ).readAsStringSync();
+    final runbook = File(
+      'docs/reusable_parsing_qa_mac_runbook.md',
+    ).readAsStringSync();
 
     expect(packet['commit'], headShort);
     expect(packet['inventoryExecutionCommit'], headShort);
     expect(script, contains('# Commit: $headShort'));
     expect(script, contains('mac_hvac_core_generated_run_status_25.json'));
     expect(script, isNot(contains('mac_electrical_core_generated_run_status_25.json')));
+    expect(boundary, contains('## Merchant Extraction Boundary'));
+    expect(boundary, contains('merchant-aware parser behavior'));
+    expect(runbook, contains('## Merchant Extraction Ownership'));
+    expect(runbook, contains('separate merchant-extraction buildout'));
   });
 }
 

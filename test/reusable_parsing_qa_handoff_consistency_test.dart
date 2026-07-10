@@ -105,6 +105,14 @@ void main() {
       contains('## Mac Mini Measurement Outputs'),
     );
     expect(
+      boundary,
+      contains('## Merchant Extraction Boundary'),
+    );
+    expect(
+      boundary,
+      contains('merchant-aware parser behavior'),
+    );
+    expect(
       checkpoint,
       contains('## Windows Next'),
     );
@@ -163,6 +171,14 @@ void main() {
     expect(
       runbook,
       contains('validated floor commit'),
+    );
+    expect(
+      runbook,
+      contains('## Merchant Extraction Ownership'),
+    );
+    expect(
+      runbook,
+      contains('separate merchant-extraction buildout'),
     );
     expect(
       index,
