@@ -319,7 +319,36 @@ String _fallbackFuelDescriptionFor({
 }) {
   final productLabel = _fuelProductLabelFor(receiptRows);
   if (productLabel != null) return '$productLabel Fuel';
+  final octane = details.fuelType == 'Gasoline'
+      ? _fuelOctaneFor(receiptRows)
+      : null;
+  if (octane != null) return '${details.fuelType} $octane Octane Fuel';
   return '${details.fuelType} Fuel';
+}
+
+String _fuelDescriptionWithOctane({
+  required String description,
+  required _FuelLineDetails details,
+  required List<String> receiptRows,
+}) {
+  if (details.fuelType != 'Gasoline') return description;
+  final octane = _fuelOctaneFor(receiptRows);
+  if (octane == null || RegExp('\\b$octane\\b').hasMatch(description)) {
+    return description;
+  }
+  return '$description ($octane Octane)';
+}
+
+String? _fuelOctaneFor(List<String> receiptRows) {
+  final grade = RegExp(
+    r'\b(?:regular|unleaded|unl|mid[-\s]?grade|plus|premium|super|supreme)\s*'
+    r'(?:octane\s*)?(8[7-9]|9[1-4])\b',
+  );
+  for (final row in receiptRows) {
+    final match = grade.firstMatch(_normalizeFuelSignalText(row));
+    if (match != null) return match.group(1);
+  }
+  return null;
 }
 
 String? _fuelProductLabelFor(List<String> receiptRows) {

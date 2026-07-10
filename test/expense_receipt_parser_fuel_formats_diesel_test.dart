@@ -78,6 +78,27 @@ TOTAL 59.46
     expect(fuel.subtotal, 59.46);
   });
 
+  test('parses B100 biodiesel without a diesel fallback label', () {
+    final parsed = parseExpenseReceiptText('''
+AG ENERGY CO-OP
+07/01/2026
+PUMP 05
+B100 BIODIESEL 11.750 @ 4.129 48.52
+TOTAL 48.52
+ODOMETER 102640
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Diesel');
+    expect(fuel.quantity, 11.75);
+    expect(fuel.unitPrice, 4.129);
+    expect(fuel.subtotal, 48.52);
+    expect(fuel.odometerReading, 102640);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
+
   test('parses renewable diesel labels as diesel fuel', () {
     final rd99 = parseExpenseReceiptText('''
 WEST COAST FUEL

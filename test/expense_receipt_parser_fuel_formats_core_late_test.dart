@@ -192,6 +192,7 @@ ODOMETER 100120
     final fuel = parsed.lines.single;
     expect(fuel.category, 'Fuel');
     expect(fuel.fuelType, 'Gasoline');
+    expect(fuel.description, contains('89'));
     expect(fuel.quantity, 8.5);
     expect(fuel.unitPrice, 3.659);
     expect(fuel.subtotal, 31.10);
@@ -218,6 +219,7 @@ ODOMETER 100480
       final fuel = parsed.lines.single;
       expect(fuel.category, 'Fuel');
       expect(fuel.fuelType, 'Gasoline');
+      expect(fuel.description, contains('89'));
       expect(fuel.quantity, 9.25);
       expect(fuel.unitPrice, 3.719);
       expect(fuel.subtotal, 34.40);

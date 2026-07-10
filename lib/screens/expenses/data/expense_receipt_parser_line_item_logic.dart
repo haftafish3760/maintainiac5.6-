@@ -82,6 +82,13 @@ List<_ParsedReceiptLine> _readLineItems(
             receiptRows: rows,
           )
         : null;
+    final lineDescription = fuelDetails == null
+        ? description
+        : _fuelDescriptionWithOctane(
+            description: description,
+            details: fuelDetails,
+            receiptRows: rows,
+          );
     final materialQuantity = category == 'Materials'
         ? _materialQuantityFor(rawRow: parseRow, description: description)
         : null;
@@ -108,7 +115,7 @@ List<_ParsedReceiptLine> _readLineItems(
         'ocr_line_${rowIndex.toString().padLeft(3, '0')}_item';
     final review = _reviewForLine(
       lineId: lineId,
-      description: description,
+      description: lineDescription,
       amount: amount,
       categoryMatch: categoryMatch,
       quantity: quantity,
@@ -121,9 +128,9 @@ List<_ParsedReceiptLine> _readLineItems(
         review: review,
         record: ExpenseReceiptLineRecord(
           id: lineId,
-          description: description,
+          description: lineDescription,
           category: category,
-          use: _lineUseFor(rawRow: parseRow, description: description),
+          use: _lineUseFor(rawRow: parseRow, description: lineDescription),
           quantity: quantity.quantity,
           unitsPerPackage: quantity.unitsPerPackage,
           unit: quantity.unit,
