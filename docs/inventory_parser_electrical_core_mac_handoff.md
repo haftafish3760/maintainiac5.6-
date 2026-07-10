@@ -1,6 +1,6 @@
 # Electrical Core Mac Validation Handoff
 
-Generated: 2026-07-09 10:35 PM EDT
+Generated: 2026-07-09 11:05 PM EDT
 
 ## Scope
 
@@ -12,16 +12,16 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `4427f5a`
+- Commit: `45ea266`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 10:35 PM EDT: sync reusable handoff to hvac-only wave`
+  `Reusable parsing QA 2026-07-09 11:05 PM EDT: narrow reusable docs and PEH rollup to hvac gap`
 
 Cross-check the live reusable handoff packet before running anything on Mac:
 
 - `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
 - expected:
   - `handoffClean=true`
-  - `windowsExecutionCommit=4427f5a`
+  - `windowsExecutionCommit=45ea266`
   - `totalRemainingChecked=38`
   - `nextTradesByRemainingGap=["hvac"]`
 
@@ -95,7 +95,7 @@ Branch-level PEH checkpoint status also exists:
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `4427f5a`.
+Run from the repo root on the Mac after checking out commit `45ea266`.
 
 ## Current Active Mac Wave
 

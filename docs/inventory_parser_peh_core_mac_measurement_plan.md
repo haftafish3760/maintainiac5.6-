@@ -1,6 +1,6 @@
 # PEH Core Mac Measurement Expansion Plan
 
-Generated: 2026-07-09 10:35 PM EDT
+Generated: 2026-07-09 11:05 PM EDT
 
 ## Purpose
 
@@ -13,7 +13,7 @@ guesswork or ad hoc report locations.
 
 - Repo: `C:\Users\rjenk\Documents\Mainteniac 5.6`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit baseline: `4427f5a`
+- Commit baseline: `45ea266`
 - Area: inventory/catalog/parser/QA only
 - Do not touch: OCR, camera, stitching, expenses, UI, PDF, or unrelated
   modules
