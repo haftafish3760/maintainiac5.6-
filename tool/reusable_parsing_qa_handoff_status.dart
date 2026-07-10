@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'reusable_parsing_qa_handoff_parity.dart';
+
 const _usage =
     'dart run tool/reusable_parsing_qa_handoff_status.dart '
     '[--root .]';
@@ -119,6 +121,13 @@ int runReusableParsingQaHandoffStatus(
 
   final branchTipAheadOfFloor = headShort != validatedFloor;
   final refreshCommand = 'dart run tool/reusable_parsing_qa_handoff_refresh.dart';
+  final parityBuffer = _MemorySink();
+  final parityExit = runReusableParsingQaHandoffParity(
+    ['--root', root],
+    stdout: parityBuffer,
+    stderr: stderr,
+  );
+  final paritySummary = _extractParitySummary(parityBuffer.content);
 
   final summary = {
     'schemaVersion': 1,
@@ -130,6 +139,10 @@ int runReusableParsingQaHandoffStatus(
     'headCommit': headShort,
     'headCommitFull': headFull,
     'docsAligned': agrees,
+    'parityOk': paritySummary?['parityOk'] == true,
+    'parityExit': parityExit,
+    'parityFindingCount': paritySummary?['findingCount'] ?? 0,
+    'parityFindings': paritySummary?['findings'] ?? const <Object>[],
     'branchTipAheadOfValidatedFloor': branchTipAheadOfFloor,
     'refreshCommand': refreshCommand,
     'indexPath': indexFile.path,
@@ -144,7 +157,7 @@ int runReusableParsingQaHandoffStatus(
     'QA_REUSABLE_PARSING_HANDOFF_STATUS '
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
-  return agrees ? 0 : 1;
+  return agrees && parityExit == 0 ? 0 : 1;
 }
 
 String _value(List<String> args, String key, String fallback) {
@@ -173,4 +186,34 @@ String _extractSingleLineValue(String source, String prefix) {
   final valueEnd = source.indexOf('`', valueStart);
   if (valueEnd < 0) return '';
   return source.substring(valueStart, valueEnd);
+}
+
+Map<String, Object?>? _extractParitySummary(String stdout) {
+  const prefix = 'QA_REUSABLE_PARSING_HANDOFF_PARITY ';
+  final start = stdout.indexOf(prefix);
+  if (start < 0) return null;
+  final jsonText = stdout.substring(start + prefix.length).trim();
+  final decoded = jsonDecode(jsonText);
+  if (decoded is Map<String, Object?>) {
+    return decoded;
+  }
+  if (decoded is Map) {
+    return decoded.cast<String, Object?>();
+  }
+  return null;
+}
+
+class _MemorySink implements IOSink {
+  final _buffer = StringBuffer();
+
+  String get content => _buffer.toString();
+
+  @override
+  void write(Object? object) => _buffer.write(object);
+
+  @override
+  void writeln([Object? object = '']) => _buffer.writeln(object);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
