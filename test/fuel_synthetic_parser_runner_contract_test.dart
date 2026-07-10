@@ -12,7 +12,7 @@ void main() {
       final result = await Process.run('dart', [
         'run',
         'tool/fuel_synthetic_parser_runner.dart',
-        '--count=40',
+        '--count=48',
         '--seed=0',
         '--fail-under=1.0',
         '--json',
@@ -24,8 +24,8 @@ void main() {
               as Map<String, Object?>;
 
       expect(report['schema'], 'fuel_synthetic_parser_runner_v1');
-      expect(report['caseCount'], 40);
-      expect(report['passedCaseCount'], 40);
+      expect(report['caseCount'], 48);
+      expect(report['passedCaseCount'], 48);
       expect(report['failedCaseCount'], 0);
       expect(report['accuracy'], 1.0);
       expect(report['blockers'], isEmpty);

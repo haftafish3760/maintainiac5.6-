@@ -319,6 +319,13 @@ const _products = [
     basePrice: 2.499,
   ),
   _FuelSyntheticProduct(
+    label: 'M100 METHANOL',
+    spanishLabel: 'Metanol M100',
+    fuelType: 'Methanol',
+    unit: 'gallon',
+    basePrice: 2.529,
+  ),
+  _FuelSyntheticProduct(
     label: 'H2 HYDROGEN FUEL',
     spanishLabel: 'Hidrogeno H2',
     fuelType: 'Hydrogen',
@@ -331,6 +338,13 @@ const _products = [
     fuelType: 'Hydrogen',
     unit: 'kg',
     basePrice: 16.249,
+  ),
+  _FuelSyntheticProduct(
+    label: 'H35',
+    spanishLabel: 'H35 Hidrogeno',
+    fuelType: 'Hydrogen',
+    unit: 'kg',
+    basePrice: 15.749,
   ),
   _FuelSyntheticProduct(
     label: 'ENERGY',
