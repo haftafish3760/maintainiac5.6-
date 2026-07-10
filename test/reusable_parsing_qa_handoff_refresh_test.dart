@@ -33,6 +33,31 @@ void main() {
         'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
       }),
     );
+    File(
+      '${root.path}/build/parser_qa_pipeline/peh_core_measurement_gap.json',
+    )
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert({
+          'readyForMacMeasurementWave': true,
+          'totalRemainingChecked': 38,
+          'nextTradesByRemainingGap': ['hvac'],
+          'tradeGaps': [
+            {'trade': 'hvac', 'remainingChecked': 38},
+          ],
+        }),
+      );
+    File(
+      '${root.path}/build/parser_qa_pipeline/peh_core_claim_readiness.json',
+    )
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert({
+          'readyToClaimNinetyPlus': false,
+          'blockingFindings': ['trade_not_ready:hvac', 'mac_wave_not_merge_ready'],
+          'nextActions': ['Keep the hvac Mac wave running.'],
+        }),
+      );
 
     final stdout = _MemorySink();
     final exit = runReusableParsingQaHandoffRefresh(
@@ -110,6 +135,30 @@ void main() {
     expect(
       (packet['inventorySpecificWindowsPaths'] as List<Object?>),
       contains('test/support/work_supply_parser_qa/'),
+    );
+    expect(
+      packet['artifactInputs'],
+      isA<Map<String, Object?>>(),
+    );
+    expect(
+      '${(packet['artifactInputs'] as Map<String, Object?>)['claimReadiness']}',
+      'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+    );
+    expect(
+      '${(packet['currentMeasurementState'] as Map<String, Object?>)['nextTradeByGap']}',
+      'hvac',
+    );
+    expect(
+      '${(packet['currentMeasurementState'] as Map<String, Object?>)['totalRemainingChecked']}',
+      '38',
+    );
+    expect(
+      packet['claimBlockingFindings'].toString(),
+      contains('trade_not_ready:hvac'),
+    );
+    expect(
+      packet['claimNextActions'].toString(),
+      contains('Keep the hvac Mac wave running.'),
     );
 
     expect(marker, contains('Validated floor commit: `abc1234`'));

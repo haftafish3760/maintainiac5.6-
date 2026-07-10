@@ -31,6 +31,14 @@ void main() {
     _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_measurement_gap.json', {
       'totalRemainingChecked': 38,
       'nextTradesByRemainingGap': ['hvac'],
+      'tradeGaps': [
+        {'trade': 'hvac', 'remainingChecked': 38},
+      ],
+    });
+    _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_claim_readiness.json', {
+      'readyToClaimNinetyPlus': false,
+      'blockingFindings': ['trade_not_ready:hvac'],
+      'nextActions': ['Keep the hvac Mac wave running.'],
     });
     _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_windows_status_rollup.json', {
       'sampleSizedTradeCount': 1,
@@ -84,6 +92,11 @@ void main() {
       (checkpoint['macMiniNextActions'] as List<Object?>).join(' '),
       contains('hvac'),
     );
+    expect(
+      '${(packet['currentMeasurementState'] as Map<String, Object?>)['totalRemainingChecked']}',
+      '38',
+    );
+    expect(packet['claimBlockingFindings'].toString(), contains('trade_not_ready:hvac'));
     expect(marker, contains('reusable_parsing_qa_checkpoint.md'));
   });
 }

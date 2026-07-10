@@ -60,6 +60,12 @@ int runReusableParsingQaHandoffRefresh(
 
   final packet =
       jsonDecode(packetFile.readAsStringSync()) as Map<String, Object?>;
+  final measurementGap = _readOptionalJson(
+    _resolve(root, 'build/parser_qa_pipeline/peh_core_measurement_gap.json'),
+  );
+  final claimReadiness = _readOptionalJson(
+    _resolve(root, 'build/parser_qa_pipeline/peh_core_claim_readiness.json'),
+  );
   packet['primaryBranch'] = branch;
   packet['baselineCommit'] = commit;
   packet['baselineCommitFull'] = commitFull;
@@ -161,6 +167,30 @@ int runReusableParsingQaHandoffRefresh(
     'build/parser_qa_pipeline/peh_core_merged_status_rollup.json',
     'build/parser_qa_pipeline/peh_core_claim_readiness.json',
   ];
+  packet['currentMeasurementState'] = {
+    'readyForMacMeasurementWave':
+        measurementGap['readyForMacMeasurementWave'] == true,
+    'readyToClaimNinetyPlus':
+        claimReadiness['readyToClaimNinetyPlus'] == true,
+    'nextTradeByGap': _firstString(measurementGap['nextTradesByRemainingGap']),
+    'nextTradesByRemainingGap':
+        _stringList(measurementGap['nextTradesByRemainingGap']),
+    'remainingCheckedForTopGap':
+        _topGapRemainingChecked(measurementGap['tradeGaps']),
+    'totalRemainingChecked':
+        (measurementGap['totalRemainingChecked'] as num?)?.toInt() ?? 0,
+  };
+  packet['claimBlockingFindings'] = _stringList(
+    claimReadiness['blockingFindings'],
+  );
+  packet['claimNextActions'] = _stringList(claimReadiness['nextActions']);
+  packet['artifactInputs'] = {
+    'handoffReadiness': 'build/parser_qa_pipeline/peh_core_handoff_readiness.json',
+    'measurementGap': 'build/parser_qa_pipeline/peh_core_measurement_gap.json',
+    'claimReadiness': 'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+    'macWaveCommands': 'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
+    'windowsStatusRollup': 'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
+  };
 
   packetFile.writeAsStringSync(
     const JsonEncoder.withIndent('  ').convert(packet),
@@ -182,6 +212,55 @@ int runReusableParsingQaHandoffRefresh(
       'indexPath': indexFile.path,
     })}',
   );
+  return 0;
+}
+
+Map<String, Object?> _readOptionalJson(String path) {
+  final file = File(path);
+  if (!file.existsSync()) return const {};
+  final decoded = jsonDecode(file.readAsStringSync());
+  if (decoded is Map<String, Object?>) return decoded;
+  if (decoded is Map) return decoded.cast<String, Object?>();
+  return const {};
+}
+
+String _resolve(String root, String path) {
+  if (_isAbsolute(path)) return path;
+  final normalizedRoot = root.replaceAll('/', Platform.pathSeparator);
+  final normalizedPath = path.replaceAll('/', Platform.pathSeparator);
+  if (normalizedRoot.endsWith(Platform.pathSeparator)) {
+    return '$normalizedRoot$normalizedPath';
+  }
+  return '$normalizedRoot${Platform.pathSeparator}$normalizedPath';
+}
+
+bool _isAbsolute(String path) {
+  if (path.length > 2 && path[1] == ':') return true;
+  return path.startsWith('/') || path.startsWith(r'\');
+}
+
+List<String> _stringList(Object? value) {
+  if (value is List) {
+    return value
+        .map((entry) => entry?.toString() ?? '')
+        .where((entry) => entry.isNotEmpty)
+        .toList(growable: false);
+  }
+  return const [];
+}
+
+String? _firstString(Object? value) {
+  final values = _stringList(value);
+  return values.isEmpty ? null : values.first;
+}
+
+int _topGapRemainingChecked(Object? tradeGaps) {
+  if (tradeGaps is List && tradeGaps.isNotEmpty) {
+    final first = tradeGaps.first;
+    if (first is Map) {
+      return (first['remainingChecked'] as num?)?.toInt() ?? 0;
+    }
+  }
   return 0;
 }
 
