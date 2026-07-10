@@ -439,6 +439,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         pdfKind: document.kind.name,
         fileName: document.safeFileName,
         byteSize: document.byteSize,
+        documentRevisionHashSha256: document.documentRevisionHashSha256,
+        signatureState: document.signatureState.name,
       ),
       AppGeneratedPdfPreviewAction.shareDismissed =>
         record.recordPdfDeliveryCancelled(
@@ -446,6 +448,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
           pdfKind: document.kind.name,
           fileName: document.safeFileName,
           byteSize: document.byteSize,
+          documentRevisionHashSha256: document.documentRevisionHashSha256,
+          signatureState: document.signatureState.name,
         ),
       AppGeneratedPdfPreviewAction.shareFailed =>
         record.recordPdfDeliveryFailed(
@@ -459,6 +463,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         pdfKind: document.kind.name,
         fileName: document.safeFileName,
         byteSize: document.byteSize,
+        documentRevisionHashSha256: document.documentRevisionHashSha256,
+        signatureState: document.signatureState.name,
       ),
       AppGeneratedPdfPreviewAction.printDismissed =>
         record.recordPdfDeliveryCancelled(
@@ -466,6 +472,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
           pdfKind: document.kind.name,
           fileName: document.safeFileName,
           byteSize: document.byteSize,
+          documentRevisionHashSha256: document.documentRevisionHashSha256,
+          signatureState: document.signatureState.name,
         ),
       AppGeneratedPdfPreviewAction.printFailed =>
         record.recordPdfDeliveryFailed(

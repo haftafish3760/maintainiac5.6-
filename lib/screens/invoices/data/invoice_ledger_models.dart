@@ -44,6 +44,8 @@ class InvoicePdfDeliveryEvent {
     this.fileName = '',
     this.byteSize = 0,
     this.fileHashSha256 = '',
+    this.documentRevisionHashSha256 = '',
+    this.signatureState = '',
     this.reasonCode = '',
   });
 
@@ -66,6 +68,10 @@ class InvoicePdfDeliveryEvent {
       fileName: AppGeneratedPdfFileName.clean(document.safeFileName),
       byteSize: document.byteSize,
       fileHashSha256: _safeHash(fileHashSha256),
+      documentRevisionHashSha256: _safeHash(
+        document.documentRevisionHashSha256,
+      ),
+      signatureState: document.signatureState.name,
     );
   }
 
@@ -86,6 +92,10 @@ class InvoicePdfDeliveryEvent {
       sourceRecordId: _safeEventText(document.sourceRecordId, maxLength: 80),
       fileName: AppGeneratedPdfFileName.clean(document.safeFileName),
       byteSize: document.byteSize,
+      documentRevisionHashSha256: _safeHash(
+        document.documentRevisionHashSha256,
+      ),
+      signatureState: document.signatureState.name,
     );
   }
 
@@ -120,6 +130,8 @@ class InvoicePdfDeliveryEvent {
     required String pdfKind,
     String fileName = '',
     int byteSize = 0,
+    String documentRevisionHashSha256 = '',
+    String signatureState = '',
     DateTime? at,
   }) {
     assert(
@@ -137,6 +149,8 @@ class InvoicePdfDeliveryEvent {
           ? ''
           : AppGeneratedPdfFileName.clean(fileName),
       byteSize: byteSize < 0 ? 0 : byteSize,
+      documentRevisionHashSha256: _safeHash(documentRevisionHashSha256),
+      signatureState: _safeEventText(signatureState, maxLength: 30),
     );
   }
 
@@ -171,6 +185,8 @@ class InvoicePdfDeliveryEvent {
     required String reasonCode,
     String fileName = '',
     int byteSize = 0,
+    String documentRevisionHashSha256 = '',
+    String signatureState = '',
     DateTime? at,
   }) {
     final happenedAt = at ?? DateTime.now();
@@ -188,6 +204,8 @@ class InvoicePdfDeliveryEvent {
           ? ''
           : AppGeneratedPdfFileName.clean(fileName),
       byteSize: byteSize < 0 ? 0 : byteSize,
+      documentRevisionHashSha256: _safeHash(documentRevisionHashSha256),
+      signatureState: _safeEventText(signatureState, maxLength: 30),
       reasonCode: _safeEventText(reasonCode, maxLength: 80),
     );
   }
@@ -206,6 +224,9 @@ class InvoicePdfDeliveryEvent {
       fileName: map['fileName'] as String? ?? '',
       byteSize: _intValue(map['byteSize']),
       fileHashSha256: map['fileHashSha256'] as String? ?? '',
+      documentRevisionHashSha256:
+          map['documentRevisionHashSha256'] as String? ?? '',
+      signatureState: map['signatureState'] as String? ?? '',
       reasonCode: map['reasonCode'] as String? ?? '',
     );
   }
@@ -218,6 +239,8 @@ class InvoicePdfDeliveryEvent {
   final String fileName;
   final int byteSize;
   final String fileHashSha256;
+  final String documentRevisionHashSha256;
+  final String signatureState;
   final String reasonCode;
 
   bool get hasFileHash => fileHashSha256.trim().isNotEmpty;
@@ -232,6 +255,8 @@ class InvoicePdfDeliveryEvent {
       'fileName': fileName,
       'byteSize': byteSize,
       'fileHashSha256': fileHashSha256,
+      'documentRevisionHashSha256': documentRevisionHashSha256,
+      'signatureState': signatureState,
       'reasonCode': reasonCode,
     };
   }

@@ -213,6 +213,8 @@ void main() {
         sourceRecordId: record.id,
         shareSubject: 'Invoice for Alex Customer',
         shareText: 'Please pay the attached invoice for 987 Oak Road.',
+        documentRevisionHashSha256: hash,
+        signatureState: AppGeneratedPdfSignatureState.unsigned,
       );
 
       final updated = record
@@ -221,6 +223,8 @@ void main() {
             pdfKind: pdf.kind.name,
             fileName: pdf.safeFileName,
             byteSize: pdf.byteSize,
+            documentRevisionHashSha256: pdf.documentRevisionHashSha256,
+            signatureState: pdf.signatureState.name,
             at: DateTime(2026, 6, 15, 10, 5),
           )
           .recordPdfDeliveryFailed(
@@ -243,6 +247,8 @@ void main() {
       ]);
       expect(eventMaps.first['byteSize'], pdf.byteSize);
       expect(eventMaps.first['fileHashSha256'], hash);
+      expect(eventMaps.first['documentRevisionHashSha256'], hash);
+      expect(eventMaps[1]['signatureState'], 'unsigned');
       expect(eventMaps.last['reasonCode'], 'share_sheet_unavailable');
       expect(encodedEvents, isNot(contains('Alex Customer')));
       expect(encodedEvents, isNot(contains('987 Oak Road')));

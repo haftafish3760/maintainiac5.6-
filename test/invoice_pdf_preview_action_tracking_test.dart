@@ -67,6 +67,11 @@ void main() {
     ]);
     expect(events.every((event) => event.fileName.endsWith('.pdf')), isTrue);
     expect(events.every((event) => event.byteSize > 0), isTrue);
+    expect(
+      events.every((event) => event.documentRevisionHashSha256.length == 64),
+      isTrue,
+    );
+    expect(events.every((event) => event.signatureState == 'unsigned'), isTrue);
     expect(pdfService.writeCount, 1);
   });
 

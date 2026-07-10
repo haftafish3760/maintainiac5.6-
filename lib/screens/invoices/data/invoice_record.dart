@@ -262,6 +262,8 @@ class InvoiceRecord {
     String pdfKind = '',
     String fileName = '',
     int byteSize = 0,
+    String documentRevisionHashSha256 = '',
+    String signatureState = '',
     DateTime? at,
   }) {
     return _withPdfEvent(
@@ -271,6 +273,8 @@ class InvoiceRecord {
         pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
         fileName: fileName,
         byteSize: byteSize,
+        documentRevisionHashSha256: documentRevisionHashSha256,
+        signatureState: signatureState,
         at: at,
       ),
     );
@@ -280,6 +284,8 @@ class InvoiceRecord {
     String pdfKind = '',
     String fileName = '',
     int byteSize = 0,
+    String documentRevisionHashSha256 = '',
+    String signatureState = '',
     DateTime? at,
   }) {
     return _withPdfEvent(
@@ -289,6 +295,8 @@ class InvoiceRecord {
         pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
         fileName: fileName,
         byteSize: byteSize,
+        documentRevisionHashSha256: documentRevisionHashSha256,
+        signatureState: signatureState,
         at: at,
       ),
     );
@@ -299,6 +307,8 @@ class InvoiceRecord {
     String pdfKind = '',
     String fileName = '',
     int byteSize = 0,
+    String documentRevisionHashSha256 = '',
+    String signatureState = '',
     DateTime? at,
   }) {
     return _withPdfEvent(
@@ -307,6 +317,8 @@ class InvoiceRecord {
         pdfKind: pdfKind.isEmpty ? documentType.name : pdfKind,
         fileName: fileName,
         byteSize: byteSize,
+        documentRevisionHashSha256: documentRevisionHashSha256,
+        signatureState: signatureState,
         reasonCode: reasonCode,
         at: at,
       ),
