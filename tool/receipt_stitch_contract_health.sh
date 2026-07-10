@@ -210,6 +210,8 @@ run_handoff() {
 run_ghost_handoff() {
   echo "Receipt stitch ghost-handoff health"
   run_flutter_test ghost-handoff \
+    test/receipt_native_camera_previous_section_channel_test.dart \
+    test/receipt_native_camera_session_limits_test.dart \
     test/receipt_continuation_ghost_handoff_contract_test.dart \
     test/receipt_camera_result_continuation_handoff_test.dart \
     test/receipt_capture_flow_shareability_test.dart
