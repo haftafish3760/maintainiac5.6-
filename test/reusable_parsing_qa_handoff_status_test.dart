@@ -46,6 +46,7 @@ void main() {
       payload['refreshCommand'],
       'dart run tool/reusable_parsing_qa_handoff_refresh.dart',
     );
+    expect(payload['boundaryPath'], contains('reusable_parsing_qa_scope_boundary.md'));
   });
 
   test('handoff status fails when marker and packet drift apart', () {
@@ -109,6 +110,7 @@ void _writeHandoffFixture(
 - Validated floor commit: `$validatedFloorCommit`
 - The branch tip is authoritative once the Mac Mini confirms it is at or after the validated floor commit.
 - Marker: `docs/reusable_parsing_qa_handoff_marker.md`
+- Scope boundary: `docs/reusable_parsing_qa_scope_boundary.md`
 - Runbook: `docs/reusable_parsing_qa_mac_runbook.md`
 - Packet: `docs/reusable_parsing_qa_mac_handoff_packet.json`
 ''');
@@ -119,8 +121,28 @@ void _writeHandoffFixture(
 - Primary reusable branch: `$branch`
 - Validated floor commit: `$validatedFloorCommit`
 - Companion machine-readable packet: `docs/reusable_parsing_qa_mac_handoff_packet.json`
+- Companion scope boundary map: `docs/reusable_parsing_qa_scope_boundary.md`
 - Companion plain-English runbook: `docs/reusable_parsing_qa_mac_runbook.md`
 - Treat the branch tip as authoritative.
+''');
+
+  File('${docs.path}/reusable_parsing_qa_scope_boundary.md').writeAsStringSync('''
+# Reusable Parsing QA Scope Boundary
+
+- Branch: `$branch`
+- Validated floor commit: `$validatedFloorCommit`
+
+## Reusable Parser QA Foundation
+
+- `test/support/parser_qa_platform/`
+
+## Inventory-Specific Windows Ownership
+
+- `test/support/work_supply_parser_qa/`
+
+## Mac Mini Measurement Outputs
+
+- `build/parser_qa_pipeline/peh_core_claim_readiness.json`
 ''');
 
   File('${docs.path}/reusable_parsing_qa_mac_runbook.md').writeAsStringSync('''
@@ -128,6 +150,7 @@ void _writeHandoffFixture(
 
 1. Checkout `$branch`.
 2. Confirm the branch is at or after validated floor commit `$validatedFloorCommit`.
+3. Read `docs/reusable_parsing_qa_scope_boundary.md`.
 ''');
 
   File('${docs.path}/reusable_parsing_qa_mac_handoff_packet.json')
@@ -136,6 +159,7 @@ void _writeHandoffFixture(
           'primaryBranch': branch,
           'baselineCommit': validatedFloorCommit,
           'baselineCommitLabel': validatedFloorLabel,
+          'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
           'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
           'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         }),

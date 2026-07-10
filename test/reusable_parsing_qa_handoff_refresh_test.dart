@@ -24,6 +24,7 @@ void main() {
         'baselineCommit': 'old1234',
         'baselineCommitFull': 'old1234full',
         'baselineCommitLabel': 'old label',
+        'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
         'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
       }),
@@ -61,6 +62,9 @@ void main() {
     final marker = File(
       '${docs.path}/reusable_parsing_qa_handoff_marker.md',
     ).readAsStringSync();
+    final boundary = File(
+      '${docs.path}/reusable_parsing_qa_scope_boundary.md',
+    ).readAsStringSync();
     final runbook = File(
       '${docs.path}/reusable_parsing_qa_mac_runbook.md',
     ).readAsStringSync();
@@ -75,14 +79,40 @@ void main() {
       'Reusable parsing QA 2026-07-09 21:00 EDT: refresh handoff artifacts',
     );
     expect(packet['generatedAtEdt'], '2026-07-09 21:00 EDT');
+    expect(
+      packet['scopeBoundaryPath'],
+      'docs/reusable_parsing_qa_scope_boundary.md',
+    );
+    expect(
+      (packet['reusableFoundationPaths'] as List<Object?>),
+      contains('test/support/parser_qa_platform/'),
+    );
+    expect(
+      (packet['inventorySpecificWindowsPaths'] as List<Object?>),
+      contains('test/support/work_supply_parser_qa/'),
+    );
 
     expect(marker, contains('Validated floor commit: `abc1234`'));
+    expect(
+      marker,
+      contains('Companion scope boundary map:'),
+    );
+    expect(boundary, contains('Validated floor commit: `abc1234`'));
+    expect(
+      boundary,
+      contains('## Reusable Parser QA Foundation'),
+    );
     expect(
       runbook,
       contains('branch is at or after validated floor commit `abc1234`'),
     );
+    expect(
+      runbook,
+      contains('docs/reusable_parsing_qa_scope_boundary.md'),
+    );
     expect(index, contains('- Validated floor commit: `abc1234`'));
     expect(index, contains('- Branch: `codex/reusable-parsing-qa-foundation`'));
+    expect(index, contains('docs/reusable_parsing_qa_scope_boundary.md'));
   }, timeout: const Timeout(Duration(seconds: 10)));
 }
 

@@ -35,6 +35,9 @@ int runReusableParsingQaHandoffStatus(
   final runbookFile = File.fromUri(
     docsDir.resolve('reusable_parsing_qa_mac_runbook.md'),
   );
+  final boundaryFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_scope_boundary.md'),
+  );
   final packetFile = File.fromUri(
     docsDir.resolve('reusable_parsing_qa_mac_handoff_packet.json'),
   );
@@ -43,6 +46,7 @@ int runReusableParsingQaHandoffStatus(
     if (!indexFile.existsSync()) indexFile.path,
     if (!markerFile.existsSync()) markerFile.path,
     if (!runbookFile.existsSync()) runbookFile.path,
+    if (!boundaryFile.existsSync()) boundaryFile.path,
     if (!packetFile.existsSync()) packetFile.path,
   ];
   if (missing.isNotEmpty) {
@@ -53,6 +57,7 @@ int runReusableParsingQaHandoffStatus(
   final index = indexFile.readAsStringSync();
   final marker = markerFile.readAsStringSync();
   final runbook = runbookFile.readAsStringSync();
+  final boundary = boundaryFile.readAsStringSync();
   final packet =
       jsonDecode(packetFile.readAsStringSync()) as Map<String, Object?>;
 
@@ -77,6 +82,7 @@ int runReusableParsingQaHandoffStatus(
             '- Branch: `',
           ) ==
           branch &&
+      index.contains('docs/reusable_parsing_qa_scope_boundary.md') &&
       _extractSingleLineValue(
             marker,
             '- Validated floor commit: `',
@@ -91,7 +97,10 @@ int runReusableParsingQaHandoffStatus(
             runbook,
             '2. Confirm the branch is at or after validated floor commit `',
           ) ==
-          validatedFloor;
+          validatedFloor &&
+      boundary.contains('Validated floor commit: `$validatedFloor`') &&
+      packet['scopeBoundaryPath']?.toString() ==
+          'docs/reusable_parsing_qa_scope_boundary.md';
 
   final branchTipAheadOfFloor = headShort != validatedFloor;
   final refreshCommand = 'dart run tool/reusable_parsing_qa_handoff_refresh.dart';
@@ -110,6 +119,7 @@ int runReusableParsingQaHandoffStatus(
     'refreshCommand': refreshCommand,
     'indexPath': indexFile.path,
     'markerPath': markerFile.path,
+    'boundaryPath': boundaryFile.path,
     'runbookPath': runbookFile.path,
     'packetPath': packetFile.path,
   };

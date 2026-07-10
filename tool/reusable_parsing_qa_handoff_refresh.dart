@@ -84,6 +84,18 @@ int runReusableParsingQaHandoffRefresh(
     flush: true,
   );
 
+  final boundaryFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_scope_boundary.md'),
+  );
+  boundaryFile.writeAsStringSync(
+    _boundaryContents(
+      updatedAt: updatedAt,
+      branch: branch,
+      commit: commit,
+    ),
+    flush: true,
+  );
+
   final runbookFile = File.fromUri(
     docsDir.resolve('reusable_parsing_qa_mac_runbook.md'),
   );
@@ -92,6 +104,7 @@ int runReusableParsingQaHandoffRefresh(
       updatedAt: updatedAt,
       branch: branch,
       commit: commit,
+      boundaryPath: 'docs/reusable_parsing_qa_scope_boundary.md',
     ),
     flush: true,
   );
@@ -105,7 +118,41 @@ int runReusableParsingQaHandoffRefresh(
       branch: branch,
       commit: commit,
       label: label,
+      boundaryPath: 'docs/reusable_parsing_qa_scope_boundary.md',
     ),
+    flush: true,
+  );
+
+  packet['scopeBoundaryPath'] = 'docs/reusable_parsing_qa_scope_boundary.md';
+  packet['reusableFoundationPaths'] = [
+    'test/support/parser_qa_platform/',
+    'test/support/qa_harness/',
+    'tool/reusable_parsing_qa_handoff_refresh.dart',
+    'tool/reusable_parsing_qa_handoff_status.dart',
+    'docs/reusable_parsing_qa_handoff_index.md',
+    'docs/reusable_parsing_qa_handoff_marker.md',
+    'docs/reusable_parsing_qa_scope_boundary.md',
+    'docs/reusable_parsing_qa_mac_runbook.md',
+    'docs/reusable_parsing_qa_mac_handoff_packet.json',
+  ];
+  packet['inventorySpecificWindowsPaths'] = [
+    'lib/screens/work_supplies/data/work_supply_receipt_parser.dart',
+    'test/support/work_supply_parser_qa/',
+    'docs/inventory_parser_peh_core_roadmap.md',
+    'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
+    'build/parser_qa_pipeline/peh_core_measurement_gap.json',
+    'build/parser_qa_pipeline/peh_core_handoff_readiness.json',
+  ];
+  packet['macMiniExpectedOutputs'] = [
+    'build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json',
+    'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+    'build/parser_qa_pipeline/peh_core_mac_wave_status.json',
+    'build/parser_qa_pipeline/peh_core_merged_status_rollup.json',
+    'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+  ];
+
+  packetFile.writeAsStringSync(
+    const JsonEncoder.withIndent('  ').convert(packet),
     flush: true,
   );
 
@@ -118,6 +165,7 @@ int runReusableParsingQaHandoffRefresh(
       'label': label,
       'updatedAt': updatedAt,
       'markerPath': markerFile.path,
+      'boundaryPath': boundaryFile.path,
       'packetPath': packetFile.path,
       'runbookPath': runbookFile.path,
       'indexPath': indexFile.path,
@@ -155,6 +203,9 @@ that the handoff docs already describe their own just-created commit.
 Companion machine-readable packet:
 `docs/reusable_parsing_qa_mac_handoff_packet.json`
 
+Companion scope boundary map:
+`docs/reusable_parsing_qa_scope_boundary.md`
+
 Companion plain-English runbook:
 `docs/reusable_parsing_qa_mac_runbook.md`
 
@@ -163,6 +214,9 @@ Companion plain-English runbook:
 When the Mac Mini lane starts, this file is the first thing it should read.
 If chat instructions and this file disagree, this file wins until a newer
 committed handoff marker replaces it.
+
+The explicit reusable-versus-inventory ownership split lives in
+`docs/reusable_parsing_qa_scope_boundary.md`.
 
 ## Completed On Windows
 
@@ -239,6 +293,7 @@ String _runbookContents({
   required String updatedAt,
   required String branch,
   required String commit,
+  required String boundaryPath,
 }) {
   return '''# Reusable Parsing QA Mac Mini Runbook
 
@@ -247,6 +302,7 @@ Last updated: $updatedAt
 This runbook is the plain-English companion to:
 
 - `docs/reusable_parsing_qa_handoff_marker.md`
+- `$boundaryPath`
 - `docs/reusable_parsing_qa_mac_handoff_packet.json`
 
 ## Start Here
@@ -254,7 +310,9 @@ This runbook is the plain-English companion to:
 1. Check out branch `$branch`.
 2. Confirm the branch is at or after validated floor commit `$commit`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
-4. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
+4. Read `$boundaryPath` to separate reusable parser QA work from
+   inventory-specific Windows ownership.
+5. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
 
 ## What Windows Already Finished
@@ -326,6 +384,7 @@ String _indexContents({
   required String branch,
   required String commit,
   required String label,
+  required String boundaryPath,
 }) {
   return '''# Reusable Parsing QA Handoff Index
 
@@ -343,17 +402,86 @@ Current baseline:
 Open these in order:
 
 1. `docs/reusable_parsing_qa_handoff_marker.md`
-2. `docs/reusable_parsing_qa_mac_runbook.md`
-3. `docs/reusable_parsing_qa_mac_handoff_packet.json`
+2. `$boundaryPath`
+3. `docs/reusable_parsing_qa_mac_runbook.md`
+4. `docs/reusable_parsing_qa_mac_handoff_packet.json`
 
 What this means:
 
 - The marker is the top human-readable boundary and ownership file.
+- The scope boundary file is the explicit reusable-versus-inventory split.
 - The runbook is the plain-English execution sequence.
 - The packet is the machine-readable source of exact Mac-side commands.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.
+''';
+}
+
+String _boundaryContents({
+  required String updatedAt,
+  required String branch,
+  required String commit,
+}) {
+  return '''# Reusable Parsing QA Scope Boundary
+
+Last updated: $updatedAt
+
+This file is the explicit boundary between reusable parser QA foundation work
+and inventory-specific Windows work.
+
+Validated floor:
+
+- Branch: `$branch`
+- Validated floor commit: `$commit`
+
+## Reusable Parser QA Foundation
+
+These artifacts are intended to stay reusable across parser domains and can be
+consumed by the Mac Mini lane without rebuilding them from scratch:
+
+- `test/support/parser_qa_platform/`
+- `test/support/qa_harness/`
+- `tool/reusable_parsing_qa_handoff_refresh.dart`
+- `tool/reusable_parsing_qa_handoff_status.dart`
+- `docs/reusable_parsing_qa_handoff_index.md`
+- `docs/reusable_parsing_qa_handoff_marker.md`
+- `docs/reusable_parsing_qa_scope_boundary.md`
+- `docs/reusable_parsing_qa_mac_runbook.md`
+- `docs/reusable_parsing_qa_mac_handoff_packet.json`
+
+## Inventory-Specific Windows Ownership
+
+These artifacts are still owned by the current Windows-side Work Supplies
+inventory/parser lane and should not be re-authored on the Mac Mini unless a
+new regression or handoff explicitly says otherwise:
+
+- `lib/screens/work_supplies/data/work_supply_receipt_parser.dart`
+- `test/support/work_supply_parser_qa/`
+- `docs/inventory_parser_peh_core_roadmap.md`
+- `build/parser_qa_pipeline/peh_core_windows_status_rollup.json`
+- `build/parser_qa_pipeline/peh_core_measurement_gap.json`
+- `build/parser_qa_pipeline/peh_core_handoff_readiness.json`
+
+## Mac Mini Measurement Outputs
+
+The Mac Mini lane is expected to produce or refresh these heavier validation
+artifacts from the reusable baseline:
+
+- `build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json`
+- `build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json`
+- `build/parser_qa_pipeline/peh_core_mac_wave_status.json`
+- `build/parser_qa_pipeline/peh_core_merged_status_rollup.json`
+- `build/parser_qa_pipeline/peh_core_claim_readiness.json`
+
+## Rule
+
+If a task changes reusable parser QA infrastructure, handoff boundary files, or
+shared parser-platform behavior, it belongs in the reusable lane.
+
+If a task changes Work Supplies parser behavior, PEH inventory-specific hardening,
+or Windows-owned roadmap/progress state, it stays in the Windows lane until a
+new committed handoff explicitly promotes it.
 ''';
 }
 

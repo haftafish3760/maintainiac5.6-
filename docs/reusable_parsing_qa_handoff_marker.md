@@ -9,17 +9,20 @@ Mini lane.
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Current Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Validated floor commit: `42db05f`
+- Validated floor commit: `3b996e7`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 20:17 EDT: refresh handoff docs and runbook command`
+  `Reusable parsing QA 2026-07-09 20:21 EDT: add handoff status verifier`
 
 The Mac Mini side should start from branch `codex/reusable-parsing-qa-foundation`.
 Treat the branch tip as authoritative.
-Treat commit `42db05f` as the last Windows-validated floor, not as a promise
+Treat commit `3b996e7` as the last Windows-validated floor, not as a promise
 that the handoff docs already describe their own just-created commit.
 
 Companion machine-readable packet:
 `docs/reusable_parsing_qa_mac_handoff_packet.json`
+
+Companion scope boundary map:
+`docs/reusable_parsing_qa_scope_boundary.md`
 
 Companion plain-English runbook:
 `docs/reusable_parsing_qa_mac_runbook.md`
@@ -29,6 +32,9 @@ Companion plain-English runbook:
 When the Mac Mini lane starts, this file is the first thing it should read.
 If chat instructions and this file disagree, this file wins until a newer
 committed handoff marker replaces it.
+
+The explicit reusable-versus-inventory ownership split lives in
+`docs/reusable_parsing_qa_scope_boundary.md`.
 
 ## Completed On Windows
 
@@ -95,6 +101,6 @@ Until a later handoff says otherwise, the Windows lane still owns:
 ## Mac Mini Safe Starting Instruction
 
 Start from branch `codex/reusable-parsing-qa-foundation`, confirm it is at or after validated floor commit
-`42db05f`, read this marker first, then continue only with heavier validation,
+`3b996e7`, read this marker first, then continue only with heavier validation,
 broader reusable parsing-core extraction, or new parser-domain consumers that
 are not already listed as Windows-complete above.

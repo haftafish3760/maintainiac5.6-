@@ -5,14 +5,17 @@ Last updated: 2026-07-09 20:21 EDT
 This runbook is the plain-English companion to:
 
 - `docs/reusable_parsing_qa_handoff_marker.md`
+- `docs/reusable_parsing_qa_scope_boundary.md`
 - `docs/reusable_parsing_qa_mac_handoff_packet.json`
 
 ## Start Here
 
 1. Check out branch `codex/reusable-parsing-qa-foundation`.
-2. Confirm the branch is at or after validated floor commit `42db05f`.
+2. Confirm the branch is at or after validated floor commit `3b996e7`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
-4. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
+4. Read `docs/reusable_parsing_qa_scope_boundary.md` to separate reusable parser QA work from
+   inventory-specific Windows ownership.
+5. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
 
 ## What Windows Already Finished

@@ -8,6 +8,9 @@ void main() {
     final marker = File(
       'docs/reusable_parsing_qa_handoff_marker.md',
     ).readAsStringSync();
+    final boundary = File(
+      'docs/reusable_parsing_qa_scope_boundary.md',
+    ).readAsStringSync();
     final packet = jsonDecode(
       File('docs/reusable_parsing_qa_mac_handoff_packet.json')
           .readAsStringSync(),
@@ -49,6 +52,10 @@ void main() {
     );
     expect(
       index,
+      contains('docs/reusable_parsing_qa_scope_boundary.md'),
+    );
+    expect(
+      index,
       contains('docs/reusable_parsing_qa_mac_runbook.md'),
     );
     expect(
@@ -62,7 +69,27 @@ void main() {
     );
     expect(
       marker,
+      contains('Companion scope boundary map:'),
+    );
+    expect(
+      marker,
       contains('Companion plain-English runbook:'),
+    );
+    expect(
+      boundary,
+      contains('Validated floor commit: `$markerCommit`'),
+    );
+    expect(
+      boundary,
+      contains('## Reusable Parser QA Foundation'),
+    );
+    expect(
+      boundary,
+      contains('## Inventory-Specific Windows Ownership'),
+    );
+    expect(
+      boundary,
+      contains('## Mac Mini Measurement Outputs'),
     );
     expect(
       packet['runbookPath'],
@@ -71,6 +98,22 @@ void main() {
     expect(
       packet['handoffMarkerPath'],
       'docs/reusable_parsing_qa_handoff_marker.md',
+    );
+    expect(
+      packet['scopeBoundaryPath'],
+      'docs/reusable_parsing_qa_scope_boundary.md',
+    );
+    expect(
+      (packet['reusableFoundationPaths'] as List<Object?>),
+      contains('test/support/parser_qa_platform/'),
+    );
+    expect(
+      (packet['inventorySpecificWindowsPaths'] as List<Object?>),
+      contains('test/support/work_supply_parser_qa/'),
+    );
+    expect(
+      (packet['macMiniExpectedOutputs'] as List<Object?>),
+      contains('build/parser_qa_pipeline/peh_core_claim_readiness.json'),
     );
     expect(
       marker,

@@ -4,9 +4,9 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "baselineCommit": "42db05f",
-  "baselineCommitFull": "42db05f2d6947d9036b0a4ad56311fd1d5a73d79",
-  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:17 EDT: refresh handoff docs and runbook command",
+  "baselineCommit": "3b996e7",
+  "baselineCommitFull": "3b996e7f003ee2c94db6d40a4d8816b29a757554",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:21 EDT: add handoff status verifier",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
   "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
@@ -189,5 +189,32 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 20:21 EDT"
+  "generatedAtEdt": "2026-07-09 20:21 EDT",
+  "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
+  "reusableFoundationPaths": [
+    "test/support/parser_qa_platform/",
+    "test/support/qa_harness/",
+    "tool/reusable_parsing_qa_handoff_refresh.dart",
+    "tool/reusable_parsing_qa_handoff_status.dart",
+    "docs/reusable_parsing_qa_handoff_index.md",
+    "docs/reusable_parsing_qa_handoff_marker.md",
+    "docs/reusable_parsing_qa_scope_boundary.md",
+    "docs/reusable_parsing_qa_mac_runbook.md",
+    "docs/reusable_parsing_qa_mac_handoff_packet.json"
+  ],
+  "inventorySpecificWindowsPaths": [
+    "lib/screens/work_supplies/data/work_supply_receipt_parser.dart",
+    "test/support/work_supply_parser_qa/",
+    "docs/inventory_parser_peh_core_roadmap.md",
+    "build/parser_qa_pipeline/peh_core_windows_status_rollup.json",
+    "build/parser_qa_pipeline/peh_core_measurement_gap.json",
+    "build/parser_qa_pipeline/peh_core_handoff_readiness.json"
+  ],
+  "macMiniExpectedOutputs": [
+    "build/parser_qa_pipeline/mac_electrical_core_generated_run_status_25.json",
+    "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json",
+    "build/parser_qa_pipeline/peh_core_mac_wave_status.json",
+    "build/parser_qa_pipeline/peh_core_merged_status_rollup.json",
+    "build/parser_qa_pipeline/peh_core_claim_readiness.json"
+  ]
 }
