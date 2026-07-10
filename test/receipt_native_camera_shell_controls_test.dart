@@ -219,7 +219,7 @@ void main() {
             key: ValueKey('previous-section-ghost'),
             color: Color(0xFFCED8DC),
           ),
-          previousSectionReasonCode: 'missing_bottom_edge_and_totals',
+          previousSectionReasonCode: ' Missing Bottom Edge And Totals ',
           previousSectionGuidance:
               'Keep the last readable lines in the top ghost slice.',
           onBack: () {},
@@ -422,7 +422,9 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      final guidanceRect = tester.getRect(find.text('Manual capture is ready.'));
+      final guidanceRect = tester.getRect(
+        find.text('Manual capture is ready.'),
+      );
       final nextRect = tester.getRect(find.text('Done (3)'));
       final addRect = tester.getRect(find.text('Add Photo'));
 

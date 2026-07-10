@@ -131,9 +131,10 @@ class _ReceiptPreviousSectionGhostLabel extends StatelessWidget {
   }
 
   bool get _missingBottomAndTotals =>
-      reasonCode?.trim() == 'missing_bottom_edge_and_totals';
+      _shellGhostGuideReasonToken(reasonCode) ==
+      'missing_bottom_edge_and_totals';
   bool get _usesNextContext =>
-      reasonCode?.trim() == 'retake_top_with_next_context';
+      _shellGhostGuideReasonToken(reasonCode) == 'retake_top_with_next_context';
 
   String get _title {
     if (_usesNextContext) return 'Match the next section';
@@ -156,6 +157,16 @@ class _ReceiptPreviousSectionGhostLabel extends StatelessWidget {
 
   String get _semanticLabel =>
       'Long receipt top ghost-slice guide. $_title. $_message';
+}
+
+String _shellGhostGuideReasonToken(String? value) {
+  final token = value
+      ?.trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  return token ?? '';
 }
 
 class _ReceiptPreviousSectionGhostRule extends StatelessWidget {
