@@ -12,9 +12,43 @@ void main() {
     );
     addTearDown(() => root.deleteSync(recursive: true));
 
+    Process.runSync('git', ['init'], workingDirectory: root.path);
+    Process.runSync(
+      'git',
+      ['config', 'user.email', 'qa@example.com'],
+      workingDirectory: root.path,
+    );
+    Process.runSync(
+      'git',
+      ['config', 'user.name', 'QA Bot'],
+      workingDirectory: root.path,
+    );
+    File('${root.path}/README.txt').writeAsStringSync('brief fixture');
+    File('${root.path}/.gitignore').writeAsStringSync('build/\n');
+    Process.runSync('git', ['add', '.'], workingDirectory: root.path);
+    Process.runSync('git', ['commit', '-m', 'fixture'], workingDirectory: root.path);
+    Process.runSync(
+      'git',
+      ['checkout', '-B', 'codex/inventory-parser-backup-20260702-2056'],
+      workingDirectory: root.path,
+    );
+
+    final headShort =
+        Process.runSync(
+          'git',
+          ['rev-parse', '--short', 'HEAD'],
+          workingDirectory: root.path,
+        ).stdout
+            .toString()
+            .trim();
+
     _writeJson('${root.path}/docs/reusable_parsing_qa_checkpoint.json', {
+      'primaryBranch': 'codex/reusable-parsing-qa-foundation',
+      'validatedFloorCommit': '8e9771d',
+      'validatedFloorLabel':
+          'Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion',
       'windowsWorkingBranch': 'codex/inventory-parser-backup-20260702-2056',
-      'windowsExecutionCommit': '2b52b6b',
+      'windowsExecutionCommit': headShort,
       'readyForMacMeasurementWave': true,
       'readyToClaimNinetyPlus': false,
       'nextTradesByRemainingGap': ['hvac'],
@@ -23,15 +57,102 @@ void main() {
         'docs/reusable_parsing_qa_checkpoint.json',
         'docs/reusable_parsing_qa_checkpoint.md',
         'docs/reusable_parsing_qa_handoff_index.md',
+        'docs/reusable_parsing_qa_handoff_marker.md',
+        'docs/reusable_parsing_qa_mac_handoff_packet.json',
+        'docs/reusable_parsing_qa_mac_runbook.md',
+        'docs/reusable_parsing_qa_scope_boundary.md',
       ],
       'generatedAtEdt': '2026-07-09 11:25 PM EDT',
     });
+    File('${root.path}/docs/reusable_parsing_qa_checkpoint.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('''
+# Reusable Parsing QA Checkpoint
+
+## Windows Next
+
+- Keep Windows ownership on inventory-specific Work Supplies parser/code hardening.
+
+## Mac Mini Next
+
+- Run the Mac PEH measurement wave commands from the packet.
+
+## First Mac Measurement Command
+
+`dart run tool/work_supply_parser_qa_run_generated_fixtures.dart`
+''');
+    File('${root.path}/docs/reusable_parsing_qa_handoff_marker.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('''
+# Reusable Parsing QA Handoff Marker
+
+- Primary reusable branch: `codex/reusable-parsing-qa-foundation`
+- Validated floor commit: `8e9771d`
+- Companion machine-readable packet: `docs/reusable_parsing_qa_mac_handoff_packet.json`
+- Companion scope boundary map: `docs/reusable_parsing_qa_scope_boundary.md`
+- Companion next-action checkpoint: `docs/reusable_parsing_qa_checkpoint.md`
+- Companion plain-English runbook: `docs/reusable_parsing_qa_mac_runbook.md`
+- Treat the branch tip as authoritative.
+''');
+    File('${root.path}/docs/reusable_parsing_qa_handoff_index.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('''
+# Reusable Parsing QA Handoff Index
+
+- Branch: `codex/reusable-parsing-qa-foundation`
+- Validated floor commit: `8e9771d`
+- The branch tip is authoritative.
+- docs/reusable_parsing_qa_handoff_marker.md
+- docs/reusable_parsing_qa_scope_boundary.md
+- docs/reusable_parsing_qa_checkpoint.md
+- docs/reusable_parsing_qa_mac_runbook.md
+- docs/reusable_parsing_qa_mac_handoff_packet.json
+''');
+    File('${root.path}/docs/reusable_parsing_qa_scope_boundary.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('''
+# Reusable Parsing QA Scope Boundary
+
+Validated floor commit: `8e9771d`
+
+## Reusable Parser QA Foundation
+
+- `test/support/parser_qa_platform/`
+
+## Inventory-Specific Windows Ownership
+
+- `test/support/work_supply_parser_qa/`
+
+## Mac Mini Measurement Outputs
+
+- `build/parser_qa_pipeline/peh_core_claim_readiness.json`
+''');
+    File('${root.path}/docs/reusable_parsing_qa_mac_runbook.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('''
+# Reusable Parsing QA Mac Mini Runbook
+
+2. Confirm the branch is at or after validated floor commit `8e9771d`.
+7. `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
+8. `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+9. `dart run tool/reusable_parsing_qa_mac_handoff_brief.dart --root .`
+''');
 
     _writeJson('${root.path}/docs/reusable_parsing_qa_mac_handoff_packet.json', {
       'primaryBranch': 'codex/reusable-parsing-qa-foundation',
       'baselineCommit': '8e9771d',
       'baselineCommitLabel':
           'Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion',
+      'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
+      'checkpointJsonPath': 'docs/reusable_parsing_qa_checkpoint.json',
+      'checkpointMarkdownPath': 'docs/reusable_parsing_qa_checkpoint.md',
+      'windowsCheckpointSyncCommand':
+          'dart run tool/reusable_parsing_qa_handoff_sync.dart --root .',
+      'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
+      'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
+      'artifactInputs': {
+        'claimReadiness': 'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+      },
       'generatedAtEdt': '2026-07-09 11:25 PM EDT',
       'claimBlockingFindings': ['trade_not_ready:hvac', 'mac_wave_not_merge_ready'],
       'claimNextActions': [
@@ -62,9 +183,30 @@ void main() {
       'currentMeasurementState': {
         'nextTradeByGap': 'hvac',
         'remainingCheckedForTopGap': 38,
+        'nextTradesByRemainingGap': ['hvac'],
         'totalRemainingChecked': 38,
       },
     });
+    _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
+      'reusableBaselineBranch': 'codex/reusable-parsing-qa-foundation',
+      'reusableValidatedFloorCommit': '8e9771d',
+      'inventoryExecutionBranch': 'codex/inventory-parser-backup-20260702-2056',
+      'inventoryExecutionCommit': headShort,
+      'branch': 'codex/inventory-parser-backup-20260702-2056',
+      'commit': headShort,
+      'readyForMacMeasurementWave': true,
+      'readyToClaimNinetyPlus': false,
+      'totalRemainingChecked': 38,
+      'nextTradesByRemainingGap': ['hvac'],
+    });
+    final script = File(
+      '${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff.sh',
+    )..parent.createSync(recursive: true);
+    script.writeAsStringSync('''
+#!/usr/bin/env bash
+# Branch: codex/inventory-parser-backup-20260702-2056
+# Commit: $headShort
+''');
 
     final stdout = _MemorySink();
     final stderr = _MemorySink();
@@ -80,7 +222,11 @@ void main() {
 
     final payload = _extractPayload(stdout.content);
     expect(payload['primaryBranch'], 'codex/reusable-parsing-qa-foundation');
-    expect(payload['windowsExecutionCommit'], '2b52b6b');
+    expect(payload['windowsExecutionCommit'], headShort);
+    expect(payload['currentBranchHeadCommit'], isNotEmpty);
+    expect(payload['currentBranchHeadCommitFull'], isNotEmpty);
+    expect(payload['docsOnlyExecutionDriftAccepted'], isFalse);
+    expect(payload['statusExit'], 0);
     expect(payload['readyForMacMeasurementWave'], isTrue);
     expect(payload['readyToClaimNinetyPlus'], isFalse);
     expect(payload['nextTradesByRemainingGap'], ['hvac']);

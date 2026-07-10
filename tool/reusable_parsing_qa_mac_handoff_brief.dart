@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'reusable_parsing_qa_handoff_status.dart';
+
 const _usage =
     'dart run tool/reusable_parsing_qa_mac_handoff_brief.dart [--root .]';
 
@@ -44,6 +46,13 @@ int runReusableParsingQaMacHandoffBrief(
       jsonDecode(packetFile.readAsStringSync()) as Map<String, Object?>;
   final checkpoint =
       jsonDecode(checkpointFile.readAsStringSync()) as Map<String, Object?>;
+  final statusBuffer = _MemorySink();
+  final statusExit = runReusableParsingQaHandoffStatus(
+    ['--root', root],
+    stdout: statusBuffer,
+    stderr: stderr,
+  );
+  final statusSummary = _extractStatusSummary(statusBuffer.content) ?? const {};
   final measurementState =
       (packet['currentMeasurementState'] as Map?)?.cast<String, Object?>() ??
       const {};
@@ -65,6 +74,11 @@ int runReusableParsingQaMacHandoffBrief(
     'validatedFloorLabel': packet['baselineCommitLabel'],
     'windowsWorkingBranch': checkpoint['windowsWorkingBranch'],
     'windowsExecutionCommit': checkpoint['windowsExecutionCommit'],
+    'currentBranchHeadCommit': statusSummary['currentBranchHeadCommit'],
+    'currentBranchHeadCommitFull': statusSummary['currentBranchHeadCommitFull'],
+    'docsOnlyExecutionDriftAccepted':
+        statusSummary['docsOnlyExecutionDriftAccepted'],
+    'statusExit': statusExit,
     'readyForMacMeasurementWave':
         checkpoint['readyForMacMeasurementWave'] == true,
     'readyToClaimNinetyPlus': checkpoint['readyToClaimNinetyPlus'] == true,
@@ -97,7 +111,7 @@ int runReusableParsingQaMacHandoffBrief(
     'QA_REUSABLE_PARSING_MAC_HANDOFF_BRIEF '
     '${const JsonEncoder.withIndent('  ').convert(payload)}',
   );
-  return 0;
+  return statusExit == 0 ? 0 : 1;
 }
 
 List<String> _stringList(Object? value) {
@@ -122,6 +136,17 @@ String _value(List<String> args, String key, String fallback) {
   return fallback;
 }
 
+Map<String, Object?>? _extractStatusSummary(String output) {
+  const prefix = 'QA_REUSABLE_PARSING_HANDOFF_STATUS ';
+  final start = output.indexOf(prefix);
+  if (start < 0) return null;
+  final jsonText = output.substring(start + prefix.length).trim();
+  final decoded = jsonDecode(jsonText);
+  if (decoded is Map<String, Object?>) return decoded;
+  if (decoded is Map) return decoded.cast<String, Object?>();
+  return null;
+}
+
 String _join(String root, String relative) {
   final normalizedRoot = root.replaceAll('/', Platform.pathSeparator);
   final normalizedRelative = relative.replaceAll('/', Platform.pathSeparator);
@@ -129,4 +154,19 @@ String _join(String root, String relative) {
     return '$normalizedRoot$normalizedRelative';
   }
   return '$normalizedRoot${Platform.pathSeparator}$normalizedRelative';
+}
+
+class _MemorySink implements IOSink {
+  final _buffer = StringBuffer();
+
+  String get content => _buffer.toString();
+
+  @override
+  void write(Object? object) => _buffer.write(object);
+
+  @override
+  void writeln([Object? object = '']) => _buffer.writeln(object);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

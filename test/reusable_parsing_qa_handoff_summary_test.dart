@@ -29,6 +29,9 @@ void main() {
     expect(payload['handoffClean'], isTrue);
     expect(payload['docsAligned'], isTrue);
     expect(payload['parityOk'], isTrue);
+    expect(payload['currentBranchHeadCommit'], isNotEmpty);
+    expect(payload['currentBranchHeadCommitFull'], isNotEmpty);
+    expect(payload['docsOnlyExecutionDriftAccepted'], isFalse);
     expect(payload['hasLocalModifiedFiles'], isTrue);
     expect(payload['localModifiedFiles'].toString(), contains('docs/'));
     expect(payload['expectedLocalDocsRefreshDirty'], isFalse);
@@ -84,6 +87,7 @@ void main() {
     final payload = _extractJsonPayload(stdout.content);
     expect(payload['hasLocalModifiedFiles'], isTrue);
     expect(payload['expectedLocalDocsRefreshDirty'], isTrue);
+    expect(payload['docsOnlyExecutionDriftAccepted'], isFalse);
     expect(
       payload['localModifiedFiles'].toString(),
       contains('docs/reusable_parsing_qa_checkpoint.json'),

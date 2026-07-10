@@ -85,11 +85,15 @@ int runReusableParsingQaHandoffSummary(
     'windowsWorkingBranch': docsPacket['windowsWorkingBranch'],
     'windowsExecutionBranch': pehPacket['inventoryExecutionBranch'],
     'windowsExecutionCommit': pehPacket['inventoryExecutionCommit'],
+    'currentBranchHeadCommit': statusSummary['currentBranchHeadCommit'],
+    'currentBranchHeadCommitFull': statusSummary['currentBranchHeadCommitFull'],
     'docsAligned': statusSummary['docsAligned'],
     'parityApplicable': statusSummary['parityApplicable'],
     'parityOk': statusSummary['parityOk'],
     'packetExecutionHeadAligned': statusSummary['packetExecutionHeadAligned'],
     'scriptExecutionHeadAligned': statusSummary['scriptExecutionHeadAligned'],
+    'docsOnlyExecutionDriftAccepted':
+        statusSummary['docsOnlyExecutionDriftAccepted'],
     'hasLocalModifiedFiles': statusSummary['hasLocalModifiedFiles'],
     'localModifiedFiles': statusSummary['localModifiedFiles'],
     'expectedLocalDocsRefreshDirty':
