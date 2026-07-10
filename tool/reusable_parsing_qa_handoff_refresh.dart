@@ -524,6 +524,17 @@ Do not rebuild these unless a new regression proves they are wrong:
 4. Continue broader reusable receipt/parsing-core extraction only after the
    current PEH measurement lane is advanced from this checkpoint.
 
+## Merchant Extraction Ownership
+
+- Do not start a separate merchant-extraction buildout while PEH measurement is
+  still the active blocker.
+- If the immediate task is inventory receipt parsing for merchant-style lines,
+  abbreviations, or context boosts, treat it as Work Supplies parser
+  ownership.
+- If the follow-up task is a shared merchant extraction layer meant to power
+  multiple receipt/parser domains, treat it as reusable parser QA/platform
+  ownership after the current PEH handoff step is complete.
+
 ## Current Measurement Reality
 
 - Plumbing already has the stronger Windows-side generated evidence.
@@ -677,6 +688,24 @@ shared parser-platform behavior, it belongs in the reusable lane.
 If a task changes Work Supplies parser behavior, PEH inventory-specific hardening,
 or Windows-owned roadmap/progress state, it stays in the Windows lane until a
 new committed handoff explicitly promotes it.
+
+## Merchant Extraction Boundary
+
+- Merchant extraction for Work Supplies inventory receipts is not a separate
+  free-floating lane right now.
+- If the work is about merchant-aware parser behavior, merchant abbreviation
+  recipes, merchant fixture families, merchant-context review safety, or
+  merchant-related QA gates for Work Supplies receipt parsing, it belongs to
+  the current Windows inventory/parser lane.
+- If the work is about building a reusable merchant extraction contract,
+  reusable merchant normalization platform pieces, or parser-domain tooling
+  meant to serve multiple receipt/parser domains beyond Work Supplies, it
+  belongs to the reusable parser QA lane.
+- The Mac Mini should not start a broader reusable merchant-extraction rewrite
+  while the current PEH measurement wave is still the active blocker.
+- Broader reusable merchant extraction can begin only after the current PEH
+  handoff checkpoint is advanced and explicitly says that broader parser-domain
+  extraction is next.
 ''';
 }
 

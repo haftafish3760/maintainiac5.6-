@@ -269,6 +269,14 @@ void main() {
       contains('## Reusable Parser QA Foundation'),
     );
     expect(
+      boundary,
+      contains('## Merchant Extraction Boundary'),
+    );
+    expect(
+      boundary,
+      contains('merchant-aware parser behavior'),
+    );
+    expect(
       runbook,
       contains('branch is at or after validated floor commit `abc1234`'),
     );
@@ -296,6 +304,14 @@ void main() {
     expect(
       runbook,
       contains('Roll up the active Mac measurement wave results.'),
+    );
+    expect(
+      runbook,
+      contains('## Merchant Extraction Ownership'),
+    );
+    expect(
+      runbook,
+      contains('separate merchant-extraction buildout'),
     );
     expect(
       runbook,
