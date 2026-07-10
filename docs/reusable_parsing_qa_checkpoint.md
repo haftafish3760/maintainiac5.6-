@@ -4,7 +4,7 @@ Last updated: 2026-07-09 11:58 PM EDT
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Windows execution commit: `b1b5af5`
+- Windows execution commit: `c226305`
 - Validated floor commit: `8e9771d`
 - Ready for Mac measurement wave: `true`
 - Ready to claim 90-95 percent: `false`
@@ -22,3 +22,15 @@ Last updated: 2026-07-09 11:58 PM EDT
 - Run the Mac PEH measurement wave commands from the packet on branch codex/reusable-parsing-qa-foundation.
 - Prioritize hvac because they still have measured coverage gaps.
 - After the heavier run finishes, execute `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .` to rebuild the PEH and reusable handoff artifacts together.
+
+## Expected Local Windows Refresh State
+
+Immediately after a Windows-side handoff sync or PEH restamp, it is normal for
+these local docs to be modified until the next artifact-sync commit:
+
+- `docs/reusable_parsing_qa_checkpoint.json`
+- `docs/reusable_parsing_qa_checkpoint.md`
+- `docs/reusable_parsing_qa_mac_handoff_packet.json`
+
+If the live handoff is healthy, `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+will report `expectedLocalDocsRefreshDirty: true` for this state.

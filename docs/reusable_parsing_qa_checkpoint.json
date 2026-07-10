@@ -3,7 +3,7 @@
   "report": "reusable_parsing_qa_handoff_checkpoint",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "windowsExecutionCommit": "b1b5af5",
+  "windowsExecutionCommit": "c226305",
   "validatedFloorCommit": "8e9771d",
   "validatedFloorLabel": "Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion",
   "readyForMacMeasurementWave": true,
@@ -14,6 +14,11 @@
   "totalRemainingChecked": 38,
   "sampleSizedTradeCount": 1,
   "underTargetTradeCount": 1,
+  "expectedLocalDocsRefreshFiles": [
+    "docs/reusable_parsing_qa_checkpoint.json",
+    "docs/reusable_parsing_qa_checkpoint.md",
+    "docs/reusable_parsing_qa_mac_handoff_packet.json"
+  ],
   "windowsNextActions": [
     "Keep Windows ownership on inventory-specific Work Supplies parser/code hardening.",
     "Do not claim 90-95 percent PEH readiness until the Mac wave closes the remaining measured gaps.",
