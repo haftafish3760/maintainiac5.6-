@@ -121,6 +121,7 @@ class _SharedReceiptAttachmentPanelState
   var _needsBottomReceiptSection = false;
   var _receiptReadStatus = _ReceiptReadStatusKind.success;
   var _receiptReadStatusMessage = '';
+  var _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
   var _loadingRecoverableNativeCaptures = false;
   List<ReceiptNativeCaptureRecoveryRecord> _recoverableNativeCaptures =
       const [];

@@ -2,16 +2,22 @@ part of 'receipt_attachment_panel.dart';
 
 enum _ReceiptReadStatusKind { reading, success, warning, failed }
 
+enum _ReceiptReadProgressPhase { idle, accepted, readingText, openingDetails }
+
 class _ReceiptReadReviewStatus extends StatelessWidget {
   const _ReceiptReadReviewStatus({
     required this.reading,
     required this.status,
     required this.message,
+    required this.progressPhase,
+    required this.uiConfig,
   });
 
   final bool reading;
   final _ReceiptReadStatusKind status;
   final String message;
+  final _ReceiptReadProgressPhase progressPhase;
+  final ReceiptCaptureUiConfig uiConfig;
 
   @override
   Widget build(BuildContext context) {
@@ -113,11 +119,68 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
                     letterSpacing: 0,
                   ),
                 ),
+                if (reading && uiConfig.showReadProgressSteps) ...[
+                  const SizedBox(height: 8),
+                  _ReceiptReadProgressSteps(
+                    phase: progressPhase,
+                    uiConfig: uiConfig,
+                  ),
+                ],
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ReceiptReadProgressSteps extends StatelessWidget {
+  const _ReceiptReadProgressSteps({
+    required this.phase,
+    required this.uiConfig,
+  });
+
+  final _ReceiptReadProgressPhase phase;
+  final ReceiptCaptureUiConfig uiConfig;
+
+  @override
+  Widget build(BuildContext context) {
+    const phases = [
+      _ReceiptReadProgressPhase.accepted,
+      _ReceiptReadProgressPhase.readingText,
+      _ReceiptReadProgressPhase.openingDetails,
+    ];
+    final labels = [
+      uiConfig.progressAcceptedLabel,
+      uiConfig.progressReadingLabel,
+      uiConfig.progressOpeningLabel,
+    ];
+    final current = phases.indexOf(phase).clamp(0, phases.length - 1);
+    return Row(
+      children: [
+        for (var index = 0; index < labels.length; index++) ...[
+          Expanded(
+            child: Text(
+              labels[index],
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: index <= current
+                    ? const Color(0xFFFFD166)
+                    : const Color(0xFF8FA0A8),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                height: 1.12,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+          if (index < labels.length - 1)
+            Container(width: 10, height: 1, color: const Color(0xFF526168)),
+        ],
+      ],
     );
   }
 }

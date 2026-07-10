@@ -187,6 +187,7 @@ extension _ReceiptAttachmentReviewReadActions
       _readingForReview = true;
       _needsBottomReceiptSection = false;
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
+      _receiptReadProgressPhase = _ReceiptReadProgressPhase.accepted;
       _receiptReadStatusMessage =
           'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action';
     });
@@ -204,6 +205,7 @@ extension _ReceiptAttachmentReviewReadActions
       _readingForReview = false;
       _needsBottomReceiptSection = true;
       _receiptReadStatus = _ReceiptReadStatusKind.warning;
+      _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
       _receiptReadStatusMessage =
           'Receipt photo saved. Add the bottom receipt section before receipt details open. $evidence $nextStep';
     });

@@ -64,6 +64,8 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
             reading: _readingForReview,
             status: _receiptReadStatus,
             message: _receiptReadStatusMessage,
+            progressPhase: _receiptReadProgressPhase,
+            uiConfig: widget.uiConfig,
           ),
         ],
         if (_hasAttachment) ...[

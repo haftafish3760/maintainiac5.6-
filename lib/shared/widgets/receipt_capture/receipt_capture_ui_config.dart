@@ -22,6 +22,10 @@ class ReceiptCaptureUiConfig {
     this.manualEntryLabel = 'No, Manual Entry',
     this.showFirstUsePromiseList = true,
     this.showManualEntryReminder = true,
+    this.showReadProgressSteps = true,
+    this.progressAcceptedLabel = 'Photo accepted',
+    this.progressReadingLabel = 'Reading receipt text',
+    this.progressOpeningLabel = 'Opening receipt details',
   });
 
   final ReceiptPhotoReviewUiConfig review;
@@ -36,6 +40,10 @@ class ReceiptCaptureUiConfig {
   final String manualEntryLabel;
   final bool showFirstUsePromiseList;
   final bool showManualEntryReminder;
+  final bool showReadProgressSteps;
+  final String progressAcceptedLabel;
+  final String progressReadingLabel;
+  final String progressOpeningLabel;
 
   ReceiptCaptureUiConfig copyWith({
     ReceiptPhotoReviewUiConfig? review,
@@ -50,6 +58,10 @@ class ReceiptCaptureUiConfig {
     String? manualEntryLabel,
     bool? showFirstUsePromiseList,
     bool? showManualEntryReminder,
+    bool? showReadProgressSteps,
+    String? progressAcceptedLabel,
+    String? progressReadingLabel,
+    String? progressOpeningLabel,
   }) {
     return ReceiptCaptureUiConfig(
       review: review ?? this.review,
@@ -66,6 +78,12 @@ class ReceiptCaptureUiConfig {
           showFirstUsePromiseList ?? this.showFirstUsePromiseList,
       showManualEntryReminder:
           showManualEntryReminder ?? this.showManualEntryReminder,
+      showReadProgressSteps:
+          showReadProgressSteps ?? this.showReadProgressSteps,
+      progressAcceptedLabel:
+          progressAcceptedLabel ?? this.progressAcceptedLabel,
+      progressReadingLabel: progressReadingLabel ?? this.progressReadingLabel,
+      progressOpeningLabel: progressOpeningLabel ?? this.progressOpeningLabel,
     );
   }
 }

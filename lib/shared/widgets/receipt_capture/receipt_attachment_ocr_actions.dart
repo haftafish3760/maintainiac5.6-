@@ -80,6 +80,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     updateAttachmentState(() {
       _readingForReview = true;
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
+      _receiptReadProgressPhase = _ReceiptReadProgressPhase.readingText;
       _receiptReadStatusMessage =
           'Preparing $sourceSummary for app assistance. When text is found, Maintainiac shows the receipt details so you can check the store, date, total, and item lines.$cloudAssistSummary';
     });
@@ -94,6 +95,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         updateAttachmentState(() {
           _readingForReview = false;
           _receiptReadStatus = _ReceiptReadStatusKind.failed;
+          _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
           _receiptReadStatusMessage =
               '${recoveryAdvice.failureLead} The app could not finish reading $sourceSummary before the review fields could be filled. ${recoveryAdvice.primaryAction}';
         });
@@ -125,6 +127,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       updateAttachmentState(() {
         _readingForReview = false;
         _receiptReadStatus = _ReceiptReadStatusKind.failed;
+        _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
         _receiptReadStatusMessage =
             '${resultRecoveryAdvice.failureLead} $warning ${resultRecoveryAdvice.primaryAction}';
       });
@@ -143,6 +146,11 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     }
     final message = result.reviewMessage(successMessage: successMessage);
     final onImportedText = widget.onImportedText;
+    if (mounted) {
+      updateAttachmentState(() {
+        _receiptReadProgressPhase = _ReceiptReadProgressPhase.openingDetails;
+      });
+    }
     if (onImportedText != null) {
       await Future<void>.sync(() => onImportedText(result.appFillText));
     }
@@ -163,6 +171,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
           )
           ? _ReceiptReadStatusKind.warning
           : _ReceiptReadStatusKind.success;
+      _receiptReadProgressPhase = _ReceiptReadProgressPhase.openingDetails;
       _receiptReadStatusMessage = message;
     });
     showPickerMessage(message);

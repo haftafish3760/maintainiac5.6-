@@ -32,6 +32,7 @@ extension _ReceiptAttachmentPublishHelpers
       _needsBottomReceiptSection = false;
       _receiptReadStatus = _ReceiptReadStatusKind.success;
       _receiptReadStatusMessage = '';
+      _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
     });
     publishAttachmentChange();
   }
