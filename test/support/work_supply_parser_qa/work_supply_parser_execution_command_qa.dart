@@ -48,6 +48,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_merged_status_rollup.dart';
   static const _pehCoreRefreshPath =
       'tool/work_supply_parser_qa_peh_core_refresh.dart';
+  static const _pehCorePostMacRefreshPath =
+      'tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart';
   static const _pehCoreMacHandoffPacketPath =
       'tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart';
   static const _pehCoreMacHandoffScriptPath =
@@ -548,6 +550,23 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       ],
     ),
     _ToolSourceContract(
+      name: 'peh_core_post_mac_refresh_readout',
+      path: _pehCorePostMacRefreshPath,
+      tokens: [
+        'QA_PEH_CORE_POST_MAC_REFRESH',
+        'pehRefreshExit',
+        'handoffRefreshExit',
+        'checkpointExit',
+        'statusExit',
+        'summaryExit',
+        'handoffClean',
+        'docsAligned',
+        'parityOk',
+        'packetExecutionHeadAligned',
+        'scriptExecutionHeadAligned',
+      ],
+    ),
+    _ToolSourceContract(
       name: 'peh_core_mac_handoff_packet_readout',
       path: _pehCoreMacHandoffPacketPath,
       tokens: [
@@ -1010,6 +1029,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreMacWaveStatusPath: _read(_pehCoreMacWaveStatusPath, failures),
       _pehCoreMergedStatusRollupPath: _read(_pehCoreMergedStatusRollupPath, failures),
       _pehCoreRefreshPath: _read(_pehCoreRefreshPath, failures),
+      _pehCorePostMacRefreshPath: _read(_pehCorePostMacRefreshPath, failures),
       _pehCoreMacHandoffPacketPath: _read(_pehCoreMacHandoffPacketPath, failures),
       _pehCoreMacHandoffScriptPath: _read(_pehCoreMacHandoffScriptPath, failures),
       _pehCoreClaimReadinessPath: _read(_pehCoreClaimReadinessPath, failures),
