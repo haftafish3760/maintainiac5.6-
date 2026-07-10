@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 import '../../../shared/pdf/app_generated_pdf_export_estimator.dart';
+import '../../../shared/pdf/app_generated_pdf_export_verifier.dart';
 import '../../../shared/pdf/app_generated_pdf_image_loader.dart';
 import '../../../shared/pdf/app_generated_pdf_share_content.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
@@ -285,6 +286,7 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
     ),
   );
   final bytes = await pdf.save();
+  AppGeneratedPdfExportVerification.inspect(bytes).throwIfInvalid();
   final share = AppGeneratedPdfShareContent.expenseExport(
     rangeStart: snapshot.range.start,
     rangeEnd: snapshot.range.end,

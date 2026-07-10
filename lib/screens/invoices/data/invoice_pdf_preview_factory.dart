@@ -1,4 +1,5 @@
 import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/pdf/app_generated_pdf_export_verifier.dart';
 import '../../../shared/pdf/app_generated_pdf_share_content.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_pdf_template_renderer.dart';
@@ -22,6 +23,7 @@ class InvoicePdfPreviewFactory {
       totalLabel: r'$937.74',
       template: template,
     );
+    AppGeneratedPdfExportVerification.inspect(bytes).throwIfInvalid();
     final share = AppGeneratedPdfShareContent.invoicePreview();
     return AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,
@@ -43,6 +45,10 @@ class InvoicePdfPreviewFactory {
       record: record,
       template: template,
     );
+    AppGeneratedPdfExportVerification.inspect(
+      bytes,
+      expectedPageCount: invoicePdfPageCountForRecord(record),
+    ).throwIfInvalid();
     final title = record.documentType == InvoiceDocumentType.estimate
         ? 'Estimate ${record.invoiceNumber}'
         : 'Invoice ${record.invoiceNumber}';
@@ -78,6 +84,7 @@ class InvoicePdfPreviewFactory {
       totalLabel: r'$937.74',
       template: template,
     );
+    AppGeneratedPdfExportVerification.inspect(bytes).throwIfInvalid();
     final share = AppGeneratedPdfShareContent.estimatePreview();
     return AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.estimate,
@@ -102,6 +109,7 @@ class InvoicePdfPreviewFactory {
       totalLabel: r'$1,247.62',
       template: template,
     );
+    AppGeneratedPdfExportVerification.inspect(bytes).throwIfInvalid();
     final share = AppGeneratedPdfShareContent.templateSample();
     return AppGeneratedPdfDocument(
       kind: AppGeneratedPdfKind.invoice,
