@@ -451,3 +451,41 @@ List<String> _receiptRemovalContextCodes(Map<String, Object?> diagnostics) {
   }
   return List.unmodifiable(codes);
 }
+
+List<String> _receiptRemovalInvalidOrderCodes(
+  Map<String, Object?> diagnostics,
+) {
+  final originalSection = _diagnosticPositiveInt(
+    diagnostics['receiptRemoveRemainingSectionOriginalNumber'],
+  );
+  final finalSection = _diagnosticPositiveInt(
+    diagnostics['receiptRemoveFinalSectionNumber'],
+  );
+  final shifted = _diagnosticBool(diagnostics['receiptRemoveSectionShifted']);
+  final hasRemovalMetadata =
+      originalSection != null ||
+      finalSection != null ||
+      shifted != null ||
+      _diagnosticPositiveInt(
+            diagnostics['receiptRemoveOriginalSectionNumber'],
+          ) !=
+          null;
+  if (!hasRemovalMetadata) return const [];
+  final codes = <String>[];
+  if (originalSection == null) {
+    codes.add('remove_invalid_missing_remaining_original_section');
+  }
+  if (finalSection == null) {
+    codes.add('remove_invalid_missing_final_section');
+  }
+  if (shifted == null) {
+    codes.add('remove_invalid_missing_shift_flag');
+  }
+  if (originalSection != null && finalSection != null && shifted != null) {
+    final expectedShifted = originalSection != finalSection;
+    if (shifted != expectedShifted) {
+      codes.add('remove_invalid_shift_flag_mismatch');
+    }
+  }
+  return List.unmodifiable(codes);
+}

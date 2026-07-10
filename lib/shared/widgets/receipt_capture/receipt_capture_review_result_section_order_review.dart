@@ -5,6 +5,9 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
   String get receiptSectionOrderOutcome {
     final counts = receiptSectionOrderCounts;
     if (counts.isEmpty) return 'unknown';
+    if (counts.keys.any((key) => key.startsWith('remove_invalid_'))) {
+      return 'remove_order_invalid';
+    }
     if (counts.keys.any((key) => key.startsWith('retake_invalid_'))) {
       return 'retake_order_invalid';
     }
@@ -22,6 +25,10 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
     }
     if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
       return 'manual_reorder_preserved';
+    }
+    if ((counts['remove_section_shifted'] ?? 0) > 0 ||
+        (counts['remove_section_not_shifted'] ?? 0) > 0) {
+      return 'remove_order_preserved';
     }
     if ((counts['policy_top_to_bottom_numbered_sections'] ?? 0) > 0 &&
         (counts['ghost_guide_visible'] ?? 0) > 0) {
@@ -59,6 +66,7 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
     if (outcome == 'manual_reorder_invalid') {
       return '$label;manual_reorder_invalid';
     }
+    if (outcome == 'remove_order_invalid') return '$label;remove_invalid';
     if ((counts['retake_preserved_original_slot'] ?? 0) > 0) {
       return '$label;retake_preserved';
     }
@@ -67,6 +75,9 @@ extension ReceiptPhotoReviewResultSectionOrderOutcome
     }
     if ((counts['manual_reorder_preserved_photo_path'] ?? 0) > 0) {
       return '$label;manual_reorder_preserved';
+    }
+    if (outcome == 'remove_order_preserved') {
+      return '$label;remove_preserved';
     }
     return label;
   }
@@ -84,7 +95,8 @@ extension ReceiptPhotoReviewResultSectionOrderReview
     return switch (receiptSectionOrderReviewActionCode) {
       'review_retaken_section_then_continue' ||
       'review_inserted_section_then_continue' ||
-      'review_reordered_sections_then_continue' => true,
+      'review_reordered_sections_then_continue' ||
+      'review_removed_section_then_continue' => true,
       _ => false,
     };
   }
@@ -107,6 +119,9 @@ extension ReceiptPhotoReviewResultSectionOrderReview
     if (outcome == 'manual_reorder_invalid') {
       return 'review_manual_section_order_before_ocr';
     }
+    if (outcome == 'remove_order_invalid') {
+      return 'review_removed_section_order_before_ocr';
+    }
     if (outcome == 'numbered_sections_with_ghost_guide') {
       return 'review_long_receipt_order_with_ghost_guide';
     }
@@ -121,6 +136,9 @@ extension ReceiptPhotoReviewResultSectionOrderReview
     }
     if (outcome == 'manual_reorder_preserved') {
       return 'review_reordered_sections_then_continue';
+    }
+    if (outcome == 'remove_order_preserved') {
+      return 'review_removed_section_then_continue';
     }
     if (counts.keys.any(
       (key) =>
@@ -140,6 +158,8 @@ extension ReceiptPhotoReviewResultSectionOrderReview
         'Review the inserted receipt section order before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
       'review_manual_section_order_before_ocr' =>
         'Review the manually reordered receipt sections before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
+      'review_removed_section_order_before_ocr' =>
+        'Review the remaining receipt section order after removal before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
       'review_long_receipt_order_with_ghost_guide' =>
         'Check each long-receipt section from top to bottom using the ghost overlap guide.',
       'review_numbered_sections_top_to_bottom' =>
@@ -150,6 +170,8 @@ extension ReceiptPhotoReviewResultSectionOrderReview
         'Confirm the inserted receipt section appears after the selected section.',
       'review_reordered_sections_then_continue' =>
         'Confirm the manual receipt section order before continuing.',
+      'review_removed_section_then_continue' =>
+        'Confirm the remaining receipt section order after removal before continuing.',
       'review_multi_section_order' =>
         'Check the multi-photo receipt order before OCR reads the receipt.',
       _ => 'Review the receipt photo before OCR reads the receipt.',

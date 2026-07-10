@@ -411,10 +411,51 @@ void main() {
     expect(result.receiptSectionOrderCounts['remove_final_section_count_2'], 1);
     expect(result.receiptSectionOrderCounts['remove_section_shifted'], 1);
     expect(
+      result.receiptSectionOrderCounts['remove_remaining_original_section_3'],
+      1,
+    );
+    expect(
       result
           .receiptReaderHandoffCounts['receipt_section_order_remove_section_shifted'],
       1,
     );
+    expect(result.receiptSectionOrderOutcome, 'remove_order_preserved');
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_removed_section_then_continue',
+    );
+  });
+
+  test('malformed removal shift metadata requires review', () {
+    final result = ReceiptPhotoReviewResult(
+      photoPaths: const ['/tmp/bottom.jpg'],
+      ocrSourcePhotoPaths: const ['/tmp/bottom-ocr.jpg'],
+      dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      stitchResult: ReceiptStitchResult.fallback(
+        inputPaths: const ['/tmp/bottom-ocr.jpg'],
+        warning: 'Review removed receipt section order.',
+        fallbackReasonCode: 'manual_overlap_unsafe',
+      ),
+      captureDiagnosticsByPhotoPath: const {
+        '/tmp/bottom.jpg': {
+          'receiptRemoveOriginalSectionNumber': 2,
+          'receiptRemoveFinalSectionNumber': 2,
+          'receiptRemoveRemainingSectionOriginalNumber': 3,
+          'receiptRemoveSectionShifted': false,
+        },
+      },
+    );
+
+    expect(
+      result.receiptSectionOrderCounts['remove_invalid_shift_flag_mismatch'],
+      1,
+    );
+    expect(result.receiptSectionOrderOutcome, 'remove_order_invalid');
+    expect(
+      result.receiptSectionOrderReviewActionCode,
+      'review_removed_section_order_before_ocr',
+    );
+    expect(result.receiptSectionOrderNeedsReview, isTrue);
   });
 
   test('manual reorder metadata is summarized without leaking paths', () {

@@ -281,6 +281,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
       final removalFinalSection = _diagnosticPositiveInt(
         diagnostics['receiptRemoveFinalSectionNumber'],
       );
+      final removalRemainingOriginalSection = _diagnosticPositiveInt(
+        diagnostics['receiptRemoveRemainingSectionOriginalNumber'],
+      );
       final removalFinalCount = _diagnosticPositiveInt(
         diagnostics['receiptRemoveFinalSectionCount'],
       );
@@ -372,6 +375,12 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         final bucket = removalFinalSection > 9
             ? 'remove_final_section_10_plus'
             : 'remove_final_section_$removalFinalSection';
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
+      if (removalRemainingOriginalSection != null) {
+        final bucket = removalRemainingOriginalSection > 9
+            ? 'remove_remaining_original_section_10_plus'
+            : 'remove_remaining_original_section_$removalRemainingOriginalSection';
         counts[bucket] = (counts[bucket] ?? 0) + 1;
       }
       if (removalFinalCount != null) {
@@ -473,6 +482,9 @@ extension ReceiptPhotoReviewResultNativeSignals on ReceiptPhotoReviewResult {
         counts[code] = (counts[code] ?? 0) + 1;
       }
       for (final code in _receiptRemovalContextCodes(diagnostics)) {
+        counts[code] = (counts[code] ?? 0) + 1;
+      }
+      for (final code in _receiptRemovalInvalidOrderCodes(diagnostics)) {
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }
