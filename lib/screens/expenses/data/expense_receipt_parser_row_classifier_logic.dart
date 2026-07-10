@@ -137,6 +137,7 @@ String _normalizeReceiptSummaryKeywordText(String value) {
       .replaceAll(RegExp(r'\bcambio\b'), 'change due')
       .replaceAll(RegExp(r'\bautorizaci[oó]n\b'), 'authorization')
       .replaceAll(RegExp(r'\bimpuesto\b'), 'tax')
+      .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?c[0o]mbustible\b'), 'fuel sale')
       .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?combustible\b'), 'fuel sale')
       .replaceAll(RegExp(r'\bcombustible\b'), 'fuel')
       .replaceAll(RegExp(r'\bt[0o]tal\b'), 'total')

@@ -120,7 +120,7 @@ bool _looksLikeFuelMeasuredLine(String text) {
 bool _looksLikeStrongFuelReceiptLine(String text) {
   return RegExp(
     r'\b(unleaded|regular|midgrade|premium|diesel|di[eé]sel|def|'
-    r'gasoline|gasolina|combustible|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[- ]?5|methanol|m85|m100|kerosene|kero|queroseno|k[- ]?1|hydrogen|h2 fuel|fuel cell|h35|h70|'
+    r'gasoline|gasolina|c[0o]mbustible|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[- ]?5|methanol|m85|m100|kerosene|kero|queroseno|k[- ]?1|hydrogen|h2 fuel|fuel cell|h35|h70|'
     r'electric|charging|chargepoint|supercharger|sesi[oó]n de carga|'
     r'fuel sale|fuel total|'
     r'energy sale|energy delivered|'

@@ -63,8 +63,7 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
         product.unit == 'gallon' &&
         !useLiters &&
         ((index + seed) % 10 == 0);
-    final includeDirtyText =
-        locale == 'english_us' && ((index + seed) % 7 == 3);
+    final includeDirtyText = ((index + seed) % 7 == 3);
     final useCommaDecimals =
         locale == 'spanish_us' && ((index + seed) % 9 == 5);
     final includeAlternatePrice =

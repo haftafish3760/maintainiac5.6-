@@ -73,5 +73,12 @@ String _dirtyFuelText(String text) {
       .replaceAll('Hydrogen', 'Hydr0gen')
       .replaceAll('METHANOL', 'METHAN0L')
       .replaceAll('Methanol', 'Methan0l')
+      .replaceAll('PRECIO', 'PREC1O')
+      .replaceAll('Precio', 'Prec1o')
+      .replaceAll('GALONES', 'GAL0NES')
+      .replaceAll('Galones', 'Gal0nes')
+      .replaceAll('COMBUSTIBLE', 'C0MBUSTIBLE')
+      .replaceAll('Combustible', 'C0mbustible')
+      .replaceAll('Diésel', 'D1ésel')
       .replaceAll(' GAL ', ' GA1 ');
 }
