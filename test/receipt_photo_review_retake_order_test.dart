@@ -106,6 +106,35 @@ void main() {
   );
 
   test(
+    'insert-after diagnostics track the following section after insertion',
+    () {
+      final plan = ReceiptPhotoInsertAfterOrderPlan.build(
+        currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+        anchorIndex: 0,
+        anchorPhotoPath: 'top.jpg',
+        insertedPhotoPaths: const ['top-extra-a.jpg', 'top-extra-b.jpg'],
+      );
+
+      expect(plan, isNotNull);
+      expect(plan!.followingPhotoPath, 'middle.jpg');
+      expect(plan.followingOriginalSectionNumber, 2);
+      expect(plan.followingFinalSectionNumber, 4);
+      final diagnostics = plan.captureDiagnosticsForInsertedPhotoPaths(const [
+        'top-extra-a.jpg',
+        'top-extra-b.jpg',
+      ]);
+      expect(
+        diagnostics['top-extra-a.jpg'],
+        containsPair('receiptInsertFollowingContextSectionNumber', 2),
+      );
+      expect(
+        diagnostics['top-extra-a.jpg'],
+        containsPair('receiptInsertFollowingContextFinalSectionNumber', 4),
+      );
+    },
+  );
+
+  test(
     'top-section multi-photo retake stays before the original next section',
     () {
       final plan = ReceiptPhotoRetakeOrderPlan.build(

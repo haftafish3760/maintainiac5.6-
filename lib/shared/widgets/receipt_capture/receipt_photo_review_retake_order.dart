@@ -180,6 +180,7 @@ class ReceiptPhotoInsertAfterOrderPlan {
     required this.anchorIndex,
     required this.anchorPhotoPath,
     required this.insertedPhotoPaths,
+    this.followingPhotoPath,
   });
 
   final List<String> photoPaths;
@@ -187,8 +188,14 @@ class ReceiptPhotoInsertAfterOrderPlan {
   final int anchorIndex;
   final String anchorPhotoPath;
   final List<String> insertedPhotoPaths;
+  final String? followingPhotoPath;
 
   int get anchorSectionNumber => anchorIndex + 1;
+  bool get hasFollowingContext => followingPhotoPath != null;
+  int? get followingOriginalSectionNumber =>
+      hasFollowingContext ? anchorIndex + 2 : null;
+  int? get followingFinalSectionNumber =>
+      hasFollowingContext ? anchorIndex + 2 + insertedPhotoPaths.length : null;
 
   Map<String, Map<String, Object?>> captureDiagnosticsForInsertedPhotoPaths(
     List<String> insertedPhotoPaths,
@@ -205,6 +212,10 @@ class ReceiptPhotoInsertAfterOrderPlan {
           'receiptInsertCount': insertedPhotoPaths.length,
           'receiptInsertFinalSectionCount': photoPaths.length,
           'receiptInsertPreservedAnchorSlot': true,
+          if (followingOriginalSectionNumber case final sectionNumber)
+            'receiptInsertFollowingContextSectionNumber': sectionNumber,
+          if (followingFinalSectionNumber case final sectionNumber)
+            'receiptInsertFollowingContextFinalSectionNumber': sectionNumber,
           'receiptInsertOrderPolicy':
               'insert_new_sections_after_selected_anchor',
         },
@@ -241,6 +252,9 @@ class ReceiptPhotoInsertAfterOrderPlan {
       anchorIndex: anchorIndex,
       anchorPhotoPath: anchorPhotoPath,
       insertedPhotoPaths: List.unmodifiable(insertedPhotoPaths),
+      followingPhotoPath: anchorIndex < currentPhotoPaths.length - 1
+          ? currentPhotoPaths[anchorIndex + 1]
+          : null,
     );
   }
 }
