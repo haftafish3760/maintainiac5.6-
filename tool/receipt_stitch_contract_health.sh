@@ -399,3 +399,6 @@ case "$mode" in
     exit 64
     ;;
 esac
+  run_extreme_aspect_ratio
+  run_extreme_aspect_ratio
+  run_synthetic_dataset
