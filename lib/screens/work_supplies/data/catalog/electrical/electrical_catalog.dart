@@ -11,5 +11,6 @@ final electricalCatalog = _trade('Electrical', const Color(0xFFF6B73C), [
   electricalPanelsAndServiceEquipmentCategory,
   electricalLightingCategory,
   electricalGeneratedServiceCatalogCategory,
+  electricalCoreSupplementalCategory,
   electricalGeneratedBulkCatalogCategory,
 ]);

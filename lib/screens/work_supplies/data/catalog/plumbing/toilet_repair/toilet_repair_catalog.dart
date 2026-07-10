@@ -17,7 +17,7 @@ final plumbingToiletRepairCategory = _category('Toilet Repair', [
         'Toilet Fill Valve',
         'each',
         ['universal', 'quiet fill', 'high performance'],
-        ['ballcock', 'fill valve kit'],
+        ['ballcock', 'fill valve kit', 'toilet repair kit'],
       ),
     ),
     _type(
@@ -26,7 +26,7 @@ final plumbingToiletRepairCategory = _category('Toilet Repair', [
         'Toilet Flush Valve',
         'each',
         ['2 in', '3 in', 'dual flush'],
-        ['flush valve kit', 'tank valve'],
+        ['flush valve kit', 'tank valve', 'toilet repair kit'],
       ),
     ),
     _type(
@@ -53,7 +53,7 @@ final plumbingToiletRepairCategory = _category('Toilet Repair', [
         'Toilet Tank Bolt Kit',
         'kit',
         ['standard', 'heavy duty'],
-        ['tank to bowl bolts', 'tank gasket'],
+        ['tank to bowl bolts', 'tank gasket', 'toilet repair kit'],
       ),
     ),
   ]),
@@ -80,7 +80,7 @@ final plumbingToiletRepairCategory = _category('Toilet Repair', [
         'Toilet Flange Repair Ring',
         'each',
         ['stainless', 'plastic', 'split ring'],
-        ['closet flange repair', 'flange repair'],
+        ['closet flange repair', 'flange repair', 'toilet repair kit'],
       ),
     ),
     _type(

@@ -1,0 +1,355 @@
+import 'dart:io';
+
+import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
+
+import '../qa_harness/qa_harness.dart';
+
+class WorkSupplyParserSpanishReleaseOneSuite extends QaSuite {
+  const WorkSupplyParserSpanishReleaseOneSuite()
+    : super('inventory.spanish_release_one');
+
+  static const _priorityTrades = {'Plumbing', 'Electrical', 'HVAC'};
+  static const _minimumCoreStandardRows = {
+    'Plumbing': _TierFloor(core: 1500, standard: 500),
+    'Electrical': _TierFloor(core: 500, standard: 500),
+    'HVAC': _TierFloor(core: 500, standard: 500),
+  };
+  static const _spanishSignalTokens = {
+    'adaptador',
+    'acople',
+    'arandela',
+    'cable',
+    'caja',
+    'cinta',
+    'codo',
+    'conector',
+    'conducto',
+    'bomba',
+    'filtro',
+    'tapon',
+    'tanque',
+    'tornillo',
+    'tubo',
+    'tuerca',
+    'valvula',
+  };
+
+  static const _spanishServiceFamilySignals = {
+    'plumbing_pipe_fittings': {
+      'codo',
+      'tee',
+      'acople',
+      'adaptador',
+      'reductor',
+      'buje',
+    },
+    'plumbing_water_distribution': {
+      'pex',
+      'cobre',
+      'cpvc',
+      'conexion rapida',
+      'sharkbite',
+    },
+    'plumbing_toilet_repair': {
+      'sanitario',
+      'inodoro',
+      'anillo cera',
+      'valvula llenado',
+      'valvula descarga',
+      'flapper',
+    },
+    'plumbing_sink_faucet_repair': {
+      'llave',
+      'grifo',
+      'lavabo',
+      'drenaje',
+      'desague',
+      'manguera',
+    },
+    'plumbing_service_tools': {
+      'cortador tubo',
+      'herramienta crimp',
+      'llave lavabo',
+      'barrena sanitario',
+      'serpiente drenaje',
+    },
+    'electrical_devices_breakers': {
+      'tomacorriente',
+      'contacto',
+      'interruptor',
+      'disyuntor',
+      'gfci',
+    },
+    'electrical_wire_conduit_ground': {
+      'cable',
+      'alambre',
+      'conductor',
+      'conduit',
+      'tierra',
+      'barra tierra',
+    },
+    'hvac_filter_controls': {
+      'filtro',
+      'capacitor',
+      'contactor',
+      'termostato',
+      'transformador',
+    },
+    'hvac_condensate_duct': {
+      'condensado',
+      'drenaje',
+      'bomba',
+      'cinta aluminio',
+      'ducto',
+      'sellador',
+    },
+  };
+
+  @override
+  Future<QaSuiteResult> run(QaContext context) async {
+    final timer = QaStopwatch.start();
+    final failures = <QaFailure>[];
+    final warningsByTradeTier = <String, int>{};
+    final rowsByTradeTier = <String, int>{};
+    final missingSignalCounts = <String, int>{};
+    final missingFamilyCounts = <String, int>{};
+    final localeTermText = _localeTermSourceText();
+    var checked = 0;
+
+    for (final item in _releaseOneItems()) {
+      checked += 6;
+      _increment(rowsByTradeTier, '${item.trade}.${item.packTier.name}');
+      final missing = _missingSpanishSignals(item, localeTermText);
+      for (final signal in missing) {
+        _increment(missingSignalCounts, signal);
+      }
+      if (missing.isEmpty) continue;
+      _increment(warningsByTradeTier, '${item.trade}.${item.packTier.name}');
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'spanish_release_one_gap:${item.id}',
+          message:
+              'Release-one residential item needs stronger Spanish parser coverage.',
+          severity: QaSeverity.warning,
+          expected:
+              'Spanish aliases/receipt patterns plus US Spanish locale normalization signals',
+          actual: '${item.path} / ${item.name}; missing=${missing.join(', ')}',
+          suggestedFix:
+              'Add es-US aliases, Spanish receipt abbreviations, unit/size variants, and review-safe conflict guards for this item family.',
+          metadata: const {'triageCategory': QaFailureTriage.locale},
+        ),
+      );
+    }
+    checked += _priorityTrades.length * 2;
+    _requireCoverageFloors(failures, rowsByTradeTier);
+    checked += _spanishServiceFamilySignals.values.fold<int>(
+      0,
+      (total, signals) => total + signals.length,
+    );
+    _requireSpanishFamilyTermSource(
+      failures,
+      localeTermText,
+      missingFamilyCounts,
+    );
+
+    return timer.finish(
+      suite: name,
+      checked: checked + _spanishSignalTokens.length,
+      failures: failures,
+      maxFailures: context.maxFailuresPerSuite,
+      metrics: {
+        'scope':
+            'Residential Plumbing, Electrical, and HVAC Core/Standard rows for es-US release-one readiness.',
+        'localeTermSourcePresent': localeTermText.isNotEmpty,
+        'rowsByTradeTier': rowsByTradeTier,
+        'minimumCoreStandardRows': _minimumCoreStandardRows.map(
+          (trade, floor) =>
+              MapEntry(trade, {'core': floor.core, 'standard': floor.standard}),
+        ),
+        'warningsByTradeTier': _topCounts(warningsByTradeTier),
+        'topMissingSpanishSignals': _topCounts(missingSignalCounts),
+        'topMissingSpanishFamilySignals': _topCounts(missingFamilyCounts),
+        'spanishServiceFamilies': _spanishServiceFamilySignals.keys.toList()
+          ..sort(),
+        'spanishSignalTokens': _spanishSignalTokens.toList()..sort(),
+      },
+    );
+  }
+
+  Iterable<WorkSupplyItem> _releaseOneItems() sync* {
+    for (final item in workSupplyCatalogItems) {
+      if (!_priorityTrades.contains(item.trade)) continue;
+      if (!item.marketScopes.contains(WorkSupplyMarketScope.residential)) {
+        continue;
+      }
+      if (item.packTier != WorkSupplyPackTier.core &&
+          item.packTier != WorkSupplyPackTier.standard) {
+        continue;
+      }
+      yield item;
+    }
+  }
+
+  List<String> _missingSpanishSignals(WorkSupplyItem item, String termText) {
+    final values = [
+      ...item.aliases,
+      ...item.intelligence.receiptPatterns,
+      ...item.intelligence.attributeTokens,
+    ].map(_normalize).toList();
+    final haystack = values.join(' ');
+    final missing = <String>[];
+    if (!_spanishSignalTokens.any(haystack.contains)) {
+      missing.add('spanishAliasOrReceiptToken');
+    }
+    if (!haystack.contains(' pulg') &&
+        !haystack.contains('mm') &&
+        !haystack.contains('metro') &&
+        !RegExp(r'\b\d+/\d+\b').hasMatch(haystack)) {
+      missing.add('spanishSizeOrUnitVariant');
+    }
+    if (!haystack.contains('es-us') &&
+        !haystack.contains('spanish') &&
+        !haystack.contains('espanol')) {
+      missing.add('localePackSignal');
+    }
+    if (item.intelligence.negativeMatchTokens.isEmpty) {
+      missing.add('negativeMatchTokens');
+    }
+    if (item.intelligence.highImportanceTokens.isEmpty) {
+      missing.add('highImportanceTokens');
+    }
+    if (termText.isEmpty) {
+      missing.add('spanishLocaleTermSource');
+    } else if (!_spanishSignalTokens.any(termText.contains)) {
+      missing.add('spanishLocaleTermCoverage');
+    }
+    return missing;
+  }
+
+  void _requireSpanishFamilyTermSource(
+    List<QaFailure> failures,
+    String termText,
+    Map<String, int> missingFamilyCounts,
+  ) {
+    for (final entry in _spanishServiceFamilySignals.entries) {
+      for (final signal in entry.value) {
+        if (termText.contains(signal)) continue;
+        _increment(missingFamilyCounts, entry.key);
+        failures.add(
+          QaFailure(
+            suite: name,
+            id: 'spanish_family_term_gap:${entry.key}:${_safeId(signal)}',
+            message:
+                'US Spanish release-one locale source is missing a service-family term.',
+            severity: QaSeverity.warning,
+            expected: signal,
+            actual: 'not found in es-US locale term source',
+            suggestedFix:
+                'Add Spanish aliases or receipt abbreviations for the service family before claiming es-US Core/Standard readiness.',
+            metadata: const {'triageCategory': QaFailureTriage.locale},
+          ),
+        );
+      }
+    }
+  }
+
+  void _requireCoverageFloors(
+    List<QaFailure> failures,
+    Map<String, int> rowsByTradeTier,
+  ) {
+    for (final entry in _minimumCoreStandardRows.entries) {
+      final trade = entry.key;
+      final floor = entry.value;
+      final core = rowsByTradeTier['$trade.core'] ?? 0;
+      final standard = rowsByTradeTier['$trade.standard'] ?? 0;
+      if (core < floor.core) {
+        failures.add(
+          _coverageFloorFailure(
+            trade: trade,
+            tier: 'core',
+            expected: floor.core,
+            actual: core,
+          ),
+        );
+      }
+      if (standard < floor.standard) {
+        failures.add(
+          _coverageFloorFailure(
+            trade: trade,
+            tier: 'standard',
+            expected: floor.standard,
+            actual: standard,
+          ),
+        );
+      }
+    }
+  }
+
+  QaFailure _coverageFloorFailure({
+    required String trade,
+    required String tier,
+    required int expected,
+    required int actual,
+  }) {
+    return QaFailure(
+      suite: name,
+      id: 'spanish_release_one_${tier}_floor:${trade.toLowerCase()}',
+      message:
+          'Spanish release-one QA did not sweep enough priority Core/Standard rows.',
+      severity: QaSeverity.warning,
+      expected: '$trade $tier rows >= $expected',
+      actual: '$actual rows',
+      suggestedFix:
+          'Keep es-US release-one QA aligned with the priority Plumbing/Electrical/HVAC Core and Standard catalog floors.',
+      metadata: const {'triageCategory': QaFailureTriage.locale},
+    );
+  }
+}
+
+String _localeTermSourceText() {
+  final file = File(
+    'lib/screens/work_supplies/data/work_supply_receipt_parser_locale_terms.dart',
+  );
+  if (!file.existsSync()) return '';
+  return _normalize(file.readAsStringSync());
+}
+
+String _normalize(String value) {
+  return value
+      .toLowerCase()
+      .replaceAll('á', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ú', 'u')
+      .replaceAll('ñ', 'n');
+}
+
+String _safeId(String value) {
+  return _normalize(value).replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+}
+
+void _increment(Map<String, int> counts, String key) {
+  counts.update(key, (count) => count + 1, ifAbsent: () => 1);
+}
+
+List<Map<String, Object?>> _topCounts(
+  Map<String, int> counts, {
+  int limit = 12,
+}) {
+  final entries = counts.entries.toList()
+    ..sort((left, right) => right.value.compareTo(left.value));
+  return [
+    for (final entry in entries.take(limit))
+      {'name': entry.key, 'count': entry.value},
+  ];
+}
+
+class _TierFloor {
+  const _TierFloor({required this.core, required this.standard});
+
+  final int core;
+  final int standard;
+}

@@ -33,6 +33,44 @@ final hvacDuctworkAndAirDistributionCategory = _category(
           ['takeoff collar'],
         ),
       ),
+      _type(
+        'Duct Connectors',
+        _variants(
+          'Duct Connector',
+          'each',
+          ['6 in crimped', '8 in crimped', '10 in crimped', '12 in crimped'],
+          ['duct coupling', 'snap lock connector'],
+        ),
+      ),
+      _type(
+        'Duct Cleats and S-Lock',
+        _variants(
+          'Duct Cleat',
+          'pack',
+          ['drive cleat', 's-lock', 'standing s-lock'],
+          ['drive cleat', 's lock', 'duct cleat'],
+        ),
+      ),
+    ]),
+    _system('Duct Supports', [
+      _type(
+        'Duct Hanger Strap',
+        _variants(
+          'Duct Hanger Strap',
+          'roll',
+          ['1 in x 100 ft', '1-1/2 in x 100 ft', '2 in x 100 ft'],
+          ['hanger strap', 'duct strap', 'plumbers tape'],
+        ),
+      ),
+      _type(
+        'Sheet Metal Screws',
+        _variants(
+          'Sheet Metal Screw',
+          'box',
+          ['#8 x 1/2 in', '#8 x 3/4 in', '#10 x 1 in'],
+          ['zip screw', 'tek screw', 'duct screw'],
+        ),
+      ),
     ]),
     _system('Registers and Grilles', [
       _type(

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'work_supply_catalog.dart';
 import 'work_supply_models.dart';
 
+part 'work_supply_catalog_audit_intelligence.dart';
+
 const workSupplyCatalogPackVersion = '2026.06.local-starter';
 const workSupplyCatalogPackId = 'maintainiac.work-supplies.local-starter';
 const workSupplyCatalogManifestDocumentPath =
@@ -23,6 +25,10 @@ class WorkSupplyCatalogAuditSummary {
     required this.duplicateIdCount,
     required this.incompleteItemCount,
     required this.weakSearchTextCount,
+    required this.itemsWithMarketScopes,
+    required this.itemsWithPackTier,
+    required this.itemsWithParserPriority,
+    required this.itemsWithSmartIntelligence,
     required this.tradeCoverage,
   });
 
@@ -34,7 +40,20 @@ class WorkSupplyCatalogAuditSummary {
   final int duplicateIdCount;
   final int incompleteItemCount;
   final int weakSearchTextCount;
+  final int itemsWithMarketScopes;
+  final int itemsWithPackTier;
+  final int itemsWithParserPriority;
+  final int itemsWithSmartIntelligence;
   final List<WorkSupplyCatalogTradeCoverage> tradeCoverage;
+
+  double get marketScopeCoverage =>
+      itemCount == 0 ? 0 : itemsWithMarketScopes / itemCount;
+  double get packTierCoverage =>
+      itemCount == 0 ? 0 : itemsWithPackTier / itemCount;
+  double get parserPriorityCoverage =>
+      itemCount == 0 ? 0 : itemsWithParserPriority / itemCount;
+  double get smartIntelligenceCoverage =>
+      itemCount == 0 ? 0 : itemsWithSmartIntelligence / itemCount;
 
   bool get passesCoreIntegrity =>
       invalidIdCount == 0 &&
@@ -210,6 +229,10 @@ WorkSupplyCatalogAuditSummary auditWorkSupplyCatalog({
   var duplicateIds = 0;
   var incomplete = 0;
   var weakSearchText = 0;
+  var itemsWithMarketScopes = 0;
+  var itemsWithPackTier = 0;
+  var itemsWithParserPriority = 0;
+  var itemsWithSmartIntelligence = 0;
   var parserTermCount = 0;
   final tradeItems = <String, List<WorkSupplyItem>>{};
 
@@ -218,6 +241,10 @@ WorkSupplyCatalogAuditSummary auditWorkSupplyCatalog({
     if (!ids.add(item.id)) duplicateIds++;
     if (_missingCoreFields(item)) incomplete++;
     if (_hasWeakSearchText(item)) weakSearchText++;
+    if (item.marketScopes.isNotEmpty) itemsWithMarketScopes++;
+    itemsWithPackTier++;
+    itemsWithParserPriority++;
+    if (_hasSmartIntelligence(item)) itemsWithSmartIntelligence++;
     final parserTerms = _parserTermsFor(item);
     parserTermCount += parserTerms.length;
     if (parserTerms.isNotEmpty) parserTermItems.add(item.id);
@@ -242,6 +269,10 @@ WorkSupplyCatalogAuditSummary auditWorkSupplyCatalog({
     duplicateIdCount: duplicateIds,
     incompleteItemCount: incomplete,
     weakSearchTextCount: weakSearchText,
+    itemsWithMarketScopes: itemsWithMarketScopes,
+    itemsWithPackTier: itemsWithPackTier,
+    itemsWithParserPriority: itemsWithParserPriority,
+    itemsWithSmartIntelligence: itemsWithSmartIntelligence,
     tradeCoverage: _tradeCoverage(tradeItems),
   );
 }
@@ -367,6 +398,7 @@ Set<String> _parserTermsFor(WorkSupplyItem item) {
         item.variant,
         item.unit,
         ...item.aliases,
+        ...item.intelligence.searchableTokens,
       ]
       .join(' ')
       .toLowerCase()
@@ -399,7 +431,11 @@ int _estimatedPackedBytes(List<WorkSupplyItem> items) {
             item.itemType,
             item.variant,
             item.unit,
+            ...item.marketScopes.map((scope) => scope.name),
+            item.packTier.name,
+            item.parserPriority.name,
             ...item.aliases,
+            ...item.intelligence.searchableTokens,
           ].join('|'),
         )
         .length;

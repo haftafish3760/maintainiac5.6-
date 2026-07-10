@@ -205,7 +205,7 @@ class _WorkSupplyScreenState extends State<WorkSupplyScreen> {
               draft.parserConfidence ?? draft.catalogMatchConfidence ?? 1,
           reviewStatus: draft.parserNeedsReview
               ? WorkSupplyLineReviewStatus.needsReview
-              : WorkSupplyLineReviewStatus.confirmed,
+              : WorkSupplyLineReviewStatus.highConfidenceReview,
           invoiceProofMode: WorkSupplyInvoiceProofMode.hidden,
           note: draft.note,
           originalParsedDescription: draft.originalParsedDescription,

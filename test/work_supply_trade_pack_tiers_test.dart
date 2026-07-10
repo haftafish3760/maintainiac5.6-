@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_locale_pack.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_tiers.dart';
 
 void main() {
@@ -57,6 +59,18 @@ void main() {
     );
     expect(
       manifestOptions.every(
+        (option) => option['localePackId'] == workSupplyDefaultLocalePackId,
+      ),
+      isTrue,
+    );
+    expect(
+      manifestOptions.every(
+        (option) => option['countryCodes'] == workSupplyDefaultCountryCodes,
+      ),
+      isTrue,
+    );
+    expect(
+      manifestOptions.every(
         (option) => option['storagePath'].toString().endsWith('.json.gz'),
       ),
       isTrue,
@@ -73,6 +87,53 @@ void main() {
     expect(keys, contains('plumbing:professional'));
     expect(keys, contains('plumbing:complete'));
   });
+
+  test('trade pack option can carry future locale pack metadata', () {
+    final source = buildWorkSupplyTradePackOptions('Plumbing').first;
+    final spanishUs = buildWorkSupplyTradePackOptions(
+      'Plumbing',
+      localePack: workSupplyLocalePackEsUs,
+    ).first;
+    final map = spanishUs.toManifestMap();
+
+    expect(map['localePackId'], 'es-US');
+    expect(map['countryCodes'], ['US', 'PR']);
+    expect(map['itemCount'], source.itemCount);
+    expect(map.containsKey('items'), isFalse);
+    expect(workSupplyTradePackOptionKey(source), 'plumbing:core');
+    expect(workSupplyTradePackOptionKey(spanishUs), 'plumbing:es-us:core');
+    expect(source.storagePath, endsWith('/plumbing/core.json.gz'));
+    expect(spanishUs.storagePath, endsWith('/plumbing/es-US/core.json.gz'));
+  });
+
+  test(
+    'scoped trade pack options expose residential industrial commercial lanes',
+    () {
+      final options = buildWorkSupplyScopedTradePackOptions('Plumbing');
+      final keys = options.map(workSupplyTradePackOptionKey).toSet();
+
+      expect(options, hasLength(12));
+      for (final scope in WorkSupplyMarketScopes.all) {
+        for (final tier in WorkSupplyTradePackTier.values) {
+          expect(keys, contains('plumbing:${scope.id}:${tier.id}'));
+        }
+      }
+
+      final residentialCore = options.firstWhere(
+        (option) =>
+            option.marketScope == WorkSupplyMarketScope.residential &&
+            option.tier == WorkSupplyTradePackTier.core,
+      );
+      expect(residentialCore.displayName, startsWith('Residential Core'));
+      expect(residentialCore.estimatedUncompressedBytes, greaterThan(0));
+      expect(residentialCore.estimatedOnDeviceSizeLabel, isNotEmpty);
+      expect(residentialCore.estimatedDownloadSizeLabel, isNotEmpty);
+      expect(
+        residentialCore.storagePath,
+        contains('/plumbing/residential/core.json.gz'),
+      );
+    },
+  );
 
   test('trade pack trade keys match option keys for names with symbols', () {
     final trade = 'Tools & Safety';

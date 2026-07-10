@@ -20,6 +20,9 @@ void main() {
       audit.tradeCoverage.every((coverage) => coverage.aliasCoverage > .70),
       isTrue,
     );
+    expect(audit.marketScopeCoverage, 1);
+    expect(audit.packTierCoverage, 1);
+    expect(audit.parserPriorityCoverage, 1);
   });
 
   test('materials catalog scale snapshot for pass planning', () {
@@ -44,5 +47,8 @@ void main() {
     }
 
     expect(audit.tradeCoverage, hasLength(workSupplyTrades.length));
+    expect(audit.marketScopeCoverage, 1);
+    expect(audit.packTierCoverage, 1);
+    expect(audit.parserPriorityCoverage, 1);
   });
 }

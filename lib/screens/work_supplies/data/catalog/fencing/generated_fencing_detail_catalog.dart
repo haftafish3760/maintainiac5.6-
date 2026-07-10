@@ -63,8 +63,8 @@ final fencingGeneratedDetailCatalogCategory = _category(
               for (final length in ['6 ft', '8 ft'])
                 '$color Vinyl Fence Rail $length',
             for (final color in ['Black', 'Bronze'])
-              for (final _ in ['4 ft x 6 ft', '5 ft x 6 ft'])
-                '$color Aluminum Fence Panel',
+              for (final size in ['4 ft x 6 ft', '5 ft x 6 ft'])
+                '$color $size Aluminum Fence Panel',
           ],
           aliases: const [
             'vinyl privacy panel',

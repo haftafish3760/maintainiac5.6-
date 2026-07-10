@@ -277,6 +277,7 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
             'sponge gasket kit',
             'closet bolt kit brass',
             'closet bolt kit stainless',
+            'toilet seat bolt set',
           ])
             part,
         ],
@@ -287,6 +288,8 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
           'tank lever',
           'tank bolt',
           'closet bolt',
+          'seat bolt',
+          'toilet seat bolt',
           'toilet gasket',
         ],
       ),
@@ -377,6 +380,28 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
   ]),
   _system('Pump and Discharge Service Stock', [
     _type(
+      'Flexible Drain Repair Couplings',
+      _plumbingServiceMatrixItems(
+        baseName: 'Flexible Drain Repair Coupling',
+        unit: 'each',
+        variants: [
+          for (final size in ['1-1/2 in', '2 in', '3 in', '4 in'])
+            '$size straight Fernco-style rubber coupling',
+          for (final size in ['2 x 1-1/2 in', '3 x 2 in', '4 x 3 in'])
+            '$size reducing Fernco-style rubber coupling',
+        ],
+        aliases: const [
+          'fernco',
+          'fernco coupling',
+          'rubber coupling',
+          'flexible coupling',
+          'flex drain coupling',
+          'drain repair coupling',
+          'red cplg',
+        ],
+      ),
+    ),
+    _type(
       'Sump Pump Discharge Parts',
       _plumbingServiceMatrixItems(
         baseName: 'Sump Pump Discharge Part',
@@ -398,6 +423,9 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
           'pump check',
           'discharge hose',
           'pump adapter',
+          'sump pump adapter',
+          'barbed adapter',
+          'sump pump barbed adapter',
           'rubber coupling',
         ],
       ),
@@ -428,6 +456,112 @@ final plumbingServiceTruckCategory = _category('Service Truck Stock', [
       ),
     ),
   ]),
+  _system('Water Treatment Service Stock', [
+    _type(
+      'Whole House Filter Service Parts',
+      _plumbingServiceMatrixItems(
+        baseName: 'Water Filter Service Part',
+        unit: 'each',
+        variants: [
+          for (final size in [
+            '2.5 x 10 in',
+            '2.5 x 20 in',
+            '4.5 x 10 in',
+            '4.5 x 20 in',
+          ])
+            for (final micron in ['1 micron', '5 micron', '20 micron'])
+              for (final media in [
+                'sediment filter cartridge',
+                'carbon filter cartridge',
+                'pleated filter cartridge',
+              ])
+                '$size $micron $media',
+          for (final port in ['3/4 in', '1 in'])
+            for (final part in [
+              'whole house filter housing',
+              'spin down sediment filter',
+              'filter housing wrench',
+              'filter housing o-ring',
+            ])
+              '$port $part',
+        ],
+        aliases: const [
+          'water filter',
+          'sediment filter',
+          'whole house filter',
+          'filter cartridge',
+          'water filter cartridge',
+          'filter housing',
+          'spin down filter',
+        ],
+      ),
+    ),
+    _type(
+      'Water Softener and Treatment Service Parts',
+      _plumbingServiceMatrixItems(
+        baseName: 'Water Treatment Service Part',
+        unit: 'each',
+        variants: [
+          for (final size in ['24K grain', '32K grain', '48K grain'])
+            for (final part in [
+              'water softener bypass valve',
+              'water softener control valve seal kit',
+              'water softener brine valve',
+              'water softener brine line flow control',
+              'water softener distributor tube',
+              'water softener resin tank o-ring',
+              'water softener injector screen',
+            ])
+              '$size $part',
+          for (final bag in ['40 lb', '50 lb'])
+            for (final salt in [
+              'solar salt crystals',
+              'water softener salt pellets',
+              'potassium chloride softener pellets',
+              'rust remover softener salt',
+            ])
+              '$bag $salt',
+          for (final resin in ['0.5 cu ft', '1 cu ft', '1.5 cu ft'])
+            '$resin cation softener resin bag',
+          for (final ro in ['50 GPD', '75 GPD', '100 GPD'])
+            for (final part in [
+              'reverse osmosis sediment prefilter',
+              'reverse osmosis carbon prefilter',
+              'reverse osmosis membrane',
+              'reverse osmosis post filter',
+              'reverse osmosis tank shutoff valve',
+            ])
+              '$ro $part',
+          for (final watt in ['12W', '25W'])
+            for (final part in [
+              'uv water treatment lamp',
+              'uv quartz sleeve',
+              'uv sleeve o-ring',
+            ])
+              '$watt $part',
+        ],
+        aliases: const [
+          'water softener',
+          'softener salt',
+          'salt pellets',
+          'solar salt',
+          'potassium chloride pellets',
+          'brine tank',
+          'brine valve',
+          'softener resin',
+          'resin bag',
+          'bypass valve',
+          'ro filter',
+          'reverse osmosis',
+          'ro membrane',
+          'uv lamp',
+          'uv sleeve',
+          'water treatment',
+        ],
+      ),
+    ),
+  ]),
+  plumbingServiceTruckToolsSystem,
 ]);
 
 List<WorkSupplyItem> _plumbingServiceMatrixItems({

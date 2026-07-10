@@ -55,6 +55,15 @@ final plumbingFittingsPushFitSystem = _system('Push-Fit', [
     _variants('Push-Fit Cap', 'each', _pushFitSizes, ['push cap', 'end cap']),
   ),
   _type(
+    'Ball Valves',
+    _variants('Push-Fit Ball Valve', 'each', _pushFitSizes, [
+      'push ball valve',
+      'push connect ball valve',
+      'sharkbite ball valve',
+      'push shutoff valve',
+    ]),
+  ),
+  _type(
     'Supply Stops',
     _variants(
       'Push-Fit Supply Stop',

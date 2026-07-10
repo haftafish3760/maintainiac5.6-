@@ -502,7 +502,17 @@ final electricalGeneratedBulkCatalogCategory = _category(
                 ])
                   '$size $item $pack',
           ],
-          aliases: const ['electrical supply', 'connector', 'fastener'],
+          aliases: const [
+            'electrical supply',
+            'connector',
+            'fastener',
+            'sheet metal screw',
+            'tek screw',
+            'zip screw',
+            'self tapping screw',
+            'wall anchor',
+            'masonry screw',
+          ],
         ),
       ),
       _type(

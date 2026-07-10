@@ -83,9 +83,10 @@ class WorkSupplyTradePackExportWriter {
       RegExp(r'[^0-9A-Za-z]+'),
       '_',
     );
-    final directory = Directory(
-      '${base.path}/maintainiac_${workSupplyTradePackOptionKey(option)}_$stamp',
-    );
+    final optionKey = workSupplyTradePackOptionKey(
+      option,
+    ).replaceAll(RegExp(r'[^0-9A-Za-z]+'), '_');
+    final directory = Directory('${base.path}/maintainiac_${optionKey}_$stamp');
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }

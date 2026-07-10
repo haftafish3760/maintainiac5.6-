@@ -1,0 +1,350 @@
+import 'maintainiac_qa_environment.dart';
+
+enum MaintainiacQaCasePriority { releaseBlocker, core, standard, hardening }
+
+class MaintainiacQaCase {
+  const MaintainiacQaCase({
+    required this.id,
+    required this.title,
+    required this.module,
+    required this.behavior,
+    required this.evidenceTarget,
+    required this.priority,
+    this.testCommand = '',
+    this.tags = const {},
+  });
+
+  final String id;
+  final String title;
+  final MaintainiacQaModule module;
+  final String behavior;
+  final String evidenceTarget;
+  final MaintainiacQaCasePriority priority;
+  final String testCommand;
+  final Set<String> tags;
+
+  List<String> validate() {
+    final failures = <String>[];
+    if (id.trim().isEmpty) failures.add('case missing id');
+    if (id.isNotEmpty && !RegExp(r'^QA-[A-Z0-9-]+-\d{3}$').hasMatch(id)) {
+      failures.add('$id must use stable QA-AREA-### id format');
+    }
+    if (title.trim().isEmpty) failures.add('$id missing title');
+    if (behavior.trim().isEmpty) failures.add('$id missing behavior');
+    if (evidenceTarget.trim().isEmpty) {
+      failures.add('$id missing evidence target');
+    }
+    if (evidenceTarget.isNotEmpty &&
+        !RegExp(r'^[a-z0-9_]+(\.[a-z0-9_]+)*$').hasMatch(evidenceTarget)) {
+      failures.add('$id evidence target must be dot-delimited snake case');
+    }
+    if (tags.isEmpty) {
+      failures.add('$id missing searchable tags');
+    }
+    if (tags.any((tag) => tag.trim().isEmpty)) {
+      failures.add('$id has blank tag');
+    }
+    if (testCommand.startsWith('flutter test ')) {
+      if (!testCommand.contains(' --plain-name ')) {
+        failures.add('$id test command must use --plain-name');
+      }
+      if (_testFileReferences(testCommand).length != 1) {
+        failures.add('$id test command must target one test file');
+      }
+      if (testCommand.contains('&&') ||
+          testCommand.contains(';') ||
+          testCommand.contains('|')) {
+        failures.add('$id test command must not be chained');
+      }
+    }
+    return failures;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'module': module.name,
+      'behavior': behavior,
+      'evidenceTarget': evidenceTarget,
+      'priority': priority.name,
+      if (testCommand.isNotEmpty) 'testCommand': testCommand,
+      'tags': tags.toList()..sort(),
+    };
+  }
+}
+
+List<String> _testFileReferences(String command) {
+  return [
+    for (final token in command.split(RegExp(r'\s+')))
+      if (token.startsWith('test/') && token.endsWith('.dart')) token,
+  ];
+}
+
+class MaintainiacQaCaseRegistry {
+  const MaintainiacQaCaseRegistry(this.cases);
+
+  factory MaintainiacQaCaseRegistry.backboneSeed() {
+    return const MaintainiacQaCaseRegistry([
+      MaintainiacQaCase(
+        id: 'QA-BACKBONE-001',
+        title: 'Whole-app backbone contract',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'The shared QA harness exposes modules, fakes, fixtures, gates, readiness, and parser adapters without live services.',
+        evidenceTarget: 'maintainiac.qa_backbone_contract',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "main Maintainiac QA backbone exposes parser adapter registry"',
+        tags: {'backbone', 'release-gate', 'no-live-services'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-SYNC-001',
+        title: 'Local write before cloud mirror',
+        module: MaintainiacQaModule.sync,
+        behavior:
+            'Hive/local writes are recorded before Firestore mirror writes.',
+        evidenceTarget: 'sync.local_write_before_mirror',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "shared assertions enforce source-of-truth and privacy rules"',
+        tags: {'hive-source-of-truth', 'firestore-mirror'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-SEC-001',
+        title: 'Forbidden private data scan',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'VIN, plate-like, passenger/patient, and card-like data are detected before logs or reports expose them.',
+        evidenceTarget: 'security.forbidden_data_scan',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_qa_backbone_test.dart --plain-name "shared assertions enforce source-of-truth and privacy rules"',
+        tags: {'privacy', 'redaction', 'security'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-MONEY-001',
+        title: 'Deterministic cents-only ledger',
+        module: MaintainiacQaModule.expenses,
+        behavior:
+            'Expense totals, tax, discounts, refunds, and category rollups balance in integer cents.',
+        evidenceTarget: 'maintainiac_financial_ledger_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_financial_ledger_test.dart --plain-name "financial ledger probe totals expenses deterministically"',
+        tags: {'expenses', 'money', 'ledger'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-BOUNDARY-001',
+        title: 'Forbidden implementation boundary scan',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Parser and harness lanes can prove they did not drift into camera, OCR provider, or live Firebase code.',
+        evidenceTarget: 'maintainiac_source_boundary_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_source_boundary_test.dart --plain-name "source boundary scanner catches forbidden live-service code"',
+        tags: {'boundary', 'ocr-off-limits', 'firebase'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-INVENTORY-PARSER-001',
+        title: 'Inventory parser generated fixture runner',
+        module: MaintainiacQaModule.inventory,
+        behavior:
+            'Inventory/material parser fixtures stay review-only, merchant-aware, and regression-locked without live services.',
+        evidenceTarget: 'work_supply_parser_generated_fixture_runner_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/work_supply_parser_generated_fixture_runner_test.dart --plain-name "generated parser fixture batch matches expected safety contracts"',
+        tags: {
+          'inventory',
+          'parser',
+          'fixtures',
+          'merchant-rules',
+          'review-only',
+        },
+      ),
+      MaintainiacQaCase(
+        id: 'QA-INVENTORY-PARSER-002',
+        title: 'Inventory parser consumer contract',
+        module: MaintainiacQaModule.inventory,
+        behavior:
+            'Release-one inventory parser QA families are labeled, offline-only, broad enough, and wired to the shared backbone.',
+        evidenceTarget: 'maintainiac_inventory_parser_consumer_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_inventory_parser_consumer_test.dart --plain-name "inventory parser consumer labels broad release-one QA families"',
+        tags: {'inventory', 'parser', 'consumer-contract', 'qa-backbone'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-EXPENSE-PARSER-001',
+        title: 'Expense parser consumer contract',
+        module: MaintainiacQaModule.expenses,
+        behavior:
+            'Expense parser QA families are labeled, review-only, local-first, offline-only, and wired to the shared backbone.',
+        evidenceTarget: 'maintainiac_expense_parser_consumer_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_expense_parser_consumer_test.dart --plain-name "expense parser consumer labels broad release-one QA families"',
+        tags: {'expenses', 'parser', 'consumer-contract', 'qa-backbone'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-DEVICE-001',
+        title: 'Device storage pack-mode policy',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'The app chooses local, compact-local, cloud-assisted, or blocked pack mode from device capability, storage, App Check, and network state.',
+        evidenceTarget: 'maintainiac_device_capability_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_device_capability_test.dart --plain-name "device capability probe falls back for low-storage older phones"',
+        tags: {'device', 'storage', 'pack-delivery'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-SCOPE-001',
+        title: 'Account company employee and vehicle scoping',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Records are accessible only when account, company, employee, assigned vehicle, and required permission rules pass.',
+        evidenceTarget: 'maintainiac_scope_policy_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_scope_policy_test.dart --plain-name "scope policy denies cross-account and unassigned vehicle access"',
+        tags: {'security', 'permissions', 'fleet'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-AUDIT-001',
+        title: 'Audit trail completeness and user confirmation',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Audit events preserve actor, action, target, ordered timestamps, and before/after evidence when users confirm parser suggestions.',
+        evidenceTarget: 'maintainiac_audit_trail_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_audit_trail_test.dart --plain-name "audit trail probe validates ordered complete audit events"',
+        tags: {'audit', 'confirmation', 'regression'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-EXPORT-001',
+        title: 'Export ownership and privacy sanitization',
+        module: MaintainiacQaModule.exports,
+        behavior:
+            'Exports include only active-account records and reject or remove private fields before writing.',
+        evidenceTarget: 'maintainiac_export_privacy_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_export_privacy_test.dart --plain-name "export privacy probe accepts owned non-private records"',
+        tags: {'exports', 'privacy', 'ownership'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-MUTATION-001',
+        title: 'Derived outputs do not mutate source records',
+        module: MaintainiacQaModule.recap,
+        behavior:
+            'Recaps, exports, notifications, estimates, invoices, and reports cannot write source collections unless explicitly scoped as a source operation.',
+        evidenceTarget: 'maintainiac_mutation_guard_test',
+        priority: MaintainiacQaCasePriority.releaseBlocker,
+        testCommand:
+            'flutter test test/maintainiac_mutation_guard_test.dart --plain-name "mutation guard allows derived output collections only"',
+        tags: {'source-of-truth', 'derived-output', 'mutation-guard'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-FAILURE-001',
+        title: 'Failure taxonomy routes QA failures',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'QA failures are classified into stable categories so reports can route issues instead of emitting vague failure text.',
+        evidenceTarget: 'maintainiac_failure_taxonomy_test',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_failure_taxonomy_test.dart --plain-name "failure taxonomy classifies common QA failure families"',
+        tags: {'failure-routing', 'admin-report', 'triage'},
+      ),
+      MaintainiacQaCase(
+        id: 'QA-A11Y-L10N-001',
+        title: 'Accessibility localization release gates',
+        module: MaintainiacQaModule.performance,
+        behavior:
+            'Review surfaces and parser reasons remain accessible, translatable, and unit-aware for English, Spanish, French, imperial, and metric release paths.',
+        evidenceTarget: 'maintainiac_qa_scenario_runners_accessibility',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_qa_scenario_runners_test.dart --plain-name "accessibility localization runner proves release UI language gates"',
+        tags: {
+          'accessibility',
+          'localization',
+          'spanish',
+          'metric',
+          'scenario-runner',
+        },
+      ),
+      MaintainiacQaCase(
+        id: 'QA-COST-001',
+        title: 'Cloud cost quota safety gates',
+        module: MaintainiacQaModule.security,
+        behavior:
+            'Local QA uses no live cloud reads or writes, and cloud-assisted parsing remains opt-in, App Check protected, network-aware, and budgeted.',
+        evidenceTarget: 'maintainiac_qa_scenario_runners_cost_quota',
+        priority: MaintainiacQaCasePriority.core,
+        testCommand:
+            'flutter test test/maintainiac_qa_scenario_runners_test.dart --plain-name "cost quota runner proves cloud usage stays budgeted and opt-in"',
+        tags: {
+          'cost-quota',
+          'firebase-budget',
+          'cloud-assist',
+          'security',
+          'scenario-runner',
+        },
+      ),
+    ]);
+  }
+
+  final List<MaintainiacQaCase> cases;
+
+  List<String> validate() {
+    final failures = <String>[];
+    final ids = <String>{};
+    final evidenceTargets = <String>{};
+    for (final qaCase in cases) {
+      if (!ids.add(qaCase.id)) {
+        failures.add('duplicate QA case id ${qaCase.id}');
+      }
+      if (!evidenceTargets.add(qaCase.evidenceTarget)) {
+        failures.add('duplicate evidence target ${qaCase.evidenceTarget}');
+      }
+      failures.addAll(qaCase.validate());
+    }
+    return failures;
+  }
+
+  List<MaintainiacQaCase> byPriority(MaintainiacQaCasePriority priority) {
+    return [
+      for (final qaCase in cases)
+        if (qaCase.priority == priority) qaCase,
+    ];
+  }
+
+  List<String> commandPlanFor(MaintainiacQaCasePriority priority) {
+    final commands = <String>[];
+    for (final qaCase in byPriority(priority)) {
+      if (qaCase.testCommand.isNotEmpty &&
+          !commands.contains(qaCase.testCommand)) {
+        commands.add(qaCase.testCommand);
+      }
+    }
+    return commands;
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'caseCount': cases.length,
+      'releaseBlockerCount': byPriority(
+        MaintainiacQaCasePriority.releaseBlocker,
+      ).length,
+      'releaseBlockerCommands': commandPlanFor(
+        MaintainiacQaCasePriority.releaseBlocker,
+      ),
+      'cases': [for (final qaCase in cases) qaCase.toJson()],
+    };
+  }
+}

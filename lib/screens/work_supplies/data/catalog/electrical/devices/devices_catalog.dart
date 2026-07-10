@@ -28,7 +28,7 @@ final electricalDevicesCategory = _category('Devices', [
         'Toggle Switch',
         'each',
         ['single pole', '3-way', '4-way', '20 Amp'],
-        ['light switch'],
+        ['light switch', 'single pole switch', '3-way switch', '3 way switch'],
       ),
     ),
     _type(

@@ -8,18 +8,18 @@ Scope: Maintainiac 5.6 materials/inventory trade packs only. Maintainiac 5.5 is 
 
 Source: `flutter test test/work_supply_catalog_scale_test.dart --plain-name "materials catalog scale snapshot for pass planning" --timeout 2m`
 
-Total current items: 56,103
+Total current items: 56,221
 
 | Trade | Current items | Readiness | Current priority |
 | --- | ---: | --- | --- |
-| Plumbing | 11,711 | Strong | Active service trade |
+| Plumbing | 11,827 | Strong | Active service trade |
 | Electrical | 11,244 | Strong | Major service trade, parked until Plumbing is finished |
 | HVAC | 6,559 | Strong | Major service trade, parked until Plumbing is finished |
 | Tile | 8,180 | Strong | Project trade, not active |
 | Landscaping | 1,319 | Strong | Secondary service trade |
 | Windows and Doors | 1,296 | Strong | Secondary service trade |
 | Low Voltage and Data | 1,278 | Strong | Project trade |
-| Fencing | 1,234 | Strong | Project trade |
+| Fencing | 1,236 | Strong | Project trade |
 | Flooring | 1,166 | Strong | Project trade |
 | Insulation | 1,162 | Strong | Project trade |
 | Carpentry | 1,123 | Strong | Project trade |
@@ -36,7 +36,15 @@ Total current items: 56,103
 
 ## Target Model
 
-The completion model is service-priority aware instead of using one flat number for every trade.
+The completion model is service-priority aware instead of using one flat number for every trade. It is also superseded by the smart-row direction in `docs/materials_catalog_intelligence_contract.md`: residential/light-industrial quality and metadata depth matter more than chasing the largest possible raw count.
+
+Catalog rows should now be planned by trade, market scope, and pack tier:
+
+- market scope: residential, lightIndustrial, commercial
+- pack tier: Core, Standard, Professional, Complete
+- priority: everyday/core, common, occasional, rare/legacy, specialty
+
+Residential plumbing complete target is roughly 12,000 to 15,000 smart items before broad commercial expansion. Whole residential/light-industrial catalog target is roughly 65,000 to 90,000 smart items, with a practical target near 75,000 smart items.
 
 | Priority | Target items |
 | --- | ---: |
@@ -50,7 +58,7 @@ The active trade is Plumbing. Do not move to the next trade until the active tra
 
 ## Current Targeted Remaining Work
 
-Approximate remaining catalog items by the targeted model: 57,855
+Approximate remaining catalog items by the targeted model: 57,737
 
 Approximate generation passes at 1,500 quality items per pass: 39
 
@@ -175,8 +183,33 @@ Result:
 - Completion audit: passing.
 - Targeted analysis: no issues.
 
+### Plumbing seals, packing, and thread service-stock pass
+
+Verified the in-progress Pass 54 coverage for:
+
+- faucet washers, bib washers, and seat kits
+- O-rings, stem packing, valve packing, and bonnet packing
+- toilet tank seals, flush seals, closet seals, and wax-free seals
+- hose bibb washers, sillcock repair seals, and vacuum breaker repair parts
+- pipe joint compound, thread sealant, PTFE/Teflon tape, and gas tape
+
+Validation:
+
+- `dart format lib/screens/work_supplies/data/catalog/plumbing/generated_plumbing_seals_service_catalog.dart lib/screens/work_supplies/data/work_supply_catalog.dart lib/screens/work_supplies/data/catalog/plumbing/plumbing_catalog.dart lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_core.dart test/work_supply_plumbing_receipt_parser_test.dart`
+- `flutter test test/work_supply_plumbing_receipt_parser_test.dart --timeout 2m`
+- `flutter test test/work_supply_catalog_scale_test.dart --plain-name "materials catalog scale snapshot for pass planning" --timeout 2m`
+- `flutter test test/work_supply_trade_pack_completion_audit_test.dart --timeout 2m`
+
+Result:
+
+- Plumbing increased from 11,711 to 11,827 items.
+- Total catalog increased from 56,103 to 56,221 items.
+- Plumbing now has 15 categories, 39 systems, 169 item types, 61,715 aliases, and 134,579 parser terms.
+- Plumbing targeted parser test: 14 passing tests.
+- Completion audit: passing.
+
 Active Plumbing gap:
 
 - Current target: 15,000 Plumbing items.
-- Current count: 11,711 Plumbing items.
-- Remaining to target: 3,289 Plumbing items, plus parser, receipt-to-inventory, receipt-to-estimate, Command One diagnostics, permissions, and final QA work.
+- Current count: 11,827 Plumbing items.
+- Remaining to target: 3,173 Plumbing items, plus parser, receipt-to-inventory, receipt-to-estimate, Command One diagnostics, permissions, and final QA work.

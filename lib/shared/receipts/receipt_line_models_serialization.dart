@@ -121,6 +121,8 @@ extension ReceiptLineDraftSerialization on ReceiptLineDraft {
       'proofLineReferenceLabel': proofLineReferenceLabel,
       'clientProofDefaultVisibility': clientProofDefaultVisibility,
       'sourceReceiptSectionLabel': sourceReceiptSectionLabel,
+      'canStageForJobOrEstimate': canStageForJobOrEstimate,
+      'suggestedMaterialActions': suggestedMaterialActions,
       'privacySafeProofReference': privacySafeProofReference,
     };
   }

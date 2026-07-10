@@ -7,6 +7,29 @@ private let shareMessageKey = "ShareMessageKey"
 private let appGroupKey = "AppGroupId"
 private let schemePrefix = "ShareMedia"
 private let maxSharedReceiptItems = 20
+private let maxSharedReceiptFileBytes = 25 * 1024 * 1024
+private let maxSharedReceiptImageBytes = 15 * 1024 * 1024
+private let maxSharedReceiptTextCharacters = 100000
+private let supportedSharedFileExtensions: Set<String> = [
+  "pdf",
+  "png",
+  "jpg",
+  "jpeg",
+  "heic",
+  "heif",
+  "webp",
+  "txt",
+  "text"
+]
+private let supportedSharedMimeTypes: Set<String> = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/heic",
+  "image/heif",
+  "image/webp",
+  "text/plain"
+]
 
 final class ShareViewController: UIViewController {
   private var sharedMedia: [SharedMediaFile] = []
@@ -34,7 +57,7 @@ final class ShareViewController: UIViewController {
     for item in items {
       if let text = item.attributedContentText?.string,
          !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        shareMessages.append(text)
+        appendShareMessage(text)
       }
       guard let attachments = item.attachments else { continue }
       for provider in attachments {
@@ -74,7 +97,7 @@ final class ShareViewController: UIViewController {
 
       switch (type, item) {
       case (.text, let text as String):
-        append(path: text, mimeType: "text/plain", type: .text)
+        appendText(text)
       case (.url, let url as URL):
         append(path: url.absoluteString, mimeType: nil, type: .url)
       case (.image, let image as UIImage):
@@ -98,6 +121,11 @@ final class ShareViewController: UIViewController {
           let data = image.pngData()
     else { return }
 
+    guard data.count <= maxSharedReceiptImageBytes else {
+      shareMessages.append("One receipt image was too large to import. Share an image under 15 MB.")
+      return
+    }
+
     do {
       try data.write(to: destination, options: .atomic)
       append(path: destination.absoluteString, mimeType: "image/png", type: .image)
@@ -111,6 +139,12 @@ final class ShareViewController: UIViewController {
       return
     }
 
+    let mimeType = url.mimeType()
+    guard isSupportedSharedFile(url, mimeType: mimeType) else {
+      shareMessages.append("One shared file could not be imported. Share a PDF, receipt photo, or receipt text instead.")
+      return
+    }
+
     let scoped = url.startAccessingSecurityScopedResource()
     defer {
       if scoped {
@@ -118,12 +152,19 @@ final class ShareViewController: UIViewController {
       }
     }
 
+    guard let byteCount = fileByteSize(url),
+          byteCount <= maxSharedBytes(for: url, mimeType: mimeType)
+    else {
+      shareMessages.append("One shared file was too large to import. Share a PDF under 25 MB or an image under 15 MB.")
+      return
+    }
+
     do {
       if FileManager.default.fileExists(atPath: destination.path) {
         try FileManager.default.removeItem(at: destination)
       }
       try FileManager.default.copyItem(at: url, to: destination)
-      append(path: destination.absoluteString, mimeType: destination.mimeType(), type: type)
+      append(path: destination.absoluteString, mimeType: mimeType, type: type)
     } catch {
       return
     }
@@ -140,12 +181,36 @@ final class ShareViewController: UIViewController {
           let destination = containerURL()?.appendingPathComponent(uniqueName(name, pathExtension))
     else { return }
 
+    let resolvedMimeType = mimeType ?? destination.mimeType()
+    guard isSupportedSharedFile(destination, mimeType: resolvedMimeType),
+          data.count <= maxSharedBytes(for: destination, mimeType: resolvedMimeType)
+    else {
+      shareMessages.append("One shared file could not be imported. Share a supported receipt file that is under the size limit.")
+      return
+    }
+
     do {
       try data.write(to: destination, options: .atomic)
-      append(path: destination.absoluteString, mimeType: mimeType ?? destination.mimeType(), type: type)
+      append(path: destination.absoluteString, mimeType: resolvedMimeType, type: type)
     } catch {
       return
     }
+  }
+
+  private func appendText(_ text: String) {
+    guard text.count <= maxSharedReceiptTextCharacters else {
+      shareMessages.append("One shared text item was too large to import. Share shorter receipt notes.")
+      return
+    }
+    append(path: text, mimeType: "text/plain", type: .text)
+  }
+
+  private func appendShareMessage(_ message: String) {
+    guard message.count <= maxSharedReceiptTextCharacters else {
+      shareMessages.append("One shared text item was too large to import. Share shorter receipt notes.")
+      return
+    }
+    shareMessages.append(message)
   }
 
   private func append(path: String, mimeType: String?, type: SharedMediaType) {
@@ -159,6 +224,33 @@ final class ShareViewController: UIViewController {
     sharedMedia.append(
       SharedMediaFile(path: path, mimeType: mimeType, type: type)
     )
+  }
+
+  private func isSupportedSharedFile(_ url: URL, mimeType: String) -> Bool {
+    let fileExtension = url.pathExtension.lowercased()
+    if supportedSharedFileExtensions.contains(fileExtension) {
+      return true
+    }
+    return supportedSharedMimeTypes.contains(mimeType.lowercased())
+  }
+
+  private func maxSharedBytes(for url: URL, mimeType: String) -> Int {
+    let lowerMimeType = mimeType.lowercased()
+    let fileExtension = url.pathExtension.lowercased()
+    if lowerMimeType.hasPrefix("image/") ||
+       ["png", "jpg", "jpeg", "heic", "heif", "webp"].contains(fileExtension) {
+      return maxSharedReceiptImageBytes
+    }
+    return maxSharedReceiptFileBytes
+  }
+
+  private func fileByteSize(_ url: URL) -> Int? {
+    if let values = try? url.resourceValues(forKeys: [.fileSizeKey]),
+       let size = values.fileSize {
+      return size
+    }
+    let attributes = try? FileManager.default.attributesOfItem(atPath: url.path)
+    return attributes?[.size] as? Int
   }
 
   private func saveAndRedirect(message: String?) {

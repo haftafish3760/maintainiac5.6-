@@ -11,4 +11,5 @@ final plumbingFittingsCategory = _category('Fittings', [
   plumbingFittingsPushFitSystem,
   plumbingFittingsCastIronAndNoHubSystem,
   plumbingFittingsPvcDwvSystem,
+  plumbingFittingsAbsDwvSystem,
 ]);

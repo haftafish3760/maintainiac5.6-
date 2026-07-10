@@ -450,4 +450,127 @@ void main() {
     expect(tubing!.item.trade, 'HVAC');
     expect(tubing.item.name, contains('Condensate Tubing'));
   });
+
+  test(
+    'hvac parser understands condensate safety and drain treatment stock',
+    () {
+      final floatSwitch = matchReceiptLineToCatalog(
+        'SECONDARY PAN FLOAT SWITCH',
+        tradeScope: 'HVAC',
+        maxCandidates: 180,
+      );
+      expect(floatSwitch, isNotNull);
+      expect(floatSwitch!.item.trade, 'HVAC');
+      expect(floatSwitch.item.name, contains('Float Switch'));
+
+      final wetSwitch = matchReceiptLineToCatalog(
+        'WET SWITCH FLOOD DETECTOR',
+        tradeScope: 'HVAC',
+        maxCandidates: 180,
+      );
+      expect(wetSwitch, isNotNull);
+      expect(wetSwitch!.item.trade, 'HVAC');
+      expect(wetSwitch.item.name, contains('Wet Switch'));
+
+      final tablets = matchReceiptLineToCatalog(
+        'CONDENSATE DRAIN PAN TABLETS',
+        tradeScope: 'HVAC',
+        maxCandidates: 180,
+      );
+      expect(tablets, isNotNull);
+      expect(tablets!.item.trade, 'HVAC');
+      expect(tablets.item.name, contains('Condensate Drain Tablets'));
+    },
+  );
+
+  test('hvac parser understands condensate PVC service fittings', () {
+    final trap = matchReceiptLineToCatalog(
+      '3/4IN PVC CONDENSATE TRAP',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(trap, isNotNull);
+    expect(trap!.item.trade, 'HVAC');
+    expect(trap.item.name, contains('Condensate'));
+    expect(trap.item.name, contains('Trap'));
+
+    final cleanout = matchReceiptLineToCatalog(
+      '1IN PVC TEE CLEANOUT CONDENSATE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(cleanout, isNotNull);
+    expect(cleanout!.item.trade, 'HVAC');
+    expect(cleanout.item.name, contains('Condensate'));
+    expect(cleanout.item.name, contains('Tee Cleanout'));
+  });
+
+  test('hvac parser understands humidifier and condensate tool stock', () {
+    final humidifierPad = matchReceiptLineToCatalog(
+      'HUMIDIFIER PAD MODEL 10',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(humidifierPad, isNotNull);
+    expect(humidifierPad!.item.trade, 'HVAC');
+    expect(humidifierPad.item.name, contains('Humidifier Pad'));
+
+    final solenoid = matchReceiptLineToCatalog(
+      'HUMIDIFIER SOLENOID VALVE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(solenoid, isNotNull);
+    expect(solenoid!.item.trade, 'HVAC');
+    expect(solenoid.item.name, contains('Humidifier Solenoid Valve'));
+
+    final drainGun = matchReceiptLineToCatalog(
+      'CONDENSATE DRAIN GUN',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(drainGun, isNotNull);
+    expect(drainGun!.item.trade, 'HVAC');
+    expect(drainGun.item.name, contains('Condensate Drain Gun'));
+
+    final cartridge = matchReceiptLineToCatalog(
+      'CONDENSATE DRAIN GUN CARTRIDGE PACK',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(cartridge, isNotNull);
+    expect(cartridge!.item.trade, 'HVAC');
+    expect(cartridge.item.name, contains('Drain Gun Cartridge'));
+
+    final airCleaner = matchReceiptLineToCatalog(
+      'ELECTRONIC AIR CLEANER IONIZING WIRE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(airCleaner, isNotNull);
+    expect(airCleaner!.item.trade, 'HVAC');
+    expect(airCleaner.item.name, contains('Ionizing Wire'));
+  });
+
+  test('hvac parser keeps thermostat wire off wall thermostats', () {
+    final thermostatWire = matchReceiptLineToCatalog(
+      '18/5 STAT WIRE',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(thermostatWire, isNotNull);
+    expect(thermostatWire!.item.trade, 'HVAC');
+    expect(thermostatWire.item.name, contains('Thermostat Wire'));
+  });
+
+  test('hvac parser recognizes water panel wording without humidifier token', () {
+    final waterPanel = matchReceiptLineToCatalog(
+      'MODEL 35 WATER PANEL',
+      tradeScope: 'HVAC',
+      maxCandidates: 180,
+    );
+    expect(waterPanel, isNotNull);
+    expect(waterPanel!.item.trade, 'HVAC');
+    expect(waterPanel.item.name, contains('Water Panel'));
+  });
 }

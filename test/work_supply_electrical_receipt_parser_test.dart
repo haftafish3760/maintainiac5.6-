@@ -180,4 +180,157 @@ void main() {
     expect(bubbleCover!.item.trade, 'Electrical');
     expect(bubbleCover.item.name, contains('Weatherproof'));
   });
+
+  test('electrical parser keeps decorator wall plates off blank cover plates', () {
+    final homeDepot = matchReceiptLineToCatalog(
+      'HD 1G DECORA WALL PLATE 11.70',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(homeDepot, isNotNull);
+    expect(homeDepot!.item.trade, 'Electrical');
+    expect(homeDepot.item.name, contains('Wall Plate'));
+    expect(homeDepot.item.name, contains('Decorator'));
+    expect(homeDepot.item.name, isNot(contains('Blank')));
+
+    final ace = matchReceiptLineToCatalog(
+      'ACE 1G DECORA WALL PLATE 23.54',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(ace, isNotNull);
+    expect(ace!.item.trade, 'Electrical');
+    expect(ace.item.name, contains('Wall Plate'));
+    expect(ace.item.name, contains('Decorator'));
+    expect(ace.item.name, isNot(contains('Blank')));
+  });
+
+  test('electrical parser understands Spanish decora wall plate wording', () {
+    final homeDepot = matchReceiptLineToCatalog(
+      'HD PLACA DECORA 1G 11.70',
+      tradeScope: 'Electrical',
+      localePackId: 'es-US',
+      maxCandidates: 160,
+    );
+    expect(homeDepot, isNotNull);
+    expect(homeDepot!.item.trade, 'Electrical');
+    expect(homeDepot.item.name, contains('Wall Plate'));
+    expect(homeDepot.item.name, contains('Decorator'));
+
+    final ace = matchReceiptLineToCatalog(
+      'ACE PLACA DECORA 1G 23.54',
+      tradeScope: 'Electrical',
+      localePackId: 'es-US',
+      maxCandidates: 160,
+    );
+    expect(ace, isNotNull);
+    expect(ace!.item.trade, 'Electrical');
+    expect(ace.item.name, contains('Wall Plate'));
+    expect(ace.item.name, contains('Decorator'));
+  });
+
+  test('electrical parser understands service connector repair stock', () {
+    final romexConnector = matchReceiptLineToCatalog(
+      '1/2IN ROMEX CONNECTOR 10PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(romexConnector, isNotNull);
+    expect(romexConnector!.item.trade, 'Electrical');
+    expect(romexConnector.item.name, contains('Romex Connector'));
+
+    final bushing = matchReceiptLineToCatalog(
+      '3/4IN INSULATED BUSHING PACK',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(bushing, isNotNull);
+    expect(bushing!.item.trade, 'Electrical');
+    expect(bushing.item.name, contains('Insulated Bushing'));
+
+    final locknut = matchReceiptLineToCatalog(
+      '1IN CONDUIT LOCKNUT',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(locknut, isNotNull);
+    expect(locknut!.item.trade, 'Electrical');
+    expect(locknut.item.name, contains('Conduit Locknut'));
+  });
+
+  test('electrical parser understands trim-out service consumables', () {
+    final groundPigtail = matchReceiptLineToCatalog(
+      'GROUND PIGTAIL 25PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(groundPigtail, isNotNull);
+    expect(groundPigtail!.item.trade, 'Electrical');
+    expect(groundPigtail.item.name, contains('Ground Pigtail'));
+
+    final gfciTester = matchReceiptLineToCatalog(
+      'GFCI TESTER',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(gfciTester, isNotNull);
+    expect(gfciTester!.item.trade, 'Electrical');
+    expect(gfciTester.item.name, contains('GFCI Tester'));
+
+    final lampholder = matchReceiptLineToCatalog(
+      'PORCELAIN LAMPHOLDER',
+      tradeScope: 'Electrical',
+      maxCandidates: 160,
+    );
+    expect(lampholder, isNotNull);
+    expect(lampholder!.item.trade, 'Electrical');
+    expect(lampholder.item.name, contains('Porcelain Lampholder'));
+  });
+
+  test('electrical parser understands modern connector and label stock', () {
+    final lever = matchReceiptLineToCatalog(
+      '3 PORT LEVER CONNECTOR 25PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(lever, isNotNull);
+    expect(lever!.item.trade, 'Electrical');
+    expect(lever.item.name, contains('Lever Connector'));
+
+    final antiShort = matchReceiptLineToCatalog(
+      'MC ANTI SHORT BUSHING 100PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(antiShort, isNotNull);
+    expect(antiShort!.item.trade, 'Electrical');
+    expect(antiShort.item.name, contains('Anti Short Bushing'));
+
+    final marker = matchReceiptLineToCatalog(
+      'WIRE MARKER NUMBER BOOK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(marker, isNotNull);
+    expect(marker!.item.trade, 'Electrical');
+    expect(marker.item.name, contains('Wire Marker Number Book'));
+
+    final directory = matchReceiptLineToCatalog(
+      'CIRCUIT DIRECTORY LABEL PACK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(directory, isNotNull);
+    expect(directory!.item.trade, 'Electrical');
+    expect(directory.item.name, contains('Circuit Directory Label Pack'));
+
+    final buttSplice = matchReceiptLineToCatalog(
+      'BUTT SPLICE CONNECTOR 25PK',
+      tradeScope: 'Electrical',
+      maxCandidates: 180,
+    );
+    expect(buttSplice, isNotNull);
+    expect(buttSplice!.item.trade, 'Electrical');
+    expect(buttSplice.item.name, contains('Butt Splice Connector'));
+  });
 }

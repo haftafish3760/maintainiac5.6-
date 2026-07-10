@@ -87,7 +87,7 @@ void main() {
     expect(loaded.lines.single.businessPercent, .75);
     expect(loaded.lines.single.confidenceLevel, ReceiptConfidenceLevel.good);
     expect(loaded.lines.single.confidenceLabel, 'Good');
-    expect(loaded.lines.single.needsReview, isFalse);
+    expect(loaded.lines.single.needsReview, isTrue);
     expect(loaded.lines.single.toMap()['confidenceLevel'], 'good');
     expect(
       loaded.lines.single.invoiceProofMode,

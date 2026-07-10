@@ -68,6 +68,58 @@ void main() {
     expect(record.copyWith(onHand: 5).isRunningLow, isTrue);
   });
 
+  test('catalog item smart metadata supports scope tier and parser hints', () {
+    const item = WorkSupplyItem(
+      id: 'MI-999999',
+      name: '1/2 in Brass PEX Crimp 90 Elbow',
+      trade: 'Plumbing',
+      category: 'Fittings',
+      system: 'PEX',
+      itemType: '90 Elbows',
+      variant: '1/2 in brass crimp',
+      unit: 'each',
+      aliases: ['PEX 90', 'brass PEX ell'],
+      marketScopes: [
+        WorkSupplyMarketScope.residential,
+        WorkSupplyMarketScope.lightIndustrial,
+      ],
+      packTier: WorkSupplyPackTier.core,
+      parserPriority: WorkSupplyParserPriority.everydayCore,
+      intelligence: WorkSupplyItemIntelligence(
+        material: 'brass',
+        size: '1/2 in',
+        connectionType: 'crimp',
+        shapeOrStyle: '90 elbow',
+        receiptPatterns: ['1/2 PEX CRMP ELL', 'BR PEX 90'],
+        ocrMistakePatterns: ['PEX->PFX', 'ELB->E18'],
+        attributeTokens: ['half inch', 'brass', 'pex', 'crimp', '90'],
+        negativeMatchTokens: ['pvc elbow', 'push fit elbow'],
+        highImportanceTokens: ['1/2', 'brass', 'crimp'],
+        classification: WorkSupplyItemClassification(
+          inventoryCategory: 'Plumbing fittings',
+          expenseCategory: 'Materials',
+          jobMaterialCategory: 'Plumbing rough-in',
+          taxReportingCategory: 'Supplies',
+          defaultUnitCostBehavior: 'each',
+          defaultMarkupBehavior: 'materials markup',
+        ),
+        catalogVersion: '2026.06.local-starter',
+        parserVersion: 'materials_parser_v1',
+        sourceConfidence: 'manual-fixture',
+        verifiedManually: true,
+      ),
+    );
+
+    expect(item.marketScopes, contains(WorkSupplyMarketScope.residential));
+    expect(item.marketScopes, contains(WorkSupplyMarketScope.lightIndustrial));
+    expect(item.packTier, WorkSupplyPackTier.core);
+    expect(item.parserPriority, WorkSupplyParserPriority.everydayCore);
+    expect(item.searchableText, contains('br pex 90'));
+    expect(item.searchableText, contains('pfx'));
+    expect(item.searchableText, contains('push fit elbow'));
+    expect(item.searchableText, contains('plumbing rough-in'));
+  });
+
   test('plumbing catalog has parser-depth scale', () {
     final plumbingCount = workSupplyCatalogItems
         .where((item) => item.trade == 'Plumbing')
@@ -88,6 +140,9 @@ void main() {
     final audit = auditWorkSupplyCatalog();
 
     expect(audit.incompleteItemCount, 0);
+    expect(audit.marketScopeCoverage, 1);
+    expect(audit.packTierCoverage, 1);
+    expect(audit.parserPriorityCoverage, 1);
   });
 
   test('catalog items expose parser-searchable identity text', () {

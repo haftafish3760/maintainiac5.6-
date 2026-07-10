@@ -30,6 +30,12 @@ final plumbingGeneratedPvcDwvFittingTypes = _generatedDwvFittingTypes(
   sizes: _generatedDwvSizes,
 );
 
+final plumbingGeneratedAbsDwvFittingTypes = _generatedDwvFittingTypes(
+  material: 'ABS DWV',
+  aliases: const ['abs', 'abs dwv', 'black drain', 'black dwv'],
+  sizes: _generatedDwvSizes,
+);
+
 final plumbingGeneratedBlackIronFittingTypes = _generatedThreadedFittingTypes(
   material: 'Black Iron',
   aliases: const ['black iron', 'black pipe', 'threaded'],

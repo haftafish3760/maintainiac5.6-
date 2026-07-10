@@ -37,6 +37,35 @@ final plumbingSupplyLinesCategory = _category('Supply Lines', [
       ),
     ),
     _type(
+      'Ice Maker Lines',
+      _variants(
+        'Ice Maker Supply Line',
+        'each',
+        ['1/4 x 10 ft', '1/4 x 15 ft', '1/4 x 25 ft'],
+        [
+          'ice maker line',
+          'icemaker line',
+          'refrigerator water line',
+          'fridge water line',
+          'poly ice maker line',
+        ],
+      ),
+    ),
+    _type(
+      'Washing Machine Hoses',
+      _variants(
+        'Washing Machine Hose',
+        'each',
+        ['3/4 x 4 ft', '3/4 x 5 ft', '3/4 x 6 ft'],
+        [
+          'washer hose',
+          'washing machine line',
+          'washer supply hose',
+          'laundry hose',
+        ],
+      ),
+    ),
+    _type(
       'Gas Appliance Connectors',
       _variants(
         'Gas Appliance Connector',

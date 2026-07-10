@@ -1,0 +1,319 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'support/qa_harness/qa_harness.dart';
+
+void main() {
+  test('surgical rerun router maps changed files to individual commands', () {
+    const router = maintainiacSurgicalRerunRouter;
+
+    expect(router.validate(), isEmpty);
+    final commands = router.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_inventory_parser_consumer_contract.dart',
+    ]);
+    final selectorIds = router.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_inventory_parser_consumer_contract.dart',
+    ]);
+
+    expect(commands, isNotEmpty);
+    expect(selectorIds, contains('inventory_consumer_family_labels'));
+    expect(
+      commands.every((command) => command.contains('--plain-name')),
+      isTrue,
+    );
+    expect(commands.join('\n'), contains('inventory parser consumer labels'));
+    expect(commands.join('\n'), contains('main Maintainiac QA backbone'));
+  });
+
+  test('surgical rerun router rejects unknown selector references', () {
+    const router = MaintainiacSurgicalRerunRouter(
+      registry: maintainiacSurgicalTestSelectorRegistry,
+      rules: [
+        MaintainiacSurgicalRerunRule(
+          id: 'bad',
+          changedPathContains:
+              'maintainiac_inventory_parser_consumer_contract.dart',
+          selectorIds: {'missing_selector'},
+          reason: '',
+        ),
+      ],
+    );
+
+    final failures = router.validate().join('\n');
+
+    expect(failures, contains('bad missing reason'));
+    expect(
+      failures,
+      contains('bad references unknown selector missing_selector'),
+    );
+    expect(
+      failures,
+      contains(
+        'missing rerun rule for maintainiac_expense_parser_consumer_contract.dart',
+      ),
+    );
+  });
+
+  test('surgical rerun router maps payment and granularity changes', () {
+    final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_payment_contract.dart',
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+    ]);
+    final joined = commands.join('\n');
+
+    expect(joined, contains('payment ledger policy proves'));
+    expect(joined, contains('payment ledger policy rejects'));
+    expect(joined, contains('surgical granularity contract keeps'));
+    expect(joined, contains('surgical granularity contract rejects'));
+    expect(
+      commands.every((command) => command.contains('--plain-name')),
+      isTrue,
+    );
+  });
+
+  test('surgical rerun router maps changed test files to their selectors', () {
+    final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
+      'test/maintainiac_payment_contract_test.dart',
+    ]);
+    final joined = commands.join('\n');
+
+    expect(joined, contains('payment ledger policy proves'));
+    expect(joined, contains('payment contract balances payments refunds'));
+    expect(joined, contains('payment contract rejects sensitive'));
+    expect(joined, isNot(contains('main Maintainiac QA backbone')));
+    expect(
+      commands.every((command) => command.contains('--plain-name')),
+      isTrue,
+    );
+  });
+
+  test('surgical rerun router maps source boundary changes to every guard', () {
+    final selectorIds = maintainiacSurgicalRerunRouter
+        .selectorIdsForChangedPaths([
+          'test/support/qa_harness/maintainiac_source_boundary.dart',
+        ]);
+
+    expect(selectorIds, contains('source_boundary_catches_live_services'));
+    expect(selectorIds, contains('source_boundary_allows_emulators'));
+    expect(selectorIds, contains('source_boundary_catches_ocr_camera_imports'));
+    expect(selectorIds, contains('source_boundary_skips_build_folders'));
+    expect(selectorIds, contains('main_backbone_parser_visibility'));
+  });
+
+  test('surgical rerun router maps late added guard selectors', () {
+    final selectorIds = maintainiacSurgicalRerunRouter
+        .selectorIdsForChangedPaths([
+          'test/support/qa_harness/maintainiac_qa_run_ledger.dart',
+          'test/support/qa_harness/maintainiac_release_evidence_bundle.dart',
+          'test/support/qa_harness/maintainiac_source_audit_policy.dart',
+          'test/support/qa_harness/maintainiac_qa_artifact_policy.dart',
+          'test/support/qa_harness/maintainiac_sensitive_field_registry.dart',
+        ]);
+
+    expect(selectorIds, contains('qa_run_ledger_rejects_broad_commands'));
+    expect(
+      selectorIds,
+      contains('release_evidence_requires_targeted_analyzer'),
+    );
+    expect(selectorIds, contains('source_audit_rejects_unsafe_limits'));
+    expect(selectorIds, contains('source_audit_rejects_non_production_debt'));
+    expect(selectorIds, contains('qa_artifact_policy_rejects_duplicate_paths'));
+    expect(
+      selectorIds,
+      contains('sensitive_field_registry_rejects_placeholders'),
+    );
+  });
+
+  test(
+    'surgical rerun router maps individual command tool reporting guards',
+    () {
+      final selectorIds = maintainiacSurgicalRerunRouter
+          .selectorIdsForChangedPaths([
+            'test/support/qa_harness/maintainiac_individual_qa_command.dart',
+          ]);
+
+      expect(selectorIds, contains('individual_command_tool_by_id'));
+      expect(selectorIds, contains('individual_command_tool_by_risk'));
+      expect(
+        selectorIds,
+        contains('individual_command_tool_changed_file_all_selectors'),
+      );
+      expect(selectorIds, contains('individual_command_tool_all_selector_ids'));
+      expect(
+        selectorIds,
+        contains('individual_command_tool_changed_unique_surgical'),
+      );
+      expect(selectorIds, contains('main_backbone_parser_visibility'));
+    },
+  );
+
+  test('surgical rerun router maps individual manifest metadata guards', () {
+    final selectorIds = maintainiacSurgicalRerunRouter
+        .selectorIdsForChangedPaths([
+          'test/support/qa_harness/maintainiac_individual_test_manifest.dart',
+        ]);
+
+    expect(selectorIds, contains('individual_manifest_metadata'));
+    expect(selectorIds, contains('individual_manifest_mirrors_selectors'));
+    expect(selectorIds, contains('individual_manifest_reporting_metadata'));
+    expect(selectorIds, contains('individual_manifest_rejects_unsafe'));
+    expect(selectorIds, contains('main_backbone_parser_visibility'));
+  });
+
+  test('surgical rerun router covers all critical selector families', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    const criticalFamilies = {
+      'test/support/qa_harness/maintainiac_individual_qa_command.dart': [
+        'individual_command_tool_',
+      ],
+      'test/support/qa_harness/maintainiac_individual_test_manifest.dart': [
+        'individual_manifest_',
+      ],
+      'test/support/qa_harness/maintainiac_qa_run_ledger.dart': [
+        'qa_run_ledger_',
+      ],
+      'test/support/qa_harness/maintainiac_release_evidence_bundle.dart': [
+        'release_evidence_',
+      ],
+      'test/support/qa_harness/maintainiac_source_audit_policy.dart': [
+        'source_audit_',
+      ],
+      'test/support/qa_harness/maintainiac_qa_artifact_policy.dart': [
+        'qa_artifact_policy_',
+      ],
+      'test/support/qa_harness/maintainiac_source_boundary.dart': [
+        'source_boundary_',
+      ],
+      'test/support/qa_harness/maintainiac_sensitive_field_registry.dart': [
+        'sensitive_field_registry_',
+      ],
+    };
+
+    for (final entry in criticalFamilies.entries) {
+      final routedIds = maintainiacSurgicalRerunRouter
+          .selectorIdsForChangedPaths([entry.key]);
+      final expectedIds = {
+        for (final selector in registry.selectors)
+          if (entry.value.any(selector.id.startsWith)) selector.id,
+      };
+
+      expect(
+        routedIds,
+        containsAll(expectedIds),
+        reason: '${entry.key} must route every critical family selector',
+      );
+    }
+  });
+
+  test('surgical rerun router maps expanded QA safety guards', () {
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_qa_telemetry_privacy_gate.dart',
+      'test/support/qa_harness/maintainiac_qa_fingerprint.dart',
+      'test/support/qa_harness/maintainiac_qa_readiness.dart',
+      'test/support/qa_harness/maintainiac_payment_contract.dart',
+      'test/support/qa_harness/maintainiac_operating_directive_contract.dart',
+    ]);
+
+    expect(ids, contains('qa_telemetry_privacy_full_sensitive_registry'));
+    expect(ids, contains('qa_fingerprint_rejects_duplicate_paths'));
+    expect(ids, contains('qa_readiness_evidence_files_exist'));
+    expect(ids, contains('qa_readiness_rejects_weak_evidence'));
+    expect(ids, contains('payment_contract_balances_adjustments'));
+    expect(ids, contains('payment_contract_positive_ledger_math'));
+    expect(ids, contains('payment_contract_rejects_sensitive_source_mutation'));
+    expect(ids, contains('operating_directive_camera_ocr_boundary'));
+  });
+
+  test('surgical rerun router maps selector registry safety guards', () {
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+      'test/support/qa_harness/maintainiac_surgical_selector_coverage.dart',
+      'test/maintainiac_surgical_selector_coverage_test.dart',
+    ]);
+
+    expect(ids, contains('surgical_selector_registry_commands'));
+    expect(ids, contains('surgical_selector_registry_rejects_bad'));
+    expect(ids, contains('surgical_selector_coverage_required'));
+    expect(ids, contains('surgical_selector_coverage_rejects_missing'));
+    expect(ids, contains('surgical_selector_coverage_rejects_unlisted'));
+    expect(ids, contains('surgical_selector_rejects_broad_batch_scope'));
+    expect(ids, contains('surgical_selector_all_commands_individual'));
+    expect(ids, contains('surgical_selector_coverage_ignores_fixture_strings'));
+    expect(ids, contains('surgical_selector_coverage_all_declarations'));
+  });
+
+  test('surgical rerun router reaches every selector from its test file', () {
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    const router = maintainiacSurgicalRerunRouter;
+
+    for (final selector in registry.selectors) {
+      final routedIds = router.selectorIdsForChangedPaths([selector.file]);
+
+      expect(
+        routedIds,
+        contains(selector.id),
+        reason: '${selector.id} must be reachable from ${selector.file}',
+      );
+    }
+  });
+
+  test('surgical rerun router matchers point at real files', () {
+    final repoFiles = <String>{
+      for (final root in ['lib', 'test', 'tool'])
+        if (Directory(root).existsSync())
+          for (final entity in Directory(root).listSync(recursive: true))
+            if (entity is File && entity.path.endsWith('.dart'))
+              entity.path.replaceAll('\\', '/'),
+    };
+
+    for (final rule in maintainiacSurgicalRerunRouter.rules) {
+      expect(
+        repoFiles.any((path) => path.contains(rule.changedPathContains)),
+        isTrue,
+        reason:
+            '${rule.id} matcher ${rule.changedPathContains} must point at a real Dart file',
+      );
+    }
+  });
+
+  test('surgical rerun router dedupes overlapping changed paths', () {
+    final commands = maintainiacSurgicalRerunRouter.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+    ]);
+    final ids = maintainiacSurgicalRerunRouter.selectorIdsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+      'test/support/qa_harness/maintainiac_surgical_granularity_contract.dart',
+    ]);
+
+    expect(commands.length, ids.length);
+    expect(commands.toSet(), hasLength(commands.length));
+    expect(ids, contains('surgical_granularity_individual'));
+    expect(ids, contains('surgical_granularity_rejects_batch'));
+  });
+
+  test('surgical rerun router outputs only single behavior commands', () {
+    const router = maintainiacSurgicalRerunRouter;
+    const registry = maintainiacSurgicalTestSelectorRegistry;
+    final commands = router.commandsForChangedPaths([
+      'test/support/qa_harness/maintainiac_surgical_test_selector.dart',
+      'test/support/qa_harness/maintainiac_qa_readiness.dart',
+      'test/maintainiac_surgical_selector_coverage_test.dart',
+    ]);
+
+    expect(commands, isNotEmpty);
+    for (final command in commands) {
+      final selector = registry.selectors.singleWhere(
+        (candidate) => candidate.command == command,
+      );
+
+      expect(selector.scope, MaintainiacSurgicalTestScope.singleBehavior);
+      expect(command, startsWith('flutter test test/'));
+      expect(command, contains(' --plain-name '));
+      expect(command, isNot(contains('&&')));
+      expect(command, isNot(contains(';')));
+      expect(command.indexOf(' flutter test ', 1), -1);
+    }
+  });
+}

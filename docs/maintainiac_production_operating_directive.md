@@ -20,7 +20,8 @@ production infrastructure, not a prototype.
 - Do not wander into unrelated modules unless the current dependency requires
   it. Keep receipt-camera work on capture, review, stitching, source
   preservation, OCR handoff contracts, and the parser contracts needed to prove
-  camera output.
+  camera output. Keep implementation work inside the explicit camera/OCR lane
+  unless the user explicitly authorizes otherwise.
 - Do not mutate source-of-truth data through recap, notification, export,
   invoice, OCR, parser, telemetry, or sync side effects.
 - Hive/local storage is the immediate source of truth. Firestore/cloud sync is a mirror or backup, not the brain.
@@ -54,18 +55,16 @@ production infrastructure, not a prototype.
 
 - The release-one priority is the camera system: clear photo capture,
   multi-photo long receipt capture, segment ordering, retake context,
-  ghost/overlap guidance, stitching/overlap handling, temporary OCR source
-  protection, and recoverable review flow.
+  ghost/overlap guidance, stitching/overlap handling, source preservation, and
+  recoverable review flow.
 - Do not try to out-Google Google. Google ML Kit is the primary local OCR engine;
   Google Cloud Vision or another premium provider may be a later optional
   engine. Maintainiac owns the capture quality, handoff contracts,
-  temporary OCR source handling, user review, and parser placement rules around
-  those OCR engines.
-- Use the clearest temporary full-quality capture for OCR before saved proof
-  compression. Saved proof copies default to the user's save-space setting;
-  full-quality original proof retention is an explicit user choice, not the
-  default app policy. Cropped, compressed, stitched, OCR-ready, and review
-  images are derived artifacts and must not silently replace the saved proof.
+  source preservation, user review, and parser placement rules around those OCR
+  engines.
+- Preserve original receipt captures. Cropped, compressed, stitched,
+  OCR-ready, and review images are derived artifacts and must not destroy or
+  silently replace the source capture.
 - Support simple and detailed receipt review modes. Simple mode may care mainly
   about receipt total or item prices. Detailed mode must preserve line-item
   descriptions, quantities, unit prices, totals, and categories when available.

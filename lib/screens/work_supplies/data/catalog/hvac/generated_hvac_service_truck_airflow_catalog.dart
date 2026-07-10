@@ -195,8 +195,6 @@ final hvacGeneratedServiceTruckAirflowCatalogCategory = _category(
               'S Cleat Pack',
               'Drive Cleat Pack',
               'Duct Corner Pack',
-              'Sheet Metal Screw 1/2 in 100 Pack',
-              'Duct Hanger Strap Roll',
             ])
               item,
           ],
@@ -207,8 +205,35 @@ final hvacGeneratedServiceTruckAirflowCatalogCategory = _category(
             's cleat',
             'drive cleat',
             'duct corner',
+          ],
+        ),
+      ),
+      _type(
+        'Duct Fasteners and Hanger Strap',
+        _hvacTruckAirflowProducts(
+          baseName: 'HVAC Duct Fastener',
+          unit: 'each',
+          variants: [
+            for (final item in [
+              'Sheet Metal Screw 1/2 in 100 Pack',
+              'Sheet Metal Screw 3/4 in 100 Pack',
+              'Sheet Metal Screw 1 in 100 Pack',
+              '#8 Zip Screw 1/2 in 100 Pack',
+              '#10 Tek Screw 3/4 in 100 Pack',
+              '#10 Self Drilling Screw 1 in 100 Pack',
+              'Duct Hanger Strap Roll',
+              'Perforated Hanger Strap Roll',
+            ])
+              item,
+          ],
+          aliases: const [
             'sheet metal screw',
+            'zip screw',
+            'tek screw',
+            'self drilling screw',
+            'self tapping screw',
             'duct strap',
+            'hanger strap',
           ],
         ),
       ),

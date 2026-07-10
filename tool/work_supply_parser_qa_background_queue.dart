@@ -1,0 +1,559 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+const _usage =
+    'dart run tool/work_supply_parser_qa_background_queue.dart '
+    '[--execute] [--trades plumbing] [--tiers core,standard] '
+    '[--locales en-US,es-US] [--limit 500] [--fixture-run-limit 25] '
+    '[--fixture-run-timeout-ms 1500000] '
+    '[--fixture-run-stale-report-timeout-ms 300000] '
+    '[--cell-timeout-ms 1800000]';
+
+Future<void> main(List<String> args) async {
+  final exit = await runWorkSupplyParserQaBackgroundQueue(
+    args,
+    stdout: stdout,
+    stderr: stderr,
+  );
+  if (exit != 0) exitCode = exit;
+}
+
+Future<int> runWorkSupplyParserQaBackgroundQueue(
+  List<String> args, {
+  required IOSink stdout,
+  required IOSink stderr,
+  BackgroundQueueCellRunner? cellRunner,
+}) async {
+  if (args.contains('--help') || args.contains('-h')) {
+    stdout.writeln(_usage);
+    return 0;
+  }
+  final options = _QueueOptions.parse(args);
+  if (options.limit <= 0 || options.fixtureRunLimit <= 0) {
+    stderr.writeln(
+      '--limit and --fixture-run-limit must be greater than zero.',
+    );
+    return 64;
+  }
+  final runDir = Directory('${options.outputRoot}/${options.queueId}')
+    ..createSync(recursive: true);
+  final cells = _cells(options);
+  final results = options.resume
+      ? _loadResumableResults(runDir, cells, options)
+      : <Map<String, Object?>>[];
+  final resumedCellCount = results.length;
+  final queueStartedAt = DateTime.now().toUtc();
+  var failed = false;
+  _writeStatus(
+    options: options,
+    runDir: runDir,
+    cells: cells,
+    results: results,
+    activeCell: null,
+    state: 'starting',
+  );
+  for (final cell in cells) {
+    if (_hasSuccessfulResult(results, cell.id)) {
+      _writeStatus(
+        options: options,
+        runDir: runDir,
+        cells: cells,
+        results: results,
+        activeCell: null,
+        state: 'running',
+      );
+      continue;
+    }
+    final command = _matrixCommand(options, cell);
+    final transcriptPath = '${runDir.path}/${cell.id}_transcript.txt';
+    final startedAt = DateTime.now().toUtc();
+    _writeStatus(
+      options: options,
+      runDir: runDir,
+      cells: cells,
+      results: results,
+      activeCell: cell,
+      activeCellStartedAt: startedAt,
+      state: 'running',
+    );
+    var exit = 0;
+    var stdoutText = 'DRY RUN';
+    var stderrText = '';
+    var durationMs = 0;
+    if (options.execute) {
+      final runner = cellRunner ?? _runCellProcess;
+      final process = await runner(
+        command,
+        timeout: options.cellTimeout,
+        onHeartbeat: () => _writeStatus(
+          options: options,
+          runDir: runDir,
+          cells: cells,
+          results: results,
+          activeCell: cell,
+          activeCellStartedAt: startedAt,
+          state: 'running',
+        ),
+      );
+      exit = process.exitCode;
+      stdoutText = process.stdout;
+      stderrText = process.stderr;
+      durationMs = DateTime.now().toUtc().difference(startedAt).inMilliseconds;
+    }
+    final completedAt = DateTime.now().toUtc();
+    File(transcriptPath).writeAsStringSync(
+      [
+        'startedAt=${startedAt.toIso8601String()}',
+        'completedAt=${completedAt.toIso8601String()}',
+        'workingDirectory=${Directory.current.path}',
+        'command=${command.join(' ')}',
+        'exitCode=$exit',
+        'durationMs=$durationMs',
+        '--- stdout ---',
+        stdoutText,
+        '--- stderr ---',
+        stderrText,
+      ].join('\n'),
+      flush: true,
+    );
+    results.add({
+      'cellId': cell.id,
+      'trade': cell.trade,
+      'marketScope': cell.scope,
+      'tier': cell.tier,
+      'localePackId': cell.locale,
+      'exitCode': exit,
+      'durationMs': durationMs,
+      'startedAtIso': startedAt.toIso8601String(),
+      'completedAtIso': completedAt.toIso8601String(),
+      'transcriptPath': transcriptPath,
+      'dryRun': !options.execute,
+      'liveServicesAllowed': false,
+      'writesProductionCatalog': false,
+      'firebaseWritesAllowed': false,
+      'ocrCameraExpensesTouched': false,
+    });
+    if (exit != 0) {
+      failed = true;
+      if (options.stopOnFailure) break;
+    }
+    _writeStatus(
+      options: options,
+      runDir: runDir,
+      cells: cells,
+      results: results,
+      activeCell: null,
+      state: failed ? 'failed' : 'running',
+    );
+  }
+  final queueCompletedAt = DateTime.now().toUtc();
+  final summary = {
+    'schemaVersion': 1,
+    'queue': 'work_supply_parser_qa_background_queue',
+    'queueId': options.queueId,
+    'dryRun': !options.execute,
+    'startedAtIso': queueStartedAt.toIso8601String(),
+    'completedAtIso': queueCompletedAt.toIso8601String(),
+    'durationMs': queueCompletedAt.difference(queueStartedAt).inMilliseconds,
+    'cellCount': cells.length,
+    'completedCellCount': results.length,
+    'failedCellCount': results.where((r) => r['exitCode'] != 0).length,
+    'resumedCellCount': resumedCellCount,
+    'limit': options.limit,
+    'fixtureRunLimit': options.fixtureRunLimit,
+    'fixtureRunTimeoutMs': options.fixtureRunTimeoutMs,
+    'fixtureRunStaleReportTimeoutMs': options.fixtureRunStaleReportTimeoutMs,
+    if (options.cellTimeoutMs > 0) 'cellTimeoutMs': options.cellTimeoutMs,
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
+    'results': results,
+  };
+  final summaryPath = '${runDir.path}/summary.json';
+  File(summaryPath).writeAsStringSync(
+    const JsonEncoder.withIndent('  ').convert(summary),
+    flush: true,
+  );
+  File('${options.outputRoot}/latest_summary.json')
+    ..createSync(recursive: true)
+    ..writeAsStringSync(const JsonEncoder.withIndent('  ').convert(summary));
+  stdout.writeln('QA_BACKGROUND_QUEUE_SUMMARY $summaryPath');
+  _writeStatus(
+    options: options,
+    runDir: runDir,
+    cells: cells,
+    results: results,
+    activeCell: null,
+    state: failed ? 'failed' : 'complete',
+  );
+  return failed ? 1 : 0;
+}
+
+List<Map<String, Object?>> _loadResumableResults(
+  Directory runDir,
+  List<_QueueCell> cells,
+  _QueueOptions options,
+) {
+  final selectedCellIds = cells.map((cell) => cell.id).toSet();
+  final resultsByCellId = <String, Map<String, Object?>>{};
+  final statusFile = File('${runDir.path}/latest_status.json');
+  if (statusFile.existsSync()) {
+    final decoded = jsonDecode(statusFile.readAsStringSync());
+    if (decoded is Map) {
+      final rawResults = decoded['results'];
+      if (rawResults is List) {
+        for (final rawResult in rawResults) {
+          if (rawResult is! Map) continue;
+          final result = Map<String, Object?>.from(rawResult);
+          final cellId = result['cellId'];
+          if (cellId is! String || !selectedCellIds.contains(cellId)) {
+            continue;
+          }
+          if (!_isResumableSuccessfulResult(runDir, cellId, result)) {
+            continue;
+          }
+          resultsByCellId[cellId] = result;
+        }
+      }
+    }
+  }
+  for (final cell in cells) {
+    if (!resultsByCellId.containsKey(cell.id)) {
+      final recovered = _recoverSuccessfulResultFromGeneratedReport(
+        runDir,
+        cell,
+        requiredChecked: options.requiredCheckedPerCell,
+      );
+      if (recovered != null) resultsByCellId[cell.id] = recovered;
+    }
+  }
+  return [
+    for (final cell in cells)
+      if (resultsByCellId[cell.id] != null) resultsByCellId[cell.id]!,
+  ];
+}
+
+Map<String, Object?>? _recoverSuccessfulResultFromGeneratedReport(
+  Directory runDir,
+  _QueueCell cell, {
+  required int requiredChecked,
+}) {
+  final reportPath =
+      '${runDir.path}/cells/${cell.trade}/${cell.scope}/${cell.tier}/'
+      '${cell.locale}/reports/latest_generated_fixture_run.json';
+  final reportFile = File(reportPath);
+  if (!reportFile.existsSync()) return null;
+  final decoded = jsonDecode(reportFile.readAsStringSync());
+  if (decoded is! Map) return null;
+  if (decoded['failureCount'] != 0) return null;
+  if (!_isSafeGeneratedReport(decoded)) return null;
+  final checked = decoded['checked'];
+  if (checked is! int || checked <= 0) return null;
+  if (checked < requiredChecked) return null;
+  final generatedAtIso =
+      decoded['generatedAtIso'] as String? ??
+      DateTime.now().toUtc().toIso8601String();
+  return {
+    'cellId': cell.id,
+    'trade': cell.trade,
+    'marketScope': cell.scope,
+    'tier': cell.tier,
+    'localePackId': cell.locale,
+    'exitCode': 0,
+    'durationMs': 0,
+    'startedAtIso': generatedAtIso,
+    'completedAtIso': generatedAtIso,
+    'transcriptPath': reportPath,
+    'dryRun': false,
+    'recoveredFromGeneratedFixtureReport': true,
+    'checked': checked,
+  };
+}
+
+bool _isResumableSuccessfulResult(
+  Directory runDir,
+  String cellId,
+  Map<String, Object?> result,
+) {
+  if (result['exitCode'] != 0) return false;
+  if (result['dryRun'] == true) return true;
+  final parts = cellId.split('_');
+  if (parts.length < 4) return false;
+  final locale = '${parts[3]}-${parts.length > 4 ? parts[4] : ''}';
+  final reportPath =
+      '${runDir.path}/cells/${parts[0]}/${parts[1]}/${parts[2]}/'
+      '$locale/reports/latest_generated_fixture_run.json';
+  final reportFile = File(reportPath);
+  if (!reportFile.existsSync()) return false;
+  final decoded = jsonDecode(reportFile.readAsStringSync());
+  return decoded is Map && _isSafeGeneratedReport(decoded);
+}
+
+bool _isSafeGeneratedReport(Map<dynamic, dynamic> report) {
+  return report['liveServicesAllowed'] == false &&
+      report['writesProductionCatalog'] == false &&
+      report['firebaseWritesAllowed'] == false &&
+      report['ocrCameraExpensesTouched'] == false;
+}
+
+bool _hasSuccessfulResult(List<Map<String, Object?>> results, String cellId) {
+  return results.any(
+    (result) => result['cellId'] == cellId && result['exitCode'] == 0,
+  );
+}
+
+void _writeStatus({
+  required _QueueOptions options,
+  required Directory runDir,
+  required List<_QueueCell> cells,
+  required List<Map<String, Object?>> results,
+  required _QueueCell? activeCell,
+  DateTime? activeCellStartedAt,
+  required String state,
+}) {
+  final now = DateTime.now().toUtc();
+  final status = {
+    'schemaVersion': 1,
+    'queue': 'work_supply_parser_qa_background_queue_status',
+    'queueId': options.queueId,
+    'state': state,
+    'dryRun': !options.execute,
+    'cellCount': cells.length,
+    'completedCellCount': results.length,
+    'failedCellCount': results.where((r) => r['exitCode'] != 0).length,
+    if (activeCell != null) 'activeCellId': activeCell.id,
+    if (activeCellStartedAt != null)
+      'activeCellStartedAtIso': activeCellStartedAt.toIso8601String(),
+    if (activeCellStartedAt != null)
+      'activeCellElapsedMs': now.difference(activeCellStartedAt).inMilliseconds,
+    'updatedAtIso': now.toIso8601String(),
+    'liveServicesAllowed': false,
+    'writesProductionCatalog': false,
+    'firebaseWritesAllowed': false,
+    'ocrCameraExpensesTouched': false,
+    'results': results,
+  };
+  final json = const JsonEncoder.withIndent('  ').convert(status);
+  File(
+    '${runDir.path}/latest_status.json',
+  ).writeAsStringSync(json, flush: true);
+  File('${options.outputRoot}/latest_status.json')
+    ..createSync(recursive: true)
+    ..writeAsStringSync(json, flush: true);
+}
+
+List<_QueueCell> _cells(_QueueOptions options) {
+  return [
+    for (final trade in options.trades)
+      for (final scope in options.scopes)
+        for (final tier in options.tiers)
+          for (final locale in options.locales)
+            _QueueCell(trade: trade, scope: scope, tier: tier, locale: locale),
+  ];
+}
+
+List<String> _matrixCommand(_QueueOptions options, _QueueCell cell) {
+  return [
+    'dart',
+    'run',
+    'tool/work_supply_parser_qa_matrix_pipeline.dart',
+    '--first-round',
+    if (options.execute) '--execute',
+    if (options.resume) '--resume',
+    if (options.continueOnFailure) '--continue-on-failure',
+    '--trades',
+    cell.trade,
+    '--scopes',
+    cell.scope,
+    '--tiers',
+    cell.tier,
+    '--locales',
+    cell.locale,
+    '--limit',
+    '${options.limit}',
+    '--fixture-run-limit',
+    '${options.fixtureRunLimit}',
+    '--fixture-run-timeout-ms',
+    '${options.fixtureRunTimeoutMs}',
+    '--fixture-run-stale-report-timeout-ms',
+    '${options.fixtureRunStaleReportTimeoutMs}',
+    '--output-root',
+    '${options.outputRoot}/${options.queueId}/cells',
+  ];
+}
+
+class _QueueOptions {
+  const _QueueOptions({
+    required this.trades,
+    required this.scopes,
+    required this.tiers,
+    required this.locales,
+    required this.limit,
+    required this.fixtureRunLimit,
+    required this.fixtureRunTimeoutMs,
+    required this.fixtureRunStaleReportTimeoutMs,
+    required this.cellTimeoutMs,
+    required this.outputRoot,
+    required this.queueId,
+    required this.execute,
+    required this.resume,
+    required this.stopOnFailure,
+    required this.continueOnFailure,
+  });
+
+  final List<String> trades;
+  final List<String> scopes;
+  final List<String> tiers;
+  final List<String> locales;
+  final int limit;
+  final int fixtureRunLimit;
+  final int fixtureRunTimeoutMs;
+  final int fixtureRunStaleReportTimeoutMs;
+  final int cellTimeoutMs;
+  final String outputRoot;
+  final String queueId;
+  final bool execute;
+  final bool resume;
+  final bool stopOnFailure;
+  final bool continueOnFailure;
+
+  static _QueueOptions parse(List<String> args) {
+    final values = <String, String>{};
+    final flags = <String>{};
+    for (var i = 0; i < args.length; i++) {
+      final arg = args[i];
+      if (!arg.startsWith('--')) continue;
+      final key = arg.substring(2);
+      if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+        values[key] = args[++i];
+      } else {
+        flags.add(key);
+      }
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    return _QueueOptions(
+      trades: _csv(values['trades'] ?? 'plumbing'),
+      scopes: _csv(values['scopes'] ?? 'residential'),
+      tiers: _csv(values['tiers'] ?? 'core,standard'),
+      locales: _csv(values['locales'] ?? 'en-US,es-US', lowerCase: false),
+      limit: int.tryParse(values['limit'] ?? '') ?? 500,
+      fixtureRunLimit: int.tryParse(values['fixture-run-limit'] ?? '') ?? 25,
+      fixtureRunTimeoutMs:
+          int.tryParse(values['fixture-run-timeout-ms'] ?? '') ?? 1500000,
+      fixtureRunStaleReportTimeoutMs:
+          int.tryParse(values['fixture-run-stale-report-timeout-ms'] ?? '') ??
+          300000,
+      cellTimeoutMs: int.tryParse(values['cell-timeout-ms'] ?? '') ?? 1800000,
+      outputRoot: values['output-root'] ?? 'build/parser_qa_background_queue',
+      queueId: values['queue-id'] ?? now.replaceAll(RegExp(r'[:.]'), ''),
+      execute: flags.contains('execute'),
+      resume: !flags.contains('no-resume'),
+      stopOnFailure: !flags.contains('continue-on-failure'),
+      continueOnFailure: flags.contains('continue-on-failure'),
+    );
+  }
+
+  Duration? get cellTimeout =>
+      cellTimeoutMs <= 0 ? null : Duration(milliseconds: cellTimeoutMs);
+
+  int get requiredCheckedPerCell =>
+      fixtureRunLimit < limit ? fixtureRunLimit : limit;
+}
+
+class _QueueCell {
+  const _QueueCell({
+    required this.trade,
+    required this.scope,
+    required this.tier,
+    required this.locale,
+  });
+
+  final String trade;
+  final String scope;
+  final String tier;
+  final String locale;
+
+  String get id => '${trade}_${scope}_${tier}_$locale'.replaceAll('-', '_');
+}
+
+List<String> _csv(String value, {bool lowerCase = true}) {
+  return value
+      .split(',')
+      .map((entry) => lowerCase ? entry.trim().toLowerCase() : entry.trim())
+      .where((entry) => entry.isNotEmpty)
+      .toList();
+}
+
+typedef BackgroundQueueCellRunner =
+    Future<BackgroundQueueCellResult> Function(
+      List<String> command, {
+      Duration? timeout,
+      void Function()? onHeartbeat,
+    });
+
+class BackgroundQueueCellResult {
+  const BackgroundQueueCellResult({
+    required this.exitCode,
+    required this.stdout,
+    required this.stderr,
+  });
+
+  final int exitCode;
+  final String stdout;
+  final String stderr;
+}
+
+Future<BackgroundQueueCellResult> _runCellProcess(
+  List<String> command, {
+  Duration? timeout,
+  void Function()? onHeartbeat,
+}) async {
+  final process = await Process.start(
+    command.first,
+    command.skip(1).toList(),
+    workingDirectory: Directory.current.path,
+    runInShell: Platform.isWindows,
+  );
+  final stdoutFuture = process.stdout.transform(utf8.decoder).join();
+  final stderrFuture = process.stderr.transform(utf8.decoder).join();
+  var timedOut = false;
+  Timer? timer;
+  final heartbeat = onHeartbeat == null
+      ? null
+      : Timer.periodic(const Duration(seconds: 30), (_) => onHeartbeat());
+  if (timeout != null) {
+    timer = Timer(timeout, () {
+      timedOut = true;
+      _killProcessTree(process.pid);
+    });
+  }
+  final exit = await process.exitCode;
+  timer?.cancel();
+  heartbeat?.cancel();
+  final stdoutText = await stdoutFuture;
+  final stderrText = await stderrFuture;
+  if (!timedOut) {
+    return BackgroundQueueCellResult(
+      exitCode: exit,
+      stdout: stdoutText,
+      stderr: stderrText,
+    );
+  }
+  return BackgroundQueueCellResult(
+    exitCode: 124,
+    stdout: stdoutText,
+    stderr:
+        '$stderrText\nQA_BACKGROUND_QUEUE_CELL_TIMEOUT '
+        'timeoutMs=${timeout!.inMilliseconds}',
+  );
+}
+
+void _killProcessTree(int pid) {
+  if (Platform.isWindows) {
+    Process.runSync('taskkill', ['/PID', '$pid', '/T', '/F']);
+    return;
+  }
+  Process.killPid(pid, ProcessSignal.sigterm);
+}

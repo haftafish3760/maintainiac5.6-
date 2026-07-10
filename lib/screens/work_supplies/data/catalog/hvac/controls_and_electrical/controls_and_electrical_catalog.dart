@@ -17,7 +17,7 @@ final hvacControlsAndElectricalCategory = _category('Controls and Electrical', [
         'Contactor',
         'each',
         ['1 pole 24V', '2 pole 24V', '30 Amp', '40 Amp'],
-        ['compressor contactor'],
+        ['compressor contactor', '24v contactor', '2 pole contactor'],
       ),
     ),
   ]),

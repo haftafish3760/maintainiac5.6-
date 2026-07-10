@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "report": "reusable_parsing_qa_mac_handoff_packet",
+  "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
+  "primaryBranch": "codex/reusable-parsing-qa-foundation",
+  "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
+  "baselineCommit": "8e9771d",
+  "baselineCommitFull": "8e9771d922e67927cf5dc9efacfe213a542202cb",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion",
+  "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
+  "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
+  "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
+  "windowsCompleted": [
+    "shared parser QA platform backbone in test/support/parser_qa_platform",
+    "reusable parser QA reporting and gating artifacts",
+    "mixed-trade PEH ambiguity hardening for overlapping PVC and copper receipt language",
+    "estimate-section and invoice-section review-only routing boosts",
+    "HVAC thermostat-wire versus thermostat hardening",
+    "HVAC humidifier water-panel wording hardening"
+  ],
+  "doNotDuplicate": [
+    "re-add the same mixed-trade PVC and copper ambiguity regressions",
+    "re-document estimate and invoice section routing as review-only",
+    "re-fix thermostat wire versus thermostat behavior",
+    "re-fix humidifier water-panel wording",
+    "recreate the reusable parsing QA branch label"
+  ],
+  "windowsStillOwns": [
+    "ongoing Work Supplies parser/code edits in this thread",
+    "inventory-specific PEH parser hardening before broader parser-domain extraction is declared complete",
+    "Windows-side roadmap and progress-memory maintenance"
+  ],
+  "remainingWindowsGoals": [
+    "continue Windows-side Work Supplies parser/code hardening without drifting into unrelated modules",
+    "keep the reusable parsing QA handoff artifacts current whenever the checkpoint changes",
+    "finish the current Windows-owned inventory-specific PEH hardening lane before declaring broader parser-domain extraction complete"
+  ],
+  "currentMeasurementState": {
+    "readyForMacMeasurementWave": true,
+    "readyToClaimNinetyPlus": false,
+    "nextTradeByGap": "hvac",
+    "nextTradesByRemainingGap": [
+      "hvac"
+    ],
+    "remainingCheckedForTopGap": 38,
+    "totalRemainingChecked": 38
+  },
+  "artifactInputs": {
+    "handoffReadiness": "build/parser_qa_pipeline/peh_core_handoff_readiness.json",
+    "measurementGap": "build/parser_qa_pipeline/peh_core_measurement_gap.json",
+    "claimReadiness": "build/parser_qa_pipeline/peh_core_claim_readiness.json",
+    "macWaveCommands": "build/parser_qa_pipeline/peh_core_mac_wave_commands.json",
+    "windowsStatusRollup": "build/parser_qa_pipeline/peh_core_windows_status_rollup.json"
+  },
+  "macMiniNextWork": [
+    "run heavier generated-fixture and mixed-trade measurement waves from the reusable baseline",
+    "continue extracting receipt-interpretation behavior that is reusable across parser domains",
+    "reuse the shared parser-platform pieces for future parser domains such as fuel and maintenance"
+  ],
+  "macMiniNextCommands": [
+    [
+      "dart",
+      "run",
+      "tool/work_supply_parser_qa_run_generated_fixtures.dart",
+      "--fixture",
+      "build/parser_qa_generated/work_supply_parser/hvac/residential/core/en-US/generated_fixtures.json",
+      "--max-cases",
+      "25",
+      "--chunk-size",
+      "25",
+      "--min-pass-rate",
+      "0.90",
+      "--timeout-ms",
+      "900000",
+      "--stale-report-timeout-ms",
+      "240000",
+      "--report-dir",
+      "build/parser_qa_pipeline/mac_peh_core_measurement_25/hvac/residential/core/en-US/reports"
+    ],
+    [
+      "dart",
+      "run",
+      "tool/work_supply_parser_qa_run_generated_fixtures.dart",
+      "--fixture",
+      "build/parser_qa_generated/work_supply_parser/hvac/residential/core/es-US/generated_fixtures.json",
+      "--max-cases",
+      "25",
+      "--chunk-size",
+      "25",
+      "--min-pass-rate",
+      "0.90",
+      "--timeout-ms",
+      "900000",
+      "--stale-report-timeout-ms",
+      "240000",
+      "--report-dir",
+      "build/parser_qa_pipeline/mac_peh_core_measurement_25/hvac/residential/core/es-US/reports"
+    ],
+    [
+      "dart",
+      "run",
+      "tool/work_supply_parser_qa_generated_run_status.dart",
+      "--report-root",
+      "build/parser_qa_pipeline/mac_peh_core_measurement_25",
+      "--trades",
+      "hvac",
+      "--scopes",
+      "residential",
+      "--tiers",
+      "core",
+      "--locales",
+      "en-US,es-US",
+      "--require-complete",
+      "--min-checked-per-cell",
+      "25",
+      "--min-pass-rate",
+      "0.90",
+      "--output",
+      "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
+    ],
+    [
+      "dart",
+      "run",
+      "tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart",
+      "--root",
+      ".",
+      "--mac-wave",
+      "build/parser_qa_pipeline/peh_core_mac_wave_commands.json",
+      "--windows-status",
+      "build/parser_qa_pipeline/peh_core_windows_status_rollup.json",
+      "--plumbing-status",
+      "build/parser_qa_pipeline/plumbing_core_generated_run_status.json",
+      "--electrical-status",
+      "build/parser_qa_pipeline/windows_electrical_core_generated_run_status_50.json",
+      "--hvac-status",
+      "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
+    ]
+  ],
+  "generatedAtEdt": "2026-07-09 11:45 PM EDT",
+  "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
+  "reusableFoundationPaths": [
+    "test/support/parser_qa_platform/",
+    "test/support/qa_harness/",
+    "tool/reusable_parsing_qa_handoff_refresh.dart",
+    "tool/reusable_parsing_qa_handoff_sync.dart",
+    "tool/reusable_parsing_qa_handoff_status.dart",
+    "tool/reusable_parsing_qa_handoff_summary.dart",
+    "docs/reusable_parsing_qa_handoff_index.md",
+    "docs/reusable_parsing_qa_handoff_marker.md",
+    "docs/reusable_parsing_qa_scope_boundary.md",
+    "docs/reusable_parsing_qa_mac_runbook.md",
+    "docs/reusable_parsing_qa_mac_handoff_packet.json"
+  ],
+  "inventorySpecificWindowsPaths": [
+    "lib/screens/work_supplies/data/work_supply_receipt_parser.dart",
+    "test/support/work_supply_parser_qa/",
+    "docs/inventory_parser_peh_core_roadmap.md",
+    "build/parser_qa_pipeline/peh_core_windows_status_rollup.json",
+    "build/parser_qa_pipeline/peh_core_measurement_gap.json",
+    "build/parser_qa_pipeline/peh_core_handoff_readiness.json"
+  ],
+  "macMiniExpectedOutputs": [
+    "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json",
+    "build/parser_qa_pipeline/peh_core_mac_wave_status.json",
+    "build/parser_qa_pipeline/peh_core_merged_status_rollup.json",
+    "build/parser_qa_pipeline/peh_core_claim_readiness.json"
+  ],
+  "checkpointJsonPath": "docs/reusable_parsing_qa_checkpoint.json",
+  "checkpointMarkdownPath": "docs/reusable_parsing_qa_checkpoint.md",
+  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 8e9771d --commit-full 8e9771d922e67927cf5dc9efacfe213a542202cb --label \"Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion\" --updated-at \"2026-07-09 11:45 PM EDT\"",
+  "claimBlockingFindings": [
+    "trade_not_ready:hvac",
+    "mac_wave_not_merge_ready"
+  ],
+  "claimNextActions": [
+    "Keep the hvac Mac wave running until peh_core_mac_wave_status.json marks it readyToMerge.",
+    "Do not claim PEH 90-95 percent readiness until peh_core_mac_wave_status.json reports readyToMergeIntoClaim=true."
+  ],
+  "selectedTrades": [
+    "hvac"
+  ],
+  "measurementCommandCount": 2,
+  "rollupCommandCount": 1,
+  "currentExecutionBranch": "codex/inventory-parser-backup-20260702-2056",
+  "currentExecutionCommit": "bea533c"
+}

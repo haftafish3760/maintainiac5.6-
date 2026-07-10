@@ -21,7 +21,7 @@ final electricalConnectorsAndConsumablesCategory = _category(
           'Electrical Tape',
           'roll',
           ['3/4 in x 60 ft'],
-          ['black tape'],
+          ['black tape', 'elec tape', 'electric tape'],
         ),
       ),
       _type(

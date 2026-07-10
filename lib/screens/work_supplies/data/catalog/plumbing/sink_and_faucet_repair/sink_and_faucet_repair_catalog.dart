@@ -46,7 +46,14 @@ final plumbingSinkAndFaucetRepairCategory = _category(
           'Lavatory Pop-Up Assembly',
           'each',
           ['chrome', 'brushed nickel', 'plastic'],
-          ['pop up drain', 'sink stopper'],
+          [
+            'pop up drain',
+            'pop up assembly',
+            'pop up rod kit',
+            'lav pop up',
+            'lavatory pop up',
+            'sink stopper',
+          ],
         ),
       ),
       _type(
@@ -55,7 +62,22 @@ final plumbingSinkAndFaucetRepairCategory = _category(
           'Kitchen Sink Basket Strainer',
           'each',
           ['stainless', 'chrome', 'deep cup'],
-          ['sink strainer', 'basket drain'],
+          ['sink strainer', 'sink repair kit', 'basket drain'],
+        ),
+      ),
+      _type(
+        'Sink Repair Kits',
+        _variants(
+          'Sink Repair Kit',
+          'kit',
+          ['universal', 'lavatory', 'kitchen'],
+          [
+            'sink repair kit',
+            'lavatory repair kit',
+            'basin repair kit',
+            'kit reparacion lavabo',
+            'kit reparacion fregadero',
+          ],
         ),
       ),
       _type(

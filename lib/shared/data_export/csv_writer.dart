@@ -7,7 +7,7 @@ String _csvRow(List<Object?> cells) {
 }
 
 String _csvCell(Object? value) {
-  final text = value?.toString() ?? '';
+  final text = _neutralizeSpreadsheetFormula(value?.toString() ?? '');
   final needsQuotes =
       text.contains(',') ||
       text.contains('"') ||
@@ -15,4 +15,15 @@ String _csvCell(Object? value) {
       text.contains('\r');
   if (!needsQuotes) return text;
   return '"${text.replaceAll('"', '""')}"';
+}
+
+String _neutralizeSpreadsheetFormula(String text) {
+  if (text.isEmpty) return text;
+  final trimmedLeft = text.trimLeft();
+  if (trimmedLeft.isEmpty) return text;
+  final first = trimmedLeft.codeUnitAt(0);
+  if (first == 61 || first == 43 || first == 45 || first == 64) {
+    return "'$text";
+  }
+  return text;
 }

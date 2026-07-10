@@ -1,0 +1,152 @@
+import 'dart:io';
+
+import '../qa_harness/qa_harness.dart';
+
+class WorkSupplyParserReleaseOneScorecardSuite extends QaSuite {
+  const WorkSupplyParserReleaseOneScorecardSuite()
+    : super('inventory.release_one_scorecard_contract');
+
+  static const _scorecardPath =
+      'docs/inventory_parser_release1_acceptance_scorecard.md';
+
+  static const _requiredTokens = {
+    'Plumbing Core and Standard',
+    'Electrical Core and Standard',
+    'HVAC Core and Standard',
+    'English and Spanish',
+    'Merchant-Agnostic Receipt Coverage',
+    'unknown merchants',
+    'regional chains',
+    'supply-house receipts',
+    'Tractor Supply well/pump/farm-hardware crossover wording',
+    'Northern Tool tool/material crossover wording',
+    'Synthetic Merchant And Generic Receipt Fixtures',
+    'photo_ocr_text_after_extraction',
+    'uploaded_pdf_text_after_extraction',
+    'emailed_receipt_text_after_extraction',
+    'manual_pasted_receipt_text',
+    'invoice_style_material_line_text',
+    'quote_style_material_line_text',
+    'packing_slip_material_list_text',
+    'counter_sale_material_receipt_text',
+    'generic_unknown_merchant_receipt_text',
+    'local_regional_supplier_receipt_text',
+    'Unknown merchant text must go through generic',
+    'Fake-User Parser Review Workflow',
+    'Clear common Core item top candidate',
+    'False-confident ambiguous match rate',
+    'Ambiguous overlap lines',
+    'Hive/local storage is the immediate source of truth',
+    'Firebase/Firestore is a mirror',
+    'Firebase mirror sync should happen as soon as practical',
+    'Firebase failure must not roll back local truth',
+    'Stale Firebase data must not overwrite newer local confirmed data',
+    'Portable Parser Core',
+    'environment-independent',
+    'Universal Parser Adapter Fields',
+    'qa_harness',
+    'command_line',
+    'localePackId',
+    'userConfirmedContext',
+    'reviewStatus',
+    'suggestedAction',
+    'Ranked candidates must preserve the evidence ladder',
+    'enabled trade packs',
+    'active estimate/job trade section',
+    'receipt-neighbor signals',
+    'merchant/department hints',
+    'positive evidence',
+    'negative evidence',
+    'must not silently confirm an item or hide realistic alternate trades',
+    'Teachable Correction Memory',
+    'Barcode Evidence',
+    'Barcode and receipt disagreement requires review',
+    'Retailer database scraping is forbidden',
+    'Real Private Receipt Validation',
+    'Serious-Team Additions',
+    'Release 1 should not be treated as throwaway or knowingly subpar',
+    'Store-independence proof',
+    'Release Gate Suite Mapping',
+    'inventory.merchant_independence_contract',
+    'inventory.fixture_corpus_contract',
+    'inventory.fixture_expectation_contract',
+    'inventory.real_receipt_validation_contract',
+    'inventory.parser_platform_contract',
+    'inventory.portability_contract',
+    'inventory.barcode_inventory_identity_contract',
+    'inventory.human_correction_learning_contract',
+    'inventory.confidence_calibration',
+    'inventory.review_safety_contract',
+    'surgical rerun route',
+    'QA harness completion is not the same thing as catalog completion',
+    'inventory catalog expansion still continues in controlled batches',
+    'After QA hardening is complete, inventory catalog growth still continues',
+    'Next Implementation Order',
+  };
+
+  @override
+  Future<QaSuiteResult> run(QaContext context) async {
+    final timer = QaStopwatch.start();
+    final failures = <QaFailure>[];
+    final file = File(_scorecardPath);
+    final source = file.existsSync() ? file.readAsStringSync() : '';
+    final normalizedSource = _normalizeContractText(source);
+
+    if (!file.existsSync()) {
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_release_one_scorecard',
+          message: 'Release 1 parser acceptance scorecard is missing.',
+          severity: QaSeverity.error,
+          expected: _scorecardPath,
+          actual: 'not found',
+          suggestedFix:
+              'Restore the scorecard so release-one parser gates stay measurable.',
+          metadata: const {'triageCategory': QaFailureTriage.governance},
+        ),
+      );
+    }
+
+    for (final token in _requiredTokens) {
+      if (normalizedSource.contains(_normalizeContractText(token))) continue;
+      failures.add(
+        QaFailure(
+          suite: name,
+          id: 'missing_release_one_scorecard_token:${_safeId(token)}',
+          message: 'Release 1 parser scorecard is missing required coverage.',
+          severity: QaSeverity.error,
+          expected: token,
+          actual: 'not found',
+          suggestedFix:
+              'Keep the release-one scorecard aligned with parser accuracy, review-safety, merchant-agnostic, sync, correction, barcode, and portability requirements.',
+          metadata: const {'triageCategory': QaFailureTriage.governance},
+        ),
+      );
+    }
+
+    return timer.finish(
+      suite: name,
+      checked: _requiredTokens.length + 1,
+      failures: failures,
+      maxFailures: context.maxFailuresPerSuite,
+      metrics: {
+        'scorecardPath': _scorecardPath,
+        'requiredTokens': _requiredTokens.length,
+        'contract':
+            'Release-one parser readiness must be measurable across top trades, locales, merchant-agnostic fixtures, review workflow, local/Firebase sync, portability, correction learning, barcode evidence, and private receipt validation.',
+      },
+    );
+  }
+}
+
+String _normalizeContractText(String value) {
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
+String _safeId(String value) {
+  return value
+      .toLowerCase()
+      .replaceAll(RegExp('[^a-z0-9]+'), '_')
+      .replaceAll(RegExp('^_+|_+\$'), '');
+}

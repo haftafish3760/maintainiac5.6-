@@ -188,6 +188,23 @@ String normalizeWorkSupplyBarcode(String value) {
   return value.trim().replaceAll(RegExp(r'[\s-]+'), '').toUpperCase();
 }
 
+Map<String, String> trustedWorkSupplyItemIdentityIdsFromAliases(
+  Iterable<WorkSupplyPackageAlias> aliases,
+) {
+  final trustedIds = <String, String>{};
+  for (final alias in aliases) {
+    final itemId = alias.itemId.trim();
+    if (itemId.isEmpty) continue;
+    final barcodeValue = alias.barcodeValue.trim();
+    final barcodeNormalized = normalizeWorkSupplyBarcode(
+      alias.barcodeNormalized.ifBlank(alias.barcodeValue),
+    );
+    if (barcodeValue.isNotEmpty) trustedIds[barcodeValue] = itemId;
+    if (barcodeNormalized.isNotEmpty) trustedIds[barcodeNormalized] = itemId;
+  }
+  return trustedIds;
+}
+
 Map<String, Object?> _aliasToMap(WorkSupplyPackageAlias alias) {
   return {
     'id': alias.id,

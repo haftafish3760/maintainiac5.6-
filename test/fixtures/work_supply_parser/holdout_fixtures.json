@@ -1,0 +1,173 @@
+[
+  {
+    "id": "holdout_clear_pvc_coupling_hd",
+    "caseType": "clear_match",
+    "sourceType": "synthetic",
+    "sourceOwner": "Maintainiac parser QA",
+    "reviewDate": "2026-07-04",
+    "expectedAnswerConfidence": 0.94,
+    "regressionHistory": [
+      "initial_holdout_seed"
+    ],
+    "trade": "plumbing",
+    "merchant": "Home Depot",
+    "riskTags": [
+      "holdout",
+      "merchant_abbreviation",
+      "pvc",
+      "size"
+    ],
+    "rawLine": "HD 1 PVC SCH40 CPLG",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "PVC Schedule 40 Coupling",
+    "tradeScope": "Plumbing",
+    "holdoutOnly": true,
+    "expectedStatus": "matched",
+    "expectedTopCandidateId": "pvc_schedule_40_coupling",
+    "expectedReviewRequired": false,
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "holdout_clear_pex_tee_lowes",
+    "caseType": "clear_match",
+    "sourceType": "synthetic",
+    "sourceOwner": "Maintainiac parser QA",
+    "reviewDate": "2026-07-04",
+    "expectedAnswerConfidence": 0.94,
+    "regressionHistory": [
+      "initial_holdout_seed"
+    ],
+    "trade": "plumbing",
+    "merchant": "Lowes",
+    "riskTags": [
+      "holdout",
+      "merchant_abbreviation",
+      "connection_type"
+    ],
+    "rawLine": "LOWES 3/4 PEX CRMP TEE",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "PEX Tee",
+    "tradeScope": "Plumbing",
+    "holdoutOnly": true,
+    "expectedStatus": "matched",
+    "expectedTopCandidateId": "pex_tee",
+    "expectedReviewRequired": false,
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "holdout_ambiguous_pvc_conduit",
+    "caseType": "ambiguous_review",
+    "sourceType": "synthetic",
+    "sourceOwner": "Maintainiac parser QA",
+    "reviewDate": "2026-07-04",
+    "expectedAnswerConfidence": 0.9,
+    "regressionHistory": [
+      "initial_holdout_seed"
+    ],
+    "trade": "mixed",
+    "merchant": "unknown",
+    "riskTags": [
+      "holdout",
+      "pvc",
+      "cross_trade",
+      "missing_trade_context"
+    ],
+    "rawLine": "PVC COND 3/4",
+    "expectUnknown": true,
+    "maxConfidence": 0.81,
+    "holdoutOnly": true,
+    "expectedStatus": "needsReview",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "unknown",
+    "expectedConfidenceBand": "review"
+  },
+  {
+    "id": "holdout_noise_payment",
+    "caseType": "receipt_noise",
+    "sourceType": "synthetic",
+    "sourceOwner": "Maintainiac parser QA",
+    "reviewDate": "2026-07-04",
+    "expectedAnswerConfidence": 0.99,
+    "regressionHistory": [
+      "initial_holdout_seed"
+    ],
+    "trade": "none",
+    "merchant": "unknown",
+    "riskTags": [
+      "holdout",
+      "privacy",
+      "noise_line",
+      "payment"
+    ],
+    "rawLine": "CARD APPROVED SYNTHETIC",
+    "expectUnknown": true,
+    "maxConfidence": 0.2,
+    "holdoutOnly": true,
+    "expectedStatus": "unknown",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "unknown",
+    "expectedConfidenceBand": "low"
+  },
+  {
+    "id": "holdout_spanish_pex_elbow",
+    "caseType": "clear_match",
+    "sourceType": "synthetic",
+    "sourceOwner": "Maintainiac parser QA",
+    "reviewDate": "2026-07-04",
+    "expectedAnswerConfidence": 0.9,
+    "regressionHistory": [
+      "initial_holdout_seed"
+    ],
+    "trade": "plumbing",
+    "merchant": "unknown",
+    "riskTags": [
+      "holdout",
+      "spanish",
+      "locale_pack",
+      "connection_type"
+    ],
+    "rawLine": "3/4 CODO PEX 90",
+    "expectedTrade": "Plumbing",
+    "expectedNameContains": "PEX",
+    "tradeScope": "Plumbing",
+    "localePackId": "es-US",
+    "holdoutOnly": true,
+    "expectedStatus": "matched",
+    "expectedTopCandidateId": "pex",
+    "expectedReviewRequired": false,
+    "expectedCandidateTrade": "plumbing",
+    "expectedConfidenceBand": "high"
+  },
+  {
+    "id": "holdout_canadian_tax_noise",
+    "caseType": "receipt_noise",
+    "sourceType": "synthetic",
+    "sourceOwner": "Maintainiac parser QA",
+    "reviewDate": "2026-07-04",
+    "expectedAnswerConfidence": 0.99,
+    "regressionHistory": [
+      "initial_holdout_seed"
+    ],
+    "trade": "none",
+    "merchant": "Home Depot",
+    "riskTags": [
+      "holdout",
+      "canadian_format",
+      "noise_line",
+      "tax"
+    ],
+    "rawLine": "HOME DEPOT CA GST HST SYNTHETIC",
+    "expectUnknown": true,
+    "maxConfidence": 0.2,
+    "holdoutOnly": true,
+    "expectedStatus": "unknown",
+    "expectedTopCandidateId": "unknown",
+    "expectedReviewRequired": true,
+    "expectedCandidateTrade": "unknown",
+    "expectedConfidenceBand": "low"
+  }
+]

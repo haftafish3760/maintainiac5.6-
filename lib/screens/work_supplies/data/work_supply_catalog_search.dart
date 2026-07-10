@@ -1,5 +1,18 @@
 part of 'work_supply_catalog.dart';
 
+typedef _CatalogSearchEntry = ({WorkSupplyItem item, String normalizedText});
+
+final List<_CatalogSearchEntry> _catalogSearchEntries = [
+  for (final catalogItem in workSupplyCatalogItems)
+    (
+      item: catalogItem,
+      normalizedText: _normalizedSearchText(catalogItem.searchableText),
+    ),
+];
+
+final Map<String, List<_CatalogSearchEntry>> catalogSearchIndex =
+    _buildCatalogSearchIndex(_catalogSearchEntries);
+
 List<WorkSupplyItem> searchWorkSupplies(String query) {
   final tokens = query
       .toLowerCase()
@@ -8,19 +21,39 @@ List<WorkSupplyItem> searchWorkSupplies(String query) {
       .where((token) => token.isNotEmpty && !_ignoredSearchToken(token))
       .toList();
   if (tokens.isEmpty) return workSupplyCatalogItems.take(25).toList();
+  final candidatesById = <String, _CatalogSearchEntry>{};
+  final candidateScores = <String, int>{};
+  Set<String>? requiredCandidateIds;
+  for (final token in tokens) {
+    final tokenCandidateIds = <String>{};
+    for (final alternate in _tokenAlternates(token)) {
+      final entries = catalogSearchIndex[alternate];
+      if (entries == null) continue;
+      for (final entry in entries) {
+        final id = entry.item.id;
+        candidatesById[id] = entry;
+        tokenCandidateIds.add(id);
+      }
+    }
+    if (tokenCandidateIds.isEmpty) return const [];
+    requiredCandidateIds = requiredCandidateIds == null
+        ? tokenCandidateIds
+        : (requiredCandidateIds..retainAll(tokenCandidateIds));
+    if (requiredCandidateIds.isEmpty) return const [];
+    for (final id in tokenCandidateIds) {
+      candidateScores.update(id, (score) => score + 1, ifAbsent: () => 1);
+    }
+  }
   final scored = <({WorkSupplyItem item, int score})>[];
-  for (final item in workSupplyCatalogItems) {
-    final haystack = _normalizedSearchText(item.searchableText);
-    var score = 0;
-    for (final token in tokens) {
-      if (_tokenAlternates(token).any(haystack.contains)) score++;
-    }
-    if (score == tokens.length) {
-      if (_wantsHalfInch(tokens) && item.variant == '1/2 in') score += 10;
-      if (_wantsThreeQuarter(tokens) && item.variant == '3/4 in') score += 10;
-      if (_wantsQuarter(tokens) && item.variant == '1/4 in') score += 10;
-      scored.add((item: item, score: score));
-    }
+  for (final id in requiredCandidateIds ?? const <String>{}) {
+    final entry = candidatesById[id];
+    if (entry == null) continue;
+    final item = entry.item;
+    var score = candidateScores[id] ?? 0;
+    if (_wantsHalfInch(tokens) && item.variant == '1/2 in') score += 10;
+    if (_wantsThreeQuarter(tokens) && item.variant == '3/4 in') score += 10;
+    if (_wantsQuarter(tokens) && item.variant == '1/4 in') score += 10;
+    scored.add((item: item, score: score));
   }
   scored.sort((a, b) {
     final score = b.score.compareTo(a.score);
@@ -31,6 +64,31 @@ List<WorkSupplyItem> searchWorkSupplies(String query) {
     return a.item.name.compareTo(b.item.name);
   });
   return scored.map((entry) => entry.item).take(100).toList();
+}
+
+Map<String, List<_CatalogSearchEntry>> _buildCatalogSearchIndex(
+  List<_CatalogSearchEntry> entries,
+) {
+  final index = <String, List<_CatalogSearchEntry>>{};
+  for (final entry in entries) {
+    final tokens = entry.normalizedText
+        .split(RegExp(r'\s+'))
+        .where((token) => token.isNotEmpty && !_ignoredSearchToken(token));
+    for (final token in tokens) {
+      for (final indexedToken in _indexableSearchTokens(token)) {
+        index.putIfAbsent(indexedToken, () => []).add(entry);
+      }
+    }
+  }
+  return index;
+}
+
+Iterable<String> _indexableSearchTokens(String token) sync* {
+  yield token;
+  if (token.length < 3 || token.contains('/') || token.contains('-')) return;
+  for (var length = 3; length < token.length; length++) {
+    yield token.substring(0, length);
+  }
 }
 
 bool _isExpandedCatalogItem(WorkSupplyItem item) {

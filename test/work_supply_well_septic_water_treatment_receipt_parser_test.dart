@@ -90,6 +90,55 @@ void main() {
     expect(uv.item.name, contains('25W UV Lamp'));
   });
 
+  test('plumbing parser understands residential softener service stock', () {
+    final salt = matchReceiptLineToCatalog(
+      '40LB WATER SOFTENER SALT PELLETS',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(salt, isNotNull);
+    expect(salt!.item.trade, 'Plumbing');
+    expect(salt.item.name, contains('water softener salt pellets'));
+
+    final brineValve = matchReceiptLineToCatalog(
+      '48K WATER SOFTENER BRINE VALVE',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(brineValve, isNotNull);
+    expect(brineValve!.item.trade, 'Plumbing');
+    expect(brineValve.item.name, contains('water softener brine valve'));
+
+    final resin = matchReceiptLineToCatalog(
+      '1 CU FT CATION SOFTENER RESIN BAG',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(resin, isNotNull);
+    expect(resin!.item.trade, 'Plumbing');
+    expect(resin.item.name, contains('softener resin bag'));
+  });
+
+  test('plumbing parser understands RO and UV treatment repair stock', () {
+    final roMembrane = matchReceiptLineToCatalog(
+      '75 GPD REVERSE OSMOSIS MEMBRANE',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(roMembrane, isNotNull);
+    expect(roMembrane!.item.trade, 'Plumbing');
+    expect(roMembrane.item.name, contains('reverse osmosis membrane'));
+
+    final uvSleeve = matchReceiptLineToCatalog(
+      '25W UV QUARTZ SLEEVE',
+      tradeScope: 'Plumbing',
+      maxCandidates: 220,
+    );
+    expect(uvSleeve, isNotNull);
+    expect(uvSleeve!.item.trade, 'Plumbing');
+    expect(uvSleeve.item.name, contains('uv quartz sleeve'));
+  });
+
   test('well septic parser understands septic and water testing', () {
     final riser = matchReceiptLineToCatalog(
       '24IN X 12IN SEPTIC TANK RISER',

@@ -68,7 +68,7 @@ void main() {
       _expectTradeMatch(
         'WATER HEATER T&P RELIEF VALVE',
         'Plumbing',
-        containsName: ['Temperature and Pressure Relief Valve'],
+        containsName: ['T and P relief valve', 'Water Heater Repair Part'],
       );
       _expectTradeMatch(
         'CONDENSATE PUMP TUBING',

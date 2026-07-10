@@ -5,7 +5,12 @@ final plumbingFittingsPexSystem = _system('PEX', [
     '90 Elbows',
     _variants('PEX 90 Elbow', 'each', _supplySizes, [
       'pex 90',
+      'pex ell',
+      'pex elb',
+      'pex 90d',
       'crimp elbow',
+      'crimp ell',
+      'crimp elb',
       'elbow',
     ]),
   ),

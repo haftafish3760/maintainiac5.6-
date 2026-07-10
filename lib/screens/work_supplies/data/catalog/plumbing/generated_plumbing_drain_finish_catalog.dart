@@ -30,6 +30,7 @@ final plumbingDrainFinishServiceCategory = _category(
             'basket strainer',
             'sink strainer',
             'sink drain',
+            'sink repair kit',
             'disposal flange',
             'drain stopper',
           ],
