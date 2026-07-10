@@ -501,14 +501,17 @@ This runbook is the plain-English companion to:
    and confirm the remaining gap, blockers, and execution commit match the
    packet you plan to follow.
 9. If the Windows execution commit advanced and the packet/script pair needs
-   to be refreshed together, run
-   `dart run tool/work_supply_parser_qa_peh_core_restamp_handoff.dart --root .`
+   to be refreshed together, prefer
+   `dart run tool/work_supply_parser_qa_finalize_live_handoff.dart --root . --branch $branch --commit $commit --commit-full <full sha> --label "<validated floor label>" --updated-at "YYYY-MM-DD HH:MM EDT"`
    before handing the wave back to the Mac Mini.
-10. After the Mac Mini copies its rollups back to Windows, run
+10. If you need only the packet/script restamp without the reusable sync and
+    summary wrapper, run
+    `dart run tool/work_supply_parser_qa_peh_core_restamp_handoff.dart --root .`.
+11. After the Mac Mini copies its rollups back to Windows, run
     `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .`
     so the PEH refresh, reusable checkpoint, reusable status, and reusable
     summary all move together instead of being refreshed piecemeal.
-11. Treat the following locally modified docs as normal immediately after a
+12. Treat the following locally modified docs as normal immediately after a
     Windows-side sync/restamp unless another signal says otherwise:
     - `docs/reusable_parsing_qa_checkpoint.json`
     - `docs/reusable_parsing_qa_checkpoint.md`
@@ -599,6 +602,15 @@ That state is expected when the live execution checkpoint moved forward and the
 local branch has refreshed the handoff packet/checkpoint for the Mac Mini. The
 machine-readable confirmation is `expectedLocalDocsRefreshDirty: true` in
 `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`.
+
+The preferred one-command Windows-side checkpoint refresh is
+`dart run tool/work_supply_parser_qa_finalize_live_handoff.dart ...`. It emits
+`QA_PARSER_LIVE_HANDOFF_FINALIZE` with `restampExit`, `syncExit`,
+`summaryExit`, `handoffClean`, `windowsExecutionCommit`,
+`packetExecutionHeadAligned`, `scriptExecutionHeadAligned`,
+`expectedLocalDocsRefreshDirty`, `localModifiedFiles`,
+`measurementCommandCount`, and `rollupCommandCount` so the Mac handoff can be
+validated from one readout instead of piecing together separate commands.
 ''';
 }
 

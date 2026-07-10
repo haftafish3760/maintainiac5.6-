@@ -3,7 +3,7 @@
   "report": "reusable_parsing_qa_handoff_checkpoint",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "windowsExecutionCommit": "d7ef999",
+  "windowsExecutionCommit": "6e7cf23",
   "validatedFloorCommit": "8e9771d",
   "validatedFloorLabel": "Reusable parsing QA 2026-07-09 09:20 PM EDT: relax stale packet assertion",
   "readyForMacMeasurementWave": true,
@@ -19,6 +19,25 @@
     "docs/reusable_parsing_qa_checkpoint.md",
     "docs/reusable_parsing_qa_mac_handoff_packet.json"
   ],
+  "firstMacMeasurementCommand": [
+    "dart",
+    "run",
+    "tool/work_supply_parser_qa_run_generated_fixtures.dart",
+    "--fixture",
+    "build/parser_qa_generated/work_supply_parser/hvac/residential/core/en-US/generated_fixtures.json",
+    "--max-cases",
+    "25",
+    "--chunk-size",
+    "25",
+    "--min-pass-rate",
+    "0.90",
+    "--timeout-ms",
+    "900000",
+    "--stale-report-timeout-ms",
+    "240000",
+    "--report-dir",
+    "build/parser_qa_pipeline/mac_peh_core_measurement_25/hvac/residential/core/en-US/reports"
+  ],
   "windowsNextActions": [
     "Keep Windows ownership on inventory-specific Work Supplies parser/code hardening.",
     "Do not claim 90-95 percent PEH readiness until the Mac wave closes the remaining measured gaps.",
@@ -29,5 +48,5 @@
     "Prioritize hvac because they still have measured coverage gaps.",
     "After the heavier run finishes, execute `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .` to rebuild the PEH and reusable handoff artifacts together."
   ],
-  "generatedAtEdt": "2026-07-09 11:58 PM EDT"
+  "generatedAtEdt": "2026-07-09 11:16 PM EDT"
 }

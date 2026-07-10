@@ -1,10 +1,10 @@
 # Reusable Parsing QA Checkpoint
 
-Last updated: 2026-07-09 11:58 PM EDT
+Last updated: 2026-07-09 11:16 PM EDT
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Windows execution commit: `d7ef999`
+- Windows execution commit: `6e7cf23`
 - Validated floor commit: `8e9771d`
 - Ready for Mac measurement wave: `true`
 - Ready to claim 90-95 percent: `false`
@@ -22,6 +22,10 @@ Last updated: 2026-07-09 11:58 PM EDT
 - Run the Mac PEH measurement wave commands from the packet on branch codex/reusable-parsing-qa-foundation.
 - Prioritize hvac because they still have measured coverage gaps.
 - After the heavier run finishes, execute `dart run tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart --root .` to rebuild the PEH and reusable handoff artifacts together.
+
+## First Mac Measurement Command
+
+`dart run tool/work_supply_parser_qa_run_generated_fixtures.dart --fixture build/parser_qa_generated/work_supply_parser/hvac/residential/core/en-US/generated_fixtures.json --max-cases 25 --chunk-size 25 --min-pass-rate 0.90 --timeout-ms 900000 --stale-report-timeout-ms 240000 --report-dir build/parser_qa_pipeline/mac_peh_core_measurement_25/hvac/residential/core/en-US/reports`
 
 ## Expected Local Windows Refresh State
 

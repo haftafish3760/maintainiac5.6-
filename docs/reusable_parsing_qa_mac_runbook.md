@@ -1,6 +1,6 @@
 # Reusable Parsing QA Mac Mini Runbook
 
-Last updated: 2026-07-09 11:58 PM EDT
+Last updated: 2026-07-09 11:16 PM EDT
 
 This runbook is the plain-English companion to:
 
