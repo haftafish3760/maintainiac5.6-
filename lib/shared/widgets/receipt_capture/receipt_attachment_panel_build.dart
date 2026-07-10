@@ -66,6 +66,9 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
             message: _receiptReadStatusMessage,
             progressPhase: _receiptReadProgressPhase,
             uiConfig: widget.uiConfig,
+            onRetry: _hasAttachment && !_readingForReview
+                ? () => unawaited(reviewReceiptPhotos())
+                : null,
           ),
         ],
         if (_hasAttachment) ...[

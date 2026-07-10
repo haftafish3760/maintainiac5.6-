@@ -11,6 +11,7 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
     required this.message,
     required this.progressPhase,
     required this.uiConfig,
+    this.onRetry,
   });
 
   final bool reading;
@@ -18,6 +19,7 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
   final String message;
   final _ReceiptReadProgressPhase progressPhase;
   final ReceiptCaptureUiConfig uiConfig;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +135,28 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
                   _ReceiptReadProgressSteps(
                     phase: progressPhase,
                     uiConfig: uiConfig,
+                  ),
+                ],
+                if (effectiveStatus == _ReceiptReadStatusKind.failed &&
+                    onRetry != null) ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.replay_rounded, size: 18),
+                    label: Text(
+                      uiConfig.readStatusLabel(
+                        'retryAction',
+                        'Review Photos And Retry',
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFE8ECEE),
+                      side: BorderSide(color: accent),
+                      minimumSize: const Size.fromHeight(40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
                   ),
                 ],
               ],

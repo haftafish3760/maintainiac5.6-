@@ -16,5 +16,8 @@ void main() {
     expect(status, contains("'defaultMessage'"));
     expect(status, contains("'\${statusKey}Title'"));
     expect(status, contains("'\${statusKey}RecoveryHint'"));
+    expect(status, contains("'retryAction'"));
+    expect(status, contains("'Review Photos And Retry'"));
+    expect(status, contains('onPressed: onRetry'));
   });
 }
