@@ -20,6 +20,9 @@ This runbook is the plain-English companion to:
    Windows-next versus Mac-next checkpoint from live PEH evidence.
 6. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
+7. On the Windows execution branch, run
+   `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
+   and require `parityOk: true` before trusting the live PEH Mac packet.
 
 ## What Windows Already Finished
 

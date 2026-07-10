@@ -18,6 +18,7 @@ Open these in order:
 3. `docs/reusable_parsing_qa_checkpoint.md`
 4. `docs/reusable_parsing_qa_mac_runbook.md`
 5. `docs/reusable_parsing_qa_mac_handoff_packet.json`
+6. `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
 
 What this means:
 
@@ -26,6 +27,8 @@ What this means:
 - The checkpoint file is the current Windows-next versus Mac-next state.
 - The runbook is the plain-English execution sequence.
 - The packet is the machine-readable source of exact Mac-side commands.
+- The handoff status command is the machine-checkable summary of doc alignment,
+  and on the Windows execution branch it also enforces PEH packet parity.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.

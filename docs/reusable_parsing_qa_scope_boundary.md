@@ -19,6 +19,7 @@ consumed by the Mac Mini lane without rebuilding them from scratch:
 - `test/support/qa_harness/`
 - `tool/reusable_parsing_qa_handoff_refresh.dart`
 - `tool/reusable_parsing_qa_handoff_status.dart`
+- `tool/reusable_parsing_qa_handoff_parity.dart`
 - `docs/reusable_parsing_qa_handoff_index.md`
 - `docs/reusable_parsing_qa_handoff_marker.md`
 - `docs/reusable_parsing_qa_scope_boundary.md`
