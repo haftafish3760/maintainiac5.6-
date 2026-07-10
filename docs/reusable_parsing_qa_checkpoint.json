@@ -3,8 +3,8 @@
   "report": "reusable_parsing_qa_handoff_checkpoint",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "validatedFloorCommit": "fc219cc",
-  "validatedFloorLabel": "Reusable parsing QA 2026-07-09 20:46 EDT: refresh validated floor for Mac handoff",
+  "validatedFloorCommit": "322a388",
+  "validatedFloorLabel": "Reusable parsing QA 2026-07-09 09:01 PM EDT: register handoff parity coverage",
   "readyForMacMeasurementWave": true,
   "readyToClaimNinetyPlus": false,
   "nextTradesByRemainingGap": [
@@ -23,5 +23,5 @@
     "Prioritize hvac because they still have measured coverage gaps.",
     "Refresh Mac wave status, merged rollup, and PEH claim readiness artifacts after the heavier run finishes."
   ],
-  "generatedAtEdt": "2026-07-09 20:46 EDT"
+  "generatedAtEdt": "2026-07-09 21:06 EDT"
 }

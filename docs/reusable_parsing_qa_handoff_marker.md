@@ -1,6 +1,6 @@
 # Reusable Parsing QA Handoff Marker
 
-Last updated: 2026-07-09 20:46 EDT
+Last updated: 2026-07-09 21:06 EDT
 
 Purpose: prevent duplicate work between the Windows parser/QA lane and the Mac
 Mini lane.
@@ -9,13 +9,13 @@ Mini lane.
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Current Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Validated floor commit: `fc219cc`
+- Validated floor commit: `322a388`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 20:46 EDT: refresh validated floor for Mac handoff`
+  `Reusable parsing QA 2026-07-09 09:01 PM EDT: register handoff parity coverage`
 
 The Mac Mini side should start from branch `codex/reusable-parsing-qa-foundation`.
 Treat the branch tip as authoritative.
-Treat commit `fc219cc` as the last Windows-validated floor, not as a promise
+Treat commit `322a388` as the last Windows-validated floor, not as a promise
 that the handoff docs already describe their own just-created commit.
 
 Companion machine-readable packet:
@@ -109,6 +109,6 @@ Until a later handoff says otherwise, the Windows lane still owns:
 ## Mac Mini Safe Starting Instruction
 
 Start from branch `codex/reusable-parsing-qa-foundation`, confirm it is at or after validated floor commit
-`fc219cc`, read this marker first, then continue only with heavier validation,
+`322a388`, read this marker first, then continue only with heavier validation,
 broader reusable parsing-core extraction, or new parser-domain consumers that
 are not already listed as Windows-complete above.
