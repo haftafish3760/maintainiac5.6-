@@ -222,7 +222,7 @@ String? _fuelTypeSignalFor(String text) {
     return 'CNG';
   }
   if (RegExp(
-    r'\b(propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?|autogas|auto\s+gas|hd[-\s]?5)\b',
+    r'\b(propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?|liquefied\s+petroleum\s+gas|autogas|auto\s+gas|hd[-\s]?5)\b',
   ).hasMatch(text)) {
     return 'Propane';
   }

@@ -347,6 +347,13 @@ const _products = [
     basePrice: 2.669,
   ),
   _FuelSyntheticProduct(
+    label: 'LIQUEFIED PETROLEUM GAS',
+    spanishLabel: 'Gas LP',
+    fuelType: 'Propane',
+    unit: 'gallon',
+    basePrice: 2.679,
+  ),
+  _FuelSyntheticProduct(
     label: 'HD-5',
     spanishLabel: 'HD-5 Propano',
     fuelType: 'Propane',
