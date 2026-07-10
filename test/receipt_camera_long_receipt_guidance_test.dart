@@ -107,6 +107,10 @@ void main() {
     expect(sources.reviewActions, contains('fromPhoneCameraBackupPaths'));
     expect(
       sources.reviewActions,
+      contains('_normalizedBackupPreviousSectionReason'),
+    );
+    expect(
+      sources.reviewActions,
       contains('phone_camera_backup_receipt_photo'),
     );
     expect(

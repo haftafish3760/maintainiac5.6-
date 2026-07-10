@@ -78,9 +78,9 @@ class _PickedReceiptPhotos {
     ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
   }) {
     final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
-    final normalizedReasonCode = _trimmedBackupPreviousSectionValue(
+    final normalizedReasonCode = _normalizedBackupPreviousSectionReason(
       previousSectionReasonCode,
-    )?.toLowerCase();
+    );
     final guidance =
         _trimmedBackupPreviousSectionValue(previousSectionGuidance) ??
         previousSectionCoverageDecision?.guidance;
@@ -198,6 +198,17 @@ String? _trimmedBackupPreviousSectionValue(String? value) {
   final trimmed = value?.trim();
   if (trimmed == null || trimmed.isEmpty) return null;
   return trimmed;
+}
+
+String? _normalizedBackupPreviousSectionReason(String? value) {
+  final trimmed = _trimmedBackupPreviousSectionValue(value);
+  if (trimmed == null) return null;
+  final normalized = trimmed
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  return normalized.isEmpty ? null : normalized;
 }
 
 String? _phoneCameraBackupGhostGuidePolicy(String? reasonCode) {
