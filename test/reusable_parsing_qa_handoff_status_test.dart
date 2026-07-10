@@ -271,6 +271,58 @@ void main() {
     expect(payload['scriptExecutionHeadAligned'], isTrue);
   });
 
+  test('handoff status accepts reusable handoff docs-only drift from execution head', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_reusable_handoff_status_reusable_docs_only_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+
+    _writeHandoffFixture(
+      root,
+      branch: 'codex/reusable-parsing-qa-foundation',
+      validatedFloorCommit: 'abc1234',
+      validatedFloorLabel:
+          'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
+      currentBranchOverride: 'codex/inventory-parser-backup-20260702-2056',
+    );
+
+    final checkpointJson = File(
+      '${root.path}/docs/reusable_parsing_qa_checkpoint.json',
+    );
+    checkpointJson.writeAsStringSync('${checkpointJson.readAsStringSync()}\n');
+    final packetJson = File(
+      '${root.path}/docs/reusable_parsing_qa_mac_handoff_packet.json',
+    );
+    packetJson.writeAsStringSync('${packetJson.readAsStringSync()}\n');
+    final checkpointMd = File(
+      '${root.path}/docs/reusable_parsing_qa_checkpoint.md',
+    );
+    checkpointMd.writeAsStringSync('${checkpointMd.readAsStringSync()}\n');
+
+    Process.runSync('git', ['add', '.'], workingDirectory: root.path);
+    Process.runSync(
+      'git',
+      ['commit', '-m', 'reusable docs-only handoff refresh'],
+      workingDirectory: root.path,
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runReusableParsingQaHandoffStatus(
+      ['--root', root.path],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 0);
+    expect(stderr.content, isEmpty);
+
+    final payload = _extractJsonPayload(stdout.content);
+    expect(payload['parityApplicable'], isTrue);
+    expect(payload['packetExecutionHeadAligned'], isTrue);
+    expect(payload['scriptExecutionHeadAligned'], isTrue);
+  });
+
   test('handoff status reports expected local refreshed-doc drift explicitly', () {
     final root = Directory.systemTemp.createTempSync(
       'maintainiac_reusable_handoff_status_local_docs_',

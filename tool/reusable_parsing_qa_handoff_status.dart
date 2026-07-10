@@ -335,7 +335,18 @@ bool _isDocsOnlyHandoffDrift(
   final tradeHandoffPattern = RegExp(
     r'^docs/inventory_parser_(plumbing|electrical|hvac)_core_mac_handoff\.md$',
   );
-  return files.every(tradeHandoffPattern.hasMatch);
+  const reusableHandoffDocs = {
+    'docs/reusable_parsing_qa_checkpoint.json',
+    'docs/reusable_parsing_qa_checkpoint.md',
+    'docs/reusable_parsing_qa_handoff_index.md',
+    'docs/reusable_parsing_qa_handoff_marker.md',
+    'docs/reusable_parsing_qa_mac_handoff_packet.json',
+    'docs/reusable_parsing_qa_mac_runbook.md',
+    'docs/reusable_parsing_qa_scope_boundary.md',
+  };
+  return files.every(
+    (file) => tradeHandoffPattern.hasMatch(file) || reusableHandoffDocs.contains(file),
+  );
 }
 
 String? _gitValue(List<String> command, String root) {
