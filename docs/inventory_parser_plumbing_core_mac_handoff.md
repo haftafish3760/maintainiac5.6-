@@ -1,6 +1,6 @@
 # Plumbing Core Mac Validation Handoff
 
-Generated: 2026-07-09 11:55 EDT
+Generated: 2026-07-09 22:58 EDT
 
 ## Scope
 
@@ -12,9 +12,18 @@ unrelated modules while following this handoff.
 
 - Repository: `https://github.com/haftafish3760/maintainiac5.6-.git`
 - Branch: `codex/inventory-parser-backup-20260702-2056`
-- Commit: `5275746`
+- Commit: `9d7b22f`
 - Commit label:
-  `QA testing 2026-07-09 14:51 EDT: add PEH core status checkpoint rollup`
+  `Reusable parsing QA 2026-07-09 10:58 PM EDT: sync refreshed handoff templates to docs`
+
+Cross-check the live reusable handoff packet before running anything on Mac:
+
+- `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+- expected:
+  - `handoffClean=true`
+  - `windowsExecutionCommit=9d7b22f`
+  - `totalRemainingChecked=38`
+  - `nextTradesByRemainingGap=["hvac"]`
 
 ## Windows Evidence Already Completed
 
@@ -70,7 +79,7 @@ still worth validating on Mac:
 
 ## Mac Validation Commands
 
-Run from the repo root on the Mac after checking out commit `5275746`.
+Run from the repo root on the Mac after checking out commit `9d7b22f`.
 
 ```bash
 dart format --set-exit-if-changed \
