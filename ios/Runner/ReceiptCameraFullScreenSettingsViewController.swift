@@ -95,6 +95,19 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
       camera.setReceiptReviewStyle("detailedLines")
       self?.reloadContent()
     })
+    content.addArrangedSubview(section("SAVED PROOF SIZE"))
+    for (value, label) in [
+      ("original", "Keep original locally"),
+      ("light", "High quality"),
+      ("balanced", "Balanced"),
+      ("strong", "Save storage"),
+      ("maximum", "Maximum savings"),
+    ] {
+      content.addArrangedSubview(action("Saved proof: \(label)", selected: camera.dataSaverLevel == value) { [weak self] in
+        camera.setDataSaverLevel(value)
+        self?.reloadContent()
+      })
+    }
     content.addArrangedSubview(action("Reset receipt camera defaults", selected: false) { [weak self] in
       camera.resetReceiptCameraDefaults()
       self?.reloadContent()

@@ -19,5 +19,8 @@ void main() {
     expect(route, contains('final class ReceiptCameraFullScreenSettingsViewController'));
     expect(route, contains('view.safeAreaLayoutGuide'));
     expect(route, contains('Help fill receipt details'));
+    expect(route, contains('SAVED PROOF SIZE'));
+    expect(route, contains('Keep original locally'));
+    expect(route, contains('Maximum savings'));
   });
 }
