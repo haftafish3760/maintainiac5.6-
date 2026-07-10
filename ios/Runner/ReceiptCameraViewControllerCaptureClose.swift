@@ -180,7 +180,6 @@ extension ReceiptCameraViewController {
     } else {
       title = "Done (\(capturedPhotoPaths.count) photos)"
     }
-    doneButton.setTitle(title, for: .normal)
     addPhotoButton.isHidden =
       capturedPhotoPaths.isEmpty || !longReceiptMode || capturedPhotoPaths.count >= maxSectionCount
     addPhotoButton.isEnabled = !addPhotoButton.isHidden

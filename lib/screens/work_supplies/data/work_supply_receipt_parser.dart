@@ -11,6 +11,19 @@ part 'work_supply_receipt_parser_trade_scores.dart';
 part 'work_supply_receipt_parser_confidence_engine.dart';
 part 'work_supply_receipt_parser_trade_scores_appliances.dart';
 part 'work_supply_receipt_parser_trade_scores_core.dart';
+part 'work_supply_receipt_parser_trade_scores_drywall.dart';
+part 'work_supply_receipt_parser_trade_scores_painting.dart';
+part 'work_supply_receipt_parser_trade_scores_roofing.dart';
+part 'work_supply_receipt_parser_trade_scores_tile.dart';
+part 'work_supply_receipt_parser_trade_scores_tile_waterproofing.dart';
+part 'work_supply_receipt_parser_trade_scores_tile_tools.dart';
+part 'work_supply_receipt_parser_trade_scores_flooring.dart';
+part 'work_supply_receipt_parser_trade_scores_insulation.dart';
+part 'work_supply_receipt_parser_trade_scores_siding_exterior.dart';
+part 'work_supply_receipt_parser_trade_scores_fencing.dart';
+part 'work_supply_receipt_parser_trade_scores_masonry_concrete.dart';
+part 'work_supply_receipt_parser_trade_scores_landscaping.dart';
+part 'work_supply_receipt_parser_trade_scores_tools_safety.dart';
 part 'work_supply_receipt_parser_trade_scores_finishes.dart';
 part 'work_supply_receipt_parser_trade_scores_exterior.dart';
 part 'work_supply_receipt_parser_trade_scores_garage.dart';
@@ -206,7 +219,10 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isScopedPlumbingDangerousElbowReviewLine(normalized, tradeScope)) {
     return null;
   }
-  if (_isScopedPlumbingDangerousGenericAdapterReviewLine(normalized, tradeScope)) {
+  if (_isScopedPlumbingDangerousGenericAdapterReviewLine(
+    normalized,
+    tradeScope,
+  )) {
     return null;
   }
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
@@ -5775,10 +5791,10 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
 
 bool _isReceiptNoiseLine(String text) {
   return RegExp(
-    r'^(subtotal|sub total|total|sales tax|tax|cash|change|card approved|'
-    r'credit card|debit card|visa|mastercard|amex|discover|approval|'
-    r'balance due|amount due)(\s+\d+(?:\.\d{2})?)?$',
-  ).hasMatch(text) ||
+        r'^(subtotal|sub total|total|sales tax|tax|cash|change|card approved|'
+        r'credit card|debit card|visa|mastercard|amex|discover|approval|'
+        r'balance due|amount due)(\s+\d+(?:\.\d{2})?)?$',
+      ).hasMatch(text) ||
       RegExp(
         r'^(subtotal|sub total|total|sales tax|tax|cash|change|'
         r'card approved|credit card|debit card|visa|mastercard|amex|'
@@ -5789,9 +5805,7 @@ bool _isReceiptNoiseLine(String text) {
         r'^(visa|mastercard|amex|discover|credit card|debit card)\s+'
         r'approved(?:\s+auth)?\s+\d+$',
       ).hasMatch(text) ||
-      RegExp(
-        r'^cashier\s+\d+\s+reg\s+\d+\s+thank\s+you$',
-      ).hasMatch(text);
+      RegExp(r'^cashier\s+\d+\s+reg\s+\d+\s+thank\s+you$').hasMatch(text);
 }
 
 WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
@@ -5947,7 +5961,9 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(sch40|sch 40|schedule 40)\b').hasMatch(text) &&
       RegExp(r'\b(coupling|cplg|coup)\b').hasMatch(text) &&
-      !RegExp(r'\b(cond|condensate|conduit|elec|electrical)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(cond|condensate|conduit|elec|electrical)\b',
+      ).hasMatch(text) &&
       !RegExp(r'\b(reducing|reducer)\b').hasMatch(text);
   if (wantsPvcSch40Coupling) {
     final size = _nominalReceiptSize(text);
@@ -6039,8 +6055,7 @@ WorkSupplyItem? _directUnscopedElectricalEvidenceMatch(String text) {
   final size = _nominalReceiptSize(text);
   final wantedName = switch (text) {
     final value when RegExp(r'\b(lb)\b').hasMatch(value) => 'lb conduit body',
-    final value when RegExp(r'\b(body)\b').hasMatch(value) =>
-      'conduit body',
+    final value when RegExp(r'\b(body)\b').hasMatch(value) => 'conduit body',
     final value
         when RegExp(
           r'\b(male|mip|terminal adapter|male adapter)\b',
@@ -6074,7 +6089,9 @@ bool _hasStrongDirectPlumbingEvidence(String text) {
 
 WorkSupplyItem? _directPvcDwvSanitaryTeeReceiptMatch(String text) {
   if (!RegExp(r'\b(pvc|dwv|drain)\b').hasMatch(text)) return null;
-  if (!RegExp(r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b').hasMatch(text)) {
+  if (!RegExp(
+    r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b',
+  ).hasMatch(text)) {
     return null;
   }
   final size = _nominalReceiptSize(text);
@@ -6215,7 +6232,10 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   };
 }
 
-bool _isScopedPlumbingDangerousElbowReviewLine(String text, String? tradeScope) {
+bool _isScopedPlumbingDangerousElbowReviewLine(
+  String text,
+  String? tradeScope,
+) {
   if (tradeScope == null || tradeScope.trim().toLowerCase() != 'plumbing') {
     return false;
   }
@@ -6251,27 +6271,27 @@ bool _isScopedPlumbingDangerousGenericAdapterReviewLine(
   return true;
 }
 
-  WorkSupplyItem? _directScopedPlumbingSumpBarbedAdapterMatch(String text) {
-    if (!RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text)) return null;
-    if (!RegExp(r'\b(barb|barbed)\b').hasMatch(text)) return null;
-    if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return null;
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final searchable = _indexedReceiptTextFor(item);
-      final name = item.name.toLowerCase();
-      final variant = item.variant.toLowerCase();
-      if (item.trade == 'Plumbing' &&
-          searchable.contains('barbed adapter') &&
-          searchable.contains('sump pump') &&
-          (name.contains('sump pump discharge adapter') ||
-              name.contains('sump pump discharge part')) &&
-          variant.contains('barbed adapter') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
+WorkSupplyItem? _directScopedPlumbingSumpBarbedAdapterMatch(String text) {
+  if (!RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text)) return null;
+  if (!RegExp(r'\b(barb|barbed)\b').hasMatch(text)) return null;
+  if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return null;
+  final size = _nominalReceiptSize(text);
+  for (final item in workSupplyCatalogItems) {
+    final searchable = _indexedReceiptTextFor(item);
+    final name = item.name.toLowerCase();
+    final variant = item.variant.toLowerCase();
+    if (item.trade == 'Plumbing' &&
+        searchable.contains('barbed adapter') &&
+        searchable.contains('sump pump') &&
+        (name.contains('sump pump discharge adapter') ||
+            name.contains('sump pump discharge part')) &&
+        variant.contains('barbed adapter') &&
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
     }
-    return null;
   }
+  return null;
+}
 
 List<String> _receiptTokenAlternates(String token) {
   return switch (token) {
