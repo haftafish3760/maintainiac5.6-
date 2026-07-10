@@ -4,6 +4,13 @@ import CoreVideo
 import UIKit
 
 extension ReceiptCameraViewController {
+  @objc func openReceiptCameraSettingsFullScreen() {
+    settingsOpenCount += 1
+    let settings = ReceiptCameraFullScreenSettingsViewController(camera: self)
+    settings.modalPresentationStyle = .fullScreen
+    present(settings, animated: true)
+  }
+
   func configureSession() {
     sessionQueue.async { [weak self] in
       guard let self, self.isCameraSessionUsable else { return }

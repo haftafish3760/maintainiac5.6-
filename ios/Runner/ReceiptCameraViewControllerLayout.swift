@@ -62,7 +62,7 @@ extension ReceiptCameraViewController {
     let backButton = iconButton(title: "Back", symbol: "chevron.left")
     backButton.addTarget(self, action: #selector(cancelCapture), for: .touchUpInside)
     let settingsButton = iconButton(title: "Receipt camera settings", symbol: "gearshape.fill")
-    settingsButton.addTarget(self, action: #selector(showReceiptCameraSettings), for: .touchUpInside)
+    settingsButton.addTarget(self, action: #selector(openReceiptCameraSettingsFullScreen), for: .touchUpInside)
     torchButton.setTitle("", for: .normal)
     torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)
     torchButton.tintColor = .white
