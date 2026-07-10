@@ -4,8 +4,12 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
+  "baselineCommit": "4fa3fc2",
+  "baselineCommitFull": "4fa3fc223672c722b2554150c0fcf7ddc836ef8f",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:04 EDT: align handoff marker and Mac runbook",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
+  "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
   "windowsCompleted": [
     "shared parser QA platform backbone in test/support/parser_qa_platform",
     "reusable parser QA reporting and gating artifacts",
@@ -25,6 +29,11 @@
     "ongoing Work Supplies parser/code edits in this thread",
     "inventory-specific PEH parser hardening before broader parser-domain extraction is declared complete",
     "Windows-side roadmap and progress-memory maintenance"
+  ],
+  "remainingWindowsGoals": [
+    "continue Windows-side Work Supplies parser/code hardening without drifting into unrelated modules",
+    "keep the reusable parsing QA handoff artifacts current whenever the checkpoint changes",
+    "finish the current Windows-owned inventory-specific PEH hardening lane before declaring broader parser-domain extraction complete"
   ],
   "currentMeasurementState": {
     "readyForMacMeasurementWave": true,
@@ -179,5 +188,6 @@
       "--hvac-status",
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
-  ]
+  ],
+  "generatedAtEdt": "2026-07-09 20:05 EDT"
 }
