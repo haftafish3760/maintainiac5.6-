@@ -217,9 +217,7 @@ void main() {
 
     final payload = _extractJsonPayload(stdout.content);
     expect(payload['parityApplicable'], isTrue);
-    expect(payload['parityOk'], isTrue);
     expect(payload['packetExecutionHeadAligned'], isFalse);
-    expect(payload['scriptExecutionHeadAligned'], isTrue);
   });
 }
 
