@@ -173,6 +173,30 @@ void main() {
     },
   );
 
+  test('removal diagnostics reject stale or reordered remaining paths', () {
+    final plan = ReceiptPhotoRemovalOrderPlan.build(
+      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'bottom.jpg'],
+      targetIndex: 1,
+      targetPhotoPath: 'middle.jpg',
+    );
+
+    expect(plan, isNotNull);
+    expect(
+      plan!.captureDiagnosticsForRemainingPaths(const [
+        'bottom.jpg',
+        'top.jpg',
+      ]),
+      isEmpty,
+    );
+    expect(
+      plan.captureDiagnosticsForRemainingPaths(const [
+        'top.jpg',
+        'changed.jpg',
+      ]),
+      isEmpty,
+    );
+  });
+
   test(
     'top-section multi-photo retake stays before the original next section',
     () {
