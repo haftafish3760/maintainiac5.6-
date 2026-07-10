@@ -39,6 +39,9 @@ void main() {
       'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
     );
     expect(payload['docsAligned'], isTrue);
+    expect(payload['parityOk'], isTrue);
+    expect(payload['parityExit'], 0);
+    expect(payload['parityFindingCount'], 0);
     expect(payload['branchTipAheadOfValidatedFloor'], isTrue);
     expect(payload['currentBranch'], isNotEmpty);
     expect(payload['headCommit'], isNotEmpty);
@@ -85,6 +88,47 @@ void main() {
     final payload = _extractJsonPayload(stdout.content);
     expect(payload['docsAligned'], isFalse);
     expect(payload['validatedFloorCommit'], 'abc1234');
+  });
+
+  test('handoff status fails when PEH packet drifts from reusable checkpoint', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_reusable_handoff_status_peh_drift_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+
+    _writeHandoffFixture(
+      root,
+      branch: 'codex/reusable-parsing-qa-foundation',
+      validatedFloorCommit: 'abc1234',
+      validatedFloorLabel:
+          'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
+    );
+
+    _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
+      'reusableBaselineBranch': 'codex/reusable-parsing-qa-foundation',
+      'reusableValidatedFloorCommit': 'old9999',
+      'inventoryExecutionBranch': 'codex/inventory-parser-backup-20260702-2056',
+      'readyForMacMeasurementWave': true,
+      'readyToClaimNinetyPlus': false,
+    });
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runReusableParsingQaHandoffStatus(
+      ['--root', root.path],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 1);
+    expect(stderr.content, isEmpty);
+
+    final payload = _extractJsonPayload(stdout.content);
+    expect(payload['docsAligned'], isTrue);
+    expect(payload['parityOk'], isFalse);
+    expect(payload['parityExit'], 1);
+    expect(payload['parityFindingCount'], greaterThanOrEqualTo(1));
+    expect(payload['parityFindings'].toString(), contains('reusable validated floor mismatch'));
   });
 }
 
@@ -182,6 +226,28 @@ void _writeHandoffFixture(
           'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         }),
       );
+
+  _writeJson('${docs.path}/reusable_parsing_qa_checkpoint.json', {
+    'primaryBranch': branch,
+    'validatedFloorCommit': validatedFloorCommit,
+    'validatedFloorLabel': validatedFloorLabel,
+    'windowsWorkingBranch': 'codex/inventory-parser-backup-20260702-2056',
+    'readyForMacMeasurementWave': true,
+    'readyToClaimNinetyPlus': false,
+  });
+
+  _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
+    'reusableBaselineBranch': branch,
+    'reusableValidatedFloorCommit': validatedFloorCommit,
+    'inventoryExecutionBranch': 'codex/inventory-parser-backup-20260702-2056',
+    'readyForMacMeasurementWave': true,
+    'readyToClaimNinetyPlus': false,
+  });
+}
+
+void _writeJson(String path, Map<String, Object?> value) {
+  final file = File(path)..parent.createSync(recursive: true);
+  file.writeAsStringSync(jsonEncode(value));
 }
 
 class _MemorySink implements IOSink {
