@@ -1,6 +1,6 @@
 # Reusable Parsing QA Mac Mini Runbook
 
-Last updated: 2026-07-09 21:06 EDT
+Last updated: 2026-07-09 21:11 EDT
 
 This runbook is the plain-English companion to:
 
@@ -12,7 +12,7 @@ This runbook is the plain-English companion to:
 ## Start Here
 
 1. Check out branch `codex/reusable-parsing-qa-foundation`.
-2. Confirm the branch is at or after validated floor commit `322a388`.
+2. Confirm the branch is at or after validated floor commit `610a2f0`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
 4. Read `docs/reusable_parsing_qa_scope_boundary.md` to separate reusable parser QA work from
    inventory-specific Windows ownership.
@@ -20,6 +20,9 @@ This runbook is the plain-English companion to:
    Windows-next versus Mac-next checkpoint from live PEH evidence.
 6. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
+7. On the Windows execution branch, run
+   `dart run tool/reusable_parsing_qa_handoff_status.dart --root .`
+   and require `parityOk: true` before trusting the live PEH Mac packet.
 
 ## What Windows Already Finished
 
