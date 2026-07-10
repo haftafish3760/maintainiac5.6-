@@ -77,6 +77,17 @@ int runReusableParsingQaHandoffStatus(
   final headFull = _gitValue(['rev-parse', 'HEAD'], root) ?? headShort;
   final currentBranch =
       _gitValue(['rev-parse', '--abbrev-ref', 'HEAD'], root) ?? 'unknown-branch';
+  final windowsWorkingBranch =
+      File.fromUri(docsDir.resolve('reusable_parsing_qa_checkpoint.json'))
+              .existsSync()
+          ? ((jsonDecode(
+                  File.fromUri(
+                    docsDir.resolve('reusable_parsing_qa_checkpoint.json'),
+                  ).readAsStringSync(),
+                ) as Map<String, Object?>)['windowsWorkingBranch']
+              ?.toString() ??
+              'unknown-windows-branch')
+          : 'unknown-windows-branch';
 
   final agrees =
       _extractSingleLineValue(
@@ -121,13 +132,18 @@ int runReusableParsingQaHandoffStatus(
 
   final branchTipAheadOfFloor = headShort != validatedFloor;
   final refreshCommand = 'dart run tool/reusable_parsing_qa_handoff_refresh.dart';
-  final parityBuffer = _MemorySink();
-  final parityExit = runReusableParsingQaHandoffParity(
-    ['--root', root],
-    stdout: parityBuffer,
-    stderr: stderr,
-  );
-  final paritySummary = _extractParitySummary(parityBuffer.content);
+  final parityApplicable = currentBranch == windowsWorkingBranch;
+  Map<String, Object?>? paritySummary;
+  var parityExit = 0;
+  if (parityApplicable) {
+    final parityBuffer = _MemorySink();
+    parityExit = runReusableParsingQaHandoffParity(
+      ['--root', root],
+      stdout: parityBuffer,
+      stderr: stderr,
+    );
+    paritySummary = _extractParitySummary(parityBuffer.content);
+  }
 
   final summary = {
     'schemaVersion': 1,
@@ -139,10 +155,11 @@ int runReusableParsingQaHandoffStatus(
     'headCommit': headShort,
     'headCommitFull': headFull,
     'docsAligned': agrees,
-    'parityOk': paritySummary?['parityOk'] == true,
+    'parityApplicable': parityApplicable,
+    'parityOk': parityApplicable ? (paritySummary?['parityOk'] == true) : null,
     'parityExit': parityExit,
-    'parityFindingCount': paritySummary?['findingCount'] ?? 0,
-    'parityFindings': paritySummary?['findings'] ?? const <Object>[],
+    'parityFindingCount': parityApplicable ? ((paritySummary?['findingCount'] ?? 0)) : 0,
+    'parityFindings': parityApplicable ? ((paritySummary?['findings'] ?? const <Object>[])) : const <Object>[],
     'branchTipAheadOfValidatedFloor': branchTipAheadOfFloor,
     'refreshCommand': refreshCommand,
     'indexPath': indexFile.path,
@@ -157,7 +174,7 @@ int runReusableParsingQaHandoffStatus(
     'QA_REUSABLE_PARSING_HANDOFF_STATUS '
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
-  return agrees && parityExit == 0 ? 0 : 1;
+  return agrees && (!parityApplicable || parityExit == 0) ? 0 : 1;
 }
 
 String _value(List<String> args, String key, String fallback) {

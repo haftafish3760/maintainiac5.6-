@@ -4,9 +4,9 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "baselineCommit": "b085844",
-  "baselineCommitFull": "b085844e730dafe64ba8c48b696f5fc84cb2333c",
-  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:46 EDT: bind Mac handoff to reusable baseline",
+  "baselineCommit": "451211e",
+  "baselineCommitFull": "451211ee4a172f53810539c60b391696150e2b73",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:54 EDT: fold parity into handoff status",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
   "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
@@ -189,7 +189,7 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 20:46 EDT",
+  "generatedAtEdt": "2026-07-09 20:54 EDT",
   "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
   "reusableFoundationPaths": [
     "test/support/parser_qa_platform/",
@@ -220,5 +220,5 @@
   ],
   "checkpointJsonPath": "docs/reusable_parsing_qa_checkpoint.json",
   "checkpointMarkdownPath": "docs/reusable_parsing_qa_checkpoint.md",
-  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit b085844 --commit-full b085844e730dafe64ba8c48b696f5fc84cb2333c --label \"Reusable parsing QA 2026-07-09 20:46 EDT: bind Mac handoff to reusable baseline\" --updated-at \"2026-07-09 20:46 EDT\""
+  "windowsCheckpointSyncCommand": "dart run tool/reusable_parsing_qa_handoff_sync.dart --root . --branch codex/reusable-parsing-qa-foundation --commit 451211e --commit-full 451211ee4a172f53810539c60b391696150e2b73 --label \"Reusable parsing QA 2026-07-09 20:54 EDT: fold parity into handoff status\" --updated-at \"2026-07-09 20:54 EDT\""
 }

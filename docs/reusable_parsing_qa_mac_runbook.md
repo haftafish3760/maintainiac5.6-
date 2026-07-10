@@ -1,6 +1,6 @@
 # Reusable Parsing QA Mac Mini Runbook
 
-Last updated: 2026-07-09 20:46 EDT
+Last updated: 2026-07-09 20:54 EDT
 
 This runbook is the plain-English companion to:
 
@@ -12,7 +12,7 @@ This runbook is the plain-English companion to:
 ## Start Here
 
 1. Check out branch `codex/reusable-parsing-qa-foundation`.
-2. Confirm the branch is at or after validated floor commit `b085844`.
+2. Confirm the branch is at or after validated floor commit `451211e`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
 4. Read `docs/reusable_parsing_qa_scope_boundary.md` to separate reusable parser QA work from
    inventory-specific Windows ownership.
