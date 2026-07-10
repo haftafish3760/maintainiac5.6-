@@ -1,6 +1,31 @@
 part of 'expense_receipt_parser_fuel_formats_test.dart';
 
 void _registerFuelFormatEdgeCaseTests() {
+  test('keeps super and Spanish supreme octane grades out of fuel volume', () {
+    final english = parseExpenseReceiptText('''
+EXPRESS FUEL
+06/30/2026
+SUPER UNLEADED 93 10.250 @ 3.899 39.97
+TOTAL 39.97
+''');
+    final spanish = parseExpenseReceiptText('''
+MERCADO COMBUSTIBLE
+06/30/2026
+GASOLINA SUPREMA 89 GALONES 8.500 @ 3.599 30.59
+TOTAL 30.59
+''');
+
+    for (final parsed in [english, spanish]) {
+      expect(parsed.lines, hasLength(1));
+      expect(parsed.lines.single.category, 'Fuel');
+      expect(parsed.lines.single.fuelType, 'Gasoline');
+    }
+    expect(english.lines.single.quantity, 10.25);
+    expect(english.lines.single.unitPrice, 3.899);
+    expect(spanish.lines.single.quantity, 8.5);
+    expect(spanish.lines.single.unitPrice, 3.599);
+  });
+
   test('does not carry per gallon rewards metadata onto personal items', () {
     final parsed = parseExpenseReceiptText('''
 RIVER ROAD MART 418

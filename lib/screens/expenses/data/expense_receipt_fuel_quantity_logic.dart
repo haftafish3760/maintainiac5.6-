@@ -319,7 +319,7 @@ bool _fuelQuantityCandidateIsProductGradeContext(
     before.length > 28 ? before.length - 28 : 0,
   );
   return RegExp(
-    r'\b(product|regular|reg|unleaded|unl|premium|midgrade|ethanol|e10|e15|octane|grade)\s*$',
+    r'\b(product|regular|reg|unleaded|unl|premium|midgrade|super|supreme|suprema|ethanol|e10|e15|octane|grade)\s*$',
   ).hasMatch(nearbyBefore);
 }
 

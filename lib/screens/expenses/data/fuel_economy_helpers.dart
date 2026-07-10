@@ -48,6 +48,20 @@ String _liquidFuelMetricTypeFor(ExpenseReceiptLineRecord line) {
   return unit.isEmpty ? 'unclassified liquid' : unit;
 }
 
+Set<String> _liquidFuelCompatibilityGroups(Iterable<String> fuelTypes) =>
+    fuelTypes.map(_liquidFuelCompatibilityGroupFor).toSet();
+
+String _liquidFuelCompatibilityGroupFor(String fuelType) {
+  switch (_normalizeFuelToken(fuelType)) {
+    case 'gasoline':
+    case 'e10':
+    case 'e15':
+      return 'road gasoline up to e15';
+    default:
+      return _normalizeFuelToken(fuelType);
+  }
+}
+
 bool _isFullLiquidFill(ExpenseReceiptLineRecord line) {
   final fillType = _normalizeFuelToken(line.fillType ?? '');
   return fillType.isEmpty || fillType.contains('full');

@@ -209,6 +209,32 @@ void _registerFuelEconomyCoreTests() {
     expect(metrics.liquidFuelCostPerMile, .41);
   });
 
+  test('keeps gasoline and standard E10/E15 blends in one MPG series', () {
+    final metrics = FuelEconomyMetrics.fromReceipts([
+      _fuelReceipt(
+        id: 'gasoline-fill',
+        odometer: 90000,
+        quantity: 10,
+        unit: 'gallon',
+        subtotal: 40,
+        fuelType: 'Gasoline',
+      ),
+      _fuelReceipt(
+        id: 'e10-fill',
+        odometer: 90200,
+        quantity: 10,
+        unit: 'gallon',
+        subtotal: 42,
+        fuelType: 'E10',
+      ),
+    ]);
+
+    expect(metrics.liquidFuelTypes, {'gasoline', 'e10'});
+    expect(metrics.hasMixedLiquidFuelTypes, isFalse);
+    expect(metrics.averageMpg, 10);
+    expect(metrics.averageLiquidFuelPrice, 4.1);
+  });
+
   test('keeps hydrogen kg economy separate from liquid and EV metrics', () {
     final metrics = FuelEconomyMetrics.fromReceipts([
       _fuelReceipt(

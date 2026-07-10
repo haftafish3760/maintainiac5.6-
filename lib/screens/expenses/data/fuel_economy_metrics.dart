@@ -112,7 +112,8 @@ class FuelEconomyMetrics {
     final hasOdometerSequenceConflict = _hasOdometerSequenceConflict(
       odometerEvents,
     );
-    final hasMixedLiquidFuelTypes = liquidFuelTypes.length > 1;
+    final hasMixedLiquidFuelTypes =
+        _liquidFuelCompatibilityGroups(liquidFuelTypes).length > 1;
     final completedFill = !hasMixedLiquidFuelTypes && hasExplicitLiquidFillType
         ? _completedLiquidFillMetrics(
             liquidFillEvents,
@@ -150,7 +151,8 @@ class FuelEconomyMetrics {
   final double completedLiquidFillGallons;
   final bool hasOdometerSequenceConflict;
 
-  bool get hasMixedLiquidFuelTypes => liquidFuelTypes.length > 1;
+  bool get hasMixedLiquidFuelTypes =>
+      _liquidFuelCompatibilityGroups(liquidFuelTypes).length > 1;
 
   double? get averageMpg {
     if (hasMixedLiquidFuelTypes) return null;
