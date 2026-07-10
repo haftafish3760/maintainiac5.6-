@@ -95,6 +95,47 @@ ODOMETER 238420
     expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 2);
   });
 
+  test('preserves Spanish on-road and off-road diesel labels', () {
+    final onRoad = parseExpenseReceiptText('''
+Estacion Comercial
+07/02/2026
+Diésel de carretera
+Diésel ultra bajo azufre 14,250 @ 3,799 54,14
+Total 54,14
+Odometro 239180
+''');
+
+    expect(onRoad.lines, hasLength(1));
+    final onRoadFuel = onRoad.lines.single;
+    expect(onRoadFuel.fuelType, 'Diesel');
+    expect(
+      onRoadFuel.description.toLowerCase(),
+      contains('diésel de carretera'),
+    );
+    expect(onRoadFuel.quantity, 14.25);
+    expect(onRoadFuel.unitPrice, 3.799);
+    expect(onRoadFuel.subtotal, 54.14);
+    expect(onRoadFuel.odometerReading, 239180);
+
+    final offRoad = parseExpenseReceiptText('''
+Cooperativa Rural
+07/02/2026
+Diésel rojo
+Diésel 7,500 @ 3,299 24,74
+Total 24,74
+Odometro 239260
+''');
+
+    expect(offRoad.lines, hasLength(1));
+    final offRoadFuel = offRoad.lines.single;
+    expect(offRoadFuel.fuelType, 'Diesel');
+    expect(offRoadFuel.description.toLowerCase(), contains('diésel rojo'));
+    expect(offRoadFuel.quantity, 7.5);
+    expect(offRoadFuel.unitPrice, 3.299);
+    expect(offRoadFuel.subtotal, 24.74);
+    expect(offRoadFuel.odometerReading, 239260);
+  });
+
   test('parses intermediate biodiesel blends such as B2 ULSD', () {
     final parsed = parseExpenseReceiptText('''
 FLEET FUEL DEPOT
