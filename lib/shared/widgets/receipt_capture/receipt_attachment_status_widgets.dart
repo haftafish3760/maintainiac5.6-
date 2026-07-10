@@ -22,16 +22,21 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = message.trim().isEmpty
-        ? 'Preparing receipt for app-assisted review...'
+        ? uiConfig.readStatusLabel(
+            'defaultMessage',
+            'Preparing receipt for app-assisted review...',
+          )
         : message;
     final effectiveStatus = reading ? _ReceiptReadStatusKind.reading : status;
-    final title = switch (effectiveStatus) {
+    final defaultTitle = switch (effectiveStatus) {
       _ReceiptReadStatusKind.reading => 'Opening Receipt Details',
       _ReceiptReadStatusKind.success => 'Receipt Ready For Review',
       _ReceiptReadStatusKind.warning => 'Receipt Needs Review',
       _ReceiptReadStatusKind.failed => 'Receipt Could Not Be Read',
     };
-    final recoveryHint = switch (effectiveStatus) {
+    final statusKey = effectiveStatus.name;
+    final title = uiConfig.readStatusLabel('${statusKey}Title', defaultTitle);
+    final defaultRecoveryHint = switch (effectiveStatus) {
       _ReceiptReadStatusKind.reading =>
         'Keep this screen open. The filled receipt details appear here as soon as OCR and parsing finish.',
       _ReceiptReadStatusKind.success =>
@@ -41,6 +46,10 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
       _ReceiptReadStatusKind.failed =>
         'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the proof and fill the receipt by hand.',
     };
+    final recoveryHint = uiConfig.readStatusLabel(
+      '${statusKey}RecoveryHint',
+      defaultRecoveryHint,
+    );
     final accent = switch (effectiveStatus) {
       _ReceiptReadStatusKind.reading => const Color(0xFFFFD166),
       _ReceiptReadStatusKind.success => const Color(0xFF8EF6A4),

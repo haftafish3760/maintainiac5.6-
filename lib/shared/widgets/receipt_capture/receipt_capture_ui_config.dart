@@ -27,6 +27,7 @@ class ReceiptCaptureUiConfig {
     this.progressAcceptedLabel = 'Photo accepted',
     this.progressReadingLabel = 'Reading receipt text',
     this.progressOpeningLabel = 'Opening receipt details',
+    this.readStatusLabelResolver = _defaultReadStatusLabel,
   });
 
   final ReceiptPhotoReviewUiConfig review;
@@ -46,6 +47,12 @@ class ReceiptCaptureUiConfig {
   final String progressAcceptedLabel;
   final String progressReadingLabel;
   final String progressOpeningLabel;
+  final String Function(String key, String fallback) readStatusLabelResolver;
+
+  static String _defaultReadStatusLabel(String _, String fallback) => fallback;
+
+  String readStatusLabel(String key, String fallback) =>
+      readStatusLabelResolver(key, fallback);
 
   ReceiptCaptureUiConfig copyWith({
     ReceiptPhotoReviewUiConfig? review,
@@ -65,6 +72,7 @@ class ReceiptCaptureUiConfig {
     String? progressAcceptedLabel,
     String? progressReadingLabel,
     String? progressOpeningLabel,
+    String Function(String key, String fallback)? readStatusLabelResolver,
   }) {
     return ReceiptCaptureUiConfig(
       review: review ?? this.review,
@@ -88,6 +96,8 @@ class ReceiptCaptureUiConfig {
           progressAcceptedLabel ?? this.progressAcceptedLabel,
       progressReadingLabel: progressReadingLabel ?? this.progressReadingLabel,
       progressOpeningLabel: progressOpeningLabel ?? this.progressOpeningLabel,
+      readStatusLabelResolver:
+          readStatusLabelResolver ?? this.readStatusLabelResolver,
     );
   }
 }
