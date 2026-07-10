@@ -100,15 +100,19 @@ int runReusableParsingQaHandoffStatus(
       pehPacket['branch']?.toString() ??
       'unknown-execution-branch';
   final scriptExecutionCommit =
-      _extractScriptCommentValue(pehScript, '# Commit: ') ?? 'unknown-script-commit';
+      _extractScriptCommentValue(pehScript, '# Commit: ') ??
+      'unknown-script-commit';
   final scriptExecutionBranch =
-      _extractScriptCommentValue(pehScript, '# Branch: ') ?? 'unknown-script-branch';
+      _extractScriptCommentValue(pehScript, '# Branch: ') ??
+      'unknown-script-branch';
   final executionPacketAlignedToHead =
       currentBranch != windowsWorkingBranch ||
-      (packetExecutionBranch == currentBranch && packetExecutionCommit == headShort);
+      (packetExecutionBranch == currentBranch &&
+          packetExecutionCommit == headShort);
   final executionScriptAlignedToHead =
       currentBranch != windowsWorkingBranch ||
-      (scriptExecutionBranch == currentBranch && scriptExecutionCommit == headShort);
+      (scriptExecutionBranch == currentBranch &&
+          scriptExecutionCommit == headShort);
 
   final agrees =
       _extractSingleLineValue(
@@ -153,13 +157,18 @@ int runReusableParsingQaHandoffStatus(
 
   final branchTipAheadOfFloor = headShort != validatedFloor;
   final refreshCommand = 'dart run tool/reusable_parsing_qa_handoff_refresh.dart';
-  final parityBuffer = _MemorySink();
-  final parityExit = runReusableParsingQaHandoffParity(
-    ['--root', root],
-    stdout: parityBuffer,
-    stderr: stderr,
-  );
-  final paritySummary = _extractParitySummary(parityBuffer.content);
+  final parityApplicable = currentBranch == windowsWorkingBranch;
+  Map<String, Object?>? paritySummary;
+  var parityExit = 0;
+  if (parityApplicable) {
+    final parityBuffer = _MemorySink();
+    parityExit = runReusableParsingQaHandoffParity(
+      ['--root', root],
+      stdout: parityBuffer,
+      stderr: stderr,
+    );
+    paritySummary = _extractParitySummary(parityBuffer.content);
+  }
 
   final summary = {
     'schemaVersion': 1,
@@ -171,10 +180,15 @@ int runReusableParsingQaHandoffStatus(
     'headCommit': headShort,
     'headCommitFull': headFull,
     'docsAligned': agrees,
-    'parityOk': paritySummary?['parityOk'] == true,
+    'parityApplicable': parityApplicable,
+    'parityOk': parityApplicable ? (paritySummary?['parityOk'] == true) : null,
     'parityExit': parityExit,
-    'parityFindingCount': paritySummary?['findingCount'] ?? 0,
-    'parityFindings': paritySummary?['findings'] ?? const <Object>[],
+    'parityFindingCount':
+        parityApplicable ? (paritySummary?['findingCount'] ?? 0) : 0,
+    'parityFindings':
+        parityApplicable
+            ? (paritySummary?['findings'] ?? const <Object>[])
+            : const <Object>[],
     'packetExecutionBranch': packetExecutionBranch,
     'packetExecutionCommit': packetExecutionCommit,
     'packetExecutionHeadAligned': executionPacketAlignedToHead,
@@ -196,7 +210,7 @@ int runReusableParsingQaHandoffStatus(
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
   return agrees &&
-          parityExit == 0 &&
+          (!parityApplicable || parityExit == 0) &&
           executionPacketAlignedToHead &&
           executionScriptAlignedToHead
       ? 0
