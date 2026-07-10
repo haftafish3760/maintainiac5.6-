@@ -4,10 +4,14 @@ This document defines the permanent Maintainiac QA backbone. Inventory parser QA
 
 ## Active Local Repo
 
-- Work from `C:\Users\rjenk\source\Mainteniac 5.6`.
+- Active parser/QA repo: `C:\Users\rjenk\Documents\Mainteniac 5.6`.
 - Do not work from `F:\maintainiac_two`.
+- Treat `C:\Users\rjenk\Documents\Mainteniac 5.6` as the authoritative local
+  parser/QA checkout unless a newer handoff marker explicitly names a
+  replacement path.
 - Do not use Google Drive, OneDrive, or synced Documents folders as the active repo.
-- Keep `C:\Users\rjenk\Documents\Mainteniac 5.6` as a recovery copy until the local source copy and GitHub backup are confirmed.
+- If a second local clone is created later, the handoff marker must name which
+  path is authoritative before parser/QA work moves there.
 
 ## Core Rules
 
