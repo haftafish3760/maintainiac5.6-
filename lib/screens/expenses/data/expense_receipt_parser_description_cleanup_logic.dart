@@ -167,6 +167,11 @@ bool _looksLikeFuelProductGradeOnlyRow(String row) {
   ).hasMatch(lower)) {
     return false;
   }
+  if (RegExp(
+    r'\be[-\s]?(?:10|15|20|30|50|85)\s+(?:octane\s*)?(?:8[7-9]|9\d|10\d|11\d)\b',
+  ).hasMatch(lower)) {
+    return true;
+  }
   final numbers = RegExp(r'\b\d{1,3}\b').allMatches(lower).toList();
   if (numbers.length != 1) return false;
   final grade = int.tryParse(numbers.single.group(0) ?? '');

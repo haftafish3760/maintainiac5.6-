@@ -304,4 +304,29 @@ ODOMETER 102590
     expect(fuel.odometerReading, 102590);
     expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
   });
+
+  test('preserves E85 octane on a flex-fuel receipt', () {
+    final parsed = parseExpenseReceiptText('''
+KWIK TRIP
+07/02/2026
+PUMP 05
+E85 105
+GALLONS 11.250
+PRICE/GAL 2.899
+FUEL SALE 32.61
+TOTAL 32.61
+ODOMETER 103240
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'E85');
+    expect(fuel.description, contains('105'));
+    expect(fuel.quantity, 11.25);
+    expect(fuel.unitPrice, 2.899);
+    expect(fuel.subtotal, 32.61);
+    expect(fuel.odometerReading, 103240);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
 }
