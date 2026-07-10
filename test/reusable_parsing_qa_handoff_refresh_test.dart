@@ -76,9 +76,12 @@ void main() {
     );
     expect(packet['generatedAtEdt'], '2026-07-09 21:00 EDT');
 
-    expect(marker, contains('Current reusable-foundation commit: `abc1234`'));
-    expect(runbook, contains('branch is at or after commit `abc1234`'));
-    expect(index, contains('- Commit: `abc1234`'));
+    expect(marker, contains('Validated floor commit: `abc1234`'));
+    expect(
+      runbook,
+      contains('branch is at or after validated floor commit `abc1234`'),
+    );
+    expect(index, contains('- Validated floor commit: `abc1234`'));
     expect(index, contains('- Branch: `codex/reusable-parsing-qa-foundation`'));
   }, timeout: const Timeout(Duration(seconds: 10)));
 }

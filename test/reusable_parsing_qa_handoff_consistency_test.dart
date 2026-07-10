@@ -25,14 +25,17 @@ void main() {
     );
     final markerCommit = _extractSingleLineValue(
       marker,
-      '- Current reusable-foundation commit: `',
+      '- Validated floor commit: `',
     );
     final runbookCommit = _extractSingleLineValue(
       runbook,
-      '2. Confirm the branch is at or after commit `',
+      '2. Confirm the branch is at or after validated floor commit `',
     );
     final indexBranch = _extractSingleLineValue(index, '- Branch: `');
-    final indexCommit = _extractSingleLineValue(index, '- Commit: `');
+    final indexCommit = _extractSingleLineValue(
+      index,
+      '- Validated floor commit: `',
+    );
 
     expect(packet['primaryBranch'], markerBranch);
     expect(packet['primaryBranch'], indexBranch);
@@ -68,6 +71,18 @@ void main() {
     expect(
       packet['handoffMarkerPath'],
       'docs/reusable_parsing_qa_handoff_marker.md',
+    );
+    expect(
+      marker,
+      contains('Treat the branch tip as authoritative.'),
+    );
+    expect(
+      runbook,
+      contains('validated floor commit'),
+    );
+    expect(
+      index,
+      contains('branch tip is authoritative'),
     );
   });
 }

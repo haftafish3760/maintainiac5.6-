@@ -143,12 +143,14 @@ Mini lane.
 
 - Primary reusable branch: `$branch`
 - Current Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Current reusable-foundation commit: `$commit`
+- Validated floor commit: `$commit`
 - Commit label:
   `$label`
 
-The Mac Mini side should start from `$branch`
-unless a newer handoff marker says otherwise.
+The Mac Mini side should start from branch `$branch`.
+Treat the branch tip as authoritative.
+Treat commit `$commit` as the last Windows-validated floor, not as a promise
+that the handoff docs already describe their own just-created commit.
 
 Companion machine-readable packet:
 `docs/reusable_parsing_qa_mac_handoff_packet.json`
@@ -226,7 +228,7 @@ Until a later handoff says otherwise, the Windows lane still owns:
 
 ## Mac Mini Safe Starting Instruction
 
-Start from branch `$branch` at or after commit
+Start from branch `$branch`, confirm it is at or after validated floor commit
 `$commit`, read this marker first, then continue only with heavier validation,
 broader reusable parsing-core extraction, or new parser-domain consumers that
 are not already listed as Windows-complete above.
@@ -250,7 +252,7 @@ This runbook is the plain-English companion to:
 ## Start Here
 
 1. Check out branch `$branch`.
-2. Confirm the branch is at or after commit `$commit`.
+2. Confirm the branch is at or after validated floor commit `$commit`.
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
 4. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
@@ -334,7 +336,7 @@ This is the single first file the Mac Mini side should open.
 Current baseline:
 
 - Branch: `$branch`
-- Commit: `$commit`
+- Validated floor commit: `$commit`
 - Commit label:
   `$label`
 
@@ -349,6 +351,7 @@ What this means:
 - The marker is the top human-readable boundary and ownership file.
 - The runbook is the plain-English execution sequence.
 - The packet is the machine-readable source of exact Mac-side commands.
+- The branch tip is authoritative; the listed commit is the last Windows-validated floor.
 
 Do not trust older chat instructions over these committed files.
 ''';
