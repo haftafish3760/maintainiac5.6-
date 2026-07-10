@@ -147,4 +147,48 @@ void main() {
       expect(diagnostics.ocrSourcePhotoQualityRiskCounts, isEmpty);
     },
   );
+
+  test('ocr source handoff reports removed-section order review', () async {
+    final result = await const ReceiptOcrService().recognizeTextFromAttachments([
+      ReceiptAttachmentRecord(
+        id: 'removed-section-order-review',
+        path: '',
+        kind: ReceiptAttachmentKind.emailText,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 7, 9),
+        importedText: 'STORE\nTOTAL 9.99',
+        documentSignals: const [
+          'receipt_ocr_source_photo',
+          'receipt_handoff_needs_review_before_ocr',
+          'receipt_section_order_remove_order_invalid',
+          'receipt_section_order_action_review_removed_section_order_before_ocr',
+          'receipt_section_order_review_required',
+        ],
+        riskFlags: const [
+          'ocr_source_section_order_review_required',
+          'ocr_source_section_order_action_review_removed_section_order_before_ocr',
+        ],
+      ),
+    ]);
+
+    final summary = result.sourceHandoffSummary;
+    final diagnostics = result.diagnostics;
+
+    expect(
+      summary.sectionOrderReviewStatus,
+      'receipt_section_order_action_review_removed_section_order_before_ocr',
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['sectionOrderReviewStatus'],
+      'receipt_section_order_action_review_removed_section_order_before_ocr',
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['sourceQualityReviewStatus'],
+      'section_order_review_required',
+    );
+    expect(
+      diagnostics.ocrSourceHandoffContract['sourceQualityReviewAction'],
+      'review_receipt_section_order',
+    );
+  });
 }
