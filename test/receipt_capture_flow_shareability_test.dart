@@ -193,6 +193,17 @@ void main() {
     },
   );
 
+  test('continuation guide treats punctuation-only reasons as absent', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const ['/tmp/receipt-top.jpg'],
+      reasonCode: '***',
+    );
+
+    expect(guide.reasonCode, 'manual_add_photo_continuation');
+    expect(guide.ghostOpacity, .32);
+    expect(guide.hasGuidePhoto, isTrue);
+  });
+
   test('continuation guide ignores unsafe previous photo paths', () {
     final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
       previousPhotoPaths: const [

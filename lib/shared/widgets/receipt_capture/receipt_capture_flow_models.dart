@@ -202,11 +202,12 @@ class ReceiptCaptureContinuationGuide {
   static String? _normalizeContinuationReasonCode(String? value) {
     final trimmed = _trimmedOrNull(value);
     if (trimmed == null) return null;
-    return trimmed
+    final normalized = trimmed
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
+    return normalized.isEmpty ? null : normalized;
   }
 }
 
