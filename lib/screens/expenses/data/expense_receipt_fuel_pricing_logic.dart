@@ -108,7 +108,7 @@ double? _fuelUnitPriceIn(
 }) {
   final prices = <double>[];
   final labeledPrice = RegExp(
-    r'(?:cash\s+price\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|credit\s+price\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|precio\s+efectivo|precio\s+credito|price\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|\$\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|price\s*per\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|unit\s*price|fuel\s*price|price|rate|unit\s*cost|ppu|ppg|ppl|ppge|ppkg|@\s*)\s*\$?(\d+(?:\.\d{2,4})?)',
+    r'(?:cash\s+price\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|credit\s+price\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|precio\s+efectivo|precio\s+credito|precio\s+por\s+(?:gal[oó]n|gallon|gal|litro|liter|litre|l)|price\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|\$\s*/\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|price\s*per\s*(?:gal|gallon|g|liter|liters|litre|litres|l|kwh|gge|dge|kg)|unit\s*price|fuel\s*price|price|rate|unit\s*cost|ppu|ppg|ppl|ppge|ppkg|@\s*)\s*\$?(\d+(?:\.\d{2,4})?)',
   );
   for (final match in labeledPrice.allMatches(text)) {
     final value = double.tryParse(match.group(1)!);

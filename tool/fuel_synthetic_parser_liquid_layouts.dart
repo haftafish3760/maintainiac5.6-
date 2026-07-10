@@ -160,6 +160,11 @@ String _liquidFuelReceipt({
               exciseTaxTotal -
               (discount ?? 0))
           .toStringAsFixed(2);
+  final alternatePriceTender = alternatePricePremium == null
+      ? ''
+      : locale == 'spanish_us'
+      ? '\nTarjeta credito $grandTotal'
+      : '\nVISA CREDIT $grandTotal';
   final mixed = includeMixed
       ? locale == 'spanish_us'
             ? '\nCafe grande 2.25\nAgua botella 1.50'
@@ -231,7 +236,7 @@ $spanishVolumeLine
 $spanishPriceLabel $price
 $alternatePriceLine
 $perUnitDiscountLine
-Venta Combustible $total$discountLine$mixed$cash
+Venta Combustible $total$discountLine$mixed$cash$alternatePriceTender
 $carWash
 $prepayRefund
 $exciseTaxLine
