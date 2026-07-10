@@ -89,6 +89,16 @@ int runReusableParsingQaHandoffStatus(
   final headFull = _gitValue(['rev-parse', 'HEAD'], root) ?? headShort;
   final currentBranch =
       _gitValue(['rev-parse', '--abbrev-ref', 'HEAD'], root) ?? 'unknown-branch';
+  final localModifiedFiles = _gitModifiedFiles(root);
+  final expectedLocalRefreshFiles = {
+    'docs/reusable_parsing_qa_checkpoint.json',
+    'docs/reusable_parsing_qa_checkpoint.md',
+    'docs/reusable_parsing_qa_mac_handoff_packet.json',
+  };
+  final hasLocalModifiedFiles = localModifiedFiles.isNotEmpty;
+  final expectedLocalDocsRefreshDirty =
+      hasLocalModifiedFiles &&
+      localModifiedFiles.every(expectedLocalRefreshFiles.contains);
   final windowsWorkingBranch =
       checkpointJson['windowsWorkingBranch']?.toString() ??
       'codex/inventory-parser-backup-20260702-2056';
@@ -235,6 +245,9 @@ int runReusableParsingQaHandoffStatus(
     'scriptExecutionBranch': scriptExecutionBranch,
     'scriptExecutionCommit': scriptExecutionCommit,
     'scriptExecutionHeadAligned': executionScriptAlignedToHead,
+    'hasLocalModifiedFiles': hasLocalModifiedFiles,
+    'localModifiedFiles': localModifiedFiles,
+    'expectedLocalDocsRefreshDirty': expectedLocalDocsRefreshDirty,
     'branchTipAheadOfValidatedFloor': branchTipAheadOfFloor,
     'refreshCommand': refreshCommand,
     'indexPath': indexFile.path,
@@ -328,6 +341,26 @@ String? _gitValue(List<String> command, String root) {
   );
   if (result.exitCode != 0) return null;
   return result.stdout.toString().trim();
+}
+
+List<String> _gitModifiedFiles(String root) {
+  final result = Process.runSync(
+    'git',
+    ['status', '--short'],
+    workingDirectory: root,
+  );
+  if (result.exitCode != 0) return const [];
+  return result.stdout
+      .toString()
+      .split(RegExp(r'\r?\n'))
+      .map((line) => line.trimRight())
+      .where((line) => line.isNotEmpty)
+      .map((line) {
+        if (line.length <= 3) return '';
+        return line.substring(3).trim().replaceAll('\\', '/');
+      })
+      .where((line) => line.isNotEmpty)
+      .toList(growable: false);
 }
 
 String _extractSingleLineValue(String source, String prefix) {

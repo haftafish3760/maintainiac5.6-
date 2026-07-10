@@ -29,11 +29,61 @@ void main() {
     expect(payload['handoffClean'], isTrue);
     expect(payload['docsAligned'], isTrue);
     expect(payload['parityOk'], isTrue);
+    expect(payload['hasLocalModifiedFiles'], isTrue);
+    expect(payload['localModifiedFiles'].toString(), contains('docs/'));
+    expect(payload['expectedLocalDocsRefreshDirty'], isFalse);
     expect(payload['totalRemainingChecked'], 38);
     expect(payload['nextTradesByRemainingGap'].toString(), contains('hvac'));
     expect(payload['claimBlockingFindings'].toString(), contains('trade_not_ready:hvac'));
     expect(payload['measurementCommandCount'], 2);
     expect(payload['rollupCommandCount'], 1);
+  });
+
+  test('handoff summary exposes expected local refreshed-doc drift', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_reusable_handoff_summary_local_docs_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+
+    _writeHandoffFixture(root);
+
+    Process.runSync('git', ['add', '.'], workingDirectory: root.path);
+    Process.runSync(
+      'git',
+      ['commit', '-m', 'clean fixture state'],
+      workingDirectory: root.path,
+    );
+    Process.runSync(
+      'git',
+      ['checkout', '-B', 'docs-refresh-local'],
+      workingDirectory: root.path,
+    );
+
+    _rewriteJsonPretty('${root.path}/docs/reusable_parsing_qa_checkpoint.json');
+    final checkpointMd = File('${root.path}/docs/reusable_parsing_qa_checkpoint.md');
+    checkpointMd.writeAsStringSync('${checkpointMd.readAsStringSync()}\n');
+    _rewriteJsonPretty(
+      '${root.path}/docs/reusable_parsing_qa_mac_handoff_packet.json',
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runReusableParsingQaHandoffSummary(
+      ['--root', root.path],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 0);
+    expect(stderr.content, isEmpty);
+
+    final payload = _extractJsonPayload(stdout.content);
+    expect(payload['hasLocalModifiedFiles'], isTrue);
+    expect(payload['expectedLocalDocsRefreshDirty'], isTrue);
+    expect(
+      payload['localModifiedFiles'].toString(),
+      contains('docs/reusable_parsing_qa_checkpoint.json'),
+    );
   });
 }
 
@@ -182,6 +232,12 @@ Validated floor commit: `abc1234`
 void _writeJson(String path, Map<String, Object?> value) {
   final file = File(path)..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(value));
+}
+
+void _rewriteJsonPretty(String path) {
+  final file = File(path);
+  final decoded = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
+  file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(decoded));
 }
 
 class _MemorySink implements IOSink {

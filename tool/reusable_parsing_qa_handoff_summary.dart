@@ -90,6 +90,10 @@ int runReusableParsingQaHandoffSummary(
     'parityOk': statusSummary['parityOk'],
     'packetExecutionHeadAligned': statusSummary['packetExecutionHeadAligned'],
     'scriptExecutionHeadAligned': statusSummary['scriptExecutionHeadAligned'],
+    'hasLocalModifiedFiles': statusSummary['hasLocalModifiedFiles'],
+    'localModifiedFiles': statusSummary['localModifiedFiles'],
+    'expectedLocalDocsRefreshDirty':
+        statusSummary['expectedLocalDocsRefreshDirty'],
     'readyForMacMeasurementWave': pehPacket['readyForMacMeasurementWave'],
     'readyToClaimNinetyPlus': pehPacket['readyToClaimNinetyPlus'],
     'totalRemainingChecked':
