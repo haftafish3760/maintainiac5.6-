@@ -202,7 +202,8 @@ run_handoff() {
     test/receipt_stitch_fallback_metadata_test.dart \
     test/receipt_stitching_artifact_copy_contract_test.dart \
     test/receipt_stitching_result_contract_test.dart \
-    test/receipt_stitching_ocr_source_contract_test.dart
+    test/receipt_stitching_ocr_source_contract_test.dart \
+    test/receipt_ocr_source_section_order_handoff_test.dart
   echo "Receipt stitch handoff health: PASS"
 }
 
