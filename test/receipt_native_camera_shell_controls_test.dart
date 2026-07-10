@@ -26,9 +26,16 @@ void main() {
       final topControls = await File(
         'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
       ).readAsString();
+      final uiConfig = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_ui_config.dart',
+      ).readAsString();
 
       expect(topControls, contains('Icons.settings_rounded'));
-      expect(topControls, contains("label: 'Receipt camera settings'"));
+      expect(topControls, contains('label: uiConfig.settingsLabel'));
+      expect(
+        uiConfig,
+        contains("this.settingsLabel = 'Receipt camera settings'"),
+      );
       expect(topControls, isNot(contains('Icons.build_rounded')));
       expect(topControls, isNot(contains('Icons.handyman_rounded')));
       expect(topControls, isNot(contains('Icons.tune_rounded')));
@@ -109,6 +116,9 @@ void main() {
       final bottomBar = await File(
         'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
       ).readAsString();
+      final uiConfig = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_ui_config.dart',
+      ).readAsString();
 
       expect(bottomBar, isNot(contains('LinearGradient(')));
       expect(bottomBar, isNot(contains('Color(0xB8050607)')));
@@ -172,7 +182,7 @@ void main() {
           "tooltip: 'Done: review captured receipt photos in Maintainiac'",
         ),
       );
-      expect(bottomBar, contains("label: 'Add Photo'"));
+      expect(bottomBar, contains('label: uiConfig.addPhotoLabel'));
       expect(bottomBar, contains("tooltip: 'Add another receipt photo'"));
     },
   );
@@ -183,13 +193,15 @@ void main() {
       final topControls = await File(
         'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_top_controls.dart',
       ).readAsString();
+      final uiConfig = await File(
+        'lib/shared/widgets/receipt_capture/receipt_native_camera_ui_config.dart',
+      ).readAsString();
 
       expect(topControls, contains('Icons.flash_on_rounded'));
       expect(topControls, contains('Icons.flash_off_rounded'));
-      expect(
-        topControls,
-        contains("label: torchOn ? 'Turn light off' : 'Turn light on'"),
-      );
+      expect(topControls, contains('uiConfig.turnLightOffLabel'));
+      expect(uiConfig, contains("this.turnLightOnLabel = 'Turn light on'"));
+      expect(uiConfig, contains("this.turnLightOffLabel = 'Turn light off'"));
       expect(
         topControls,
         contains('onPressed: torchSupported ? onTorch : null'),

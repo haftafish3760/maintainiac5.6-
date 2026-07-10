@@ -8,6 +8,7 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
     required this.onCapture,
     required this.capturedPhotoCount,
     required this.longReceiptMode,
+    required this.uiConfig,
     this.qualityLabel,
     this.onReviewCapturedPhotos,
     this.onAddPhoto,
@@ -19,6 +20,7 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
   final VoidCallback onCapture;
   final int capturedPhotoCount;
   final bool longReceiptMode;
+  final ReceiptNativeCameraUiConfig uiConfig;
   final String? qualityLabel;
   final VoidCallback? onReviewCapturedPhotos;
   final VoidCallback? onAddPhoto;
@@ -35,12 +37,13 @@ class _ReceiptNativeCameraBottomBar extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (_showsNextStepStrip) ...[
+              if (_showsNextStepStrip && uiConfig.showNextStepStrip) ...[
                 _ReceiptNativeCameraNextStepStrip(
                   capturedPhotoCount: capturedPhotoCount,
                   longReceiptMode: longReceiptMode,
                   onAddPhoto: onAddPhoto,
                   onReviewCapturedPhotos: onReviewCapturedPhotos!,
+                  uiConfig: uiConfig,
                 ),
                 const SizedBox(height: 8),
               ],
@@ -87,12 +90,14 @@ class _ReceiptNativeCameraNextStepStrip extends StatelessWidget {
     required this.capturedPhotoCount,
     required this.longReceiptMode,
     required this.onReviewCapturedPhotos,
+    required this.uiConfig,
     this.onAddPhoto,
   });
 
   final int capturedPhotoCount;
   final bool longReceiptMode;
   final VoidCallback onReviewCapturedPhotos;
+  final ReceiptNativeCameraUiConfig uiConfig;
   final VoidCallback? onAddPhoto;
 
   @override
@@ -102,7 +107,7 @@ class _ReceiptNativeCameraNextStepStrip extends StatelessWidget {
         if (_showAddPhoto) ...[
           Expanded(
             child: _ReceiptNativeCameraActionButton(
-              label: 'Add Photo',
+              label: uiConfig.addPhotoLabel,
               tooltip: 'Add another receipt photo',
               icon: Icons.add_photo_alternate_rounded,
               outlined: true,
@@ -126,8 +131,8 @@ class _ReceiptNativeCameraNextStepStrip extends StatelessWidget {
   bool get _showAddPhoto => longReceiptMode && onAddPhoto != null;
 
   String get _nextLabel {
-    if (capturedPhotoCount <= 1) return 'Done';
-    return 'Done ($capturedPhotoCount)';
+    if (capturedPhotoCount <= 1) return uiConfig.doneLabel;
+    return '${uiConfig.doneLabel} ($capturedPhotoCount)';
   }
 }
 

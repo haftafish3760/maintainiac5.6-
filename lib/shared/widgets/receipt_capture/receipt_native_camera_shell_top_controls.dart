@@ -52,6 +52,7 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
     required this.torchSupported,
     required this.onBack,
     required this.onSettings,
+    required this.uiConfig,
     this.onTorch,
   });
 
@@ -60,6 +61,7 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
   final bool torchSupported;
   final VoidCallback onBack;
   final VoidCallback onSettings;
+  final ReceiptNativeCameraUiConfig uiConfig;
   final VoidCallback? onTorch;
 
   @override
@@ -72,19 +74,21 @@ class _ReceiptNativeCameraTopBar extends StatelessWidget {
           children: [
             _ReceiptNativeCameraIconButton(
               icon: Icons.arrow_back_rounded,
-              label: 'Back',
+              label: uiConfig.backLabel,
               onPressed: onBack,
             ),
             const Spacer(),
             _ReceiptNativeCameraIconButton(
               icon: Icons.settings_rounded,
-              label: 'Receipt camera settings',
+              label: uiConfig.settingsLabel,
               onPressed: onSettings,
             ),
             const SizedBox(width: 8),
             _ReceiptNativeCameraIconButton(
               icon: torchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-              label: torchOn ? 'Turn light off' : 'Turn light on',
+              label: torchOn
+                  ? uiConfig.turnLightOffLabel
+                  : uiConfig.turnLightOnLabel,
               onPressed: torchSupported ? onTorch : null,
               active: torchOn,
             ),

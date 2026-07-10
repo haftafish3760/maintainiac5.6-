@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'receipt_native_camera_contract.dart';
+import 'receipt_native_camera_ui_config.dart';
 
 part 'receipt_native_camera_shell_top_controls.dart';
 part 'receipt_native_camera_shell_bottom_controls.dart';
@@ -38,6 +39,7 @@ class ReceiptNativeCameraShell extends StatelessWidget {
     this.capturedPhotoCount = 0,
     this.longReceiptMode = false,
     this.children = const [],
+    this.uiConfig = const ReceiptNativeCameraUiConfig(),
   });
 
   final Widget preview;
@@ -67,6 +69,7 @@ class ReceiptNativeCameraShell extends StatelessWidget {
   final int capturedPhotoCount;
   final bool longReceiptMode;
   final List<Widget> children;
+  final ReceiptNativeCameraUiConfig uiConfig;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +79,7 @@ class ReceiptNativeCameraShell extends StatelessWidget {
         if (!didPop) onBack();
       },
       child: ColoredBox(
-        color: const Color(0xFF050607),
+        color: uiConfig.backgroundColor,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -95,9 +98,10 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 reasonCode: previousSectionReasonCode,
                 guidance: previousSectionGuidance,
               ),
-            const Positioned.fill(
-              child: IgnorePointer(child: _ReceiptCameraVignette()),
-            ),
+            if (uiConfig.showVignette)
+              const Positioned.fill(
+                child: IgnorePointer(child: _ReceiptCameraVignette()),
+              ),
             Positioned(
               left: 0,
               right: 0,
@@ -109,22 +113,24 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 onBack: onBack,
                 onTorch: onTorch,
                 onSettings: onSettings,
+                uiConfig: uiConfig,
               ),
             ),
-            Positioned(
-              left: 12,
-              right: 12,
-              bottom:
-                  MediaQuery.viewPaddingOf(context).bottom +
-                  _guidanceBottomOffset,
-              child: _ReceiptNativeCameraGuidance(
-                title: guidanceTitle,
-                message: guidanceMessage,
-                status: guidanceStatus,
-                sectionLabel: sectionLabel,
-                capabilities: capabilities,
+            if (uiConfig.showGuidance)
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom:
+                    MediaQuery.viewPaddingOf(context).bottom +
+                    _guidanceBottomOffset,
+                child: _ReceiptNativeCameraGuidance(
+                  title: guidanceTitle,
+                  message: guidanceMessage,
+                  status: guidanceStatus,
+                  sectionLabel: sectionLabel,
+                  capabilities: capabilities,
+                ),
               ),
-            ),
             ...children,
             Positioned(
               left: 0,
@@ -140,6 +146,7 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 onReviewCapturedPhotos: onReviewCapturedPhotos,
                 onAddPhoto: onAddPhoto,
                 onCapture: onCapture,
+                uiConfig: uiConfig,
               ),
             ),
           ],
