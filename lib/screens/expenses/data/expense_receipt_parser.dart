@@ -42,6 +42,8 @@ part 'expense_receipt_parser_category_match_logic.dart';
 part 'expense_receipt_parser_quantity_logic.dart';
 part 'expense_receipt_parse_quality.dart';
 part 'expense_receipt_fuel_parser.dart';
+part 'expense_receipt_fuel_quantity_logic.dart';
+part 'expense_receipt_fuel_pricing_logic.dart';
 part 'expense_receipt_maintenance_parser.dart';
 part 'expense_receipt_material_parser.dart';
 part 'expense_receipt_parser_support_models.dart';
