@@ -83,16 +83,20 @@ void main() {
     final dataSaverPanel = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
     ).readAsString();
+    final uiConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_ui_config.dart',
+    ).readAsString();
     expect(settingsSheet, contains('Receipt Photo Help'));
     expect(settingsSheet, isNot(contains('How Receipt Photos Work')));
     expect(helpSheet, contains('Receipt Photo Help'));
-    expect(helpSheet, contains('Receipt Assist'));
-    expect(helpSheet, contains('Yes, Use Receipt Assist'));
-    expect(helpSheet, contains('No, Manual Entry'));
+    expect(helpSheet, contains('uiConfig.firstUseTitle'));
+    expect(helpSheet, contains('uiConfig.enableAssistLabel'));
+    expect(helpSheet, contains('uiConfig.manualEntryLabel'));
+    expect(uiConfig, contains("this.firstUseTitle = 'Receipt Assist'"));
     expect(
-      helpSheet,
+      uiConfig,
       contains(
-        'Receipt Assist reads the photo and suggests totals and lines. You review everything before saving.',
+        'Receipt Assist reads the accepted photo and suggests totals and lines. You review everything before saving.',
       ),
     );
     expect(helpSheet, isNot(contains('Clear Photo First')));
@@ -127,35 +131,31 @@ void main() {
       settingsSheet,
       contains('Let Maintainiac Help Fill Expense Receipts'),
     );
-    expect(settingsSheet, contains('Receipt Scanner'));
-    expect(
-      settingsSheet,
-      contains('Maintainiac uses its own receipt camera when available'),
-    );
-    expect(settingsSheet, contains('Backup scanner and photo options'));
+    expect(settingsSheet, contains("title: 'Capture Flow'"));
+    expect(settingsSheet, contains('ReceiptCaptureSettingsScope'));
     expect(settingsSheet, contains('settings.privacySafeCapabilityLabel'));
     expect(settingsSheet, contains('Detected safely:'));
     expect(settingsSheet, isNot(contains('deviceManufacturer')));
     expect(settingsSheet, isNot(contains('deviceModel')));
     expect(settingsSheet, isNot(contains('deviceName')));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
-    expect(settingsSheet, contains('Saved Receipt Proof Size'));
+    expect(settingsSheet, contains("title: 'Saved Proof Size'"));
     expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
-    expect(settingsSheet, contains('if (hasSavedReceiptProof) ...['));
+    expect(settingsSheet, contains('if (!hasSavedReceiptProof) ...['));
     expect(
       settingsSheet,
       contains(
-        'Saved proof size appears after you capture or attach a receipt first.',
+        'After a receipt photo is attached, the review screen shows the actual proof size',
       ),
     );
     expect(
       settingsSheet,
-      contains('OCR still uses the clearest receipt source first'),
+      contains('Receipt Assist reads the full-quality temporary source'),
     );
-    expect(settingsSheet, contains('Receipt Details And Saved Proof'));
+    expect(settingsSheet, contains('After You Take Photos'));
     expect(
       settingsSheet,
-      contains('installChoice.userFacingDownloadChoiceLabel'),
+      contains('Extra cloud or offline receipt help must remain optional'),
     );
     expect(settingsSheet, contains('hasOptionalCloudAssist'));
     expect(
@@ -183,25 +183,14 @@ void main() {
     );
     expect(
       settingsSheet,
-      contains('Maintainiac uses its own receipt camera when available'),
+      contains('Capture settings do not replace your phone camera software.'),
     );
     expect(settingsSheet, contains('Apply Settings'));
-    expect(
-      settingsSheet,
-      contains(
-        'Changes save as soon as you tap a switch or size choice. Apply Settings closes this screen.',
-      ),
-    );
-    expect(
-      settingsSheet,
-      contains(
-        'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
-      ),
-    );
+    expect(settingsSheet, contains('Navigator.of(context).pop(true)'));
     expect(settingsSheet, contains('Reset Receipt Photo Defaults'));
     expect(settingsSheet, contains('Reset Defaults'));
-    expect(settingsSheet, contains('open Receipt Details And Saved Proof'));
-    expect(settingsSheet, contains('You preview the actual saved proof'));
+    expect(settingsSheet, contains('Receipt Photo Help'));
+    expect(settingsSheet, contains('inspect readability before saving'));
     expect(settingsSheet, contains('static String _choiceTooltip'));
     expect(
       settingsSheet,
@@ -240,23 +229,13 @@ void main() {
     expect(reviewPreviewControls, contains('addNextSectionLabel'));
     expect(contextControls, contains('Saved proof'));
     expect(contextControls, contains('OCR uses the clear photo first'));
+    expect(reviewScreen, contains('widget.uiConfig.showTopBar'));
+    expect(reviewScreen, contains('Expanded('));
+    expect(reviewScreen, contains('_buildPhotoSurface('));
     expect(
       reviewScreen,
-      contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0',
-      ),
+      contains('child: _buildReviewBottomControls(photoPath)'),
     );
-    expect(
-      reviewScreen,
-      contains('maxHeight: _reviewBottomControlsMaxHeight(context)'),
-    );
-    expect(reviewScreen, contains('double _reviewBottomControlsMaxHeight'));
-    expect(reviewScreen, contains('188.0 : 166.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.preview => .22'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.stitch => .20'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => .20'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.stitch => 164.0'));
-    expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => 168.0'));
     expect(reviewScreen, contains('Widget _buildReviewBottomControls'));
     expect(reviewScreen, contains('return controls;'));
     expect(

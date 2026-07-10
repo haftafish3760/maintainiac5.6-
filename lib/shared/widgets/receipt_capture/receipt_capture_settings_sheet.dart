@@ -5,16 +5,18 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
     required this.settings,
     required this.area,
     required this.hasSavedReceiptProof,
+    this.uiConfig = const ReceiptCaptureUiConfig(),
   });
 
   final ReceiptCaptureSettingsController settings;
   final ReceiptCaptureArea area;
   final bool hasSavedReceiptProof;
+  final ReceiptCaptureUiConfig uiConfig;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF161D20),
+      backgroundColor: uiConfig.pageBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -27,12 +29,12 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(true),
                     icon: const Icon(Icons.arrow_back_rounded),
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFF11181B),
+                      backgroundColor: uiConfig.surfaceColor,
                       foregroundColor: Colors.white,
                       minimumSize: const Size(42, 42),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
-                        side: const BorderSide(color: Color(0xFF526168)),
+                        side: BorderSide(color: uiConfig.borderColor),
                       ),
                     ),
                   ),
@@ -59,6 +61,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                 area: area,
                 hasSavedReceiptProof: hasSavedReceiptProof,
                 showTitle: false,
+                uiConfig: uiConfig,
               ),
             ),
           ],
@@ -81,6 +84,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
     required this.settings,
     required this.area,
     required this.hasSavedReceiptProof,
+    this.uiConfig = const ReceiptCaptureUiConfig(),
     this.showTitle = true,
   });
 
@@ -88,6 +92,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
   final ReceiptCaptureArea area;
   final bool hasSavedReceiptProof;
   final bool showTitle;
+  final ReceiptCaptureUiConfig uiConfig;
 
   @override
   Widget build(BuildContext context) {
