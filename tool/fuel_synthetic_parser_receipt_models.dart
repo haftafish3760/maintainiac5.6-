@@ -200,6 +200,13 @@ const _products = [
     basePrice: 3.959,
   ),
   _FuelSyntheticProduct(
+    label: 'R99 RENEWABLE DIESEL',
+    spanishLabel: 'Diésel Renovable R99',
+    fuelType: 'Diesel',
+    unit: 'gallon',
+    basePrice: 4.119,
+  ),
+  _FuelSyntheticProduct(
     label: 'HVO100 RENEWABLE DIESEL',
     spanishLabel: 'Diésel Renovable HVO100',
     fuelType: 'Diesel',
