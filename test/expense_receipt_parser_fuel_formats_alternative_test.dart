@@ -466,4 +466,19 @@ TOTAL 19.35
     expect(energy.subtotal, 17.85);
     expect(fee.subtotal, 1.5);
   });
+
+  test('keeps minute-billed DC fast charging out of kWh energy', () {
+    final parsed = parseExpenseReceiptText('''
+PUBLIC EVSE NETWORK
+06/30/2026
+DCFC TIME 30 MIN @ 0.200 6.00
+TOTAL 6.00
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fee = parsed.lines.single;
+    expect(fee.category, 'Charging Fees');
+    expect(fee.subtotal, 6);
+    expect(parsed.lines.where((line) => line.unit == 'kWh'), isEmpty);
+  });
 }
