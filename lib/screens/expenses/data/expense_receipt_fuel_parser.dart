@@ -340,6 +340,33 @@ String _fuelDescriptionWithOctane({
   return '$description ($octane Octane)';
 }
 
+String _fuelDescriptionWithRoadClassification({
+  required String description,
+  required _FuelLineDetails details,
+  required List<String> receiptRows,
+}) {
+  if (details.fuelType != 'Diesel') return description;
+  final classification = _dieselRoadClassificationFor(receiptRows);
+  if (classification == null ||
+      description.toLowerCase().contains(classification.toLowerCase())) {
+    return description;
+  }
+  return '$description ($classification)';
+}
+
+String? _dieselRoadClassificationFor(List<String> receiptRows) {
+  final text = _normalizeFuelSignalText(receiptRows.join(' '));
+  if (RegExp(
+    r'\b(off[-\s]?road|dyed\s+diesel|red(?:\s+dyed?)?\s+diesel|farm\s+diesel|ag\s+diesel)\b',
+  ).hasMatch(text)) {
+    return 'Off-road';
+  }
+  if (RegExp(r'\b(on[-\s]?road|highway|clear\s+diesel)\b').hasMatch(text)) {
+    return 'On-road';
+  }
+  return null;
+}
+
 String? _fuelOctaneFor(List<String> receiptRows) {
   final grade = RegExp(
     r'\b(?:reg|regular|unleaded|unl|mid|mid[-\s]?grade|plus|prem|premium|super|supreme|suprema)\s*'

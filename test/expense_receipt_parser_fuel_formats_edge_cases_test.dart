@@ -146,6 +146,7 @@ ODOMETER 144560
     final fuel = parsed.lines.single;
     expect(fuel.category, 'Fuel');
     expect(fuel.fuelType, 'Diesel');
+    expect(fuel.description.toLowerCase(), contains('on-road'));
     expect(fuel.quantity, 16.25);
     expect(fuel.unitPrice, 3.899);
     expect(fuel.subtotal, 63.36);

@@ -15,6 +15,7 @@ ODOMETER 55420
     final rowFuel = rowStyle.lines.single;
     expect(rowFuel.category, 'Fuel');
     expect(rowFuel.fuelType, 'Diesel');
+    expect(rowFuel.description.toLowerCase(), contains('off road'));
     expect(rowFuel.quantity, 15.25);
     expect(rowFuel.unitPrice, 3.299);
     expect(rowFuel.subtotal, 50.31);
@@ -37,6 +38,7 @@ HUBOMETER 77840
     final splitFuel = splitStyle.lines.single;
     expect(splitFuel.category, 'Fuel');
     expect(splitFuel.fuelType, 'Diesel');
+    expect(splitFuel.description.toLowerCase(), contains('red dyed diesel'));
     expect(splitFuel.quantity, 22.4);
     expect(splitFuel.unitPrice, 3.199);
     expect(splitFuel.subtotal, 71.66);

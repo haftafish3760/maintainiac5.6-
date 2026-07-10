@@ -84,8 +84,12 @@ List<_ParsedReceiptLine> _readLineItems(
         : null;
     final lineDescription = fuelDetails == null
         ? description
-        : _fuelDescriptionWithOctane(
-            description: description,
+        : _fuelDescriptionWithRoadClassification(
+            description: _fuelDescriptionWithOctane(
+              description: description,
+              details: fuelDetails,
+              receiptRows: rows,
+            ),
             details: fuelDetails,
             receiptRows: rows,
           );
