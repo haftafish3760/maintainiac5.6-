@@ -32,6 +32,17 @@ void main() {
     _writeJson('build/parser_qa_pipeline/windows.json', {
       'readyForMacMeasurementWave': true,
     });
+    _writeJson('build/parser_qa_pipeline/peh_core_measurement_gap.json', {
+      'totalRemainingChecked': 38,
+      'nextTradesByRemainingGap': ['hvac'],
+      'tradeGaps': [
+        {'trade': 'hvac', 'remainingChecked': 38},
+      ],
+    });
+    _writeJson('build/parser_qa_pipeline/peh_core_claim_readiness.json', {
+      'blockingFindings': ['trade_not_ready:hvac', 'mac_wave_not_merge_ready'],
+      'nextActions': ['Keep the hvac Mac wave running.'],
+    });
 
     final stdout = _MemorySink();
     final exit = runWorkSupplyParserQaPehCoreMacHandoffPacket(
@@ -60,6 +71,12 @@ void main() {
     expect(summary['reusableBaselineBranch'], isNotEmpty);
     expect(summary['reusableCheckpointMarkdownPath'], 'docs/reusable_parsing_qa_checkpoint.md');
     expect(summary['reusableHandoffMarkerPath'], 'docs/reusable_parsing_qa_handoff_marker.md');
+    expect(summary['measurementGapPath'], 'build/parser_qa_pipeline/peh_core_measurement_gap.json');
+    expect(summary['claimReadinessPath'], 'build/parser_qa_pipeline/peh_core_claim_readiness.json');
+    expect(summary['totalRemainingChecked'], 38);
+    expect(summary['nextTradesByRemainingGap'].toString(), contains('hvac'));
+    expect(summary['tradeGaps'].toString(), contains('remainingChecked'));
+    expect(summary['claimBlockingFindings'].toString(), contains('trade_not_ready:hvac'));
     expect((summary['executionOrder'] as List).length, greaterThanOrEqualTo(4));
     expect(summary['measurementCommandCount'], 4);
     expect(summary['rollupCommandCount'], 2);

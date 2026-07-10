@@ -66,6 +66,12 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
       jsonDecode(macWaveFile.readAsStringSync()) as Map<String, Object?>;
   final windows =
       jsonDecode(windowsStatusFile.readAsStringSync()) as Map<String, Object?>;
+  final measurementGap = _readOptionalJson(
+    'build/parser_qa_pipeline/peh_core_measurement_gap.json',
+  );
+  final claimReadiness = _readOptionalJson(
+    'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+  );
   final reusableCheckpoint = _readReusableCheckpoint();
 
   final measurementCommands =
@@ -123,8 +129,22 @@ int runWorkSupplyParserQaPehCoreMacHandoffPacket(
     ],
     'macWavePath': macWavePath,
     'windowsStatusPath': windowsStatusPath,
+    'measurementGapPath': 'build/parser_qa_pipeline/peh_core_measurement_gap.json',
+    'claimReadinessPath': 'build/parser_qa_pipeline/peh_core_claim_readiness.json',
     'readyForMacMeasurementWave': windows['readyForMacMeasurementWave'] == true,
     'readyToClaimNinetyPlus': false,
+    'totalRemainingChecked':
+        measurementGap['totalRemainingChecked'] ??
+        reusableCheckpoint['totalRemainingChecked'] ??
+        0,
+    'nextTradesByRemainingGap':
+        measurementGap['nextTradesByRemainingGap'] ??
+        reusableCheckpoint['nextTradesByRemainingGap'] ??
+        const <Object>[],
+    'tradeGaps': measurementGap['tradeGaps'] ?? const <Object>[],
+    'claimBlockingFindings':
+        claimReadiness['blockingFindings'] ?? const <Object>[],
+    'claimNextActions': claimReadiness['nextActions'] ?? const <Object>[],
     'measurementCommandCount': measurementCommands.length,
     'rollupCommandCount': rollupCommands.length,
     'measurementCommands': measurementCommands,
@@ -172,6 +192,11 @@ String? _gitValue(List<String> command) {
 
 Map<String, Object?> _readReusableCheckpoint() {
   final file = File('docs/reusable_parsing_qa_checkpoint.json');
+  return _readOptionalJson(file.path);
+}
+
+Map<String, Object?> _readOptionalJson(String path) {
+  final file = File(path);
   if (!file.existsSync()) {
     return const {};
   }
