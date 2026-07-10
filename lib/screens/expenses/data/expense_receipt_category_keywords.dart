@@ -33,7 +33,7 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Charging Fees',
     pattern: RegExp(
-      r'\b(ev charging fee|charging fee|session fee|idle fee|ev parking fee|connection fee|station fee|(?:dcfc|evse|charging)\s+(?:time|minutes?|mins?)|cuota de sesi[oó]n|tarifa de sesi[oó]n|tarifa por inactividad|cuota de carga|tarifa de carga)\b',
+      r'\b(ev charging fee|charging fee|session fee|idle fee|ev parking fee|connection fee|station fee|(?:dcfc|evse|charging)\s+(?:time|minutes?|mins?)|cuota de sesi[oó]n|tarifa de sesi[oó]n|tarifa por inactividad|tarifa por minuto|cuota de carga|tarifa de carga)\b',
     ),
     confidence: .9,
     reason: 'EV charging fee keyword matched.',
