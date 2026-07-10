@@ -59,6 +59,9 @@ int runReusableParsingQaHandoffCheckpoint(
   final gap = jsonDecode(gapFile.readAsStringSync()) as Map<String, Object?>;
   final rollup =
       jsonDecode(rollupFile.readAsStringSync()) as Map<String, Object?>;
+  final liveExecutionPacket = _readOptionalJson(
+    '$root${Platform.pathSeparator}build${Platform.pathSeparator}parser_qa_pipeline${Platform.pathSeparator}peh_core_mac_handoff_packet.json',
+  );
 
   final nextTrades = _stringList(gap['nextTradesByRemainingGap']);
   final readinessActions = _stringList(readiness['nextActions']);
@@ -93,6 +96,12 @@ int runReusableParsingQaHandoffCheckpoint(
     'report': 'reusable_parsing_qa_handoff_checkpoint',
     'primaryBranch': packet['primaryBranch'],
     'windowsWorkingBranch': packet['windowsWorkingBranch'],
+    'windowsExecutionCommit':
+        packet['currentExecutionCommit'] ??
+        packet['inventoryExecutionCommit'] ??
+        liveExecutionPacket['inventoryExecutionCommit'] ??
+        liveExecutionPacket['commit'] ??
+        'unknown',
     'validatedFloorCommit': packet['baselineCommit'],
     'validatedFloorLabel': packet['baselineCommitLabel'],
     'readyForMacMeasurementWave': readiness['readyForMacMeasurementWave'] ?? false,
@@ -139,6 +148,7 @@ Last updated: ${checkpoint['generatedAtEdt']}
 
 - Primary reusable branch: `${checkpoint['primaryBranch']}`
 - Windows working branch: `${checkpoint['windowsWorkingBranch']}`
+- Windows execution commit: `${checkpoint['windowsExecutionCommit']}`
 - Validated floor commit: `${checkpoint['validatedFloorCommit']}`
 - Ready for Mac measurement wave: `${checkpoint['readyForMacMeasurementWave']}`
 - Ready to claim 90-95 percent: `${checkpoint['readyToClaimNinetyPlus']}`
@@ -158,6 +168,15 @@ ${macNext.map((item) => '- $item').join('\n')}
 List<String> _stringList(Object? value) {
   if (value is! List) return const [];
   return [for (final item in value) '$item'];
+}
+
+Map<String, Object?> _readOptionalJson(String path) {
+  final file = File(path);
+  if (!file.existsSync()) return const {};
+  final decoded = jsonDecode(file.readAsStringSync());
+  if (decoded is Map<String, Object?>) return decoded;
+  if (decoded is Map) return decoded.cast<String, Object?>();
+  return const {};
 }
 
 List<List<String>> _commandLists(Object? value) {

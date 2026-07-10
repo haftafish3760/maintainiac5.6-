@@ -19,6 +19,7 @@ void main() {
       'baselineCommitLabel':
           'Reusable parsing QA 2026-07-09 20:24 EDT: add scope boundary handoff map',
       'generatedAtEdt': '2026-07-09 20:24 EDT',
+      'currentExecutionCommit': 'deadbee',
       'macMiniNextCommands': [
         [
           'dart',
@@ -66,6 +67,7 @@ void main() {
         .readAsStringSync();
 
     expect(checkpoint['validatedFloorCommit'], '44f66d7');
+    expect(checkpoint['windowsExecutionCommit'], 'deadbee');
     expect(checkpoint['readyForMacMeasurementWave'], isTrue);
     expect(checkpoint['readyToClaimNinetyPlus'], isFalse);
     expect(checkpoint['totalRemainingChecked'], 38);
@@ -76,6 +78,7 @@ void main() {
     expect(markdown, contains('## Windows Next'));
     expect(markdown, contains('## Mac Mini Next'));
     expect(markdown, contains('hvac'));
+    expect(markdown, contains('Windows execution commit: `deadbee`'));
     expect(
       markdown,
       contains(
