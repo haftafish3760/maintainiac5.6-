@@ -129,6 +129,24 @@ Map<String, Object?> _sessionArguments(
     'maxStitchOutputPixels': config.maxStitchOutputPixels,
     'maxStitchOutputHeight': config.maxStitchOutputHeight,
     if (config.hasPreviousSectionGuide) ..._previousSectionArguments(config),
+    if (config.hasNextSectionGuide) ..._nextSectionArguments(config),
+  };
+}
+
+Map<String, Object?> _nextSectionArguments(
+  ReceiptNativeCameraSessionConfig config,
+) {
+  return {
+    'nextSectionGuidePhotoPath': config.nextSectionGuidePhotoPath,
+    'nextSectionGhostGuidePolicy':
+        'next_section_top_context_ghost_at_bottom_repeat_3_to_5_lines',
+    'nextSectionGhostGuidePlacement': 'bottom_ghost_slice',
+    'nextSectionGhostGuideMatchTarget': 'next_section_top_lines',
+    'nextSectionGhostSourceStartFraction': 0.0,
+    'nextSectionGhostSourceHeightFraction': 0.20,
+    'nextSectionGhostOverlayTopFraction': 0.80,
+    'nextSectionGhostOverlayHeightFraction': 0.20,
+    'nextSectionGhostOpacity': 0.28,
   };
 }
 

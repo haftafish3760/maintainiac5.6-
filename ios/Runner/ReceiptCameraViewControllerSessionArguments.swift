@@ -125,6 +125,12 @@ extension ReceiptCameraViewController {
         in: .whitespacesAndNewlines
       )
     }
+    if let path = arguments["nextSectionGuidePhotoPath"] as? String,
+       !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      nextSectionGuidePhotoPath = path.trimmingCharacters(
+        in: .whitespacesAndNewlines
+      )
+    }
     if let reason = arguments["previousSectionReasonCode"] as? String,
        !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
       previousSectionReasonCode = reason

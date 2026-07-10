@@ -71,6 +71,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     );
     final picked = await _pickReceiptPhotos(
       alignmentGuidePhotoPath: retakeContext?.preferredGuidePhotoPath,
+      nextSectionGuidePhotoPath: retakeContext?.nextSectionGuidePhotoPath,
       alignmentReasonCode: retakeContext?.guidanceCode,
       alignmentGuidance: retakeContext?.guidanceText,
     );
@@ -115,6 +116,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
 
   Future<_PickedReceiptPhotos> _pickReceiptPhotos({
     String? alignmentGuidePhotoPath,
+    String? nextSectionGuidePhotoPath,
     String? alignmentReasonCode,
     String? alignmentGuidance,
   }) async {
@@ -137,6 +139,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       final nativePicked = await _pickWithMaintainiacNativeCamera(
         settings,
         previousSectionGuidePhotoPath: alignmentGuidePhotoPath,
+        nextSectionGuidePhotoPath: nextSectionGuidePhotoPath,
         previousSectionReasonCode: alignmentReasonCode,
         previousSectionGuidance: alignmentGuidance,
         previousSectionCoverageDecision: coverageDecision,
@@ -257,6 +260,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
   Future<_PickedReceiptPhotos> _pickWithMaintainiacNativeCamera(
     ReceiptCaptureSettingsController? settings, {
     String? previousSectionGuidePhotoPath,
+    String? nextSectionGuidePhotoPath,
     String? previousSectionReasonCode,
     String? previousSectionGuidance,
     ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
@@ -287,6 +291,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
           deviceCapability: deviceCapability,
           nativeCapabilities: nativeCapabilities,
           previousSectionGuidePhotoPath: previousSectionGuidePhotoPath,
+          nextSectionGuidePhotoPath: nextSectionGuidePhotoPath,
           previousSectionReasonCode:
               previousSectionReasonCode ??
               previousSectionCoverageDecision?.reasonCode,

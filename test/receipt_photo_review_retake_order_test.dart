@@ -17,6 +17,7 @@ void main() {
     expect(plan.alignmentContext.nextPhotoPath, 'bottom.jpg');
     expect(plan.alignmentContext.preferredGuidePhotoPath, 'top.jpg');
     expect(plan.alignmentContext.previousSectionGuidePhotoPath, 'top.jpg');
+    expect(plan.alignmentContext.nextSectionGuidePhotoPath, 'bottom.jpg');
     expect(plan.alignmentContext.hasTwoSidedContext, isTrue);
     expect(
       plan.alignmentContext.guidanceCode,
@@ -115,6 +116,7 @@ void main() {
       ]);
       expect(plan.alignmentContext.previousPhotoPath, isNull);
       expect(plan.alignmentContext.nextPhotoPath, 'middle.jpg');
+      expect(plan.alignmentContext.nextSectionGuidePhotoPath, isNull);
       expect(
         plan.alignmentContext.guidanceCode,
         'retake_top_with_next_context',
@@ -161,6 +163,7 @@ void main() {
       ]);
       expect(plan.alignmentContext.previousPhotoPath, 'middle.jpg');
       expect(plan.alignmentContext.nextPhotoPath, isNull);
+      expect(plan.alignmentContext.nextSectionGuidePhotoPath, isNull);
       expect(
         plan.alignmentContext.guidanceCode,
         'retake_bottom_with_previous_context',

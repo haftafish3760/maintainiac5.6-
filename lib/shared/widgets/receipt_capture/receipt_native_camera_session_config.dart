@@ -58,6 +58,7 @@ class ReceiptNativeCameraSessionConfig {
     required this.grayscalePreviewEnabled,
     required this.orientationCorrectionEnabled,
     this.previousSectionGuidePhotoPath,
+    this.nextSectionGuidePhotoPath,
     this.previousSectionReasonCode,
     this.previousSectionGuidance,
     this.previousSectionGhostSourceStartFraction,
@@ -123,6 +124,7 @@ class ReceiptNativeCameraSessionConfig {
   final bool grayscalePreviewEnabled;
   final bool orientationCorrectionEnabled;
   final String? previousSectionGuidePhotoPath;
+  final String? nextSectionGuidePhotoPath;
   final String? previousSectionReasonCode;
   final String? previousSectionGuidance;
   final double? previousSectionGhostSourceStartFraction;
@@ -130,6 +132,10 @@ class ReceiptNativeCameraSessionConfig {
   final double? previousSectionGhostOverlayTopFraction;
   final double? previousSectionGhostOverlayHeightFraction;
   final double? previousSectionGhostOpacity;
+
+  bool get hasNextSectionGuide =>
+      nextSectionGuidePhotoPath != null &&
+      nextSectionGuidePhotoPath!.trim().isNotEmpty;
 
   bool get manualCaptureAvailable => settings.manualShutterAlwaysAvailable;
   bool get interruptionSafe => settings.protectsInterruptedCapture;
@@ -321,6 +327,10 @@ class ReceiptNativeCameraSessionConfig {
     tags.add('manual_focus_optional_future');
     if (edgeOverlayEnabled) tags.add('edge_overlay');
     if (hasPreviousSectionGuide) tags.add('previous_section_ghost');
+    if (hasNextSectionGuide) tags.add('next_section_ghost');
+    if (hasPreviousSectionGuide && hasNextSectionGuide) {
+      tags.add('two_sided_section_ghost');
+    }
     return List.unmodifiable(tags);
   }
 

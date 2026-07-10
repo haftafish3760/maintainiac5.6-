@@ -30,6 +30,10 @@ internal fun ReceiptCameraActivity.longReceiptSectionDiagnostics(): Map<String, 
         "previousSectionGhostOverlayHeightFraction" to previousSectionGhostOverlayHeightFraction,
         "previousSectionGhostOpacity" to previousSectionGhostOpacity,
         "previousSectionGhostSlicePercent" to (previousSectionGhostSourceHeightFraction * 100.0).roundToInt(),
+        "hasNextSectionGuide" to (nextSectionGuidePhotoPath != null),
+        "nextSectionGhostGuidePolicy" to "next_section_top_context_ghost_at_bottom_repeat_3_to_5_lines",
+        "nextSectionGhostGuidePlacement" to "bottom_ghost_slice",
+        "nextSectionGhostGuideVisible" to (nextSectionGuidePhotoPath != null),
     )
 }
 
@@ -50,5 +54,8 @@ internal fun ReceiptCameraActivity.previousSectionCaptureDiagnostics(): Map<Stri
         "previousSectionGhostOverlayHeightFraction" to previousSectionGhostOverlayHeightFraction,
         "previousSectionGhostOpacity" to previousSectionGhostOpacity,
         "previousSectionGhostSlicePercent" to (previousSectionGhostSourceHeightFraction * 100.0).roundToInt(),
+        "hasNextSectionGuide" to (nextSectionGuidePhotoPath != null),
+        "nextSectionGhostGuidePolicy" to "next_section_top_context_ghost_at_bottom_repeat_3_to_5_lines",
+        "nextSectionGhostGuidePlacement" to "bottom_ghost_slice",
     )
 }

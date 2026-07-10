@@ -8,6 +8,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     required ReceiptDeviceCapability deviceCapability,
     required ReceiptNativeCameraCapabilities nativeCapabilities,
     String? previousSectionGuidePhotoPath,
+    String? nextSectionGuidePhotoPath,
     String? previousSectionReasonCode,
     String? previousSectionGuidance,
     double? previousSectionGhostSourceStartFraction,
@@ -128,6 +129,9 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     final previousGuidePhotoPath = receiptNativeCameraLocalImagePathOrNull(
       previousSectionGuidePhotoPath,
     );
+    final nextGuidePhotoPath = receiptNativeCameraLocalImagePathOrNull(
+      nextSectionGuidePhotoPath,
+    );
     final hasPreviousGuide =
         previousSectionGhostGuideEnabled &&
         longReceiptMode &&
@@ -197,6 +201,13 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       orientationCorrectionEnabled: orientationCorrectionEnabled,
       previousSectionGuidePhotoPath: hasPreviousGuide
           ? previousGuidePhotoPath
+          : null,
+      nextSectionGuidePhotoPath:
+          previousSectionGhostGuideEnabled &&
+              longReceiptMode &&
+              nextGuidePhotoPath != null &&
+              nextGuidePhotoPath != previousGuidePhotoPath
+          ? nextGuidePhotoPath
           : null,
       previousSectionReasonCode:
           hasPreviousGuide &&

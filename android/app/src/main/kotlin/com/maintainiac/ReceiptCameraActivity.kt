@@ -45,6 +45,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal lateinit var settingsStatusStrip: TextView
     internal lateinit var previousSectionGuidePanel: LinearLayout
     internal lateinit var previousSectionGuideImage: ImageView
+    internal lateinit var nextSectionGuideImage: ImageView
     internal var imageCapture: ImageCapture? = null
     internal var camera: Camera? = null
     internal var scaleGestureDetector: ScaleGestureDetector? = null
@@ -72,6 +73,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var maxLocalPhotoBytes = 12 * 1024 * 1024
     internal var nativeCaptureMemoryPolicy = "bounded_temporary_source_for_ocr_then_cleanup"
     internal var previousSectionGuidePhotoPath: String? = null
+    internal var nextSectionGuidePhotoPath: String? = null
     internal var previousSectionReasonCode: String = "none"
     internal var previousSectionGuidance: String = ""
     internal var previousSectionGhostSourceStartFraction = 0.80

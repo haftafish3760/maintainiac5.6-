@@ -19,6 +19,8 @@ class ReceiptPhotoRetakeAlignmentContext {
 
   String? get preferredGuidePhotoPath => previousPhotoPath ?? nextPhotoPath;
   String? get previousSectionGuidePhotoPath => previousPhotoPath;
+  String? get nextSectionGuidePhotoPath =>
+      hasTwoSidedContext ? nextPhotoPath : null;
 
   String get guidanceCode {
     if (hasTwoSidedContext) return 'retake_middle_with_previous_next_context';

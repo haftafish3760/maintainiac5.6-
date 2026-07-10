@@ -32,6 +32,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   let exposureResetButton = UIButton(type: .system)
   let previousSectionGuidePanel = UIStackView()
   let previousSectionGuideImageView = UIImageView()
+  let nextSectionGuideImageView = UIImageView()
   var lastZoomFactor: CGFloat = 1
   var assistedReceiptFill = true
   var longReceiptMode = true
@@ -53,6 +54,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var maxLocalPhotoBytes = 12 * 1024 * 1024
   var nativeCaptureMemoryPolicy = "bounded_temporary_source_for_ocr_then_cleanup"
   var previousSectionGuidePhotoPath: String?
+  var nextSectionGuidePhotoPath: String?
   var previousSectionReasonCode = "none"
   var previousSectionGuidance = ""
   var previousSectionGhostSourceStartFraction: CGFloat = 0.80

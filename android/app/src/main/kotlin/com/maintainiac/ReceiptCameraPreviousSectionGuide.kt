@@ -49,6 +49,17 @@ internal fun ReceiptCameraActivity.buildPreviousSectionGuide(): View {
         )
     }
     previousSectionGuidePanel.addView(previousSectionGuideImage)
+    nextSectionGuideImage = ImageView(this).apply {
+        contentDescription = "Next receipt section overlap guide"
+        scaleType = ImageView.ScaleType.CENTER_CROP
+        alpha = nextSectionGhostOpacity()
+        visibility = View.GONE
+        layoutParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            dp(34),
+        )
+    }
+    previousSectionGuidePanel.addView(nextSectionGuideImage)
     previousSectionGuidePanel.addView(TextView(this).apply {
         text = previousSectionGhostGuideInstruction()
         setTextColor(Color.rgb(255, 209, 102))
@@ -56,6 +67,7 @@ internal fun ReceiptCameraActivity.buildPreviousSectionGuide(): View {
         gravity = Gravity.CENTER
     })
     updatePreviousSectionGuide(previousSectionGuidePhotoPath)
+    updateNextSectionGuide(nextSectionGuidePhotoPath)
     return previousSectionGuidePanel
 }
 
@@ -86,6 +98,37 @@ internal fun ReceiptCameraActivity.updatePreviousSectionGuide(path: String?) {
     previousSectionGuidePanel.visibility = View.VISIBLE
 }
 
+internal fun ReceiptCameraActivity.updateNextSectionGuide(path: String?) {
+    if (!hasInitializedReceiptCameraField { nextSectionGuideImage }) return
+    val guidePath = path?.trim()?.takeIf { it.isNotEmpty() } ?: run {
+        nextSectionGuideImage.visibility = View.GONE
+        if (previousSectionGuidePhotoPath.isNullOrBlank()) {
+            previousSectionGuidePanel.visibility = View.GONE
+        }
+        return
+    }
+    val guideFile = File(guidePath)
+    if (
+        !guideFile.isAbsolute ||
+        !guideFile.isFile ||
+        !isPreviousSectionGuideImagePath(guidePath)
+    ) {
+        nextSectionGuideImage.visibility = View.GONE
+        return
+    }
+    val guideSlice = nextSectionGhostSliceBitmap(guideFile)
+    if (guideSlice == null) {
+        nextSectionGuideImage.visibility = View.GONE
+        return
+    }
+    nextSectionGuideImage.setImageBitmap(guideSlice)
+    nextSectionGuideImage.alpha = nextSectionGhostOpacity()
+    nextSectionGuideImage.contentDescription =
+        "Next receipt section context guide. Repeat the top readable lines."
+    nextSectionGuideImage.visibility = View.VISIBLE
+    previousSectionGuidePanel.visibility = View.VISIBLE
+}
+
 internal fun ReceiptCameraActivity.previousSectionGhostSliceBitmap(file: File): Bitmap? {
     val source = BitmapFactory.decodeFile(file.absolutePath) ?: return null
     if (source.width <= 0 || source.height <= 0) return source
@@ -104,6 +147,20 @@ internal fun ReceiptCameraActivity.previousSectionGhostSliceBitmap(file: File): 
         source
     }
 }
+
+internal fun ReceiptCameraActivity.nextSectionGhostSliceBitmap(file: File): Bitmap? {
+    val source = BitmapFactory.decodeFile(file.absolutePath) ?: return null
+    if (source.width <= 0 || source.height <= 0) return source
+    val requestedHeight = ceil(source.height * 0.20).roundToInt().coerceAtLeast(1)
+    val sliceHeight = min(requestedHeight, source.height).coerceAtLeast(1)
+    return try {
+        Bitmap.createBitmap(source, 0, 0, source.width, sliceHeight)
+    } catch (_: IllegalArgumentException) {
+        source
+    }
+}
+
+internal fun ReceiptCameraActivity.nextSectionGhostOpacity(): Float = 0.28f
 
 internal fun ReceiptCameraActivity.isPreviousSectionGuideImagePath(path: String): Boolean {
     val lowerPath = path.lowercase()

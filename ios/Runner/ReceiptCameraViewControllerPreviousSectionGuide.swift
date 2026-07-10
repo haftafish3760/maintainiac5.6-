@@ -22,6 +22,14 @@ extension ReceiptCameraViewController {
     previousSectionGuideImageView.accessibilityLabel = "Previous receipt section overlap guide"
     previousSectionGuidePanel.addArrangedSubview(previousSectionGuideImageView)
 
+    nextSectionGuideImageView.contentMode = .scaleAspectFill
+    nextSectionGuideImageView.alpha = 0.28
+    nextSectionGuideImageView.clipsToBounds = true
+    nextSectionGuideImageView.accessibilityLabel = "Next receipt section overlap guide"
+    nextSectionGuideImageView.isHidden = true
+    previousSectionGuidePanel.addArrangedSubview(nextSectionGuideImageView)
+    constrainNextSectionGuideImage()
+
     let detail = UILabel()
     detail.text = previousSectionGhostGuideInstruction()
     detail.textColor = UIColor(red: 1.0, green: 0.82, blue: 0.40, alpha: 1)
@@ -29,6 +37,7 @@ extension ReceiptCameraViewController {
     detail.font = .boldSystemFont(ofSize: 11)
     previousSectionGuidePanel.addArrangedSubview(detail)
     updatePreviousSectionGuide(previousSectionGuidePhotoPath)
+    updateNextSectionGuide(nextSectionGuidePhotoPath)
     return previousSectionGuidePanel
   }
 
@@ -37,7 +46,9 @@ extension ReceiptCameraViewController {
       let path,
       !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else {
-      previousSectionGuidePanel.isHidden = true
+      if nextSectionGuidePhotoPath == nil {
+        previousSectionGuidePanel.isHidden = true
+      }
       updateViewerInfoStackVisibility()
       return
     }
@@ -58,6 +69,40 @@ extension ReceiptCameraViewController {
       "\(previousSectionGhostGuideTitle()). \(previousSectionGhostGuideInstruction())"
     previousSectionGuidePanel.isHidden = false
     updateViewerInfoStackVisibility()
+  }
+
+  func updateNextSectionGuide(_ path: String?) {
+    guard
+      let path,
+      !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    else {
+      nextSectionGuideImageView.isHidden = true
+      if previousSectionGuidePhotoPath == nil {
+        previousSectionGuidePanel.isHidden = true
+      }
+      updateViewerInfoStackVisibility()
+      return
+    }
+    let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard
+      (trimmedPath as NSString).isAbsolutePath,
+      isPreviousSectionGuideImagePath(trimmedPath),
+      FileManager.default.fileExists(atPath: trimmedPath),
+      let image = UIImage(contentsOfFile: trimmedPath)
+    else {
+      nextSectionGuideImageView.isHidden = true
+      updateViewerInfoStackVisibility()
+      return
+    }
+    nextSectionGuideImageView.image = nextSectionGhostSliceImage(image) ?? image
+    nextSectionGuideImageView.alpha = 0.28
+    nextSectionGuideImageView.isHidden = false
+    previousSectionGuidePanel.isHidden = false
+    updateViewerInfoStackVisibility()
+  }
+
+  private func constrainNextSectionGuideImage() {
+    nextSectionGuideImageView.heightAnchor.constraint(equalToConstant: 34).isActive = true
   }
 
   func isPreviousSectionGuideImagePath(_ path: String) -> Bool {
@@ -84,6 +129,17 @@ extension ReceiptCameraViewController {
     let requestedHeight = max(ceil(height * sourceHeightFraction), 1)
     let sliceHeight = min(requestedHeight, height - startY)
     let rect = CGRect(x: 0, y: startY, width: width, height: sliceHeight)
+    guard let cropped = cgImage.cropping(to: rect) else { return nil }
+    return UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation)
+  }
+
+  func nextSectionGhostSliceImage(_ image: UIImage) -> UIImage? {
+    guard let cgImage = image.cgImage else { return nil }
+    let height = CGFloat(cgImage.height)
+    let width = CGFloat(cgImage.width)
+    guard width > 0, height > 0 else { return image }
+    let sliceHeight = min(max(ceil(height * 0.20), 1), height)
+    let rect = CGRect(x: 0, y: 0, width: width, height: sliceHeight)
     guard let cropped = cgImage.cropping(to: rect) else { return nil }
     return UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation)
   }

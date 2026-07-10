@@ -134,6 +134,10 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         .getStringExtra("previousSectionGuidePhotoPath")
         ?.trim()
         ?.takeIf { it.isNotEmpty() }
+    nextSectionGuidePhotoPath = intent
+        .getStringExtra("nextSectionGuidePhotoPath")
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
     previousSectionReasonCode = intent
         .getStringExtra("previousSectionReasonCode")
         ?.trim()

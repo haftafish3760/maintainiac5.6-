@@ -122,4 +122,79 @@ void main() {
       contains('next receipt section'),
     );
   });
+
+  test(
+    'native service sends both neighboring guides for middle retake',
+    () async {
+      const channel = MethodChannel(
+        'maintainiac/receipt_camera_two_sided_context',
+      );
+      late Map<dynamic, dynamic> sentArguments;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'captureReceipt');
+            sentArguments = call.arguments as Map<dynamic, dynamic>;
+            return {
+              'originalPhotoPaths': ['/tmp/middle-retake.jpg'],
+              'temporaryCaptureIds': ['native-middle-retake'],
+              'capturedAt': '2026-06-28T12:00:00.000Z',
+              'captureDiagnostics': {
+                'hasPreviousSectionGuide': true,
+                'hasNextSectionGuide': true,
+              },
+            };
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+
+      const capabilities = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+        supportsContinuousFocus: true,
+        supportsExposureCompensation: true,
+        supportsTorch: true,
+      );
+      final config = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.standard(),
+        nativeCapabilities: capabilities,
+        previousSectionGuidePhotoPath: '/tmp/section-one.jpg',
+        nextSectionGuidePhotoPath: '/tmp/section-three.jpg',
+        previousSectionReasonCode: 'retake_middle_with_previous_next_context',
+        previousSectionGuidance:
+            'Use both neighboring sections as alignment context.',
+      );
+
+      final result = await ReceiptNativeCameraService(
+        methodChannel: channel,
+      ).captureReceipt(config);
+
+      expect(result.originalPhotoPaths, ['/tmp/middle-retake.jpg']);
+      expect(
+        sentArguments['previousSectionGuidePhotoPath'],
+        '/tmp/section-one.jpg',
+      );
+      expect(
+        sentArguments['nextSectionGuidePhotoPath'],
+        '/tmp/section-three.jpg',
+      );
+      expect(
+        sentArguments['nativeControlContractTags'],
+        contains('two_sided_section_ghost'),
+      );
+      expect(
+        sentArguments['nextSectionGhostGuidePolicy'],
+        'next_section_top_context_ghost_at_bottom_repeat_3_to_5_lines',
+      );
+      expect(
+        sentArguments['nextSectionGhostGuidePlacement'],
+        'bottom_ghost_slice',
+      );
+      expect(sentArguments['nextSectionGhostSourceStartFraction'], 0);
+      expect(sentArguments['nextSectionGhostOverlayTopFraction'], .80);
+    },
+  );
 }
