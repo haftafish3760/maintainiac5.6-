@@ -4,6 +4,7 @@ import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
 part 'expense_receipt_parser_fuel_formats_core_test.dart';
 part 'expense_receipt_parser_fuel_formats_alternative_test.dart';
 part 'expense_receipt_parser_fuel_formats_diesel_test.dart';
+part 'expense_receipt_parser_fuel_formats_diesel_late_test.dart';
 part 'expense_receipt_parser_fuel_formats_edge_cases_test.dart';
 part 'expense_receipt_parser_fuel_formats_metered_ev_test.dart';
 
@@ -11,6 +12,7 @@ void main() {
   _registerFuelFormatCoreTests();
   _registerFuelFormatAlternativeFuelTests();
   _registerFuelFormatDieselTests();
+  _registerFuelFormatDieselLateTests();
   _registerFuelFormatEdgeCaseTests();
   _registerFuelFormatMeteredEvTests();
 }

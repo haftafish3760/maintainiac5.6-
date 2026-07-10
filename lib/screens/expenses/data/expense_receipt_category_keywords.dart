@@ -5,7 +5,7 @@ final _categoryRules = [
     category: 'Fuel',
     pattern: RegExp(
       r'\b(diesel|dsl|d1|d2|ulsd|ultra low sulfur diesel|clear diesel|'
-      r'highway diesel|on road diesel|on-road diesel|b5|b10|b20|b99|b100|biodiesel|'
+      r'highway diesel|on road diesel|on-road diesel|b(?:[1-9]|[1-9]\d|100)|biodiesel|'
       r'reefer fuel|tractor diesel|'
       r'truck diesel|off road diesel|off-road diesel|dyed diesel|'
       r'red diesel|red dye diesel|red dyed diesel|farm diesel|ag diesel|'
