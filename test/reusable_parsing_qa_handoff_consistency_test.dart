@@ -131,8 +131,16 @@ void main() {
       'docs/reusable_parsing_qa_checkpoint.md',
     );
     expect(
+      '${packet['windowsCheckpointSyncCommand']}',
+      contains('reusable_parsing_qa_handoff_sync.dart'),
+    );
+    expect(
       (packet['reusableFoundationPaths'] as List<Object?>),
       contains('test/support/parser_qa_platform/'),
+    );
+    expect(
+      (packet['reusableFoundationPaths'] as List<Object?>),
+      contains('tool/reusable_parsing_qa_handoff_sync.dart'),
     );
     expect(
       (packet['inventorySpecificWindowsPaths'] as List<Object?>),

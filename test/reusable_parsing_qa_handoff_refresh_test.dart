@@ -27,6 +27,8 @@ void main() {
         'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
         'checkpointJsonPath': 'docs/reusable_parsing_qa_checkpoint.json',
         'checkpointMarkdownPath': 'docs/reusable_parsing_qa_checkpoint.md',
+        'windowsCheckpointSyncCommand':
+            'dart run tool/reusable_parsing_qa_handoff_sync.dart',
         'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
       }),
@@ -94,8 +96,16 @@ void main() {
       'docs/reusable_parsing_qa_checkpoint.md',
     );
     expect(
+      '${packet['windowsCheckpointSyncCommand']}',
+      contains('reusable_parsing_qa_handoff_sync.dart'),
+    );
+    expect(
       (packet['reusableFoundationPaths'] as List<Object?>),
       contains('test/support/parser_qa_platform/'),
+    );
+    expect(
+      (packet['reusableFoundationPaths'] as List<Object?>),
+      contains('tool/reusable_parsing_qa_handoff_sync.dart'),
     );
     expect(
       (packet['inventorySpecificWindowsPaths'] as List<Object?>),
@@ -110,6 +120,10 @@ void main() {
     expect(
       marker,
       contains('Companion next-action checkpoint:'),
+    );
+    expect(
+      marker,
+      contains('reusable_parsing_qa_handoff_sync.dart'),
     );
     expect(boundary, contains('Validated floor commit: `abc1234`'));
     expect(

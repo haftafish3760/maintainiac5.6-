@@ -126,10 +126,19 @@ int runReusableParsingQaHandoffRefresh(
   packet['scopeBoundaryPath'] = 'docs/reusable_parsing_qa_scope_boundary.md';
   packet['checkpointJsonPath'] = 'docs/reusable_parsing_qa_checkpoint.json';
   packet['checkpointMarkdownPath'] = 'docs/reusable_parsing_qa_checkpoint.md';
+  packet['windowsCheckpointSyncCommand'] =
+      'dart run tool/reusable_parsing_qa_handoff_sync.dart '
+      '--root . '
+      '--branch $branch '
+      '--commit $commit '
+      '--commit-full $commitFull '
+      '--label "$label" '
+      '--updated-at "$updatedAt"';
   packet['reusableFoundationPaths'] = [
     'test/support/parser_qa_platform/',
     'test/support/qa_harness/',
     'tool/reusable_parsing_qa_handoff_refresh.dart',
+    'tool/reusable_parsing_qa_handoff_sync.dart',
     'tool/reusable_parsing_qa_handoff_status.dart',
     'docs/reusable_parsing_qa_handoff_index.md',
     'docs/reusable_parsing_qa_handoff_marker.md',
@@ -224,6 +233,9 @@ The explicit reusable-versus-inventory ownership split lives in
 `docs/reusable_parsing_qa_scope_boundary.md`.
 The current Windows-next versus Mac-next checkpoint lives in
 `docs/reusable_parsing_qa_checkpoint.md`.
+Windows should refresh the full handoff stack with
+`dart run tool/reusable_parsing_qa_handoff_sync.dart ...` instead of running
+separate refresh and checkpoint commands by hand.
 
 ## Completed On Windows
 

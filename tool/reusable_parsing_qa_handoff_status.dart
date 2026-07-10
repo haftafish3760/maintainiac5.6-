@@ -110,6 +110,10 @@ int runReusableParsingQaHandoffStatus(
           'docs/reusable_parsing_qa_scope_boundary.md' &&
       packet['checkpointJsonPath']?.toString() ==
           'docs/reusable_parsing_qa_checkpoint.json' &&
+      packet['windowsCheckpointSyncCommand']?.toString().contains(
+            'reusable_parsing_qa_handoff_sync.dart',
+          ) ==
+          true &&
       packet['checkpointMarkdownPath']?.toString() ==
           'docs/reusable_parsing_qa_checkpoint.md';
 

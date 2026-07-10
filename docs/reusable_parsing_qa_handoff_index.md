@@ -1,15 +1,15 @@
 # Reusable Parsing QA Handoff Index
 
-Last updated: 2026-07-09 20:24 EDT
+Last updated: 2026-07-09 20:28 EDT
 
 This is the single first file the Mac Mini side should open.
 
 Current baseline:
 
 - Branch: `codex/reusable-parsing-qa-foundation`
-- Validated floor commit: `44f66d7`
+- Validated floor commit: `c84686d`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 20:24 EDT: add scope boundary handoff map`
+  `Reusable parsing QA 2026-07-09 20:28 EDT: add live handoff checkpoint`
 
 Open these in order:
 

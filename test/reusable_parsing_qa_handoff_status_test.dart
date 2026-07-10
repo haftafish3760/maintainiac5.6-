@@ -176,6 +176,8 @@ void _writeHandoffFixture(
           'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
           'checkpointJsonPath': 'docs/reusable_parsing_qa_checkpoint.json',
           'checkpointMarkdownPath': 'docs/reusable_parsing_qa_checkpoint.md',
+          'windowsCheckpointSyncCommand':
+              'dart run tool/reusable_parsing_qa_handoff_sync.dart --root .',
           'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
           'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         }),
