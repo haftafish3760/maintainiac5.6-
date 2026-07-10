@@ -1,15 +1,15 @@
 # Reusable Parsing QA Handoff Index
 
-Last updated: 2026-07-09 20:38 EDT
+Last updated: 2026-07-09 20:46 EDT
 
 This is the single first file the Mac Mini side should open.
 
 Current baseline:
 
 - Branch: `codex/reusable-parsing-qa-foundation`
-- Validated floor commit: `492359f`
+- Validated floor commit: `fc219cc`
 - Commit label:
-  `Inventory parser QA 2026-07-09 08:38 PM EDT: front-load HVAC core sample families`
+  `Reusable parsing QA 2026-07-09 20:46 EDT: refresh validated floor for Mac handoff`
 
 Open these in order:
 
