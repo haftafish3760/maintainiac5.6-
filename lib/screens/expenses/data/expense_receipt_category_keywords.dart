@@ -4,25 +4,28 @@ final _categoryRules = [
   _CategoryKeywordRule(
     category: 'Fuel',
     pattern: RegExp(
-      r'\b(diesel|dsl|d1|d2|ulsd|b5|b10|b20|b99|b100|biodiesel|'
+      r'\b(diesel|dsl|d1|d2|ulsd|ultra low sulfur diesel|clear diesel|'
+      r'highway diesel|on road diesel|on-road diesel|b5|b10|b20|b99|b100|biodiesel|'
       r'reefer fuel|tractor diesel|'
       r'truck diesel|off road diesel|off-road diesel|dyed diesel|'
       r'red dye diesel|red dyed diesel|farm diesel|ag diesel|'
-      r'renewable diesel|rd99|r99|hpr diesel|hpr fuel|'
+      r'renewable diesel|rd20|rd99|r20|r99|hvo|hvo100|'
+      r'hydrotreated vegetable oil|hpr diesel|hpr fuel|'
       r'def fluid|diesel exhaust fluid|gasoline|gas |fuel|'
       r'fuel sale|motor fuel|unl\b|reg unl|unleaded|plus unleaded|'
       r'premium|regular|midgrade|super unleaded|no ethanol|ethanol free|'
       r'non ethanol|rec fuel|recreational fuel|marine gas|marine fuel|e0|'
       r'cng|lng|compressed natural gas|liquefied natural gas|'
-      r'gas natural comprimido|gge|dge|'
-      r'propane|lpg|lp gas|autogas|auto gas|'
+      r'gas natural comprimido|renewable natural gas|rng|gge|dge|'
+      r'propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|'
       r'hydrogen|h2 fuel|fuel cell|kg h2|'
-      r'e10|e15|e20|e30|e50|e85|flex fuel|ethanol|'
+      r'e[- ]?10|e[- ]?15|e[- ]?20|e[- ]?30|e[- ]?50|e[- ]?85|'
+      r'flex fuel|flexfuel|gasohol|ethanol|'
       r'octane|87 octane|89 octane|91 octane|'
       r'93 octane|pump|island|ev charge|charging|carga el[eé]ctrica|'
       r'carga ev|sesi[oó]n de carga|energy sale|energy delivered|energia delivered|'
       r'energ[ií]a|chargepoint|'
-      r'tesla supercharger|supercharger|kerosene|kero)\b',
+      r'tesla supercharger|supercharger|kerosene|kero|queroseno|k[- ]?1)\b',
     ),
     confidence: .94,
     reason: 'Fuel keyword matched.',

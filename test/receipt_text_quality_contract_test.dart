@@ -21,6 +21,13 @@ T0TAL 47.O1
       expect(signals.hasBottomTotalCoverage, isTrue);
     });
 
+    test('detects gallon-equivalent and compact renewable fuel quantities', () {
+      expect(looksLikeReceiptFuelQuantityLine('GGE 11.500'), isTrue);
+      expect(looksLikeReceiptFuelQuantityLine('LNG DGE 13.250'), isTrue);
+      expect(looksLikeReceiptFuelQuantityLine('HVO100 18.500 @ 4.199'), isTrue);
+      expect(looksLikeReceiptFuelQuantityLine('HVO100 4.199'), isFalse);
+    });
+
     test('detects maintenance services and interval lines', () {
       final signals = evaluateReceiptTextQuality(
         merchantNeedle: 'quick lube',

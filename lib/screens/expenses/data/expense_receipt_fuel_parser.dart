@@ -27,15 +27,20 @@ _FuelLineDetails _fuelDetailsFor({
   final receiptText = _normalizeFuelSignalText(receiptRows.join(' '));
   final lineText = '$rawText $descriptionText';
   final combinedText = '$rawText $descriptionText $receiptText';
-  final parsedQuantity = _fuelQuantityFor(
-    rawText,
-    amount: amount,
-    fallbackText: receiptText,
-  );
   final fuelType = _fuelTypeForLine(
     lineText: lineText,
     receiptText: receiptText,
   );
+  final parsedQuantity =
+      _fuelExplicitLabeledQuantityIn(descriptionText) ??
+      (_receiptHasOnlyFuelType(receiptRows, fuelType)
+          ? _fuelExplicitLabeledQuantityIn(receiptText)
+          : null) ??
+      _fuelQuantityFor(
+        rawText,
+        amount: amount,
+        fallbackText: receiptText,
+      );
   final unitPrice = _fuelUnitPriceFor(
     text: '$rawText $descriptionText',
     quantity: parsedQuantity,
@@ -57,6 +62,15 @@ _FuelLineDetails _fuelDetailsFor({
     unitPrice: unitPrice,
     odometerReading: _fuelOdometerFor(combinedText),
   );
+}
+
+bool _receiptHasOnlyFuelType(List<String> receiptRows, String fuelType) {
+  final signals = receiptRows
+      .map(_normalizeFuelSignalText)
+      .map(_fuelTypeSignalFor)
+      .whereType<String>()
+      .toSet();
+  return signals.isEmpty || (signals.length == 1 && signals.single == fuelType);
 }
 
 _ParsedQuantity _fuelQuantityWithUnitPriceFallback({
@@ -137,6 +151,7 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\bgasolina\b'), 'gasoline')
       .replaceAll(RegExp(r'\betanol\b'), 'ethanol')
       .replaceAll(RegExp(r'\bdi[eé]sel\b'), 'diesel')
+      .replaceAll(RegExp(r'\bqueroseno\b'), 'kerosene')
       .replaceAll(RegExp(r'\bgas\s+natural\s+comprimido\b'), 'cng')
       .replaceAll(RegExp(r'\benerg[ií]a\b'), 'energy')
       .replaceAll(RegExp(r'\bcarga\s+parcial\b'), 'partial')
@@ -193,6 +208,20 @@ _ParsedQuantity _fuelQuantityFor(
     if (fallback != null) return fallback;
   }
   return const _ParsedQuantity(quantity: 1, unitsPerPackage: 1, unit: 'gallon');
+}
+
+_ParsedQuantity? _fuelExplicitLabeledQuantityIn(String text) {
+  final match = RegExp(
+    r'\b(gallons|gal[oó]nes|volume|vol|qty|qnty|quantity|fuel\s+qty|fuel\s+volume)\s*[:#]?\s*(\d+(?:\.\d+)?)\b',
+  ).firstMatch(text);
+  if (match == null || _fuelVolumeLabelIsPriceContext(text, match)) return null;
+  final quantity = double.tryParse(match.group(2)!);
+  if (quantity == null || quantity <= 0) return null;
+  return _ParsedQuantity(
+    quantity: quantity,
+    unitsPerPackage: 1,
+    unit: 'gallon',
+  );
 }
 
 _ParsedQuantity? _fuelQuantityIn(
@@ -326,7 +355,8 @@ _ParsedQuantity? _fuelQuantityIn(
       RegExp(
         r'(\d+(?:\.\d+)?)\s*(?:l|liter|liters|litre|litres|litro|litros)\b',
       ).allMatches(text).where((match) {
-        return !_fuelQuantityCandidateIsProductGradeContext(text, match);
+        return !_fuelQuantityCandidateIsProductGradeContext(text, match) &&
+            !_fuelQuantityCandidateIsLpGasContext(text, match);
       }).firstOrNull;
   if (literAfterNumber != null) {
     return _ParsedQuantity(
@@ -337,7 +367,7 @@ _ParsedQuantity? _fuelQuantityIn(
   }
 
   final productQuantityBeforeAtPrice = RegExp(
-    r'\b(?:reg\s+unleaded|reg\s+unl|regular|unleaded|premium|midgrade|diesel|dsl|d1|d2|ulsd|b5|b10|b20|b99|b100|biodiesel|off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd99|r99|hpr\s+diesel|hpr\s+fuel|def|diesel\s+exhaust\s+fluid|kerosene|kero|e85|e50|e30|e20|e15|e10|ethanol\s+(?:10|15|20|30|50|85)|flex\s+fuel)\b.*?\b(\d{1,3}\.\d{2,4})\s*@\s*\d',
+    r'\b(?:reg\s+unleaded|reg\s+unl|regular|unleaded|premium|midgrade|diesel|dsl|d1|d2|ulsd|ultra\s+low\s+sulfur\s+diesel|clear\s+diesel|highway\s+diesel|on\s*road\s+diesel|b5|b10|b20|b99|b100|biodiesel|off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|def|diesel\s+exhaust\s+fluid|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?|autogas|auto\s+gas|e[-\s]*(?:85|50|30|20|15|10)|ethanol\s+(?:10|15|20|30|50|85)|flex\s*fuel)\b.*?\b(\d{1,3}\.\d{2,4})\s*@\s*\d',
   ).firstMatch(text);
   if (productQuantityBeforeAtPrice != null) {
     return _ParsedQuantity(
@@ -383,7 +413,7 @@ bool _fuelLooseDecimalCandidateIsRenewableDieselGradeContext(
     before.length > 8 ? before.length - 8 : 0,
   );
   final nearbyAfter = after.substring(0, after.length > 24 ? 24 : after.length);
-  return RegExp(r'(?:\brd?|\bhpr)\s*$').hasMatch(nearbyBefore) ||
+  return RegExp(r'(?:\brd?|\bhpr|\bhvo)\s*$').hasMatch(nearbyBefore) ||
       RegExp(r'^\s*(?:renewable\s+)?diesel\b').hasMatch(nearbyAfter);
 }
 
@@ -483,6 +513,12 @@ bool _fuelQuantityCandidateIsProductGradeContext(
   return RegExp(
     r'\b(product|regular|reg|unleaded|unl|premium|midgrade|ethanol|e10|e15|octane|grade)\s*$',
   ).hasMatch(nearbyBefore);
+}
+
+bool _fuelQuantityCandidateIsLpGasContext(String text, RegExpMatch match) {
+  final after = text.substring(match.end);
+  final nearbyAfter = after.substring(0, after.length > 16 ? 16 : after.length);
+  return RegExp(r'^\s*\.?\s*p\.?\s*gas\b').hasMatch(nearbyAfter);
 }
 
 bool _fuelQuantityCandidateIsDispenserContext(String text, RegExpMatch match) {
@@ -637,6 +673,9 @@ bool _fuelSlashPriceCandidateIsAdjustment(String text, RegExpMatch match) {
   return before.endsWith('-') ||
       RegExp(
         r'\b(?:disc(?:ount)?|descuento|fuel\s+rewards?|rewards?|loyalty|member\s+savings?)\s*$',
+      ).hasMatch(before) ||
+      RegExp(
+        r'\b(?:gal|gals|gallon|gallons|gal[oó]n|gal[oó]nes|volume|vol|qty|qnty|quantity)\s*$',
       ).hasMatch(before);
 }
 
@@ -679,14 +718,19 @@ String? _fuelTypeSignalFor(String text) {
   ).hasMatch(text)) {
     return 'CNG';
   }
-  if (RegExp(r'\b(propane|lpg|lp gas|autogas|auto gas)\b').hasMatch(text)) {
+  if (RegExp(r'\b(rng|renewable natural gas)\b').hasMatch(text)) {
+    return 'CNG';
+  }
+  if (RegExp(
+    r'\b(propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?|autogas|auto\s+gas)\b',
+  ).hasMatch(text)) {
     return 'Propane';
   }
   if (RegExp(r'\b(hydrogen|h2 fuel|fuel cell|kg h2|h2)\b').hasMatch(text)) {
     return 'Hydrogen';
   }
   if (RegExp(
-    r'\b(reefer|tractor diesel|truck diesel|off\s*road diesel|off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd99|r99|hpr\s+diesel|hpr\s+fuel|biodiesel|diesel|dsl|d2|d1|ulsd|b100|b99|b20|b10|b5)\b',
+    r'\b(reefer|tractor diesel|truck diesel|on\s*road\s+diesel|highway\s+diesel|clear\s+diesel|ultra\s+low\s+sulfur\s+diesel|off\s*road diesel|off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|biodiesel|diesel|dsl|d2|d1|ulsd|b100|b99|b20|b10|b5)\b',
   ).hasMatch(text)) {
     return 'Diesel';
   }
@@ -695,18 +739,20 @@ String? _fuelTypeSignalFor(String text) {
   ).hasMatch(text)) {
     return 'Electric';
   }
-  if (RegExp(r'\b(kerosene|kero)\b').hasMatch(text)) return 'Kerosene';
+  if (RegExp(r'\b(kerosene|kero|k[-\s]?1)\b').hasMatch(text)) {
+    return 'Kerosene';
+  }
   if (RegExp(
-    r'\b(no ethanol|non ethanol|ethanol free|sin ethanol|sin etanol|rec fuel|recreational fuel|marine gas|marine fuel|e0)\b',
+    r'\b(no ethanol|non ethanol|ethanol free|sin ethanol|sin etanol|rec fuel|recreational fuel|marine gas|marine fuel|e[-\s]*0)\b',
   ).hasMatch(text)) {
     return 'Gasoline';
   }
   final ethanolBlend = _ethanolBlendFuelTypeFor(text);
   if (ethanolBlend != null) return ethanolBlend;
-  if (RegExp(r'\b(flex fuel)\b').hasMatch(text)) return 'E85';
+  if (RegExp(r'\b(flex\s*fuel)\b').hasMatch(text)) return 'E85';
   if (RegExp(r'\bethanol\b').hasMatch(text)) return 'Ethanol';
   if (RegExp(
-    r'\b(gasoline|unleaded|regular|midgrade|premium)\b',
+    r'\b(gasoline|gasohol|unleaded|regular|midgrade|premium)\b',
   ).hasMatch(text)) {
     return 'Gasoline';
   }
@@ -714,7 +760,7 @@ String? _fuelTypeSignalFor(String text) {
 }
 
 String? _ethanolBlendFuelTypeFor(String text) {
-  final compact = RegExp(r'\be\s*(10|15|20|30|50|85)\b').firstMatch(text);
+  final compact = RegExp(r'\be[-\s]*(10|15|20|30|50|85)\b').firstMatch(text);
   if (compact != null) return 'E${compact.group(1)}';
   final labeled = RegExp(
     r'\bethanol\s*(?:blend|fuel)?\s*(10|15|20|30|50|85)\b',
@@ -736,10 +782,12 @@ String? _receiptPrimaryFuelTypeSignalFor(String text) {
 }
 
 final _dieselFuelTypeSignalPattern = RegExp(
-  r'\b(reefer|tractor diesel|truck diesel|off\s*road diesel|'
+  r'\b(reefer|tractor diesel|truck diesel|on\s*road\s+diesel|'
+  r'highway\s+diesel|clear\s+diesel|ultra\s+low\s+sulfur\s+diesel|off\s*road diesel|'
   r'off\s*road\s+diesel|dyed\s+diesel|red\s+dyed?\s+diesel|'
-  r'farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd99|r99|'
-  r'hpr\s+diesel|hpr\s+fuel|biodiesel|diesel|dsl|d2|d1|ulsd|'
+  r'farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|'
+  r'hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|'
+  r'biodiesel|diesel|dsl|d2|d1|ulsd|'
   r'b100|b99|b20|b10|b5)\b',
 );
 
@@ -792,7 +840,7 @@ String? _fuelProductLabelFor(List<String> receiptRows) {
 
 bool _hasFuelProductSignal(String text) {
   return RegExp(
-    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|premium|midgrade|diesel|dsl|d2|d1|ulsd|def|e85|ethanol|kerosene|kero)\b',
+    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|premium|midgrade|diesel|dsl|d2|d1|ulsd|def|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
   ).hasMatch(text);
 }
 

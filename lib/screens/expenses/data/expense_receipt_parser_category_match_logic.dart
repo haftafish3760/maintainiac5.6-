@@ -113,18 +113,18 @@ bool _looksLikeEvEnergyReceiptLine(String text) {
 
 bool _looksLikeFuelMeasuredLine(String text) {
   return RegExp(
-    r'\b(gallons?|galns|gals?|gal\b|vol(?:ume)?|amt\b|kwh|kg|gge|cng|compressed natural gas|propane|lpg|lp gas|autogas|hydrogen|h2 fuel|fuel cell|price\s*/\s*g(?:al)?|price\s*/\s*gge|price\s*/\s*kg|price\s*per\s*gal|\$\s*/\s*gal|ppu|ppg|ppl|ppge|ppkg|fuel amount|fuel amt|amount|fuel sale|fuel total)\b',
+    r'\b(gallons?|galns|gals?|gal\b|vol(?:ume)?|amt\b|kwh|kg|gge|cng|compressed natural gas|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|kerosene|kero|queroseno|k[- ]?1|hydrogen|h2 fuel|fuel cell|price\s*/\s*g(?:al)?|price\s*/\s*gge|price\s*/\s*kg|price\s*per\s*gal|\$\s*/\s*gal|ppu|ppg|ppl|ppge|ppkg|fuel amount|fuel amt|amount|fuel sale|fuel total)\b',
   ).hasMatch(text);
 }
 
 bool _looksLikeStrongFuelReceiptLine(String text) {
   return RegExp(
     r'\b(unleaded|regular|midgrade|premium|diesel|di[eé]sel|def|'
-    r'gasoline|gasolina|combustible|propane|lpg|lp gas|autogas|auto gas|hydrogen|h2 fuel|fuel cell|'
+    r'gasoline|gasolina|combustible|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|kerosene|kero|queroseno|k[- ]?1|hydrogen|h2 fuel|fuel cell|'
     r'electric|charging|chargepoint|supercharger|sesi[oó]n de carga|'
     r'fuel sale|fuel total|'
     r'energy sale|energy delivered|'
-    r'fuel amount|fuel amt|gallons?|galns|gals?|gal\b|vol(?:ume)?|amt\b|kwh|kg|gge|cng|propane|lpg|hydrogen|'
+    r'fuel amount|fuel amt|gallons?|galns|gals?|gal\b|vol(?:ume)?|amt\b|kwh|kg|gge|cng|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|kerosene|kero|queroseno|k[- ]?1|hydrogen|'
     r'price\s*/\s*g(?:al)?|price\s*/\s*kwh|price\s*per\s*gal|'
     r'price\s*per\s*kwh|\$\s*/\s*gal|\$\s*/\s*kwh|ppu|ppg|ppl)\b',
   ).hasMatch(text);

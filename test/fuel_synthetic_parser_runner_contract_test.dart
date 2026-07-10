@@ -136,6 +136,8 @@ void main() {
       expect(report['failedCaseCount'], 0);
       expect(report['accuracy'], 1.0);
       expect(report['blockers'], isEmpty);
+      expect(report['fuelTypeCounts'], containsPair('E20', greaterThan(0)));
+      expect(report['fuelTypeCounts'], containsPair('E50', greaterThan(0)));
       expect(report['cngReceiptCount'], greaterThan(0));
       expect(report['lngReceiptCount'], greaterThan(0));
       expect(report['propaneReceiptCount'], greaterThan(0));

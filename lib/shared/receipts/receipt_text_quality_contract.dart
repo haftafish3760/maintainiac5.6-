@@ -103,11 +103,20 @@ bool looksLikeReceiptTaxLine(String line) {
 }
 
 bool looksLikeReceiptFuelQuantityLine(String line) {
-  final upper = line.toUpperCase();
+  final normalized = normalizeOcrNumericNoise(line);
+  final upper = normalized.toUpperCase();
   return upper.contains('GAL') ||
       upper.contains('GALS') ||
       upper.contains('GALLONS') ||
-      upper.contains('QTY');
+      upper.contains('QTY') ||
+      upper.contains('GGE') ||
+      upper.contains('DGE') ||
+      upper.contains('KWH') ||
+      upper.contains('KILOWATT HOUR') ||
+      upper.contains('LITER') ||
+      RegExp(r'\bKG\b').hasMatch(upper) ||
+      RegExp(r'\bHVO\s?\d{1,3}\b\s+\d+[.,]\d{2,3}\s*(?:@|X)\s*\d')
+          .hasMatch(upper);
 }
 
 bool looksLikeReceiptLineItemAmount(String line) {

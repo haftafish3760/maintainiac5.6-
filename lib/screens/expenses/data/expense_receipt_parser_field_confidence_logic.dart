@@ -255,7 +255,7 @@ bool _looksLikeSpecificLineDescription(
   if (context.looksLikeFuelReceipt &&
       RegExp(
         r'\b(unleaded|regular|midgrade|premium|diesel|def|fuel|'
-        r'gasoline|gallons?|galns|gals?|gal\b|kwh|pump|'
+        r'gasoline|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|kerosene|kero|queroseno|k[- ]?1|gallons?|galns|gals?|gal\b|kwh|pump|'
         r'price\s*/\s*g(?:al)?|price\s*per\s*gal|\$\s*/\s*gal|'
         r'ppu|ppg|ppl|fuel sale|fuel amount|fuel amt|fuel volume|'
         r'fuel vol|fuel qty|vol(?:ume)?|qty|qnty|quantity)\b',

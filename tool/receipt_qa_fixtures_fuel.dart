@@ -90,6 +90,82 @@ ODOMETER 184220
 ''',
   ),
   _ReceiptQaFixture(
+    pack: 'fuel',
+    name: 'truck stop HVO100 renewable diesel',
+    merchantNeedle: 'pilot',
+    expectedMerchantName: 'Pilot Flying J',
+    expectFuel: true,
+    expectedDateIso: '2026-06-30',
+    expectedTotal: 77.68,
+    expectedLineCount: 1,
+    expectedLineCategories: ['Fuel'],
+    expectedLineFamilies: ['fuel'],
+    expectedLineUses: ['business'],
+    expectedFuelQuantity: 18.5,
+    expectedFuelUnitPrice: 4.199,
+    expectedFuelType: 'Diesel',
+    expectedFuelUnit: 'gallon',
+    expectedFuelOdometer: 144220,
+    expectedBusinessTotal: 77.68,
+    expectedPersonalTotal: 0,
+    expectedReviewLineCount: 0,
+    expectedDownstreamReadinessStatus: 'vehicle_cost_ready',
+    expectedDownstreamReadinessSummary: 'Fuel receipt review ready',
+    expectedDownstreamReadinessCounts: {
+      'parser_downstream_vehicle_cost_ready': 1,
+      'line_ready': 1,
+      'priced_line_ready': 1,
+      'category_family_fuel_ready': 1,
+    },
+    text: '''
+PILOT TRVL CTR
+06/30/2026
+PUMP 04
+HVO100 18.500 @ 4.199 77.68
+TOTAL 77.68
+ODOMETER 144220
+''',
+  ),
+  _ReceiptQaFixture(
+    pack: 'fuel',
+    name: 'renewable natural gas fleet transaction',
+    merchantNeedle: 'clean energy',
+    expectedMerchantName: 'Clean Energy',
+    expectFuel: true,
+    expectedDateIso: '2026-06-30',
+    expectedTotal: 33.34,
+    expectedLineCount: 1,
+    expectedLineCategories: ['Fuel'],
+    expectedLineFamilies: ['fuel'],
+    expectedLineUses: ['business'],
+    expectedFuelQuantity: 11.5,
+    expectedFuelUnitPrice: 2.899,
+    expectedFuelType: 'CNG',
+    expectedFuelUnit: 'GGE',
+    expectedFuelOdometer: 74480,
+    expectedBusinessTotal: 33.34,
+    expectedPersonalTotal: 0,
+    expectedReviewLineCount: 0,
+    expectedDownstreamReadinessStatus: 'vehicle_cost_ready',
+    expectedDownstreamReadinessSummary: 'Fuel receipt review ready',
+    expectedDownstreamReadinessCounts: {
+      'parser_downstream_vehicle_cost_ready': 1,
+      'line_ready': 1,
+      'priced_line_ready': 1,
+      'category_family_fuel_ready': 1,
+    },
+    text: '''
+CLEAN ENERGY
+06/30/2026
+RENEWABLE NATURAL GAS
+GGE 11.500
+PRICE/GGE 2.899
+FUEL SALE 33.34
+TOTAL 33.34
+ODOMETER 74480
+''',
+  ),
+  _ReceiptQaFixture(
     pack: 'noisy',
     name: 'swapped total and date characters',
     merchantNeedle: 'sheetz',

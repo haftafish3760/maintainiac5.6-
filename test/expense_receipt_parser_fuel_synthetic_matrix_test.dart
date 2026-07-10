@@ -401,7 +401,7 @@ Odometer 43000
       }
 
       expect(failures, isEmpty, reason: failures.take(20).join('\n\n'));
-      expect(cases.length, 28);
+      expect(cases.length, 36);
     },
   );
 }
@@ -438,6 +438,18 @@ List<_SyntheticFuelReceipt> _syntheticFuelReceipts() {
       fuelType: 'E15',
       unit: 'gallon',
       basePrice: 3.059,
+    ),
+    _SyntheticFuelProduct(
+      label: 'E-20 ETHANOL 20',
+      fuelType: 'E20',
+      unit: 'gallon',
+      basePrice: 2.959,
+    ),
+    _SyntheticFuelProduct(
+      label: 'E50 FLEX FUEL',
+      fuelType: 'E50',
+      unit: 'gallon',
+      basePrice: 2.849,
     ),
     _SyntheticFuelProduct(
       label: 'E10 ETHANOL 10',

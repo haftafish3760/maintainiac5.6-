@@ -1580,6 +1580,20 @@ const _products = [
     basePrice: 3.849,
   ),
   _FuelSyntheticProduct(
+    label: 'ULTRA LOW SULFUR DIESEL',
+    spanishLabel: 'Diésel Ultra Bajo Azufre',
+    fuelType: 'Diesel',
+    unit: 'gallon',
+    basePrice: 3.869,
+  ),
+  _FuelSyntheticProduct(
+    label: 'ON-ROAD CLEAR DIESEL',
+    spanishLabel: 'Diésel Claro de Carretera',
+    fuelType: 'Diesel',
+    unit: 'gallon',
+    basePrice: 3.879,
+  ),
+  _FuelSyntheticProduct(
     label: 'B20 DIESEL',
     spanishLabel: 'B20 Diésel',
     fuelType: 'Diesel',
@@ -1608,6 +1622,13 @@ const _products = [
     basePrice: 4.099,
   ),
   _FuelSyntheticProduct(
+    label: 'HVO100 RENEWABLE DIESEL',
+    spanishLabel: 'Diésel Renovable HVO100',
+    fuelType: 'Diesel',
+    unit: 'gallon',
+    basePrice: 4.149,
+  ),
+  _FuelSyntheticProduct(
     label: 'DEF FLUID',
     spanishLabel: 'Fluido DEF',
     fuelType: 'DEF',
@@ -1622,11 +1643,25 @@ const _products = [
     basePrice: 4.899,
   ),
   _FuelSyntheticProduct(
+    label: 'K-1 KEROSENE',
+    spanishLabel: 'Queroseno K-1',
+    fuelType: 'Kerosene',
+    unit: 'gallon',
+    basePrice: 4.919,
+  ),
+  _FuelSyntheticProduct(
     label: 'E85 FLEX FUEL',
     spanishLabel: 'E85 Flex Fuel',
     fuelType: 'E85',
     unit: 'gallon',
     basePrice: 2.799,
+  ),
+  _FuelSyntheticProduct(
+    label: 'E-85 FLEXFUEL',
+    spanishLabel: 'E-85 Combustible Flexible',
+    fuelType: 'E85',
+    unit: 'gallon',
+    basePrice: 2.819,
   ),
   _FuelSyntheticProduct(
     label: 'E15 UNLEADED 88',
@@ -1636,11 +1671,25 @@ const _products = [
     basePrice: 3.059,
   ),
   _FuelSyntheticProduct(
+    label: 'E-20 ETHANOL 20',
+    spanishLabel: 'Etanol 20',
+    fuelType: 'E20',
+    unit: 'gallon',
+    basePrice: 2.959,
+  ),
+  _FuelSyntheticProduct(
     label: 'E30 FLEX FUEL',
     spanishLabel: 'Etanol 30',
     fuelType: 'E30',
     unit: 'gallon',
     basePrice: 2.899,
+  ),
+  _FuelSyntheticProduct(
+    label: 'E50 FLEX FUEL',
+    spanishLabel: 'Etanol 50',
+    fuelType: 'E50',
+    unit: 'gallon',
+    basePrice: 2.849,
   ),
   _FuelSyntheticProduct(
     label: 'E10 ETHANOL 10',
@@ -1650,11 +1699,25 @@ const _products = [
     basePrice: 3.249,
   ),
   _FuelSyntheticProduct(
+    label: 'E-0 ETHANOL FREE',
+    spanishLabel: 'E-0 Sin Etanol',
+    fuelType: 'Gasoline',
+    unit: 'gallon',
+    basePrice: 3.599,
+  ),
+  _FuelSyntheticProduct(
     label: 'CNG COMPRESSED NATURAL GAS',
     spanishLabel: 'Gas Natural Comprimido',
     fuelType: 'CNG',
     unit: 'GGE',
     basePrice: 2.799,
+  ),
+  _FuelSyntheticProduct(
+    label: 'RNG RENEWABLE NATURAL GAS',
+    spanishLabel: 'Gas Natural Renovable',
+    fuelType: 'CNG',
+    unit: 'GGE',
+    basePrice: 2.829,
   ),
   _FuelSyntheticProduct(
     label: 'LNG LIQUEFIED NATURAL GAS',
@@ -1664,11 +1727,25 @@ const _products = [
     basePrice: 3.129,
   ),
   _FuelSyntheticProduct(
+    label: 'RNG LIQUEFIED NATURAL GAS',
+    spanishLabel: 'Gas Natural Renovable',
+    fuelType: 'LNG',
+    unit: 'DGE',
+    basePrice: 3.159,
+  ),
+  _FuelSyntheticProduct(
     label: 'LPG AUTOGAS',
     spanishLabel: 'Propano Autogas',
     fuelType: 'Propane',
     unit: 'gallon',
     basePrice: 2.649,
+  ),
+  _FuelSyntheticProduct(
+    label: 'L.P. GAS',
+    spanishLabel: 'Gas LP',
+    fuelType: 'Propane',
+    unit: 'gallon',
+    basePrice: 2.669,
   ),
   _FuelSyntheticProduct(
     label: 'H2 HYDROGEN FUEL',
