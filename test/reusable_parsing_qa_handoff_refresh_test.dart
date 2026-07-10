@@ -315,6 +315,14 @@ void main() {
     );
     expect(
       runbook,
+      contains('expectedLocalDocsRefreshDirty: true'),
+    );
+    expect(
+      runbook,
+      contains('docs/reusable_parsing_qa_checkpoint.json'),
+    );
+    expect(
+      runbook,
       isNot(contains('mac_electrical_core_generated_run_status_25.json')),
     );
     expect(

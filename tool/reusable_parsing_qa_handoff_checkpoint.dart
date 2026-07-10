@@ -110,6 +110,11 @@ int runReusableParsingQaHandoffCheckpoint(
     'totalRemainingChecked': gap['totalRemainingChecked'] ?? 0,
     'sampleSizedTradeCount': rollup['sampleSizedTradeCount'] ?? 0,
     'underTargetTradeCount': rollup['underTargetTradeCount'] ?? 0,
+    'expectedLocalDocsRefreshFiles': const [
+      'docs/reusable_parsing_qa_checkpoint.json',
+      'docs/reusable_parsing_qa_checkpoint.md',
+      'docs/reusable_parsing_qa_mac_handoff_packet.json',
+    ],
     'windowsNextActions': windowsNextActions,
     'macMiniNextActions': macNextActions,
     'generatedAtEdt': packet['generatedAtEdt'] ?? 'unknown',
@@ -142,6 +147,8 @@ String _markdownCheckpoint(Map<String, Object?> checkpoint) {
   final windowsNext = _stringList(checkpoint['windowsNextActions']);
   final macNext = _stringList(checkpoint['macMiniNextActions']);
   final nextTrades = _stringList(checkpoint['nextTradesByRemainingGap']);
+  final expectedLocalDocs =
+      _stringList(checkpoint['expectedLocalDocsRefreshFiles']);
   return '''# Reusable Parsing QA Checkpoint
 
 Last updated: ${checkpoint['generatedAtEdt']}
@@ -162,6 +169,16 @@ ${windowsNext.map((item) => '- $item').join('\n')}
 ## Mac Mini Next
 
 ${macNext.map((item) => '- $item').join('\n')}
+
+## Expected Local Windows Refresh State
+
+Immediately after a Windows-side handoff sync or PEH restamp, it is normal for
+these local docs to be modified until the next artifact-sync commit:
+
+${expectedLocalDocs.map((item) => '- `$item`').join('\n')}
+
+If the live handoff is healthy, `dart run tool/reusable_parsing_qa_handoff_summary.dart --root .`
+will report `expectedLocalDocsRefreshDirty: true` for this state.
 ''';
 }
 

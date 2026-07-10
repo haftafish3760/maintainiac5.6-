@@ -72,13 +72,19 @@ void main() {
     expect(checkpoint['readyToClaimNinetyPlus'], isFalse);
     expect(checkpoint['totalRemainingChecked'], 38);
     expect(
+      (checkpoint['expectedLocalDocsRefreshFiles'] as List<Object?>),
+      contains('docs/reusable_parsing_qa_checkpoint.json'),
+    );
+    expect(
       (checkpoint['nextTradesByRemainingGap'] as List<Object?>),
       contains('hvac'),
     );
     expect(markdown, contains('## Windows Next'));
     expect(markdown, contains('## Mac Mini Next'));
+    expect(markdown, contains('## Expected Local Windows Refresh State'));
     expect(markdown, contains('hvac'));
     expect(markdown, contains('Windows execution commit: `deadbee`'));
+    expect(markdown, contains('expectedLocalDocsRefreshDirty: true'));
     expect(
       markdown,
       contains(
