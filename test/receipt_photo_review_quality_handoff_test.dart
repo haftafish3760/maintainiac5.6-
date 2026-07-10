@@ -89,7 +89,7 @@ void main() {
       qualityRecovery,
       contains('coverageDecision.shouldEmphasizeAddPhoto'),
     );
-    expect(previewControls, contains('Add Another Photo'));
+    expect(previewControls, contains('uiConfig.addPhotoLabel'));
     expect(commonControls, contains("secondary: 'Bottom Section'"));
     expect(
       previewControls,
@@ -103,7 +103,7 @@ void main() {
         'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(previewControls, contains("'Add Another Photo'"));
+    expect(previewControls, contains('uiConfig.addPhotoLabel'));
     expect(previewControls, isNot(contains(": 'Add Another';")));
     expect(controls, contains('quality.userFacingStatusLabel'));
     expect(controls, contains('quality.reviewScoreMeaningLabel'));

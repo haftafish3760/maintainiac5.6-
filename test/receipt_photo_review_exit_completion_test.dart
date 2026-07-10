@@ -233,7 +233,7 @@ void main() {
       isNot(contains('decision.addSectionButtonLabel')),
     );
     expect(controls, contains("'Add Bottom Section'"));
-    expect(controls, contains("'Add Another Photo'"));
+    expect(controls, contains('uiConfig.addPhotoLabel'));
     final models = await readReceiptCaptureModelsSource();
     expect(models, contains('Add the bottom of this receipt?'));
     expect(models, contains('Add Bottom Section'));

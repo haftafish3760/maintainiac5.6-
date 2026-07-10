@@ -56,7 +56,7 @@ void main() {
       ),
     );
     expect(controls, contains("return 'Use Receipt';"));
-    expect(previewRow, contains("'Add Another Photo'"));
+    expect(previewRow, contains('uiConfig.addPhotoLabel'));
     expect(previewTray, isNot(contains("'Add Next Section'")));
     expect(previewRow, contains('retakeLabel'));
     expect(previewRow, contains('continueLabel'));
@@ -164,7 +164,7 @@ void main() {
     final exitActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
     ).readAsString();
-    expect(completionActions, contains("const Text('Back to Photos')"));
+    expect(completionActions, contains('decision.shouldPromptForMorePhotos'));
     expect(exitActions, contains("const Text('Back to Photos')"));
     expect(completionActions, isNot(contains("const Text('Stay In Review')")));
     expect(exitActions, isNot(contains("const Text('Stay In Review')")));
