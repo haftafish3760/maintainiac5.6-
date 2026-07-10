@@ -107,7 +107,7 @@ class ReceiptCaptureContinuationGuide {
       if (normalizedPath != null) previousGuidePath = normalizedPath;
     }
     final normalizedReason =
-        _trimmedOrNull(reasonCode)?.toLowerCase() ??
+        _normalizeContinuationReasonCode(reasonCode) ??
         (previousGuidePath == null ? null : 'manual_add_photo_continuation');
     if (normalizedReason == null) {
       return const ReceiptCaptureContinuationGuide();
@@ -138,7 +138,7 @@ class ReceiptCaptureContinuationGuide {
   bool get hasReason => _trimmedOrNull(reasonCode) != null;
 
   ReceiptCaptureFlowOptions applyTo(ReceiptCaptureFlowOptions options) {
-    final normalizedReason = _trimmedOrNull(reasonCode)?.toLowerCase();
+    final normalizedReason = _normalizeContinuationReasonCode(reasonCode);
     if (normalizedReason == null) return options;
     return ReceiptCaptureFlowOptions(
       module: options.module,
@@ -197,6 +197,16 @@ class ReceiptCaptureContinuationGuide {
     final trimmed = value?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
     return trimmed;
+  }
+
+  static String? _normalizeContinuationReasonCode(String? value) {
+    final trimmed = _trimmedOrNull(value);
+    if (trimmed == null) return null;
+    return trimmed
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
   }
 }
 

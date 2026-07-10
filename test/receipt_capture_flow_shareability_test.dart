@@ -139,6 +139,26 @@ void main() {
     expect(options.previousSectionGhostOpacity, .32);
   });
 
+  test('continuation guide normalizes human-formatted ghost reason codes', () {
+    final guide = ReceiptCaptureContinuationGuide.fromPreviousPhotos(
+      previousPhotoPaths: const ['/tmp/receipt-section-2.jpg'],
+      reasonCode: ' Missing Bottom Edge And Totals ',
+    );
+
+    final options = guide.applyTo(
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+      ),
+    );
+
+    expect(guide.reasonCode, 'missing_bottom_edge_and_totals');
+    expect(guide.ghostOpacity, .36);
+    expect(options.previousSectionReasonCode, 'missing_bottom_edge_and_totals');
+    expect(options.previousSectionGhostSourceStartFraction, .80);
+    expect(options.previousSectionGhostSourceHeightFraction, .20);
+    expect(options.previousSectionGhostOpacity, .36);
+  });
+
   test(
     'continuation guide activates manual add-photo ghost without reason',
     () {
