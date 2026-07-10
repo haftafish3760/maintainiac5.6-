@@ -106,6 +106,7 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
     final evFee = product.unit == 'kWh' && productCycle.isEven
         ? _money(.75 + (((index + seed) % 4) * .5))
         : null;
+    final useMeteredEvFee = evFee != null && ((index + seed) % 3 == 0);
     final evParkingFee = product.unit == 'kWh' && productCycle.isEven
         ? _money(2.00 + (((index + seed) % 3) * .75))
         : null;
@@ -181,6 +182,7 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
             odometer: odometer,
             layout: layout,
             sessionFee: evFee,
+            useMeteredSessionFee: useMeteredEvFee,
             parkingFee: evParkingFee,
             tax: evTax,
             locale: locale,

@@ -9,6 +9,7 @@ String _evReceipt({
   required int odometer,
   required int layout,
   required double? sessionFee,
+  required bool useMeteredSessionFee,
   required double? parkingFee,
   required double? tax,
   required String locale,
@@ -25,6 +26,10 @@ String _evReceipt({
       : 'Venta Combustible $total';
   final feeLine = sessionFee == null
       ? ''
+      : useMeteredSessionFee
+      ? isSpanish
+            ? '\nTarifa por minuto 30 MIN @ 0.050 ${sessionFee.toStringAsFixed(2)}'
+            : '\nDCFC TIME 30 MIN @ 0.050 ${sessionFee.toStringAsFixed(2)}'
       : isSpanish
       ? layout.isEven
             ? '\nCuota de sesión ${sessionFee.toStringAsFixed(2)}'
