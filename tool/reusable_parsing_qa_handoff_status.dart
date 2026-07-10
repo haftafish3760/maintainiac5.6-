@@ -1,0 +1,150 @@
+import 'dart:convert';
+import 'dart:io';
+
+const _usage =
+    'dart run tool/reusable_parsing_qa_handoff_status.dart '
+    '[--root .]';
+
+Future<void> main(List<String> args) async {
+  final exit = runReusableParsingQaHandoffStatus(
+    args,
+    stdout: stdout,
+    stderr: stderr,
+  );
+  if (exit != 0) exitCode = exit;
+}
+
+int runReusableParsingQaHandoffStatus(
+  List<String> args, {
+  required IOSink stdout,
+  required IOSink stderr,
+}) {
+  if (args.contains('--help') || args.contains('-h')) {
+    stdout.writeln(_usage);
+    return 0;
+  }
+
+  final root = _value(args, 'root', '.');
+  final docsDir = Directory(root).uri.resolve('docs/');
+  final indexFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_handoff_index.md'),
+  );
+  final markerFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_handoff_marker.md'),
+  );
+  final runbookFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_mac_runbook.md'),
+  );
+  final packetFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_mac_handoff_packet.json'),
+  );
+
+  final missing = <String>[
+    if (!indexFile.existsSync()) indexFile.path,
+    if (!markerFile.existsSync()) markerFile.path,
+    if (!runbookFile.existsSync()) runbookFile.path,
+    if (!packetFile.existsSync()) packetFile.path,
+  ];
+  if (missing.isNotEmpty) {
+    stderr.writeln('Missing handoff files: ${missing.join(', ')}');
+    return 66;
+  }
+
+  final index = indexFile.readAsStringSync();
+  final marker = markerFile.readAsStringSync();
+  final runbook = runbookFile.readAsStringSync();
+  final packet =
+      jsonDecode(packetFile.readAsStringSync()) as Map<String, Object?>;
+
+  final branch = packet['primaryBranch']?.toString() ?? 'unknown-branch';
+  final validatedFloor = packet['baselineCommit']?.toString() ?? 'unknown';
+  final validatedFloorLabel =
+      packet['baselineCommitLabel']?.toString() ?? 'unknown';
+  final headShort =
+      _gitValue(['rev-parse', '--short', 'HEAD'], root) ?? 'unknown-head';
+  final headFull = _gitValue(['rev-parse', 'HEAD'], root) ?? headShort;
+  final currentBranch =
+      _gitValue(['rev-parse', '--abbrev-ref', 'HEAD'], root) ?? 'unknown-branch';
+
+  final agrees =
+      _extractSingleLineValue(
+            marker,
+            '- Primary reusable branch: `',
+          ) ==
+          branch &&
+      _extractSingleLineValue(
+            index,
+            '- Branch: `',
+          ) ==
+          branch &&
+      _extractSingleLineValue(
+            marker,
+            '- Validated floor commit: `',
+          ) ==
+          validatedFloor &&
+      _extractSingleLineValue(
+            index,
+            '- Validated floor commit: `',
+          ) ==
+          validatedFloor &&
+      _extractSingleLineValue(
+            runbook,
+            '2. Confirm the branch is at or after validated floor commit `',
+          ) ==
+          validatedFloor;
+
+  final branchTipAheadOfFloor = headShort != validatedFloor;
+  final refreshCommand = 'dart run tool/reusable_parsing_qa_handoff_refresh.dart';
+
+  final summary = {
+    'schemaVersion': 1,
+    'report': 'reusable_parsing_qa_handoff_status',
+    'primaryBranch': branch,
+    'currentBranch': currentBranch,
+    'validatedFloorCommit': validatedFloor,
+    'validatedFloorLabel': validatedFloorLabel,
+    'headCommit': headShort,
+    'headCommitFull': headFull,
+    'docsAligned': agrees,
+    'branchTipAheadOfValidatedFloor': branchTipAheadOfFloor,
+    'refreshCommand': refreshCommand,
+    'indexPath': indexFile.path,
+    'markerPath': markerFile.path,
+    'runbookPath': runbookFile.path,
+    'packetPath': packetFile.path,
+  };
+
+  stdout.writeln(
+    'QA_REUSABLE_PARSING_HANDOFF_STATUS '
+    '${const JsonEncoder.withIndent('  ').convert(summary)}',
+  );
+  return agrees ? 0 : 1;
+}
+
+String _value(List<String> args, String key, String fallback) {
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+    if (arg == '--$key' && index + 1 < args.length) return args[index + 1];
+    if (arg.startsWith('--$key=')) return arg.substring(key.length + 3);
+  }
+  return fallback;
+}
+
+String? _gitValue(List<String> command, String root) {
+  final result = Process.runSync(
+    'git',
+    command,
+    workingDirectory: root,
+  );
+  if (result.exitCode != 0) return null;
+  return result.stdout.toString().trim();
+}
+
+String _extractSingleLineValue(String source, String prefix) {
+  final start = source.indexOf(prefix);
+  if (start < 0) return '';
+  final valueStart = start + prefix.length;
+  final valueEnd = source.indexOf('`', valueStart);
+  if (valueEnd < 0) return '';
+  return source.substring(valueStart, valueEnd);
+}
