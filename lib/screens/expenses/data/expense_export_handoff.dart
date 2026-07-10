@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
 import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/pdf/app_generated_pdf_export_estimator.dart';
 import '../../../shared/pdf/app_generated_pdf_share_content.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/storage/app_storage_guard.dart';
@@ -137,6 +138,32 @@ class ExpenseExportHandoff {
       completed: printed,
     );
   }
+}
+
+AppGeneratedPdfExportEstimate estimateExpenseExportPdf({
+  required ExpenseExportSnapshot snapshot,
+  required AppGeneratedPdfExportMode mode,
+  int thumbnailBytes = 0,
+  int cloudThumbnailBytes = 0,
+  int cloudFullImageBytes = 0,
+}) {
+  final fullImageBytes = snapshot.receipts.fold<int>(0, (sum, receipt) {
+    return sum +
+        receipt.attachments.where((attachment) => attachment.isPhoto).fold<int>(
+          0,
+          (attachmentSum, attachment) {
+            return attachmentSum + (attachment.byteSize ?? 0);
+          },
+        );
+  });
+  return AppGeneratedPdfExportEstimator.estimate(
+    mode: mode,
+    receiptCount: snapshot.receiptCount,
+    fullImageBytes: fullImageBytes,
+    thumbnailBytes: thumbnailBytes,
+    cloudFullImageBytes: cloudFullImageBytes,
+    cloudThumbnailBytes: cloudThumbnailBytes,
+  );
 }
 
 Future<File> _writeZipPackage(
