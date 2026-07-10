@@ -122,6 +122,14 @@ void main() {
     );
     expect(
       checkpoint,
+      contains('## Expected Local Windows Refresh State'),
+    );
+    expect(
+      checkpoint,
+      contains('expectedLocalDocsRefreshDirty: true'),
+    );
+    expect(
+      checkpoint,
       contains('Windows execution commit: `'),
     );
     expect(
@@ -171,6 +179,14 @@ void main() {
     expect(
       runbook,
       contains('validated floor commit'),
+    );
+    expect(
+      runbook,
+      contains('expectedLocalDocsRefreshDirty: true'),
+    );
+    expect(
+      runbook,
+      contains('docs/reusable_parsing_qa_checkpoint.json'),
     );
     expect(
       runbook,
