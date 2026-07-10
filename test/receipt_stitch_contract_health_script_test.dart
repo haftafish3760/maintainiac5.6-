@@ -24,13 +24,18 @@ void main() {
     final realWindowProbeScript = File(
       'tool/receipt_stitch_real_window_probe.sh',
     );
+    final realWindowMatrixScript = File(
+      'tool/receipt_stitch_real_window_matrix.sh',
+    );
     expect(script.existsSync(), isTrue);
     expect(realProbeScript.existsSync(), isTrue);
     expect(realWindowProbeScript.existsSync(), isTrue);
+    expect(realWindowMatrixScript.existsSync(), isTrue);
 
     final source = script.readAsStringSync();
     final realProbeSource = realProbeScript.readAsStringSync();
     final realWindowProbeSource = realWindowProbeScript.readAsStringSync();
+    final realWindowMatrixSource = realWindowMatrixScript.readAsStringSync();
     expect(realProbeSource, contains('RECEIPT_STITCH_REAL_PATHS'));
     expect(realProbeSource, contains('RECEIPT_STITCH_REAL_EXPECT=stitched'));
     expect(
@@ -43,6 +48,14 @@ void main() {
     expect(
       realWindowProbeSource,
       contains('RECEIPT_STITCH_REAL_EXPECT=stitched'),
+    );
+    expect(realWindowMatrixSource, contains('height:stride'));
+    expect(realWindowMatrixSource, contains('900:620'));
+    expect(realWindowMatrixSource, contains('900:760'));
+    expect(realWindowMatrixSource, contains('720:520'));
+    expect(
+      realWindowMatrixSource,
+      contains('Receipt stitch real-window matrix: PASS'),
     );
     expect(
       realWindowProbeSource,
