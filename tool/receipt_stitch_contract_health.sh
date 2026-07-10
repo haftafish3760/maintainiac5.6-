@@ -77,6 +77,12 @@ run_edge_cases() {
   run_flutter_test edge-case-orientation \
     test/receipt_stitching_orientation_mismatch_test.dart \
     --concurrency=1
+  run_flutter_test edge-case-torn \
+    test/receipt_stitching_torn_edge_test.dart \
+    --concurrency=1
+  run_flutter_test edge-case-stained \
+    test/receipt_stitching_stained_overlap_test.dart \
+    --concurrency=1
   echo "Receipt stitch edge-case health: PASS"
 }
 
@@ -369,6 +375,8 @@ run_full() {
     test/receipt_stitching_result_contract_test.dart \
     test/receipt_stitching_manual_overlap_test.dart \
     test/receipt_stitching_orientation_mismatch_test.dart \
+    test/receipt_stitching_torn_edge_test.dart \
+    test/receipt_stitching_stained_overlap_test.dart \
     test/receipt_stitching_duplicate_safety_test.dart \
     test/receipt_stitching_ocr_source_contract_test.dart \
     test/receipt_stitching_exception_fallback_contract_test.dart \
