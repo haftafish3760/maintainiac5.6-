@@ -74,6 +74,9 @@ run_edge_cases() {
     test/receipt_stitching_weak_overlap_safety_test.dart \
     --name 'continuation edge is clipped|severely cropped|vertical edges are clipped|faded receipt sections when continuation edge is clipped|missing middle section|middle section is missing|reverse order|boilerplate footer bands' \
     --concurrency=1
+  run_flutter_test edge-case-orientation \
+    test/receipt_stitching_orientation_mismatch_test.dart \
+    --concurrency=1
   echo "Receipt stitch edge-case health: PASS"
 }
 
@@ -365,6 +368,7 @@ run_full() {
     test/receipt_stitching_artifact_copy_contract_test.dart \
     test/receipt_stitching_result_contract_test.dart \
     test/receipt_stitching_manual_overlap_test.dart \
+    test/receipt_stitching_orientation_mismatch_test.dart \
     test/receipt_stitching_duplicate_safety_test.dart \
     test/receipt_stitching_ocr_source_contract_test.dart \
     test/receipt_stitching_exception_fallback_contract_test.dart \

@@ -139,6 +139,10 @@ void main() {
       contains('receipt_stitching_horizontal_placement_test.dart'),
     );
     expect(source, contains('receipt_stitching_weak_overlap_safety_test.dart'));
+    expect(
+      source,
+      contains('receipt_stitching_orientation_mismatch_test.dart'),
+    );
     expect(source, contains('--concurrency=1'));
     expect(source, contains('receipt_stitching_scale_rotation_test.dart'));
     expect(source, contains('receipt_stitching_horizontal_drift_test.dart'));
