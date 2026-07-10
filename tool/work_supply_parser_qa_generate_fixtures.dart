@@ -93,7 +93,7 @@ List<Map<String, Object?>> _buildCases({
   required _GeneratorOptions options,
   required List<WorkSupplyFixtureRecipe> recipes,
 }) {
-  final orderedRecipes = _prioritizeRecipesForLimitedBatch(recipes);
+  final orderedRecipes = _prioritizeRecipesForLimitedBatch(recipes, options);
   final cases = <Map<String, Object?>>[];
   var index = 0;
   while (cases.length < options.limit) {
@@ -165,6 +165,7 @@ List<Map<String, Object?>> _buildCases({
 
 List<WorkSupplyFixtureRecipe> _prioritizeRecipesForLimitedBatch(
   List<WorkSupplyFixtureRecipe> recipes,
+  _GeneratorOptions options,
 ) {
   if (recipes.length < 2) return recipes;
 
@@ -187,6 +188,13 @@ List<WorkSupplyFixtureRecipe> _prioritizeRecipesForLimitedBatch(
     prioritized.add(recipe);
   }
 
+  for (final slug in _prioritySlugsForLimitedBatch(options)) {
+    for (final recipe in recipes) {
+      if (recipe.slug != slug) continue;
+      addRecipe(recipe);
+    }
+  }
+
   for (final caseType in preferredCaseTypes) {
     for (final recipe in recipes) {
       if (recipe.caseType != caseType) continue;
@@ -200,6 +208,40 @@ List<WorkSupplyFixtureRecipe> _prioritizeRecipesForLimitedBatch(
   }
 
   return prioritized;
+}
+
+List<String> _prioritySlugsForLimitedBatch(_GeneratorOptions options) {
+  if (options.trade == 'hvac' &&
+      options.scope == 'residential' &&
+      options.tier == 'core') {
+    if (options.locale == 'es-US') {
+      return const [
+        'filtro_generico',
+        'capacitor_doble',
+        'contactor_hvac',
+        'bomba_condensado',
+        'cable_termostato',
+        'panel_humidificador',
+        'sensor_flama',
+        'filtro_aire',
+        'acople_condensado',
+        'pastillas_condensado',
+      ];
+    }
+    return const [
+      'dangerous_filter',
+      'dual_run_capacitor',
+      'hvac_contactor',
+      'condensate_pump',
+      'thermostat_wire',
+      'humidifier_water_panel',
+      'flame_sensor',
+      'pleated_filter',
+      'condensate_coupling',
+      'pan_tabs',
+    ];
+  }
+  return const [];
 }
 
 _SyntheticReceiptEnvelope _receiptEnvelopeFor({

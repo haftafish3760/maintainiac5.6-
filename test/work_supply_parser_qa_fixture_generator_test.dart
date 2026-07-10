@@ -212,13 +212,6 @@ void main() {
       final generatedRoot = Directory(
         '${output.path}/work_supply_parser/plumbing/residential/core/en-US',
       );
-      final fixtures =
-          jsonDecode(
-                File(
-                  '${generatedRoot.path}/generated_fixtures.json',
-                ).readAsStringSync(),
-              )
-              as List;
       final manifest =
           jsonDecode(
                 File('${generatedRoot.path}/manifest.json').readAsStringSync(),
@@ -302,6 +295,62 @@ void main() {
         expect(fixtures, hasLength(24));
         expect(fixtures.first['sourceType'], 'synthetic');
         expect(fixtures.any((entry) => entry['expectUnknown'] == true), isTrue);
+      }
+    }
+  });
+
+  test('fixture generator front-loads HVAC core service families in limited batches', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_hvac_priority_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    for (final locale in ['en-US', 'es-US']) {
+      final exit = await runWorkSupplyParserFixtureGenerator(
+        [
+          '--trade',
+          'hvac',
+          '--scope',
+          'residential',
+          '--tier',
+          'core',
+          '--locale',
+          locale,
+          '--limit',
+          '12',
+          '--output-dir',
+          output.path,
+        ],
+        stdout: _MemorySink(),
+        stderr: _MemorySink(),
+      );
+
+      expect(exit, 0, reason: locale);
+      final fixtureFile = File(
+        '${output.path}/work_supply_parser/hvac/residential/core/$locale/'
+        'generated_fixtures.json',
+      );
+      final fixtures = (jsonDecode(fixtureFile.readAsStringSync()) as List)
+          .cast<Map<String, Object?>>();
+      final ids = fixtures
+          .take(10)
+          .map((entry) => entry['id'].toString())
+          .join(' ');
+
+      if (locale == 'en-US') {
+        expect(ids, contains('dangerous_filter'));
+        expect(ids, contains('dual_run_capacitor'));
+        expect(ids, contains('hvac_contactor'));
+        expect(ids, contains('condensate_pump'));
+        expect(ids, contains('thermostat_wire'));
+        expect(ids, contains('humidifier_water_panel'));
+      } else {
+        expect(ids, contains('filtro_generico'));
+        expect(ids, contains('capacitor_doble'));
+        expect(ids, contains('contactor_hvac'));
+        expect(ids, contains('bomba_condensado'));
+        expect(ids, contains('cable_termostato'));
+        expect(ids, contains('panel_humidificador'));
       }
     }
   });
@@ -1354,8 +1403,8 @@ void main() {
     );
     final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
     expect(fixtures, hasLength(22));
-    expect(fixtures.toString(), contains('BOMBA COND'));
-    expect(fixtures.toString(), contains('DUCTO FLEX'));
+    expect(_fixtureIds(fixtures), contains('bomba_condensado'));
+    expect(_fixtureIds(fixtures), contains('ducto_flexible'));
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 
@@ -1391,8 +1440,8 @@ void main() {
     );
     final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
     expect(fixtures, hasLength(24));
-    expect(fixtures.toString(), contains('SENSOR FLAMA'));
-    expect(fixtures.toString(), contains('AISLAMIENTO LINEA'));
+    expect(_fixtureIds(fixtures), contains('sensor_flama'));
+    expect(_fixtureIds(fixtures), contains('aislamiento_linea'));
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 
@@ -1428,8 +1477,8 @@ void main() {
     );
     final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
     expect(fixtures, hasLength(28));
-    expect(fixtures.toString(), contains('SWITCH FLOTADOR'));
-    expect(fixtures.toString(), contains('TARJETA DESCONGELAR'));
+    expect(_fixtureIds(fixtures), contains('switch_flotador'));
+    expect(_fixtureIds(fixtures), contains('tarjeta_descongelar'));
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 
@@ -1467,8 +1516,8 @@ void main() {
       );
       final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
       expect(fixtures, hasLength(18));
-      expect(fixtures.toString(), contains('TRAMPA P'));
-      expect(fixtures.toString(), contains('MANGUERA LAVANDERIA'));
+      expect(_fixtureIds(fixtures), contains('trampa_lavamanos'));
+      expect(_fixtureIds(fixtures), contains('manguera_lavadora'));
       expect(
         fixtures.every((entry) => entry['localePackId'] == 'es-US'),
         isTrue,
@@ -1508,8 +1557,8 @@ void main() {
     );
     final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
     expect(fixtures, hasLength(24));
-    expect(fixtures.toString(), contains('TAPON CLEANOUT'));
-    expect(fixtures.toString(), contains('VALVULA PRV'));
+    expect(_fixtureIds(fixtures), contains('tapon_limpieza'));
+    expect(_fixtureIds(fixtures), contains('valvula_prv'));
     expect(fixtures.every((entry) => entry['localePackId'] == 'es-US'), isTrue);
   });
 

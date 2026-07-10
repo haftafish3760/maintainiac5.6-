@@ -88,6 +88,11 @@ Generated from the current Windows-side evidence on 2026-07-09.
   - readiness audit currently reports `readyForMacValidation=true`
   - next required Windows evidence is the measured generated-status layer, not
     another broad catalog rewrite
+  - the HVAC core generated-fixture corpus now front-loads the Windows/Mac
+    sample around the highest-value service families first:
+    dangerous filter review, dual-run capacitor, contactor, condensate pump,
+    thermostat wire, humidifier water panel, flame sensor, and condensate
+    coupling
 
 ## Immediate Execution Order
 
@@ -151,6 +156,9 @@ order unless a shared parser rule blocks the active step.
 1. Use the existing HVAC release-ready catalog and metadata baseline.
 2. Expand measured generated evidence from the current `12`-case sample toward
    the `50`-checked target.
+   - Preserve the new front-loaded sample order so the first Windows/Mac slice
+     exercises the highest-value HVAC service families before broader coverage
+     fills in the rest of the corpus.
 3. Fix only real parser/metadata misses surfaced by the generated-fixture wave.
 4. Refresh the branch rollup and measurement-gap artifacts after each accepted
    evidence increase.
