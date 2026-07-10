@@ -133,6 +133,10 @@ void main() {
       contains('tool/reusable_parsing_qa_handoff_sync.dart'),
     );
     expect(
+      (packet['reusableFoundationPaths'] as List<Object?>),
+      contains('tool/reusable_parsing_qa_handoff_summary.dart'),
+    );
+    expect(
       (packet['inventorySpecificWindowsPaths'] as List<Object?>),
       contains('test/support/work_supply_parser_qa/'),
     );

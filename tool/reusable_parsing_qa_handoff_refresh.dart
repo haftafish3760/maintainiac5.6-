@@ -146,6 +146,7 @@ int runReusableParsingQaHandoffRefresh(
     'tool/reusable_parsing_qa_handoff_refresh.dart',
     'tool/reusable_parsing_qa_handoff_sync.dart',
     'tool/reusable_parsing_qa_handoff_status.dart',
+    'tool/reusable_parsing_qa_handoff_summary.dart',
     'docs/reusable_parsing_qa_handoff_index.md',
     'docs/reusable_parsing_qa_handoff_marker.md',
     'docs/reusable_parsing_qa_scope_boundary.md',
