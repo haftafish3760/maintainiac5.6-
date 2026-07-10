@@ -77,6 +77,14 @@ void main() {
         containsPair('receiptRetakeNextContextSectionNumber', 3),
       );
       expect(
+        diagnostics['middle-new-a.jpg'],
+        containsPair('receiptRetakePreviousContextFinalSectionNumber', 1),
+      );
+      expect(
+        diagnostics['middle-new-a.jpg'],
+        containsPair('receiptRetakeNextContextFinalSectionNumber', 4),
+      );
+      expect(
         diagnostics['middle-new-b.jpg'],
         containsPair('receiptRetakeInsertedExtraSection', true),
       );

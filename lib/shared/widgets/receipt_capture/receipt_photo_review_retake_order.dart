@@ -110,9 +110,15 @@ class ReceiptPhotoRetakeOrderPlan {
           if (alignmentContext.hasPreviousContext)
             'receiptRetakePreviousContextSectionNumber':
                 alignmentContext.targetIndex,
+          if (alignmentContext.hasPreviousContext)
+            'receiptRetakePreviousContextFinalSectionNumber':
+                alignmentContext.targetIndex,
           if (alignmentContext.hasNextContext)
             'receiptRetakeNextContextSectionNumber':
                 alignmentContext.targetIndex + 2,
+          if (alignmentContext.hasNextContext)
+            'receiptRetakeNextContextFinalSectionNumber':
+                originalSectionNumber + replacementPhotoPaths.length,
           'receiptRetakeOrderPolicy':
               'preserve_original_slot_insert_extra_sections_after_target',
         },
