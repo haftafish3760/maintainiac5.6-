@@ -214,8 +214,8 @@ const _products = [
     basePrice: 4.919,
   ),
   _FuelSyntheticProduct(
-    label: 'E85 FLEX FUEL',
-    spanishLabel: 'E85 Flex Fuel',
+    label: 'E85 105 FLEX FUEL',
+    spanishLabel: 'E85 105 Combustible Flexible',
     fuelType: 'E85',
     unit: 'gallon',
     basePrice: 2.799,
