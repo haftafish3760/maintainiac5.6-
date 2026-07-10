@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
@@ -58,6 +60,35 @@ void main() {
     expect(
       document.documentRevisionHashSha256,
       record.documentRevisionHashSha256,
+    );
+  });
+
+  test('share delivery text identifies unsigned and stale documents', () {
+    final base = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice INV-1001',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 9),
+      shareText: 'Review this invoice.',
+      signatureState: AppGeneratedPdfSignatureState.unsigned,
+    );
+    expect(
+      base.shareTextForDelivery,
+      contains('Customer signature is still required'),
+    );
+    final stale = AppGeneratedPdfDocument(
+      kind: AppGeneratedPdfKind.invoice,
+      title: 'Invoice INV-1001',
+      fileName: 'invoice.pdf',
+      bytes: Uint8List.fromList('%PDF-1.7\n%%EOF'.codeUnits),
+      createdAt: DateTime(2026, 7, 9),
+      shareText: 'Review this invoice.',
+      signatureState: AppGeneratedPdfSignatureState.stale,
+    );
+    expect(
+      stale.shareTextForDelivery,
+      contains('previous customer signature is no longer valid'),
     );
   });
 }

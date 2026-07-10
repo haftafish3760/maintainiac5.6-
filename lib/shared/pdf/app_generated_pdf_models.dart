@@ -73,6 +73,18 @@ class AppGeneratedPdfDocument {
   bool get requiresCustomerSignature =>
       signatureState == AppGeneratedPdfSignatureState.unsigned ||
       signatureState == AppGeneratedPdfSignatureState.stale;
+
+  String get shareTextForDelivery {
+    final base = shareText.trim().isEmpty ? title : shareText.trim();
+    return switch (signatureState) {
+      AppGeneratedPdfSignatureState.notRequired ||
+      AppGeneratedPdfSignatureState.signed => base,
+      AppGeneratedPdfSignatureState.unsigned =>
+        '$base\nCustomer signature is still required for this document.',
+      AppGeneratedPdfSignatureState.stale =>
+        '$base\nThe previous customer signature is no longer valid because the document changed.',
+    };
+  }
 }
 
 class AppGeneratedPdfFileName {

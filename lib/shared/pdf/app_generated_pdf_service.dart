@@ -85,9 +85,7 @@ class AppGeneratedPdfService {
         subject: generated.document.shareSubject.isEmpty
             ? generated.document.title
             : generated.document.shareSubject,
-        text: generated.document.shareText.isEmpty
-            ? generated.document.title
-            : generated.document.shareText,
+        text: generated.document.shareTextForDelivery,
         files: [XFile(generated.path)],
       ),
     );
