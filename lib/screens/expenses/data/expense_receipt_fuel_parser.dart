@@ -255,7 +255,7 @@ String? _fuelTypeSignalFor(String text) {
   if (RegExp(r'\b(flex\s*fuel)\b').hasMatch(text)) return 'E85';
   if (RegExp(r'\bethanol\b').hasMatch(text)) return 'Ethanol';
   if (RegExp(
-    r'\b(gasoline|gasohol|unleaded|regular|midgrade|premium)\b',
+    r'\b(gasoline|gasohol|unleaded|regular|midgrade|plus|premium)\b',
   ).hasMatch(text)) {
     return 'Gasoline';
   }
@@ -343,7 +343,7 @@ String? _fuelProductLabelFor(List<String> receiptRows) {
 
 bool _hasFuelProductSignal(String text) {
   return RegExp(
-    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|premium|midgrade|diesel|dsl|d2|d1|ulsd|def|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
+    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|plus|premium|midgrade|diesel|dsl|d2|d1|ulsd|def|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
   ).hasMatch(text);
 }
 

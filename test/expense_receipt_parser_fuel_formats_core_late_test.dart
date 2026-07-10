@@ -174,4 +174,28 @@ Odometro 99720
     expect(spanishFuel.odometerReading, 99720);
     expect(spanish.diagnostics.parserTaskCount('fuel_line_ready'), 1);
   });
+
+  test('parses plus mid-grade gasoline without treating octane as volume', () {
+    final parsed = parseExpenseReceiptText('''
+SHELL
+06/30/2026
+PUMP 07
+PLUS 89
+GALLONS 8.500
+PRICE/GAL 3.659
+FUEL SALE 31.10
+TOTAL 31.10
+ODOMETER 100120
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Gasoline');
+    expect(fuel.quantity, 8.5);
+    expect(fuel.unitPrice, 3.659);
+    expect(fuel.subtotal, 31.10);
+    expect(fuel.odometerReading, 100120);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
 }
