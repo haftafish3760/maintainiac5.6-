@@ -289,11 +289,13 @@ run_milestone() {
   run_phone_windows
   run_transformed_phone_windows
   run_long_stack
+  run_extreme_aspect_ratio
   run_ugly_long_receipts
   run_section_order
   run_bad_inputs
   run_manual_overlap
   run_duplicates
+  run_synthetic_dataset
   run_ghost_handoff
   run_handoff
   echo "Receipt stitch milestone health: PASS"
@@ -309,6 +311,7 @@ run_fast() {
 run_core_stitch() {
   run_source_size
   run_long_stack
+  run_extreme_aspect_ratio
   run_ugly_long_receipts
   run_transformed_phone_windows
   run_uploaded_screenshots
@@ -316,6 +319,7 @@ run_core_stitch() {
   run_bad_inputs
   run_manual_overlap
   run_duplicates
+  run_synthetic_dataset
   run_section_order
   run_ghost_handoff
   run_handoff
@@ -399,6 +403,3 @@ case "$mode" in
     exit 64
     ;;
 esac
-  run_extreme_aspect_ratio
-  run_extreme_aspect_ratio
-  run_synthetic_dataset
