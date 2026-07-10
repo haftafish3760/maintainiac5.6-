@@ -227,4 +227,79 @@ ODOMETER 100480
       expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
     },
   );
+
+  test('preserves Spanish supreme-grade octane on a gasoline receipt', () {
+    final parsed = parseExpenseReceiptText('''
+Gasolinera del Sol
+07/01/2026
+Bomba 04
+Gasolina Suprema 91
+Galones 7,750
+Precio/Galón 3,899
+Venta Combustible 30,22
+Total 30,22
+Odometro 101820
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Gasoline');
+    expect(fuel.description, contains('91'));
+    expect(fuel.quantity, 7.75);
+    expect(fuel.unitPrice, 3.899);
+    expect(fuel.subtotal, 30.22);
+    expect(fuel.odometerReading, 101820);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
+
+  test('preserves compact premium-grade octane on a gasoline receipt', () {
+    final parsed = parseExpenseReceiptText('''
+CHEVRON
+07/01/2026
+PUMP 09
+PREM 93
+GALLONS 10.125
+PRICE/GAL 4.099
+FUEL SALE 41.50
+TOTAL 41.50
+ODOMETER 102160
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Gasoline');
+    expect(fuel.description, contains('93'));
+    expect(fuel.quantity, 10.125);
+    expect(fuel.unitPrice, 4.099);
+    expect(fuel.subtotal, 41.50);
+    expect(fuel.odometerReading, 102160);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
+
+  test('preserves Unleaded 88 octane on an E15 receipt', () {
+    final parsed = parseExpenseReceiptText('''
+CASEY'S
+07/01/2026
+PUMP 02
+UNLEADED 88
+GALLONS 9.500
+PRICE/GAL 3.099
+FUEL SALE 29.44
+TOTAL 29.44
+ODOMETER 102590
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'E15');
+    expect(fuel.description, contains('88'));
+    expect(fuel.quantity, 9.5);
+    expect(fuel.unitPrice, 3.099);
+    expect(fuel.subtotal, 29.44);
+    expect(fuel.odometerReading, 102590);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
 }

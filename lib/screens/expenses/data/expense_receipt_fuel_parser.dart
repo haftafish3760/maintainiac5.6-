@@ -191,6 +191,7 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\bgalns\b'), 'gallons')
       .replaceAll(RegExp(r'\bpp[6g]\b'), 'ppg')
       .replaceAll(RegExp(r'\bd[1i!|]esel\b'), 'diesel')
+      .replaceAll(RegExp(r'\bmethan[0o]l\b'), 'methanol')
       .replaceAll(RegExp(r'\bunl(?:eaded)?\b'), 'unleaded')
       .replaceAll(RegExp(r'\bfue[1i!|]\b'), 'fuel');
 }
@@ -319,7 +320,7 @@ String _fallbackFuelDescriptionFor({
 }) {
   final productLabel = _fuelProductLabelFor(receiptRows);
   if (productLabel != null) return '$productLabel Fuel';
-  final octane = details.fuelType == 'Gasoline'
+  final octane = _fuelMayHaveOctane(details.fuelType)
       ? _fuelOctaneFor(receiptRows)
       : null;
   if (octane != null) return '${details.fuelType} $octane Octane Fuel';
@@ -331,7 +332,7 @@ String _fuelDescriptionWithOctane({
   required _FuelLineDetails details,
   required List<String> receiptRows,
 }) {
-  if (details.fuelType != 'Gasoline') return description;
+  if (!_fuelMayHaveOctane(details.fuelType)) return description;
   final octane = _fuelOctaneFor(receiptRows);
   if (octane == null || RegExp('\\b$octane\\b').hasMatch(description)) {
     return description;
@@ -341,7 +342,7 @@ String _fuelDescriptionWithOctane({
 
 String? _fuelOctaneFor(List<String> receiptRows) {
   final grade = RegExp(
-    r'\b(?:regular|unleaded|unl|mid[-\s]?grade|plus|premium|super|supreme)\s*'
+    r'\b(?:reg|regular|unleaded|unl|mid|mid[-\s]?grade|plus|prem|premium|super|supreme|suprema)\s*'
     r'(?:octane\s*)?(8[7-9]|9[1-4])\b',
   );
   for (final row in receiptRows) {
@@ -349,6 +350,18 @@ String? _fuelOctaneFor(List<String> receiptRows) {
     if (match != null) return match.group(1);
   }
   return null;
+}
+
+bool _fuelMayHaveOctane(String fuelType) {
+  return const {
+    'Gasoline',
+    'E10',
+    'E15',
+    'E20',
+    'E30',
+    'E50',
+    'E85',
+  }.contains(fuelType);
 }
 
 String? _fuelProductLabelFor(List<String> receiptRows) {

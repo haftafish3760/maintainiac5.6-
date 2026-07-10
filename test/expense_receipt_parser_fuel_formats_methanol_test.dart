@@ -18,4 +18,28 @@ TOTAL 24.37
     expect(fuel.unitPrice, 2.499);
     expect(fuel.subtotal, 24.37);
   });
+
+  test('infers dirty M100 methanol gallons when the volume row is missing', () {
+    final parsed = parseExpenseReceiptText('''
+SHELL
+07/01/2026
+PUMP 18
+PRODUCT M100 METHAN0L
+PR1CE/GAL 2.529
+FUE1 SALE 20.86
+TOTAL 20.86
+ODO 51863
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Methanol');
+    expect(fuel.unit, 'gallon');
+    expect(fuel.quantity, closeTo(8.25, .01));
+    expect(fuel.unitPrice, 2.529);
+    expect(fuel.subtotal, 20.86);
+    expect(fuel.odometerReading, 51863);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
 }
