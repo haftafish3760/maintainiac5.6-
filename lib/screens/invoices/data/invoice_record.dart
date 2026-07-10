@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
 import 'invoice_ledger_models.dart';
 import '../../../shared/pdf/app_generated_pdf_models.dart';
 
@@ -123,6 +127,33 @@ class InvoiceRecord {
   bool get dirty => meta.dirty;
   bool get isInvoice => documentType == InvoiceDocumentType.invoice;
   bool get isEstimate => documentType == InvoiceDocumentType.estimate;
+
+  String get documentRevisionHashSha256 {
+    final payload = <String, Object?>{
+      'documentType': documentType.name,
+      'invoiceNumber': invoiceNumber,
+      'title': title,
+      'poNumber': poNumber,
+      'issueDate': issueDate.toIso8601String(),
+      'dueDate': dueDate?.toIso8601String(),
+      'vehicleId': vehicleId,
+      'profileId': profileId,
+      'templateId': templateId,
+      'company': company.toMap(),
+      'client': client.toMap(),
+      'lines': [for (final line in lines) line.toMap()],
+      'discount': discount.toMap(),
+      'payments': [for (final payment in payments) payment.toMap()],
+      'paymentMethod': paymentMethod,
+      'terms': terms,
+    };
+    return sha256.convert(utf8.encode(jsonEncode(payload))).toString();
+  }
+
+  bool get customerSignatureIsValid {
+    return customerSignature.isPresent &&
+        customerSignature.signatureHashSha256 == documentRevisionHashSha256;
+  }
 
   String get displayTitle {
     if (title.trim().isNotEmpty) return title.trim();

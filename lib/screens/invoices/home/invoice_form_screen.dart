@@ -523,6 +523,9 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       final signature = InvoiceSignatureSnapshot(
         role: result.role.name,
         signedAt: result.signedAt,
+        signatureHashSha256: result.role == AppSignatureRole.customer
+            ? record.documentRevisionHashSha256
+            : '',
       );
       await _saveRecord(
         result.role == AppSignatureRole.owner
