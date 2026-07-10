@@ -151,6 +151,13 @@ const _products = [
     basePrice: 3.799,
   ),
   _FuelSyntheticProduct(
+    label: 'B5 BIODIESEL',
+    spanishLabel: 'Biodiesel B5',
+    fuelType: 'Diesel',
+    unit: 'gallon',
+    basePrice: 3.779,
+  ),
+  _FuelSyntheticProduct(
     label: 'B99 BIODIESEL',
     spanishLabel: 'Biodiesel B99',
     fuelType: 'Diesel',

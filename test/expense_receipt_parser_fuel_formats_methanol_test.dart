@@ -42,4 +42,26 @@ ODO 51863
     expect(fuel.odometerReading, 51863);
     expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
   });
+
+  test('does not treat M100 as gallons before a printed volume row', () {
+    final parsed = parseExpenseReceiptText('''
+ALTERNATIVE FUEL STATION
+07/02/2026
+PRODUCT METANOL M100
+GAL0NES 5.750
+PR1CE/GAL 2.628
+FUE1 SALE 15.11
+TOTAL 15.11
+''');
+
+    expect(parsed.lines, hasLength(1));
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'Methanol');
+    expect(fuel.unit, 'gallon');
+    expect(fuel.quantity, 5.75);
+    expect(fuel.unitPrice, 2.628);
+    expect(fuel.subtotal, 15.11);
+    expect(parsed.diagnostics.parserTaskCount('fuel_line_ready'), 1);
+  });
 }

@@ -50,6 +50,7 @@ _ParsedQuantity? _fuelQuantityIn(
             !_fuelQuantityCandidateIsDieselNumberGradeContext(text, match) &&
             !_fuelQuantityCandidateIsBiodieselBlendGradeContext(text, match) &&
             !_fuelQuantityCandidateIsEthanolBlendGradeContext(text, match) &&
+            !_fuelQuantityCandidateIsMethanolBlendGradeContext(text, match) &&
             !_fuelQuantityCandidateIsProductGradeContext(text, match);
       }).firstOrNull;
   if (gallonAfterNumber != null) {
@@ -241,6 +242,17 @@ bool _fuelQuantityCandidateIsEthanolBlendGradeContext(
   final nearbyAfter = after.substring(0, after.length > 18 ? 18 : after.length);
   return RegExp(r'\b(?:ethanol|etanol|e)\s*$').hasMatch(nearbyBefore) ||
       RegExp(r'^\s*(?:ethanol|etanol|flex\s+fuel)\b').hasMatch(nearbyAfter);
+}
+
+bool _fuelQuantityCandidateIsMethanolBlendGradeContext(
+  String text,
+  RegExpMatch match,
+) {
+  final candidate = double.tryParse(match.group(1) ?? '');
+  if (candidate == null || candidate % 1 != 0) return false;
+  if (candidate != 85 && candidate != 100) return false;
+  final before = text.substring(0, match.start);
+  return RegExp(r'\bm\s*$').hasMatch(before);
 }
 
 bool _fuelQuantityCandidateIsBiodieselBlendGradeContext(
