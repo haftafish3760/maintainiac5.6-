@@ -9,7 +9,7 @@ extension _ReceiptPhotoReviewAlignmentActions
     String? alignmentGuidance,
   }) async {
     if (!_reviewWorkActive) return false;
-    final reasonCode = alignmentReasonCode?.trim().toLowerCase() ?? '';
+    final reasonCode = _normalizeAlignmentReasonCode(alignmentReasonCode);
     final result = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: const Color(0xFF1F2528),
@@ -141,4 +141,14 @@ extension _ReceiptPhotoReviewAlignmentActions
     if (reasonCode.startsWith('retake_')) return 'Retake Section';
     return coverageDecision.addSectionButtonLabel;
   }
+}
+
+String _normalizeAlignmentReasonCode(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return '';
+  return trimmed
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
 }

@@ -118,6 +118,7 @@ void main() {
       contains('Opening the phone camera as backup capture'),
     );
     expect(sources.reviewActions, contains('_showLongReceiptAlignmentGuide'));
+    expect(sources.reviewActions, contains('_normalizeAlignmentReasonCode'));
     expect(sources.reviewActions, contains('alignmentReasonCode:'));
     expect(sources.reviewActions, contains('alignmentGuidance:'));
     expect(
