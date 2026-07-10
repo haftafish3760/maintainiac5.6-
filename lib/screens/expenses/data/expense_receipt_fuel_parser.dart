@@ -226,7 +226,7 @@ String? _fuelTypeSignalFor(String text) {
     return 'Diesel';
   }
   if (RegExp(
-    r'\b(ev|kwh|electric|chargepoint|supercharger|charging|carga|el[eé]ctrica|el[eé]ctrico)\b',
+    r'\b(ev|kwh|electric|chargepoint|supercharger|charging|dcfc|dc\s+fast|evse|level\s*2|l2\s+charg(?:e|ing)|carga|el[eé]ctrica|el[eé]ctrico)\b',
   ).hasMatch(text)) {
     return 'Electric';
   }

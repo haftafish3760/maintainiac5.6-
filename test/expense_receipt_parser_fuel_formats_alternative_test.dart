@@ -444,4 +444,26 @@ TOTAL 17.15
     expect(kerosene.lines.single.unitPrice, 4.899);
     expect(kerosene.lines.single.fuelType, 'Kerosene');
   });
+
+  test('parses DC fast charging aliases and separates session fees', () {
+    final parsed = parseExpenseReceiptText('''
+PUBLIC EVSE NETWORK
+06/30/2026
+DCFC SESSION
+ENERGY 42.500 kWh @ 0.420 17.85
+SESSION FEE 1.50
+TOTAL 19.35
+''');
+
+    expect(parsed.lines, hasLength(2));
+    final energy = parsed.lines.firstWhere((line) => line.unit == 'kWh');
+    final fee = parsed.lines.firstWhere(
+      (line) => line.category == 'Charging Fees',
+    );
+    expect(energy.fuelType, 'Electric');
+    expect(energy.quantity, 42.5);
+    expect(energy.unitPrice, .42);
+    expect(energy.subtotal, 17.85);
+    expect(fee.subtotal, 1.5);
+  });
 }
