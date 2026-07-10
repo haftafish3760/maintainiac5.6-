@@ -66,6 +66,9 @@ int runReusableParsingQaHandoffRefresh(
   final claimReadiness = _readOptionalJson(
     _resolve(root, 'build/parser_qa_pipeline/peh_core_claim_readiness.json'),
   );
+  final pehPacket = _readOptionalJson(
+    _resolve(root, 'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json'),
+  );
   packet['primaryBranch'] = branch;
   packet['baselineCommit'] = commit;
   packet['baselineCommitFull'] = commitFull;
@@ -192,6 +195,32 @@ int runReusableParsingQaHandoffRefresh(
     'macWaveCommands': 'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
     'windowsStatusRollup': 'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
   };
+  final measurementCommands = _commandLists(pehPacket['measurementCommands']);
+  final rollupCommands = _commandLists(pehPacket['rollupCommands']);
+  final refreshCommand = _commandList(pehPacket['refreshCommand']);
+  if (measurementCommands.isNotEmpty ||
+      rollupCommands.isNotEmpty ||
+      refreshCommand.isNotEmpty) {
+    packet['macMiniNextCommands'] = [
+      ...measurementCommands,
+      ...rollupCommands,
+      if (refreshCommand.isNotEmpty) refreshCommand,
+    ];
+  }
+  final expectedOutputs = _stringList(pehPacket['expectedOutputs']);
+  if (expectedOutputs.isNotEmpty) {
+    packet['macMiniExpectedOutputs'] = expectedOutputs;
+  }
+  final selectedTrades = _stringList(pehPacket['selectedTrades']);
+  if (selectedTrades.isNotEmpty) {
+    packet['selectedTrades'] = selectedTrades;
+  }
+  if (pehPacket['measurementCommandCount'] != null) {
+    packet['measurementCommandCount'] = pehPacket['measurementCommandCount'];
+  }
+  if (pehPacket['rollupCommandCount'] != null) {
+    packet['rollupCommandCount'] = pehPacket['rollupCommandCount'];
+  }
 
   packetFile.writeAsStringSync(
     const JsonEncoder.withIndent('  ').convert(packet),
@@ -248,6 +277,27 @@ List<String> _stringList(Object? value) {
         .toList(growable: false);
   }
   return const [];
+}
+
+List<List<String>> _commandLists(Object? value) {
+  if (value is! List) return const [];
+  return value
+      .map((entry) {
+        if (entry is Map && entry['command'] is List) {
+          return _commandList(entry['command']);
+        }
+        return _commandList(entry);
+      })
+      .where((entry) => entry.isNotEmpty)
+      .toList(growable: false);
+}
+
+List<String> _commandList(Object? value) {
+  if (value is! List) return const [];
+  return value
+      .map((entry) => entry?.toString() ?? '')
+      .where((entry) => entry.isNotEmpty)
+      .toList(growable: false);
 }
 
 String? _firstString(Object? value) {

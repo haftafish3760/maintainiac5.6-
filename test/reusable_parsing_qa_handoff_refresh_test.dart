@@ -58,6 +58,64 @@ void main() {
           'nextActions': ['Keep the hvac Mac wave running.'],
         }),
       );
+    File(
+      '${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
+    )
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert({
+          'selectedTrades': ['hvac'],
+          'measurementCommandCount': 2,
+          'rollupCommandCount': 1,
+          'measurementCommands': [
+            {
+              'trade': 'hvac',
+              'command': [
+                'dart',
+                'run',
+                'tool/work_supply_parser_qa_run_generated_fixtures.dart',
+                '--fixture',
+                'build/parser_qa_generated/work_supply_parser/hvac/residential/core/en-US/generated_fixtures.json',
+              ],
+            },
+            {
+              'trade': 'hvac',
+              'command': [
+                'dart',
+                'run',
+                'tool/work_supply_parser_qa_run_generated_fixtures.dart',
+                '--fixture',
+                'build/parser_qa_generated/work_supply_parser/hvac/residential/core/es-US/generated_fixtures.json',
+              ],
+            },
+          ],
+          'rollupCommands': [
+            {
+              'trade': 'hvac',
+              'command': [
+                'dart',
+                'run',
+                'tool/work_supply_parser_qa_generated_run_status.dart',
+                '--output',
+                'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+              ],
+            },
+          ],
+          'refreshCommand': [
+            'dart',
+            'run',
+            'tool/work_supply_parser_qa_peh_core_refresh.dart',
+            '--hvac-status',
+            'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+          ],
+          'expectedOutputs': [
+            'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+            'build/parser_qa_pipeline/peh_core_mac_wave_status.json',
+            'build/parser_qa_pipeline/peh_core_merged_status_rollup.json',
+            'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+          ],
+        }),
+      );
 
     final stdout = _MemorySink();
     final exit = runReusableParsingQaHandoffRefresh(
@@ -164,6 +222,23 @@ void main() {
       packet['claimNextActions'].toString(),
       contains('Keep the hvac Mac wave running.'),
     );
+    expect(packet['selectedTrades'], ['hvac']);
+    expect(packet['measurementCommandCount'], 2);
+    expect(packet['rollupCommandCount'], 1);
+    expect(
+      packet['macMiniExpectedOutputs'],
+      [
+        'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
+        'build/parser_qa_pipeline/peh_core_mac_wave_status.json',
+        'build/parser_qa_pipeline/peh_core_merged_status_rollup.json',
+        'build/parser_qa_pipeline/peh_core_claim_readiness.json',
+      ],
+    );
+    expect(
+      '${(packet['macMiniNextCommands'] as List<Object?>).first}',
+      contains('generated_fixtures'),
+    );
+    expect((packet['macMiniNextCommands'] as List<Object?>).length, 4);
 
     expect(marker, contains('Validated floor commit: `abc1234`'));
     expect(

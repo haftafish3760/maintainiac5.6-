@@ -32,7 +32,8 @@ void main() {
     expect(payload['totalRemainingChecked'], 38);
     expect(payload['nextTradesByRemainingGap'].toString(), contains('hvac'));
     expect(payload['claimBlockingFindings'].toString(), contains('trade_not_ready:hvac'));
-    expect(payload['measurementCommandCount'], 4);
+    expect(payload['measurementCommandCount'], 2);
+    expect(payload['rollupCommandCount'], 1);
   });
 }
 
@@ -164,8 +165,8 @@ Validated floor commit: `abc1234`
     'totalRemainingChecked': 38,
     'nextTradesByRemainingGap': ['hvac'],
     'claimBlockingFindings': ['trade_not_ready:hvac'],
-    'measurementCommandCount': 4,
-    'rollupCommandCount': 2,
+    'measurementCommandCount': 2,
+    'rollupCommandCount': 1,
   });
 
   final script = File(
