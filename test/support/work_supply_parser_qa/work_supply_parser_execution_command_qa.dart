@@ -50,6 +50,8 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       'tool/work_supply_parser_qa_peh_core_refresh.dart';
   static const _pehCorePostMacRefreshPath =
       'tool/work_supply_parser_qa_peh_core_post_mac_refresh.dart';
+  static const _finalizeLiveHandoffPath =
+      'tool/work_supply_parser_qa_finalize_live_handoff.dart';
   static const _pehCoreMacHandoffPacketPath =
       'tool/work_supply_parser_qa_peh_core_mac_handoff_packet.dart';
   static const _pehCoreMacHandoffScriptPath =
@@ -368,6 +370,26 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       '--hvac-status',
       'build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json',
     ]),
+    _CommandContract('finalize_live_handoff', [
+      'dart run tool/work_supply_parser_qa_finalize_live_handoff.dart',
+      '--root',
+      '.',
+      '--branch',
+      'codex/reusable-parsing-qa-foundation',
+      '--commit',
+      '8e9771d',
+      '--commit-full',
+      '--label',
+      '--updated-at',
+      '--mac-wave',
+      'build/parser_qa_pipeline/peh_core_mac_wave_commands.json',
+      '--windows-status',
+      'build/parser_qa_pipeline/peh_core_windows_status_rollup.json',
+      '--packet-output',
+      'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json',
+      '--script-output',
+      'build/parser_qa_pipeline/peh_core_mac_handoff.sh',
+    ]),
     _CommandContract('peh_core_claim_readiness', [
       'dart run tool/work_supply_parser_qa_peh_core_claim_readiness.dart',
       '--windows-status',
@@ -564,6 +586,24 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
         'parityOk',
         'packetExecutionHeadAligned',
         'scriptExecutionHeadAligned',
+      ],
+    ),
+    _ToolSourceContract(
+      name: 'finalize_live_handoff_readout',
+      path: _finalizeLiveHandoffPath,
+      tokens: [
+        'QA_PARSER_LIVE_HANDOFF_FINALIZE',
+        'restampExit',
+        'syncExit',
+        'summaryExit',
+        'handoffClean',
+        'windowsExecutionCommit',
+        'packetExecutionHeadAligned',
+        'scriptExecutionHeadAligned',
+        'expectedLocalDocsRefreshDirty',
+        'localModifiedFiles',
+        'measurementCommandCount',
+        'rollupCommandCount',
       ],
     ),
     _ToolSourceContract(
@@ -1030,6 +1070,7 @@ class WorkSupplyParserExecutionCommandSuite extends QaSuite {
       _pehCoreMergedStatusRollupPath: _read(_pehCoreMergedStatusRollupPath, failures),
       _pehCoreRefreshPath: _read(_pehCoreRefreshPath, failures),
       _pehCorePostMacRefreshPath: _read(_pehCorePostMacRefreshPath, failures),
+      _finalizeLiveHandoffPath: _read(_finalizeLiveHandoffPath, failures),
       _pehCoreMacHandoffPacketPath: _read(_pehCoreMacHandoffPacketPath, failures),
       _pehCoreMacHandoffScriptPath: _read(_pehCoreMacHandoffScriptPath, failures),
       _pehCoreClaimReadinessPath: _read(_pehCoreClaimReadinessPath, failures),
