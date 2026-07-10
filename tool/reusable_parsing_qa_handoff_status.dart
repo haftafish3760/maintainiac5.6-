@@ -38,6 +38,9 @@ int runReusableParsingQaHandoffStatus(
   final boundaryFile = File.fromUri(
     docsDir.resolve('reusable_parsing_qa_scope_boundary.md'),
   );
+  final checkpointFile = File.fromUri(
+    docsDir.resolve('reusable_parsing_qa_checkpoint.md'),
+  );
   final packetFile = File.fromUri(
     docsDir.resolve('reusable_parsing_qa_mac_handoff_packet.json'),
   );
@@ -47,6 +50,7 @@ int runReusableParsingQaHandoffStatus(
     if (!markerFile.existsSync()) markerFile.path,
     if (!runbookFile.existsSync()) runbookFile.path,
     if (!boundaryFile.existsSync()) boundaryFile.path,
+    if (!checkpointFile.existsSync()) checkpointFile.path,
     if (!packetFile.existsSync()) packetFile.path,
   ];
   if (missing.isNotEmpty) {
@@ -58,6 +62,7 @@ int runReusableParsingQaHandoffStatus(
   final marker = markerFile.readAsStringSync();
   final runbook = runbookFile.readAsStringSync();
   final boundary = boundaryFile.readAsStringSync();
+  final checkpoint = checkpointFile.readAsStringSync();
   final packet =
       jsonDecode(packetFile.readAsStringSync()) as Map<String, Object?>;
 
@@ -98,9 +103,15 @@ int runReusableParsingQaHandoffStatus(
             '2. Confirm the branch is at or after validated floor commit `',
           ) ==
           validatedFloor &&
+      checkpoint.contains('## Windows Next') &&
+      checkpoint.contains('## Mac Mini Next') &&
       boundary.contains('Validated floor commit: `$validatedFloor`') &&
       packet['scopeBoundaryPath']?.toString() ==
-          'docs/reusable_parsing_qa_scope_boundary.md';
+          'docs/reusable_parsing_qa_scope_boundary.md' &&
+      packet['checkpointJsonPath']?.toString() ==
+          'docs/reusable_parsing_qa_checkpoint.json' &&
+      packet['checkpointMarkdownPath']?.toString() ==
+          'docs/reusable_parsing_qa_checkpoint.md';
 
   final branchTipAheadOfFloor = headShort != validatedFloor;
   final refreshCommand = 'dart run tool/reusable_parsing_qa_handoff_refresh.dart';
@@ -120,6 +131,7 @@ int runReusableParsingQaHandoffStatus(
     'indexPath': indexFile.path,
     'markerPath': markerFile.path,
     'boundaryPath': boundaryFile.path,
+    'checkpointPath': checkpointFile.path,
     'runbookPath': runbookFile.path,
     'packetPath': packetFile.path,
   };

@@ -4,9 +4,9 @@
   "purpose": "Prevent duplicate work and give the Mac Mini one Git-tracked reusable parsing QA handoff source.",
   "primaryBranch": "codex/reusable-parsing-qa-foundation",
   "windowsWorkingBranch": "codex/inventory-parser-backup-20260702-2056",
-  "baselineCommit": "3b996e7",
-  "baselineCommitFull": "3b996e7f003ee2c94db6d40a4d8816b29a757554",
-  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:21 EDT: add handoff status verifier",
+  "baselineCommit": "44f66d7",
+  "baselineCommitFull": "44f66d7015fb9396a082f9b67e6c8b8d421f59f1",
+  "baselineCommitLabel": "Reusable parsing QA 2026-07-09 20:24 EDT: add scope boundary handoff map",
   "baselineRule": "Pull the latest HEAD from codex/reusable-parsing-qa-foundation, then read docs/reusable_parsing_qa_handoff_marker.md before running anything.",
   "handoffMarkerPath": "docs/reusable_parsing_qa_handoff_marker.md",
   "runbookPath": "docs/reusable_parsing_qa_mac_runbook.md",
@@ -189,7 +189,7 @@
       "build/parser_qa_pipeline/mac_hvac_core_generated_run_status_25.json"
     ]
   ],
-  "generatedAtEdt": "2026-07-09 20:21 EDT",
+  "generatedAtEdt": "2026-07-09 20:24 EDT",
   "scopeBoundaryPath": "docs/reusable_parsing_qa_scope_boundary.md",
   "reusableFoundationPaths": [
     "test/support/parser_qa_platform/",
@@ -216,5 +216,7 @@
     "build/parser_qa_pipeline/peh_core_mac_wave_status.json",
     "build/parser_qa_pipeline/peh_core_merged_status_rollup.json",
     "build/parser_qa_pipeline/peh_core_claim_readiness.json"
-  ]
+  ],
+  "checkpointJsonPath": "docs/reusable_parsing_qa_checkpoint.json",
+  "checkpointMarkdownPath": "docs/reusable_parsing_qa_checkpoint.md"
 }

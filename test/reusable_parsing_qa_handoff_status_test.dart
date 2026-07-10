@@ -47,6 +47,7 @@ void main() {
       'dart run tool/reusable_parsing_qa_handoff_refresh.dart',
     );
     expect(payload['boundaryPath'], contains('reusable_parsing_qa_scope_boundary.md'));
+    expect(payload['checkpointPath'], contains('reusable_parsing_qa_checkpoint.md'));
   });
 
   test('handoff status fails when marker and packet drift apart', () {
@@ -145,12 +146,25 @@ void _writeHandoffFixture(
 - `build/parser_qa_pipeline/peh_core_claim_readiness.json`
 ''');
 
+  File('${docs.path}/reusable_parsing_qa_checkpoint.md').writeAsStringSync('''
+# Reusable Parsing QA Checkpoint
+
+## Windows Next
+
+- Keep Windows ownership on inventory-specific Work Supplies parser/code hardening.
+
+## Mac Mini Next
+
+- Run the Mac PEH measurement wave commands from the packet.
+''');
+
   File('${docs.path}/reusable_parsing_qa_mac_runbook.md').writeAsStringSync('''
 # Reusable Parsing QA Mac Runbook
 
 1. Checkout `$branch`.
 2. Confirm the branch is at or after validated floor commit `$validatedFloorCommit`.
 3. Read `docs/reusable_parsing_qa_scope_boundary.md`.
+4. Read `docs/reusable_parsing_qa_checkpoint.md`.
 ''');
 
   File('${docs.path}/reusable_parsing_qa_mac_handoff_packet.json')
@@ -160,6 +174,8 @@ void _writeHandoffFixture(
           'baselineCommit': validatedFloorCommit,
           'baselineCommitLabel': validatedFloorLabel,
           'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
+          'checkpointJsonPath': 'docs/reusable_parsing_qa_checkpoint.json',
+          'checkpointMarkdownPath': 'docs/reusable_parsing_qa_checkpoint.md',
           'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
           'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         }),

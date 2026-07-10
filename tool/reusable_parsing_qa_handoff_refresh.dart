@@ -124,6 +124,8 @@ int runReusableParsingQaHandoffRefresh(
   );
 
   packet['scopeBoundaryPath'] = 'docs/reusable_parsing_qa_scope_boundary.md';
+  packet['checkpointJsonPath'] = 'docs/reusable_parsing_qa_checkpoint.json';
+  packet['checkpointMarkdownPath'] = 'docs/reusable_parsing_qa_checkpoint.md';
   packet['reusableFoundationPaths'] = [
     'test/support/parser_qa_platform/',
     'test/support/qa_harness/',
@@ -206,6 +208,9 @@ Companion machine-readable packet:
 Companion scope boundary map:
 `docs/reusable_parsing_qa_scope_boundary.md`
 
+Companion next-action checkpoint:
+`docs/reusable_parsing_qa_checkpoint.md`
+
 Companion plain-English runbook:
 `docs/reusable_parsing_qa_mac_runbook.md`
 
@@ -217,6 +222,8 @@ committed handoff marker replaces it.
 
 The explicit reusable-versus-inventory ownership split lives in
 `docs/reusable_parsing_qa_scope_boundary.md`.
+The current Windows-next versus Mac-next checkpoint lives in
+`docs/reusable_parsing_qa_checkpoint.md`.
 
 ## Completed On Windows
 
@@ -303,6 +310,7 @@ This runbook is the plain-English companion to:
 
 - `docs/reusable_parsing_qa_handoff_marker.md`
 - `$boundaryPath`
+- `docs/reusable_parsing_qa_checkpoint.md`
 - `docs/reusable_parsing_qa_mac_handoff_packet.json`
 
 ## Start Here
@@ -312,7 +320,9 @@ This runbook is the plain-English companion to:
 3. Read `docs/reusable_parsing_qa_handoff_marker.md` before running anything.
 4. Read `$boundaryPath` to separate reusable parser QA work from
    inventory-specific Windows ownership.
-5. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
+5. Read `docs/reusable_parsing_qa_checkpoint.md` to see the current
+   Windows-next versus Mac-next checkpoint from live PEH evidence.
+6. Use `docs/reusable_parsing_qa_mac_handoff_packet.json` as the exact command
    source of truth.
 
 ## What Windows Already Finished
@@ -403,13 +413,15 @@ Open these in order:
 
 1. `docs/reusable_parsing_qa_handoff_marker.md`
 2. `$boundaryPath`
-3. `docs/reusable_parsing_qa_mac_runbook.md`
-4. `docs/reusable_parsing_qa_mac_handoff_packet.json`
+3. `docs/reusable_parsing_qa_checkpoint.md`
+4. `docs/reusable_parsing_qa_mac_runbook.md`
+5. `docs/reusable_parsing_qa_mac_handoff_packet.json`
 
 What this means:
 
 - The marker is the top human-readable boundary and ownership file.
 - The scope boundary file is the explicit reusable-versus-inventory split.
+- The checkpoint file is the current Windows-next versus Mac-next state.
 - The runbook is the plain-English execution sequence.
 - The packet is the machine-readable source of exact Mac-side commands.
 - The branch tip is authoritative; the listed commit is the last Windows-validated floor.

@@ -11,6 +11,9 @@ void main() {
     final boundary = File(
       'docs/reusable_parsing_qa_scope_boundary.md',
     ).readAsStringSync();
+    final checkpoint = File(
+      'docs/reusable_parsing_qa_checkpoint.md',
+    ).readAsStringSync();
     final packet = jsonDecode(
       File('docs/reusable_parsing_qa_mac_handoff_packet.json')
           .readAsStringSync(),
@@ -56,6 +59,10 @@ void main() {
     );
     expect(
       index,
+      contains('docs/reusable_parsing_qa_checkpoint.md'),
+    );
+    expect(
+      index,
       contains('docs/reusable_parsing_qa_mac_runbook.md'),
     );
     expect(
@@ -70,6 +77,10 @@ void main() {
     expect(
       marker,
       contains('Companion scope boundary map:'),
+    );
+    expect(
+      marker,
+      contains('Companion next-action checkpoint:'),
     );
     expect(
       marker,
@@ -92,6 +103,14 @@ void main() {
       contains('## Mac Mini Measurement Outputs'),
     );
     expect(
+      checkpoint,
+      contains('## Windows Next'),
+    );
+    expect(
+      checkpoint,
+      contains('## Mac Mini Next'),
+    );
+    expect(
       packet['runbookPath'],
       'docs/reusable_parsing_qa_mac_runbook.md',
     );
@@ -102,6 +121,14 @@ void main() {
     expect(
       packet['scopeBoundaryPath'],
       'docs/reusable_parsing_qa_scope_boundary.md',
+    );
+    expect(
+      packet['checkpointJsonPath'],
+      'docs/reusable_parsing_qa_checkpoint.json',
+    );
+    expect(
+      packet['checkpointMarkdownPath'],
+      'docs/reusable_parsing_qa_checkpoint.md',
     );
     expect(
       (packet['reusableFoundationPaths'] as List<Object?>),

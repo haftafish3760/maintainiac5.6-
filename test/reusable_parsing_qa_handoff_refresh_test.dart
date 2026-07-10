@@ -25,6 +25,8 @@ void main() {
         'baselineCommitFull': 'old1234full',
         'baselineCommitLabel': 'old label',
         'scopeBoundaryPath': 'docs/reusable_parsing_qa_scope_boundary.md',
+        'checkpointJsonPath': 'docs/reusable_parsing_qa_checkpoint.json',
+        'checkpointMarkdownPath': 'docs/reusable_parsing_qa_checkpoint.md',
         'handoffMarkerPath': 'docs/reusable_parsing_qa_handoff_marker.md',
         'runbookPath': 'docs/reusable_parsing_qa_mac_runbook.md',
       }),
@@ -84,6 +86,14 @@ void main() {
       'docs/reusable_parsing_qa_scope_boundary.md',
     );
     expect(
+      packet['checkpointJsonPath'],
+      'docs/reusable_parsing_qa_checkpoint.json',
+    );
+    expect(
+      packet['checkpointMarkdownPath'],
+      'docs/reusable_parsing_qa_checkpoint.md',
+    );
+    expect(
       (packet['reusableFoundationPaths'] as List<Object?>),
       contains('test/support/parser_qa_platform/'),
     );
@@ -96,6 +106,10 @@ void main() {
     expect(
       marker,
       contains('Companion scope boundary map:'),
+    );
+    expect(
+      marker,
+      contains('Companion next-action checkpoint:'),
     );
     expect(boundary, contains('Validated floor commit: `abc1234`'));
     expect(
@@ -110,9 +124,14 @@ void main() {
       runbook,
       contains('docs/reusable_parsing_qa_scope_boundary.md'),
     );
+    expect(
+      runbook,
+      contains('docs/reusable_parsing_qa_checkpoint.md'),
+    );
     expect(index, contains('- Validated floor commit: `abc1234`'));
     expect(index, contains('- Branch: `codex/reusable-parsing-qa-foundation`'));
     expect(index, contains('docs/reusable_parsing_qa_scope_boundary.md'));
+    expect(index, contains('docs/reusable_parsing_qa_checkpoint.md'));
   }, timeout: const Timeout(Duration(seconds: 10)));
 }
 

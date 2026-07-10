@@ -1,6 +1,6 @@
 # Reusable Parsing QA Handoff Marker
 
-Last updated: 2026-07-09 20:21 EDT
+Last updated: 2026-07-09 20:24 EDT
 
 Purpose: prevent duplicate work between the Windows parser/QA lane and the Mac
 Mini lane.
@@ -9,13 +9,13 @@ Mini lane.
 
 - Primary reusable branch: `codex/reusable-parsing-qa-foundation`
 - Current Windows working branch: `codex/inventory-parser-backup-20260702-2056`
-- Validated floor commit: `3b996e7`
+- Validated floor commit: `44f66d7`
 - Commit label:
-  `Reusable parsing QA 2026-07-09 20:21 EDT: add handoff status verifier`
+  `Reusable parsing QA 2026-07-09 20:24 EDT: add scope boundary handoff map`
 
 The Mac Mini side should start from branch `codex/reusable-parsing-qa-foundation`.
 Treat the branch tip as authoritative.
-Treat commit `3b996e7` as the last Windows-validated floor, not as a promise
+Treat commit `44f66d7` as the last Windows-validated floor, not as a promise
 that the handoff docs already describe their own just-created commit.
 
 Companion machine-readable packet:
@@ -23,6 +23,9 @@ Companion machine-readable packet:
 
 Companion scope boundary map:
 `docs/reusable_parsing_qa_scope_boundary.md`
+
+Companion next-action checkpoint:
+`docs/reusable_parsing_qa_checkpoint.md`
 
 Companion plain-English runbook:
 `docs/reusable_parsing_qa_mac_runbook.md`
@@ -35,6 +38,8 @@ committed handoff marker replaces it.
 
 The explicit reusable-versus-inventory ownership split lives in
 `docs/reusable_parsing_qa_scope_boundary.md`.
+The current Windows-next versus Mac-next checkpoint lives in
+`docs/reusable_parsing_qa_checkpoint.md`.
 
 ## Completed On Windows
 
@@ -101,6 +106,6 @@ Until a later handoff says otherwise, the Windows lane still owns:
 ## Mac Mini Safe Starting Instruction
 
 Start from branch `codex/reusable-parsing-qa-foundation`, confirm it is at or after validated floor commit
-`3b996e7`, read this marker first, then continue only with heavier validation,
+`44f66d7`, read this marker first, then continue only with heavier validation,
 broader reusable parsing-core extraction, or new parser-domain consumers that
 are not already listed as Windows-complete above.
