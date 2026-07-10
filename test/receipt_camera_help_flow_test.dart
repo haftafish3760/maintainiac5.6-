@@ -86,7 +86,8 @@ void main() {
     final uiConfig = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_ui_config.dart',
     ).readAsString();
-    expect(settingsSheet, contains('Receipt Photo Help'));
+    expect(settingsSheet, contains('uiConfig.settings.helpLabel'));
+    expect(uiConfig, contains("this.helpLabel = 'Receipt Photo Help'"));
     expect(settingsSheet, isNot(contains('How Receipt Photos Work')));
     expect(helpSheet, contains('Receipt Photo Help'));
     expect(helpSheet, contains('uiConfig.firstUseTitle'));
@@ -185,11 +186,11 @@ void main() {
       settingsSheet,
       contains('Capture settings do not replace your phone camera software.'),
     );
-    expect(settingsSheet, contains('Apply Settings'));
+    expect(settingsSheet, contains('uiConfig.settings.applyLabel'));
     expect(settingsSheet, contains('Navigator.of(context).pop(true)'));
-    expect(settingsSheet, contains('Reset Receipt Photo Defaults'));
+    expect(settingsSheet, contains('uiConfig.settings.resetLabel'));
     expect(settingsSheet, contains('Reset Defaults'));
-    expect(settingsSheet, contains('Receipt Photo Help'));
+    expect(settingsSheet, contains('uiConfig.settings.showHelpAction'));
     expect(settingsSheet, contains('inspect readability before saving'));
     expect(settingsSheet, contains('static String _choiceTooltip'));
     expect(

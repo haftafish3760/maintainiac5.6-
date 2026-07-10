@@ -24,6 +24,8 @@ void main() {
     expect(config, contains('String progressAcceptedLabel'));
     expect(config, contains('String progressReadingLabel'));
     expect(config, contains('String progressOpeningLabel'));
+    expect(config, contains('ReceiptCaptureSettingsUiConfig'));
+    expect(config, contains('bool showHelpAction'));
     expect(panel, contains('_ReceiptReadProgressPhase.idle'));
     expect(status, contains('class _ReceiptReadProgressSteps'));
     expect(status, contains('uiConfig.showReadProgressSteps'));

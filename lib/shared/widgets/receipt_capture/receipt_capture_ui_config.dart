@@ -9,6 +9,7 @@ import 'receipt_photo_review_ui_config.dart';
 class ReceiptCaptureUiConfig {
   const ReceiptCaptureUiConfig({
     this.review = const ReceiptPhotoReviewUiConfig(),
+    this.settings = const ReceiptCaptureSettingsUiConfig(),
     this.pageBackgroundColor = const Color(0xFF050607),
     this.surfaceColor = const Color(0xFF11181B),
     this.borderColor = const Color(0xFF526168),
@@ -29,6 +30,7 @@ class ReceiptCaptureUiConfig {
   });
 
   final ReceiptPhotoReviewUiConfig review;
+  final ReceiptCaptureSettingsUiConfig settings;
   final Color pageBackgroundColor;
   final Color surfaceColor;
   final Color borderColor;
@@ -47,6 +49,7 @@ class ReceiptCaptureUiConfig {
 
   ReceiptCaptureUiConfig copyWith({
     ReceiptPhotoReviewUiConfig? review,
+    ReceiptCaptureSettingsUiConfig? settings,
     Color? pageBackgroundColor,
     Color? surfaceColor,
     Color? borderColor,
@@ -65,6 +68,7 @@ class ReceiptCaptureUiConfig {
   }) {
     return ReceiptCaptureUiConfig(
       review: review ?? this.review,
+      settings: settings ?? this.settings,
       pageBackgroundColor: pageBackgroundColor ?? this.pageBackgroundColor,
       surfaceColor: surfaceColor ?? this.surfaceColor,
       borderColor: borderColor ?? this.borderColor,
@@ -84,6 +88,46 @@ class ReceiptCaptureUiConfig {
           progressAcceptedLabel ?? this.progressAcceptedLabel,
       progressReadingLabel: progressReadingLabel ?? this.progressReadingLabel,
       progressOpeningLabel: progressOpeningLabel ?? this.progressOpeningLabel,
+    );
+  }
+}
+
+class ReceiptCaptureSettingsUiConfig {
+  const ReceiptCaptureSettingsUiConfig({
+    this.backTooltip = 'Back',
+    this.helpLabel = 'Receipt Photo Help',
+    this.resetLabel = 'Reset Receipt Photo Defaults',
+    this.applyLabel = 'Apply Settings',
+    this.showHelpAction = true,
+    this.showResetAction = true,
+    this.showApplyAction = true,
+  });
+
+  final String backTooltip;
+  final String helpLabel;
+  final String resetLabel;
+  final String applyLabel;
+  final bool showHelpAction;
+  final bool showResetAction;
+  final bool showApplyAction;
+
+  ReceiptCaptureSettingsUiConfig copyWith({
+    String? backTooltip,
+    String? helpLabel,
+    String? resetLabel,
+    String? applyLabel,
+    bool? showHelpAction,
+    bool? showResetAction,
+    bool? showApplyAction,
+  }) {
+    return ReceiptCaptureSettingsUiConfig(
+      backTooltip: backTooltip ?? this.backTooltip,
+      helpLabel: helpLabel ?? this.helpLabel,
+      resetLabel: resetLabel ?? this.resetLabel,
+      applyLabel: applyLabel ?? this.applyLabel,
+      showHelpAction: showHelpAction ?? this.showHelpAction,
+      showResetAction: showResetAction ?? this.showResetAction,
+      showApplyAction: showApplyAction ?? this.showApplyAction,
     );
   }
 }

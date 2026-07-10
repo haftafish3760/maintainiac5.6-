@@ -25,7 +25,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    tooltip: 'Back',
+                    tooltip: uiConfig.settings.backTooltip,
                     onPressed: () => Navigator.of(context).pop(true),
                     icon: const Icon(Icons.arrow_back_rounded),
                     style: IconButton.styleFrom(
@@ -173,52 +173,55 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () => _showReceiptCameraHelp(context),
-                icon: const Icon(Icons.help_outline_rounded),
-                label: const Text('Receipt Photo Help'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFE8ECEE),
-                  side: const BorderSide(color: Color(0xFF526168)),
-                  backgroundColor: const Color(0xFF1F2528),
-                  minimumSize: const Size.fromHeight(44),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+              if (uiConfig.settings.showHelpAction)
+                OutlinedButton.icon(
+                  onPressed: () => _showReceiptCameraHelp(context),
+                  icon: const Icon(Icons.help_outline_rounded),
+                  label: Text(uiConfig.settings.helpLabel),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFE8ECEE),
+                    side: const BorderSide(color: Color(0xFF526168)),
+                    backgroundColor: const Color(0xFF1F2528),
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () =>
-                    _confirmResetReceiptSettings(context, settings, area),
-                icon: const Icon(Icons.restart_alt_rounded),
-                label: const Text('Reset Receipt Photo Defaults'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFFFD166),
-                  side: const BorderSide(color: Color(0xFFC7922E)),
-                  backgroundColor: const Color(0xFF1F2528),
-                  minimumSize: const Size.fromHeight(44),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+              if (uiConfig.settings.showResetAction)
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      _confirmResetReceiptSettings(context, settings, area),
+                  icon: const Icon(Icons.restart_alt_rounded),
+                  label: Text(uiConfig.settings.resetLabel),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFD166),
+                    side: const BorderSide(color: Color(0xFFC7922E)),
+                    backgroundColor: const Color(0xFF1F2528),
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () async {
-                  if (context.mounted) Navigator.of(context).pop(true);
-                },
-                icon: const Icon(Icons.check_circle_rounded),
-                label: const Text('Apply Settings'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF28A745),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+              if (uiConfig.settings.showApplyAction)
+                FilledButton.icon(
+                  onPressed: () async {
+                    if (context.mounted) Navigator.of(context).pop(true);
+                  },
+                  icon: const Icon(Icons.check_circle_rounded),
+                  label: Text(uiConfig.settings.applyLabel),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: uiConfig.primaryActionColor,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         );
