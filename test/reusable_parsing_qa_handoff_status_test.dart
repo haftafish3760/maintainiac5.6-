@@ -42,6 +42,8 @@ void main() {
     expect(payload['parityOk'], isTrue);
     expect(payload['parityExit'], 0);
     expect(payload['parityFindingCount'], 0);
+    expect(payload['packetExecutionHeadAligned'], isTrue);
+    expect(payload['scriptExecutionHeadAligned'], isTrue);
     expect(payload['branchTipAheadOfValidatedFloor'], isTrue);
     expect(payload['currentBranch'], isNotEmpty);
     expect(payload['headCommit'], isNotEmpty);
@@ -130,6 +132,57 @@ void main() {
     expect(payload['parityFindingCount'], greaterThanOrEqualTo(1));
     expect(payload['parityFindings'].toString(), contains('reusable validated floor mismatch'));
   });
+
+  test('handoff status fails when live PEH execution packet drifts from head', () {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_reusable_handoff_status_execution_drift_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+    final previous = Directory.current;
+    Directory.current = root;
+    addTearDown(() => Directory.current = previous);
+
+    Process.runSync('git', ['init']);
+    Process.runSync('git', ['config', 'user.email', 'qa@example.com']);
+    Process.runSync('git', ['config', 'user.name', 'QA Bot']);
+    final marker = File('README.txt')..writeAsStringSync('status');
+    Process.runSync('git', ['add', marker.path]);
+    Process.runSync('git', ['commit', '-m', 'init']);
+    Process.runSync('git', ['checkout', '-b', 'codex/inventory-parser-backup-20260702-2056']);
+    final headShort =
+        Process.runSync('git', ['rev-parse', '--short', 'HEAD']).stdout
+            .toString()
+            .trim();
+
+    _writeHandoffFixture(
+      root,
+      branch: 'codex/reusable-parsing-qa-foundation',
+      validatedFloorCommit: 'abc1234',
+      validatedFloorLabel:
+          'Reusable parsing QA 2026-07-09 20:17 EDT: validated floor',
+      windowsWorkingBranch: 'codex/inventory-parser-backup-20260702-2056',
+      packetExecutionBranch: 'codex/inventory-parser-backup-20260702-2056',
+      packetExecutionCommit: 'old9999',
+      scriptExecutionBranch: 'codex/inventory-parser-backup-20260702-2056',
+      scriptExecutionCommit: headShort,
+    );
+
+    final stdout = _MemorySink();
+    final stderr = _MemorySink();
+    final exit = runReusableParsingQaHandoffStatus(
+      ['--root', root.path],
+      stdout: stdout,
+      stderr: stderr,
+    );
+
+    expect(exit, 1);
+    expect(stderr.content, isEmpty);
+
+    final payload = _extractJsonPayload(stdout.content);
+    expect(payload['parityOk'], isTrue);
+    expect(payload['packetExecutionHeadAligned'], isFalse);
+    expect(payload['scriptExecutionHeadAligned'], isTrue);
+  });
 }
 
 Map<String, Object?> _extractJsonPayload(String stdout) {
@@ -145,6 +198,11 @@ void _writeHandoffFixture(
   required String branch,
   required String validatedFloorCommit,
   required String validatedFloorLabel,
+  String windowsWorkingBranch = 'codex/inventory-parser-backup-20260702-2056',
+  String? packetExecutionBranch,
+  String? packetExecutionCommit,
+  String? scriptExecutionBranch,
+  String? scriptExecutionCommit,
 }) {
   final docs = Directory('${root.path}/docs')..createSync(recursive: true);
 
@@ -231,7 +289,7 @@ void _writeHandoffFixture(
     'primaryBranch': branch,
     'validatedFloorCommit': validatedFloorCommit,
     'validatedFloorLabel': validatedFloorLabel,
-    'windowsWorkingBranch': 'codex/inventory-parser-backup-20260702-2056',
+    'windowsWorkingBranch': windowsWorkingBranch,
     'readyForMacMeasurementWave': true,
     'readyToClaimNinetyPlus': false,
   });
@@ -239,10 +297,23 @@ void _writeHandoffFixture(
   _writeJson('${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff_packet.json', {
     'reusableBaselineBranch': branch,
     'reusableValidatedFloorCommit': validatedFloorCommit,
-    'inventoryExecutionBranch': 'codex/inventory-parser-backup-20260702-2056',
+    'inventoryExecutionBranch':
+        packetExecutionBranch ?? windowsWorkingBranch,
+    'inventoryExecutionCommit': packetExecutionCommit ?? 'unknown-head',
+    'branch': packetExecutionBranch ?? windowsWorkingBranch,
+    'commit': packetExecutionCommit ?? 'unknown-head',
     'readyForMacMeasurementWave': true,
     'readyToClaimNinetyPlus': false,
   });
+
+  final script = File(
+    '${root.path}/build/parser_qa_pipeline/peh_core_mac_handoff.sh',
+  )..parent.createSync(recursive: true);
+  script.writeAsStringSync('''
+#!/usr/bin/env bash
+# Branch: ${scriptExecutionBranch ?? packetExecutionBranch ?? windowsWorkingBranch}
+# Commit: ${scriptExecutionCommit ?? packetExecutionCommit ?? 'unknown-head'}
+''');
 }
 
 void _writeJson(String path, Map<String, Object?> value) {

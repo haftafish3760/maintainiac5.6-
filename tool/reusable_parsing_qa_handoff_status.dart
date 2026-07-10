@@ -46,6 +46,12 @@ int runReusableParsingQaHandoffStatus(
   final packetFile = File.fromUri(
     docsDir.resolve('reusable_parsing_qa_mac_handoff_packet.json'),
   );
+  final pehPacketFile = File(
+    _join(root, 'build/parser_qa_pipeline/peh_core_mac_handoff_packet.json'),
+  );
+  final pehScriptFile = File(
+    _join(root, 'build/parser_qa_pipeline/peh_core_mac_handoff.sh'),
+  );
 
   final missing = <String>[
     if (!indexFile.existsSync()) indexFile.path,
@@ -54,6 +60,8 @@ int runReusableParsingQaHandoffStatus(
     if (!boundaryFile.existsSync()) boundaryFile.path,
     if (!checkpointFile.existsSync()) checkpointFile.path,
     if (!packetFile.existsSync()) packetFile.path,
+    if (!pehPacketFile.existsSync()) pehPacketFile.path,
+    if (!pehScriptFile.existsSync()) pehScriptFile.path,
   ];
   if (missing.isNotEmpty) {
     stderr.writeln('Missing handoff files: ${missing.join(', ')}');
@@ -67,6 +75,9 @@ int runReusableParsingQaHandoffStatus(
   final checkpoint = checkpointFile.readAsStringSync();
   final packet =
       jsonDecode(packetFile.readAsStringSync()) as Map<String, Object?>;
+  final pehPacket =
+      jsonDecode(pehPacketFile.readAsStringSync()) as Map<String, Object?>;
+  final pehScript = pehScriptFile.readAsStringSync();
 
   final branch = packet['primaryBranch']?.toString() ?? 'unknown-branch';
   final validatedFloor = packet['baselineCommit']?.toString() ?? 'unknown';
@@ -77,6 +88,27 @@ int runReusableParsingQaHandoffStatus(
   final headFull = _gitValue(['rev-parse', 'HEAD'], root) ?? headShort;
   final currentBranch =
       _gitValue(['rev-parse', '--abbrev-ref', 'HEAD'], root) ?? 'unknown-branch';
+  final windowsWorkingBranch =
+      _readCheckpointField(root, 'windowsWorkingBranch') ??
+      'codex/inventory-parser-backup-20260702-2056';
+  final packetExecutionCommit =
+      pehPacket['inventoryExecutionCommit']?.toString() ??
+      pehPacket['commit']?.toString() ??
+      'unknown-execution-commit';
+  final packetExecutionBranch =
+      pehPacket['inventoryExecutionBranch']?.toString() ??
+      pehPacket['branch']?.toString() ??
+      'unknown-execution-branch';
+  final scriptExecutionCommit =
+      _extractScriptCommentValue(pehScript, '# Commit: ') ?? 'unknown-script-commit';
+  final scriptExecutionBranch =
+      _extractScriptCommentValue(pehScript, '# Branch: ') ?? 'unknown-script-branch';
+  final executionPacketAlignedToHead =
+      currentBranch != windowsWorkingBranch ||
+      (packetExecutionBranch == currentBranch && packetExecutionCommit == headShort);
+  final executionScriptAlignedToHead =
+      currentBranch != windowsWorkingBranch ||
+      (scriptExecutionBranch == currentBranch && scriptExecutionCommit == headShort);
 
   final agrees =
       _extractSingleLineValue(
@@ -143,6 +175,12 @@ int runReusableParsingQaHandoffStatus(
     'parityExit': parityExit,
     'parityFindingCount': paritySummary?['findingCount'] ?? 0,
     'parityFindings': paritySummary?['findings'] ?? const <Object>[],
+    'packetExecutionBranch': packetExecutionBranch,
+    'packetExecutionCommit': packetExecutionCommit,
+    'packetExecutionHeadAligned': executionPacketAlignedToHead,
+    'scriptExecutionBranch': scriptExecutionBranch,
+    'scriptExecutionCommit': scriptExecutionCommit,
+    'scriptExecutionHeadAligned': executionScriptAlignedToHead,
     'branchTipAheadOfValidatedFloor': branchTipAheadOfFloor,
     'refreshCommand': refreshCommand,
     'indexPath': indexFile.path,
@@ -157,7 +195,12 @@ int runReusableParsingQaHandoffStatus(
     'QA_REUSABLE_PARSING_HANDOFF_STATUS '
     '${const JsonEncoder.withIndent('  ').convert(summary)}',
   );
-  return agrees && parityExit == 0 ? 0 : 1;
+  return agrees &&
+          parityExit == 0 &&
+          executionPacketAlignedToHead &&
+          executionScriptAlignedToHead
+      ? 0
+      : 1;
 }
 
 String _value(List<String> args, String key, String fallback) {
@@ -201,6 +244,36 @@ Map<String, Object?>? _extractParitySummary(String stdout) {
     return decoded.cast<String, Object?>();
   }
   return null;
+}
+
+String _join(String root, String path) {
+  final normalizedRoot = root.replaceAll('/', Platform.pathSeparator);
+  final normalizedPath = path.replaceAll('/', Platform.pathSeparator);
+  if (normalizedRoot.endsWith(Platform.pathSeparator)) {
+    return '$normalizedRoot$normalizedPath';
+  }
+  return '$normalizedRoot${Platform.pathSeparator}$normalizedPath';
+}
+
+String? _readCheckpointField(String root, String key) {
+  final file = File(_join(root, 'docs/reusable_parsing_qa_checkpoint.json'));
+  if (!file.existsSync()) return null;
+  final decoded = jsonDecode(file.readAsStringSync());
+  if (decoded is Map && decoded[key] != null) {
+    return decoded[key].toString();
+  }
+  return null;
+}
+
+String? _extractScriptCommentValue(String source, String prefix) {
+  final start = source.indexOf(prefix);
+  if (start < 0) return null;
+  final valueStart = start + prefix.length;
+  final valueEnd = source.indexOf('\n', valueStart);
+  if (valueEnd < 0) {
+    return source.substring(valueStart).trim();
+  }
+  return source.substring(valueStart, valueEnd).trim();
 }
 
 class _MemorySink implements IOSink {
