@@ -456,6 +456,8 @@ void main() {
       'review_removed_section_order_before_ocr',
     );
     expect(result.receiptSectionOrderNeedsReview, isTrue);
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
   });
 
   test('removal metadata with an impossible final section requires review', () {
@@ -490,6 +492,8 @@ void main() {
       'review_removed_section_order_before_ocr',
     );
     expect(result.receiptSectionOrderNeedsReview, isTrue);
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
   });
 
   test('removal metadata with duplicate remaining sections requires review', () {
