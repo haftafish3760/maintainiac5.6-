@@ -85,7 +85,7 @@ class _ReceiptParseContext {
         r'cng|compressed natural gas|gas natural comprimido|gge|'
         r'propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|'
         r'kerosene|kero|queroseno|k[- ]?1|'
-        r'hydrogen|h2 fuel|fuel cell|kg h2|'
+        r'hydrogen|h2 fuel|fuel cell|kg h2|h35|h70|'
         r'kwh|ev charge|ev charging|energy sale|energy delivered|'
         r'chargepoint|supercharger|octane|grade|'
         r'price per gallon|price/gal|precio\s*/?\s*gal[oó]n|'

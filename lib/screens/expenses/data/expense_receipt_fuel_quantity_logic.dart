@@ -175,7 +175,7 @@ _ParsedQuantity? _fuelQuantityIn(
   }
 
   final productQuantityBeforeAtPrice = RegExp(
-    r'\b(?:reg\s+unleaded|reg\s+unl|regular|unleaded|premium|midgrade|diesel|dsl|d1|d2|ulsd|ultra\s+low\s+sulfur\s+diesel|clear\s+diesel|highway\s+diesel|on\s*road\s+diesel|b(?:[1-9]|[1-9]\d|100)|biodiesel|off\s*road\s+diesel|dyed\s+diesel|red(?:\s+dyed?)?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|def|diesel\s+exhaust\s+fluid|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?|autogas|auto\s+gas|e[-\s]*(?:85|50|30|20|15|10)|ethanol\s+(?:10|15|20|30|50|85)|flex\s+fuel)\b.*?\b(\d{1,3}\.\d{2,4})\s*@\s*\d',
+    r'\b(?:reg\s+unleaded|reg\s+unl|regular|unleaded|premium|midgrade|diesel|dsl|d1|d2|ulsd|ultra\s+low\s+sulfur\s+diesel|clear\s+diesel|highway\s+diesel|on\s*road\s+diesel|b(?:[1-9]|[1-9]\d|100)|biodiesel|off\s*road\s+diesel|dyed\s+diesel|red(?:\s+dyed?)?\s+diesel|farm\s+diesel|ag\s+diesel|renewable\s+diesel|rd20|rd99|r20|r99|hvo|hvo100|hydrotreated\s+vegetable\s+oil|hpr\s+diesel|hpr\s+fuel|def|diesel\s+exhaust\s+fluid|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?|autogas|auto\s+gas|hydrogen|h2|h35|h70|e[-\s]*(?:85|50|30|20|15|10)|ethanol\s+(?:10|15|20|30|50|85)|flex\s+fuel)\b.*?\b(\d{1,3}\.\d{2,4})\s*@\s*\d',
   ).firstMatch(text);
   if (productQuantityBeforeAtPrice != null) {
     return _ParsedQuantity(

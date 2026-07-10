@@ -217,7 +217,9 @@ String? _fuelTypeSignalFor(String text) {
   ).hasMatch(text)) {
     return 'Propane';
   }
-  if (RegExp(r'\b(hydrogen|h2 fuel|fuel cell|kg h2|h2)\b').hasMatch(text)) {
+  if (RegExp(
+    r'\b(hydrogen|h2 fuel|fuel cell|kg h2|h2|h35|h70)\b',
+  ).hasMatch(text)) {
     return 'Hydrogen';
   }
   if (RegExp(

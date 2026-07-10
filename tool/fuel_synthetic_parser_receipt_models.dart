@@ -312,6 +312,13 @@ const _products = [
     basePrice: 15.999,
   ),
   _FuelSyntheticProduct(
+    label: 'H70',
+    spanishLabel: 'H70 Hidrogeno',
+    fuelType: 'Hydrogen',
+    unit: 'kg',
+    basePrice: 16.249,
+  ),
+  _FuelSyntheticProduct(
     label: 'ENERGY',
     spanishLabel: 'Energia',
     fuelType: 'Electric',
