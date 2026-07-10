@@ -7,6 +7,7 @@ import 'package:maintaniac/screens/expenses/data/expense_export_handoff.dart';
 import 'package:maintaniac/screens/expenses/data/expense_export_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_export_estimator.dart';
+import 'package:maintaniac/shared/pdf/app_generated_pdf_image_loader.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
@@ -71,7 +72,7 @@ void main() {
     final document = await buildExpenseExportSummaryPdf(
       snapshot,
       mode: AppGeneratedPdfExportMode.thumbnails,
-      imageLoader: loader,
+      imageResolver: AppGeneratedPdfImageResolver(fetch: loader),
     );
 
     expect(calls, 1);
@@ -171,6 +172,54 @@ void main() {
         ),
         isNull,
       );
+    },
+  );
+
+  test(
+    'resolver is cache-first and requires consent for full downloads',
+    () async {
+      var fetchCalls = 0;
+      final cache = <String, Uint8List>{
+        'cached:thumbnails': Uint8List.fromList([7, 8]),
+      };
+      final resolver = AppGeneratedPdfImageResolver(
+        fetch: ({required attachmentId, required mode}) async {
+          fetchCalls += 1;
+          return Uint8List.fromList([1, 2, 3]);
+        },
+        cacheRead: (key) async => cache[key],
+        cacheWrite: (key, bytes) async => cache[key] = bytes,
+      );
+
+      expect(
+        await resolver.resolve(
+          attachmentId: 'cached',
+          mode: AppGeneratedPdfExportMode.thumbnails,
+        ),
+        [7, 8],
+      );
+      expect(fetchCalls, 0);
+      await expectLater(
+        resolver.resolve(
+          attachmentId: 'new',
+          mode: AppGeneratedPdfExportMode.fullImages,
+        ),
+        throwsA(
+          isA<AppGeneratedPdfImageResolutionException>().having(
+            (error) => error.reasonCode,
+            'reasonCode',
+            'full_image_download_requires_explicit_selection',
+          ),
+        ),
+      );
+      final fetched = await resolver.resolve(
+        attachmentId: 'new',
+        mode: AppGeneratedPdfExportMode.fullImages,
+        allowFullImageDownload: true,
+      );
+      expect(fetched, [1, 2, 3]);
+      expect(fetchCalls, 1);
+      expect(cache['new:fullImages'], [1, 2, 3]);
     },
   );
 }

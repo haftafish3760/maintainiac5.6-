@@ -223,12 +223,14 @@ Future<List<int>> _buildZipBytes(ExpenseExportFileSet files) async {
 Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
   ExpenseExportSnapshot snapshot, {
   AppGeneratedPdfExportMode mode = AppGeneratedPdfExportMode.textOnly,
-  AppGeneratedPdfImageLoader? imageLoader,
+  AppGeneratedPdfImageResolver? imageResolver,
+  bool allowFullImageDownload = false,
 }) async {
   final imageSections = await _loadReceiptImageSections(
     snapshot: snapshot,
     mode: mode,
-    imageLoader: imageLoader,
+    imageResolver: imageResolver,
+    allowFullImageDownload: allowFullImageDownload,
   );
   final pdf = pw.Document();
   pdf.addPage(
@@ -307,11 +309,12 @@ Future<AppGeneratedPdfDocument> buildExpenseExportSummaryPdf(
 Future<List<pw.Widget>> _loadReceiptImageSections({
   required ExpenseExportSnapshot snapshot,
   required AppGeneratedPdfExportMode mode,
-  required AppGeneratedPdfImageLoader? imageLoader,
+  required AppGeneratedPdfImageResolver? imageResolver,
+  required bool allowFullImageDownload,
 }) async {
   if (mode == AppGeneratedPdfExportMode.textOnly) return const [];
-  final loader = imageLoader;
-  if (loader == null) {
+  final resolver = imageResolver;
+  if (resolver == null) {
     throw const AppGeneratedPdfException(
       'This receipt image PDF export needs an image source before it can be generated.',
     );
@@ -321,12 +324,11 @@ Future<List<pw.Widget>> _loadReceiptImageSections({
     for (final attachment in receipt.attachments.where(
       (item) => item.isPhoto,
     )) {
-      final bytes = await loader(attachmentId: attachment.id, mode: mode);
-      if (bytes == null || bytes.isEmpty) {
-        throw AppGeneratedPdfException(
-          'Receipt image ${attachment.id} was not available for this PDF export.',
-        );
-      }
+      final bytes = await resolver.resolve(
+        attachmentId: attachment.id,
+        mode: mode,
+        allowFullImageDownload: allowFullImageDownload,
+      );
       final image = pw.MemoryImage(bytes);
       sections.add(
         pw.Padding(
