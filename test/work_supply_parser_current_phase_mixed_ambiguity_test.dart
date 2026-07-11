@@ -2002,6 +2002,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized box without trade context',
+      () {
+        final sizedBoxItem = matchReceiptLineToCatalog(
+          'LOCAL BOX 4X4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedBoxItem == null || sizedBoxItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized BOX '
+              'line when the receipt still lacks junction, device, outlet, '
+              'gang, square, or other system-level box clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm j box without electrical context',
       () {
         final jBoxItem = matchReceiptLineToCatalog(

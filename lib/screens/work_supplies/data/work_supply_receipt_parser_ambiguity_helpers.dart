@@ -763,6 +763,26 @@ bool _isBareMixedBoxReceiptLine(String text, String? tradeScope) {
   return !hasExplicitBoxFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedBoxReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbox\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:\d+\s*x\s*\d+|\d+x\d+|\d+\s+\d+)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedBoxFamily = RegExp(
+    r'\b(junction|device|outlet|gang|handy|square|octagon|round|'
+    r'weatherproof|wp|ceiling|fan|breaker|panel|repair|filter|'
+    r'air|whole house|water heater)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedBoxFamily && tokenCount <= 6;
+}
+
 bool _isBareMixedFilterReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
