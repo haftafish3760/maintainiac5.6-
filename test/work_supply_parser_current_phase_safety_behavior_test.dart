@@ -953,6 +953,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic box shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL BOX 12.98',
+          'OLD WORK BOX 3.49',
+          'JUNCTION BOX 5.99',
+          'DISCONNECT BOX 18.99',
+          'RETURN BOX 24.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final boxLine = parsed['LOCAL BOX 12.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed electrical/HVAC box '
+              'siblings to tempt routing without letting a generic box line '
+              'collapse into a final answer.',
+        );
+        expect(
+          boxLine == null || boxLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby electrical/HVAC box families '
+              'must not auto-confirm a bare BOX line without line-level '
+              'evidence such as old work, junction, disconnect, return, or '
+              'other explicit box-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
