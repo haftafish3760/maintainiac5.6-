@@ -1321,6 +1321,26 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm compact compression union shorthand without trade context',
+      () {
+        final compactCompressionUnionLine = matchReceiptLineToCatalog(
+          'LOCAL 3/8 COMP UNION 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          compactCompressionUnionLine == null ||
+              compactCompressionUnionLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a compact COMP '
+              'UNION shorthand line when the receipt still lacks supply, '
+              'stop, gas, faucet, icemaker, or other system-level union '
+              'evidence.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic bushing shorthand',
       () {
         final bushingLine = matchReceiptLineToCatalog(

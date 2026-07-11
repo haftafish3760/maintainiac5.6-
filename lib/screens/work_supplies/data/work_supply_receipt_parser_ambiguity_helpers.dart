@@ -274,6 +274,26 @@ bool _isBareMixedSizedUnionReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSizedUnionFamily && tokenCount <= 5;
 }
 
+bool _isBareMixedCompactCompressionUnionReceiptLine(
+  String text,
+  String? tradeScope,
+) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bunion\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\bcomp\b').hasMatch(normalized)) return false;
+  final hasExplicitCompactCompressionUnionFamily = RegExp(
+    r'\b(supply|stop|gas|faucet|icemaker|ice maker|toilet|'
+    r'dishwasher|connector|hose|valve|appliance|water heater|'
+    r'dielectric|flare|copper|cobre|brass|cpvc|pex|pvc)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCompactCompressionUnionFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedBushingReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

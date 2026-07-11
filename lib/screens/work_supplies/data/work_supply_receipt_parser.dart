@@ -252,6 +252,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSizedUnionReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCompactCompressionUnionReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedBushingReceiptLine(normalized, tradeScope)) {
     return null;
   }
