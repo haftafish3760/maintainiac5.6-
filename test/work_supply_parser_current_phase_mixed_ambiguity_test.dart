@@ -470,5 +470,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic cover shorthand',
+      () {
+        final coverItem = matchReceiptLineToCatalog(
+          'LOCAL COVER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          coverItem == null || coverItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare COVER '
+              'line without line-level evidence such as cleanout, weatherproof, '
+              'vent, access, or other explicit cover clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic panel shorthand',
+      () {
+        final panelItem = matchReceiptLineToCatalog(
+          'LOCAL PANEL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          panelItem == null || panelItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PANEL '
+              'line without line-level evidence such as breaker, load center, '
+              'zone, water, or other explicit panel clues.',
+        );
+      },
+    );
   });
 }
