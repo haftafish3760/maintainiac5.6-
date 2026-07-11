@@ -1966,6 +1966,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm bare fitting without trade context',
+      () {
+        final fittingItem = matchReceiptLineToCatalog(
+          'LOCAL FITTING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          fittingItem == null || fittingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FITTING '
+              'line without material, fitting family, or other trade '
+              'context on the receipt line itself.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm condensate drain without hvac context',
       () {
         final condensateDrainItem = matchReceiptLineToCatalog(
@@ -2735,6 +2753,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare SHADE '
               'line without line-level evidence such as lens, lamp, '
               'window, or other explicit shade clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm bare supply without system context',
+      () {
+        final supplyItem = matchReceiptLineToCatalog(
+          'LOCAL SUPPLY 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          supplyItem == null || supplyItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SUPPLY '
+              'line without line, hose, vent, register, toilet, faucet, '
+              'or other system context on the receipt line itself.',
         );
       },
     );

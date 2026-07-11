@@ -333,6 +333,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedDrainReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedFittingReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedPlugReceiptLine(normalized, tradeScope)) {
     return null;
   }
@@ -466,6 +469,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isBareMixedShadeReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedSupplyReceiptLine(normalized, tradeScope)) {
     return null;
   }
   if (_isBareMixedSupportReceiptLine(normalized, tradeScope)) {

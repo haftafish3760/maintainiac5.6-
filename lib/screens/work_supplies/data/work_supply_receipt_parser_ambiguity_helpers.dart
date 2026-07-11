@@ -707,6 +707,21 @@ bool _isBareMixedDrainReceiptLine(String text, String? tradeScope) {
   return !hasExplicitDrainFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedFittingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfitting\b').hasMatch(normalized)) return false;
+  final hasExplicitFittingFamily = RegExp(
+    r'\b(pvc|cpvc|pex|copper|brass|emt|conduit|dwv|abs|elbow|tee|'
+    r'coupling|adapter|reducer|trap|compression|flare)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFittingFamily && tokenCount <= 3;
+}
+
 bool _isBareMixedPlugReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
@@ -1378,6 +1393,21 @@ bool _isBareMixedShadeReceiptLine(String text, String? tradeScope) {
     r'roller|solar)\b',
   ).hasMatch(normalized);
   return !hasExplicitShadeFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSupplyReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsupply\b').hasMatch(normalized)) return false;
+  final hasExplicitSupplyFamily = RegExp(
+    r'\b(line|hose|tub(e|ing)|register|vent|plenum|boot|toilet|faucet|'
+    r'dishwasher|gas|water\s*heater|hvac|air|return|diffuser)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSupplyFamily && tokenCount <= 3;
 }
 
 bool _isBareMixedSupportReceiptLine(String text, String? tradeScope) {
