@@ -408,6 +408,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedShowerReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedTubReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedLavReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

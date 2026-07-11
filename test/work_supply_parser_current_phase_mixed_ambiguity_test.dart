@@ -1300,6 +1300,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic tub shorthand',
+      () {
+        final tubItem = matchReceiptLineToCatalog(
+          'LOCAL TUB 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          tubItem == null || tubItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TUB '
+              'line without line-level evidence such as drain, shower, bath, '
+              'or other explicit tub clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic lav shorthand',
+      () {
+        final lavItem = matchReceiptLineToCatalog(
+          'LOCAL LAV 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          lavItem == null || lavItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare LAV '
+              'line without line-level evidence such as sink, faucet, drain, '
+              'or other explicit lav clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
