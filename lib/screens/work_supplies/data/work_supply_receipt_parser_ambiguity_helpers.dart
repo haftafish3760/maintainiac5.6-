@@ -1500,6 +1500,36 @@ bool _isBareMixedRingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitRingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedClipReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bclip\b').hasMatch(normalized)) return false;
+  final hasExplicitClipFamily = RegExp(
+    r'\b(conduit|pipe|spring|retainer|wire|duct|cable|'
+    r'mount|strap|anchor)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitClipFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSleeveReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsleeve\b').hasMatch(normalized)) return false;
+  final hasExplicitSleeveFamily = RegExp(
+    r'\b(repair|anchor|pipe|coupling|wall|pass-through|'
+    r'passthrough|insulator|conduit|seal)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSleeveFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

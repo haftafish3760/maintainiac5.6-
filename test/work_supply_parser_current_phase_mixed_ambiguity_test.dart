@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic clip shorthand',
+      () {
+        final clipItem = matchReceiptLineToCatalog(
+          'LOCAL CLIP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          clipItem == null || clipItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CLIP '
+              'line without line-level evidence such as conduit, pipe, '
+              'spring, or other explicit clip clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic sleeve shorthand',
+      () {
+        final sleeveItem = matchReceiptLineToCatalog(
+          'LOCAL SLEEVE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sleeveItem == null || sleeveItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SLEEVE '
+              'line without line-level evidence such as repair, anchor, '
+              'pipe, or other explicit sleeve clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic body shorthand',
       () {
         final bodyItem = matchReceiptLineToCatalog(
