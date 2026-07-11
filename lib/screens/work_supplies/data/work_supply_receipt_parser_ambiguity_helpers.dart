@@ -1489,6 +1489,27 @@ bool _isBareMixedPvcReceiptLine(String text, String? tradeScope) {
   return !hasExplicitPvcFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedPvcReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedPvcFamily = RegExp(
+    r'\b(pipe|conduit|elbow|ell|elb|tee|coupling|adapter|reducer|'
+    r'cement|primer|sch\s*40|sch\s*80|schedule\s*40|schedule\s*80|'
+    r'dwv|drain|pressure|cond|condensate|electrical|emt)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedPvcFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedHoodReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

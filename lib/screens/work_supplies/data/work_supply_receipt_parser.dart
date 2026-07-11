@@ -465,6 +465,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedPvcReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedPvcReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedHoodReceiptLine(normalized, tradeScope)) {
     return null;
   }
