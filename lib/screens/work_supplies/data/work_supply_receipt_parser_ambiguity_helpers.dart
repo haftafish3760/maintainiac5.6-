@@ -581,6 +581,25 @@ bool _isBareMixedSwitchReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSwitchFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedSwitchReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bswitch\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedSwitchFamily = RegExp(
+    r'\b(float|wet|overflow|pan|pressure|limit|rollout|door|wall|'
+    r'toggle|3-way|3way|single pole|smart|motion|timer|safety|well|pump)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedSwitchFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedCoverReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
