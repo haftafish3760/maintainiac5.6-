@@ -396,6 +396,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedFilterReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedFilterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedPumpReceiptLine(normalized, tradeScope)) {
     return null;
   }

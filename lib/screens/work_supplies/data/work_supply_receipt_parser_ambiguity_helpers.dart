@@ -1128,6 +1128,27 @@ bool _isBareMixedFilterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitFilterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedFilterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfilter\b').hasMatch(normalized)) return false;
+  if (!RegExp(
+    r'\b(?:\d+\s*x\s*\d+\s*x\s*\d+|\d+x\d+x\d+)\b',
+  ).hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedFilterFamily = RegExp(
+    r'\b(air|return|pleated|merv|whole house|water|sediment|carbon|'
+    r'refrigerant|dryer|hvac|furnace|humidifier|vacuum|pump|'
+    r'cartridge|housing)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedFilterFamily && tokenCount <= 7;
+}
+
 bool _isBareMixedPumpReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
