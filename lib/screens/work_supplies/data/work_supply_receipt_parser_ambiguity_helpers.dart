@@ -491,6 +491,25 @@ bool _isBareMixedTrapReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTrapFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedTrapReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btrap\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedTrapFamily = RegExp(
+    r'\b(condensate|p-trap|p trap|tubular|sediment|drip leg|trap arm|'
+    r'primer|adapter|washer|lav|sink|drain)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedTrapFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedCleanoutReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

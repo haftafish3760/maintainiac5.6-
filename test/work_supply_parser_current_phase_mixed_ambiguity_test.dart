@@ -1606,6 +1606,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized trap without trade context',
+      () {
+        final sizedTrapItem = matchReceiptLineToCatalog(
+          'LOCAL TRAP 1-1/2 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedTrapItem == null || sizedTrapItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized TRAP '
+              'line when the receipt still lacks p-trap, tubular, lav, '
+              'sink, condensate, or other system-level trap clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic cleanout shorthand',
       () {
         final cleanoutItem = matchReceiptLineToCatalog(
