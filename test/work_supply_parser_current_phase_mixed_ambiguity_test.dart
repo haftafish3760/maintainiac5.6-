@@ -2360,6 +2360,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm filter drier shorthand without hvac context',
+      () {
+        final filterDrierItem = matchReceiptLineToCatalog(
+          'LOCAL FILTER DRIER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          filterDrierItem == null || filterDrierItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a FILTER DRIER '
+              'line when the receipt still lacks HVAC, refrigerant, liquid '
+              'line, suction, or other system-level refrigeration clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic pump shorthand',
       () {
         final pumpItem = matchReceiptLineToCatalog(
