@@ -731,6 +731,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic elbow shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL ELBOW 6.98',
+          '1/2 COPPER 90 ELBOW 1.19',
+          '3/4 EMT 90 ELBOW 8.49',
+          '3/4 CPVC 90 ELBOW 1.39',
+          '3/4 PVC VENT ELBOW 6.89',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final elbowLine = parsed['LOCAL ELBOW 6.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed PEH elbow-family '
+              'siblings to tempt routing without letting a generic elbow line '
+              'collapse into a final answer.',
+        );
+        expect(
+          elbowLine == null || elbowLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC/electrical '
+              'elbow families must not auto-confirm a bare ELBOW line '
+              'without line-level evidence such as copper, conduit, CPVC, '
+              'or other explicit elbow-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
