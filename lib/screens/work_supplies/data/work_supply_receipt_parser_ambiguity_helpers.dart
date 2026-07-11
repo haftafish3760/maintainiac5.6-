@@ -616,6 +616,26 @@ bool _isBareMixedCoverReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCoverFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedCoverReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcover\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedCoverFamily = RegExp(
+    r'\b(cleanout|access|weatherproof|wp|in use|in-use|bubble|vent|'
+    r'line set|mini split|water panel|plate|device|switch|dead front|'
+    r'body|lamp holder)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedCoverFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedPanelReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

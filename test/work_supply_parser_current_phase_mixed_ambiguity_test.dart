@@ -1732,6 +1732,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized cover without trade context',
+      () {
+        final sizedCoverItem = matchReceiptLineToCatalog(
+          'LOCAL COVER 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedCoverItem == null || sizedCoverItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized COVER '
+              'line when the receipt still lacks cleanout, access, weatherproof, '
+              'plate, device, vent, or other explicit cover clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic panel shorthand',
       () {
         final panelItem = matchReceiptLineToCatalog(
