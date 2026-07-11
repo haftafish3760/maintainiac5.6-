@@ -722,5 +722,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic pump shorthand',
+      () {
+        final pumpItem = matchReceiptLineToCatalog(
+          'LOCAL PUMP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pumpItem == null || pumpItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PUMP '
+              'line without line-level evidence such as condensate, well, '
+              'sump, circulation, or other explicit pump clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic tape shorthand',
+      () {
+        final tapeItem = matchReceiptLineToCatalog(
+          'LOCAL TAPE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          tapeItem == null || tapeItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TAPE '
+              'line without line-level evidence such as electrical, teflon, '
+              'foil, duct, or other explicit tape clues.',
+        );
+      },
+    );
   });
 }

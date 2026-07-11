@@ -572,6 +572,36 @@ bool _isBareMixedFilterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitFilterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPumpReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpump\b').hasMatch(normalized)) return false;
+  final hasExplicitPumpFamily = RegExp(
+    r'\b(condensate|well|water|jet|sump|recirculation|circulation|'
+    r'booster|drain|sewage|effluent|pool|utility|transfer|washer)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPumpFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedTapeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btape\b').hasMatch(normalized)) return false;
+  final hasExplicitTapeFamily = RegExp(
+    r'\b(electrical|teflon|foil|duct|hvac|thread|seal|sealing|'
+    r'insulation|wire|romex|aluminum|aluminium|butyl)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTapeFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
