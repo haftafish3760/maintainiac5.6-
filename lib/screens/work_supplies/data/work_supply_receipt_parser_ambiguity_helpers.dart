@@ -602,6 +602,36 @@ bool _isBareMixedTapeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTapeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedVentReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bvent\b').hasMatch(normalized)) return false;
+  final hasExplicitVentFamily = RegExp(
+    r'\b(roof|dryer|bath|register|flue|vent hood|hood|termination|'
+    r'cap|boot|stack|furnace|supply|return|grille|damper)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitVentFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedDrainReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bdrain\b').hasMatch(normalized)) return false;
+  final hasExplicitDrainFamily = RegExp(
+    r'\b(floor|tub|shower|sink|lav|condensate|storm|roof|channel|'
+    r'trench|waste|dwv|cleanout|register|pan|overflow|tailpiece)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitDrainFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

@@ -758,5 +758,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic vent shorthand',
+      () {
+        final ventItem = matchReceiptLineToCatalog(
+          'LOCAL VENT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ventItem == null || ventItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare VENT '
+              'line without line-level evidence such as roof, bath, dryer, '
+              'flue, register, or other explicit vent clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic drain shorthand',
+      () {
+        final drainItem = matchReceiptLineToCatalog(
+          'LOCAL DRAIN 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          drainItem == null || drainItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare DRAIN '
+              'line without line-level evidence such as floor, tub, shower, '
+              'condensate, or other explicit drain clues.',
+        );
+      },
+    );
   });
 }
