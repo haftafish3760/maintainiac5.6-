@@ -400,6 +400,40 @@ void main() {
       },
     );
 
+    test('local mixed receipt does not auto-confirm generic tape shorthand', () {
+      const receiptLines = [
+        'LOCAL TAPE 6.98',
+        'UL181 FOIL HVAC TAPE 12.49',
+        'ELEC TAPE BLK 3PK 3.97',
+        'WHITE PTFE THREAD TAPE 1.29',
+        '1/2 PEX TEE 2.49',
+      ];
+
+      final parsed = {
+        for (final line in receiptLines)
+          line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+      };
+      final tapeLine = parsed['LOCAL TAPE 6.98'];
+
+      expect(
+        parsed.values.whereType<ReceiptLineMatch>().length,
+        greaterThanOrEqualTo(4),
+        reason:
+            'The regression must include enough mixed PEH tape-family '
+            'siblings to tempt routing without letting a generic tape line '
+            'collapse into a final answer.',
+      );
+      expect(
+        tapeLine == null || tapeLine.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor plus nearby HVAC/electrical/plumbing tape '
+            'families must not auto-confirm a bare TAPE line without '
+            'line-level evidence such as UL181, electrical, PTFE, gas, or '
+            'other explicit tape-family clues.',
+      );
+    });
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
