@@ -1048,6 +1048,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic door shorthand',
+      () {
+        final doorItem = matchReceiptLineToCatalog(
+          'LOCAL DOOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          doorItem == null || doorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare DOOR '
+              'line without line-level evidence such as access, attic, '
+              'panel, or other explicit door clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic wall shorthand',
+      () {
+        final wallItem = matchReceiptLineToCatalog(
+          'LOCAL WALL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          wallItem == null || wallItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare WALL '
+              'line without line-level evidence such as plate, switch, '
+              'boot, or other explicit wall clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

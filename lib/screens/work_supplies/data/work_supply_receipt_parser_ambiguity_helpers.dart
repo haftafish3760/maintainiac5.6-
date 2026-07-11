@@ -870,6 +870,36 @@ bool _isBareMixedDamperReceiptLine(String text, String? tradeScope) {
   return !hasExplicitDamperFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedDoorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bdoor\b').hasMatch(normalized)) return false;
+  final hasExplicitDoorFamily = RegExp(
+    r'\b(access|attic|panel|cleanout|return|furnace|blower|dead\s*front|'
+    r'electrical|cabinet|hatch)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitDoorFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedWallReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwall\b').hasMatch(normalized)) return false;
+  final hasExplicitWallFamily = RegExp(
+    r'\b(plate|switch|boot|bend|tube|access|return|register|grille|'
+    r'sconce|light|escutcheon|plug|device|cover)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWallFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
