@@ -1170,6 +1170,36 @@ bool _isBareMixedBaseReceiptLine(String text, String? tradeScope) {
   return !hasExplicitBaseFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedGlassReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bglass\b').hasMatch(normalized)) return false;
+  final hasExplicitGlassFamily = RegExp(
+    r'\b(pane|window|screen|frame|door|mirror|shade|lens|gauge|'
+    r'sight|sash)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitGlassFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedPaneReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpane\b').hasMatch(normalized)) return false;
+  final hasExplicitPaneFamily = RegExp(
+    r'\b(glass|window|frame|screen|storm|sash|insulated|double|'
+    r'single|door)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPaneFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

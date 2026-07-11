@@ -1408,6 +1408,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic glass shorthand',
+      () {
+        final glassItem = matchReceiptLineToCatalog(
+          'LOCAL GLASS 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          glassItem == null || glassItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare GLASS '
+              'line without line-level evidence such as pane, window, '
+              'screen, or other explicit glass clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic pane shorthand',
+      () {
+        final paneItem = matchReceiptLineToCatalog(
+          'LOCAL PANE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          paneItem == null || paneItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PANE '
+              'line without line-level evidence such as glass, window, '
+              'frame, or other explicit pane clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
