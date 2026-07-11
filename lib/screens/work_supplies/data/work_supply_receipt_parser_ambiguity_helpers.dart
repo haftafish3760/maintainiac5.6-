@@ -457,6 +457,39 @@ bool _isBareMixedTeeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTeeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedValveReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bvalve\b').hasMatch(normalized)) return false;
+  final hasExplicitValveFamily = RegExp(
+    r'\b(ball|gate|check|globe|mixing|service|relief|pressure|prv|'
+    r'trv|zone|gas|stop|angle|sillcock|hose|boiler|condensate|'
+    r'backflow|water heater|compressor|reversing|txv|expansion)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitValveFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedAdapterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\badapter\b').hasMatch(normalized)) return false;
+  final hasExplicitAdapterFamily = RegExp(
+    r'\b(male|female|mip|fip|mpt|fpt|trap|closet|flange|conduit|'
+    r'pvc|cpvc|pex|copper|cobre|brass|bronze|barb|poly|cts|ips|'
+    r'dwv|schedule|compression|compresion|sweat|threaded|rosca|'
+    r'reducer|reducing|electrical|electrico|hvac|condensate)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitAdapterFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

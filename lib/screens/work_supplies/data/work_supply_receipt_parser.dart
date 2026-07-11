@@ -285,6 +285,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedTeeReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedValveReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedAdapterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

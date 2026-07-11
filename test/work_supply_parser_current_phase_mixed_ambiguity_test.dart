@@ -578,5 +578,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic valve shorthand',
+      () {
+        final valveItem = matchReceiptLineToCatalog(
+          'LOCAL VALVE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          valveItem == null || valveItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare VALVE '
+              'line without line-level evidence such as ball, check, gate, '
+              'gas, stop, or other explicit valve clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic adapter shorthand',
+      () {
+        final adapterItem = matchReceiptLineToCatalog(
+          'LOCAL ADAPTER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          adapterItem == null || adapterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ADAPTER '
+              'line without line-level evidence such as male, female, trap, '
+              'conduit, PVC, or other explicit adapter clues.',
+        );
+      },
+    );
   });
 }
