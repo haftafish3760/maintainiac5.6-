@@ -1876,6 +1876,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized connector without trade context',
+      () {
+        final sizedConnectorItem = matchReceiptLineToCatalog(
+          'LOCAL CONNECTOR 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedConnectorItem == null || sizedConnectorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized CONNECTOR '
+              'line when the receipt still lacks conduit, wire, toilet, '
+              'faucet, gas, whip, or other system-level connector clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm connector kit without system context',
       () {
         final connectorKitItem = matchReceiptLineToCatalog(
