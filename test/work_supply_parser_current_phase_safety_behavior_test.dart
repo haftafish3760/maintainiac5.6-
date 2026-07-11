@@ -1286,6 +1286,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic pump shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL PUMP 49.98',
+          'CONDENSATE PUMP 79.99',
+          'SUMP PUMP 129.99',
+          'PUMP CHECK VALVE 18.49',
+          'SUMP PUMP DISCHARGE PART 11.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final pumpLine = parsed['LOCAL PUMP 49.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC pump '
+              'siblings to tempt routing without letting a generic pump line '
+              'collapse into a final answer.',
+        );
+        expect(
+          pumpLine == null || pumpLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC pump families '
+              'must not auto-confirm a bare PUMP line without line-level '
+              'evidence such as condensate, sump, check valve, discharge, '
+              'or other explicit pump-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
