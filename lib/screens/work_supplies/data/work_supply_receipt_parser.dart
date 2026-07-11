@@ -423,6 +423,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedDrainReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCondensateDrainReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedFittingReceiptLine(normalized, tradeScope)) {
     return null;
   }

@@ -1272,6 +1272,22 @@ bool _isBareMixedDrainReceiptLine(String text, String? tradeScope) {
   return !hasExplicitDrainFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCondensateDrainReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcondensate\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\bdrain\b').hasMatch(normalized)) return false;
+  final hasExplicitCondensateDrainFamily = RegExp(
+    r'\b(trap|pan|pump|tubing|ac|air\s*handler|furnace|hvac|'
+    r'coil|mini\s*split|plenum|return|supply)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCondensateDrainFamily && tokenCount <= 4;
+}
+
 bool _isBareMixedFittingReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
