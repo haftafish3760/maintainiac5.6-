@@ -976,6 +976,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic hood shorthand',
+      () {
+        final hoodItem = matchReceiptLineToCatalog(
+          'LOCAL HOOD 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          hoodItem == null || hoodItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HOOD '
+              'line without line-level evidence such as vent, range, bath, '
+              'or other explicit hood clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic grille shorthand',
+      () {
+        final grilleItem = matchReceiptLineToCatalog(
+          'LOCAL GRILLE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          grilleItem == null || grilleItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare GRILLE '
+              'line without line-level evidence such as return, supply, '
+              'filter, or other explicit grille clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

@@ -810,6 +810,36 @@ bool _isBareMixedMeterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitMeterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedHoodReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhood\b').hasMatch(normalized)) return false;
+  final hasExplicitHoodFamily = RegExp(
+    r'\b(vent|range|bath|dryer|termination|flue|kitchen|exhaust|'
+    r'furnace|canopy)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHoodFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedGrilleReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bgrille\b').hasMatch(normalized)) return false;
+  final hasExplicitGrilleFamily = RegExp(
+    r'\b(return|supply|filter|wall|ceiling|floor|vent|register|'
+    r'diffuser|eggcrate|hvac)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitGrilleFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
