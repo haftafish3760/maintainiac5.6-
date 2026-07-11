@@ -1696,6 +1696,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized valve without trade context',
+      () {
+        final sizedValveItem = matchReceiptLineToCatalog(
+          'LOCAL VALVE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedValveItem == null || sizedValveItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized VALVE '
+              'line when the receipt still lacks ball, gate, relief, '
+              'stop, service, gas, or other system-level valve context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic adapter shorthand',
       () {
         final adapterItem = matchReceiptLineToCatalog(

@@ -569,6 +569,26 @@ bool _isBareMixedValveReceiptLine(String text, String? tradeScope) {
   return !hasExplicitValveFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedValveReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bvalve\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedValveFamily = RegExp(
+    r'\b(ball|gate|check|globe|mixing|service|relief|pressure|prv|'
+    r'trv|zone|gas|stop|angle|sillcock|hose|boiler|condensate|'
+    r'backflow|water heater|compressor|reversing|txv|expansion)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedValveFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedAdapterReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

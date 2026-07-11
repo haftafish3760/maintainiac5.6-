@@ -306,6 +306,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedValveReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedValveReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedAdapterReceiptLine(normalized, tradeScope)) {
     return null;
   }
