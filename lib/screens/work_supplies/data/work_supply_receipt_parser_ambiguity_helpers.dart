@@ -1211,6 +1211,22 @@ bool _isBareMixedPumpReceiptLine(String text, String? tradeScope) {
   return !hasExplicitPumpFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSaltPelletsReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsalt\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\bpellets\b').hasMatch(normalized)) return false;
+  final hasExplicitSaltPelletFamily = RegExp(
+    r'\b(softener|brine|resin|water\s*treatment|whole\s*house|'
+    r'filtration|filter|conditioner)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSaltPelletFamily && tokenCount <= 4;
+}
+
 bool _isBareMixedTapeReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

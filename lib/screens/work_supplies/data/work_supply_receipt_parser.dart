@@ -411,6 +411,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedPumpReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSaltPelletsReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedTapeReceiptLine(normalized, tradeScope)) {
     return null;
   }
