@@ -95,7 +95,8 @@ double _plumbingCoreReceiptEvidenceScore(
 ) {
   var score = 0.0;
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text) &&
+      (RegExp(r'\b(ell|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text)) &&
       itemText.contains('pvc schedule 40 90 elbow')) {
     score += 0.10;
   }
@@ -113,7 +114,8 @@ double _plumbingCoreReceiptEvidenceScore(
   }
   if (RegExp(r'\b(cop|cu|copper)\b').hasMatch(text) &&
       !_hasBrokenCriticalPlumbingFraction(text) &&
-      RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text) &&
+      (RegExp(r'\b(ell|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text)) &&
       RegExp(
         r'\b(cxc|c\s*x\s*c|copper\s+copper|sweat|wrot)\b',
       ).hasMatch(text) &&

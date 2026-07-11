@@ -169,7 +169,8 @@ int _receiptFallbackSpecificityScore(String text, _ReceiptCatalogEntry entry) {
     }
   }
   if (RegExp(r'\bpex\b').hasMatch(text) &&
-      RegExp(r'\b(90|ell|elb|elbow|90d|90 deg|90 degree)\b').hasMatch(text)) {
+      (RegExp(r'\b(ell|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text))) {
     if (entry.item.trade == 'Plumbing' &&
         normalizedText.contains('pex') &&
         (normalizedText.contains('90') ||

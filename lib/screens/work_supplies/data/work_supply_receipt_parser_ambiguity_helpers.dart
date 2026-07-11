@@ -35,9 +35,10 @@ bool _isUnscopedAmbiguousReceiptLine(
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
-  final hasElbowShape = RegExp(
-    r'\b(90|45|ell|el|elb|elbow|codo)\b',
-  ).hasMatch(normalized);
+  final hasElbowShape = RegExp(r'\b(ell|el|elb|elbow|codo)\b')
+          .hasMatch(normalized) ||
+      _hasReceiptNinetyDegreeEvidence(normalized) ||
+      RegExp(r'(?<![\d.])45(?![\d.a-z])').hasMatch(normalized);
   if (!hasElbowShape) return false;
   final hasPlumbingSpecificEvidence = RegExp(
     r'\b(sch|schedule|s40|sch40|ced|cedula|dwv|drain|presion|pressure|'

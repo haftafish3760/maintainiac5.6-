@@ -224,6 +224,26 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
       source: ReceiptMatchSource.trustedItemIdentity,
     );
   }
+  // Only raw receipt text may promote an unscoped PVC raceway line. Alias
+  // expansion turns HVAC shorthand such as COND into "conduit" and would
+  // otherwise cross the trade boundary before context is available.
+  final rawElectricalRaceway = _directElectricalRacewayMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (rawElectricalRaceway != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: rawElectricalRaceway,
+      confidence: _directReceiptConfidence(
+        normalized,
+        rawElectricalRaceway,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, rawElectricalRaceway),
+    );
+  }
   final fastDirect = _directFastReceiptMatch(
     normalized,
     tradeScope: tradeScope,
@@ -820,14 +840,22 @@ WorkSupplyItem? _directElectricalLowVoltageCableMatch(
   String text, {
   String? tradeScope,
 }) {
+  final normalizedScope = tradeScope?.trim().toLowerCase();
   if (tradeScope != null &&
       tradeScope.trim().isNotEmpty &&
-      tradeScope.trim().toLowerCase() != 'electrical') {
+      normalizedScope != 'electrical') {
     return null;
   }
   if (!RegExp(
     r'\b(low voltage|low volt|lv|stat wire|thermostat wire|control wire|doorbell wire)\b',
   ).hasMatch(text)) {
+    return null;
+  }
+  if ((normalizedScope == null || normalizedScope.isEmpty) &&
+      RegExp(
+        r'\b(stat wire|thermostat wire|control wire)\b',
+      ).hasMatch(text) &&
+      !RegExp(r'\b(electrical|elec|doorbell|security|alarm)\b').hasMatch(text)) {
     return null;
   }
   final size = RegExp(
@@ -978,20 +1006,34 @@ WorkSupplyItem? _directElectricalRacewayMatch(
   String text, {
   String? tradeScope,
 }) {
-  if (tradeScope == null ||
-      tradeScope.trim().isEmpty ||
-      tradeScope.trim().toLowerCase() != 'electrical') {
+  final normalizedScope = tradeScope?.trim().toLowerCase();
+  if (normalizedScope != null &&
+      normalizedScope.isNotEmpty &&
+      normalizedScope != 'electrical') {
     return null;
   }
   final isPvcConduit =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cond|conduit|elec|electrical)\b').hasMatch(text);
   if (!isPvcConduit) return null;
+  final hasExplicitRacewayEvidence = RegExp(
+    r'\b(conduit|elec|electrical)\b',
+  ).hasMatch(text);
+  final hasTerminalAdapterEvidence = RegExp(
+    r'\bcond\b.*\b(male|female|mip|fip|terminal|adapter|adpt)\b',
+  ).hasMatch(text);
+  if ((normalizedScope == null || normalizedScope.isEmpty) &&
+      !hasExplicitRacewayEvidence &&
+      !hasTerminalAdapterEvidence) {
+    return null;
+  }
   final wantedName = switch (text) {
-    final value when RegExp(r'\b(90|ell|elbow)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(ell|elbow)\b').hasMatch(value) ||
+            _hasReceiptNinetyDegreeEvidence(value) =>
       'pvc electrical 90 elbow',
     final value when RegExp(r'\b(cpl|cplg|coupling)\b').hasMatch(value) =>
-      'pvc electrical coupling',
+      'pvc electrical conduit coupling',
     final value
         when RegExp(
           r'\b(male|mip|terminal adapter|male adapter)\b',
@@ -1756,6 +1798,23 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
+  final wantsAcrCopperTubing = RegExp(
+        r'\b(acr|refrigerant|refrig(?:eration)?)\b',
+      ).hasMatch(text) &&
+      RegExp(r'\b(copper|cu)\b').hasMatch(text) &&
+      RegExp(r'\b(tubing|tube|roll|coil)\b').hasMatch(text);
+  if (wantsAcrCopperTubing) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('acr copper tubing') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+
   final wantsCondensateCoupling =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text) &&
@@ -1775,6 +1834,35 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 }
 
 WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
+  final wantsThermostatWire =
+      RegExp(r'\b(stat|tstat|thermostat|termostato)\b').hasMatch(text) &&
+      RegExp(r'\b(wire|cable)\b').hasMatch(text);
+  if (wantsThermostatWire) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' && name.contains('thermostat wire')) {
+        return item;
+      }
+    }
+  }
+
+  final wantsAcrCopperTubing = RegExp(
+        r'\b(acr|refrigerant|refrig(?:eration)?)\b',
+      ).hasMatch(text) &&
+      RegExp(r'\b(copper|cu)\b').hasMatch(text) &&
+      RegExp(r'\b(tubing|tube|roll|coil)\b').hasMatch(text);
+  if (wantsAcrCopperTubing) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('acr copper tubing') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+
   final wantsCondensateCoupling =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cond|condensate)\b').hasMatch(text) &&
@@ -1884,10 +1972,9 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     tradeScope: tradeScope,
   );
   if (electricalProfessional != null) return electricalProfessional;
-  final electricalRaceway = _directElectricalRacewayMatch(
-    text,
-    tradeScope: tradeScope,
-  );
+  final electricalRaceway = tradeScope?.trim().toLowerCase() == 'electrical'
+      ? _directElectricalRacewayMatch(text, tradeScope: tradeScope)
+      : null;
   if (electricalRaceway != null) return electricalRaceway;
   final electricalBox = _directElectricalBoxMatch(text, tradeScope: tradeScope);
   if (electricalBox != null) return electricalBox;
@@ -1899,10 +1986,10 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   final hvacCore = _directHvacCoreMatch(text, tradeScope: tradeScope);
   if (hvacCore != null) return hvacCore;
   if (tradeScope == null || tradeScope.trim().isEmpty) {
-    final unscopedElectrical = _directUnscopedElectricalEvidenceMatch(text);
-    if (unscopedElectrical != null) return unscopedElectrical;
     final unscopedHvac = _directUnscopedHvacEvidenceMatch(text);
     if (unscopedHvac != null) return unscopedHvac;
+    final unscopedElectrical = _directUnscopedElectricalEvidenceMatch(text);
+    if (unscopedElectrical != null) return unscopedElectrical;
   }
   final applianceDirect = _directApplianceInstallMatch(
     text,
@@ -3529,7 +3616,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bpex\b').hasMatch(text) &&
-      RegExp(r'\b(90|ell|elb|elbow|90d)\b').hasMatch(text) &&
+      (RegExp(r'\b(ell|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text)) &&
       RegExp(r'\b(crimp|brass)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(text)?.group(0);
     final targetPrefix = size == null ? '' : '$size in ';
@@ -5057,7 +5145,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(r'\b(dwv|drain|abs|black)\b').hasMatch(text) &&
       !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       RegExp(r'\bstreet\b').hasMatch(text) &&
-      RegExp(r'\b90\b').hasMatch(text)) {
+      _hasReceiptNinetyDegreeEvidence(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -5085,7 +5173,8 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       !RegExp(r'\b(dwv|drain|abs|black|street|45)\b').hasMatch(text) &&
       !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
-      RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text)) {
+      (RegExp(r'\b(ell|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text))) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -5820,7 +5909,8 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   if (RegExp(
         r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)(?:\s+in)?\s+pvc\b',
       ).hasMatch(text) &&
-      RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text) &&
+      (RegExp(r'\b(ell|el|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text)) &&
       !RegExp(r'\b(dwv|abs|cpvc)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in workSupplyCatalogItems) {
@@ -6127,7 +6217,18 @@ bool _matchesHalfByThreeEighthStop(String receiptText, String variant) {
 bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text)) {
+      RegExp(r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(dwv|drain|sch\s*40|schedule\s*40|sch\s*80|schedule\s*80|'
+        r'pressure|presion|cond|conduit|electrical|elec|emt|condensate|hvac|'
+        r'air\s*handler|furnace)\b',
+      ).hasMatch(text)) {
+    // A small PVC line without a system context can belong to more than one trade.
+    return true;
+  }
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      (RegExp(r'\b(ell|el|elb|elbow)\b').hasMatch(text) ||
+          _hasReceiptNinetyDegreeEvidence(text))) {
     return true;
   }
   if (RegExp(r'\bfilter\b').hasMatch(text) &&
@@ -6215,12 +6316,18 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   };
 }
 
-bool _isScopedPlumbingDangerousElbowReviewLine(String text, String? tradeScope) {
+bool _isScopedPlumbingDangerousElbowReviewLine(
+  String text,
+  String? tradeScope,
+) {
   if (tradeScope == null || tradeScope.trim().toLowerCase() != 'plumbing') {
     return false;
   }
   if (!RegExp(r'\bpvc\b').hasMatch(text)) return false;
-  if (!RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text)) return false;
+  if (!(RegExp(r'\b(ell|el|elb|elbow)\b').hasMatch(text) ||
+      _hasReceiptNinetyDegreeEvidence(text))) {
+    return false;
+  }
   if (RegExp(
     r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)(?:\s+in)?\s+pvc\b',
   ).hasMatch(text)) {
@@ -6232,6 +6339,13 @@ bool _isScopedPlumbingDangerousElbowReviewLine(String text, String? tradeScope) 
     return false;
   }
   return true;
+}
+
+bool _hasReceiptNinetyDegreeEvidence(String text) {
+  // Receipt prices such as 71.90 must not become 90-degree fitting evidence.
+  return RegExp(r'(?<![\d.])90(?![\d.a-z])').hasMatch(text) ||
+      RegExp(r'(?<![\d.])90d(?![\d.a-z])').hasMatch(text) ||
+      RegExp(r'(?<![\d.])90\s+(?:deg|degree)\b').hasMatch(text);
 }
 
 bool _isScopedPlumbingDangerousGenericAdapterReviewLine(

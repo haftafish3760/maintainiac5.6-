@@ -91,8 +91,8 @@ final electricalCoreSupplementalCategory = _category(
             '3/4 in EMT Compression Coupling',
             '1/2 in PVC Male Terminal Adapter',
             '3/4 in PVC Male Terminal Adapter',
-            '1/2 in PVC Conduit Coupling',
-            '3/4 in PVC Conduit Coupling',
+            '1/2 in PVC Electrical Conduit Coupling',
+            '3/4 in PVC Electrical Conduit Coupling',
           ],
           aliases: const [
             'romex connector',

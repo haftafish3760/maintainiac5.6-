@@ -3,6 +3,28 @@ part of '../../work_supply_catalog.dart';
 final hvacCoreSupplementalCategory = _category(
   'HVAC Core Supplemental Service Stock',
   [
+    _system('Refrigerant Copper Service Stock', [
+      _type(
+        'ACR Copper Tubing',
+        _hvacTruckProducts(
+          baseName: 'ACR Copper Tubing',
+          unit: 'roll',
+          variants: const [
+            '1/4 in x 20 ft ACR Copper Tubing',
+            '3/8 in x 20 ft ACR Copper Tubing',
+            '1/2 in x 20 ft ACR Copper Tubing',
+            '3/4 in x 20 ft ACR Copper Tubing',
+          ],
+          aliases: const [
+            'acr copper',
+            'acr tubing',
+            'refrigerant copper',
+            'refrig copper',
+            'copper coil',
+          ],
+        ),
+      ),
+    ]),
     _system('Condensate and Drain Service Stock', [
       _type(
         'Condensate Safety and Cleaning Parts',

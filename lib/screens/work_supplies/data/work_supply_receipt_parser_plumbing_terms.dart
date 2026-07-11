@@ -32,7 +32,9 @@ WorkSupplyItem? _directPlumbingAbsDwvMatch(String text) {
     final value when RegExp(r'\b(cleanout|clean\s*out|co)\b').hasMatch(value) =>
       'abs dwv cleanout',
     final value when RegExp(r'\b45\b').hasMatch(value) => 'abs dwv 45 elbow',
-    final value when RegExp(r'\b(90|ell|elb|elbow)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(ell|elb|elbow)\b').hasMatch(value) ||
+            _hasReceiptNinetyDegreeEvidence(value) =>
       'abs dwv 90 elbow',
     final value
         when RegExp(r'\b(cpl|cplg|coupling|coupler)\b').hasMatch(value) =>
@@ -123,7 +125,9 @@ WorkSupplyItem? _directPlumbingPvcDwvMatch(String text) {
     final value when RegExp(r'\b(cleanout|clean\s*out|co)\b').hasMatch(value) =>
       'pvc dwv cleanout',
     final value when RegExp(r'\b45\b').hasMatch(value) => 'pvc dwv 45 elbow',
-    final value when RegExp(r'\b(90|ell|elb|elbow)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(ell|elb|elbow)\b').hasMatch(value) ||
+            _hasReceiptNinetyDegreeEvidence(value) =>
       'pvc dwv 90 elbow',
     final value when RegExp(r'\b(cplg|coupling|coupler)\b').hasMatch(value) =>
       'pvc dwv coupling',
@@ -177,7 +181,9 @@ WorkSupplyItem? _directPlumbingPexServiceFittingMatch(String text) {
       RegExp(r'\b(transition|trans)\b').hasMatch(value)
           ? 'transition couplings'
           : 'couplings',
-    final value when RegExp(r'\b(90|ell|elb|elbow|codo)\b').hasMatch(value) =>
+    final value
+        when RegExp(r'\b(ell|elb|elbow|codo)\b').hasMatch(value) ||
+            _hasReceiptNinetyDegreeEvidence(value) =>
       '90 elbows',
     _ => null,
   };
