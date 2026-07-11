@@ -468,6 +468,43 @@ void main() {
       );
     });
 
+    test(
+      'local mixed receipt does not auto-confirm generic connector shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL CONNECTOR 9.98',
+          '1/2 EMT SET SCREW CONN 1.49',
+          '1/2 IN X 6FT EQUIP WHIP 18.99',
+          '3/8X12 TOILET CONN 6.49',
+          '1/2 PEX TEE 2.49',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final connectorLine = parsed['LOCAL CONNECTOR 9.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(4),
+          reason:
+              'The regression must include enough mixed PEH connector-family '
+              'siblings to tempt routing without letting a generic connector '
+              'line collapse into a final answer.',
+        );
+        expect(
+          connectorLine == null || connectorLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC/electrical '
+              'connector families must not auto-confirm a bare CONNECTOR line '
+              'without line-level evidence such as EMT, whip, toilet, '
+              'compression, liquidtight, or other explicit connector clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',

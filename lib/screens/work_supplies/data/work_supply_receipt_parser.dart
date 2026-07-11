@@ -244,6 +244,23 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
       matchedTerms: _directMatchedTerms(normalized, rawElectricalRaceway),
     );
   }
+  final directConnectorFamily = _directCriticalConnectorFamilyMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (directConnectorFamily != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: directConnectorFamily,
+      confidence: _directReceiptConfidence(
+        normalized,
+        directConnectorFamily,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, directConnectorFamily),
+    );
+  }
   final fastDirect = _directFastReceiptMatch(
     normalized,
     tradeScope: tradeScope,
@@ -355,6 +372,71 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
 
 bool _isStrongShortCatalogMatch(int score) {
   return score >= 28;
+}
+
+WorkSupplyItem? _directCriticalConnectorFamilyMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  final normalizedScope = tradeScope?.trim().toLowerCase();
+
+  final wantsSetScrewConnector =
+      RegExp(r'\b(emt|conduit|cond)\b').hasMatch(text) &&
+      RegExp(r'\bset\s*screw\b').hasMatch(text) &&
+      RegExp(r'\b(conn|connector)\b').hasMatch(text);
+  if ((normalizedScope == null ||
+          normalizedScope.isEmpty ||
+          normalizedScope == 'electrical') &&
+      wantsSetScrewConnector) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      final variant = item.variant.toLowerCase();
+      if (item.trade == 'Electrical' &&
+          (name.contains('emt connector') ||
+              variant.contains('set screw connector')) &&
+          (size == null || _nameMatchesReceiptSize(name, size))) {
+        return item;
+      }
+    }
+  }
+
+  final wantsEquipmentWhip =
+      RegExp(r'\b(ac|a/c|equipment|equip|hvac)\b').hasMatch(text) &&
+      RegExp(r'\b(whip|liquid\s*tight|liquidtight|sealtite)\b').hasMatch(text);
+  if ((normalizedScope == null ||
+          normalizedScope.isEmpty ||
+          normalizedScope == 'hvac') &&
+      wantsEquipmentWhip) {
+    final size = _nominalReceiptSize(text);
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'HVAC' &&
+          name.contains('equipment whip') &&
+          _nameMatchesReceiptSize(name, size)) {
+        return item;
+      }
+    }
+  }
+
+  final wantsToiletConnector = RegExp(
+    r'\b(toilet conn|toilet conns|toilet connector|toilet supply)\b',
+  ).hasMatch(text);
+  if ((normalizedScope == null ||
+          normalizedScope.isEmpty ||
+          normalizedScope == 'plumbing') &&
+      wantsToiletConnector) {
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' &&
+          name.contains('toilet supply line') &&
+          _nameMatchesReceiptMatrix(name, text)) {
+        return item;
+      }
+    }
+  }
+
+  return null;
 }
 
 String normalizeMerchantName(String rawText) {
@@ -6313,6 +6395,15 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
       !RegExp(
         r'\b(dishwasher|toilet|faucet|gas|dryer|washer|appliance|romex|'
         r'nm|electrical|electric|elec)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
+  if (RegExp(r'\b(connector|conn)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(emt|rigid|imc|liquidtight|lt|lfnc|romex|nm|mc|wire|'
+        r'electrical|electric|elec|toilet|faucet|dishwasher|dryer|'
+        r'washer|appliance|gas|water\s+heater|heater|compression|'
+        r'whip|supply|line|kit|adapter)\b',
       ).hasMatch(text)) {
     return true;
   }
