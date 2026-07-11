@@ -542,6 +542,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic adapter shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL ADAPTER 5.98',
+          '3/4 PVC SCHEDULE 40 MALE ADAPTER 1.29',
+          '3/4 PVC SCHEDULE 40 FEMALE ADAPTER 1.49',
+          '3/4 PVC CONDUIT TERMINAL ADAPTER 2.19',
+          'THERMOSTAT WIRE ADAPTER 19.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final adapterLine = parsed['LOCAL ADAPTER 5.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(4),
+          reason:
+              'The regression must include enough mixed PEH adapter-family '
+              'siblings to tempt routing without letting a generic adapter '
+              'line collapse into a final answer.',
+        );
+        expect(
+          adapterLine == null || adapterLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC/electrical '
+              'adapter families must not auto-confirm a bare ADAPTER line '
+              'without line-level evidence such as male, female, terminal, '
+              'thermostat, or other explicit adapter clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
