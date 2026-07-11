@@ -904,6 +904,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic device shorthand',
+      () {
+        final deviceItem = matchReceiptLineToCatalog(
+          'LOCAL DEVICE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          deviceItem == null || deviceItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare DEVICE '
+              'line without line-level evidence such as switch, outlet, '
+              'cover, or other explicit device clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic register shorthand',
+      () {
+        final registerItem = matchReceiptLineToCatalog(
+          'LOCAL REGISTER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          registerItem == null || registerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare REGISTER '
+              'line without line-level evidence such as vent, grille, boot, '
+              'or other explicit register clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

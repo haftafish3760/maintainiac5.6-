@@ -750,6 +750,36 @@ bool _isBareMixedCementReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCementFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedRegisterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bregister\b').hasMatch(normalized)) return false;
+  final hasExplicitRegisterFamily = RegExp(
+    r'\b(vent|grille|boot|return|supply|floor|ceiling|wall|damper|'
+    r'flue|drain|overflow|cleanout|electrical|device|cover)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitRegisterFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedDeviceReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bdevice\b').hasMatch(normalized)) return false;
+  final hasExplicitDeviceFamily = RegExp(
+    r'\b(switch|outlet|receptacle|cover|plate|wall|electrical|wp|'
+    r'weatherproof|smart|dimmer|gfci|afci|thermostat|sensor)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitDeviceFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
