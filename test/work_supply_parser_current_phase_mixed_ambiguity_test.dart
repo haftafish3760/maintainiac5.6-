@@ -1768,6 +1768,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm j box without electrical context',
+      () {
+        final jBoxItem = matchReceiptLineToCatalog(
+          'LOCAL J BOX 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          jBoxItem == null || jBoxItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a J BOX line '
+              'without device, junction, outlet, splice, or other explicit '
+              'electrical box clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic filter shorthand',
       () {
         final filterItem = matchReceiptLineToCatalog(
@@ -1817,6 +1835,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare TAPE '
               'line without line-level evidence such as electrical, teflon, '
               'foil, duct, or other explicit tape clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm foil tape without hvac context',
+      () {
+        final foilTapeItem = matchReceiptLineToCatalog(
+          'LOCAL FOIL TAPE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          foilTapeItem == null || foilTapeItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a foil tape line '
+              'without HVAC, duct, mastic, UL181, or other line-level duct '
+              'system clues.',
         );
       },
     );
