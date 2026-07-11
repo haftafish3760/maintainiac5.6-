@@ -1101,6 +1101,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic cement shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL CEMENT 9.98',
+          'PVC CEMENT 6.49',
+          'SOLVENT CEMENT 7.29',
+          'CPVC GLUE 8.19',
+          'PURPLE PRIMER 5.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final cementLine = parsed['LOCAL CEMENT 9.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC cement '
+              'siblings to tempt routing without letting a generic cement '
+              'line collapse into a final answer.',
+        );
+        expect(
+          cementLine == null || cementLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby cement-family siblings must '
+              'not auto-confirm a bare CEMENT line without line-level '
+              'evidence such as PVC, solvent, CPVC, primer, or other '
+              'explicit cement-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
