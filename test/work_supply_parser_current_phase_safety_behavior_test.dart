@@ -134,6 +134,43 @@ void main() {
       },
     );
 
+    test(
+      'mixed receipt sibling lines do not auto-confirm ambiguous copper tubing',
+      () {
+        const receiptLines = [
+          'SUPPLY 3/4 COPPER TUBING 18.22',
+          '12/2 NM-B WIRE 25FT 24.98',
+          'MERV 8 AIR FILTER 20X25X1 11.97',
+          '3/4 PVC COND COUPLING 2.18',
+          '1/2 PEX CRIMP RING 10PK 4.28',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final copper = parsed['SUPPLY 3/4 COPPER TUBING 18.22'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough plumbing/electrical/HVAC '
+              'siblings to tempt cross-trade inference without allowing a '
+              'bare copper tubing line to jump to a final answer.',
+        );
+        expect(
+          copper == null || copper.confidence <= .81,
+          isTrue,
+          reason:
+              'A mixed receipt can contain plumbing, electrical, and HVAC '
+              'neighbors together; sibling evidence must not convert bare '
+              'copper tubing into a confident trade answer without explicit '
+              'line-level clues.',
+        );
+      },
+    );
+
     test('filter dimensions require HVAC air-filter evidence', () {
       final generic = matchReceiptLineToCatalog(
         'FILTER 20X25X1',

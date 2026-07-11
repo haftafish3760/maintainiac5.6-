@@ -1824,16 +1824,17 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     return fallback;
   }
 
-  final wantsCondensateCoupling =
+  final wantsCondensatePvcFitting =
       RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text) &&
-      RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text);
-  if (wantsCondensateCoupling) {
+      RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text) &&
+      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople|union)\b').hasMatch(text);
+  if (wantsCondensatePvcFitting) {
     final size = _nominalReceiptSize(text);
+    final wantsUnion = RegExp(r'\bunion\b').hasMatch(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
-          name.contains('condensate pvc coupling') &&
+          name.contains(wantsUnion ? 'condensate drain union' : 'condensate pvc coupling') &&
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
@@ -1881,16 +1882,17 @@ WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
     return fallback;
   }
 
-  final wantsCondensateCoupling =
+  final wantsCondensatePvcFitting =
       RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(cond|condensate)\b').hasMatch(text) &&
-      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text);
-  if (wantsCondensateCoupling) {
+      RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text) &&
+      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople|union)\b').hasMatch(text);
+  if (wantsCondensatePvcFitting) {
     final size = _nominalReceiptSize(text);
+    final wantsUnion = RegExp(r'\bunion\b').hasMatch(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
-          name.contains('condensate pvc coupling') &&
+          name.contains(wantsUnion ? 'condensate drain union' : 'condensate pvc coupling') &&
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
@@ -3642,6 +3644,18 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name == '${targetPrefix}pex 90 elbow') {
+        return item;
+      }
+    }
+  }
+  if (RegExp(r'\b(copper|cop|cu)\b').hasMatch(text) &&
+      RegExp(r'\b(cap|end cap)\b').hasMatch(text) &&
+      RegExp(r'\b(sweat|cxc|cup)\b').hasMatch(text)) {
+    final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(text)?.group(0);
+    final targetPrefix = size == null ? '' : '$size in ';
+    for (final item in workSupplyCatalogItems) {
+      final name = item.name.toLowerCase();
+      if (item.trade == 'Plumbing' && name == '${targetPrefix}copper cap') {
         return item;
       }
     }

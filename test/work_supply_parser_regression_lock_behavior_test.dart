@@ -197,10 +197,13 @@ void main() {
       final mixedReceiptExpectations = {
         '3/4 PVC COND CPLG': 'HVAC',
         '3/4 PVC COND COUPLING': 'HVAC',
+        '3/4 PVC COND UNION': 'HVAC',
         '3/4 PVC CONDUIT CPLG': 'Electrical',
+        '3/4 PVC CONDUIT LB': 'Electrical',
         '3/4 PVC COND MALE ADPT': 'Electrical',
         '1/2 PEX TEE': 'Plumbing',
         '3/4 SOFT COPPER TUBING': 'Plumbing',
+        '1/2 SWEAT COPPER CAP': 'Plumbing',
         '3/8 ACR COPPER TUBING': 'HVAC',
         '3/4 COPPER REPAIR COUPLING': 'Plumbing',
         '3/8 COPPER LINE SET': 'HVAC',
