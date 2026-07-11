@@ -686,5 +686,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic box shorthand',
+      () {
+        final boxItem = matchReceiptLineToCatalog(
+          'LOCAL BOX 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          boxItem == null || boxItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BOX '
+              'line without line-level evidence such as junction, device, '
+              'outlet, repair, or other explicit box clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic filter shorthand',
+      () {
+        final filterItem = matchReceiptLineToCatalog(
+          'LOCAL FILTER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          filterItem == null || filterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FILTER '
+              'line without line-level evidence such as air, water, whole '
+              'house, return, or other explicit filter clues.',
+        );
+      },
+    );
   });
 }

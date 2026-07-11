@@ -540,6 +540,38 @@ bool _isBareMixedConduitReceiptLine(String text, String? tradeScope) {
   return !hasExplicitConduitFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBoxReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbox\b').hasMatch(normalized)) return false;
+  final hasExplicitBoxFamily = RegExp(
+    r'\b(junction|device|outlet|gang|handy|square|octagon|round|'
+    r'weatherproof|wp|ceiling|fan|breaker|panel|repair|filter|'
+    r'air|whole house|water heater)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBoxFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedFilterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfilter\b').hasMatch(normalized)) return false;
+  final hasExplicitFilterFamily = RegExp(
+    r'\b(air|return|pleated|merv|whole house|water|sediment|carbon|'
+    r'refrigerant|dryer|hvac|furnace|humidifier|vacuum|pump|'
+    r'cartridge|housing)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFilterFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
