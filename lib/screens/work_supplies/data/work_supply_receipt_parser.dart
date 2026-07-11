@@ -450,6 +450,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedLensReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedShadeReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedSupportReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

@@ -1290,6 +1290,36 @@ bool _isBareMixedLensReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLensFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedShadeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bshade\b').hasMatch(normalized)) return false;
+  final hasExplicitShadeFamily = RegExp(
+    r'\b(lens|lamp|window|blind|glass|fixture|mirror|sconce|'
+    r'roller|solar)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitShadeFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSupportReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsupport\b').hasMatch(normalized)) return false;
+  final hasExplicitSupportFamily = RegExp(
+    r'\b(bracket|mount|fan|pipe|hanger|stand|camera|wall|ceiling|'
+    r'flange|support\s+arm)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSupportFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
