@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic pan shorthand',
+      () {
+        final panItem = matchReceiptLineToCatalog(
+          'LOCAL PAN 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          panItem == null || panItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PAN '
+              'line without line-level evidence such as drain, shower, '
+              'heater, or other explicit pan clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic shell shorthand',
+      () {
+        final shellItem = matchReceiptLineToCatalog(
+          'LOCAL SHELL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          shellItem == null || shellItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SHELL '
+              'line without line-level evidence such as housing, cover, '
+              'case, or other explicit shell clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic bar shorthand',
       () {
         final barItem = matchReceiptLineToCatalog(
