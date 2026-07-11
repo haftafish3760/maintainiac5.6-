@@ -564,6 +564,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedKitReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedMotorReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

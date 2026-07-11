@@ -1860,6 +1860,21 @@ bool _isBareMixedKitReceiptLine(String text, String? tradeScope) {
   return !hasExplicitKitFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedMotorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bmotor\b').hasMatch(normalized)) return false;
+  final hasExplicitMotorFamily = RegExp(
+    r'\b(blower|fan|pump|condenser|draft|furnace|exhaust|'
+    r'shade|gear|assembly)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitMotorFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

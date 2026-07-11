@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic motor shorthand',
+      () {
+        final motorItem = matchReceiptLineToCatalog(
+          'LOCAL MOTOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          motorItem == null || motorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare MOTOR '
+              'line without line-level evidence such as blower, fan, '
+              'pump, or other explicit motor clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic ceiling shorthand',
+      () {
+        final ceilingItem = matchReceiptLineToCatalog(
+          'LOCAL CEILING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ceilingItem == null || ceilingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CEILING '
+              'line without line-level evidence such as fan, box, '
+              'register, or other explicit ceiling clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(
@@ -1763,24 +1799,6 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare LIGHT '
               'line without line-level evidence such as fixture, LED, wall, '
               'or other explicit light clues.',
-        );
-      },
-    );
-
-    test(
-      'local mixed receipt does not auto-confirm generic ceiling shorthand',
-      () {
-        final ceilingItem = matchReceiptLineToCatalog(
-          'LOCAL CEILING 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          ceilingItem == null || ceilingItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare CEILING '
-              'line without line-level evidence such as fan, register, '
-              'light, or other explicit ceiling clues.',
         );
       },
     );
