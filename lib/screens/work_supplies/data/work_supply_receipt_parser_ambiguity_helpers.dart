@@ -1050,6 +1050,36 @@ bool _isBareMixedKitchenReceiptLine(String text, String? tradeScope) {
   return !hasExplicitKitchenFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSinkReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsink\b').hasMatch(normalized)) return false;
+  final hasExplicitSinkFamily = RegExp(
+    r'\b(drain|lav|tub|faucet|kitchen|bath|basket|strainer|tailpiece|'
+    r'clip|mount|bowl)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSinkFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedShowerReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bshower\b').hasMatch(normalized)) return false;
+  final hasExplicitShowerFamily = RegExp(
+    r'\b(drain|pan|valve|arm|head|trim|faucet|bath|door|base|'
+    r'liner|curtain)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitShowerFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

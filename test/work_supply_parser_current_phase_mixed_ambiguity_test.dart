@@ -1264,6 +1264,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic sink shorthand',
+      () {
+        final sinkItem = matchReceiptLineToCatalog(
+          'LOCAL SINK 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sinkItem == null || sinkItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SINK '
+              'line without line-level evidence such as drain, lav, tub, '
+              'or other explicit sink clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic shower shorthand',
+      () {
+        final showerItem = matchReceiptLineToCatalog(
+          'LOCAL SHOWER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          showerItem == null || showerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SHOWER '
+              'line without line-level evidence such as drain, pan, valve, '
+              'or other explicit shower clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
