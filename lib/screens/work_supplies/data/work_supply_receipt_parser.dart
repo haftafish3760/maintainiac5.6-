@@ -276,6 +276,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedHoseReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedHoseReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedStrapReceiptLine(normalized, tradeScope)) {
     return null;
   }

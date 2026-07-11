@@ -1534,6 +1534,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized hose without trade context',
+      () {
+        final sizedHoseLine = matchReceiptLineToCatalog(
+          'LOCAL HOSE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedHoseLine == null || sizedHoseLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized HOSE '
+              'line when the receipt still lacks washer, drain, garden, '
+              'condensate, supply, or other explicit hose clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic strap shorthand',
       () {
         final strapLine = matchReceiptLineToCatalog(

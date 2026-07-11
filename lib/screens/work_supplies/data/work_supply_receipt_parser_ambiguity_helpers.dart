@@ -423,6 +423,25 @@ bool _isBareMixedHoseReceiptLine(String text, String? tradeScope) {
   return !hasExplicitHoseFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedHoseReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhose\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedHoseFamily = RegExp(
+    r'\b(washer|washing machine|laundry|dishwasher|drain|bibb|sillcock|'
+    r'condensate|mini split|discharge|sump|garden|water|supply)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedHoseFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedStrapReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
