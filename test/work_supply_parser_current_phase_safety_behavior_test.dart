@@ -171,6 +171,47 @@ void main() {
       },
     );
 
+    test(
+      'mixed Spanish sibling lines do not auto-confirm ambiguous PVC shorthand',
+      () {
+        const receiptLines = [
+          'FERRETERIA CODO PVC 3/4 2.18',
+          'CABLE 12/2 NM-B 25FT 24.98',
+          'DRENAJE CONDENSADO PVC 3/4 5.28',
+          'VALVULA BOLA 1/2 8.49',
+          'FILTRO AIRE 20X25X1 MERV 8 11.97',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(
+              line,
+              localePackId: 'es-US',
+              maxCandidates: 420,
+            ),
+        };
+        final pvc = parsed['FERRETERIA CODO PVC 3/4 2.18'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough Spanish-language plumbing, '
+              'electrical, and HVAC siblings to tempt trade inference without '
+              'allowing a bare PVC shorthand line to become a final answer.',
+        );
+        expect(
+          pvc == null || pvc.confidence <= .81,
+          isTrue,
+          reason:
+              'A mixed Spanish receipt can contain plumbing, electrical, and '
+              'HVAC lines together; sibling and locale evidence must not '
+              'convert CODO PVC into a confident single-trade answer without '
+              'explicit line-level trade evidence.',
+        );
+      },
+    );
+
     test('filter dimensions require HVAC air-filter evidence', () {
       final generic = matchReceiptLineToCatalog(
         'FILTER 20X25X1',
