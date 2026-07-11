@@ -1397,6 +1397,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic union shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL UNION 21.98',
+          'CONDENSATE DRAIN UNION 6.49',
+          'BLACK IRON UNION 8.99',
+          'BRASS COMPRESSION UNION 9.49',
+          'WATER HEATER UNION 12.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final unionLine = parsed['LOCAL UNION 21.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC union '
+              'siblings to tempt routing without letting a generic union line '
+              'collapse into a final answer.',
+        );
+        expect(
+          unionLine == null || unionLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC union '
+              'families must not auto-confirm a bare UNION line without '
+              'line-level evidence such as condensate, black iron, brass, '
+              'dielectric, or other explicit union-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
