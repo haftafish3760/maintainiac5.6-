@@ -1336,6 +1336,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic frame shorthand',
+      () {
+        final frameItem = matchReceiptLineToCatalog(
+          'LOCAL FRAME 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          frameItem == null || frameItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FRAME '
+              'line without line-level evidence such as window, screen, '
+              'glass, or other explicit frame clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic screen shorthand',
+      () {
+        final screenItem = matchReceiptLineToCatalog(
+          'LOCAL SCREEN 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          screenItem == null || screenItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SCREEN '
+              'line without line-level evidence such as window, frame, '
+              'mesh, or other explicit screen clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

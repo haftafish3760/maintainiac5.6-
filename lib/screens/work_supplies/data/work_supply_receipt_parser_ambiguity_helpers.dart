@@ -1110,6 +1110,36 @@ bool _isBareMixedLavReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLavFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedFrameReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bframe\b').hasMatch(normalized)) return false;
+  final hasExplicitFrameFamily = RegExp(
+    r'\b(window|screen|glass|pane|door|trim|sash|mirror|grille|'
+    r'register|filter)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFrameFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedScreenReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bscreen\b').hasMatch(normalized)) return false;
+  final hasExplicitScreenFamily = RegExp(
+    r'\b(window|frame|mesh|filter|touch|door|insect|lint|guard|'
+    r'protector)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitScreenFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
