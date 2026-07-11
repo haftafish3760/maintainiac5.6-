@@ -303,6 +303,26 @@ bool _isBareMixedPipeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitPipeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedPipeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpipe\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedPipeFamily = RegExp(
+    r'\b(pvc|cpvc|pex|copper|cobre|emt|conduit|rigid|flue|vent|'
+    r'drain|sewer|sch|schedule|black|iron|gas|condensate|tube|'
+    r'humidifier|extension|duct)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedPipeFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedTubeReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

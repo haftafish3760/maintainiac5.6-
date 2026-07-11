@@ -1354,6 +1354,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized pipe without trade context',
+      () {
+        final sizedPipeLine = matchReceiptLineToCatalog(
+          'LOCAL PIPE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedPipeLine == null || sizedPipeLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized PIPE '
+              'line when the receipt still lacks PVC, copper, EMT, drain, '
+              'gas, vent, or other system-level pipe clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare copper without trade context',
       () {
         final copperLine = matchReceiptLineToCatalog(
