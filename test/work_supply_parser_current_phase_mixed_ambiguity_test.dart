@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic nut shorthand',
+      () {
+        final nutItem = matchReceiptLineToCatalog(
+          'LOCAL NUT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          nutItem == null || nutItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare NUT '
+              'line without line-level evidence such as lock, wire, '
+              'compression, or other explicit nut clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic kit shorthand',
+      () {
+        final kitItem = matchReceiptLineToCatalog(
+          'LOCAL KIT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          kitItem == null || kitItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare KIT '
+              'line without line-level evidence such as repair, toilet, '
+              'faucet, or other explicit kit clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic guard shorthand',
       () {
         final guardItem = matchReceiptLineToCatalog(

@@ -1830,6 +1830,36 @@ bool _isBareMixedCaseReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCaseFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedNutReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bnut\b').hasMatch(normalized)) return false;
+  final hasExplicitNutFamily = RegExp(
+    r'\b(lock|wire|compression|hex|flare|cap|union|'
+    r'jam|wing|coupling)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitNutFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedKitReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bkit\b').hasMatch(normalized)) return false;
+  final hasExplicitKitFamily = RegExp(
+    r'\b(repair|toilet|faucet|trim|shower|valve|flush|'
+    r'install|service|replacement)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitKitFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
