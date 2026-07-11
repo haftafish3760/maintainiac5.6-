@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic bolt shorthand',
+      () {
+        final boltItem = matchReceiptLineToCatalog(
+          'LOCAL BOLT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          boltItem == null || boltItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BOLT '
+              'line without line-level evidence such as anchor, carriage, '
+              'lag, or other explicit bolt clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic rod shorthand',
+      () {
+        final rodItem = matchReceiptLineToCatalog(
+          'LOCAL ROD 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          rodItem == null || rodItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ROD '
+              'line without line-level evidence such as threaded, hanger, '
+              'anode, or other explicit rod clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic branch shorthand',
       () {
         final branchItem = matchReceiptLineToCatalog(

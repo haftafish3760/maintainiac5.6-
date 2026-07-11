@@ -1740,6 +1740,36 @@ bool _isBareMixedSpliceReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSpliceFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBoltReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbolt\b').hasMatch(normalized)) return false;
+  final hasExplicitBoltFamily = RegExp(
+    r'\b(anchor|carriage|lag|hex|u-bolt|ubolt|toggle|'
+    r'wedge|machine|expansion)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBoltFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedRodReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\brod\b').hasMatch(normalized)) return false;
+  final hasExplicitRodFamily = RegExp(
+    r'\b(threaded|hanger|anode|support|brass|weld|'
+    r'ground|closet|mount|suspension)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitRodFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
