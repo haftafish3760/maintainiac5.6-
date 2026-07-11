@@ -290,5 +290,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic union shorthand',
+      () {
+        final unionLine = matchReceiptLineToCatalog(
+          'LOCAL UNION 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          unionLine == null || unionLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare UNION '
+              'line without line-level evidence such as dielectric, brass, '
+              'compression, condensate, or other explicit union clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic bushing shorthand',
+      () {
+        final bushingLine = matchReceiptLineToCatalog(
+          'LOCAL BUSHING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          bushingLine == null || bushingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BUSHING '
+              'line without line-level evidence such as reducing, insulated, '
+              'PVC, brass, or other explicit bushing clues.',
+        );
+      },
+    );
   });
 }

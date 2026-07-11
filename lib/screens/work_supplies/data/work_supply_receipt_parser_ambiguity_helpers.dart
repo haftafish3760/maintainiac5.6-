@@ -241,6 +241,22 @@ bool _isBareMixedSpanishCouplingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCouplingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedUnionReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bunion\b').hasMatch(normalized)) return false;
+  final hasExplicitUnionFamily = RegExp(
+    r'\b(dielectric|water heater|wtr htr|brass|compression|comp|'
+    r'condensate|drain|flare|black iron|galv|cobre|copper|cpvc|'
+    r'pvc|pex|threaded|sweat|repair|service)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitUnionFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

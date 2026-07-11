@@ -243,6 +243,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSpanishCouplingReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedUnionReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,
