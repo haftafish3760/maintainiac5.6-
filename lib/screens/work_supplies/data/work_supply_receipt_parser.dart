@@ -246,6 +246,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedUnionReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedUnionReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedBushingReceiptLine(normalized, tradeScope)) {
     return null;
   }
