@@ -579,6 +579,47 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic bushing shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL BUSHING 3.98',
+          'MC ANTI SHORT BUSHING 100PK 6.49',
+          'RED HEAD BUSHING 50PK 4.99',
+          '3/4 INSULATED BUSHING 2.19',
+          '3/4 PVC SPIGOT BUSHING 1.19',
+          '3/4 CPVC REDUCER BUSHING 1.29',
+          '3/4 BLACK IRON REDUCING BUSHING 2.49',
+          '1/2 BRASS BUSHING 1.39',
+          '45/5 MFD DUAL RUN CAP 18.49',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final bushingLine = parsed['LOCAL BUSHING 3.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed PEH sibling evidence '
+              'to tempt bushing routing without letting a generic bushing '
+              'line collapse into a final answer.',
+        );
+        expect(
+          bushingLine == null || bushingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/electrical bushing '
+              'families must not auto-confirm a bare BUSHING line without '
+              'line-level evidence such as anti-short, reducing, PVC, CPVC, '
+              'or other explicit bushing clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
