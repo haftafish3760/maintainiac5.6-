@@ -411,6 +411,35 @@ bool _isBareMixedPanelReceiptLine(String text, String? tradeScope) {
   return !hasExplicitPanelFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedTrapReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btrap\b').hasMatch(normalized)) return false;
+  final hasExplicitTrapFamily = RegExp(
+    r'\b(condensate|p-trap|p trap|tubular|sediment|drip leg|trap arm|'
+    r'primer|adapter|washer|lav|sink|drain)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTrapFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedCleanoutReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcleanout\b').hasMatch(normalized)) return false;
+  final hasExplicitCleanoutFamily = RegExp(
+    r'\b(plug|cover|access|tee|pvc|abs|dwv|brass|raised|round|square)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCleanoutFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

@@ -506,5 +506,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic trap shorthand',
+      () {
+        final trapItem = matchReceiptLineToCatalog(
+          'LOCAL TRAP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          trapItem == null || trapItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TRAP '
+              'line without line-level evidence such as condensate, p-trap, '
+              'tubular, sediment, or other explicit trap clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic cleanout shorthand',
+      () {
+        final cleanoutItem = matchReceiptLineToCatalog(
+          'LOCAL CLEANOUT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          cleanoutItem == null || cleanoutItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CLEANOUT '
+              'line without line-level evidence such as plug, cover, PVC, '
+              'ABS, or other explicit cleanout clues.',
+        );
+      },
+    );
   });
 }
