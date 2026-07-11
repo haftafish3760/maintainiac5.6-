@@ -17,6 +17,25 @@ class _ReceiptAttachmentReadResult {
   bool get wasUnreadable => outcome == _ReceiptAttachmentReadOutcome.unreadable;
 }
 
+Duration _receiptOcrTimeout(
+  ReceiptDeviceCapability capability,
+  int sourceCount,
+) {
+  final baseSeconds = switch (capability.tier) {
+    ReceiptCapabilityTier.heavyweight => 25,
+    ReceiptCapabilityTier.medium => 35,
+    ReceiptCapabilityTier.light => 50,
+  };
+  final perAdditionalSource = switch (capability.tier) {
+    ReceiptCapabilityTier.heavyweight => 8,
+    ReceiptCapabilityTier.medium => 10,
+    ReceiptCapabilityTier.light => 12,
+  };
+  final seconds =
+      baseSeconds + (sourceCount - 1).clamp(0, 4) * perAdditionalSource;
+  return Duration(seconds: seconds.clamp(baseSeconds, 90).toInt());
+}
+
 extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
   Future<_ReceiptAttachmentReadResult> _readAttachmentsForReceiptForm(
     List<ReceiptAttachmentRecord> attachments, {
@@ -87,9 +106,29 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     widget.onReceiptReadStarted?.call();
     late final ReceiptOcrResult result;
     try {
-      result = await ReceiptOcrService.forDevice(
-        capability,
-      ).recognizeTextFromAttachments(readable);
+      result = await ReceiptOcrService.forDevice(capability)
+          .recognizeTextFromAttachments(readable)
+          .timeout(_receiptOcrTimeout(capability, readable.length));
+    } on TimeoutException {
+      if (mounted) {
+        updateAttachmentState(() {
+          _readingForReview = false;
+          _receiptReadStatus = _ReceiptReadStatusKind.failed;
+          _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
+          _receiptReadStatusMessage =
+              'Receipt reading took too long on this device. Review the photos and retry, or continue filling the receipt by hand.';
+        });
+        if (showNoTextMessage) {
+          showPickerError(
+            'Receipt reading took too long. Review the photos and retry, or continue manually.',
+          );
+        }
+      }
+      widget.onReceiptReadFinished?.call(false);
+      return const _ReceiptAttachmentReadResult(
+        _ReceiptAttachmentReadOutcome.unreadable,
+        warning: 'Receipt reading timed out before details could be filled.',
+      );
     } catch (_) {
       if (mounted) {
         updateAttachmentState(() {
