@@ -980,6 +980,28 @@ bool _isBareMixedCouplingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCouplingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedCouplingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcoupling\b').hasMatch(normalized)) return false;
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedCouplingFamily = RegExp(
+    r'\b(repair|slip|stop|conduit|emt|rigid|pvc|cpvc|pex|copper|'
+    r'cobre|dwv|schedule|sch|compression|compresion|sweat|'
+    r'threaded|rosca|reducer|reducing|electrical|electrico|'
+    r'hvac|condensate|drain|vent)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedCouplingFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedConnectorReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
