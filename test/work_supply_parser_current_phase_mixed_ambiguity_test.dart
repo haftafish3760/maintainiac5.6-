@@ -1012,6 +1012,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic boot shorthand',
+      () {
+        final bootItem = matchReceiptLineToCatalog(
+          'LOCAL BOOT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          bootItem == null || bootItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BOOT '
+              'line without line-level evidence such as register, vent, '
+              'roof, or other explicit boot clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic damper shorthand',
+      () {
+        final damperItem = matchReceiptLineToCatalog(
+          'LOCAL DAMPER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          damperItem == null || damperItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare DAMPER '
+              'line without line-level evidence such as vent, furnace, '
+              'return, or other explicit damper clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

@@ -360,6 +360,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedGrilleReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedBootReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedDamperReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,
