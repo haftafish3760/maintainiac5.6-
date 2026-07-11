@@ -1212,6 +1212,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic hose shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL HOSE 15.98',
+          'DISHWASHER DRAIN HOSE 12.99',
+          'WASHER SUPPLY HOSE 18.49',
+          'DISCHARGE HOSE 24.99',
+          'MINI SPLIT DRAIN HOSE 16.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final hoseLine = parsed['LOCAL HOSE 15.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC hose '
+              'siblings to tempt routing without letting a generic hose line '
+              'collapse into a final answer.',
+        );
+        expect(
+          hoseLine == null || hoseLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC hose families '
+              'must not auto-confirm a bare HOSE line without line-level '
+              'evidence such as dishwasher, washer, discharge, mini split, '
+              'or other explicit hose-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
