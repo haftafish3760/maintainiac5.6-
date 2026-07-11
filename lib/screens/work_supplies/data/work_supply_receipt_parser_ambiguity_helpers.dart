@@ -2056,6 +2056,36 @@ bool _isBareMixedWhipReceiptLine(String text, String? tradeScope) {
   return !hasExplicitWhipFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedThermostatReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bthermostat\b').hasMatch(normalized)) return false;
+  final hasExplicitThermostatFamily = RegExp(
+    r'\b(heat\s*pump|smart|wifi|programmable|digital|1h|1c|'
+    r'2h|2c|tstat|wall|pro)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitThermostatFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedFloatReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfloat\b').hasMatch(normalized)) return false;
+  final hasExplicitFloatFamily = RegExp(
+    r'\b(switch|pan|pump|condensate|sump|level|septic|tethered|'
+    r'piggyback|wet)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFloatFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

@@ -256,6 +256,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic thermostat shorthand',
+      () {
+        final thermostatItem = matchReceiptLineToCatalog(
+          'LOCAL THERMOSTAT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          thermostatItem == null || thermostatItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare '
+              'THERMOSTAT line without line-level evidence such as heat '
+              'pump, programmable, smart, or other explicit thermostat clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic float shorthand',
+      () {
+        final floatItem = matchReceiptLineToCatalog(
+          'LOCAL FLOAT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          floatItem == null || floatItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FLOAT '
+              'line without line-level evidence such as switch, pan, pump, '
+              'or other explicit float clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(
