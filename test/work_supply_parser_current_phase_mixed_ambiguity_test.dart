@@ -1192,6 +1192,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic window shorthand',
+      () {
+        final windowItem = matchReceiptLineToCatalog(
+          'LOCAL WINDOW 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          windowItem == null || windowItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare WINDOW '
+              'line without line-level evidence such as seal, sash, '
+              'screen, or other explicit window clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic stack shorthand',
+      () {
+        final stackItem = matchReceiptLineToCatalog(
+          'LOCAL STACK 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          stackItem == null || stackItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare STACK '
+              'line without line-level evidence such as roof, vent, soil, '
+              'or other explicit stack clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

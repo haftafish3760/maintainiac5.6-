@@ -990,6 +990,36 @@ bool _isBareMixedRoofReceiptLine(String text, String? tradeScope) {
   return !hasExplicitRoofFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedWindowReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwindow\b').hasMatch(normalized)) return false;
+  final hasExplicitWindowFamily = RegExp(
+    r'\b(seal|sash|screen|frame|trim|pane|glass|flange|weather|'
+    r'well|opening)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWindowFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedStackReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bstack\b').hasMatch(normalized)) return false;
+  final hasExplicitStackFamily = RegExp(
+    r'\b(roof|vent|soil|pipe|boot|flashing|termination|furnace|'
+    r'drain|dwv)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitStackFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
