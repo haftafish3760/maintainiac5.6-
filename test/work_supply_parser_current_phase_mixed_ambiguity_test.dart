@@ -650,5 +650,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic connector shorthand',
+      () {
+        final connectorItem = matchReceiptLineToCatalog(
+          'LOCAL CONNECTOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          connectorItem == null || connectorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONNECTOR '
+              'line without line-level evidence such as conduit, cable, '
+              'flex, PVC, or other explicit connector clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic conduit shorthand',
+      () {
+        final conduitItem = matchReceiptLineToCatalog(
+          'LOCAL CONDUIT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          conduitItem == null || conduitItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONDUIT '
+              'line without line-level evidence such as EMT, PVC, sweep, '
+              'electrical, or other explicit conduit clues.',
+        );
+      },
+    );
   });
 }

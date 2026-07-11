@@ -297,6 +297,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedCouplingReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedConduitReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

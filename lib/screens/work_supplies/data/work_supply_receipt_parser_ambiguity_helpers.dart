@@ -524,6 +524,22 @@ bool _isBareMixedCouplingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCouplingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedConduitReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bconduit\b').hasMatch(normalized)) return false;
+  final hasExplicitConduitFamily = RegExp(
+    r'\b(emt|rigid|imc|pvc|sch|schedule|electrical|electrico|'
+    r'sweep|connector|coupling|body|lb|ll|lr|strap|bushing|'
+    r'locknut|condensate|drain|hvac|vent)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitConduitFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
