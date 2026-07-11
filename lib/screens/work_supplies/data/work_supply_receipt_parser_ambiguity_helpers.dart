@@ -963,6 +963,22 @@ bool _isBareMixedElbowReceiptLine(String text, String? tradeScope) {
   return !hasExplicitElbowFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPvcElbowReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\belbow\b').hasMatch(normalized)) return false;
+  final hasExplicitPvcElbowFamily = RegExp(
+    r'\b(plumbing|electrical|hvac|condensate|conduit|dwv|drain|'
+    r'vent|schedule|sch|pressure|sweep|long\s*turn|street|90|45)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPvcElbowFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedCouplingReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

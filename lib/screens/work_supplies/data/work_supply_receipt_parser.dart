@@ -369,6 +369,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedElbowReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedPvcElbowReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedCouplingReceiptLine(normalized, tradeScope)) {
     return null;
   }
