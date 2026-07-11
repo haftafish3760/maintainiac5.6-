@@ -1480,6 +1480,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic arm shorthand',
+      () {
+        final armItem = matchReceiptLineToCatalog(
+          'LOCAL ARM 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          armItem == null || armItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ARM '
+              'line without line-level evidence such as shower, support, '
+              'mount, or other explicit arm clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic mount shorthand',
+      () {
+        final mountItem = matchReceiptLineToCatalog(
+          'LOCAL MOUNT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          mountItem == null || mountItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare MOUNT '
+              'line without line-level evidence such as fixture, fan, '
+              'bracket, or other explicit mount clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
