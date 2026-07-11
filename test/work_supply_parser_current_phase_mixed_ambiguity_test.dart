@@ -1516,6 +1516,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic mirror shorthand',
+      () {
+        final mirrorItem = matchReceiptLineToCatalog(
+          'LOCAL MIRROR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          mirrorItem == null || mirrorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare MIRROR '
+              'line without line-level evidence such as glass, frame, '
+              'cabinet, or other explicit mirror clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic lens shorthand',
+      () {
+        final lensItem = matchReceiptLineToCatalog(
+          'LOCAL LENS 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          lensItem == null || lensItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare LENS '
+              'line without line-level evidence such as light, cover, '
+              'fixture, or other explicit lens clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
