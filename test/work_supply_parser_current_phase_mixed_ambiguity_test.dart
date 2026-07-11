@@ -1444,6 +1444,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic sash shorthand',
+      () {
+        final sashItem = matchReceiptLineToCatalog(
+          'LOCAL SASH 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sashItem == null || sashItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SASH '
+              'line without line-level evidence such as window, pane, '
+              'screen, or other explicit sash clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic trim shorthand',
+      () {
+        final trimItem = matchReceiptLineToCatalog(
+          'LOCAL TRIM 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          trimItem == null || trimItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TRIM '
+              'line without line-level evidence such as shower, faucet, '
+              'window, or other explicit trim clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
