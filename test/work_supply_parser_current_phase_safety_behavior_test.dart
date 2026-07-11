@@ -1175,6 +1175,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic black shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL BLACK 7.98',
+          'BLACK IRON TEE 4.99',
+          'BLACK DRAIN PIPE 10FT 12.99',
+          'BLACK TAPE 3.49',
+          'ABS DWV COUPLING 2.19',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final blackLine = parsed['LOCAL BLACK 7.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/electrical '
+              'black-family siblings to tempt routing without letting a '
+              'generic black line collapse into a final answer.',
+        );
+        expect(
+          blackLine == null || blackLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby black-family siblings must '
+              'not auto-confirm a bare BLACK line without line-level '
+              'evidence such as iron, drain, tape, ABS, or other explicit '
+              'black-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
