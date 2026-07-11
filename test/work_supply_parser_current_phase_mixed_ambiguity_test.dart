@@ -3480,5 +3480,23 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm duct seal shorthand without hvac context',
+      () {
+        final ductSealItem = matchReceiptLineToCatalog(
+          'LOCAL DUCT SEAL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ductSealItem == null || ductSealItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a DUCT SEAL line '
+              'when the receipt still lacks HVAC, duct board, plenum, air '
+              'handler, or other system-level duct clues.',
+        );
+      },
+    );
   });
 }
