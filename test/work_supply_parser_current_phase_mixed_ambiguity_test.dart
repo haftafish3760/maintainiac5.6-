@@ -2218,6 +2218,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized plug without trade context',
+      () {
+        final sizedPlugItem = matchReceiptLineToCatalog(
+          'LOCAL PLUG 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedPlugItem == null || sizedPlugItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized PLUG '
+              'line when the receipt still lacks cleanout, test, drain, '
+              'cord, brass, PVC, or other system-level plug clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic access shorthand',
       () {
         final accessItem = matchReceiptLineToCatalog(

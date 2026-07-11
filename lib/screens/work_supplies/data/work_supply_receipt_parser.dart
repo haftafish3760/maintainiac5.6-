@@ -360,6 +360,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedPlugReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedPlugReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedAccessReceiptLine(normalized, tradeScope)) {
     return null;
   }

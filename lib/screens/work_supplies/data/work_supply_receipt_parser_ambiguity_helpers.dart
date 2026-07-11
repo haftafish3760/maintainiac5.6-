@@ -869,6 +869,25 @@ bool _isBareMixedPlugReceiptLine(String text, String? tradeScope) {
   return !hasExplicitPlugFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedPlugReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bplug\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedPlugFamily = RegExp(
+    r'\b(cleanout|test|cord|drain|rubber|expansion|freeze|fuse|'
+    r'spark|wall|reset|accessory|mip|fip|npt|brass|pvc|cpvc)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedPlugFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedAccessReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
