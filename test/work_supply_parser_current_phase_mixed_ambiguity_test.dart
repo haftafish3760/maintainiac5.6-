@@ -2468,6 +2468,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm vent cap shorthand without trade context',
+      () {
+        final ventCapItem = matchReceiptLineToCatalog(
+          'LOCAL VENT CAP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ventCapItem == null || ventCapItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a VENT CAP line '
+              'when the receipt still lacks roof, flue, furnace, dryer, or '
+              'other system-level vent context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic drain shorthand',
       () {
         final drainItem = matchReceiptLineToCatalog(
