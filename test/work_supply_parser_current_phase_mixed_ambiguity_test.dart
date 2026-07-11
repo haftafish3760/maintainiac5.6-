@@ -1804,6 +1804,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized cleanout without trade context',
+      () {
+        final sizedCleanoutItem = matchReceiptLineToCatalog(
+          'LOCAL CLEANOUT 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedCleanoutItem == null || sizedCleanoutItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized CLEANOUT '
+              'line when the receipt still lacks plug, cover, tee, pvc, abs, '
+              'dwv, brass, or other explicit cleanout clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic cap shorthand',
       () {
         final capItem = matchReceiptLineToCatalog(
