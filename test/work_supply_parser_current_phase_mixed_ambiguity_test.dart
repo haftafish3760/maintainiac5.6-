@@ -830,5 +830,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic plate shorthand',
+      () {
+        final plateItem = matchReceiptLineToCatalog(
+          'LOCAL PLATE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          plateItem == null || plateItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PLATE '
+              'line without line-level evidence such as cover, nail, wall, '
+              'stud, or other explicit plate clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic washer shorthand',
+      () {
+        final washerItem = matchReceiptLineToCatalog(
+          'LOCAL WASHER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          washerItem == null || washerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare WASHER '
+              'line without line-level evidence such as hose, trap, seat, '
+              'fender, or other explicit washer clues.',
+        );
+      },
+    );
   });
 }

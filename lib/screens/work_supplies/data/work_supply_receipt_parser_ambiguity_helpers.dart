@@ -662,6 +662,36 @@ bool _isBareMixedAccessReceiptLine(String text, String? tradeScope) {
   return !hasExplicitAccessFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPlateReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bplate\b').hasMatch(normalized)) return false;
+  final hasExplicitPlateFamily = RegExp(
+    r'\b(cover|wall|nail|stud|guard|device|switch|outlet|repair|'
+    r'flange|escutcheon|filler|dead front|register|boot)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPlateFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedWasherReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwasher\b').hasMatch(normalized)) return false;
+  final hasExplicitWasherFamily = RegExp(
+    r'\b(hose|trap|seat|fender|bibb|vacuum|slip|beveled|reducing|'
+    r'toilet|tank|shank|faucet|stem|drain|laundry)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWasherFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
