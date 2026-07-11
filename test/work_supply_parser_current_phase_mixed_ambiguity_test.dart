@@ -1336,6 +1336,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized bushing without trade context',
+      () {
+        final sizedBushingLine = matchReceiptLineToCatalog(
+          'LOCAL BUSHING 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedBushingLine == null || sizedBushingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized BUSHING '
+              'line when the receipt still lacks conduit, reducing, PVC, '
+              'brass, or other explicit system-level bushing clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic pipe shorthand',
       () {
         final pipeLine = matchReceiptLineToCatalog(
