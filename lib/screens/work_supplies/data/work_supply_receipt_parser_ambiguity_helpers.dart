@@ -500,6 +500,21 @@ bool _isBareMixedCapReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCapFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCondensateReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcondensate\b').hasMatch(normalized)) return false;
+  final hasExplicitCondensateFamily = RegExp(
+    r'\b(drain|pump|line|tub(e|ing)|trap|pan|switch|float|tablet|'
+    r'gun|cartridge|hvac|furnace|air\s*handler|ac|a/c)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCondensateFamily && tokenCount <= 3;
+}
+
 bool _isBareMixedTeeReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
@@ -898,6 +913,22 @@ bool _isBareMixedMeterReceiptLine(String text, String? tradeScope) {
     r'flow|pressure|utility|submeter)\b',
   ).hasMatch(normalized);
   return !hasExplicitMeterFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedPvcReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
+  final hasExplicitPvcFamily = RegExp(
+    r'\b(pipe|conduit|elbow|ell|elb|tee|coupling|adapter|reducer|'
+    r'cement|primer|sch\s*40|sch\s*80|schedule\s*40|schedule\s*80|'
+    r'dwv|drain|pressure|cond|condensate|electrical|emt)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPvcFamily && tokenCount <= 3;
 }
 
 bool _isBareMixedHoodReceiptLine(String text, String? tradeScope) {

@@ -294,6 +294,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedCapReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCondensateReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedTeeReceiptLine(normalized, tradeScope)) {
     return null;
   }
@@ -370,6 +373,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isBareMixedMeterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedPvcReceiptLine(normalized, tradeScope)) {
     return null;
   }
   if (_isBareMixedHoodReceiptLine(normalized, tradeScope)) {

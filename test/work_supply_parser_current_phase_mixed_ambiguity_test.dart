@@ -1624,6 +1624,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm bare condensate without hvac context',
+      () {
+        final condensateItem = matchReceiptLineToCatalog(
+          'LOCAL CONDENSATE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          condensateItem == null || condensateItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONDENSATE '
+              'line without drain, pump, tubing, trap, or other HVAC '
+              'context on the receipt line itself.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic tee shorthand',
       () {
         final teeItem = matchReceiptLineToCatalog(
@@ -2177,6 +2195,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare METER '
               'line without line-level evidence such as clamp, gas, water, '
               'or other explicit meter clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm bare pvc without trade context',
+      () {
+        final pvcItem = matchReceiptLineToCatalog(
+          'LOCAL PVC 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcItem == null || pvcItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PVC line '
+              'without pipe, conduit, fitting, cement, drain, or other '
+              'trade context on the receipt line itself.',
         );
       },
     );
