@@ -900,6 +900,36 @@ bool _isBareMixedWallReceiptLine(String text, String? tradeScope) {
   return !hasExplicitWallFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedFanReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfan\b').hasMatch(normalized)) return false;
+  final hasExplicitFanFamily = RegExp(
+    r'\b(ceiling|bath|exhaust|blower|attic|range|condenser|air|'
+    r'furnace|ventilation|inline)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFanFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedLightReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\blight\b').hasMatch(normalized)) return false;
+  final hasExplicitLightFamily = RegExp(
+    r'\b(fixture|led|wall|bulb|lamp|sconce|can|recessed|strip|'
+    r'emergency|exit|shop)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitLightFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

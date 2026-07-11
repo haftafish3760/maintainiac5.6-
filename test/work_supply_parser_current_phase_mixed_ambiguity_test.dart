@@ -1084,6 +1084,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic fan shorthand',
+      () {
+        final fanItem = matchReceiptLineToCatalog(
+          'LOCAL FAN 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          fanItem == null || fanItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FAN '
+              'line without line-level evidence such as ceiling, bath, '
+              'exhaust, or other explicit fan clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic light shorthand',
+      () {
+        final lightItem = matchReceiptLineToCatalog(
+          'LOCAL LIGHT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          lightItem == null || lightItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare LIGHT '
+              'line without line-level evidence such as fixture, LED, wall, '
+              'or other explicit light clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
