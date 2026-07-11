@@ -1800,6 +1800,36 @@ bool _isBareMixedHousingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitHousingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedGuardReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bguard\b').hasMatch(normalized)) return false;
+  final hasExplicitGuardFamily = RegExp(
+    r'\b(fan|blade|wire|safety|screen|cage|grille|'
+    r'cover|protector|rail)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitGuardFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedCaseReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcase\b').hasMatch(normalized)) return false;
+  final hasExplicitCaseFamily = RegExp(
+    r'\b(breaker|motor|housing|cover|electrical|switch|tool|'
+    r'enclosure|shell|blower)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCaseFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
