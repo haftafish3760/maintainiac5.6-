@@ -330,6 +330,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedWasherReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedPrimerReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedSealReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

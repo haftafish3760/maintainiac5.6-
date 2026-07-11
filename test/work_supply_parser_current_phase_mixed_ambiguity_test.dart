@@ -866,5 +866,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic primer shorthand',
+      () {
+        final primerItem = matchReceiptLineToCatalog(
+          'LOCAL PRIMER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          primerItem == null || primerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PRIMER '
+              'line without line-level evidence such as PVC, CPVC, trap, '
+              'purple, or other explicit primer clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic seal shorthand',
+      () {
+        final sealItem = matchReceiptLineToCatalog(
+          'LOCAL SEAL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sealItem == null || sealItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SEAL '
+              'line without line-level evidence such as toilet, wax, tank, '
+              'gasket, or other explicit seal clues.',
+        );
+      },
+    );
   });
 }

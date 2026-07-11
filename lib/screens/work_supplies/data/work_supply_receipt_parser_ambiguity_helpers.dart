@@ -692,6 +692,35 @@ bool _isBareMixedWasherReceiptLine(String text, String? tradeScope) {
   return !hasExplicitWasherFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPrimerReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bprimer\b').hasMatch(normalized)) return false;
+  final hasExplicitPrimerFamily = RegExp(
+    r'\b(pvc|cpvc|trap|purple|pipe|cement|solvent|cleaner|adhesive)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPrimerFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSealReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bseal\b').hasMatch(normalized)) return false;
+  final hasExplicitSealFamily = RegExp(
+    r'\b(toilet|wax|tank|gasket|closet|flush|flange|door|window|'
+    r'weather|shaft|oil|mechanical|condensate|water heater)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSealFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
