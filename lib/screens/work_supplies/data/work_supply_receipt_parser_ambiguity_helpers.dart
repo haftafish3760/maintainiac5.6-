@@ -113,6 +113,36 @@ bool _isBareMixedSpanishBoxOrFilterReceiptLine(
   return false;
 }
 
+bool _isBareMixedSpanishPumpReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbomba\b').hasMatch(normalized)) return false;
+  final hasExplicitPumpFamily = RegExp(
+    r'\b(condensado|condensate|pozo|agua|sumidero|sump|well|jet|'
+    r'desague|drenaje|lavadora|circulacion|recirculacion)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPumpFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSpanishLlaveReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bllave\b').hasMatch(normalized)) return false;
+  final hasExplicitLlaveFamily = RegExp(
+    r'\b(lavabo|angular|escuadra|paso|grifo|manguera|fregadero|'
+    r'calentador|jardin|hose|supply|stop|faucet)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitLlaveFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

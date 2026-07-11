@@ -146,5 +146,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic bomba shorthand',
+      () {
+        final pumpLine = matchReceiptLineToCatalog(
+          'LOCAL BOMBA 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pumpLine == null || pumpLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BOMBA '
+              'line without line-level evidence such as condensado, pozo, '
+              'sumidero, agua, or other explicit pump clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic llave shorthand',
+      () {
+        final valveLine = matchReceiptLineToCatalog(
+          'LOCAL LLAVE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          valveLine == null || valveLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare LLAVE '
+              'line without line-level evidence such as lavabo, escuadra, '
+              'paso, grifo, or other explicit valve or faucet clues.',
+        );
+      },
+    );
   });
 }
