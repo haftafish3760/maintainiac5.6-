@@ -326,6 +326,43 @@ void main() {
       },
     );
 
+    test(
+      'local supply-house mixed receipt does not auto-confirm PVC COND shorthand',
+      () {
+        const receiptLines = [
+          'COUNTER SALE PVC COND 3/4 5.28',
+          '12/2 NM-B WIRE 25FT 24.98',
+          '3/4X3/8 LINE SET 50FT 89.00',
+          '1/2 PEX TEE 2.49',
+          'ELEC TAPE BLK 3.97',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final pvcCond = parsed['COUNTER SALE PVC COND 3/4 5.28'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough local/supply-house sibling '
+              'evidence to tempt PEH routing without letting merchant flavor '
+              'or neighboring lines convert PVC COND into a final answer.',
+        );
+        expect(pvcCond, isNotNull);
+        expect(
+          pvcCond!.confidence,
+          lessThanOrEqualTo(.81),
+          reason:
+              'Local or counter-sale merchant wording plus mixed PEH siblings '
+              'must not auto-confirm PVC COND 3/4 without explicit line-level '
+              'conduit or condensate evidence.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
