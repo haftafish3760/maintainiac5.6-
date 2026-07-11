@@ -363,41 +363,35 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic nut shorthand',
-      () {
-        final nutItem = matchReceiptLineToCatalog(
-          'LOCAL NUT 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          nutItem == null || nutItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare NUT '
-              'line without line-level evidence such as lock, wire, '
-              'compression, or other explicit nut clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic nut shorthand', () {
+      final nutItem = matchReceiptLineToCatalog(
+        'LOCAL NUT 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        nutItem == null || nutItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare NUT '
+            'line without line-level evidence such as lock, wire, '
+            'compression, or other explicit nut clues.',
+      );
+    });
 
-    test(
-      'local mixed receipt does not auto-confirm generic kit shorthand',
-      () {
-        final kitItem = matchReceiptLineToCatalog(
-          'LOCAL KIT 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          kitItem == null || kitItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare KIT '
-              'line without line-level evidence such as repair, toilet, '
-              'faucet, or other explicit kit clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic kit shorthand', () {
+      final kitItem = matchReceiptLineToCatalog(
+        'LOCAL KIT 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        kitItem == null || kitItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare KIT '
+            'line without line-level evidence such as repair, toilet, '
+            'faucet, or other explicit kit clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic guard shorthand',
@@ -489,23 +483,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic rod shorthand',
-      () {
-        final rodItem = matchReceiptLineToCatalog(
-          'LOCAL ROD 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          rodItem == null || rodItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare ROD '
-              'line without line-level evidence such as threaded, hanger, '
-              'anode, or other explicit rod clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic rod shorthand', () {
+      final rodItem = matchReceiptLineToCatalog(
+        'LOCAL ROD 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        rodItem == null || rodItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare ROD '
+            'line without line-level evidence such as threaded, hanger, '
+            'anode, or other explicit rod clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic branch shorthand',
@@ -579,23 +570,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic pan shorthand',
-      () {
-        final panItem = matchReceiptLineToCatalog(
-          'LOCAL PAN 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          panItem == null || panItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare PAN '
-              'line without line-level evidence such as drain, shower, '
-              'heater, or other explicit pan clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic pan shorthand', () {
+      final panItem = matchReceiptLineToCatalog(
+        'LOCAL PAN 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        panItem == null || panItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare PAN '
+            'line without line-level evidence such as drain, shower, '
+            'heater, or other explicit pan clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic shell shorthand',
@@ -615,23 +603,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic bar shorthand',
-      () {
-        final barItem = matchReceiptLineToCatalog(
-          'LOCAL BAR 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          barItem == null || barItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare BAR '
-              'line without line-level evidence such as support, grab, '
-              'hanger, or other explicit bar clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic bar shorthand', () {
+      final barItem = matchReceiptLineToCatalog(
+        'LOCAL BAR 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        barItem == null || barItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare BAR '
+            'line without line-level evidence such as support, grab, '
+            'hanger, or other explicit bar clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic tray shorthand',
@@ -1857,23 +1842,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic cap shorthand',
-      () {
-        final capItem = matchReceiptLineToCatalog(
-          'LOCAL CAP 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          capItem == null || capItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare CAP '
-              'line without line-level evidence such as end cap, service '
-              'valve, vent, roof, or other explicit cap clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic cap shorthand', () {
+      final capItem = matchReceiptLineToCatalog(
+        'LOCAL CAP 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        capItem == null || capItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare CAP '
+            'line without line-level evidence such as end cap, service '
+            'valve, vent, roof, or other explicit cap clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm sized cap without trade context',
@@ -1911,23 +1893,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic tee shorthand',
-      () {
-        final teeItem = matchReceiptLineToCatalog(
-          'LOCAL TEE 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          teeItem == null || teeItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare TEE '
-              'line without line-level evidence such as sanitary, reducing, '
-              'PVC, copper, or other explicit tee clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic tee shorthand', () {
+      final teeItem = matchReceiptLineToCatalog(
+        'LOCAL TEE 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        teeItem == null || teeItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare TEE '
+            'line without line-level evidence such as sanitary, reducing, '
+            'PVC, copper, or other explicit tee clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm sized tee without trade context',
@@ -2217,23 +2196,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic box shorthand',
-      () {
-        final boxItem = matchReceiptLineToCatalog(
-          'LOCAL BOX 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          boxItem == null || boxItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare BOX '
-              'line without line-level evidence such as junction, device, '
-              'outlet, repair, or other explicit box clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic box shorthand', () {
+      final boxItem = matchReceiptLineToCatalog(
+        'LOCAL BOX 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        boxItem == null || boxItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare BOX '
+            'line without line-level evidence such as junction, device, '
+            'outlet, repair, or other explicit box clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm sized box without trade context',
@@ -2542,6 +2518,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized washer without trade context',
+      () {
+        final sizedWasherItem = matchReceiptLineToCatalog(
+          'LOCAL WASHER 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedWasherItem == null || sizedWasherItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized WASHER '
+              'line when the receipt still lacks beveled, slip joint, hose, '
+              'faucet, bonding, or other explicit washer clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare white without trade context',
       () {
         final whiteItem = matchReceiptLineToCatalog(
@@ -2829,23 +2823,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic fan shorthand',
-      () {
-        final fanItem = matchReceiptLineToCatalog(
-          'LOCAL FAN 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          fanItem == null || fanItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare FAN '
-              'line without line-level evidence such as ceiling, bath, '
-              'exhaust, or other explicit fan clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic fan shorthand', () {
+      final fanItem = matchReceiptLineToCatalog(
+        'LOCAL FAN 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        fanItem == null || fanItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare FAN '
+            'line without line-level evidence such as ceiling, bath, '
+            'exhaust, or other explicit fan clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic light shorthand',
@@ -3027,41 +3018,35 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic tub shorthand',
-      () {
-        final tubItem = matchReceiptLineToCatalog(
-          'LOCAL TUB 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          tubItem == null || tubItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare TUB '
-              'line without line-level evidence such as drain, shower, bath, '
-              'or other explicit tub clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic tub shorthand', () {
+      final tubItem = matchReceiptLineToCatalog(
+        'LOCAL TUB 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        tubItem == null || tubItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare TUB '
+            'line without line-level evidence such as drain, shower, bath, '
+            'or other explicit tub clues.',
+      );
+    });
 
-    test(
-      'local mixed receipt does not auto-confirm generic lav shorthand',
-      () {
-        final lavItem = matchReceiptLineToCatalog(
-          'LOCAL LAV 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          lavItem == null || lavItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare LAV '
-              'line without line-level evidence such as sink, faucet, drain, '
-              'or other explicit lav clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic lav shorthand', () {
+      final lavItem = matchReceiptLineToCatalog(
+        'LOCAL LAV 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        lavItem == null || lavItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare LAV '
+            'line without line-level evidence such as sink, faucet, drain, '
+            'or other explicit lav clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic frame shorthand',
@@ -3207,23 +3192,20 @@ void main() {
       },
     );
 
-    test(
-      'local mixed receipt does not auto-confirm generic arm shorthand',
-      () {
-        final armItem = matchReceiptLineToCatalog(
-          'LOCAL ARM 14.98',
-          maxCandidates: 80,
-        );
-        expect(
-          armItem == null || armItem.confidence <= .81,
-          isTrue,
-          reason:
-              'Local merchant flavor must not auto-confirm a bare ARM '
-              'line without line-level evidence such as shower, support, '
-              'mount, or other explicit arm clues.',
-        );
-      },
-    );
+    test('local mixed receipt does not auto-confirm generic arm shorthand', () {
+      final armItem = matchReceiptLineToCatalog(
+        'LOCAL ARM 14.98',
+        maxCandidates: 80,
+      );
+      expect(
+        armItem == null || armItem.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor must not auto-confirm a bare ARM '
+            'line without line-level evidence such as shower, support, '
+            'mount, or other explicit arm clues.',
+      );
+    });
 
     test(
       'local mixed receipt does not auto-confirm generic mount shorthand',

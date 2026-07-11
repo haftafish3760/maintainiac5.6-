@@ -39,7 +39,9 @@ bool _isBareMixedRepairOrServiceReceiptLine(String text, String? tradeScope) {
       .split(RegExp(r'\s+'))
       .where((token) => token.isNotEmpty)
       .length;
-  if (RegExp(r'\b(repair|reparacion|reparación|repar)\b').hasMatch(normalized)) {
+  if (RegExp(
+    r'\b(repair|reparacion|reparación|repar)\b',
+  ).hasMatch(normalized)) {
     final hasExplicitRepairFamily = RegExp(
       r'\b(drain|faucet|sink|lav|tub|shower|hose|sillcock|heater|'
       r'water heater|vacuum breaker|pop up|pop-up|o ring|o-ring|'
@@ -143,10 +145,7 @@ bool _isBareMixedSpanishLlaveReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLlaveFamily && tokenCount <= 3;
 }
 
-bool _isBareMixedSpanishConnectorReceiptLine(
-  String text,
-  String? tradeScope,
-) {
+bool _isBareMixedSpanishConnectorReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
   final tokenCount = normalized
@@ -191,10 +190,7 @@ bool _isBareMixedSpanishTapeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTapeFamily && tokenCount <= 3;
 }
 
-bool _isBareMixedSpanishConduitReceiptLine(
-  String text,
-  String? tradeScope,
-) {
+bool _isBareMixedSpanishConduitReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
   final tokenCount = normalized
@@ -265,8 +261,9 @@ bool _isBareMixedSizedUnionReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bunion\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedUnionFamily = RegExp(
@@ -331,8 +328,9 @@ bool _isBareMixedSizedPipeReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bpipe\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedPipeFamily = RegExp(
@@ -366,8 +364,9 @@ bool _isBareMixedSizedTubeReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\btube\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedTubeFamily = RegExp(
@@ -401,8 +400,9 @@ bool _isBareMixedSizedCableReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bcable\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedCableFamily = RegExp(
@@ -451,8 +451,9 @@ bool _isBareMixedSizedHoseReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bhose\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedHoseFamily = RegExp(
@@ -485,8 +486,9 @@ bool _isBareMixedSizedStrapReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bstrap\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedStrapFamily = RegExp(
@@ -519,8 +521,9 @@ bool _isBareMixedSizedClampReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bclamp\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedClampFamily = RegExp(
@@ -554,8 +557,9 @@ bool _isBareMixedSizedLineReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bline\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedLineFamily = RegExp(
@@ -589,8 +593,9 @@ bool _isBareMixedSizedSwitchReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bswitch\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedSwitchFamily = RegExp(
@@ -624,8 +629,9 @@ bool _isBareMixedSizedCoverReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bcover\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedCoverFamily = RegExp(
@@ -659,8 +665,9 @@ bool _isBareMixedSizedPanelReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bpanel\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedPanelFamily = RegExp(
@@ -693,8 +700,9 @@ bool _isBareMixedSizedTrapReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\btrap\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedTrapFamily = RegExp(
@@ -726,8 +734,9 @@ bool _isBareMixedSizedCleanoutReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bcleanout\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedCleanoutFamily = RegExp(
@@ -791,8 +800,9 @@ bool _isBareMixedSizedTeeReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\btee\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedTeeFamily = RegExp(
@@ -828,8 +838,9 @@ bool _isBareMixedSizedValveReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bvalve\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedValveFamily = RegExp(
@@ -865,8 +876,9 @@ bool _isBareMixedSizedAdapterReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\badapter\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedAdapterFamily = RegExp(
@@ -966,8 +978,9 @@ bool _isBareMixedSizedConduitReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bconduit\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedConduitFamily = RegExp(
@@ -1002,8 +1015,9 @@ bool _isBareMixedSizedBoxReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bbox\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:\d+\s*x\s*\d+|\d+x\d+|\d+\s+\d+)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:\d+\s*x\s*\d+|\d+x\d+|\d+\s+\d+)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedBoxFamily = RegExp(
@@ -1128,8 +1142,9 @@ bool _isBareMixedSizedPlugReceiptLine(String text, String? tradeScope) {
       .where((token) => token.isNotEmpty)
       .length;
   if (!RegExp(r'\bplug\b').hasMatch(normalized)) return false;
-  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
-      .hasMatch(normalized)) {
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
     return false;
   }
   final hasExplicitSizedPlugFamily = RegExp(
@@ -1182,6 +1197,27 @@ bool _isBareMixedWasherReceiptLine(String text, String? tradeScope) {
     r'toilet|tank|shank|faucet|stem|drain|laundry)\b',
   ).hasMatch(normalized);
   return !hasExplicitWasherFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSizedWasherReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwasher\b').hasMatch(normalized)) return false;
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedWasherFamily = RegExp(
+    r'\b(hose|trap|seat|fender|bibb|vacuum|slip|beveled|reducing|'
+    r'toilet|tank|shank|faucet|stem|drain|laundry|rubber|lock|'
+    r'flat|sealing|compression)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedWasherFamily && tokenCount <= 5;
 }
 
 bool _isBareMixedWhiteReceiptLine(String text, String? tradeScope) {
@@ -2701,8 +2737,8 @@ bool _isBareMixedJunctionReceiptLine(String text, String? tradeScope) {
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
-  final hasElbowShape = RegExp(r'\b(ell|el|elb|elbow|codo)\b')
-          .hasMatch(normalized) ||
+  final hasElbowShape =
+      RegExp(r'\b(ell|el|elb|elbow|codo)\b').hasMatch(normalized) ||
       _hasReceiptNinetyDegreeEvidence(normalized) ||
       RegExp(r'(?<![\d.])45(?![\d.a-z])').hasMatch(normalized);
   if (!hasElbowShape) return false;
@@ -2797,8 +2833,9 @@ bool _hasBrokenCriticalPlumbingFraction(String text) {
   ).hasMatch(normalized)) {
     return true;
   }
-  if (RegExp(r'\b\d{2}\s+(cop|copper|cu)\s+(90|ell|elb|elbow)\b')
-      .hasMatch(normalized)) {
+  if (RegExp(
+    r'\b\d{2}\s+(cop|copper|cu)\s+(90|ell|elb|elbow)\b',
+  ).hasMatch(normalized)) {
     return true;
   }
   return false;
@@ -2814,7 +2851,8 @@ bool _isDirtyMaterialShapeOnlyPlumbingLine(String text, WorkSupplyItem item) {
     r'\b(90|45|ell|elb|elbow|tee|cplg|coupling|adpt|adapter|valv|valve)\b',
   ).hasMatch(normalized);
   if (!hasMaterial || !hasShape) return false;
-  final hasSize = _nominalReceiptSize(normalized) != null ||
+  final hasSize =
+      _nominalReceiptSize(normalized) != null ||
       _receiptSizeMatrix(normalized) != null;
   final hasConnection = RegExp(
     r'\b(cxc|c\s*x\s*c|mip|fip|male|female|sweat|wrot|press|propress|'

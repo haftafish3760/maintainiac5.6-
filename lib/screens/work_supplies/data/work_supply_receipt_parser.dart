@@ -206,7 +206,10 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isScopedPlumbingDangerousElbowReviewLine(normalized, tradeScope)) {
     return null;
   }
-  if (_isScopedPlumbingDangerousGenericAdapterReviewLine(normalized, tradeScope)) {
+  if (_isScopedPlumbingDangerousGenericAdapterReviewLine(
+    normalized,
+    tradeScope,
+  )) {
     return null;
   }
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
@@ -409,6 +412,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isBareMixedWasherReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedSizedWasherReceiptLine(normalized, tradeScope)) {
     return null;
   }
   if (_isBareMixedWhiteReceiptLine(normalized, tradeScope)) {
@@ -1438,10 +1444,10 @@ WorkSupplyItem? _directElectricalLowVoltageCableMatch(
     return null;
   }
   if ((normalizedScope == null || normalizedScope.isEmpty) &&
-      RegExp(
-        r'\b(stat wire|thermostat wire|control wire)\b',
-      ).hasMatch(text) &&
-      !RegExp(r'\b(electrical|elec|doorbell|security|alarm)\b').hasMatch(text)) {
+      RegExp(r'\b(stat wire|thermostat wire|control wire)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(electrical|elec|doorbell|security|alarm)\b',
+      ).hasMatch(text)) {
     return null;
   }
   final size = RegExp(
@@ -2390,9 +2396,8 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
     }
   }
 
-  final wantsAcrCopperTubing = RegExp(
-        r'\b(acr|refrigerant|refrig(?:eration)?)\b',
-      ).hasMatch(text) &&
+  final wantsAcrCopperTubing =
+      RegExp(r'\b(acr|refrigerant|refrig(?:eration)?)\b').hasMatch(text) &&
       RegExp(r'\b(copper|cu)\b').hasMatch(text) &&
       RegExp(r'\b(tubing|tube|roll|coil)\b').hasMatch(text);
   if (wantsAcrCopperTubing) {
@@ -2413,14 +2418,18 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
   final wantsCondensatePvcFitting =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text) &&
-      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople|union)\b').hasMatch(text);
+      RegExp(
+        r'\b(cplg|cplgs|coupling|coupler|coup|acople|union)\b',
+      ).hasMatch(text);
   if (wantsCondensatePvcFitting) {
     final size = _nominalReceiptSize(text);
     final wantsUnion = RegExp(r'\bunion\b').hasMatch(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
-          name.contains(wantsUnion ? 'condensate drain union' : 'condensate pvc coupling') &&
+          name.contains(
+            wantsUnion ? 'condensate drain union' : 'condensate pvc coupling',
+          ) &&
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
@@ -2448,9 +2457,8 @@ WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
     return fallback;
   }
 
-  final wantsAcrCopperTubing = RegExp(
-        r'\b(acr|refrigerant|refrig(?:eration)?)\b',
-      ).hasMatch(text) &&
+  final wantsAcrCopperTubing =
+      RegExp(r'\b(acr|refrigerant|refrig(?:eration)?)\b').hasMatch(text) &&
       RegExp(r'\b(copper|cu)\b').hasMatch(text) &&
       RegExp(r'\b(tubing|tube|roll|coil)\b').hasMatch(text);
   if (wantsAcrCopperTubing) {
@@ -2471,14 +2479,18 @@ WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
   final wantsCondensatePvcFitting =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text) &&
-      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople|union)\b').hasMatch(text);
+      RegExp(
+        r'\b(cplg|cplgs|coupling|coupler|coup|acople|union)\b',
+      ).hasMatch(text);
   if (wantsCondensatePvcFitting) {
     final size = _nominalReceiptSize(text);
     final wantsUnion = RegExp(r'\bunion\b').hasMatch(text);
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
-          name.contains(wantsUnion ? 'condensate drain union' : 'condensate pvc coupling') &&
+          name.contains(
+            wantsUnion ? 'condensate drain union' : 'condensate pvc coupling',
+          ) &&
           _nameMatchesReceiptSize(name, size)) {
         return item;
       }
@@ -6482,10 +6494,10 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
 
 bool _isReceiptNoiseLine(String text) {
   return RegExp(
-    r'^(subtotal|sub total|total|sales tax|tax|cash|change|card approved|'
-    r'credit card|debit card|visa|mastercard|amex|discover|approval|'
-    r'balance due|amount due)(\s+\d+(?:\.\d{2})?)?$',
-  ).hasMatch(text) ||
+        r'^(subtotal|sub total|total|sales tax|tax|cash|change|card approved|'
+        r'credit card|debit card|visa|mastercard|amex|discover|approval|'
+        r'balance due|amount due)(\s+\d+(?:\.\d{2})?)?$',
+      ).hasMatch(text) ||
       RegExp(
         r'^(subtotal|sub total|total|sales tax|tax|cash|change|'
         r'card approved|credit card|debit card|visa|mastercard|amex|'
@@ -6496,9 +6508,7 @@ bool _isReceiptNoiseLine(String text) {
         r'^(visa|mastercard|amex|discover|credit card|debit card)\s+'
         r'approved(?:\s+auth)?\s+\d+$',
       ).hasMatch(text) ||
-      RegExp(
-        r'^cashier\s+\d+\s+reg\s+\d+\s+thank\s+you$',
-      ).hasMatch(text);
+      RegExp(r'^cashier\s+\d+\s+reg\s+\d+\s+thank\s+you$').hasMatch(text);
 }
 
 WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
@@ -6655,7 +6665,9 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(sch40|sch 40|schedule 40)\b').hasMatch(text) &&
       RegExp(r'\b(coupling|cplg|coup)\b').hasMatch(text) &&
-      !RegExp(r'\b(cond|condensate|conduit|elec|electrical)\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(cond|condensate|conduit|elec|electrical)\b',
+      ).hasMatch(text) &&
       !RegExp(r'\b(reducing|reducer)\b').hasMatch(text);
   if (wantsPvcSch40Coupling) {
     final size = _nominalReceiptSize(text);
@@ -6747,8 +6759,7 @@ WorkSupplyItem? _directUnscopedElectricalEvidenceMatch(String text) {
   final size = _nominalReceiptSize(text);
   final wantedName = switch (text) {
     final value when RegExp(r'\b(lb)\b').hasMatch(value) => 'lb conduit body',
-    final value when RegExp(r'\b(body)\b').hasMatch(value) =>
-      'conduit body',
+    final value when RegExp(r'\b(body)\b').hasMatch(value) => 'conduit body',
     final value
         when RegExp(
           r'\b(male|mip|terminal adapter|male adapter)\b',
@@ -6782,7 +6793,9 @@ bool _hasStrongDirectPlumbingEvidence(String text) {
 
 WorkSupplyItem? _directPvcDwvSanitaryTeeReceiptMatch(String text) {
   if (!RegExp(r'\b(pvc|dwv|drain)\b').hasMatch(text)) return null;
-  if (!RegExp(r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b').hasMatch(text)) {
+  if (!RegExp(
+    r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b',
+  ).hasMatch(text)) {
     return null;
   }
   final size = _nominalReceiptSize(text);
@@ -7000,27 +7013,27 @@ bool _isScopedPlumbingDangerousGenericAdapterReviewLine(
   return true;
 }
 
-  WorkSupplyItem? _directScopedPlumbingSumpBarbedAdapterMatch(String text) {
-    if (!RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text)) return null;
-    if (!RegExp(r'\b(barb|barbed)\b').hasMatch(text)) return null;
-    if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return null;
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final searchable = _indexedReceiptTextFor(item);
-      final name = item.name.toLowerCase();
-      final variant = item.variant.toLowerCase();
-      if (item.trade == 'Plumbing' &&
-          searchable.contains('barbed adapter') &&
-          searchable.contains('sump pump') &&
-          (name.contains('sump pump discharge adapter') ||
-              name.contains('sump pump discharge part')) &&
-          variant.contains('barbed adapter') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
+WorkSupplyItem? _directScopedPlumbingSumpBarbedAdapterMatch(String text) {
+  if (!RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text)) return null;
+  if (!RegExp(r'\b(barb|barbed)\b').hasMatch(text)) return null;
+  if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return null;
+  final size = _nominalReceiptSize(text);
+  for (final item in workSupplyCatalogItems) {
+    final searchable = _indexedReceiptTextFor(item);
+    final name = item.name.toLowerCase();
+    final variant = item.variant.toLowerCase();
+    if (item.trade == 'Plumbing' &&
+        searchable.contains('barbed adapter') &&
+        searchable.contains('sump pump') &&
+        (name.contains('sump pump discharge adapter') ||
+            name.contains('sump pump discharge part')) &&
+        variant.contains('barbed adapter') &&
+        _nameMatchesReceiptSize(name, size)) {
+      return item;
     }
-    return null;
   }
+  return null;
+}
 
 List<String> _receiptTokenAlternates(String token) {
   return switch (token) {
