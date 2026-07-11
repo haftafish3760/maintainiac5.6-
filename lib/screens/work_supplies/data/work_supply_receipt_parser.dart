@@ -6378,6 +6378,14 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
       ).hasMatch(text)) {
     return true;
   }
+  if (RegExp(r'\bcap\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(copper|cop|cu|end\s+cap|service\s+valve|serv\s+valve|'
+        r'capacitor|mfd|dual\s+run|closet\s+bolt|toilet\s+bolt|'
+        r'vacuum\s+breaker|stem\s+washer)\b',
+      ).hasMatch(text)) {
+    return true;
+  }
   if (RegExp(r'\bcondensate\s+drain\b').hasMatch(text) &&
       !RegExp(
         r'\b(gun|cartridge|tablet|tab|pan|pump|trap|tee|cleanout|tubing|'

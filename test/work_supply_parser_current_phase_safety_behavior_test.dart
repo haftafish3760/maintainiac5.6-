@@ -620,6 +620,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic cap shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL CAP 4.98',
+          '1/2 COPPER CAP 1.19',
+          '45/5 MFD DUAL RUN CAP 18.49',
+          'R410A SERV VALVE CAP 6.49',
+          '20A WR GFCI RECPT WHITE 22.97',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final capLine = parsed['LOCAL CAP 4.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(4),
+          reason:
+              'The regression must include enough mixed PEH cap-family '
+              'siblings to tempt routing without letting a generic cap line '
+              'collapse into a final answer.',
+        );
+        expect(
+          capLine == null || capLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC cap families '
+              'must not auto-confirm a bare CAP line without line-level '
+              'evidence such as copper, service valve, capacitor, or other '
+              'explicit cap-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
