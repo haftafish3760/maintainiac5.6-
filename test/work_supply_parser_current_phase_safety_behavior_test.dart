@@ -1471,6 +1471,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic stop shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL STOP 12.98',
+          'QUARTER TURN ANGLE STOP 9.49',
+          'STRAIGHT STOP VALVE 8.99',
+          'SUPPLY STOP REPAIR PART 3.19',
+          'PUSH-FIT SUPPLY STOP 11.49',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final stopLine = parsed['LOCAL STOP 12.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed stop-family siblings '
+              'to tempt routing without letting a generic stop line collapse '
+              'into a final answer.',
+        );
+        expect(
+          stopLine == null || stopLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby stop families must not '
+              'auto-confirm a bare STOP line without line-level evidence '
+              'such as angle, straight, repair, push-fit, or other explicit '
+              'stop-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
