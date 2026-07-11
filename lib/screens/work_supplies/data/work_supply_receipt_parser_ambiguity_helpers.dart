@@ -1936,6 +1936,36 @@ bool _isBareMixedHeaterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitHeaterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCapacitorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcapacitor\b').hasMatch(normalized)) return false;
+  final hasExplicitCapacitorFamily = RegExp(
+    r'\b(run|dual|start|mfd|uf|microfarad|motor|compressor|'
+    r'hard\s*start|fan)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCapacitorFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedContactorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcontactor\b').hasMatch(normalized)) return false;
+  final hasExplicitContactorFamily = RegExp(
+    r'\b(compressor|coil|pole|2p|1p|definite|purpose|amp|a|24v|'
+    r'30a|40a|fan|unit)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitContactorFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

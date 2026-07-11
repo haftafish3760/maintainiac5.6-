@@ -579,6 +579,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedHeaterReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCapacitorReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedContactorReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

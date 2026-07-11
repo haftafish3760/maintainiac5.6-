@@ -112,6 +112,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic capacitor shorthand',
+      () {
+        final capacitorItem = matchReceiptLineToCatalog(
+          'LOCAL CAPACITOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          capacitorItem == null || capacitorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CAPACITOR '
+              'line without line-level evidence such as run, dual, start, '
+              'MFD, or other explicit capacitor clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic contactor shorthand',
+      () {
+        final contactorItem = matchReceiptLineToCatalog(
+          'LOCAL CONTACTOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          contactorItem == null || contactorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONTACTOR '
+              'line without line-level evidence such as compressor, pole, '
+              'coil, or other explicit contactor clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(
