@@ -319,6 +319,36 @@ bool _isBareMixedHoseReceiptLine(String text, String? tradeScope) {
   return !hasExplicitHoseFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedStrapReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bstrap\b').hasMatch(normalized)) return false;
+  final hasExplicitStrapFamily = RegExp(
+    r'\b(conduit|duct|hanger|heater|water heater|fixture|pipe|vent|'
+    r'seismic|earthquake|mast|one hole|two hole|mini)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitStrapFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedClampReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bclamp\b').hasMatch(normalized)) return false;
+  final hasExplicitClampFamily = RegExp(
+    r'\b(riser|beam|ground|bonding|acorn|mast|vent|pipe|temperature|'
+    r'clamp meter|meter|duct|water pipe|ring|cinch)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitClampFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

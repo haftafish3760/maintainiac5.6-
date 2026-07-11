@@ -398,5 +398,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic strap shorthand',
+      () {
+        final strapLine = matchReceiptLineToCatalog(
+          'LOCAL STRAP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          strapLine == null || strapLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare STRAP '
+              'line without line-level evidence such as conduit, duct, '
+              'heater, fixture, or other explicit strap clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic clamp shorthand',
+      () {
+        final clampLine = matchReceiptLineToCatalog(
+          'LOCAL CLAMP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          clampLine == null || clampLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CLAMP '
+              'line without line-level evidence such as riser, vent, '
+              'ground, mast, or other explicit clamp clues.',
+        );
+      },
+    );
   });
 }
