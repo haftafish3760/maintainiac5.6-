@@ -1498,6 +1498,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized cable without trade context',
+      () {
+        final sizedCableLine = matchReceiptLineToCatalog(
+          'LOCAL CABLE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedCableLine == null || sizedCableLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized CABLE '
+              'line when the receipt still lacks romex, nm, mc, low voltage, '
+              'thermostat, mini split, or other explicit cable clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare wire without electrical context',
       () {
         final wireLine = matchReceiptLineToCatalog(

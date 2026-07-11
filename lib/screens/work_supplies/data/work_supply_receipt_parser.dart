@@ -270,6 +270,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedCableReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedCableReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedWireReceiptLine(normalized, tradeScope)) {
     return null;
   }
