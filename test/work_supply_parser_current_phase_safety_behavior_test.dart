@@ -879,6 +879,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic drain shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL DRAIN 8.98',
+          '3/4 CONDENSATE DRAIN TEE 2.19',
+          'LAVATORY DRAIN 24.99',
+          'WTR HTR DRAIN PAN 16.49',
+          'DW DRAIN HOSE 11.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final drainLine = parsed['LOCAL DRAIN 8.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC drain '
+              'siblings to tempt routing without letting a generic drain line '
+              'collapse into a final answer.',
+        );
+        expect(
+          drainLine == null || drainLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC drain families '
+              'must not auto-confirm a bare DRAIN line without line-level '
+              'evidence such as condensate, lavatory, pan, hose, or other '
+              'explicit drain-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
