@@ -1226,6 +1226,22 @@ bool _isBareMixedTapeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTapeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedFoilTapeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfoil\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\btape\b').hasMatch(normalized)) return false;
+  final hasExplicitFoilTapeFamily = RegExp(
+    r'\b(hvac|duct|mastic|ul181|return|supply|plenum|air\s*handler|'
+    r'furnace|vent)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFoilTapeFamily && tokenCount <= 4;
+}
+
 bool _isBareMixedVentReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
