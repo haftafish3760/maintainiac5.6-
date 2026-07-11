@@ -288,6 +288,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedClampReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedClampReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedLineReceiptLine(normalized, tradeScope)) {
     return null;
   }

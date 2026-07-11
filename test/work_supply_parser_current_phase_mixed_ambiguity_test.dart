@@ -1606,6 +1606,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized clamp without trade context',
+      () {
+        final sizedClampLine = matchReceiptLineToCatalog(
+          'LOCAL CLAMP 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedClampLine == null || sizedClampLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized CLAMP '
+              'line when the receipt still lacks riser, beam, vent, pipe, '
+              'grounding, ring, or other explicit clamp clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic line shorthand',
       () {
         final lineItem = matchReceiptLineToCatalog(

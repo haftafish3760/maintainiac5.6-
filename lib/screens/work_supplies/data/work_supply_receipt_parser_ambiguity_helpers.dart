@@ -491,6 +491,25 @@ bool _isBareMixedClampReceiptLine(String text, String? tradeScope) {
   return !hasExplicitClampFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedClampReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bclamp\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedClampFamily = RegExp(
+    r'\b(riser|beam|ground|bonding|acorn|mast|vent|pipe|temperature|'
+    r'clamp meter|meter|duct|water pipe|ring|cinch)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedClampFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedLineReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
