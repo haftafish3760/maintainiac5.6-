@@ -614,5 +614,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic elbow shorthand',
+      () {
+        final elbowItem = matchReceiptLineToCatalog(
+          'LOCAL ELBOW 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          elbowItem == null || elbowItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ELBOW '
+              'line without line-level evidence such as 90, 45, conduit, '
+              'PVC, copper, or other explicit elbow clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic coupling shorthand',
+      () {
+        final couplingItem = matchReceiptLineToCatalog(
+          'LOCAL COUPLING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          couplingItem == null || couplingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare COUPLING '
+              'line without line-level evidence such as repair, conduit, '
+              'PVC, copper, or other explicit coupling clues.',
+        );
+      },
+    );
   });
 }

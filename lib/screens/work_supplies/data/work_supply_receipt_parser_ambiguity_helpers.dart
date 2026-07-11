@@ -490,6 +490,40 @@ bool _isBareMixedAdapterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitAdapterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedElbowReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\belbow\b').hasMatch(normalized)) return false;
+  final hasExplicitElbowFamily = RegExp(
+    r'\b(90|45|street|sweep|long turn|lt|conduit|pvc|cpvc|pex|'
+    r'copper|cobre|dwv|schedule|sch|compression|compresion|'
+    r'sweat|threaded|rosca|condensate|drain|vent|electrical|'
+    r'electrico|hvac)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitElbowFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedCouplingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcoupling\b').hasMatch(normalized)) return false;
+  final hasExplicitCouplingFamily = RegExp(
+    r'\b(repair|slip|stop|conduit|emt|rigid|pvc|cpvc|pex|copper|'
+    r'cobre|dwv|schedule|sch|compression|compresion|sweat|'
+    r'threaded|rosca|reducer|reducing|electrical|electrico|'
+    r'hvac|condensate|drain|vent)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCouplingFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
