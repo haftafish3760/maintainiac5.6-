@@ -1064,6 +1064,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic primer shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL PRIMER 12.98',
+          'PURPLE PRIMER 6.49',
+          'PIPE PRIMER 5.99',
+          'TRAP PRIMER 39.99',
+          'TRAP PRIMER ADAPTER 8.49',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final primerLine = parsed['LOCAL PRIMER 12.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC primer '
+              'siblings to tempt routing without letting a generic primer '
+              'line collapse into a final answer.',
+        );
+        expect(
+          primerLine == null || primerLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC primer '
+              'families must not auto-confirm a bare PRIMER line without '
+              'line-level evidence such as purple, pipe, trap, adapter, or '
+              'other explicit primer-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
