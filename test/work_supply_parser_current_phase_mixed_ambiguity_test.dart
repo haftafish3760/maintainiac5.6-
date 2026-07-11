@@ -1714,6 +1714,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm connector kit without system context',
+      () {
+        final connectorKitItem = matchReceiptLineToCatalog(
+          'LOCAL CONNECTOR KIT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          connectorKitItem == null || connectorKitItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a connector kit '
+              'line without dishwasher, toilet, faucet, gas, dryer, '
+              'appliance, or electrical context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm wire connector without electrical clues',
       () {
         final wireConnectorItem = matchReceiptLineToCatalog(
@@ -1817,6 +1835,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare PUMP '
               'line without line-level evidence such as condensate, well, '
               'sump, circulation, or other explicit pump clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm salt pellets without softener context',
+      () {
+        final saltPelletsItem = matchReceiptLineToCatalog(
+          'LOCAL SALT PELLETS 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          saltPelletsItem == null || saltPelletsItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a salt pellets '
+              'line without softener, brine, or other water treatment '
+              'context on the receipt line itself.',
         );
       },
     );
