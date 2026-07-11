@@ -440,6 +440,21 @@ bool _isBareMixedCleanoutReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCleanoutFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCapReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcap\b').hasMatch(normalized)) return false;
+  final hasExplicitCapFamily = RegExp(
+    r'\b(end\s*cap|service|valve|vent|roof|test|cleanout|pipe|'
+    r'conduit|dust|decorative)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCapFamily && tokenCount <= 3;
+}
+
 bool _isBareMixedTeeReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
@@ -522,6 +537,21 @@ bool _isBareMixedCouplingReceiptLine(String text, String? tradeScope) {
     r'hvac|condensate|drain|vent)\b',
   ).hasMatch(normalized);
   return !hasExplicitCouplingFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedConnectorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bconnector\b').hasMatch(normalized)) return false;
+  final hasExplicitConnectorFamily = RegExp(
+    r'\b(conduit|cable|flex|pvc|emt|nm|mc|lfnc|sealtite|'
+    r'compression|set\s*screw)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitConnectorFamily && tokenCount <= 3;
 }
 
 bool _isBareMixedConduitReceiptLine(String text, String? tradeScope) {

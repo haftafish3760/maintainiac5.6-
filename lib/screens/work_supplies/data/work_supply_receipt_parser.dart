@@ -282,6 +282,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedCleanoutReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCapReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedTeeReceiptLine(normalized, tradeScope)) {
     return null;
   }
@@ -295,6 +298,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isBareMixedCouplingReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedConnectorReceiptLine(normalized, tradeScope)) {
     return null;
   }
   if (_isBareMixedConduitReceiptLine(normalized, tradeScope)) {
