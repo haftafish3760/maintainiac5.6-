@@ -315,6 +315,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedPanelReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedPanelReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedTrapReceiptLine(normalized, tradeScope)) {
     return null;
   }
