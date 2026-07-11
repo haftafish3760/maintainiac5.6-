@@ -1642,6 +1642,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized line without trade context',
+      () {
+        final sizedLineItem = matchReceiptLineToCatalog(
+          'LOCAL LINE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedLineItem == null || sizedLineItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized LINE '
+              'line when the receipt still lacks supply, line set, '
+              'refrigerant, copper, condensate, gas, or other explicit line clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic switch shorthand',
       () {
         final switchItem = matchReceiptLineToCatalog(

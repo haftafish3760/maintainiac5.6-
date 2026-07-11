@@ -526,6 +526,26 @@ bool _isBareMixedLineReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLineFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedLineReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bline\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedLineFamily = RegExp(
+    r'\b(supply|set|line set|water heater|heater|refrigerant|copper|'
+    r'ice maker|icemaker|dishwasher|appliance|condensate|drain|'
+    r'washer|laundry|gas|armaflex|mini split)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedLineFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedSwitchReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

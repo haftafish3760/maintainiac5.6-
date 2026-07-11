@@ -294,6 +294,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedLineReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedLineReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedSwitchReceiptLine(normalized, tradeScope)) {
     return null;
   }
