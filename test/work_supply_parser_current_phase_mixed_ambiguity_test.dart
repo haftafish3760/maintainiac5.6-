@@ -254,5 +254,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic adaptador shorthand',
+      () {
+        final adapterLine = matchReceiptLineToCatalog(
+          'LOCAL ADAPTADOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          adapterLine == null || adapterLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ADAPTADOR '
+              'line without line-level evidence such as pvc, pex, macho, '
+              'hembra, or other explicit adapter clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic acople shorthand',
+      () {
+        final couplingLine = matchReceiptLineToCatalog(
+          'LOCAL ACOPLE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          couplingLine == null || couplingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ACOPLE '
+              'line without line-level evidence such as pvc, cobre, union, '
+              'conducto, or other explicit coupling clues.',
+        );
+      },
+    );
   });
 }

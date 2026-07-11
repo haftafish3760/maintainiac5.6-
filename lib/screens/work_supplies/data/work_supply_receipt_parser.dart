@@ -237,6 +237,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSpanishConduitReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSpanishAdapterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedSpanishCouplingReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

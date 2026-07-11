@@ -209,6 +209,38 @@ bool _isBareMixedSpanishConduitReceiptLine(
   return !hasExplicitConduitFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSpanishAdapterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\badaptador\b').hasMatch(normalized)) return false;
+  final hasExplicitAdapterFamily = RegExp(
+    r'\b(mip|fip|mpt|fpt|male|female|trap|pvc|cpvc|pex|cobre|bronce|'
+    r'laton|barb|poly|cts|ips|dwv|schedule|conduit|conducto|electrico|'
+    r'electrica|compresion|sweat|rosca|reductor)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitAdapterFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSpanishCouplingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bacople\b').hasMatch(normalized)) return false;
+  final hasExplicitCouplingFamily = RegExp(
+    r'\b(pvc|cpvc|pex|cobre|copper|brass|galv|dwv|sch|schedule|'
+    r'conduit|conducto|electrico|electrica|repair|reparacion|'
+    r'flex|compression|compresion|sweat|slip|hub|socket|reductor)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCouplingFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
