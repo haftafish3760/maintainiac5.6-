@@ -12,6 +12,7 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
     required this.progressPhase,
     required this.uiConfig,
     this.onRetry,
+    this.onContinueManually,
   });
 
   final bool reading;
@@ -20,6 +21,7 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
   final _ReceiptReadProgressPhase progressPhase;
   final ReceiptCaptureUiConfig uiConfig;
   final VoidCallback? onRetry;
+  final VoidCallback? onContinueManually;
 
   @override
   Widget build(BuildContext context) {
@@ -138,25 +140,47 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
                   ),
                 ],
                 if (effectiveStatus == _ReceiptReadStatusKind.failed &&
-                    onRetry != null) ...[
+                    (onRetry != null || onContinueManually != null)) ...[
                   const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.replay_rounded, size: 18),
-                    label: Text(
-                      uiConfig.readStatusLabel(
-                        'retryAction',
-                        'Review Photos And Retry',
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFE8ECEE),
-                      side: BorderSide(color: accent),
-                      minimumSize: const Size.fromHeight(40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (onRetry != null)
+                        OutlinedButton.icon(
+                          onPressed: onRetry,
+                          icon: const Icon(Icons.replay_rounded, size: 18),
+                          label: Text(
+                            uiConfig.readStatusLabel(
+                              'retryAction',
+                              'Review Photos And Retry',
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFE8ECEE),
+                            side: BorderSide(color: accent),
+                            minimumSize: const Size(0, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ),
+                      if (onContinueManually != null)
+                        TextButton.icon(
+                          onPressed: onContinueManually,
+                          icon: const Icon(Icons.edit_note_rounded, size: 18),
+                          label: Text(
+                            uiConfig.readStatusLabel(
+                              'manualRecoveryAction',
+                              'Continue Manually',
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFFE8ECEE),
+                            minimumSize: const Size(0, 40),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ],

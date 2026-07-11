@@ -69,6 +69,14 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
             onRetry: _hasAttachment && !_readingForReview
                 ? () => unawaited(reviewReceiptPhotos())
                 : null,
+            onContinueManually: !_readingForReview
+                ? () => updateAttachmentState(() {
+                    _receiptReadStatus = _ReceiptReadStatusKind.warning;
+                    _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
+                    _receiptReadStatusMessage =
+                        'Receipt proof kept. Continue filling the receipt details by hand.';
+                  })
+                : null,
           ),
         ],
         if (_hasAttachment) ...[

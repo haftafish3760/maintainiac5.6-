@@ -19,5 +19,8 @@ void main() {
     expect(status, contains("'retryAction'"));
     expect(status, contains("'Review Photos And Retry'"));
     expect(status, contains('onPressed: onRetry'));
+    expect(status, contains("'manualRecoveryAction'"));
+    expect(status, contains("'Continue Manually'"));
+    expect(status, contains('onPressed: onContinueManually'));
   });
 }
