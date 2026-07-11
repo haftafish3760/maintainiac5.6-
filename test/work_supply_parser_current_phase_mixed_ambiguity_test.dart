@@ -2504,6 +2504,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm drain pan shorthand without trade context',
+      () {
+        final drainPanItem = matchReceiptLineToCatalog(
+          'LOCAL DRAIN PAN 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          drainPanItem == null || drainPanItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a DRAIN PAN line '
+              'when the receipt still lacks water heater, condensate, washer, '
+              'or other system-level drain-pan clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm drain hose shorthand without trade context',
       () {
         final drainHoseItem = matchReceiptLineToCatalog(
