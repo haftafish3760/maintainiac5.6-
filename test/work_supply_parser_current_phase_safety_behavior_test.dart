@@ -363,6 +363,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic switch shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL SWITCH 14.98',
+          '45/5 MFD DUAL RUN CAP 18.49',
+          '20A WR GFCI RECPT WHITE 22.97',
+          '1/2 PEX TEE 2.49',
+          'MERV 8 AIR FILTER 20X25X1 11.97',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final switchLine = parsed['LOCAL SWITCH 14.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed PEH sibling evidence '
+              'to tempt switch routing without letting a generic switch line '
+              'collapse into a final answer.',
+        );
+        expect(
+          switchLine == null || switchLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby HVAC/electrical/plumbing '
+              'lines must not auto-confirm a bare SWITCH line without '
+              'line-level evidence such as condensate, float, 3-way, dimmer, '
+              'or other explicit switch-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
