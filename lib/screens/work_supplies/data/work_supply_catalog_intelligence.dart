@@ -267,6 +267,7 @@ bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   }
   if (_hasAny(text, _hvacCoreCondensateSignals)) return true;
   if (_hasAny(text, _hvacCoreSealSignals)) return true;
+  if (_hasAny(text, _hvacCoreRefrigerantSignals)) return true;
   if (_hasAny(text, _hvacCoreIgnitionSignals)) return true;
   if (_hasAny(text, _hvacCoreControlSignals)) return true;
   if (_hasAny(text, _hvacCoreAirDistributionSignals)) return true;
@@ -906,6 +907,14 @@ const _hvacCoreSealSignals = [
   'thumb gum',
 ];
 
+const _hvacCoreRefrigerantSignals = [
+  'acr copper tubing',
+  'acr copper',
+  'refrigerant copper',
+  'refrig copper',
+  'service valve cap',
+];
+
 const _hvacCoreAirDistributionSignals = [
   'register boot',
   'duct boot',
@@ -985,6 +994,7 @@ const _hvacCoreServiceTruckSignals = [
   ..._hvacCoreControlSignals,
   ..._hvacCoreCondensateSignals,
   ..._hvacCoreSealSignals,
+  ..._hvacCoreRefrigerantSignals,
   ..._hvacCoreAirDistributionSignals,
   ..._hvacCoreMotorSignals,
   ..._hvacCoreIgnitionSignals,
@@ -1397,7 +1407,15 @@ bool _hasMeaningfulIntelligence(WorkSupplyItemIntelligence intelligence) {
 }
 
 bool _hasAny(String text, List<String> signals) {
-  return signals.any(text.contains);
+  return signals.any((signal) => _textContainsSignal(text, signal));
+}
+
+bool _textContainsSignal(String text, String signal) {
+  if (RegExp(r'^\d+\s*in$').hasMatch(signal)) {
+    final escaped = RegExp.escape(signal).replaceAll(r'\ ', r'\s*');
+    return RegExp('(?<![\\d/])$escaped\\b').hasMatch(text);
+  }
+  return text.contains(signal);
 }
 
 String _firstMatched(String text, Map<String, String> signals) {
@@ -1842,6 +1860,9 @@ List<String> _hvacCoreFamilyTermsFor(WorkSupplyItem item) {
   }
   if (_hasAny(text, _hvacCoreSealSignals)) {
     return const ['hvac tape', 'duct mastic', 'duct sealant'];
+  }
+  if (_hasAny(text, _hvacCoreRefrigerantSignals)) {
+    return const ['refrigerant copper', 'acr copper', 'service valve'];
   }
   if (_hasAny(text, _hvacCoreAirDistributionSignals)) {
     return const ['duct repair', 'flex duct', 'air distribution'];

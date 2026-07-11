@@ -1411,7 +1411,7 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 
   final wantsThermostat =
       RegExp(r'\b(tstat|thermostat|thermo stat|termostato)\b').hasMatch(text) &&
-      !RegExp(r'\b(wire|cable)\b').hasMatch(text);
+      !RegExp(r'\b(wire|w[li1]re|cable)\b').hasMatch(text);
   if (wantsThermostat) {
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -1748,14 +1748,20 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 
   final wantsThermostatWire =
       RegExp(r'\b(stat|tstat|thermostat|termostato)\b').hasMatch(text) &&
-      RegExp(r'\b(wire|cable)\b').hasMatch(text);
+      RegExp(r'\b(wire|w[li1]re|cable)\b').hasMatch(text);
   if (wantsThermostatWire) {
+    final size = RegExp(
+      r'\b(18/2|18/3|18/5|18/7|18/8)\b',
+    ).firstMatch(text)?.group(1);
+    WorkSupplyItem? fallback;
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('thermostat wire')) {
-        return item;
-      }
+      if (item.trade != 'HVAC' || !name.contains('thermostat wire')) continue;
+      if (size != null && !name.contains(size)) continue;
+      if (item.packTier == WorkSupplyPackTier.core) return item;
+      fallback ??= item;
     }
+    return fallback;
   }
 
   final wantsServiceValveCap =
@@ -1805,14 +1811,17 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(tubing|tube|roll|coil)\b').hasMatch(text);
   if (wantsAcrCopperTubing) {
     final size = _nominalReceiptSize(text);
+    WorkSupplyItem? fallback;
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
           name.contains('acr copper tubing') &&
           _nameMatchesReceiptSize(name, size)) {
-        return item;
+        if (item.packTier == WorkSupplyPackTier.core) return item;
+        fallback ??= item;
       }
     }
+    return fallback;
   }
 
   final wantsCondensateCoupling =
@@ -1836,14 +1845,20 @@ WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
 WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
   final wantsThermostatWire =
       RegExp(r'\b(stat|tstat|thermostat|termostato)\b').hasMatch(text) &&
-      RegExp(r'\b(wire|cable)\b').hasMatch(text);
+      RegExp(r'\b(wire|w[li1]re|cable)\b').hasMatch(text);
   if (wantsThermostatWire) {
+    final size = RegExp(
+      r'\b(18/2|18/3|18/5|18/7|18/8)\b',
+    ).firstMatch(text)?.group(1);
+    WorkSupplyItem? fallback;
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('thermostat wire')) {
-        return item;
-      }
+      if (item.trade != 'HVAC' || !name.contains('thermostat wire')) continue;
+      if (size != null && !name.contains(size)) continue;
+      if (item.packTier == WorkSupplyPackTier.core) return item;
+      fallback ??= item;
     }
+    return fallback;
   }
 
   final wantsAcrCopperTubing = RegExp(
@@ -1853,14 +1868,17 @@ WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
       RegExp(r'\b(tubing|tube|roll|coil)\b').hasMatch(text);
   if (wantsAcrCopperTubing) {
     final size = _nominalReceiptSize(text);
+    WorkSupplyItem? fallback;
     for (final item in workSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
           name.contains('acr copper tubing') &&
           _nameMatchesReceiptSize(name, size)) {
-        return item;
+        if (item.packTier == WorkSupplyPackTier.core) return item;
+        fallback ??= item;
       }
     }
+    return fallback;
   }
 
   final wantsCondensateCoupling =

@@ -42,8 +42,10 @@ void main() {
     _expectGoodHvacCore('WlNSUPPLY C0NDENSATE PUMP 120V', [
       'condensate pump',
     ]);
+    _expectGoodHvacCore('SUPPLY 18/5 STAT WlRE 50FT', ['thermostat']);
     _expectGoodHvacCore('SUPPLYH0USE R410A SERV VALV CAP', ['valve cap']);
     _expectGoodHvacCore('LOCAL SUPPLY 3/4X3/8 LINESET 50FT', ['line set']);
+    _expectGoodHvacCore('LOCAL HVAC 3/8 ACR C0PPER TUBING 20FT', ['acr']);
     _expectGoodHvacCore('ACE HVAC F0IL TAPE UL181', ['tape']);
   });
 

@@ -15,6 +15,7 @@ void main() {
     _expectGoodHvacCore('GRAINGER 40A 2P 24V CONTACTOR', ['contactor']);
     _expectGoodHvacCore('HD TSTAT 1H/1C PROG WHITE', ['thermostat']);
     _expectGoodHvacCore('LOWES 18/5 THERMOSTAT WIRE 50FT', ['thermostat']);
+    _expectGoodHvacCore('LOCAL 18/5 STAT WIRE 50FT', ['thermostat']);
   });
 
   test('hvac core parses merchant-style condensate lines', () {
@@ -80,6 +81,7 @@ void main() {
 
   test('hvac core parses refrigeration line service stock', () {
     _expectGoodHvacCore('SUPPLY 3/4X3/8 LINE SET 50FT', ['line set']);
+    _expectGoodHvacCore('WINSUPPLY 3/8 ACR COPPER TUBING 20FT', ['acr']);
     _expectGoodHvacCore('HD 3/4 WALL ARMAFLEX PIPE INSUL', ['insulation']);
     _expectGoodHvacCore('LOWES AC LINESET COVER KIT WHITE', ['line set']);
     _expectGoodHvacCore('GRAINGER R410A SERVICE VALVE CAP', ['service']);
