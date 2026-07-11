@@ -1054,6 +1054,22 @@ bool _isBareMixedWireConnectorReceiptLine(String text, String? tradeScope) {
   return !hasExplicitWireConnectorFamily && tokenCount <= 4;
 }
 
+bool _isBareMixedConnectorKitReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bconnector\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\bkit\b').hasMatch(normalized)) return false;
+  final hasExplicitConnectorKitFamily = RegExp(
+    r'\b(dishwasher|toilet|faucet|gas|dryer|appliance|electrical|'
+    r'wire|romex|nm|mc|outlet|switch|whip|conduit)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitConnectorKitFamily && tokenCount <= 4;
+}
+
 bool _isBareMixedConduitReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
