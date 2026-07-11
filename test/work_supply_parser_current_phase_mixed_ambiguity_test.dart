@@ -326,5 +326,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic pipe shorthand',
+      () {
+        final pipeLine = matchReceiptLineToCatalog(
+          'LOCAL PIPE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pipeLine == null || pipeLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PIPE '
+              'line without line-level evidence such as pvc, copper, flue, '
+              'drain, conduit, or other explicit pipe clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic tube shorthand',
+      () {
+        final tubeLine = matchReceiptLineToCatalog(
+          'LOCAL TUBE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          tubeLine == null || tubeLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TUBE '
+              'line without line-level evidence such as copper, condensate, '
+              'extension, humidifier, or other explicit tube clues.',
+        );
+      },
+    );
   });
 }

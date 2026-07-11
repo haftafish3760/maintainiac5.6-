@@ -257,6 +257,37 @@ bool _isBareMixedUnionReceiptLine(String text, String? tradeScope) {
   return !hasExplicitUnionFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPipeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpipe\b').hasMatch(normalized)) return false;
+  final hasExplicitPipeFamily = RegExp(
+    r'\b(pvc|cpvc|pex|copper|cobre|emt|conduit|rigid|flue|vent|'
+    r'drain|sewer|sch|schedule|black|iron|gas|condensate|tube|'
+    r'humidifier|extension|duct)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPipeFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedTubeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btube\b').hasMatch(normalized)) return false;
+  final hasExplicitTubeFamily = RegExp(
+    r'\b(copper|cobre|condensate|humidifier|extension|wall|led|light|'
+    r'refrigerant|softener|distributor|brush|caulk|sealant|drain)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTubeFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

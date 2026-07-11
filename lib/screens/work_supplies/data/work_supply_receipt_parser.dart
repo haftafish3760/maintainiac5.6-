@@ -246,6 +246,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedUnionReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedPipeReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedTubeReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,
