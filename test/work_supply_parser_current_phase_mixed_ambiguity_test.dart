@@ -2468,6 +2468,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm drain hose shorthand without trade context',
+      () {
+        final drainHoseItem = matchReceiptLineToCatalog(
+          'LOCAL DRAIN HOSE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          drainHoseItem == null || drainHoseItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a drain hose '
+              'line when the receipt still lacks condensate, dishwasher, '
+              'washer, sump, or other system-level drain-hose evidence.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare fitting without trade context',
       () {
         final fittingItem = matchReceiptLineToCatalog(
