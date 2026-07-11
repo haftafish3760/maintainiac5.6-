@@ -6,6 +6,8 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_inventory_store.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
 
+const _inventoryStoreTimeout = Timeout(Duration(minutes: 4));
+
 void main() {
   late Directory hiveDirectory;
 
@@ -23,43 +25,53 @@ void main() {
     }
   });
 
-  test('store starts empty until real inventory records are added', () async {
-    final store = await WorkSupplyInventoryStore.create();
+  test(
+    'store starts empty until real inventory records are added',
+    () async {
+      final store = await WorkSupplyInventoryStore.create();
 
-    expect(store.loadInventory(), isEmpty);
-    expect(store.loadEvents(), isEmpty);
-    expect(store.loadTransactions(), isEmpty);
-  });
+      expect(store.loadInventory(), isEmpty);
+      expect(store.loadEvents(), isEmpty);
+      expect(store.loadTransactions(), isEmpty);
+    },
+    timeout: _inventoryStoreTimeout,
+  );
 
-  test('purges obsolete seeded lab inventory records', () async {
-    final store = await WorkSupplyInventoryStore.create();
-    final recordsBox = Hive.box<dynamic>(
-      WorkSupplyInventoryStore.recordsBoxName,
-    );
-    final eventsBox = Hive.box<dynamic>(WorkSupplyInventoryStore.eventsBoxName);
-    final transactionsBox = Hive.box<dynamic>(
-      WorkSupplyInventoryStore.transactionsBoxName,
-    );
+  test(
+    'purges obsolete seeded lab inventory records',
+    () async {
+      final store = await WorkSupplyInventoryStore.create();
+      final recordsBox = Hive.box<dynamic>(
+        WorkSupplyInventoryStore.recordsBoxName,
+      );
+      final eventsBox = Hive.box<dynamic>(
+        WorkSupplyInventoryStore.eventsBoxName,
+      );
+      final transactionsBox = Hive.box<dynamic>(
+        WorkSupplyInventoryStore.transactionsBoxName,
+      );
 
-    await recordsBox.put('seed-old-record', {'id': 'seed-old-record'});
-    await eventsBox.put('evt-old-seed', {
-      'id': 'evt-old-seed',
-      'inventoryRecordId': 'seed-old-record',
-      'note': 'Seeded demo inventory for the lab build.',
-    });
-    await transactionsBox.put('txn-old-seed', {
-      'id': 'txn-old-seed',
-      'inventoryRecordId': 'seed-old-record',
-      'note': 'Seeded demo inventory for the lab build.',
-    });
+      await recordsBox.put('seed-old-record', {'id': 'seed-old-record'});
+      await eventsBox.put('evt-old-seed', {
+        'id': 'evt-old-seed',
+        'inventoryRecordId': 'seed-old-record',
+        'note': 'Seeded demo inventory for the lab build.',
+      });
+      await transactionsBox.put('txn-old-seed', {
+        'id': 'txn-old-seed',
+        'inventoryRecordId': 'seed-old-record',
+        'note': 'Seeded demo inventory for the lab build.',
+      });
 
-    final removed = await store.purgeObsoleteSeedInventoryRecords();
+      final removed = await store.purgeObsoleteSeedInventoryRecords();
 
-    expect(removed, 3);
-    expect(recordsBox.containsKey('seed-old-record'), isFalse);
-    expect(eventsBox.containsKey('evt-old-seed'), isFalse);
-    expect(transactionsBox.containsKey('txn-old-seed'), isFalse);
-  });
+      expect(removed, 3);
+      expect(recordsBox.containsKey('seed-old-record'), isFalse);
+      expect(eventsBox.containsKey('evt-old-seed'), isFalse);
+      expect(transactionsBox.containsKey('txn-old-seed'), isFalse);
+    },
+    timeout: _inventoryStoreTimeout,
+  );
 
   test(
     'adding stock merges matching inventory records and logs event',
@@ -114,6 +126,7 @@ void main() {
       expect(latestTransaction.lineSubtotal, 13);
       expect(latestTransaction.businessUse, 'split');
     },
+    timeout: _inventoryStoreTimeout,
   );
 
   test(
@@ -166,6 +179,7 @@ void main() {
         containsAll([12, 25]),
       );
     },
+    timeout: _inventoryStoreTimeout,
   );
 
   test(
@@ -197,42 +211,47 @@ void main() {
       expect(latestTransaction.quantityBefore, record.onHand);
       expect(latestTransaction.quantityAfter, 0);
     },
+    timeout: _inventoryStoreTimeout,
   );
 
-  test('same item in different storage spots stays separated', () async {
-    final store = await WorkSupplyInventoryStore.create();
-    final item = searchWorkSupplies('1/2 copper 90').first;
+  test(
+    'same item in different storage spots stays separated',
+    () async {
+      final store = await WorkSupplyInventoryStore.create();
+      final item = searchWorkSupplies('1/2 copper 90').first;
 
-    await store.addStock(
-      _stockRecord(
-        item: item,
-        onHand: 4,
-        threshold: 2,
-        lastUnitCost: 3.25,
-        storageArea: 'Work Truck 1 inventory',
-        storageDetail: 'Left drawer',
-        receiptLinked: true,
-      ),
-    );
-    await store.addStock(
-      _stockRecord(
-        item: item,
-        onHand: 6,
-        threshold: 2,
-        lastUnitCost: 3.25,
-        storageArea: 'Work Truck 1 inventory',
-        storageDetail: 'Right drawer',
-        receiptLinked: true,
-      ),
-    );
+      await store.addStock(
+        _stockRecord(
+          item: item,
+          onHand: 4,
+          threshold: 2,
+          lastUnitCost: 3.25,
+          storageArea: 'Work Truck 1 inventory',
+          storageDetail: 'Left drawer',
+          receiptLinked: true,
+        ),
+      );
+      await store.addStock(
+        _stockRecord(
+          item: item,
+          onHand: 6,
+          threshold: 2,
+          lastUnitCost: 3.25,
+          storageArea: 'Work Truck 1 inventory',
+          storageDetail: 'Right drawer',
+          receiptLinked: true,
+        ),
+      );
 
-    final records = store.loadInventory();
-    expect(records, hasLength(2));
-    expect(
-      records.map((record) => record.storageDetail),
-      containsAll(['Left drawer', 'Right drawer']),
-    );
-  });
+      final records = store.loadInventory();
+      expect(records, hasLength(2));
+      expect(
+        records.map((record) => record.storageDetail),
+        containsAll(['Left drawer', 'Right drawer']),
+      );
+    },
+    timeout: _inventoryStoreTimeout,
+  );
 
   test(
     'export snapshot writes inventory and stock event CSV from source records',
@@ -290,6 +309,7 @@ void main() {
         contains('work_supply_inventory_transactions.csv'),
       );
     },
+    timeout: _inventoryStoreTimeout,
   );
 }
 

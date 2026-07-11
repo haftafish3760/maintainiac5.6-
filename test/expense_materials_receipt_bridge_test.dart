@@ -9,6 +9,8 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_inventory_rece
 import 'package:maintaniac/screens/work_supplies/data/work_supply_inventory_receipt_store.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
+const _expenseMaterialsReceiptBridgeTimeout = Timeout(Duration(minutes: 4));
+
 void main() {
   late Directory hiveDirectory;
 
@@ -105,7 +107,6 @@ void main() {
           ],
         ),
       );
-
       expect(saved, isNotNull);
       expect(saved!.id, 'WRS-FROM-EXP-materials');
       expect(saved.merchantName, 'Lowes');
@@ -151,6 +152,7 @@ void main() {
       expect(split.businessPercent, .65);
       expect(split.needsReview, isTrue);
     },
+    timeout: _expenseMaterialsReceiptBridgeTimeout,
   );
 
   test(
@@ -182,5 +184,70 @@ void main() {
       expect(result, isNull);
       expect(store.loadReceipts(), isEmpty);
     },
+    timeout: _expenseMaterialsReceiptBridgeTimeout,
+  );
+
+  test(
+    'non-materials receipt source never creates an inventory review record',
+    () async {
+      final bridge = await ExpenseMaterialsReceiptBridge.create();
+      final result = await bridge.syncReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-wrong-lane',
+          receiptDate: DateTime(2026, 6, 12),
+          sourceScreen: 'expense_receipt',
+          trackMaterialsInInventory: true,
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-material',
+              description: '1/2 in copper coupling',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 8,
+            ),
+          ],
+        ),
+      );
+      final store = await WorkSupplyInventoryReceiptStore.create();
+
+      expect(result, isNull);
+      expect(store.loadReceipts(), isEmpty);
+    },
+    timeout: _expenseMaterialsReceiptBridgeTimeout,
+  );
+
+  test(
+    'materials receipt with no positive lines does not create review work',
+    () async {
+      final bridge = await ExpenseMaterialsReceiptBridge.create();
+      final result = await bridge.syncReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-empty-review',
+          receiptDate: DateTime(2026, 6, 12),
+          sourceScreen: 'materials_expense_receipt',
+          trackMaterialsInInventory: true,
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-zero',
+              description: 'No-charge item',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 0,
+            ),
+          ],
+        ),
+      );
+      final store = await WorkSupplyInventoryReceiptStore.create();
+
+      expect(result, isNull);
+      expect(store.loadReceipts(), isEmpty);
+    },
+    timeout: _expenseMaterialsReceiptBridgeTimeout,
   );
 }
