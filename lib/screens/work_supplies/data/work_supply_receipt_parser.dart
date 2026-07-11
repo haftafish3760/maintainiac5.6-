@@ -474,6 +474,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedStopReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedHandleReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedLeverReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,
