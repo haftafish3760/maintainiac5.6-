@@ -1620,6 +1620,36 @@ bool _isBareMixedRailReceiptLine(String text, String? tradeScope) {
   return !hasExplicitRailFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBarReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbar\b').hasMatch(normalized)) return false;
+  final hasExplicitBarFamily = RegExp(
+    r'\b(support|grab|hanger|rail|mount|towel|shower|'
+    r'closet|channel|brace)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBarFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedTrayReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btray\b').hasMatch(normalized)) return false;
+  final hasExplicitTrayFamily = RegExp(
+    r'\b(drain|shower|pan|overflow|condensate|catch|'
+    r'utility|pump|washer|water)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTrayFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
