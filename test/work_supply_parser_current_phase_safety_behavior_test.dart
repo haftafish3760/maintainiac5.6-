@@ -434,6 +434,40 @@ void main() {
       );
     });
 
+    test('local mixed receipt does not auto-confirm generic valve shorthand', () {
+      const receiptLines = [
+        'LOCAL VALVE 18.98',
+        '3/4 BALL VALVE FIP 14.29',
+        'R410A SERV VALVE CAP 6.49',
+        '20A WR GFCI RECPT WHITE 22.97',
+        '1/2 PEX TEE 2.49',
+      ];
+
+      final parsed = {
+        for (final line in receiptLines)
+          line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+      };
+      final valveLine = parsed['LOCAL VALVE 18.98'];
+
+      expect(
+        parsed.values.whereType<ReceiptLineMatch>().length,
+        greaterThanOrEqualTo(4),
+        reason:
+            'The regression must include enough mixed PEH valve-family '
+            'siblings to tempt routing without letting a generic valve line '
+            'collapse into a final answer.',
+      );
+      expect(
+        valveLine == null || valveLine.confidence <= .81,
+        isTrue,
+        reason:
+            'Local merchant flavor plus nearby plumbing/HVAC/electrical '
+            'neighbors must not auto-confirm a bare VALVE line without '
+            'line-level evidence such as ball, gate, check, PRV, fill, or '
+            'service-valve clues.',
+      );
+    });
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
