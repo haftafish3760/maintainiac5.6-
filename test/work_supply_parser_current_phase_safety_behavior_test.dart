@@ -1360,6 +1360,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic trap shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL TRAP 14.98',
+          'TUBULAR P-TRAP 11.99',
+          'COMPRESSION TRAP ADAPTER 4.49',
+          'CONDENSATE TRAP 18.99',
+          'SLIP JOINT TRAP ADAPTER 5.29',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final trapLine = parsed['LOCAL TRAP 14.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC trap '
+              'siblings to tempt routing without letting a generic trap line '
+              'collapse into a final answer.',
+        );
+        expect(
+          trapLine == null || trapLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC trap families '
+              'must not auto-confirm a bare TRAP line without line-level '
+              'evidence such as p-trap, adapter, condensate, switch, or '
+              'other explicit trap-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
