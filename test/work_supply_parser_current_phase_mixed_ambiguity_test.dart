@@ -182,5 +182,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic conector shorthand',
+      () {
+        final connectorLine = matchReceiptLineToCatalog(
+          'LOCAL CONECTOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          connectorLine == null || connectorLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONECTOR '
+              'line without line-level evidence such as romex, liquido, '
+              'grifo, supply, or other explicit connector clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic codo shorthand',
+      () {
+        final elbowLine = matchReceiptLineToCatalog(
+          'LOCAL CODO 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          elbowLine == null || elbowLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CODO '
+              'line without line-level evidence such as pvc, cobre, 90, '
+              'conduit, or other explicit elbow-family clues.',
+        );
+      },
+    );
   });
 }

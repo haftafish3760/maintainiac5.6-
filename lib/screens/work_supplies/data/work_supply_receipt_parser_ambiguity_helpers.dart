@@ -143,6 +143,39 @@ bool _isBareMixedSpanishLlaveReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLlaveFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSpanishConnectorReceiptLine(
+  String text,
+  String? tradeScope,
+) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bconector\b').hasMatch(normalized)) return false;
+  final hasExplicitConnectorFamily = RegExp(
+    r'\b(romex|liquido|lavabo|grifo|supply|compresion|cable|tubo|'
+    r'flex|manguera|cpvc|pex|cobre|electrico)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitConnectorFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSpanishElbowReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcodo\b').hasMatch(normalized)) return false;
+  final hasExplicitElbowFamily = RegExp(
+    r'\b(pvc|cpvc|pex|cobre|conducto|conduit|90|45|dwv|presion|'
+    r'condensado|drenaje|sweat|compresion)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitElbowFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
