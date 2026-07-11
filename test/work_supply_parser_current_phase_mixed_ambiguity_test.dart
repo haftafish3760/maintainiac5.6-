@@ -74,5 +74,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic valvula shorthand',
+      () {
+        final valveLine = matchReceiptLineToCatalog(
+          'LOCAL VALVULA 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          valveLine == null || valveLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare VALVULA '
+              'line without line-level evidence such as alivio, llenado, '
+              'angulo, servicio, or other explicit valve clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic interruptor shorthand',
+      () {
+        final switchLine = matchReceiptLineToCatalog(
+          'LOCAL INTERRUPTOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          switchLine == null || switchLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare '
+              'INTERRUPTOR line without line-level evidence such as 3-way, '
+              'limite, presion, pared, or other explicit switch clues.',
+        );
+      },
+    );
   });
 }

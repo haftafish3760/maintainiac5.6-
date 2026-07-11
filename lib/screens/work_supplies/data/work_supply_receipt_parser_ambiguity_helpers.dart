@@ -59,6 +59,33 @@ bool _isBareMixedRepairOrServiceReceiptLine(String text, String? tradeScope) {
   return false;
 }
 
+bool _isBareMixedSpanishValveOrSwitchReceiptLine(
+  String text,
+  String? tradeScope,
+) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (RegExp(r'\bvalvula\b').hasMatch(normalized)) {
+    final hasExplicitValveFamily = RegExp(
+      r'\b(alivio|llenado|angulo|escuadra|servicio|check|bola|compuerta|'
+      r'presion|vacio|manguera|condensado|heater|calentador|tapa)\b',
+    ).hasMatch(normalized);
+    if (!hasExplicitValveFamily && tokenCount <= 3) return true;
+  }
+  if (RegExp(r'\binterruptor\b').hasMatch(normalized)) {
+    final hasExplicitSwitchFamily = RegExp(
+      r'\b(3-way|3way|presion|limite|pared|ventilador|float|flotador|'
+      r'humidificador|seguridad|toggle|dimmer)\b',
+    ).hasMatch(normalized);
+    if (!hasExplicitSwitchFamily && tokenCount <= 3) return true;
+  }
+  return false;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
