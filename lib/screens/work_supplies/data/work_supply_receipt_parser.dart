@@ -210,6 +210,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
+  if (_isBareMixedRepairOrServiceReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

@@ -32,6 +32,33 @@ bool _isUnscopedAmbiguousReceiptLine(
   return false;
 }
 
+bool _isBareMixedRepairOrServiceReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (RegExp(r'\brepair\b').hasMatch(normalized)) {
+    final hasExplicitRepairFamily = RegExp(
+      r'\b(drain|faucet|sink|lav|tub|shower|hose|sillcock|heater|'
+      r'water heater|vacuum breaker|pop up|pop-up|o ring|o-ring|'
+      r'washer|stem|cartridge|service|flange|coupling|pump|trap|'
+      r'condensate|toilet|stop|valve|kit|part)\b',
+    ).hasMatch(normalized);
+    if (!hasExplicitRepairFamily && tokenCount <= 3) return true;
+  }
+  if (RegExp(r'\b(service|serv|servicio)\b').hasMatch(normalized)) {
+    final hasExplicitServiceFamily = RegExp(
+      r'\b(valve|valvula|head|weatherhead|filter|fitting|water heater|'
+      r'heater|water|electrical|hvac|cap|truck|panel|kit|part|'
+      r'condensate|pump|refrigerant)\b',
+    ).hasMatch(normalized);
+    if (!hasExplicitServiceFamily && tokenCount <= 3) return true;
+  }
+  return false;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
