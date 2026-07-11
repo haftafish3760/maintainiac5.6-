@@ -39,7 +39,7 @@ bool _isBareMixedRepairOrServiceReceiptLine(String text, String? tradeScope) {
       .split(RegExp(r'\s+'))
       .where((token) => token.isNotEmpty)
       .length;
-  if (RegExp(r'\brepair\b').hasMatch(normalized)) {
+  if (RegExp(r'\b(repair|reparacion|reparación|repar)\b').hasMatch(normalized)) {
     final hasExplicitRepairFamily = RegExp(
       r'\b(drain|faucet|sink|lav|tub|shower|hose|sillcock|heater|'
       r'water heater|vacuum breaker|pop up|pop-up|o ring|o-ring|'
