@@ -2086,6 +2086,36 @@ bool _isBareMixedFloatReceiptLine(String text, String? tradeScope) {
   return !hasExplicitFloatFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBreakerReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbreaker\b').hasMatch(normalized)) return false;
+  final hasExplicitBreakerFamily = RegExp(
+    r'\b(1p|2p|pole|single|double|gfci|afci|arc|amp|a|20a|30a|'
+    r'40a|50a|dual\s*function)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBreakerFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedReceptacleReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\breceptacle\b').hasMatch(normalized)) return false;
+  final hasExplicitReceptacleFamily = RegExp(
+    r'\b(duplex|gfci|wr|outlet|tamper|20a|15a|decorator|usb|'
+    r'weather|resistant)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitReceptacleFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

@@ -292,6 +292,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic breaker shorthand',
+      () {
+        final breakerItem = matchReceiptLineToCatalog(
+          'LOCAL BREAKER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          breakerItem == null || breakerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BREAKER '
+              'line without line-level evidence such as 1P, 2P, GFCI, AFCI, '
+              'amp, or other explicit breaker clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic receptacle shorthand',
+      () {
+        final receptacleItem = matchReceiptLineToCatalog(
+          'LOCAL RECEPTACLE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          receptacleItem == null || receptacleItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare RECEPTACLE '
+              'line without line-level evidence such as duplex, GFCI, WR, '
+              'outlet, or other explicit receptacle clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(
