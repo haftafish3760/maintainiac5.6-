@@ -184,6 +184,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic transformer shorthand',
+      () {
+        final transformerItem = matchReceiptLineToCatalog(
+          'LOCAL TRANSFORMER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          transformerItem == null || transformerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare '
+              'TRANSFORMER line without line-level evidence such as 24V, '
+              'doorbell, lighting, or other explicit transformer clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic fuse shorthand',
+      () {
+        final fuseItem = matchReceiptLineToCatalog(
+          'LOCAL FUSE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          fuseItem == null || fuseItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FUSE '
+              'line without line-level evidence such as blade, cartridge, '
+              'plug, amp, or other explicit fuse clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(

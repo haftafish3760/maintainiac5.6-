@@ -1996,6 +1996,36 @@ bool _isBareMixedTerminalReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTerminalFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedTransformerReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btransformer\b').hasMatch(normalized)) return false;
+  final hasExplicitTransformerFamily = RegExp(
+    r'\b(24v|40va|doorbell|lighting|low\s*voltage|landscape|'
+    r'control|hvac|bell)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTransformerFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedFuseReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfuse\b').hasMatch(normalized)) return false;
+  final hasExplicitFuseFamily = RegExp(
+    r'\b(blade|cartridge|plug|amp|a|3a|5a|20a|30a|time|delay|'
+    r'low\s*volt|hvac|electrical)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFuseFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
