@@ -1156,6 +1156,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic floor shorthand',
+      () {
+        final floorItem = matchReceiptLineToCatalog(
+          'LOCAL FLOOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          floorItem == null || floorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FLOOR '
+              'line without line-level evidence such as drain, register, '
+              'flange, or other explicit floor clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic roof shorthand',
+      () {
+        final roofItem = matchReceiptLineToCatalog(
+          'LOCAL ROOF 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          roofItem == null || roofItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ROOF '
+              'line without line-level evidence such as vent, drain, boot, '
+              'or other explicit roof clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

@@ -384,6 +384,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedAtticReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedFloorReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedRoofReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

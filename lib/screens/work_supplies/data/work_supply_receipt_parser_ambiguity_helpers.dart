@@ -960,6 +960,36 @@ bool _isBareMixedAtticReceiptLine(String text, String? tradeScope) {
   return !hasExplicitAtticFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedFloorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfloor\b').hasMatch(normalized)) return false;
+  final hasExplicitFloorFamily = RegExp(
+    r'\b(drain|register|flange|sink|cleanout|vent|grille|boot|'
+    r'shower|pan|channel)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFloorFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedRoofReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\broof\b').hasMatch(normalized)) return false;
+  final hasExplicitRoofFamily = RegExp(
+    r'\b(vent|drain|boot|cap|flashing|jack|stack|termination|'
+    r'dryer|bath|storm)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitRoofFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
