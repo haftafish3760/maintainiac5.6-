@@ -1323,6 +1323,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic pan shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL PAN 29.98',
+          'SECONDARY PAN 39.99',
+          'DRAIN PAN 22.49',
+          'WATER HEATER PAN 34.99',
+          'EZ TRAP SWITCH PAN 18.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final panLine = parsed['LOCAL PAN 29.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC pan '
+              'siblings to tempt routing without letting a generic pan line '
+              'collapse into a final answer.',
+        );
+        expect(
+          panLine == null || panLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC pan families '
+              'must not auto-confirm a bare PAN line without line-level '
+              'evidence such as secondary, drain, heater, switch, or other '
+              'explicit pan-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
