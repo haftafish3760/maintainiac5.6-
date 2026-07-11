@@ -1027,6 +1027,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic filter shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL FILTER 18.98',
+          'FURNACE FILTER 20X25X1 14.99',
+          'FILTER DRIER 19.49',
+          'WATER FILTER CARTRIDGE 24.99',
+          'PLEATED FILTER CASE 8.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final filterLine = parsed['LOCAL FILTER 18.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed plumbing/HVAC filter '
+              'siblings to tempt routing without letting a generic filter '
+              'line collapse into a final answer.',
+        );
+        expect(
+          filterLine == null || filterLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC filter '
+              'families must not auto-confirm a bare FILTER line without '
+              'line-level evidence such as furnace, drier, water cartridge, '
+              'case, or other explicit filter-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
