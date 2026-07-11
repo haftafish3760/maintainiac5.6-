@@ -1380,6 +1380,36 @@ bool _isBareMixedHangerReceiptLine(String text, String? tradeScope) {
   return !hasExplicitHangerFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSeatReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bseat\b').hasMatch(normalized)) return false;
+  final hasExplicitSeatFamily = RegExp(
+    r'\b(toilet|faucet|valve|repair|closet|hinge|cover|bidet|'
+    r'flush|lav)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSeatFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedStopReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bstop\b').hasMatch(normalized)) return false;
+  final hasExplicitStopFamily = RegExp(
+    r'\b(angle|door|compression|valve|wheel|limit|kick|'
+    r'shutdown|wall|supply)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitStopFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

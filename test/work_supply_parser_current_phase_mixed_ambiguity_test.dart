@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic seat shorthand',
+      () {
+        final seatItem = matchReceiptLineToCatalog(
+          'LOCAL SEAT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          seatItem == null || seatItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SEAT '
+              'line without line-level evidence such as toilet, faucet, '
+              'valve, or other explicit seat clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic stop shorthand',
+      () {
+        final stopItem = matchReceiptLineToCatalog(
+          'LOCAL STOP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          stopItem == null || stopItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare STOP '
+              'line without line-level evidence such as angle, door, '
+              'compression, or other explicit stop clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic gasket shorthand',
       () {
         final gasketItem = matchReceiptLineToCatalog(
