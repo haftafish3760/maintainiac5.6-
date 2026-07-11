@@ -1560,6 +1560,36 @@ bool _isBareMixedHookReceiptLine(String text, String? tradeScope) {
   return !hasExplicitHookFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedAnchorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\banchor\b').hasMatch(normalized)) return false;
+  final hasExplicitAnchorFamily = RegExp(
+    r'\b(wall|sleeve|bolt|masonry|concrete|toggle|wedge|'
+    r'pipe|clip|mount)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitAnchorFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedPostReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpost\b').hasMatch(normalized)) return false;
+  final hasExplicitPostFamily = RegExp(
+    r'\b(fence|support|base|mount|bracket|rail|column|'
+    r'channel|cap|guard)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPostFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
