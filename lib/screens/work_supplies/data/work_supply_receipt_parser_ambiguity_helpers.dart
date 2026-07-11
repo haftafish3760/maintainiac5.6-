@@ -1350,6 +1350,36 @@ bool _isBareMixedFlangeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitFlangeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedGasketReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bgasket\b').hasMatch(normalized)) return false;
+  final hasExplicitGasketFamily = RegExp(
+    r'\b(toilet|flange|burner|wax|tank|seal|pump|valve|door|'
+    r'blower|drain)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitGasketFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedHangerReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhanger\b').hasMatch(normalized)) return false;
+  final hasExplicitHangerFamily = RegExp(
+    r'\b(pipe|strap|beam|joist|support|mount|rod|wire|duct|'
+    r'conduit)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHangerFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic gasket shorthand',
+      () {
+        final gasketItem = matchReceiptLineToCatalog(
+          'LOCAL GASKET 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          gasketItem == null || gasketItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare GASKET '
+              'line without line-level evidence such as toilet, flange, '
+              'burner, or other explicit gasket clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic hanger shorthand',
+      () {
+        final hangerItem = matchReceiptLineToCatalog(
+          'LOCAL HANGER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          hangerItem == null || hangerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HANGER '
+              'line without line-level evidence such as pipe, strap, '
+              'beam, or other explicit hanger clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic bracket shorthand',
       () {
         final bracketItem = matchReceiptLineToCatalog(
