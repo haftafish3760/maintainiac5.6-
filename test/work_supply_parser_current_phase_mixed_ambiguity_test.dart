@@ -1732,6 +1732,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized adapter without trade context',
+      () {
+        final sizedAdapterItem = matchReceiptLineToCatalog(
+          'LOCAL ADAPTER 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedAdapterItem == null || sizedAdapterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized ADAPTER '
+              'line when the receipt still lacks male, female, trap, '
+              'conduit, PVC, copper, or other system-level adapter clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare black without trade context',
       () {
         final blackItem = matchReceiptLineToCatalog(

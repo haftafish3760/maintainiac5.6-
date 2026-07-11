@@ -312,6 +312,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedAdapterReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedAdapterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedBlackReceiptLine(normalized, tradeScope)) {
     return null;
   }

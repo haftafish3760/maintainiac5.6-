@@ -606,6 +606,27 @@ bool _isBareMixedAdapterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitAdapterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedAdapterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\badapter\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedAdapterFamily = RegExp(
+    r'\b(male|female|mip|fip|mpt|fpt|trap|closet|flange|conduit|'
+    r'pvc|cpvc|pex|copper|cobre|brass|bronze|barb|poly|cts|ips|'
+    r'dwv|schedule|compression|compresion|sweat|threaded|rosca|'
+    r'reducer|reducing|electrical|electrico|hvac|condensate)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedAdapterFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedBlackReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
