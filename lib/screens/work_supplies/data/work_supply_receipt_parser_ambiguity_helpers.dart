@@ -1320,6 +1320,36 @@ bool _isBareMixedSupportReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSupportFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBracketReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbracket\b').hasMatch(normalized)) return false;
+  final hasExplicitBracketFamily = RegExp(
+    r'\b(shelf|support|fan|mount|wall|rail|post|hanger|angle|'
+    r'joist|beam)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBracketFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedFlangeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bflange\b').hasMatch(normalized)) return false;
+  final hasExplicitFlangeFamily = RegExp(
+    r'\b(closet|toilet|hub|floor|pipe|roof|drain|cleanout|'
+    r'mount|anchor)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFlangeFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
