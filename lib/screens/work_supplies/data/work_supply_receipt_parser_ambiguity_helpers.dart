@@ -707,6 +707,26 @@ bool _isBareMixedConduitReceiptLine(String text, String? tradeScope) {
   return !hasExplicitConduitFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedConduitReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bconduit\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedConduitFamily = RegExp(
+    r'\b(emt|rigid|imc|pvc|sch|schedule|electrical|electrico|'
+    r'sweep|connector|coupling|body|lb|ll|lr|strap|bushing|'
+    r'locknut|condensate|drain|hvac|vent)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedConduitFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedBoxReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
