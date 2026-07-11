@@ -930,6 +930,36 @@ bool _isBareMixedLightReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLightFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCeilingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bceiling\b').hasMatch(normalized)) return false;
+  final hasExplicitCeilingFamily = RegExp(
+    r'\b(fan|register|light|box|grille|diffuser|fixture|medallion|'
+    r'canopy|access)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCeilingFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedAtticReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\battic\b').hasMatch(normalized)) return false;
+  final hasExplicitAtticFamily = RegExp(
+    r'\b(access|fan|ladder|stair|insulation|vent|hatch|cover|'
+    r'pull\s*down|scuttle)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitAtticFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

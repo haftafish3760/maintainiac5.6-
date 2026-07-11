@@ -1120,6 +1120,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic ceiling shorthand',
+      () {
+        final ceilingItem = matchReceiptLineToCatalog(
+          'LOCAL CEILING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ceilingItem == null || ceilingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CEILING '
+              'line without line-level evidence such as fan, register, '
+              'light, or other explicit ceiling clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic attic shorthand',
+      () {
+        final atticItem = matchReceiptLineToCatalog(
+          'LOCAL ATTIC 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          atticItem == null || atticItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ATTIC '
+              'line without line-level evidence such as access, fan, '
+              'ladder, or other explicit attic clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
