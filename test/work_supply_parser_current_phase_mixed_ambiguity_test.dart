@@ -1462,6 +1462,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized tube without trade context',
+      () {
+        final sizedTubeLine = matchReceiptLineToCatalog(
+          'LOCAL TUBE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedTubeLine == null || sizedTubeLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized TUBE '
+              'line when the receipt still lacks copper, condensate, '
+              'refrigerant, softener, drain, or other explicit tube clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic cable shorthand',
       () {
         final cableLine = matchReceiptLineToCatalog(

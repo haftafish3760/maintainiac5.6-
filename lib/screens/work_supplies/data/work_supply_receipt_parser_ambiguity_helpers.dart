@@ -358,6 +358,25 @@ bool _isBareMixedTubeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTubeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedTubeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btube\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedTubeFamily = RegExp(
+    r'\b(copper|cobre|condensate|humidifier|extension|wall|led|light|'
+    r'refrigerant|softener|distributor|brush|caulk|sealant|drain)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedTubeFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedCableReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

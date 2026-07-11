@@ -264,6 +264,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedTubeReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedTubeReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedCableReceiptLine(normalized, tradeScope)) {
     return null;
   }
