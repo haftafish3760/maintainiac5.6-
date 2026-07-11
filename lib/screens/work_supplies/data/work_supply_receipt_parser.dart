@@ -318,6 +318,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedDrainReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedPlugReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedAccessReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

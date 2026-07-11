@@ -632,6 +632,36 @@ bool _isBareMixedDrainReceiptLine(String text, String? tradeScope) {
   return !hasExplicitDrainFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPlugReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bplug\b').hasMatch(normalized)) return false;
+  final hasExplicitPlugFamily = RegExp(
+    r'\b(cleanout|test|cord|drain|rubber|expansion|freeze|fuse|'
+    r'spark|wall|reset|accessory|mip|fip|npt|brass|pvc|cpvc)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPlugFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedAccessReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\baccess\b').hasMatch(normalized)) return false;
+  final hasExplicitAccessFamily = RegExp(
+    r'\b(panel|door|cleanout|cover|grille|attic|ceiling|wall|'
+    r'cabinet|hatch|electrical|plumbing|hvac|return|service)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitAccessFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

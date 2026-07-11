@@ -794,5 +794,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic plug shorthand',
+      () {
+        final plugItem = matchReceiptLineToCatalog(
+          'LOCAL PLUG 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          plugItem == null || plugItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare PLUG '
+              'line without line-level evidence such as cleanout, test, '
+              'cord, drain, or other explicit plug clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic access shorthand',
+      () {
+        final accessItem = matchReceiptLineToCatalog(
+          'LOCAL ACCESS 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          accessItem == null || accessItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare ACCESS '
+              'line without line-level evidence such as panel, door, '
+              'cleanout, or other explicit access clues.',
+        );
+      },
+    );
   });
 }
