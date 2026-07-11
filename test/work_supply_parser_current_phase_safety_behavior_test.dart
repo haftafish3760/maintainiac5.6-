@@ -842,6 +842,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic plug shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL PLUG 6.98',
+          '1/2 BRASS PLUG 2.19',
+          '4 IN CLEANOUT PLUG 8.49',
+          '20A PLUG FUSE 5.49',
+          'DUPLEX PLUG WHITE 2.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final plugLine = parsed['LOCAL PLUG 6.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed PEH plug-family '
+              'siblings to tempt routing without letting a generic plug line '
+              'collapse into a final answer.',
+        );
+        expect(
+          plugLine == null || plugLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/electrical plug '
+              'families must not auto-confirm a bare PLUG line without '
+              'line-level evidence such as brass, cleanout, fuse, duplex, '
+              'or other explicit plug-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
