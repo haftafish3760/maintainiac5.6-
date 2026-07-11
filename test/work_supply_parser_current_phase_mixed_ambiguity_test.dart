@@ -2108,6 +2108,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm cts coupling shorthand without trade context',
+      () {
+        final ctsCouplingItem = matchReceiptLineToCatalog(
+          'LOCAL 3/4 CTS CPL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ctsCouplingItem == null || ctsCouplingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a compact CTS CPL '
+              'line when the receipt still lacks material, crimp, CPVC, PEX, '
+              'or other system-level coupling evidence.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic connector shorthand',
       () {
         final connectorItem = matchReceiptLineToCatalog(
