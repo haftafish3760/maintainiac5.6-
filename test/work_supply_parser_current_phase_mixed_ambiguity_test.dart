@@ -1999,6 +1999,25 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm threaded adapter shorthand without trade context',
+      () {
+        final threadedAdapterItem = matchReceiptLineToCatalog(
+          'LOCAL 1/2 MIP X FIP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          threadedAdapterItem == null || threadedAdapterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare threaded '
+              'MIP X FIP shorthand line when the receipt still lacks '
+              'material, valve, supply, connector, or other system-level '
+              'adapter evidence.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare black without trade context',
       () {
         final blackItem = matchReceiptLineToCatalog(
