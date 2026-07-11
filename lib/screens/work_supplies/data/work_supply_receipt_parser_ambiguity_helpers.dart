@@ -780,6 +780,36 @@ bool _isBareMixedDeviceReceiptLine(String text, String? tradeScope) {
   return !hasExplicitDeviceFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedFixtureReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bfixture\b').hasMatch(normalized)) return false;
+  final hasExplicitFixtureFamily = RegExp(
+    r'\b(faucet|lav|sink|toilet|shower|light|lighting|led|heater|'
+    r'water heater|fan|ceiling|bath|kitchen|repair)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitFixtureFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedMeterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bmeter\b').hasMatch(normalized)) return false;
+  final hasExplicitMeterFamily = RegExp(
+    r'\b(clamp|electrical|voltage|amp|ampere|multimeter|gas|water|'
+    r'flow|pressure|utility|submeter)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitMeterFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

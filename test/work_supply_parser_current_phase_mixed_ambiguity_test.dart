@@ -940,6 +940,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic fixture shorthand',
+      () {
+        final fixtureItem = matchReceiptLineToCatalog(
+          'LOCAL FIXTURE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          fixtureItem == null || fixtureItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FIXTURE '
+              'line without line-level evidence such as faucet, light, '
+              'heater, or other explicit fixture clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic meter shorthand',
+      () {
+        final meterItem = matchReceiptLineToCatalog(
+          'LOCAL METER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          meterItem == null || meterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare METER '
+              'line without line-level evidence such as clamp, gas, water, '
+              'or other explicit meter clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(
