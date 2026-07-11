@@ -1770,6 +1770,36 @@ bool _isBareMixedRodReceiptLine(String text, String? tradeScope) {
   return !hasExplicitRodFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCageReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcage\b').hasMatch(normalized)) return false;
+  final hasExplicitCageFamily = RegExp(
+    r'\b(fan|guard|lamp|motor|blower|protector|cover|'
+    r'grille|screen|housing)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCageFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedHousingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhousing\b').hasMatch(normalized)) return false;
+  final hasExplicitHousingFamily = RegExp(
+    r'\b(motor|fan|trim|pump|lamp|switch|blower|case|'
+    r'enclosure|shell)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHousingFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

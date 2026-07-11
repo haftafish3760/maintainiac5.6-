@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic cage shorthand',
+      () {
+        final cageItem = matchReceiptLineToCatalog(
+          'LOCAL CAGE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          cageItem == null || cageItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CAGE '
+              'line without line-level evidence such as fan, guard, '
+              'lamp, or other explicit cage clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic housing shorthand',
+      () {
+        final housingItem = matchReceiptLineToCatalog(
+          'LOCAL HOUSING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          housingItem == null || housingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HOUSING '
+              'line without line-level evidence such as motor, fan, '
+              'trim, or other explicit housing clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic bolt shorthand',
       () {
         final boltItem = matchReceiptLineToCatalog(
