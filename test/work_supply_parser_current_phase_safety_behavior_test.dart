@@ -805,6 +805,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic fitting shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL FITTING 7.98',
+          '1/2 COPPER TEE 2.19',
+          '3/4 EMT 90 ELBOW 8.49',
+          '3/4 CPVC TEE 1.59',
+          '3/8 X 3/4 LINE SET 25FT 89.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final fittingLine = parsed['LOCAL FITTING 7.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(4),
+          reason:
+              'The regression must include enough mixed PEH fitting-family '
+              'siblings to tempt routing without letting a generic fitting '
+              'line collapse into a final answer.',
+        );
+        expect(
+          fittingLine == null || fittingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC/electrical '
+              'fitting families must not auto-confirm a bare FITTING line '
+              'without line-level evidence such as copper, EMT, CPVC, line '
+              'set, or other explicit fitting-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
