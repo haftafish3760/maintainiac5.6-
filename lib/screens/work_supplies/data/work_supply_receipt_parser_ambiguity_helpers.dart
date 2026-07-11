@@ -565,6 +565,21 @@ bool _isBareMixedAdapterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitAdapterFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBlackReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bblack\b').hasMatch(normalized)) return false;
+  final hasExplicitBlackFamily = RegExp(
+    r'\b(pipe|iron|steel|fitting|nipple|malleable|gas|coupling|elbow|'
+    r'tee|cap|plug|paint|spray|primer)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBlackFamily && tokenCount <= 3;
+}
+
 bool _isBareMixedElbowReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
@@ -795,6 +810,21 @@ bool _isBareMixedWasherReceiptLine(String text, String? tradeScope) {
     r'toilet|tank|shank|faucet|stem|drain|laundry)\b',
   ).hasMatch(normalized);
   return !hasExplicitWasherFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedWhiteReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwhite\b').hasMatch(normalized)) return false;
+  final hasExplicitWhiteFamily = RegExp(
+    r'\b(pvc|pipe|fitting|wire|switch|plate|cover|caulk|sealant|'
+    r'paint|primer|trim)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWhiteFamily && tokenCount <= 3;
 }
 
 bool _isBareMixedPrimerReceiptLine(String text, String? tradeScope) {

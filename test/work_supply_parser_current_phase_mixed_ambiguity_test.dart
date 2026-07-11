@@ -1696,6 +1696,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm bare black without trade context',
+      () {
+        final blackItem = matchReceiptLineToCatalog(
+          'LOCAL BLACK 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          blackItem == null || blackItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BLACK '
+              'line without pipe, iron, fitting, paint, or other trade '
+              'context on the receipt line itself.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic elbow shorthand',
       () {
         final elbowItem = matchReceiptLineToCatalog(
@@ -2087,6 +2105,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare WASHER '
               'line without line-level evidence such as hose, trap, seat, '
               'fender, or other explicit washer clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm bare white without trade context',
+      () {
+        final whiteItem = matchReceiptLineToCatalog(
+          'LOCAL WHITE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          whiteItem == null || whiteItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare WHITE '
+              'line without PVC, wire, cover, caulk, paint, or other trade '
+              'context on the receipt line itself.',
         );
       },
     );

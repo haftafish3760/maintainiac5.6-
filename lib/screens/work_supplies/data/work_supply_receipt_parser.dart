@@ -306,6 +306,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedAdapterReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedBlackReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedElbowReceiptLine(normalized, tradeScope)) {
     return null;
   }
@@ -349,6 +352,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isBareMixedWasherReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedWhiteReceiptLine(normalized, tradeScope)) {
     return null;
   }
   if (_isBareMixedPrimerReceiptLine(normalized, tradeScope)) {
