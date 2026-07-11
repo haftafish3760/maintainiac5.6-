@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic collar shorthand',
+      () {
+        final collarItem = matchReceiptLineToCatalog(
+          'LOCAL COLLAR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          collarItem == null || collarItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare COLLAR '
+              'line without line-level evidence such as pipe, escutcheon, '
+              'duct, or other explicit collar clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic hook shorthand',
+      () {
+        final hookItem = matchReceiptLineToCatalog(
+          'LOCAL HOOK 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          hookItem == null || hookItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HOOK '
+              'line without line-level evidence such as hanger, wall, '
+              'tool, or other explicit hook clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic clip shorthand',
       () {
         final clipItem = matchReceiptLineToCatalog(

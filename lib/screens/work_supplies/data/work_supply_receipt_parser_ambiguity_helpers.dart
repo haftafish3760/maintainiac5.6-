@@ -1530,6 +1530,36 @@ bool _isBareMixedSleeveReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSleeveFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCollarReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcollar\b').hasMatch(normalized)) return false;
+  final hasExplicitCollarFamily = RegExp(
+    r'\b(pipe|escutcheon|duct|flue|wall|roof|conduit|'
+    r'clamp|support|hanger)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCollarFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedHookReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhook\b').hasMatch(normalized)) return false;
+  final hasExplicitHookFamily = RegExp(
+    r'\b(hanger|wall|tool|mount|ceiling|plant|utility|'
+    r'storage|peg|bracket)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHookFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
