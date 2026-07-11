@@ -868,6 +868,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic cleaner shorthand',
+      () {
+        final cleanerItem = matchReceiptLineToCatalog(
+          'LOCAL CLEANER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          cleanerItem == null || cleanerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CLEANER '
+              'line without line-level evidence such as coil, PVC, solvent, '
+              'or other explicit cleaner clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic cement shorthand',
+      () {
+        final cementItem = matchReceiptLineToCatalog(
+          'LOCAL CEMENT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          cementItem == null || cementItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CEMENT '
+              'line without line-level evidence such as PVC, CPVC, solvent, '
+              'or other explicit cement clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

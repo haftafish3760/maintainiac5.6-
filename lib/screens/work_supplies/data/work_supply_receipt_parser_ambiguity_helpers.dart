@@ -721,6 +721,35 @@ bool _isBareMixedSealReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSealFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCleanerReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\b(cleaner|clean)\b').hasMatch(normalized)) return false;
+  final hasExplicitCleanerFamily = RegExp(
+    r'\b(coil|condenser|evap|evaporator|hvac|air|electronic|scrubber|'
+    r'pvc|cpvc|primer|cement|solvent|adhesive|degreaser)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCleanerFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedCementReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcement\b').hasMatch(normalized)) return false;
+  final hasExplicitCementFamily = RegExp(
+    r'\b(pvc|cpvc|abs|dwv|solvent|glue|adhesive|pipe|primer|cleaner)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCementFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
