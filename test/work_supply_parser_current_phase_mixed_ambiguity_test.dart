@@ -542,5 +542,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic cap shorthand',
+      () {
+        final capItem = matchReceiptLineToCatalog(
+          'LOCAL CAP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          capItem == null || capItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CAP '
+              'line without line-level evidence such as end cap, service '
+              'valve, vent, roof, or other explicit cap clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic tee shorthand',
+      () {
+        final teeItem = matchReceiptLineToCatalog(
+          'LOCAL TEE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          teeItem == null || teeItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TEE '
+              'line without line-level evidence such as sanitary, reducing, '
+              'PVC, copper, or other explicit tee clues.',
+        );
+      },
+    );
   });
 }
