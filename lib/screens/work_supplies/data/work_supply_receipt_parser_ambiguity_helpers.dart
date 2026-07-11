@@ -2026,6 +2026,36 @@ bool _isBareMixedFuseReceiptLine(String text, String? tradeScope) {
   return !hasExplicitFuseFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedDisconnectReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bdisconnect\b').hasMatch(normalized)) return false;
+  final hasExplicitDisconnectFamily = RegExp(
+    r'\b(ac|pullout|fusible|non\s*fusible|box|service|safety|'
+    r'air|conditioner|hvac)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitDisconnectFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedWhipReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwhip\b').hasMatch(normalized)) return false;
+  final hasExplicitWhipFamily = RegExp(
+    r'\b(ac|equipment|liquidtight|disconnect|flex|conduit|seal|'
+    r'3/4|1/2|6ft|whip\s*kit)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWhipFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

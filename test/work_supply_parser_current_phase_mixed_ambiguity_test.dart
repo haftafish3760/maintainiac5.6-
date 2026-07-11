@@ -220,6 +220,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic disconnect shorthand',
+      () {
+        final disconnectItem = matchReceiptLineToCatalog(
+          'LOCAL DISCONNECT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          disconnectItem == null || disconnectItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare '
+              'DISCONNECT line without line-level evidence such as AC, '
+              'pullout, fusible, or other explicit disconnect clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic whip shorthand',
+      () {
+        final whipItem = matchReceiptLineToCatalog(
+          'LOCAL WHIP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          whipItem == null || whipItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare WHIP '
+              'line without line-level evidence such as AC, equipment, '
+              'liquidtight, or other explicit whip clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(
