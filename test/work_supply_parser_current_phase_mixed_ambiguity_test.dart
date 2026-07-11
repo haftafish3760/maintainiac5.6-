@@ -1372,6 +1372,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic head shorthand',
+      () {
+        final headItem = matchReceiptLineToCatalog(
+          'LOCAL HEAD 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          headItem == null || headItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HEAD '
+              'line without line-level evidence such as shower, sprinkler, '
+              'weatherhead, or other explicit head clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic base shorthand',
+      () {
+        final baseItem = matchReceiptLineToCatalog(
+          'LOCAL BASE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          baseItem == null || baseItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BASE '
+              'line without line-level evidence such as shower, fixture, '
+              'mount, or other explicit base clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic primer shorthand',
       () {
         final primerItem = matchReceiptLineToCatalog(

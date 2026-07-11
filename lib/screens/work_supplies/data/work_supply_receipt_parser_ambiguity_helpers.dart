@@ -1140,6 +1140,36 @@ bool _isBareMixedScreenReceiptLine(String text, String? tradeScope) {
   return !hasExplicitScreenFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedHeadReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhead\b').hasMatch(normalized)) return false;
+  final hasExplicitHeadFamily = RegExp(
+    r'\b(shower|sprinkler|weatherhead|mop|pump|trim|faucet|power|'
+    r'trimmer|discharge)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHeadFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedBaseReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbase\b').hasMatch(normalized)) return false;
+  final hasExplicitBaseFamily = RegExp(
+    r'\b(shower|fixture|mount|lamp|fan|flange|support|stand|'
+    r'cabinet|trim)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBaseFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
