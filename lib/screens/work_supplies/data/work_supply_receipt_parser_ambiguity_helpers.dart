@@ -1906,6 +1906,36 @@ bool _isBareMixedControlReceiptLine(String text, String? tradeScope) {
   return !hasExplicitControlFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedRelayReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\brelay\b').hasMatch(normalized)) return false;
+  final hasExplicitRelayFamily = RegExp(
+    r'\b(time|delay|fan|potential|isolation|start|coil|board|'
+    r'compressor|pump|defrost)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitRelayFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedHeaterReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bheater\b').hasMatch(normalized)) return false;
+  final hasExplicitHeaterFamily = RegExp(
+    r'\b(water|crankcase|baseboard|unit|space|garage|tank|'
+    r'element|block|gas|electric)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHeaterFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

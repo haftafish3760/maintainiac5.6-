@@ -76,6 +76,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic relay shorthand',
+      () {
+        final relayItem = matchReceiptLineToCatalog(
+          'LOCAL RELAY 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          relayItem == null || relayItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare RELAY '
+              'line without line-level evidence such as time delay, fan, '
+              'potential, or other explicit relay clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic heater shorthand',
+      () {
+        final heaterItem = matchReceiptLineToCatalog(
+          'LOCAL HEATER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          heaterItem == null || heaterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HEATER '
+              'line without line-level evidence such as water, crankcase, '
+              'baseboard, or other explicit heater clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(

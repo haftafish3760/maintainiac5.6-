@@ -573,6 +573,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedControlReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedRelayReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedHeaterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,
