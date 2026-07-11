@@ -505,6 +505,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic coupling shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL COUPLING 4.98',
+          '3/4 EMT CPLG 1.19',
+          '3/4 PVC COUPLING SCH40 0.89',
+          '3/4 COND PVC CPLG 2.49',
+          '1/2 PEX TEE 2.49',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final couplingLine = parsed['LOCAL COUPLING 4.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(4),
+          reason:
+              'The regression must include enough mixed PEH coupling-family '
+              'siblings to tempt routing without letting a generic coupling '
+              'line collapse into a final answer.',
+        );
+        expect(
+          couplingLine == null || couplingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/HVAC/electrical '
+              'coupling families must not auto-confirm a bare COUPLING line '
+              'without line-level evidence such as EMT, schedule 40, '
+              'condensate, reducing, or other explicit coupling clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
