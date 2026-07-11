@@ -339,6 +339,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedCapReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedCapReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedCondensateReceiptLine(normalized, tradeScope)) {
     return null;
   }
