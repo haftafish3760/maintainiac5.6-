@@ -86,6 +86,33 @@ bool _isBareMixedSpanishValveOrSwitchReceiptLine(
   return false;
 }
 
+bool _isBareMixedSpanishBoxOrFilterReceiptLine(
+  String text,
+  String? tradeScope,
+) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (RegExp(r'\bcaja\b').hasMatch(normalized)) {
+    final hasExplicitBoxFamily = RegExp(
+      r'\b(electrica|electrico|panel|cubierta|brace|remodelacion|old work|'
+      r'octagonal|gang|junction|techo|tecla)\b',
+    ).hasMatch(normalized);
+    if (!hasExplicitBoxFamily && tokenCount <= 3) return true;
+  }
+  if (RegExp(r'\bfiltro\b').hasMatch(normalized)) {
+    final hasExplicitFilterFamily = RegExp(
+      r'\b(aire|agua|secador|horno|drier|hvac|ac|plegado|20x|16x|'
+      r'condensado|bomba|cartucho)\b',
+    ).hasMatch(normalized);
+    if (!hasExplicitFilterFamily && tokenCount <= 3) return true;
+  }
+  return false;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

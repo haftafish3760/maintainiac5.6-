@@ -110,5 +110,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic caja shorthand',
+      () {
+        final boxLine = matchReceiptLineToCatalog(
+          'LOCAL CAJA 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          boxLine == null || boxLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CAJA '
+              'line without line-level evidence such as electrica, '
+              'remodelacion, panel, cubierta, or other explicit box clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic filtro shorthand',
+      () {
+        final filterLine = matchReceiptLineToCatalog(
+          'LOCAL FILTRO 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          filterLine == null || filterLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare FILTRO '
+              'line without line-level evidence such as aire, secador, '
+              'agua, horno, or other explicit filter clues.',
+        );
+      },
+    );
   });
 }

@@ -216,6 +216,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSpanishValveOrSwitchReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSpanishBoxOrFilterReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,
