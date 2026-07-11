@@ -148,6 +148,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic board shorthand',
+      () {
+        final boardItem = matchReceiptLineToCatalog(
+          'LOCAL BOARD 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          boardItem == null || boardItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BOARD '
+              'line without line-level evidence such as control, furnace, '
+              'foam, backer, or other explicit board clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic terminal shorthand',
+      () {
+        final terminalItem = matchReceiptLineToCatalog(
+          'LOCAL TERMINAL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          terminalItem == null || terminalItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare TERMINAL '
+              'line without line-level evidence such as spade, fork, strip, '
+              'adapter, or other explicit terminal clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(

@@ -1966,6 +1966,36 @@ bool _isBareMixedContactorReceiptLine(String text, String? tradeScope) {
   return !hasExplicitContactorFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBoardReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bboard\b').hasMatch(normalized)) return false;
+  final hasExplicitBoardFamily = RegExp(
+    r'\b(control|furnace|defrost|foam|backer|cement|duct|zone|'
+    r'ram|floor|protection|terminal|panel)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBoardFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedTerminalReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bterminal\b').hasMatch(normalized)) return false;
+  final hasExplicitTerminalFamily = RegExp(
+    r'\b(spade|fork|ring|strip|adapter|block|lug|wire|connector|'
+    r'conduit|bonding)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTerminalFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
