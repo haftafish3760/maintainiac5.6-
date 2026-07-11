@@ -252,6 +252,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedTubeReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCableReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedHoseReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

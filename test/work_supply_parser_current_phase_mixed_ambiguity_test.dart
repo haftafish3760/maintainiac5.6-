@@ -362,5 +362,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic cable shorthand',
+      () {
+        final cableLine = matchReceiptLineToCatalog(
+          'LOCAL CABLE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          cableLine == null || cableLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CABLE '
+              'line without line-level evidence such as NM-B, UF, SER, '
+              'communication, or other explicit cable clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic hose shorthand',
+      () {
+        final hoseLine = matchReceiptLineToCatalog(
+          'LOCAL HOSE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          hoseLine == null || hoseLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HOSE '
+              'line without line-level evidence such as washer, drain, '
+              'bibb, condensate, or other explicit hose clues.',
+        );
+      },
+    );
   });
 }

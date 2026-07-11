@@ -288,6 +288,37 @@ bool _isBareMixedTubeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTubeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCableReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcable\b').hasMatch(normalized)) return false;
+  final hasExplicitCableFamily = RegExp(
+    r'\b(nm|nm-b|romex|uf|uf-b|ser|seu|mc|ac|bx|service|'
+    r'communication|mini split|thermostat|low voltage|wire|'
+    r'electrical|electric|hvac)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCableFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedHoseReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhose\b').hasMatch(normalized)) return false;
+  final hasExplicitHoseFamily = RegExp(
+    r'\b(washer|washing machine|laundry|dishwasher|drain|bibb|sillcock|'
+    r'condensate|mini split|discharge|sump|garden|water|supply)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHoseFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
