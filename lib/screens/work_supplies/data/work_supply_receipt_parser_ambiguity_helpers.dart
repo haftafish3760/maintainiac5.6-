@@ -532,6 +532,27 @@ bool _isBareMixedTeeReceiptLine(String text, String? tradeScope) {
   return !hasExplicitTeeFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedTeeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\btee\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedTeeFamily = RegExp(
+    r'\b(sanitary|santee|reducing|reducer|pvc|cpvc|pex|copper|cobre|'
+    r'dwv|sch|schedule|cts|ips|mip|fip|compression|compresion|'
+    r'sweat|threaded|rosca|conduit|electrical|electrico|hvac|'
+    r'condensate|drain|vent)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedTeeFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedValveReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

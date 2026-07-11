@@ -300,6 +300,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedTeeReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedTeeReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedValveReceiptLine(normalized, tradeScope)) {
     return null;
   }

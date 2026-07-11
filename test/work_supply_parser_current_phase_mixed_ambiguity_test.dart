@@ -1660,6 +1660,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized tee without trade context',
+      () {
+        final sizedTeeItem = matchReceiptLineToCatalog(
+          'LOCAL TEE 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedTeeItem == null || sizedTeeItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized TEE '
+              'line when the receipt still lacks material or system clues '
+              'such as PVC, copper, PEX, conduit, or condensate context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic valve shorthand',
       () {
         final valveItem = matchReceiptLineToCatalog(
