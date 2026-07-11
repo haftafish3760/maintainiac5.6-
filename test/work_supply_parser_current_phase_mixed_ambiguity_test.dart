@@ -3446,6 +3446,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm trap primer shorthand without plumbing context',
+      () {
+        final trapPrimerItem = matchReceiptLineToCatalog(
+          'LOCAL TRAP PRIMER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          trapPrimerItem == null || trapPrimerItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a TRAP PRIMER '
+              'line when the receipt still lacks plumbing, floor drain, '
+              'trap seal, or other system-level plumbing clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic seal shorthand',
       () {
         final sealItem = matchReceiptLineToCatalog(
