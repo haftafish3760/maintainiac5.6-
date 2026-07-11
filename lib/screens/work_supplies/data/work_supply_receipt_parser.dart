@@ -381,6 +381,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSizedConnectorReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedWireConnectorReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedConduitReceiptLine(normalized, tradeScope)) {
     return null;
   }
