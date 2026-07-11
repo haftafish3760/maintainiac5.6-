@@ -1680,6 +1680,36 @@ bool _isBareMixedShellReceiptLine(String text, String? tradeScope) {
   return !hasExplicitShellFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedJointReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bjoint\b').hasMatch(normalized)) return false;
+  final hasExplicitJointFamily = RegExp(
+    r'\b(expansion|slip|repair|union|flex|pipe|coupling|'
+    r'gasket|sleeve|connection)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitJointFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedStubReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bstub\b').hasMatch(normalized)) return false;
+  final hasExplicitStubFamily = RegExp(
+    r'\b(out|nipple|pipe|copper|pex|riser|drop|'
+    r'stub-out|stubout|supply)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitStubFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

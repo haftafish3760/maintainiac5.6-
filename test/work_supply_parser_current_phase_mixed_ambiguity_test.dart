@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic joint shorthand',
+      () {
+        final jointItem = matchReceiptLineToCatalog(
+          'LOCAL JOINT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          jointItem == null || jointItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare JOINT '
+              'line without line-level evidence such as expansion, slip, '
+              'repair, or other explicit joint clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic stub shorthand',
+      () {
+        final stubItem = matchReceiptLineToCatalog(
+          'LOCAL STUB 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          stubItem == null || stubItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare STUB '
+              'line without line-level evidence such as out, nipple, '
+              'pipe, or other explicit stub clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic pan shorthand',
       () {
         final panItem = matchReceiptLineToCatalog(
