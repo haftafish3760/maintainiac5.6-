@@ -1112,6 +1112,21 @@ bool _isBareMixedSizedBoxReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSizedBoxFamily && tokenCount <= 6;
 }
 
+bool _isBareMixedJBoxReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bj\s*box\b').hasMatch(normalized)) return false;
+  final hasExplicitJBoxFamily = RegExp(
+    r'\b(device|junction|outlet|splice|gang|square|octagon|round|'
+    r'electrical|emt|conduit|wire|switch|receptacle)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitJBoxFamily && tokenCount <= 4;
+}
+
 bool _isBareMixedFilterReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

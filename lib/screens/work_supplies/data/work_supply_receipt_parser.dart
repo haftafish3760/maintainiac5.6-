@@ -393,6 +393,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSizedBoxReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedJBoxReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedFilterReceiptLine(normalized, tradeScope)) {
     return null;
   }
