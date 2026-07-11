@@ -1768,6 +1768,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized coupling without trade context',
+      () {
+        final sizedCouplingItem = matchReceiptLineToCatalog(
+          'LOCAL COUPLING 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedCouplingItem == null || sizedCouplingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized COUPLING '
+              'line when the receipt still lacks material or trade clues '
+              'such as PVC, copper, conduit, or DWV context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic connector shorthand',
       () {
         final connectorItem = matchReceiptLineToCatalog(
@@ -1889,6 +1907,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare FILTER '
               'line without line-level evidence such as air, water, whole '
               'house, return, or other explicit filter clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm sized filter without hvac or water context',
+      () {
+        final sizedFilterItem = matchReceiptLineToCatalog(
+          'LOCAL FILTER 16 x 20 x 1 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedFilterItem == null || sizedFilterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized FILTER '
+              'line when the receipt still lacks furnace, return, MERV, '
+              'water, or other system-level filter context.',
         );
       },
     );
