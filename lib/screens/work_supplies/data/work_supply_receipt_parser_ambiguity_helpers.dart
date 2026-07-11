@@ -1710,6 +1710,36 @@ bool _isBareMixedStubReceiptLine(String text, String? tradeScope) {
   return !hasExplicitStubFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBranchReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbranch\b').hasMatch(normalized)) return false;
+  final hasExplicitBranchFamily = RegExp(
+    r'\b(circuit|wye|drain|line|takeoff|tee|run|'
+    r'lateral|pipe|conduit)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBranchFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSpliceReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsplice\b').hasMatch(normalized)) return false;
+  final hasExplicitSpliceFamily = RegExp(
+    r'\b(wire|kit|repair|connector|heat-shrink|heatshrink|'
+    r'conduit|cable|crimp|tap)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSpliceFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

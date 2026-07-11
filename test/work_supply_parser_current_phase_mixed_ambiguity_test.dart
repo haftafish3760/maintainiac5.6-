@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic branch shorthand',
+      () {
+        final branchItem = matchReceiptLineToCatalog(
+          'LOCAL BRANCH 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          branchItem == null || branchItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BRANCH '
+              'line without line-level evidence such as circuit, wye, '
+              'drain, or other explicit branch clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic splice shorthand',
+      () {
+        final spliceItem = matchReceiptLineToCatalog(
+          'LOCAL SPLICE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          spliceItem == null || spliceItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SPLICE '
+              'line without line-level evidence such as wire, kit, '
+              'repair, or other explicit splice clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic joint shorthand',
       () {
         final jointItem = matchReceiptLineToCatalog(
