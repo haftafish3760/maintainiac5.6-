@@ -218,5 +218,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic cinta shorthand',
+      () {
+        final tapeLine = matchReceiptLineToCatalog(
+          'LOCAL CINTA 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          tapeLine == null || tapeLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CINTA '
+              'line without line-level evidence such as aluminio, electrica, '
+              'teflon, ducto, or other explicit tape clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic conducto shorthand',
+      () {
+        final conduitLine = matchReceiptLineToCatalog(
+          'LOCAL CONDUCTO 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          conduitLine == null || conduitLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONDUCTO '
+              'line without line-level evidence such as pvc, electrico, emt, '
+              'sweep, or other explicit conduit clues.',
+        );
+      },
+    );
   });
 }

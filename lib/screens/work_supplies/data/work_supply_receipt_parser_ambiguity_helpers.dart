@@ -176,6 +176,39 @@ bool _isBareMixedSpanishElbowReceiptLine(String text, String? tradeScope) {
   return !hasExplicitElbowFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSpanishTapeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcinta\b').hasMatch(normalized)) return false;
+  final hasExplicitTapeFamily = RegExp(
+    r'\b(aluminio|electrica|teflon|ducto|foil|hvac|rosca|aislamiento|'
+    r'wire|romex|sellado)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitTapeFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSpanishConduitReceiptLine(
+  String text,
+  String? tradeScope,
+) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bconducto\b').hasMatch(normalized)) return false;
+  final hasExplicitConduitFamily = RegExp(
+    r'\b(electrico|electrica|pvc|emt|sweep|conector|cople|codo|'
+    r'ducto|aire|ventilacion|metalico)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitConduitFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
