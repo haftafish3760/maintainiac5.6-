@@ -282,6 +282,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedStrapReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedStrapReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedClampReceiptLine(normalized, tradeScope)) {
     return null;
   }

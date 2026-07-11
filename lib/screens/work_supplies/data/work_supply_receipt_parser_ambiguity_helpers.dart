@@ -457,6 +457,25 @@ bool _isBareMixedStrapReceiptLine(String text, String? tradeScope) {
   return !hasExplicitStrapFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedStrapReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bstrap\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b')
+      .hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedStrapFamily = RegExp(
+    r'\b(conduit|duct|hanger|heater|water heater|fixture|pipe|vent|'
+    r'seismic|earthquake|mast|one hole|two hole|mini)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedStrapFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedClampReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

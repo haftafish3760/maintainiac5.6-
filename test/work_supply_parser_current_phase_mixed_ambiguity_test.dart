@@ -1570,6 +1570,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm sized strap without trade context',
+      () {
+        final sizedStrapLine = matchReceiptLineToCatalog(
+          'LOCAL STRAP 3/4 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sizedStrapLine == null || sizedStrapLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a sized STRAP '
+              'line when the receipt still lacks conduit, hanger, water '
+              'heater, pipe, vent, or other explicit strap clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic clamp shorthand',
       () {
         final clampLine = matchReceiptLineToCatalog(
