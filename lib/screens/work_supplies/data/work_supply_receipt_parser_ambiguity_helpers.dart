@@ -931,6 +931,23 @@ bool _isBareMixedSizedAdapterReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSizedAdapterFamily && tokenCount <= 5;
 }
 
+bool _isBareMixedCompressionThreadReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcomp\b').hasMatch(normalized)) return false;
+  if (!RegExp(r'\b(fip|mip|fpt|mpt)\b').hasMatch(normalized)) return false;
+  final hasExplicitCompressionThreadFamily = RegExp(
+    r'\b(supply|stop|angle|valve|connector|hose|faucet|toilet|'
+    r'dishwasher|ice maker|appliance|gas|dryer|water heater|'
+    r'pex|cpvc|pvc|copper|cobre|brass|bronze|barb)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCompressionThreadFamily && tokenCount <= 7;
+}
+
 bool _isBareMixedBlackReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

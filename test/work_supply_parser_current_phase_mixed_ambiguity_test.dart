@@ -2018,6 +2018,25 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm compression thread shorthand without trade context',
+      () {
+        final compressionThreadItem = matchReceiptLineToCatalog(
+          'LOCAL 3/8 COMP X 1/2 FIP 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          compressionThreadItem == null ||
+              compressionThreadItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a compact COMP X '
+              'FIP shorthand line when the receipt still lacks supply, stop, '
+              'connector, hose, valve, or other system-level evidence.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm bare black without trade context',
       () {
         final blackItem = matchReceiptLineToCatalog(

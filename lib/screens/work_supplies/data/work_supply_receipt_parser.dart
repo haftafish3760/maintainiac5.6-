@@ -363,6 +363,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSizedAdapterReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCompressionThreadReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedBlackReceiptLine(normalized, tradeScope)) {
     return null;
   }
