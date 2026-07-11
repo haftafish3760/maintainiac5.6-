@@ -1434,6 +1434,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic condensate shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL CONDENSATE 17.98',
+          'CONDENSATE PUMP 79.99',
+          'CONDENSATE TRAP 18.99',
+          'VINYL TUBING 6.49',
+          'CONDENSATE HOSE 9.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final condensateLine = parsed['LOCAL CONDENSATE 17.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(2),
+          reason:
+              'The regression must include enough mixed condensate-family '
+              'siblings to tempt routing without letting a generic condensate '
+              'line collapse into a final answer.',
+        );
+        expect(
+          condensateLine == null || condensateLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby condensate families must '
+              'not auto-confirm a bare CONDENSATE line without line-level '
+              'evidence such as pump, trap, union, tubing, or other explicit '
+              'condensate-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
