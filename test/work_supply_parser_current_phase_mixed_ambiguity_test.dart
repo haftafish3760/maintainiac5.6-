@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic body shorthand',
+      () {
+        final bodyItem = matchReceiptLineToCatalog(
+          'LOCAL BODY 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          bodyItem == null || bodyItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare BODY '
+              'line without line-level evidence such as valve, faucet, '
+              'sprayer, or other explicit body clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic ring shorthand',
+      () {
+        final ringItem = matchReceiptLineToCatalog(
+          'LOCAL RING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          ringItem == null || ringItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare RING '
+              'line without line-level evidence such as wax, closet, '
+              'trim, or other explicit ring clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic hinge shorthand',
       () {
         final hingeItem = matchReceiptLineToCatalog(
