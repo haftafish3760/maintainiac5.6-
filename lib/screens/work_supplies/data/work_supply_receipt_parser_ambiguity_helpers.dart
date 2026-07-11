@@ -257,6 +257,21 @@ bool _isBareMixedUnionReceiptLine(String text, String? tradeScope) {
   return !hasExplicitUnionFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedBushingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbushing\b').hasMatch(normalized)) return false;
+  final hasExplicitBushingFamily = RegExp(
+    r'\b(reducing|reducer|insulated|pvc|brass|cpvc|emt|conduit|'
+    r'grounding|bonding|locknut)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitBushingFamily && tokenCount <= 3;
+}
+
 bool _isBareMixedPipeReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
