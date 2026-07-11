@@ -2200,6 +2200,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm pvc cement without trade context',
+      () {
+        final pvcCementItem = matchReceiptLineToCatalog(
+          'LOCAL PVC CEMENT 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcCementItem == null || pvcCementItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a PVC CEMENT '
+              'line when the receipt still lacks plumbing, electrical, or '
+              'HVAC system context for that adhesive.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic device shorthand',
       () {
         final deviceItem = matchReceiptLineToCatalog(

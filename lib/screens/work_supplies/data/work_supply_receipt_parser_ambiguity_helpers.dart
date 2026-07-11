@@ -885,6 +885,21 @@ bool _isBareMixedCementReceiptLine(String text, String? tradeScope) {
   return !hasExplicitCementFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedPvcCementReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bpvc\s+cement\b').hasMatch(normalized)) return false;
+  final hasExplicitPvcCementFamily = RegExp(
+    r'\b(plumbing|electrical|electric|elec|conduit|hvac|condensate|'
+    r'pressure|dwv|schedule\s*40|schedule\s*80|sch\s*40|sch\s*80)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitPvcCementFamily && tokenCount <= 4;
+}
+
 bool _isBareMixedRegisterReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

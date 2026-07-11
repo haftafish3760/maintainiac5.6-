@@ -369,6 +369,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedCementReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedPvcCementReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedRegisterReceiptLine(normalized, tradeScope)) {
     return null;
   }
