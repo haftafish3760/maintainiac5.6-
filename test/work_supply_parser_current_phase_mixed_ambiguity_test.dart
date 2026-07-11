@@ -1354,6 +1354,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm small pvc pipe without system context',
+      () {
+        final pvcPipeLine = matchReceiptLineToCatalog(
+          'LOCAL PVC 3/4 PIPE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcPipeLine == null || pvcPipeLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a small PVC pipe '
+              'line when no plumbing, electrical, or HVAC system context is '
+              'present on the receipt line itself.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic tube shorthand',
       () {
         final tubeLine = matchReceiptLineToCatalog(
@@ -1637,6 +1655,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare ELBOW '
               'line without line-level evidence such as 90, 45, conduit, '
               'PVC, copper, or other explicit elbow clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm pvc elbow without trade context',
+      () {
+        final pvcElbowItem = matchReceiptLineToCatalog(
+          'LOCAL PVC 3/4 ELBOW 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcElbowItem == null || pvcElbowItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a PVC elbow line '
+              'when the line still lacks plumbing, electrical, or HVAC '
+              'system-level context.',
         );
       },
     );
