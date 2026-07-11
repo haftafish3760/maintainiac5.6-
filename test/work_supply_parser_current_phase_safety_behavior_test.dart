@@ -916,6 +916,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic supply shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL SUPPLY 9.98',
+          'TOILET SUPPLY LINE 8.49',
+          'FAUCET SUPPLY LINE 9.49',
+          'APPLIANCE SUPPLY LINE 12.99',
+          'SUPPLY STOP REPAIR PART 3.19',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final supplyLine = parsed['LOCAL SUPPLY 9.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed supply-family '
+              'siblings to tempt routing without letting a generic supply '
+              'line collapse into a final answer.',
+        );
+        expect(
+          supplyLine == null || supplyLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby supply-line families must '
+              'not auto-confirm a bare SUPPLY line without line-level '
+              'evidence such as toilet, faucet, appliance, stop, or other '
+              'explicit supply-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
