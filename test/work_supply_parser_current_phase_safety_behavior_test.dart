@@ -990,6 +990,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic wire shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL WIRE 14.98',
+          'ROMEX HOUSE WIRE 25FT 34.99',
+          'THERMOSTAT WIRE 50FT 29.99',
+          'WIRE CONNECTOR 100PK 8.49',
+          'WIRE MARKER BOOK 4.99',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final wireLine = parsed['LOCAL WIRE 14.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed electrical/HVAC wire '
+              'siblings to tempt routing without letting a generic wire line '
+              'collapse into a final answer.',
+        );
+        expect(
+          wireLine == null || wireLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby electrical/HVAC wire '
+              'families must not auto-confirm a bare WIRE line without '
+              'line-level evidence such as romex, thermostat, connector, '
+              'marker, or other explicit wire-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
