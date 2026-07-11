@@ -2116,6 +2116,35 @@ bool _isBareMixedReceptacleReceiptLine(String text, String? tradeScope) {
   return !hasExplicitReceptacleFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedOutletReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\boutlet\b').hasMatch(normalized)) return false;
+  final hasExplicitOutletFamily = RegExp(
+    r'\b(duplex|gfci|wall|receptacle|usb|wr|tamper|weather|'
+    r'resistant|spacer)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitOutletFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedJunctionReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bjunction\b').hasMatch(normalized)) return false;
+  final hasExplicitJunctionFamily = RegExp(
+    r'\b(box|splice|pull|device|wire|old\s*work|j\s*box|conduit)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitJunctionFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;

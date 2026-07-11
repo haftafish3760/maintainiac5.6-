@@ -328,6 +328,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic outlet shorthand',
+      () {
+        final outletItem = matchReceiptLineToCatalog(
+          'LOCAL OUTLET 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          outletItem == null || outletItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare OUTLET '
+              'line without line-level evidence such as duplex, GFCI, wall, '
+              'receptacle, or other explicit outlet clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic junction shorthand',
+      () {
+        final junctionItem = matchReceiptLineToCatalog(
+          'LOCAL JUNCTION 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          junctionItem == null || junctionItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare JUNCTION '
+              'line without line-level evidence such as box, splice, pull, '
+              'or other explicit junction clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(
