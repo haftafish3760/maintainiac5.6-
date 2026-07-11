@@ -264,6 +264,12 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedClampReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedLineReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedSwitchReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
     trustedItemIdentityIds,

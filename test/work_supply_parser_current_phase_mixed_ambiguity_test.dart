@@ -434,5 +434,41 @@ void main() {
         );
       },
     );
+
+    test(
+      'local mixed receipt does not auto-confirm generic line shorthand',
+      () {
+        final lineItem = matchReceiptLineToCatalog(
+          'LOCAL LINE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          lineItem == null || lineItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare LINE '
+              'line without line-level evidence such as supply, line set, '
+              'water heater, refrigerant, or other explicit line clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic switch shorthand',
+      () {
+        final switchItem = matchReceiptLineToCatalog(
+          'LOCAL SWITCH 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          switchItem == null || switchItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SWITCH '
+              'line without line-level evidence such as float, limit, '
+              'pressure, wall, or other explicit switch clues.',
+        );
+      },
+    );
   });
 }

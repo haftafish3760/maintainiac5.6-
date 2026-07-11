@@ -349,6 +349,37 @@ bool _isBareMixedClampReceiptLine(String text, String? tradeScope) {
   return !hasExplicitClampFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedLineReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bline\b').hasMatch(normalized)) return false;
+  final hasExplicitLineFamily = RegExp(
+    r'\b(supply|set|line set|water heater|heater|refrigerant|copper|'
+    r'ice maker|icemaker|dishwasher|appliance|condensate|drain|'
+    r'washer|laundry|gas|armaflex|mini split)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitLineFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSwitchReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bswitch\b').hasMatch(normalized)) return false;
+  final hasExplicitSwitchFamily = RegExp(
+    r'\b(float|wet|overflow|pan|pressure|limit|rollout|door|wall|'
+    r'toggle|3-way|3way|single pole|smart|motion|timer|safety|well|pump)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSwitchFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
