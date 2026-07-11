@@ -289,6 +289,26 @@ bool _isBareMixedBushingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitBushingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSizedBushingReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bbushing\b').hasMatch(normalized)) return false;
+  if (!RegExp(
+    r'\b(?:1/4|3/8|1/2|5/8|3/4|1|1-1/4|1-1/2|2|2-1/2|3|4)\b',
+  ).hasMatch(normalized)) {
+    return false;
+  }
+  final hasExplicitSizedBushingFamily = RegExp(
+    r'\b(reducing|reducer|insulated|pvc|brass|cpvc|emt|conduit|'
+    r'grounding|bonding|locknut|copper|pex|dwv|threaded|mip|fip)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSizedBushingFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedCopperReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

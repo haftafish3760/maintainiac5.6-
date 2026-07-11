@@ -255,6 +255,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedBushingReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedSizedBushingReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedCopperReceiptLine(normalized, tradeScope)) {
     return null;
   }
