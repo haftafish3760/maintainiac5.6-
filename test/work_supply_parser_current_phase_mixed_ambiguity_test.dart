@@ -4,6 +4,42 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser
 void main() {
   group('inventory parser current-phase mixed ambiguity safety', () {
     test(
+      'local mixed receipt does not auto-confirm generic hinge shorthand',
+      () {
+        final hingeItem = matchReceiptLineToCatalog(
+          'LOCAL HINGE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          hingeItem == null || hingeItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare HINGE '
+              'line without line-level evidence such as toilet, door, '
+              'seat, or other explicit hinge clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic spring shorthand',
+      () {
+        final springItem = matchReceiptLineToCatalog(
+          'LOCAL SPRING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          springItem == null || springItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SPRING '
+              'line without line-level evidence such as faucet, door, '
+              'trap, or other explicit spring clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic handle shorthand',
       () {
         final handleItem = matchReceiptLineToCatalog(

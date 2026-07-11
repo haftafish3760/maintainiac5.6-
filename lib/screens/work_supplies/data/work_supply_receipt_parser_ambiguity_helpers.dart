@@ -1440,6 +1440,36 @@ bool _isBareMixedLeverReceiptLine(String text, String? tradeScope) {
   return !hasExplicitLeverFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedHingeReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bhinge\b').hasMatch(normalized)) return false;
+  final hasExplicitHingeFamily = RegExp(
+    r'\b(toilet|door|seat|cover|cabinet|gate|lid|closet|'
+    r'panel|shower)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitHingeFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedSpringReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bspring\b').hasMatch(normalized)) return false;
+  final hasExplicitSpringFamily = RegExp(
+    r'\b(faucet|door|trap|repair|valve|seat|handle|'
+    r'flush|clip|closer)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSpringFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
