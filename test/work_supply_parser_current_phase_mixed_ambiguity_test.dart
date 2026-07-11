@@ -1354,6 +1354,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm bare copper without trade context',
+      () {
+        final copperLine = matchReceiptLineToCatalog(
+          'LOCAL COPPER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          copperLine == null || copperLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare COPPER '
+              'line without tubing, fitting, coil, pipe, or other trade '
+              'context on the receipt line itself.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm small pvc pipe without system context',
       () {
         final pvcPipeLine = matchReceiptLineToCatalog(
@@ -1403,6 +1421,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare CABLE '
               'line without line-level evidence such as NM-B, UF, SER, '
               'communication, or other explicit cable clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm bare wire without electrical context',
+      () {
+        final wireLine = matchReceiptLineToCatalog(
+          'LOCAL WIRE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          wireLine == null || wireLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare WIRE '
+              'line without gauge, type, spool, grounding, or other '
+              'electrical context on the receipt line itself.',
         );
       },
     );

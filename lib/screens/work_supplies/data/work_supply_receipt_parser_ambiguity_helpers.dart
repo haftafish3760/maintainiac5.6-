@@ -272,6 +272,21 @@ bool _isBareMixedBushingReceiptLine(String text, String? tradeScope) {
   return !hasExplicitBushingFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedCopperReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcopper\b').hasMatch(normalized)) return false;
+  final hasExplicitCopperFamily = RegExp(
+    r'\b(tub(e|ing)|coil|roll|pipe|line|fitting|elbow|tee|coupling|'
+    r'adapter|mip|fip|sweat|press|type\s*[lmk]|l|m|k)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitCopperFamily && tokenCount <= 3;
+}
+
 bool _isBareMixedPipeReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);
@@ -317,6 +332,21 @@ bool _isBareMixedCableReceiptLine(String text, String? tradeScope) {
     r'electrical|electric|hvac)\b',
   ).hasMatch(normalized);
   return !hasExplicitCableFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedWireReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bwire\b').hasMatch(normalized)) return false;
+  final hasExplicitWireFamily = RegExp(
+    r'\b(12/2|12/3|14/2|14/3|10/2|10/3|romex|nm|mc|thhn|uf|ser|'
+    r'spool|ground|grounding|solid|stranded|copper|aluminum|awg|gauge)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWireFamily && tokenCount <= 3;
 }
 
 bool _isBareMixedHoseReceiptLine(String text, String? tradeScope) {

@@ -249,6 +249,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedBushingReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedCopperReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedPipeReceiptLine(normalized, tradeScope)) {
     return null;
   }
@@ -256,6 +259,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
     return null;
   }
   if (_isBareMixedCableReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
+  if (_isBareMixedWireReceiptLine(normalized, tradeScope)) {
     return null;
   }
   if (_isBareMixedHoseReceiptLine(normalized, tradeScope)) {
