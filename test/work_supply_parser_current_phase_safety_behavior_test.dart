@@ -1138,6 +1138,43 @@ void main() {
       },
     );
 
+    test(
+      'local mixed receipt does not auto-confirm generic kit shorthand',
+      () {
+        const receiptLines = [
+          'LOCAL KIT 19.98',
+          'TOILET REPAIR KIT 17.99',
+          'INTERLOCK KIT 89.99',
+          'HARD START KIT 24.99',
+          'SINK REPAIR KIT 14.49',
+        ];
+
+        final parsed = {
+          for (final line in receiptLines)
+            line: matchReceiptLineToCatalog(line, maxCandidates: 420),
+        };
+        final kitLine = parsed['LOCAL KIT 19.98'];
+
+        expect(
+          parsed.values.whereType<ReceiptLineMatch>().length,
+          greaterThanOrEqualTo(3),
+          reason:
+              'The regression must include enough mixed PEH kit-family '
+              'siblings to tempt routing without letting a generic kit line '
+              'collapse into a final answer.',
+        );
+        expect(
+          kitLine == null || kitLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor plus nearby plumbing/electrical/HVAC '
+              'kit families must not auto-confirm a bare KIT line without '
+              'line-level evidence such as toilet, interlock, hard start, '
+              'sink repair, or other explicit kit-family clues.',
+        );
+      },
+    );
+
     test('tape context separates HVAC foil tape from electrical tape', () {
       final hvac = matchReceiptLineToCatalog(
         'UL181 FOIL TAPE',
