@@ -1714,6 +1714,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm wire connector without electrical clues',
+      () {
+        final wireConnectorItem = matchReceiptLineToCatalog(
+          'LOCAL WIRE CONNECTOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          wireConnectorItem == null || wireConnectorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a wire connector '
+              'line when the line still lacks splice, grounding, twister, '
+              'electrical, or other line-level electrical clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic conduit shorthand',
       () {
         final conduitItem = matchReceiptLineToCatalog(
@@ -1835,6 +1853,24 @@ void main() {
               'Local merchant flavor must not auto-confirm a bare DRAIN '
               'line without line-level evidence such as floor, tub, shower, '
               'condensate, or other explicit drain clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm condensate drain without hvac context',
+      () {
+        final condensateDrainItem = matchReceiptLineToCatalog(
+          'LOCAL CONDENSATE DRAIN 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          condensateDrainItem == null || condensateDrainItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a condensate drain '
+              'line when the line still lacks trap, pan, pump, tubing, AC, '
+              'or other HVAC system context.',
         );
       },
     );
