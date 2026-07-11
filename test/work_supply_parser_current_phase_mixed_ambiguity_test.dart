@@ -40,6 +40,42 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm generic sensor shorthand',
+      () {
+        final sensorItem = matchReceiptLineToCatalog(
+          'LOCAL SENSOR 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          sensorItem == null || sensorItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare SENSOR '
+              'line without line-level evidence such as flame, outdoor, '
+              'defrost, or other explicit sensor clues.',
+        );
+      },
+    );
+
+    test(
+      'local mixed receipt does not auto-confirm generic control shorthand',
+      () {
+        final controlItem = matchReceiptLineToCatalog(
+          'LOCAL CONTROL 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          controlItem == null || controlItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a bare CONTROL '
+              'line without line-level evidence such as zone, valve, '
+              'panel, or other explicit control clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic nut shorthand',
       () {
         final nutItem = matchReceiptLineToCatalog(

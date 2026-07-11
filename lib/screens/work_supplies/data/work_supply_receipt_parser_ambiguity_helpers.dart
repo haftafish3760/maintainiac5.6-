@@ -1875,6 +1875,37 @@ bool _isBareMixedMotorReceiptLine(String text, String? tradeScope) {
   return !hasExplicitMotorFamily && tokenCount <= 3;
 }
 
+bool _isBareMixedSensorReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bsensor\b').hasMatch(normalized)) return false;
+  final hasExplicitSensorFamily = RegExp(
+    r'\b(flame|photo|safety|outdoor|indoor|return|discharge|'
+    r'duct|defrost|floor|heat|temp|temperature|humidity|'
+    r'enthalpy|leak|water|motion|door|window|gate)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitSensorFamily && tokenCount <= 3;
+}
+
+bool _isBareMixedControlReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\bcontrol\b').hasMatch(normalized)) return false;
+  final hasExplicitControlFamily = RegExp(
+    r'\b(zone|panel|board|wire|valve|flow|gas|fan|remote|'
+    r'access|volume|joint|weed|temperature|motor|pump)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitControlFamily && tokenCount <= 3;
+}
+
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
