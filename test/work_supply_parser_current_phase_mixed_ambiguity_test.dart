@@ -1377,6 +1377,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm pvc bushing without system context',
+      () {
+        final pvcBushingLine = matchReceiptLineToCatalog(
+          'LOCAL PVC 3/4 BUSHING 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcBushingLine == null || pvcBushingLine.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a small PVC '
+              'bushing line when the receipt still lacks conduit, reducing, '
+              'DWV, pressure, or other system-level context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic pipe shorthand',
       () {
         final pipeLine = matchReceiptLineToCatalog(
