@@ -92,6 +92,46 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+
+  test(
+    'loads the actual Residential HVAC Core pack for offline receipt parsing',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_hvac_core_runtime_test_',
+      );
+      addTearDown(() async {
+        if (await root.exists()) await root.delete(recursive: true);
+      });
+      final option = buildWorkSupplyTradePackOptionsForScope(
+        'HVAC',
+        marketScope: WorkSupplyMarketScope.residential,
+      ).firstWhere((option) => option.tier == WorkSupplyTradePackTier.core);
+      final fileSet = await WorkSupplyTradePackExportWriter(
+        baseDirectory: root,
+      ).writeTradePack(option: option);
+
+      final result = await const WorkSupplyTradePackRuntimeLoader()
+          .loadDirectory(Directory(fileSet.directoryPath));
+
+      expect(result.isReady, isTrue);
+      expect(result.items, hasLength(option.itemCount));
+      for (final entry in {
+        'SUPPLY 45/5 MFD DUAL RUN CAP': 'capacitor',
+        'HD 16X20X1 PLEATED AIR FILTER': 'filter',
+        'SUPPLY FLAME SENSOR UNIVERSAL': 'flame sensor',
+      }.entries) {
+        final match = matchReceiptLineToCatalog(
+          entry.key,
+          tradeScope: 'HVAC',
+          catalogItems: result.items,
+        );
+        expect(match, isNotNull, reason: entry.key);
+        expect(match!.item.trade, 'HVAC');
+        expect(match.item.name.toLowerCase(), contains(entry.value));
+      }
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }
 
 Future<Directory> _writePackFixture({bool corruptChunk = false}) async {
