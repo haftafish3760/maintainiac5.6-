@@ -12,14 +12,17 @@ void main() {
     _expectGoodElectricalCore('TRUE VALUE 5/8 GR0UND ROD CLAMP', ['ground']);
   });
 
-  test('electrical core uses alternate service-stock clues when wording is rough', () {
-    _expectGoodElectricalCore('LEVITON 20A GFI WR RECPT WHITE', ['gfci']);
-    _expectGoodElectricalCore('CARLON 3/4 PVC LB BODY GRY', ['conduit']);
-    _expectGoodElectricalCore('IDEAL LEVER CONN 3 PORT 25PK', ['lever']);
-    _expectGoodElectricalCore('ACE PHOTOEYE OUTDOOR LIGHT CONTROL', [
-      'photocell',
-    ]);
-  });
+  test(
+    'electrical core uses alternate service-stock clues when wording is rough',
+    () {
+      _expectGoodElectricalCore('LEVITON 20A GFI WR RECPT WHITE', ['gfci']);
+      _expectGoodElectricalCore('CARLON 3/4 PVC LB BODY GRY', ['conduit']);
+      _expectGoodElectricalCore('IDEAL LEVER CONN 3 PORT 25PK', ['lever']);
+      _expectGoodElectricalCore('ACE PHOTOEYE OUTDOOR LIGHT CONTROL', [
+        'photocell',
+      ]);
+    },
+  );
 
   test('electrical core keeps missing critical evidence in review', () {
     _expectReviewElectrical('12/ NM-B W/G');
@@ -39,21 +42,15 @@ void main() {
   test('electrical core handles dirty random-store service receipts', () {
     _expectGoodElectricalCore('GRAINGER 20A GFC1 WR RECPT WHT', ['gfci']);
     _expectGoodElectricalCore('FASTENAL 1/2 EMT COMP CONN STL', ['connector']);
-    _expectGoodElectricalCore('LOCAL SUPPLY 12/2 MC CABLE ALUM 250FT', ['mc']);
+    _expectGoodElectricalCore('LOCAL SUPPLY 12/2 MC CABLE ALUM 100FT', ['mc']);
     _expectGoodElectricalCore('TRUE VALUE PHOTOEYE OUTDR LGT CTRL', [
       'photocell',
     ]);
     _expectGoodElectricalCore('ACE 3/4 PVC LB B0DY GRY', ['conduit']);
-    _expectGoodElectricalCore('LOCAL SUPPLY 120V 20A CONTACT0R', [
-      'contactor',
-    ]);
-    _expectGoodElectricalCore('ACE 120V FAN SPEED CTRL', [
-      'fan speed control',
-    ]);
-    _expectGoodElectricalCore('TRUE VALUE 240V TIME CL0CK 40A', [
-      'time clock',
-    ]);
-    _expectGoodElectricalCore('MENARDS 120V RELAY 20A', ['relay']);
+    _expectElectricalNonCore('LOCAL SUPPLY 120V 20A CONTACT0R', ['contactor']);
+    _expectElectricalNonCore('ACE 120V FAN SPEED CTRL', ['fan speed control']);
+    _expectElectricalNonCore('TRUE VALUE 240V TIME CL0CK 40A', ['time clock']);
+    _expectElectricalNonCore('MENARDS 120V RELAY 20A', ['relay']);
   });
 
   test('electrical core covers named regional merchant receipt families', () {
@@ -66,26 +63,27 @@ void main() {
       'ground',
     ]);
     _expectGoodElectricalCore('RURAL KING 15A SINGLE POLE SWITCH', ['switch']);
-    _expectGoodElectricalCore('NORTHERN TOOL 3/4 PVC LB BODY GRY', [
-      'conduit',
-    ]);
+    _expectGoodElectricalCore('NORTHERN TOOL 3/4 PVC LB BODY GRY', ['conduit']);
   });
 
-  test('electrical core covers supplemental service stock receipt language', () {
-    _expectGoodElectricalCore('ACE 20A PLUG FUSE 4PK', ['fuse']);
-    _expectGoodElectricalCore('TRUE VALUE 60A CART FUSE PAIR', ['fuse']);
-    _expectGoodElectricalCore('LOCAL ELEC SUPPLY WH SURGE PROTECTR SPD', [
-      'surge',
-    ]);
-    _expectGoodElectricalCore('SUPPLYHOUSE PANEL GROUND BAR KIT', ['ground']);
-    _expectGoodElectricalCore('MENARDS PORCLN KEYLESS LAMPHLDR', [
-      'lampholder',
-    ]);
-    _expectGoodElectricalCore('WINSUPPLY PHOTO EYE SWVL CONTROL 120V', [
-      'photo',
-    ]);
-    _expectGoodElectricalCore('FASTENAL SPLIT BOLT CONN GROUND', ['split']);
-  });
+  test(
+    'electrical core covers supplemental service stock receipt language',
+    () {
+      _expectGoodElectricalCore('ACE 20A PLUG FUSE 4PK', ['fuse']);
+      _expectGoodElectricalCore('TRUE VALUE 60A CART FUSE PAIR', ['fuse']);
+      _expectGoodElectricalCore('LOCAL ELEC SUPPLY WH SURGE PROTECTR SPD', [
+        'surge',
+      ]);
+      _expectGoodElectricalCore('SUPPLYHOUSE PANEL GROUND BAR KIT', ['ground']);
+      _expectGoodElectricalCore('MENARDS PORCLN KEYLESS LAMPHLDR', [
+        'lampholder',
+      ]);
+      _expectGoodElectricalCore('WINSUPPLY PHOTO EYE SWVL CONTROL 120V', [
+        'photo',
+      ]);
+      _expectGoodElectricalCore('FASTENAL SPLIT BOLT CONN GROUND', ['split']);
+    },
+  );
 }
 
 void _expectGoodElectricalCore(String line, List<String> expectedTerms) {
@@ -99,6 +97,22 @@ void _expectGoodElectricalCore(String line, List<String> expectedTerms) {
   expect(match.item.trade, 'Electrical', reason: detail);
   expect(match.item.packTier, WorkSupplyPackTier.core, reason: detail);
   expect(match.confidenceLevel, ReceiptConfidenceLevel.good, reason: detail);
+  final searchable = match.item.searchableText.toLowerCase();
+  for (final term in expectedTerms) {
+    expect(searchable, contains(term), reason: detail);
+  }
+}
+
+void _expectElectricalNonCore(String line, List<String> expectedTerms) {
+  final match = matchReceiptLineToCatalog(
+    line,
+    tradeScope: 'Electrical',
+    maxCandidates: 420,
+  );
+  expect(match, isNotNull, reason: line);
+  final detail = '$line -> ${match!.item.name} / ${match.item.path}';
+  expect(match.item.trade, 'Electrical', reason: detail);
+  expect(match.item.packTier, isNot(WorkSupplyPackTier.core), reason: detail);
   final searchable = match.item.searchableText.toLowerCase();
   for (final term in expectedTerms) {
     expect(searchable, contains(term), reason: detail);

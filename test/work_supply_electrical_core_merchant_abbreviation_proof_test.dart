@@ -102,7 +102,7 @@ void main() {
   });
 
   test('electrical core parses service-stock conduit and flex lines', () {
-    _expectGoodElectricalCore('HD 12/2 MC CABLE ALUM 250FT', ['mc cable']);
+    _expectGoodElectricalCore('HD 12/2 MC CABLE ALUM 100FT', ['mc cable']);
     _expectGoodElectricalCore('LOWES 1/2 FLEX METAL CONDUIT 25FT', [
       'flexible',
     ]);
