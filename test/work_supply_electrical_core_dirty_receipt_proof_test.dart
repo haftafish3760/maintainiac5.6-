@@ -4,6 +4,12 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_confid
 import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser.dart';
 
 void main() {
+  test('electrical core distinguishes decorator plates from device boxes', () {
+    _expectGoodElectricalCore('ELEC SUPPLY 2 GANG DECORATOR PLATE 12.77', [
+      'wall plate',
+    ]);
+  });
+
   test('electrical core recovers dirty OCR when enough clues remain', () {
     _expectGoodElectricalCore('L0WES 12/2 NMB R0MEX W/G 100FT', ['nm-b']);
     _expectGoodElectricalCore('HD 20A WR GFC1 RECPT WHT', ['gfci']);

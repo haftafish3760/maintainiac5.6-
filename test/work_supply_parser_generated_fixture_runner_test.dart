@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser.dart';
 
+import 'support/work_supply_parser_qa/generated_parser_fixture.dart';
+
 void main() {
   test('generated parser fixture batch matches expected safety contracts', () {
     const fixturePath = String.fromEnvironment(
@@ -38,7 +40,7 @@ void main() {
     final fixtureIds = _csvSet(fixtureIdsCsv);
     final allFixtures = [
       for (final entry in decoded)
-        _GeneratedFixture.fromJson((entry as Map).cast<String, Object?>()),
+        GeneratedParserFixture.fromJson((entry as Map).cast<String, Object?>()),
     ];
     final fixtures = _selectGeneratedFixtures(
       allFixtures,
@@ -150,6 +152,13 @@ void main() {
           'got ${match.item.trade}',
         );
       }
+      if (fixture.expectedPackTier.isNotEmpty &&
+          match.item.packTier.name != fixture.expectedPackTier) {
+        failures.add(
+          '${fixture.id}: expected ${fixture.expectedPackTier} tier, '
+          'got ${match.item.packTier.name} for ${match.item.name}',
+        );
+      }
       if (fixture.expectedNameContains.isNotEmpty &&
           !match.item.name.toLowerCase().contains(
             fixture.expectedNameContains.toLowerCase(),
@@ -190,12 +199,12 @@ void main() {
 
   test('generated fixture runner filters explicit fixture ids surgically', () {
     const fixtures = [
-      _GeneratedFixture(
+      GeneratedParserFixture(
         id: 'electrical_residential_core_en_US_dangerous_pvc_conduit_00044',
         rawLine: 'GRAINGER PVC COND 3/4 45.08',
         caseType: 'ambiguous_review',
       ),
-      _GeneratedFixture(
+      GeneratedParserFixture(
         id: 'electrical_residential_core_en_US_nm_b_wire_00046',
         rawLine: 'LOWES NM-B 12/2 25FT',
         caseType: 'clear_match',
@@ -221,7 +230,7 @@ void main() {
   test('generated fixture runner selects fixture chunks by offset', () {
     final fixtures = [
       for (var index = 0; index < 5; index++)
-        _GeneratedFixture(
+        GeneratedParserFixture(
           id: 'fixture_$index',
           rawLine: 'LOWES NM-B 12/2 25FT',
           caseType: 'clear_match',
@@ -239,7 +248,7 @@ void main() {
   });
 
   test('generated fixture runner validates receipt envelope item lines', () {
-    const fixture = _GeneratedFixture(
+    const fixture = GeneratedParserFixture(
       id: 'fixture_receipt_envelope',
       rawLine: 'SUBTOTAL 99.00',
       receiptItemLines: ['LOWES TOILET WAX RING 4.98'],
@@ -251,13 +260,13 @@ void main() {
 
   test('generated fixture warmup keeps each fixture trade scope', () {
     final probes = _warmupLinesFor(const [
-      _GeneratedFixture(
+      GeneratedParserFixture(
         id: 'electrical_box',
         rawLine: 'HD 1G OLD WORK BOX 1.00',
         caseType: 'clear_match',
         tradeScope: 'Electrical',
       ),
-      _GeneratedFixture(
+      GeneratedParserFixture(
         id: 'hvac_filter',
         rawLine: 'HD 16X25X1 MERV 8 FILTER 8.97',
         caseType: 'clear_match',
@@ -317,7 +326,7 @@ void main() {
   });
 }
 
-List<_WarmupProbe> _warmupLinesFor(List<_GeneratedFixture> fixtures) {
+List<_WarmupProbe> _warmupLinesFor(List<GeneratedParserFixture> fixtures) {
   final probes = <_WarmupProbe>{
     const _WarmupProbe('HD 3/4 PVC SCH40 COUPLING', 'Plumbing'),
     const _WarmupProbe('HD 1/2 PEX CRMP ELL', 'Plumbing'),
@@ -363,8 +372,8 @@ Set<String> _csvSet(String value) {
       .toSet();
 }
 
-List<_GeneratedFixture> _selectGeneratedFixtures(
-  List<_GeneratedFixture> fixtures, {
+List<GeneratedParserFixture> _selectGeneratedFixtures(
+  List<GeneratedParserFixture> fixtures, {
   required Set<String> fixtureIds,
   required int startIndex,
   required int maxCases,
@@ -479,57 +488,4 @@ class _GeneratedFixtureRunArtifact {
 
   final String timestampedJsonPath;
   final String latestJsonPath;
-}
-
-class _GeneratedFixture {
-  const _GeneratedFixture({
-    required this.id,
-    required this.rawLine,
-    required this.caseType,
-    this.receiptItemLines = const [],
-    this.expectedTrade = '',
-    this.expectedNameContains = '',
-    this.tradeScope,
-    this.localePackId = '',
-    this.expectUnknown = false,
-    this.maxConfidence = 1,
-  });
-
-  final String id;
-  final String rawLine;
-  final String caseType;
-  final List<String> receiptItemLines;
-  final String expectedTrade;
-  final String expectedNameContains;
-  final String? tradeScope;
-  final String localePackId;
-  final bool expectUnknown;
-  final double maxConfidence;
-
-  List<String> get parserLines {
-    final lines = receiptItemLines
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toList(growable: false);
-    if (lines.isNotEmpty) return lines;
-    return rawLine.trim().isEmpty ? const [] : [rawLine.trim()];
-  }
-
-  static _GeneratedFixture fromJson(Map<String, Object?> json) {
-    return _GeneratedFixture(
-      id: json['id'] as String? ?? 'generated_fixture_without_id',
-      rawLine: json['rawLine'] as String? ?? '',
-      caseType: json['caseType'] as String? ?? '',
-      receiptItemLines: [
-        for (final line in (json['receiptItemLines'] as List? ?? const []))
-          if (line != null) line.toString(),
-      ],
-      expectedTrade: json['expectedTrade'] as String? ?? '',
-      expectedNameContains: json['expectedNameContains'] as String? ?? '',
-      tradeScope: json['tradeScope'] as String?,
-      localePackId: json['localePackId'] as String? ?? '',
-      expectUnknown: json['expectUnknown'] as bool? ?? false,
-      maxConfidence: (json['maxConfidence'] as num?)?.toDouble() ?? 1,
-    );
-  }
 }

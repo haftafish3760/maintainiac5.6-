@@ -102,7 +102,7 @@ int _electricalReceiptScore(
     r'\b(weatherproof|extra duty|in use|in-use|bubble cover|outdoor cover)\b',
   ).hasMatch(text);
   final receiptSaysWallPlate = RegExp(
-    r'\b(wall plate|cover plate|switch plate|device plate|blank plate|placa|placa electrica|placa decora|placa decorador|cubierta electrica)\b',
+    r'\b(wall plate|cover plate|switch plate|device plate|blank plate|decorator plate|decora plate|placa|placa electrica|placa decora|placa decorador|cubierta electrica)\b',
   ).hasMatch(text);
   final receiptSaysPanelAccessory = RegExp(
     r'\b(ground bar|neutral bar|breaker filler|panel filler|panel label|circuit directory|panel schedule|interlock kit|surge protective)\b',
@@ -264,6 +264,13 @@ int _electricalReceiptScore(
   }
   if (receiptSaysWallPlate && itemName.contains('wall plate')) {
     score += 54;
+    final receiptHasPlateColor = RegExp(
+      r'\b(black|brown|gray|grey|ivory|light almond|white|blk|brn|gry|wht)\b',
+    ).hasMatch(text);
+    if (!receiptHasPlateColor) {
+      if (variant.contains('white')) score += 24;
+      if (RegExp(r'\b(black|brown|gray)\b').hasMatch(variant)) score -= 24;
+    }
     if (RegExp(r'\b(decora|decorator|decorador)\b').hasMatch(text)) {
       if (variant.contains('decorator')) {
         score += 58;
