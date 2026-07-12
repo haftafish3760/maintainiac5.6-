@@ -258,6 +258,23 @@ ReceiptLineMatch? _matchReceiptLineToActiveCatalog(
       matchedTerms: _directMatchedTerms(normalized, plumbingPrecedence),
     );
   }
+  final electricalProfessional = _directElectricalProfessionalMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (electricalProfessional != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: electricalProfessional,
+      confidence: _directReceiptConfidence(
+        normalized,
+        electricalProfessional,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, electricalProfessional),
+    );
+  }
   final fastDirect = _directFastReceiptMatch(
     normalized,
     tradeScope: tradeScope,
@@ -972,11 +989,6 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     tradeScope: tradeScope,
   );
   if (electricalControl != null) return electricalControl;
-  final electricalProfessional = _directElectricalProfessionalMatch(
-    text,
-    tradeScope: tradeScope,
-  );
-  if (electricalProfessional != null) return electricalProfessional;
   final electricalRaceway = _directElectricalRacewayMatch(
     text,
     tradeScope: tradeScope,
