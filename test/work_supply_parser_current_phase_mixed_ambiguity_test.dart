@@ -2165,6 +2165,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm pvc coupling without system context',
+      () {
+        final pvcCouplingItem = matchReceiptLineToCatalog(
+          'LOCAL PVC 3/4 CPLG 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcCouplingItem == null || pvcCouplingItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a small PVC '
+              'coupling line when the receipt still lacks conduit, '
+              'condensate, DWV, pressure, or other system-level context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm cts coupling shorthand without trade context',
       () {
         final ctsCouplingItem = matchReceiptLineToCatalog(
