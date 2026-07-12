@@ -149,7 +149,7 @@ List<Map<String, Object?>> _buildCases({
       'expectedTrade': recipe.expectedTrade.isEmpty
           ? _title(options.trade)
           : recipe.expectedTrade,
-      'expectedPackTier': options.tier,
+      if (options.tier == 'core') 'expectedPackTier': options.tier,
       'expectedNameContains': recipe.expectedNameContains.isEmpty
           ? _fallbackExpectedName(recipe)
           : recipe.expectedNameContains,
@@ -425,10 +425,10 @@ List<WorkSupplyFixtureRecipe> _recipesFor(_GeneratorOptions options) {
     return englishElectricalCoreRecipes;
   }
   if (options.trade == 'hvac' && options.locale == 'es-US') {
-    return spanishHvacCoreRecipes;
+    return _coreHvacRecipes(spanishHvacCoreRecipes);
   }
   if (options.trade == 'hvac' && options.locale == 'en-US') {
-    return englishHvacCoreRecipes;
+    return _coreHvacRecipes(englishHvacCoreRecipes);
   }
   return const [];
 }

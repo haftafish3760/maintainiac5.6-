@@ -1,5 +1,18 @@
 part of 'work_supply_parser_qa_generate_fixtures.dart';
 
+List<WorkSupplyFixtureRecipe> _coreHvacRecipes(
+  List<WorkSupplyFixtureRecipe> recipes,
+) => recipes
+    .where(
+      (recipe) => !const {
+        'flex_duct',
+        'start_collar',
+        'ducto_flexible',
+        'collarin_arranque',
+      }.contains(recipe.slug),
+    )
+    .toList(growable: false);
+
 List<WorkSupplyFixtureRecipe> _prioritizeRecipesForLimitedBatch(
   List<WorkSupplyFixtureRecipe> recipes,
   _GeneratorOptions options,
