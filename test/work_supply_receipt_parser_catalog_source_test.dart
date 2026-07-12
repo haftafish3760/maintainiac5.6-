@@ -27,6 +27,24 @@ void main() {
     expect(match!.item.id, item.id);
   });
 
+  test('reuses an immutable index for a stable supplied catalog list', () {
+    final items = [_findPvcSchedule40Coupling()];
+    final first = matchReceiptLineToCatalog(
+      'HD 3/4 PVC SCH40 COUPLING',
+      tradeScope: 'Plumbing',
+      catalogItems: items,
+    );
+    items.clear();
+    final second = matchReceiptLineToCatalog(
+      'HD 3/4 PVC SCH40 COUPLING',
+      tradeScope: 'Plumbing',
+      catalogItems: items,
+    );
+
+    expect(first, isNotNull);
+    expect(second?.item.id, first!.item.id);
+  });
+
   test('default catalog behavior is restored after a scoped match', () {
     matchReceiptLineToCatalog(
       'HD 3/4 PVC SCH40 COUPLING',

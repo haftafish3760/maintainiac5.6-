@@ -3,6 +3,10 @@ part of '../../work_supply_receipt_parser.dart';
 List<WorkSupplyItem>? _activeReceiptCatalogItems;
 _ReceiptCatalogIndexes? _activeReceiptCatalogIndexes;
 
+final _receiptCatalogContextByItems = Expando<_ReceiptCatalogContext>(
+  'receiptCatalogContext',
+);
+
 final _baseReceiptCatalogIndexes = _ReceiptCatalogIndexes.build(
   catalog.workSupplyCatalogItems,
 );
@@ -33,15 +37,31 @@ T _runWithReceiptCatalogItems<T>(
   if (catalogItems == null) return action();
   final previousItems = _activeReceiptCatalogItems;
   final previousIndexes = _activeReceiptCatalogIndexes;
-  final items = List<WorkSupplyItem>.unmodifiable(catalogItems);
-  _activeReceiptCatalogItems = items;
-  _activeReceiptCatalogIndexes = _ReceiptCatalogIndexes.build(items);
+  final context = _receiptCatalogContextByItems[catalogItems] ??=
+      _ReceiptCatalogContext.fromItems(catalogItems);
+  _activeReceiptCatalogItems = context.items;
+  _activeReceiptCatalogIndexes = context.indexes;
   try {
     return action();
   } finally {
     _activeReceiptCatalogItems = previousItems;
     _activeReceiptCatalogIndexes = previousIndexes;
   }
+}
+
+class _ReceiptCatalogContext {
+  const _ReceiptCatalogContext._({required this.items, required this.indexes});
+
+  factory _ReceiptCatalogContext.fromItems(List<WorkSupplyItem> source) {
+    final items = List<WorkSupplyItem>.unmodifiable(source);
+    return _ReceiptCatalogContext._(
+      items: items,
+      indexes: _ReceiptCatalogIndexes.build(items),
+    );
+  }
+
+  final List<WorkSupplyItem> items;
+  final _ReceiptCatalogIndexes indexes;
 }
 
 List<WorkSupplyItem> _searchActiveReceiptCatalogItems(String query) {
