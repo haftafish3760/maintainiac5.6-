@@ -132,6 +132,46 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+
+  test(
+    'loads the actual Residential Electrical Core pack for offline receipt parsing',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'maintainiac_electrical_core_runtime_test_',
+      );
+      addTearDown(() async {
+        if (await root.exists()) await root.delete(recursive: true);
+      });
+      final option = buildWorkSupplyTradePackOptionsForScope(
+        'Electrical',
+        marketScope: WorkSupplyMarketScope.residential,
+      ).firstWhere((option) => option.tier == WorkSupplyTradePackTier.core);
+      final fileSet = await WorkSupplyTradePackExportWriter(
+        baseDirectory: root,
+      ).writeTradePack(option: option);
+
+      final result = await const WorkSupplyTradePackRuntimeLoader()
+          .loadDirectory(Directory(fileSet.directoryPath));
+
+      expect(result.isReady, isTrue);
+      expect(result.items, hasLength(option.itemCount));
+      for (final entry in {
+        'HD 12/2 NM-B W/G 250FT': 'nm-b',
+        'LOWES 20A WR GFCI RECPT WHITE': 'gfci',
+        'HD 20A 1P BRKR': 'breaker',
+      }.entries) {
+        final match = matchReceiptLineToCatalog(
+          entry.key,
+          tradeScope: 'Electrical',
+          catalogItems: result.items,
+        );
+        expect(match, isNotNull, reason: entry.key);
+        expect(match!.item.trade, 'Electrical');
+        expect(match.item.name.toLowerCase(), contains(entry.value));
+      }
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }
 
 Future<Directory> _writePackFixture({bool corruptChunk = false}) async {
