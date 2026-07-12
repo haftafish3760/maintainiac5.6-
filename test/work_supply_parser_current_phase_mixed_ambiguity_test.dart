@@ -2037,6 +2037,25 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm pvc adapter without system context',
+      () {
+        final pvcAdapterItem = matchReceiptLineToCatalog(
+          'LOCAL PVC 3/4 ADAPTER 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcAdapterItem == null || pvcAdapterItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a small PVC '
+              'adapter line when the receipt still lacks conduit, DWV, '
+              'pressure, terminal, male, female, or other system-level '
+              'context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm threaded adapter shorthand without trade context',
       () {
         final threadedAdapterItem = matchReceiptLineToCatalog(
