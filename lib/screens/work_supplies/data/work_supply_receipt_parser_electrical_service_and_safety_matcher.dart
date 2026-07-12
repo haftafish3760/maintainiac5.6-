@@ -111,7 +111,8 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
         r'\b(ac|a/c|non\s*fused|non\s*fusible|disc|disconnect|'
         r'desconectador)\b',
       ).hasMatch(text) &&
-      RegExp(r'\b(disc|disconnect|desconectador)\b').hasMatch(text);
+      RegExp(r'\b(disc|disconnect|desconectador)\b').hasMatch(text) &&
+      !RegExp(r'\b(wire\s*nut|wirenut)\b').hasMatch(text);
   if (wantsAcDisconnect) {
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -198,7 +199,9 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
   }
 
   final wantsToggleSwitch =
-      RegExp(r'\b(toggle|tog|palanca|wall|3way|3\s*way)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(toggle|tog|palanca|wall|3way|3\s*way|3\s*via|tres\s+vias?)\b',
+      ).hasMatch(text) &&
       RegExp(r'\b(sw|switch|interruptor)\b').hasMatch(text);
   if (wantsToggleSwitch) {
     for (final item in _activeWorkSupplyCatalogItems) {
