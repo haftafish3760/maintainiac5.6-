@@ -30,6 +30,35 @@ Map<String, List<_ReceiptCatalogEntry>> get _receiptCatalogTokenIndex =>
     _activeReceiptCatalogIndexes?.tokenIndex ??
     _baseReceiptCatalogContext.indexes.tokenIndex;
 
+/// Narrows exact-name matcher work without changing its final predicate.
+/// If a catalog does not expose one of the required tokens, callers retain
+/// legacy full-catalog behavior instead of risking a false negative.
+Iterable<WorkSupplyItem> _activeReceiptCatalogItemsForRequiredNameTokens(
+  Iterable<String> requiredNameParts,
+) {
+  final tokens = {
+    for (final part in requiredNameParts)
+      ..._receiptCandidateTokens(_normalize(part)),
+  };
+  if (tokens.isEmpty) return _activeWorkSupplyCatalogItems;
+  final entriesByToken = [
+    for (final token in tokens) _receiptCatalogTokenIndex[token],
+  ];
+  if (entriesByToken.any((entries) => entries == null)) {
+    return _activeWorkSupplyCatalogItems;
+  }
+  final orderedLists = entriesByToken.cast<List<_ReceiptCatalogEntry>>()
+    ..sort((left, right) => left.length.compareTo(right.length));
+  final requiredIds = [
+    for (final entries in orderedLists.skip(1))
+      {for (final entry in entries) entry.item.id},
+  ];
+  return [
+    for (final entry in orderedLists.first)
+      if (requiredIds.every((ids) => ids.contains(entry.item.id))) entry.item,
+  ];
+}
+
 T _runWithReceiptCatalogItems<T>(
   List<WorkSupplyItem>? catalogItems, {
   String? tradeScope,

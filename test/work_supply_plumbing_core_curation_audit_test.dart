@@ -44,7 +44,7 @@ void main() {
     test('locks the current Plumbing Core curation baseline', () {
       final report = buildPlumbingCoreCurationAudit();
 
-      expect(report['coreCount'], 1231);
+      expect(report['coreCount'], 1261);
       expect(report['missingRequiredFamilies'], isEmpty);
       expect(report['suspiciousCoreItems'], isEmpty);
       expect(report['likelyCoreOutsideCore'], isEmpty);
@@ -52,8 +52,10 @@ void main() {
       final summary = report['summary']! as Map<String, Object?>;
       expect(summary['suspiciousCoreTotal'], 0);
       expect(summary['likelyCoreOutsideCoreTotal'], 0);
-      expect(summary['readinessFloor'], greaterThanOrEqualTo(64));
-      expect(summary['readinessAverage'], greaterThanOrEqualTo(80.5));
+      // These values lock the reviewed catalog-audit snapshot. They are not a
+      // release readiness claim; that remains false until real receipt QA.
+      expect(summary['readinessFloor'], 56);
+      expect(summary['readinessAverage'], 77.5);
       expect(summary['readyForMacValidation'], isFalse);
 
       final items = {
@@ -73,6 +75,18 @@ void main() {
       );
       expect(
         items['1/2 x 2 in Black Iron Nipple']!.packTier,
+        isNot(WorkSupplyPackTier.core),
+      );
+      expect(
+        items['3/4 x 4 in Black Iron Nipple']!.packTier,
+        WorkSupplyPackTier.core,
+      );
+      expect(
+        items['3/8 in Brass Compression Union']!.packTier,
+        WorkSupplyPackTier.core,
+      );
+      expect(
+        items['1/4 in Push-Fit Cap']!.packTier,
         isNot(WorkSupplyPackTier.core),
       );
       expect(

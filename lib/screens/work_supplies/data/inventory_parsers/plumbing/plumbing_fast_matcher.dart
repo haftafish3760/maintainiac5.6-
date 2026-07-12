@@ -41,7 +41,9 @@ WorkSupplyItem? _directPlumbingAbsDwvMatch(String text) {
   };
   if (targetName == null) return null;
   final size = _nominalReceiptSize(text);
-  for (final item in _activeWorkSupplyCatalogItems) {
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens([
+    targetName,
+  ])) {
     final name = item.name.toLowerCase();
     if (item.trade != 'Plumbing' || !name.contains(targetName)) continue;
     if (_nameMatchesReceiptMatrix(name, text) ||
@@ -142,7 +144,9 @@ WorkSupplyItem? _directPlumbingPvcDwvMatch(String text) {
   };
   if (targetName == null) return null;
   final size = _nominalReceiptSize(text);
-  for (final item in _activeWorkSupplyCatalogItems) {
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens([
+    targetName,
+  ])) {
     final name = item.name.toLowerCase();
     if (item.trade != 'Plumbing' || !name.contains(targetName)) continue;
     if (_nameMatchesReceiptMatrix(name, text) ||
@@ -340,7 +344,10 @@ WorkSupplyItem? _firstPlumbingItemNamed(
   String requiredName, [
   List<String> additionalNameTokens = const [],
 ]) {
-  for (final item in _activeWorkSupplyCatalogItems) {
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens([
+    requiredName,
+    ...additionalNameTokens,
+  ])) {
     final name = item.name.toLowerCase();
     if (item.trade != 'Plumbing' || !name.contains(requiredName)) continue;
     if (additionalNameTokens.every(name.contains)) return item;

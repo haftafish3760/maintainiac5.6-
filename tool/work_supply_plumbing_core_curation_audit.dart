@@ -186,7 +186,9 @@ _Finding? _suspiciousCoreFinding(WorkSupplyItem item) {
   if (_looksMajorEquipment(text) && !_looksServiceReplacementPart(text)) {
     reasons.add('major_equipment_not_service_stock');
   }
-  if (_looksLegacyMaterial(text) && !_looksLegacyRepairBridge(text)) {
+  if (_looksLegacyMaterial(text) &&
+      !_looksLegacyRepairBridge(text) &&
+      !_isIntentionalCommonBlackIronNipple(item)) {
     reasons.add('legacy_material_without_transition_repair_context');
   }
   if (_positiveSignals(item).isEmpty) {
@@ -265,6 +267,12 @@ List<String> _positiveSignals(WorkSupplyItem item) {
     if (_hasAny(text, rule.signals)) signals.add(rule.reason);
   }
   if (_commonResidentialSize(item)) signals.add('common_residential_size');
+  if (_isIntentionalCommonBlackIronNipple(item)) {
+    signals.add('common_black_iron_service_nipple');
+  }
+  if (_isIntentionalCoreCompressionUnion(item)) {
+    signals.add('common_compression_union');
+  }
   return signals.toSet().toList(growable: false)..sort();
 }
 
@@ -310,8 +318,9 @@ bool _isOversizedForPlumbingCore(WorkSupplyItem item) {
     return size > 1;
   }
   if (_hasAny(text, ['toilet flange', 'closet flange'])) return size > 4;
-  if (_hasAny(text, ['dwv', 'drain', 'sewer', 'closet flange']))
+  if (_hasAny(text, ['dwv', 'drain', 'sewer', 'closet flange'])) {
     return size > 4;
+  }
   if (_hasAny(text, ['pex', 'copper', 'cpvc', 'push', 'sharkbite'])) {
     return size > 1;
   }
@@ -556,6 +565,22 @@ bool _looksLegacyRepairBridge(String text) {
   ]);
 }
 
+bool _isIntentionalCommonBlackIronNipple(WorkSupplyItem item) {
+  if (item.system.toLowerCase() != 'black iron' ||
+      !item.itemType.toLowerCase().contains('nipple')) {
+    return false;
+  }
+  if ((_primaryNominalInches(item.variant) ?? 0) != .75) return false;
+  return RegExp(
+    r'\bx\s+(?:2|3|4|6)\s*in\b',
+  ).hasMatch(item.variant.toLowerCase());
+}
+
+bool _isIntentionalCoreCompressionUnion(WorkSupplyItem item) =>
+    item.system.toLowerCase() == 'brass' &&
+    item.itemType.toLowerCase().contains('compression union') &&
+    (_primaryNominalInches(item.variant) ?? 0) == .375;
+
 bool _hasAny(String text, Iterable<String> signals) {
   return signals.any(text.contains);
 }
@@ -594,7 +619,20 @@ int _findingSort(_Finding left, _Finding right) {
 }
 
 const _positiveCoreRules = [
-  _SignalRule('pipe_fittings', ['elbow', 'tee', 'coupling', 'adapter']),
+  _SignalRule('pipe_fittings', [
+    'elbow',
+    'tee',
+    'coupling',
+    'adapter',
+    'wye',
+    'cleanout',
+    'bushing',
+    'reducer',
+    'union',
+    'cap',
+    'plug',
+    'ring',
+  ]),
   _SignalRule('modern_supply_material', ['pex', 'cpvc', 'copper', 'push']),
   _SignalRule('drain_trap_repair', ['p-trap', 'trap adapter', 'tailpiece']),
   _SignalRule('toilet_service', ['toilet', 'wax ring', 'closet flange']),

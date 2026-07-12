@@ -62,6 +62,9 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   if (category == 'fittings' && _isCommonResidentialNoHubRepair(item)) {
     return true;
   }
+  if (category == 'fittings' && _isCommonResidentialSupplyClosure(item)) {
+    return true;
+  }
   if (_hasPlumbingCommercialCoreExclusion(text)) return false;
   if (category == 'fittings' && _isOversizedPlumbingFittingForCore(item)) {
     return false;
@@ -109,6 +112,11 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
     }
     if (system == 'copper' || system == 'brass') {
       if (item.variant.toLowerCase().startsWith('2 x')) return false;
+      if (system == 'brass' &&
+          type.contains('compression union') &&
+          (_primaryPlumbingVariantSize(item.variant) ?? 0) == .375) {
+        return true;
+      }
       return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
           _hasAny(text, _plumbingCoreFittingFamilySignals) &&
           (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x'])) &&
@@ -124,7 +132,7 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
           _isCommonPlumbingVariant(item.variant);
     }
     if (system == 'black iron' && type.contains('nipple')) {
-      return false;
+      return _isCommonResidentialBlackIronNipple(item);
     }
     return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
         _hasAny(text, _plumbingCoreFittingFamilySignals) &&
@@ -164,6 +172,29 @@ bool _isCommonResidentialNoHubRepair(WorkSupplyItem item) {
     3,
     4,
   ].contains(_primaryPlumbingVariantSize(item.variant));
+}
+
+bool _isCommonResidentialBlackIronNipple(WorkSupplyItem item) {
+  if ((_primaryPlumbingVariantSize(item.variant) ?? 0) != .75) return false;
+  return RegExp(
+    r'\bx\s+(?:close|2|3|4|6)\s*in\b',
+  ).hasMatch(item.variant.toLowerCase());
+}
+
+bool _isCommonResidentialSupplyClosure(WorkSupplyItem item) {
+  final system = item.system.toLowerCase();
+  final type = item.itemType.toLowerCase();
+  if (system != 'copper' && system != 'cpvc' && system != 'push-fit') {
+    return false;
+  }
+  if (type.contains('expanded')) return false;
+  if (!type.contains('cap') &&
+      !type.contains('reducer') &&
+      !type.contains('union')) {
+    return false;
+  }
+  return (_primaryPlumbingVariantSize(item.variant) ?? 0) <= 1 &&
+      _isCommonPlumbingVariant(item.variant);
 }
 
 bool _isOversizedPlumbingFittingForCore(WorkSupplyItem item) {
