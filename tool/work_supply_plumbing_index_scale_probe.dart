@@ -32,6 +32,15 @@ void main(List<String> args) {
       _same(cold.indexedIds, warm.indexedIds) &&
       cold.indexedIds.length == 1 &&
       cold.indexedIds.single == _target.id;
+  final parserTimer = Stopwatch()..start();
+  final parserMatch = matchReceiptLineToCatalog(
+    'HD 1/2 X 3/8 PUSH ANGLE STOP',
+    catalogItems: items,
+    tradeScope: 'Plumbing',
+    maxCandidates: 80,
+  );
+  parserTimer.stop();
+  final parserCorrect = parserMatch?.item.id == _target.id;
   stdout.writeln(
     jsonEncode({
       'schema': 'maintainiac.inventory.plumbing_index_scale_probe.v1',
@@ -44,10 +53,12 @@ void main(List<String> args) {
       'warmTotalMs': warmTimer.elapsedMilliseconds,
       'warmIndexedMicros': warm.indexedMicroseconds,
       'warmFullScanMs': warm.fullScanMicroseconds / 1000,
+      'actualParserMs': parserTimer.elapsedMicroseconds / 1000,
+      'actualParserCorrect': parserCorrect,
       'residentMemoryMiB': ProcessInfo.currentRss / (1024 * 1024),
     }),
   );
-  if (!parity) exitCode = 1;
+  if (!parity || !parserCorrect) exitCode = 1;
 }
 
 int _countFrom(List<String> args) {

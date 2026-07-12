@@ -82,23 +82,30 @@ T _runWithReceiptCatalogItems<T>(
 }
 
 class _ReceiptCatalogContext {
-  _ReceiptCatalogContext._({required this.items, required this.indexes});
+  _ReceiptCatalogContext._({
+    required this.items,
+    required this.indexes,
+    required this.tradeScopes,
+  });
 
   factory _ReceiptCatalogContext.fromItems(List<WorkSupplyItem> source) {
     final items = List<WorkSupplyItem>.unmodifiable(source);
     return _ReceiptCatalogContext._(
       items: items,
       indexes: _ReceiptCatalogIndexes.build(items),
+      tradeScopes: {for (final item in items) item.trade.trim().toLowerCase()},
     );
   }
 
   final List<WorkSupplyItem> items;
   final _ReceiptCatalogIndexes indexes;
+  final Set<String> tradeScopes;
   final _scopedContexts = <String, _ReceiptCatalogContext>{};
 
   _ReceiptCatalogContext forTradeScope(String? tradeScope) {
     final scope = tradeScope?.trim().toLowerCase();
     if (scope == null || scope.isEmpty) return this;
+    if (tradeScopes.length == 1 && tradeScopes.contains(scope)) return this;
     return _scopedContexts.putIfAbsent(scope, () {
       final scopedItems = [
         for (final item in items)
