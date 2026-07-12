@@ -2,6 +2,29 @@
 
 Maintaniac is a professional-grade record keeping app for people and small crews who use vehicles for work. Treat every change as release-track work, even when a screen is still early.
 
+## One Shared Maintainiac Workspace Rule
+
+`/Users/rbbie/Documents/Maintainiac_5.6_Active` is the one canonical
+Maintainiac workspace on this Mac. Every Codex conversation for this app must
+use this same saved project with a local environment. Do not create, rename,
+clone, move, or use another user-facing Maintainiac project folder or Git
+worktree unless the user explicitly reverses this rule.
+
+- This is one shared application trunk, not separate applications per feature.
+- Before editing, inspect `git status --short` and preserve every unrelated
+  change already present in the shared folder.
+- Work only in the user-assigned functional lane and avoid files owned by an
+  active conversation. If a shared file must change, stop and tell the user
+  before editing it.
+- The shared source-control change count is expected to show work from other
+  conversations. It is visibility into the same app, not a reason to move that
+  work into a different folder.
+- Do not create or switch Git branches, run `git worktree`, reset, stash,
+  merge, rebase, commit, or push unless the user explicitly authorizes that
+  action. Use the shared folder itself for integrated Android and iOS testing.
+- A user may run separate conversations, but only one may write overlapping
+  files at a time. Read-only review and planning may happen in parallel.
+
 ## Codex Rate-Limit And Evidence Rule
 
 This is a top-priority operating rule for every Codex agent working on Maintaniac.
