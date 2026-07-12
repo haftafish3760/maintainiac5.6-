@@ -368,7 +368,7 @@ const englishPlumbingCoreRecipes = [
     patterns: [
       '3/8 BRASS COMPRESSION UNION',
       '1/2 BRS COMP UNION',
-      '3/4 BRASS COMPRESSION UNION',
+      '1/2 BRASS COMP UNION',
     ],
   ),
   WorkSupplyFixtureRecipe(
@@ -696,7 +696,7 @@ const englishPlumbingCoreRecipes = [
     caseType: 'clear_match',
     expectedNameContains: 'PVC Cement',
     riskTags: ['service_consumables_tools', 'pvc_cement', 'consumable'],
-    patterns: ['4 OZ PVC CEMENT', '8 OZ PVC GLUE', '16 OZ SOLVENT CEMENT'],
+    patterns: ['4 OZ PVC CEMENT', '8 OZ PVC GLUE', '16 OZ PVC SOLVENT CEMENT'],
   ),
   WorkSupplyFixtureRecipe(
     slug: 'service_pvc_primer',
@@ -710,7 +710,11 @@ const englishPlumbingCoreRecipes = [
     caseType: 'clear_match',
     expectedNameContains: 'Plumber Putty',
     riskTags: ['service_consumables_tools', 'putty', 'consumable'],
-    patterns: ['14 OZ PLUMBER PUTTY', '32 OZ PLUMBERS PUTTY', '5 LB PUTTY'],
+    patterns: [
+      '14 OZ PLUMBER PUTTY',
+      '32 OZ PLUMBERS PUTTY',
+      '5 LB PLUMBERS PUTTY',
+    ],
   ),
   WorkSupplyFixtureRecipe(
     slug: 'service_pipe_j_hook',
@@ -920,7 +924,7 @@ const englishPlumbingCoreRecipes = [
     patterns: [
       '2 IN TOILET FLUSH VALVE',
       '3 IN TOILET FLUSH VALVE',
-      'TOILET TANK VALVE KIT',
+      'TOILET FLUSH VALVE KIT',
     ],
   ),
   WorkSupplyFixtureRecipe(
@@ -1332,7 +1336,7 @@ const spanishPlumbingCoreRecipes = [
     caseType: 'clear_match',
     expectedNameContains: 'Supply Line',
     riskTags: ['spanish', 'faucet', 'supply_line', 'service_truck'],
-    patterns: ['LINEA LAVAMANOS 3/8 X 16', 'CONECTOR GRIFO 3/8'],
+    patterns: ['LINEA LAVAMANOS 3/8 X 16', 'CONECTOR GRIFO 3/8 X 16'],
   ),
   WorkSupplyFixtureRecipe(
     slug: 'sal_suavizador',

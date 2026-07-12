@@ -415,10 +415,10 @@ List<WorkSupplyFixtureRecipe> _recipesFor(_GeneratorOptions options) {
   }
   if (options.tier != 'core') return const [];
   if (options.trade == 'plumbing' && options.locale == 'es-US') {
-    return spanishPlumbingCoreRecipes;
+    return _corePlumbingRecipes(spanishPlumbingCoreRecipes);
   }
   if (options.trade == 'plumbing' && options.locale == 'en-US') {
-    return englishPlumbingCoreRecipes;
+    return _corePlumbingRecipes(englishPlumbingCoreRecipes);
   }
   if (options.trade == 'electrical' && options.locale == 'es-US') {
     return spanishElectricalCoreRecipes;

@@ -201,13 +201,17 @@ WorkSupplyItem? _directPlumbingPexServiceFittingMatch(String text) {
     'pex',
     wantedItemType,
   ])) {
+    final name = _normalize(item.name);
     final itemType = _normalize(item.itemType);
     final system = _normalize(item.system);
     final variant = _normalize(item.variant);
     if (item.trade == 'Plumbing' &&
         system == 'pex' &&
         itemType == wantedItemType &&
-        (size == null || variant == '$size in')) {
+        (size == null ||
+            variant == '$size in' ||
+            (wantedItemType == 'tees' &&
+                name.startsWith('$size x $size x $size ')))) {
       return item;
     }
   }

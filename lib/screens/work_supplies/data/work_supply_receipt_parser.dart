@@ -1123,7 +1123,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(
     r'\b(manometro presion pozo|manometro de presion|presion pozo|well pressure gauge|pressure gauge|well gauge)\b',
-  ).hasMatch(text)) {
+  ).hasMatch(text) && !RegExp(r'\b(switch|interruptor|presostato)\b').hasMatch(text)) {
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pressure gauge')) {
@@ -1132,7 +1132,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(well pressure switch|pump pressure switch|pressure switch|well switch)\b',
+    r'\b(well pressure switch|pump pressure switch|pressure switch|well switch|switch presion pozo|interruptor bomba|presostato)\b',
   ).hasMatch(text)) {
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
@@ -2780,7 +2780,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(well|pozo)\b.*\b(check valve|chk valve|one way valve)\b',
+    r'\b((well|pozo)\b.*\b(check valve|chk valve|one way valve)|(valvula check pozo|check bomba))\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     for (final item in _activeWorkSupplyCatalogItems) {

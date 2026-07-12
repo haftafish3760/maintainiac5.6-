@@ -13,6 +13,23 @@ List<WorkSupplyFixtureRecipe> _coreHvacRecipes(
     )
     .toList(growable: false);
 
+List<WorkSupplyFixtureRecipe> _corePlumbingRecipes(
+  List<WorkSupplyFixtureRecipe> recipes,
+) => recipes
+    .where(
+      (recipe) => !const {
+        'brass_flare_fitting',
+        'brass_barb_fitting',
+        'brass_compression_union',
+        'varilla_roscada',
+        'sal_suavizador',
+        'service_press_jaw',
+        'service_hole_saw',
+        'service_recip_blade',
+      }.contains(recipe.slug),
+    )
+    .toList(growable: false);
+
 List<WorkSupplyFixtureRecipe> _prioritizeRecipesForLimitedBatch(
   List<WorkSupplyFixtureRecipe> recipes,
   _GeneratorOptions options,

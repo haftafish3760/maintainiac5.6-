@@ -154,12 +154,16 @@ double _plumbingCoreReceiptEvidenceScore(
       'well pressure gauge',
     ],
     RegExp(
-      r'\b(well pressure switch|pump pressure switch|pressure switch|well switch)\b',
+      r'\b(well pressure switch|pump pressure switch|pressure switch|well switch|switch presion pozo|interruptor bomba|presostato)\b',
     ): [
       'pressure switch',
       'well pressure switch',
       'pump pressure switch',
       'well switch',
+    ],
+    RegExp(r'\b(valvula\s+check\s+pozo|check\s+bomba)\b'): [
+      'well pump check valve',
+      'check valve',
     ],
     RegExp(
       r'\b(well pump|jet pump|shallow well|deep well|bomba pozo|bomba de pozo|bomba agua pozo)\b',
@@ -183,6 +187,25 @@ double _plumbingCoreReceiptEvidenceScore(
     RegExp(r'\b(cinta electrica|cinta aislante|elec tape|electrical tape)\b'): [
       'electrical tape',
     ],
+    RegExp(r'\b(nail\s+plate|stud\s+guard)\b'): ['stud guard plate'],
+    RegExp(r'\b(outside\s+faucet|hose\s+bibb?)\b'): ['hose bibb'],
+    RegExp(r'\bvac(?:uum)?\s+breaker\b'): ['vacuum breaker'],
+    RegExp(r'\b(jumbo\s+)?wax\s+ring(?:\s+bolts?)?\b'): ['wax ring'],
+    RegExp(r'\bplumbers?\s+putty\b'): ['plumber putty'],
+    RegExp(r'\bexpansion\s+tank\s+mounting\s+bracket\b'): [
+      'expansion tank',
+      'mounting bracket',
+    ],
+    RegExp(r'\bdielectric\s+nipple(?:\s+pair)?\b'): ['dielectric nipple'],
+    RegExp(r'\b(inside\s+pipe\s+cutter|pipe\s+cutter)\b'): [
+      'plumbing hand tool',
+      'pipe cutter',
+    ],
+    RegExp(r'\bpvc\s+deburr(?:ing)?\s+tool\b'): [
+      'plumbing hand tool',
+      'deburr',
+    ],
+    RegExp(r'\btoilet\s+flush\s+valve\s+kit\b'): ['toilet flush valve'],
     RegExp(r'\b(liquid\s*tight|liquidtight|sealtite)\b.*\b(conn|connector)\b'):
         ['liquidtight connector', 'flexible raceway part'],
     RegExp(r'\b(wire\s*nut|wirenut|tuerca\s+cable|conector\s+cable)\b'): [
@@ -303,6 +326,14 @@ double _plumbingCoreReceiptEvidenceScore(
       score += entry.value.contains('p trap') ? 0.24 : 0.16;
       break;
     }
+  }
+  if (RegExp(r'\badjustable\s+fill\s+valve\b').hasMatch(text) &&
+      itemText.contains('fill valve')) {
+    score += 0.08;
+  }
+  if (RegExp(r'\b(valvula\s+check\s+pozo|check\s+bomba)\b').hasMatch(text) &&
+      itemText.contains('check valve')) {
+    score += 0.16;
   }
   final connectorPortCount = RegExp(
     r'\b(2|3|4|5|6)\s*(?:port|ports|puerto|puertos)\b',
