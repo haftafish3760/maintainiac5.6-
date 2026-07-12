@@ -87,7 +87,38 @@ Future<String> _optimizeFile({
   if (decoded == null) return path;
   final profile = _profileFor(level);
   final output = _applyDataSaverProfile(decoded, profile);
-  return _writeJpg(output, prefix: 'optimized', quality: profile.quality);
+  return _writeProofJpg(output, level: level, quality: profile.quality);
+}
+
+Future<String> _writeProofJpg(
+  img.Image source, {
+  required ReceiptDataSaverLevel level,
+  required int quality,
+}) async {
+  final maximumBytes = level.proofTargetSizePolicy.maxBytes;
+  var output = source;
+  var encodedQuality = quality;
+  var encoded = img.encodeJpg(output, quality: encodedQuality);
+  while (maximumBytes > 0 && encoded.length > maximumBytes) {
+    if (encodedQuality > 48) {
+      encodedQuality -= 6;
+    } else {
+      final longestSide = output.width > output.height
+          ? output.width
+          : output.height;
+      final nextLongestSide = (longestSide * .85).round();
+      if (nextLongestSide < 900) break;
+      output = _resizeToMaxSide(output, nextLongestSide);
+      encodedQuality = quality > 70 ? 70 : quality;
+    }
+    encoded = img.encodeJpg(output, quality: encodedQuality);
+  }
+  final file = File(
+    '${Directory.systemTemp.path}/maintaniac_receipt_optimized_'
+    '${DateTime.now().microsecondsSinceEpoch}.jpg',
+  );
+  await file.writeAsBytes(encoded, flush: true);
+  return file.path;
 }
 
 Future<ReceiptImageStoragePreview> _previewFile({

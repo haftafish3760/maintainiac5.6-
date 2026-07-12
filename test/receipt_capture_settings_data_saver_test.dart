@@ -157,12 +157,12 @@ void main() {
       );
 
       expect(estimate.dataSaverLevel, ReceiptDataSaverLevel.strong);
-      expect(estimate.estimatedBytesPerSavedProof, 125 * 1024);
-      expect(estimate.estimatedProofBytesForCapture, 375 * 1024);
+      expect(estimate.estimatedBytesPerSavedProof, 550 * 1024);
+      expect(estimate.estimatedProofBytesForCapture, 1650 * 1024);
       expect(estimate.estimatedOriginalBytesForCapture, 60 * 1024 * 1024);
       expect(
         estimate.approximatePhotosRemainingLabel,
-        'About 409 more photos at this setting',
+        'About 93 more photos at this setting',
       );
       expect(estimate.toPrivacySafeDiagnostics(), isNot(contains('path')));
     },
@@ -227,7 +227,7 @@ void main() {
       );
       expect(
         settings.defaultDataSaverProofTargetSizePolicy.policyCode,
-        'low_storage_proof_100_150kb',
+        'low_storage_proof_450_650kb',
       );
       expect(
         settings
@@ -237,7 +237,7 @@ void main() {
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,
-        contains('125 KB target'),
+        contains('550 KB target'),
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,
@@ -315,15 +315,15 @@ void main() {
       );
       expect(
         settings.defaultDataSaverProofTargetSizePolicy.policyCode,
-        'normal_proof_200_300kb',
+        'normal_proof_800_1000kb',
       );
       expect(
         settings.defaultDataSaverProofTargetSizePolicy.targetBytes,
-        250 * 1024,
+        900 * 1024,
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,
-        contains('250 KB target'),
+        contains('900 KB target'),
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,

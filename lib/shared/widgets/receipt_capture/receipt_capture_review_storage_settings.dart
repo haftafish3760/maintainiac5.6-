@@ -154,10 +154,10 @@ class _ReceiptDataSaverChoice extends StatelessWidget {
   static String _choiceLabel(ReceiptDataSaverLevel level) {
     return switch (level) {
       ReceiptDataSaverLevel.original => 'Original: Local only',
-      ReceiptDataSaverLevel.light => 'High Quality: 500-700 KB',
-      ReceiptDataSaverLevel.balanced => 'Normal: 200-300 KB',
-      ReceiptDataSaverLevel.strong => 'Low Storage: 100-150 KB',
-      ReceiptDataSaverLevel.maximum => 'Tiny Proof: 40-100 KB',
+      ReceiptDataSaverLevel.light => 'High Quality: 1.2-1.5 MB',
+      ReceiptDataSaverLevel.balanced => 'Normal: 800 KB-1 MB',
+      ReceiptDataSaverLevel.strong => 'Low Storage: 450-650 KB',
+      ReceiptDataSaverLevel.maximum => 'Tiny Proof: 200-350 KB',
     };
   }
 

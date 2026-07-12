@@ -211,10 +211,10 @@ internal fun ReceiptCameraActivity.receiptBackupUsedBytes(): Long {
 internal fun ReceiptCameraActivity.receiptProofTargetBytesFor(level: String): Long {
     return when (level) {
         "original" -> 4L * 1024L * 1024L
-        "light" -> 650L * 1024L
-        "strong" -> 150L * 1024L
-        "maximum" -> 80L * 1024L
-        else -> 300L * 1024L
+        "light" -> 1350L * 1024L
+        "strong" -> 550L * 1024L
+        "maximum" -> 275L * 1024L
+        else -> 900L * 1024L
     }
 }
 
