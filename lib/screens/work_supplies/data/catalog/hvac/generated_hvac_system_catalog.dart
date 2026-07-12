@@ -236,7 +236,7 @@ List<WorkSupplyItem> _hvacSystemBrazingProducts() {
       'Nitrogen Flow Meter',
       'Brazing Heat Shield Pad',
       'Wet Rag Heat Block',
-      'Refrigerant Leak Bubbles',
+      '1 Quart Refrigerant Leak Detector',
       'Acid Test Kit',
       'Service Valve Cap Pack',
       'Schrader Core Pack',

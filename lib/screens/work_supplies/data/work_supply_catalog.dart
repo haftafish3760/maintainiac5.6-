@@ -5,6 +5,7 @@ import 'work_supply_models.dart';
 part 'work_supply_catalog_search.dart';
 part 'work_supply_catalog_sizes.dart';
 part 'work_supply_catalog_intelligence.dart';
+part 'work_supply_catalog_shape_signals.dart';
 part 'work_supply_electrical_metadata_intelligence.dart';
 part 'work_supply_plumbing_catalog_intelligence.dart';
 part 'work_supply_plumbing_metadata_intelligence.dart';

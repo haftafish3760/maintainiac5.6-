@@ -321,9 +321,9 @@ final hvacGeneratedServiceTruckCatalogCategory = _category(
               'Wet Rag Heat Block Compound',
               'Nitrogen Purge Regulator',
               'Nitrogen Flow Meter',
-              'Bubble Leak Detector Quart',
+              '1 Quart Bubble Leak Detector',
               'Nylog Blue Gasket Sealant',
-              'Vacuum Pump Oil Quart',
+              '1 Quart Vacuum Pump Oil',
             ])
               item,
           ],
