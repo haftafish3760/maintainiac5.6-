@@ -49,12 +49,7 @@ final plumbingPumpsCategory = _category('Pumps', [
           '1-1/2 in PVC adapter',
           '1-1/2 in barbed adapter',
         ],
-        [
-          'sump pump adapter',
-          'pump adapter',
-          'barbed adapter',
-          'pvc adapter',
-        ],
+        ['sump pump adapter', 'pump adapter', 'barbed adapter', 'pvc adapter'],
       ),
     ),
     _type(
@@ -102,6 +97,15 @@ final plumbingPumpsCategory = _category('Pumps', [
         'each',
         ['30/50 psi', '40/60 psi'],
         ['pump pressure switch', 'well switch'],
+      ),
+    ),
+    _type(
+      'Well Pump Control Boxes',
+      _variants(
+        'Well Pump Control Box',
+        'each',
+        ['1/2 hp', '3/4 hp', '1 hp'],
+        ['pump control box', 'submersible pump control'],
       ),
     ),
     _type(

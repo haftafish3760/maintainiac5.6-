@@ -45,6 +45,11 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
       _isOversizedPlumbingSupportForCore(item)) {
     return false;
   }
+  if (category == 'pumps' &&
+      text.contains('check valve') &&
+      (_largestPlumbingVariantSize(item.variant) ?? 0) > 1.5) {
+    return false;
+  }
   if (_hasAny(text, _plumbingAlwaysCoreServiceSignals)) return true;
   if (category == 'service truck stock') return true;
   if (category == 'drain and finish service stock') {
@@ -110,6 +115,9 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
           _isCommonPlumbingVariant(item.variant);
     }
     if (system == 'pex' || system == 'cpvc' || system == 'push-fit') {
+      if (system == 'push-fit' && type.contains('ball valve')) {
+        return (_primaryPlumbingVariantSize(item.variant) ?? 0) <= 1;
+      }
       return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
           _hasAny(text, _plumbingCoreFittingFamilySignals) &&
           (_hasAny(text, _residentialSupplySizes) || _hasAny(text, ['1 x'])) &&
@@ -180,7 +188,8 @@ bool _isOversizedPlumbingValveForCore(WorkSupplyItem item) {
   final text = _plumbingTierText(item);
   if (text.contains('ball valve') ||
       text.contains('gate valve') ||
-      text.contains('check valve')) {
+      text.contains('check valve') ||
+      text.contains('backwater valve')) {
     return largestVariantSize > 1;
   }
   return false;
@@ -280,7 +289,9 @@ bool _isCommonPlumbingVariant(String variant) {
     '2 x 2',
     '3 x 3',
     '3/4 x 1/2',
+    '1/2 x 3/8',
     '1 x 3/4',
+    '1 x 1/2',
     '1-1/2 x 1-1/4',
     '2 x 1-1/2',
     '3 x 2',
@@ -371,6 +382,7 @@ const _plumbingCoreWellServiceSignals = [
   'well pump',
   'pressure switch',
   'well switch',
+  'pump control box',
   'pressure tank',
   'well tank',
   'tank tee',

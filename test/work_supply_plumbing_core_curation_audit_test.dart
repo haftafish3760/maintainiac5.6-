@@ -44,14 +44,14 @@ void main() {
     test('locks the current Plumbing Core curation baseline', () {
       final report = buildPlumbingCoreCurationAudit();
 
-      expect(report['coreCount'], 1215);
+      expect(report['coreCount'], 1231);
       expect(report['missingRequiredFamilies'], isEmpty);
       expect(report['suspiciousCoreItems'], isEmpty);
-      expect(report['likelyCoreOutsideCore'], hasLength(150));
+      expect(report['likelyCoreOutsideCore'], isEmpty);
 
       final summary = report['summary']! as Map<String, Object?>;
       expect(summary['suspiciousCoreTotal'], 0);
-      expect(summary['likelyCoreOutsideCoreTotal'], 150);
+      expect(summary['likelyCoreOutsideCoreTotal'], 0);
       expect(summary['readinessFloor'], greaterThanOrEqualTo(64));
       expect(summary['readinessAverage'], greaterThanOrEqualTo(80.5));
       expect(summary['readyForMacValidation'], isFalse);
@@ -78,6 +78,10 @@ void main() {
       expect(
         items['stainless kitchen basket strainer Sink Drain Finish Part']!
             .packTier,
+        WorkSupplyPackTier.core,
+      );
+      expect(
+        items['1/2 hp Well Pump Control Box']!.packTier,
         WorkSupplyPackTier.core,
       );
     });

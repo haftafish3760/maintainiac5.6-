@@ -134,7 +134,9 @@ Map<String, int> _countBy(
 }
 
 _FamilyCoverage _familyCoverage(List<WorkSupplyItem> core, _Family family) {
-  final matches = core.where((item) => _hasAny(_text(item), family.signals));
+  final matches = core.where(
+    (item) => _hasAny(_directText(item), family.signals),
+  );
   final sample = matches.take(16).map(_itemLabel).toList(growable: false);
   return _FamilyCoverage(family: family, count: matches.length, sample: sample);
 }
@@ -143,8 +145,8 @@ _Candidate? _candidateOutsideCore(WorkSupplyItem item) {
   if (!item.marketScopes.contains(WorkSupplyMarketScope.residential)) {
     return null;
   }
-  final text = _text(item);
-  final directText = _directText(item);
+  final text = _directText(item);
+  final directText = text;
   final reasons = <String>[];
   for (final rule in _positiveCoreRules) {
     if (_hasAny(text, rule.signals)) reasons.add(rule.reason);
@@ -152,6 +154,10 @@ _Candidate? _candidateOutsideCore(WorkSupplyItem item) {
   if (_commonResidentialSize(item)) reasons.add('common_residential_size');
   if (reasons.isEmpty) return null;
   if (_isOversizedForPlumbingCore(item)) return null;
+  if (item.category == 'Toilet Repair' &&
+      (_primaryNominalInches('${item.name} ${item.variant}') ?? 0) > 4) {
+    return null;
+  }
   if (_looksLegacyMaterial(directText) &&
       !_looksLegacyRepairBridge(directText)) {
     return null;
@@ -253,7 +259,7 @@ double _readinessAverage(List<Map<String, Object?>> readiness) {
 }
 
 List<String> _positiveSignals(WorkSupplyItem item) {
-  final text = _text(item);
+  final text = _directText(item);
   final signals = <String>[];
   for (final rule in _positiveCoreRules) {
     if (_hasAny(text, rule.signals)) signals.add(rule.reason);
@@ -272,7 +278,7 @@ bool _hasSpanishCoverage(WorkSupplyItem item) {
 }
 
 String _ambiguityRisk(WorkSupplyItem item) {
-  final text = _text(item);
+  final text = _directText(item);
   if (_hasAny(text, ['pvc', 'cpvc', 'copper', 'pipe', 'elbow', 'tee'])) {
     return 'high';
   }
@@ -287,10 +293,23 @@ bool _isOversizedForPlumbingCore(WorkSupplyItem item) {
   if (size == null) return false;
   final text = _directText(item);
   if (_hasNonPipeServiceDimension(text)) return false;
+  if (_hasAny(text, ['sump pump', 'well pump', 'sump and condensate']) &&
+      text.contains('check valve')) {
+    return size > 1.5;
+  }
   if (_hasAny(text, ['bell hanger', 'pipe j-hook', 'toilet flange'])) {
     return false;
   }
   if (_hasOversizedSupplyNominalText(text)) return true;
+  if (_hasAny(text, [
+    'ball valve',
+    'gate valve',
+    'check valve',
+    'backwater valve',
+  ])) {
+    return size > 1;
+  }
+  if (_hasAny(text, ['toilet flange', 'closet flange'])) return size > 4;
   if (_hasAny(text, ['dwv', 'drain', 'sewer', 'closet flange']))
     return size > 4;
   if (_hasAny(text, ['pex', 'copper', 'cpvc', 'push', 'sharkbite'])) {
@@ -307,7 +326,7 @@ bool _commonResidentialSize(WorkSupplyItem item) {
   final text = _directText(item);
   if (_hasAny(text, ['dwv', 'drain', 'sewer'])) return size <= 4;
   if (_hasAny(text, ['pex', 'copper', 'cpvc', 'push', 'sharkbite'])) {
-    return size <= 1;
+    return const [0.375, 0.5, 0.625, 0.75, 1].contains(size);
   }
   return size <= 2;
 }
@@ -541,21 +560,6 @@ bool _hasAny(String text, Iterable<String> signals) {
   return signals.any(text.contains);
 }
 
-String _text(WorkSupplyItem item) {
-  return [
-    item.id,
-    item.name,
-    item.trade,
-    item.category,
-    item.system,
-    item.itemType,
-    item.variant,
-    item.unit,
-    ...item.aliases,
-    ...item.intelligence.searchableTokens,
-  ].join(' ').toLowerCase();
-}
-
 String _directText(WorkSupplyItem item) {
   return [
     item.id,
@@ -566,7 +570,6 @@ String _directText(WorkSupplyItem item) {
     item.itemType,
     item.variant,
     item.unit,
-    ...item.aliases,
   ].join(' ').toLowerCase();
 }
 
@@ -605,8 +608,48 @@ const _positiveCoreRules = [
   _SignalRule('well_service', ['well pump', 'pressure switch', 'pitless']),
   _SignalRule('well_pressure_stock', ['pressure tank', 'pressure gauge']),
   _SignalRule('water_treatment', ['water filter', 'softener', 'salt pellet']),
-  _SignalRule('service_consumables', ['cement', 'primer', 'tape', 'putty']),
-  _SignalRule('service_tools', ['pipe cutter', 'basin wrench', 'drain snake']),
+  _SignalRule('service_consumables', [
+    'cement',
+    'primer',
+    'tape',
+    'putty',
+    'thread seal',
+    'pipe joint compound',
+    'silicone',
+    'pipe lubricant',
+  ]),
+  _SignalRule('service_tools', [
+    'pipe cutter',
+    'basin wrench',
+    'drain snake',
+    'hole saw',
+    'pvc deburring',
+    'reciprocating saw blade',
+    'closet auger',
+    'hand drain auger',
+    'tubing cutter',
+    'strap wrench',
+    'stud guard',
+  ]),
+  _SignalRule('water_heater_service', [
+    'water heater',
+    'expansion tank',
+    'drain pan',
+    'restraint strap',
+  ]),
+  _SignalRule('pump_and_drain_service', [
+    'sump pump',
+    'float switch',
+    'pump control',
+    'drain repair',
+    'floor drain',
+  ]),
+  _SignalRule('fixture_repair_service', [
+    'shower cartridge',
+    'hose bibb',
+    'vacuum breaker',
+    'no-hub band',
+  ]),
 ];
 
 const _requiredFamilies = [
