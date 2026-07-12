@@ -157,6 +157,7 @@ List<Map<String, Object?>> _buildCases({
       if (options.locale != 'en-US') 'localePackId': options.locale,
       if (recipe.expectUnknown) 'expectUnknown': true,
       if (recipe.maxConfidence < 1) 'maxConfidence': recipe.maxConfidence,
+      if (recipe.caseType == 'clear_match') 'minimumConfidence': .82,
       'sourceType': 'synthetic',
       'sourceOwner': 'Mainteniac QA generator',
       'reviewStatus': 'generated-not-release-approved',

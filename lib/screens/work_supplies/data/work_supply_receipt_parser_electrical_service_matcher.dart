@@ -5,11 +5,22 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
   String? tradeScope,
 }) {
   if (!_isElectricalTradeScope(tradeScope)) return null;
-  if (RegExp(r'\b(wire\s*nut|wirenut)\b').hasMatch(text)) {
+  final receiptSaysWireNut = RegExp(
+    r'\b(wire\s*nut|wirenut|tuerca\s+cable|conector\s+cable)\b',
+  ).hasMatch(text);
+  if (receiptSaysWireNut) {
     final style = RegExp(r'\bwinged\b').hasMatch(text) ? 'winged' : null;
-    final color = RegExp(
-      r'\b(yellow|red|blue|tan|orange|gray)\b',
+    final colorToken = RegExp(
+      r'\b(yellow|red|blue|tan|orange|gray|amarillo|rojo|azul|gris|naranja)\b',
     ).firstMatch(text)?.group(1);
+    final color = switch (colorToken) {
+      'amarillo' => 'yellow',
+      'rojo' => 'red',
+      'azul' => 'blue',
+      'gris' => 'gray',
+      'naranja' => 'orange',
+      _ => colorToken,
+    };
     final pack = RegExp(
       r'\b(25|50|100|250)\s*(?:pk|pack)\b',
     ).firstMatch(text)?.group(1);
@@ -25,8 +36,7 @@ WorkSupplyItem? _directElectricalServiceRepairMatch(
     }
   }
   final wantedName = switch (text) {
-    final value when RegExp(r'\b(wire\s*nut|wirenut)\b').hasMatch(value) =>
-      'wire connector',
+    _ when receiptSaysWireNut => 'wire connector',
     final value when RegExp(r'\bground\s+screw\b').hasMatch(value) =>
       'ground screw',
     final value

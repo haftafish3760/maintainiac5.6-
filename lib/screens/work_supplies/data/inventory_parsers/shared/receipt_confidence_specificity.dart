@@ -185,7 +185,28 @@ double _plumbingCoreReceiptEvidenceScore(
     ],
     RegExp(r'\b(liquid\s*tight|liquidtight|sealtite)\b.*\b(conn|connector)\b'):
         ['liquidtight connector', 'flexible raceway part'],
-    RegExp(r'\b(wire\s*nut|wirenut)\b'): ['wire connector', 'wire nut'],
+    RegExp(r'\b(wire\s*nut|wirenut|tuerca\s+cable|conector\s+cable)\b'): [
+      'wire connector',
+      'wire nut',
+    ],
+    RegExp(r'\b(conector\s+(de\s+)?palanca|lever\s+connector)\b'): [
+      'lever connector',
+    ],
+    RegExp(r'\b(anti\s+corto|bushing\s+anti\s+corto)\b'): [
+      'anti short bushing',
+    ],
+    RegExp(r'\b(interruptor\s+(toggle|3way|3\s*way)|toggle\s+switch)\b'): [
+      'toggle switch',
+      'switch',
+    ],
+    RegExp(r'\b(placa\s+(decora|decorador)|decorator\s+plate)\b'): [
+      'wall plate',
+    ],
+    RegExp(
+      r'\b(caja\s+(remodel|remodelacion)|old\s+work\s+box|remod(?:el)?\s+box)\b',
+    ): [
+      'old work',
+    ],
     RegExp(r'\bground\s+screw\b'): ['ground screw'],
     RegExp(r'\b(photocell|photoeye|photo eye)\b'): ['photocell'],
     RegExp(r'\b(blank\s+wall\s+plate|wall\s+plate|cover\s+plate)\b'): [
@@ -257,6 +278,13 @@ double _plumbingCoreReceiptEvidenceScore(
       score += entry.value.contains('p trap') ? 0.24 : 0.16;
       break;
     }
+  }
+  final connectorPortCount = RegExp(
+    r'\b(2|3|4|5|6)\s*(?:port|ports|puerto|puertos)\b',
+  ).firstMatch(text)?.group(1);
+  if (connectorPortCount != null &&
+      itemText.contains('$connectorPortCount port')) {
+    score += 0.08;
   }
   if (RegExp(r'\b(contactor|contctr|cntctr)\b').hasMatch(text) &&
       itemText.contains('contactor')) {

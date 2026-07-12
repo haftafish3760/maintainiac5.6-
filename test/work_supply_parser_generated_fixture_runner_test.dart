@@ -159,6 +159,12 @@ void main() {
           'got ${match.item.packTier.name} for ${match.item.name}',
         );
       }
+      if (match.confidence < fixture.minimumConfidence) {
+        failures.add(
+          '${fixture.id}: expected confidence >= '
+          '${fixture.minimumConfidence}, got ${match.confidence}',
+        );
+      }
       if (fixture.expectedNameContains.isNotEmpty &&
           !match.item.name.toLowerCase().contains(
             fixture.expectedNameContains.toLowerCase(),

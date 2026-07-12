@@ -4,6 +4,13 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_confid
 import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser.dart';
 
 void main() {
+  test('electrical core recognizes Spanish colored wire connectors', () {
+    _expectGoodElectricalCore('NTOOL CONECTOR CABLE AMARILLO 5.28', [
+      'wire connector',
+      'yellow',
+    ]);
+  });
+
   test('electrical core distinguishes decorator plates from device boxes', () {
     _expectGoodElectricalCore('ELEC SUPPLY 2 GANG DECORATOR PLATE 12.77', [
       'wall plate',

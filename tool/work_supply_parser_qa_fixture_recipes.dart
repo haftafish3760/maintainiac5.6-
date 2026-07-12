@@ -1757,7 +1757,7 @@ const spanishElectricalCoreRecipes = [
     expectedNameContains: 'Old Work',
     tradeScope: 'Electrical',
     riskTags: ['spanish', 'electrical', 'box', 'generated_batch'],
-    patterns: ['CAJA REMODEL 1G', 'CAJA ELECTRICA 2G'],
+    patterns: ['CAJA REMODEL 1G', 'CAJA REMODEL 2G'],
   ),
   WorkSupplyFixtureRecipe(
     slug: 'cable_nm_b',

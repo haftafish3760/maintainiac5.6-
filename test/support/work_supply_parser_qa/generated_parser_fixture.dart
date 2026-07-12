@@ -11,6 +11,7 @@ class GeneratedParserFixture {
     this.localePackId = '',
     this.expectUnknown = false,
     this.maxConfidence = 1,
+    this.minimumConfidence = 0,
   });
 
   final String id;
@@ -24,6 +25,7 @@ class GeneratedParserFixture {
   final String localePackId;
   final bool expectUnknown;
   final double maxConfidence;
+  final double minimumConfidence;
 
   List<String> get parserLines {
     final lines = receiptItemLines
@@ -50,6 +52,7 @@ class GeneratedParserFixture {
       localePackId: json['localePackId'] as String? ?? '',
       expectUnknown: json['expectUnknown'] as bool? ?? false,
       maxConfidence: (json['maxConfidence'] as num?)?.toDouble() ?? 1,
+      minimumConfidence: (json['minimumConfidence'] as num?)?.toDouble() ?? 0,
     );
   }
 }

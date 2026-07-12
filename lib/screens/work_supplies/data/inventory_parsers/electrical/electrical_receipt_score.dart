@@ -72,7 +72,9 @@ int _electricalReceiptScore(
   final receiptSaysCoupling = RegExp(
     r'\b(coupling|cplg|coup)\b',
   ).hasMatch(text);
-  final receiptSaysWireNut = RegExp(r'\b(wire nut|wirenut)\b').hasMatch(text);
+  final receiptSaysWireNut = RegExp(
+    r'\b(wire nut|wirenut|tuerca cable|conector cable)\b',
+  ).hasMatch(text);
   final receiptSaysWinged = RegExp(r'\bwing(ed)?\b').hasMatch(text);
   final receiptSaysSmartControl = RegExp(
     r'\b(smart switch|smart dimmer|wifi switch|wi-fi switch|motion switch|occupancy sensor|vacancy sensor|timer switch|countdown timer)\b',
