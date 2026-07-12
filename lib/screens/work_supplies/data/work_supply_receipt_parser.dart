@@ -5231,8 +5231,7 @@ bool _matchesHalfByThreeEighthStop(String receiptText, String variant) {
 
 bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
-  if (RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text)) {
+  if (RegExp(r'\bpvc\b').hasMatch(text) && _hasReceiptElbowShapeToken(text)) {
     return true;
   }
   if (RegExp(r'\bfilter\b').hasMatch(text) &&
@@ -5328,7 +5327,7 @@ bool _isScopedPlumbingDangerousElbowReviewLine(
     return false;
   }
   if (!RegExp(r'\bpvc\b').hasMatch(text)) return false;
-  if (!RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text)) return false;
+  if (!_hasReceiptElbowShapeToken(text)) return false;
   if (RegExp(
     r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)(?:\s+in)?\s+pvc\b',
   ).hasMatch(text)) {

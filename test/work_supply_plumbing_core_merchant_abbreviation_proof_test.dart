@@ -125,16 +125,18 @@ void main() {
   });
 
   test('plumbing core parses water treatment and well-service local lines', () {
-    _expectGoodPlumbingCore('LOCAL SUPPLY WATER SOFTENER SALT 40LB', [
+    _expectGoodPlumbingTier('LOCAL SUPPLY WATER SOFTENER SALT 40LB', [
       'softener',
-    ]);
+    ], WorkSupplyPackTier.standard);
     _expectGoodPlumbingCore('RURAL KING WELL PRESSURE SWITCH 40/60', [
       'pressure switch',
     ]);
     _expectGoodPlumbingCore('TRACTOR SUPPLY 1IN POLY INSERT COUPLING', [
       'poly',
     ]);
-    _expectGoodPlumbingCore('FERG 10IN SEDIMENT FILTER CART', ['sediment']);
+    _expectGoodPlumbingTier('FERG 10IN SEDIMENT FILTER CART', [
+      'sediment',
+    ], WorkSupplyPackTier.standard);
     _expectGoodPlumbingCore('SUPPLYHOUSE 3/4 WELL CHECK VALVE', [
       'check valve',
     ]);
@@ -287,10 +289,18 @@ void main() {
 }
 
 void _expectGoodPlumbingCore(String line, List<String> expectedTerms) {
+  _expectGoodPlumbingTier(line, expectedTerms, WorkSupplyPackTier.core);
+}
+
+void _expectGoodPlumbingTier(
+  String line,
+  List<String> expectedTerms,
+  WorkSupplyPackTier expectedTier,
+) {
   final match = _expectGoodPlumbing(line, expectedTerms);
   expect(
     match.item.packTier,
-    WorkSupplyPackTier.core,
+    expectedTier,
     reason: '$line -> ${match.item.name}',
   );
 }

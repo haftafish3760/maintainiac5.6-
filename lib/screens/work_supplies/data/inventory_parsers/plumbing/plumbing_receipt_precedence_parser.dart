@@ -36,6 +36,21 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
     return null;
   }
 
+  final wantsPvcCement =
+      RegExp(r'\bpvc\b').hasMatch(text) &&
+      RegExp(r'\b(cement|glue|solvent\s+cement)\b').hasMatch(text) &&
+      !RegExp(r'\b(cpvc|primer|paint)\b').hasMatch(text);
+  if (wantsPvcCement) {
+    final amount = _receiptPackageAmount(text, 'oz');
+    final match = findPlumbingItem(
+      const ['cement'],
+      (item) =>
+          item.name.toLowerCase().contains('pvc cement') &&
+          (amount == null || _itemMatchesPackageAmount(item, amount, 'oz')),
+    );
+    if (match != null) return match;
+  }
+
   final wantsDishwasherBranchTailpiece = RegExp(
     r'\bdishwasher\s+branch\s+tailpiece\b',
   ).hasMatch(text);
@@ -146,12 +161,31 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
   ).hasMatch(text);
   if (wantsTailpiece) {
     final size = _nominalReceiptSize(text);
+    final wantsExtension = RegExp(
+      r'\b(ext\s*tube|extension\s+tube|tailpiece\s+extension)\b',
+    ).hasMatch(text);
     final match = findPlumbing(
-      const ['tailpiece'],
+      wantsExtension ? const ['extension', 'tube'] : const ['tailpiece'],
       (name) =>
-          name.contains('tailpiece') &&
+          (wantsExtension
+              ? name.contains('tubular extension tube')
+              : name.contains('tailpiece')) &&
           (size == null || _nameMatchesReceiptSize(name, size)),
     );
+    if (match != null) return match;
+  }
+
+  final wantsDisposalDrainElbow =
+      RegExp(
+        r'\b(disposal\s+drain\s+(elb|elbow)|disposal\s+elbow)\b',
+      ).hasMatch(text) &&
+      !RegExp(r'\bgasket\b').hasMatch(text);
+  if (wantsDisposalDrainElbow) {
+    final match = findPlumbing(const [
+      'disposal',
+      'drain',
+      'elbow',
+    ], (name) => name.contains('disposal drain elbow'));
     if (match != null) return match;
   }
 

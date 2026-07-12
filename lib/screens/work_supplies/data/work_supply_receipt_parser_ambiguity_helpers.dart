@@ -43,9 +43,7 @@ bool _isUnscopedAmbiguousReceiptLine(
 bool _isGenericPvcElbowReceiptLine(String text) {
   final normalized = _normalize(text);
   if (!RegExp(r'\bpvc\b').hasMatch(normalized)) return false;
-  final hasElbowShape = RegExp(
-    r'\b(90|45|ell|el|elb|elbow|codo)\b',
-  ).hasMatch(normalized);
+  final hasElbowShape = _hasReceiptElbowShapeToken(normalized);
   if (!hasElbowShape) return false;
   final hasPlumbingSpecificEvidence = RegExp(
     r'\b(sch|schedule|s40|sch40|ced|cedula|dwv|drain|presion|pressure|'
@@ -55,6 +53,11 @@ bool _isGenericPvcElbowReceiptLine(String text) {
     r'\b(cond|conduit|electrical|elec|emt|condensate|hvac|irrigation)\b',
   ).hasMatch(normalized);
   return !hasPlumbingSpecificEvidence && !hasOtherTradeSpecificEvidence;
+}
+
+bool _hasReceiptElbowShapeToken(String text) {
+  return RegExp(r'\b(ell|el|elb|elbow|codo)\b').hasMatch(text) ||
+      RegExp(r'(?<![\d.])(?:45|90)(?![\d.])').hasMatch(text);
 }
 
 bool _isBareElectricalPvcConduitShorthandLine(
@@ -82,6 +85,11 @@ bool _isBareElectricalPvcConduitShorthandLine(
 
 bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
   if (item.trade != 'Plumbing') return false;
+  if (RegExp(
+    r'\b(disposal\s+(drain\s+)?elbow|marvel\s+adapter|desanco\s+adapter)\b',
+  ).hasMatch(text)) {
+    return false;
+  }
   if (_hasBrokenCriticalPlumbingFraction(text)) return true;
   if (_isDirtyMaterialShapeOnlyPlumbingLine(text, item)) return true;
   if (RegExp(r'\bcopper\s+copper\b').hasMatch(text) &&
@@ -92,6 +100,9 @@ bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
     return true;
   }
   if (RegExp(r'\badapter\b').hasMatch(text) &&
+      !RegExp(
+        r'\b(marvel|desanco|trap\s+adapter|trap\s+adpt)\b',
+      ).hasMatch(text) &&
       !RegExp(
         r'\b(mip|fip|mpt|fpt|male|female|trap|pvc|cpvc|pex|copper|brass|'
         r'barb|poly|cts|ips|dwv|schedule)\b',

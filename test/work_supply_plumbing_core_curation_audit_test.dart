@@ -44,7 +44,7 @@ void main() {
     test('locks the current Plumbing Core curation baseline', () {
       final report = buildPlumbingCoreCurationAudit();
 
-      expect(report['coreCount'], 1138);
+      expect(report['coreCount'], 1153);
       expect(report['missingRequiredFamilies'], isEmpty);
       expect(report['suspiciousCoreItems'], isEmpty);
       expect(report['likelyCoreOutsideCore'], isEmpty);
@@ -55,7 +55,7 @@ void main() {
       // These values lock the reviewed catalog-audit snapshot. They are not a
       // release readiness claim; that remains false until real receipt QA.
       expect(summary['readinessFloor'], 56);
-      expect(summary['readinessAverage'], 77.73);
+      expect(summary['readinessAverage'], 77.67);
       expect(summary['readyForMacValidation'], isFalse);
 
       final items = {
@@ -143,7 +143,8 @@ void main() {
                 item.category == 'Service Truck Stock' &&
                 (item.system == 'Water Treatment Service Stock' ||
                     item.system == 'Plumbing Hand Tools') &&
-                item.packTier == WorkSupplyPackTier.core,
+                item.packTier == WorkSupplyPackTier.core &&
+                !_isDeliberateEverydayCoreHandTool(item.name),
           )
           .map((item) => '${item.id}: ${item.name}')
           .toList(growable: false);
@@ -157,4 +158,23 @@ void main() {
       );
     });
   });
+}
+
+bool _isDeliberateEverydayCoreHandTool(String name) {
+  final text = name.toLowerCase();
+  return const [
+    'pex crimp tool',
+    'pex clamp cinch tool',
+    'mini tubing cutter',
+    'ratcheting pvc pipe cutter',
+    'pvc deburring tool',
+    'copper pipe reaming tool',
+    'inside pipe cutter',
+    'basin wrench',
+    'strap wrench',
+    'closet auger',
+    'toilet auger',
+    'hand drain auger',
+    'small drain snake',
+  ].any(text.contains);
 }

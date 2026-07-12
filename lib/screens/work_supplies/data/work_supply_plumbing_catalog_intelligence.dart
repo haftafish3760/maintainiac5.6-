@@ -26,6 +26,9 @@ List<WorkSupplyMarketScope> _resolvePlumbingMarketScopes(WorkSupplyItem item) {
 WorkSupplyPackTier _resolvePlumbingPackTier(WorkSupplyItem item) {
   final text = _plumbingTierText(item);
   if (_isPlumbingCoreItem(item, text)) return WorkSupplyPackTier.core;
+  if (_isCommonRegionalWaterTreatmentServiceItem(item, text)) {
+    return WorkSupplyPackTier.standard;
+  }
   if (_hasPlumbingCompleteTierSignal(text)) return WorkSupplyPackTier.complete;
   if (_hasPlumbingProfessionalSignal(text)) {
     return WorkSupplyPackTier.professional;
@@ -34,10 +37,34 @@ WorkSupplyPackTier _resolvePlumbingPackTier(WorkSupplyItem item) {
   return WorkSupplyPackTier.professional;
 }
 
+bool _isCommonRegionalWaterTreatmentServiceItem(
+  WorkSupplyItem item,
+  String text,
+) {
+  if (item.system.toLowerCase() != 'water treatment service stock') {
+    return false;
+  }
+  return _hasAny(text, [
+    'filter cartridge',
+    'filter housing wrench',
+    'filter housing o-ring',
+    'water softener bypass valve',
+    'solar salt crystals',
+    'water softener salt pellets',
+    'potassium chloride softener pellets',
+    'rust remover softener salt',
+  ]);
+}
+
 bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
   final type = item.itemType.toLowerCase();
+  if (category == 'service truck stock' &&
+      system == 'plumbing hand tools' &&
+      _isEverydayResidentialPlumbingHandTool(text)) {
+    return true;
+  }
   if (category == 'service truck stock' &&
       (system == 'water treatment service stock' ||
           system == 'plumbing hand tools')) {
@@ -163,6 +190,22 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
   }
   return false;
 }
+
+bool _isEverydayResidentialPlumbingHandTool(String text) => _hasAny(text, [
+  'pex crimp tool',
+  'pex clamp cinch tool',
+  'mini tubing cutter',
+  'ratcheting pvc pipe cutter',
+  'pvc deburring tool',
+  'copper pipe reaming tool',
+  'inside pipe cutter',
+  'basin wrench',
+  'strap wrench',
+  'closet auger',
+  'toilet auger',
+  'hand drain auger',
+  'small drain snake',
+]);
 
 bool _isCommonResidentialNoHubRepair(WorkSupplyItem item) {
   final system = item.system.toLowerCase();

@@ -207,7 +207,27 @@ _Finding? _suspiciousCoreFinding(WorkSupplyItem item) {
 bool _isDeliberateNonCoreServiceStock(WorkSupplyItem item) {
   if (item.category != 'Service Truck Stock') return false;
   return item.system == 'Water Treatment Service Stock' ||
-      item.system == 'Plumbing Hand Tools';
+      (item.system == 'Plumbing Hand Tools' &&
+          !_isDeliberateEverydayCoreHandTool(item.name));
+}
+
+bool _isDeliberateEverydayCoreHandTool(String name) {
+  final text = name.toLowerCase();
+  return const [
+    'pex crimp tool',
+    'pex clamp cinch tool',
+    'mini tubing cutter',
+    'ratcheting pvc pipe cutter',
+    'pvc deburring tool',
+    'copper pipe reaming tool',
+    'inside pipe cutter',
+    'basin wrench',
+    'strap wrench',
+    'closet auger',
+    'toilet auger',
+    'hand drain auger',
+    'small drain snake',
+  ].any(text.contains);
 }
 
 Map<String, Object?> _itemReadiness(WorkSupplyItem item) {
@@ -284,6 +304,9 @@ List<String> _positiveSignals(WorkSupplyItem item) {
   }
   if (_isIntentionalCoreCompressionUnion(item)) {
     signals.add('common_compression_union');
+  }
+  if (_isDeliberateEverydayCoreHandTool(item.name)) {
+    signals.add('everyday_residential_service_hand_tool');
   }
   return signals.toSet().toList(growable: false)..sort();
 }

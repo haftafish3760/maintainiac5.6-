@@ -111,10 +111,10 @@ void main() {
     _expectGoodPlumbingCore('NORTHERN TOOL 1-1/4 WELL PUMP CHK VALV', [
       'check valve',
     ]);
-    _expectGoodPlumbingCore('LOCAL SUPPLY 3/4 SOFTNER BYPASS VLV', [
+    _expectGoodPlumbingTier('LOCAL SUPPLY 3/4 SOFTNER BYPASS VLV', [
       'softener',
       'bypass',
-    ]);
+    ], WorkSupplyPackTier.standard);
   });
 
   test('plumbing core handles dirty soldering consumable receipt lines', () {
@@ -174,15 +174,32 @@ void main() {
     _expectGoodPlumbingCore('RURAL KING BOMBA POZO 1/2HP', [
       'well pump',
     ], localePackId: 'es-US');
-    _expectGoodPlumbingCore('SUPPLY CASA SAL SUAVIZADOR 40LB', [
-      'softener',
-    ], localePackId: 'es-US');
+    _expectGoodPlumbingTier(
+      'SUPPLY CASA SAL SUAVIZADOR 40LB',
+      ['softener'],
+      WorkSupplyPackTier.standard,
+      localePackId: 'es-US',
+    );
   });
 }
 
 void _expectGoodPlumbingCore(
   String line,
   List<String> expectedTerms, {
+  String localePackId = '',
+}) {
+  _expectGoodPlumbingTier(
+    line,
+    expectedTerms,
+    WorkSupplyPackTier.core,
+    localePackId: localePackId,
+  );
+}
+
+void _expectGoodPlumbingTier(
+  String line,
+  List<String> expectedTerms,
+  WorkSupplyPackTier expectedTier, {
   String localePackId = '',
 }) {
   final match = matchReceiptLineToCatalog(
@@ -194,7 +211,7 @@ void _expectGoodPlumbingCore(
   expect(match, isNotNull, reason: line);
   final detail = '$line -> ${match!.item.name} / ${match.item.path}';
   expect(match.item.trade, 'Plumbing', reason: detail);
-  expect(match.item.packTier, WorkSupplyPackTier.core, reason: detail);
+  expect(match.item.packTier, expectedTier, reason: detail);
   expect(match.confidenceLevel, ReceiptConfidenceLevel.good, reason: detail);
   final searchable = [
     match.item.name,

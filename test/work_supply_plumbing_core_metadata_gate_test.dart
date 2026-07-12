@@ -335,15 +335,6 @@ final _requiredFamilies = <_RequiredFamily>[
     negativeTerms: const ['electrical conduit', 'hvac air filter'],
   ),
   _RequiredFamily(
-    name: 'water treatment service',
-    selector: (text) =>
-        text.contains('softener') || text.contains('filter cartridge'),
-    englishTerms: const ['water softener', 'softener salt', 'filter cartridge'],
-    compactReceiptTerms: const ['WATER SOFTENER'],
-    spanishTerms: const ['suavizador agua'],
-    negativeTerms: const ['electrical conduit', 'hvac air filter'],
-  ),
-  _RequiredFamily(
     name: 'pipe supports',
     selector: (text) =>
         text.contains('j hook') ||
