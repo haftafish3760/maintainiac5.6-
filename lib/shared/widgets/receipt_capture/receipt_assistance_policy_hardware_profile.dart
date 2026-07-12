@@ -7,17 +7,35 @@ enum ReceiptCameraWorkloadTier {
     maxLiveAnalysisPixels: 900000,
     maxCleanupPixels: 6000000,
   ),
+  entry(
+    'Entry receipt workload',
+    'Responsive capture first',
+    maxLiveAnalysisPixels: 1100000,
+    maxCleanupPixels: 8000000,
+  ),
   balanced(
     'Balanced receipt workload',
     'Most phones',
     maxLiveAnalysisPixels: 1400000,
     maxCleanupPixels: 10000000,
   ),
+  enhanced(
+    'Enhanced receipt workload',
+    'More live receipt assistance',
+    maxLiveAnalysisPixels: 1800000,
+    maxCleanupPixels: 12000000,
+  ),
+  performance(
+    'Performance receipt workload',
+    'Fast modern hardware',
+    maxLiveAnalysisPixels: 2200000,
+    maxCleanupPixels: 14000000,
+  ),
   flagship(
     'Flagship receipt workload',
     'High-capacity phones',
-    maxLiveAnalysisPixels: 2200000,
-    maxCleanupPixels: 14000000,
+    maxLiveAnalysisPixels: 2600000,
+    maxCleanupPixels: 16000000,
   );
 
   const ReceiptCameraWorkloadTier(
@@ -145,6 +163,24 @@ class ReceiptHardwareProfile {
       ),
       ReceiptPerformanceMode.automatic => _automaticTier(allowHeavy: true),
     };
+  }
+
+  ReceiptCameraWorkloadTier cameraWorkloadTierFor(ReceiptPerformanceMode mode) {
+    if (mode == ReceiptPerformanceMode.batterySaver ||
+        lowPowerMode ||
+        _isConstrained) {
+      return ReceiptCameraWorkloadTier.light;
+    }
+    if (mode == ReceiptPerformanceMode.balanced) {
+      return ReceiptCameraWorkloadTier.balanced;
+    }
+    final score = _score;
+    if (score <= 1) return ReceiptCameraWorkloadTier.light;
+    if (score <= 3) return ReceiptCameraWorkloadTier.entry;
+    if (score <= 5) return ReceiptCameraWorkloadTier.balanced;
+    if (score <= 7) return ReceiptCameraWorkloadTier.enhanced;
+    if (score <= 9) return ReceiptCameraWorkloadTier.performance;
+    return ReceiptCameraWorkloadTier.flagship;
   }
 
   ReceiptCapabilityTier _automaticTier({required bool allowHeavy}) {

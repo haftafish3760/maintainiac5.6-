@@ -86,6 +86,29 @@ void main() {
     },
   );
 
+  test(
+    'camera workload uses measured capability detail within a shared tier',
+    () {
+      final capability = ReceiptDeviceCapability.fromHardware(
+        hardware: const ReceiptHardwareProfile(
+          availableRamMb: 6144,
+          cpuCores: 6,
+          androidSdk: 33,
+          freeStorageMb: 2400,
+          cameraPermissionGranted: true,
+          hasRearCamera: true,
+          supportsContinuousFocus: true,
+          supportsExposureCompensation: true,
+          supportsZoom: true,
+        ),
+      );
+
+      expect(capability.tier, ReceiptCapabilityTier.medium);
+      expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.enhanced);
+      expect(capability.maxLiveAnalysisPixels, 1800000);
+    },
+  );
+
   test('manual performance modes override automatic tier selection safely', () {
     const strongHardware = ReceiptHardwareProfile(
       availableRamMb: 12288,

@@ -207,8 +207,8 @@ void main() {
     expect(config.maxZoom, 8.0);
     expect(config.minExposureOffset, -2.0);
     expect(config.maxExposureOffset, 2.0);
-    expect(config.maxLiveAnalysisPixels, 2200000);
-    expect(config.maxCleanupPixels, 14000000);
+    expect(config.maxLiveAnalysisPixels, 2600000);
+    expect(config.maxCleanupPixels, 16000000);
     expect(config.maxStitchOutputPixels, 18000000);
     expect(config.maxStitchOutputHeight, 24000);
     expect(config.edgeOverlayEnabled, isTrue);

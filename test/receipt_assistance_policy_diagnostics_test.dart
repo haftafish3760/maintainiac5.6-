@@ -82,7 +82,7 @@ void main() {
         withNativeReceiptControls.cameraWorkloadTier,
         ReceiptCameraWorkloadTier.flagship,
       );
-      expect(withNativeReceiptControls.maxLiveAnalysisPixels, 2200000);
+      expect(withNativeReceiptControls.maxLiveAnalysisPixels, 2600000);
       expect(withNativeReceiptControls.bestShotCandidateCount, 5);
     },
   );
@@ -114,8 +114,8 @@ void main() {
       expect(heavy.assistedCameraShotCount, 5);
       expect(heavy.bestShotCandidateCount, 5);
       expect(heavy.liveAnalysisGapMs, lessThan(standard.liveAnalysisGapMs));
-      expect(heavy.maxLiveAnalysisPixels, 2200000);
-      expect(heavy.maxCleanupPixels, 14000000);
+      expect(heavy.maxLiveAnalysisPixels, 2600000);
+      expect(heavy.maxCleanupPixels, 16000000);
       expect(
         light.stitchLimits.maxOutputPixels,
         lessThan(standard.stitchLimits.maxOutputPixels),

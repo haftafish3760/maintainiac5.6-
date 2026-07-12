@@ -2,11 +2,7 @@ part of 'receipt_assistance_policy.dart';
 
 extension ReceiptDeviceCapabilityCamera on ReceiptDeviceCapability {
   ReceiptCameraWorkloadTier get cameraWorkloadTier {
-    return switch (tier) {
-      ReceiptCapabilityTier.light => ReceiptCameraWorkloadTier.light,
-      ReceiptCapabilityTier.medium => ReceiptCameraWorkloadTier.balanced,
-      ReceiptCapabilityTier.heavyweight => ReceiptCameraWorkloadTier.flagship,
-    };
+    return workloadTier;
   }
 
   int get maxLiveAnalysisPixels => cameraWorkloadTier.maxLiveAnalysisPixels;
