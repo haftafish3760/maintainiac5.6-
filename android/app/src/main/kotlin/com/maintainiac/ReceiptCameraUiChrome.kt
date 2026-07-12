@@ -87,6 +87,13 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })
+    brightnessButton = iconButton(
+        "Adjust brightness",
+        R.drawable.ic_receipt_camera_brightness,
+    ) {
+        toggleExposureControls()
+    }
+    topBar.addView(brightnessButton)
     torchButton = iconButton(
         "Turn light on",
         R.drawable.ic_receipt_camera_flash,

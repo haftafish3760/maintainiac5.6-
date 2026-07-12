@@ -9,6 +9,20 @@ void main() {
       final sources = await readIosReceiptCameraBridgeSources();
       final cameraController = sources.cameraController;
 
+      expect(
+        cameraController,
+        contains('let brightnessButton = UIButton(type: .system)'),
+      );
+      expect(
+        cameraController,
+        contains('brightnessButton.accessibilityLabel = "Adjust brightness"'),
+      );
+      expect(cameraController, contains('func toggleExposureControls()'));
+      expect(
+        cameraController,
+        contains('The phone still controls autofocus and exposure timing.'),
+      );
+
       expect(cameraController, contains('arguments["readyHoldMs"]'));
       expect(
         cameraController,
@@ -304,9 +318,7 @@ void main() {
       expect(cameraController, contains('Automatic capture'));
       expect(
         cameraController,
-        contains(
-          'Automatic capture is on. Hold steady, or capture anytime.',
-        ),
+        contains('Automatic capture is on. Hold steady, or capture anytime.'),
       );
       expect(
         cameraController,
@@ -393,18 +405,9 @@ void main() {
         cameraController,
         contains('reviewDepth = safeReceiptReviewDepth('),
       );
-      expect(
-        cameraController,
-        contains('Review style: \\(review)'),
-      );
-      expect(
-        cameraController,
-        contains('? "Detailed receipt lines"'),
-      );
-      expect(
-        cameraController,
-        contains(': "Price-only receipt lines"'),
-      );
+      expect(cameraController, contains('Review style: \\(review)'));
+      expect(cameraController, contains('? "Detailed receipt lines"'));
+      expect(cameraController, contains(': "Price-only receipt lines"'));
       expect(cameraController, contains('Saved proof size'));
       expect(cameraController, contains('Save-space proof: local original'));
       expect(cameraController, contains('Save-space proof: high quality'));

@@ -98,6 +98,12 @@ void main() {
       cameraActivity,
       contains('"torchButtonPlacement" to "top_bar_right"'),
     );
+    expect(cameraActivity, contains('"Adjust brightness"'));
+    expect(cameraActivity, contains('toggleExposureControls()'));
+    expect(
+      cameraActivity,
+      contains('The phone still controls autofocus and exposure timing.'),
+    );
     expect(
       cameraActivity,
       contains('"shutterButtonPlacement" to "bottom_center"'),

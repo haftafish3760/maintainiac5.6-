@@ -23,6 +23,20 @@ internal fun ReceiptCameraActivity.configureExposureControls() {
     exposureResetButton.alpha = 1f
 }
 
+internal fun ReceiptCameraActivity.toggleExposureControls() {
+    if (!exposureSliderEnabled || !exposureSlider.isEnabled) {
+        guidance.text = "Brightness adjustment is not available on this camera."
+        return
+    }
+    val visible = exposurePanel.visibility == android.view.View.VISIBLE
+    exposurePanel.visibility = if (visible) android.view.View.GONE else android.view.View.VISIBLE
+    guidance.text = if (visible) {
+        guidanceText()
+    } else {
+        "Adjust Brightness. The phone still controls autofocus and exposure timing."
+    }
+}
+
 internal fun ReceiptCameraActivity.setExposureFromSlider(progress: Int) {
     val activeCamera = camera ?: return
     if (!exposureSliderEnabled) return

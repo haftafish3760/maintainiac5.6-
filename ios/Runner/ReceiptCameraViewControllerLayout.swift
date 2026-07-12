@@ -63,6 +63,13 @@ extension ReceiptCameraViewController {
     backButton.addTarget(self, action: #selector(cancelCapture), for: .touchUpInside)
     let settingsButton = iconButton(title: "Receipt camera settings", symbol: "gearshape.fill")
     settingsButton.addTarget(self, action: #selector(openReceiptCameraSettingsFullScreen), for: .touchUpInside)
+    brightnessButton.setTitle("", for: .normal)
+    brightnessButton.setImage(UIImage(systemName: "sun.max.fill"), for: .normal)
+    brightnessButton.tintColor = .white
+    brightnessButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
+    brightnessButton.layer.cornerRadius = 8
+    brightnessButton.accessibilityLabel = "Adjust brightness"
+    brightnessButton.addAction(UIAction { [weak self] _ in self?.toggleExposureControls() }, for: .touchUpInside)
     torchButton.setTitle("", for: .normal)
     torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)
     torchButton.tintColor = .white
@@ -75,6 +82,7 @@ extension ReceiptCameraViewController {
     topBar.addArrangedSubview(backButton)
     topBar.addArrangedSubview(spacer)
     topBar.addArrangedSubview(settingsButton)
+    topBar.addArrangedSubview(brightnessButton)
     topBar.addArrangedSubview(torchButton)
     view.addSubview(topBar)
 
@@ -98,7 +106,9 @@ extension ReceiptCameraViewController {
     let previousSectionGuide = buildPreviousSectionGuide()
     viewerInfoStack.addArrangedSubview(previousSectionGuide)
     updateViewerInfoStackVisibility()
-    view.addSubview(buildExposureControls())
+    let exposureControls = buildExposureControls()
+    exposurePanel = exposureControls
+    view.addSubview(exposureControls)
 
     let bottomBar = UIStackView()
     bottomBar.axis = .horizontal
@@ -160,6 +170,8 @@ extension ReceiptCameraViewController {
       backButton.heightAnchor.constraint(equalToConstant: 48),
       settingsButton.widthAnchor.constraint(equalToConstant: 48),
       settingsButton.heightAnchor.constraint(equalToConstant: 48),
+      brightnessButton.widthAnchor.constraint(equalToConstant: 48),
+      brightnessButton.heightAnchor.constraint(equalToConstant: 48),
       torchButton.widthAnchor.constraint(equalToConstant: 48),
       torchButton.heightAnchor.constraint(equalToConstant: 48),
 

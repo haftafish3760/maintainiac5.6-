@@ -4,6 +4,18 @@ import CoreVideo
 import UIKit
 
 extension ReceiptCameraViewController {
+  func toggleExposureControls() {
+    guard exposureSliderEnabled, exposureSlider.isEnabled else {
+      guidanceLabel.text = "Brightness adjustment is not available on this camera."
+      return
+    }
+    let visible = !(exposurePanel?.isHidden ?? true)
+    exposurePanel?.isHidden = visible
+    guidanceLabel.text = visible
+      ? guidanceText()
+      : "Adjust Brightness. The phone still controls autofocus and exposure timing."
+  }
+
   @objc func toggleTorch() {
     guard let cameraDevice, cameraDevice.hasTorch else { return }
     do {

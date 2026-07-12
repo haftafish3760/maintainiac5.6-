@@ -22,6 +22,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var closeResultDelivered = false
   let shutterButton = UIButton(type: .system)
   let torchButton = UIButton(type: .system)
+  let brightnessButton = UIButton(type: .system)
   let addPhotoButton = UIButton(type: .system)
   let bottomReviewButton = UIButton(type: .system)
   let guidanceLabel = UILabel()
@@ -30,6 +31,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   let receiptFrameGuide = UIView()
   let exposureSlider = UISlider()
   let exposureResetButton = UIButton(type: .system)
+  var exposurePanel: UIView?
   let previousSectionGuidePanel = UIStackView()
   let previousSectionGuideImageView = UIImageView()
   let nextSectionGuideImageView = UIImageView()
