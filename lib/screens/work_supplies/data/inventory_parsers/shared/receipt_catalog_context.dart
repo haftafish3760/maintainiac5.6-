@@ -3,11 +3,10 @@ part of '../../work_supply_receipt_parser.dart';
 List<WorkSupplyItem>? _activeReceiptCatalogItems;
 _ReceiptCatalogIndexes? _activeReceiptCatalogIndexes;
 
-final _receiptCatalogContextByItems = Expando<_ReceiptCatalogContext>(
-  'receiptCatalogContext',
-);
+List<WorkSupplyItem>? _cachedReceiptCatalogSource;
+_ReceiptCatalogContext? _cachedReceiptCatalogContext;
 
-late final _baseReceiptCatalogContext = _ReceiptCatalogContext.fromItems(
+final _baseReceiptCatalogContext = _ReceiptCatalogContext.fromItems(
   catalog.workSupplyCatalogItems,
 );
 
@@ -68,8 +67,7 @@ T _runWithReceiptCatalogItems<T>(
   final previousIndexes = _activeReceiptCatalogIndexes;
   final context = catalogItems == null
       ? _baseReceiptCatalogContext
-      : _receiptCatalogContextByItems[catalogItems] ??=
-            _ReceiptCatalogContext.fromItems(catalogItems);
+      : _customReceiptCatalogContext(catalogItems);
   final scoped = context.forTradeScope(tradeScope);
   _activeReceiptCatalogItems = scoped.items;
   _activeReceiptCatalogIndexes = scoped.indexes;
@@ -79,6 +77,18 @@ T _runWithReceiptCatalogItems<T>(
     _activeReceiptCatalogItems = previousItems;
     _activeReceiptCatalogIndexes = previousIndexes;
   }
+}
+
+_ReceiptCatalogContext _customReceiptCatalogContext(
+  List<WorkSupplyItem> source,
+) {
+  if (identical(source, _cachedReceiptCatalogSource)) {
+    return _cachedReceiptCatalogContext!;
+  }
+  final context = _ReceiptCatalogContext.fromItems(source);
+  _cachedReceiptCatalogSource = source;
+  _cachedReceiptCatalogContext = context;
+  return context;
 }
 
 class _ReceiptCatalogContext {

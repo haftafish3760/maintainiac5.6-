@@ -250,7 +250,10 @@ WorkSupplyItem? _directElectricalDeviceMatch(
       final color = RegExp(
         r'\b(white|ivory|black|gray|brown|almond)\b',
       ).firstMatch(text)?.group(1);
-      for (final item in _activeWorkSupplyCatalogItems) {
+      for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(const [
+        'wiring',
+        'device',
+      ])) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Electrical' &&
             name.contains('wiring device') &&
@@ -263,10 +266,22 @@ WorkSupplyItem? _directElectricalDeviceMatch(
       }
     }
   }
-  for (final item in _activeWorkSupplyCatalogItems) {
+  final requiredNameTokens = switch (wantedName) {
+    'gfci outlet' => const ['gfci'],
+    'duplex receptacle' => const ['duplex', 'receptacle'],
+    'dimmer switch' => const ['dimmer'],
+    '3-way toggle switch' => const ['3-way'],
+    'single pole toggle switch' => const ['single-pole'],
+    _ => [wantedName],
+  };
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(
+    requiredNameTokens,
+  )) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' &&
-        name.contains(wantedName) &&
+        (name.contains(wantedName) ||
+            (wantedName == 'gfci outlet' &&
+                name.contains('gfci receptacle'))) &&
         (amperage == null || name.contains('$amperage amp'))) {
       return item;
     }

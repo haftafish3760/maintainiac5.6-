@@ -1,5 +1,37 @@
 part of 'work_supply_receipt_parser.dart';
 
+bool _isStrongShortCatalogMatch(int score) => score >= 28;
+
+bool _containsTerm(String haystack, String token) {
+  return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
+}
+
+double _confidence(
+  int matchedTermCount,
+  String text,
+  WorkSupplyItem item, {
+  int score = 0,
+  String? tradeScope,
+  String originalText = '',
+}) {
+  var confidence = 0.20 + (matchedTermCount * 0.075);
+  if (_isStrongShortCatalogMatch(score)) confidence += 0.24;
+  final normalizedName = _normalize(item.name);
+  if (text.contains(normalizedName)) confidence += 0.08;
+  if (item.aliases.any((alias) => text.contains(_normalize(alias)))) {
+    confidence += 0.05;
+  }
+  if (text.contains(item.variant.toLowerCase())) confidence += 0.04;
+  if (_isPTrapReceiptMatch(text, item)) confidence += 0.18;
+  confidence += _specificityEvidenceScore(text, item);
+  confidence -= _receiptAmbiguityRisk(
+    _normalize(originalText.isEmpty ? text : originalText),
+    item,
+    tradeScope,
+  );
+  return _boundedReceiptConfidence(confidence);
+}
+
 double _directReceiptConfidence(
   String text,
   WorkSupplyItem item, {

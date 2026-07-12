@@ -15,9 +15,15 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
     return null;
   }
 
-  WorkSupplyItem? findHvac(bool Function(String name) matches) {
+  WorkSupplyItem? findHvac(
+    bool Function(String name) matches, {
+    Iterable<String> requiredNameParts = const [],
+  }) {
     WorkSupplyItem? fallback;
-    for (final item in _activeWorkSupplyCatalogItems) {
+    final candidates = requiredNameParts.isEmpty
+        ? _activeWorkSupplyCatalogItems
+        : _activeReceiptCatalogItemsForRequiredNameTokens(requiredNameParts);
+    for (final item in candidates) {
       final name = item.name.toLowerCase();
       if (item.trade != 'HVAC' || !matches(name)) continue;
       if (item.packTier == WorkSupplyPackTier.core) return item;
@@ -82,6 +88,7 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
           ? name.contains('${capacitor.group(1)} mfd') &&
                 name.contains('dual run capacitor')
           : name == '${capacitor.group(1)} mfd run capacitor',
+      requiredNameParts: const ['dual', 'run', 'capacitor'],
     );
     if (match != null) return match;
   }

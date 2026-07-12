@@ -244,6 +244,44 @@ ReceiptLineMatch? _matchReceiptLineToActiveCatalog(
       source: ReceiptMatchSource.trustedItemIdentity,
     );
   }
+  if (tradeScope?.trim().toLowerCase() == 'electrical') {
+    final electricalDevice = _directElectricalDeviceMatch(
+      normalized,
+      tradeScope: tradeScope,
+    );
+    if (electricalDevice != null) {
+      return ReceiptLineMatch(
+        rawText: rawText,
+        item: electricalDevice,
+        confidence: _directReceiptConfidence(
+          normalized,
+          electricalDevice,
+          tradeScope: tradeScope,
+          originalText: normalized,
+        ),
+        matchedTerms: _directMatchedTerms(normalized, electricalDevice),
+      );
+    }
+  }
+  if (tradeScope?.trim().toLowerCase() == 'hvac') {
+    final hvac = _directHvacReceiptPrecedenceMatch(
+      normalized,
+      tradeScope: tradeScope,
+    );
+    if (hvac != null) {
+      return ReceiptLineMatch(
+        rawText: rawText,
+        item: hvac,
+        confidence: _directReceiptConfidence(
+          normalized,
+          hvac,
+          tradeScope: tradeScope,
+          originalText: normalized,
+        ),
+        matchedTerms: _directMatchedTerms(normalized, hvac),
+      );
+    }
+  }
   final plumbingPrecedence = _directPlumbingReceiptPrecedenceMatch(
     normalized,
     tradeScope: tradeScope,
@@ -386,10 +424,6 @@ ReceiptLineMatch? _matchReceiptLineToActiveCatalog(
     confidence: confidence,
     matchedTerms: best.terms,
   );
-}
-
-bool _isStrongShortCatalogMatch(int score) {
-  return score >= 28;
 }
 
 String normalizeMerchantName(String rawText) {
@@ -5558,40 +5592,4 @@ bool _containsExactPhrase(String text, String phrase) {
   final normalizedPhrase = _normalize(phrase);
   if (normalizedPhrase.isEmpty) return false;
   return RegExp('(^| )${RegExp.escape(normalizedPhrase)}( |\$)').hasMatch(text);
-}
-
-bool _containsTerm(String haystack, String token) {
-  if (token.contains('/') || token.contains('-')) {
-    return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
-  }
-  if (token.length <= 2) {
-    return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
-  }
-  return RegExp('(^| )${RegExp.escape(token)}( |\$)').hasMatch(haystack);
-}
-
-double _confidence(
-  int matchedTermCount,
-  String text,
-  WorkSupplyItem item, {
-  int score = 0,
-  String? tradeScope,
-  String originalText = '',
-}) {
-  var confidence = 0.20 + (matchedTermCount * 0.075);
-  if (_isStrongShortCatalogMatch(score)) confidence += 0.24;
-  final normalizedName = _normalize(item.name);
-  if (text.contains(normalizedName)) confidence += 0.08;
-  if (item.aliases.any((alias) => text.contains(_normalize(alias)))) {
-    confidence += 0.05;
-  }
-  if (text.contains(item.variant.toLowerCase())) confidence += 0.04;
-  if (_isPTrapReceiptMatch(text, item)) confidence += 0.18;
-  confidence += _specificityEvidenceScore(text, item);
-  confidence -= _receiptAmbiguityRisk(
-    _normalize(originalText.isEmpty ? text : originalText),
-    item,
-    tradeScope,
-  );
-  return _boundedReceiptConfidence(confidence);
 }
