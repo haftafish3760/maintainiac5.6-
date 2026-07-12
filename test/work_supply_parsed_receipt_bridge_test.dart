@@ -7,6 +7,72 @@ import 'package:maintaniac/shared/receipts/receipt_line_models.dart';
 import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 
 void main() {
+  test('mixed PEH quantities packages and tax preserve unit costs', () {
+    final plumbing = workSupplyCatalogItems.firstWhere(
+      (item) =>
+          item.trade == 'Plumbing' && item.name.contains('Copper 90 Elbow'),
+    );
+    final electrical = workSupplyCatalogItems.firstWhere(
+      (item) =>
+          item.trade == 'Electrical' &&
+          item.name.toLowerCase().contains('pvc electrical coupling'),
+    );
+    final hvac = workSupplyCatalogItems.firstWhere(
+      (item) => item.trade == 'HVAC' && item.name.contains('Thermostat Wire'),
+    );
+    final parsed = ExpenseReceiptParseResult(
+      sourceText: 'mixed PEH receipt',
+      enteredSubtotal: 200,
+      enteredTax: 16,
+      lines: [
+        _inventoryExpenseLine(
+          'P1',
+          plumbing.id,
+          plumbing.name,
+          plumbing.path,
+          2,
+          5,
+          100,
+        ),
+        _inventoryExpenseLine(
+          'E1',
+          electrical.id,
+          electrical.name,
+          electrical.path,
+          4,
+          1,
+          40,
+        ),
+        _inventoryExpenseLine('H1', hvac.id, hvac.name, hvac.path, 3, 2, 60),
+      ],
+    );
+
+    final draft = buildWorkSupplyParsedReceiptDraft(
+      parsed: parsed,
+      receiptId: 'RCP-PEH-MATH',
+      loggedAt: DateTime(2026, 7, 12),
+      storageArea: 'Service vehicle',
+      merchantName: 'Mixed Supply House',
+    );
+
+    expect(draft.inventoryRecords, hasLength(3));
+    expect(draft.inventoryRecords.map((record) => record.item.trade), [
+      'Plumbing',
+      'Electrical',
+      'HVAC',
+    ]);
+    expect(draft.inventoryRecords.map((record) => record.totalUnitsPurchased), [
+      10,
+      4,
+      6,
+    ]);
+    for (final record in draft.inventoryRecords) {
+      expect(record.taxRate, .08);
+      expect(record.unitCostWithTax, closeTo(10.8, .000001));
+      expect(record.sourceMerchantName, 'Mixed Supply House');
+    }
+  });
+
   test('catalog matched material receipt lines become inventory drafts', () {
     final copperElbow = workSupplyCatalogItems.firstWhere(
       (item) =>
@@ -259,4 +325,28 @@ void main() {
     expect(draft.lines.last.needsClientProofReview, isTrue);
     expect(draft.lines.last.businessUseLabel, 'Split 40% business');
   });
+}
+
+ExpenseReceiptLineRecord _inventoryExpenseLine(
+  String id,
+  String catalogItemId,
+  String catalogItemName,
+  String catalogItemPath,
+  double quantity,
+  double unitsPerPackage,
+  double subtotal,
+) {
+  return ExpenseReceiptLineRecord(
+    id: id,
+    description: catalogItemName,
+    category: 'Materials',
+    use: ExpenseLineUse.business,
+    quantity: quantity,
+    unitsPerPackage: unitsPerPackage,
+    unit: 'each',
+    subtotal: subtotal,
+    catalogItemId: catalogItemId,
+    catalogItemName: catalogItemName,
+    catalogItemPath: catalogItemPath,
+  );
 }
