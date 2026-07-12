@@ -250,31 +250,46 @@ extension ReceiptCameraViewController {
     })
     if !capturedPhotoPaths.isEmpty {
       alert.addAction(UIAlertAction(
-        title: "Save-space proof: local original",
+        title: receiptCameraText(
+          "Save-space proof: local original",
+          "Prueba para ahorrar espacio: original local"
+        ),
         style: .default
       ) { [weak self] _ in
         self?.setDataSaverLevel("original")
       })
       alert.addAction(UIAlertAction(
-        title: "Save-space proof: high quality",
+        title: receiptCameraText(
+          "Save-space proof: high quality",
+          "Prueba para ahorrar espacio: alta calidad"
+        ),
         style: .default
       ) { [weak self] _ in
         self?.setDataSaverLevel("light")
       })
       alert.addAction(UIAlertAction(
-        title: "Save-space proof: normal proof",
+        title: receiptCameraText(
+          "Save-space proof: normal proof",
+          "Prueba para ahorrar espacio: normal"
+        ),
         style: .default
       ) { [weak self] _ in
         self?.setDataSaverLevel("balanced")
       })
       alert.addAction(UIAlertAction(
-        title: "Save-space proof: low storage",
+        title: receiptCameraText(
+          "Save-space proof: low storage",
+          "Prueba para ahorrar espacio: ahorro de espacio"
+        ),
         style: .default
       ) { [weak self] _ in
         self?.setDataSaverLevel("strong")
       })
       alert.addAction(UIAlertAction(
-        title: "Save-space proof: tiny proof",
+        title: receiptCameraText(
+          "Save-space proof: tiny proof",
+          "Prueba para ahorrar espacio: muy pequeña"
+        ),
         style: .default
       ) { [weak self] _ in
         self?.setDataSaverLevel("maximum")

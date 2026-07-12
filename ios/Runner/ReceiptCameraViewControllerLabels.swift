@@ -84,15 +84,15 @@ extension ReceiptCameraViewController {
   func dataSaverLabel() -> String {
     switch dataSaverLevel {
     case "original":
-      return "Local original"
+      return receiptCameraText("Local original", "Original local")
     case "light":
-      return "High quality"
+      return receiptCameraText("High quality", "Alta calidad")
     case "strong":
-      return "Low storage"
+      return receiptCameraText("Low storage", "Ahorro de espacio")
     case "maximum":
-      return "Tiny proof"
+      return receiptCameraText("Tiny proof", "Prueba muy pequeña")
     default:
-      return "Normal proof"
+      return receiptCameraText("Normal proof", "Prueba normal")
     }
   }
 

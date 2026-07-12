@@ -21,11 +21,23 @@ extension ReceiptCameraViewController {
     Image cleanup: crop, straighten, grayscale, contrast, and shadow cleanup after capture.
     Review style: \(review)
     \(capturedPhotoPaths.isEmpty
-      ? "Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof."
-      : "Saved proof size: \(dataSaverLabel()) for proof and cloud backup")
+      ? receiptCameraText(
+          "Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof.",
+          "El tamaño de la prueba guardada aparece después de capturar la primera foto del recibo. Capture primero y luego revise el tamaño con una prueba real."
+        )
+      : receiptCameraText(
+          "Saved proof size: \(dataSaverLabel()) for proof and cloud backup",
+          "Tamaño de la prueba guardada: \(dataSaverLabel()) para comprobante y respaldo en la nube"
+        ))
     \(capturedPhotoPaths.isEmpty
-      ? "OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review."
-      : "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.")
+      ? receiptCameraText(
+          "OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.",
+          "El OCR primero lee la foto temporal de calidad completa. El tamaño de la prueba guardada permanece oculto hasta que exista una prueba real para revisar."
+        )
+      : receiptCameraText(
+          "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
+          "El OCR primero lee la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo."
+        ))
     Manual shutter always works immediately. Automatic capture is optional.
 
     Hold steady for the phone camera's autofocus. Pinch to zoom if the print is small. Use Brightness anytime.
