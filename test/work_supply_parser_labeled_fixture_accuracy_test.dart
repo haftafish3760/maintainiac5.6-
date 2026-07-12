@@ -44,9 +44,9 @@ const _independentSourceTypes = {
 };
 
 _PehFixtureAccuracyReport _scorePehFixtures() {
+  final fixturePaths = _labeledFixturePaths();
   final allFixtures = [
-    ..._loadFixtures('test/fixtures/work_supply_parser/golden_fixtures.json'),
-    ..._loadFixtures('test/fixtures/work_supply_parser/holdout_fixtures.json'),
+    for (final path in fixturePaths) ..._loadFixtures(path),
   ].where((fixture) => _pehTrades.contains(fixture.trade)).toList();
   final fixtures = _selectedFixtures(allFixtures);
 
@@ -70,7 +70,25 @@ _PehFixtureAccuracyReport _scorePehFixtures() {
   return _PehFixtureAccuracyReport(
     outcomes: outcomes,
     invalidFixtureIds: invalidFixtureIds,
+    fixturePaths: fixturePaths,
   );
+}
+
+List<String> _labeledFixturePaths() {
+  const configuredPaths = String.fromEnvironment(
+    'PARSER_QA_LABELED_FIXTURE_PATHS',
+  );
+  final paths = configuredPaths
+      .split(';')
+      .map((value) => value.trim())
+      .where((value) => value.isNotEmpty)
+      .toSet()
+      .toList();
+  if (paths.isNotEmpty) return paths;
+  return const [
+    'test/fixtures/work_supply_parser/golden_fixtures.json',
+    'test/fixtures/work_supply_parser/holdout_fixtures.json',
+  ];
 }
 
 List<_PehFixture> _selectedFixtures(List<_PehFixture> fixtures) {
@@ -128,6 +146,9 @@ class _PehFixture {
     required this.tradeScope,
     required this.localePackId,
     required this.sourceType,
+    required this.sourceOwner,
+    required this.reviewDate,
+    required this.expectedAnswerConfidence,
   });
 
   final String id;
@@ -144,6 +165,9 @@ class _PehFixture {
   final String? tradeScope;
   final String localePackId;
   final String sourceType;
+  final String sourceOwner;
+  final String reviewDate;
+  final double? expectedAnswerConfidence;
 
   List<String> get missingRequiredFields => [
     if (id.trim().isEmpty) 'id',
@@ -179,6 +203,10 @@ class _PehFixture {
       // Golden fixtures predate sourceType; absence means synthetic until a
       // separately reviewed source type is added.
       sourceType: (json['sourceType'] as String? ?? 'synthetic').toLowerCase(),
+      sourceOwner: json['sourceOwner'] as String? ?? '',
+      reviewDate: json['reviewDate'] as String? ?? '',
+      expectedAnswerConfidence: (json['expectedAnswerConfidence'] as num?)
+          ?.toDouble(),
     );
   }
 }
@@ -266,10 +294,12 @@ class _PehFixtureAccuracyReport {
   const _PehFixtureAccuracyReport({
     required this.outcomes,
     required this.invalidFixtureIds,
+    required this.fixturePaths,
   });
 
   final List<_PehFixtureOutcome> outcomes;
   final List<String> invalidFixtureIds;
+  final List<String> fixturePaths;
 
   int get fixtureCount => outcomes.length;
 
@@ -306,23 +336,34 @@ class _PehFixtureAccuracyReport {
           '$trade:accuracy_below_${_minimumClaimAccuracyPerTrade.toStringAsFixed(2)}',
         );
       }
+      final independentOutcomes = [
+        for (final outcome in tradeOutcomes)
+          if (_independentSourceTypes.contains(outcome.fixture.sourceType))
+            outcome,
+      ];
+      if (independentOutcomes.length < _minimumClaimFixturesPerTrade) {
+        claimBlockers.add(
+          '$trade:independent_sample_size_below_$_minimumClaimFixturesPerTrade',
+        );
+      }
+      final missingReviewMetadata = independentOutcomes.where(
+        (outcome) => !_hasIndependentReviewMetadata(outcome.fixture),
+      );
+      if (missingReviewMetadata.isNotEmpty) {
+        claimBlockers.add('$trade:independent_review_metadata_incomplete');
+      }
     }
     final sourceTypes = <String>{
       for (final outcome in outcomes) outcome.fixture.sourceType,
     };
-    final isIndependent = sourceTypes.any(_independentSourceTypes.contains);
-    if (measurementMode != 'full')
+    if (measurementMode != 'full') {
       claimBlockers.add('full_measurement_required');
-    if (!isIndependent) {
-      claimBlockers.add('no_independent_or_reviewed_real_evidence');
     }
-    claimBlockers.add(
-      'synthetic_and_checked_in_holdout_results_must_not_be_used_as_release_claims',
-    );
     final report = {
       'report': 'work_supply_parser_labeled_fixture_accuracy',
       'measurementMode': measurementMode,
       'fixtureCount': fixtureCount,
+      'fixturePaths': fixturePaths,
       'invalidFixtureIds': invalidFixtureIds,
       'overall': _summaryFor(outcomes),
       'byTrade': byTrade,
@@ -332,7 +373,7 @@ class _PehFixtureAccuracyReport {
         'minimumAccuracyPerTrade': _minimumClaimAccuracyPerTrade,
         'requiresIndependentEvidence': true,
       },
-      'releaseClaimEligible': false,
+      'releaseClaimEligible': claimBlockers.isEmpty,
       'releaseClaimBlockers': claimBlockers,
     };
     return 'PARSER_LABELED_FIXTURE_ACCURACY ${jsonEncode(report)}';
@@ -364,6 +405,13 @@ class _PehFixtureAccuracyReport {
     };
   }
 }
+
+bool _hasIndependentReviewMetadata(_PehFixture fixture) =>
+    fixture.sourceOwner.trim().isNotEmpty &&
+    fixture.reviewDate.trim().isNotEmpty &&
+    fixture.expectedAnswerConfidence != null &&
+    fixture.expectedAnswerConfidence! > 0 &&
+    fixture.expectedAnswerConfidence! <= 1;
 
 Map<String, int> _countBy<T>(Iterable<T> values, String Function(T) keyOf) {
   final counts = <String, int>{};
