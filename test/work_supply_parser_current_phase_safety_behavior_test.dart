@@ -70,7 +70,8 @@ void main() {
       expect(plumbing.confidenceLevel, ReceiptConfidenceLevel.good);
       expect(electrical, isNotNull);
       expect(electrical!.item.trade, 'Electrical');
-      expect(electrical.item.name.toLowerCase(), contains('conduit'));
+      expect(electrical.item.name.toLowerCase(), contains('pvc'));
+      expect(electrical.item.name.toLowerCase(), contains('coupling'));
       expect(electrical.confidenceLevel, ReceiptConfidenceLevel.good);
     });
 

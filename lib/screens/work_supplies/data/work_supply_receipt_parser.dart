@@ -5230,10 +5230,10 @@ bool _matchesHalfByThreeEighthStop(String receiptText, String variant) {
       normalizedVariant.contains('1/2') &&
       normalizedVariant.contains('3/8');
 }
-
 bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
-  if (RegExp(r'\bpvc\b').hasMatch(text) && _hasReceiptElbowShapeToken(text)) {
+  if (RegExp(r'\bpvc\b').hasMatch(text) &&
+      !RegExp(r'\b(dwv|drain|sewer|pressure|potable|plumb|conduit|electrical|cond|condensate|hvac)\b').hasMatch(text)) {
     return true;
   }
   if (RegExp(r'\bfilter\b').hasMatch(text) &&
