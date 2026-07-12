@@ -2,6 +2,22 @@ part of '../../work_supply_receipt_parser.dart';
 
 /// Matches HVAC equipment, furnace, control, and service-part receipt lines.
 WorkSupplyItem? _directHvacEquipmentAndServicePartsMatch(String text) {
+  WorkSupplyItem? findPreferredHvac(
+    Iterable<String> requiredNameParts,
+    bool Function(String name) matches,
+  ) {
+    WorkSupplyItem? fallback;
+    for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(
+      requiredNameParts,
+    )) {
+      final name = item.name.toLowerCase();
+      if (item.trade != 'HVAC' || !matches(name)) continue;
+      if (item.packTier == WorkSupplyPackTier.core) return item;
+      fallback ??= item;
+    }
+    return fallback;
+  }
+
   final wantsFlameSensor = RegExp(
     r'\b(flame\s*(sensor|rod)|sensor flama|varilla flama)\b',
   ).hasMatch(text);
@@ -104,12 +120,11 @@ WorkSupplyItem? _directHvacEquipmentAndServicePartsMatch(String text) {
       RegExp(r'\b(pan|bandeja)\b').hasMatch(text) &&
       RegExp(r'\b(drain|drenaje|secondary|sec|ac)\b').hasMatch(text);
   if (wantsHvacDrainPan) {
-    for (final item in _activeWorkSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('drain pan')) {
-        return item;
-      }
-    }
+    final match = findPreferredHvac(const [
+      'drain',
+      'pan',
+    ], (name) => name.contains('drain pan'));
+    if (match != null) return match;
   }
 
   final wantsCondensateTrap =
@@ -152,12 +167,12 @@ WorkSupplyItem? _directHvacEquipmentAndServicePartsMatch(String text) {
       RegExp(r'\b(service|serv|servicio|valve|valvula)\b').hasMatch(text) &&
       RegExp(r'\b(cap|tapa)\b').hasMatch(text);
   if (wantsServiceValveCap) {
-    for (final item in _activeWorkSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('service valve cap')) {
-        return item;
-      }
-    }
+    final match = findPreferredHvac(const [
+      'service',
+      'valve',
+      'cap',
+    ], (name) => name.contains('service valve cap'));
+    if (match != null) return match;
   }
 
   final wantsDefrostBoard =

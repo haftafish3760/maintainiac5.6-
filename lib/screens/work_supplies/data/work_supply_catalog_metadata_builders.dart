@@ -382,7 +382,7 @@ List<String> _hvacCoreAttributeTokensFor(
   String size,
   String shape,
 ) {
-  if (!_isHvacCoreItem(item, item.searchableText)) return const [];
+  if (!_isHvacCoreItem(item, _workSupplyTierText(item))) return const [];
   return _cleanList([
     'hvac-core',
     'residential-service',
@@ -407,7 +407,7 @@ List<String> _hvacCoreHighImportanceTokensFor(
   String connectionType,
   String shape,
 ) {
-  if (!_isHvacCoreItem(item, item.searchableText)) return const [];
+  if (!_isHvacCoreItem(item, _workSupplyTierText(item))) return const [];
   return _cleanList([
     'hvac-core',
     'residential-service',
@@ -428,7 +428,7 @@ List<String> _hvacCoreNegativeMatchTokensFor(
   String shape,
   String text,
 ) {
-  if (!_isHvacCoreItem(item, text)) return const [];
+  if (!_isHvacCoreItem(item, _workSupplyTierText(item))) return const [];
   final itemText = '$text ${item.name} ${item.itemType}'.toLowerCase();
   return _cleanList([
     if (!itemText.contains('water filter')) 'water filter',

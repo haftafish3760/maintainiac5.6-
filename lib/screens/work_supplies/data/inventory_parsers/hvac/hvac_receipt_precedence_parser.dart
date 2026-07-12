@@ -16,11 +16,59 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
   }
 
   WorkSupplyItem? findHvac(bool Function(String name) matches) {
+    WorkSupplyItem? fallback;
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && matches(name)) return item;
+      if (item.trade != 'HVAC' || !matches(name)) continue;
+      if (item.packTier == WorkSupplyPackTier.core) return item;
+      fallback ??= item;
     }
-    return null;
+    return fallback;
+  }
+
+  final wantsTimeDelayRelay =
+      RegExp(r'\btime\s+delay\b').hasMatch(text) &&
+      RegExp(r'\brelay\b').hasMatch(text);
+  if (wantsTimeDelayRelay) {
+    final voltage = RegExp(
+      r'\b(24|120|208|230)\s*v\b',
+    ).firstMatch(text)?.group(1);
+    final match = findHvac(
+      (name) =>
+          name.contains('time delay relay') &&
+          (voltage == null || name.contains('${voltage}v')),
+    );
+    if (match != null) return match;
+  }
+
+  final wantsHardStart =
+      RegExp(r'\b(hard\s+start|spp\d+)\b').hasMatch(text) &&
+      RegExp(r'\b(kit|kt|start)\b').hasMatch(text);
+  if (wantsHardStart) {
+    final match = findHvac((name) => name.contains('hard start kit'));
+    if (match != null) return match;
+  }
+
+  final wantsServiceValveCap =
+      RegExp(r'\b(service|serv)\b').hasMatch(text) &&
+      RegExp(r'\bvalve\b').hasMatch(text) &&
+      RegExp(r'\bcap\b').hasMatch(text);
+  if (wantsServiceValveCap) {
+    final match = findHvac((name) => name.contains('service valve cap'));
+    if (match != null) return match;
+  }
+
+  final wantsDrainPan =
+      RegExp(r'\b(condensate|drain|secondary|sec)\b').hasMatch(text) &&
+      RegExp(r'\bpan\b').hasMatch(text);
+  if (wantsDrainPan) {
+    final size = _receiptSizeMatrix(text);
+    final match = findHvac(
+      (name) =>
+          name.contains('secondary drain pan') &&
+          (size == null || name.contains(size)),
+    );
+    if (match != null) return match;
   }
 
   final capacitor = RegExp(r'\b(\d+(?:\.\d+)?/\d+)\b').firstMatch(text);

@@ -6,6 +6,7 @@ part 'work_supply_catalog_search.dart';
 part 'work_supply_catalog_sizes.dart';
 part 'work_supply_catalog_intelligence.dart';
 part 'work_supply_electrical_catalog_intelligence.dart';
+part 'work_supply_hvac_catalog_intelligence.dart';
 part 'work_supply_catalog_tier_signals.dart';
 part 'work_supply_catalog_hvac_and_general_signals.dart';
 part 'work_supply_catalog_metadata_builders.dart';

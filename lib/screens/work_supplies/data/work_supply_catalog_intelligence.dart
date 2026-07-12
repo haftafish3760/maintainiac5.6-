@@ -275,6 +275,7 @@ bool _isExpandedElectricalServiceCore(
 bool _isHvacCoreItem(WorkSupplyItem item, String text) {
   final category = item.category.toLowerCase();
   final system = item.system.toLowerCase();
+  if (_isHvacSpecialtyCategoryForCore(item, text)) return false;
   if (category == 'hvac core supplemental service stock') return true;
   if (category == 'air filters' || system == 'expanded air filters') {
     return _hasAny(text, _hvacCoreFilterSignals);

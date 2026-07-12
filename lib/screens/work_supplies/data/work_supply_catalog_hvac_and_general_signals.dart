@@ -63,6 +63,7 @@ const _hvacCoreCondensateSignals = [
   'condensate trap',
   'condensate tee',
   'condensate pvc fitting',
+  'union condensate pvc part',
   'pvc condensate',
   'vinyl tubing',
   'clear tubing',
