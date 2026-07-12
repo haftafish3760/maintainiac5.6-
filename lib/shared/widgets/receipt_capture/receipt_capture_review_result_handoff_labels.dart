@@ -21,17 +21,6 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       }
       return 'Add the next receipt section before reviewing receipt details, unless this photo already shows the full receipt.';
     }
-    if (receiptSectionOrderNeedsReview) {
-      return receiptSectionOrderReviewActionLabel;
-    }
-    if (receiptSectionOrderReviewActionCode ==
-            'review_retaken_section_then_continue' ||
-        receiptSectionOrderReviewActionCode ==
-            'review_inserted_section_then_continue' ||
-        receiptSectionOrderReviewActionCode ==
-            'review_reordered_sections_then_continue') {
-      return receiptSectionOrderReviewActionLabel;
-    }
     final warningProfile = acceptedPhotoWarningProfile;
     if (warningProfile != 'saved_photo_ok') {
       return switch (warningProfile) {
@@ -58,6 +47,17 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
         _ =>
           'Check readability, then review receipt details and mark Business, Personal, or Mixed.',
       };
+    }
+    if (receiptSectionOrderNeedsReview) {
+      return receiptSectionOrderReviewActionLabel;
+    }
+    if (receiptSectionOrderReviewActionCode ==
+            'review_retaken_section_then_continue' ||
+        receiptSectionOrderReviewActionCode ==
+            'review_inserted_section_then_continue' ||
+        receiptSectionOrderReviewActionCode ==
+            'review_reordered_sections_then_continue') {
+      return receiptSectionOrderReviewActionLabel;
     }
     return switch (acceptedPhotoHandoffOutcome) {
       'critical_quality_retake_recommended' =>

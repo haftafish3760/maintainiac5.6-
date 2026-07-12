@@ -60,10 +60,19 @@ void main() {
       androidCameraUnit,
       contains('latestCapturedBottomTopLumaDeltaBucket'),
     );
-    expect(androidCameraUnit, contains('text = "Done"'));
-    expect(androidCameraUnit, contains('text = "Add Photo"'));
+    expect(
+      androidCameraUnit,
+      contains('text = receiptCameraText("Done", "Listo")'),
+    );
+    expect(
+      androidCameraUnit,
+      contains('text = receiptCameraText("Add Photo", "Agregar foto")'),
+    );
     expect(androidCameraUnit, contains('"manual_add_photo"'));
-    expect(androidCameraUnit, contains(r'else -> "Done ($count)"'));
+    expect(
+      androidCameraUnit,
+      contains(r'"${receiptCameraText("Done", "Listo")} ($count)"'),
+    );
     expect(androidCameraUnit, contains('bottomBar.addView(addPhotoButton)'));
     expect(
       androidCameraUnit,
@@ -172,7 +181,10 @@ void main() {
 
   test('photo review can open on a newly added receipt section', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
-    final actions = await readReceiptAttachmentImportActionsSource();
+    final reviewActions = await File(
+      'lib/shared/widgets/receipt_capture/'
+      'receipt_attachment_review_read_actions.dart',
+    ).readAsString();
 
     expect(reviewScreen, contains('this.initialSelectedIndex = 0'));
     expect(reviewScreen, contains('final int initialSelectedIndex'));
@@ -185,8 +197,11 @@ void main() {
       reviewScreen,
       contains('widget.initialSelectedIndex.clamp(0, _photoPaths.length - 1)'),
     );
-    expect(actions, contains('final firstNewPhotoIndex ='));
-    expect(actions, contains('uniqueNormalizedReceiptPhotoPaths('));
-    expect(actions, contains('initialSelectedIndex: firstNewPhotoIndex'));
+    expect(reviewActions, contains('ReceiptPhotoImportOrderPlan.build('));
+    expect(reviewActions, contains('importOrder.mergedPhotoPaths'));
+    expect(
+      reviewActions,
+      contains('initialSelectedIndex: importOrder.firstImportedPhotoIndex'),
+    );
   });
 }

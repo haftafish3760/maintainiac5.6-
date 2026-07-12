@@ -85,7 +85,7 @@ void main() {
       expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
       expect(
         result.acceptedPhotoHandoffRoute,
-        'photo_review_ocr_source_review_required',
+        'photo_review_section_order_review_required',
       );
       expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, isFalse);
       expect(result.acceptedPhotoHandoffMustOpenFilledReview, isFalse);

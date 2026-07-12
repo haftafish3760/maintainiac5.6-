@@ -102,7 +102,7 @@ void main() {
       'receipt_proof_storage_policy_normal_record_uses_data_saver_proof': 1,
       'receipt_proof_storage_policy_accepted_review_allows_temporary_ocr_cleanup':
           1,
-      'receipt_proof_target_normal_proof_200_300kb': 1,
+      'receipt_proof_target_normal_proof_800_1000kb': 1,
       'receipt_proof_target_level_balanced': 1,
       'receipt_proof_target_cloud_backup_true': 1,
       'receipt_proof_target_review_required_false': 1,
@@ -149,9 +149,9 @@ void main() {
     );
     expect(
       result.receiptProofTargetSizePolicy.policyCode,
-      'normal_proof_200_300kb',
+      'normal_proof_800_1000kb',
     );
-    expect(result.receiptProofTargetSizePolicy.targetBytes, 250 * 1024);
+    expect(result.receiptProofTargetSizePolicy.targetBytes, 900 * 1024);
     expect(
       result.receiptProofTargetSizePolicy.cloudBackupDefaultAllowed,
       isTrue,

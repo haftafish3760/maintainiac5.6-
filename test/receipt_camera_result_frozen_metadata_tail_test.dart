@@ -67,11 +67,11 @@ void main() {
       );
       expect(
         handoffMetadata,
-        containsPair('receiptProofTargetPolicyCode', 'normal_proof_200_300kb'),
+        containsPair('receiptProofTargetPolicyCode', 'normal_proof_800_1000kb'),
       );
       expect(
         handoffMetadata,
-        containsPair('receiptProofTargetBytes', 250 * 1024),
+        containsPair('receiptProofTargetBytes', 900 * 1024),
       );
       expect(
         handoffMetadata,

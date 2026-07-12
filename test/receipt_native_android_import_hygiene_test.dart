@@ -36,6 +36,7 @@ void main() {
         'androidx.camera.camera2.interop.ExperimentalCamera2Interop',
         'android.view.Surface',
         'android.widget.Toast',
+        'androidx.camera.core.AspectRatio',
         'androidx.camera.core.CameraSelector',
         'androidx.camera.core.ImageAnalysis',
         'androidx.camera.core.ImageCapture',

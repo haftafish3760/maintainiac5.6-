@@ -54,7 +54,7 @@ void main() {
       result.acceptedPhotoQualityOutcomeCounts,
       containsPair('quality_family_review', 1),
     );
-    expect(result.acceptedPhotoHandoffOutcome, 'possible_partial_receipt');
+    expect(result.acceptedPhotoHandoffOutcome, 'needs_review_before_ocr');
   });
 
   test('best shot camera results preserve quality checks by index', () {
