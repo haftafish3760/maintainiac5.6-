@@ -20,5 +20,14 @@ final hvacRefrigerantLinesCategory = _category('Refrigerant Lines', [
         ['armaflex'],
       ),
     ),
+    _type(
+      'ACR Copper Tubing',
+      _variants(
+        'ACR Copper Tubing',
+        'coil',
+        ['1/4 in', '3/8 in', '1/2 in', '5/8 in', '3/4 in', '7/8 in'],
+        ['refrigeration copper tubing', 'soft acr copper'],
+      ),
+    ),
   ]),
 ]);

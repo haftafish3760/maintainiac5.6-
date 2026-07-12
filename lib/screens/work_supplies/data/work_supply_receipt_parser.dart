@@ -13,6 +13,7 @@ part 'inventory_parsers/hvac/hvac_core_parser.dart';
 part 'inventory_parsers/hvac/hvac_air_drain_and_duct_parser.dart';
 part 'inventory_parsers/hvac/hvac_equipment_and_service_parts_parser.dart';
 part 'inventory_parsers/hvac/hvac_receipt_precedence_parser.dart';
+part 'inventory_parsers/hvac/hvac_unscoped_evidence_parser.dart';
 part 'inventory_parsers/plumbing/plumbing_receipt_precedence_parser.dart';
 part 'inventory_parsers/electrical/electrical_receipt_score.dart';
 part 'inventory_parsers/plumbing/plumbing_receipt_score.dart';
@@ -377,6 +378,7 @@ ReceiptLineMatch? _matchReceiptLineToActiveCatalog(
     best.item,
     score: best.score,
     tradeScope: tradeScope,
+    originalText: rawText,
   );
   return ReceiptLineMatch(
     rawText: rawText,
@@ -751,8 +753,8 @@ WorkSupplyItem? _directElectricalControlMatch(
   String text, {
   String? tradeScope,
 }) {
-  if (tradeScope != null &&
-      tradeScope.trim().isNotEmpty &&
+  if (tradeScope == null ||
+      tradeScope.trim().isEmpty ||
       tradeScope.trim().toLowerCase() != 'electrical') {
     return null;
   }
@@ -792,9 +794,12 @@ WorkSupplyItem? _directElectricalRacewayMatch(
   String text, {
   String? tradeScope,
 }) {
-  if (tradeScope == null ||
-      tradeScope.trim().isEmpty ||
-      tradeScope.trim().toLowerCase() != 'electrical') {
+  final scope = tradeScope?.trim().toLowerCase();
+  if (scope != null && scope.isNotEmpty && scope != 'electrical') {
+    return null;
+  }
+  if ((scope == null || scope.isEmpty) &&
+      !RegExp(r'\b(conduit|electrical|elec)\b').hasMatch(text)) {
     return null;
   }
   final isPvcConduit =
@@ -881,36 +886,6 @@ WorkSupplyItem? _directElectricalCableStapleMatch(
   return null;
 }
 
-WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
-  final wantsCondensateCoupling =
-      RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(cond|condensate)\b').hasMatch(text) &&
-      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text);
-  if (wantsCondensateCoupling) {
-    final size = _nominalReceiptSize(text);
-    for (final item in _activeWorkSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('condensate pvc coupling') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCondensatePump = RegExp(
-    r'\b(little\s+pump|condensate\s+pump|cond\s+pump|bomba\s+condensado)\b',
-  ).hasMatch(text);
-  if (!wantsCondensatePump) return null;
-  for (final item in _activeWorkSupplyCatalogItems) {
-    final name = item.name.toLowerCase();
-    if (item.trade == 'HVAC' && name.contains('condensate pump')) {
-      return item;
-    }
-  }
-  return null;
-}
-
 WorkSupplyItem? _directApplianceInstallMatch(
   String text, {
   String? tradeScope,
@@ -961,6 +936,10 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (hvacPrecedence != null) return hvacPrecedence;
   final fastDirect = _directFastReceiptMatch(text, tradeScope: tradeScope);
   if (fastDirect != null) return fastDirect;
+  if (tradeScope == null || tradeScope.trim().isEmpty) {
+    final unscopedHvac = _directUnscopedHvacEvidenceMatch(receiptText);
+    if (unscopedHvac != null) return unscopedHvac;
+  }
   final electricalServiceRepair = _directElectricalServiceRepairMatch(
     text,
     tradeScope: tradeScope,
@@ -5597,6 +5576,7 @@ double _confidence(
   WorkSupplyItem item, {
   int score = 0,
   String? tradeScope,
+  String originalText = '',
 }) {
   var confidence = 0.20 + (matchedTermCount * 0.075);
   if (_isStrongShortCatalogMatch(score)) confidence += 0.24;
@@ -5608,6 +5588,10 @@ double _confidence(
   if (text.contains(item.variant.toLowerCase())) confidence += 0.04;
   if (_isPTrapReceiptMatch(text, item)) confidence += 0.18;
   confidence += _specificityEvidenceScore(text, item);
-  confidence -= _receiptAmbiguityRisk(text, item, tradeScope);
+  confidence -= _receiptAmbiguityRisk(
+    _normalize(originalText.isEmpty ? text : originalText),
+    item,
+    tradeScope,
+  );
   return _boundedReceiptConfidence(confidence);
 }

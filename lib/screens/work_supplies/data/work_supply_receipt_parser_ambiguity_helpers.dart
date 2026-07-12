@@ -17,9 +17,17 @@ bool _isUnscopedAmbiguousReceiptLine(
   final normalized = _normalize(text);
   final itemText = _indexedReceiptTextFor(item);
   if (RegExp(r'\bpvc\b').hasMatch(normalized) &&
+      !RegExp(
+        r'\b(dwv|sch|schedule|s40|cond|conduit|electrical|elec|emt|'
+        r'condensate|hvac|irrigation)\b',
+      ).hasMatch(normalized) &&
+      normalized.split(RegExp(r'\s+')).length <= 3) {
+    return true;
+  }
+  if (RegExp(r'\bpvc\b').hasMatch(normalized) &&
       RegExp(
         r'\b(90|ell|elb|elbow|cement|cond|conduit|cplg|coupling|coup|'
-        r'union|pipe)\b',
+        r'union|tee|pipe)\b',
       ).hasMatch(normalized)) {
     return true;
   }
@@ -130,8 +138,9 @@ bool _hasBrokenCriticalPlumbingFraction(String text) {
   ).hasMatch(normalized)) {
     return true;
   }
-  if (RegExp(r'\b\d{2}\s+(cop|copper|cu)\s+(90|ell|elb|elbow)\b')
-      .hasMatch(normalized)) {
+  if (RegExp(
+    r'\b\d{2}\s+(cop|copper|cu)\s+(90|ell|elb|elbow)\b',
+  ).hasMatch(normalized)) {
     return true;
   }
   return false;
@@ -147,7 +156,8 @@ bool _isDirtyMaterialShapeOnlyPlumbingLine(String text, WorkSupplyItem item) {
     r'\b(90|45|ell|elb|elbow|tee|cplg|coupling|adpt|adapter|valv|valve)\b',
   ).hasMatch(normalized);
   if (!hasMaterial || !hasShape) return false;
-  final hasSize = _nominalReceiptSize(normalized) != null ||
+  final hasSize =
+      _nominalReceiptSize(normalized) != null ||
       _receiptSizeMatrix(normalized) != null;
   final hasConnection = RegExp(
     r'\b(cxc|c\s*x\s*c|mip|fip|male|female|sweat|wrot|press|propress|'

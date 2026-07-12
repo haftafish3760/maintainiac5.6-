@@ -215,6 +215,8 @@ Future<Directory> _writeVersionedPack({
     'items': [
       {
         'canonicalKey': 'plumbing.synthetic.pex.elbow',
+        'trade': 'Plumbing',
+        'packTier': 'core',
         'searchTerms': ['pex', 'elbow', '1/2'],
         'aliases': [
           {'value': '1/2 pex elbow', 'normalized': '1 2 pex elbow'},

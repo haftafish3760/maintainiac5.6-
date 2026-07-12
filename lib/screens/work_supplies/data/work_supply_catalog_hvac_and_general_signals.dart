@@ -94,6 +94,7 @@ const _hvacCoreSealSignals = [
   'line set',
   'line set cover',
   'line set cover kit',
+  'acr copper tubing',
   'armaflex',
   'pipe insulation',
   'service valve cap',
