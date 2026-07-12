@@ -20,6 +20,7 @@ enum WorkSupplyTradePackValidationStatus {
   itemCountMismatch,
   invalidPayloadSchema,
   missingParserMetadata,
+  packScopeMismatch,
 }
 
 class WorkSupplyTradePackValidationResult {
@@ -102,6 +103,15 @@ class WorkSupplyTradePackImportValidator {
         return _result(
           WorkSupplyTradePackValidationStatus.missingParserMetadata,
           [parserIssue],
+          chunks: checkedChunks,
+          items: checkedItems,
+        );
+      }
+      final scopeIssue = _packScopeIssue(items, manifest);
+      if (scopeIssue != null) {
+        return _result(
+          WorkSupplyTradePackValidationStatus.packScopeMismatch,
+          [scopeIssue],
           chunks: checkedChunks,
           items: checkedItems,
         );
@@ -255,6 +265,43 @@ class WorkSupplyTradePackImportValidator {
       }
     }
     return null;
+  }
+
+  String? _packScopeIssue(
+    List<dynamic> items,
+    WorkSupplyTradePackManifest manifest,
+  ) {
+    final expectedTrade = manifest.tradeName.trim().toLowerCase();
+    for (final rawItem in items) {
+      if (rawItem is! Map) continue;
+      final itemTrade = _string(rawItem['trade']).trim().toLowerCase();
+      if (expectedTrade != workSupplyFullTradesCatalogName.toLowerCase() &&
+          itemTrade != expectedTrade) {
+        return 'Pack item trade does not match manifest: $itemTrade.';
+      }
+      final itemTier = _string(rawItem['packTier']).trim().toLowerCase();
+      if (!_isTierAllowedInPack(itemTier, manifest.tier)) {
+        return 'Pack item tier exceeds manifest tier: $itemTier.';
+      }
+    }
+    return null;
+  }
+
+  bool _isTierAllowedInPack(String itemTier, WorkSupplyTradePackTier packTier) {
+    return switch (packTier) {
+      WorkSupplyTradePackTier.core => itemTier == 'core',
+      WorkSupplyTradePackTier.expanded =>
+        itemTier == 'core' || itemTier == 'standard',
+      WorkSupplyTradePackTier.professional =>
+        itemTier == 'core' ||
+            itemTier == 'standard' ||
+            itemTier == 'professional',
+      WorkSupplyTradePackTier.full =>
+        itemTier == 'core' ||
+            itemTier == 'standard' ||
+            itemTier == 'professional' ||
+            itemTier == 'complete',
+    };
   }
 
   WorkSupplyTradePackValidationResult _result(
