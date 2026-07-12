@@ -21,6 +21,38 @@ class InventoryParser {
     return InventoryParser(catalogItems: pack.items);
   }
 
+  factory InventoryParser.fromLoadedTradePacks(
+    Iterable<WorkSupplyTradePackRuntimeLoadResult> packs,
+  ) {
+    final itemsById = <String, WorkSupplyItem>{};
+    for (final pack in packs) {
+      if (!pack.isReady) {
+        throw ArgumentError.value(
+          pack.status,
+          'packs',
+          'Every local trade pack must be validated before offline parsing.',
+        );
+      }
+      for (final item in pack.items) {
+        final existing = itemsById[item.id];
+        if (existing == null) {
+          itemsById[item.id] = item;
+          continue;
+        }
+        if (!_sameCatalogItem(existing, item)) {
+          throw ArgumentError.value(
+            item.id,
+            'packs',
+            'Installed trade packs contain conflicting item IDs.',
+          );
+        }
+      }
+    }
+    return InventoryParser(
+      catalogItems: List<WorkSupplyItem>.unmodifiable(itemsById.values),
+    );
+  }
+
   /// Null preserves the legacy/default compiled-catalog behavior. A non-null
   /// list restricts matching to the bundled or user-downloaded pack only.
   final List<WorkSupplyItem>? catalogItems;
@@ -43,4 +75,15 @@ class InventoryParser {
       catalogItems: catalogItems,
     );
   }
+}
+
+bool _sameCatalogItem(WorkSupplyItem left, WorkSupplyItem right) {
+  return left.id == right.id &&
+      left.name == right.name &&
+      left.trade == right.trade &&
+      left.category == right.category &&
+      left.system == right.system &&
+      left.itemType == right.itemType &&
+      left.variant == right.variant &&
+      left.unit == right.unit;
 }

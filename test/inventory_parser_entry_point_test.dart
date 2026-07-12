@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/work_supplies/data/inventory_parser.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_models.dart';
+import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_runtime_loader.dart';
 
 void main() {
   test('loaded-catalog entry point restricts matching to its pack', () {
@@ -27,6 +28,27 @@ void main() {
 
     expect(match, isNull);
   });
+
+  test(
+    'multiple validated local packs merge without duplicate catalog rows',
+    () {
+      final item = _pvcSchedule40Coupling();
+      final pack = WorkSupplyTradePackRuntimeLoadResult(
+        status: WorkSupplyTradePackRuntimeLoadStatus.ready,
+        items: [item],
+        issues: const [],
+      );
+      final parser = InventoryParser.fromLoadedTradePacks([pack, pack]);
+
+      final match = parser.matchReceiptLine(
+        'HD 3/4 PVC SCH40 COUPLING',
+        tradeScope: 'Plumbing',
+      );
+
+      expect(parser.catalogItems, hasLength(1));
+      expect(match?.item.id, item.id);
+    },
+  );
 }
 
 WorkSupplyItem _pvcSchedule40Coupling() => workSupplyCatalogItems.firstWhere(
