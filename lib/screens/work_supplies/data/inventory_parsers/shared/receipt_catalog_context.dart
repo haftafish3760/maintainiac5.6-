@@ -7,7 +7,7 @@ final _receiptCatalogContextByItems = Expando<_ReceiptCatalogContext>(
   'receiptCatalogContext',
 );
 
-final _baseReceiptCatalogIndexes = _ReceiptCatalogIndexes.build(
+final _baseReceiptCatalogContext = _ReceiptCatalogContext.fromItems(
   catalog.workSupplyCatalogItems,
 );
 
@@ -16,31 +16,34 @@ List<WorkSupplyItem> get _activeWorkSupplyCatalogItems =>
 
 Map<String, _ReceiptCatalogEntry> get _receiptCatalogEntryById =>
     _activeReceiptCatalogIndexes?.entriesById ??
-    _baseReceiptCatalogIndexes.entriesById;
+    _baseReceiptCatalogContext.indexes.entriesById;
 
 List<WorkSupplyItem> get _plumbingPvcDwvSanitaryTeeItems =>
     _activeReceiptCatalogIndexes?.plumbingPvcDwvSanitaryTeeItems ??
-    _baseReceiptCatalogIndexes.plumbingPvcDwvSanitaryTeeItems;
+    _baseReceiptCatalogContext.indexes.plumbingPvcDwvSanitaryTeeItems;
 
 List<_ReceiptVendorMappingEntry> get _receiptVendorMappingIndex =>
     _activeReceiptCatalogIndexes?.vendorMappings ??
-    _baseReceiptCatalogIndexes.vendorMappings;
+    _baseReceiptCatalogContext.indexes.vendorMappings;
 
 Map<String, List<_ReceiptCatalogEntry>> get _receiptCatalogTokenIndex =>
     _activeReceiptCatalogIndexes?.tokenIndex ??
-    _baseReceiptCatalogIndexes.tokenIndex;
+    _baseReceiptCatalogContext.indexes.tokenIndex;
 
 T _runWithReceiptCatalogItems<T>(
-  List<WorkSupplyItem>? catalogItems,
-  T Function() action,
-) {
-  if (catalogItems == null) return action();
+  List<WorkSupplyItem>? catalogItems, {
+  String? tradeScope,
+  required T Function() action,
+}) {
   final previousItems = _activeReceiptCatalogItems;
   final previousIndexes = _activeReceiptCatalogIndexes;
-  final context = _receiptCatalogContextByItems[catalogItems] ??=
-      _ReceiptCatalogContext.fromItems(catalogItems);
-  _activeReceiptCatalogItems = context.items;
-  _activeReceiptCatalogIndexes = context.indexes;
+  final context = catalogItems == null
+      ? _baseReceiptCatalogContext
+      : _receiptCatalogContextByItems[catalogItems] ??=
+            _ReceiptCatalogContext.fromItems(catalogItems);
+  final scoped = context.forTradeScope(tradeScope);
+  _activeReceiptCatalogItems = scoped.items;
+  _activeReceiptCatalogIndexes = scoped.indexes;
   try {
     return action();
   } finally {
@@ -50,7 +53,7 @@ T _runWithReceiptCatalogItems<T>(
 }
 
 class _ReceiptCatalogContext {
-  const _ReceiptCatalogContext._({required this.items, required this.indexes});
+  _ReceiptCatalogContext._({required this.items, required this.indexes});
 
   factory _ReceiptCatalogContext.fromItems(List<WorkSupplyItem> source) {
     final items = List<WorkSupplyItem>.unmodifiable(source);
@@ -62,6 +65,19 @@ class _ReceiptCatalogContext {
 
   final List<WorkSupplyItem> items;
   final _ReceiptCatalogIndexes indexes;
+  final _scopedContexts = <String, _ReceiptCatalogContext>{};
+
+  _ReceiptCatalogContext forTradeScope(String? tradeScope) {
+    final scope = tradeScope?.trim().toLowerCase();
+    if (scope == null || scope.isEmpty) return this;
+    return _scopedContexts.putIfAbsent(scope, () {
+      final scopedItems = [
+        for (final item in items)
+          if (item.trade.toLowerCase() == scope) item,
+      ];
+      return _ReceiptCatalogContext.fromItems(scopedItems);
+    });
+  }
 }
 
 List<WorkSupplyItem> _searchActiveReceiptCatalogItems(String query) {

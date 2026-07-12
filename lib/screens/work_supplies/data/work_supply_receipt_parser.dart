@@ -156,7 +156,8 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
 }) {
   return _runWithReceiptCatalogItems(
     catalogItems,
-    () => _matchReceiptLineToActiveCatalog(
+    tradeScope: tradeScope,
+    action: () => _matchReceiptLineToActiveCatalog(
       rawText,
       memory: memory,
       trustedItemIdentityIds: trustedItemIdentityIds,
