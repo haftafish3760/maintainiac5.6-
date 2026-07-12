@@ -7,7 +7,7 @@ final _receiptCatalogContextByItems = Expando<_ReceiptCatalogContext>(
   'receiptCatalogContext',
 );
 
-final _baseReceiptCatalogContext = _ReceiptCatalogContext.fromItems(
+late final _baseReceiptCatalogContext = _ReceiptCatalogContext.fromItems(
   catalog.workSupplyCatalogItems,
 );
 

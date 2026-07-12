@@ -22,6 +22,7 @@ part 'inventory_parsers/hvac/hvac_air_distribution_and_gas_receipt_score.dart';
 part 'inventory_parsers/hvac/hvac_service_equipment_and_tool_receipt_score.dart';
 part 'inventory_parsers/shared/receipt_confidence_specificity.dart';
 part 'inventory_parsers/shared/receipt_catalog_context.dart';
+part 'inventory_parsers/shared/receipt_catalog_index_parity_qa.dart';
 part 'inventory_parsers/shared/receipt_noise.dart';
 part 'inventory_parsers/shared/term_aliases/receipt_electrical_and_hvac_term_aliases.dart';
 part 'inventory_parsers/shared/term_aliases/receipt_construction_and_appliance_term_aliases.dart';
