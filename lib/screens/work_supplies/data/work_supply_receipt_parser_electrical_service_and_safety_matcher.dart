@@ -113,7 +113,13 @@ WorkSupplyItem? _directElectricalProfessionalMatch(
       ).hasMatch(text) &&
       RegExp(r'\b(disc|disconnect|desconectador)\b').hasMatch(text) &&
       !RegExp(r'\b(wire\s*nut|wirenut)\b').hasMatch(text);
-  if (wantsAcDisconnect) {
+  final explicitlyAirConditioning = RegExp(r'\b(ac|a/c)\b').hasMatch(text);
+  final explicitlyElectrical = tradeScope?.trim().toLowerCase() == 'electrical';
+  // An unscoped AC disconnect is HVAC service equipment. Let the HVAC
+  // precedence matcher resolve it; preserve this rule for an Electrical flow
+  // and for generic disconnect wording without AC evidence.
+  if (wantsAcDisconnect &&
+      (explicitlyElectrical || !explicitlyAirConditioning)) {
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Electrical' &&
