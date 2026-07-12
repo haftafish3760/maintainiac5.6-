@@ -257,6 +257,7 @@ String _fixtureTradeScope(
   WorkSupplyFixtureRecipe recipe,
 ) {
   if (recipe.tradeScope.isNotEmpty) return recipe.tradeScope;
+  if (recipe.expectUnknown) return '';
   return _title(options.trade);
 }
 

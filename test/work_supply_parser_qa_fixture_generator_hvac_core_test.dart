@@ -6,6 +6,42 @@ import 'package:flutter_test/flutter_test.dart';
 import '../tool/work_supply_parser_qa_generate_fixtures.dart';
 
 void main() {
+  test('HVAC Spanish ambiguous fixtures remain unscoped', () async {
+    final output = await Directory.systemTemp.createTemp(
+      'maintainiac_fixture_generator_hvac_es_core_',
+    );
+    addTearDown(() => output.delete(recursive: true));
+
+    final exit = await runWorkSupplyParserFixtureGenerator(
+      [
+        '--trade',
+        'hvac',
+        '--scope',
+        'residential',
+        '--tier',
+        'core',
+        '--locale',
+        'es-US',
+        '--limit',
+        '30',
+        '--output-dir',
+        output.path,
+      ],
+      stdout: _MemorySink(),
+      stderr: _MemorySink(),
+    );
+
+    expect(exit, 0);
+    final fixtureFile = File(
+      '${output.path}/work_supply_parser/hvac/residential/core/'
+      'es-US/generated_fixtures.json',
+    );
+    final fixtures = jsonDecode(fixtureFile.readAsStringSync()) as List;
+    final ambiguous = fixtures.where((entry) => entry['expectUnknown'] == true);
+    expect(ambiguous, isNotEmpty);
+    expect(ambiguous.every((entry) => entry['tradeScope'] == ''), isTrue);
+  });
+
   test(
     'HVAC Core fixtures exclude non-Core duct stock and enforce tier',
     () async {

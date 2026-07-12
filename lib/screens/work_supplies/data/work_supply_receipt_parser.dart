@@ -5236,10 +5236,10 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
       !RegExp(r'\b(dwv|drain|sewer|pressure|potable|plumb|conduit|electrical|cond|condensate|hvac)\b').hasMatch(text)) {
     return true;
   }
-  if (RegExp(r'\bfilter\b').hasMatch(text) &&
+  if (RegExp(r'\b(filter|filtro)\b').hasMatch(text) &&
       RegExp(r'\b\d{1,2}\s*x\s*\d{1,2}\s*x\s*\d{1,2}\b').hasMatch(text) &&
       !RegExp(
-        r'\b(air|merv|furnace|hvac|return|pleated|media|water|oil)\b',
+        r'\b(air|aire|merv|furnace|horno|hvac|return|retorno|pleated|media|water|agua|oil|aceite)\b',
       ).hasMatch(text)) {
     return true;
   }
