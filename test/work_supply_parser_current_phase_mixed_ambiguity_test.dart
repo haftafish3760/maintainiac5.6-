@@ -1947,6 +1947,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm pvc tee without system context',
+      () {
+        final pvcTeeItem = matchReceiptLineToCatalog(
+          'LOCAL 1 IN PVC TEE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          pvcTeeItem == null || pvcTeeItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a small PVC TEE '
+              'line when the receipt still lacks conduit, condensate, DWV, '
+              'pressure, or other system-level context.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic valve shorthand',
       () {
         final valveItem = matchReceiptLineToCatalog(
