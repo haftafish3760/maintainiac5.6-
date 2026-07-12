@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 
 import 'incoming_receipt_destination_screen.dart';
@@ -8,6 +8,7 @@ import '../main.dart';
 import '../shared/navigation/app_page_routes.dart';
 import '../shared/theme/app_theme.dart';
 import '../shared/widgets/receipt_capture/incoming_receipt_share.dart';
+import '../shared/localization/maintaniac_localizations.dart';
 
 class MaintaniacApp extends StatefulWidget {
   const MaintaniacApp({super.key});
@@ -82,6 +83,13 @@ class _MaintaniacAppState extends State<MaintaniacApp> {
       navigatorKey: _navigatorKey,
       title: 'Maintaniac',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        MaintaniacLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: MaintaniacLocalizations.supportedLocales,
       theme: buildMaintaniacTheme().copyWith(
         splashFactory: NoSplash.splashFactory,
         highlightColor: Colors.transparent,
