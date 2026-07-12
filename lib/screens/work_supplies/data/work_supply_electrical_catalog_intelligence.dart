@@ -14,8 +14,7 @@ bool _isCommonElectricalWallPlate(WorkSupplyItem item) {
   if (!_hasAny(variant, const ['1 gang', '2 gang', '3 gang'])) return false;
   if (!_hasAny(variant, const ['white', 'ivory', 'light almond'])) return false;
   if (item.itemType == 'Bulk Covers and Wall Plates') {
-    return variant.contains('nylon') ||
-        (variant.contains('metal') && variant.contains('blank'));
+    return variant.contains('nylon');
   }
   return true;
 }
