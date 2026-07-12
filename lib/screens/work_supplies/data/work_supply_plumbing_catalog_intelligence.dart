@@ -1,7 +1,7 @@
 part of 'work_supply_catalog.dart';
 
 List<WorkSupplyMarketScope> _resolvePlumbingMarketScopes(WorkSupplyItem item) {
-  final text = item.searchableText;
+  final text = _plumbingTierText(item);
   final scopes = <WorkSupplyMarketScope>{WorkSupplyMarketScope.residential};
   if (_hasAny(text, _plumbingLightIndustrialSignals)) {
     scopes.add(WorkSupplyMarketScope.lightIndustrial);
@@ -24,7 +24,7 @@ List<WorkSupplyMarketScope> _resolvePlumbingMarketScopes(WorkSupplyItem item) {
 }
 
 WorkSupplyPackTier _resolvePlumbingPackTier(WorkSupplyItem item) {
-  final text = item.searchableText;
+  final text = _plumbingTierText(item);
   if (_isPlumbingCoreItem(item, text)) return WorkSupplyPackTier.core;
   if (_hasPlumbingCompleteTierSignal(text)) return WorkSupplyPackTier.complete;
   if (_hasPlumbingProfessionalSignal(text)) {
@@ -116,8 +116,7 @@ bool _isPlumbingCoreItem(WorkSupplyItem item, String text) {
           _isCommonPlumbingVariant(item.variant);
     }
     if (system == 'black iron' && type.contains('nipple')) {
-      final primarySize = _primaryPlumbingVariantSize(item.variant);
-      return primarySize != null && primarySize <= 1;
+      return false;
     }
     return _hasAny(text, _plumbingCoreFittingMaterialSignals) &&
         _hasAny(text, _plumbingCoreFittingFamilySignals) &&
@@ -151,8 +150,12 @@ bool _isCommonResidentialNoHubRepair(WorkSupplyItem item) {
   if (!type.contains('no-hub coupling') && !type.contains('no-hub band')) {
     return false;
   }
-  final variant = item.variant.toLowerCase();
-  return _hasAny(variant, ['1-1/2', '2 in', '3 in', '4 in']);
+  return const [
+    1.5,
+    2,
+    3,
+    4,
+  ].contains(_primaryPlumbingVariantSize(item.variant));
 }
 
 bool _isOversizedPlumbingFittingForCore(WorkSupplyItem item) {
@@ -174,7 +177,7 @@ bool _isOversizedPlumbingFittingForCore(WorkSupplyItem item) {
 bool _isOversizedPlumbingValveForCore(WorkSupplyItem item) {
   final largestVariantSize = _largestPlumbingVariantSize(item.variant);
   if (largestVariantSize == null) return false;
-  final text = item.searchableText;
+  final text = _plumbingTierText(item);
   if (text.contains('ball valve') ||
       text.contains('gate valve') ||
       text.contains('check valve')) {
@@ -184,7 +187,7 @@ bool _isOversizedPlumbingValveForCore(WorkSupplyItem item) {
 }
 
 bool _isOversizedPlumbingSupportForCore(WorkSupplyItem item) {
-  final text = item.searchableText;
+  final text = _plumbingTierText(item);
   if (text.contains('stud guard') || text.contains('nail plate')) {
     return false;
   }
@@ -341,6 +344,7 @@ bool _hasPlumbingCommercialCoreExclusion(String text) {
 }
 
 bool _hasStandaloneInchSize(String text, String size) {
+  if (_hasAny(text, const ['tailpiece', 'extension tube'])) return false;
   final pattern = RegExp('${RegExp.escape(size)}\\s+in\\b');
   for (final match in pattern.allMatches(text)) {
     if (match.start == 0) return true;
@@ -349,6 +353,10 @@ bool _hasStandaloneInchSize(String text, String size) {
   }
   return false;
 }
+
+String _plumbingTierText(WorkSupplyItem item) =>
+    '${item.name} ${item.category} ${item.system} ${item.itemType} ${item.variant}'
+        .toLowerCase();
 
 const _plumbingCompleteTermSignals = [
   'specialty',
@@ -432,6 +440,8 @@ const _plumbingAlwaysCoreServiceSignals = [
   'clamp ring',
   'cinch ring',
   'toilet seat bolt',
+  'shower cartridge',
+  'shower valve trim kit',
 ];
 
 const _plumbingCoreValveAndWaterHeaterSignals = [
@@ -504,8 +514,13 @@ const _plumbingCoreDrainServiceSignals = [
   'sink trap',
   'tailpiece',
   'extension tube',
-  'trap adapter',
+  'slip nut',
   'slip joint',
+  'slip joint washer',
+  'basket strainer',
+  'sink drain',
+  'drain stopper',
+  'trap adapter',
   'trap washer',
   'disposal drain',
 ];
@@ -528,6 +543,13 @@ const _plumbingCoreDrainFinishSignals = [
   'toilet seat bolt',
   'escutcheon',
   'tailpiece',
+  'extension tube',
+  'slip nut',
+  'slip joint',
+  'slip joint washer',
+  'basket strainer',
+  'sink drain',
+  'drain stopper',
 ];
 
 const _plumbingCoreSealServiceSignals = [

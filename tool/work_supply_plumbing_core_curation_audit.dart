@@ -439,6 +439,8 @@ bool _hasNonPipeServiceDimension(String text) {
     'floor drain finish',
     'hole saw',
     'saw blade',
+    'plumber sand cloth',
+    'soldering heat shield',
   ]);
 }
 

@@ -44,17 +44,42 @@ void main() {
     test('locks the current Plumbing Core curation baseline', () {
       final report = buildPlumbingCoreCurationAudit();
 
-      expect(report['coreCount'], 1122);
+      expect(report['coreCount'], 1215);
       expect(report['missingRequiredFamilies'], isEmpty);
       expect(report['suspiciousCoreItems'], isEmpty);
-      expect(report['likelyCoreOutsideCore'], hasLength(179));
+      expect(report['likelyCoreOutsideCore'], hasLength(150));
 
       final summary = report['summary']! as Map<String, Object?>;
       expect(summary['suspiciousCoreTotal'], 0);
-      expect(summary['likelyCoreOutsideCoreTotal'], 179);
+      expect(summary['likelyCoreOutsideCoreTotal'], 150);
       expect(summary['readinessFloor'], greaterThanOrEqualTo(64));
       expect(summary['readinessAverage'], greaterThanOrEqualTo(80.5));
       expect(summary['readyForMacValidation'], isFalse);
+
+      final items = {
+        for (final item in workSupplyCatalogItems) item.name: item,
+      };
+      expect(
+        items['1-1/4 x 12 in Tailpiece']!.packTier,
+        WorkSupplyPackTier.core,
+      );
+      expect(
+        items['1-1/2 x 12 in Tubular Extension Tube']!.packTier,
+        WorkSupplyPackTier.core,
+      );
+      expect(
+        items['12 in No-Hub Coupling']!.packTier,
+        isNot(WorkSupplyPackTier.core),
+      );
+      expect(
+        items['1/2 x 2 in Black Iron Nipple']!.packTier,
+        isNot(WorkSupplyPackTier.core),
+      );
+      expect(
+        items['stainless kitchen basket strainer Sink Drain Finish Part']!
+            .packTier,
+        WorkSupplyPackTier.core,
+      );
     });
 
     test('surfaces candidates and suspicious rows as review queues', () {
