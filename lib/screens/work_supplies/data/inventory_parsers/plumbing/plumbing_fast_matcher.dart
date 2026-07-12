@@ -197,7 +197,10 @@ WorkSupplyItem? _directPlumbingPexServiceFittingMatch(String text) {
     _ => null,
   };
   if (wantedItemType == null) return null;
-  for (final item in _activeWorkSupplyCatalogItems) {
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens([
+    'pex',
+    wantedItemType,
+  ])) {
     final itemType = _normalize(item.itemType);
     final system = _normalize(item.system);
     final variant = _normalize(item.variant);

@@ -11,16 +11,26 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
     return null;
   }
 
-  WorkSupplyItem? findPlumbing(bool Function(String name) matches) {
-    for (final item in _activeWorkSupplyCatalogItems) {
+  WorkSupplyItem? findPlumbing(
+    Iterable<String> requiredNameParts,
+    bool Function(String name) matches,
+  ) {
+    for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(
+      requiredNameParts,
+    )) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && matches(name)) return item;
     }
     return null;
   }
 
-  WorkSupplyItem? findPlumbingItem(bool Function(WorkSupplyItem item) matches) {
-    for (final item in _activeWorkSupplyCatalogItems) {
+  WorkSupplyItem? findPlumbingItem(
+    Iterable<String> requiredNameParts,
+    bool Function(WorkSupplyItem item) matches,
+  ) {
+    for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(
+      requiredNameParts,
+    )) {
       if (item.trade == 'Plumbing' && matches(item)) return item;
     }
     return null;
@@ -31,6 +41,7 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
   ).hasMatch(text);
   if (wantsDishwasherBranchTailpiece) {
     final match = findPlumbing(
+      const ['dishwasher', 'branch', 'tailpiece'],
       (name) =>
           name.contains('dishwasher disposal drain part') &&
           name.contains('dishwasher branch tailpiece'),
@@ -43,7 +54,7 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
       RegExp(r'\bcover\b').hasMatch(text);
   if (wantsCleanoutCover) {
     final size = _nominalReceiptSize(text);
-    final match = findPlumbingItem((item) {
+    final match = findPlumbingItem(const ['cleanout', 'access'], (item) {
       final name = item.name.toLowerCase();
       final variant = item.variant.toLowerCase();
       return name.contains('cleanout access part') &&
@@ -57,11 +68,14 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
 
   final wantsPushFitSupplyStop =
       RegExp(
-        r'\b(push\s*fit|push[-\s]*to[-\s]*connect|sharkbite)\b',
+        r'\b(push|push\s*fit|push[-\s]*to[-\s]*connect|sharkbite)\b',
       ).hasMatch(text) &&
-      RegExp(r'\b(supply\s+stop|stop\s+valve|shutoff)\b').hasMatch(text);
+      RegExp(
+        r'\b(angle\s+stop|supply\s+stop|stop\s+valve|shutoff)\b',
+      ).hasMatch(text);
   if (wantsPushFitSupplyStop) {
     final match = findPlumbingItem(
+      const ['push-fit', 'supply', 'stop'],
       (item) =>
           item.name.toLowerCase().contains('push-fit supply stop') &&
           _matchesHalfByThreeEighthStop(text, item.variant),
@@ -74,7 +88,7 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
       RegExp(r'\b(san\s+tee|sanitary\s+tee|sanitary\s+t)\b').hasMatch(text);
   if (wantsAbsSanitaryTee) {
     final size = _nominalReceiptSize(text);
-    final match = findPlumbingItem((item) {
+    final match = findPlumbingItem(const ['abs', 'sanitary', 'tee'], (item) {
       final name = item.name.toLowerCase();
       final variant = _normalize(item.variant);
       return name.contains('abs dwv sanitary tee') &&
@@ -90,7 +104,10 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
       RegExp(r'\bposi\s*temp\b').hasMatch(text) &&
       RegExp(r'\b(shower|cartridge|cart)\b').hasMatch(text);
   if (wantsPosiTempCartridge) {
-    final match = findPlumbing((name) => name.contains('shower cartridge'));
+    final match = findPlumbing(const [
+      'shower',
+      'cartridge',
+    ], (name) => name.contains('shower cartridge'));
     if (match != null) return match;
   }
 
@@ -100,6 +117,7 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
   if (wantsCpvcCoupling) {
     final size = _nominalReceiptSize(text);
     final match = findPlumbing(
+      const ['cpvc', 'coupling'],
       (name) =>
           name.contains('cpvc coupling') &&
           (size == null || _nameMatchesReceiptSize(name, size)),
@@ -114,6 +132,7 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
   if (wantsCleanoutPlug) {
     final size = _nominalReceiptSize(text);
     final match = findPlumbing(
+      const ['cleanout', 'plug'],
       (name) =>
           name.contains('cleanout access part') &&
           name.contains('cleanout plug') &&
@@ -128,6 +147,7 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
   if (wantsTailpiece) {
     final size = _nominalReceiptSize(text);
     final match = findPlumbing(
+      const ['tailpiece'],
       (name) =>
           name.contains('tailpiece') &&
           (size == null || _nameMatchesReceiptSize(name, size)),
