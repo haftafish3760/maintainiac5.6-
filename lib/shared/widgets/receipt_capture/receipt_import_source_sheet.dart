@@ -33,6 +33,8 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
           case _ReceiptTextImportAction.textFile:
             await pickImportedTextFile(kind: ReceiptAttachmentKind.emailText);
         }
+      case _ReceiptImportAction.settings:
+        await openReceiptCaptureSettings();
       case _ReceiptImportAction.shareHelp:
         await _showReceiptShareHelp();
         await returnToReceiptImportOptions();
@@ -122,6 +124,11 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                       letterSpacing: 0,
                     ),
                   ),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(_ReceiptImportAction.settings),
+                  child: const Text('Settings'),
                 ),
                 TextButton(
                   onPressed: () =>

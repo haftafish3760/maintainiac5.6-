@@ -146,8 +146,10 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 title: _assistedReceiptTitle(area),
                 detail: _assistedReceiptDetail(area),
               ),
-              const SizedBox(height: 8),
-              _ReceiptDataSaverDefaultPicker(settings: settings),
+              if (hasSavedReceiptProof) ...[
+                const SizedBox(height: 8),
+                _ReceiptDataSaverDefaultPicker(settings: settings),
+              ],
               if (expenseSettings != null) ...[
                 const SizedBox(height: 8),
                 _ExpenseReceiptReviewDefaultPicker(settings: expenseSettings),
@@ -169,7 +171,13 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 const _ReceiptSettingsNote(
                   icon: Icons.photo_library_outlined,
                   text:
-                      'After a receipt photo is attached, the review screen shows the actual proof size and lets you inspect readability before saving.',
+                      'Saved Receipt Proof Size appears after your first receipt photo or file is attached. The review screen then shows the actual proof size and lets you inspect readability before saving.',
+                ),
+                const SizedBox(height: 8),
+                const _ReceiptSettingsNote(
+                  icon: Icons.check_circle_outline_rounded,
+                  text:
+                      'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
                 ),
               ],
               const SizedBox(height: 8),

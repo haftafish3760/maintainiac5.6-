@@ -19,8 +19,8 @@ void main() {
     final androidSettings = await File(
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt',
     ).readAsString();
-    final iosSettings = await File(
-      'ios/Runner/ReceiptCameraViewControllerSessionSettings.swift',
+    final iosCameraSettings = await File(
+      'ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift',
     ).readAsString();
     final iosCopy = await File(
       'ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift',
@@ -58,14 +58,8 @@ void main() {
       storageSettings,
       contains('You preview the actual saved proof after taking a photo.'),
     );
-    expect(
-      storageSettings,
-      contains('Receipt Details And Saved Proof'),
-    );
-    expect(
-      storageHandoff,
-      contains('saved_proof_kept_for_receipt_record'),
-    );
+    expect(storageSettings, contains('Receipt Details And Saved Proof'));
+    expect(storageHandoff, contains('saved_proof_kept_for_receipt_record'));
     expect(
       storageHandoff,
       contains('ocr_source_used_for_reading_before_saved_proof'),
@@ -94,24 +88,32 @@ void main() {
       storageHandoff,
       contains("return 'temporary_ocr_source_original_quality_proof';"),
     );
-    expect(
-      storageHandoff,
-      contains("return 'saved_proof_storage_ready';"),
-    );
+    expect(storageHandoff, contains("return 'saved_proof_storage_ready';"));
 
-    expect(androidSettings, contains('if (capturedPhotoPaths.isNotEmpty()) {'));
-    expect(iosSettings, contains('if !capturedPhotoPaths.isEmpty {'));
     expect(
       androidSettings,
-      contains('OCR reads the clear source first. This only changes the smaller saved proof kept for proof and cloud backup.'),
+      contains(
+        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+      ),
+    );
+    expect(
+      iosCameraSettings,
+      contains(
+        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+      ),
+    );
+    expect(iosCameraSettings, isNot(contains('SAVED PROOF SIZE')));
+    expect(
+      iosCopy,
+      contains(
+        'OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.',
+      ),
     );
     expect(
       iosCopy,
-      contains('OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.'),
-    );
-    expect(
-      iosCopy,
-      contains('OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.'),
+      contains(
+        'OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.',
+      ),
     );
   });
 }

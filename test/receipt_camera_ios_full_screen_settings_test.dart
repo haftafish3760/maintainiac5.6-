@@ -16,11 +16,20 @@ void main() {
 
     expect(layout, contains('#selector(openReceiptCameraSettingsFullScreen)'));
     expect(settings, contains('settings.modalPresentationStyle = .fullScreen'));
-    expect(route, contains('final class ReceiptCameraFullScreenSettingsViewController'));
+    expect(
+      route,
+      contains('final class ReceiptCameraFullScreenSettingsViewController'),
+    );
     expect(route, contains('view.safeAreaLayoutGuide'));
-    expect(route, contains('Help fill receipt details'));
-    expect(route, contains('SAVED PROOF SIZE'));
-    expect(route, contains('Keep original locally'));
-    expect(route, contains('Maximum savings'));
+    expect(
+      route,
+      contains(
+        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+      ),
+    );
+    expect(route, contains('Automatic capture'));
+    expect(route, contains('Receipt edge guidance'));
+    expect(route, isNot(contains('SAVED PROOF SIZE')));
+    expect(route, isNot(contains('Help fill receipt details')));
   });
 }

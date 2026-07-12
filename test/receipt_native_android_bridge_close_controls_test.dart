@@ -96,10 +96,7 @@ void main() {
     expect(cameraActivity, contains('!detector.scaleFactor.isFinite()'));
     expect(cameraActivity, contains('lastZoomStatus = "zoom_invalid_scale"'));
     expect(cameraActivity, contains('MotionEvent.ACTION_DOWN'));
-    expect(
-      cameraActivity,
-      contains('return@OnTouchListener false'),
-    );
+    expect(cameraActivity, contains('return@OnTouchListener false'));
     expect(
       cameraActivity,
       contains('requestDisallowInterceptTouchEvent(false)'),
@@ -107,6 +104,10 @@ void main() {
     expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_DOWN'));
     expect(cameraActivity, contains('MotionEvent.ACTION_MOVE'));
     expect(cameraActivity, contains('event.pointerCount > 1'));
+    expect(
+      cameraActivity,
+      contains('scaleGestureDetector?.onTouchEvent(event)'),
+    );
     expect(cameraActivity, isNot(contains('view.performClick()')));
     expect(cameraActivity, contains('effectiveMinZoom'));
     expect(cameraActivity, contains('effectiveMaxZoom'));
@@ -190,7 +191,9 @@ void main() {
     expect(cameraActivity, contains('bottomReviewButton.isEnabled = false'));
     expect(
       cameraActivity,
-      contains('bottomReviewButton.visibility = if (capturedPhotoPaths.isEmpty())'),
+      contains(
+        'bottomReviewButton.visibility = if (capturedPhotoPaths.isEmpty())',
+      ),
     );
     expect(
       cameraActivity,
@@ -244,13 +247,18 @@ void main() {
     );
     expect(cameraActivity, contains('addPhotoButton.visibility = if ('));
     expect(cameraActivity, contains('!longReceiptMode'));
-    expect(cameraActivity, contains('capturedPhotoPaths.size >= maxSectionCount'));
+    expect(
+      cameraActivity,
+      contains('capturedPhotoPaths.size >= maxSectionCount'),
+    );
     expect(cameraActivity, contains('0 -> "Done"'));
     expect(cameraActivity, contains('1 -> "Done"'));
     expect(cameraActivity, contains(r'else -> "Done ($count)"'));
     expect(
       cameraActivity,
-      contains('bottomReviewButton.contentDescription =\n            "Done: review captured receipt photos in Maintainiac"'),
+      contains(
+        'bottomReviewButton.contentDescription =\n            "Done: review captured receipt photos in Maintainiac"',
+      ),
     );
     expect(cameraActivity, contains('top ghost slice'));
     expect(cameraActivity, isNot(contains('tap Done')));

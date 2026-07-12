@@ -10,9 +10,9 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
     final cloudAssistPlan = settings.defaultDataSaverCloudAssistPlan;
     return _ReceiptSettingsSection(
       icon: Icons.photo_size_select_large_rounded,
-      title: 'Saved Proof Size',
+      title: 'Receipt Details And Saved Proof',
       subtitle:
-          'Choose the default backup copy size. OCR still reads from the clearest source first.',
+          'Choose the default backup copy size. OCR still uses the clearest receipt source first.',
       children: [
         _ReceiptSettingsSwitch(
           title: 'Ask Every Receipt',
@@ -25,6 +25,12 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
         _ReceiptSettingsNote(
           icon: Icons.photo_size_select_large_rounded,
           text: settings.defaultDataSaverProofTargetSummary,
+        ),
+        const SizedBox(height: 6),
+        const _ReceiptSettingsNote(
+          icon: Icons.preview_rounded,
+          text:
+              'You preview the actual saved proof after taking a photo. Keep it with the receipt only after checking readability.',
         ),
         if (cloudAssistPlan.hasOptionalCloudAssist ||
             settings.defaultDataSaverShouldOfferOptionalLocalParserPacks) ...[

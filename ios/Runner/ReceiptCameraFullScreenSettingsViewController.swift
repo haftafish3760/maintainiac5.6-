@@ -61,13 +61,7 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
   private func reloadContent() {
     guard let camera else { return }
     content.arrangedSubviews.forEach { $0.removeFromSuperview() }
-    content.addArrangedSubview(note("Camera settings are separate from the live view. Brightness and light stay on the camera screen."))
-    content.addArrangedSubview(section("RECEIPT ASSIST"))
-    content.addArrangedSubview(toggle("Help fill receipt details", value: camera.assistedReceiptFill) { [weak self] enabled in
-      camera.assistedReceiptFill = enabled
-      camera.updateSettingsStatusStrip()
-      self?.reloadContent()
-    })
+    content.addArrangedSubview(note("Camera only. These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings."))
     content.addArrangedSubview(section("CAPTURE FLOW"))
     content.addArrangedSubview(toggle("Long receipt mode", value: camera.longReceiptMode) { [weak self] enabled in
       camera.longReceiptMode = enabled && camera.canUseLongReceiptMode()
@@ -86,28 +80,6 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
-    content.addArrangedSubview(section("REVIEW"))
-    content.addArrangedSubview(action("Receipt details: Prices only", selected: camera.reviewDepth == "pricesOnly") { [weak self] in
-      camera.setReceiptReviewStyle("pricesOnly")
-      self?.reloadContent()
-    })
-    content.addArrangedSubview(action("Receipt details: Detailed lines", selected: camera.reviewDepth == "detailedLines") { [weak self] in
-      camera.setReceiptReviewStyle("detailedLines")
-      self?.reloadContent()
-    })
-    content.addArrangedSubview(section("SAVED PROOF SIZE"))
-    for (value, label) in [
-      ("original", "Keep original locally"),
-      ("light", "High quality"),
-      ("balanced", "Balanced"),
-      ("strong", "Save storage"),
-      ("maximum", "Maximum savings"),
-    ] {
-      content.addArrangedSubview(action("Saved proof: \(label)", selected: camera.dataSaverLevel == value) { [weak self] in
-        camera.setDataSaverLevel(value)
-        self?.reloadContent()
-      })
-    }
     content.addArrangedSubview(action("Reset receipt camera defaults", selected: false) { [weak self] in
       camera.resetReceiptCameraDefaults()
       self?.reloadContent()

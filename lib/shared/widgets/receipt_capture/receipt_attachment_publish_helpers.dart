@@ -118,6 +118,31 @@ extension _ReceiptAttachmentPublishHelpers
     widget.onAttachmentsChanged?.call(attachments);
   }
 
+  Future<bool> openReceiptCaptureSettings() async {
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    if (settings == null) {
+      showPickerError('Receipt settings are not available yet.');
+      return false;
+    }
+    final result = await Navigator.of(context).push<bool>(
+      appNativeRoute(
+        context,
+        _ReceiptCaptureSettingsScreen(
+          settings: settings,
+          area: widget.area,
+          hasSavedReceiptProof:
+              _photoPaths.isNotEmpty || _documentAttachments.isNotEmpty,
+          uiConfig: widget.uiConfig,
+        ),
+      ),
+    );
+    if (!mounted) return false;
+    updateAttachmentState(
+      () => _dataSaverLevel = settings.defaultDataSaverLevel,
+    );
+    return result ?? true;
+  }
+
   String get _receiptAttachmentLinkedModule {
     return switch (widget.area) {
       ReceiptCaptureArea.expenses => 'expenses',

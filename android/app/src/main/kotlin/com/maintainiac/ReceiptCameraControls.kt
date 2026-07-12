@@ -72,9 +72,10 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
         if (!pinchZoomEnabled) {
             return@OnTouchListener false
         }
-        if (event.pointerCount > 1 || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
-            scaleGestureDetector?.onTouchEvent(event)
-        }
+        // ScaleGestureDetector must see the initial DOWN event before the
+        // second pointer arrives; forwarding only multi-touch events leaves
+        // pinch zoom unable to initialize on real devices.
+        scaleGestureDetector?.onTouchEvent(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 return@OnTouchListener false

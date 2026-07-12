@@ -6,6 +6,7 @@ enum _ReceiptImportAction {
   pdf,
   savedText,
   pasteText,
+  settings,
   shareHelp,
 }
 

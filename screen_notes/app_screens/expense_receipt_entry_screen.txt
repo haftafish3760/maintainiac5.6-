@@ -34,3 +34,11 @@ Source: visible user message, 2026-07-11 Batch 2
   content. This pinned behavior is an app-wide direction for other sections.
 - Move the Daily Expenses date/vehicle context block from Expense Home into the
   Expense Calendar day view.
+
+Source: visible user message, 2026-07-12
+
+- Receipt-camera, review, OCR-progress, compression, recovery, and related
+  expense UI must be designed for English and U.S. Spanish from the start.
+  Use localizable UI copy rather than hard-coded English so Spanish support
+  does not become a later rewrite. Receipt evidence and user-entered merchant
+  text remain unchanged; only app-controlled UI is translated.
