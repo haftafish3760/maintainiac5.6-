@@ -6,14 +6,20 @@ import UIKit
 extension ReceiptCameraViewController {
   func toggleExposureControls() {
     guard exposureSliderEnabled, exposureSlider.isEnabled else {
-      guidanceLabel.text = "Brightness adjustment is not available on this camera."
+      guidanceLabel.text = receiptCameraText(
+        "Brightness adjustment is not available on this camera.",
+        "El ajuste de brillo no está disponible en esta cámara."
+      )
       return
     }
     let visible = !(exposurePanel?.isHidden ?? true)
     exposurePanel?.isHidden = visible
     guidanceLabel.text = visible
       ? guidanceText()
-      : "Adjust Brightness. The phone still controls autofocus and exposure timing."
+      : receiptCameraText(
+          "Adjust Brightness. The phone still controls autofocus and exposure timing.",
+          "Ajuste el brillo. El teléfono aún controla el enfoque automático y el tiempo de exposición."
+        )
   }
 
   @objc func toggleTorch() {
@@ -27,7 +33,9 @@ extension ReceiptCameraViewController {
         UIImage(systemName: torchOn ? "flashlight.on.fill" : "flashlight.off.fill"),
         for: .normal
       )
-      torchButton.accessibilityLabel = torchOn ? "Turn light off" : "Turn light on"
+      torchButton.accessibilityLabel = torchOn
+        ? receiptCameraText("Turn light off", "Apagar luz")
+        : receiptCameraText("Turn light on", "Encender luz")
     } catch {
       guidanceLabel.text = "The light is not available right now."
     }

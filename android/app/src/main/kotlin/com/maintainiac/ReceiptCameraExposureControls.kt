@@ -25,7 +25,10 @@ internal fun ReceiptCameraActivity.configureExposureControls() {
 
 internal fun ReceiptCameraActivity.toggleExposureControls() {
     if (!exposureSliderEnabled || !exposureSlider.isEnabled) {
-        guidance.text = "Brightness adjustment is not available on this camera."
+        guidance.text = receiptCameraText(
+            "Brightness adjustment is not available on this camera.",
+            "El ajuste de brillo no está disponible en esta cámara.",
+        )
         return
     }
     val visible = exposurePanel.visibility == android.view.View.VISIBLE
@@ -33,7 +36,10 @@ internal fun ReceiptCameraActivity.toggleExposureControls() {
     guidance.text = if (visible) {
         guidanceText()
     } else {
-        "Adjust Brightness. The phone still controls autofocus and exposure timing."
+        receiptCameraText(
+            "Adjust Brightness. The phone still controls autofocus and exposure timing.",
+            "Ajuste el brillo. El teléfono aún controla el enfoque automático y el tiempo de exposición.",
+        )
     }
 }
 
@@ -46,9 +52,9 @@ internal fun ReceiptCameraActivity.setExposureFromSlider(progress: Int) {
     manualExposureChangeCount += 1
     activeCamera.cameraControl.setExposureCompensationIndex(index)
     guidance.text = if (index == 0) {
-        "Brightness reset."
+        receiptCameraText("Brightness reset.", "Brillo restablecido.")
     } else {
-        "Brightness ${if (index > 0) "+" else ""}$index"
+        "${receiptCameraText("Brightness", "Brillo")} ${if (index > 0) "+" else ""}$index"
     }
 }
 
@@ -61,7 +67,7 @@ internal fun ReceiptCameraActivity.resetExposure() {
     activeCamera.cameraControl.setExposureCompensationIndex(resetIndex)
     userExposureOverride = false
     manualExposureChangeCount += 1
-    guidance.text = "Brightness reset."
+    guidance.text = receiptCameraText("Brightness reset.", "Brillo restablecido.")
 }
 
 internal fun ReceiptCameraActivity.autoAdjustExposureForLiveFrame(

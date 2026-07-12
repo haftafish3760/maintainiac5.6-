@@ -4,6 +4,14 @@ import CoreVideo
 import UIKit
 
 extension ReceiptCameraViewController {
+  var usesSpanishReceiptCameraUi: Bool {
+    return uiLocale.lowercased().hasPrefix("es")
+  }
+
+  func receiptCameraText(_ english: String, _ spanish: String) -> String {
+    return usesSpanishReceiptCameraUi ? spanish : english
+  }
+
   func iconButton(title: String, symbol: String) -> UIButton {
     let button = UIButton(type: .system)
     button.setTitle("", for: .normal)
@@ -31,12 +39,21 @@ extension ReceiptCameraViewController {
 
   func guidanceText() -> String {
     if longReceiptMode {
-      return "Fill the screen with readable receipt text. Use more photos for long receipts."
+      return receiptCameraText(
+        "Fill the screen with readable receipt text. Use more photos for long receipts.",
+        "Llene la pantalla con texto legible del recibo. Use más fotos para recibos largos."
+      )
     }
     if autoCaptureEnabled {
-      return "Fill the screen with readable receipt text. Auto capture can help when the receipt is steady."
+      return receiptCameraText(
+        "Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.",
+        "Llene la pantalla con texto legible del recibo. La captura automática ayuda cuando el recibo está estable."
+      )
     }
-    return "Fill the screen with readable receipt text, then tap the shutter."
+    return receiptCameraText(
+      "Fill the screen with readable receipt text, then tap the shutter.",
+      "Llene la pantalla con texto legible del recibo y luego toque el disparador."
+    )
   }
 
   func isTemporaryControlGuidance(_ message: String) -> Bool {

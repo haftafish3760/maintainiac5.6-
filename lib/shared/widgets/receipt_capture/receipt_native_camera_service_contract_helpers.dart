@@ -6,6 +6,7 @@ Map<String, Object?> _sessionArguments(
   final settings = config.settings;
   return {
     'engine': config.nativeCapabilities.engine.name,
+    'uiLocale': _receiptCameraUiLocale(),
     'settingsContractVersion': 'receipt_native_camera_settings_v1',
     ..._nativeControlContract(config),
     'deviceTier': config.deviceTier.name,
@@ -131,6 +132,14 @@ Map<String, Object?> _sessionArguments(
     if (config.hasPreviousSectionGuide) ..._previousSectionArguments(config),
     if (config.hasNextSectionGuide) ..._nextSectionArguments(config),
   };
+}
+
+String _receiptCameraUiLocale() {
+  final locale = PlatformDispatcher.instance.locale;
+  // The native viewer only owns its own short, operational copy. Keep its
+  // locale contract deliberately small and predictable until app-wide locale
+  // selection is introduced.
+  return locale.languageCode.toLowerCase() == 'es' ? 'es-US' : 'en-US';
 }
 
 Map<String, Object?> _nextSectionArguments(

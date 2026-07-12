@@ -72,11 +72,11 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
             Gravity.TOP,
         )
     }
-    topBar.addView(iconButton("Back", R.drawable.ic_receipt_camera_back) {
+    topBar.addView(iconButton(receiptCameraText("Back", "Atrás"), R.drawable.ic_receipt_camera_back) {
         requestCloseCamera(backDispatchPath = "top_bar_back_button")
     })
     topBar.addView(TextView(this).apply {
-        text = "Receipt Camera"
+        text = receiptCameraText("Receipt Camera", "Cámara de recibos")
         setTextColor(Color.WHITE)
         textSize = 16f
         gravity = Gravity.CENTER
@@ -84,18 +84,18 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         maxLines = 1
         layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
     })
-    topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {
+    topBar.addView(iconButton(receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()
     })
     brightnessButton = iconButton(
-        "Adjust brightness",
+        receiptCameraText("Adjust brightness", "Ajustar brillo"),
         R.drawable.ic_receipt_camera_brightness,
     ) {
         toggleExposureControls()
     }
     topBar.addView(brightnessButton)
     torchButton = iconButton(
-        "Turn light on",
+        receiptCameraText("Turn light on", "Encender luz"),
         R.drawable.ic_receipt_camera_flash,
     ) {
         toggleTorch()
@@ -150,7 +150,7 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
         }
     }
     exposurePanel.addView(TextView(this).apply {
-        text = "Brightness"
+        text = receiptCameraText("Brightness", "Brillo")
         setTextColor(Color.WHITE)
         textSize = 12f
         setTypeface(typeface, android.graphics.Typeface.BOLD)
@@ -173,7 +173,7 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
     }
     exposurePanel.addView(exposureSlider)
     exposureResetButton = Button(this).apply {
-        text = "Reset"
+        text = receiptCameraText("Reset", "Restablecer")
         isEnabled = false
         setOnClickListener { resetExposure() }
     }
@@ -241,8 +241,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         )
     }
     addPhotoButton = Button(this).apply {
-        text = "Add Photo"
-        contentDescription = "Add another receipt photo"
+        text = receiptCameraText("Add Photo", "Agregar foto")
+        contentDescription = receiptCameraText("Add another receipt photo", "Agregar otra foto del recibo")
         isEnabled = false
         visibility = View.GONE
         setOnClickListener { capturePhoto("manual_add_photo") }
@@ -252,7 +252,7 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     val leftSpacer = View(this)
     bottomBar.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     shutterButton = ImageButton(this).apply {
-        contentDescription = "Take receipt photo"
+        contentDescription = receiptCameraText("Take receipt photo", "Tomar foto del recibo")
         setImageResource(R.drawable.ic_receipt_camera_shutter)
         background = shutterDrawable()
         layoutParams = LinearLayout.LayoutParams(dp(70), dp(70)).apply {
@@ -265,8 +265,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     val rightSpacer = View(this)
     bottomBar.addView(rightSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     bottomReviewButton = Button(this).apply {
-        text = "Done"
-        contentDescription = "Done: review captured receipt photos in Maintainiac"
+        text = receiptCameraText("Done", "Listo")
+        contentDescription = receiptCameraText("Done: review captured receipt photos in Maintainiac", "Listo: revisar las fotos del recibo en Maintainiac")
         isEnabled = false
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }

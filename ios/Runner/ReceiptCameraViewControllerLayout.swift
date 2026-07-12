@@ -59,23 +59,23 @@ extension ReceiptCameraViewController {
     topBar.spacing = 8
     topBar.translatesAutoresizingMaskIntoConstraints = false
 
-    let backButton = iconButton(title: "Back", symbol: "chevron.left")
+    let backButton = iconButton(title: receiptCameraText("Back", "Atrás"), symbol: "chevron.left")
     backButton.addTarget(self, action: #selector(cancelCapture), for: .touchUpInside)
-    let settingsButton = iconButton(title: "Receipt camera settings", symbol: "gearshape.fill")
+    let settingsButton = iconButton(title: receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), symbol: "gearshape.fill")
     settingsButton.addTarget(self, action: #selector(openReceiptCameraSettingsFullScreen), for: .touchUpInside)
     brightnessButton.setTitle("", for: .normal)
     brightnessButton.setImage(UIImage(systemName: "sun.max.fill"), for: .normal)
     brightnessButton.tintColor = .white
     brightnessButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     brightnessButton.layer.cornerRadius = 8
-    brightnessButton.accessibilityLabel = "Adjust brightness"
+    brightnessButton.accessibilityLabel = receiptCameraText("Adjust brightness", "Ajustar brillo")
     brightnessButton.addAction(UIAction { [weak self] _ in self?.toggleExposureControls() }, for: .touchUpInside)
     torchButton.setTitle("", for: .normal)
     torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)
     torchButton.tintColor = .white
     torchButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     torchButton.layer.cornerRadius = 8
-    torchButton.accessibilityLabel = "Turn light on"
+    torchButton.accessibilityLabel = receiptCameraText("Turn light on", "Encender luz")
     torchButton.addTarget(self, action: #selector(toggleTorch), for: .touchUpInside)
 
     let spacer = UIView()
@@ -125,14 +125,14 @@ extension ReceiptCameraViewController {
     shutterButton.tintColor = .black
     shutterButton.backgroundColor = .white
     shutterButton.layer.cornerRadius = 36
-    shutterButton.accessibilityLabel = "Take receipt photo"
+    shutterButton.accessibilityLabel = receiptCameraText("Take receipt photo", "Tomar foto del recibo")
     shutterButton.addTarget(self, action: #selector(capturePrimaryPhoto), for: .touchUpInside)
 
-    addPhotoButton.setTitle("Add Photo", for: .normal)
+    addPhotoButton.setTitle(receiptCameraText("Add Photo", "Agregar foto"), for: .normal)
     addPhotoButton.setTitleColor(.white, for: .normal)
     addPhotoButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     addPhotoButton.layer.cornerRadius = 8
-    addPhotoButton.accessibilityLabel = "Add another receipt photo"
+    addPhotoButton.accessibilityLabel = receiptCameraText("Add another receipt photo", "Agregar otra foto del recibo")
     addPhotoButton.isEnabled = false
     addPhotoButton.isHidden = true
     addPhotoButton.addTarget(self, action: #selector(captureAdditionalPhoto), for: .touchUpInside)
@@ -151,11 +151,11 @@ extension ReceiptCameraViewController {
     rightSpacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     rightSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
     rightSpacer.heightAnchor.constraint(equalToConstant: 1).isActive = true
-    bottomReviewButton.setTitle("Done", for: .normal)
+    bottomReviewButton.setTitle(receiptCameraText("Done", "Listo"), for: .normal)
     bottomReviewButton.setTitleColor(.white, for: .normal)
     bottomReviewButton.backgroundColor = UIColor(white: 0.06, alpha: 0.88)
     bottomReviewButton.layer.cornerRadius = 8
-    bottomReviewButton.accessibilityLabel = "Done: review captured receipt photos in Maintainiac"
+    bottomReviewButton.accessibilityLabel = receiptCameraText("Done: review captured receipt photos in Maintainiac", "Listo: revisar las fotos del recibo en Maintainiac")
     bottomReviewButton.isEnabled = false
     bottomReviewButton.isHidden = true
     bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos), for: .touchUpInside)
@@ -243,7 +243,7 @@ extension ReceiptCameraViewController {
     panel.isHidden = true
 
     let label = UILabel()
-    label.text = "Brightness"
+    label.text = receiptCameraText("Brightness", "Brillo")
     label.textColor = .white
     label.font = .boldSystemFont(ofSize: 12)
     panel.addArrangedSubview(label)
@@ -258,7 +258,7 @@ extension ReceiptCameraViewController {
     exposureSlider.addTarget(self, action: #selector(exposureInteractionEnded), for: .touchCancel)
     panel.addArrangedSubview(exposureSlider)
 
-    exposureResetButton.setTitle("Reset", for: .normal)
+    exposureResetButton.setTitle(receiptCameraText("Reset", "Restablecer"), for: .normal)
     exposureResetButton.setTitleColor(.white, for: .normal)
     exposureResetButton.isEnabled = false
     exposureResetButton.addTarget(self, action: #selector(resetExposure), for: .touchUpInside)

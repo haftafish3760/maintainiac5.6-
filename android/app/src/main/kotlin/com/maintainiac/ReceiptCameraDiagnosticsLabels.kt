@@ -35,6 +35,10 @@ internal fun ReceiptCameraActivity.iconButton(
     }
 }
 
+internal fun ReceiptCameraActivity.receiptCameraText(english: String, spanish: String): String {
+    return if (uiLocale.lowercase().startsWith("es")) spanish else english
+}
+
 internal fun ReceiptCameraActivity.modeLabel(title: String, detail: String): TextView {
     return TextView(this).apply {
         text = "$title\n$detail"
@@ -49,11 +53,20 @@ internal fun ReceiptCameraActivity.modeLabel(title: String, detail: String): Tex
 
 internal fun ReceiptCameraActivity.guidanceText(): String {
     return if (longReceiptMode) {
-        "Fill the screen with readable receipt text. Use more photos for long receipts."
+        receiptCameraText(
+            "Fill the screen with readable receipt text. Use more photos for long receipts.",
+            "Llene la pantalla con texto legible del recibo. Use más fotos para recibos largos.",
+        )
     } else if (autoCaptureEnabled) {
-        "Fill the screen with readable receipt text. Auto capture can help when the receipt is steady."
+        receiptCameraText(
+            "Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.",
+            "Llene la pantalla con texto legible del recibo. La captura automática ayuda cuando el recibo está estable.",
+        )
     } else {
-        "Fill the screen with readable receipt text, then tap the shutter."
+        receiptCameraText(
+            "Fill the screen with readable receipt text, then tap the shutter.",
+            "Llene la pantalla con texto legible del recibo y luego toque el disparador.",
+        )
     }
 }
 

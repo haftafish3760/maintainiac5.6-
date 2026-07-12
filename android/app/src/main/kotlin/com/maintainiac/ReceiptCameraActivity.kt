@@ -57,6 +57,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var quickControlsOpen = false
     internal var autoCaptureAllowed = false
     internal var deviceTier = "medium"
+    internal var uiLocale = "en-US"
     internal var settingsContractVersion = "receipt_native_camera_settings_v1"
     internal var devicePolicyLabel = "balanced_receipt_camera"
     internal var reviewDepth = "pricesOnly"

@@ -15,7 +15,9 @@ void main() {
       );
       expect(
         cameraController,
-        contains('brightnessButton.accessibilityLabel = "Adjust brightness"'),
+        contains(
+          'brightnessButton.accessibilityLabel = receiptCameraText("Adjust brightness", "Ajustar brillo")',
+        ),
       );
       expect(cameraController, contains('func toggleExposureControls()'));
       expect(

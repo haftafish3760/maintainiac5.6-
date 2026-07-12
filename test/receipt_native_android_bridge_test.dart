@@ -33,5 +33,6 @@ void main() {
       controller,
       contains('arguments["settingsContractVersion"] as? String'),
     );
+    expect(controller, contains('arguments["uiLocale"] as? String ?? "en-US"'));
   });
 }

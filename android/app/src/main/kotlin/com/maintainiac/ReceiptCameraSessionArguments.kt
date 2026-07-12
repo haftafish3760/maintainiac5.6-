@@ -12,6 +12,7 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     autoCaptureAllowed = intent.getBooleanExtra("autoCaptureAllowed", autoCaptureEnabled)
     if (!autoCaptureAllowed) autoCaptureEnabled = false
     deviceTier = intent.getStringExtra("deviceTier") ?: "medium"
+    uiLocale = intent.getStringExtra("uiLocale") ?: "en-US"
     settingsContractVersion = intent.getStringExtra("settingsContractVersion")
         ?: "receipt_native_camera_settings_v1"
     devicePolicyLabel = intent.getStringExtra("devicePolicyLabel") ?: "balanced_receipt_camera"

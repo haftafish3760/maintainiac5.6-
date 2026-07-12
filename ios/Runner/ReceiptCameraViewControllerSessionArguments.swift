@@ -10,6 +10,7 @@ extension ReceiptCameraViewController {
       autoCaptureEnabled = false
     }
     deviceTier = arguments["deviceTier"] as? String ?? "medium"
+    uiLocale = arguments["uiLocale"] as? String ?? "en-US"
     settingsContractVersion = arguments["settingsContractVersion"] as? String ?? "receipt_native_camera_settings_v1"
     devicePolicyLabel = arguments["devicePolicyLabel"] as? String ?? "balanced_receipt_camera"
     reviewDepth = safeReceiptReviewDepth(arguments["reviewDepth"] as? String)
