@@ -231,13 +231,19 @@ extension ReceiptCameraViewController {
       self.updateSettingsStatusStrip()
     })
     alert.addAction(UIAlertAction(
-      title: "Receipt details style: prices only",
+      title: receiptCameraText(
+        "Receipt details style: prices only",
+        "Estilo de detalles del recibo: solo precios"
+      ),
       style: .default
     ) { [weak self] _ in
       self?.setReceiptReviewStyle("pricesOnly")
     })
     alert.addAction(UIAlertAction(
-      title: "Receipt details style: detailed lines",
+      title: receiptCameraText(
+        "Receipt details style: detailed lines",
+        "Estilo de detalles del recibo: líneas detalladas"
+      ),
       style: .default
     ) { [weak self] _ in
       self?.setReceiptReviewStyle("detailedLines")

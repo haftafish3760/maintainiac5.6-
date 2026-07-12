@@ -6,8 +6,8 @@ import UIKit
 extension ReceiptCameraViewController {
   func settingsSummary() -> String {
     let review = reviewDepth == "detailedLines"
-      ? "Detailed receipt lines"
-      : "Price-only receipt lines"
+      ? receiptCameraText("Detailed receipt lines", "Líneas detalladas del recibo")
+      : receiptCameraText("Price-only receipt lines", "Líneas del recibo solo con precios")
     return """
     Maintainiac receipt camera: this uses the phone's native camera baseline with Maintainiac receipt workflow controls layered on top.
     Assisted receipt fill: \(assistedReceiptFill ? "On" : "Off")
