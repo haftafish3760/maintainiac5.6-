@@ -45,6 +45,23 @@ void main() {
     expect(second?.item.id, first!.item.id);
   });
 
+  test('caches separate supplied-catalog indexes for each trade scope', () {
+    final items = [_findPvcSchedule40Coupling()];
+    final wrongScope = matchReceiptLineToCatalog(
+      'HD 3/4 PVC SCH40 COUPLING',
+      tradeScope: 'Electrical',
+      catalogItems: items,
+    );
+    final plumbingScope = matchReceiptLineToCatalog(
+      'HD 3/4 PVC SCH40 COUPLING',
+      tradeScope: 'Plumbing',
+      catalogItems: items,
+    );
+
+    expect(wrongScope, isNull);
+    expect(plumbingScope?.item.id, items.single.id);
+  });
+
   test('default catalog behavior is restored after a scoped match', () {
     matchReceiptLineToCatalog(
       'HD 3/4 PVC SCH40 COUPLING',
