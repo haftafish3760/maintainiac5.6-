@@ -32,7 +32,7 @@ void main() {
       expect(familyNames, contains('pipe fittings and adapters'));
       expect(familyNames, contains('toilet and fixture repair'));
       expect(familyNames, contains('well pump and pressure service'));
-      expect(familyNames, contains('water treatment and softener service'));
+      expect(familyNames, contains('same-day consumables'));
 
       for (final family in coverage) {
         expect(family['actualRows'], isA<int>());
@@ -44,7 +44,7 @@ void main() {
     test('locks the current Plumbing Core curation baseline', () {
       final report = buildPlumbingCoreCurationAudit();
 
-      expect(report['coreCount'], 1261);
+      expect(report['coreCount'], 1138);
       expect(report['missingRequiredFamilies'], isEmpty);
       expect(report['suspiciousCoreItems'], isEmpty);
       expect(report['likelyCoreOutsideCore'], isEmpty);
@@ -55,7 +55,7 @@ void main() {
       // These values lock the reviewed catalog-audit snapshot. They are not a
       // release readiness claim; that remains false until real receipt QA.
       expect(summary['readinessFloor'], 56);
-      expect(summary['readinessAverage'], 77.5);
+      expect(summary['readinessAverage'], 77.73);
       expect(summary['readyForMacValidation'], isFalse);
 
       final items = {
@@ -115,24 +115,45 @@ void main() {
       expect(summary['readinessAverage'], isA<double>());
     });
 
-    test('Plumbing service-truck stock resolves to Core', () {
-      final drift = workSupplyCatalogItems
+    test('Plumbing service-truck stock uses semantic Core boundaries', () {
+      final commonStockDrift = workSupplyCatalogItems
           .where(
             (item) =>
                 item.trade == 'Plumbing' &&
                 item.category == 'Service Truck Stock' &&
+                item.system != 'Water Treatment Service Stock' &&
+                item.system != 'Plumbing Hand Tools' &&
                 item.packTier != WorkSupplyPackTier.core,
           )
           .map((item) => '${item.id}: ${item.name} (${item.packTier.name})')
           .toList(growable: false);
 
       expect(
-        drift,
+        commonStockDrift,
         isEmpty,
         reason:
-            'Plumbing Service Truck Stock must stay Core; otherwise common '
-            'same-day water treatment, drain, and repair rows can fall into '
-            'later packs.\n${drift.take(50).join('\n')}',
+            'Common same-day Plumbing repair stock must stay Core.\n'
+            "${commonStockDrift.take(50).join('\n')}",
+      );
+
+      final specialtyCoreDrift = workSupplyCatalogItems
+          .where(
+            (item) =>
+                item.trade == 'Plumbing' &&
+                item.category == 'Service Truck Stock' &&
+                (item.system == 'Water Treatment Service Stock' ||
+                    item.system == 'Plumbing Hand Tools') &&
+                item.packTier == WorkSupplyPackTier.core,
+          )
+          .map((item) => '${item.id}: ${item.name}')
+          .toList(growable: false);
+      expect(
+        specialtyCoreDrift,
+        isEmpty,
+        reason:
+            'Specialty water-treatment matrices and durable tools must not '
+            'enter Core from a broad category shortcut.\n'
+            "${specialtyCoreDrift.take(50).join('\n')}",
       );
     });
   });

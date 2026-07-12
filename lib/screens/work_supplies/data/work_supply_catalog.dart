@@ -8,6 +8,7 @@ part 'work_supply_catalog_intelligence.dart';
 part 'work_supply_catalog_shape_signals.dart';
 part 'work_supply_electrical_metadata_intelligence.dart';
 part 'work_supply_plumbing_catalog_intelligence.dart';
+part 'work_supply_plumbing_catalog_tier_constants.dart';
 part 'work_supply_plumbing_metadata_intelligence.dart';
 part 'catalog/plumbing/plumbing_catalog.dart';
 part 'catalog/plumbing/fittings/copper.dart';
