@@ -5183,8 +5183,10 @@ WorkSupplyItem? _directPvcDwvSanitaryTeeReceiptMatch(String text) {
     return null;
   }
   final size = _nominalReceiptSize(text);
+  final wantsReducing = RegExp(r'\b(reducing|reducer|red)\b').hasMatch(text);
   for (final item in _plumbingPvcDwvSanitaryTeeItems) {
     final name = item.name.toLowerCase();
+    if (wantsReducing != name.contains('reducing')) continue;
     if (_nameMatchesReceiptMatrix(name, text) ||
         _receiptMatchesVariant(text, item.variant) ||
         _nameMatchesReceiptSize(name, size)) {

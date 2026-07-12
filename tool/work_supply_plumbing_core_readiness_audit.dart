@@ -58,8 +58,7 @@ Map<String, Object?> buildPlumbingCoreReadinessAudit() {
   final findings = [
     for (final item in coreRows)
       _readinessFinding(item, generatedChaosEvidence: generatedChaosEvidence),
-  ]
-    ..sort(_findingSort);
+  ]..sort(_findingSort);
   final families = [
     for (final family in _familyContracts)
       _familyReport(
@@ -742,7 +741,7 @@ bool _isSmallRepairPartText(String text) {
     'handle screw',
     'locknut',
     'o-ring',
-    'oval handle',
+    'trim kit',
     'packing',
     'repair part',
     'seat washer',
@@ -936,7 +935,7 @@ const _familyContracts = [
     'stud guard',
   ]),
   _FamilyContract('toilet and faucet repair', [
-    'aerator',
+    'shower',
     'faucet',
     'fill valve',
     'flapper',

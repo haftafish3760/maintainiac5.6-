@@ -172,7 +172,8 @@ class _ReceiptCatalogIndexes {
       plumbingPvcDwvSanitaryTeeItems: List.unmodifiable([
         for (final item in items)
           if (item.trade == 'Plumbing' &&
-              item.name.toLowerCase().contains('pvc dwv sanitary tee'))
+              item.name.toLowerCase().contains('pvc dwv') &&
+              item.name.toLowerCase().contains('sanitary tee'))
             item,
       ]),
       vendorMappings: List.unmodifiable([

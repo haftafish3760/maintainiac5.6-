@@ -51,6 +51,35 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
     if (match != null) return match;
   }
 
+  final wantsCondensatePumpTubing =
+      RegExp(r'\b(condensate|cond)\b').hasMatch(text) &&
+      RegExp(r'\b(vinyl\s+)?tubing\b').hasMatch(text) &&
+      RegExp(r'\bpump\b').hasMatch(text);
+  if (wantsCondensatePumpTubing) {
+    final size = _nominalReceiptSize(text);
+    final match = findPlumbing(
+      const ['condensate', 'pump', 'tubing'],
+      (name) =>
+          name.contains('condensate pump tubing') &&
+          _nameMatchesReceiptSize(name, size),
+    );
+    if (match != null) return match;
+  }
+
+  final wantsWaterHeaterDrainValve =
+      RegExp(r'\b(water\s+heater|wtr\s+htr|heater)\b').hasMatch(text) &&
+      RegExp(
+        r'\b(drain\s+valve|heater\s+drain|boiler\s+drain)\b',
+      ).hasMatch(text) &&
+      !RegExp(r'\bpan\b').hasMatch(text);
+  if (wantsWaterHeaterDrainValve) {
+    final match = findPlumbing(const [
+      'drain',
+      'valve',
+    ], (name) => name.contains('water heater') && name.contains('drain valve'));
+    if (match != null) return match;
+  }
+
   final wantsDishwasherBranchTailpiece = RegExp(
     r'\bdishwasher\s+branch\s+tailpiece\b',
   ).hasMatch(text);
