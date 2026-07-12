@@ -47,7 +47,7 @@ void main() {
       cameraActivity,
       contains(
         'shutterButton = ImageButton(this).apply {\n'
-        '        contentDescription = "Take receipt photo"',
+        '        contentDescription = receiptCameraText("Take receipt photo", "Tomar foto del recibo")',
       ),
     );
     expect(
@@ -65,25 +65,31 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'topBar.addView(iconButton("Back", R.drawable.ic_receipt_camera_back) {',
+        'topBar.addView(iconButton(receiptCameraText("Back", "Atrás"), R.drawable.ic_receipt_camera_back) {',
       ),
     );
     expect(
       cameraActivity,
       contains(
-        'topBar.addView(iconButton("Receipt camera settings", R.drawable.ic_receipt_camera_settings) {',
+        'topBar.addView(iconButton(receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), R.drawable.ic_receipt_camera_settings) {',
       ),
     );
     expect(
       cameraActivity,
       contains(
         'torchButton = iconButton(\n'
-        '        "Turn light on",\n'
+        '        receiptCameraText("Turn light on", "Encender luz"),\n'
         '        R.drawable.ic_receipt_camera_flash,',
       ),
     );
-    expect(cameraActivity, contains('text = "Done"'));
-    expect(cameraActivity, contains('text = "Add Photo"'));
+    expect(
+      cameraActivity,
+      contains('text = receiptCameraText("Done", "Listo")'),
+    );
+    expect(
+      cameraActivity,
+      contains('text = receiptCameraText("Add Photo", "Agregar foto")'),
+    );
     expect(cameraActivity, contains('visibility = View.GONE'));
     expect(cameraActivity, contains('maxLines = 1'));
     expect(cameraActivity, contains('ellipsize = TextUtils.TruncateAt.END'));
@@ -113,7 +119,10 @@ void main() {
 
     expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
     expect(cameraController, contains('previewLayer?.frame = view.bounds'));
-    expect(cameraController, contains('let settingsButton = iconButton(title: "Receipt camera settings", symbol: "gearshape.fill")'));
+    expect(
+      cameraController,
+      contains('let settingsButton = iconButton(title: receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), symbol: "gearshape.fill")'),
+    );
     expect(
       cameraController,
       contains('torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)'),
