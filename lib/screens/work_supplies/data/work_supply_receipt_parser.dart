@@ -303,6 +303,9 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isBareMixedSizedClampReceiptLine(normalized, tradeScope)) {
     return null;
   }
+  if (_isBareMixedWaterHeaterLineReceiptLine(normalized, tradeScope)) {
+    return null;
+  }
   if (_isBareMixedLineReceiptLine(normalized, tradeScope)) {
     return null;
   }

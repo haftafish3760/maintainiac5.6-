@@ -573,6 +573,25 @@ bool _isBareMixedSizedClampReceiptLine(String text, String? tradeScope) {
   return !hasExplicitSizedClampFamily && tokenCount <= 5;
 }
 
+bool _isBareMixedWaterHeaterLineReceiptLine(String text, String? tradeScope) {
+  if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
+  final normalized = _normalize(text);
+  final tokenCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((token) => token.isNotEmpty)
+      .length;
+  if (!RegExp(r'\b(water heater|wtr htr)\b').hasMatch(normalized)) {
+    return false;
+  }
+  if (!RegExp(r'\bline\b').hasMatch(normalized)) return false;
+  final hasExplicitWaterHeaterLineFamily = RegExp(
+    r'\b(conn|connector|hose|supply|gas|flex|corrugated|stainless|'
+    r'dielectric|brass|compression|comp|nipple|union|valve|'
+    r'drain|pan|strap|element|thermostat|relief|vacuum)\b',
+  ).hasMatch(normalized);
+  return !hasExplicitWaterHeaterLineFamily && tokenCount <= 5;
+}
+
 bool _isBareMixedLineReceiptLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   final normalized = _normalize(text);

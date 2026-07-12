@@ -3446,6 +3446,24 @@ void main() {
     );
 
     test(
+      'local mixed receipt does not auto-confirm water heater line shorthand without plumbing context',
+      () {
+        final waterHeaterLineItem = matchReceiptLineToCatalog(
+          'LOCAL WATER HEATER LINE 14.98',
+          maxCandidates: 80,
+        );
+        expect(
+          waterHeaterLineItem == null || waterHeaterLineItem.confidence <= .81,
+          isTrue,
+          reason:
+              'Local merchant flavor must not auto-confirm a WATER HEATER '
+              'LINE line when the receipt still lacks plumbing, connector, '
+              'supply, gas, or other system-level water-heater clues.',
+        );
+      },
+    );
+
+    test(
       'local mixed receipt does not auto-confirm generic support shorthand',
       () {
         final supportItem = matchReceiptLineToCatalog(
