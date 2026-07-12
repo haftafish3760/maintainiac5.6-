@@ -89,7 +89,18 @@ WorkSupplyItem? _directPlumbingHoseBibbRepairPartMatch(String text) {
 }
 
 WorkSupplyItem? _directPlumbingPvcDwvMatch(String text) {
-  if (!RegExp(r'\b(pvc|dwv)\b').hasMatch(text)) return null;
+  // Generic PVC fittings default to Schedule 40 unless the receipt actually
+  // supplies DWV/drain evidence. Without this guard, a bare `PVC COUPLING`
+  // line is captured here before the later Schedule 40 coupling precedence.
+  if (!RegExp(
+    r'\b(dwv|drain|sanitary|san\s+tee|wye|cleanout|trap\s+ad)\b',
+  ).hasMatch(text)) {
+    return null;
+  }
+  if (RegExp(r'\bcleanout\b').hasMatch(text) &&
+      RegExp(r'\bcover\b').hasMatch(text)) {
+    return null;
+  }
   if (RegExp(r'\b(abs|black\s+dwv|black\s+drain)\b').hasMatch(text)) {
     return null;
   }

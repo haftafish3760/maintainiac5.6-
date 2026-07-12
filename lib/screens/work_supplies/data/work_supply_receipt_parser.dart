@@ -5147,6 +5147,9 @@ bool _hasStrongDirectPlumbingEvidence(String text) {
 
 WorkSupplyItem? _directPvcDwvSanitaryTeeReceiptMatch(String text) {
   if (!RegExp(r'\b(pvc|dwv|drain)\b').hasMatch(text)) return null;
+  if (RegExp(r'\b(abs|black\s+dwv|black\s+drain)\b').hasMatch(text)) {
+    return null;
+  }
   if (!RegExp(
     r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b',
   ).hasMatch(text)) {
