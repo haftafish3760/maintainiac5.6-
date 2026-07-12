@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'work_supply_models.dart';
 import 'work_supply_receipt_parser.dart';
 import 'work_supply_trade_pack_runtime_loader.dart';
@@ -51,6 +53,30 @@ class InventoryParser {
     return InventoryParser(
       catalogItems: List<WorkSupplyItem>.unmodifiable(itemsById.values),
     );
+  }
+
+  /// Builds an offline parser directly from locally installed pack folders.
+  /// Every folder is validated before its catalog can affect receipt matching.
+  static Future<InventoryParser> fromInstalledPackDirectories(
+    Iterable<Directory> directories, {
+    WorkSupplyTradePackRuntimeLoader loader =
+        const WorkSupplyTradePackRuntimeLoader(),
+  }) async {
+    final packs = <WorkSupplyTradePackRuntimeLoadResult>[];
+    for (final directory in directories) {
+      final pack = await loader.loadDirectory(directory);
+      if (!pack.isReady) {
+        final detail = pack.issues.isEmpty
+            ? pack.status.name
+            : pack.issues.join('; ');
+        throw StateError(
+          'Installed trade pack "${directory.path}" could not be loaded: '
+          '$detail',
+        );
+      }
+      packs.add(pack);
+    }
+    return InventoryParser.fromLoadedTradePacks(packs);
   }
 
   /// Null preserves the legacy/default compiled-catalog behavior. A non-null
