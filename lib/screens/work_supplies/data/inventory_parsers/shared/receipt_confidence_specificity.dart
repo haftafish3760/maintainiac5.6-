@@ -228,7 +228,9 @@ double _plumbingCoreReceiptEvidenceScore(
     RegExp(r'\b(time\s+delay\s+relay|relay)\b'): ['relay'],
     RegExp(r'\b(tstat|thermostat|termostato)\b'): ['thermostat'],
     RegExp(r'\b(cond|condensate)\b.*\b(pump|pmp|bomba)\b'): ['condensate pump'],
-    RegExp(r'\b(bomba)\b.*\b(condensado|condensate)\b'): ['condensate pump'],
+    RegExp(r'\b(bomba)\b.*\b(cond|condensado|condensate)\b'): [
+      'condensate pump',
+    ],
     RegExp(r'\b(cond|condensate)\b.*\b(float|flotador)\b.*\b(sw|switch)\b'): [
       'condensate safety switch',
       'float switch',
@@ -238,6 +240,29 @@ double _plumbingCoreReceiptEvidenceScore(
       'hot surface ignitor',
       'ignitor',
     ],
+    RegExp(r'\b(hot\s+surf\s+ign|hsi\s+ign)\b'): [
+      'hot surface ignitor',
+      'ignitor',
+    ],
+    RegExp(r'\b\d{2}/\d(?:\.\d+)?\s*(?:370v|440v)?\s*(?:cap|capacitor)\b'): [
+      'dual run capacitor',
+      'capacitor',
+    ],
+    RegExp(r'\b(model\s+(?:10|35)\s+(?:water\s+panel|humidifier\s+pad))\b'): [
+      'humidifier',
+      'water panel',
+      'humidifier pad',
+    ],
+    RegExp(r'\b(panel|pad)\s+humidificador\s+modelo\s+(?:10|35)\b'): [
+      'humidifier',
+      'water panel',
+      'humidifier pad',
+    ],
+    RegExp(r'\b(pastillas\s+bandeja|tabletas\s+drenaje\s+cond)\b'): [
+      'drain tablets',
+      'condensate treatment',
+    ],
+    RegExp(r'\b(sensor|varilla)\s+flama\b'): ['flame sensor'],
     RegExp(r'\b(hard\s+start|spp6|start kit|start kt)\b'): ['hard start kit'],
     RegExp(r'\b(cinta|foil|ul181|ul 181)\b.*\b(tape|cinta|hvac)\b'): [
       'foil tape',
