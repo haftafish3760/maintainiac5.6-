@@ -7,19 +7,26 @@ class _ReceiptDataSaverPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final current = preview;
     if (current == null) {
-      return const _DataSaverMessageCard(
+      return _DataSaverMessageCard(
         icon: Icons.hourglass_top_rounded,
-        title: 'Preparing saved proof preview',
-        detail: 'Building the smaller receipt image kept after reading.',
+        title: strings.preparingSavedProofPreview,
+        detail: strings.buildingSavedProofPreview,
       );
     }
     final quality = current.quality;
-    final mode = current.level.usesGrayscale ? 'black and white' : 'color';
+    final mode = current.level.usesGrayscale
+        ? strings.savedProofBlackAndWhite
+        : strings.savedProofColor;
     final detail = !quality.needsReview
-        ? '${current.estimatedLabel} saved proof image, ${current.savedLabel} saved, $mode.'
-        : '${current.estimatedLabel} saved proof image, $mode. ${quality.reviewGuidance}';
+        ? strings.savedProofDetail(
+            current.estimatedLabel,
+            current.savedLabel,
+            mode,
+          )
+        : strings.savedProofNeedsReview(current.estimatedLabel, mode);
     return _DataSaverMessageCard(
       icon: !quality.needsReview
           ? Icons.savings_rounded
@@ -27,12 +34,12 @@ class _ReceiptDataSaverPreviewCard extends StatelessWidget {
           ? Icons.replay_rounded
           : Icons.fact_check_rounded,
       title: !quality.needsReview
-          ? '${current.level.label} Saved Proof'
-          : quality.reviewTitle,
+          ? strings.savedProof
+          : strings.checkPhotoBeforeUse,
       detail: detail,
       footer: !quality.needsReview
-          ? 'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Capture source ${current.originalLabel}.'
-          : 'Receipt assistance uses the clear OCR source first. This setting only controls the smaller saved proof.',
+          ? strings.savedProofOcrSourceFirst(current.originalLabel)
+          : strings.savedProofSettingOnly,
       warning: quality.needsReview,
       onDetails: () => _showDataSaverDetails(context, current),
     );

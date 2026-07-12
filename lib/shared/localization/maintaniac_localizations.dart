@@ -59,6 +59,26 @@ class MaintaniacLocalizations {
   String get checkPhotoBeforeUse => isSpanish
       ? 'Revise la foto antes de usarla'
       : 'Check Photo Before Use';
+  String get preparingSavedProofPreview => isSpanish
+      ? 'Preparando vista previa del comprobante guardado'
+      : 'Preparing saved proof preview';
+  String get buildingSavedProofPreview => isSpanish
+      ? 'Creando la imagen más pequeña del recibo que se guarda después de leerlo.'
+      : 'Building the smaller receipt image kept after reading.';
+  String get savedProofBlackAndWhite => isSpanish ? 'blanco y negro' : 'black and white';
+  String get savedProofColor => isSpanish ? 'color' : 'color';
+  String savedProofDetail(String estimated, String saved, String mode) => isSpanish
+      ? '$estimated de comprobante guardado, $saved ahorrados, $mode.'
+      : '$estimated saved proof image, $saved saved, $mode.';
+  String savedProofNeedsReview(String estimated, String mode) => isSpanish
+      ? '$estimated de comprobante guardado, $mode. Revise que el texto sea legible antes de usarlo.'
+      : '$estimated saved proof image, $mode. Check that the text is readable before using it.';
+  String savedProofOcrSourceFirst(String original) => isSpanish
+      ? 'La imagen detrás de este panel es la vista previa del comprobante guardado. La asistencia de recibos usa primero la fuente OCR clara. Fuente capturada $original.'
+      : 'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Capture source $original.';
+  String get savedProofSettingOnly => isSpanish
+      ? 'La asistencia de recibos usa primero la fuente OCR clara. Este ajuste solo controla el comprobante guardado más pequeño.'
+      : 'Receipt assistance uses the clear OCR source first. This setting only controls the smaller saved proof.';
 }
 
 class _MaintaniacLocalizationsDelegate
