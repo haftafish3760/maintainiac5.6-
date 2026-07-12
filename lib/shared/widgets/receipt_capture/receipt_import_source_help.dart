@@ -1,33 +1,5 @@
 part of 'receipt_attachment_panel.dart';
 
-class _ReceiptImportShareHint extends StatelessWidget {
-  const _ReceiptImportShareHint();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0E1416),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF3D4A50)),
-      ),
-      child: const Padding(
-        padding: EdgeInsets.fromLTRB(10, 9, 10, 9),
-        child: Text(
-          'For emailed or texted receipts, use the phone Share button and choose Maintainiac, or save the receipt to your device and choose Upload PDF/File or Text File here.',
-          style: TextStyle(
-            color: Color(0xFFC8D0D3),
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            height: 1.25,
-            letterSpacing: 0,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ReceiptShareHelpSheet extends StatelessWidget {
   const _ReceiptShareHelpSheet();
 

@@ -8,7 +8,10 @@ void main() {
 
     expect(sources.reviewControls, isNot(contains('Move Earlier')));
     expect(sources.reviewControls, isNot(contains('Move Later')));
-    expect(sources.reviewPreviewControls, contains('Match Photos'));
+    expect(
+      sources.reviewPreviewControls,
+      contains('strings.matchReceiptPhotos'),
+    );
     expect(sources.modeControls, contains('Photo Order'));
     expect(sources.modeControls, contains('Check Photo Order'));
     expect(sources.orderControls, contains('_ReceiptOrderToolControls'));
@@ -322,17 +325,17 @@ void main() {
     expect(
       sources.reviewScreen,
       contains(
-        '_ReceiptReviewMode.preview => _photoPaths.length > 1 ? 188.0 : 166.0',
+        'widget.uiConfig.previewControlsMultiPhotoHeight',
       ),
     );
-    expect(sources.reviewScreen, contains('_ReceiptReviewMode.order => 142.0'));
+    expect(sources.reviewScreen, contains('widget.uiConfig.orderControlsHeight'));
     expect(
       sources.reviewScreen,
-      contains('_ReceiptReviewMode.stitch => 164.0'),
+      contains('widget.uiConfig.stitchControlsHeight'),
     );
     expect(
       sources.reviewScreen,
-      contains('_ReceiptReviewMode.dataSaver => 168.0'),
+      contains('widget.uiConfig.dataSaverControlsHeight'),
     );
     expect(
       sources.reviewScreen,

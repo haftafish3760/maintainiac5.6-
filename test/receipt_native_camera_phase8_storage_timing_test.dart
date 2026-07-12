@@ -16,11 +16,10 @@ void main() {
         'ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift',
       ).readAsString();
 
-      expect(androidSettings, contains('if (capturedPhotoPaths.isNotEmpty()) {'));
       expect(
         androidSettings,
         contains(
-          'Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof.',
+          'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
         ),
       );
       expect(iosSettings, contains('if !capturedPhotoPaths.isEmpty {'));

@@ -43,7 +43,7 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'contentDescription = "Done: review captured receipt photos in Maintainiac"',
+          'contentDescription = receiptCameraText(',
         ),
       );
       expect(cameraActivity, contains('visibility = View.GONE'));
@@ -52,7 +52,10 @@ void main() {
       expect(cameraActivity, contains('Finish'));
       expect(cameraActivity, contains('finishWithCapturedPhotos'));
       expect(cameraActivity, contains('capturedPhotoPaths'));
-      expect(cameraActivity, contains(r'else -> "Done ($count)"'));
+      expect(
+        cameraActivity,
+        contains(r'else -> "${receiptCameraText("Done", "Listo")} ($count)"'),
+      );
       expect(
         cameraActivity,
         contains('Opening receipt photo review. Captured photos are kept.'),

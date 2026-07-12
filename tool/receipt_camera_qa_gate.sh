@@ -436,6 +436,12 @@ full_only_tests=(
   test/receipt_ocr_source_completion_test.dart
   test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
+  test/receipt_camera_ios_full_screen_settings_test.dart
+  test/receipt_camera_reset_opt_in_contract_test.dart
+  test/receipt_stitching_mixed_encoding_test.dart
+  test/receipt_stitching_orientation_mismatch_test.dart
+  test/receipt_stitching_stained_overlap_test.dart
+  test/receipt_stitching_torn_edge_test.dart
 )
 
 line_cap_paths=(
