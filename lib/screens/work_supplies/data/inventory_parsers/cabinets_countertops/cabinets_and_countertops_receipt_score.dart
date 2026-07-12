@@ -1,5 +1,6 @@
-part of 'work_supply_receipt_parser.dart';
+part of '../../work_supply_receipt_parser.dart';
 
+/// Scores receipt evidence for cabinets and countertops.
 int _cabinetsCountertopsReceiptScore(
   String text,
   String trade,
@@ -9,9 +10,7 @@ int _cabinetsCountertopsReceiptScore(
   var score = 0;
   if (trade != 'cabinets and countertops') return score;
   if (RegExp(
-    r'\b(base cabinet|wall cabinet|sink base|drawer base|pantry cabinet|utility cabinet|kitchen cabinet|cabinet filler|toe kick|end panel|vanity|'
-    r'vanity cabinet|vanity top|medicine cabinet|countertop|counter top|laminate top|butcher block|solid surface|quartz top|granite top|side splash|'
-    r'countertop end cap|miter bolt|backsplash panel|range backsplash|countertop support|undermount sink clip|dishwasher bracket)\b',
+    r'\b(base cabinet|wall cabinet|sink base|drawer base|pantry cabinet|utility cabinet|kitchen cabinet|cabinet filler|toe kick|end panel|vanity|vanity cabinet|vanity top|medicine cabinet|countertop|counter top|laminate top|butcher block|solid surface|quartz top|granite top|side splash|countertop end cap|miter bolt|backsplash panel|range backsplash|countertop support|undermount sink clip|dishwasher bracket)\b',
   ).hasMatch(text)) {
     score += 18;
   }

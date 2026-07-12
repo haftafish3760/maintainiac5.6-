@@ -128,6 +128,8 @@ This is a top-priority rule for receipt camera work.
 - Avoid black filled buttons.
 - Avoid bright white form fields on dark/industrial screens.
 - Every major screen uses the same app shell, global odometer header, hamburger menu, settings action, and bottom navigation.
+- Keep the active-vehicle/global-odometer header pinned above scrollable screen
+  content so users can change vehicles without scrolling back to the top.
 
 ## Workflow Expectations
 

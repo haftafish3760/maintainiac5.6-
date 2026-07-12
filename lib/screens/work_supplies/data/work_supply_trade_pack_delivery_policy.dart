@@ -1,3 +1,5 @@
+import 'work_supply_trade_pack_base_bundle_policy.dart';
+
 class WorkSupplyTradePackDeliveryPolicy {
   const WorkSupplyTradePackDeliveryPolicy({
     required this.localMode,
@@ -18,6 +20,7 @@ class WorkSupplyTradePackDeliveryPolicy {
   Map<String, Object?> toMap() {
     return {
       'deliveryModes': [localMode, cloudMode],
+      'baseInstall': workSupplyTradePackBaseBundlePolicy.toMap(),
       'local': {
         'mode': localMode,
         'offlineCapable': true,

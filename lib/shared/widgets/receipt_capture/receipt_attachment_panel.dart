@@ -84,6 +84,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.onReceiptCaptureDiagnostic,
     this.receiptContinuationReasonCode,
     this.receiptContinuationGuidance,
+    this.showInterruptedCaptureRecovery = true,
     this.uiConfig = const ReceiptCaptureUiConfig(),
   });
 
@@ -101,6 +102,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final ValueChanged<Map<String, Object?>>? onReceiptCaptureDiagnostic;
   final String? receiptContinuationReasonCode;
   final String? receiptContinuationGuidance;
+  final bool showInterruptedCaptureRecovery;
   final ReceiptCaptureUiConfig uiConfig;
 
   @override
@@ -159,7 +161,9 @@ class _SharedReceiptAttachmentPanelState
   void initState() {
     super.initState();
     _applyInitialAttachments(widget.initialAttachments);
-    unawaited(_loadRecoverableNativeCaptures());
+    if (widget.showInterruptedCaptureRecovery) {
+      unawaited(_loadRecoverableNativeCaptures());
+    }
   }
 
   @override

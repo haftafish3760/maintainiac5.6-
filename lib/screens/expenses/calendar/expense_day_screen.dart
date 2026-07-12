@@ -32,69 +32,82 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
       backgroundColor: const Color(0xFF1F2528),
 
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
+        child: Column(
           children: [
-            AppScreenHeader(
-              title: calendarFullDateLabel(_day),
-              actions: [
-                IconButton(
-                  tooltip: 'Pick month and year',
-                  onPressed: _pickDate,
-                  icon: const Icon(
-                    Icons.calendar_month_rounded,
-                    color: Color(0xFFE2E8EA),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: AppScreenHeader(
+                title: calendarFullDateLabel(_day),
+                actions: [
+                  IconButton(
+                    tooltip: 'Pick month and year',
+                    onPressed: _pickDate,
+                    icon: const Icon(
+                      Icons.calendar_month_rounded,
+                      color: Color(0xFFE2E8EA),
+                    ),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Previous day',
-                  onPressed: () => _shiftDay(-1),
-                  icon: const Icon(
-                    Icons.chevron_left_rounded,
-                    color: Color(0xFFE2E8EA),
+                  IconButton(
+                    tooltip: 'Previous day',
+                    onPressed: () => _shiftDay(-1),
+                    icon: const Icon(
+                      Icons.chevron_left_rounded,
+                      color: Color(0xFFE2E8EA),
+                    ),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Next day',
-                  onPressed: () => _shiftDay(1),
-                  icon: const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFFE2E8EA),
+                  IconButton(
+                    tooltip: 'Next day',
+                    onPressed: () => _shiftDay(1),
+                    icon: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFFE2E8EA),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             const GlobalOdometerHeader(section: AppSection.expenses),
             const SizedBox(height: 8),
-            _CalendarDaySummary(
-              day: _day,
-              onPreviousDay: () => _shiftDay(-1),
-              onNextDay: () => _shiftDay(1),
-              onPreviousMonth: () => _shiftMonth(-1),
-              onNextMonth: () => _shiftMonth(1),
-            ),
-            const SizedBox(height: 8),
-            _CalendarOcrDayRecapPanel(recap: ocrRecap),
-            const SizedBox(height: 8),
-            if (entries.isEmpty)
-              const _CalendarEmptyState()
-            else
-              for (final entry in entries) _CalendarExpenseEntry(entry: entry),
-            const SizedBox(height: 4),
-            _CalendarRecapPeriodSelector(
-              selected: _recapPeriod,
-              selectedDay: _day,
-              onSelected: (period) => setState(() => _recapPeriod = period),
-            ),
-            const SizedBox(height: 8),
-            _VehicleExpenseMetricsPanel(
-              metrics: metrics,
-              selectedDay: _day,
-              dayEntryCount: entries.length,
-              dayTotal: total,
-              ocrRecap: rangeOcrRecap,
-              period: _recapPeriod,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 18),
+                children: [
+                  _ExpenseCalendarContextHeader(day: _day),
+                  const SizedBox(height: 8),
+                  _CalendarDaySummary(
+                    day: _day,
+                    onPreviousDay: () => _shiftDay(-1),
+                    onNextDay: () => _shiftDay(1),
+                    onPreviousMonth: () => _shiftMonth(-1),
+                    onNextMonth: () => _shiftMonth(1),
+                  ),
+                  const SizedBox(height: 8),
+                  _CalendarOcrDayRecapPanel(recap: ocrRecap),
+                  const SizedBox(height: 8),
+                  if (entries.isEmpty)
+                    const _CalendarEmptyState()
+                  else
+                    for (final entry in entries)
+                      _CalendarExpenseEntry(entry: entry),
+                  const SizedBox(height: 4),
+                  _CalendarRecapPeriodSelector(
+                    selected: _recapPeriod,
+                    selectedDay: _day,
+                    onSelected: (period) =>
+                        setState(() => _recapPeriod = period),
+                  ),
+                  const SizedBox(height: 8),
+                  _VehicleExpenseMetricsPanel(
+                    metrics: metrics,
+                    selectedDay: _day,
+                    dayEntryCount: entries.length,
+                    dayTotal: total,
+                    ocrRecap: rangeOcrRecap,
+                    period: _recapPeriod,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

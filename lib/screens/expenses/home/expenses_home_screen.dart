@@ -5,6 +5,7 @@ import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
+import '../../../shared/widgets/receipt_capture/receipt_native_capture_staging.dart';
 import '../calendar/expense_calendar.dart';
 import '../categories/expense_categories.dart';
 import '../data/expense_draft_store.dart';
@@ -81,11 +82,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     return AppScreenShell(
       section: AppSection.expenses,
       floatingActionButton: _ExpenseFab(initialDate: _anchorDate),
+      pinnedHeader: const GlobalOdometerHeader(section: AppSection.expenses),
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const GlobalOdometerHeader(section: AppSection.expenses),
-          const SizedBox(height: 8),
           _ExpenseHomeContent(
             anchorDate: _anchorDate,
             onShiftDay: _shiftDay,
@@ -125,13 +125,6 @@ class _ExpenseHomeContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ExpenseDayNavigatorPanel(
-                anchorDate: anchorDate,
-                scopeLabel: _expenseScopeLabel(context),
-                onShift: onShiftDay,
-                onToday: onToday,
-              ),
-              const SizedBox(height: 8),
               const ReceiptDraftsPanel(),
               const SizedBox(height: 8),
               _ExpenseTotalsPanel(

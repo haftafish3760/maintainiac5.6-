@@ -6,6 +6,7 @@ extension _ExpenseReceiptEntryAttachmentPanel
     return SharedReceiptAttachmentPanel(
       hasReceipt: _hasReceipt,
       area: _receiptCaptureArea,
+      showInterruptedCaptureRecovery: widget.showInterruptedCaptureRecovery,
       initialAttachments: _receiptAttachments,
       receiptContinuationReasonCode:
           _lastOcrDiagnostics?.receiptMayNeedBottomSection == true

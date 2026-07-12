@@ -146,6 +146,7 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
     this.initialImportedText = '',
     this.draftId,
     this.receiptId,
+    this.showInterruptedCaptureRecovery = false,
   });
 
   final ExpenseReceiptFlowMode mode;
@@ -155,6 +156,7 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
   final String initialImportedText;
   final String? draftId;
   final String? receiptId;
+  final bool showInterruptedCaptureRecovery;
 
   @override
   State<ExpenseReceiptEntryScreen> createState() =>

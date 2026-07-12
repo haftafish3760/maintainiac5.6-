@@ -36,7 +36,7 @@ final hvacIgnitionAndGasHeatCategory = _category('Ignition and Gas Heat', [
       _variants(
         'Furnace Pressure Switch',
         'each',
-        ['single port', 'dual port'],
+        ['Single Port', 'Dual Port'],
         ['draft pressure switch'],
       ),
     ),

@@ -1,16 +1,40 @@
-import 'work_supply_catalog.dart';
+import 'work_supply_catalog.dart' as catalog;
 import 'work_supply_models.dart';
 import 'work_supply_receipt_confidence.dart';
 
 part 'work_supply_receipt_parser_terms.dart';
 part 'work_supply_receipt_parser_locale_terms.dart';
-part 'work_supply_receipt_parser_plumbing_terms.dart';
+part 'inventory_parsers/plumbing/plumbing_fast_matcher.dart';
+part 'inventory_parsers/plumbing/plumbing_receipt_term_aliases.dart';
 part 'work_supply_receipt_parser_fastener_terms.dart';
+part 'work_supply_receipt_parser_electrical_service_matcher.dart';
+part 'work_supply_receipt_parser_electrical_service_and_safety_matcher.dart';
+part 'inventory_parsers/hvac/hvac_core_parser.dart';
+part 'inventory_parsers/hvac/hvac_air_drain_and_duct_parser.dart';
+part 'inventory_parsers/hvac/hvac_equipment_and_service_parts_parser.dart';
+part 'inventory_parsers/hvac/hvac_receipt_precedence_parser.dart';
+part 'inventory_parsers/plumbing/plumbing_receipt_precedence_parser.dart';
+part 'inventory_parsers/electrical/electrical_receipt_score.dart';
+part 'inventory_parsers/plumbing/plumbing_receipt_score.dart';
+part 'inventory_parsers/hvac/hvac_receipt_score.dart';
+part 'inventory_parsers/hvac/hvac_equipment_and_air_filter_receipt_score.dart';
+part 'inventory_parsers/hvac/hvac_air_distribution_and_gas_receipt_score.dart';
+part 'inventory_parsers/hvac/hvac_service_equipment_and_tool_receipt_score.dart';
+part 'inventory_parsers/shared/receipt_confidence_specificity.dart';
+part 'inventory_parsers/shared/receipt_catalog_context.dart';
+part 'inventory_parsers/shared/receipt_noise.dart';
+part 'inventory_parsers/shared/term_aliases/receipt_electrical_and_hvac_term_aliases.dart';
+part 'inventory_parsers/shared/term_aliases/receipt_construction_and_appliance_term_aliases.dart';
+part 'inventory_parsers/shared/term_aliases/receipt_cabinets_doors_and_finishes_term_aliases.dart';
+part 'inventory_parsers/shared/term_aliases/receipt_roofing_siding_and_flooring_term_aliases.dart';
+part 'inventory_parsers/shared/term_aliases/receipt_tile_and_insulation_term_aliases.dart';
+part 'inventory_parsers/shared/term_aliases/receipt_fencing_masonry_landscape_and_tool_term_aliases.dart';
 part 'work_supply_receipt_parser_fallback_specificity.dart';
 part 'work_supply_receipt_parser_trade_scores.dart';
 part 'work_supply_receipt_parser_confidence_engine.dart';
 part 'work_supply_receipt_parser_trade_scores_appliances.dart';
 part 'work_supply_receipt_parser_trade_scores_core.dart';
+part 'inventory_parsers/cabinets_countertops/cabinets_and_countertops_receipt_score.dart';
 part 'work_supply_receipt_parser_trade_scores_drywall.dart';
 part 'work_supply_receipt_parser_trade_scores_painting.dart';
 part 'work_supply_receipt_parser_trade_scores_roofing.dart';
@@ -71,46 +95,7 @@ typedef _ReceiptVendorMappingEntry = ({
   String label,
 });
 
-final List<_ReceiptCatalogEntry> _receiptCatalogIndex = [
-  for (final item in workSupplyCatalogItems)
-    (
-      item: item,
-      searchableText: item.searchableText.toLowerCase(),
-      normalizedText: _normalize(
-        '${item.searchableText} ${item.aliases.join(' ')}',
-      ),
-      variantText: _normalize(item.variant),
-    ),
-];
-
-final _receiptCatalogEntryById = {
-  for (final entry in _receiptCatalogIndex) entry.item.id: entry,
-};
-
 final Map<String, String> _receiptTextCacheByItemId = {};
-
-final List<WorkSupplyItem> _plumbingPvcDwvSanitaryTeeItems = [
-  for (final item in workSupplyCatalogItems)
-    if (item.trade == 'Plumbing' &&
-        item.name.toLowerCase().contains('pvc dwv sanitary tee'))
-      item,
-];
-
-final List<_ReceiptVendorMappingEntry> _receiptVendorMappingIndex = [
-  for (final entry in _receiptCatalogIndex)
-    for (final mapping in entry.item.intelligence.vendorMappings)
-      if (_compactVendorCode(mapping.code).length >= 4 ||
-          _normalize(mapping.label).length >= 4)
-        (
-          item: entry.item,
-          code: _compactVendorCode(mapping.code),
-          label: _normalize(mapping.label),
-        ),
-];
-
-final _receiptCatalogTokenIndex = _buildReceiptCatalogTokenIndex(
-  _receiptCatalogIndex,
-);
 
 class ReceiptParserLearningMemory {
   ReceiptParserLearningMemory([Map<String, String>? learnedItemIds])
@@ -132,7 +117,7 @@ class ReceiptParserLearningMemory {
         _learnedItemIds[_withoutTrailingReceiptPrice(normalized)] ??
         _learnedPrefixMatchId(normalized, _learnedItemIds);
     if (learnedId == null) return null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       if (item.id == learnedId) return item;
     }
     return null;
@@ -161,6 +146,28 @@ String _withoutTrailingReceiptPrice(String normalized) {
 }
 
 ReceiptLineMatch? matchReceiptLineToCatalog(
+  String rawText, {
+  ReceiptParserLearningMemory? memory,
+  Map<String, String> trustedItemIdentityIds = const {},
+  int maxCandidates = 80,
+  String? tradeScope,
+  String localePackId = '',
+  List<WorkSupplyItem>? catalogItems,
+}) {
+  return _runWithReceiptCatalogItems(
+    catalogItems,
+    () => _matchReceiptLineToActiveCatalog(
+      rawText,
+      memory: memory,
+      trustedItemIdentityIds: trustedItemIdentityIds,
+      maxCandidates: maxCandidates,
+      tradeScope: tradeScope,
+      localePackId: localePackId,
+    ),
+  );
+}
+
+ReceiptLineMatch? _matchReceiptLineToActiveCatalog(
   String rawText, {
   ReceiptParserLearningMemory? memory,
   Map<String, String> trustedItemIdentityIds = const {},
@@ -219,12 +226,6 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   if (_isScopedPlumbingDangerousElbowReviewLine(normalized, tradeScope)) {
     return null;
   }
-  if (_isScopedPlumbingDangerousGenericAdapterReviewLine(
-    normalized,
-    tradeScope,
-  )) {
-    return null;
-  }
   if (_isUnscopedDangerousShortLine(normalized, tradeScope)) return null;
   final trustedIdentity = _directTrustedItemIdentityMatch(
     normalized,
@@ -238,6 +239,23 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
       confidence: _trustedItemIdentityConfidence(normalized, trustedIdentity),
       matchedTerms: const ['trusted-item-identity'],
       source: ReceiptMatchSource.trustedItemIdentity,
+    );
+  }
+  final plumbingPrecedence = _directPlumbingReceiptPrecedenceMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (plumbingPrecedence != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: plumbingPrecedence,
+      confidence: _directReceiptConfidence(
+        normalized,
+        plumbingPrecedence,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, plumbingPrecedence),
     );
   }
   final fastDirect = _directFastReceiptMatch(
@@ -316,7 +334,7 @@ ReceiptLineMatch? matchReceiptLineToCatalog(
   final searchLimit = maxCandidates < 16 ? maxCandidates : 16;
   final candidatePool = fallbackCandidates.isNotEmpty
       ? fallbackCandidates
-      : searchWorkSupplies(_parserSearchText(expanded))
+      : _searchActiveReceiptCatalogItems(_parserSearchText(expanded))
             .where((item) => _matchesTradeScope(item, tradeScope))
             .take(searchLimit)
             .toList();
@@ -589,7 +607,7 @@ WorkSupplyItem? _directPlumbingHandToolMatch(String text) {
   if (!_looksLikePlumbingHandTool(text)) return null;
   final target = _plumbingHandToolTarget(text);
   if (target == null) return null;
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Plumbing' &&
         item.system == 'Plumbing Hand Tools' &&
@@ -701,250 +719,11 @@ WorkSupplyItem? _directElectricalConsumableMatch(
   ).hasMatch(text)) {
     return null;
   }
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' && name.contains('electrical tape')) {
       return item;
     }
-  }
-  return null;
-}
-
-WorkSupplyItem? _directElectricalServiceRepairMatch(
-  String text, {
-  String? tradeScope,
-}) {
-  if (tradeScope != null &&
-      tradeScope.trim().isNotEmpty &&
-      tradeScope.trim().toLowerCase() != 'electrical') {
-    return null;
-  }
-  final wantedName = switch (text) {
-    final value when RegExp(r'\b(wire\s*nut|wirenut)\b').hasMatch(value) =>
-      'wire connector',
-    final value when RegExp(r'\bground\s+screw\b').hasMatch(value) =>
-      'ground screw',
-    final value
-        when RegExp(r'\b(romex|nm|nm-b)\b').hasMatch(value) &&
-            RegExp(r'\b(connector|conn|clamp)\b').hasMatch(value) =>
-      'romex connector',
-    final value when RegExp(r'\binsulated\s+bushing\b').hasMatch(value) =>
-      'insulated bushing',
-    final value when RegExp(r'\b(conduit\s+)?locknut\b').hasMatch(value) =>
-      'conduit locknut',
-    final value when RegExp(r'\blever\s+connector\b').hasMatch(value) =>
-      'lever connector',
-    final value
-        when RegExp(r'\bconector\s+(de\s+)?palanca\b').hasMatch(value) =>
-      'lever connector',
-    final value
-        when RegExp(r'\bpush[\s-]?in\s+wire\s+connector\b').hasMatch(value) =>
-      'push-in wire connector',
-    final value
-        when RegExp(r'\binline\s+splice\s+connector\b').hasMatch(value) =>
-      'inline splice connector',
-    final value when RegExp(r'\bbutt\s+splice\b').hasMatch(value) =>
-      'butt splice connector',
-    final value
-        when RegExp(
-          r'\b(empalme\s+tope|conector\s+empalme)\b',
-        ).hasMatch(value) =>
-      'butt splice connector',
-    final value when RegExp(r'\bclosed\s+end\s+splice\b').hasMatch(value) =>
-      'closed end splice connector',
-    final value
-        when RegExp(
-          r'\bcompact\s+splic(e|ing)\s+connector\b',
-        ).hasMatch(value) =>
-      'compact splicing connector',
-    final value when RegExp(r'\banti[\s-]?short\b').hasMatch(value) =>
-      'anti short bushing',
-    final value
-        when RegExp(
-          r'\b(anti\s+corto|bushing\s+anti\s+corto)\b',
-        ).hasMatch(value) =>
-      'anti short bushing',
-    final value when RegExp(r'\bground\s+pigtail\b').hasMatch(value) =>
-      'ground pigtail',
-    final value when RegExp(r'\bgfci\s+tester\b').hasMatch(value) =>
-      'gfci tester',
-    final value when RegExp(r'\bvoltage\s+detector\b').hasMatch(value) =>
-      'voltage detector',
-    final value when RegExp(r'\bwire\s+marker\b').hasMatch(value) =>
-      'wire marker',
-    final value when RegExp(r'\bcircuit\s+directory\b').hasMatch(value) =>
-      'circuit directory',
-    final value
-        when RegExp(r'\b(plug|cartridge|cart|fuse)\b').hasMatch(value) &&
-            RegExp(r'\bfuse\b').hasMatch(value) =>
-      'fuse',
-    final value when RegExp(r'\b(surge|spd)\b').hasMatch(value) =>
-      'surge protector',
-    final value
-        when RegExp(r'\b(panel|load\s*center)\b').hasMatch(value) &&
-            RegExp(r'\b(ground|neutral)\s+bar\b').hasMatch(value) =>
-      'bar kit',
-    final value when RegExp(r'\bsplit\s+bolt\b').hasMatch(value) =>
-      'split bolt',
-    final value when RegExp(r'\bporcelain\s+lampholder\b').hasMatch(value) =>
-      'porcelain lampholder',
-    final value
-        when RegExp(
-          r'\b(keyless|pull\s+chain|weatherproof)\s+lampholder\b|'
-          r'\b(porcln|porcelain|keyless|pull\s+chain|weatherproof)\s+'
-          r'(lamp\s*hldr|lamphldr)\b',
-        ).hasMatch(value) =>
-      'lampholder',
-    final value when RegExp(r'\b(photo\s*eye|photocell)\b').hasMatch(value) =>
-      'photocell control',
-    _ => null,
-  };
-  if (wantedName == null) return null;
-  final size =
-      {
-        'bar kit',
-        'fuse',
-        'ground screw',
-        'photo',
-        'split bolt',
-        'surge protector',
-      }.contains(wantedName)
-      ? null
-      : _nominalReceiptSize(text);
-  WorkSupplyItem? fallback;
-  for (final item in workSupplyCatalogItems) {
-    final name = item.name.toLowerCase();
-    if (item.trade != 'Electrical') continue;
-    if (wantedName == 'photocell control') {
-      final searchable = item.searchableText.toLowerCase();
-      if (!name.contains('photocell') && !name.contains('photo eye')) continue;
-      if (!searchable.contains('control')) continue;
-    } else if (!name.contains(wantedName)) {
-      continue;
-    }
-    if (size != null && !_nameMatchesReceiptSize(name, size)) continue;
-    if (name.contains('electrical service repair part') ||
-        item.category.toLowerCase() == 'connectors and consumables') {
-      return item;
-    }
-    fallback ??= item;
-  }
-  return fallback;
-}
-
-WorkSupplyItem? _directElectricalLowVoltageCableMatch(
-  String text, {
-  String? tradeScope,
-}) {
-  if (tradeScope != null &&
-      tradeScope.trim().isNotEmpty &&
-      tradeScope.trim().toLowerCase() != 'electrical') {
-    return null;
-  }
-  if (!RegExp(
-    r'\b(low voltage|low volt|lv|stat wire|thermostat wire|control wire|doorbell wire)\b',
-  ).hasMatch(text)) {
-    return null;
-  }
-  final size = RegExp(
-    r'\b(18/2|18/4|18/5|18/7|16/2|14/2)\b',
-  ).firstMatch(text)?.group(1);
-  for (final item in workSupplyCatalogItems) {
-    final name = item.name.toLowerCase();
-    if (item.trade != 'Electrical' || !name.contains('low voltage cable')) {
-      continue;
-    }
-    if (size == null || name.startsWith('$size x ')) return item;
-  }
-  return null;
-}
-
-WorkSupplyItem? _directElectricalWireCableMatch(
-  String text, {
-  String? tradeScope,
-}) {
-  if (tradeScope != null &&
-      tradeScope.trim().isNotEmpty &&
-      tradeScope.trim().toLowerCase() != 'electrical') {
-    return null;
-  }
-  if (RegExp(r'\b(conn|connector|staple|clamp)\b').hasMatch(text)) {
-    return null;
-  }
-  final wantedName = switch (text) {
-    final value
-        when RegExp(
-          r'\b(uf-b|ufb|uf cable|underground feeder|direct burial)\b',
-        ).hasMatch(value) =>
-      'uf-b cable',
-    final value
-        when RegExp(
-          r'\b(romex|nm-b|nmb|nm cable|house wire)\b',
-        ).hasMatch(value) =>
-      'nm-b cable',
-    final value when RegExp(r'\b(thhn|thwn|building wire)\b').hasMatch(value) =>
-      'thhn copper wire',
-    _ => null,
-  };
-  if (wantedName == null) return null;
-  final cableSize = RegExp(
-    r'\b(14[/-]2|14[/-]3|12[/-]2|12[/-]3|10[/-]2)\b',
-  ).firstMatch(text)?.group(1)?.replaceAll('-', '/');
-  final wireGauge = RegExp(
-    r'\b(14|12|10)\s*(awg|ga)\b',
-  ).firstMatch(text)?.group(1);
-  WorkSupplyItem? fallback;
-  for (final item in workSupplyCatalogItems) {
-    final name = item.name.toLowerCase();
-    if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
-    if (cableSize != null && !name.contains(cableSize)) continue;
-    if (wireGauge != null && !name.contains('$wireGauge awg')) continue;
-    if (item.packTier == WorkSupplyPackTier.core) return item;
-    fallback ??= item;
-  }
-  return fallback;
-}
-
-WorkSupplyItem? _directElectricalDeviceMatch(
-  String text, {
-  String? tradeScope,
-}) {
-  if (tradeScope != null &&
-      tradeScope.trim().isNotEmpty &&
-      tradeScope.trim().toLowerCase() != 'electrical') {
-    return null;
-  }
-  final wantedName = switch (text) {
-    final value
-        when RegExp(r'\b(gfci|gfi|ground fault)\b').hasMatch(value) &&
-            RegExp(r'\b(recpt|recept|receptacle|outlet)\b').hasMatch(value) =>
-      'gfci outlet',
-    final value
-        when RegExp(r'\b(duplex)\b').hasMatch(value) &&
-            RegExp(r'\b(recpt|recept|receptacle|outlet)\b').hasMatch(value) =>
-      'duplex receptacle',
-    final value
-        when RegExp(r'\b(dimmer|dimr)\b').hasMatch(value) &&
-            RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
-      'dimmer switch',
-    final value
-        when RegExp(r'\b(3\s*way|3-way|three way)\b').hasMatch(value) &&
-            RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
-      '3-way toggle switch',
-    final value
-        when RegExp(r'\b(3\s*via|tres\s+vias?)\b').hasMatch(value) &&
-            RegExp(r'\b(interruptor|switch|sw)\b').hasMatch(value) =>
-      '3-way toggle switch',
-    final value
-        when RegExp(r'\b(single pole|1p)\b').hasMatch(value) &&
-            RegExp(r'\b(switch|sw)\b').hasMatch(value) =>
-      'single pole toggle switch',
-    _ => null,
-  };
-  if (wantedName == null) return null;
-  for (final item in workSupplyCatalogItems) {
-    final name = item.name.toLowerCase();
-    if (item.trade == 'Electrical' && name.contains(wantedName)) return item;
   }
   return null;
 }
@@ -979,7 +758,7 @@ WorkSupplyItem? _directElectricalControlMatch(
   final amp = RegExp(r'\b(15|20|30|40)\s*amp\b').firstMatch(text)?.group(1);
   final voltage = RegExp(r'\b(120|240)\s*v\b').firstMatch(text)?.group(1);
   WorkSupplyItem? fallback;
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade != 'Electrical' || !name.contains(wantedName)) continue;
     if (amp != null && !name.contains('$amp amp')) continue;
@@ -1019,7 +798,7 @@ WorkSupplyItem? _directElectricalRacewayMatch(
     _ => 'pvc electrical conduit',
   };
   final size = _nominalReceiptSize(text);
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' &&
         name.contains(wantedName) &&
@@ -1045,7 +824,7 @@ WorkSupplyItem? _directElectricalBoxMatch(String text, {String? tradeScope}) {
   final desiredGang = RegExp(r'\b(2g|2 gang)\b').hasMatch(text)
       ? '2 gang'
       : '1 gang';
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' &&
         name.contains('electrical box') &&
@@ -1072,717 +851,10 @@ WorkSupplyItem? _directElectricalCableStapleMatch(
   ).hasMatch(text);
   if (!wantsStaple) return null;
   final prefersLarge = RegExp(r'\b(10/2|8/2|3/4)\b').hasMatch(text);
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' && name.contains('cable staple')) {
       if (!prefersLarge || name.contains('10/2') || name.contains('8/2')) {
-        return item;
-      }
-    }
-  }
-  return null;
-}
-
-WorkSupplyItem? _directElectricalProfessionalMatch(
-  String text, {
-  String? tradeScope,
-}) {
-  if (tradeScope != null &&
-      tradeScope.trim().isNotEmpty &&
-      tradeScope.trim().toLowerCase() != 'electrical') {
-    return null;
-  }
-
-  bool nameHas(WorkSupplyItem item, String phrase) =>
-      item.trade == 'Electrical' && item.name.toLowerCase().contains(phrase);
-
-  final wantsAfciBreaker =
-      RegExp(r'\b(afci|arc\s*fault)\b').hasMatch(text) &&
-      RegExp(r'\b(brkr|breaker|circuit)\b').hasMatch(text);
-  if (wantsAfciBreaker) {
-    for (final item in workSupplyCatalogItems) {
-      if (nameHas(item, 'afci') && nameHas(item, 'breaker')) return item;
-    }
-  }
-
-  final wantsDoublePoleBreaker =
-      RegExp(r'\b(2p|2\s*pole|double\s*pole|dbl\s*pole)\b').hasMatch(text) &&
-      RegExp(r'\b(brkr|breaker|circuit)\b').hasMatch(text);
-  if (wantsDoublePoleBreaker) {
-    for (final item in workSupplyCatalogItems) {
-      if (nameHas(item, 'double-pole') && nameHas(item, 'breaker')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsDimmer = RegExp(r'\b(dimmer|atenuador)\b').hasMatch(text);
-  if (wantsDimmer) {
-    for (final item in workSupplyCatalogItems) {
-      if (nameHas(item, 'dimmer')) return item;
-    }
-  }
-
-  final wantsWeatherproofBox =
-      RegExp(r'\b(wp|weatherproof|outdoor|exterior)\b').hasMatch(text) &&
-      RegExp(r'\b(box|caja)\b').hasMatch(text);
-  if (wantsWeatherproofBox) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          name.contains('weatherproof') &&
-          name.contains('box')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsInUseCover =
-      RegExp(
-        r'\b(in\s*use|while\s*in\s*use|bubble|burbuja|exterior|wp)\b',
-      ).hasMatch(text) &&
-      RegExp(r'\b(cover|tapa|cubierta)\b').hasMatch(text);
-  if (wantsInUseCover) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          (name.contains('in-use cover') ||
-              name.contains('in use cover') ||
-              name.contains('weatherproof cover'))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsAcDisconnect =
-      RegExp(
-        r'\b(ac|a/c|non\s*fused|non\s*fusible|disc|disconnect|'
-        r'desconectador)\b',
-      ).hasMatch(text) &&
-      RegExp(r'\b(disc|disconnect|desconectador)\b').hasMatch(text);
-  if (wantsAcDisconnect) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          name.contains('disconnect') &&
-          !name.contains('breaker')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsFanBraceBox =
-      RegExp(r'\b(fan|ventilador)\b').hasMatch(text) &&
-      RegExp(r'\b(brace|rated|box|caja)\b').hasMatch(text);
-  if (wantsFanBraceBox) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          name.contains('fan') &&
-          (name.contains('brace') || name.contains('rated')) &&
-          name.contains('box')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsPanelFiller =
-      RegExp(r'\b(panel|brkr|breaker|load\s*center)\b').hasMatch(text) &&
-      RegExp(r'\b(filler|blank|relleno|tapa)\b').hasMatch(text);
-  if (wantsPanelFiller) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          (name.contains('panel filler') ||
-              name.contains('breaker filler') ||
-              name.contains('filler plate'))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsLbConduitBody =
-      RegExp(r'\b(lb)\b').hasMatch(text) &&
-      RegExp(r'\b(body|conduit|cond|cuerpo)\b').hasMatch(text);
-  if (wantsLbConduitBody) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          name.contains('lb') &&
-          name.contains('conduit body')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsLiquidtightConnector =
-      RegExp(r'\b(liquid\s*tight|liquidtight|sealtite)\b').hasMatch(text) &&
-      RegExp(r'\b(conn|connector)\b').hasMatch(text);
-  if (wantsLiquidtightConnector) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          name.contains('liquidtight connector') &&
-          (size == null || _nameMatchesReceiptSize(name, size))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsToggleSwitch =
-      RegExp(r'\b(toggle|tog|palanca|wall|3way|3\s*way)\b').hasMatch(text) &&
-      RegExp(r'\b(sw|switch|interruptor)\b').hasMatch(text);
-  if (wantsToggleSwitch) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          (name.contains('toggle') || name.contains('wall switch')) &&
-          name.contains('switch')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsGroundClamp =
-      RegExp(r'\b(ground|grounding|tierra)\b').hasMatch(text) &&
-      RegExp(r'\b(clamp|abrazadera)\b').hasMatch(text);
-  if (wantsGroundClamp) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'Electrical' &&
-          name.contains('ground') &&
-          name.contains('clamp')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsGroundRod =
-      RegExp(r'\b(grd|ground|grounding|tierra)\b').hasMatch(text) &&
-      RegExp(r'\b(rod|varilla)\b').hasMatch(text);
-  if (wantsGroundRod) {
-    for (final item in workSupplyCatalogItems) {
-      if (nameHas(item, 'ground rod') && !nameHas(item, 'clamp')) {
-        return item;
-      }
-    }
-  }
-
-  return null;
-}
-
-WorkSupplyItem? _directHvacCoreMatch(String text, {String? tradeScope}) {
-  if (tradeScope == null ||
-      tradeScope.trim().isEmpty ||
-      tradeScope.trim().toLowerCase() != 'hvac') {
-    return null;
-  }
-  final wantsFoilTape =
-      RegExp(r'\b(foil|hvac|ul181|ul 181)\b').hasMatch(text) &&
-      RegExp(r'\btape\b').hasMatch(text);
-  if (wantsFoilTape) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('foil tape') &&
-          !name.contains('foam') &&
-          !name.contains('cork') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-
-  if (_hasHvacAirFilterReceiptEvidence(text)) {
-    final size = _nominalReceiptSize(text);
-    final wantsBulk = RegExp(r'\b(case|12\s*pack|12pk|box)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          (name.contains('air filter') ||
-              name.contains('pleated filter') ||
-              name.contains('furnace filter') ||
-              name.contains('ac filter')) &&
-          (wantsBulk || !RegExp(r'\b(case|12 pack)\b').hasMatch(name)) &&
-          !name.contains('return air grille') &&
-          !name.contains('filter grille') &&
-          !name.contains('filter drier') &&
-          (_nameMatchesReceiptMatrix(name, text) ||
-              _nameMatchesReceiptSize(name, size))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsHvacFoilTape =
-      RegExp(r'\b(foil|cinta|ul181|ul 181)\b').hasMatch(text) &&
-      RegExp(r'\b(tape|cinta|hvac)\b').hasMatch(text);
-  if (wantsHvacFoilTape) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('foil tape') &&
-          !name.contains('foam') &&
-          !name.contains('cork')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCommonWireAdapter =
-      RegExp(r'\b(c\s*wire|common\s+wire|wire\s+saver)\b').hasMatch(text) &&
-      RegExp(r'\b(adapter|adpt|tstat|thermostat)\b').hasMatch(text);
-  if (wantsCommonWireAdapter) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          (name.contains('common wire adapter') ||
-              name.contains('wire saver'))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCoilCleaner =
-      RegExp(r'\b(coil|evap|evaporator|condenser)\b').hasMatch(text) &&
-      RegExp(r'\b(cleaner|clean|no\s*rinse)\b').hasMatch(text);
-  if (wantsCoilCleaner) {
-    WorkSupplyItem? fallback;
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade != 'HVAC' || !name.contains('coil cleaner')) continue;
-      if (item.packTier == WorkSupplyPackTier.core) return item;
-      fallback ??= item;
-    }
-    return fallback;
-  }
-
-  final wantsEquipmentPad =
-      RegExp(r'\b(equip|equipment|condenser)\b').hasMatch(text) &&
-      RegExp(r'\b(pad)\b').hasMatch(text);
-  if (wantsEquipmentPad) {
-    final matrix = _receiptSizeMatrix(text);
-    WorkSupplyItem? fallback;
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          (name.contains('equipment pad') || name.contains('condenser pad'))) {
-        if (matrix != null &&
-            item.packTier == WorkSupplyPackTier.core &&
-            name.contains(matrix)) {
-          return item;
-        }
-        if (item.packTier == WorkSupplyPackTier.core && matrix == null) {
-          return item;
-        }
-        fallback ??= item;
-      }
-    }
-    return fallback;
-  }
-
-  final wantsThermostat =
-      RegExp(r'\b(tstat|thermostat|thermo stat|termostato)\b').hasMatch(text) &&
-      !RegExp(r'\b(wire|cable)\b').hasMatch(text);
-  if (wantsThermostat) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('thermostat')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsEquipmentWhip =
-      RegExp(r'\b(ac|a/c|equipment|equip|hvac)\b').hasMatch(text) &&
-      RegExp(r'\b(whip|liquid\s*tight|liquidtight|sealtite)\b').hasMatch(text);
-  if (wantsEquipmentWhip) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('equipment whip') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-
-  final wantsSheetMetalScrew = RegExp(
-    r'\b(sheet metal screw|sheet mtl scr|zip screw|tek screw|'
-    r'self drilling screw|self tapping screw|sms|tornillo lamina|'
-    r'tornillo metal)\b',
-  ).hasMatch(text);
-  if (wantsSheetMetalScrew) {
-    final preferredSize = RegExp(r'\b1/2\b').hasMatch(text)
-        ? '1/2 in'
-        : RegExp(r'\b3/4\b').hasMatch(text)
-        ? '3/4 in'
-        : RegExp(r'\b1\b').hasMatch(text)
-        ? '1 in'
-        : null;
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('sheet metal screw') &&
-          (preferredSize == null || name.contains(preferredSize))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsDrainTabs = RegExp(
-    r'\b(pan tabs|drain tabs|cond drain tabs|condensate tablets|'
-    r'pastillas bandeja|tabletas drenaje)\b',
-  ).hasMatch(text);
-  if (wantsDrainTabs) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          (name.contains('condensate drain tablets') ||
-              name.contains('drain tablet'))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCondensateDrainGun =
-      RegExp(r'\b(drain|condensate)\b').hasMatch(text) &&
-      RegExp(r'\b(gun|cartridge|cartucho)\b').hasMatch(text);
-  if (wantsCondensateDrainGun) {
-    final wantsCartridge = RegExp(r'\b(cartridge|cartucho)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade != 'HVAC') continue;
-      if (wantsCartridge && name.contains('drain gun cartridge')) return item;
-      if (!wantsCartridge && name.contains('condensate drain gun')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsWaterPanel = RegExp(r'\bwater\s+panel\b').hasMatch(text);
-  if (wantsWaterPanel) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('humidifier water panel')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsHumidifierPart =
-      RegExp(r'\bhumidifier\b').hasMatch(text) || wantsWaterPanel;
-  if (wantsHumidifierPart) {
-    final wantedName = switch (text) {
-      final value when RegExp(r'\b(pad|water\s+panel)\b').hasMatch(value) =>
-        RegExp(r'\bwater\s+panel\b').hasMatch(value)
-            ? 'humidifier water panel'
-            : 'humidifier pad',
-      final value when RegExp(r'\bsolenoid\b').hasMatch(value) =>
-        'humidifier solenoid valve',
-      final value when RegExp(r'\bfeed\s+tube\b').hasMatch(value) =>
-        'humidifier feed tube',
-      final value when RegExp(r'\bdrain\s+tube\b').hasMatch(value) =>
-        'humidifier drain tube',
-      final value when RegExp(r'\bsaddle\s+valve\b').hasMatch(value) =>
-        'humidifier saddle valve',
-      final value when RegExp(r'\bbypass\s+damper\b').hasMatch(value) =>
-        'humidifier bypass damper',
-      _ => null,
-    };
-    if (wantedName != null) {
-      for (final item in workSupplyCatalogItems) {
-        final name = item.name.toLowerCase();
-        if (item.trade == 'HVAC' && name.contains(wantedName)) return item;
-      }
-    }
-  }
-
-  final wantsAirCleanerPart =
-      RegExp(r'\b(air\s+scrubber|air\s+cleaner)\b').hasMatch(text) ||
-      RegExp(r'\bionizing\s+wire\b').hasMatch(text);
-  if (wantsAirCleanerPart) {
-    final wantedName = switch (text) {
-      final value when RegExp(r'\bballast\b').hasMatch(value) =>
-        'air scrubber ballast',
-      final value
-          when RegExp(r'\b(cell)\b').hasMatch(value) &&
-              RegExp(r'\bair\s+scrubber\b').hasMatch(value) =>
-        'air scrubber cell',
-      final value when RegExp(r'\bprefilter\b').hasMatch(value) =>
-        'electronic air cleaner prefilter',
-      final value when RegExp(r'\bionizing\s+wire\b').hasMatch(value) =>
-        'electronic air cleaner ionizing wire',
-      _ => null,
-    };
-    if (wantedName != null) {
-      for (final item in workSupplyCatalogItems) {
-        final name = item.name.toLowerCase();
-        if (item.trade == 'HVAC' && name.contains(wantedName)) return item;
-      }
-    }
-  }
-
-  final wantsMiniSplitCleaningBib =
-      RegExp(r'\b(mini\s*split|ductless)\b').hasMatch(text) &&
-      RegExp(
-        r'\b(cleaning|limpieza|wash|lavado|bolsa|bib|bag)\b',
-      ).hasMatch(text);
-  if (wantsMiniSplitCleaningBib) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('cleaning bib')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCondensatePump = RegExp(
-    r'\b(condensate pump|cond pump|cond pmp|bomba condensado|bomba cond)\b|'
-    r'\b(cond|condensate|condensado)\b.*\b(pump|pmp|bomba)\b|'
-    r'\b(bomba|pump|pmp)\b.*\b(cond|condensate|condensado)\b',
-  ).hasMatch(text);
-  if (wantsCondensatePump) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('condensate pump')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsFlexDuct = RegExp(
-    r'\b(flex duct|ins flex|insulated flex|ducto flex|flex aislado)\b',
-  ).hasMatch(text);
-  if (wantsFlexDuct) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('flex duct') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-
-  final wantsDuctTakeoff = RegExp(
-    r'\b(start collar|duct takeoff|takeoff|spin in|spin-in|'
-    r'collarin arranque|toma ducto)\b',
-  ).hasMatch(text);
-  if (wantsDuctTakeoff) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('duct takeoff') &&
-          !name.contains('register boot') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-
-  final wantsFlameSensor = RegExp(
-    r'\b(flame\s*(sensor|rod)|sensor flama|varilla flama)\b',
-  ).hasMatch(text);
-  if (wantsFlameSensor) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('flame sensor')) return item;
-    }
-  }
-
-  final wantsIgnitor = RegExp(
-    r'\b(hsi|hot\s*surf|hot\s*surface|ignitor|igniter|ignitor superficie)\b',
-  ).hasMatch(text);
-  if (wantsIgnitor) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          (name.contains('hot surface ignitor') ||
-              name.contains('surface ignitor') ||
-              name.contains('igniter'))) {
-        return item;
-      }
-    }
-  }
-
-  final wantsPressureSwitch =
-      RegExp(r'\b(press|pressure|presion|draft)\b').hasMatch(text) &&
-      RegExp(r'\b(switch|interruptor)\b').hasMatch(text);
-  if (wantsPressureSwitch) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('pressure switch')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsLimitSwitch =
-      RegExp(r'\b(limit|limite|rollout)\b').hasMatch(text) &&
-      RegExp(r'\b(sw|switch|interruptor|fan|vent|ventilador)\b').hasMatch(text);
-  if (wantsLimitSwitch) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('limit switch')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCondenserFanMotor =
-      RegExp(r'\b(motor)\b').hasMatch(text) &&
-      RegExp(
-        r'\b(cond|condenser|condensador|outdoor|exterior|vent exterior)\b',
-      ).hasMatch(text);
-  if (wantsCondenserFanMotor) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('condenser fan motor')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsBlowerMotor =
-      RegExp(r'\b(motor)\b').hasMatch(text) &&
-      RegExp(r'\b(blower|soplador)\b').hasMatch(text);
-  if (wantsBlowerMotor) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('blower motor')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsHvacFloatSwitch =
-      RegExp(r'\b(float|flotador|overflow|wet)\b').hasMatch(text) &&
-      RegExp(r'\b(sw|switch|pan|bandeja|inlinea|inline)\b').hasMatch(text);
-  if (wantsHvacFloatSwitch) {
-    final wantsWetSwitch = RegExp(r'\bwet\s+switch\b').hasMatch(text);
-    final wantsSecondaryPan =
-        RegExp(r'\b(secondary|sec|pan|bandeja)\b').hasMatch(text) &&
-        RegExp(r'\bfloat\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade != 'HVAC') continue;
-      if (wantsWetSwitch && name.contains('wet switch')) return item;
-      if (wantsSecondaryPan &&
-          name.contains('secondary pan') &&
-          name.contains('float switch')) {
-        return item;
-      }
-      if (!wantsWetSwitch && name.contains('float switch')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsHvacDrainPan =
-      RegExp(r'\b(pan|bandeja)\b').hasMatch(text) &&
-      RegExp(r'\b(drain|drenaje|secondary|sec|ac)\b').hasMatch(text);
-  if (wantsHvacDrainPan) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('drain pan')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCondensateTrap =
-      RegExp(r'\b(cond|condensate|condensado|ez)\b').hasMatch(text) &&
-      RegExp(r'\b(trap|trampa)\b').hasMatch(text);
-  if (wantsCondensateTrap) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('condensate trap')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsFilterDrier =
-      RegExp(r'\b(filter|filtro|drier|dri|secador)\b').hasMatch(text) &&
-      RegExp(r'\b(drier|dri|secador|liquid|liq|linea)\b').hasMatch(text);
-  if (wantsFilterDrier) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('filter drier')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsThermostatWire =
-      RegExp(r'\b(stat|tstat|thermostat|termostato)\b').hasMatch(text) &&
-      RegExp(r'\b(wire|cable)\b').hasMatch(text);
-  if (wantsThermostatWire) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('thermostat wire')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsServiceValveCap =
-      RegExp(r'\b(service|serv|servicio|valve|valvula)\b').hasMatch(text) &&
-      RegExp(r'\b(cap|tapa)\b').hasMatch(text);
-  if (wantsServiceValveCap) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('service valve cap')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsDefrostBoard =
-      RegExp(r'\b(defrost|dfrost|descongelar)\b').hasMatch(text) &&
-      RegExp(r'\b(board|ctrl|control|tarjeta)\b').hasMatch(text);
-  if (wantsDefrostBoard) {
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' && name.contains('defrost')) {
-        return item;
-      }
-    }
-  }
-
-  final wantsLineSetInsulation =
-      RegExp(r'\b(line|linea|armaflex)\b').hasMatch(text) &&
-      RegExp(r'\b(insul|insulation|aislamiento|armaflex)\b').hasMatch(text);
-  if (wantsLineSetInsulation) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('line set') &&
-          name.contains('insulation') &&
-          _nameMatchesReceiptSize(name, size)) {
-        return item;
-      }
-    }
-  }
-
-  final wantsCondensateCoupling =
-      RegExp(r'\bpvc\b').hasMatch(text) &&
-      RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text) &&
-      RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text);
-  if (wantsCondensateCoupling) {
-    final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
-      final name = item.name.toLowerCase();
-      if (item.trade == 'HVAC' &&
-          name.contains('condensate pvc coupling') &&
-          _nameMatchesReceiptSize(name, size)) {
         return item;
       }
     }
@@ -1797,7 +869,7 @@ WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
       RegExp(r'\b(cplg|cplgs|coupling|coupler|coup|acople)\b').hasMatch(text);
   if (wantsCondensateCoupling) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
           name.contains('condensate pvc coupling') &&
@@ -1811,7 +883,7 @@ WorkSupplyItem? _directUnscopedHvacEvidenceMatch(String text) {
     r'\b(little\s+pump|condensate\s+pump|cond\s+pump|bomba\s+condensado)\b',
   ).hasMatch(text);
   if (!wantsCondensatePump) return null;
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'HVAC' && name.contains('condensate pump')) {
       return item;
@@ -1847,7 +919,7 @@ WorkSupplyItem? _directApplianceInstallMatch(
     _ => null,
   };
   if (wantedName == null) return null;
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Appliance Installation and Repair' &&
         name.contains(wantedName)) {
@@ -1863,6 +935,11 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   String? originalText,
 }) {
   final receiptText = originalText ?? text;
+  final hvacPrecedence = _directHvacReceiptPrecedenceMatch(
+    text,
+    tradeScope: tradeScope,
+  );
+  if (hvacPrecedence != null) return hvacPrecedence;
   final fastDirect = _directFastReceiptMatch(text, tradeScope: tradeScope);
   if (fastDirect != null) return fastDirect;
   final electricalServiceRepair = _directElectricalServiceRepairMatch(
@@ -1936,7 +1013,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(trampa p|trampa lavamanos|trampa lavabo|p trap|p-trap)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text) ?? _explicitTubularTrapSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tubular p-trap') &&
@@ -1949,7 +1026,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(kit triturador|conector disposal|disposal install kit|'
     r'disposal kit|garbage disposal connector)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('disposal install kit')) {
         return item;
@@ -1959,7 +1036,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(drenaje pop up|lav pop up|pop up drain|pop-up drain)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pop-up')) {
         return item;
@@ -1973,7 +1050,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(conector|linea|conn|connector|line|hose|water heater line|'
         r'heater supply)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('water heater connector')) {
         return item;
@@ -1984,7 +1061,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(rompedor vacio|vac brkr|vac breaker|vacuum breaker|backflow preventer)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('vacuum breaker') &&
@@ -1997,7 +1074,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(manguera lavadora|manguera lavanderia|washing machine hose|'
     r'washer hose|washer supply hose|laundry hose)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('washing machine hose')) {
         return item;
@@ -2007,7 +1084,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(valvula angulo|llave angular|llave escuadra|br ang stop|comp stop)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           !name.contains('push-fit') &&
@@ -2020,7 +1097,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(manometro presion pozo|manometro de presion|presion pozo|well pressure gauge|pressure gauge|well gauge)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pressure gauge')) {
         return item;
@@ -2030,7 +1107,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(well pressure switch|pump pressure switch|pressure switch|well switch)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('well pressure switch')) {
         if ((text.contains('40/60') || text.contains('40 60')) &&
@@ -2055,7 +1132,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsDeep = RegExp(
       r'\b(deep|submersible|sumergible|profundo)\b',
     ).hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('well pump')) continue;
       if (wantsShallow && !name.contains('shallow')) continue;
@@ -2069,7 +1146,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(wc|toilet|inodoro|sanitario|universal|tank)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('toilet fill valve')) {
         return item;
@@ -2082,7 +1159,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsSediment = text.contains('sediment');
     final wantsCarbon = text.contains('carbon');
     final wantsPleated = text.contains('pleated');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (!name.contains('water filter service part')) continue;
@@ -2100,7 +1177,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = _nominalReceiptSize(text);
     final wantsCoupling = RegExp(r'\b(coupling|cplg)\b').hasMatch(text);
     final wantsBarb = RegExp(r'\b(barb|barbed)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       final isWellFitting =
@@ -2113,7 +1190,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(continuous waste|cont waste)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       if (item.trade == 'Plumbing' &&
           item.variant.toLowerCase().contains('continuous waste')) {
         return item;
@@ -2123,7 +1200,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(toilet flange and seal part|toilet service stock|toilet seal)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet flange and seal part') &&
@@ -2134,7 +1211,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\btoilet flange repair ring\b').hasMatch(receiptText) &&
       !RegExp(r'\bcloset\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet flange repair ring')) {
@@ -2148,7 +1225,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = _nominalReceiptSize(text);
     final wantsPlug = RegExp(r'\b(plug|plugs)\b').hasMatch(text);
     final wantsCover = RegExp(r'\b(cover|covers)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       final variant = item.variant.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -2163,7 +1240,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(abs|black)\b').hasMatch(text) &&
       RegExp(r'\b(trap adapt|trap adapter|trap adpt)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('abs dwv trap adapter') &&
@@ -2176,7 +1253,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     final wantsDesanco = RegExp(r'\bdesanco\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (wantsDesanco
@@ -2190,7 +1267,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(ball valve|ball valves|shutoff|shut off)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc ball valve') &&
@@ -2201,7 +1278,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(gate valve|gate valves)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('gate valve') &&
@@ -2211,7 +1288,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\binside pipe cutter\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('inside pipe cutter') &&
@@ -2228,7 +1305,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'basin wrench|strap wrench|closet auger|drain auger|drain snake|'
     r'hole saw|recip blade|reciprocating blade|sawzall blade|sawzall)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('plumbing hand tool') &&
@@ -2238,7 +1315,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(continuous waste|cont waste)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final searchable = item.searchableText.toLowerCase();
       if (item.trade == 'Plumbing' && searchable.contains('continuous waste')) {
         return item;
@@ -2263,7 +1340,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   ).hasMatch(text)) {
     if (RegExp(r'\btoilet flange repair\b').hasMatch(text) &&
         !RegExp(r'\bcloset\b').hasMatch(text)) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             name.contains('toilet flange repair ring')) {
@@ -2272,7 +1349,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     if (RegExp(r'\binside fit repair flange\b').hasMatch(text)) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             name.contains('inside fit repair flange') &&
@@ -2287,7 +1364,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       r'toilet finish trim part)\b',
     ).hasMatch(text);
     if (hasGeneratedToiletFinishContext) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             (name.contains('closet flange repair part') ||
@@ -2298,7 +1375,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     if (RegExp(r'\b(toilet flange repair|toilet bolt caps)\b').hasMatch(text)) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             (name.contains('closet flange repair part') ||
@@ -2308,7 +1385,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         }
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('floor drain finish part') &&
@@ -2316,7 +1393,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('dishwasher disposal drain part') ||
@@ -2332,7 +1409,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(faucet washer|seat washer|bib washer|'
     r'faucet washers and seats)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet washer and seat part') &&
@@ -2347,7 +1424,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'flush valve locknut|fill valve shank washer|'
     r'toilet supply shank washer|dual flush seal)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet tank seal part') &&
@@ -2362,7 +1439,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(closet seal part|closet seal detail|toilet and tank seals|'
     r'closet seal|rubber toilet seal|wax free seal)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('closet seal part') &&
@@ -2378,7 +1455,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'sillcock stem packing|sillcock handle screw|sillcock packing nut|'
     r'frost free stem washer|vacuum breaker cap|vacuum breaker washer)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('hose bibb repair part') &&
@@ -2392,7 +1469,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'oval handle|compression nut and ferrule|compression sleeve puller|'
     r'stop valve escutcheon|split escutcheon)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('supply stop repair part') &&
@@ -2404,7 +1481,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(stop valve and supply repairs|quarter turn stops)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('quarter turn angle stop') &&
@@ -2416,7 +1493,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(stop valve and supply repairs|straight stops)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('quarter turn straight stop') &&
@@ -2426,7 +1503,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(br ang stop|comp stop)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('supply stop') ||
@@ -2442,7 +1519,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(qt|quarter turn|od|compression|oval handle|lever handle)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           !name.contains('push-fit') &&
@@ -2459,7 +1536,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(quarter turn straight stop|straight stop)\b',
       ).hasMatch(text) &&
       RegExp(r'\b(fip|od|compression)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('quarter turn straight stop') &&
@@ -2472,7 +1549,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(straight stop|straight stops|straight stop valve)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('straight stop valve') &&
@@ -2482,7 +1559,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('straight stop valve') &&
@@ -2495,7 +1572,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(press reducing valve|pressure reducing valve|prv)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pressure reducing valve') &&
@@ -2508,7 +1585,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(vac brkr|vac breaker|vacuum breaker|backflow preventer)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('vacuum breaker') &&
@@ -2522,7 +1599,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(element|elem|4500w|5500w|4500 watt|5500 watt)\b',
       ).hasMatch(text)) {
     final watt = text.contains('5500') ? '5500' : '4500';
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater repair part') &&
@@ -2537,7 +1614,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsAluminumZinc =
         text.contains('aluminum') || text.contains('zinc');
     final wants42 = RegExp(r'\b42\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' ||
           !name.contains('water heater repair part') ||
@@ -2556,7 +1633,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsUpper = text.contains('upper');
     final wantsLower = text.contains('lower');
     final wantsTuneUp = text.contains('tune') || text.contains('element');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' ||
           !name.contains('water heater repair part')) {
@@ -2574,7 +1651,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(t and p|t p|t&p|tpr|temperature and pressure|temp pressure|'
     r'valvula alivio|valvula t p|valvula t&p)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('temperature and pressure relief valve') ||
@@ -2586,7 +1663,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
       RegExp(r'\b(drain pan|heater pan)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('water heater drain pan') ||
@@ -2600,7 +1677,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(restraint strap|seismic strap|heater strap)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater restraint strap')) {
@@ -2609,7 +1686,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(earthquake strap|sediment trap|drip leg)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater install accessory')) {
@@ -2625,7 +1702,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(water htr|wtr htr|water heater|thermal)\b').hasMatch(text) &&
       RegExp(r'\b(exp tank|expansion tank)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('expansion tank')) {
         return item;
@@ -2636,7 +1713,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(drain valve|heater drain|boiler drain)\b').hasMatch(text) &&
       !text.contains('pan')) {
     WorkSupplyItem? fallback;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           ((name.contains('water heater drain valve')) ||
@@ -2652,7 +1729,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(mixing valve|service fitting|wtr htr union)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater service fitting')) {
@@ -2665,7 +1742,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(water htr|wtr htr|water heater)\b').hasMatch(text) &&
       RegExp(r'\b(vacuum relief|vac relief)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater install accessory') &&
@@ -2674,7 +1751,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('water heater service fitting') ||
@@ -2691,7 +1768,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     if (RegExp(
       r'\b(conn|connector|line|hose|water heater line|heater supply)\b',
     ).hasMatch(text)) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             name.contains('water heater connector')) {
@@ -2699,7 +1776,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         }
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('water heater repair part') ||
@@ -2708,7 +1785,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater connector') &&
@@ -2721,7 +1798,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(faucet conn|faucet conns|faucet connector|faucet supply|'
     r'linea lavamanos|linea lavabo|linea suministro llave|conector grifo)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet supply line') &&
@@ -2733,7 +1810,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(toilet conn|toilet conns|toilet connector|toilet supply)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet supply line') &&
@@ -2745,7 +1822,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(gas appliance conn|gas appliance conns|gas connector)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('gas appliance connector') &&
@@ -2757,7 +1834,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(appliance conn|appliance conns|appliance supply|dw line|dishwasher line)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('appliance supply line') &&
@@ -2772,7 +1849,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(trap adpt|trap adpts|trap adapter|trap adapters)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv trap adapter') &&
@@ -2796,7 +1873,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'rubber washers|poly washers|beveled washers|slip nuts|'
         r'nut and washer kit)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('tubular drain part') ||
@@ -2814,7 +1891,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'pvc adapter|barbed adapter|float switch|high water alarm|'
     r'condensate pump safety switch|battery backup sensor)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('sump pump discharge part') ||
@@ -2832,7 +1909,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'basin wrench|strap wrench|closet auger|drain auger|drain snake|'
     r'hole saw|recip blade|reciprocating blade|sawzall blade|sawzall)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('plumbing hand tool') &&
@@ -2846,7 +1923,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'basket strainers and sink drains|dishwasher disposal drain part|'
     r'dw drain hose|dishwasher drain hose|dw hose|sink strainer)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('sink drain finish part') ||
@@ -2860,7 +1937,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(p-trap|p trap|tubular p-trap|tubular p trap)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text) ?? _explicitTubularTrapSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tubular p-trap') &&
@@ -2873,7 +1950,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(trampa lavamanos|trampa lavabo|trampa sanitaria|trampa p)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tubular p-trap') &&
@@ -2885,7 +1962,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(tubular drain traps|drain traps)\b').hasMatch(text) &&
       !RegExp(r'\b(adpt|adapter)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tubular p-trap') &&
@@ -2898,7 +1975,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(slip joint nut|slip joint nuts|nut and washer|nuts and washers)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('slip joint nut and washer') &&
@@ -2911,7 +1988,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(disposal drain elb|disposal drain elbow|disposal drain parts)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('disposal drain elbow') &&
@@ -2923,7 +2000,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(dishwasher branch tailpiece|dishwasher branch)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('dishwasher branch') &&
@@ -2946,7 +2023,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(tank bolt gasket|fill valve shank washer|flush valve locknut|'
     r'fill valve locknut|toilet supply shank washer)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet tank seal part') &&
@@ -2958,7 +2035,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(tank to bowl bolts|toilet tank bolt kit|tank bolt kit)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('toilet tank bolt kit')) {
         return item;
@@ -2966,7 +2043,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (hasToiletServiceContext || hasGeneratedToiletServiceAlias) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('toilet tank repair part') ||
@@ -2977,7 +2054,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(toilet seal|wax ring|closet seal)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('toilet wax ring')) {
         continue;
@@ -2992,7 +2069,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(toilet handle|tank lever|flush lever)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet tank lever') &&
@@ -3005,7 +2082,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(toilet flange spacer|closet flange spacer|flange spacer)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet flange spacer') &&
@@ -3016,7 +2093,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(toilet flange|closet flange)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name == '$size in toilet flange') {
         return item;
@@ -3029,7 +2106,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'cartridge clip assortment|ceramic cartridge|single handle cartridge|'
     r'bonnet nut assortment)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet repair assortment') &&
@@ -3041,7 +2118,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(faucet cartridge|faucet cart|fct cart|cartridge|cartridges)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('faucet cartridge')) {
         continue;
@@ -3058,7 +2135,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(faucet stem|stem repair|stem hot repair|hot stem repair|'
     r'cold stem repair|valve stem|stem assembly)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('faucet stem')) {
         continue;
@@ -3074,7 +2151,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(o-ring and seat kit|o ring and seat kit|faucet repair kit|'
     r'faucet o ring|faucet o-ring|faucet seat washer|seat washer kit)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' ||
           !name.contains('faucet o-ring and seat kit')) {
@@ -3092,7 +2169,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(faucet and valve seals|o-rings and packing|o-ring|o ring|'
     r'stem packing)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet o-ring and packing part') &&
@@ -3105,7 +2182,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(fixture and faucet service stock|aerators and adapters|'
     r'faucet aerator and adapter|gpm)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet aerator and adapter') &&
@@ -3120,7 +2197,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'cartridge clip assortment|ceramic cartridge|single handle cartridge|'
     r'stem packing|bonnet nut assortment)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet repair assortment') &&
@@ -3130,7 +2207,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(aerator|aerators|faucet screen)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('faucet aerator') &&
@@ -3147,7 +2224,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(exp tank|expansion tank|thermal expansion)\b',
   ).hasMatch(text)) {
     final capacity = RegExp(r'\b(2|4\.5)\s+gal\b').firstMatch(text)?.group(1);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('expansion tank') &&
@@ -3158,7 +2235,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(pipe strap|pipe straps)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe strap') &&
@@ -3172,7 +2249,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       ).hasMatch(text) &&
       !RegExp(r'\b(flange|repair|closet|toilet)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('split ring hanger') &&
@@ -3185,7 +2262,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(j hook|j-hook|j-hooks|pipe hook|pipe j-hook|pex j hook)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe j-hook') &&
@@ -3198,7 +2275,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(bell hanger|bell hangers|copper bell hanger)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('bell hanger') &&
@@ -3210,7 +2287,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(stud guard|stud guards|nail plate|stud guard plate)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('stud guard plate') &&
@@ -3223,7 +2300,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(pipe insulation|foam pipe wrap|pipe wrap)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe insulation') &&
@@ -3243,7 +2320,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsGasTape =
         RegExp(r'\b(gas|yellow)\b').hasMatch(text) &&
         RegExp(r'\b(ptfe|teflon)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('thread sealant supply') &&
@@ -3263,7 +2340,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(pipe joint compound|pipe dope|thread sealant)\b',
   ).hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe joint compound') &&
@@ -3275,7 +2352,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(plumber putty|plumbers putty)\b').hasMatch(text)) {
     final ozAmount = _receiptPackageAmount(text, 'oz');
     final lbAmount = _receiptPackageAmount(text, 'lb');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('plumber putty') &&
@@ -3291,7 +2368,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final amount = _receiptPackageAmount(text, 'oz');
     final wantsClear = RegExp(r'\bclear\b').hasMatch(text);
     final wantsWhite = RegExp(r'\bwhite\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' ||
           !name.contains('silicone sealant') ||
@@ -3308,7 +2385,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(ptfe thread tape|thread tape|teflon tape)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('ptfe thread tape') &&
@@ -3320,7 +2397,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(pvc primer|purple primer|primer)\b').hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc primer') &&
@@ -3332,7 +2409,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(pipe hanger|pipe hangers)\b').hasMatch(text) &&
       !RegExp(r'\b(j hook|j-hook|pipe hook|pex j hook)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('split ring hanger') &&
@@ -3344,7 +2421,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(tailpiece|tailpieces)\b').hasMatch(text) &&
       !RegExp(r'\b(extension tube|extension tubes)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tailpiece') &&
@@ -3356,7 +2433,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(extension tube|extension tubes)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tubular extension tube') &&
@@ -3371,7 +2448,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     final wantsDesanco = RegExp(r'\bdesanco\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (wantsDesanco
@@ -3387,7 +2464,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(trap adpt|trap adpts|trap adapter|trap adapters)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           !RegExp(r'\b(abs|black)\b').hasMatch(text) &&
@@ -3400,7 +2477,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(hose bib|hose bibb|hose bibbs|outside faucet|sill faucet)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('hose bibb') &&
@@ -3413,7 +2490,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(frost free|frost-free|sillcock|sill cock)\b',
       ).hasMatch(text) &&
       !RegExp(r'\bhose bib').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('frost-free sillcock') &&
@@ -3423,7 +2500,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('frost-free sillcock') &&
@@ -3439,7 +2516,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
               RegExp(r'\bball valve\b').hasMatch(text))) &&
       !RegExp(r'\bpvc\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('threaded ball valve') &&
@@ -3451,7 +2528,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(ball valve|ball valves)\b').hasMatch(text) &&
       RegExp(r'\b(shutoff|shut off|valve|valves)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('ball valve') &&
@@ -3465,7 +2542,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(reducing cplg|reducing cplgs|reducing coupling|reducer)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pvc dwv reducing coupling') &&
@@ -3479,7 +2556,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\bdwv\b').hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv coupling') &&
@@ -3495,7 +2572,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(trap adpt|trap adpts|trap adapter|trap adapters)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv trap adapter') &&
@@ -3509,7 +2586,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(trap adpt|trap adpts|trap adapter|trap adapters)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('abs dwv trap adapter') &&
@@ -3522,7 +2599,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\bdwv\b').hasMatch(text) &&
       RegExp(r'\b(test tee|test tees)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv test tee') &&
@@ -3535,7 +2612,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\bdwv\b').hasMatch(text) &&
       RegExp(r'\b(cleanout|clean out)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv cleanout') &&
@@ -3549,7 +2626,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(crimp|brass)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(text)?.group(0);
     final targetPrefix = size == null ? '' : '$size in ';
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name == '${targetPrefix}pex 90 elbow') {
         return item;
@@ -3559,7 +2636,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(tune up kit|tune-up kit|element thermostat kit|thermostat and element)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('tune-up kit') || name.contains('tune up kit'))) {
@@ -3570,7 +2647,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(wtr htr|water heater|wh)\b').hasMatch(text) &&
       RegExp(r'\b(element|elem|4500w|5500w)\b').hasMatch(text)) {
     final watt = text.contains('5500') ? '5500' : '4500';
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('$watt watt') &&
@@ -3582,7 +2659,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(exp tank|expansion tank|thermal expansion)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('expansion tank')) {
         return item;
@@ -3592,7 +2669,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(water heater pan|heater pan|wtr htr pan|drain pan)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('drain pan')) {
         return item;
@@ -3602,7 +2679,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(earthquake strap|seismic strap|water htr strap|wtr htr strap|heater strap|restraint strap)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater restraint strap')) {
@@ -3611,7 +2688,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(sediment trap|drip leg)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('sediment trap')) {
         return item;
@@ -3623,7 +2700,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(flex connector|connector|supply connector|water heater line|'
         r'heater supply)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('water heater') &&
@@ -3633,7 +2710,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(dielectric nipple|water heater nipple)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('dielectric') &&
@@ -3645,7 +2722,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(boiler drain|heater drain valve)\b').hasMatch(text) &&
       !RegExp(r'\bpan\b').hasMatch(text)) {
     WorkSupplyItem? fallback;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('drain valve')) {
         if (item.packTier == WorkSupplyPackTier.core) return item;
@@ -3657,7 +2734,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(press reducing valve|pressure reducing valve|prv)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pressure reducing valve')) {
@@ -3668,7 +2745,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(backwater valve|sewer check valve|drain backflow)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('backwater valve')) {
         return item;
@@ -3679,7 +2756,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(well|pozo)\b.*\b(check valve|chk valve|one way valve)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('well pump check valve') &&
@@ -3692,7 +2769,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc cement') &&
@@ -3705,7 +2782,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(sump|pump)\b.*\b(check valve|chk valve|one way valve)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pump check valve') &&
@@ -3716,7 +2793,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(check valve|chk valve|one way valve)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('check valve') &&
@@ -3727,7 +2804,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(pvc|slip)\b').hasMatch(text) &&
       RegExp(r'\bball valve\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pvc ball valve')) {
         return item;
@@ -3736,7 +2813,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(fip|mip|ips|threaded)\b').hasMatch(text) &&
       RegExp(r'\bball valve\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('threaded ball valve')) {
         return item;
@@ -3744,7 +2821,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bgate valve\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('gate valve')) {
         return item;
@@ -3752,7 +2829,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(ptfe|teflon|thread tape)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('ptfe thread tape')) {
         return item;
@@ -3760,7 +2837,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bthread sealant\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('thread sealant')) {
         return item;
@@ -3770,7 +2847,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(pipe joint compound|thread paste|pipe dope)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('pipe joint compound') ||
@@ -3782,7 +2859,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(purple primer|pvc primer|pipe primer)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pvc primer')) {
         return item;
@@ -3790,7 +2867,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(plumber putty|sink putty|putty)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('plumber putty')) {
         return item;
@@ -3800,7 +2877,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(silicone caulk|silicone sealant|kitchen bath silicone)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('silicone sealant')) {
         return item;
@@ -3810,7 +2887,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(stem packing|valve packing|bonnet packing)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('stem packing')) {
         return item;
@@ -3820,7 +2897,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(faucet stem|valve stem|stem assembly|hot stem|cold stem|diverter stem)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('faucet stem')) {
         return item;
@@ -3828,7 +2905,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(showerhead|shower head)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('shower head')) {
         return item;
@@ -3838,7 +2915,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(frost free|frost-free|anti siphon|sillcock)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('frost-free sillcock')) {
         return item;
@@ -3848,7 +2925,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(abs|black drain)\b').hasMatch(receiptText) &&
       RegExp(r'\b(san tee|sanitary tee|sanitary t)\b').hasMatch(receiptText)) {
     final size = _nominalReceiptSize(receiptText);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('abs dwv sanitary tee') &&
@@ -3859,7 +2936,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(abs|black drain)\b').hasMatch(receiptText) &&
       RegExp(r'\b(cleanout|clean out|co plug)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('abs dwv cleanout')) {
         return item;
@@ -3871,7 +2948,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = RegExp(
       r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2)\b',
     ).firstMatch(receiptText)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('black iron tee') &&
@@ -3882,7 +2959,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(black iron|black pipe)\b').hasMatch(receiptText) &&
       RegExp(r'\b(union|threaded union)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('black iron union')) {
         return item;
@@ -3891,7 +2968,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(black iron|black pipe)\b').hasMatch(receiptText) &&
       RegExp(r'\b(bushing|reducing bushing)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('black iron reducer bushing')) {
@@ -3902,7 +2979,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(compression sleeve puller|sleeve puller|ferrule puller)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('sleeve puller')) {
         return item;
@@ -3914,7 +2991,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   ).hasMatch(text)) {
     final wantsUpper = text.contains('upper');
     final wantsLower = text.contains('lower');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing' || !name.contains('thermostat')) continue;
       if (wantsUpper && name.contains('upper thermostat')) return item;
@@ -3925,7 +3002,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(ferrule|compression nut|comp nut|compression sleeve)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('ferrule')) {
         return item;
@@ -3935,7 +3012,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(stop handle|oval handle|lever handle|handle screw)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('oval handle') ||
@@ -3948,7 +3025,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(pipe lube|gasket lubricant|joint lubricant|lubricant)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('lubricant')) {
         return item;
@@ -3958,7 +3035,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(tank to bowl bolt|tank bolt|tank bolts|tank to bowl bolt gasket)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('tank bolt')) {
         return item;
@@ -3968,7 +3045,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(tank to bowl gasket|tank gasket|tank bolt gasket)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tank') &&
@@ -3980,7 +3057,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(fill valve shank washer|toilet supply shank washer)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('washer') &&
@@ -3992,7 +3069,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(hose bibb washer|hose bib washer|hose washer|vacuum breaker washer)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('hose') &&
@@ -4005,7 +3082,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(strut nut|unistrut nut|rod coupling nut|coupling nut)\b',
   ).hasMatch(receiptText)) {
     final wantsStrut = RegExp(r'\b(strut|unistrut)\b').hasMatch(receiptText);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsStrut && name.contains('strut nut')) {
@@ -4017,7 +3094,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bhex nut\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('hex nut')) {
         return item;
@@ -4025,7 +3102,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\bfender washer\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('fender washer')) {
         return item;
@@ -4035,7 +3112,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(tapcon|masonry screw|blue screw|concrete anchor screw)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('concrete screw')) {
         return item;
@@ -4045,7 +3122,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(soft copper|copper roll|refrigeration copper)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('soft copper tubing')) {
         return item;
@@ -4057,7 +3134,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(
         r'\b(elbow|ell|tee|adapter|coupling|fitting|strap|hanger)\b',
       ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('copper pipe')) {
         return item;
@@ -4071,7 +3148,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(
         r'\b(elbow|ell|tee|adapter|coupling|fitting|stop|hook|j hook|j-hook|hanger|strap)\b',
       ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex tubing') &&
@@ -4082,7 +3159,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(abs|black drain)\b').hasMatch(receiptText) &&
       RegExp(r'\b(pipe|stick|10 ft|10ft|20 ft|20ft)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('abs dwv pipe') &&
@@ -4098,7 +3175,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsDropIn = RegExp(r'\bdrop in anchor\b').hasMatch(receiptText);
     final wantsBeam = RegExp(r'\bbeam clamp\b').hasMatch(receiptText);
     final wantsFlange = RegExp(r'\bceiling flange\b').hasMatch(receiptText);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsWedge && name.contains('wedge anchor')) {
@@ -4116,7 +3193,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\briser clamp\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('riser clamp')) {
         return item;
@@ -4127,7 +3204,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(j hook|j-hook|pex j hook|pipe hook|pipe hanger)\b',
   ).hasMatch(receiptText)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(receiptText)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe j-hook') &&
@@ -4142,7 +3219,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(pipe insulation|foam pipe wrap|pipe sleeve)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pipe insulation')) {
         return item;
@@ -4155,7 +3232,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(stud guard|nail plate|stud plate|protection plate)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('stud guard')) {
         return item;
@@ -4163,7 +3240,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(split ring|pipe hanger)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('split ring')) {
         return item;
@@ -4171,7 +3248,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(bell hanger|copper bell hanger)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('bell hanger')) {
         return item;
@@ -4180,7 +3257,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\bdishwasher\b').hasMatch(receiptText) &&
       RegExp(r'\b(drain hose|hose)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('dishwasher') &&
@@ -4190,7 +3267,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(continuous waste|cont waste)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       final searchable = item.searchableText.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -4204,7 +3281,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(dishwasher branch|branch tailpiece|dishwasher branch tailpiece)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('dishwasher') &&
@@ -4214,7 +3291,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(air gap|dishwasher air gap)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('air gap')) {
         return item;
@@ -4224,7 +3301,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(disposal elbow gasket|disposal gasket|garbage disposal gasket)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('disposal') &&
@@ -4238,7 +3315,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   ).hasMatch(receiptText)) {
     final wantsNut = RegExp(r'\bnut\b').hasMatch(receiptText);
     final wantsReducing = RegExp(r'\breducing\b').hasMatch(receiptText);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsNut && name.contains('nut') && name.contains('washer')) {
@@ -4255,7 +3332,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(escutcheon|esc plate|cover plate)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           (name.contains('escutcheon') || name.contains('cover plate'))) {
@@ -4267,7 +3344,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsSupply = RegExp(
       r'\b(stop valve|supply line|supply|split)\b',
     ).hasMatch(receiptText);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsSupply &&
@@ -4281,7 +3358,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(spigot bushing|reducing bushing|bushing)\b',
       ).hasMatch(receiptText)) {
     final hasMatrix = _receiptSizeMatrix(receiptText) != null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pvc schedule 40 reducer bushing') &&
@@ -4291,7 +3368,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     if (hasMatrix) return null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 reducer bushing')) {
@@ -4302,7 +3379,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(vac brkr|vac breaker|vacuum breaker|backflow preventer)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('vacuum breaker')) {
         return item;
@@ -4312,7 +3389,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(hose bibb|hose bib|spigot|outside faucet)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('hose bibb')) {
         return item;
@@ -4321,7 +3398,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(cleanout|clean out|co)\b').hasMatch(text) &&
       RegExp(r'\b(cover|plate|access cover)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cleanout') &&
@@ -4336,7 +3413,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = RegExp(
       r'\b(?:1/2|3/4|1|1-1/2|2)\b',
     ).firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe strap') &&
@@ -4347,7 +3424,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(tub spout|spout)\b').hasMatch(text) &&
       RegExp(r'\b(tub|diverter)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('tub spout')) {
         return item;
@@ -4356,7 +3433,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(disposal|garbage disposal)\b').hasMatch(text) &&
       RegExp(r'\b(splash guard|splash|guard)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('splash guard')) {
         return item;
@@ -4366,7 +3443,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(ice maker|icemaker|refrigerator water line|fridge water line)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('ice maker supply line')) {
         return item;
@@ -4376,7 +3453,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(toilet conn|toilet connector|toilet supply|closet line)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('toilet') &&
@@ -4388,7 +3465,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(washing machine hose|washer hose|washer supply hose|laundry hose)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('washing machine hose')) {
         return item;
@@ -4397,7 +3474,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\bdishwasher\b').hasMatch(text) &&
       RegExp(r'\b(line|supply line|connector)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('appliance supply line')) {
         return item;
@@ -4407,7 +3484,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(gas flex|gas connector|gas appliance connector|appliance connector)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('gas appliance connector')) {
@@ -4416,7 +3493,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(condensate removal pump|condensate pump)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('condensate pump')) {
         return item;
@@ -4427,7 +3504,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(
         r'\b(check|discharge hose|hose kit|float switch)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('sump pump')) {
         return item;
@@ -4435,7 +3512,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(pump check|sump pump check|sump check)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pump check valve')) {
         return item;
@@ -4443,7 +3520,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(discharge hose|sump pump hose)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('discharge hose')) {
         return item;
@@ -4453,7 +3530,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text) &&
       RegExp(r'\b(barb|barbed)\b').hasMatch(text) &&
       RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('sump pump discharge part') &&
@@ -4464,7 +3541,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(float switch|sump float|pump switch)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('float switch')) {
         return item;
@@ -4474,14 +3551,14 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bpex\b').hasMatch(text) &&
       RegExp(r'\b(tee|t)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pex tee') && _nameMatchesReceiptMatrix(name, text)) {
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex tee') &&
@@ -4494,7 +3571,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
     if (RegExp(r'\b(transition|trans)\b').hasMatch(text)) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             name.contains('pex transition coupling') &&
@@ -4503,7 +3580,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         }
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex coupling') &&
@@ -4518,7 +3595,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(mip|male adapter|male adapters|m adapter|m adapters|m adpt|m adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex male adapter') &&
@@ -4532,7 +3609,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(fip|female adapter|female adapters|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex female adapter') &&
@@ -4546,7 +3623,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(drop ear|drop-ear|shower elbow|stub out elbow)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex drop-ear elbow') &&
@@ -4559,7 +3636,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(r'\b(comp|compression)\b').hasMatch(text) &&
       RegExp(r'\b(union|unions|mip\s+x\s+fip|mip\s+fip)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass union') &&
@@ -4573,7 +3650,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(compression adpt|compression adpts|compression adapter|compression adapters)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass compression adapter') &&
@@ -4585,7 +3662,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(brass|brs)\b').hasMatch(text) &&
       RegExp(r'\b(compression union|compression unions)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass compression union') &&
@@ -4599,7 +3676,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(bushing|bushings|reducing bushing|reducer)\b',
       ).hasMatch(text)) {
     final hasMatrix = _receiptSizeMatrix(text) != null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('brass bushing') &&
@@ -4615,7 +3692,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(comp\s+un|comp\s+union|compression\s+union)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass compression union') &&
@@ -4632,7 +3709,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(compression|fip|female|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass male adapter') &&
@@ -4646,7 +3723,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(fip|female adapter|female adapters|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass female adapter') &&
@@ -4658,7 +3735,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(push|push fit|push-fit|sharkbite)\b').hasMatch(text) &&
       RegExp(r'\b(tee|tees|t)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('push-fit tee') &&
@@ -4666,7 +3743,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('push-fit tee') &&
@@ -4680,7 +3757,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(slip repair|repair cplg|repair cplgs|repair coupling|repair couplings|slip coupling|slip cplg|slip cplgs)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('push-fit slip coupling') &&
@@ -4693,7 +3770,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(reducing cplg|reducing cplgs|reducing coupling|reducing couplings|reducer)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('push-fit reducing coupling') &&
@@ -4706,7 +3783,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(push|push fit|push-fit|sharkbite)\b').hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('push-fit coupling') &&
@@ -4722,7 +3799,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(mip|male adapter|male adapters|m adapter|m adapters|m adpt|m adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('push-fit male adapter') &&
@@ -4736,7 +3813,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(fip|female adapter|female adapters|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('push-fit female adapter') &&
@@ -4748,7 +3825,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(push|push fit|push-fit|sharkbite)\b').hasMatch(text) &&
       RegExp(r'\b(ball valve|shutoff valve|shut off valve)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('push-fit ball valve') &&
@@ -4758,7 +3835,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(straight stop|straight valve)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('straight stop')) {
         return item;
@@ -4767,7 +3844,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(push|push fit|push-fit|sharkbite)\b').hasMatch(text) &&
       RegExp(r'\b(angle stop|supply stop|shutoff)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('push-fit supply stop')) {
         return item;
@@ -4777,7 +3854,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcopper\b').hasMatch(text) &&
       RegExp(r'\b(drop ear|drop-ear)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper drop-ear') &&
@@ -4791,7 +3868,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(dielectric union|dielectric unions|water heater union|wtr htr union)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper dielectric union') &&
@@ -4804,7 +3881,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b45\b').hasMatch(text) &&
       !RegExp(r'\b(street)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper 45 elbow') &&
@@ -4817,7 +3894,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(90|90d|ell|elb|elbs|elbow)\b').hasMatch(text) &&
       !RegExp(r'\b(drop ear|drop-ear|street|45)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper 90 elbow') &&
@@ -4829,7 +3906,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcopper\b').hasMatch(text) &&
       RegExp(r'\b(tee|tees| t )\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('copper tee') &&
@@ -4837,7 +3914,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper tee') &&
@@ -4851,7 +3928,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(no stop|repair coupling|repair cplg|repair cplgs|slip coupling|slip cplg)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper repair coupling') &&
@@ -4865,7 +3942,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(mip|male adapter|male adapters|m adapter|m adapters|m adpt|m adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper male adapter') &&
@@ -4879,7 +3956,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(fip|female adapter|female adapters|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper female adapter') &&
@@ -4893,7 +3970,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(reducing cplg|reducing cplgs|reducing coupling|reducing couplings|reducer coupling)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper reducing coupling') &&
@@ -4904,7 +3981,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(wtr htr union|water heater union)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('dielectric union') &&
@@ -4917,7 +3994,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(reducer|reducing reducer)\b').hasMatch(text) &&
       !RegExp(r'\b(cplg|coupling)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper reducer') &&
@@ -4929,7 +4006,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcopper\b').hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('copper coupling') &&
@@ -4942,7 +4019,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(brass|brs)\b').hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('brass coupling') &&
@@ -4955,7 +4032,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcpvc\b').hasMatch(text) &&
       RegExp(r'\b(transition|trans)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cpvc transition adapter') &&
@@ -4967,7 +4044,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcpvc\b').hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cpvc coupling') &&
@@ -4982,7 +4059,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(mip|male adapter|male adapters|m adapter|m adapters|m adpt|m adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cpvc male adapter') &&
@@ -4996,7 +4073,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(fip|female adapter|female adapters|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cpvc female adapter') &&
@@ -5008,14 +4085,14 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcpvc\b').hasMatch(text) &&
       RegExp(r'\b(tee|t)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('cpvc tee') && _nameMatchesReceiptMatrix(name, text)) {
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cpvc tee') &&
@@ -5027,7 +4104,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcpvc\b').hasMatch(text) &&
       RegExp(r'\b(transition|copper adapter)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('cpvc transition adapter') &&
@@ -5039,7 +4116,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bcpvc\b').hasMatch(text) &&
       RegExp(r'\b(bushing|reducing bushing)\b').hasMatch(text)) {
     final hasMatrix = _receiptSizeMatrix(text) != null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('cpvc reducer bushing') &&
@@ -5049,7 +4126,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     if (hasMatrix) return null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('cpvc reducer bushing')) {
         return item;
@@ -5060,7 +4137,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc cement') &&
@@ -5075,7 +4152,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\bstreet\b').hasMatch(text) &&
       RegExp(r'\b90\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 street 90 elbow') &&
@@ -5089,7 +4166,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       RegExp(r'\b45\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 45 elbow') &&
@@ -5103,7 +4180,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       RegExp(r'\b(90|90d|ell|elb|elbow)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 90 elbow') &&
@@ -5118,7 +4195,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(mip|male adapter|male adapters|m adapter|m adapters|m adpt|m adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 male adapter') &&
@@ -5133,7 +4210,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(fip|female adapter|female adapters|f adapter|f adapters|f adpt|f adpts)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 female adapter') &&
@@ -5148,7 +4225,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       ).hasMatch(text) &&
       RegExp(r'\b(tee|tees|t)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pvc schedule 40 tee') &&
@@ -5156,7 +4233,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 tee') &&
@@ -5171,7 +4248,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(reducing cplg|reducing cplgs|reducing coupling|reducing couplings|reducer coupling|reducer cplg|reducer)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pvc schedule 40 reducing coupling') &&
@@ -5187,7 +4264,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       ).hasMatch(text) &&
       RegExp(r'\b(cplg|cplgs|coupling|coupler)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 coupling') &&
@@ -5203,7 +4280,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = RegExp(
       r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2)\b',
     ).firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 tee') &&
@@ -5219,7 +4296,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = RegExp(
       r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2)\b',
     ).firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 female adapter') &&
@@ -5232,7 +4309,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(cplg|coupling|coupler)\b').hasMatch(text) &&
       RegExp(r'\b(dwv|drain)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv coupling') &&
@@ -5244,7 +4321,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(reducing bushing|bushing)\b').hasMatch(text)) {
     final hasMatrix = _receiptSizeMatrix(text) != null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pvc schedule 40 reducer bushing') &&
@@ -5254,7 +4331,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       }
     }
     if (hasMatrix) return null;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 reducer bushing')) {
@@ -5267,7 +4344,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(test\s+tee|test\s+t|cleanout\s+tee|clean\s*out\s+tee)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv test tee') &&
@@ -5275,7 +4352,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pvc dwv test tee')) {
         return item;
@@ -5286,7 +4363,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(
         r'\b(reducing san tee|reducing sanitary|reducing sanitary tee)\b',
       ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('pvc dwv reducing sanitary tee') &&
@@ -5301,7 +4378,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         r'\b(san tee|sanitary tee|sanitary tees|sanitary t)\b',
       ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv sanitary tee') &&
@@ -5309,7 +4386,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv sanitary tee') &&
@@ -5321,7 +4398,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(r'\b(abs|black)\b').hasMatch(text) &&
       RegExp(r'\b(wye|y fitting|why fitting)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1-1/2|2|3|4)\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('abs dwv wye') &&
@@ -5334,7 +4411,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       !RegExp(r'\b(abs|black)\b').hasMatch(text) &&
       RegExp(r'\b(wye|y fitting|why fitting)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc dwv wye') &&
@@ -5347,7 +4424,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(j hook|j-hook|pex j hook|pipe hook|pipe hanger)\b',
   ).hasMatch(receiptText)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(receiptText)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe j-hook') &&
@@ -5362,7 +4439,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = RegExp(
       r'\b(?:1/2|3/4|1|1-1/2|2)\b',
     ).firstMatch(receiptText)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe strap') &&
@@ -5388,7 +4465,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final size = RegExp(
       r'\b(?:1/2|3/4|1|1-1/4|1-1/2|2|3|4)\b',
     ).firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains(material) &&
@@ -5406,7 +4483,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         ? ''
         : '${dimension.group(1)} in x ${dimension.group(2)} ft';
     final size = RegExp(r'\b(?:3|4|6)\s*in\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('corrugated drain pipe') &&
@@ -5425,7 +4502,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final wantsReducing =
         sizeMatrix != null ||
         RegExp(r'\b(red|reducer|reducing)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (!name.contains('flexible drain repair coupling')) continue;
@@ -5442,7 +4519,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     final length =
         RegExp(r'\bx\s*(\d+)(?:\s*in)?\b').firstMatch(text)?.group(1) ??
         RegExp(r'\b(\d+)\s*in\b').firstMatch(text)?.group(1);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('black iron nipple') &&
@@ -5456,7 +4533,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       RegExp(r'\b(cplg|coupling|shielded)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1-1/2|2|3|4|6)\b').firstMatch(text)?.group(0);
     final wantsReducing = RegExp(r'\b(reducer|reducing)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsReducing &&
@@ -5481,7 +4558,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
           r'\b(ext tube|extension tube|tailpiece extension)\b',
         ).hasMatch(receiptText) &&
         !hasTailpieceLength;
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsExtension && name.contains('extension tube')) {
@@ -5495,7 +4572,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(disposal drain elbow|disposal elbow)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('disposal drain elbow')) {
         return item;
@@ -5503,7 +4580,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(condensate tubing|vinyl tubing)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('condensate pump tubing')) {
         return item;
@@ -5511,7 +4588,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(wall tube|wall bend)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('wall tube')) {
         return item;
@@ -5523,7 +4600,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
       receiptText.contains('trampa lavamanos') ||
       receiptText.contains('trampa lavabo') ||
       receiptText.contains('trampa p')) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       final variant = item.variant.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -5536,7 +4613,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(j bend|j-bend)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('j-bend')) {
         return item;
@@ -5544,7 +4621,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(continuous waste|cont waste)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       final searchable = item.searchableText.toLowerCase();
       if (item.trade == 'Plumbing' &&
@@ -5558,7 +4635,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(disposal install kit|disposal kit|garbage disposal connector)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('disposal install kit')) {
         return item;
@@ -5568,7 +4645,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(lav pop up|lav pop-up|pop up drain|pop-up drain)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pop-up')) {
         return item;
@@ -5576,7 +4653,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(lav drain|lavatory drain)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('lavatory drain')) {
         return item;
@@ -5584,7 +4661,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(trap primer|primer adapter)\b').hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('trap primer')) {
         return item;
@@ -5612,7 +4689,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         ? 'trap arm'
         : null;
     if (wantsTubular) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade != 'Plumbing') continue;
         if (preferredStyle != null &&
@@ -5628,7 +4705,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         }
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsTubular &&
@@ -5657,7 +4734,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(toilet seat bolt|seat bolt|seat bolts)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('toilet seat bolt')) {
         return item;
@@ -5668,7 +4745,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(flange repair|repair ring|closet flange repair|toilet flange repair)\b',
   ).hasMatch(text)) {
     if (RegExp(r'\bcloset\b').hasMatch(text)) {
-      for (final item in workSupplyCatalogItems) {
+      for (final item in _activeWorkSupplyCatalogItems) {
         final name = item.name.toLowerCase();
         if (item.trade == 'Plumbing' &&
             name.contains('closet flange repair part') &&
@@ -5677,7 +4754,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
         }
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('flange repair')) {
         return item;
@@ -5687,7 +4764,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(closet flange|toilet flange|clst flange|flg)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('closet flange')) {
         return item;
@@ -5697,7 +4774,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(closet bolt cap|closet bolt caps|toilet bolt cap|toilet bolt caps)\b',
   ).hasMatch(receiptText)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('closet bolt caps')) {
         return item;
@@ -5707,7 +4784,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(closet bolt|closet bolts|toilet bolt|toilet bolts)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('closet bolt')) {
         return item;
@@ -5716,7 +4793,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(j hook|j-hook|pipe hanger|pex j hook)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:1/2|3/4|1)\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pipe j-hook') &&
@@ -5727,7 +4804,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(pex crimp tool|crimp tool)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex crimp tool') &&
@@ -5737,7 +4814,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(tubing cutter|mini tubing cutter)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('mini tubing cutter')) {
         return item;
@@ -5745,7 +4822,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(r'\b(pipe cutter|pvc cutter|ratchet cutter)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pvc pipe cutter')) {
         return item;
@@ -5755,7 +4832,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   if (RegExp(
     r'\b(deburring tool|deburr tool|pvc deburring)\b',
   ).hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('deburring tool')) {
         return item;
@@ -5766,7 +4843,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     r'\b(strut nut|spring nut|unistrut nut|cone nut)\b',
   ).hasMatch(text)) {
     final size = RegExp(r'\b(?:1/4|3/8|1/2)\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('strut nut') &&
@@ -5777,7 +4854,7 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
   }
   if (RegExp(r'\b(beam clamp|rod beam clamp)\b').hasMatch(text)) {
     final size = RegExp(r'\b(?:3/8|1/2)\b').firstMatch(text)?.group(0);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('beam clamp') &&
@@ -5787,25 +4864,6 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   return null;
-}
-
-bool _isReceiptNoiseLine(String text) {
-  return RegExp(
-        r'^(subtotal|sub total|total|sales tax|tax|cash|change|card approved|'
-        r'credit card|debit card|visa|mastercard|amex|discover|approval|'
-        r'balance due|amount due)(\s+\d+(?:\.\d{2})?)?$',
-      ).hasMatch(text) ||
-      RegExp(
-        r'^(subtotal|sub total|total|sales tax|tax|cash|change|'
-        r'card approved|credit card|debit card|visa|mastercard|amex|'
-        r'discover|approval|balance due|amount due)'
-        r'(\s+\d+(?:\s+\d{2})?)?$',
-      ).hasMatch(text) ||
-      RegExp(
-        r'^(visa|mastercard|amex|discover|credit card|debit card)\s+'
-        r'approved(?:\s+auth)?\s+\d+$',
-      ).hasMatch(text) ||
-      RegExp(r'^cashier\s+\d+\s+reg\s+\d+\s+thank\s+you$').hasMatch(text);
 }
 
 WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
@@ -5822,7 +4880,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(cement|solvent\s+cement|glue)\b').hasMatch(text) &&
       !RegExp(r'\b(cpvc|primer|trap\s+primer|paint)\b').hasMatch(text)) {
     final amount = _receiptPackageAmount(text, 'oz');
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc cement') &&
@@ -5837,7 +4895,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(90|ell|el|elb|elbow)\b').hasMatch(text) &&
       !RegExp(r'\b(dwv|abs|cpvc)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 elbow') &&
@@ -5853,7 +4911,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   ).hasMatch(text);
   if (wantsTubularPTrap) {
     final size = _nominalReceiptSize(text) ?? _explicitTubularTrapSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('tubular p-trap') &&
@@ -5868,7 +4926,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   if (wantsTubularTailpiece) {
     final size = _nominalReceiptSize(text);
     final wantsFlanged = RegExp(r'\b(flanged|flange)\b').hasMatch(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (wantsFlanged &&
@@ -5886,7 +4944,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   }
   if (RegExp(r'\b(extension tube|ext tube)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('extension tube') &&
@@ -5899,7 +4957,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
     r'\b(slip joint nut|sj nut|nut washer|nut and washer)\b',
   ).hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('slip joint nut and washer') &&
@@ -5910,7 +4968,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   }
   if (RegExp(r'\b(beveled washer|slip washer)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('beveled washers') &&
@@ -5920,7 +4978,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
     }
   }
   if (RegExp(r'\b(basket strainer|sink strainer)\b').hasMatch(text)) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('basket strainer')) {
         return item;
@@ -5929,7 +4987,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
   }
   if (RegExp(r'\b(j bend|j-bend)\b').hasMatch(text)) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('j-bend') &&
@@ -5947,7 +5005,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
         r'\b(reducing cplg|reducing coupling|reducer coupling)\b',
       ).hasMatch(text);
   if (wantsPvcSch40ReducingCoupling) {
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 reducing coupling') &&
@@ -5967,7 +5025,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       !RegExp(r'\b(reducing|reducer)\b').hasMatch(text);
   if (wantsPvcSch40Coupling) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pvc schedule 40 coupling') &&
@@ -5983,7 +5041,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(90|elbow|ell|elb|codo)\b').hasMatch(text);
   if (wantsPexElbow) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('pex') &&
@@ -6000,7 +5058,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(brass|1/2|3/8)\b').hasMatch(text);
   if (wantsAngleStop) {
     final size = _receiptSizeMatrix(text) ?? _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (!name.contains('push-fit') &&
@@ -6013,7 +5071,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
         return item;
       }
     }
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade != 'Plumbing') continue;
       if (name.contains('supply stop') &&
@@ -6032,7 +5090,7 @@ WorkSupplyItem? _directFastReceiptMatch(String text, {String? tradeScope}) {
       RegExp(r'\b(1/4|3/8|1/2)\b').hasMatch(text);
   if (wantsThreadedRod) {
     final size = _nominalReceiptSize(text);
-    for (final item in workSupplyCatalogItems) {
+    for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' &&
           name.contains('threaded rod') &&
@@ -6067,7 +5125,7 @@ WorkSupplyItem? _directUnscopedElectricalEvidenceMatch(String text) {
     _ => null,
   };
   if (wantedName == null) return null;
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Electrical' &&
         name.contains(wantedName) &&
@@ -6120,7 +5178,7 @@ WorkSupplyItem? _directPlumbingLegacyAdapterFastMatch(String text) {
       : null;
   if (preferredStyle == null) return null;
   final size = _nominalReceiptSize(text);
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final name = item.name.toLowerCase();
     if (item.trade == 'Plumbing' &&
         name.contains(preferredStyle) &&
@@ -6254,29 +5312,12 @@ bool _isScopedPlumbingDangerousElbowReviewLine(
   return true;
 }
 
-bool _isScopedPlumbingDangerousGenericAdapterReviewLine(
-  String text,
-  String? tradeScope,
-) {
-  if (tradeScope == null || tradeScope.trim().toLowerCase() != 'plumbing') {
-    return false;
-  }
-  if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return false;
-  if (RegExp(
-    r'\b(male|female|mip|fip|mnpt|fnpt|trap|marvel|desanco|compression|comp|'
-    r'cpvc|pvc|pex|copper|brass|brs|barb|thread|sweat|slip)\b',
-  ).hasMatch(text)) {
-    return false;
-  }
-  return true;
-}
-
 WorkSupplyItem? _directScopedPlumbingSumpBarbedAdapterMatch(String text) {
   if (!RegExp(r'\b(sump pump|submersible sump)\b').hasMatch(text)) return null;
   if (!RegExp(r'\b(barb|barbed)\b').hasMatch(text)) return null;
   if (!RegExp(r'\b(adapter|adpt)\b').hasMatch(text)) return null;
   final size = _nominalReceiptSize(text);
-  for (final item in workSupplyCatalogItems) {
+  for (final item in _activeWorkSupplyCatalogItems) {
     final searchable = _indexedReceiptTextFor(item);
     final name = item.name.toLowerCase();
     final variant = item.variant.toLowerCase();

@@ -30,3 +30,24 @@ asking the user, are you a contractor or a gig driver or both?"
 or that dashboard needs to morph or mutate into the proper command center for
 that person that has multiple jobs too."
 
+Source: visible user message, 2026-07-11 Batch 2
+
+- Onboarding must explain Maintainiac's two navigation/settings levels without
+  making the user memorize the interface.
+- The hamburger menu is global and consistent across every application under
+  the Maintainiac roof. It contains whole-app destinations, including App
+  Settings, profiles, help, and other cross-application destinations.
+- App Settings covers whole-app behavior such as accessibility, appearance,
+  account/profile, privacy, storage/export, notifications, and other global
+  preferences.
+- The gear icon is contextual. It opens settings for the application or active
+  workflow shown on the current screen, such as Expense Settings, Invoice
+  Settings, Materials Settings, Maintenance Settings, or Receipt Camera
+  Settings.
+- A short optional onboarding tip should point to the hamburger and gear in
+  context. Do not build a long mandatory tutorial for familiar icons.
+- The receipt-assistance choice belongs in onboarding and remains changeable in
+  Expense/Receipt settings. Default behavior must not force OCR/parser help on
+  a user who prefers manual entry.
+- Camera settings are task-specific and belong inside the receipt-camera
+  workflow. They must not be confused with global App Settings.

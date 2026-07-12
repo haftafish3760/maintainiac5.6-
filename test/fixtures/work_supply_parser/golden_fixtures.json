@@ -121,7 +121,7 @@
     "tier": "core",
     "localePackId": "en-US",
     "expectedTrade": "Plumbing",
-    "expectedNameContains": "Supply Stop",
+    "expectedNameContains": "Angle Stop",
     "tradeScope": "Plumbing",
     "expectedStatus": "matched",
     "expectedTopCandidateId": "supply_stop",

@@ -107,17 +107,9 @@ void main() {
       expect(cameraActivity, isNot(contains('AlertDialog.Builder')));
       expect(cameraActivity, contains('ScrollView(this)'));
       expect(cameraActivity, contains('addView(content)'));
-      expect(cameraActivity, contains('ACCOUNT AND STORAGE'));
-      expect(cameraActivity, contains('Back up receipt photos'));
-      expect(cameraActivity, contains('receiptPhotoBackupEnabled'));
-      expect(cameraActivity, contains('Backup account'));
-      expect(cameraActivity, contains('Storage remaining'));
-      expect(cameraActivity, contains('Estimated receipt room'));
-      expect(
-        cameraActivity,
-        contains('Let Maintainiac help fill this receipt'),
-      );
-      expect(cameraActivity, contains('RECEIPT ASSIST'));
+      expect(cameraActivity, contains('Camera only'));
+      expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
+      expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
       expect(cameraActivity, contains('Long receipt mode'));
       expect(cameraActivity, contains('CAPTURE FLOW'));
       expect(cameraActivity, contains('if (!canUseLongReceiptMode())'));
@@ -153,14 +145,12 @@ void main() {
       expect(cameraActivity, isNot(contains('Manual Brightness still wins.')));
       expect(cameraActivity, isNot(contains('Reset brightness')));
       expect(cameraActivity, contains('Find receipt edges'));
-      expect(cameraActivity, contains('Long receipt stitching'));
-      expect(cameraActivity, contains('Sections are numbered top to bottom.'));
-      expect(cameraActivity, contains('IMAGE HANDOFF'));
-      expect(cameraActivity, contains('Saved proof size'));
-      expect(cameraActivity, contains('Ask proof size each receipt'));
+      expect(cameraActivity, contains('Long receipts'));
+      expect(cameraActivity, contains('Capture sections from top to bottom'));
+      expect(cameraActivity, isNot(contains('IMAGE HANDOFF')));
       expect(cameraActivity, contains('CAMERA CONTROLS'));
       expect(cameraActivity, contains('Brightness and light'));
-      expect(cameraActivity, contains('PRIVACY AND DIAGNOSTICS'));
+      expect(cameraActivity, isNot(contains('PRIVACY AND DIAGNOSTICS')));
       expect(cameraActivity, contains('Receipt edge guidance is on.'));
       expect(
         cameraActivity,
@@ -273,39 +263,17 @@ void main() {
         contains('receiptFullyVisibleWarningEnabled'),
       );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
-      expect(cameraActivity, contains('Receipt details style'));
-      expect(
-        cameraActivity,
-        contains(
-          'Choose the review screen Maintainiac opens after receipt text is read.',
-        ),
-      );
-      expect(cameraActivity, contains('"pricesOnly" to "Price-only review"'));
-      expect(
-        cameraActivity,
-        contains('"detailedLines" to "Detailed line review"'),
-      );
+      expect(cameraActivity, isNot(contains('Receipt details style')));
       expect(cameraActivity, contains('safeReceiptReviewDepth'));
       expect(cameraActivity, contains('reviewDepth = safeReceiptReviewDepth('));
-      expect(cameraActivity, contains('Saved proof size'));
-      expect(
-        cameraActivity,
-        contains(
-          'OCR reads the clearest temporary source first. This controls the smaller proof copy kept for review and backup.',
-        ),
-      );
-      expect(cameraActivity, contains('"original" to "Keep original locally"'));
-      expect(cameraActivity, contains('"light" to "High quality"'));
-      expect(cameraActivity, contains('"balanced" to "Balanced"'));
-      expect(cameraActivity, contains('"strong" to "Save storage"'));
-      expect(cameraActivity, contains('"maximum" to "Maximum savings"'));
+      expect(cameraActivity, isNot(contains('Saved proof size')));
       expect(
         cameraActivity,
         contains('internal fun ReceiptCameraActivity.settingChoiceGroup('),
       );
       expect(cameraActivity, contains('orientation = LinearLayout.VERTICAL'));
-      expect(cameraActivity, contains('dataSaverLevel = selected'));
-      expect(cameraActivity, contains('reviewDepth = selected'));
+      expect(cameraActivity, isNot(contains('dataSaverLevel = selected')));
+      expect(cameraActivity, isNot(contains('reviewDepth = selected')));
     },
   );
 }

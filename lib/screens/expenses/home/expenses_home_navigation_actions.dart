@@ -6,6 +6,7 @@ void _openReceipt(
   DateTime? initialDate,
   String? draftId,
   ExpenseReceiptFlowMode mode = ExpenseReceiptFlowMode.general,
+  bool showInterruptedCaptureRecovery = false,
 }) {
   Navigator.of(context).push(
     appNativeRoute<void>(
@@ -15,6 +16,7 @@ void _openReceipt(
         initialCategory: initialCategory,
         initialDate: initialDate,
         draftId: draftId,
+        showInterruptedCaptureRecovery: showInterruptedCaptureRecovery,
       ),
     ),
   );
@@ -29,6 +31,28 @@ void _openDraft(BuildContext context, ExpenseReceiptDraftRecord draft) {
         ? ExpenseReceiptFlowMode.materials
         : ExpenseReceiptFlowMode.general,
   );
+}
+
+Future<void> _continuePhotoDraft(
+  BuildContext context,
+  ReceiptNativeCaptureRecoveryRecord recovery,
+) async {
+  final drafts = ExpenseDraftScope.maybeOf(context);
+  if (drafts == null) return;
+  final draftId = 'RECOVERED-${recovery.sessionId}';
+  await drafts.saveDraft(
+    ExpenseReceiptDraftRecord(
+      id: draftId,
+      receiptDate: recovery.capturedAt,
+      updatedAt: recovery.capturedAt,
+      hasReceiptProof: recovery.attachments.isNotEmpty,
+      attachments: recovery.attachments,
+    ),
+  );
+  await const ReceiptNativeCaptureStaging().clearRecoveryRecord(recovery);
+  if (!context.mounted) return;
+  Navigator.of(context).pop();
+  _openReceipt(context, draftId: draftId, initialDate: recovery.capturedAt);
 }
 
 void _showAllExpenseEntries(BuildContext context) {

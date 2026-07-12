@@ -15,3 +15,22 @@ to have a really good camera system in here, and if it isn't, we will harden
 that as well to make sure that is state-of-the-art camera system to help the
 user actually get good pictures."
 
+Source: visible user message, 2026-07-11 Batch 2
+
+- Keep the back button on every secondary receipt screen and place the receipt
+  screen title on the same top row as Back.
+- Remove the generic "Record what was spent" and business/personal helper copy
+  below the receipt title.
+- Directly above the active-vehicle selector, tell the individual user to
+  select which vehicle the expense belongs to.
+- The individual mode may have multiple vehicles but does not show fleet or
+  employee controls. Fleet mode remains future-facing.
+- Receipt drafts belong on Expense Home. Add Expense starts a new entry and
+  must not show a draft-resumption panel inside the new receipt flow.
+- Expense Home should present one professional Receipt Drafts section. Draft
+  rows show useful metadata such as receipt date, saved date, merchant, amount,
+  photo count, or review status without user-facing "interrupted" terminology.
+- Keep the active-vehicle row pinned above scrolling Expense Home and Calendar
+  content. This pinned behavior is an app-wide direction for other sections.
+- Move the Daily Expenses date/vehicle context block from Expense Home into the
+  Expense Calendar day view.

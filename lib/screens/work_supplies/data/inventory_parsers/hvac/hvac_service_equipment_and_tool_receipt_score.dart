@@ -1,15 +1,79 @@
-part of 'work_supply_receipt_parser.dart';
+part of '../../work_supply_receipt_parser.dart';
 
-int _hvacToolsHydronicReceiptScore(_HvacReceiptScoreContext context) {
+/// Scores HVAC service equipment, diagnostics, hydronics, and cleaning evidence.
+int _hvacServiceEquipmentAndToolReceiptScore(String text, WorkSupplyItem item) {
   var score = 0;
-  final text = context.text;
-  final itemType = context.itemType;
-  final itemName = context.itemName;
-  final category = context.category;
-  final system = context.system;
-  final variant = context.variant;
-  final item = context.item;
-
+  final itemType = item.itemType.toLowerCase();
+  final itemName = item.name.toLowerCase();
+  final category = item.category.toLowerCase();
+  final system = item.system.toLowerCase();
+  final variant = _normalize(item.variant);
+  if (RegExp(
+        r'\b(duct board|supply plenum|return plenum|return box|duct transition|takeoff damper)\b',
+      ).hasMatch(text) &&
+      itemType.contains('duct board')) {
+    score += 26;
+  }
+  if (RegExp(
+    r'\b(supply plenum|return plenum|return air box|filter box|duct transition|square to round transition)\b',
+  ).hasMatch(text)) {
+    if (itemName.contains('plenum') ||
+        itemName.contains('return air box') ||
+        itemName.contains('filter box') ||
+        itemName.contains('transition')) {
+      score += 38;
+    }
+    for (final term in [
+      'supply plenum',
+      'return plenum',
+      'return air box',
+      'filter box',
+      'duct transition',
+      'square to round transition',
+    ]) {
+      if (text.contains(term) && itemName.contains(term)) {
+        score += 76;
+      } else if (text.contains(term) &&
+          (itemName.contains('plenum') ||
+              itemName.contains('box') ||
+              itemName.contains('transition')) &&
+          !itemName.contains(term)) {
+        score -= 36;
+      }
+    }
+    for (final size in [
+      '16 x 16 x 24',
+      '16 x 20 x 24',
+      '18 x 18 x 24',
+      '20 x 20 x 24',
+      '20 x 25 x 24',
+      '24 x 24 x 24',
+      '16 x 16 x 30',
+      '16 x 20 x 30',
+      '18 x 18 x 30',
+      '20 x 20 x 30',
+      '20 x 25 x 30',
+      '24 x 24 x 30',
+      '16 x 16 x 36',
+      '16 x 20 x 36',
+      '18 x 18 x 36',
+      '20 x 20 x 36',
+      '20 x 25 x 36',
+      '24 x 24 x 36',
+      '16 x 16 x 48',
+      '16 x 20 x 48',
+      '18 x 18 x 48',
+      '20 x 20 x 48',
+      '20 x 25 x 48',
+      '24 x 24 x 48',
+    ]) {
+      final compact = size.replaceAll(' ', '');
+      if ((text.contains(size) || text.contains(compact)) &&
+          itemName.contains(size)) {
+        score += 46;
+      }
+    }
+  }
   if (RegExp(
         r'\b(dryer vent|dryer duct|vent hood|bath fan|exhaust duct)\b',
       ).hasMatch(text) &&
@@ -291,6 +355,31 @@ int _hvacToolsHydronicReceiptScore(_HvacReceiptScoreContext context) {
         score -= 18;
       }
     }
+  }
+  if (category == 'air filters' && text.contains('mfd')) score -= 18;
+  if (system == 'thermostats' && text.contains('capacitor')) score -= 18;
+  if (system == 'capacitors and contactors' && text.contains('filter')) {
+    score -= 18;
+  }
+  for (final term in [
+    'filter rack',
+    'return filter grille',
+    'secondary drain pan',
+    'clear vinyl tubing',
+    'line set cover',
+    'line hide',
+    'equipment pad',
+    'wall bracket',
+    'register boot',
+    'spin-in',
+    'start collar',
+    'b vent',
+    'flue pipe',
+    'wall cap',
+    'rollout switch',
+    'limit switch',
+  ]) {
+    if (text.contains(term) && variant.contains(term)) score += 42;
   }
   return score;
 }

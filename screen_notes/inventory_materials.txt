@@ -89,3 +89,43 @@ of making users type every line manually. Firebase writes must be bundled; do
 not write one document per item during pack generation. Residential and
 light-industrial usefulness is the priority, with each trade pack preferably
 kept around 30-50 MB or less where practical."
+
+Source: visible user message, 2026-07-11 Mac trade-pack handoff
+
+"Maintainiac_5.6_Active on the Mac Mini is the authoritative working folder;
+the Windows parser work has already been transferred into it. Trade-pack
+downloads remain free. Users may install one or many packs locally for offline
+use, or optionally subscribe to hosted online trade-pack assistance without
+storing every catalog on the phone. Local-only inventory must remain usable,
+Firebase backup must be opt-in, and hosted parsing must not take ownership of
+or become required for the user's inventory records. Existing oversized parser
+files do not need a file-size cleanup during the current repair if they work."
+
+Source: visible user message, 2026-07-11 inventory parser structure
+
+"The inventory parsing system should be named around inventory parser. Use an
+inventory_parser.dart entry point, with one clear folder/directory per trade.
+Use names such as electrical_parser.dart, plumbing_parser.dart, and
+hvac_parser.dart. Use underscores in Dart filenames and never dashes, numbered
+catch-all names, or vague parser file names."
+
+Source: visible user message, 2026-07-11 base-install storage correction
+
+"Do not ship inventory items in the base app, except only if a later release
+requires a very small explicitly approved default set. The default direction is
+no inventory catalog items downloaded with the app. Keep only a lightweight
+receipt abbreviation, merchant-normalization, and parsing-rule layer needed to
+understand common hardware-store shorthand. Trade item catalogs must be either
+queried on demand through the opt-in hosted service or explicitly downloaded by
+the user for offline use. The app must still support accurate inventory receipt
+parsing from common hardware stores; target a measured 92-95% accuracy on the
+defined supported merchant/trade receipt corpus, not an unverified claim of
+100% coverage for every store or SKU."
+
+Source: visible user message, 2026-07-12 OCR ownership boundary
+
+"Keep OCR separate from inventory parsing because another Codex model will own
+OCR work. Inventory parsing begins only after OCR hands off normalized text,
+optional line candidates/confidence, merchant hints, and receipt metadata. Do
+not change camera, image cleanup, stitching, OCR recognition, or OCR output
+semantics from the inventory-parser lane."

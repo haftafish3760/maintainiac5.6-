@@ -24,15 +24,18 @@ void main() {
     await tester.pumpWidget(
       ExpenseDraftScope(
         controller: controller,
-        child: const MaterialApp(
-          home: Scaffold(
-            body: ReceiptDraftsPanel(),
-          ),
-        ),
+        child: const MaterialApp(home: Scaffold(body: ReceiptDraftsPanel())),
       ),
     );
 
-    expect(find.text('Receipt Draft'), findsOneWidget);
+    expect(find.text('Receipt Drafts'), findsOneWidget);
+    expect(find.text('1 saved draft | Latest 7/8/2026'), findsOneWidget);
+    expect(find.text('Lowes'), findsNothing);
+
+    await tester.tap(find.text('Receipt Drafts'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Receipt Drafts'), findsNWidgets(2));
     expect(find.text('Lowes'), findsOneWidget);
     expect(find.text('Unfinished receipts'), findsNothing);
   });

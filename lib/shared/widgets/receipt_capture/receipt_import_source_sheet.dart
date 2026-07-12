@@ -132,7 +132,7 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Choose the source first. You review photos before Maintainiac reads anything.',
+              'Choose how you want to add this receipt.',
               style: TextStyle(
                 color: Color(0xFFC8D0D3),
                 fontSize: 12,
@@ -141,8 +141,6 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                 letterSpacing: 0,
               ),
             ),
-            const SizedBox(height: 12),
-            const _ReceiptImportFlowPreview(),
             const SizedBox(height: 12),
             GridView.count(
               crossAxisCount: 2,
@@ -156,103 +154,9 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                   _ReceiptImportTile(source: source),
               ],
             ),
-            const SizedBox(height: 14),
-            const _ReceiptImportShareHint(),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ReceiptImportFlowPreview extends StatelessWidget {
-  const _ReceiptImportFlowPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    const steps = [
-      ('1', 'Capture or upload'),
-      ('2', 'Review photos'),
-      ('3', 'Use receipt'),
-    ];
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0E1416),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF344047)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Row(
-          children: [
-            for (var i = 0; i < steps.length; i++) ...[
-              Expanded(
-                child: _ReceiptImportStepBadge(
-                  number: steps[i].$1,
-                  label: steps[i].$2,
-                ),
-              ),
-              if (i != steps.length - 1)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5),
-                  child: Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF95A3A8),
-                    size: 18,
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiptImportStepBadge extends StatelessWidget {
-  const _ReceiptImportStepBadge({required this.number, required this.label});
-
-  final String number;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFD166),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-            child: Text(
-              number,
-              style: const TextStyle(
-                color: Color(0xFF101416),
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 5),
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFFE8ECEE),
-              fontSize: 10.5,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

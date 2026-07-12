@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/calendar/month_year_picker.dart';
+import '../../../shared/state/app_state.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -29,3 +30,4 @@ part 'expense_receipt_detail_line_items.dart';
 part 'expense_calendar_actions.dart';
 part 'expense_calendar_models.dart';
 part 'expense_calendar_painter.dart';
+part 'expense_calendar_context_header.dart';

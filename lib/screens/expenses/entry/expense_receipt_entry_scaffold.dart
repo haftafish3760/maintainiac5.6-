@@ -23,15 +23,21 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                   : _isMaintenanceRepairFlow
                   ? 'Maintenance / Repair Receipt'
                   : 'Expense Receipt',
-              subtitle: _isMaterialsFlow
-                  ? 'Log material purchases as expenses. Inventory tracking is optional.'
-                  : _isMaintenanceRepairFlow
-                  ? 'Log the expense now. Maintenance event linking is next so the same receipt can update maintenance records.'
-                  : _isEditingReceipt
-                  ? 'Review and update the original saved receipt fields.'
-                  : 'Record what was spent. Add each receipt line as business or personal.',
             ),
             const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Select which vehicle this expense belongs to.',
+                style: TextStyle(
+                  color: Color(0xFFC8D0D3),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
             const GlobalOdometerHeader(section: AppSection.expenses),
             const SizedBox(height: 8),
             if (_isMaterialsFlow) ...[

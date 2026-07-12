@@ -43,76 +43,9 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         setPadding(dp(18), dp(12), dp(18), dp(18))
     }
     content.addView(settingSummary(
-        "Current receipt flow",
-        "Capture or upload, review photos, use receipt, then review filled details. Brightness and light stay on the camera viewer.",
+        "Camera only",
+        "These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
     ))
-    content.addView(settingSectionHeader("ACCOUNT AND STORAGE"))
-    content.addView(settingSwitch(
-        "Back up receipt photos",
-        "When enabled, saved proof copies can use Maintainiac backup. Full-size originals stay temporary unless you choose to keep them.",
-        receiptPhotoBackupEnabled,
-    ) {
-        receiptPhotoBackupEnabled = it
-        updateSettingsStatusStrip()
-    })
-    content.addView(settingMetricRow(
-        "Storage remaining",
-        receiptBackupRemainingLabel(),
-        receiptBackupStorageDetailText(),
-    ))
-    content.addView(settingMetricRow(
-        "Estimated receipt room",
-        receiptBackupEstimatedReceiptCountLabel(),
-        receiptBackupEstimatedReceiptDetailText(),
-    ))
-    content.addView(settingChoiceGroup(
-        title = "Saved proof size",
-        detail = "OCR reads the clearest temporary source first. This controls the smaller proof copy kept for review and backup.",
-        selectedValue = dataSaverLevel,
-        options = listOf(
-            "light" to "High quality",
-            "balanced" to "Balanced",
-            "strong" to "Save storage",
-            "maximum" to "Maximum savings",
-            "original" to "Keep original locally",
-        ),
-    ) { selected ->
-        dataSaverLevel = selected
-        updateSettingsStatusStrip()
-    })
-    content.addView(settingSwitch(
-        "Ask proof size each receipt",
-        "Show the proof-size choice during receipt review instead of always using this default.",
-        askSavedProofSizeEachReceipt,
-    ) {
-        askSavedProofSizeEachReceipt = it
-        updateSettingsStatusStrip()
-    })
-    content.addView(settingSectionHeader("RECEIPT ASSIST"))
-    content.addView(settingSwitch(
-        "Let Maintainiac help fill this receipt",
-        "Read the photo and suggest receipt fields. You review everything before saving.",
-        assistedReceiptFill,
-    ) {
-        assistedReceiptFill = it
-        updateSettingsStatusStrip()
-    })
-    content.addView(settingSummary(
-        "Manual entry stays available",
-        "Turning Receipt Assist off keeps the photo attached and lets you fill the receipt form yourself.",
-    ))
-    content.addView(settingChoiceGroup(
-        title = "Receipt details style",
-        detail = "Choose the review screen Maintainiac opens after receipt text is read.",
-        selectedValue = reviewDepth,
-        options = listOf(
-            "pricesOnly" to "Price-only review",
-            "detailedLines" to "Detailed line review",
-        ),
-    ) { selected ->
-        reviewDepth = selected
-        updateSettingsStatusStrip()
-    })
     content.addView(settingSectionHeader("CAPTURE FLOW"))
     content.addView(settingSwitch(
         "Long receipt mode",
@@ -182,21 +115,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         updateSettingsStatusStrip()
     })
     content.addView(settingSummary(
-        "Capture order",
-        "Take the first photo, review it, add another section only when the receipt continues, then use the receipt.",
-    ))
-    content.addView(settingSummary(
-        "Photo review decisions",
-        "Retake fixes the current photo. Add Another is only for long receipts. Use Receipt starts OCR and opens the details review.",
-    ))
-    content.addView(settingSectionHeader("IMAGE HANDOFF"))
-    content.addView(settingSummary(
-        "Text reading source",
-        "Maintainiac reads from the clearest temporary photo first. Smaller saved proof copies are made after the receipt has been read.",
-    ))
-    content.addView(settingSummary(
-        "Long receipt stitching",
-        "Sections are numbered top to bottom. Overlap is kept so review and stitching can match repeated lines.",
+        "Long receipts",
+        "Capture sections from top to bottom and repeat a few readable lines between photos so Maintainiac can match them.",
     ))
     content.addView(settingSectionHeader("CAMERA CONTROLS"))
     content.addView(settingSummary(
@@ -206,11 +126,6 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSummary(
         "Focus",
         "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
-    ))
-    content.addView(settingSectionHeader("PRIVACY AND DIAGNOSTICS"))
-    content.addView(settingSummary(
-        "Improve receipt capture",
-        "Receipt diagnostics must stay privacy-safe. Receipt images are not shown to the app owner from this screen.",
     ))
     val scroll = ScrollView(this).apply {
         isFillViewport = true
@@ -327,14 +242,9 @@ internal fun ReceiptCameraActivity.formatReceiptBytes(bytes: Long): String {
 
 internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
     settingsResetCount += 1
-    // Receipt Assist remains opt-in, even after restoring camera defaults.
-    assistedReceiptFill = false
-    receiptPhotoBackupEnabled = false
-    longReceiptMode = canUseLongReceiptMode()
+    // Expense and account preferences are deliberately not reset here.
+    longReceiptMode = false
     autoCaptureEnabled = false
-    reviewDepth = "pricesOnly"
-    dataSaverLevel = "balanced"
-    askSavedProofSizeEachReceipt = false
     autoExposureAssistEnabled = true
     liveAnalysisEnabled = true
     edgeDetectionEnabled = true

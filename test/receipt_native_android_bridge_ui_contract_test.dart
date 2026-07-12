@@ -61,20 +61,13 @@ void main() {
     expect(cameraActivity, contains('"detailedlines" -> "detailedLines"'));
     expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
     expect(cameraActivity, contains('Receipt Camera Settings'));
-    expect(cameraActivity, contains('ACCOUNT AND STORAGE'));
-    expect(cameraActivity, contains('Back up receipt photos'));
-    expect(cameraActivity, contains('receiptPhotoBackupEnabled'));
-    expect(cameraActivity, contains('RECEIPT ASSIST'));
+    expect(cameraActivity, contains('Camera only'));
+    expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
+    expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
     expect(cameraActivity, contains('CAPTURE FLOW'));
-    expect(cameraActivity, contains('IMAGE HANDOFF'));
+    expect(cameraActivity, isNot(contains('IMAGE HANDOFF')));
     expect(cameraActivity, contains('CAMERA CONTROLS'));
-    expect(cameraActivity, contains('PRIVACY AND DIAGNOSTICS'));
-    expect(
-      cameraActivity,
-      contains(
-        'OCR reads the clearest temporary source first. This controls the smaller proof copy kept for review and backup.',
-      ),
-    );
+    expect(cameraActivity, isNot(contains('PRIVACY AND DIAGNOSTICS')));
     expect(
       cameraActivity,
       contains(r'return "$assist • $depth • $length • $light"'),
@@ -235,8 +228,8 @@ void main() {
     expect(cameraActivity, contains('Color.argb(168, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(118, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(104, 5, 6, 7)'));
-    expect(cameraActivity, contains('Color.argb(138, 255, 209, 102)'));
-    expect(cameraActivity, contains('alpha = 0.54f'));
+    expect(cameraActivity, contains('Color.argb(92, 255, 209, 102)'));
+    expect(cameraActivity, contains('alpha = 0.36f'));
     expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
     expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FIT_CENTER')));
     expect(cameraActivity, contains('nativePreviewScaleMode'));
@@ -346,12 +339,13 @@ void main() {
     expect(cameraActivity, isNot(contains('"Long receipt on"')));
     expect(
       cameraActivity,
-      contains('Maintainiac reads from the clearest temporary photo first'),
+      isNot(
+        contains('Maintainiac reads from the clearest temporary photo first'),
+      ),
     );
     expect(cameraActivity, isNot(contains('OCR reads original first')));
-    expect(cameraActivity, contains('Smaller saved proof copies'));
-    expect(cameraActivity, contains('Capture order'));
-    expect(cameraActivity, contains('use the receipt'));
+    expect(cameraActivity, isNot(contains('Smaller saved proof copies')));
+    expect(cameraActivity, isNot(contains('Capture order')));
     expect(cameraActivity, contains('updateSettingsStatusStrip()'));
     expect(cameraActivity, contains('Reset Receipt Camera Defaults'));
     expect(

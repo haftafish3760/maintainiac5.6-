@@ -24,7 +24,10 @@ void main() {
     await tester.tap(find.text('Add Receipt'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Choose the source first'), findsOneWidget);
+    expect(
+      find.text('Choose how you want to add this receipt.'),
+      findsOneWidget,
+    );
     expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
     expect(find.text('Help'), findsOneWidget);
     expect(find.text('Capture Photo'), findsOneWidget);
@@ -34,18 +37,6 @@ void main() {
     expect(find.text('Text File'), findsNothing);
     expect(find.text('Share Help'), findsNothing);
 
-    await tester.scrollUntilVisible(
-      find.textContaining('choose Maintainiac'),
-      120,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.textContaining('choose Maintainiac'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('Help'),
-      -120,
-      scrollable: find.byType(Scrollable).last,
-    );
     await tester.tap(find.text('Help'));
     await tester.pumpAndSettle();
 
@@ -60,7 +51,10 @@ void main() {
     await tester.tap(find.text('Got It'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Choose the source first'), findsOneWidget);
+    expect(
+      find.text('Choose how you want to add this receipt.'),
+      findsOneWidget,
+    );
     expect(find.text('Upload PDF/File'), findsOneWidget);
   });
 
@@ -89,7 +83,10 @@ void main() {
 
     await tester.tap(find.text('Add Receipt'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Choose the source first'), findsOneWidget);
+    expect(
+      find.text('Choose how you want to add this receipt.'),
+      findsOneWidget,
+    );
     expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
 
@@ -102,7 +99,10 @@ void main() {
     await tester.tap(find.text('Got It'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Choose the source first'), findsOneWidget);
+    expect(
+      find.text('Choose how you want to add this receipt.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('paste slash text opens paste or text file chooser', (
@@ -178,6 +178,9 @@ void main() {
     final intro = await File(
       'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
     ).readAsString();
+    final uiConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_capture_ui_config.dart',
+    ).readAsString();
 
     final openStart = source.indexOf('Future<void> openReceiptImportOptions');
     final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
@@ -208,12 +211,13 @@ void main() {
     expect(takeBlock, isNot(contains('defaultDataSaverLevel')));
     expect(takeBlock, isNot(contains('parserPackInstallChoice')));
 
+    expect(intro, contains('uiConfig.firstUsePrompt'));
     expect(
-      intro,
+      uiConfig,
       contains('Would you like Maintainiac to help fill out receipt details?'),
     );
-    expect(intro, contains('Yes, Use Receipt Assist'));
-    expect(intro, contains('No, Manual Entry'));
+    expect(uiConfig, contains('Yes, Use Receipt Assist'));
+    expect(uiConfig, contains('No, Manual Entry'));
     expect(intro, contains('Manual entry is always available'));
     expect(intro, isNot(contains('OCR')));
     expect(intro, isNot(contains('compression')));
@@ -221,29 +225,34 @@ void main() {
     expect(intro, isNot(contains('Saved Receipt Proof Size')));
   });
 
-  test('paste slash text path routes through a dedicated text choice', () async {
-    final source = await File(
-      'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
-    ).readAsString();
+  test(
+    'paste slash text path routes through a dedicated text choice',
+    () async {
+      final source = await File(
+        'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+      ).readAsString();
 
-    final openStart = source.indexOf('Future<void> openReceiptImportOptions');
-    final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
-    final openBlock = source.substring(openStart, openEnd);
-    final pasteCaseStart = openBlock.indexOf(
-      'case _ReceiptImportAction.pasteText',
-    );
-    final shareCaseStart = openBlock.indexOf('case _ReceiptImportAction.shareHelp');
-    final pasteCase = openBlock.substring(pasteCaseStart, shareCaseStart);
+      final openStart = source.indexOf('Future<void> openReceiptImportOptions');
+      final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
+      final openBlock = source.substring(openStart, openEnd);
+      final pasteCaseStart = openBlock.indexOf(
+        'case _ReceiptImportAction.pasteText',
+      );
+      final shareCaseStart = openBlock.indexOf(
+        'case _ReceiptImportAction.shareHelp',
+      );
+      final pasteCase = openBlock.substring(pasteCaseStart, shareCaseStart);
 
-    expect(pasteCase, contains('_chooseReceiptTextImportAction()'));
-    expect(pasteCase, contains('returnToReceiptImportOptions()'));
-    expect(pasteCase, contains('_ReceiptTextImportAction.pasteText'));
-    expect(pasteCase, contains('_ReceiptTextImportAction.textFile'));
-    expect(pasteCase, contains('openImportedTextSheet'));
-    expect(pasteCase, contains('pickImportedTextFile'));
-    expect(source, contains('class _ReceiptTextImportSheet'));
-    expect(source, contains('Paste or import receipt text'));
-    expect(source, contains('Paste Text'));
-    expect(source, contains('Text File'));
-  });
+      expect(pasteCase, contains('_chooseReceiptTextImportAction()'));
+      expect(pasteCase, contains('returnToReceiptImportOptions()'));
+      expect(pasteCase, contains('_ReceiptTextImportAction.pasteText'));
+      expect(pasteCase, contains('_ReceiptTextImportAction.textFile'));
+      expect(pasteCase, contains('openImportedTextSheet'));
+      expect(pasteCase, contains('pickImportedTextFile'));
+      expect(source, contains('class _ReceiptTextImportSheet'));
+      expect(source, contains('Paste or import receipt text'));
+      expect(source, contains('Paste Text'));
+      expect(source, contains('Text File'));
+    },
+  );
 }

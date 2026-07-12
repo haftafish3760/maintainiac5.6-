@@ -36,7 +36,8 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
           const SizedBox(height: 8),
           _ReceiptCaptureTargetGuidance(hasAttachment: _hasAttachment),
         ],
-        if (_recoverableNativeCaptures.isNotEmpty) ...[
+        if (widget.showInterruptedCaptureRecovery &&
+            _recoverableNativeCaptures.isNotEmpty) ...[
           const SizedBox(height: 8),
           _ReceiptInterruptedCaptureBanner(
             record: _recoverableNativeCaptures.first,

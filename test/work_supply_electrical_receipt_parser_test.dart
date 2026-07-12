@@ -13,7 +13,9 @@ void main() {
 
     final thhn = matchReceiptLineToCatalog('LOWES 12 AWG THHN WIRE RED');
     expect(thhn, isNotNull);
-    expect(thhn!.item.name, '12 AWG THHN Wire');
+    expect(thhn!.item.name, contains('12 AWG'));
+    expect(thhn.item.name, contains('THHN'));
+    expect(thhn.item.name, contains('Red'));
     expect(thhn.item.trade, 'Electrical');
   });
 
@@ -181,29 +183,32 @@ void main() {
     expect(bubbleCover.item.name, contains('Weatherproof'));
   });
 
-  test('electrical parser keeps decorator wall plates off blank cover plates', () {
-    final homeDepot = matchReceiptLineToCatalog(
-      'HD 1G DECORA WALL PLATE 11.70',
-      tradeScope: 'Electrical',
-      maxCandidates: 160,
-    );
-    expect(homeDepot, isNotNull);
-    expect(homeDepot!.item.trade, 'Electrical');
-    expect(homeDepot.item.name, contains('Wall Plate'));
-    expect(homeDepot.item.name, contains('Decorator'));
-    expect(homeDepot.item.name, isNot(contains('Blank')));
+  test(
+    'electrical parser keeps decorator wall plates off blank cover plates',
+    () {
+      final homeDepot = matchReceiptLineToCatalog(
+        'HD 1G DECORA WALL PLATE 11.70',
+        tradeScope: 'Electrical',
+        maxCandidates: 160,
+      );
+      expect(homeDepot, isNotNull);
+      expect(homeDepot!.item.trade, 'Electrical');
+      expect(homeDepot.item.name, contains('Wall Plate'));
+      expect(homeDepot.item.name, contains('Decorator'));
+      expect(homeDepot.item.name, isNot(contains('Blank')));
 
-    final ace = matchReceiptLineToCatalog(
-      'ACE 1G DECORA WALL PLATE 23.54',
-      tradeScope: 'Electrical',
-      maxCandidates: 160,
-    );
-    expect(ace, isNotNull);
-    expect(ace!.item.trade, 'Electrical');
-    expect(ace.item.name, contains('Wall Plate'));
-    expect(ace.item.name, contains('Decorator'));
-    expect(ace.item.name, isNot(contains('Blank')));
-  });
+      final ace = matchReceiptLineToCatalog(
+        'ACE 1G DECORA WALL PLATE 23.54',
+        tradeScope: 'Electrical',
+        maxCandidates: 160,
+      );
+      expect(ace, isNotNull);
+      expect(ace!.item.trade, 'Electrical');
+      expect(ace.item.name, contains('Wall Plate'));
+      expect(ace.item.name, contains('Decorator'));
+      expect(ace.item.name, isNot(contains('Blank')));
+    },
+  );
 
   test('electrical parser understands Spanish decora wall plate wording', () {
     final homeDepot = matchReceiptLineToCatalog(

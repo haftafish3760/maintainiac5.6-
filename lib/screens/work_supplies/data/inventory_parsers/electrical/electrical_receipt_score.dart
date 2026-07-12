@@ -1,5 +1,6 @@
-part of 'work_supply_receipt_parser.dart';
+part of '../../work_supply_receipt_parser.dart';
 
+/// Scores receipt evidence for the Electrical trade.
 int _electricalReceiptScore(
   String text,
   String trade,
@@ -10,8 +11,7 @@ int _electricalReceiptScore(
   var score = 0;
   if (trade != 'electrical') return score;
   if (RegExp(
-    r'\b(gfci|gfi|receptacle|recept|outlet|romex|nm-b|nmb|mc|armored|emt|conduit|raceway|awg|wire|breaker|lb body|smart switch|smart dimmer|smoke alarm|'
-    r'smoke detector|co alarm|fan box|fan brace|weatherhead|ground bar|panel filler)\b',
+    r'\b(gfci|gfi|receptacle|recept|outlet|romex|nm-b|nmb|mc|armored|emt|conduit|raceway|awg|wire|breaker|lb body|smart switch|smart dimmer|smoke alarm|smoke detector|co alarm|fan box|fan brace|weatherhead|ground bar|panel filler)\b',
   ).hasMatch(text)) {
     score += 16;
   }
@@ -41,7 +41,9 @@ int _electricalReceiptScore(
   final receiptSaysDoublePole = RegExp(
     r'\b(double pole|double-pole|2p)\b',
   ).hasMatch(text);
-  final receiptSaysGfci = RegExp(r'\b(gfci|gfi|ground fault)\b').hasMatch(text);
+  final receiptSaysGfci = RegExp(
+    r'\b(gfci|gfc1|gfi|ground fault)\b',
+  ).hasMatch(text);
   final receiptSaysAfci = RegExp(r'\b(afci|arc fault)\b').hasMatch(text);
   final receiptSaysDualFunction = RegExp(
     r'\b(dual function|dual-function)\b',
@@ -52,6 +54,12 @@ int _electricalReceiptScore(
   ).hasMatch(text);
   final receiptSaysMcCable = RegExp(
     r'\b(mc|armored cable|metal clad|bx)\b',
+  ).hasMatch(text);
+  final receiptSaysFlexibleRaceway = RegExp(
+    r'\b(flex|flexible|fmc|liquid\s*tight|liquidtight|sealtite)\b',
+  ).hasMatch(text);
+  final receiptSaysPhotocell = RegExp(
+    r'\b(photocell|photoeye|photo eye)\b',
   ).hasMatch(text);
   final receiptSaysEmt = RegExp(r'\b(emt|thinwall)\b').hasMatch(text);
   final receiptSaysConduit = RegExp(r'\b(conduit|pipe)\b').hasMatch(text);
@@ -93,6 +101,9 @@ int _electricalReceiptScore(
   final receiptSaysWeatherproofCover = RegExp(
     r'\b(weatherproof|extra duty|in use|in-use|bubble cover|outdoor cover)\b',
   ).hasMatch(text);
+  final receiptSaysWallPlate = RegExp(
+    r'\b(wall plate|cover plate|switch plate|device plate|blank plate|placa|placa electrica|placa decora|placa decorador|cubierta electrica)\b',
+  ).hasMatch(text);
   final receiptSaysPanelAccessory = RegExp(
     r'\b(ground bar|neutral bar|breaker filler|panel filler|panel label|circuit directory|panel schedule|interlock kit|surge protective)\b',
   ).hasMatch(text);
@@ -115,6 +126,17 @@ int _electricalReceiptScore(
   }
   if (receiptSaysMcCable && itemType.contains('armored cable')) score += 28;
   if (receiptSaysMcCable && itemType.contains('nm-b')) score -= 16;
+  if (receiptSaysFlexibleRaceway &&
+      (itemType.contains('flexible raceway') ||
+          itemName.contains('flexible raceway') ||
+          variant.contains('flexible metal') ||
+          variant.contains('fmc') ||
+          variant.contains('liquidtight'))) {
+    score += 54;
+  }
+  if (receiptSaysFlexibleRaceway && variant.contains('1/2 in')) score += 26;
+  if (receiptSaysFlexibleRaceway && variant.contains('1-1/2 in')) score -= 28;
+  if (receiptSaysFlexibleRaceway && system == 'emt') score -= 26;
   if (receiptSaysNmCable && system == 'conduit wire') score -= 20;
   if (receiptSaysThhn && system == 'nm-b cable') score -= 20;
   if (text.contains('with ground') && system == 'nm-b cable') score += 10;
@@ -137,7 +159,7 @@ int _electricalReceiptScore(
       score -= 10;
     }
   }
-  if (receiptSaysGfci && itemType.contains('gfci')) score += 20;
+  if (receiptSaysGfci && itemType.contains('gfci')) score += 36;
   if (receiptSaysGfci && !itemType.contains('gfci')) score -= 12;
   if (receiptSaysAfci && itemType.contains('afci')) score += 20;
   if (receiptSaysAfci && !itemType.contains('afci')) score -= 12;
@@ -186,6 +208,8 @@ int _electricalReceiptScore(
           itemName.contains('led'))) {
     score += 44;
   }
+  if (receiptSaysPhotocell && variant.contains('photocell')) score += 110;
+  if (receiptSaysPhotocell && !variant.contains('photocell')) score -= 36;
   if (text.contains('shop light') && itemName.contains('shop light')) {
     score += 36;
   }
@@ -222,14 +246,51 @@ int _electricalReceiptScore(
       score += 82;
     }
   }
+  if (receiptSaysWallPlate && itemName.contains('cover plate')) {
+    score += 48;
+    if (text.contains('blank') && variant.contains('blank')) score += 32;
+    if (!text.contains('blank') && variant.contains('blank')) score -= 36;
+    if (RegExp(r'\b(1g|1 gang|single gang)\b').hasMatch(text) &&
+        variant.contains('1 gang')) {
+      score += 28;
+    }
+    if (RegExp(r'\b(wht|white)\b').hasMatch(text)) {
+      if (variant.contains('white')) {
+        score += 42;
+      } else if (variant.contains('black') || variant.contains('brown')) {
+        score -= 42;
+      }
+    }
+  }
+  if (receiptSaysWallPlate && itemName.contains('wall plate')) {
+    score += 54;
+    if (RegExp(r'\b(decora|decorator|decorador)\b').hasMatch(text)) {
+      if (variant.contains('decorator')) {
+        score += 58;
+      } else if (variant.contains('blank') ||
+          variant.contains('toggle') ||
+          variant.contains('duplex')) {
+        score -= 52;
+      }
+    }
+    if (text.contains('blank')) {
+      if (variant.contains('blank')) {
+        score += 36;
+      } else {
+        score -= 26;
+      }
+    } else if (variant.contains('blank')) {
+      score -= 32;
+    }
+  }
   if (receiptSaysBoxAccessory && itemType.contains('box accessories')) {
     score += 34;
   }
   if (RegExp(r'\b(low voltage bracket|lv bracket)\b').hasMatch(text) &&
       itemType.contains('box accessories')) {
-    score += 18;
+    score += 42;
     if (itemName.contains('mud ring') || itemName.contains('box extender')) {
-      score += 8;
+      score += 24;
     }
   }
   if (receiptSaysPanelAccessory && itemType.contains('panel accessories')) {

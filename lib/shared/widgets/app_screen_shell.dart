@@ -34,12 +34,14 @@ class AppScreenShell extends StatelessWidget {
     this.maxWidth = 600,
     this.section = AppSection.dashboard,
     this.floatingActionButton,
+    this.pinnedHeader,
   });
 
   final Widget body;
   final double maxWidth;
   final AppSection section;
   final Widget? floatingActionButton;
+  final Widget? pinnedHeader;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +62,14 @@ class AppScreenShell extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
-              child: body,
+              child: pinnedHeader == null
+                  ? body
+                  : Column(
+                      children: [
+                        pinnedHeader!,
+                        Expanded(child: body),
+                      ],
+                    ),
             ),
           ),
         ),
