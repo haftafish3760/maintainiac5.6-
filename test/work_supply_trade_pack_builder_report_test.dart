@@ -59,7 +59,7 @@ void main() {
     print('TOTAL_EXPORT_BYTES=$totalBytes (${_byteSizeLabel(totalBytes)})');
     // ignore: avoid_print
     print('OUTPUT_DIR=${outDir.path}');
-  });
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }
 
 Iterable<WorkSupplyTradePackOption> _optionsFor(
