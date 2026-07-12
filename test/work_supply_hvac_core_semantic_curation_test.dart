@@ -19,7 +19,7 @@ void main() {
           category.contains('hydronic and boiler');
     });
     expect(drift, isEmpty);
-    expect(core.length, 1276);
+    expect(core.length, 1279);
   });
 
   test('HVAC Core metadata stays aligned with semantic tiering', () {

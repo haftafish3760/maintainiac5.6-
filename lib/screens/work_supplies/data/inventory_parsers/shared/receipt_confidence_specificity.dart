@@ -46,6 +46,11 @@ double _specificityEvidenceScore(String text, WorkSupplyItem item) {
       itemText.contains('foam gasket tape')) {
     score += 0.10;
   }
+  if (RegExp(r'\b(cond|condensate|drain)\b').hasMatch(text) &&
+      RegExp(r'\b(tabs?|tablets?)\b').hasMatch(text) &&
+      itemText.contains('condensate drain tablets')) {
+    score += 0.12;
+  }
   final rawItemText = '${item.name} ${item.variant} ${item.itemType}'
       .toLowerCase();
   if (_hasPTrapReceiptPhrase(text) &&

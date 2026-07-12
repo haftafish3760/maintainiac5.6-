@@ -48,6 +48,8 @@ const _hvacCoreCondensateSignals = [
   'condensate pump',
   'condensate line',
   'condensate drain',
+  'condensate drain tablets',
+  'drain pan tablet',
   'condensate safety switch',
   'condensate switch',
   'float switch',

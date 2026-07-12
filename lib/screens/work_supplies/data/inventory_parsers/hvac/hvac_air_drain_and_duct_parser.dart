@@ -162,14 +162,18 @@ WorkSupplyItem? _directHvacAirDrainAndDuctMatch(String text) {
     r'pastillas bandeja|tabletas drenaje)\b',
   ).hasMatch(text);
   if (wantsDrainTabs) {
+    WorkSupplyItem? fallback;
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'HVAC' &&
           (name.contains('condensate drain tablets') ||
+              name.contains('drain pan tablet') ||
               name.contains('drain tablet'))) {
-        return item;
+        if (item.packTier == WorkSupplyPackTier.core) return item;
+        fallback ??= item;
       }
     }
+    if (fallback != null) return fallback;
   }
 
   final wantsCondensateDrainGun =

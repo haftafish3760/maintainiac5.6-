@@ -242,10 +242,29 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
   }
 
   final wantsCondensateTablets =
-      RegExp(r'\b(condensate|drain\s*pan|drain)\b').hasMatch(text) &&
+      RegExp(r'\b(condensate|cond|drain\s*pan|drain)\b').hasMatch(text) &&
       RegExp(r'\b(tablets?|tabs?)\b').hasMatch(text);
   if (wantsCondensateTablets) {
-    final match = findHvac((name) => name.contains('condensate drain tablets'));
+    final match = findHvac(
+      (name) =>
+          name.contains('condensate drain tablets') ||
+          name.contains('drain pan tablet'),
+    );
+    if (match != null) return match;
+  }
+
+  final wantsLowVoltageFuse =
+      RegExp(r'\b(low\s+volt(?:age)?|lv)\b').hasMatch(text) &&
+      RegExp(r'\bfuse\b').hasMatch(text);
+  if (wantsLowVoltageFuse) {
+    final amps = RegExp(r'\b(3|5)\s*(?:a|amp)\b').firstMatch(text)?.group(1);
+    final wantsHolder = RegExp(r'\bholder\b').hasMatch(text);
+    final match = findHvac(
+      (name) =>
+          name.contains('low voltage fuse') &&
+          (wantsHolder == name.contains('holder')) &&
+          (amps == null || name.contains('$amps amp')),
+    );
     if (match != null) return match;
   }
 
