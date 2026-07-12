@@ -51,6 +51,20 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
     if (match != null) return match;
   }
 
+  // A C-wire adapter is a thermostat accessory, not a thermostat wire roll.
+  // Resolve it before the broad thermostat-wire rule below so abbreviated
+  // supply-house lines such as "C WIRE ADAPTER TSTAT" retain their identity.
+  final wantsCommonWireAdapter =
+      RegExp(r'\b(c\s*wire|common\s+wire|wire\s+saver)\b').hasMatch(text) &&
+      RegExp(r'\b(adapter|adpt|tstat|thermostat)\b').hasMatch(text);
+  if (wantsCommonWireAdapter) {
+    final match = findHvac(
+      (name) =>
+          name.contains('common wire adapter') || name.contains('wire saver'),
+    );
+    if (match != null) return match;
+  }
+
   final thermostatWire =
       RegExp(r'\b(stat|tstat|thermostat|termostato)\b').hasMatch(text) &&
       RegExp(r'\b(wire|cable)\b').hasMatch(text);
