@@ -149,7 +149,10 @@ void main() {
       contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
     );
     expect(previewControls, contains("total <= 1"));
-    expect(previewControls, contains("'Section \$current of \$total'"));
+    expect(
+      previewControls,
+      contains('strings.receiptSectionOf(current, total)'),
+    );
     expect(previewRow, contains('maxLines: compact ? 1 : 2'));
     expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(

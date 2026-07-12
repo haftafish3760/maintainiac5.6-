@@ -338,9 +338,12 @@ void main() {
         bottomBar,
         contains('capturedPhotoCount > 0 && onReviewCapturedPhotos != null'),
       );
-      expect(bottomBar, contains("return 'Done';"));
-      expect(bottomBar, contains("return 'Done (\$capturedPhotoCount)';"));
-      expect(bottomBar, contains("label: 'Add Photo'"));
+      expect(bottomBar, contains('return uiConfig.doneLabel;'));
+      expect(
+        bottomBar,
+        contains("return '\${uiConfig.doneLabel} (\$capturedPhotoCount)';"),
+      );
+      expect(bottomBar, contains('label: uiConfig.addPhotoLabel'));
     },
   );
 }

@@ -125,7 +125,7 @@ void main() {
     expect(helpSheet, contains('_ReceiptFirstUseCameraAction.manualEntry'));
     expect(
       attachmentPublishHelpers,
-      isNot(contains('openReceiptCaptureSettings()')),
+      contains('openReceiptCaptureSettings()'),
     );
     expect(settingsSheet, contains('Expense Receipt Settings'));
     expect(
@@ -140,13 +140,13 @@ void main() {
     expect(settingsSheet, isNot(contains('deviceModel')));
     expect(settingsSheet, isNot(contains('deviceName')));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
-    expect(settingsSheet, contains("title: 'Saved Proof Size'"));
+    expect(settingsSheet, contains("title: 'Receipt Details And Saved Proof'"));
     expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
     expect(settingsSheet, contains('if (!hasSavedReceiptProof) ...['));
     expect(
       settingsSheet,
       contains(
-        'After a receipt photo is attached, the review screen shows the actual proof size',
+        'Saved Receipt Proof Size appears after your first receipt photo or file is attached.',
       ),
     );
     expect(

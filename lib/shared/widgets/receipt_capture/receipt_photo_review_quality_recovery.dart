@@ -84,6 +84,7 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final photoQuality = quality;
     final nativeCaptureWarning = nativeWarning;
     final shouldEmphasizeAddSection =
@@ -92,10 +93,10 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
     final title = nativeCaptureWarning != null
         ? nativeCaptureWarning.title
         : hasCriticalQualityIssue
-        ? 'Retake Recommended'
+        ? strings.retakeRecommended
         : coverageDecision.shouldPromptForMorePhotos
         ? coverageDecision.title
-        : photoQuality?.nextReviewActionLabel ?? 'Check Photo Before Use';
+        : photoQuality?.nextReviewActionLabel ?? strings.checkPhotoBeforeUse;
     final detail = nativeCaptureWarning != null
         ? nativeCaptureWarning.detail
         : coverageDecision.shouldPromptForMorePhotos
@@ -120,22 +121,22 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
             : Icons.info_outline_rounded);
     final retakeButton = _ReceiptMiniRecoveryButton(
       icon: Icons.camera_alt_rounded,
-      label: 'Retake',
+      label: strings.retakeReceiptPhoto,
       onPressed: openingCamera ? null : onRetake,
       emphasized: hasCriticalQualityIssue && !shouldEmphasizeAddSection,
     );
     final cropButton = _ReceiptMiniRecoveryButton(
       icon: Icons.crop_rounded,
-      label: 'Crop',
+      label: strings.cropReceiptPhoto,
       onPressed: onCrop,
     );
     final addButton = _ReceiptMiniRecoveryButton(
       icon: Icons.add_a_photo_rounded,
       label: coverageDecision.isMissingBottomEdgeAndTotals
-          ? 'Add Bottom Section'
+          ? strings.addBottomReceiptSection
           : coverageDecision.shouldPromptForMorePhotos
-          ? 'Add Another Photo'
-          : 'Add Another Photo',
+          ? strings.addAnotherReceiptPhoto
+          : strings.addAnotherReceiptPhoto,
       onPressed: openingCamera ? null : onAddPhoto,
       emphasized: shouldEmphasizeAddSection,
     );

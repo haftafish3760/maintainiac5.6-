@@ -35,6 +35,30 @@ class MaintaniacLocalizations {
   String get brightnessNativeControl => isSpanish
       ? 'Ajusta el brillo. El teléfono sigue controlando el enfoque automático y el tiempo de exposición.'
       : 'Adjust Brightness. The phone still controls autofocus and exposure timing.';
+  String get addAnotherReceiptPhoto =>
+      isSpanish ? 'Agregar otra foto' : 'Add Another Photo';
+  String get addBottomReceiptSection =>
+      isSpanish ? 'Agregar sección inferior' : 'Add Bottom Section';
+  String get retakeReceiptPhoto => isSpanish ? 'Repetir foto' : 'Retake';
+  String get cropReceiptPhoto => isSpanish ? 'Recortar' : 'Crop';
+  String get savedProof => isSpanish ? 'Comprobante' : 'Proof';
+  String get matchReceiptPhotos =>
+      isSpanish ? 'Unir fotos' : 'Match Photos';
+  String get cropCurrentReceiptPhoto =>
+      isSpanish ? 'Recortar actual' : 'Crop Current';
+  String get receiptPhoto => isSpanish ? 'Foto del recibo' : 'Receipt Photo';
+  String receiptSectionOf(int current, int total) => isSpanish
+      ? 'Sección $current de $total'
+      : 'Section $current of $total';
+  String get useReceipt => isSpanish ? 'Usar recibo' : 'Use Receipt';
+  String get useAnyway => isSpanish ? 'Usar de todos modos' : 'Use Anyway';
+  String get openingReceiptReview => isSpanish ? 'Abriendo' : 'Opening';
+  String get checkingReceiptPhotos => isSpanish ? 'Revisando' : 'Checking';
+  String get retakeRecommended =>
+      isSpanish ? 'Se recomienda repetir' : 'Retake Recommended';
+  String get checkPhotoBeforeUse => isSpanish
+      ? 'Revise la foto antes de usarla'
+      : 'Check Photo Before Use';
 }
 
 class _MaintaniacLocalizationsDelegate

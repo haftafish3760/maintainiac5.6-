@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../localization/maintaniac_localizations.dart';
 import '../../backup/cloud_backup_status.dart';
 import '../../storage/app_storage_guard.dart';
 import 'receipt_capture_models.dart';

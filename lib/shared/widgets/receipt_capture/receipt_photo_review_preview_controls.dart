@@ -19,6 +19,7 @@ class _ReceiptMultiPhotoActionRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     return SizedBox(
       height: 32,
       child: ListView(
@@ -39,13 +40,13 @@ class _ReceiptMultiPhotoActionRail extends StatelessWidget {
           const SizedBox(width: 6),
           _ReceiptActionRailButton(
             icon: Icons.join_full_rounded,
-            label: 'Match Photos',
+            label: strings.matchReceiptPhotos,
             onPressed: onMatch,
           ),
           const SizedBox(width: 6),
           _ReceiptActionRailButton(
             icon: Icons.crop_rounded,
-            label: 'Crop Current',
+            label: strings.cropCurrentReceiptPhoto,
             onPressed: onCrop,
           ),
           const SizedBox(width: 6),
@@ -114,12 +115,13 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     return Row(
       children: [
         Expanded(
           child: _ReceiptActionRailButton(
             icon: Icons.add_a_photo_rounded,
-            label: 'Add Another Photo',
+            label: strings.addAnotherReceiptPhoto,
             emphasized: true,
             onPressed: openingCamera ? null : onAddPhoto,
           ),
@@ -128,7 +130,7 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
         Expanded(
           child: _ReceiptActionRailButton(
             icon: Icons.camera_alt_rounded,
-            label: 'Retake',
+            label: strings.retakeReceiptPhoto,
             onPressed: openingCamera ? null : onRetake,
           ),
         ),
@@ -136,7 +138,7 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
         Expanded(
           child: _ReceiptActionRailButton(
             icon: Icons.crop_rounded,
-            label: 'Crop',
+            label: strings.cropReceiptPhoto,
             onPressed: openingCamera
                 ? null
                 : () => onModeChanged(_ReceiptReviewMode.crop),
@@ -146,7 +148,7 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
         Expanded(
           child: _ReceiptActionRailButton(
             icon: Icons.storage_rounded,
-            label: 'Proof',
+            label: strings.savedProof,
             onPressed: openingCamera
                 ? null
                 : () => onModeChanged(_ReceiptReviewMode.dataSaver),
@@ -165,9 +167,10 @@ class _ReceiptPhotoCountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final label = total <= 1
-        ? 'Receipt Photo'
-        : 'Section $current of $total';
+        ? strings.receiptPhoto
+        : strings.receiptSectionOf(current, total);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF111A1F),
