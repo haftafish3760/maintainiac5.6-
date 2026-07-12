@@ -22,13 +22,13 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
 
   private func buildLayout() {
     let close = UIButton(type: .system)
-    close.setTitle("Done", for: .normal)
+    close.setTitle(camera?.receiptCameraText("Done", "Listo") ?? "Done", for: .normal)
     close.setTitleColor(.black, for: .normal)
     close.backgroundColor = UIColor(red: 1, green: 0.82, blue: 0.4, alpha: 1)
     close.layer.cornerRadius = 7
     close.addAction(UIAction { [weak self] _ in self?.dismiss(animated: true) }, for: .touchUpInside)
     let title = UILabel()
-    title.text = "Receipt Camera Settings"
+    title.text = camera?.receiptCameraText("Receipt Camera Settings", "Configuración de la cámara de recibos") ?? "Receipt Camera Settings"
     title.textColor = .white
     title.font = .boldSystemFont(ofSize: 20)
     let header = UIStackView(arrangedSubviews: [title, UIView(), close])
@@ -61,26 +61,29 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
   private func reloadContent() {
     guard let camera else { return }
     content.arrangedSubviews.forEach { $0.removeFromSuperview() }
-    content.addArrangedSubview(note("Camera only. These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings."))
-    content.addArrangedSubview(section("CAPTURE FLOW"))
-    content.addArrangedSubview(toggle("Long receipt mode", value: camera.longReceiptMode) { [weak self] enabled in
+    content.addArrangedSubview(note(camera.receiptCameraText(
+      "Camera only. These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
+      "Solo cámara. Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos."
+    )))
+    content.addArrangedSubview(section(camera.receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
+    content.addArrangedSubview(toggle(camera.receiptCameraText("Long receipt mode", "Modo de recibo largo"), value: camera.longReceiptMode) { [weak self] enabled in
       camera.longReceiptMode = enabled && camera.canUseLongReceiptMode()
       camera.updateDoneButton()
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
-    content.addArrangedSubview(toggle("Automatic capture", value: camera.autoCaptureEnabled) { [weak self] enabled in
+    content.addArrangedSubview(toggle(camera.receiptCameraText("Automatic capture", "Captura automática"), value: camera.autoCaptureEnabled) { [weak self] enabled in
       camera.autoCaptureEnabled = enabled && camera.isAutoCaptureCurrentlyAllowed()
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
-    content.addArrangedSubview(toggle("Receipt edge guidance", value: camera.edgeDetectionEnabled) { [weak self] enabled in
+    content.addArrangedSubview(toggle(camera.receiptCameraText("Receipt edge guidance", "Guía de bordes del recibo"), value: camera.edgeDetectionEnabled) { [weak self] enabled in
       camera.edgeDetectionEnabled = enabled
       camera.receiptFrameGuide.isHidden = !(enabled && camera.edgeOverlayEnabled)
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
-    content.addArrangedSubview(action("Reset receipt camera defaults", selected: false) { [weak self] in
+    content.addArrangedSubview(action(camera.receiptCameraText("Reset receipt camera defaults", "Restablecer ajustes de cámara de recibos"), selected: false) { [weak self] in
       camera.resetReceiptCameraDefaults()
       self?.reloadContent()
     })

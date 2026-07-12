@@ -43,9 +43,9 @@ internal fun ReceiptCameraActivity.finishWithCapturedPhotos(closeReason: String 
 internal fun ReceiptCameraActivity.updateDoneButton() {
     val count = capturedPhotoPaths.size
     val title = when (count) {
-        0 -> "Done"
-        1 -> "Done"
-        else -> "Done ($count)"
+        0 -> receiptCameraText("Done", "Listo")
+        1 -> receiptCameraText("Done", "Listo")
+        else -> "${receiptCameraText("Done", "Listo")} ($count)"
     }
     if (hasInitializedReceiptCameraField { addPhotoButton }) {
         addPhotoButton.visibility = if (
@@ -62,7 +62,7 @@ internal fun ReceiptCameraActivity.updateDoneButton() {
         addPhotoButton.contentDescription = addSectionButtonAccessibilityLabel()
     }
     if (hasInitializedReceiptCameraField { shutterButton }) {
-        shutterButton.contentDescription = "Take receipt photo"
+        shutterButton.contentDescription = receiptCameraText("Take receipt photo", "Tomar foto del recibo")
     }
     if (hasInitializedReceiptCameraField { bottomReviewButton }) {
         bottomReviewButton.visibility = if (capturedPhotoPaths.isEmpty()) {
@@ -73,7 +73,10 @@ internal fun ReceiptCameraActivity.updateDoneButton() {
         bottomReviewButton.isEnabled = capturedPhotoPaths.isNotEmpty()
         bottomReviewButton.text = title
         bottomReviewButton.contentDescription =
-            "Done: review captured receipt photos in Maintainiac"
+            receiptCameraText(
+                "Done: review captured receipt photos in Maintainiac",
+                "Listo: revisar las fotos del recibo en Maintainiac",
+            )
     }
     updateSettingsStatusStrip()
 }

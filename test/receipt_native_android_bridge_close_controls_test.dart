@@ -113,23 +113,28 @@ void main() {
     expect(cameraActivity, contains('effectiveMaxZoom'));
     expect(cameraActivity, isNot(contains('FocusMeteringAction')));
     expect(cameraActivity, isNot(contains('startFocusAndMetering')));
-    expect(cameraActivity, contains('text = "Done"'));
+    expect(cameraActivity, contains('text = receiptCameraText("Done", "Listo")'));
     expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
-    expect(cameraActivity, contains('text = "Add Photo"'));
+    expect(cameraActivity, contains('text = receiptCameraText("Add Photo", "Agregar foto")'));
     expect(cameraActivity, isNot(contains('"Use Photos"')));
     expect(cameraActivity, contains('"manual_add_photo"'));
-    expect(cameraActivity, contains(r'else -> "Done ($count)"'));
+    expect(
+      cameraActivity,
+      contains(r'else -> "${receiptCameraText("Done", "Listo")} ($count)"'),
+    );
     expect(cameraActivity, contains('bottomBar.addView(addPhotoButton)'));
     expect(cameraActivity, contains('bottomBar.addView(bottomReviewButton)'));
     expect(
       cameraActivity,
       contains(
-        'contentDescription = "Done: review captured receipt photos in Maintainiac"',
+        'contentDescription = receiptCameraText(',
       ),
     );
     expect(
       cameraActivity,
-      contains('contentDescription = "Add another receipt photo"'),
+      contains(
+        'contentDescription = receiptCameraText("Add another receipt photo", "Agregar otra foto del recibo")',
+      ),
     );
     expect(cameraActivity, contains('tapFocusEnabled'));
     expect(cameraActivity, contains('pinchZoomEnabled'));
@@ -251,13 +256,16 @@ void main() {
       cameraActivity,
       contains('capturedPhotoPaths.size >= maxSectionCount'),
     );
-    expect(cameraActivity, contains('0 -> "Done"'));
-    expect(cameraActivity, contains('1 -> "Done"'));
-    expect(cameraActivity, contains(r'else -> "Done ($count)"'));
+    expect(cameraActivity, contains('0 -> receiptCameraText("Done", "Listo")'));
+    expect(cameraActivity, contains('1 -> receiptCameraText("Done", "Listo")'));
+    expect(
+      cameraActivity,
+      contains(r'else -> "${receiptCameraText("Done", "Listo")} ($count)"'),
+    );
     expect(
       cameraActivity,
       contains(
-        'bottomReviewButton.contentDescription =\n            "Done: review captured receipt photos in Maintainiac"',
+        'bottomReviewButton.contentDescription =\n            receiptCameraText(',
       ),
     );
     expect(cameraActivity, contains('top ghost slice'));

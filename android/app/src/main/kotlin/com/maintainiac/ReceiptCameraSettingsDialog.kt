@@ -24,14 +24,14 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         setPadding(dp(12), dp(12), dp(12), dp(8))
         setBackgroundColor(Color.rgb(17, 24, 27))
         addView(TextView(this@showReceiptCameraSettings).apply {
-            text = "Receipt Camera Settings"
+            text = receiptCameraText("Receipt Camera Settings", "Configuración de la cámara de recibos")
             setTextColor(Color.WHITE)
             textSize = 20f
             setTypeface(typeface, android.graphics.Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         })
         addView(android.widget.Button(this@showReceiptCameraSettings).apply {
-            text = "Done"
+            text = receiptCameraText("Done", "Listo")
             isAllCaps = false
             setTextColor(Color.rgb(16, 20, 22))
             setBackgroundColor(Color.rgb(255, 209, 102))
@@ -43,18 +43,27 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         setPadding(dp(18), dp(12), dp(18), dp(18))
     }
     content.addView(settingSummary(
-        "Camera only",
-        "These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
+        receiptCameraText("Camera only", "Solo cámara"),
+        receiptCameraText(
+            "These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
+            "Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos.",
+        ),
     ))
-    content.addView(settingSectionHeader("CAPTURE FLOW"))
+    content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
     content.addView(settingSwitch(
-        "Long receipt mode",
-        "Start at the top, add sections in order, and repeat a few readable lines so Maintainiac can match the receipt pieces.",
+        receiptCameraText("Long receipt mode", "Modo de recibo largo"),
+        receiptCameraText(
+            "Start at the top, add sections in order, and repeat a few readable lines so Maintainiac can match the receipt pieces.",
+            "Comience arriba, agregue secciones en orden y repita algunas líneas legibles para que Maintainiac pueda unir las partes del recibo.",
+        ),
         longReceiptMode,
     ) {
         if (it && !canUseLongReceiptMode()) {
             longReceiptMode = false
-            guidance.text = "Long receipt mode is unavailable for this device or storage setting."
+            guidance.text = receiptCameraText(
+                "Long receipt mode is unavailable for this device or storage setting.",
+                "El modo de recibo largo no está disponible para este dispositivo o ajuste de almacenamiento.",
+            )
             updateDoneButton()
             updateSettingsStatusStrip()
             return@settingSwitch
@@ -65,7 +74,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         updateSettingsStatusStrip()
     })
     content.addView(settingSwitch(
-        "Automatic capture",
+        receiptCameraText("Automatic capture", "Captura automática"),
         autoCaptureDetail(),
         autoCaptureEnabled,
     ) {
@@ -76,28 +85,37 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         }
         autoCaptureEnabled = it
         guidance.text = if (it) {
-            "Automatic capture is on. Hold steady, or capture anytime."
+            receiptCameraText(
+                "Automatic capture is on. Hold steady, or capture anytime.",
+                "La captura automática está activada. Mantenga firme el teléfono o capture en cualquier momento.",
+            )
         } else {
             guidanceText()
         }
         updateSettingsStatusStrip()
     })
     content.addView(settingSwitch(
-        "Receipt framing checks",
-        "Warn when paper edges may be cut off or the receipt may be too far away. These checks never block the shutter button.",
+        receiptCameraText("Receipt framing checks", "Revisiones de encuadre del recibo"),
+        receiptCameraText(
+            "Warn when paper edges may be cut off or the receipt may be too far away. These checks never block the shutter button.",
+            "Advierte cuando los bordes del papel pueden estar cortados o el recibo está demasiado lejos. Estas revisiones nunca bloquean el disparador.",
+        ),
         receiptGuidanceWarningsEnabled(),
     ) {
         setReceiptGuidanceWarningsEnabled(it)
         guidance.text = if (it) {
-            "Receipt framing checks are on."
+            receiptCameraText("Receipt framing checks are on.", "Las revisiones de encuadre están activadas.")
         } else {
-            "Receipt framing checks are off. Manual shutter still works."
+            receiptCameraText("Receipt framing checks are off. Manual shutter still works.", "Las revisiones de encuadre están desactivadas. El disparador manual sigue funcionando.")
         }
         updateSettingsStatusStrip()
     })
     content.addView(settingSwitch(
-        "Find receipt edges",
-        "Show edge guidance for cropping and straightening. Manual shutter still works.",
+        receiptCameraText("Find receipt edges", "Detectar bordes del recibo"),
+        receiptCameraText(
+            "Show edge guidance for cropping and straightening. Manual shutter still works.",
+            "Muestra guía de bordes para recortar y enderezar. El disparador manual sigue funcionando.",
+        ),
         edgeDetectionEnabled,
     ) {
         edgeDetectionEnabled = it
@@ -108,24 +126,33 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         }
         receiptFrameGuide.visibility = if (it && edgeOverlayEnabled) View.VISIBLE else View.GONE
         guidance.text = if (it) {
-            "Receipt edge guidance is on."
+            receiptCameraText("Receipt edge guidance is on.", "La guía de bordes del recibo está activada.")
         } else {
-            "Receipt edge guidance is off. Take the clearest photo you can."
+            receiptCameraText("Receipt edge guidance is off. Take the clearest photo you can.", "La guía de bordes del recibo está desactivada. Tome la foto más clara que pueda.")
         }
         updateSettingsStatusStrip()
     })
     content.addView(settingSummary(
-        "Long receipts",
-        "Capture sections from top to bottom and repeat a few readable lines between photos so Maintainiac can match them.",
+        receiptCameraText("Long receipts", "Recibos largos"),
+        receiptCameraText(
+            "Capture sections from top to bottom and repeat a few readable lines between photos so Maintainiac can match them.",
+            "Capture secciones de arriba a abajo y repita algunas líneas legibles entre fotos para que Maintainiac pueda unirlas.",
+        ),
     ))
-    content.addView(settingSectionHeader("CAMERA CONTROLS"))
+    content.addView(settingSectionHeader(receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
     content.addView(settingSummary(
-        "Brightness and light",
-        "Brightness and the receipt light stay on the live camera screen so you can see the receipt while adjusting them.",
+        receiptCameraText("Brightness and light", "Brillo y luz"),
+        receiptCameraText(
+            "Brightness and the receipt light stay on the live camera screen so you can see the receipt while adjusting them.",
+            "El brillo y la luz del recibo permanecen en la cámara en vivo para que pueda ver el recibo mientras los ajusta.",
+        ),
     ))
     content.addView(settingSummary(
-        "Focus",
-        "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
+        receiptCameraText("Focus", "Enfoque"),
+        receiptCameraText(
+            "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
+            "La cámara del teléfono controla el enfoque automático. Maintainiac no usa tocar para enfocar en la vista previa.",
+        ),
     ))
     val scroll = ScrollView(this).apply {
         isFillViewport = true
@@ -137,7 +164,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         1f,
     ))
     root.addView(android.widget.Button(this).apply {
-        text = "Reset Receipt Camera Defaults"
+        text = receiptCameraText("Reset Receipt Camera Defaults", "Restablecer ajustes de cámara de recibos")
         isAllCaps = false
         setTextColor(Color.rgb(255, 209, 102))
         setBackgroundColor(Color.rgb(31, 37, 40))
