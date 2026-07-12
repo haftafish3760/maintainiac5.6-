@@ -33,9 +33,9 @@ void main() {
         fittingTierCounts[WorkSupplyPackTier.standard] ?? 0;
 
     expect(plumbing.length, greaterThanOrEqualTo(12000));
-    expect(core, inInclusiveRange(2400, 3200));
-    expect(standard, inInclusiveRange(500, 1200));
-    expect(professional, greaterThan(7000));
+    expect(core, inInclusiveRange(1000, 1400));
+    expect(standard, inInclusiveRange(650, 1000));
+    expect(professional, greaterThan(10000));
     expect(complete, inInclusiveRange(100, 250));
     expect(standardFittings, lessThan(1200));
   });
@@ -89,8 +89,8 @@ void _expectPlumbingScopeContract(
 ) {
   switch (scope) {
     case WorkSupplyMarketScope.residential:
-      expect(core.itemCount, inInclusiveRange(2400, 3200));
-      expect(standard.itemCount, inInclusiveRange(3000, 4500));
+      expect(core.itemCount, inInclusiveRange(1000, 1400));
+      expect(standard.itemCount, inInclusiveRange(1600, 2200));
       expect(complete.itemCount, greaterThanOrEqualTo(11000));
     case WorkSupplyMarketScope.lightIndustrial:
       expect(core.itemCount, greaterThanOrEqualTo(250));

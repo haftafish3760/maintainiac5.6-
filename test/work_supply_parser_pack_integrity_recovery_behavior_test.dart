@@ -7,33 +7,39 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_trade_pack_imp
 
 void main() {
   group('inventory parser pack integrity recovery behavior', () {
-    test('corrupt pack never loads as current and keeps previous pack', () async {
-      final previous = _InstalledPack(
-        packId: 'plumbing.residential.core',
-        version: '2026.07.01',
-        localePackId: 'en-US',
-        enabled: true,
-      );
-      final corrupt = await _writePackFixture(packVersion: '2026.07.02');
-      addTearDown(corrupt.delete);
-      await File(
-        '${corrupt.directory.path}/${corrupt.storagePath}',
-      ).writeAsString('not gzip');
+    test(
+      'corrupt pack never loads as current and keeps previous pack',
+      () async {
+        final previous = _InstalledPack(
+          packId: 'plumbing.residential.core',
+          version: '2026.07.01',
+          localePackId: 'en-US',
+          enabled: true,
+        );
+        final corrupt = await _writePackFixture(packVersion: '2026.07.02');
+        addTearDown(corrupt.delete);
+        await File(
+          '${corrupt.directory.path}/${corrupt.storagePath}',
+        ).writeAsString('not gzip');
 
-      final result = await const WorkSupplyTradePackImportValidator()
-          .validateDirectory(corrupt.directory);
-      final recovery = _recoverPackInstall(
-        previous: previous,
-        attempted: corrupt.toAttempt(),
-        validation: result,
-      );
+        final result = await const WorkSupplyTradePackImportValidator()
+            .validateDirectory(corrupt.directory);
+        final recovery = _recoverPackInstall(
+          previous: previous,
+          attempted: corrupt.toAttempt(),
+          validation: result,
+        );
 
-      expect(result.status, WorkSupplyTradePackValidationStatus.unreadableChunk);
-      expect(recovery.current, previous);
-      expect(recovery.promoted, isFalse);
-      expect(recovery.diagnostic, contains('unreadableChunk'));
-      expect(recovery.liveFirebaseUsed, isFalse);
-    });
+        expect(
+          result.status,
+          WorkSupplyTradePackValidationStatus.unreadableChunk,
+        );
+        expect(recovery.current, previous);
+        expect(recovery.promoted, isFalse);
+        expect(recovery.diagnostic, contains('unreadableChunk'));
+        expect(recovery.liveFirebaseUsed, isFalse);
+      },
+    );
 
     test('checksum mismatch blocks indexing before promotion', () async {
       final previous = _InstalledPack(
@@ -44,12 +50,16 @@ void main() {
       );
       final tampered = await _writePackFixture(packVersion: '2026.07.02');
       addTearDown(tampered.delete);
-      final chunkFile = File('${tampered.directory.path}/${tampered.storagePath}');
+      final chunkFile = File(
+        '${tampered.directory.path}/${tampered.storagePath}',
+      );
       final decoded =
           jsonDecode(utf8.decode(gzip.decode(await chunkFile.readAsBytes())))
               as Map<String, Object?>;
       decoded['items'] = const [];
-      await chunkFile.writeAsBytes(gzip.encode(utf8.encode(jsonEncode(decoded))));
+      await chunkFile.writeAsBytes(
+        gzip.encode(utf8.encode(jsonEncode(decoded))),
+      );
 
       final result = await const WorkSupplyTradePackImportValidator()
           .validateDirectory(tampered.directory);
@@ -59,62 +69,71 @@ void main() {
         validation: result,
       );
 
-      expect(result.status, WorkSupplyTradePackValidationStatus.checksumMismatch);
+      expect(
+        result.status,
+        WorkSupplyTradePackValidationStatus.checksumMismatch,
+      );
       expect(recovery.indexRebuilt, isFalse);
       expect(recovery.current.version, '2026.07.01');
       expect(recovery.diagnostic, contains('checksumMismatch'));
     });
 
-    test('duplicate install is idempotent and does not rebuild index', () async {
-      final existing = _InstalledPack(
-        packId: 'plumbing.residential.core',
-        version: '2026.07.02',
-        localePackId: 'en-US',
-        enabled: true,
-      );
-      final duplicate = await _writePackFixture(packVersion: '2026.07.02');
-      addTearDown(duplicate.delete);
+    test(
+      'duplicate install is idempotent and does not rebuild index',
+      () async {
+        final existing = _InstalledPack(
+          packId: 'plumbing.residential.core',
+          version: '2026.07.02',
+          localePackId: 'en-US',
+          enabled: true,
+        );
+        final duplicate = await _writePackFixture(packVersion: '2026.07.02');
+        addTearDown(duplicate.delete);
 
-      final result = await const WorkSupplyTradePackImportValidator()
-          .validateDirectory(duplicate.directory);
-      final recovery = _recoverPackInstall(
-        previous: existing,
-        attempted: duplicate.toAttempt(),
-        validation: result,
-      );
+        final result = await const WorkSupplyTradePackImportValidator()
+            .validateDirectory(duplicate.directory);
+        final recovery = _recoverPackInstall(
+          previous: existing,
+          attempted: duplicate.toAttempt(),
+          validation: result,
+        );
 
-      expect(result.isReady, isTrue);
-      expect(recovery.current, existing);
-      expect(recovery.promoted, isFalse);
-      expect(recovery.indexRebuilt, isFalse);
-      expect(recovery.diagnostic, contains('duplicate'));
-    });
+        expect(result.isReady, isTrue);
+        expect(recovery.current, existing);
+        expect(recovery.promoted, isFalse);
+        expect(recovery.indexRebuilt, isFalse);
+        expect(recovery.diagnostic, contains('duplicate'));
+      },
+    );
 
-    test('new valid pack promotes only after manifest and chunks pass', () async {
-      final previous = _InstalledPack(
-        packId: 'plumbing.residential.core',
-        version: '2026.07.01',
-        localePackId: 'en-US',
-        enabled: true,
-      );
-      final next = await _writePackFixture(packVersion: '2026.07.02');
-      addTearDown(next.delete);
+    test(
+      'new valid pack promotes only after manifest and chunks pass',
+      () async {
+        final previous = _InstalledPack(
+          packId: 'plumbing.residential.core',
+          version: '2026.07.01',
+          localePackId: 'en-US',
+          enabled: true,
+        );
+        final next = await _writePackFixture(packVersion: '2026.07.02');
+        addTearDown(next.delete);
 
-      final result = await const WorkSupplyTradePackImportValidator()
-          .validateDirectory(next.directory);
-      final recovery = _recoverPackInstall(
-        previous: previous,
-        attempted: next.toAttempt(),
-        validation: result,
-      );
+        final result = await const WorkSupplyTradePackImportValidator()
+            .validateDirectory(next.directory);
+        final recovery = _recoverPackInstall(
+          previous: previous,
+          attempted: next.toAttempt(),
+          validation: result,
+        );
 
-      expect(result.isReady, isTrue);
-      expect(result.checkedChunkCount, 1);
-      expect(result.checkedItemCount, 1);
-      expect(recovery.current.version, '2026.07.02');
-      expect(recovery.promoted, isTrue);
-      expect(recovery.indexRebuilt, isTrue);
-    });
+        expect(result.isReady, isTrue);
+        expect(result.checkedChunkCount, 1);
+        expect(result.checkedItemCount, 1);
+        expect(recovery.current.version, '2026.07.02');
+        expect(recovery.promoted, isTrue);
+        expect(recovery.indexRebuilt, isTrue);
+      },
+    );
 
     test('missing locale pack falls back conservatively to English pack', () {
       final installed = _InstalledPack(
@@ -181,6 +200,8 @@ Future<_PackFixture> _writePackFixture({required String packVersion}) async {
         'canonicalKey': 'plumbing|fittings|pex|90 elbows|1/2 in',
         'id': 'TEST-PEX-90',
         'name': '1/2 in PEX 90 Elbow',
+        'trade': 'Plumbing',
+        'packTier': 'core',
         'searchTerms': ['pex', '90', 'elbow'],
         'aliases': [
           {'value': 'PEX 90', 'normalized': 'pex 90', 'source': 'test'},
