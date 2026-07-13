@@ -101,6 +101,18 @@ void main() {
       settings.receiptReviewStyle,
       ExpenseReceiptReviewStyle.simpleAmounts,
     );
+    expect(
+      ExpenseReceiptReviewStyle.basicReceipt.label,
+      'Basic receipt review',
+    );
+    expect(
+      ExpenseReceiptReviewStyle.simpleAmounts.label,
+      'Simple receipt review',
+    );
+    expect(
+      ExpenseReceiptReviewStyle.fullItemDetails.label,
+      'Detailed receipt review',
+    );
 
     await settings.setReceiptReviewStyle(
       ExpenseReceiptReviewStyle.fullItemDetails,

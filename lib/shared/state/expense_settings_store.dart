@@ -19,7 +19,7 @@ enum ExpenseReceiptReviewStyle {
     return switch (this) {
       ExpenseReceiptReviewStyle.basicReceipt => 'Basic receipt review',
       ExpenseReceiptReviewStyle.simpleAmounts => 'Simple receipt review',
-      ExpenseReceiptReviewStyle.fullItemDetails => 'Full item detail review',
+      ExpenseReceiptReviewStyle.fullItemDetails => 'Detailed receipt review',
     };
   }
 
