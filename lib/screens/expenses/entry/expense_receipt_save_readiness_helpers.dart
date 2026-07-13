@@ -89,8 +89,9 @@ extension _ExpenseReceiptSaveReadinessHelpers
           (line) =>
               line.use == _ExpenseLineUse.split &&
               (line.businessPercent == null ||
-                  line.businessPercent! <= 0 ||
-                  line.businessPercent! >= 1),
+                  !line.businessPercent!.isFinite ||
+                  line.businessPercent! < 0 ||
+                  line.businessPercent! > 1),
         )
         .length;
   }
