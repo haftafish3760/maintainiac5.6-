@@ -67,7 +67,7 @@ void main() {
       );
       expect(
         result.acceptedPhotoHandoffNextStepLabel,
-        'Review the OCR source handoff before opening receipt details.',
+        'Review the clear-photo handoff before opening receipt details.',
       );
       expect(
         result.acceptedPhotoHandoffProcessingLabel,
@@ -84,7 +84,7 @@ void main() {
       );
       expect(
         result.receiptPhotoReviewHandoffPathLabel,
-        'Accepted photo review, but stitch/OCR source handoff needs review.',
+        'Accepted photo review, but the combined receipt image needs review.',
       );
       expect(
         result.acceptedPhotoHandoffRoute,

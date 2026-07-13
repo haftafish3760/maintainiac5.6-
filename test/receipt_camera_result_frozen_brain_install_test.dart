@@ -278,7 +278,7 @@ void main() {
     );
     expect(
       result.receiptPhotoReviewHandoffPathLabel,
-      'Accepted single receipt with prepared OCR source.',
+      'Accepted single receipt with a prepared clear photo.',
     );
     expect(
       result.acceptedPhotoHandoffNextScreen,

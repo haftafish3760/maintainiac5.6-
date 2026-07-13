@@ -238,7 +238,7 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
     if (!mounted) return;
     final handoffWarnings = <String>[
       if (result.usedSavedProofAsOcrSourceFallback)
-        'Receipt reader is using the saved proof copy because a clearer OCR source was not available. Review the filled lines carefully before saving.',
+        'Receipt reader is using the saved proof copy because a clearer photo was not available. Review the filled lines carefully before saving.',
       if (result.hasPossiblePartialReceiptPhotos)
         'One receipt photo may be incomplete. Review the filled lines against the saved proof before saving.',
     ].join(' ');
@@ -252,7 +252,7 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
       _receiptReadHandoffAction =
           'Extracting text from the accepted receipt photo. Receipt details will appear here automatically when the reader finishes.';
       _receiptReadHandoffRouteResult =
-          'Accepted photo review is moving directly into receipt details. Add another section only if OCR later shows the bottom of the receipt is missing.';
+          'Accepted photo review is moving directly into receipt details. Add another section only if the reader later shows the bottom of the receipt is missing.';
       _receiptReadHandoffStage = 'Extracting receipt text';
       _receiptReadHandoffCoverageWarning = handoffWarnings;
       _receiptBrainLowStorageDownloadRiskCounts =

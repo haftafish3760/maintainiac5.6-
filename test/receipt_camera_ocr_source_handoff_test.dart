@@ -199,7 +199,7 @@ void main() {
     expect(
       receiptEntryScreen,
       contains(
-        'Receipt reader is using the saved proof copy because a clearer OCR source was not available.',
+        'Receipt reader is using the saved proof copy because a clearer photo was not available.',
       ),
     );
     expect(

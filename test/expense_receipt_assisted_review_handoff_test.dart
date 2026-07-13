@@ -188,7 +188,7 @@ void main() {
     expect(receiptModels, contains("'receiptDetailsHandoffProcessingLabel'"));
     expect(
       receiptModels,
-      contains('Maintainiac reads the clearest OCR source first'),
+      contains('Maintainiac reads the clearest receipt photo first'),
     );
     expect(receiptModels, contains("'receiptReaderHandoffUserAction'"));
     expect(receiptModels, contains("'receiptDetailsHandoffUserAction'"));

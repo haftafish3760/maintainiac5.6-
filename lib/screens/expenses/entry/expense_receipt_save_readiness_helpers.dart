@@ -38,7 +38,7 @@ extension _ExpenseReceiptSaveReadinessHelpers
             kind: 'receipt_ocr_no_readable_text',
             title: 'No readable receipt text was found',
             detail:
-                'The receipt proof can still be saved, but the app could not fill the receipt from OCR.',
+                'The receipt proof can still be saved, but the app could not fill the receipt from the photo.',
           ),
         );
       } else if (ocrDiagnostics.hasBlockingWarnings) {
@@ -121,7 +121,7 @@ extension _ExpenseReceiptSaveReadinessHelpers
       '${warning.reviewTargetLabel}.',
       warning.reviewTargetInstruction,
       if (extraWarningCount > 0)
-        '$extraWarningCount more OCR ${extraWarningCount == 1 ? 'warning also needs' : 'warnings also need'} review.',
+        '$extraWarningCount more receipt-reading ${extraWarningCount == 1 ? 'warning also needs' : 'warnings also need'} review.',
     ];
     return parts.where((part) => part.trim().isNotEmpty).join(' ');
   }

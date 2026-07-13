@@ -38,7 +38,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Backup scanner photo',
         causeCode: 'document_scanner_backup_capture',
         guidance:
-            'This backup photo still returns to Maintainiac review. Check the crop, bottom section, subtotal, and total before relying on OCR.',
+            'This backup photo still returns to Maintainiac review. Check the crop, bottom section, subtotal, and total before relying on the reader.',
       );
     }
     if (diagnostics['phoneCameraBackupUsed'] == true ||
@@ -49,7 +49,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Phone camera backup photo',
         causeCode: 'phone_camera_backup_capture',
         guidance:
-            'This backup photo still returns to Maintainiac review. Check focus, bottom section, subtotal, and total before relying on OCR.',
+            'This backup photo still returns to Maintainiac review. Check focus, bottom section, subtotal, and total before relying on the reader.',
       );
     }
     final mismatch =

@@ -34,10 +34,10 @@ extension _ReceiptOcrReviewReadinessHelpers on _ReceiptOcrReviewRow {
   String _ocrParserReadinessSummaryFor(ReceiptOcrDiagnostics diagnostics) {
     final tasks = diagnostics.parserTaskCounts;
     if ((tasks['receipt_user_confirmed_missing_bottom_review'] ?? 0) > 0) {
-      return 'Parser readiness needs confirmation review: the user confirmed this was the full receipt, but OCR still did not find bottom-edge and subtotal/total evidence together.';
+      return 'Receipt completeness needs confirmation: the user marked this as the full receipt, but the reader did not find the bottom edge and subtotal/total together.';
     }
     if ((tasks['receipt_user_confirmed_complete_review'] ?? 0) > 0) {
-      return 'Parser readiness needs confirmation review: the user confirmed this was the full receipt, but OCR still did not find subtotal or total lines.';
+      return 'Receipt completeness needs confirmation: the user marked this as the full receipt, but the reader did not find subtotal or total lines.';
     }
     if ((tasks['receipt_bottom_section_continuation_needed'] ?? 0) > 0 ||
         (tasks['receipt_missing_bottom_edge_and_totals'] ?? 0) > 0) {
@@ -48,7 +48,7 @@ extension _ReceiptOcrReviewReadinessHelpers on _ReceiptOcrReviewRow {
       final evidencePrefix = evidenceLabel == null || evidenceLabel.isEmpty
           ? ''
           : '$evidenceLabel ';
-      return 'Parser readiness needs the next receipt section: OCR found text. ${evidencePrefix}Add the bottom receipt section before saving.';
+      return 'The next receipt section is needed: receipt text was found. ${evidencePrefix}Add the bottom receipt section before saving.';
     }
     if ((tasks['receipt_missing_totals_manual_review'] ?? 0) > 0) {
       return 'Parser readiness needs totals review: OCR found receipt text, but subtotal/total lines were not found.';

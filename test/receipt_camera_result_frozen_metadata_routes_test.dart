@@ -178,7 +178,7 @@ void main() {
       handoffMetadata,
       containsPair(
         'receiptPhotoReviewHandoffPathLabel',
-        'Accepted single receipt with prepared OCR source.',
+        'Accepted single receipt with a prepared clear photo.',
       ),
     );
     expect(

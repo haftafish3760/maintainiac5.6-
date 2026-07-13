@@ -47,7 +47,7 @@ class _ReceiptLineClassificationGuidance {
     if (parserReviewCount > 0) {
       return _ReceiptLineClassificationGuidance(
         subtitle:
-            'Choose Business, Personal, or Mixed, then check the OCR-filled lines that need review.',
+            'Choose Business, Personal, or Mixed, then check the receipt-filled lines that need review.',
         statusLabel:
             '$parserReviewCount ${parserReviewCount == 1 ? 'line needs' : 'lines need'} review',
         actionLabel:
@@ -94,7 +94,7 @@ class _ReceiptLineClassificationGuidance {
       subtitle:
           'Choose Business, Personal, or Mixed. If it is Mixed, review each line below.',
       statusLabel: appFilledCount > 0
-          ? '$appFilledCount OCR-filled ${appFilledCount == 1 ? 'line' : 'lines'} ready'
+          ? '$appFilledCount receipt-filled ${appFilledCount == 1 ? 'line' : 'lines'} ready'
           : 'Lines ready',
       actionLabel:
           'Use All Business or All Personal for one-purpose receipts, or Mixed for line-by-line classification.',

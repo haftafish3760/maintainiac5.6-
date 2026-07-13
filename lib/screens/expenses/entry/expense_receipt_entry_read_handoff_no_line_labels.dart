@@ -32,7 +32,7 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
       return 'Maintainiac could not find usable receipt text in that photo. The proof image is still saved; retake, add another clearer section, or enter the receipt manually.';
     }
     if (_receiptNoLineHasOcrText) {
-      return 'OCR found receipt text, but the parser could not build safe line items yet. Use the receipt total if that is enough, or add lines manually.';
+      return 'Receipt text was found, but item lines still need review. Use the receipt total if that is enough, or add lines manually.';
     }
     return 'No receipt lines have been created yet. Attach a receipt photo, use the receipt total, or enter the receipt manually.';
   }
@@ -44,9 +44,9 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
     final warning = _primaryNoLineOcrWarning;
     if (warning != null) return warning.label;
     if (_receiptReadAttemptedWithoutText && !_receiptNoLineHasOcrText) {
-      return 'OCR found no usable text';
+      return 'No usable receipt text found';
     }
-    if (_receiptNoLineHasOcrText) return 'Parser found no safe line items';
+    if (_receiptNoLineHasOcrText) return 'Item lines need review';
     return 'No receipt lines yet';
   }
 
@@ -75,15 +75,15 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
     }
     if (!diagnostics.hasText) return 'No usable text';
     final lineLabel = diagnostics.rawLineCount == 1 ? 'line' : 'lines';
-    return '${diagnostics.rawLineCount} OCR $lineLabel found';
+    return '${diagnostics.rawLineCount} receipt $lineLabel found';
   }
 
   String get _receiptNoLineParserOutcomeLabel {
     final diagnostics = _lastOcrDiagnostics;
     if (_scanningReceiptPhotos && !_receiptReadAttemptedWithoutText) {
-      return 'Waiting on OCR';
+      return 'Preparing receipt details';
     }
-    if (!_receiptNoLineHasOcrText) return 'Parser not started';
+    if (!_receiptNoLineHasOcrText) return 'Receipt details not started';
     if (diagnostics == null) return 'Needs manual lines';
     return switch (diagnostics.parserReadinessStatus) {
       'receipt_ready' => 'Receipt fields ready',
@@ -94,8 +94,8 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
       'no_item_lines' => 'No safe item lines',
       'no_parser_ready_items' => 'No trusted item lines',
       'needs_review' => 'Needs line review',
-      'no_text' => 'No OCR text',
-      '' => 'No parser status',
+      'no_text' => 'No receipt text',
+      '' => 'No detail status',
       _ => diagnostics.parserReadinessStatus.replaceAll('_', ' '),
     };
   }

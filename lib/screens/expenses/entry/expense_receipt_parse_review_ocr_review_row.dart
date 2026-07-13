@@ -75,7 +75,7 @@ class _ReceiptOcrReviewRow extends StatelessWidget {
       if (secondaryTargets.isNotEmpty)
         'Next checks: ${secondaryTargets.join('; ')}.',
       if (hiddenWarningCount > 0)
-        '$hiddenWarningCount more OCR ${hiddenWarningCount == 1 ? 'warning needs' : 'warnings need'} review.',
+        '$hiddenWarningCount more receipt-reading ${hiddenWarningCount == 1 ? 'warning needs' : 'warnings need'} review.',
     ].where((part) => part.trim().isNotEmpty).join(' ');
     return _ReceiptParseReviewBox(
       icon: switch (diagnostics.severity) {
@@ -86,8 +86,8 @@ class _ReceiptOcrReviewRow extends StatelessWidget {
       },
       color: color,
       title: warnings.isEmpty
-          ? 'OCR read: ${diagnostics.severity.label}'
-          : 'OCR read: ${diagnostics.severity.label} - ${warnings.length} ${warnings.length == 1 ? 'warning' : 'warnings'}',
+          ? 'Receipt reading: ${diagnostics.severity.label}'
+          : 'Receipt reading: ${diagnostics.severity.label} - ${warnings.length} ${warnings.length == 1 ? 'warning' : 'warnings'}',
       detail: detail,
       actionLabels: actionLabels,
       actionCallbacks: actionCallbacks,

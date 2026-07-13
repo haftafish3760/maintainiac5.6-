@@ -144,7 +144,7 @@ void main() {
     expect(parseReview, contains('Check subtotal'));
     expect(parseReview, contains('Review line prices'));
     expect(parseReview, contains('Review low-confidence lines'));
-    expect(parseReview, contains('Optional parser pack may help'));
+    expect(parseReview, contains('Optional detail pack may help'));
     expect(parseReview, contains('Enter manually'));
     expect(parseReview, contains('Continue local review'));
     expect(parseReview, contains('Save proof'));
@@ -215,9 +215,9 @@ void main() {
     expect(parseReview, contains('Check totals before save'));
     expect(parseReview, contains('Check washed-out prices'));
     expect(parseReview, contains('Check bottom totals'));
-    expect(parseReview, contains('more OCR'));
+    expect(parseReview, contains('more receipt-reading'));
     expect(parseReview, contains('warnings need'));
-    expect(parseReview, contains(r"'OCR read: ${diagnostics.severity.label}'"));
+    expect(parseReview, contains(r"'Receipt reading: ${diagnostics.severity.label}'"));
     expect(parseReview, contains("'warning' : 'warnings'"));
     expect(ocrService, contains('Parser signals'));
     expect(ocrService, contains('String get reviewTargetLabel'));

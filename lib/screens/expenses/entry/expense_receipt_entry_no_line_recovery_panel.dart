@@ -13,7 +13,7 @@ extension _ExpenseReceiptEntryNoLineRecoveryPanel
           children: [
             Expanded(
               child: _ReceiptReviewStepMetric(
-                label: 'OCR Result',
+                label: 'Receipt Reading',
                 value: _receiptNoLineOcrOutcomeLabel,
                 color: const Color(0xFF34A9E8),
               ),
@@ -21,7 +21,7 @@ extension _ExpenseReceiptEntryNoLineRecoveryPanel
             const SizedBox(width: 8),
             Expanded(
               child: _ReceiptReviewStepMetric(
-                label: 'Parser Result',
+                label: 'Receipt Details',
                 value: _receiptNoLineParserOutcomeLabel,
                 color: const Color(0xFFFFD166),
               ),

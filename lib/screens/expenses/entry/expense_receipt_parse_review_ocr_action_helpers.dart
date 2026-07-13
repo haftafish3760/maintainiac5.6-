@@ -19,7 +19,7 @@ extension _ReceiptOcrReviewActionHelpers on _ReceiptOcrReviewRow {
       labels.addAll([
         'Add bottom receipt section',
         'Use top ghost slice',
-        'Review totals after OCR',
+        'Review totals after receipt reading',
       ]);
     } else if ((tasks['receipt_missing_totals_manual_review'] ?? 0) > 0 ||
         (tasks['receipt_totals_text_missing_review'] ?? 0) > 0 ||
@@ -223,7 +223,7 @@ extension _ReceiptOcrReviewActionHelpers on _ReceiptOcrReviewRow {
       ],
       'optional_parser_pack_available' => const [
         'Review category details',
-        'Optional parser pack may help',
+        'Optional detail pack may help',
       ],
       'review_flagged_lines' => const [
         'Review flagged lines',

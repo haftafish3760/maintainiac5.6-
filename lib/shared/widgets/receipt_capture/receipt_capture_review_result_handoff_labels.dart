@@ -101,21 +101,21 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       'saved_without_filling_resume_required' =>
         'Saved without filling; resume photo review before receipt details.',
       'accepted_without_ocr_source_review_required' =>
-        'Accepted photo review but OCR source is missing; review by hand.',
+        'Accepted photo review, but a clear receipt photo is missing; review by hand.',
       'accepted_saved_proof_ocr_fallback' =>
-        'Accepted photo review using saved proof as OCR fallback.',
+        'Accepted photo review using the saved proof as a fallback.',
       'accepted_stitch_ocr_source_review_required' =>
-        'Accepted photo review, but stitch/OCR source handoff needs review.',
+        'Accepted photo review, but the combined receipt image needs review.',
       'accepted_scanner_preparation_review_required' =>
-        'Accepted photo review, but OCR source preparation needs review.',
+        'Accepted photo review, but photo preparation needs review.',
       'accepted_stitched_combined_image' =>
-        'Accepted long receipt as one stitched OCR image.',
+        'Accepted long receipt as one combined image.',
       'accepted_ordered_sections_fallback' =>
-        'Accepted long receipt as ordered OCR sections after stitch fallback.',
+        'Accepted long receipt as ordered sections after the combined-image fallback.',
       'accepted_ordered_sections' =>
         'Accepted multiple receipt sections in order.',
       'accepted_single_prepared_source' =>
-        'Accepted single receipt with prepared OCR source.',
+        'Accepted single receipt with a prepared clear photo.',
       _ => 'Accepted single receipt photo.',
     };
   }
@@ -162,26 +162,26 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? '$receiptSectionOrderReviewActionLabel Then receipt details open.'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
-      ? 'Review the OCR source handoff before opening receipt details.'
+      ? 'Review the clear-photo handoff before opening receipt details.'
       : 'Receipt details open with store, date, total, tax, item prices, and Business/Personal/Mixed choices.';
 
   String get acceptedPhotoHandoffProcessingLabel => keptForLater
       ? 'Receipt details stay closed until saved photo review is resumed.'
       : !hasOcrSourcePhotos
-      ? 'Receipt details stay paused until a clearer OCR source is added or the user continues by hand.'
+      ? 'Receipt details stay paused until a clearer photo is added or the user continues by hand.'
       : needsAnotherReceiptSectionBeforeDetails
       ? 'Receipt details stay paused until the bottom section is added or the user confirms this photo already shows the full receipt.'
       : receiptSectionOrderNeedsReview
       ? 'Receipt details stay paused until the user confirms the receipt section order.'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
-      ? 'Receipt details stay paused until the OCR source handoff is reviewed.'
-      : 'Maintainiac reads the clearest OCR source first before the smaller saved proof copy is kept, then opens the filled receipt review.';
+      ? 'Receipt details stay paused until the clear-photo handoff is reviewed.'
+      : 'Maintainiac reads the clearest receipt photo first before the smaller saved proof copy is kept, then opens the filled receipt review.';
 
   String get acceptedPhotoHandoffRouteResultLabel => keptForLater
       ? 'Photo review is saved for later; receipt details stay closed until the user resumes saved review.'
       : !hasOcrSourcePhotos
-      ? 'Receipt details can open only after a clearer OCR source is added, or the user continues by hand without app-assisted filling.'
+      ? 'Receipt details can open only after a clearer photo is added, or the user continues by hand without app-assisted filling.'
       : userConfirmedPossiblePartialReceiptComplete
       ? 'Receipt details can open because the user confirmed the flagged photo covers the full receipt.'
       : needsAnotherReceiptSectionBeforeDetails
@@ -198,7 +198,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       ? 'Receipt details can open only after the receipt section order is reviewed.'
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
-      ? 'Receipt details can open only after the OCR source handoff is reviewed.'
+      ? 'Receipt details can open only after the clear-photo handoff is reviewed.'
       : 'Accepted photo review must open receipt details now, not the previous expense screen.';
 
   bool get acceptedPhotoHandoffMustOpenFilledReview =>

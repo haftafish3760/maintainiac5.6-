@@ -99,7 +99,7 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     id: 'image_cleanup',
     label: 'Clean receipt image',
     description:
-        'Prepare a cleaner OCR source using crop, straighten, contrast, grayscale, and shadow cleanup.',
+        'Prepare a cleaner receipt photo using crop, straighten, contrast, grayscale, and shadow cleanup.',
     group: ReceiptNativeSettingGroup.cleanup,
     type: ReceiptNativeSettingType.toggle,
     defaultEnabled: true,

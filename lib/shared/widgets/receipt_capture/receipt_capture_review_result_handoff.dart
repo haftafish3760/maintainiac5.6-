@@ -111,21 +111,20 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
   String get ocrSourceFirstReviewCue {
     return switch (ocrSourceFirstDecisionCode) {
       'prepared_receipt_source_before_saved_proof' =>
-        'OCR is using the prepared clear receipt source before the smaller saved proof copy.',
+        'The app is using the prepared clear receipt photo before the smaller saved proof copy.',
       'imported_receipt_source_before_saved_proof' =>
-        'OCR is using the imported receipt photo source before the smaller saved proof copy.',
+        'The app is using the imported receipt photo before the smaller saved proof copy.',
       'temporary_full_quality_source_before_saved_proof' =>
-        'OCR is using the temporary full-quality receipt source before the smaller saved proof copy.',
+        'The app is using the full-quality receipt photo before the smaller saved proof copy.',
       'separate_receipt_source_before_saved_proof' =>
-        'OCR is using separate clear receipt sources before the smaller saved proof copies.',
+        'The app is using the clearest receipt photos before the smaller saved proof copies.',
       'accepted_receipt_source_before_saved_proof' =>
-        'OCR is using the accepted receipt source before any storage-saving proof copy.',
+        'The app is using the accepted receipt photo before any storage-saving proof copy.',
       'saved_proof_fallback_review_required' =>
-        'OCR is using the saved proof only because a clearer source was not available. Review the filled receipt carefully.',
+        'The saved proof is being used because a clearer photo was not available. Review the filled receipt carefully.',
       'combined_receipt_source_before_saved_proof' =>
-        'OCR is using one combined stitched receipt source before the smaller saved proof copy.',
-      _ =>
-        'OCR source was not ready. Add a clearer receipt photo or continue by hand.',
+        'The app is using the combined receipt image before the smaller saved proof copy.',
+      _ => 'A clear receipt photo is not ready. Add one or continue by hand.',
     };
   }
 

@@ -18,21 +18,21 @@ extension _ReceiptOcrReviewPhotoHelpers on _ReceiptOcrReviewRow {
     final actionCode = parseDiagnostics?.parserCategoryReviewActionCode ?? '';
     if (actionCode == 'optional_parser_pack_available') {
       if (footprint.shouldDeferOptionalLocalPacks) {
-        return 'Storage cue: optional parser packs are deferred on this phone. '
+        return 'Storage cue: optional receipt detail packs are deferred on this phone. '
             'Continue with the filled receipt, add lines by hand, or use '
             'assisted help later only if you choose it. Deferred pack budget: '
             '${footprint.optionalLocalPackSizeLabel}. '
             '${acceptanceGate.userFacingSummary} $firstInstallSummary';
       }
       if (settings.defaultDataSaverShouldOfferOptionalLocalParserPacks) {
-        return 'Storage cue: optional offline parser add-ons may help this '
+        return 'Storage cue: optional offline receipt detail add-ons may help this '
             'category (${installChoice.optionalLocalDownloadSizeLabel}). '
-            'Receipt capture, OCR review, and manual line review still work '
+            'Receipt capture, receipt reading, and manual line review still work '
             'without downloading them. ${acceptanceGate.userFacingSummary} '
             '$firstInstallSummary';
       }
       if (installChoice.hasCloudFallback) {
-        return 'Storage cue: local parser add-ons are not available for this '
+        return 'Storage cue: local receipt detail add-ons are not available for this '
             'setup. Optional assisted help can be offered later only when the '
             'user chooses it and has internet. '
             '${acceptanceGate.userFacingSummary} $firstInstallSummary';
@@ -41,7 +41,7 @@ extension _ReceiptOcrReviewPhotoHelpers on _ReceiptOcrReviewRow {
     if (acceptanceGate.baseFlowCanRunLocallyNow) {
       return 'Storage cue: receipt capture, proof save, and basic local review '
           'stay available now. Saved proof size does not change the clear '
-          'source used for OCR review. ${acceptanceGate.userFacingSummary} '
+          'source used for receipt review. ${acceptanceGate.userFacingSummary} '
           '$firstInstallSummary';
     }
     return '';
@@ -87,14 +87,14 @@ extension _ReceiptOcrReviewPhotoHelpers on _ReceiptOcrReviewRow {
       return const [
         'Add bottom receipt section',
         'Repeat 3-5 lines in top ghost slice',
-        'Review totals after OCR',
+        'Review totals after receipt reading',
       ];
     }
     if (diagnostics.receiptMissingBottomEdgeAndTotals) {
       return const [
         'Add bottom receipt section',
         'Use top ghost slice',
-        'Review totals after OCR',
+        'Review totals after receipt reading',
       ];
     }
     if (diagnostics.receiptMayNeedBottomSection) {

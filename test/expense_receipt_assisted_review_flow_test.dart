@@ -27,7 +27,7 @@ void main() {
       expect(recap, contains('Mixed Receipt'));
       expect(recap, contains('class _ReceiptLineClassificationGuidance'));
       expect(recap, contains('class _ReceiptLineClassificationChecklist'));
-      expect(recap, contains('OCR-filled'));
+      expect(recap, contains('receipt-filled'));
       expect(recap, contains('Check highlighted lines'));
       expect(recap, contains('business/personal totals'));
       expect(recap, contains('set the business percent'));

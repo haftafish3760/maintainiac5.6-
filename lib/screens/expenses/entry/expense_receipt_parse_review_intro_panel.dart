@@ -221,12 +221,12 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
 
   String get _ocrStatusLabel {
     final diagnostics = ocrDiagnostics;
-    if (diagnostics == null) return 'OCR not measured';
+    if (diagnostics == null) return 'Receipt reading not measured';
     if (ocrWarnings.isNotEmpty) {
-      return '${ocrWarnings.length} OCR ${ocrWarnings.length == 1 ? 'warning' : 'warnings'}';
+      return '${ocrWarnings.length} receipt reading ${ocrWarnings.length == 1 ? 'warning' : 'warnings'}';
     }
     return diagnostics.severity == ReceiptOcrReviewSeverity.good
-        ? 'OCR looked good'
-        : 'OCR needs review';
+        ? 'Receipt reading looked good'
+        : 'Receipt reading needs review';
   }
 }

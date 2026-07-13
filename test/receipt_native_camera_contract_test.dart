@@ -165,7 +165,7 @@ void main() {
       (descriptor) => descriptor.id == 'image_cleanup',
     );
     expect(cleanup.defaultEnabled, isTrue);
-    expect(cleanup.description, contains('OCR source'));
+    expect(cleanup.description, contains('cleaner receipt photo'));
     expect(cleanup.description, contains('crop'));
     expect(cleanup.description, contains('straighten'));
     expect(cleanup.description, contains('contrast'));

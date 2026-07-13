@@ -46,7 +46,7 @@ extension _ReceiptParseReviewBottomSectionAlert
     if (_missingBottomEdgeAndTotals) {
       return _joinReceiptReviewSentences([
         parseDiagnostics?.ocrSourceCoverageReviewInstruction ??
-            'OCR found receipt text, but the bottom edge and subtotal/total lines were not found together. Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before saving.',
+            'Receipt text was found, but the bottom edge and subtotal/total lines were not found together. Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice before saving.',
         parseDiagnostics?.ocrSourceSectionReviewInstruction,
       ]);
     }
@@ -56,7 +56,7 @@ extension _ReceiptParseReviewBottomSectionAlert
         parseDiagnostics?.ocrSourceSectionReviewInstruction,
       ]);
     }
-    return 'OCR found receipt text, but it did not find subtotal or total lines. If this was not the full receipt, add the next section before saving.';
+    return 'Receipt text was found, but subtotal or total lines were not found. If this was not the full receipt, add the next section before saving.';
   }
 
   String get _bottomSectionAlertActionLabel {

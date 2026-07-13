@@ -94,7 +94,7 @@ void main() {
     );
     expect(
       stitched.receiptPhotoReviewHandoffPathLabel,
-      'Accepted long receipt as one stitched OCR image.',
+      'Accepted long receipt as one combined image.',
     );
     expect(
       stitched.receiptReaderHandoffCounts['ocr_source_combined_stitch'],
@@ -150,7 +150,7 @@ void main() {
     );
     expect(
       fallback.receiptPhotoReviewHandoffPathLabel,
-      'Accepted photo review, but stitch/OCR source handoff needs review.',
+      'Accepted photo review, but the combined receipt image needs review.',
     );
     expect(
       fallback

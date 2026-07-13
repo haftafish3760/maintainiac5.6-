@@ -34,7 +34,7 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Your receipt proof is saved. Maintainiac read the clear OCR source before the storage-saving proof copy; review what it filled in below before saving.',
+        'Your receipt proof is saved. Maintainiac already prepared receipt details, but this receipt still needs review before saving.',
       ),
     );
     expect(
@@ -110,7 +110,7 @@ void main() {
     expect(stateActions, contains('receiptReadHandoffOcrSourceCount'));
     expect(parseReview, contains('Check highlighted lines'));
     expect(parseReview, contains('No line warnings'));
-    expect(parseReview, contains('OCR looked good'));
+    expect(parseReview, contains('Receipt reading looked good'));
     expect(parseReview, contains('line.ocrSourceLineLabel'));
     expect(parseReview, contains(r'$sourceLineLabel: $evidence'));
     expect(parseReview, contains('label: sourceLineLabel'));
@@ -325,8 +325,8 @@ void main() {
     expect(entryScreen, contains('Opening Receipt Details'));
     expect(entryScreen, contains('No Readable Receipt Text'));
     expect(entryScreen, contains('Receipt Text Found, Lines Need Help'));
-    expect(entryScreen, contains('OCR Result'));
-    expect(entryScreen, contains('Parser Result'));
+    expect(entryScreen, contains('Receipt Reading'));
+    expect(entryScreen, contains('Receipt Details'));
     expect(entryScreen, contains('What Happened'));
     expect(entryScreen, contains('Next Step'));
     expect(entryScreen, contains('warning.actionLabel'));
@@ -346,10 +346,10 @@ void main() {
     expect(
       entryScreen,
       contains(
-        'OCR found receipt text, but the parser could not build safe line items yet. Use the receipt total if that is enough, or add lines manually.',
+        'Receipt text was found, but item lines still need review. Use the receipt total if that is enough, or add lines manually.',
       ),
     );
-    expect(entryScreen, contains('Parser found no safe line items'));
+    expect(entryScreen, contains('Item lines need review'));
     expect(
       photoControls,
       contains(

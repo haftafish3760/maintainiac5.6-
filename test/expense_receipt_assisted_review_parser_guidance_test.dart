@@ -38,7 +38,7 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Receipt capture, OCR review, and manual line review still work',
+        'Receipt capture, receipt reading, and manual line review still work',
       ),
     );
     expect(parseReview, contains('without downloading them.'));
@@ -155,7 +155,7 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Receipt capture, OCR review, and manual line review still work',
+        'Receipt capture, receipt reading, and manual line review still work',
       ),
     );
     expect(parseReview, contains('used the clearest original photo'));
@@ -207,15 +207,15 @@ void main() {
     expect(parseReview, contains('Review user-confirmed receipt'));
     expect(parseReview, contains('Check lower receipt lines'));
     expect(parseReview, contains('Check lower receipt section'));
-    expect(parseReview, contains('Parser readiness needs confirmation review'));
+    expect(parseReview, contains('Receipt completeness needs confirmation'));
     expect(
       parseReview,
-      contains('the user confirmed this was the full receipt'),
+      contains('the user marked this as the full receipt'),
     );
     expect(parseReview, contains('Enter total manually'));
     expect(
       parseReview,
-      contains('Parser readiness needs the next receipt section'),
+      contains('The next receipt section is needed'),
     );
     expect(parseReview, contains('Parser readiness needs totals review'));
     expect(parseReview, contains('Bottom section may be missing'));
@@ -236,13 +236,13 @@ void main() {
     expect(
       parseReview,
       contains(
-        'OCR found receipt text, but it did not find subtotal or total lines.',
+        'Receipt text was found, but subtotal or total lines were not found.',
       ),
     );
     expect(
       parseReview,
       contains(
-        'OCR found receipt text, but the bottom edge and subtotal/total lines were not found together.',
+        'Receipt text was found, but the bottom edge and subtotal/total lines were not found together.',
       ),
     );
     expect(

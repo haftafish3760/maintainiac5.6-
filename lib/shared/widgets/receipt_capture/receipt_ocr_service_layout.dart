@@ -2,10 +2,12 @@ part of 'receipt_ocr_service.dart';
 
 ReceiptOcrPage _receiptOcrLayoutPageFromRecognizedText(
   String attachmentId,
-  RecognizedText recognized,
-) {
+  RecognizedText recognized, {
+  required int pageIndex,
+}) {
   return ReceiptOcrPage(
     attachmentId: attachmentId,
+    pageIndex: pageIndex,
     blocks: [
       for (final block in recognized.blocks)
         ReceiptOcrBlock(

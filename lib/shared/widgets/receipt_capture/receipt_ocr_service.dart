@@ -63,6 +63,7 @@ class ReceiptOcrService {
     );
     final importedTextByAttachment = <String, String>{};
     final repeatedAttachmentIds = <String>{};
+    var importedTextReadCount = 0;
     for (final attachment in attachments) {
       if (!attachment.isImportedText ||
           attachment.importedText.trim().isEmpty) {
@@ -74,6 +75,7 @@ class ReceiptOcrService {
         attachment.importedText.trim(),
         repeatedAttachmentIds,
       );
+      importedTextReadCount += 1;
     }
     final photoAttachments = attachments
         .where(
@@ -97,7 +99,10 @@ class ReceiptOcrService {
     final photoReadWarnings = <String>[
       ..._photoQualityWarnings(photoAttachments),
       if (duplicatePhotos.hasDuplicates)
-        '${duplicatePhotos.duplicateCount} selected ${duplicatePhotos.duplicateCount == 1 ? 'photo appears' : 'photos appear'} identical to an earlier receipt photo. The first copy was read; keep or replace the duplicate before saving.',
+        '${duplicatePhotos.duplicateCount} selected '
+            '${duplicatePhotos.duplicateCount == 1 ? 'photo appears' : 'photos appear'} '
+            'identical to an earlier receipt photo. The first copy was read; '
+            'keep or replace the duplicate before saving.',
       if (repeatedAttachmentIds.isNotEmpty) _repeatedAttachmentIdWarning,
       if (skippedPhotoCount > 0)
         maxPhotoOcrAttachments == 0
@@ -143,7 +148,7 @@ class ReceiptOcrService {
         sourceHandoffSummary: sourceHandoffSummary,
         parserLineSourceLocations: combined.parserLineSourceLocations,
         stats: ReceiptOcrReadStats(
-          importedTextRead: importedTextByAttachment.length,
+          importedTextRead: importedTextReadCount,
           photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
           duplicatePhotosSkipped: duplicatePhotos.duplicateCount,
           pdfsSkipped: skippedPdfCount,
@@ -166,7 +171,7 @@ class ReceiptOcrService {
         sourceHandoffSummary: sourceHandoffSummary,
         parserLineSourceLocations: combined.parserLineSourceLocations,
         stats: ReceiptOcrReadStats(
-          importedTextRead: importedTextByAttachment.length,
+          importedTextRead: importedTextReadCount,
           photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
           duplicatePhotosSkipped: duplicatePhotos.duplicateCount,
           pdfsSkipped:
@@ -194,13 +199,22 @@ class ReceiptOcrService {
     var pdfsSkipped =
         skippedPdfCount + pdfPreflight.blockedAttachmentIds.length;
     try {
-      for (final attachment in readablePhotoAttachments) {
+      for (
+        var photoIndex = 0;
+        photoIndex < readablePhotoAttachments.length;
+        photoIndex++
+      ) {
+        final attachment = readablePhotoAttachments[photoIndex];
         try {
           final image = InputImage.fromFilePath(attachment.path);
           final recognized = await recognizer.processImage(image);
           final text = recognized.text.trim();
           layoutPages.add(
-            _receiptOcrLayoutPageFromRecognizedText(attachment.id, recognized),
+            _receiptOcrLayoutPageFromRecognizedText(
+              attachment.id,
+              recognized,
+              pageIndex: layoutPages.length,
+            ),
           );
           if (text.isEmpty) {
             warnings.add('No text was found in one receipt photo.');
@@ -295,7 +309,7 @@ class ReceiptOcrService {
       layout: ReceiptOcrDocument(pages: layoutPages),
       parserLineSourceLocations: combined.parserLineSourceLocations,
       stats: ReceiptOcrReadStats(
-        importedTextRead: importedTextByAttachment.length,
+        importedTextRead: importedTextReadCount,
         photosRead: photosRead,
         photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
         duplicatePhotosSkipped: duplicatePhotos.duplicateCount,

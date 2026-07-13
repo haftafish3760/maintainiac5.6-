@@ -54,7 +54,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
           _receiptReadAttemptedWithoutText = true;
           _receiptReadHandoffDecision = 'Open manual receipt details';
           _receiptReadHandoffAction =
-              'OCR finished, but the parser did not find safe receipt fields. Keep the proof and fill in the details manually.';
+              'Receipt reading finished, but safe receipt fields were not found. Keep the proof and fill in the details manually.';
           _receiptReadHandoffStage = 'Receipt details need manual entry';
           _receiptReadHandoffRouteResult =
               _receiptManualDetailsRouteResultLabel;

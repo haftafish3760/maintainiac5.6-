@@ -34,7 +34,7 @@ void main() {
       );
       expect(
         result.ocrSourceFirstReviewCue,
-        contains('saved proof only because a clearer source was not available'),
+        contains('saved proof is being used because a clearer photo was not available'),
       );
       expect(
         result.privacySafeOcrSourceFirstSummary,
@@ -95,7 +95,7 @@ void main() {
       );
       expect(
         result.receiptPhotoReviewHandoffPathLabel,
-        'Accepted photo review using saved proof as OCR fallback.',
+        'Accepted photo review using the saved proof as a fallback.',
       );
       expect(
         result.receiptReaderHandoffIntegrityLabel,
@@ -133,7 +133,7 @@ void main() {
       expect(
         result.ocrSourceFirstReviewCue,
         contains(
-          'separate clear receipt sources before the smaller saved proof',
+          'clearest receipt photos before the smaller saved proof',
         ),
       );
       expect(
@@ -295,7 +295,7 @@ void main() {
       );
       expect(
         result.receiptPhotoReviewHandoffPathLabel,
-        'Accepted photo review, but stitch/OCR source handoff needs review.',
+        'Accepted photo review, but the combined receipt image needs review.',
       );
       expect(result.nextReviewUsesOrderedSections, isTrue);
       expect(
