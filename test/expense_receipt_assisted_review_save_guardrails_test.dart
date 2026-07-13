@@ -366,5 +366,7 @@ void main() {
     expect(totals, contains('mixed lines need business percents.'));
     expect(entryScreen, contains('splitPercentIssueCount'));
     expect(entryScreen, contains('_splitLinesMissingBusinessPercentCount'));
+    expect(entryScreen, contains('line.businessPercent! < 0'));
+    expect(entryScreen, contains('line.businessPercent! > 1'));
   });
 }
