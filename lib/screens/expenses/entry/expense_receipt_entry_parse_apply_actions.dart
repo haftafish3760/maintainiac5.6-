@@ -68,7 +68,7 @@ extension _ExpenseReceiptEntryParseApplyActions
         }
       }
       _removeAppAssistedReceiptLines();
-      if (_detailEntryMode != _ReceiptDetailEntryMode.basicReceipt) {
+      if (_detailEntryMode == _ReceiptDetailEntryMode.detailedItems) {
         for (final line in mergedParsedLines) {
           _lines.add(_ExpenseReceiptLine.fromLedgerLine(line));
         }

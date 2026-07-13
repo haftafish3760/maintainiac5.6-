@@ -29,12 +29,18 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (basicMode) return const SizedBox.shrink();
+    if (basicMode ||
+        (!detailedMode &&
+            !fuelMode &&
+            !maintenanceRepairMode &&
+            !materialMode)) {
+      return const SizedBox.shrink();
+    }
     final label = nextLineNumber == 1
         ? 'Add Receipt Items'
         : 'Add Another Receipt Item';
     final helper = !detailedMode && !fuelMode && !maintenanceRepairMode
-        ? 'Simple review: enter each amount and choose Business, Personal, or Split.'
+        ? 'Simple review records the final receipt total as Business or Personal.'
         : fuelMode
         ? 'Enter the fuel line from this receipt.'
         : maintenanceRepairMode

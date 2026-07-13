@@ -113,7 +113,9 @@ void main() {
     );
     expect(
       stateActions,
-      contains("parserReviewLabel: use == _ExpenseLineUse.split ? 'Review' : 'Good'"),
+      contains(
+        "parserReviewLabel: use == _ExpenseLineUse.split ? 'Review' : 'Good'",
+      ),
     );
     expect(stateActions, contains('_scrollToReceiptReview();'));
     expect(
@@ -214,6 +216,20 @@ void main() {
       lessThan(
         stateActions.indexOf(
           'for (var index = 0; index < parsed.lines.length; index++)',
+        ),
+      ),
+    );
+    expect(
+      stateActions,
+      contains(
+        'if (_detailEntryMode == _ReceiptDetailEntryMode.detailedItems)',
+      ),
+    );
+    expect(
+      stateActions,
+      isNot(
+        contains(
+          'if (_detailEntryMode != _ReceiptDetailEntryMode.basicReceipt)',
         ),
       ),
     );

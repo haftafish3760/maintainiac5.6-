@@ -123,10 +123,7 @@ void main() {
       contains('_ReceiptFirstUseCameraAction.useReceiptAssist'),
     );
     expect(helpSheet, contains('_ReceiptFirstUseCameraAction.manualEntry'));
-    expect(
-      attachmentPublishHelpers,
-      contains('openReceiptCaptureSettings()'),
-    );
+    expect(attachmentPublishHelpers, contains('openReceiptCaptureSettings()'));
     expect(settingsSheet, contains('Expense Receipt Settings'));
     expect(
       settingsSheet,
@@ -167,15 +164,15 @@ void main() {
     _expectNoCloudRequiredCopy(helpSheet);
     _expectNoCloudRequiredCopy(importActions);
     expect(settingsSheet, contains('Expense Receipt Review Detail'));
-    expect(settingsSheet, contains('Show Prices Only'));
-    expect(settingsSheet, contains('Show Full Item Details'));
+    expect(settingsSheet, contains('Simple Receipt'));
+    expect(settingsSheet, contains('Detailed Receipt'));
     expect(
       settingsSheet,
       contains(
         'Choose what Maintainiac shows after it reads an expense receipt.',
       ),
     );
-    expect(settingsSheet, contains('Business, Personal, or Split'));
+    expect(settingsSheet, contains('as all Business or all Personal'));
     expect(settingsSheet, contains('ExpenseSettingsScope.maybeOf(context)'));
     expect(settingsSheet, contains('ExpenseReceiptReviewStyle.simpleAmounts'));
     expect(
@@ -262,16 +259,8 @@ void main() {
     );
     expect(reviewScreen, isNot(contains('class _ReceiptImageViewportHint')));
     expect(dataSaverPanel, contains('Saved proof image'));
-    expect(
-      dataSaverPanel,
-      contains('Receipt assistance uses the clear OCR source'),
-    );
-    expect(
-      dataSaverPanel,
-      contains(
-        'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Capture source',
-      ),
-    );
+    expect(dataSaverPanel, contains("label: 'Receipt assistance'"));
+    expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
     expect(dataSaverPanel, contains('Capture source size'));
     expect(dataSaverPanel, isNot(contains('Original photo')));
     expect(dataSaverPanel, contains('Proof kept after reading'));

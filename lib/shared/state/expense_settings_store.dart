@@ -26,11 +26,11 @@ enum ExpenseReceiptReviewStyle {
   String get description {
     return switch (this) {
       ExpenseReceiptReviewStyle.basicReceipt =>
-        'Fastest. Keep the receipt proof and review the store, date, category, and total without item lines.',
+        'Price-only review. Keep the receipt proof and review the store, date, sales tax, and final total without item descriptions.',
       ExpenseReceiptReviewStyle.simpleAmounts =>
-        'Fastest. Keep the receipt photo as proof, review each detected amount, and mark it Business, Personal, or Split.',
+        'Single-total review. Keep the receipt proof and record the final total after sales tax as all Business or all Personal.',
       ExpenseReceiptReviewStyle.fullItemDetails =>
-        'Best when you need item names, quantities, fuel details, materials, packages, or inventory tracking.',
+        'Detailed review. Preserve and review each meaningful receipt line exactly as printed, including quantities, prices, discounts, and totals.',
     };
   }
 }

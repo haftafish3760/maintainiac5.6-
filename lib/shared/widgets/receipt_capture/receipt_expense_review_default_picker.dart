@@ -44,7 +44,7 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
             icon: Icons.receipt_outlined,
             title: 'Basic Receipt',
             detail:
-                'Fastest review. Keep the receipt proof and confirm the store, date, category, and total without item lines.',
+                'Price-only review. Keep the receipt proof and confirm the store, date, sales tax, and final total without item descriptions.',
             onTap: () => settings.setReceiptReviewStyle(
               ExpenseReceiptReviewStyle.basicReceipt,
             ),
@@ -55,9 +55,9 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
                 settings.receiptReviewStyle ==
                 ExpenseReceiptReviewStyle.simpleAmounts,
             icon: Icons.price_check_rounded,
-            title: 'Show Prices Only',
+            title: 'Simple Receipt',
             detail:
-                'Fastest review. Maintainiac lists detected receipt amounts so you can mark each one Business, Personal, or Split.',
+                'Single-total review. Record the final total after sales tax as all Business or all Personal.',
             onTap: () => settings.setReceiptReviewStyle(
               ExpenseReceiptReviewStyle.simpleAmounts,
             ),
@@ -68,9 +68,9 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
                 settings.receiptReviewStyle ==
                 ExpenseReceiptReviewStyle.fullItemDetails,
             icon: Icons.receipt_long_rounded,
-            title: 'Show Full Item Details',
+            title: 'Detailed Receipt',
             detail:
-                'Use this when you want item names, quantities, fuel details, materials, packages, or inventory review.',
+                'Preserve and review each meaningful receipt line exactly as printed, including quantities, prices, discounts, and totals.',
             onTap: () => settings.setReceiptReviewStyle(
               ExpenseReceiptReviewStyle.fullItemDetails,
             ),
