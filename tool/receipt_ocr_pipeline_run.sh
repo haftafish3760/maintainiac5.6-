@@ -6,6 +6,13 @@ root="/tmp/maintainiac_receipt_ocr_pipeline/$run_name"
 rm -rf "$root"
 mkdir -p "$root/phases"
 
+scope_baseline="$root/scope_baseline.txt"
+{
+  git diff --name-only --diff-filter=ACMRTUXB HEAD --
+  git diff --name-only --cached --diff-filter=ACMRTUXB --
+} | sort -u > "$scope_baseline"
+export RECEIPT_SCOPE_BASELINE_FILE="$scope_baseline"
+
 summary="$root/summary.tsv"
 status="$root/status.txt"
 failure_report="$root/failure_report.txt"

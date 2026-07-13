@@ -6,6 +6,13 @@ changed_files="$(
   git diff --name-only --cached --diff-filter=ACMRTUXB --
 )"
 
+if [[ -n "${RECEIPT_SCOPE_BASELINE_FILE:-}" &&
+      -f "$RECEIPT_SCOPE_BASELINE_FILE" ]]; then
+  baseline_files="$(sort -u "$RECEIPT_SCOPE_BASELINE_FILE")"
+  changed_files="$(comm -23 <(printf '%s\n' "$changed_files" | sort -u) \
+    <(printf '%s\n' "$baseline_files"))"
+fi
+
 if [[ -z "${changed_files//[$'\n'[:space:]]/}" ]]; then
   echo "Receipt camera scope gate: no tracked changes to check."
   exit 0
