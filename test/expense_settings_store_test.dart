@@ -121,6 +121,10 @@ void main() {
 
   test('receipt review style restores padded and case-varied values', () {
     expect(
+      ExpenseReceiptReviewStyle.fromName(' basicReceipt '),
+      ExpenseReceiptReviewStyle.basicReceipt,
+    );
+    expect(
       ExpenseReceiptReviewStyle.fromName(' fullItemDetails '),
       ExpenseReceiptReviewStyle.fullItemDetails,
     );

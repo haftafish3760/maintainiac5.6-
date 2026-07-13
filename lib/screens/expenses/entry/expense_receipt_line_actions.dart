@@ -6,6 +6,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
     required this.materialMode,
     required this.maintenanceRepairMode,
     required this.fuelMode,
+    required this.basicMode,
     required this.detailedMode,
     required this.onAddBusiness,
     required this.onAddPersonal,
@@ -18,6 +19,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
   final bool materialMode;
   final bool maintenanceRepairMode;
   final bool fuelMode;
+  final bool basicMode;
   final bool detailedMode;
   final VoidCallback onAddBusiness;
   final VoidCallback onAddPersonal;
@@ -27,6 +29,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (basicMode) return const SizedBox.shrink();
     final label = nextLineNumber == 1
         ? 'Add Receipt Items'
         : 'Add Another Receipt Item';

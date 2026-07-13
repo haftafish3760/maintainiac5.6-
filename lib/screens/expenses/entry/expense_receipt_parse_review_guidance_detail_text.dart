@@ -18,22 +18,30 @@ String _receiptAssistedReviewDetailText({
   required String effectiveItemFamilyReviewLabel,
 }) {
   final continueReviewInstruction =
-      detailMode == _ReceiptDetailEntryMode.quickClassify
+      detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? 'Then review the store, date, category, and total before saving.'
+      : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Then continue with price-first Business, Personal, or Mixed review.'
       : 'Then continue with detailed line-by-line receipt review.';
   final simpleReviewInstruction =
-      detailMode == _ReceiptDetailEntryMode.quickClassify
+      detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? 'Basic review keeps the receipt proof and core fields visible without item lines.'
+      : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Simple review shows prices first for fast Business, Personal, or '
             'Mixed classification.'
       : 'Detailed review keeps descriptions, prices, tax, and totals visible '
             'for line-by-line checking.';
   final simpleOverlapReviewInstruction =
-      detailMode == _ReceiptDetailEntryMode.quickClassify
+      detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? 'Basic review keeps the receipt proof and core fields visible.'
+      : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Simple review still shows prices first for fast Business, Personal, '
             'or Mixed classification.'
       : 'Detailed review keeps the repeated lines visible so duplicates are not counted twice.';
   final simpleBrainLimitInstruction =
-      detailMode == _ReceiptDetailEntryMode.quickClassify
+      detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? 'Basic review keeps the receipt proof and core fields visible.'
+      : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Simple review still shows prices first for fast Business, Personal, '
             'or Mixed classification.'
       : 'Detailed review keeps available descriptions, prices, tax, and totals '
@@ -89,7 +97,9 @@ String _receiptAssistedReviewDetailText({
   if (effectiveItemFamilyReviewLabel.isNotEmpty) {
     return '$effectiveItemFamilyReviewLabel. Review whether the whole receipt is Business, Personal, or Mixed before saving.';
   }
-  return detailMode == _ReceiptDetailEntryMode.quickClassify
+  return detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? 'Basic review keeps the receipt proof and core fields visible without item lines.'
+      : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Simple review shows prices first for fast Business, Personal, or Mixed classification. Switch to detailed review if item descriptions matter.'
       : 'Detailed review keeps descriptions, prices, tax, and totals visible so each line can be checked before Business, Personal, or Mixed classification.';
 }

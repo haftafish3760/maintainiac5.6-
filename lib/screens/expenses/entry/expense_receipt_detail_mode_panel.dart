@@ -16,6 +16,14 @@ class _ReceiptDetailModePanel extends StatelessWidget {
       accentColor: const Color(0xFF8FD3FF),
       children: [
         _ReceiptDetailModeChoice(
+          selected: value == _ReceiptDetailEntryMode.basicReceipt,
+          icon: Icons.receipt_outlined,
+          title: ExpenseReceiptReviewStyle.basicReceipt.label,
+          subtitle: ExpenseReceiptReviewStyle.basicReceipt.description,
+          onTap: () => onChanged(_ReceiptDetailEntryMode.basicReceipt),
+        ),
+        const SizedBox(height: 8),
+        _ReceiptDetailModeChoice(
           selected: value == _ReceiptDetailEntryMode.quickClassify,
           icon: Icons.fact_check_outlined,
           title: ExpenseReceiptReviewStyle.simpleAmounts.label,

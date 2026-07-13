@@ -159,8 +159,11 @@ extension _ReceiptAttachmentCameraActions
     ExpenseReceiptReviewStyle? style,
   ) {
     return switch (style) {
+      ExpenseReceiptReviewStyle.basicReceipt ||
       ExpenseReceiptReviewStyle.fullItemDetails =>
-        ReceiptNativeReviewDepth.detailedLines,
+        style == ExpenseReceiptReviewStyle.basicReceipt
+            ? ReceiptNativeReviewDepth.pricesOnly
+            : ReceiptNativeReviewDepth.detailedLines,
       ExpenseReceiptReviewStyle.simpleAmounts ||
       null => ReceiptNativeReviewDepth.pricesOnly,
     };

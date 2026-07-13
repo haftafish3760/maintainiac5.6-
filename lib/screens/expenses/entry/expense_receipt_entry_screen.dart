@@ -113,11 +113,13 @@ part 'expense_receipt_entry_byte_bucket.dart';
 
 enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 
-enum _ReceiptDetailEntryMode { quickClassify, detailedItems }
+enum _ReceiptDetailEntryMode { basicReceipt, quickClassify, detailedItems }
 
 extension _ReceiptDetailEntryModeX on _ReceiptDetailEntryMode {
   ExpenseReceiptReviewStyle get settingsStyle {
     return switch (this) {
+      _ReceiptDetailEntryMode.basicReceipt =>
+        ExpenseReceiptReviewStyle.basicReceipt,
       _ReceiptDetailEntryMode.quickClassify =>
         ExpenseReceiptReviewStyle.simpleAmounts,
       _ReceiptDetailEntryMode.detailedItems =>
@@ -129,6 +131,8 @@ extension _ReceiptDetailEntryModeX on _ReceiptDetailEntryMode {
     ExpenseReceiptReviewStyle style,
   ) {
     return switch (style) {
+      ExpenseReceiptReviewStyle.basicReceipt =>
+        _ReceiptDetailEntryMode.basicReceipt,
       ExpenseReceiptReviewStyle.simpleAmounts =>
         _ReceiptDetailEntryMode.quickClassify,
       ExpenseReceiptReviewStyle.fullItemDetails =>

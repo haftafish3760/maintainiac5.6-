@@ -50,11 +50,15 @@ _ReceiptAssistedReviewGuidance _receiptAssistedReviewGuidanceFrom({
   final canClassifyLines = hasLines && (parserReady || hasPriceSignals);
   final reviewLabel = !hasLines
       ? 'Totals fallback'
+      : detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? 'Review the core receipt fields before saving.'
       : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Price-first review'
       : 'Full-line review';
   final reviewIcon = !hasLines
       ? Icons.add_card_rounded
+      : detailMode == _ReceiptDetailEntryMode.basicReceipt
+      ? Icons.receipt_outlined
       : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? Icons.price_check_rounded
       : Icons.view_list_rounded;

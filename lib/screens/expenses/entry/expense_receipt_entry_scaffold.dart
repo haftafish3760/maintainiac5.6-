@@ -212,6 +212,8 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               materialMode: _isMaterialsFlow,
               maintenanceRepairMode: _isMaintenanceRepairFlow,
               fuelMode: widget.initialCategory == 'Fuel',
+              basicMode:
+                  _detailEntryMode == _ReceiptDetailEntryMode.basicReceipt,
               detailedMode:
                   _detailEntryMode == _ReceiptDetailEntryMode.detailedItems,
               onAddBusiness: () => _addReceiptLineForMode(

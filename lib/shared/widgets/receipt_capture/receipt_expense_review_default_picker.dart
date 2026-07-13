@@ -40,6 +40,19 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
           _ReceiptReviewStyleChoice(
             selected:
                 settings.receiptReviewStyle ==
+                ExpenseReceiptReviewStyle.basicReceipt,
+            icon: Icons.receipt_outlined,
+            title: 'Basic Receipt',
+            detail:
+                'Fastest review. Keep the receipt proof and confirm the store, date, category, and total without item lines.',
+            onTap: () => settings.setReceiptReviewStyle(
+              ExpenseReceiptReviewStyle.basicReceipt,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _ReceiptReviewStyleChoice(
+            selected:
+                settings.receiptReviewStyle ==
                 ExpenseReceiptReviewStyle.simpleAmounts,
             icon: Icons.price_check_rounded,
             title: 'Show Prices Only',

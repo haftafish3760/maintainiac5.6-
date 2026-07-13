@@ -2,12 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 enum ExpenseReceiptReviewStyle {
+  basicReceipt,
   simpleAmounts,
   fullItemDetails;
 
   static ExpenseReceiptReviewStyle fromName(String? value) {
     final normalized = value?.trim().toLowerCase();
     return switch (normalized) {
+      'basicreceipt' => ExpenseReceiptReviewStyle.basicReceipt,
       'fullitemdetails' => ExpenseReceiptReviewStyle.fullItemDetails,
       _ => ExpenseReceiptReviewStyle.simpleAmounts,
     };
@@ -15,6 +17,7 @@ enum ExpenseReceiptReviewStyle {
 
   String get label {
     return switch (this) {
+      ExpenseReceiptReviewStyle.basicReceipt => 'Basic receipt review',
       ExpenseReceiptReviewStyle.simpleAmounts => 'Simple receipt review',
       ExpenseReceiptReviewStyle.fullItemDetails => 'Full item detail review',
     };
@@ -22,6 +25,8 @@ enum ExpenseReceiptReviewStyle {
 
   String get description {
     return switch (this) {
+      ExpenseReceiptReviewStyle.basicReceipt =>
+        'Fastest. Keep the receipt proof and review the store, date, category, and total without item lines.',
       ExpenseReceiptReviewStyle.simpleAmounts =>
         'Fastest. Keep the receipt photo as proof, review each detected amount, and mark it Business, Personal, or Split.',
       ExpenseReceiptReviewStyle.fullItemDetails =>

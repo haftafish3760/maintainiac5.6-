@@ -54,6 +54,7 @@ void main() {
     );
     expect(parseReview, contains('Simple price review'));
     expect(parseReview, contains('Detailed item review'));
+    expect(parseReview, contains('Basic receipt review'));
     expect(
       entryScreen,
       contains('var _receiptReviewModeChangedByUser = false;'),

@@ -213,6 +213,7 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
 
   String get _modeLabel {
     return switch (detailMode) {
+      _ReceiptDetailEntryMode.basicReceipt => 'Basic receipt review',
       _ReceiptDetailEntryMode.quickClassify => 'Simple price review',
       _ReceiptDetailEntryMode.detailedItems => 'Detailed item review',
     };
