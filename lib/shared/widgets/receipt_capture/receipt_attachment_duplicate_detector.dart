@@ -5,12 +5,14 @@ import 'package:crypto/crypto.dart';
 import 'receipt_capture_models.dart';
 
 class ReceiptPhotoDuplicateReport {
-  const ReceiptPhotoDuplicateReport({required this.duplicateAttachmentIds});
+  const ReceiptPhotoDuplicateReport({required this.duplicateAttachmentIndexes});
 
-  final Set<String> duplicateAttachmentIds;
+  /// Indexes within the input sequence. Indexes, rather than attachment IDs,
+  /// keep a malformed repeated ID from suppressing the original image too.
+  final Set<int> duplicateAttachmentIndexes;
 
-  int get duplicateCount => duplicateAttachmentIds.length;
-  bool get hasDuplicates => duplicateAttachmentIds.isNotEmpty;
+  int get duplicateCount => duplicateAttachmentIndexes.length;
+  bool get hasDuplicates => duplicateAttachmentIndexes.isNotEmpty;
 }
 
 /// Exact-content detection only. Similar adjacent receipt sections are never
@@ -18,16 +20,18 @@ class ReceiptPhotoDuplicateReport {
 Future<ReceiptPhotoDuplicateReport> detectDuplicateReceiptPhotos(
   Iterable<ReceiptAttachmentRecord> attachments,
 ) async {
+  final records = attachments.toList(growable: false);
   final knownHashes = <String>{};
-  final duplicates = <String>{};
-  for (final attachment in attachments) {
+  final duplicateIndexes = <int>{};
+  for (var index = 0; index < records.length; index++) {
+    final attachment = records[index];
     if (!attachment.isPhoto) continue;
     final hash = await _contentHashFor(attachment);
     if (hash.isEmpty) continue;
-    if (!knownHashes.add(hash)) duplicates.add(attachment.id);
+    if (!knownHashes.add(hash)) duplicateIndexes.add(index);
   }
   return ReceiptPhotoDuplicateReport(
-    duplicateAttachmentIds: Set.unmodifiable(duplicates),
+    duplicateAttachmentIndexes: Set.unmodifiable(duplicateIndexes),
   );
 }
 

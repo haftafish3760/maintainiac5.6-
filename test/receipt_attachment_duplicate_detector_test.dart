@@ -24,7 +24,7 @@ void main() {
       photo('next-section', 'different-content'),
     ]);
 
-    expect(report.duplicateAttachmentIds, {'second'});
+    expect(report.duplicateAttachmentIndexes, {1});
   });
 
   test(
@@ -52,12 +52,40 @@ void main() {
           ),
         ]);
 
-        expect(report.duplicateAttachmentIds, {'second'});
+        expect(report.duplicateAttachmentIndexes, {1});
       } finally {
         await directory.delete(recursive: true);
       }
     },
   );
+
+  test('repeated attachment IDs retain every imported receipt text', () async {
+    final result = await const ReceiptOcrService()
+        .recognizeTextFromAttachments([
+          ReceiptAttachmentRecord(
+            id: 'reused-id',
+            path: '',
+            kind: ReceiptAttachmentKind.emailText,
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+            createdAt: DateTime(2026, 7, 13),
+            importedText: 'FIRST RECEIPT',
+          ),
+          ReceiptAttachmentRecord(
+            id: 'reused-id',
+            path: '',
+            kind: ReceiptAttachmentKind.emailText,
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+            createdAt: DateTime(2026, 7, 13),
+            importedText: 'SECOND RECEIPT',
+          ),
+        ]);
+
+    expect(
+      result.textByAttachmentId['reused-id'],
+      'FIRST RECEIPT\nSECOND RECEIPT',
+    );
+    expect(result.warnings.join(' '), contains('same identifier'));
+  });
 
   test(
     'OCR reads the first exact duplicate once and warns for review',

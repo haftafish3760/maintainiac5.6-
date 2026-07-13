@@ -61,12 +61,20 @@ class ReceiptOcrService {
     final sourceHandoffSummary = ReceiptOcrSourceHandoffSummary.fromAttachments(
       attachments,
     );
-    final importedTextByAttachment = <String, String>{
-      for (final attachment in attachments)
-        if (attachment.isImportedText &&
-            attachment.importedText.trim().isNotEmpty)
-          attachment.id: attachment.importedText.trim(),
-    };
+    final importedTextByAttachment = <String, String>{};
+    final repeatedAttachmentIds = <String>{};
+    for (final attachment in attachments) {
+      if (!attachment.isImportedText ||
+          attachment.importedText.trim().isEmpty) {
+        continue;
+      }
+      _appendAttachmentText(
+        importedTextByAttachment,
+        attachment.id,
+        attachment.importedText.trim(),
+        repeatedAttachmentIds,
+      );
+    }
     final photoAttachments = attachments
         .where(
           (attachment) =>
@@ -76,12 +84,11 @@ class ReceiptOcrService {
     final duplicatePhotos = await detectDuplicateReceiptPhotos(
       photoAttachments,
     );
-    final uniquePhotoAttachments = photoAttachments
-        .where(
-          (attachment) =>
-              !duplicatePhotos.duplicateAttachmentIds.contains(attachment.id),
-        )
-        .toList(growable: false);
+    final uniquePhotoAttachments = <ReceiptAttachmentRecord>[
+      for (var index = 0; index < photoAttachments.length; index++)
+        if (!duplicatePhotos.duplicateAttachmentIndexes.contains(index))
+          photoAttachments[index],
+    ];
     final readablePhotoAttachments = uniquePhotoAttachments
         .take(maxPhotoOcrAttachments)
         .toList(growable: false);
@@ -91,6 +98,7 @@ class ReceiptOcrService {
       ..._photoQualityWarnings(photoAttachments),
       if (duplicatePhotos.hasDuplicates)
         '${duplicatePhotos.duplicateCount} selected ${duplicatePhotos.duplicateCount == 1 ? 'photo appears' : 'photos appear'} identical to an earlier receipt photo. The first copy was read; keep or replace the duplicate before saving.',
+      if (repeatedAttachmentIds.isNotEmpty) _repeatedAttachmentIdWarning,
       if (skippedPhotoCount > 0)
         maxPhotoOcrAttachments == 0
             ? 'Receipt photo assistance is turned off for this device profile.'
@@ -197,7 +205,12 @@ class ReceiptOcrService {
           if (text.isEmpty) {
             warnings.add('No text was found in one receipt photo.');
           } else {
-            textByAttachment[attachment.id] = text;
+            _appendAttachmentText(
+              textByAttachment,
+              attachment.id,
+              text,
+              repeatedAttachmentIds,
+            );
           }
           photosRead += 1;
         } on MissingPluginException {
@@ -249,7 +262,12 @@ class ReceiptOcrService {
         }
         pdfsRead += 1;
         if (text.trim().isNotEmpty) {
-          textByAttachment[attachment.id] = text.trim();
+          _appendAttachmentText(
+            textByAttachment,
+            attachment.id,
+            text.trim(),
+            repeatedAttachmentIds,
+          );
         } else {
           warnings.add(
             'PDF receipt assistance could not render readable pages from this PDF.',
@@ -260,6 +278,11 @@ class ReceiptOcrService {
       try {
         await recognizer.close();
       } catch (_) {}
+    }
+
+    if (repeatedAttachmentIds.isNotEmpty &&
+        !warnings.contains(_repeatedAttachmentIdWarning)) {
+      warnings.add(_repeatedAttachmentIdWarning);
     }
 
     final combined = _combinedReceiptText(textByAttachment.values);
@@ -283,4 +306,22 @@ class ReceiptOcrService {
       warnings: List.unmodifiable([...warnings, ...combined.warnings]),
     );
   }
+}
+
+const _repeatedAttachmentIdWarning =
+    'Some receipt attachments used the same identifier. Their text was kept together; review the saved proof before saving.';
+
+void _appendAttachmentText(
+  Map<String, String> textByAttachment,
+  String attachmentId,
+  String text,
+  Set<String> repeatedAttachmentIds,
+) {
+  final existing = textByAttachment[attachmentId];
+  if (existing == null || existing.isEmpty) {
+    textByAttachment[attachmentId] = text;
+    return;
+  }
+  repeatedAttachmentIds.add(attachmentId);
+  textByAttachment[attachmentId] = '$existing\n$text';
 }
