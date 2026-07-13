@@ -68,8 +68,10 @@ extension _ExpenseReceiptEntryParseApplyActions
         }
       }
       _removeAppAssistedReceiptLines();
-      for (final line in mergedParsedLines) {
-        _lines.add(_ExpenseReceiptLine.fromLedgerLine(line));
+      if (_detailEntryMode != _ReceiptDetailEntryMode.basicReceipt) {
+        for (final line in mergedParsedLines) {
+          _lines.add(_ExpenseReceiptLine.fromLedgerLine(line));
+        }
       }
       _receiptReadHandoffDecision = _receiptDecisionLabelForParsedReceipt(
         parsed,

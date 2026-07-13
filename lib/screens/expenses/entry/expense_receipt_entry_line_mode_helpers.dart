@@ -20,7 +20,6 @@ extension _ExpenseReceiptEntryLineModeHelpers
     required String category,
   }) async {
     if (_detailEntryMode == _ReceiptDetailEntryMode.detailedItems ||
-        _detailEntryMode == _ReceiptDetailEntryMode.basicReceipt ||
         widget.initialCategory == 'Fuel' ||
         _isMaintenanceRepairFlow) {
       await _editLine(
