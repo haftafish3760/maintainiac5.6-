@@ -41,6 +41,19 @@ void main() {
     );
     expect(draft.toLocalReviewMap()['sourceText'], '1/2 GAL MILK 4.25');
     expect(draft.toLocalReviewMap()['displayText'], '1/2 GAL MILK 4.25');
+    final hintedDraft = ReceiptOcrParserLineDraft.fromSignal(
+      const ReceiptOcrParserLineSignal(
+        index: 0,
+        text: 'HDWR',
+        kind: ReceiptOcrParserLineKind.itemCandidate,
+        parserHint: 'hardware_candidate',
+        confidence: .72,
+      ),
+    );
+    expect(hintedDraft.sourceText, 'HDWR');
+    expect(hintedDraft.displayText, 'HDWR');
+    expect(hintedDraft.optionalInterpretation, 'hardware_candidate');
+    expect(hintedDraft.interpretationConfidence, .72);
     expect(
       draft.toPrivacySafeSummaryMap()['sourceFirstLineLabel'],
       'section 2 line 4',
