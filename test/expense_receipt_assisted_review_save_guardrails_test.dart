@@ -27,7 +27,7 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Your receipt proof is saved. Maintainiac is still reading the clearest OCR source before the storage-saving proof copy. Keep this screen open until receipt details finish opening.',
+        'Your receipt proof is saved. Maintainiac is extracting text and filling receipt details now. Keep this screen open.',
       ),
     );
     expect(parseReview, contains('Receipt Details Ready'));
@@ -268,7 +268,7 @@ void main() {
     );
     expect(
       stateActions,
-      contains('final parsed = _withReceiptBrainHandoffDiagnostics'),
+      contains('parsed = _withReceiptBrainHandoffDiagnostics'),
     );
     expect(stateActions, contains('receiptBrainLowStorageDownloadRiskCounts'));
     expect(

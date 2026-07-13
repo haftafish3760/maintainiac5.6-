@@ -275,7 +275,7 @@ void main() {
       safe['clientProofDefaultVisibility'],
       ReceiptLineClientProofVisibility.reviewBeforeClientShare,
     );
-    expect(safe['sourceReceiptSectionLabel'], 'Photo receipt RCP-44');
+    expect(safe['sourceReceiptSectionLabel'], 'source_section');
     expect(safe['hasAmount'], isTrue);
     expect(safe['needsParserReview'], isTrue);
     expect(safe.toString(), isNot(contains('LOWES')));
@@ -319,7 +319,7 @@ void main() {
     expect(copied.sourceReceiptSectionLabel, 'Photo 2 bottom');
     expect(
       copied.privacySafeProofReference['sourceReceiptSectionLabel'],
-      'Photo 2 bottom',
+      'source_section',
     );
     expect(copied.toMap()['proofLineReferenceLabel'], 'Line 2');
     expect(
