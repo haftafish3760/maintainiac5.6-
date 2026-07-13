@@ -154,6 +154,20 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
             "La cámara del teléfono controla el enfoque automático. Maintainiac no usa tocar para enfocar en la vista previa.",
         ),
     ))
+    content.addView(settingSummary(
+        receiptCameraText("OCR source", "Fuente de OCR"),
+        receiptCameraText(
+            "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
+            "El OCR lee primero la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo.",
+        ),
+    ))
+    content.addView(settingSummary(
+        receiptCameraText("Manual capture", "Captura manual"),
+        receiptCameraText(
+            "The shutter button always works immediately. Guidance can help, but it never blocks a manual receipt photo.",
+            "El disparador siempre funciona de inmediato. La guía ayuda, pero nunca bloquea una foto manual del recibo.",
+        ),
+    ))
     val scroll = ScrollView(this).apply {
         isFillViewport = true
         addView(content)
