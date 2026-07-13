@@ -70,4 +70,20 @@ void main() {
       expect(await router.dispatch(inventoryHandoff), 'fallback:inventory');
     },
   );
+
+  test('router reports whether a selected route has a dedicated consumer', () {
+    final router = ReceiptOcrHandoffRouter<String>(
+      expenseReview: (_) => 'expense',
+      fuel: (_) => 'fuel',
+    );
+
+    expect(
+      router.hasDedicatedHandlerFor(ReceiptOcrHandoffDestination.fuel),
+      isTrue,
+    );
+    expect(
+      router.hasDedicatedHandlerFor(ReceiptOcrHandoffDestination.inventory),
+      isFalse,
+    );
+  });
 }

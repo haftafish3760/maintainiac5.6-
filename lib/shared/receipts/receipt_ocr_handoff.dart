@@ -58,6 +58,14 @@ class ReceiptOcrHandoffRouter<T> {
   final ReceiptOcrHandoffHandler<T>? fuel;
   final ReceiptOcrHandoffHandler<T>? inventory;
 
+  bool hasDedicatedHandlerFor(ReceiptOcrHandoffDestination destination) {
+    return switch (destination) {
+      ReceiptOcrHandoffDestination.fuel => fuel != null,
+      ReceiptOcrHandoffDestination.inventory => inventory != null,
+      ReceiptOcrHandoffDestination.expenseReview => true,
+    };
+  }
+
   Future<T> dispatch(ReceiptOcrHandoff handoff) {
     final handler = switch (handoff.destination) {
       ReceiptOcrHandoffDestination.fuel => fuel ?? expenseReview,

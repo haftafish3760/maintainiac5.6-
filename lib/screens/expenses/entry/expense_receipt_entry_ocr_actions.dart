@@ -153,6 +153,7 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       selectedCategory: widget.initialCategory,
       inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
     );
+    final handoffRouter = _receiptOcrHandoffRouter(capability);
     ExpenseScreenTelemetryRecorder.record(
       context,
       ocr.hasText
@@ -166,6 +167,10 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
         'parserDepth': capability.parserDepth.name,
         'count': readableAttachments.length,
         'receiptOcrHandoffDestination': handoff.destination.name,
+        'receiptOcrHandoffConsumer':
+            handoffRouter.hasDedicatedHandlerFor(handoff.destination)
+            ? 'dedicated'
+            : 'expense_review_fallback',
         ..._ocrCompletionReviewMetadata(ocr.diagnostics),
         'ocrSourceHandoffStatus': ocr.diagnostics.ocrSourceHandoffStatus,
         if (ocr.diagnostics.ocrSourceHandoffSignalCounts.isNotEmpty)
@@ -266,9 +271,7 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
     late final ExpenseReceiptParseResult parsed;
     try {
       parsed = _withReceiptBrainHandoffDiagnostics(
-        await _receiptOcrHandoffRouter(
-          capability,
-        ).dispatch(handoff).timeout(remaining),
+        await handoffRouter.dispatch(handoff).timeout(remaining),
       );
     } on TimeoutException {
       _handleReceiptParseFailure(
@@ -327,6 +330,8 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
         fallbackDate: _selectedDate,
         capability: capability,
       ),
+      fuel: widget.fuelOcrHandoff,
+      inventory: widget.inventoryOcrHandoff,
     );
   }
 

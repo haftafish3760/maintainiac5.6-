@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/receipts/receipt_processing_contract.dart';
+import '../../../shared/receipts/receipt_ocr_handoff.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/record_form_fields.dart';
@@ -147,6 +148,8 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
     this.draftId,
     this.receiptId,
     this.showInterruptedCaptureRecovery = false,
+    this.fuelOcrHandoff,
+    this.inventoryOcrHandoff,
   });
 
   final ExpenseReceiptFlowMode mode;
@@ -157,6 +160,9 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
   final String? draftId;
   final String? receiptId;
   final bool showInterruptedCaptureRecovery;
+  final ReceiptOcrHandoffHandler<ExpenseReceiptParseResult>? fuelOcrHandoff;
+  final ReceiptOcrHandoffHandler<ExpenseReceiptParseResult>?
+  inventoryOcrHandoff;
 
   @override
   State<ExpenseReceiptEntryScreen> createState() =>
