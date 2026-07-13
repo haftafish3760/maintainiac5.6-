@@ -16,9 +16,6 @@ void main() {
     final previewRow = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
     ).readAsString();
-    final previewControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
-    ).readAsString();
     final previewTray = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
     ).readAsString();
@@ -135,7 +132,7 @@ void main() {
     expect(
       contextControls,
       contains(
-        'Retake is safer for OCR quality. Use this photo only if the store, date, total, and item prices are readable.',
+        'Retake is safer for receipt reading. Use this photo only if the store, date, total, and item prices are readable.',
       ),
     );
     expect(

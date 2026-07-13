@@ -136,7 +136,7 @@ void main() {
       expect(result.ocrReadsClearSourceBeforeSavedProof, isTrue);
       expect(
         result.ocrSourceFirstReviewCue,
-        contains('imported receipt photo source before the smaller saved proof copy'),
+        contains('imported receipt photo before the smaller saved proof copy'),
       );
       expect(
         result.privacySafeOcrSourceFirstSummary,
@@ -180,7 +180,7 @@ void main() {
       expect(result.ocrSourceFirstOutcome, 'combined_source_ready');
       expect(
         result.ocrSourceFirstReviewCue,
-        contains('one combined stitched receipt source before the smaller saved proof copy'),
+        contains('combined receipt image before the smaller saved proof copy'),
       );
       expect(
         result.ocrSourceFirstActionLabel,

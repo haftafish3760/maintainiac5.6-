@@ -408,8 +408,14 @@ void main() {
         contains('reviewDepth = safeReceiptReviewDepth('),
       );
       expect(cameraController, contains('Review style: \\(review)'));
-      expect(cameraController, contains('? "Detailed receipt lines"'));
-      expect(cameraController, contains(': "Price-only receipt lines"'));
+      expect(
+        cameraController,
+        contains('? receiptCameraText("Detailed receipt lines"'),
+      );
+      expect(
+        cameraController,
+        contains(': receiptCameraText("Price-only receipt lines"'),
+      );
       expect(cameraController, contains('Saved proof size'));
       expect(cameraController, contains('Save-space proof: local original'));
       expect(cameraController, contains('Save-space proof: high quality'));

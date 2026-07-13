@@ -215,7 +215,10 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               ? 'This should usually finish in seconds on newer phones. If it cannot read the receipt, manual review stays available below.'
               : reviewReady
               ? 'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.'
-              : 'Do not go back unless you want to keep checking the photo. The app uses the clearest original photo first; when receipt details are ready, check the store, date, total, tax, and item prices before saving.',
+              : 'Do not go back unless you want to keep checking the photo. '
+                'The app uses the clearest original photo first; when receipt '
+                'details are ready, check the store, date, total, tax, and '
+                'item prices before saving.',
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 11.5,

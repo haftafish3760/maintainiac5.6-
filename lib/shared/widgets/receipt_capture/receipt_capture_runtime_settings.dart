@@ -75,7 +75,6 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
     );
   }
 }
-
 class _ReceiptBackupStorageSummary extends StatelessWidget {
   const _ReceiptBackupStorageSummary();
 
@@ -128,7 +127,6 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
         .floor();
   }
 }
-
 class _ReceiptStorageMetricRow extends StatelessWidget {
   const _ReceiptStorageMetricRow({
     required this.label,
@@ -291,7 +289,6 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
     );
   }
 }
-
 class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
   const _ReceiptPostCaptureWorkflowSettings();
 
@@ -323,7 +320,6 @@ class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
     );
   }
 }
-
 class _ReceiptDiagnosticsSettings extends StatelessWidget {
   const _ReceiptDiagnosticsSettings({required this.settings});
 
@@ -347,7 +343,6 @@ class _ReceiptDiagnosticsSettings extends StatelessWidget {
     );
   }
 }
-
 class _ReceiptSettingsSwitch extends StatelessWidget {
   const _ReceiptSettingsSwitch({
     required this.title,

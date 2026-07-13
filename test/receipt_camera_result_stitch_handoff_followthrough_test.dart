@@ -435,7 +435,7 @@ void main() {
     );
     expect(
       result.receiptPhotoReviewHandoffPathLabel,
-      'Accepted photo review, but OCR source preparation needs review.',
+      'Accepted photo review, but photo preparation needs review.',
     );
     expect(
       result.acceptedPhotoHandoffRoute,
