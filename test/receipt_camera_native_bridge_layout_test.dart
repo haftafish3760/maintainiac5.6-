@@ -179,6 +179,25 @@ void main() {
     },
   );
 
+  test('receipt capture declares only the platform permissions it needs', () async {
+    final androidManifest = await File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsString();
+    final iosInfo = await File('ios/Runner/Info.plist').readAsString();
+
+    expect(androidManifest, contains('android.permission.CAMERA'));
+    expect(
+      androidManifest,
+      isNot(contains('android.permission.READ_EXTERNAL_STORAGE')),
+    );
+    expect(
+      androidManifest,
+      isNot(contains('android.permission.READ_MEDIA_IMAGES')),
+    );
+    expect(iosInfo, contains('<key>NSCameraUsageDescription</key>'));
+    expect(iosInfo, contains('<key>NSPhotoLibraryUsageDescription</key>'));
+  });
+
   test('photo review can open on a newly added receipt section', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final reviewActions = await File(
