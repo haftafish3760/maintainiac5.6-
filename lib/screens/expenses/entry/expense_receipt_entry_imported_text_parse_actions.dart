@@ -11,7 +11,15 @@ extension _ExpenseReceiptEntryImportedTextParseActions
   }
 
   Future<void> _parseImportedReceiptText(String text) async {
-    if (!_appAssistedReceiptFillEnabled) return;
+    if (!_appAssistedReceiptFillEnabled) {
+      _handleReceiptParseFailure(
+        failureKind: 'assistance_policy_blocked',
+        evidence: 'receipt_assist_disabled_before_imported_text_handoff',
+        userMessage:
+            'Receipt text is ready, but Receipt Assist is turned off for Expenses. Turn it on in Receipt Settings or continue manually.',
+      );
+      return;
+    }
     await _parseImportedReceiptTextWithMemory(text);
   }
 

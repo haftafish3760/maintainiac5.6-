@@ -365,7 +365,7 @@ class _ReceiptSettingsOverviewCard extends StatelessWidget {
                   icon: assistOn
                       ? Icons.auto_awesome_rounded
                       : Icons.edit_note_rounded,
-                  label: assistOn ? 'Receipt Assist On' : 'Manual Entry',
+                  label: assistOn ? 'Automatic Filling On' : 'Manual Entry',
                   emphasized: assistOn,
                 ),
                 _ReceiptSettingsStatusChip(

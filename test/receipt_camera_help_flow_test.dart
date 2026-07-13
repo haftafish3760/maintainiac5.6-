@@ -148,7 +148,9 @@ void main() {
     );
     expect(
       settingsSheet,
-      contains('Receipt Assist reads the full-quality temporary source'),
+      contains(
+        'The app uses the clearest original photo before creating the smaller saved proof copy.',
+      ),
     );
     expect(settingsSheet, contains('After You Take Photos'));
     expect(
@@ -226,7 +228,10 @@ void main() {
     expect(sectionLabels, contains('Receipt Sections'));
     expect(reviewPreviewControls, contains('addNextSectionLabel'));
     expect(contextControls, contains('Saved proof'));
-    expect(contextControls, contains('OCR uses the clear photo first'));
+    expect(
+      contextControls,
+      contains('The app uses the clear original photo first'),
+    );
     expect(reviewScreen, contains('widget.uiConfig.showTopBar'));
     expect(reviewScreen, contains('Expanded('));
     expect(reviewScreen, contains('_buildPhotoSurface('));

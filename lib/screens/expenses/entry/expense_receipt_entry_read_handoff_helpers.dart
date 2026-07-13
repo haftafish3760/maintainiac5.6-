@@ -22,7 +22,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
         if (!parseCompleted) {
           _receiptReadHandoffDecision = 'Preparing receipt details';
           _receiptReadHandoffAction =
-              'Keep this screen open while OCR and parsing finish filling the receipt review.';
+              'Keep this screen open while reading and filling finish preparing the receipt review.';
           _receiptReadHandoffStage = 'Receipt details still being filled';
           _receiptReadHandoffRouteResult =
               'Receipt details are still being prepared from the accepted proof.';

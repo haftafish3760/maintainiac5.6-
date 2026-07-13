@@ -95,7 +95,7 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Step 1 of 2: extracting receipt text. Step 2: filling receipt details for review.',
+        r'Step $progressStep of ${progressLabels.length}: ${progressLabels[progressStep - 1]}',
       ),
     );
     expect(

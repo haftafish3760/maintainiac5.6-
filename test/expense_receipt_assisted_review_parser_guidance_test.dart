@@ -151,26 +151,20 @@ void main() {
     expect(parseReview, contains("'Show Filled Review'"));
     expect(parseReview, contains("'Open Manual Review'"));
     expect(parseReview, isNot(contains("'Go To Review'")));
-    expect(parseReview, contains('Preparing Receipt Details'));
+    expect(parseReview, contains('Receipt text extracted'));
     expect(
       parseReview,
       contains(
-        'Keep this screen open until receipt details finish opening.',
+        'Receipt capture, OCR review, and manual line review still work',
       ),
     );
-    expect(
-      parseReview,
-      contains('is still reading the clearest OCR source'),
-    );
-    expect(parseReview, contains('storage-saving proof copy'));
-    expect(
-      parseReview,
-      contains('OCR and parsing finish this handoff'),
-    );
+    expect(parseReview, contains('used the clearest original photo'));
+    expect(parseReview, contains('defaultDataSaverFootprintSummary'));
+    expect(parseReview, contains('ReceiptReviewStepMetric'));
     expect(parseReview, contains("'Retake / Add Photo'"));
     expect(parseReview, contains("'Add Bottom Section'"));
     expect(parseReview, contains('Saved Proof'));
-    expect(parseReview, contains('Clear OCR Source'));
+    expect(parseReview, contains('Clear Original Photo'));
     expect(parseReview, contains('warning.reviewTargetLabel'));
     expect(parseReview, contains('warning.reviewTargetInstruction'));
     expect(parseReview, contains('diagnostics.parserSignalSummaryLabel'));

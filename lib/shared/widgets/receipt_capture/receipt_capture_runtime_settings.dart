@@ -205,9 +205,17 @@ class _ReceiptAssistSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ReceiptSettingsSection(
       icon: Icons.auto_awesome_rounded,
-      title: 'Receipt Assist',
+      title: 'Automatic Receipt Filling',
       subtitle: 'Manual entry always stays available.',
       children: [
+        _ReceiptSettingsSwitch(
+          title: 'Automatically Fill Receipts',
+          detail:
+              'Allow Maintainiac to read receipt photos locally and prepare editable receipt fields. You review everything before saving.',
+          value: settings.appAssistedReceiptFill,
+          onChanged: settings.setAppAssistedReceiptFill,
+        ),
+        const SizedBox(height: 6),
         _ReceiptSettingsSwitch(
           title: title,
           detail: detail,
@@ -254,6 +262,14 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
               'Automatic photo capture stays off unless you turn it on. The shutter button remains the primary capture action.',
         ),
         const SizedBox(height: 6),
+        _ReceiptSettingsSwitch(
+          title: 'Automatic Photo Capture',
+          detail:
+              'When enabled, the camera may capture a steady, well-framed receipt automatically. Manual shutter remains available.',
+          value: settings.cameraAutoCapture,
+          onChanged: settings.setCameraAutoCapturePreference,
+        ),
+        const SizedBox(height: 6),
         _ReceiptCameraRuntimeSummary(
           profile: runtime,
           privacySafeCapabilityLabel: settings.privacySafeCapabilityLabel,
@@ -295,13 +311,13 @@ class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
         _ReceiptSettingsNote(
           icon: Icons.manage_search_rounded,
           text:
-              'Receipt Assist reads the full-quality temporary source before the smaller saved proof copy is made.',
+              'The app uses the clearest original photo before creating the smaller saved proof copy.',
         ),
         SizedBox(height: 6),
         _ReceiptSettingsNote(
           icon: Icons.edit_note_rounded,
           text:
-              'Manual entry stays available after every capture, upload, OCR failure, or parser miss.',
+              'Manual entry stays available after every capture, upload, or read failure.',
         ),
       ],
     );

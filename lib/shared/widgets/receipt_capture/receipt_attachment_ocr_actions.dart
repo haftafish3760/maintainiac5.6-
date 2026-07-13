@@ -192,7 +192,9 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     }
     if (onImportedText != null) {
       try {
-        await Future<void>.sync(() => onImportedText(result.appFillText));
+        await Future<void>.sync(
+          () => onImportedText(result.appFillText),
+        ).timeout(_receiptOcrTimeout(capability, readable.length));
       } catch (_) {
         if (mounted) {
           updateAttachmentState(() {

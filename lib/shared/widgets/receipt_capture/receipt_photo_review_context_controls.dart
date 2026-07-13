@@ -116,7 +116,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
       final preview = storagePreview;
       if (preview == null) return 'Checking saved proof size.';
       final mode = preview.level.usesGrayscale ? 'black and white' : 'color';
-      return 'Saved proof: ${preview.estimatedLabel}, $mode. OCR uses the clear photo first.';
+      return 'Saved proof: ${preview.estimatedLabel}, $mode. The app uses the clear original photo first.';
     }
     if (reviewMode == _ReceiptReviewMode.stitch && photoCount > 1) {
       return 'Review how the receipt photos connect before the app opens receipt details.';
@@ -179,7 +179,7 @@ class _ReceiptCaptureReadinessReviewCopy {
       'manual_only_quality_retake_recommended' =>
         const _ReceiptCaptureReadinessReviewCopy._(
           contextStatus:
-              'Retake is safer for OCR quality. Use this photo only if the store, date, total, and item prices are readable.',
+              'Retake is safer when the writing is hard to read. Use this photo only if the store, date, total, and item prices are readable.',
           previewStatus:
               'Retake is safer for receipt reading. Use this photo only if the store, date, total, and item prices are readable.',
         ),

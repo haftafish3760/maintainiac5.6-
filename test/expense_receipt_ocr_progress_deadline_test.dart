@@ -52,8 +52,12 @@ void main() {
       contains('_hasAppAssistedReceiptReview && !_scanningReceiptPhotos'),
     );
     expect(scaffold, contains('if (_shouldShowReceiptReviewFields)'));
-    expect(progressPanel, contains("label: 'Read receipt text'"));
-    expect(progressPanel, contains("label: 'Prepare editable details'"));
+    expect(progressPanel, contains("'Receipt text extracted'"));
+    expect(progressPanel, contains("'Receipt form filled'"));
+    expect(
+      progressPanel,
+      contains(r'Step $progressStep of ${progressLabels.length}'),
+    );
     expect(
       progressPanel,
       isNot(contains('Step 1 of 2: extracting receipt text')),

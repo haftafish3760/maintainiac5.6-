@@ -201,6 +201,11 @@ void main() {
       contains('rawReceiptText.trim().isNotEmpty || hasParserReview'),
     );
     expect(stateActions, contains('void _removeAppAssistedReceiptLines()'));
+    expect(entryScreen, contains("failureKind: 'assistance_policy_blocked'"));
+    expect(
+      entryScreen,
+      contains('receipt_assist_disabled_before_imported_text_handoff'),
+    );
     expect(stateActions, contains('String? _primaryParsedReceiptWarning'));
     expect(stateActions, contains("lower.contains('missing')"));
     expect(stateActions, contains("lower.contains('could not')"));

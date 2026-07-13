@@ -35,8 +35,8 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
     final sourceLabel = ocrSourceCount <= 0
         ? 'checking readable source'
         : ocrSourceCount == 1
-        ? '1 clear OCR source'
-        : '$ocrSourceCount clear OCR sources';
+        ? '1 clear original photo'
+        : '$ocrSourceCount clear original photos';
     final stage = stageLabel.trim().isEmpty
         ? processingInFlight
               ? 'Preparing receipt details'
@@ -61,6 +61,18 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
             stage.toLowerCase().contains('manual entry') ||
             routeResult.toLowerCase().contains('manual receipt line review') ||
             routeResult.toLowerCase().contains('no readable text'));
+    const progressLabels = [
+      'Photo accepted',
+      'Image quality checked',
+      'Receipt text extracted',
+      'Receipt form filled',
+      'Review and confirm',
+    ];
+    final progressStep = _receiptProgressStep(
+      processingInFlight: processingInFlight,
+      extractingText: extractingText,
+      reviewReady: reviewReady,
+    );
     final needsBottomSection =
         decision.toLowerCase().contains('add bottom receipt section') ||
         stage.toLowerCase().contains('need bottom section') ||
@@ -81,7 +93,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
       subtitle: processingInFlight
           ? 'Your receipt proof is saved. Maintainiac is extracting text and filling receipt details now. Keep this screen open.'
           : reviewReady
-          ? 'Your receipt proof is saved. Maintainiac read the clear OCR source before the storage-saving proof copy; review what it filled in below before saving.'
+          ? 'Your receipt photo is saved. Maintainiac used the clearest original photo before creating the smaller proof copy; review what it filled in below before saving.'
           : 'Your receipt proof is saved. Maintainiac already prepared receipt details, but this receipt still needs review before saving.',
       icon: processingInFlight
           ? Icons.hourglass_top_rounded
@@ -121,15 +133,23 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          _ReceiptReadProgressStep(
-            label: 'Read receipt text',
-            active: extractingText,
+          Text(
+            'Step $progressStep of ${progressLabels.length}: ${progressLabels[progressStep - 1]}',
+            style: const TextStyle(
+              color: Color(0xFFFFD166),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-          const SizedBox(height: 6),
-          _ReceiptReadProgressStep(
-            label: 'Prepare editable details',
-            active: !extractingText,
-          ),
+          const SizedBox(height: 8),
+          for (var index = 0; index < progressLabels.length; index++) ...[
+            _ReceiptReadProgressStep(
+              number: index + 1,
+              label: progressLabels[index],
+              active: index + 1 == progressStep,
+            ),
+            if (index < progressLabels.length - 1) const SizedBox(height: 5),
+          ],
         ] else ...[
           Row(
             children: [
@@ -143,7 +163,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _ReceiptReviewStepMetric(
-                  label: 'Clear OCR Source',
+                  label: 'Clear Original Photo',
                   value: sourceLabel,
                   color: const Color(0xFF34A9E8),
                 ),
@@ -195,7 +215,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               ? 'This should usually finish in seconds on newer phones. If it cannot read the receipt, manual review stays available below.'
               : reviewReady
               ? 'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.'
-              : 'Do not go back unless you want to keep checking the photo. OCR uses the clearest source first; when receipt details are ready, check the store, date, total, tax, and item prices before saving.',
+              : 'Do not go back unless you want to keep checking the photo. The app uses the clearest original photo first; when receipt details are ready, check the store, date, total, tax, and item prices before saving.',
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 11.5,
@@ -273,9 +293,24 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
   }
 }
 
-class _ReceiptReadProgressStep extends StatelessWidget {
-  const _ReceiptReadProgressStep({required this.label, required this.active});
+int _receiptProgressStep({
+  required bool processingInFlight,
+  required bool extractingText,
+  required bool reviewReady,
+}) {
+  if (!processingInFlight || reviewReady) return 5;
+  if (extractingText) return 3;
+  return 4;
+}
 
+class _ReceiptReadProgressStep extends StatelessWidget {
+  const _ReceiptReadProgressStep({
+    required this.number,
+    required this.label,
+    required this.active,
+  });
+
+  final int number;
   final String label;
   final bool active;
 
@@ -293,7 +328,7 @@ class _ReceiptReadProgressStep extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            label,
+            '$number. $label',
             style: TextStyle(
               color: color,
               fontSize: 12,

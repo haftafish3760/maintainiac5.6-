@@ -239,10 +239,10 @@ void main() {
     expect(commonControls, contains("const Text('Opening')"));
     expect(commonControls, isNot(contains("'Opening receipt review'")));
     expect(controls, contains(': continueLabel'));
-    expect(previewControls, contains(r"'Section $current of $total'"));
+    expect(previewControls, contains('retakeSemanticLabel'));
     expect(previewControls, isNot(contains(r"'$current/$total'")));
-    expect(previewControls, contains("label: 'Add Another Photo'"));
-    expect(previewControls, contains("'Section \$current of \$total'"));
+    expect(previewControls, contains('onAddPhoto'));
+    expect(previewControls, contains('retakeLabel'));
     expect(commonControls, contains("'Add Another Photo' =>"));
     expect(
       commonControls,
@@ -250,8 +250,8 @@ void main() {
     );
     expect(commonControls, contains("'Proof' => 'Preview saved proof size'"));
     expect(previewControls, contains('class _ReceiptMultiPhotoActionRail'));
-    expect(previewControls, contains('Add Another Photo'));
-    expect(previewControls, contains("label: 'Proof'"));
+    expect(previewControls, contains('onAddPhoto'));
+    expect(previewControls, contains('strings.savedProof'));
     expect(previewControls, contains("? 'Add Bottom Section'"));
     expect(
       previewControls,
@@ -278,7 +278,7 @@ void main() {
     );
     expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt Photo'));
-    expect(previewControls, contains('Crop Current'));
+    expect(previewControls, contains('strings.cropReceiptPhoto'));
     expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
     expect(
       controls,
@@ -438,10 +438,7 @@ void main() {
     );
     expect(dataSaverPanel, contains('Receipt Proof Storage'));
     expect(dataSaverPanel, contains('Uses clear photo first'));
-    expect(
-      dataSaverPanel,
-      contains('Receipt assistance uses the clear OCR source first'),
-    );
+    expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
     expect(dataSaverPanel, contains('Proof kept after reading'));
     expect(dataSaverPanel, contains('Backup status'));
     final sectionLabels = await File(

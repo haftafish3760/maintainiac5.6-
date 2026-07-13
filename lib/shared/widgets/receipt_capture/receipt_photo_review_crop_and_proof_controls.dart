@@ -118,9 +118,9 @@ extension _ReceiptDataSaverReviewCopy on ReceiptDataSaverLevel {
       ReceiptDataSaverLevel.light =>
         'Cleanup keeps color and detail for review. Use this when the receipt is faint, wrinkled, or hard to inspect.',
       ReceiptDataSaverLevel.balanced =>
-        'Cleanup uses black-and-white receipt proof with normal contrast so the saved proof stays smaller without changing the OCR source.',
+        'Cleanup uses a smaller black-and-white proof copy without changing the clear original photo used to read the receipt.',
       ReceiptDataSaverLevel.strong =>
-        'Cleanup uses black-and-white plus stronger contrast for low-storage users while preserving the clear OCR source separately.',
+        'Cleanup uses black-and-white plus stronger contrast for low-storage users while preserving the clear original photo separately.',
       ReceiptDataSaverLevel.maximum =>
         'Cleanup makes the smallest proof copy. Use only after checking the preview is still readable.',
     };
@@ -142,12 +142,12 @@ class _ReceiptOcrProofLaneCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final quality = selectedQualityCheck ?? storagePreview?.quality;
     final sourceStatus = quality == null
-        ? 'Preparing OCR source'
+        ? 'Preparing clear photo'
         : quality.hasCriticalIssue
-        ? 'OCR source needs review'
+        ? 'Clear photo needs review'
         : quality.needsReview
-        ? 'OCR source usable with review'
-        : 'OCR source looks readable';
+        ? 'Clear photo usable with review'
+        : 'Clear photo looks readable';
     final backupStatus = storagePreview == null
         ? 'Checking saved proof size'
         : '${storagePreview!.estimatedLabel} ${selected.backupStyleLabel}';
