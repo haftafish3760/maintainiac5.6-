@@ -32,10 +32,15 @@ void main() {
     expect(draft.lineLabel, 'Line 13');
     expect(draft.sourceFirstLineLabel, 'section 2 line 4');
     expect(draft.proofLineReferenceLabel, 'Line 13, section 2 line 4');
+    expect(draft.sourceText, '1/2 GAL MILK 4.25');
+    expect(draft.displayText, '1/2 GAL MILK 4.25');
+    expect(draft.normalizedText, '1/2 gal milk 4.25');
     expect(
       draft.toLocalReviewMap()['sourceFirstLineLabel'],
       'section 2 line 4',
     );
+    expect(draft.toLocalReviewMap()['sourceText'], '1/2 GAL MILK 4.25');
+    expect(draft.toLocalReviewMap()['displayText'], '1/2 GAL MILK 4.25');
     expect(
       draft.toPrivacySafeSummaryMap()['sourceFirstLineLabel'],
       'section 2 line 4',

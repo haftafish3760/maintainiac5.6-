@@ -142,6 +142,12 @@ class ReceiptOcrParserLineSignal {
   String get stableLineId =>
       'ocr_line_${safeIndex.toString().padLeft(3, '0')}_$roleLabel';
   String get sourceLocationLabel => sourceLocation?.label ?? '';
+  String get sourceText => text;
+  String get displayText => text;
+  String? get optionalInterpretation =>
+      parserHint == 'unknown' ? null : parserHint;
+  double? get interpretationConfidence =>
+      optionalInterpretation == null ? null : confidence;
   String get expenseFamilyToken => _receiptExpenseFamilyToken(expenseFamily);
   String get parserBucketId =>
       needsReview ? '${roleLabel}_needs_review' : '${roleLabel}_ready';
@@ -241,6 +247,13 @@ class ReceiptOcrParserLineDraft {
   int get safeLineNumber => lineNumber.clamp(1, _maxReceiptOcrParserLineNumber);
   String get lineLabel => 'Line $safeLineNumber';
   String get sourceLocationLabel => sourceLocation?.label ?? '';
+  String get sourceText => text;
+  String get displayText => text;
+  String get normalizedText => _normalizeReceiptParserLineText(text);
+  String? get optionalInterpretation =>
+      parserHint == 'unknown' ? null : parserHint;
+  double? get interpretationConfidence =>
+      optionalInterpretation == null ? null : confidence;
   String get sourceFirstLineLabel =>
       sourceLocationLabel.isEmpty ? lineLabel : sourceLocationLabel;
   String get proofLineReferenceLabel {
@@ -261,6 +274,13 @@ class ReceiptOcrParserLineDraft {
       'lineNumber': safeLineNumber,
       'sourceFirstLineLabel': sourceFirstLineLabel,
       'text': text,
+      'sourceText': sourceText,
+      'displayText': displayText,
+      'normalizedText': normalizedText,
+      if (optionalInterpretation != null)
+        'optionalInterpretation': optionalInterpretation,
+      if (interpretationConfidence != null)
+        'interpretationConfidence': interpretationConfidence,
       'role': role,
       'parserBucket': parserBucket,
       if (amount != null) 'amount': amount,
