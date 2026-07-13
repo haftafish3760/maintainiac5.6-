@@ -70,6 +70,15 @@ echo "[coverage] focused OCR/camera tests"
 rg --files test | rg -i '(receipt.*(ocr|camera|capture)|ocr.*receipt)' | rg -v '(fuel|work_supply|materials|inventory)' | sort
 echo
 
+echo "[duplicates] canonical generic OCR symbols"
+for symbol in ReceiptOcrService ReceiptOcrDocument ReceiptOcrResult ReceiptOcrHandoff ReceiptCameraViewController; do
+  matches=$(rg -l "(^| )(class|enum) $symbol\\b" lib/shared/receipts lib/shared/widgets/receipt_capture android/app/src/main/kotlin/com/maintainiac ios/Runner 2>/dev/null | sort || true)
+  count=$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')
+  printf '%s definitions=%s\n' "$symbol" "$count"
+  [[ -z "$matches" ]] || printf '%s\n' "$matches"
+done
+echo
+
 echo "[wiring] category-to-handoff references"
 rg -n --no-heading 'initialCategory|selectedCategory|receiptOcrHandoffDestinationFor|ReceiptOcrHandoff\.forUserSelection|handoffRouter\.dispatch' \
   lib/screens/expenses lib/shared/receipts lib/shared/widgets/receipt_capture 2>/dev/null | rg -v '(fuel|work_supply|materials|inventory)' || true
