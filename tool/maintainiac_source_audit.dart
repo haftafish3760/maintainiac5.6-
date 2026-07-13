@@ -16,7 +16,8 @@ const _ignoredPathParts = {
 const _receiptScopeRoots = [
   'lib/shared/widgets/receipt_capture',
   'lib/shared/receipts',
-  'lib/screens/expenses/data',
+  'lib/screens/expenses/data/expense_receipt_ocr_review.dart',
+  'lib/screens/expenses/data/expense_receipt_parser_ocr_handoff_logic.dart',
   'lib/screens/expenses/entry',
   'android/app/src/main/kotlin/com/maintainiac',
   'ios/Runner',
