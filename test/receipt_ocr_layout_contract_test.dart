@@ -10,6 +10,7 @@ void main() {
         pages: [
           ReceiptOcrPage(
             attachmentId: 'receipt-photo',
+            pageIndex: 2,
             blocks: [
               ReceiptOcrBlock(
                 text: '2 PVC 2.58',
@@ -39,7 +40,18 @@ void main() {
       expect(layout.lineCount, 1);
       expect(layout.pages.single.lines.single.tokens, hasLength(3));
       expect(layout.pages.single.lines.single.bounds?.width, 200);
+      expect(layout.pages.single.pageIndex, 2);
       expect(layout.pages.single.lines.single.confidence, isNull);
+      expect(layout.pages.single.blocks.single.sourceText, '2 PVC 2.58');
+      expect(layout.pages.single.lines.single.displayText, '2 PVC 2.58');
+      expect(
+        layout.pages.single.lines.single.normalizedText,
+        '2 PVC 2.58',
+      );
+      expect(
+        layout.pages.single.lines.single.tokens[1].sourceText,
+        'PVC',
+      );
     },
   );
 

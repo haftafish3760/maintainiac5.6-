@@ -16,11 +16,13 @@ class ReceiptOcrDocument {
 class ReceiptOcrPage {
   const ReceiptOcrPage({
     required this.attachmentId,
+    this.pageIndex = 0,
     this.blocks = const [],
     this.confidence,
   });
 
   final String attachmentId;
+  final int pageIndex;
   final List<ReceiptOcrBlock> blocks;
   final double? confidence;
 
@@ -41,6 +43,10 @@ class ReceiptOcrBlock {
   final ReceiptOcrBounds? bounds;
   final double? confidence;
   final List<ReceiptOcrLine> lines;
+
+  String get sourceText => text;
+  String get displayText => text;
+  String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
 }
 
 class ReceiptOcrLine {
@@ -55,6 +61,10 @@ class ReceiptOcrLine {
   final ReceiptOcrBounds? bounds;
   final double? confidence;
   final List<ReceiptOcrToken> tokens;
+
+  String get sourceText => text;
+  String get displayText => text;
+  String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
 }
 
 class ReceiptOcrToken {
@@ -63,6 +73,14 @@ class ReceiptOcrToken {
   final String text;
   final ReceiptOcrBounds? bounds;
   final double? confidence;
+
+  String get sourceText => text;
+  String get displayText => text;
+  String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+}
+
+String _normalizeReceiptOcrEvidenceText(String value) {
+  return value.trim().replaceAll(RegExp(r'\s+'), ' ');
 }
 
 class ReceiptOcrBounds {
