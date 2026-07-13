@@ -84,6 +84,19 @@ rg -n --no-heading 'initialCategory|selectedCategory|receiptOcrHandoffDestinatio
   lib/screens/expenses lib/shared/receipts lib/shared/widgets/receipt_capture 2>/dev/null | rg -v '(fuel|work_supply|materials|inventory)' || true
 echo
 
+echo "[permissions] native receipt capture declarations"
+rg -n --no-heading 'android\.permission\.CAMERA|NSCameraUsageDescription|NSPhotoLibraryUsageDescription|Permission\.camera\.status|Permission\.camera\.request' \
+  android/app/src/main/AndroidManifest.xml ios/Runner/Info.plist \
+  lib/shared/widgets/receipt_capture/receipt_camera_permission.dart
+echo
+
+echo "[modes] receipt review depth contract"
+rg -n --no-heading 'basicReceipt|simpleAmounts|fullItemDetails|Basic receipt review|Simple receipt review|Detailed receipt review' \
+  lib/shared/state/expense_settings_store.dart \
+  lib/screens/expenses/entry \
+  lib/shared/widgets/receipt_capture/receipt_expense_review_default_picker.dart
+echo
+
 echo "[docs] current OCR/camera standards"
 for file in docs/receipt_camera_ocr_product_standard.md docs/receipt_camera_release_one_blueprint.md docs/receipt_camera_completion_map.md docs/receipt_native_camera_service_spec.md; do
   [[ -f "$file" ]] && printf '%s %s lines\n' "$file" "$(wc -l < "$file" | tr -d ' ')"
