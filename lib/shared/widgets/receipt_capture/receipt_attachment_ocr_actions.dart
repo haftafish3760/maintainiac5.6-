@@ -191,7 +191,31 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       });
     }
     if (onImportedText != null) {
-      await Future<void>.sync(() => onImportedText(result.appFillText));
+      try {
+        await Future<void>.sync(() => onImportedText(result.appFillText));
+      } catch (_) {
+        if (mounted) {
+          updateAttachmentState(() {
+            _readingForReview = false;
+            _receiptReadStatus = _ReceiptReadStatusKind.failed;
+            _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
+            _receiptReadStatusMessage =
+                'Receipt text was read, but the editable receipt details could not open. Keep the proof and fill the receipt by hand.';
+          });
+          if (showNoTextMessage) {
+            showPickerError(
+              'Receipt details could not open. Keep the proof and continue filling the receipt by hand.',
+            );
+          }
+        }
+        widget.onReceiptReadFinished?.call(false);
+        return _ReceiptAttachmentReadResult(
+          _ReceiptAttachmentReadOutcome.unreadable,
+          warning:
+              'Receipt text was read, but editable receipt details could not open. Keep the proof and continue filling the receipt by hand.',
+          ocrDiagnostics: result.diagnostics,
+        );
+      }
     }
     if (!mounted) {
       widget.onReceiptReadFinished?.call(true);

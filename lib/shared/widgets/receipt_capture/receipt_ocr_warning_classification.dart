@@ -11,6 +11,7 @@ extension ReceiptOcrWarningClassification on ReceiptOcrWarning {
       return ReceiptOcrWarningKind.noReadableText;
     }
     if (lower.contains('saved as proof only') ||
+        lower.contains('identical to an earlier receipt photo') ||
         lower.contains('assistance is turned off') ||
         lower.contains('reading is turned off') ||
         lower.contains('only the first')) {

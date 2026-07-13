@@ -1,6 +1,16 @@
 part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
+  Duration _receiptOcrDeadline(ReceiptDeviceCapability capability) {
+    return switch (capability.tier) {
+      // A current flagship should either produce text or offer recovery within
+      // twenty seconds. Older devices receive a proportionate ceiling.
+      ReceiptCapabilityTier.heavyweight => const Duration(seconds: 20),
+      ReceiptCapabilityTier.medium => const Duration(seconds: 35),
+      ReceiptCapabilityTier.light => const Duration(seconds: 50),
+    };
+  }
+
   void _scanReceiptAttachmentsIfNeeded() {
     if (!_appAssistedReceiptFillEnabled) return;
     final signature = _receiptAttachments
@@ -120,13 +130,29 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       ).showSnackBar(SnackBar(content: Text(warning)));
       return;
     }
-    final ocr = await ReceiptOcrService.forDevice(
-      capability,
-    ).recognizeTextFromAttachments(_receiptAttachments);
+    final deadline = _receiptOcrDeadline(capability);
+    final stopwatch = Stopwatch()..start();
+    late final ReceiptOcrResult ocr;
+    try {
+      ocr = await ReceiptOcrService.forDevice(
+        capability,
+      ).recognizeTextFromAttachments(_receiptAttachments).timeout(deadline);
+    } on TimeoutException {
+      _handleReceiptOcrDeadlineExceeded();
+      return;
+    } catch (_) {
+      _handleReceiptOcrReadFailure();
+      return;
+    }
     final failureDiagnostic = ocr.hasText
         ? null
         : ExpenseOcrFailureDiagnostics.fromOcrResult(ocr);
     if (!mounted) return;
+    final handoff = ReceiptOcrHandoff.forUserSelection(
+      ocr: ocr,
+      selectedCategory: widget.initialCategory,
+      inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
+    );
     ExpenseScreenTelemetryRecorder.record(
       context,
       ocr.hasText
@@ -139,6 +165,7 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
         'ocrEngine': capability.tier.name,
         'parserDepth': capability.parserDepth.name,
         'count': readableAttachments.length,
+        'receiptOcrHandoffDestination': handoff.destination.name,
         ..._ocrCompletionReviewMetadata(ocr.diagnostics),
         'ocrSourceHandoffStatus': ocr.diagnostics.ocrSourceHandoffStatus,
         if (ocr.diagnostics.ocrSourceHandoffSignalCounts.isNotEmpty)
@@ -174,7 +201,10 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
     final receiptMayNeedBottomSection =
         ocr.diagnostics.receiptMayNeedBottomSection;
     _updateReceiptState(() {
-      _scanningReceiptPhotos = false;
+      // Keep the progress surface active after text extraction. The downstream
+      // receipt-detail handoff is still running, and showing empty review
+      // fields here makes a healthy handoff look stalled or incomplete.
+      if (!ocr.hasText) _scanningReceiptPhotos = false;
       _receiptReadHandoffStage = ocr.hasText
           ? ocr.diagnostics.receiptPostCaptureRouteStatus ==
                     'parsed_receipt_review'
@@ -211,6 +241,9 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       ).showSnackBar(SnackBar(content: Text(warning)));
       return;
     }
+    _updateReceiptState(() {
+      _receiptReadHandoffStage = 'Preparing editable receipt details';
+    });
     ExpenseScreenTelemetryRecorder.record(
       context,
       ExpenseTelemetryEventType.parserStarted,
@@ -220,13 +253,40 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
         'localParserScope': capability.cloudAssistPlan.localParserScopeCode,
       },
     );
-    final parsed = _withReceiptBrainHandoffDiagnostics(
-      await parseExpenseReceiptOcrResultWithLocalMemory(
-        ocr,
-        fallbackDate: _selectedDate,
-        capability: capability,
-      ),
-    );
+    final remaining = deadline - stopwatch.elapsed;
+    if (remaining <= Duration.zero) {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_handoff_deadline_exceeded',
+        evidence: 'ocr_completed_without_time_remaining_for_downstream_handoff',
+        userMessage:
+            'Receipt text was found, but preparing the editable details took too long. Continue manually or retry the receipt photo.',
+      );
+      return;
+    }
+    late final ExpenseReceiptParseResult parsed;
+    try {
+      parsed = _withReceiptBrainHandoffDiagnostics(
+        await _receiptOcrHandoffRouter(
+          capability,
+        ).dispatch(handoff).timeout(remaining),
+      );
+    } on TimeoutException {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_handoff_deadline_exceeded',
+        evidence: 'downstream_receipt_handoff_exceeded_device_deadline',
+        userMessage:
+            'Receipt text was found, but preparing the editable details took too long. Continue manually or retry the receipt photo.',
+      );
+      return;
+    } catch (_) {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_handoff_failed',
+        evidence: 'downstream_receipt_handoff_threw_exception',
+        userMessage:
+            'Receipt text was found, but the editable details could not be prepared. Continue manually or retry the receipt photo.',
+      );
+      return;
+    }
     unawaited(_recordPrivacySafeParseEvent(parsed));
     _recordParserTelemetry(parsed);
     if (!mounted) return;
@@ -234,7 +294,18 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       _lastOcrDiagnostics = ocr.diagnostics;
       _lastOcrWarnings = ocr.structuredWarnings;
     });
-    _applyParsedReceipt(parsed);
+    try {
+      _applyParsedReceipt(parsed);
+    } catch (_) {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_review_apply_failed',
+        evidence: 'receipt_ocr_result_could_not_apply_to_editable_review',
+        userMessage:
+            'Receipt text was found, but editable receipt details could not open. Continue manually or retry the receipt photo.',
+      );
+      return;
+    }
+    _updateReceiptState(() => _scanningReceiptPhotos = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -242,6 +313,58 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
             successMessage:
                 'Receipt filled. Review the store, date, totals, and lines below before saving.',
           ),
+        ),
+      ),
+    );
+  }
+
+  ReceiptOcrHandoffRouter<ExpenseReceiptParseResult> _receiptOcrHandoffRouter(
+    ReceiptDeviceCapability capability,
+  ) {
+    return ReceiptOcrHandoffRouter(
+      expenseReview: (handoff) => parseExpenseReceiptOcrResultWithLocalMemory(
+        handoff.ocr,
+        fallbackDate: _selectedDate,
+        capability: capability,
+      ),
+    );
+  }
+
+  void _handleReceiptOcrDeadlineExceeded() {
+    if (!mounted) return;
+    _updateReceiptState(() {
+      _scanningReceiptPhotos = false;
+      _receiptReadAttemptedWithoutText = true;
+      _receiptReadHandoffStage = 'Receipt text needs manual review';
+      _receiptReadHandoffDecision = 'Open manual receipt details';
+      _receiptReadHandoffAction =
+          'Receipt reading took too long on this device. Add a clearer photo or enter the receipt manually.';
+      _receiptReadHandoffRouteResult = _receiptManualDetailsRouteResultLabel;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Receipt reading took too long. Add a clearer photo or continue manually.',
+        ),
+      ),
+    );
+  }
+
+  void _handleReceiptOcrReadFailure() {
+    if (!mounted) return;
+    _updateReceiptState(() {
+      _scanningReceiptPhotos = false;
+      _receiptReadAttemptedWithoutText = true;
+      _receiptReadHandoffStage = 'Receipt text needs manual review';
+      _receiptReadHandoffDecision = 'Open manual receipt details';
+      _receiptReadHandoffAction =
+          'The receipt could not be read. Add a clearer photo or enter the receipt manually.';
+      _receiptReadHandoffRouteResult = _receiptManualDetailsRouteResultLabel;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'The receipt could not be read. Add a clearer photo or continue manually.',
         ),
       ),
     );

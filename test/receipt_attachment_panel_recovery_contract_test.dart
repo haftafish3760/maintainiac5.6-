@@ -60,6 +60,8 @@ void main() {
     expect(ocrSource, contains('Receipt photo text was not readable enough.'));
     expect(ocrSource, contains('recoveryAdvice.primaryAction'));
     expect(ocrSource, contains('recoveryAdvice.shortAction'));
+    expect(ocrSource, contains('editable receipt details could not open'));
+    expect(ocrSource, contains('widget.onReceiptReadFinished?.call(false)'));
     expect(panelSource, contains('_ReceiptInterruptedCaptureBanner'));
     expect(panelSource, contains('_loadRecoverableNativeCaptures'));
     expect(panelSource, contains('recoverableNativeCaptures()'));
@@ -160,7 +162,9 @@ void main() {
     );
     expect(
       stagingSource,
-      contains('use the saved photos to open receipt details from the saved proof'),
+      contains(
+        'use the saved photos to open receipt details from the saved proof',
+      ),
     );
     expect(panelSource, contains('record.recoveredCountLabel'));
     expect(panelSource, contains('discardRecoveryRecord(record)'));

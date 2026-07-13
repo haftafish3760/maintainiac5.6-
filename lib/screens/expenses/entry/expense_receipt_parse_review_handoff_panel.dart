@@ -42,6 +42,10 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               ? 'Preparing receipt details'
               : 'Receipt details ready'
         : stageLabel.trim();
+    final extractingText =
+        processingInFlight &&
+        (stage.toLowerCase().contains('read') ||
+            stage.toLowerCase().contains('extract'));
     final decision = decisionLabel.trim();
     final action = actionLabel.trim();
     final routeResult = routeResultLabel.trim();
@@ -90,36 +94,10 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
           ? const Color(0xFF8EF6A4)
           : const Color(0xFFFFD166),
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _ReceiptReviewStepMetric(
-                label: 'Saved Proof',
-                value: proofLabel,
-                color: const Color(0xFF8EF6A4),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _ReceiptReviewStepMetric(
-                label: 'Clear OCR Source',
-                value: sourceLabel,
-                color: const Color(0xFF34A9E8),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        _ReceiptReviewInstructionChip(
-          icon: Icons.sync_rounded,
-          label: stage,
-          color: const Color(0xFF8EF6A4),
-        ),
         if (processingInFlight) ...[
-          const SizedBox(height: 8),
           Row(
-            children: const [
-              SizedBox(
+            children: [
+              const SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
@@ -127,10 +105,10 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
                   color: Color(0xFFFFD166),
                 ),
               ),
-              SizedBox(width: 8),
-              Expanded(
+              const SizedBox(width: 8),
+              const Expanded(
                 child: Text(
-                  'Step 1 of 2: extracting receipt text. Step 2: filling receipt details for review.',
+                  'Reading the receipt',
                   style: TextStyle(
                     color: Color(0xFFC8D0D3),
                     fontSize: 11,
@@ -141,6 +119,42 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          _ReceiptReadProgressStep(
+            label: 'Read receipt text',
+            active: extractingText,
+          ),
+          const SizedBox(height: 6),
+          _ReceiptReadProgressStep(
+            label: 'Prepare editable details',
+            active: !extractingText,
+          ),
+        ] else ...[
+          Row(
+            children: [
+              Expanded(
+                child: _ReceiptReviewStepMetric(
+                  label: 'Saved Proof',
+                  value: proofLabel,
+                  color: const Color(0xFF8EF6A4),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ReceiptReviewStepMetric(
+                  label: 'Clear OCR Source',
+                  value: sourceLabel,
+                  color: const Color(0xFF34A9E8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _ReceiptReviewInstructionChip(
+            icon: Icons.sync_rounded,
+            label: stage,
+            color: const Color(0xFF8EF6A4),
           ),
         ],
         if (decision.isNotEmpty) ...[
@@ -255,6 +269,39 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _ReceiptReadProgressStep extends StatelessWidget {
+  const _ReceiptReadProgressStep({required this.label, required this.active});
+
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? const Color(0xFF8EF6A4) : const Color(0xFF68767A);
+    return Opacity(
+      opacity: active ? 1 : 0.5,
+      child: Row(
+        children: [
+          Icon(
+            active ? Icons.radio_button_checked_rounded : Icons.circle_outlined,
+            color: color,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

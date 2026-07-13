@@ -90,7 +90,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                 ],
               ),
             ),
-            if (_hasAppAssistedReceiptReview) ...[
+            if (_shouldShowReceiptReviewFields) ...[
               KeyedSubtree(
                 key: _receiptReviewKey,
                 child: Column(

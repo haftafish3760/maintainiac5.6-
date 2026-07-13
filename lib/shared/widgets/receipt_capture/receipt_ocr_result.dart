@@ -8,6 +8,7 @@ class ReceiptOcrResult {
     required this.source,
     this.stats = const ReceiptOcrReadStats(),
     this.sourceHandoffSummary = const ReceiptOcrSourceHandoffSummary.empty(),
+    this.layout = const ReceiptOcrDocument.empty(),
     this.warnings = const [],
     this.parserLineSourceLocations = const [],
   });
@@ -18,6 +19,10 @@ class ReceiptOcrResult {
   final ReceiptProcessingSource source;
   final ReceiptOcrReadStats stats;
   final ReceiptOcrSourceHandoffSummary sourceHandoffSummary;
+
+  /// Provider-neutral layout preserved from OCR. Downstream receipt systems
+  /// consume this instead of reaching into an ML Kit-specific result type.
+  final ReceiptOcrDocument layout;
   final List<String> warnings;
   final List<ReceiptOcrParserLineLocation> parserLineSourceLocations;
 

@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import '../../receipts/receipt_processing_contract.dart';
 import '../../receipts/receipt_ocr_contract.dart';
 import 'receipt_assistance_policy.dart';
+import 'receipt_attachment_duplicate_detector.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_pdf_inspector.dart';
 
@@ -16,6 +17,7 @@ export '../../receipts/receipt_ocr_contract.dart';
 part 'receipt_ocr_service_models.dart';
 part 'receipt_ocr_service_helpers.dart';
 part 'receipt_ocr_service_text_combiner.dart';
+part 'receipt_ocr_service_layout.dart';
 part 'receipt_ocr_service_pdf_read.dart';
 
 class ReceiptOcrService {
@@ -71,13 +73,24 @@ class ReceiptOcrService {
               attachment.isPhoto && attachment.path.trim().isNotEmpty,
         )
         .toList(growable: false);
-    final readablePhotoAttachments = photoAttachments
+    final duplicatePhotos = await detectDuplicateReceiptPhotos(
+      photoAttachments,
+    );
+    final uniquePhotoAttachments = photoAttachments
+        .where(
+          (attachment) =>
+              !duplicatePhotos.duplicateAttachmentIds.contains(attachment.id),
+        )
+        .toList(growable: false);
+    final readablePhotoAttachments = uniquePhotoAttachments
         .take(maxPhotoOcrAttachments)
         .toList(growable: false);
     final skippedPhotoCount =
-        photoAttachments.length - readablePhotoAttachments.length;
+        uniquePhotoAttachments.length - readablePhotoAttachments.length;
     final photoReadWarnings = <String>[
       ..._photoQualityWarnings(photoAttachments),
+      if (duplicatePhotos.hasDuplicates)
+        '${duplicatePhotos.duplicateCount} selected ${duplicatePhotos.duplicateCount == 1 ? 'photo appears' : 'photos appear'} identical to an earlier receipt photo. The first copy was read; keep or replace the duplicate before saving.',
       if (skippedPhotoCount > 0)
         maxPhotoOcrAttachments == 0
             ? 'Receipt photo assistance is turned off for this device profile.'
@@ -123,7 +136,8 @@ class ReceiptOcrService {
         parserLineSourceLocations: combined.parserLineSourceLocations,
         stats: ReceiptOcrReadStats(
           importedTextRead: importedTextByAttachment.length,
-          photosSkipped: skippedPhotoCount,
+          photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
+          duplicatePhotosSkipped: duplicatePhotos.duplicateCount,
           pdfsSkipped: skippedPdfCount,
           pdfPagesRequested: pdfPreflight.pagesPlannedForRead,
         ),
@@ -145,7 +159,8 @@ class ReceiptOcrService {
         parserLineSourceLocations: combined.parserLineSourceLocations,
         stats: ReceiptOcrReadStats(
           importedTextRead: importedTextByAttachment.length,
-          photosSkipped: skippedPhotoCount,
+          photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
+          duplicatePhotosSkipped: duplicatePhotos.duplicateCount,
           pdfsSkipped:
               skippedPdfCount + pdfPreflight.blockedAttachmentIds.length,
           pdfPagesRequested: pdfPreflight.pagesPlannedForRead,
@@ -160,6 +175,7 @@ class ReceiptOcrService {
 
     final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
     final textByAttachment = <String, String>{...importedTextByAttachment};
+    final layoutPages = <ReceiptOcrPage>[];
     final warnings = <String>[
       ...photoReadWarnings,
       ...pdfReadWarnings,
@@ -175,6 +191,9 @@ class ReceiptOcrService {
           final image = InputImage.fromFilePath(attachment.path);
           final recognized = await recognizer.processImage(image);
           final text = recognized.text.trim();
+          layoutPages.add(
+            _receiptOcrLayoutPageFromRecognizedText(attachment.id, recognized),
+          );
           if (text.isEmpty) {
             warnings.add('No text was found in one receipt photo.');
           } else {
@@ -250,11 +269,13 @@ class ReceiptOcrService {
       textByAttachmentId: Map.unmodifiable(textByAttachment),
       source: source,
       sourceHandoffSummary: sourceHandoffSummary,
+      layout: ReceiptOcrDocument(pages: layoutPages),
       parserLineSourceLocations: combined.parserLineSourceLocations,
       stats: ReceiptOcrReadStats(
         importedTextRead: importedTextByAttachment.length,
         photosRead: photosRead,
-        photosSkipped: skippedPhotoCount,
+        photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
+        duplicatePhotosSkipped: duplicatePhotos.duplicateCount,
         pdfsRead: pdfsRead,
         pdfsSkipped: pdfsSkipped,
         pdfPagesRequested: pdfPreflight.pagesPlannedForRead,

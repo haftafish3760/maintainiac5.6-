@@ -5,6 +5,7 @@ class ReceiptOcrReadStats {
     this.importedTextRead = 0,
     this.photosRead = 0,
     this.photosSkipped = 0,
+    this.duplicatePhotosSkipped = 0,
     this.pdfsRead = 0,
     this.pdfsSkipped = 0,
     this.pdfPagesRequested = 0,
@@ -13,6 +14,7 @@ class ReceiptOcrReadStats {
   final int importedTextRead;
   final int photosRead;
   final int photosSkipped;
+  final int duplicatePhotosSkipped;
   final int pdfsRead;
   final int pdfsSkipped;
   final int pdfPagesRequested;

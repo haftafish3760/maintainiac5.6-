@@ -146,6 +146,14 @@ void main() {
       stateActions.indexOf('_applyParsedReceipt(parsed);'),
       lessThan(stateActions.indexOf('void _applyParsedReceipt')),
     );
+    expect(
+      stateActions,
+      contains("failureKind: 'receipt_review_apply_failed'"),
+    );
+    expect(
+      stateActions,
+      contains('receipt_ocr_result_could_not_apply_to_editable_review'),
+    );
     expect(lineModels, contains('cameFromAppAssistedReceiptRead'));
     expect(lineEditorActions, contains('_parserReviewLabelForSavedLine'));
     expect(lineEditorActions, contains('_parserReviewReasonForSavedLine'));
@@ -217,7 +225,7 @@ void main() {
     expect(photoPreviewControls, contains('minimumSize: const Size(0, 38)'));
     expect(photoPreviewControls, contains('BoxConstraints(maxWidth: 132)'));
     expect(photoPreviewControls, contains('message: label'));
-    expect(photoPreviewControls, contains('Add Another Photo'));
+    expect(photoPreviewControls, contains('strings.addAnotherReceiptPhoto'));
     expect(photoControls, contains('Check Photo Match'));
     expect(photoControls, contains('Use this photo'));
     expect(photoControls, contains("'Use Receipt'"));

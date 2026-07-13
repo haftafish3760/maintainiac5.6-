@@ -14,7 +14,9 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
         final parseCompleted = _lastReceiptParseCompleted;
         final parseHasUsableDetails = _lastReceiptParseHadUsableData;
         final parseHasSafeLines = _lastReceiptParseHadSafeLines;
-        _scanningReceiptPhotos = false;
+        // A photo read can finish before its receipt-detail handoff. Keep one
+        // unambiguous progress state visible until that handoff has resolved.
+        _scanningReceiptPhotos = !parseCompleted;
         _receiptReviewFlowStarted = true;
         _receiptReadAttemptedWithoutText = false;
         if (!parseCompleted) {

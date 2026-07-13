@@ -11,6 +11,7 @@ part '../widgets/receipt_capture/receipt_ocr_warnings.dart';
 part '../widgets/receipt_capture/receipt_ocr_warning_classification.dart';
 part '../widgets/receipt_capture/receipt_ocr_warning_labels.dart';
 part '../widgets/receipt_capture/receipt_ocr_result.dart';
+part '../widgets/receipt_capture/receipt_ocr_layout.dart';
 part '../widgets/receipt_capture/receipt_ocr_result_parser_views.dart';
 part '../widgets/receipt_capture/receipt_ocr_parser_models.dart';
 part '../widgets/receipt_capture/receipt_ocr_parser_handoff.dart';

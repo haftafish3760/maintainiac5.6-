@@ -16,6 +16,12 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
         _lastOcrWarnings.isNotEmpty;
   }
 
+  /// Receipt fields must never appear while their source is still being read.
+  /// Showing an empty review beside an active progress indicator makes it look
+  /// as if the app has stalled or already finished with missing data.
+  bool get _shouldShowReceiptReviewFields =>
+      _hasAppAssistedReceiptReview && !_scanningReceiptPhotos;
+
   bool get _shouldShowReceiptReadHandoffPanel {
     if (_scanningReceiptPhotos) return true;
     if (!_receiptReviewFlowStarted) return false;
