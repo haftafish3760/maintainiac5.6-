@@ -164,15 +164,18 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
         _lines[index] = line.copyWith(
           use: use,
           businessPercent: use == _ExpenseLineUse.split ? .5 : null,
-          parserNeedsReview: false,
-          parserReviewLabel: 'Good',
+          // The convenience 50% value is only a preview. It is not user
+          // intent, so keep the line blocked until the user confirms or
+          // edits the allocation in review.
+          parserNeedsReview: use == _ExpenseLineUse.split,
+          parserReviewLabel: use == _ExpenseLineUse.split ? 'Review' : 'Good',
           parserReviewReason: switch (use) {
             _ExpenseLineUse.business =>
               'User marked the full receipt as business.',
             _ExpenseLineUse.personal =>
               'User marked the full receipt as personal.',
             _ExpenseLineUse.split =>
-              'User marked the full receipt as mixed; split lines default to 50% business.',
+              'Mixed receipt lines default to 50% business for review only; confirm each allocation before saving.',
           },
         );
       }
