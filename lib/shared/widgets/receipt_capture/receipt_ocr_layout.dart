@@ -21,6 +21,9 @@ class ReceiptOcrDocument {
   bool get hasLayout => pages.any((page) => page.blocks.isNotEmpty);
   int get lineCount => pages.fold(0, (sum, page) => sum + page.lines.length);
   List<ReceiptOcrRow> get reconstructedRows => reconstructReceiptOcrRows(this);
+
+  ReceiptOcrFieldCandidates get fieldCandidates =>
+      extractReceiptOcrFieldCandidates(this);
 }
 
 class ReceiptOcrPage {

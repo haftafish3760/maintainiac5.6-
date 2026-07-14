@@ -21,6 +21,7 @@ flutter analyze \
 flutter test --reporter compact \
   test/receipt_attachment_duplicate_detector_test.dart \
 	  test/receipt_ocr_layout_contract_test.dart \
+	  test/receipt_ocr_field_candidates_test.dart \
 	  test/receipt_device_capability_tiers_test.dart \
 	  test/expense_receipt_ocr_progress_deadline_test.dart \
 	  test/expense_receipt_review_mode_totals_test.dart \
