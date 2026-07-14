@@ -18,6 +18,7 @@ if [[ ! -f "$source_image" ]]; then
   echo "Missing receipt image: $source_image" >&2
   exit 66
 fi
+source_hash="$(shasum -a 256 "$source_image" | awk '{print $1}')"
 
 configs=("$@")
 if [[ "${#configs[@]}" -eq 0 ]]; then
@@ -48,4 +49,11 @@ RECEIPT_STITCH_REAL_WINDOW_MATRIX="$matrix" \
     --plain-name 'real tall receipt matrix probes multiple crop windows in one run' \
     -r compact
 
+current_hash="$(shasum -a 256 "$source_image" | awk '{print $1}')"
+if [[ "$current_hash" != "$source_hash" ]]; then
+  echo "Receipt stitch altered source image: $source_image" >&2
+  exit 70
+fi
+
+echo "Receipt stitch source integrity: PASS"
 echo "Receipt stitch real-window matrix: PASS"

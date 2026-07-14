@@ -15,6 +15,7 @@ if [[ ! -f "$source_image" ]]; then
   echo "Missing receipt image: $source_image" >&2
   exit 66
 fi
+source_hash="$(shasum -a 256 "$source_image" | awk '{print $1}')"
 
 export RECEIPT_STITCH_REAL_TALL_IMAGE="$source_image"
 if [[ "${2:-}" != "" ]]; then
@@ -28,3 +29,11 @@ flutter test \
   test/receipt_stitching_real_fixture_probe_test.dart \
   --plain-name 'real tall receipt probe crops local receipt windows before stitching' \
   -r compact
+
+current_hash="$(shasum -a 256 "$source_image" | awk '{print $1}')"
+if [[ "$current_hash" != "$source_hash" ]]; then
+  echo "Receipt stitch altered source image: $source_image" >&2
+  exit 70
+fi
+
+echo "Receipt stitch source integrity: PASS"
