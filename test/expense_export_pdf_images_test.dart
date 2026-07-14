@@ -99,6 +99,73 @@ void main() {
     );
   });
 
+  test('image export keeps receipt data when one image is unavailable', () async {
+    final snapshot = buildExpenseExportSnapshot(
+      receipts: [
+        _receiptWithPhotos(['available', 'missing']),
+      ],
+      range: ExpenseDateRange(
+        start: DateTime(2026, 7, 1),
+        end: DateTime(2026, 7, 9),
+      ),
+      categoryFilter: ExpenseExportCategoryFilter.all,
+    );
+    final png = Uint8List.fromList(
+      base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      ),
+    );
+    final requests = <String>[];
+
+    final document = await buildExpenseExportSummaryPdf(
+      snapshot,
+      mode: AppGeneratedPdfExportMode.thumbnails,
+      imageResolver: AppGeneratedPdfImageResolver(
+        fetch: ({required attachmentId, required mode}) async {
+          requests.add(attachmentId);
+          return attachmentId == 'available' ? png : null;
+        },
+      ),
+    );
+
+    expect(requests, ['available', 'missing']);
+    expect(document.validation.isValid, isTrue);
+  });
+
+  test(
+    'full-image export keeps explicit-download consent as a hard gate',
+    () async {
+      final snapshot = buildExpenseExportSnapshot(
+        receipts: [
+          _receiptWithPhotos(['photo-1']),
+        ],
+        range: ExpenseDateRange(
+          start: DateTime(2026, 7, 1),
+          end: DateTime(2026, 7, 9),
+        ),
+        categoryFilter: ExpenseExportCategoryFilter.all,
+      );
+
+      await expectLater(
+        buildExpenseExportSummaryPdf(
+          snapshot,
+          mode: AppGeneratedPdfExportMode.fullImages,
+          imageResolver: AppGeneratedPdfImageResolver(
+            fetch: ({required attachmentId, required mode}) async =>
+                Uint8List.fromList([1]),
+          ),
+        ),
+        throwsA(
+          isA<AppGeneratedPdfImageResolutionException>().having(
+            (error) => error.reasonCode,
+            'reasonCode',
+            'full_image_download_requires_explicit_selection',
+          ),
+        ),
+      );
+    },
+  );
+
   test(
     'local export loader reuses proof paths without thumbnail fallback',
     () async {
@@ -256,4 +323,35 @@ void main() {
     );
     expect(fetchCalls, 1);
   });
+}
+
+ExpenseReceiptRecord _receiptWithPhotos(List<String> photoIds) {
+  return ExpenseReceiptRecord(
+    id: 'receipt-images',
+    receiptDate: DateTime(2026, 7, 9),
+    merchantName: 'Parts Store',
+    enteredTotal: 12,
+    attachments: [
+      for (final id in photoIds)
+        ReceiptAttachmentRecord(
+          id: id,
+          path: '/cloud-only/$id.jpg',
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          createdAt: DateTime(2026, 7, 9),
+        ),
+    ],
+    lines: const [
+      ExpenseReceiptLineRecord(
+        id: 'line-images',
+        description: 'Materials',
+        category: 'Materials',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 12,
+      ),
+    ],
+  );
 }

@@ -330,34 +330,65 @@ Future<List<pw.Widget>> _loadReceiptImageSections({
     for (final attachment in receipt.attachments.where(
       (item) => item.isPhoto,
     )) {
-      final bytes = await resolver.resolve(
-        attachmentId: attachment.id,
-        mode: mode,
-        allowFullImageDownload: allowFullImageDownload,
-      );
-      final image = pw.MemoryImage(bytes);
-      sections.add(
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 12),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('${receipt.merchantName} - ${attachment.id}'),
-              pw.SizedBox(height: 4),
-              pw.Image(
-                image,
-                height: mode == AppGeneratedPdfExportMode.thumbnails
-                    ? 120
-                    : 420,
-                fit: pw.BoxFit.contain,
-              ),
-            ],
+      try {
+        final bytes = await resolver.resolve(
+          attachmentId: attachment.id,
+          mode: mode,
+          allowFullImageDownload: allowFullImageDownload,
+        );
+        final image = pw.MemoryImage(bytes);
+        sections.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 12),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('${receipt.merchantName} - ${attachment.id}'),
+                pw.SizedBox(height: 4),
+                pw.Image(
+                  image,
+                  height: mode == AppGeneratedPdfExportMode.thumbnails
+                      ? 120
+                      : 420,
+                  fit: pw.BoxFit.contain,
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      } on AppGeneratedPdfImageResolutionException catch (error) {
+        if (error.reasonCode ==
+            'full_image_download_requires_explicit_selection') {
+          rethrow;
+        }
+        sections.add(_unavailableReceiptImageSection(receipt.merchantName));
+      } catch (_) {
+        sections.add(_unavailableReceiptImageSection(receipt.merchantName));
+      }
     }
   }
   return sections;
+}
+
+pw.Widget _unavailableReceiptImageSection(String merchantName) {
+  return pw.Padding(
+    padding: const pw.EdgeInsets.only(bottom: 12),
+    child: pw.Container(
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(border: pw.Border.all()),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(merchantName),
+          pw.SizedBox(height: 3),
+          pw.Text(
+            'Receipt image was unavailable. The receipt details remain in this export.',
+            style: const pw.TextStyle(fontSize: 9),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 String _shareSubject(ExpenseExportSnapshot snapshot) {
