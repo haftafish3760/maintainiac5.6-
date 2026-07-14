@@ -28,6 +28,13 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
             ),
           ],
         ),
+        if (widget.area == ReceiptCaptureArea.expenses &&
+            !_appAssistedReceiptFillEnabled) ...[
+          const SizedBox(height: 8),
+          _ReceiptAutomaticFillOffNotice(
+            onTurnOn: () => unawaited(openReceiptCaptureSettings()),
+          ),
+        ],
         if (_openingPicker) ...[
           const SizedBox(height: 8),
           const ReceiptPickerStatus(),
@@ -137,6 +144,50 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _ReceiptAutomaticFillOffNotice extends StatelessWidget {
+  const _ReceiptAutomaticFillOffNotice({required this.onTurnOn});
+
+  final VoidCallback onTurnOn;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF211F16),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF806D35)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.edit_note_rounded,
+              color: Color(0xFFFFD166),
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'Automatic filling is off. Your photo can still be saved, but the receipt details will not be filled for you.',
+                style: TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            TextButton(onPressed: onTurnOn, child: const Text('Turn On')),
+          ],
+        ),
+      ),
     );
   }
 }
