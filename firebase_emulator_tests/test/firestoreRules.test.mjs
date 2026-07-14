@@ -177,6 +177,14 @@ describe('Firestore rules emulator safety', () => {
     await assertSucceeds(
       setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip1'), summary),
     );
+    await assertSucceeds(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip1'), summary),
+    );
+    await assertFails(
+      updateDoc(doc(owner, 'orgs/orgA/mileageRecords/trip1'), {
+        acceptedMiles: 99.9,
+      }),
+    );
     await assertFails(
       setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip2'), {
         ...summary,
@@ -286,6 +294,11 @@ describe('Firestore rules emulator safety', () => {
     );
     await assertSucceeds(
       getDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip1')),
+    );
+    await assertFails(
+      updateDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip1'), {
+        acceptedMiles: 99.9,
+      }),
     );
     await assertFails(
       getDoc(doc(outsider, 'users/ownerUid/mileageRecords/soloTrip1')),

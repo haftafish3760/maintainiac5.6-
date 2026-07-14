@@ -222,16 +222,12 @@ service cloud.firestore {
             'orgId',
             'organizationSharingConsent',
           ]);
+        // Reviewed mileage is an audit record, not a mutable cloud draft.
+        // Permit an exact replay by its creator so an interrupted upload can
+        // be retried idempotently, but reject every material change.
         allow update: if isSelf(uid) &&
           resource.data.createdByUid == uid &&
-          request.resource.data.createdByUid == uid &&
-          request.resource.data.updatedByUid == uid &&
-          isMileageOnlySummary() &&
-          hasOnlyMileageSummaryFields() &&
-          !request.resource.data.keys().hasAny([
-            'orgId',
-            'organizationSharingConsent',
-          ]);
+          request.resource.data.diff(resource.data).affectedKeys().size() == 0;
         allow delete: if false;
       }
     }
@@ -398,18 +394,11 @@ service cloud.firestore {
           hasOnlyMileageSummaryFields() &&
           request.resource.data.orgId == orgId &&
           request.resource.data.organizationSharingConsent == true;
-        allow update: if (
-            hasPermission(orgId, 'editTeamMileage') ||
-            (
-              hasPermission(orgId, 'editOwnMileage') &&
-              resource.data.createdByUid == request.auth.uid
-            )
-          ) &&
-          keepsCreator() &&
-          isMileageOnlySummary() &&
-          hasOnlyMileageSummaryFields() &&
-          request.resource.data.orgId == orgId &&
-          request.resource.data.organizationSharingConsent == true;
+        // An employer/fleet role can view consented mileage but cannot alter
+        // a driver's reviewed record. The creator may only replay an exact
+        // document after a client-side retry ambiguity.
+        allow update: if resource.data.createdByUid == request.auth.uid &&
+          request.resource.data.diff(resource.data).affectedKeys().size() == 0;
         allow delete: if false;
       }
 

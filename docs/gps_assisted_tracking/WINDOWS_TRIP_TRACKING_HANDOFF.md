@@ -82,6 +82,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
   - Rules allowlist the mileage summary fields. Do not replace this allowlist with a loose denylist.
   - Organization records must be bound to their organization path and carry `organizationSharingConsent: true`.
   - Elevated organization reads require that consent field; the record creator may still read their own record. This safely hides old or consent-withheld records from fleet views.
+  - Reviewed mileage summaries are immutable cloud audit records. The original creator can only replay an exact document after an interrupted upload; organization roles cannot modify employee mileage.
   - Rules reject location-like data and unknown fields.
 
 ### Settings and app wiring
