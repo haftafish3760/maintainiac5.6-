@@ -15,9 +15,8 @@ bool _isChargingFeeLine(ExpenseReceiptLineRecord line) =>
     _normalizeFuelToken(line.category) == 'charging fees';
 
 bool _isHydrogenFuelLine(ExpenseReceiptLineRecord line) {
-  final unit = _normalizeFuelToken(line.unit);
   final fuelType = _normalizeFuelToken(line.fuelType ?? '');
-  return unit == 'kg' || fuelType == 'hydrogen';
+  return fuelType == 'hydrogen';
 }
 
 bool _isDieselExhaustFluidLine(ExpenseReceiptLineRecord line) {
@@ -75,7 +74,9 @@ double _liquidGallonsFor(ExpenseReceiptLineRecord line) {
       unit == 'litres') {
     return line.quantity * 0.2641720524;
   }
-  return line.quantity;
+  return const {'gallon', 'gallons', 'gal', 'gge', 'dge'}.contains(unit)
+      ? line.quantity
+      : 0;
 }
 
 _CompletedLiquidFillMetrics _completedLiquidFillMetrics(

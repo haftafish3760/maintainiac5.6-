@@ -16,6 +16,7 @@ class FuelEconomyMetrics {
     required this.odometerMiles,
     required this.completedLiquidFillMiles,
     required this.completedLiquidFillGallons,
+    required this.hasUnmeasuredLiquidFuel,
     required this.hasOdometerSequenceConflict,
   });
 
@@ -57,6 +58,7 @@ class FuelEconomyMetrics {
     final liquidFuelTypes = <String>{};
     final liquidFillEvents = <_LiquidFuelFillEvent>[];
     var hasExplicitLiquidFillType = false;
+    var hasUnmeasuredLiquidFuel = false;
 
     for (final receipt in selectedReceipts) {
       for (final line in receipt.lines) {
@@ -88,6 +90,10 @@ class FuelEconomyMetrics {
           liquidFuelExpense += lineTotal;
           liquidFuelTypes.add(_liquidFuelMetricTypeFor(line));
           final gallons = _liquidGallonsFor(line);
+          if (gallons <= 0) {
+            hasUnmeasuredLiquidFuel = true;
+            continue;
+          }
           liquidGallons += gallons;
           if (odometer != null && odometer > 0) {
             if ((line.fillType ?? '').trim().isNotEmpty) {
@@ -134,6 +140,7 @@ class FuelEconomyMetrics {
           : odometers.last - odometers.first,
       completedLiquidFillMiles: completedFill.miles,
       completedLiquidFillGallons: completedFill.gallons,
+      hasUnmeasuredLiquidFuel: hasUnmeasuredLiquidFuel,
       hasOdometerSequenceConflict: hasOdometerSequenceConflict,
     );
   }
@@ -149,13 +156,14 @@ class FuelEconomyMetrics {
   final int? odometerMiles;
   final int? completedLiquidFillMiles;
   final double completedLiquidFillGallons;
+  final bool hasUnmeasuredLiquidFuel;
   final bool hasOdometerSequenceConflict;
 
   bool get hasMixedLiquidFuelTypes =>
       _liquidFuelCompatibilityGroups(liquidFuelTypes).length > 1;
 
   double? get averageMpg {
-    if (hasMixedLiquidFuelTypes) return null;
+    if (hasMixedLiquidFuelTypes || hasUnmeasuredLiquidFuel) return null;
     final miles = completedLiquidFillMiles ?? odometerMiles;
     final gallons = completedLiquidFillMiles == null
         ? liquidGallons
@@ -177,7 +185,7 @@ class FuelEconomyMetrics {
   }
 
   double? get averageLiquidFuelPrice =>
-      hasMixedLiquidFuelTypes || liquidGallons <= 0
+      hasMixedLiquidFuelTypes || hasUnmeasuredLiquidFuel || liquidGallons <= 0
       ? null
       : liquidFuelExpense / liquidGallons;
 

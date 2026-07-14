@@ -266,4 +266,34 @@ void _registerFuelEconomyCoreTests() {
     expect(metrics.averageHydrogenKgPrice, 16);
     expect(metrics.hydrogenFuelCostPerMile, closeTo(.5867, .0001));
   });
+
+  test('preserves unmeasured fuel spend without inventing fuel economy', () {
+    final metrics = FuelEconomyMetrics.fromReceipts([
+      _fuelReceipt(
+        id: 'cng-kg-start',
+        odometer: 71000,
+        quantity: 8,
+        unit: 'kg',
+        subtotal: 24,
+        fuelType: 'CNG',
+      ),
+      _fuelReceipt(
+        id: 'cng-kg-end',
+        odometer: 71200,
+        quantity: 9,
+        unit: 'kg',
+        subtotal: 27,
+        fuelType: 'CNG',
+      ),
+    ]);
+
+    expect(metrics.odometerMiles, 200);
+    expect(metrics.hydrogenKg, 0);
+    expect(metrics.liquidFuelExpense, 51);
+    expect(metrics.liquidGallons, 0);
+    expect(metrics.hasUnmeasuredLiquidFuel, isTrue);
+    expect(metrics.averageMpg, isNull);
+    expect(metrics.averageLiquidFuelPrice, isNull);
+    expect(metrics.fuelCostPerMile, .255);
+  });
 }
