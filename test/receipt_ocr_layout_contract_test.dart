@@ -112,7 +112,7 @@ void main() {
       final row = layout.reconstructedRows.single;
       expect(row.sourceFragments, ['BLK NTR GLV XL', '9.99']);
       expect(row.sourceText, 'BLK NTR GLV XL\t9.99');
-      expect(row.displayText, 'BLK NTR GLV XL 9.99');
+      expect(row.displayText, 'BLK NTR GLV XL\t9.99');
       expect(row.optionalInterpretation, isNull);
       expect(row.needsReview, isTrue);
       expect(row.sourceLineIndexes, [0, 1]);
@@ -127,7 +127,7 @@ void main() {
         source: ReceiptProcessingSource.photo,
         layout: layout,
       );
-      expect(result.appFillText, 'BLK NTR GLV XL 9.99');
+      expect(result.appFillText, 'BLK NTR GLV XL\t9.99');
     },
   );
 }

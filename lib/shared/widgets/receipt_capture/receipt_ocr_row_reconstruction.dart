@@ -202,7 +202,9 @@ class _ReceiptOcrRowCluster {
       (left, right) => left.bounds!.left.compareTo(right.bounds!.left),
     );
     final fragments = lines.map((line) => line.text).toList(growable: false);
-    final displayText = fragments.join(' ');
+    // Preserve the block boundary in the editable evidence. A tab renders as
+    // spacing while remaining distinct from any spaces OCR actually returned.
+    final displayText = fragments.join('\t');
     final confidences = lines
         .map((line) => line.confidence)
         .whereType<double>()

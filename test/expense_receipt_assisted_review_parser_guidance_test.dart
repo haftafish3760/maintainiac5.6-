@@ -217,7 +217,7 @@ void main() {
       parseReview,
       contains('The next receipt section is needed'),
     );
-    expect(parseReview, contains('Parser readiness needs totals review'));
+    expect(parseReview, contains('Receipt details need totals review'));
     expect(parseReview, contains('Bottom section may be missing'));
     expect(parseReview, contains('Bottom edge and totals may be missing'));
     expect(parseReview, contains('ocrSourceSectionReviewLabel'));
@@ -299,7 +299,7 @@ void main() {
     expect(parseReview, contains('_ocrParserReadinessSummaryFor'));
     expect(parseReview, contains('_ocrParserReadinessActionLabelsFor'));
     expect(parseReview, contains('diagnostics.parserReadinessStatus'));
-    expect(parseReview, contains('Parser readiness: receipt lines are ready'));
+    expect(parseReview, contains('Receipt lines are ready for review'));
     expect(parseReview, contains('no_parser_ready_items'));
     expect(parseReview, contains('Check material matches'));
     expect(parseReview, contains('class _ReceiptParseReviewActionChip'));
