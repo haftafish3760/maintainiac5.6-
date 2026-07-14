@@ -67,6 +67,29 @@ void main() {
     },
   );
 
+  test('restore fails safely when local trip storage is unavailable', () async {
+    final hiveDirectory = await Directory.systemTemp.createTemp(
+      'trip_tracking_restore_closed_store_',
+    );
+    Hive.init(hiveDirectory.path);
+    final store = await TripTrackingSessionStore.create();
+    await Hive.close();
+    addTearDown(() async {
+      if (hiveDirectory.existsSync()) {
+        await hiveDirectory.delete(recursive: true);
+      }
+    });
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(controller.isTracking, isFalse);
+    expect(controller.platformStatus, 'storage_failed');
+    expect(controller.platformError, contains('Could not read local trip'));
+  });
+
   test(
     'a failed review checkpoint keeps the trip recoverable for retry',
     () async {

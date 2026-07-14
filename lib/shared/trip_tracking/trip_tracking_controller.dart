@@ -197,15 +197,38 @@ class TripTrackingController extends ChangeNotifier {
 
   Future<bool> restore() async {
     if (_isDisposed || isTracking) return false;
-    final session = _sessionStore.activeSession;
+    TripTrackingSessionRecord? session;
+    try {
+      session = _sessionStore.activeSession;
+    } catch (error) {
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not read local trip recovery data: $error';
+      notifyListeners();
+      return false;
+    }
     if (session == null) return false;
     if (!_isRecoverableSession(session)) {
-      await _sessionStore.clear();
+      try {
+        await _sessionStore.clear();
+      } catch (error) {
+        _platformStatus = 'storage_failed';
+        _platformError = 'Could not remove invalid local trip data: $error';
+        notifyListeners();
+      }
       return false;
     }
     // A review record was durably written before the process died. Do not
     // resume tracking or risk adding distance to a trip the user ended.
-    if (_sessionStore.reviewForTrip(session.id) != null) {
+    TripTrackingReviewRecord? review;
+    try {
+      review = _sessionStore.reviewForTrip(session.id);
+    } catch (error) {
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not read local trip review data: $error';
+      notifyListeners();
+      return false;
+    }
+    if (review != null) {
       try {
         await _sessionStore.clear();
       } catch (error) {
