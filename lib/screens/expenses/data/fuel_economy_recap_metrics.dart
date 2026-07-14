@@ -78,6 +78,10 @@ class FuelRecapMetrics {
       drivenMiles == null || drivenMiles! <= 0
       ? null
       : receiptPeriodMetrics.electricFuelExpense / drivenMiles!;
+  double? get hydrogenFuelCostPerMile =>
+      drivenMiles == null || drivenMiles! <= 0
+      ? null
+      : receiptPeriodMetrics.hydrogenFuelExpense / drivenMiles!;
 }
 
 class FuelFleetRecapMetrics {

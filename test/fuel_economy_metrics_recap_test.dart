@@ -145,6 +145,39 @@ void _registerFuelEconomyRecapTests() {
     expect(recap.drivenMiles, 200);
     expect(recap.fuelCostPerMile, .45);
   });
+
+  test('exposes hydrogen cost per mile in a date-window recap', () {
+    final recap = FuelRecapMetrics.fromReceipts(
+      [
+        _fuelReceipt(
+          id: 'h2-start',
+          odometer: 70000,
+          quantity: 4,
+          unit: 'kg',
+          subtotal: 64,
+          fuelType: 'Hydrogen',
+          receiptDate: DateTime(2026, 6, 3),
+        ),
+        _fuelReceipt(
+          id: 'h2-end',
+          odometer: 70200,
+          quantity: 4.5,
+          unit: 'kg',
+          subtotal: 72,
+          fuelType: 'Hydrogen',
+          receiptDate: DateTime(2026, 6, 7),
+        ),
+      ],
+      vehicleId: 'truck_1',
+      period: FuelRecapPeriod(
+        start: DateTime(2026, 6, 3),
+        endExclusive: DateTime(2026, 6, 10),
+      ),
+    );
+
+    expect(recap.drivenMiles, 200);
+    expect(recap.hydrogenFuelCostPerMile, .68);
+  });
 }
 
 ExpenseReceiptRecord _fuelReceipt({
