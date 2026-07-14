@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_firestore_contract.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
@@ -53,30 +54,10 @@ void main() {
     expect(doc.data['acceptedMeters'], 19312.128);
     expect(doc.data['locationDataIncluded'], isFalse);
     expect(doc.data['visibilityScope'], 'mileage_only');
-    expect(doc.data.keys.toSet(), {
-      'schema',
-      'tripId',
-      'orgId',
-      'organizationSharingConsent',
-      'createdByUid',
-      'updatedByUid',
-      'vehicleId',
-      'profile',
-      'startedAt',
-      'finishedAt',
-      'createdAt',
-      'updatedAt',
-      'startingOdometer',
-      'estimatedEndingOdometer',
-      'acceptedMeters',
-      'acceptedMiles',
-      'walkingReviewSuggested',
-      'motionState',
-      'receivedSampleCount',
-      'acceptedSampleCount',
-      'locationDataIncluded',
-      'visibilityScope',
-    });
+    expect(
+      doc.data.keys.toSet(),
+      TripTrackingFirestoreContract.reviewedSummaryFields,
+    );
     expect(doc.data.keys, isNot(contains('lastAccepted')));
     expect(doc.data.keys, isNot(contains('walkingEvidence')));
     expect(doc.data.toString(), isNot(contains('latitude')));
@@ -94,6 +75,19 @@ void main() {
     expect(doc.data['orgId'], isNull);
     expect(doc.data['createdByUid'], 'firebaseUid-1');
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('Firestore rules allowlist stays aligned with the trip summary contract', () {
+    final rules = File('firestore.rules').readAsStringSync();
+    final allowlistStart = rules.indexOf('function hasOnlyMileageSummaryFields');
+    final allowlistEnd = rules.indexOf(']);', allowlistStart);
+    expect(allowlistStart, greaterThanOrEqualTo(0));
+    expect(allowlistEnd, greaterThan(allowlistStart));
+    final allowlist = rules.substring(allowlistStart, allowlistEnd);
+
+    for (final field in TripTrackingFirestoreContract.reviewedSummaryFields) {
+      expect(allowlist, contains("'$field'"));
+    }
   });
 
   test('local upload policy rejects location data before it reaches the queue', () {
