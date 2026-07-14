@@ -26,19 +26,47 @@ void main() {
     }
   });
 
-  TripTrackingReviewRecord review() => TripTrackingReviewRecord(
-    id: 'trip 1',
-    vehicleId: 'truck-1',
-    startingOdometer: 1000,
-    estimatedEndingOdometer: 1012,
-    profile: TripTrackingProfile.roadVehicle,
-    startedAt: DateTime.utc(2026, 7, 14, 12),
-    finishedAt: DateTime.utc(2026, 7, 14, 13),
-    engineSnapshot: const TripTrackingEngineSnapshot(
-      totalAcceptedMeters: 19312.128,
-      walkingReviewSuggested: true,
-      motionState: TripMotionState.stopped,
-    ),
+  TripTrackingReviewRecord review({bool confirmed = true}) =>
+      TripTrackingReviewRecord(
+        id: 'trip 1',
+        vehicleId: 'truck-1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1012,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 14, 12),
+        finishedAt: DateTime.utc(2026, 7, 14, 13),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 19312.128,
+          walkingReviewSuggested: true,
+          motionState: TripMotionState.stopped,
+        ),
+        confirmedEndingOdometer: confirmed ? 1013 : null,
+        odometerConfirmedAt: confirmed
+            ? DateTime.utc(2026, 7, 14, 13, 1)
+            : null,
+      );
+
+  test(
+    'an unconfirmed review cannot enter the Firebase backup queue',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+      );
+
+      await expectLater(
+        mirror.queueReview(review(confirmed: false)),
+        throwsStateError,
+      );
+      expect(queue.pendingRecords, isEmpty);
+    },
   );
 
   test('builds a mileage-only document without location evidence', () {
@@ -77,36 +105,45 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
-  test('Firestore rules allowlist stays aligned with the trip summary contract', () {
-    final rules = File('firestore.rules').readAsStringSync();
-    final allowlistStart = rules.indexOf('function hasOnlyMileageSummaryFields');
-    final allowlistEnd = rules.indexOf(']);', allowlistStart);
-    expect(allowlistStart, greaterThanOrEqualTo(0));
-    expect(allowlistEnd, greaterThan(allowlistStart));
-    final allowlist = rules.substring(allowlistStart, allowlistEnd);
+  test(
+    'Firestore rules allowlist stays aligned with the trip summary contract',
+    () {
+      final rules = File('firestore.rules').readAsStringSync();
+      final allowlistStart = rules.indexOf(
+        'function hasOnlyMileageSummaryFields',
+      );
+      final allowlistEnd = rules.indexOf(']);', allowlistStart);
+      expect(allowlistStart, greaterThanOrEqualTo(0));
+      expect(allowlistEnd, greaterThan(allowlistStart));
+      final allowlist = rules.substring(allowlistStart, allowlistEnd);
 
-    for (final field in TripTrackingFirestoreContract.reviewedSummaryFields) {
-      expect(allowlist, contains("'$field'"));
-    }
-  });
+      for (final field in TripTrackingFirestoreContract.reviewedSummaryFields) {
+        expect(allowlist, contains("'$field'"));
+      }
+    },
+  );
 
-  test('local upload policy rejects location data before it reaches the queue', () {
-    final doc = MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
-      orgId: 'orgA',
-      createdByUid: 'firebaseUid-1',
-      review: review(),
-    );
+  test(
+    'local upload policy rejects location data before it reaches the queue',
+    () {
+      final doc =
+          MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+            orgId: 'orgA',
+            createdByUid: 'firebaseUid-1',
+            review: review(),
+          );
 
-    expect(
-      () => MaintainiacFirestoreUploadPolicy.validateDraft(
-        MaintainiacFirestoreDocumentDraft(
-          path: doc.path,
-          data: {...doc.data, 'latitude': 35.0},
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(
+          MaintainiacFirestoreDocumentDraft(
+            path: doc.path,
+            data: {...doc.data, 'latitude': 35.0},
+          ),
         ),
-      ),
-      throwsArgumentError,
-    );
-  });
+        throwsArgumentError,
+      );
+    },
+  );
 
   test('local upload policy rejects organization fields on private mileage', () {
     final doc =

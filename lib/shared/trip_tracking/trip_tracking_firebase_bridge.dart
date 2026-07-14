@@ -99,6 +99,11 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
 
   @override
   Future<void> queueReview(TripTrackingReviewRecord review) async {
+    if (!review.isOdometerConfirmed) {
+      throw StateError(
+        'Physical odometer confirmation is required before mileage backup.',
+      );
+    }
     if (!_isBackupEnabled) {
       await _discardQueuedBackupFor(review);
       await _saveReviewState(
