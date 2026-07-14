@@ -306,7 +306,7 @@ const _products = [
   ),
   _FuelSyntheticProduct(
     label: 'CNG COMPRESSED NATURAL GAS',
-    spanishLabel: 'Gas Natural Comprimido',
+    spanishLabel: 'GNV Gas Natural Comprimido',
     fuelType: 'CNG',
     unit: 'GGE',
     basePrice: 2.799,
@@ -341,7 +341,7 @@ const _products = [
   ),
   _FuelSyntheticProduct(
     label: 'L.P. GAS',
-    spanishLabel: 'Gas LP',
+    spanishLabel: 'GLP Gas LP',
     fuelType: 'Propane',
     unit: 'gallon',
     basePrice: 2.669,
