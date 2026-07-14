@@ -101,12 +101,14 @@ class _ReceiptSavePanel extends StatelessWidget {
 
 class _ReceiptTotalsPanel extends StatelessWidget {
   const _ReceiptTotalsPanel({
+    required this.detailMode,
     required this.lineSubtotal,
     required this.receiptSubtotalController,
     required this.salesTaxController,
     required this.receiptTotalController,
   });
 
+  final _ReceiptDetailEntryMode detailMode;
   final double lineSubtotal;
   final TextEditingController receiptSubtotalController;
   final TextEditingController salesTaxController;
@@ -114,6 +116,9 @@ class _ReceiptTotalsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showDetailedAmounts =
+        detailMode == _ReceiptDetailEntryMode.detailedItems;
+    final priceOnly = detailMode == _ReceiptDetailEntryMode.basicReceipt;
     final enteredSubtotal = _parseMoneyInput(receiptSubtotalController.text);
     final enteredTax = _parseMoneyInput(salesTaxController.text);
     final enteredTotal = _parseMoneyInput(receiptTotalController.text);
@@ -131,78 +136,84 @@ class _ReceiptTotalsPanel extends StatelessWidget {
         : inferredTax / enteredSubtotal;
 
     return ReceiptFormPanel(
-      title: 'Receipt Totals',
-      subtitle:
-          'Enter the subtotal, sales tax, and final total exactly as the receipt shows them.',
+      title: priceOnly ? 'Receipt Price' : 'Receipt Total',
+      subtitle: showDetailedAmounts
+          ? 'Review the subtotal, sales tax, and final total exactly as printed.'
+          : priceOnly
+          ? 'Review the final price paid. The original receipt stays attached as proof.'
+          : 'Review the final total after sales tax, then choose All Business or All Personal.',
       icon: Icons.calculate_rounded,
       accentColor: const Color(0xFF58D67D),
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
-          decoration: BoxDecoration(
-            color: const Color(0xFF101719),
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(color: const Color(0xFF445159)),
-          ),
-          child: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Line subtotal',
-                  style: TextStyle(
-                    color: Color(0xFFC8D0D3),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
+        if (showDetailedAmounts)
+          Container(
+            padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+            decoration: BoxDecoration(
+              color: const Color(0xFF101719),
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: const Color(0xFF445159)),
+            ),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Line subtotal',
+                    style: TextStyle(
+                      color: Color(0xFFC8D0D3),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+                Text(
+                  _money(lineSubtotal),
+                  style: const TextStyle(
+                    color: Color(0xFFFFD166),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: 0,
                   ),
                 ),
+              ],
+            ),
+          ),
+        if (showDetailedAmounts) const SizedBox(height: 8),
+        if (showDetailedAmounts)
+          Row(
+            children: [
+              Expanded(
+                child: RecordTextField(
+                  label: 'Receipt Subtotal',
+                  controller: receiptSubtotalController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  helperText: 'Before tax, if shown.',
+                ),
               ),
-              Text(
-                _money(lineSubtotal),
-                style: const TextStyle(
-                  color: Color(0xFFFFD166),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0,
+              const SizedBox(width: 8),
+              Expanded(
+                child: RecordTextField(
+                  label: 'Sales Tax',
+                  controller: salesTaxController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  helperText: 'Leave blank to infer.',
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: RecordTextField(
-                label: 'Receipt Subtotal',
-                controller: receiptSubtotalController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                helperText: 'Before tax, if shown.',
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: RecordTextField(
-                label: 'Sales Tax',
-                controller: salesTaxController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                helperText: 'Leave blank to infer.',
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 8),
         RecordTextField(
-          label: 'Receipt Total',
+          label: priceOnly ? 'Price Paid' : 'Final Total After Tax',
           controller: receiptTotalController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          helperText: 'Final amount paid.',
+          helperText: 'Final amount paid, including sales tax.',
         ),
-        if (inferredTax != null || taxRate != null) ...[
+        if (showDetailedAmounts &&
+            (inferredTax != null || taxRate != null)) ...[
           const SizedBox(height: 8),
           _ReceiptTaxHint(tax: inferredTax ?? 0, taxRate: taxRate),
         ],
