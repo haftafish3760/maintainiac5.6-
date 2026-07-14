@@ -99,6 +99,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         : '';
     final sourceSummary = _receiptReadSourceSummary(readable);
     final recoveryAdvice = _receiptReadRecoveryAdvice(readable);
+    final shouldNotifyReceiptReadStarted = !_readingForReview;
     updateAttachmentState(() {
       _readingForReview = true;
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
@@ -106,7 +107,9 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       _receiptReadStatusMessage =
           'Reading $sourceSummary. When the details are ready, Maintainiac shows them so you can check the store, date, total, and item lines.$cloudAssistSummary';
     });
-    widget.onReceiptReadStarted?.call();
+    if (shouldNotifyReceiptReadStarted) {
+      widget.onReceiptReadStarted?.call();
+    }
     late final ReceiptOcrResult result;
     try {
       result = await ReceiptOcrService.forDevice(capability)

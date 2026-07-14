@@ -61,6 +61,7 @@ part 'receipt_pdf_duplicate_helpers.dart';
 part 'receipt_pdf_selection_tile.dart';
 part 'receipt_capture_settings_sheet.dart';
 part 'receipt_capture_runtime_settings.dart';
+part 'receipt_capture_runtime_settings_note.dart';
 part 'receipt_expense_review_default_picker.dart';
 part 'receipt_capture_review_storage_settings.dart';
 part 'receipt_camera_help_sheet.dart';

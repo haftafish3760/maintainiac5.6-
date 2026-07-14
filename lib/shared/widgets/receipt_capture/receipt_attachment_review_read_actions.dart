@@ -174,7 +174,10 @@ extension _ReceiptAttachmentReviewReadActions
   }
 
   void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result) {
-    if (widget.onImportedText == null) return;
+    if (widget.onImportedText == null &&
+        widget.onReceiptOcrReadyForReview == null) {
+      return;
+    }
     if (!_appAssistedReceiptFillEnabled) return;
     widget.onReceiptReadStarted?.call();
     final reviewDecision = result.nextReviewHandoffLabel;

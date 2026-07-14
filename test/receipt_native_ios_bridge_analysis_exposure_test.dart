@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/receipt_native_ios_bridge_source_readers.dart';
@@ -10,9 +8,6 @@ void main() {
     () async {
       final sources = await readIosReceiptCameraBridgeSources();
       final cameraController = sources.cameraController;
-      final captureController = await File(
-        'ios/Runner/ReceiptCameraViewControllerCapture.swift',
-      ).readAsString();
 
       expect(cameraController, contains('LiveReceiptFraming'));
       expect(
@@ -31,6 +26,19 @@ void main() {
       expect(
         cameraController,
         contains('pinchGesture.isEnabled = pinchZoomEnabled'),
+      );
+      expect(
+        cameraController,
+        contains('pinchGesture.cancelsTouchesInView = false'),
+      );
+      expect(cameraController, contains('pinchGesture.delegate = self'));
+      expect(cameraController, contains('case .began:'));
+      expect(cameraController, contains('case .changed:'));
+      expect(
+        cameraController,
+        contains(
+          'func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool',
+        ),
       );
       expect(cameraController, isNot(contains('focusPointOfInterest')));
       expect(cameraController, isNot(contains('exposurePointOfInterest')));
@@ -160,7 +168,9 @@ void main() {
       );
       expect(
         cameraController,
-        contains('guard experimentalLiveReceiptQualityPolicyEnabled() else { return false }'),
+        contains(
+          'guard experimentalLiveReceiptQualityPolicyEnabled() else { return false }',
+        ),
       );
       expect(
         cameraController,
@@ -259,7 +269,10 @@ void main() {
       expect(cameraController, contains('estimateReceiptFraming'));
       expect(cameraController, contains('applyLiveFraming'));
       expect(cameraController, contains('updateStableFramingGuidance('));
-      expect(cameraController, contains('stableFramingGuidanceSignal(_ signal: String)'));
+      expect(
+        cameraController,
+        contains('stableFramingGuidanceSignal(_ signal: String)'),
+      );
       expect(cameraController, contains('framingGuidanceCandidateSignal'));
       expect(cameraController, contains('framingGuidanceCandidateCount'));
       expect(cameraController, contains('latestFramingSignal'));

@@ -3,7 +3,7 @@ import CoreMedia
 import CoreVideo
 import UIKit
 
-final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
+final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate {
   var onCapture: (([String], String, [String: Any]) -> Void)?
   var onCancel: ((String) -> Void)?
 

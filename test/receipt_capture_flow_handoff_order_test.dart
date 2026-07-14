@@ -107,6 +107,12 @@ void main() {
       contains('widget.onReceiptReadStarted?.call();'),
     );
     expect(
+      reviewedPhotoReadStatusBlock,
+      contains(
+        'widget.onImportedText == null &&\n        widget.onReceiptOcrReadyForReview == null',
+      ),
+    );
+    expect(
       reviewedPhotoReadStatusBlock.indexOf(
         'widget.onReceiptReadStarted?.call();',
       ),

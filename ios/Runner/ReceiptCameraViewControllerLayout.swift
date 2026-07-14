@@ -43,6 +43,8 @@ extension ReceiptCameraViewController {
     previewLayer = preview
     let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(zoomPreview(_:)))
     pinchGesture.isEnabled = pinchZoomEnabled
+    pinchGesture.cancelsTouchesInView = false
+    pinchGesture.delegate = self
     view.addGestureRecognizer(pinchGesture)
 
     receiptFrameGuide.translatesAutoresizingMaskIntoConstraints = false

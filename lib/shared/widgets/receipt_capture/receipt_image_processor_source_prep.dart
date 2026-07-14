@@ -23,16 +23,19 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
   final originalQuality = _qualityCheck(decoded);
   final baseline = _resizeToMaxSide(decoded, 2600);
   final scannerDecisionCodes = <String>[];
-  var processed = decoded;
+  // Keep edge detection, rotation, and cleanup inside the same bounded image
+  // budget as OCR. A camera original can be far larger without yielding more
+  // usable receipt text, while multiplying memory and latency on older phones.
+  var processed = baseline;
+  var oriented = false;
   if (cleanupSettings.orientationCorrection) {
     final orientation = _autoOrientReceiptWithDecision(processed);
     processed = orientation.image;
     scannerDecisionCodes.add(orientation.code);
+    oriented = orientation.code == 'orientation_applied_portrait_receipt';
   } else {
     scannerDecisionCodes.add('orientation_skipped_setting_off');
   }
-  final oriented =
-      processed.width != decoded.width || processed.height != decoded.height;
   final beforeCropWidth = processed.width;
   final beforeCropHeight = processed.height;
   if (cleanupSettings.autoCrop) {
@@ -79,9 +82,9 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
   final cleanupActions = <String>[
     if (baseline.width != decoded.width || baseline.height != decoded.height)
       'bounded_resolution',
-    if (oriented) 'auto_orient',
-    if (cropped) 'auto_crop',
-    if (straightened) 'auto_straighten',
+    if (usedEnhanced && oriented) 'auto_orient',
+    if (usedEnhanced && cropped) 'auto_crop',
+    if (usedEnhanced && straightened) 'auto_straighten',
     if (usedEnhanced) 'scanner_cleanup',
     if (!usedEnhanced) 'temporary_full_quality_source_preserved',
     ...cleanupSettings.enabledDiagnosticLabels,

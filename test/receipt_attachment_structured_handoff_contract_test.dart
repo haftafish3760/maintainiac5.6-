@@ -20,5 +20,10 @@ void main() {
         '? onReceiptOcrReadyForReview(result)\n              : onImportedText!(result.appFillText)',
       ),
     );
+    expect(
+      source,
+      contains('final shouldNotifyReceiptReadStarted = !_readingForReview;'),
+    );
+    expect(source, contains('if (shouldNotifyReceiptReadStarted) {'));
   });
 }

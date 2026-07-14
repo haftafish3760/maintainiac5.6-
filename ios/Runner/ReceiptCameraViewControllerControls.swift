@@ -51,10 +51,18 @@ extension ReceiptCameraViewController {
       lastZoomStatus = "camera_unavailable"
       return
     }
-    if recognizer.state == .began {
+    switch recognizer.state {
+    case .began:
       zoomGestureStartCount += 1
       lastZoomFactor = cameraDevice.videoZoomFactor
       lastZoomStatus = "gesture_started"
+    case .changed:
+      break
+    case .ended, .cancelled, .failed:
+      restoreWorkflowGuidanceIfNeeded()
+      return
+    default:
+      return
     }
     let minimumZoom = effectiveMinZoom(for: cameraDevice)
     let maximumZoom = effectiveMaxZoom(for: cameraDevice)
@@ -87,9 +95,18 @@ extension ReceiptCameraViewController {
       lastZoomStatus = "zoom_failed"
       guidanceLabel.text = "Zoom could not be adjusted right now."
     }
-    if recognizer.state == .ended || recognizer.state == .cancelled || recognizer.state == .failed {
-      restoreWorkflowGuidanceIfNeeded()
+  }
+
+  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+    guard gestureRecognizer is UIPinchGestureRecognizer else { return true }
+    var touchedView = touch.view
+    while let view = touchedView {
+      if view is UIControl {
+        return false
+      }
+      touchedView = view.superview
     }
+    return true
   }
 
   @objc func exposureChanged(_ slider: UISlider) {
