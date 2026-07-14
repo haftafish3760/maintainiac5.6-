@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
@@ -349,7 +348,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
       final generatedRecord = await _ledger!.saveRecord(
         saved.recordPdfGenerated(
           document,
-          fileHashSha256: sha256.convert(document.bytes).toString(),
+          fileHashSha256: document.contentHashSha256,
         ),
       );
       if (!mounted) return false;
@@ -439,6 +438,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         pdfKind: document.kind.name,
         fileName: document.safeFileName,
         byteSize: document.byteSize,
+        fileHashSha256: document.contentHashSha256,
         documentRevisionHashSha256: document.documentRevisionHashSha256,
         signatureState: document.signatureState.name,
       ),
@@ -448,6 +448,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
           pdfKind: document.kind.name,
           fileName: document.safeFileName,
           byteSize: document.byteSize,
+          fileHashSha256: document.contentHashSha256,
           documentRevisionHashSha256: document.documentRevisionHashSha256,
           signatureState: document.signatureState.name,
         ),
@@ -463,6 +464,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         pdfKind: document.kind.name,
         fileName: document.safeFileName,
         byteSize: document.byteSize,
+        fileHashSha256: document.contentHashSha256,
         documentRevisionHashSha256: document.documentRevisionHashSha256,
         signatureState: document.signatureState.name,
       ),
@@ -472,6 +474,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
           pdfKind: document.kind.name,
           fileName: document.safeFileName,
           byteSize: document.byteSize,
+          fileHashSha256: document.contentHashSha256,
           documentRevisionHashSha256: document.documentRevisionHashSha256,
           signatureState: document.signatureState.name,
         ),

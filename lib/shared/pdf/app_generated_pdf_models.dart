@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 import 'app_pdf_security_policy.dart';
 
 const int appGeneratedPdfMaxBytes = 25 * 1024 * 1024;
@@ -64,6 +66,8 @@ class AppGeneratedPdfDocument {
   }
 
   int get byteSize => bytes.lengthInBytes;
+
+  String get contentHashSha256 => sha256.convert(bytes).toString();
 
   AppGeneratedPdfValidationReport get validation =>
       AppGeneratedPdfValidationReport.inspect(bytes);
@@ -192,9 +196,11 @@ class AppGeneratedPdfFile {
     required this.document,
     required this.path,
     required this.byteSize,
+    this.fileHashSha256 = '',
   });
 
   final AppGeneratedPdfDocument document;
   final String path;
   final int byteSize;
+  final String fileHashSha256;
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
@@ -47,6 +48,7 @@ class AppGeneratedPdfService {
       document: document,
       path: destination.path,
       byteSize: document.byteSize,
+      fileHashSha256: document.contentHashSha256,
     );
   }
 
@@ -77,6 +79,15 @@ class AppGeneratedPdfService {
     if (actualBytes != generated.byteSize) {
       throw const AppGeneratedPdfException(
         'Maintaniac stopped this PDF because the prepared file was incomplete.',
+      );
+    }
+    final actualHash = sha256.convert(await file.readAsBytes()).toString();
+    final expectedHash = generated.fileHashSha256.isEmpty
+        ? generated.document.contentHashSha256
+        : generated.fileHashSha256;
+    if (actualHash != expectedHash) {
+      throw const AppGeneratedPdfException(
+        'Maintaniac stopped this PDF because the prepared file changed before delivery.',
       );
     }
     final result = await SharePlus.instance.share(

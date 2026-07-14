@@ -81,7 +81,33 @@ void main() {
     expect(generated.path, endsWith('.pdf'));
     expect(await File(generated.path).exists(), isTrue);
     expect(await File(generated.path).length(), document.byteSize);
+    expect(generated.fileHashSha256, document.contentHashSha256);
   });
+
+  test(
+    'generated PDF service rejects a changed temporary file before sharing',
+    () async {
+      final document = await const InvoicePdfPreviewFactory()
+          .buildEstimatePreview();
+      final generated = await const AppGeneratedPdfService().writeTemporary(
+        document,
+      );
+      final bytes = await File(generated.path).readAsBytes();
+      bytes[bytes.length - 1] = bytes[bytes.length - 1] == 0 ? 1 : 0;
+      await File(generated.path).writeAsBytes(bytes, flush: true);
+
+      await expectLater(
+        const AppGeneratedPdfService().shareGeneratedFile(generated),
+        throwsA(
+          isA<AppGeneratedPdfException>().having(
+            (error) => error.message,
+            'message',
+            contains('prepared file changed'),
+          ),
+        ),
+      );
+    },
+  );
 
   test('generated PDF model validates sendable PDF bytes and filenames', () {
     final document = AppGeneratedPdfDocument(

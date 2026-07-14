@@ -67,7 +67,9 @@ class InvoicePdfDeliveryEvent {
       sourceRecordId: _safeEventText(document.sourceRecordId, maxLength: 80),
       fileName: AppGeneratedPdfFileName.clean(document.safeFileName),
       byteSize: document.byteSize,
-      fileHashSha256: _safeHash(fileHashSha256),
+      fileHashSha256: _safeHash(
+        fileHashSha256.isEmpty ? document.contentHashSha256 : fileHashSha256,
+      ),
       documentRevisionHashSha256: _safeHash(
         document.documentRevisionHashSha256,
       ),
@@ -130,6 +132,7 @@ class InvoicePdfDeliveryEvent {
     required String pdfKind,
     String fileName = '',
     int byteSize = 0,
+    String fileHashSha256 = '',
     String documentRevisionHashSha256 = '',
     String signatureState = '',
     DateTime? at,
@@ -149,6 +152,7 @@ class InvoicePdfDeliveryEvent {
           ? ''
           : AppGeneratedPdfFileName.clean(fileName),
       byteSize: byteSize < 0 ? 0 : byteSize,
+      fileHashSha256: _safeHash(fileHashSha256),
       documentRevisionHashSha256: _safeHash(documentRevisionHashSha256),
       signatureState: _safeEventText(signatureState, maxLength: 30),
     );
@@ -185,6 +189,7 @@ class InvoicePdfDeliveryEvent {
     required String reasonCode,
     String fileName = '',
     int byteSize = 0,
+    String fileHashSha256 = '',
     String documentRevisionHashSha256 = '',
     String signatureState = '',
     DateTime? at,
@@ -204,6 +209,7 @@ class InvoicePdfDeliveryEvent {
           ? ''
           : AppGeneratedPdfFileName.clean(fileName),
       byteSize: byteSize < 0 ? 0 : byteSize,
+      fileHashSha256: _safeHash(fileHashSha256),
       documentRevisionHashSha256: _safeHash(documentRevisionHashSha256),
       signatureState: _safeEventText(signatureState, maxLength: 30),
       reasonCode: _safeEventText(reasonCode, maxLength: 80),
