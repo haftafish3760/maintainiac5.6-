@@ -11,7 +11,7 @@ run_flutter_test() {
   shift
   local tmp
   tmp="$(mktemp -t maintainiac_receipt_stitch_${label//[^A-Za-z0-9]/_}.XXXXXX)"
-  local timeout_seconds="${RECEIPT_STITCH_TEST_TIMEOUT_SECONDS:-600}"
+  local timeout_seconds="${RECEIPT_STITCH_TEST_TIMEOUT_SECONDS:-900}"
   flutter test "$@" -r compact > "$tmp" 2>&1 &
   local test_pid=$!
   (

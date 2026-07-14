@@ -80,7 +80,7 @@ void main() {
     expect(source, contains(r'mode="${1:-full}"'));
     expect(source, contains('run_flutter_test()'));
     expect(source, contains(r'> "$tmp" 2>&1'));
-    expect(source, contains(r'RECEIPT_STITCH_TEST_TIMEOUT_SECONDS:-600'));
+    expect(source, contains(r'RECEIPT_STITCH_TEST_TIMEOUT_SECONDS:-900'));
     expect(source, contains(r'local test_pid=$!'));
     expect(source, contains(r'local watchdog_pid=$!'));
     expect(source, contains('set +e'));
