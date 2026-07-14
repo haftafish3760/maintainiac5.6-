@@ -3,6 +3,7 @@ import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
 
 part 'expense_recap_tile_definitions.dart';
+part 'expense_recap_fuel_summary.dart';
 
 enum ExpenseRecapPeriod {
   day('Daily'),
@@ -188,7 +189,9 @@ class ExpenseRecapReport {
       }
     }
 
-    final fuelEconomy = FuelEconomyMetrics.fromReceipts(includedReceipts);
+    final fuelEconomy = _ExpenseRecapFuelSummary.fromReceipts(
+      includedReceipts,
+    );
     return ExpenseRecapReport(
       range: range,
       receiptCount: receiptCount,

@@ -169,6 +169,43 @@ void main() {
     expect(report.averageMpg, closeTo(16.667, .001));
   });
 
+  test('all-vehicle recap keeps fuel metrics isolated by vehicle', () async {
+    final ledger = ExpenseLedgerController.memory();
+    await ledger.saveReceipt(
+      _fuelCycleReceipt(
+        id: 'truck-fuel',
+        date: DateTime(2026, 6, 1),
+        odometer: 1000,
+        gallons: 10,
+        fillType: 'Full fill-up',
+      ),
+    );
+    await ledger.saveReceipt(
+      _fuelCycleReceipt(
+        id: 'van-fuel',
+        date: DateTime(2026, 6, 2),
+        odometer: 80000,
+        gallons: 8,
+        fillType: 'Full fill-up',
+        vehicleId: 'van_1',
+      ),
+    );
+
+    final report = ExpenseRecapReport.fromLedger(
+      ledger,
+      ExpenseDateRange(
+        start: DateTime(2026, 6, 1),
+        end: DateTime(2026, 6, 30),
+      ),
+    );
+
+    expect(report.fuelUnits, 18);
+    expect(report.liquidFuelExpense, 72);
+    expect(report.odometerMiles, isNull);
+    expect(report.averageMpg, isNull);
+    expect(report.fuelCostPerMile, isNull);
+  });
+
   test(
     'mixed-use vehicle expenses follow business and personal mileage share',
     () async {
@@ -374,12 +411,13 @@ ExpenseReceiptRecord _fuelCycleReceipt({
   required int odometer,
   required double gallons,
   required String fillType,
+  String vehicleId = 'truck_1',
 }) {
   return ExpenseReceiptRecord(
     id: id,
     receiptDate: date,
     merchantName: 'Fuel Stop',
-    vehicleId: 'truck_1',
+    vehicleId: vehicleId,
     lines: [
       ExpenseReceiptLineRecord(
         id: '$id-line',
