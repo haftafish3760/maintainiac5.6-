@@ -27,11 +27,17 @@ ExpenseReceiptParseResult fillMissingExpenseReceiptFieldsFromOcrCandidates(
     fieldConfidences,
     key: 'merchant',
     candidate: merchantEvidence == null ? null : merchant,
+    competingCandidateCount: candidates
+        .competingFor(ReceiptOcrFieldKind.merchant)
+        .length,
   );
   _addCandidateConfidence(
     fieldConfidences,
     key: 'date',
     candidate: parsed.receiptDate == null && dateValue != null ? date : null,
+    competingCandidateCount: candidates
+        .competingFor(ReceiptOcrFieldKind.date)
+        .length,
   );
   _addCandidateConfidence(
     fieldConfidences,
@@ -39,16 +45,25 @@ ExpenseReceiptParseResult fillMissingExpenseReceiptFieldsFromOcrCandidates(
     candidate: parsed.enteredSubtotal == null && subtotalValue != null
         ? subtotal
         : null,
+    competingCandidateCount: candidates
+        .competingFor(ReceiptOcrFieldKind.subtotal)
+        .length,
   );
   _addCandidateConfidence(
     fieldConfidences,
     key: 'tax',
     candidate: parsed.enteredTax == null && taxValue != null ? tax : null,
+    competingCandidateCount: candidates
+        .competingFor(ReceiptOcrFieldKind.tax)
+        .length,
   );
   _addCandidateConfidence(
     fieldConfidences,
     key: 'total',
     candidate: parsed.enteredTotal == null && totalValue != null ? total : null,
+    competingCandidateCount: candidates
+        .competingFor(ReceiptOcrFieldKind.total)
+        .length,
   );
   return parsed.copyWith(
     merchantName: merchantValue,
@@ -64,14 +79,22 @@ void _addCandidateConfidence(
   Map<String, ExpenseReceiptFieldConfidence> confidences, {
   required String key,
   required ReceiptOcrFieldCandidate? candidate,
+  required int competingCandidateCount,
 }) {
   if (candidate == null) return;
   final confidence = (candidate.confidence ?? .58).clamp(0, 1).toDouble();
+  final competingEvidence = competingCandidateCount > 0
+      ? '$competingCandidateCount competing receipt '
+            'candidate${competingCandidateCount == 1 ? '' : 's'} '
+            '${competingCandidateCount == 1 ? 'remains' : 'remain'} available for review. '
+      : '';
   confidences[key] = ExpenseReceiptFieldConfidence(
     fieldKey: key,
     confidence: confidence,
     needsReview: true,
-    reason: '${candidate.reason} Confirm against the receipt proof.',
+    reason:
+        '${candidate.reason} $competingEvidence'
+        'Confirm against the receipt proof.',
   );
 }
 

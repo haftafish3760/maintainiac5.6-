@@ -49,6 +49,14 @@ class ReceiptOcrFieldCandidates {
     if (candidates.isEmpty) return null;
     return candidates.first;
   }
+
+  /// Keeps the non-selected evidence available to an editable review instead
+  /// of discarding a plausible competing merchant, date, or amount.
+  List<ReceiptOcrFieldCandidate> competingFor(ReceiptOcrFieldKind kind) {
+    final candidates = forKind(kind);
+    if (candidates.length < 2) return const [];
+    return List.unmodifiable(candidates.skip(1));
+  }
 }
 
 ReceiptOcrFieldCandidates extractReceiptOcrFieldCandidates(

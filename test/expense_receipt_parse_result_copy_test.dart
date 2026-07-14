@@ -49,6 +49,10 @@ void main() {
               text: r'TOTAL $18.37',
               lines: [ReceiptOcrLine(text: r'TOTAL $18.37')],
             ),
+            ReceiptOcrBlock(
+              text: r'AMOUNT DUE $18.37',
+              lines: [ReceiptOcrLine(text: r'AMOUNT DUE $18.37')],
+            ),
           ],
         ),
       ],
@@ -75,6 +79,10 @@ void main() {
     expect(completed.merchantName, 'HDWR MART');
     expect(completed.receiptDate, DateTime(2026, 7, 14));
     expect(completed.enteredTotal, 18.37);
+    expect(
+      completed.fieldConfidences['total']?.reason,
+      contains('1 competing receipt candidate remains available for review'),
+    );
     expect(completed.fieldConfidences['merchant']?.needsReview, isTrue);
     expect(
       completed.fieldConfidences['merchant']?.reason,

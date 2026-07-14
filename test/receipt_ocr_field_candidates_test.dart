@@ -80,6 +80,20 @@ void main() {
                 ),
               ],
             ),
+            ReceiptOcrBlock(
+              text: 'AMOUNT DUE 18.37',
+              lines: [
+                ReceiptOcrLine(
+                  text: 'AMOUNT DUE 18.37',
+                  bounds: ReceiptOcrBounds(
+                    left: 10,
+                    top: 180,
+                    right: 280,
+                    bottom: 205,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ],
@@ -102,6 +116,12 @@ void main() {
       '17.17',
     );
     expect(candidates.selectedFor(ReceiptOcrFieldKind.tax)?.value, '1.20');
+    expect(
+      candidates
+          .competingFor(ReceiptOcrFieldKind.total)
+          .map((item) => item.sourceText),
+      contains('AMOUNT DUE 18.37'),
+    );
     expect(total.value, '18.37');
     expect(total.sourceText, 'TOTAL 18.37');
     expect(total.displayText, 'TOTAL 18.37');
