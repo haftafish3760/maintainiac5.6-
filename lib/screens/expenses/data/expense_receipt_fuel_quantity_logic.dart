@@ -324,14 +324,14 @@ bool _fuelQuantityCandidateIsProductGradeContext(
 ) {
   final candidate = double.tryParse(match.group(1) ?? '');
   if (candidate == null || candidate % 1 != 0) return false;
-  const productGradeValues = {10, 15, 85, 87, 88, 89, 91, 93};
+  const productGradeValues = {10, 15, 85, 87, 88, 89, 91, 93, 100, 110};
   if (!productGradeValues.contains(candidate.toInt())) return false;
   final before = text.substring(0, match.start);
   final nearbyBefore = before.substring(
     before.length > 28 ? before.length - 28 : 0,
   );
   return RegExp(
-    r'\b(product|regular|reg|unleaded|unl|premium|midgrade|super|supreme|suprema|ethanol|e10|e15|octane|grade)\s*$',
+    r'\b(product|regular|reg|unleaded|unl|premium|midgrade|super|supreme|suprema|ethanol|e10|e15|octane|grade|race fuel|racing fuel|avgas|jet fuel|nitromethane)\s*$',
   ).hasMatch(nearbyBefore);
 }
 

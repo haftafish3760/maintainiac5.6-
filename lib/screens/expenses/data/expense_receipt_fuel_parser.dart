@@ -145,7 +145,10 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\blitros\b'), 'liters')
       .replaceAll(RegExp(r'\blitro\b'), 'liter')
       .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?c[0o]mbustible\b'), 'fuel sale')
-      .replaceAll(RegExp(r'\bcombustible\s+de\s+carrera\b'), 'racing fuel')
+      .replaceAll(
+        RegExp(r'\bc[0o]mbustible\s+de\s+carrera\b'),
+        'racing fuel',
+      )
       .replaceAll(RegExp(r'\bnitrometano\b'), 'nitromethane')
       .replaceAll(RegExp(r'\bturbosina\b'), 'jet fuel')
       .replaceAll(RegExp(r'\bgasolina\s+de\s+aviaci[oó]n\b'), 'avgas')

@@ -42,4 +42,21 @@ CARD SALE 39.75
     expect(fuel.unitPrice, 1.728);
     expect(fuel.subtotal, 39.75);
   });
+
+  test('parses dirty Spanish racing fuel labels as one fuel line', () {
+    final parsed = parseExpenseReceiptText('''
+RACEWAY
+Producto C0mbustible de Carrera 110
+Gal0nes 5,750
+Prec1o/Galón 12,598
+Venta C0mbustible 72,44
+Total 72,44
+''');
+
+    final fuel = parsed.lines.single;
+    expect(fuel.fuelType, 'Racing Fuel');
+    expect(fuel.quantity, 5.75);
+    expect(fuel.unitPrice, 12.598);
+    expect(fuel.subtotal, 72.44);
+  });
 }

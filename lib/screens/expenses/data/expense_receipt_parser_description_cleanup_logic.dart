@@ -165,7 +165,7 @@ bool _looksLikeFuelProductGradeOnlyRow(String row) {
   if (!RegExp(
     r'\b(product|grade|fuel type|regular|reg|unleaded|unl|premium|'
     r'midgrade|octane|e10|e15|e85|flex fuel|gasoline|race fuel|racing fuel|'
-    r'avgas|jet fuel|nitromethane|combustible de carrera|nitrometano|'
+    r'avgas|jet fuel|nitromethane|c[0o]mbustible de carrera|nitrometano|'
     r'turbosina|gasolina de aviaci[oó]n)\b',
   ).hasMatch(lower)) {
     return false;

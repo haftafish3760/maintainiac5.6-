@@ -55,7 +55,6 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
     final includeHubometer =
         !includeMultiFuel &&
         product.unit != 'kWh' &&
-        layout == 1 &&
         ((index + seed) % 5 == 0);
     final includeNonEthanol =
         !includeMultiFuel &&
@@ -91,7 +90,6 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
         !includeAlternatePrice &&
         !includePerUnitDiscount &&
         !includeRewardUnitDiscount &&
-        layout == 1 &&
         ((index + seed) % 4 == 3);
     final perUnitDiscount = includePerUnitDiscount || includeRewardUnitDiscount
         ? .05 + (((index + seed) % 3) * .05)
