@@ -206,7 +206,15 @@ class TripTrackingController extends ChangeNotifier {
     // A review record was durably written before the process died. Do not
     // resume tracking or risk adding distance to a trip the user ended.
     if (_sessionStore.reviewForTrip(session.id) != null) {
-      await _sessionStore.clear();
+      try {
+        await _sessionStore.clear();
+      } catch (error) {
+        // The durable review remains authoritative even if a stale recovery
+        // checkpoint cannot be removed right now. Never resume it as a trip.
+        _platformStatus = 'review_cleanup_failed';
+        _platformError = 'Could not clear stale trip recovery data: $error';
+        notifyListeners();
+      }
       return false;
     }
     final projection = TripLiveOdometerProjection(
@@ -922,7 +930,16 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return null;
     }
-    await _sessionStore.clear();
+    try {
+      await _sessionStore.clear();
+    } catch (error) {
+      // The review is already durable. Clear the in-memory trip regardless so
+      // it cannot be finished twice; restore will treat the review as
+      // authoritative and retry cleanup on a future launch.
+      _platformStatus = 'review_cleanup_failed';
+      _platformError =
+          'Trip review was saved, but stale recovery cleanup is pending: $error';
+    }
     _odometer.clearLiveTripProjection(tripId: session.id);
     _session = null;
     _engine = null;
