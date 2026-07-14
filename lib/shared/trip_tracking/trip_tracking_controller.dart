@@ -80,7 +80,9 @@ class TripTrackingController extends ChangeNotifier {
     DateTime? confirmedAt,
   }) async {
     final review = _sessionStore.reviewForTrip(reviewId);
-    if (review == null || confirmedEndingOdometer < review.startingOdometer) {
+    if (review == null ||
+        review.isOdometerConfirmed ||
+        confirmedEndingOdometer < review.startingOdometer) {
       return false;
     }
     final confirmedReview = review.copyWith(

@@ -263,6 +263,15 @@ void main() {
       );
       expect(controller.latestUnconfirmedReview, isNull);
       expect(controller.latestReview?.confirmedEndingOdometer, 1002);
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: 'trip_latest_review',
+          confirmedEndingOdometer: 1003,
+          confirmedAt: start.add(const Duration(minutes: 3)),
+        ),
+        isFalse,
+      );
+      expect(controller.latestReview?.confirmedEndingOdometer, 1002);
     },
   );
 
