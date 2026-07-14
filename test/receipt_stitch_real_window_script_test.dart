@@ -5,12 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late Directory scratch;
   late File sourceImage;
+  late File secondSourceImage;
   late String flutterPath;
 
   setUp(() async {
     scratch = await Directory.systemTemp.createTemp('receipt_real_window_');
     sourceImage = File('${scratch.path}/receipt.jpg');
     await sourceImage.writeAsString('receipt-source');
+    secondSourceImage = File('${scratch.path}/receipt-next.jpg');
+    await secondSourceImage.writeAsString('receipt-next-source');
     final bin = Directory('${scratch.path}/bin');
     await bin.create();
     final flutter = File('${bin.path}/flutter');
@@ -20,6 +23,18 @@ void main() {
   });
 
   tearDown(() => scratch.delete(recursive: true));
+
+  test('section-stack probe accepts an injectable Flutter command', () async {
+    final result = await _runScript('tool/receipt_stitch_real_probe.sh', [
+      sourceImage.path,
+      secondSourceImage.path,
+    ], flutterPath);
+
+    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+    expect(result.stdout, contains('Receipt stitch source integrity: PASS'));
+    expect(await sourceImage.readAsString(), 'receipt-source');
+    expect(await secondSourceImage.readAsString(), 'receipt-next-source');
+  });
 
   test(
     'real-window scripts accept valid settings and preserve the source',
