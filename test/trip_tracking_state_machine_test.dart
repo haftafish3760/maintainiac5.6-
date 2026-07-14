@@ -15,6 +15,13 @@ void main() {
       );
       expect(
         TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.starting,
+        ),
+        isTrue,
+      );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
           TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.recovering,
         ),

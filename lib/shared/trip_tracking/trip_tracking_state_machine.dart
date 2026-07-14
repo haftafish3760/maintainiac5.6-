@@ -43,6 +43,10 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.permissionRequired,
         },
         TripTrackingSessionLifecycleState.active: {
+          // Native collection may have stopped while a local checkpoint was
+          // temporarily unavailable. A later retry can safely re-enter the
+          // start handshake for this still-recoverable trip.
+          TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.paused,
           TripTrackingSessionLifecycleState.degraded,
           TripTrackingSessionLifecycleState.interrupted,
@@ -54,6 +58,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.stopping,
         },
         TripTrackingSessionLifecycleState.degraded: {
+          TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.active,
           TripTrackingSessionLifecycleState.recovering,
           TripTrackingSessionLifecycleState.failedRecoverable,

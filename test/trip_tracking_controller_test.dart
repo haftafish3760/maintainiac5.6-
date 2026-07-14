@@ -137,6 +137,47 @@ void main() {
     );
   });
 
+  test('native GPS cannot start without a durable lifecycle checkpoint', () async {
+    final hiveDirectory = await Directory.systemTemp.createTemp(
+      'trip_tracking_lifecycle_store_',
+    );
+    Hive.init(hiveDirectory.path);
+    final store = await TripTrackingSessionStore.create();
+    final native = _FakeTripTrackingPlatform();
+    final odometer = GlobalOdometerController(initialReading: 1000);
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+      platform: native,
+    );
+    expect(
+      await controller.start(
+        tripId: 'trip_lifecycle_storage_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    await Hive.close();
+    addTearDown(() async {
+      if (hiveDirectory.existsSync()) {
+        await hiveDirectory.delete(recursive: true);
+      }
+    });
+
+    expect(await controller.startNativeTracking(allowBackground: false), isFalse);
+
+    expect(native.startCalls, 0);
+    expect(controller.isTracking, isTrue);
+    expect(odometer.hasLiveTripProjection, isTrue);
+    expect(controller.platformStatus, 'storage_failed');
+    expect(
+      controller.platformError,
+      contains('Could not save trip recovery state locally'),
+    );
+  });
+
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
     final odometer = GlobalOdometerController(initialReading: 1000);

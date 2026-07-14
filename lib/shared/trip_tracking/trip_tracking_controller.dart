@@ -327,10 +327,12 @@ class TripTrackingController extends ChangeNotifier {
     if (_isDisposed || platform == null || session == null || _nativeTracking) {
       return false;
     }
-    await _transitionSession(
+    if (!await _tryTransitionSession(
       TripTrackingSessionLifecycleState.starting,
       health: TripTrackingHealthState.healthy,
-    );
+    )) {
+      return false;
+    }
     session = _session;
     if (session == null) return false;
     TripTrackingPlatformCapabilities capabilities;
@@ -338,7 +340,7 @@ class TripTrackingController extends ChangeNotifier {
       capabilities = await platform.readCapabilities();
     } catch (error) {
       _platformError = 'Could not read GPS capabilities: $error';
-      await _transitionSession(
+      await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
       );
@@ -347,7 +349,7 @@ class TripTrackingController extends ChangeNotifier {
     }
     if (!capabilities.locationAvailable) {
       _platformError = 'Device location is unavailable.';
-      await _transitionSession(
+      await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
       );
@@ -362,7 +364,7 @@ class TripTrackingController extends ChangeNotifier {
       );
     } catch (error) {
       _platformError = 'Could not request GPS permission: $error';
-      await _transitionSession(
+      await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.permissionBlocked,
       );
@@ -374,7 +376,7 @@ class TripTrackingController extends ChangeNotifier {
       _platformError = allowBackground
           ? 'Background location permission is required for this tracking mode.'
           : 'Precise location permission is required to start trip tracking.';
-      await _transitionSession(
+      await _tryTransitionSession(
         TripTrackingSessionLifecycleState.permissionRequired,
         health: TripTrackingHealthState.permissionBlocked,
       );
@@ -401,7 +403,7 @@ class TripTrackingController extends ChangeNotifier {
       await _platformSubscription?.cancel();
       _platformSubscription = null;
       _platformError = 'The device could not start GPS trip tracking: $error';
-      await _transitionSession(
+      await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
       );
@@ -412,7 +414,7 @@ class TripTrackingController extends ChangeNotifier {
       await _platformSubscription?.cancel();
       _platformSubscription = null;
       _platformError = 'The device did not start GPS trip tracking.';
-      await _transitionSession(
+      await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
       );
@@ -425,10 +427,22 @@ class TripTrackingController extends ChangeNotifier {
     _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
     _platformError = null;
     _platformStatus = 'tracking';
-    await _transitionSession(
+    if (!await _tryTransitionSession(
       TripTrackingSessionLifecycleState.active,
       health: TripTrackingHealthState.healthy,
-    );
+    )) {
+      try {
+        await platform.stop();
+      } catch (_) {
+        // The local persistence failure is already surfaced. The platform
+        // service also has its own cleanup path if this best-effort stop fails.
+      }
+      await _platformSubscription?.cancel();
+      _platformSubscription = null;
+      _nativeTracking = false;
+      _nativeSampling = null;
+      return false;
+    }
     notifyListeners();
     return true;
   }
@@ -459,7 +473,7 @@ class TripTrackingController extends ChangeNotifier {
               TripTrackingSessionLifecycleState.active ||
           _session?.lifecycleState ==
               TripTrackingSessionLifecycleState.degraded) {
-        await _transitionSession(
+        await _tryTransitionSession(
           TripTrackingSessionLifecycleState.interrupted,
           health: TripTrackingHealthState.interrupted,
         );
@@ -505,7 +519,7 @@ class TripTrackingController extends ChangeNotifier {
               _platformSubscription = null;
               if (_session?.lifecycleState ==
                   TripTrackingSessionLifecycleState.active) {
-                await _transitionSession(
+                await _tryTransitionSession(
                   TripTrackingSessionLifecycleState.paused,
                 );
               }
@@ -638,7 +652,7 @@ class TripTrackingController extends ChangeNotifier {
     if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
         _session?.lifecycleState ==
             TripTrackingSessionLifecycleState.degraded) {
-      await _transitionSession(TripTrackingSessionLifecycleState.paused);
+      await _tryTransitionSession(TripTrackingSessionLifecycleState.paused);
     }
     notifyListeners();
   }
@@ -665,12 +679,28 @@ class TripTrackingController extends ChangeNotifier {
       session.lifecycleState,
       next,
     );
-    _session = session.copyWith(
+    final nextSession = session.copyWith(
       updatedAt: DateTime.now(),
       lifecycleState: next,
       healthState: health,
     );
-    await _sessionStore.save(_session!);
+    await _sessionStore.save(nextSession);
+    _session = nextSession;
+  }
+
+  Future<bool> _tryTransitionSession(
+    TripTrackingSessionLifecycleState next, {
+    TripTrackingHealthState? health,
+  }) async {
+    try {
+      await _transitionSession(next, health: health);
+      return true;
+    } catch (error) {
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not save trip recovery state locally: $error';
+      notifyListeners();
+      return false;
+    }
   }
 
   TripTrackingHealthState _healthAfterDecision(
@@ -816,7 +846,7 @@ class TripTrackingController extends ChangeNotifier {
     if (session.lifecycleState == TripTrackingSessionLifecycleState.active ||
         session.lifecycleState == TripTrackingSessionLifecycleState.paused ||
         session.lifecycleState == TripTrackingSessionLifecycleState.degraded) {
-      await _transitionSession(TripTrackingSessionLifecycleState.stopping);
+      await _tryTransitionSession(TripTrackingSessionLifecycleState.stopping);
     }
     await stopNativeTracking();
     final review = TripTrackingReviewRecord(

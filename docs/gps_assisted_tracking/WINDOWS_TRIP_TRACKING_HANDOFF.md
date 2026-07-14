@@ -39,7 +39,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
   - Native lifecycle operations and ingestion operations use queues to avoid race conditions.
   - `finishForReview` drains pending native events before its durable review handoff.
   - `restore` rejects malformed local sessions and clears them rather than repeatedly reviving bad state.
-  - Storage failures are non-destructive: an initial checkpoint failure releases the new live projection, while review-save or discard failures preserve the existing recoverable trip and live projection for retry.
+  - Storage failures are non-destructive: an initial checkpoint failure releases the new live projection, while review-save or discard failures preserve the existing recoverable trip and live projection for retry. Native collection does not start until its lifecycle checkpoint saves.
 
 - `lib/shared/trip_tracking/trip_tracking_models.dart`
   - Location, motion, diagnostics, snapshots, and decision models.
