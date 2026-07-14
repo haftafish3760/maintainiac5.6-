@@ -71,6 +71,33 @@ void main() {
     expect(report.averageElectricKwhPrice, isNull);
     expect(report.electricFuelCostPerMile, .2);
   });
+
+  test(
+    'expense recap withholds hydrogen efficiency when kg is absent',
+    () async {
+      final ledger = ExpenseLedgerController.memory();
+      await ledger.saveReceipt(
+        _unmeasuredHydrogenReceipt('first', DateTime(2026, 7, 1), 10000, 64),
+      );
+      await ledger.saveReceipt(
+        _unmeasuredHydrogenReceipt('second', DateTime(2026, 7, 4), 10200, 72),
+      );
+
+      final report = ExpenseRecapReport.fromLedger(
+        ledger,
+        ExpenseDateRange(
+          start: DateTime(2026, 7, 1),
+          end: DateTime(2026, 7, 31),
+        ),
+        vehicleId: 'truck_1',
+      );
+
+      expect(report.hasUnmeasuredHydrogenMass, isTrue);
+      expect(report.milesPerHydrogenKg, isNull);
+      expect(report.averageHydrogenKgPrice, isNull);
+      expect(report.hydrogenFuelCostPerMile, .68);
+    },
+  );
 }
 
 ExpenseReceiptRecord _dieselReceipt(
@@ -165,6 +192,34 @@ ExpenseReceiptRecord _unmeasuredElectricReceipt(
         subtotal: subtotal,
         odometerReading: odometer,
         fuelType: 'Electric',
+      ),
+    ],
+  );
+}
+
+ExpenseReceiptRecord _unmeasuredHydrogenReceipt(
+  String id,
+  DateTime date,
+  int odometer,
+  double subtotal,
+) {
+  return ExpenseReceiptRecord(
+    id: id,
+    receiptDate: date,
+    merchantName: 'Hydrogen Station',
+    vehicleId: 'truck_1',
+    lines: [
+      ExpenseReceiptLineRecord(
+        id: '$id-hydrogen',
+        description: 'Hydrogen total',
+        category: 'Fuel',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: subtotal,
+        odometerReading: odometer,
+        fuelType: 'Hydrogen',
       ),
     ],
   );

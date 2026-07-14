@@ -18,6 +18,7 @@ class FuelEconomyMetrics {
     required this.completedLiquidFillGallons,
     required this.hasUnmeasuredLiquidFuel,
     required this.hasUnmeasuredElectricEnergy,
+    required this.hasUnmeasuredHydrogenMass,
     required this.hasOdometerSequenceConflict,
   });
 
@@ -61,6 +62,7 @@ class FuelEconomyMetrics {
     var hasExplicitLiquidFillType = false;
     var hasUnmeasuredLiquidFuel = false;
     var hasUnmeasuredElectricEnergy = false;
+    var hasUnmeasuredHydrogenMass = false;
 
     for (final receipt in selectedReceipts) {
       for (final line in receipt.lines) {
@@ -92,7 +94,12 @@ class FuelEconomyMetrics {
           }
         } else if (_isHydrogenFuelLine(line)) {
           hydrogenFuelExpense += lineTotal;
-          hydrogenKg += line.quantity;
+          final kg = _hydrogenKgFor(line);
+          if (kg <= 0) {
+            hasUnmeasuredHydrogenMass = true;
+          } else {
+            hydrogenKg += kg;
+          }
         } else if (!_isDieselExhaustFluidLine(line)) {
           liquidFuelExpense += lineTotal;
           liquidFuelTypes.add(_liquidFuelMetricTypeFor(line));
@@ -149,6 +156,7 @@ class FuelEconomyMetrics {
       completedLiquidFillGallons: completedFill.gallons,
       hasUnmeasuredLiquidFuel: hasUnmeasuredLiquidFuel,
       hasUnmeasuredElectricEnergy: hasUnmeasuredElectricEnergy,
+      hasUnmeasuredHydrogenMass: hasUnmeasuredHydrogenMass,
       hasOdometerSequenceConflict: hasOdometerSequenceConflict,
     );
   }
@@ -166,6 +174,7 @@ class FuelEconomyMetrics {
   final double completedLiquidFillGallons;
   final bool hasUnmeasuredLiquidFuel;
   final bool hasUnmeasuredElectricEnergy;
+  final bool hasUnmeasuredHydrogenMass;
   final bool hasOdometerSequenceConflict;
 
   bool get hasMixedLiquidFuelTypes =>
@@ -194,7 +203,12 @@ class FuelEconomyMetrics {
 
   double? get milesPerHydrogenKg {
     final miles = odometerMiles;
-    if (miles == null || miles <= 0 || hydrogenKg <= 0) return null;
+    if (hasUnmeasuredHydrogenMass ||
+        miles == null ||
+        miles <= 0 ||
+        hydrogenKg <= 0) {
+      return null;
+    }
     return miles / hydrogenKg;
   }
 
@@ -209,7 +223,9 @@ class FuelEconomyMetrics {
       : electricFuelExpense / electricKwh;
 
   double? get averageHydrogenKgPrice =>
-      hydrogenKg <= 0 ? null : hydrogenFuelExpense / hydrogenKg;
+      hasUnmeasuredHydrogenMass || hydrogenKg <= 0
+      ? null
+      : hydrogenFuelExpense / hydrogenKg;
 
   double? get fuelCostPerMile =>
       _perMile(liquidFuelExpense + electricFuelExpense + hydrogenFuelExpense);

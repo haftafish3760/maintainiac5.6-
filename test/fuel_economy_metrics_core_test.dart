@@ -296,6 +296,35 @@ void _registerFuelEconomyCoreTests() {
     expect(metrics.hydrogenFuelCostPerMile, closeTo(.5867, .0001));
   });
 
+  test('preserves hydrogen spend without inventing missing kg', () {
+    final metrics = FuelEconomyMetrics.fromReceipts([
+      _fuelReceipt(
+        id: 'h2-total-start',
+        odometer: 72000,
+        quantity: 1,
+        unit: 'each',
+        subtotal: 64,
+        fuelType: 'Hydrogen',
+      ),
+      _fuelReceipt(
+        id: 'h2-total-end',
+        odometer: 72200,
+        quantity: 1,
+        unit: 'each',
+        subtotal: 72,
+        fuelType: 'Hydrogen',
+      ),
+    ]);
+
+    expect(metrics.odometerMiles, 200);
+    expect(metrics.hydrogenFuelExpense, 136);
+    expect(metrics.hydrogenKg, 0);
+    expect(metrics.hasUnmeasuredHydrogenMass, isTrue);
+    expect(metrics.milesPerHydrogenKg, isNull);
+    expect(metrics.averageHydrogenKgPrice, isNull);
+    expect(metrics.hydrogenFuelCostPerMile, .68);
+  });
+
   test('preserves unmeasured fuel spend without inventing fuel economy', () {
     final metrics = FuelEconomyMetrics.fromReceipts([
       _fuelReceipt(

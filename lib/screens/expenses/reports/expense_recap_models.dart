@@ -106,6 +106,7 @@ class ExpenseRecapReport {
     required this.hasMixedLiquidFuelTypes,
     required this.hasUnmeasuredLiquidFuel,
     required this.hasUnmeasuredElectricEnergy,
+    required this.hasUnmeasuredHydrogenMass,
     required this.businessVehicleMiles,
     required this.personalVehicleMiles,
   });
@@ -229,6 +230,7 @@ class ExpenseRecapReport {
       hasMixedLiquidFuelTypes: fuelEconomy.hasMixedLiquidFuelTypes,
       hasUnmeasuredLiquidFuel: fuelEconomy.hasUnmeasuredLiquidFuel,
       hasUnmeasuredElectricEnergy: fuelEconomy.hasUnmeasuredElectricEnergy,
+      hasUnmeasuredHydrogenMass: fuelEconomy.hasUnmeasuredHydrogenMass,
       businessVehicleMiles: usageTotals.businessMiles,
       personalVehicleMiles: usageTotals.personalMiles,
     );
@@ -268,6 +270,7 @@ class ExpenseRecapReport {
   final bool hasMixedLiquidFuelTypes;
   final bool hasUnmeasuredLiquidFuel;
   final bool hasUnmeasuredElectricEnergy;
+  final bool hasUnmeasuredHydrogenMass;
   final double businessVehicleMiles;
   final double personalVehicleMiles;
 
@@ -297,7 +300,9 @@ class ExpenseRecapReport {
       ? null
       : electricFuelExpense / electricKwh;
   double? get averageHydrogenKgPrice =>
-      hydrogenKg <= 0 ? null : hydrogenFuelExpense / hydrogenKg;
+      hasUnmeasuredHydrogenMass || hydrogenKg <= 0
+      ? null
+      : hydrogenFuelExpense / hydrogenKg;
   double? get averageMpg {
     if (hasMixedLiquidFuelTypes || hasUnmeasuredLiquidFuel) return null;
     final miles = completedLiquidFillMiles ?? odometerMiles;
@@ -321,7 +326,12 @@ class ExpenseRecapReport {
 
   double? get milesPerHydrogenKg {
     final miles = odometerMiles;
-    if (miles == null || miles <= 0 || hydrogenKg <= 0) return null;
+    if (hasUnmeasuredHydrogenMass ||
+        miles == null ||
+        miles <= 0 ||
+        hydrogenKg <= 0) {
+      return null;
+    }
     return miles / hydrogenKg;
   }
 

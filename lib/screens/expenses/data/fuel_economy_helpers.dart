@@ -21,6 +21,13 @@ double _electricKwhFor(ExpenseReceiptLineRecord line) {
       : 0;
 }
 
+double _hydrogenKgFor(ExpenseReceiptLineRecord line) {
+  final unit = _normalizeFuelToken(line.unit);
+  return const {'kg', 'kilogram', 'kilograms'}.contains(unit)
+      ? line.quantity
+      : 0;
+}
+
 bool _isHydrogenFuelLine(ExpenseReceiptLineRecord line) {
   final fuelType = _normalizeFuelToken(line.fuelType ?? '');
   return fuelType == 'hydrogen';
