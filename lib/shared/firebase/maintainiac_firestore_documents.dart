@@ -222,16 +222,13 @@ class MaintainiacFirestoreDocumentBuilder {
     required String createdByUid,
     required TripTrackingReviewRecord review,
   }) {
-    final safeOrgId = _safePathToken(orgId);
     final safeCreator = _safeFirestoreUid(createdByUid);
-    final safeTripId = _safePathToken(review.id);
     return _tripTrackingReviewDocument(
-      path:
-          '${MaintainiacFirestoreSchema.orgCollectionPath(safeOrgId, MaintainiacFirestoreSchema.orgMileageRecords)}/$safeTripId',
+      path: tripTrackingReviewPath(orgId: orgId, tripId: review.id),
       creatorUid: safeCreator,
       review: review,
       scopeFields: {
-        'orgId': safeOrgId,
+        'orgId': _safePathToken(orgId),
         'organizationSharingConsent': true,
       },
     );
@@ -242,15 +239,25 @@ class MaintainiacFirestoreDocumentBuilder {
     required TripTrackingReviewRecord review,
   }) {
     final safeUid = _safeFirestoreUid(uid);
-    final safeTripId = _safePathToken(review.id);
     return _tripTrackingReviewDocument(
-      path:
-          '${MaintainiacFirestoreSchema.userCollectionPath(safeUid, MaintainiacFirestoreSchema.orgMileageRecords)}/$safeTripId',
+      path: personalTripTrackingReviewPath(uid: safeUid, tripId: review.id),
       creatorUid: safeUid,
       review: review,
       scopeFields: const {},
     );
   }
+
+  static String tripTrackingReviewPath({
+    required String orgId,
+    required String tripId,
+  }) =>
+      '${MaintainiacFirestoreSchema.orgCollectionPath(_safePathToken(orgId), MaintainiacFirestoreSchema.orgMileageRecords)}/${_safePathToken(tripId)}';
+
+  static String personalTripTrackingReviewPath({
+    required String uid,
+    required String tripId,
+  }) =>
+      '${MaintainiacFirestoreSchema.userCollectionPath(_safeFirestoreUid(uid), MaintainiacFirestoreSchema.orgMileageRecords)}/${_safePathToken(tripId)}';
 
   static MaintainiacFirestoreDocumentDraft _tripTrackingReviewDocument({
     required String path,
@@ -258,6 +265,11 @@ class MaintainiacFirestoreDocumentBuilder {
     required TripTrackingReviewRecord review,
     required Map<String, Object?> scopeFields,
   }) {
+    if (!review.isOdometerConfirmed) {
+      throw StateError(
+        'Physical odometer confirmation is required before mileage backup.',
+      );
+    }
     final safeTripId = _safePathToken(review.id);
     final safeVehicleId = _safePathToken(review.vehicleId);
     final acceptedMeters = review.engineSnapshot.totalAcceptedMeters;

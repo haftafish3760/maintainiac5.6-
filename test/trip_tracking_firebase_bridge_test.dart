@@ -79,7 +79,10 @@ void main() {
     await queue.enqueue(
       MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
         uid: 'firebaseUid-1',
-        review: unconfirmed,
+        // The legacy document does not carry local confirmation state, so a
+        // formerly queued summary has the same document shape as a confirmed
+        // one. Local state is what must block this retry.
+        review: review(),
       ),
     );
     final sink = _RecordingSink();
@@ -126,6 +129,17 @@ void main() {
     expect(doc.data.keys, isNot(contains('walkingEvidence')));
     expect(doc.data.toString(), isNot(contains('latitude')));
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('document builders reject an unconfirmed mileage review', () {
+    expect(
+      () =>
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: review(confirmed: false),
+          ),
+      throwsStateError,
+    );
   });
 
   test('builds solo-user mileage backup under the authenticated user', () {

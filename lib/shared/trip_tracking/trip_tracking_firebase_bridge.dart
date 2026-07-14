@@ -394,11 +394,10 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     if (scope == TripTrackingCloudBackupScope.organization &&
         review.cloudOrganizationId?.trim().isNotEmpty == true) {
       await _queueStore.discardPendingForPath(
-        MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+        MaintainiacFirestoreDocumentBuilder.tripTrackingReviewPath(
           orgId: review.cloudOrganizationId!.trim(),
-          createdByUid: accountUid,
-          review: review,
-        ).path,
+          tripId: review.id,
+        ),
       );
     } else if (scope == null &&
         !personal &&
@@ -406,18 +405,17 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       // Reviews queued before scope binding was introduced used the active
       // organization path. Remove that legacy pending record on withdrawal.
       await _queueStore.discardPendingForPath(
-        MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+        MaintainiacFirestoreDocumentBuilder.tripTrackingReviewPath(
           orgId: _orgId!.trim(),
-          createdByUid: accountUid,
-          review: review,
-        ).path,
+          tripId: review.id,
+        ),
       );
     } else if (scope == TripTrackingCloudBackupScope.personal || personal) {
       await _queueStore.discardPendingForPath(
-        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewPath(
           uid: accountUid,
-          review: review,
-        ).path,
+          tripId: review.id,
+        ),
       );
     }
   }
