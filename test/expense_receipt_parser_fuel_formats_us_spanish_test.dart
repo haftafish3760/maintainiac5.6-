@@ -37,6 +37,23 @@ TOTAL 21.00
     expect(fuel.subtotal, 21);
   });
 
+  test('parses accented Spanish gas licuado de petróleo as propane', () {
+    final parsed = parseExpenseReceiptText('''
+SERVICENTRO
+GAS LICUADO DE PETRÓLEO
+10.000 LITROS @ 0.900
+VENTA COMBUSTIBLE 9.00
+TOTAL 9.00
+''');
+
+    final fuel = parsed.lines.single;
+    expect(fuel.fuelType, 'Propane');
+    expect(fuel.quantity, 10);
+    expect(fuel.unit, 'liter');
+    expect(fuel.unitPrice, .9);
+    expect(fuel.subtotal, 9);
+  });
+
   test('parses Spanish EV precio por kWh rates', () {
     final parsed = parseExpenseReceiptText('''
 ESTACION DE CARGA

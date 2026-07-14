@@ -150,7 +150,7 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\bgas\s*oil\b'), 'diesel')
       .replaceAll(RegExp(r'\bgas\s+natural\s+licuado\b'), 'lng')
       .replaceAll(RegExp(r'\bgas\s+natural\s+renovable\b'), 'rng')
-      .replaceAll(RegExp(r'\bgas\s+licuado(?:\s+de\s+petroleo)?\b'), 'lpg')
+      .replaceAll(RegExp(r'\bgas\s+licuado(?:\s+de\s+petr[oó]leo)?\b'), 'lpg')
       .replaceAll(RegExp(r'\bhidr[oó]geno\b'), 'hydrogen')
       .replaceAll(RegExp(r'\bmagna\b'), 'gasoline')
       .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?c[0o]mbustible\b'), 'fuel sale')
