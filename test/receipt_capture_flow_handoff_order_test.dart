@@ -72,7 +72,7 @@ void main() {
     expect(
       importActions,
       contains(
-        r'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount.',
+        r'Photo review accepted. $processing $proofCount ready. Clear photo versions: $ocrSourceCount.',
       ),
     );
     expect(captureModels, contains('Business/Personal/Mixed choices'));
@@ -143,7 +143,7 @@ void main() {
     expect(
       entryScreen,
       contains(
-        'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when OCR and parsing finish.',
+        'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when the photo is read.',
       ),
     );
     expect(

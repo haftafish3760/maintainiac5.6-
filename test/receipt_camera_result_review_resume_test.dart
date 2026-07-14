@@ -36,10 +36,10 @@ void main() {
     expect(result.ocrSourcePhotoPaths, isEmpty);
     expect(result.hasSavedBackupPhotos, isTrue);
     expect(result.hasOcrSourcePhotos, isFalse);
-    expect(result.nextReviewSourceLabel, 'no clear OCR source');
+    expect(result.nextReviewSourceLabel, 'no clear receipt photo');
     expect(
       result.nextReviewHandoffLabel,
-      'No clear OCR source is ready for app-assisted receipt filling. Add a clearer receipt photo or continue by hand. OCR needs at least one receipt photo before app-assisted review.',
+      'No clear receipt photo is ready to fill the receipt details. Add a clearer photo or continue by hand.',
     );
     expect(result.hasReceiptReaderHandoff, isFalse);
     expect(result.usedSavedProofAsOcrSourceFallback, isFalse);

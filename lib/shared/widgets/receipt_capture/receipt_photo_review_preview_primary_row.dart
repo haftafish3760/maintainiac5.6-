@@ -298,7 +298,7 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
 
   String get _guidance {
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Add the bottom section if the receipt continues. Use Receipt only when this is complete.';
+      return 'Add the bottom section if the receipt continues. Save & Continue only when this is complete.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
       return 'Add another photo if more receipt lines continue below this section.';
@@ -306,6 +306,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
     if (photoCount > 1 && continueLabel == 'Check Photo Match') {
       return 'Check the overlap match once, then use the receipt.';
     }
-    return 'Use Receipt opens the details review. Add Another is only for long receipts.';
+    return 'Save & Continue opens the details review. Add Another is only for long receipts.';
   }
 }

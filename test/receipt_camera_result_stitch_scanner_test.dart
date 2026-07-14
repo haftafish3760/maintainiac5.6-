@@ -125,7 +125,7 @@ void main() {
       'Photo match ready: one combined receipt image will be read.',
     );
     expect(stitched.nextReviewSourceLabel, 'one combined receipt image');
-    expect(stitched.ocrSourceCountLabel, '1 clear combined OCR image');
+    expect(stitched.ocrSourceCountLabel, '1 clear combined receipt image');
     expect(
       stitched.nextReviewHandoffLabel,
       'Receipt details open from one combined receipt image. Automatic match accepted.',
@@ -203,10 +203,10 @@ void main() {
     );
     expect(
       fallback.nextReviewMatchReadinessLabel,
-      'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+      'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
     );
     expect(fallback.nextReviewSourceLabel, '2 ordered receipt sections');
-    expect(fallback.ocrSourceCountLabel, '2 clear ordered OCR sections');
+    expect(fallback.ocrSourceCountLabel, '2 clear ordered receipt sections');
     expect(
       fallback.nextReviewHandoffLabel,
       'Receipt details open from 2 ordered receipt sections in top-to-bottom order. Photo 1 to 2 needs adjustment. Stitch not trusted.',
@@ -277,7 +277,7 @@ void main() {
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessLabel',
-        'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+        'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
       ),
     );
     expect(

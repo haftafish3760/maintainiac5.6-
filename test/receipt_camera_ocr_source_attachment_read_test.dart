@@ -54,13 +54,13 @@ void main() {
     expect(
       importActions,
       contains(
-        'Receipt proof saved. App-assisted receipt filling is turned off for this area.',
+        'Receipt proof saved. Automatic receipt filling is turned off for this area.',
       ),
     );
     expect(
       importActions,
       contains(
-        r'Receipt proof saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.',
+        r'Receipt proof saved: ${result.savedProofCountLabel}. No clear photo version was available to fill the receipt details.',
       ),
     );
     expect(importActions, contains('result.ocrSourcePhotoPaths'));

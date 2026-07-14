@@ -26,7 +26,7 @@ void main() {
     expect(decision.isMissingBottomEdgeAndTotals, isTrue);
     expect(decision.completionDialogTitle, 'Add the bottom of this receipt?');
     expect(decision.addSectionButtonLabel, 'Add Bottom Section');
-    expect(decision.continueAnywayButtonLabel, 'Use Receipt');
+    expect(decision.continueAnywayButtonLabel, 'Save & Continue');
     expect(
       decision.evidenceContractCode,
       'bottom_edge_missing_plus_totals_words_and_amount_missing',

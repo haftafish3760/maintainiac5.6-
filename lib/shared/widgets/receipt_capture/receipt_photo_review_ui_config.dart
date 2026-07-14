@@ -26,7 +26,7 @@ class ReceiptPhotoReviewUiConfig {
     this.photoThumbnailHeight = 58,
     this.addPhotoLabel = 'Add Another Photo',
     this.retakeLabel = 'Retake',
-    this.useReceiptLabel = 'Use Receipt',
+    this.useReceiptLabel = 'Save & Continue',
     this.cropLabel = 'Crop',
     this.proofLabel = 'Proof',
     this.matchPhotosLabel = 'Match Photos',

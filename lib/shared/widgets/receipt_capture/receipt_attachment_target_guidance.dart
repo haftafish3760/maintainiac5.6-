@@ -11,7 +11,7 @@ class _ReceiptCaptureTargetGuidance extends StatelessWidget {
         ? 'Need another receipt section?'
         : 'Long receipt? Scan top to bottom.';
     final detail = hasAttachment
-        ? 'Use Add Another Photo if the receipt continues, a section is blurry, or OCR says the order/total needs review.'
+        ? 'Use Add Another Photo if the receipt continues, a section is blurry, or the photo match needs review.'
         : 'Take readable sections with a little overlap. Keep the order top, middle, bottom so receipt details can be filled correctly.';
     return Container(
       padding: const EdgeInsets.all(9),

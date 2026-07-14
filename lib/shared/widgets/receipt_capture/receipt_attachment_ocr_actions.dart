@@ -57,7 +57,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         readable.isEmpty ||
         !_appAssistedReceiptFillEnabled) {
       if (showDisabledMessage) {
-        showPickerError('Receipt assistance is turned off for this area.');
+        showPickerError('Automatic receipt filling is turned off for this area.');
       }
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
@@ -81,7 +81,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt proof saved. This file is too large or not suitable for app-assisted filling on this device.';
+            'Receipt proof saved. This file is too large or not suitable for automatic receipt filling on this device.';
       });
       if (showNoTextMessage || showDisabledMessage) {
         showPickerError(warning);
@@ -101,7 +101,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.readingText;
       _receiptReadStatusMessage =
-          'Preparing $sourceSummary for app assistance. When text is found, Maintainiac shows the receipt details so you can check the store, date, total, and item lines.$cloudAssistSummary';
+          'Reading $sourceSummary. When the details are ready, Maintainiac shows them so you can check the store, date, total, and item lines.$cloudAssistSummary';
     });
     widget.onReceiptReadStarted?.call();
     late final ReceiptOcrResult result;

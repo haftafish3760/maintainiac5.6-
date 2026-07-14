@@ -136,8 +136,8 @@ void main() {
     expect(saveActions, isNot(contains('Stay In Review')));
     expect(saveActions, contains('Text(nextLabel)'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
-    expect(models, contains('1 clear combined OCR image'));
-    expect(models, contains('clear ordered OCR sections'));
+    expect(models, contains('1 clear combined receipt image'));
+    expect(models, contains('clear ordered receipt sections'));
     expect(
       saveActions,
       contains('if (_closingReview || _confirmingReviewExit) return;'),
@@ -377,11 +377,11 @@ void main() {
     expect(importActions, contains('result.acceptedPhotoHandoffActionLabel'));
     expect(models, contains('String get privacySafeOcrHandoffEvidenceLabel'));
     expect(models, contains('1 saved proof photo'));
-    expect(models, contains('combined OCR image'));
+    expect(models, contains('combined receipt image'));
     expect(
       importActions,
       contains(
-        r'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action',
+        r'Photo review accepted. $processing $proofCount ready. Clear photo versions: $ocrSourceCount. $qualitySummary $reviewDecision $action',
       ),
     );
     expect(importActions, isNot(contains('Read receipt')));
@@ -394,7 +394,7 @@ void main() {
     expect(
       panel,
       contains(
-        'The filled receipt details appear here as soon as OCR and parsing finish.',
+        'The filled receipt details appear here as soon as the photo is read.',
       ),
     );
     expect(
@@ -409,12 +409,12 @@ void main() {
       importActions,
       contains('String _reviewedPhotoOcrSourceQualitySummary('),
     );
-    expect(importActions, contains('OCR source quality'));
+    expect(importActions, contains('Photo quality'));
     expect(importActions, contains('may need review'));
     expect(
       importActions,
       contains(
-        r'Receipt proof saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.',
+        r'Receipt proof saved: ${result.savedProofCountLabel}. No clear photo version was available to fill the receipt details.',
       ),
     );
     expect(
@@ -428,7 +428,7 @@ void main() {
     expect(
       ocrActions,
       contains(
-        r'Preparing $sourceSummary for app assistance. When text is found, Maintainiac shows the receipt details so you can check the store, date, total, and item lines.',
+        r'Reading $sourceSummary. When the details are ready, Maintainiac shows them so you can check the store, date, total, and item lines.',
       ),
     );
     expect(ocrActions, contains('await Future<void>.sync('));

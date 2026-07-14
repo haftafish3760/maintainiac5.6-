@@ -423,7 +423,7 @@ void main() {
     );
     expect(
       controls,
-      contains('Use Receipt will use one combined receipt image.'),
+      contains('Save & Continue will use one combined receipt image.'),
     );
     expect(controls, contains('ordered sections from top to bottom'));
     expect(controls, isNot(contains('Read First')));

@@ -252,7 +252,7 @@ void main() {
       expect(
         attachmentOcr,
         contains(
-          r'Preparing $sourceSummary for app assistance. When text is found, Maintainiac shows the receipt details so you can check the store, date, total, and item lines.$cloudAssistSummary',
+          r'Reading $sourceSummary. When the details are ready, Maintainiac shows them so you can check the store, date, total, and item lines.$cloudAssistSummary',
         ),
       );
       expect(

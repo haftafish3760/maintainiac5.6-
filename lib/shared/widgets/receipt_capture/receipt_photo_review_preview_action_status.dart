@@ -172,7 +172,7 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
       return 'Use Match Photos to check whether one combined receipt image can be made.';
     }
     if (preview.didStitch) {
-      return 'Photo match is ready: Use Receipt will use one combined receipt image.';
+      return 'Photo match is ready: Save & Continue will use one combined receipt image.';
     }
     if (preview.usedFallback) {
       return 'Photo match will use ordered sections from top to bottom because stitching was not safe enough.';

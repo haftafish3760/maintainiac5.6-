@@ -189,7 +189,7 @@ extension _ReceiptAttachmentReviewReadActions
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.accepted;
       _receiptReadStatusMessage =
-          'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action';
+          'Photo review accepted. $processing $proofCount ready. Clear photo versions: $ocrSourceCount. $qualitySummary $reviewDecision $action';
     });
   }
 
@@ -244,11 +244,11 @@ extension _ReceiptAttachmentReviewReadActions
     final weakestQuality = weakest;
     if (weakestQuality == null) return 'Photo quality was not measured.';
     if (needsReview <= 0) {
-      return 'OCR source quality ${weakestQuality.reviewScoreLabel}: looks readable.';
+      return 'Photo quality ${weakestQuality.reviewScoreLabel}: looks readable.';
     }
     final sourceLabel = qualities.length == 1
-        ? 'OCR source'
-        : '$needsReview of ${qualities.length} OCR sources';
+        ? 'Clear photo'
+        : '$needsReview of ${qualities.length} clear photos';
     return '$sourceLabel may need review: ${weakestQuality.primaryIssueLabel} (${weakestQuality.reviewScoreLabel}).';
   }
 
@@ -264,7 +264,7 @@ extension _ReceiptAttachmentReviewReadActions
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt proof saved. App-assisted receipt filling is turned off for this area.';
+            'Receipt proof saved. Automatic receipt filling is turned off for this area.';
       });
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
@@ -274,7 +274,7 @@ extension _ReceiptAttachmentReviewReadActions
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt proof saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.';
+            'Receipt proof saved: ${result.savedProofCountLabel}. No clear photo version was available to fill the receipt details.';
       });
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,

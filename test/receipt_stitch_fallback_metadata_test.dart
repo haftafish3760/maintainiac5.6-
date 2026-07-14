@@ -39,7 +39,7 @@ void main() {
     expect(metadata['stitchFailedPairEndSectionNumber'], 3);
     expect(
       metadata['nextReviewMatchReadinessLabel'],
-      'Photo match needs review before app-assisted receipt filling, starting with Photo 2 to 3.',
+      'Photo match needs review before receipt details can be filled, starting with Photo 2 to 3.',
     );
     expect(
       metadata['nextReviewMatchReadinessOutcome'],

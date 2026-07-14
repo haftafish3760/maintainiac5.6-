@@ -16,7 +16,7 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
 
   String get nextReviewSourceLabel {
     if (nextReviewSourceCount <= 0) {
-      return 'no clear OCR source';
+      return 'no clear receipt photo';
     }
     if (nextReviewUsesCombinedReceiptImage) {
       return 'one combined receipt image';
@@ -31,7 +31,7 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
 
   String get nextReviewHandoffLabel {
     if (!hasOcrSourcePhotos) {
-      return 'No clear OCR source is ready for app-assisted receipt filling. Add a clearer receipt photo or continue by hand. OCR needs at least one receipt photo before app-assisted review.';
+      return 'No clear receipt photo is ready to fill the receipt details. Add a clearer photo or continue by hand.';
     }
     final safety =
         stitchResult.hasLowConfidenceAutomaticOverlap &&
@@ -100,10 +100,10 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
         'Ordered receipt sections will be read top to bottom.',
       'ocr_source_review_required_before_assist' =>
         reviewPair.isEmpty
-            ? 'Photo match needs review before app-assisted receipt filling.'
-            : 'Photo match needs review before app-assisted receipt filling, starting with $reviewPair.',
+            ? 'Photo match needs review before receipt details can be filled.'
+            : 'Photo match needs review before receipt details can be filled, starting with $reviewPair.',
       'missing_ocr_source' =>
-        'No clear OCR source is ready for app-assisted receipt filling.',
+        'No clear receipt photo is ready to fill the receipt details.',
       'needs_next_receipt_section' =>
         firstPossiblePartialReceiptReasonCode ==
                 'missing_bottom_edge_and_totals'
@@ -111,22 +111,22 @@ extension ReceiptPhotoReviewResultNextReview on ReceiptPhotoReviewResult {
                 suffix: 'or confirm this photo already shows the full receipt.',
               )
             : 'Add the next receipt section or confirm this photo already shows the full receipt.',
-      _ => 'Single receipt source is ready for app-assisted review.',
+      _ => 'The receipt photo is ready for review.',
     };
   }
 
   String get ocrSourceCountLabel {
     final count = ocrSourcePhotoPaths.length;
-    if (count <= 0) return 'no clear OCR source';
+    if (count <= 0) return 'no clear receipt photo';
     if (stitchResult.didStitch) {
-      return '1 clear combined OCR image';
+      return '1 clear combined receipt image';
     }
     if (nextReviewUsesOrderedSections) {
       return count == 1
-          ? '1 clear ordered OCR section'
-          : '$count clear ordered OCR sections';
+          ? '1 clear ordered receipt section'
+          : '$count clear ordered receipt sections';
     }
-    return count == 1 ? '1 clear OCR photo' : '$count clear OCR photos';
+    return count == 1 ? '1 clear receipt photo' : '$count clear receipt photos';
   }
 
   String get reviewPair => stitchResult.reviewFocusPairLabel;

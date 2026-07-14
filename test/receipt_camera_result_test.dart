@@ -304,7 +304,7 @@ void main() {
       );
       expect(
         result.nextReviewMatchReadinessLabel,
-        'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+        'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
       );
       expect(
         result.stitchResult.ocrHandoffSafetyCode,
@@ -319,5 +319,4 @@ void main() {
       );
     },
   );
-
 }

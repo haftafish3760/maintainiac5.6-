@@ -50,7 +50,7 @@ class MaintaniacLocalizations {
   String receiptSectionOf(int current, int total) => isSpanish
       ? 'Sección $current de $total'
       : 'Section $current of $total';
-  String get useReceipt => isSpanish ? 'Usar recibo' : 'Use Receipt';
+  String get useReceipt => isSpanish ? 'Guardar y continuar' : 'Save & Continue';
   String get useAnyway => isSpanish ? 'Usar de todos modos' : 'Use Anyway';
   String get openingReceiptReview => isSpanish ? 'Abriendo' : 'Opening';
   String get checkingReceiptPhotos => isSpanish ? 'Revisando' : 'Checking';

@@ -223,7 +223,7 @@ void main() {
     expect(reviewPreviewActionTray, contains('Use this receipt'));
     expect(
       reviewPreviewActionTray,
-      contains('Use Receipt will use one combined receipt image.'),
+      contains('Save & Continue will use one combined receipt image.'),
     );
     expect(sectionLabels, contains('Receipt Sections'));
     expect(reviewPreviewControls, contains('addNextSectionLabel'));

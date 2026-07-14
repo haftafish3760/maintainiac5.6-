@@ -83,7 +83,7 @@ void main() {
       );
       expect(
         duplicateLaterFallback.nextReviewMatchReadinessLabel,
-        'Photo match needs review before app-assisted receipt filling, starting with Photo 2 to 3.',
+        'Photo match needs review before receipt details can be filled, starting with Photo 2 to 3.',
       );
       expect(
         duplicateLaterFallback.privacySafeReceiptReaderHandoffMetadata,
@@ -148,7 +148,7 @@ void main() {
     );
     expect(
       result.nextReviewMatchReadinessLabel,
-      'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+      'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
     );
     expect(
       result.stitchResult.assistedReadinessCode,
@@ -235,7 +235,7 @@ void main() {
     expect(result.stitchResult.reviewFocusPairLabel, 'Photo 1 to 2');
     expect(
       result.nextReviewMatchReadinessLabel,
-      'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+      'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
     );
     expect(
       result.nextReviewHandoffLabel,
@@ -263,7 +263,7 @@ void main() {
       result.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessLabel',
-        'Photo match needs review before app-assisted receipt filling, starting with Photo 1 to 2.',
+        'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
       ),
     );
     expect(

@@ -27,7 +27,7 @@ void main() {
     expect(entryScreen, contains('_lastOcrDiagnostics != null'));
     expect(entryScreen, contains('_lastParseDiagnostics'));
     expect(entryScreen, contains('parseDiagnostics: _lastParseDiagnostics'));
-    expect(entryScreen, contains('if (_hasAppAssistedReceiptReview)'));
+    expect(entryScreen, contains('if (_shouldShowReceiptReviewFields)'));
     expect(
       entryScreen,
       contains('bool get _shouldShowReceiptReadHandoffPanel'),
@@ -230,12 +230,12 @@ void main() {
     expect(
       entryScreen,
       contains(
-        'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when OCR and parsing finish.',
+        'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when the photo is read.',
       ),
     );
     final handoffLayout = entryScreen.substring(
       entryScreen.indexOf('key: _receiptReadHandoffKey'),
-      entryScreen.indexOf('if (_hasAppAssistedReceiptReview)'),
+      entryScreen.indexOf('if (_shouldShowReceiptReviewFields)'),
     );
     expect(
       handoffLayout.indexOf('_ReceiptReadHandoffPanel('),
