@@ -121,7 +121,27 @@ class TripTrackingController extends ChangeNotifier {
       updatedAt: now,
       engineSnapshot: _engine!.snapshot,
     );
-    await _sessionStore.save(_session!);
+    try {
+      await _sessionStore.save(_session!);
+    } catch (error) {
+      // An active trip is only recoverable after its initial local checkpoint
+      // succeeds. Do not leave a phantom trip holding the live odometer when
+      // storage is unavailable (for example, a full or closed local store).
+      try {
+        await _sessionStore.clear();
+      } catch (_) {
+        // The original storage failure is the useful error to surface. A
+        // later restore still validates any residual record defensively.
+      }
+      _odometer.clearLiveTripProjection(tripId: tripId);
+      _session = null;
+      _engine = null;
+      _projection = null;
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not save the trip locally: $error';
+      notifyListeners();
+      return false;
+    }
     notifyListeners();
     return true;
   }
@@ -764,7 +784,17 @@ class TripTrackingController extends ChangeNotifier {
   Future<bool> discardEmptyTrip() async {
     final session = _session;
     if (session == null || acceptedMeters > 0 || _nativeTracking) return false;
-    await _sessionStore.clear();
+    try {
+      await _sessionStore.clear();
+    } catch (error) {
+      // Preserve the checkpoint and odometer projection if its durable delete
+      // cannot be confirmed. A later retry is safer than inventing a clean
+      // state while stale trip data may still exist on disk.
+      _platformStatus = 'discard_failed';
+      _platformError = 'Could not discard the empty trip locally: $error';
+      notifyListeners();
+      return false;
+    }
     _odometer.clearLiveTripProjection(tripId: session.id);
     _session = null;
     _engine = null;
@@ -801,7 +831,18 @@ class TripTrackingController extends ChangeNotifier {
       finishedAt: finishedAt ?? DateTime.now(),
       engineSnapshot: engine.snapshot,
     );
-    await _sessionStore.saveReview(review);
+    try {
+      await _sessionStore.saveReview(review);
+    } catch (error) {
+      // Keep the active checkpoint and live projection intact. The driver can
+      // retry finishing after local storage recovers; clearing here would turn
+      // a transient disk failure into lost mileage.
+      _platformStatus = 'review_save_failed';
+      _platformError =
+          'Could not save the completed trip locally. It remains recoverable: $error';
+      notifyListeners();
+      return null;
+    }
     try {
       await _cloudMirror.queueReview(review);
       unawaited(_flushCloudMirror());

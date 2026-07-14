@@ -411,7 +411,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final cloudMirrorError = tripTracking.cloudMirrorError;
     _showGpsMessage(
       review == null
-          ? 'No active GPS trip to stop.'
+          ? (tripTracking.platformError ?? 'No active GPS trip to stop.')
           : cloudMirrorError == null
           ? 'GPS trip ended and is ready for review.'
           : 'GPS trip saved locally; cloud backup will retry.',
