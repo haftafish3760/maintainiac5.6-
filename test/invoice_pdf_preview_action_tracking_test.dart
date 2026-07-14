@@ -7,11 +7,65 @@ import 'package:maintaniac/screens/invoices/data/invoice_ledger_store.dart';
 import 'package:maintaniac/screens/invoices/home/invoice_form_screen.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_service.dart';
+import 'package:maintaniac/shared/signatures/app_signature_models.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:share_plus/share_plus.dart';
 
 void main() {
+  testWidgets('reopened invoice surfaces its persisted customer signature', (
+    tester,
+  ) async {
+    final appState = AppStateController();
+    final odometer = GlobalOdometerController();
+    final ledger = InvoiceLedgerStore.memory();
+    addTearDown(appState.dispose);
+    addTearDown(odometer.dispose);
+    final draft = await ledger.createDraft(
+      type: InvoiceDocumentType.invoice,
+      now: DateTime(2026, 7, 14),
+    );
+    final ink = AppSignatureResult(
+      role: AppSignatureRole.customer,
+      signedAt: DateTime(2026, 7, 14, 10),
+      strokes: const [
+        AppSignatureStroke([Offset(2, 8), Offset(28, 16)]),
+      ],
+    );
+    final record = await ledger.saveRecord(
+      draft.copyWith(
+        customerSignature: InvoiceSignatureSnapshot(
+          role: 'customer',
+          signedAt: ink.signedAt,
+          signatureHashSha256: draft.documentRevisionHashSha256,
+          signature: ink,
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: GlobalOdometerScope(
+          controller: odometer,
+          child: InvoiceLedgerScope(
+            controller: ledger,
+            child: MaterialApp(home: InvoiceFormScreen(recordId: record.id)),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Signature'),
+      find.byType(ListView).first,
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Customer signature saved'), findsOneWidget);
+  });
+
   testWidgets('invoice preview records generated share and print pdf events', (
     tester,
   ) async {

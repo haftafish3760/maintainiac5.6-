@@ -297,6 +297,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     if (!mounted) return;
     setState(() {
       _record = draft;
+      _restoreDocumentSignatures(draft);
       _paymentMethod = draft.paymentMethod.trim().isEmpty
           ? _paymentMethod
           : draft.paymentMethod;
@@ -308,7 +309,19 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   Future<void> _saveRecord(InvoiceRecord record) async {
     final saved = await _ledger!.saveRecord(record);
     if (!mounted) return;
-    setState(() => _record = saved);
+    setState(() {
+      _record = saved;
+      _restoreDocumentSignatures(saved);
+    });
+  }
+
+  void _restoreDocumentSignatures(InvoiceRecord record) {
+    if (record.ownerSignature.hasInk) {
+      _ownerSignature = record.ownerSignature.signature;
+    }
+    _customerSignature = record.customerSignature.hasInk
+        ? record.customerSignature.signature
+        : null;
   }
 
   Future<void> _saveCurrentDraft() async {
