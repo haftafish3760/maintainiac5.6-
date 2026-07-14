@@ -151,7 +151,7 @@ void main() {
       contains('strings.receiptSectionOf(current, total)'),
     );
     expect(previewRow, contains('maxLines: compact ? 1 : 2'));
-    expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(previewRow, contains('SizedBox(height: compact ? 3 : 7)'));
     expect(
       contextControls,
       contains(

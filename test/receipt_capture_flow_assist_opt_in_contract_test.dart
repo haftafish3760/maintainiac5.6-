@@ -64,6 +64,8 @@ void main() {
     ).readAsString();
     expect(settingsSheet, contains('Automatically Fill Receipts'));
     expect(settingsSheet, contains('Automatic Photo Capture'));
+    expect(settingsSheet, contains('Show Receipt Framing Guidance'));
+    expect(settingsSheet, contains('settings.setCameraGuidanceEnabled'));
     expect(photoReviewScreen, contains('this.assistedReceiptFill = false'));
     expect(
       photoReviewScreen,

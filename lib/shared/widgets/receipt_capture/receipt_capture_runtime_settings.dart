@@ -75,6 +75,7 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptBackupStorageSummary extends StatelessWidget {
   const _ReceiptBackupStorageSummary();
 
@@ -127,6 +128,7 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
         .floor();
   }
 }
+
 class _ReceiptStorageMetricRow extends StatelessWidget {
   const _ReceiptStorageMetricRow({
     required this.label,
@@ -261,6 +263,14 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         _ReceiptSettingsSwitch(
+          title: 'Show Receipt Framing Guidance',
+          detail:
+              'Show the receipt frame and simple distance reminders while you capture. Turn this off for a clean camera view; manual capture still works.',
+          value: settings.cameraGuidanceEnabled,
+          onChanged: settings.setCameraGuidanceEnabled,
+        ),
+        const SizedBox(height: 6),
+        _ReceiptSettingsSwitch(
           title: 'Automatic Photo Capture',
           detail:
               'When enabled, the camera may capture a steady, well-framed receipt automatically. Manual shutter remains available.',
@@ -289,6 +299,7 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
   const _ReceiptPostCaptureWorkflowSettings();
 
@@ -320,6 +331,7 @@ class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptDiagnosticsSettings extends StatelessWidget {
   const _ReceiptDiagnosticsSettings({required this.settings});
 
@@ -343,6 +355,7 @@ class _ReceiptDiagnosticsSettings extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptSettingsSwitch extends StatelessWidget {
   const _ReceiptSettingsSwitch({
     required this.title,

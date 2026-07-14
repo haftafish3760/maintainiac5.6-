@@ -155,12 +155,34 @@ String? _receiptOcrDate(String value) {
   final match = RegExp(
     r'\b(?:\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|\d{4}[./-]\d{1,2}[./-]\d{1,2})\b',
   ).firstMatch(value);
-  return match?.group(0);
+  final candidate = match?.group(0);
+  if (candidate == null || !_isCalendarDateCandidate(candidate)) return null;
+  return candidate;
+}
+
+bool _isCalendarDateCandidate(String value) {
+  final parts = value.split(RegExp(r'[./-]'));
+  if (parts.length != 3) return false;
+  final numbers = parts.map(int.tryParse).toList(growable: false);
+  if (numbers.any((number) => number == null)) return false;
+  final first = numbers[0]!;
+  final second = numbers[1]!;
+  final third = numbers[2]!;
+  final yearFirst = parts[0].length == 4;
+  final year = yearFirst
+      ? first
+      : third < 100
+      ? 2000 + third
+      : third;
+  final month = yearFirst ? second : first;
+  final day = yearFirst ? third : second;
+  if (year < 1900 || month < 1 || month > 12 || day < 1) return false;
+  return day <= DateTime(year, month + 1, 0).day;
 }
 
 String? _receiptOcrLastAmount(String value) {
   final matches = RegExp(
-    r'(?:\$?\d{1,3}(?:,\d{3})*\.\d{2}|\$\d{1,3}(?:,\d{3})*)\b',
+    r'(?:-\$?\d{1,3}(?:,\d{3})*\.\d{2}|\$-\d{1,3}(?:,\d{3})*\.\d{2}|\(\$?\d{1,3}(?:,\d{3})*\.\d{2}\)|\$?\d{1,3}(?:,\d{3})*\.\d{2}|\$\d{1,3}(?:,\d{3})*)(?=\s|$|[^\d.])',
   ).allMatches(value);
   return matches.isEmpty ? null : matches.last.group(0);
 }
@@ -176,6 +198,11 @@ bool _hasSubtotalLabel(String value) =>
     RegExp(r'\bsub\s*total\b').hasMatch(value);
 
 bool _hasTotalLabel(String value) {
+  if (value.contains('discount') ||
+      value.contains('savings') ||
+      value.contains('you saved')) {
+    return false;
+  }
   return (value.contains('total') && !_hasSubtotalLabel(value)) ||
       value.contains('amount due') ||
       value.contains('balance due');

@@ -132,4 +132,29 @@ void main() {
 
     expect(completed.receiptDate, DateTime(2026, 7, 14));
   });
+
+  test('OCR candidate fallback retains parenthetical refund totals', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: r'TOTAL ($18.37)',
+              lines: [ReceiptOcrLine(text: r'TOTAL ($18.37)')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final completed = fillMissingExpenseReceiptFieldsFromOcrCandidates(
+      const ExpenseReceiptParseResult(sourceText: '', lines: []),
+      document,
+    );
+
+    expect(completed.enteredTotal, -18.37);
+  });
 }

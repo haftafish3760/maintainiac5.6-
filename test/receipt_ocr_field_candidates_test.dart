@@ -244,6 +244,145 @@ void main() {
     );
   });
 
+  test('invalid calendar-shaped OCR text is not filled as a date', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: '99/99/2026',
+              lines: [ReceiptOcrLine(text: '99/99/2026')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(document.fieldCandidates.forKind(ReceiptOcrFieldKind.date), isEmpty);
+  });
+
+  test('a leap-day date remains faithful candidate evidence', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: '02/29/2024',
+              lines: [ReceiptOcrLine(text: '02/29/2024')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.date)?.value,
+      '02/29/2024',
+    );
+  });
+
+  test('historic receipt dates remain candidate evidence', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: '12/31/1999',
+              lines: [ReceiptOcrLine(text: '12/31/1999')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.date)?.value,
+      '12/31/1999',
+    );
+  });
+
+  test('total savings is not mistaken for the receipt total', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'TOTAL SAVINGS 4.50',
+              lines: [ReceiptOcrLine(text: 'TOTAL SAVINGS 4.50')],
+            ),
+            ReceiptOcrBlock(
+              text: 'TOTAL 18.37',
+              lines: [ReceiptOcrLine(text: 'TOTAL 18.37')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.total)?.value,
+      '18.37',
+    );
+  });
+
+  test('negative totals retain their printed sign', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'TOTAL -18.37',
+              lines: [ReceiptOcrLine(text: 'TOTAL -18.37')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.total)?.value,
+      '-18.37',
+    );
+  });
+
+  test('parenthetical totals retain their printed evidence', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: r'TOTAL ($18.37)',
+              lines: [ReceiptOcrLine(text: r'TOTAL ($18.37)')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.total)?.value,
+      r'($18.37)',
+    );
+  });
+
   test('HST is accepted as a tax candidate', () {
     const document = ReceiptOcrDocument(
       pages: [

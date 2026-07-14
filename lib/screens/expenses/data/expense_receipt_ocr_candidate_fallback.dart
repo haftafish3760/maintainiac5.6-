@@ -82,8 +82,14 @@ String? _candidateText(ReceiptOcrFieldCandidate? candidate) {
 }
 
 double? _candidateAmount(ReceiptOcrFieldCandidate? candidate) {
-  final value = candidate?.value.replaceAll(RegExp(r'[$,\s]'), '') ?? '';
-  return double.tryParse(value);
+  var value = candidate?.value.replaceAll(RegExp(r'[$,\s]'), '') ?? '';
+  final isParentheticalNegative = value.startsWith('(') && value.endsWith(')');
+  if (isParentheticalNegative) {
+    value = value.substring(1, value.length - 1);
+  }
+  final amount = double.tryParse(value);
+  if (amount == null) return null;
+  return isParentheticalNegative ? -amount.abs() : amount;
 }
 
 DateTime? _candidateDate(ReceiptOcrFieldCandidate? candidate) {

@@ -105,7 +105,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: compact ? 5 : 7),
+            SizedBox(height: compact ? 3 : 7),
             Row(
               children: [
                 Expanded(
@@ -123,7 +123,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 38),
+                          minimumSize: Size(0, compact ? 34 : 38),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           foregroundColor: const Color(0xFFE8ECEE),
                           disabledForegroundColor: const Color(0xFF758188),
@@ -141,7 +141,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 7),
+                SizedBox(width: compact ? 5 : 7),
                 Expanded(
                   child: Tooltip(
                     message: addPhotoTooltip,
@@ -157,7 +157,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 38),
+                          minimumSize: Size(0, compact ? 34 : 38),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           foregroundColor: const Color(0xFFE8ECEE),
                           disabledForegroundColor: const Color(0xFF758188),
@@ -175,7 +175,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 7),
+                SizedBox(width: compact ? 5 : 7),
                 Expanded(
                   child: Tooltip(
                     message: savingPhotos
@@ -213,7 +213,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                                 ),
                               ),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 38),
+                          minimumSize: Size(0, compact ? 34 : 38),
                           backgroundColor: uiConfig.primaryActionColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
