@@ -59,6 +59,9 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
   - Active trips use a separate live projection so the UI changes immediately without prematurely writing a permanent reading.
   - Switching odometer vehicles is blocked while a live GPS projection exists.
 
+- `lib/shared/odometer/odometer_entry_sheet.dart`
+  - Finishing a GPS trip opens a physical-odometer confirmation flow. It compares the entered reading with filtered GPS mileage without pre-filling or overwriting the confirmed odometer; a material difference is a visible review warning.
+
 - `lib/shared/odometer/global_odometer_header.dart`
   - Compatibility export for older callers. The one canonical implementation is `lib/shared/widgets/global_odometer_header.dart`, which uses the global controller so the projected odometer updates across the app.
 

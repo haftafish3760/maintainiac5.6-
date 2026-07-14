@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/odometer/odometer_entry_sheet.dart';
+import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+
+void main() {
+  testWidgets('trip confirmation compares entered odometer with filtered GPS', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(initialReading: 1000);
+    final review = TripTrackingReviewRecord(
+      id: 'trip_review',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1012,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 19312.128,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: Scaffold(
+            body: OdometerEntrySheet(
+              title: 'Review GPS Trip Odometer',
+              saveLabel: 'Confirm Odometer',
+              tripReview: review,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('1000'), findsOneWidget);
+    expect(find.text('GPS TRIP COMPARISON'), findsNothing);
+
+    await tester.enterText(find.byType(TextField).first, '1020');
+    await tester.pump();
+
+    expect(find.text('GPS TRIP COMPARISON'), findsOneWidget);
+    expect(find.textContaining('Confirmed: 20 mi'), findsOneWidget);
+    expect(find.textContaining('GPS: 12.0 mi'), findsOneWidget);
+  });
+}

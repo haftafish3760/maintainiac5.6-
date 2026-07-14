@@ -409,9 +409,20 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final review = await tripTracking.finishForReview();
     if (!mounted) return;
     final cloudMirrorError = tripTracking.cloudMirrorError;
+    final odometerSaved = review == null
+        ? false
+        : await openOdometerEntry(
+            context,
+            title: 'Review GPS Trip Odometer',
+            saveLabel: 'Confirm Odometer',
+            tripReview: review,
+          );
+    if (!mounted) return;
     _showGpsMessage(
       review == null
           ? (tripTracking.platformError ?? 'No active GPS trip to stop.')
+          : odometerSaved
+          ? 'GPS trip reviewed and odometer confirmed.'
           : cloudMirrorError == null
           ? 'GPS trip ended and is ready for review.'
           : 'GPS trip saved locally; cloud backup will retry.',

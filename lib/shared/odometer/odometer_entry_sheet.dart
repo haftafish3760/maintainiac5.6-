@@ -5,6 +5,8 @@ import 'odometer_correction_review.dart';
 import 'odometer_mileage_review.dart';
 import '../theme/app_action_colors.dart';
 import '../state/global_odometer.dart';
+import '../trip_tracking/trip_tracking_odometer_reconciliation.dart';
+import '../trip_tracking/trip_tracking_session_store.dart';
 
 class OdometerEntrySheet extends StatefulWidget {
   const OdometerEntrySheet({
@@ -12,11 +14,13 @@ class OdometerEntrySheet extends StatefulWidget {
     required this.title,
     required this.saveLabel,
     this.onSaved,
+    this.tripReview,
   });
 
   final String title;
   final String saveLabel;
   final VoidCallback? onSaved;
+  final TripTrackingReviewRecord? tripReview;
 
   @override
   State<OdometerEntrySheet> createState() => _OdometerEntrySheetState();
@@ -50,6 +54,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tripReconciliation = _tripReconciliation;
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -86,11 +91,11 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               ],
               onSubmitted: (_) => _saveReading(),
               onChanged: (_) {
-                if (_pendingConfirmation ||
-                    _pendingDeltaMiles != null ||
-                    _pendingCurrentReading != null ||
-                    _errorText != null) {
-                  setState(() {
+                setState(() {
+                  if (_pendingConfirmation ||
+                      _pendingDeltaMiles != null ||
+                      _pendingCurrentReading != null ||
+                      _errorText != null) {
                     _pendingConfirmation = false;
                     _pendingDeltaMiles = null;
                     _pendingCurrentReading = null;
@@ -99,8 +104,8 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                     _selectedCorrectionReason = null;
                     _businessMilesController.clear();
                     _errorText = null;
-                  });
-                }
+                  }
+                });
               },
               decoration: InputDecoration(
                 labelText: 'Current odometer reading',
@@ -121,6 +126,10 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 ),
               ),
             ),
+            if (tripReconciliation != null) ...[
+              const SizedBox(height: 12),
+              _TripGpsReconciliationPanel(reconciliation: tripReconciliation),
+            ],
             if (_pendingCurrentReading != null &&
                 _pendingCandidateReading != null) ...[
               const SizedBox(height: 12),
@@ -215,6 +224,20 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     Navigator.of(context).pop(true);
   }
 
+  TripOdometerReconciliation? get _tripReconciliation {
+    final review = widget.tripReview;
+    final candidate = int.tryParse(_controller?.text ?? '');
+    if (review == null ||
+        candidate == null ||
+        candidate == review.startingOdometer) {
+      return null;
+    }
+    return TripOdometerReconciliation.compare(
+      review: review,
+      confirmedEndingOdometer: candidate,
+    );
+  }
+
   OdometerMileageReview? _buildMileageReview() {
     if (_pendingDeltaMiles == null) return null;
     final use = _selectedUse;
@@ -232,6 +255,65 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     final reason = _selectedCorrectionReason;
     if (reason == null) return null;
     return OdometerCorrectionReview(reason: reason);
+  }
+}
+
+class _TripGpsReconciliationPanel extends StatelessWidget {
+  const _TripGpsReconciliationPanel({required this.reconciliation});
+
+  final TripOdometerReconciliation reconciliation;
+
+  @override
+  Widget build(BuildContext context) {
+    final needsReview =
+        reconciliation.status == TripOdometerReconciliationStatus.reviewRecommended;
+    final invalid = reconciliation.status == TripOdometerReconciliationStatus.invalid;
+    final color = invalid || needsReview
+        ? const Color(0xFFFFD27A)
+        : const Color(0xFF75D6A5);
+    final message = invalid
+        ? 'The confirmed odometer cannot be lower than the trip start.'
+        : needsReview
+        ? 'GPS differs materially. Confirmed odometer remains authoritative.'
+        : 'GPS is within the review tolerance. Confirmed odometer remains authoritative.';
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF101719),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'GPS TRIP COMPARISON',
+              style: TextStyle(
+                color: Color(0xFFF0F4F2),
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Confirmed: ${reconciliation.confirmedOdometerDeltaMiles.toStringAsFixed(0)} mi • '
+              'GPS: ${reconciliation.filteredGpsMiles.toStringAsFixed(1)} mi',
+              style: const TextStyle(color: Color(0xFFC8D0D3), fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              message,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
