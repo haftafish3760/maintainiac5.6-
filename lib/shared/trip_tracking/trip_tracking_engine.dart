@@ -81,6 +81,10 @@ class TripTrackingEngine {
     TripLocationSample sample, {
     TripActivityObservation? activity,
   }) {
+    final verifiedActivity =
+        activity != null && activity.recordedAt.isAfter(sample.recordedAt)
+        ? null
+        : activity;
     if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
       return _decision(TripSampleDisposition.rejectedInvalid);
     }
@@ -96,18 +100,26 @@ class TripTrackingEngine {
         policy.maximumHorizontalAccuracyMeters) {
       return _decision(TripSampleDisposition.rejectedAccuracy);
     }
-    _recordActivity(activity, observedAt: sample.recordedAt);
+    _recordActivity(verifiedActivity, observedAt: sample.recordedAt);
 
     final lastAccepted = _lastAccepted;
     if (lastAccepted == null) {
       _lastAccepted = sample;
-      return _finish(sample, activity, TripSampleDisposition.acceptedAnchor);
+      return _finish(
+        sample,
+        verifiedActivity,
+        TripSampleDisposition.acceptedAnchor,
+      );
     }
 
     final elapsed = sample.recordedAt.difference(lastAccepted.recordedAt);
     if (elapsed > policy.maximumGap) {
       _lastAccepted = sample;
-      return _finish(sample, activity, TripSampleDisposition.rejectedGap);
+      return _finish(
+        sample,
+        verifiedActivity,
+        TripSampleDisposition.rejectedGap,
+      );
     }
 
     final distance = _distanceMeters(lastAccepted, sample);
@@ -119,7 +131,7 @@ class TripTrackingEngine {
       _lastAccepted = sample;
       return _finish(
         sample,
-        activity,
+        verifiedActivity,
         TripSampleDisposition.rejectedImplausibleSpeed,
       );
     }
@@ -135,7 +147,7 @@ class TripTrackingEngine {
       _lastAccepted = sample;
       return _finish(
         sample,
-        activity,
+        verifiedActivity,
         TripSampleDisposition.rejectedSpeedConflict,
       );
     }
@@ -144,9 +156,13 @@ class TripTrackingEngine {
     // We retain it as advisory evidence, but exclude it immediately instead
     // of allowing the first few on-foot points to inflate the live estimate.
     if (profile == TripTrackingProfile.roadVehicle &&
-        _isStrongWalking(activity)) {
+        _isStrongWalking(verifiedActivity)) {
       _lastAccepted = sample;
-      return _finish(sample, activity, TripSampleDisposition.excludedWalking);
+      return _finish(
+        sample,
+        verifiedActivity,
+        TripSampleDisposition.excludedWalking,
+      );
     }
 
     final accuracyEnvelope = math.max(
@@ -157,17 +173,28 @@ class TripTrackingEngine {
           policy.accuracyEnvelopeMultiplier,
     );
     if (distance <= accuracyEnvelope) {
-      return _finish(sample, activity, TripSampleDisposition.rejectedDrift);
+      return _finish(
+        sample,
+        verifiedActivity,
+        TripSampleDisposition.rejectedDrift,
+      );
     }
 
     _lastAccepted = sample;
     _totalAcceptedMeters += distance;
     return _finish(
       sample,
-      activity,
+      verifiedActivity,
       TripSampleDisposition.acceptedDistance,
       addedMeters: distance,
     );
+  }
+
+  /// Records a native-source rejection without changing anchors, distance, or
+  /// motion state. The controller uses this for wall-clock timestamp guards
+  /// that must remain outside deterministic replay behavior.
+  TripSampleDecision reject(TripSampleDisposition disposition) {
+    return _decision(disposition);
   }
 
   void _recordActivity(

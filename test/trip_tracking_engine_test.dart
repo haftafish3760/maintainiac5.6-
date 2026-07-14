@@ -147,6 +147,44 @@ void main() {
     },
   );
 
+  test('rejects out-of-range coordinates and non-positive accuracy', () {
+    final engine = TripTrackingEngine();
+    final invalidSamples = [
+      TripLocationSample(
+        latitude: 90.0001,
+        longitude: -80,
+        recordedAt: start,
+        horizontalAccuracyMeters: 5,
+      ),
+      TripLocationSample(
+        latitude: 35,
+        longitude: -180.0001,
+        recordedAt: start.add(const Duration(seconds: 5)),
+        horizontalAccuracyMeters: 5,
+      ),
+      TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: start.add(const Duration(seconds: 10)),
+        horizontalAccuracyMeters: 0,
+      ),
+      TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: start.add(const Duration(seconds: 15)),
+        horizontalAccuracyMeters: -1,
+      ),
+    ];
+
+    for (final invalidSample in invalidSamples) {
+      expect(
+        engine.ingest(invalidSample).disposition,
+        TripSampleDisposition.rejectedInvalid,
+      );
+    }
+    expect(engine.totalAcceptedMeters, 0);
+  });
+
   test('mocked GPS locations cannot enter trip mileage', () {
     final engine = TripTrackingEngine();
     final decision = engine.ingest(
@@ -161,6 +199,24 @@ void main() {
 
     expect(decision.disposition, TripSampleDisposition.rejectedMockLocation);
     expect(engine.totalAcceptedMeters, 0);
+  });
+
+  test('future-dated walking evidence cannot suppress vehicle mileage', () {
+    final engine = TripTrackingEngine();
+    engine.ingest(sample(-80, 0));
+
+    final decision = engine.ingest(
+      sample(-79.9998, 10),
+      activity: TripActivityObservation(
+        activity: TripActivity.walking,
+        confidence: 90,
+        recordedAt: start.add(const Duration(seconds: 20)),
+      ),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(decision.addedMeters, greaterThan(0));
+    expect(engine.needsWalkingReview, isFalse);
   });
 
   test(

@@ -408,10 +408,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     if (tripTracking == null || !tripTracking.isTracking) return;
     final review = await tripTracking.finishForReview();
     if (!mounted) return;
+    final cloudMirrorError = tripTracking.cloudMirrorError;
     _showGpsMessage(
       review == null
           ? 'No active GPS trip to stop.'
-          : 'GPS trip ended and is ready for review.',
+          : cloudMirrorError == null
+          ? 'GPS trip ended and is ready for review.'
+          : 'GPS trip saved locally; cloud backup will retry.',
     );
   }
 
@@ -492,6 +495,29 @@ class _GpsTripPanel extends StatelessWidget {
                       color: Color(0xFFFFD166),
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+                if (controller?.cloudMirrorError != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    controller!.cloudMirrorError!,
+                    style: const TextStyle(
+                      color: Color(0xFFFF9F43),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: controller.retryCloudBackup,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.only(top: 3, right: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('RETRY BACKUP'),
                     ),
                   ),
                 ],

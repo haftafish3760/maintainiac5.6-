@@ -40,7 +40,13 @@ class TripTrackingForegroundService : Service(), LocationListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(notificationId, notification())
+        try {
+            startForeground(notificationId, notification())
+        } catch (error: SecurityException) {
+            TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_foreground_service_denied", "errorMessage" to "Android blocked the trip-tracking foreground service: ${error.message ?: "permission denied"}"))
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (!hasFineLocation()) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_denied", "errorMessage" to "Location permission was removed while tracking."))
             stopSelf()
@@ -57,15 +63,28 @@ class TripTrackingForegroundService : Service(), LocationListener {
         }
         locationManager.removeUpdates(this)
         @Suppress("MissingPermission")
-        locationManager.requestLocationUpdates(
-            LocationManager.GPS_PROVIDER,
-            interval,
-            displacement,
-            this,
-            Looper.getMainLooper(),
-        )
+        try {
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                interval,
+                displacement,
+                this,
+                Looper.getMainLooper(),
+            )
+        } catch (error: SecurityException) {
+            TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register GPS updates: ${error.message ?: "permission denied"}"))
+            stopSelf()
+            return START_NOT_STICKY
+        } catch (error: IllegalArgumentException) {
+            TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android rejected the GPS provider: ${error.message ?: "provider unavailable"}"))
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (activityEnabled && hasActivityRecognition()) {
             ActivityRecognition.getClient(this).requestActivityUpdates(5000, activityPendingIntent)
+                .addOnFailureListener { error ->
+                    TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_activity_unavailable", "errorMessage" to "Activity recognition is unavailable: ${error.message ?: "request failed"}"))
+                }
         }
         isRunning = true
         TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
@@ -89,11 +108,19 @@ class TripTrackingForegroundService : Service(), LocationListener {
 
     override fun onProviderDisabled(provider: String) {
         TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_gps_disabled", "errorMessage" to "GPS was turned off while tracking."))
+        // Stop independently of the Flutter event channel. The Dart controller
+        // will preserve a recoverable trip when it receives the error, but a
+        // detached UI must never leave a location collector running.
+        stopSelf()
     }
 
     override fun onDestroy() {
         if (::locationManager.isInitialized) locationManager.removeUpdates(this)
-        ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
+        try {
+            ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
+        } catch (_: Exception) {
+            // Location cleanup remains authoritative if Play Services is unavailable.
+        }
         isRunning = false
         TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "stopped"))
         super.onDestroy()

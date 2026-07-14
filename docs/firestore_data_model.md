@@ -94,6 +94,27 @@ Financial summaries, usage counters, abuse counters, upload grants, exports,
 official trade packs, expense telemetry summaries, and audit events are
 server-managed.
 
+## GPS-Assisted Mileage Scope
+
+Solo reviewed trip summaries live at:
+
+```text
+users/{uid}/mileageRecords/{tripId}
+```
+
+Company reviewed trip summaries live at:
+
+```text
+orgs/{orgId}/mileageRecords/{tripId}
+```
+
+These documents contain mileage and odometer evidence only. They must not
+contain coordinates, route points, raw samples, walking evidence, live
+location, or stop addresses. Local trip state remains authoritative; Firestore
+is a retryable mirror and does not replace local recovery. GPS mileage backup
+is off by default and requires explicit user opt-in; disabling it keeps future
+reviews local and never authorizes live location or route sharing.
+
 ## Expense Backup Scope
 
 Expense receipt backup records live at:

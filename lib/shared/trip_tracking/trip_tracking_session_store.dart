@@ -103,6 +103,10 @@ class TripTrackingSessionRecord {
 /// A locally durable handoff from active tracking into review. It intentionally
 /// preserves the measured distance and the final engine state; the permanent
 /// odometer event is created only after the user reviews this record.
+enum TripTrackingCloudSyncState { localOnly, pending, queued, synced, failed }
+
+enum TripTrackingCloudBackupScope { personal, organization }
+
 class TripTrackingReviewRecord {
   const TripTrackingReviewRecord({
     required this.id,
@@ -113,6 +117,12 @@ class TripTrackingReviewRecord {
     required this.startedAt,
     required this.finishedAt,
     required this.engineSnapshot,
+    this.cloudSyncState = TripTrackingCloudSyncState.localOnly,
+    this.cloudAccountUid,
+    this.cloudBackupScope,
+    this.cloudOrganizationId,
+    this.cloudSyncError,
+    this.cloudSyncedAt,
     this.schemaVersion = 1,
   });
 
@@ -124,9 +134,46 @@ class TripTrackingReviewRecord {
   final DateTime startedAt;
   final DateTime finishedAt;
   final TripTrackingEngineSnapshot engineSnapshot;
+  final TripTrackingCloudSyncState cloudSyncState;
+  final String? cloudAccountUid;
+
+  /// Immutable once backup has been queued, preventing later profile or
+  /// organization changes from redirecting a pending mileage summary.
+  final TripTrackingCloudBackupScope? cloudBackupScope;
+  final String? cloudOrganizationId;
+  final String? cloudSyncError;
+  final DateTime? cloudSyncedAt;
   final int schemaVersion;
 
   bool get needsWalkingReview => engineSnapshot.walkingReviewSuggested;
+
+  TripTrackingReviewRecord copyWith({
+    TripTrackingCloudSyncState? cloudSyncState,
+    String? cloudAccountUid,
+    TripTrackingCloudBackupScope? cloudBackupScope,
+    String? cloudOrganizationId,
+    String? cloudSyncError,
+    bool clearCloudSyncError = false,
+    DateTime? cloudSyncedAt,
+  }) => TripTrackingReviewRecord(
+    id: id,
+    vehicleId: vehicleId,
+    startingOdometer: startingOdometer,
+    estimatedEndingOdometer: estimatedEndingOdometer,
+    profile: profile,
+    startedAt: startedAt,
+    finishedAt: finishedAt,
+    engineSnapshot: engineSnapshot,
+    cloudSyncState: cloudSyncState ?? this.cloudSyncState,
+    cloudAccountUid: cloudAccountUid ?? this.cloudAccountUid,
+    cloudBackupScope: cloudBackupScope ?? this.cloudBackupScope,
+    cloudOrganizationId: cloudOrganizationId ?? this.cloudOrganizationId,
+    cloudSyncError: clearCloudSyncError
+        ? null
+        : cloudSyncError ?? this.cloudSyncError,
+    cloudSyncedAt: cloudSyncedAt ?? this.cloudSyncedAt,
+    schemaVersion: schemaVersion,
+  );
 
   Map<String, Object?> toMap() => {
     'id': id,
@@ -137,6 +184,13 @@ class TripTrackingReviewRecord {
     'startedAt': startedAt.toIso8601String(),
     'finishedAt': finishedAt.toIso8601String(),
     'engineSnapshot': engineSnapshot.toMap(),
+    'cloudSyncState': cloudSyncState.name,
+    if (cloudAccountUid != null) 'cloudAccountUid': cloudAccountUid,
+    if (cloudBackupScope != null) 'cloudBackupScope': cloudBackupScope!.name,
+    if (cloudOrganizationId != null) 'cloudOrganizationId': cloudOrganizationId,
+    if (cloudSyncError != null) 'cloudSyncError': cloudSyncError,
+    if (cloudSyncedAt != null)
+      'cloudSyncedAt': cloudSyncedAt!.toUtc().toIso8601String(),
     'schemaVersion': schemaVersion,
   };
 
@@ -161,6 +215,28 @@ class TripTrackingReviewRecord {
                 totalAcceptedMeters: 0,
                 walkingReviewSuggested: false,
               ),
+        cloudSyncState: TripTrackingCloudSyncState.values.firstWhere(
+          (value) => value.name == map['cloudSyncState'],
+          orElse: () => TripTrackingCloudSyncState.localOnly,
+        ),
+        cloudAccountUid: map['cloudAccountUid'] is String
+            ? map['cloudAccountUid'] as String
+            : null,
+        cloudBackupScope: map['cloudBackupScope'] is String
+            ? TripTrackingCloudBackupScope.values.firstWhere(
+                (value) => value.name == map['cloudBackupScope'],
+                orElse: () => TripTrackingCloudBackupScope.personal,
+              )
+            : null,
+        cloudOrganizationId:
+            map['cloudBackupScope'] is String &&
+                map['cloudOrganizationId'] is String
+            ? map['cloudOrganizationId'] as String
+            : null,
+        cloudSyncError: map['cloudSyncError'] is String
+            ? map['cloudSyncError'] as String
+            : null,
+        cloudSyncedAt: DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}'),
         schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
       );
 }
@@ -197,33 +273,8 @@ class TripTrackingPendingSample {
         sampleMap is! Map) {
       return null;
     }
-    final latitude = (sampleMap['latitude'] as num?)?.toDouble();
-    final longitude = (sampleMap['longitude'] as num?)?.toDouble();
-    final accuracy = (sampleMap['horizontalAccuracyMeters'] as num?)
-        ?.toDouble();
-    final rawTime = sampleMap['recordedAt'];
-    final recordedAt = rawTime is num
-        ? DateTime.fromMillisecondsSinceEpoch(rawTime.round(), isUtc: true)
-        : DateTime.tryParse('$rawTime');
-    if (latitude == null ||
-        longitude == null ||
-        accuracy == null ||
-        recordedAt == null ||
-        !latitude.isFinite ||
-        !longitude.isFinite ||
-        !accuracy.isFinite ||
-        accuracy <= 0) {
-      return null;
-    }
-    final sample = TripLocationSample(
-      latitude: latitude,
-      longitude: longitude,
-      recordedAt: recordedAt,
-      horizontalAccuracyMeters: accuracy,
-      speedMetersPerSecond: (sampleMap['speedMetersPerSecond'] as num?)
-          ?.toDouble(),
-    );
-    if (!sample.hasValidCoordinate) return null;
+    final sample = TripLocationSample.tryFromMap(sampleMap);
+    if (sample == null) return null;
     return TripTrackingPendingSample(
       sessionId: map['sessionId'] as String,
       sample: sample,

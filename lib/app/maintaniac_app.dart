@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +9,8 @@ import '../screens/dashboard/dashboard.dart';
 import '../main.dart';
 import '../shared/navigation/app_page_routes.dart';
 import '../shared/theme/app_theme.dart';
+import '../shared/trip_tracking/trip_tracking_controller.dart';
+import '../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import '../shared/localization/maintaniac_localizations.dart';
 
@@ -17,10 +21,17 @@ class MaintaniacApp extends StatefulWidget {
   State<MaintaniacApp> createState() => _MaintaniacAppState();
 }
 
-class _MaintaniacAppState extends State<MaintaniacApp> {
+class _MaintaniacAppState extends State<MaintaniacApp>
+    with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
   IncomingReceiptShareController? _incomingShare;
   var _openingIncomingShare = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didChangeDependencies() {
@@ -35,8 +46,22 @@ class _MaintaniacAppState extends State<MaintaniacApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _incomingShare?.removeListener(_handleIncomingShare);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    final settings = TripTrackingSettingsScope.maybeOf(context);
+    if (tripTracking == null || settings == null) return;
+    unawaited(
+      tripTracking.handleAppLifecycleState(
+        state,
+        backgroundTrackingAllowed: settings.settings.backgroundTrackingEnabled,
+      ),
+    );
   }
 
   void _handleIncomingShare() {

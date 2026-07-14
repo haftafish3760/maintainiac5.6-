@@ -158,6 +158,7 @@ enum TripSampleDisposition {
   rejectedImplausibleSpeed,
   rejectedSpeedConflict,
   rejectedGap,
+  rejectedFutureTimestamp,
   excludedWalking,
 }
 
@@ -212,7 +213,7 @@ class TripLocationSample {
         recordedAt == null) {
       return null;
     }
-    return TripLocationSample(
+    final sample = TripLocationSample(
       latitude: latitude,
       longitude: longitude,
       recordedAt: recordedAt,
@@ -222,6 +223,7 @@ class TripLocationSample {
           ? map['mockedLocation'] as bool
           : null,
     );
+    return sample.hasValidCoordinate && sample.hasValidAccuracy ? sample : null;
   }
 }
 

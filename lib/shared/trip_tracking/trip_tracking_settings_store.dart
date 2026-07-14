@@ -21,6 +21,7 @@ class TripTrackingSettings {
     this.activityRecognitionEnabled = true,
     this.walkingTransitionReviewEnabled = true,
     this.backgroundTrackingEnabled = false,
+    this.organizationMileageSharingEnabled = false,
     this.defaultProfile = TripTrackingProfile.roadVehicle,
     this.bluetoothVehicleRecognitionEnabled = false,
     this.automaticVehicleSwitchEnabled = false,
@@ -33,6 +34,7 @@ class TripTrackingSettings {
   final bool activityRecognitionEnabled;
   final bool walkingTransitionReviewEnabled;
   final bool backgroundTrackingEnabled;
+  final bool organizationMileageSharingEnabled;
   final TripTrackingProfile defaultProfile;
   final bool bluetoothVehicleRecognitionEnabled;
   final bool automaticVehicleSwitchEnabled;
@@ -45,6 +47,7 @@ class TripTrackingSettings {
     bool? activityRecognitionEnabled,
     bool? walkingTransitionReviewEnabled,
     bool? backgroundTrackingEnabled,
+    bool? organizationMileageSharingEnabled,
     TripTrackingProfile? defaultProfile,
     bool? bluetoothVehicleRecognitionEnabled,
     bool? automaticVehicleSwitchEnabled,
@@ -69,6 +72,9 @@ class TripTrackingSettings {
           walkingTransitionReviewEnabled ?? this.walkingTransitionReviewEnabled,
       backgroundTrackingEnabled:
           backgroundTrackingEnabled ?? this.backgroundTrackingEnabled,
+      organizationMileageSharingEnabled:
+          organizationMileageSharingEnabled ??
+          this.organizationMileageSharingEnabled,
       defaultProfile: defaultProfile ?? this.defaultProfile,
       bluetoothVehicleRecognitionEnabled: bluetoothEnabled,
       automaticVehicleSwitchEnabled: bluetoothEnabled && automaticSwitch,
@@ -83,6 +89,7 @@ class TripTrackingSettings {
     'activityRecognitionEnabled': activityRecognitionEnabled,
     'walkingTransitionReviewEnabled': walkingTransitionReviewEnabled,
     'backgroundTrackingEnabled': backgroundTrackingEnabled,
+    'organizationMileageSharingEnabled': organizationMileageSharingEnabled,
     'defaultProfile': defaultProfile.name,
     'bluetoothVehicleRecognitionEnabled': bluetoothVehicleRecognitionEnabled,
     'automaticVehicleSwitchEnabled': automaticVehicleSwitchEnabled,
@@ -101,6 +108,8 @@ class TripTrackingSettings {
       walkingTransitionReviewEnabled:
           map['walkingTransitionReviewEnabled'] != false,
       backgroundTrackingEnabled: map['backgroundTrackingEnabled'] == true,
+      organizationMileageSharingEnabled:
+          map['organizationMileageSharingEnabled'] == true,
       defaultProfile: TripTrackingProfile.values.firstWhere(
         (value) => value.name == map['defaultProfile'],
         orElse: () => TripTrackingProfile.roadVehicle,

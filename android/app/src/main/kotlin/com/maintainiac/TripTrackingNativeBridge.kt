@@ -138,8 +138,28 @@ class TripTrackingNativeBridge(
                 call.argument<Boolean>("activityRecognitionEnabled") == true,
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) activity.startForegroundService(intent) else activity.startService(intent)
-        result.success(true)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity.startForegroundService(intent)
+            } else {
+                activity.startService(intent)
+            }
+            result.success(true)
+        } catch (error: SecurityException) {
+            result.error(
+                "trip_tracking_foreground_service_denied",
+                "Android blocked the trip-tracking foreground service: ${error.message ?: "permission denied"}",
+                null,
+            )
+        } catch (error: IllegalStateException) {
+            // Android can reject foreground-service starts when its background
+            // launch policy changes between permission approval and this call.
+            result.error(
+                "trip_tracking_foreground_service_denied",
+                "Android blocked the trip-tracking foreground service: ${error.message ?: "start not allowed"}",
+                null,
+            )
+        }
     }
 
     private fun update(call: MethodCall, result: MethodChannel.Result) {

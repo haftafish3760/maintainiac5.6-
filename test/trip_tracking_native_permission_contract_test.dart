@@ -38,6 +38,9 @@ void main() {
     final androidActivity = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingActivityReceiver.kt',
     ).readAsStringSync();
+    final androidBridge = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
     final ios = File(
       'ios/Runner/TripTrackingNativeBridge.swift',
     ).readAsStringSync();
@@ -47,8 +50,65 @@ void main() {
       contains('"mockedLocation" to location.isFromMockProvider'),
     );
     expect(android, contains('"recordedAt" to location.time'));
+    expect(android, contains('trip_tracking_foreground_service_denied'));
+    expect(androidBridge, contains('catch (error: IllegalStateException)'));
+    expect(android, contains('trip_tracking_location_registration_failed'));
+    expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
     expect(ios, contains('"recordedAt": ISO8601DateFormatter()'));
     expect(ios, contains('"type": "activity"'));
+    expect(ios, contains('"mockedLocation": simulated'));
+    expect(ios, contains('isSimulatedBySoftware'));
+  });
+
+  test(
+    'iOS applies the requested sampling tier instead of hardcoding GPS best',
+    () {
+      final ios = File(
+        'ios/Runner/TripTrackingNativeBridge.swift',
+      ).readAsStringSync();
+
+      expect(ios, contains('intervalMillis'));
+      expect(ios, contains('applySampling(intervalMillis: intervalMillis'));
+      expect(ios, contains('kCLLocationAccuracyBestForNavigation'));
+      expect(ios, contains('kCLLocationAccuracyNearestTenMeters'));
+      expect(ios, contains('kCLLocationAccuracyHundredMeters'));
+      expect(
+        ios,
+        isNot(
+          contains(
+            'locationManager.desiredAccuracy = kCLLocationAccuracyBest\n',
+          ),
+        ),
+      );
+    },
+  );
+
+  test('native collectors emit revocation errors and release resources', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(android, contains('trip_tracking_location_denied'));
+    expect(android, contains('trip_tracking_gps_disabled'));
+    expect(
+      android,
+      contains(RegExp(r'trip_tracking_gps_disabled[\s\S]{0,500}stopSelf\(\)')),
+    );
+    expect(android, contains('override fun onDestroy()'));
+    expect(android, contains('locationManager.removeUpdates(this)'));
+    expect(android, contains('removeActivityUpdates(activityPendingIntent)'));
+    expect(android, contains('"status" to "stopped"'));
+    expect(ios, contains('func locationManagerDidChangeAuthorization'));
+    expect(
+      ios,
+      contains('if tracking && (state == "denied" || state == "restricted")'),
+    );
+    expect(ios, contains('"errorCode": "trip_tracking_location_denied"'));
+    expect(ios, contains('trip_tracking_location_error'));
+    expect(ios, contains('locationManager.stopUpdatingLocation()'));
   });
 }

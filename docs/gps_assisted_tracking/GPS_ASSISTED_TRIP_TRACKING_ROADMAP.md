@@ -170,6 +170,9 @@ without the required workflow.
 - Recover conservatively from navigation, backgrounding, lock, process/service
   recreation, temporary signal loss, malformed checkpoints, app upgrade, and
   supported platform relaunch paths.
+- Reject native samples whose timestamps exceed the bounded wall-clock future
+  skew; retain deterministic replay inputs without applying a wall-clock guard
+  to historical fixtures.
 - Restore queues and state safely, record interruptions, reacquire stable fixes,
   avoid route fabrication, and flag uncertainty for review.
 - Measure permission/service state, freshness, accuracy, rejection ratios,

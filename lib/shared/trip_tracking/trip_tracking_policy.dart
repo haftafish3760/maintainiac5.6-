@@ -9,6 +9,7 @@ class TripTrackingPolicy {
     this.maximumPlausibleSpeedMetersPerSecond = 75,
     this.maximumReportedSpeedDisagreementMetersPerSecond = 25,
     this.maximumGap = const Duration(minutes: 2),
+    this.maximumFutureSampleSkew = const Duration(minutes: 2),
     this.minimumMovementMeters = 5,
     this.accuracyEnvelopeMultiplier = 1.25,
     this.walkingConfirmationCount = 3,
@@ -27,6 +28,11 @@ class TripTrackingPolicy {
   final double maximumPlausibleSpeedMetersPerSecond;
   final double maximumReportedSpeedDisagreementMetersPerSecond;
   final Duration maximumGap;
+
+  /// Native timestamps beyond this wall-clock tolerance are held out of the
+  /// live trip. A device clock correction must never make future movement look
+  /// like accepted mileage.
+  final Duration maximumFutureSampleSkew;
   final double minimumMovementMeters;
   final double accuracyEnvelopeMultiplier;
   final int walkingConfirmationCount;

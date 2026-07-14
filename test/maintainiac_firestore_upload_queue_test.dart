@@ -88,6 +88,26 @@ void main() {
     );
   });
 
+  test(
+    'pending upload survives a local queue restart without duplication',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final draft = _safeDraft('parserHealth/restart_safe');
+      await queue.enqueue(draft, queuedAtUtc: DateTime.utc(2026, 7, 14, 12));
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final reopened = await MaintainiacFirestoreUploadQueueStore.create();
+
+      expect(reopened.pendingRecords, hasLength(1));
+      expect(reopened.pendingRecords.single.path, draft.path);
+      expect(
+        reopened.pendingRecords.single.queuedAtUtc,
+        DateTime.utc(2026, 7, 14, 12),
+      );
+    },
+  );
+
   test('retains failed writes with retry metadata', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink(failPathsContaining: 'catalogHealth');
@@ -144,6 +164,36 @@ void main() {
     );
     expect(queue.pendingRecords, hasLength(5));
   });
+
+  test(
+    'a failed upload retries successfully after a local queue restart',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final draft = _safeDraft('catalogHealth/restart_retry');
+      await queue.enqueue(draft, queuedAtUtc: DateTime.utc(2026, 7, 14, 12));
+      final failed = await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _RecordingFirestoreSink(failPathsContaining: 'catalogHealth'),
+        uploadEnabled: true,
+      ).uploadPending();
+      expect(failed.failedCount, 1);
+      expect(queue.pendingRecords.single.attemptCount, 1);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final reopened = await MaintainiacFirestoreUploadQueueStore.create();
+      final sink = _RecordingFirestoreSink();
+      final retried = await MaintainiacFirestoreUploadCoordinator(
+        queue: reopened,
+        sink: sink,
+        uploadEnabled: true,
+      ).uploadPending();
+
+      expect(retried.uploadedCount, 1);
+      expect(reopened.pendingRecords, isEmpty);
+      expect(sink.writes, contains(draft.path));
+    },
+  );
 
   test(
     'rejects unsafe paths, sensitive fields, and per-item catalog reads',

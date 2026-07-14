@@ -8,6 +8,7 @@ class MaintainiacFirestoreUploadPolicy {
   static const maxDocumentBytes = 768 * 1024;
 
   static const allowedTopLevelCollections = <String>{
+    'users',
     MaintainiacFirestoreSchema.orgs,
     MaintainiacFirestoreSchema.catalogPacks,
     MaintainiacFirestoreSchema.parserHealth,

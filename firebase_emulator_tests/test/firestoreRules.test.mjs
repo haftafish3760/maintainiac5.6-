@@ -159,6 +159,128 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
+  test('mileage summaries are allowed but location-bearing mileage is denied', async () => {
+    const owner = dbFor('ownerUid');
+    const summary = {
+      schema: 'trip_tracking_review_v1',
+      tripId: 'trip1',
+      orgId: 'orgA',
+      vehicleId: 'truck1',
+      acceptedMiles: 12.4,
+      locationDataIncluded: false,
+      visibilityScope: 'mileage_only',
+      createdByUid: 'ownerUid',
+      updatedByUid: 'ownerUid',
+    };
+
+    await assertSucceeds(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip1'), summary),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip2'), {
+        ...summary,
+        latitude: 35.0,
+        longitude: -80.0,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip3'), {
+        ...summary,
+        stopAddress: '123 Hidden Street',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip4'), {
+        ...summary,
+        visibilityScope: 'location_tracking',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip5'), {
+        ...summary,
+        altitude: 120,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip6'), {
+        ...summary,
+        orgId: 'another-org',
+      }),
+    );
+  });
+
+  test('a mileage recorder can read only their own company summaries', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    const ownerSummary = {
+      schema: 'trip_tracking_review_v1',
+      tripId: 'ownerTrip',
+      orgId: 'orgA',
+      vehicleId: 'truck1',
+      acceptedMiles: 12.4,
+      locationDataIncluded: false,
+      visibilityScope: 'mileage_only',
+      createdByUid: 'ownerUid',
+      updatedByUid: 'ownerUid',
+    };
+    const helperSummary = {
+      ...ownerSummary,
+      tripId: 'helperTrip',
+      createdByUid: 'helperUid',
+      updatedByUid: 'helperUid',
+    };
+
+    await assertSucceeds(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/ownerTrip'), ownerSummary),
+    );
+    await assertSucceeds(
+      setDoc(doc(helper, 'orgs/orgA/mileageRecords/helperTrip'), helperSummary),
+    );
+    await assertSucceeds(
+      getDoc(doc(helper, 'orgs/orgA/mileageRecords/helperTrip')),
+    );
+    await assertFails(
+      getDoc(doc(helper, 'orgs/orgA/mileageRecords/ownerTrip')),
+    );
+  });
+
+  test('solo users can access only their own mileage summaries', async () => {
+    const owner = dbFor('ownerUid');
+    const outsider = dbFor('outsiderUid');
+    const summary = {
+      schema: 'trip_tracking_review_v1',
+      tripId: 'soloTrip1',
+      vehicleId: 'truck1',
+      acceptedMiles: 4.2,
+      locationDataIncluded: false,
+      visibilityScope: 'mileage_only',
+      createdByUid: 'ownerUid',
+      updatedByUid: 'ownerUid',
+    };
+
+    await assertSucceeds(
+      setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip1'), summary),
+    );
+    await assertSucceeds(
+      getDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip1')),
+    );
+    await assertFails(
+      getDoc(doc(outsider, 'users/ownerUid/mileageRecords/soloTrip1')),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip2'), {
+        ...summary,
+        routeSummary: 'hidden route details',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip3'), {
+        ...summary,
+        orgId: 'orgA',
+      }),
+    );
+  });
+
   test('jobs and generic records reject passenger and patient fields', async () => {
     const owner = dbFor('ownerUid');
 
@@ -261,6 +383,9 @@ async function seedOrg() {
         'editVehicleProfiles',
         'createJobs',
         'editJobs',
+        'recordMileage',
+        'viewFleetMileageReports',
+        'editTeamMileage',
       ],
       allowedModules: ['expenses', 'admin', 'vehicles', 'jobs'],
     });
@@ -269,7 +394,12 @@ async function seedOrg() {
       orgId: 'orgA',
       status: 'active',
       role: 'helper',
-      permissions: ['recordExpenses', 'addOwnReceipts'],
+      permissions: [
+        'recordExpenses',
+        'addOwnReceipts',
+        'recordMileage',
+        'editOwnMileage',
+      ],
       allowedModules: ['expenses', 'receipts'],
     });
   });

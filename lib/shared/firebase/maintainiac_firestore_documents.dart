@@ -8,6 +8,7 @@ import '../../screens/expenses/data/expense_receipt_privacy_event_store.dart';
 import '../../screens/expenses/data/expense_screen_telemetry.dart';
 import '../../screens/work_supplies/data/work_supply_catalog_health_event.dart';
 import '../../screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart';
+import '../trip_tracking/trip_tracking_session_store.dart';
 import 'maintainiac_firestore_schema.dart';
 
 part 'maintainiac_firestore_ocr_contract_sanitizer.dart';
@@ -35,6 +36,7 @@ class MaintainiacFirestoreDocumentBuilder {
   static const _schemaParserHealth = 'parser_health_snapshot_v1';
   static const _schemaExpenseTelemetrySummary = 'expense_telemetry_summary_v1';
   static const _schemaCorrectionCandidate = 'shared_correction_candidate_v1';
+  static const _schemaTripTrackingReview = 'trip_tracking_review_v1';
 
   static MaintainiacFirestoreDocumentDraft catalogPackDocument(
     WorkSupplyHostedCatalogManifest manifest,
@@ -211,6 +213,87 @@ class MaintainiacFirestoreDocumentBuilder {
       }),
     );
   }
+
+  /// Builds a privacy-minimized mileage record. Coordinates, raw samples,
+  /// walking evidence, and live-location state never leave the device through
+  /// this document shape.
+  static MaintainiacFirestoreDocumentDraft tripTrackingReviewDocument({
+    required String orgId,
+    required String createdByUid,
+    required TripTrackingReviewRecord review,
+  }) {
+    final safeOrgId = _safePathToken(orgId);
+    final safeCreator = _safeFirestoreUid(createdByUid);
+    final safeTripId = _safePathToken(review.id);
+    return _tripTrackingReviewDocument(
+      path:
+          '${MaintainiacFirestoreSchema.orgCollectionPath(safeOrgId, MaintainiacFirestoreSchema.orgMileageRecords)}/$safeTripId',
+      creatorUid: safeCreator,
+      review: review,
+      scopeFields: {'orgId': safeOrgId},
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft personalTripTrackingReviewDocument({
+    required String uid,
+    required TripTrackingReviewRecord review,
+  }) {
+    final safeUid = _safeFirestoreUid(uid);
+    final safeTripId = _safePathToken(review.id);
+    return _tripTrackingReviewDocument(
+      path:
+          '${MaintainiacFirestoreSchema.userCollectionPath(safeUid, MaintainiacFirestoreSchema.orgMileageRecords)}/$safeTripId',
+      creatorUid: safeUid,
+      review: review,
+      scopeFields: const {},
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft _tripTrackingReviewDocument({
+    required String path,
+    required String creatorUid,
+    required TripTrackingReviewRecord review,
+    required Map<String, Object?> scopeFields,
+  }) {
+    final safeTripId = _safePathToken(review.id);
+    final safeVehicleId = _safePathToken(review.vehicleId);
+    final acceptedMeters = review.engineSnapshot.totalAcceptedMeters;
+    if (!acceptedMeters.isFinite || acceptedMeters < 0) {
+      throw ArgumentError.value(
+        acceptedMeters,
+        'acceptedMeters',
+        'Trip distance must be finite and non-negative.',
+      );
+    }
+    return MaintainiacFirestoreDocumentDraft(
+      path: path,
+      data: Map.unmodifiable({
+        'schema': _schemaTripTrackingReview,
+        'tripId': safeTripId,
+        ...scopeFields,
+        'createdByUid': creatorUid,
+        'updatedByUid': creatorUid,
+        'vehicleId': safeVehicleId,
+        'profile': review.profile.name,
+        'startedAt': review.startedAt.toUtc().toIso8601String(),
+        'finishedAt': review.finishedAt.toUtc().toIso8601String(),
+        'createdAt': review.finishedAt.toUtc().toIso8601String(),
+        'updatedAt': review.finishedAt.toUtc().toIso8601String(),
+        'startingOdometer': review.startingOdometer,
+        'estimatedEndingOdometer': review.estimatedEndingOdometer,
+        'acceptedMeters': acceptedMeters,
+        'acceptedMiles': acceptedMeters / 1609.344,
+        'walkingReviewSuggested': review.needsWalkingReview,
+        'motionState': review.engineSnapshot.motionState.name,
+        'receivedSampleCount':
+            review.engineSnapshot.diagnostics.receivedSamples,
+        'acceptedSampleCount':
+            review.engineSnapshot.diagnostics.acceptedSamples,
+        'locationDataIncluded': false,
+        'visibilityScope': 'mileage_only',
+      }),
+    );
+  }
 }
 
 Map<String, Object?> _sanitizeCatalogHealth(Map<String, Object?> source) {
@@ -293,6 +376,16 @@ String _safeCatalogToken(String value) {
       .replaceAll(RegExp(r'^_|_$'), '');
   if (safe.isEmpty) return 'unknown';
   return safe.length > 96 ? safe.substring(0, 96) : safe;
+}
+
+String _safeFirestoreUid(String value) {
+  final clean = value.trim();
+  if (clean.isEmpty ||
+      clean.length > 128 ||
+      !RegExp(r'^[A-Za-z0-9:_-]+$').hasMatch(clean)) {
+    throw ArgumentError.value(value, 'createdByUid', 'Unsafe Firebase UID.');
+  }
+  return clean;
 }
 
 String _hashText(String value) => _hashParts([value.trim().toLowerCase()]);

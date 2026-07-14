@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_engine.dart';
+import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_platform.dart';
 import 'trip_tracking_policy.dart';
@@ -19,15 +20,18 @@ class TripTrackingController extends ChangeNotifier {
     required GlobalOdometerController odometer,
     TripTrackingNativeGateway? platform,
     TripTrackingPolicy policy = const TripTrackingPolicy(),
+    TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
-       _policy = policy;
+       _policy = policy,
+       _cloudMirror = cloudMirror;
 
   final TripTrackingSessionStore _sessionStore;
   final GlobalOdometerController _odometer;
   final TripTrackingNativeGateway? _platform;
   final TripTrackingPolicy _policy;
+  final TripTrackingCloudMirror _cloudMirror;
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
   TripLiveOdometerProjection? _projection;
@@ -37,11 +41,13 @@ class TripTrackingController extends ChangeNotifier {
   Future<void> _nativeLifecycleQueue = Future<void>.value();
   bool _isDisposed = false;
   bool _nativeTracking = false;
+  bool _nativeInterruptionPending = false;
   TripSamplingRecommendation? _nativeSampling;
   bool _activityRecognitionEnabled = true;
   bool _adaptiveSamplingEnabled = true;
   String? _platformStatus;
   String? _platformError;
+  String? _cloudMirrorError;
   TripActivityObservation? _latestActivity;
 
   TripTrackingSessionRecord? get activeSession => _session;
@@ -58,12 +64,22 @@ class TripTrackingController extends ChangeNotifier {
   bool get nativeTracking => _nativeTracking;
   String? get platformStatus => _platformStatus;
   String? get platformError => _platformError;
+  String? get cloudMirrorError => _cloudMirrorError;
+
+  /// Retries locally durable mileage backups without touching the active trip
+  /// or confirmed odometer. A successful retry clears any stale dashboard
+  /// warning; failures remain visible and retryable.
+  Future<void> retryCloudBackup() async {
+    if (_isDisposed) return;
+    await _flushCloudMirror();
+  }
 
   @override
   void dispose() {
     _isDisposed = true;
     unawaited(_platformSubscription?.cancel());
     _platformSubscription = null;
+    _cloudMirror.dispose();
     super.dispose();
   }
 
@@ -114,6 +130,10 @@ class TripTrackingController extends ChangeNotifier {
     if (_isDisposed || isTracking) return false;
     final session = _sessionStore.activeSession;
     if (session == null) return false;
+    if (!_isRecoverableSession(session)) {
+      await _sessionStore.clear();
+      return false;
+    }
     // A review record was durably written before the process died. Do not
     // resume tracking or risk adding distance to a trip the user ended.
     if (_sessionStore.reviewForTrip(session.id) != null) {
@@ -163,20 +183,37 @@ class TripTrackingController extends ChangeNotifier {
     return true;
   }
 
+  bool _isRecoverableSession(TripTrackingSessionRecord session) =>
+      session.id.trim().isNotEmpty &&
+      session.vehicleId.trim().isNotEmpty &&
+      session.startingOdometer >= 0 &&
+      !session.updatedAt.isBefore(session.startedAt);
+
   Future<TripSampleDecision?> ingest(
     TripLocationSample sample, {
     TripActivityObservation? activity,
-  }) => _enqueueIngestion(() => _ingest(sample, activity: activity));
+    DateTime? referenceTime,
+  }) => _enqueueIngestion(
+    () => _ingest(sample, activity: activity, referenceTime: referenceTime),
+  );
 
   Future<TripSampleDecision?> _ingest(
     TripLocationSample sample, {
     TripActivityObservation? activity,
+    DateTime? referenceTime,
   }) async {
     if (_isDisposed) return null;
     final session = _session;
     final engine = _engine;
     final projection = _projection;
     if (session == null || engine == null || projection == null) return null;
+
+    if (referenceTime != null &&
+        sample.recordedAt.toUtc().isAfter(
+          referenceTime.toUtc().add(engine.policy.maximumFutureSampleSkew),
+        )) {
+      return engine.reject(TripSampleDisposition.rejectedFutureTimestamp);
+    }
 
     await _sessionStore.savePending(
       TripTrackingPendingSample(
@@ -381,6 +418,7 @@ class TripTrackingController extends ChangeNotifier {
   ) => platform.events.listen(
     _enqueuePlatformEvent,
     onError: (Object error) {
+      if (!_nativeTracking) return;
       unawaited(
         _handleNativeInterruption('GPS updates stopped unexpectedly: $error'),
       );
@@ -392,18 +430,25 @@ class TripTrackingController extends ChangeNotifier {
   );
 
   Future<void> _handleNativeInterruption(String message) async {
-    _platformError = message;
-    _platformStatus = 'error';
-    if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
-        _session?.lifecycleState ==
-            TripTrackingSessionLifecycleState.degraded) {
-      await _transitionSession(
-        TripTrackingSessionLifecycleState.interrupted,
-        health: TripTrackingHealthState.interrupted,
-      );
+    if (_isDisposed || _nativeInterruptionPending) return;
+    _nativeInterruptionPending = true;
+    try {
+      _platformError = message;
+      _platformStatus = 'error';
+      if (_session?.lifecycleState ==
+              TripTrackingSessionLifecycleState.active ||
+          _session?.lifecycleState ==
+              TripTrackingSessionLifecycleState.degraded) {
+        await _transitionSession(
+          TripTrackingSessionLifecycleState.interrupted,
+          health: TripTrackingHealthState.interrupted,
+        );
+      }
+      notifyListeners();
+      await stopNativeTracking();
+    } finally {
+      _nativeInterruptionPending = false;
     }
-    notifyListeners();
-    await stopNativeTracking();
   }
 
   void _enqueuePlatformEvent(TripTrackingPlatformEvent event) {
@@ -426,6 +471,7 @@ class TripTrackingController extends ChangeNotifier {
                           const Duration(seconds: 90)
                   ? activity
                   : null,
+              referenceTime: DateTime.now().toUtc(),
             );
             await _maybeUpdateNativeSampling(event.location!, decision);
           } else if (event.activity != null) {
@@ -446,9 +492,14 @@ class TripTrackingController extends ChangeNotifier {
             }
             notifyListeners();
           } else if (event.type == TripTrackingPlatformEventType.error) {
-            _platformError =
+            final message =
                 event.errorMessage ?? event.errorCode ?? 'GPS error';
-            notifyListeners();
+            _platformError = message;
+            if (_nativeTracking && _requiresNativeRecovery(event.errorCode)) {
+              unawaited(_handleNativeInterruption(message));
+            } else {
+              notifyListeners();
+            }
           }
         })
         .catchError((Object error, StackTrace _) {
@@ -517,8 +568,34 @@ class TripTrackingController extends ChangeNotifier {
     }
   }
 
+  bool _requiresNativeRecovery(String? errorCode) => switch (errorCode) {
+    'trip_tracking_foreground_service_denied' ||
+    'trip_tracking_location_registration_failed' ||
+    'trip_tracking_location_denied' ||
+    'trip_tracking_gps_unavailable' ||
+    'trip_tracking_gps_disabled' => true,
+    _ => false,
+  };
+
   Future<void> stopNativeTracking() =>
       _enqueueNativeLifecycle(_stopNativeTracking);
+
+  /// Foreground-only tracking must never continue after the app leaves the
+  /// foreground. Background collection remains an explicit user setting and
+  /// is separately permission-gated by [startNativeTracking]. Serializing this
+  /// with native start/stop prevents a lifecycle transition from racing a
+  /// just-started collector.
+  Future<void> handleAppLifecycleState(
+    AppLifecycleState state, {
+    required bool backgroundTrackingAllowed,
+  }) => _enqueueNativeLifecycle(() async {
+    if (backgroundTrackingAllowed ||
+        (state != AppLifecycleState.paused &&
+            state != AppLifecycleState.detached)) {
+      return;
+    }
+    await _stopNativeTracking();
+  });
 
   Future<void> _stopNativeTracking() async {
     final platform = _platform;
@@ -725,6 +802,15 @@ class TripTrackingController extends ChangeNotifier {
       engineSnapshot: engine.snapshot,
     );
     await _sessionStore.saveReview(review);
+    try {
+      await _cloudMirror.queueReview(review);
+      unawaited(_flushCloudMirror());
+      _cloudMirrorError = null;
+    } catch (error) {
+      // Local review durability is authoritative; cloud failure must not
+      // discard a completed trip or block the driver's finish workflow.
+      _cloudMirrorError = 'Cloud mileage backup is pending: $error';
+    }
     await _sessionStore.clear();
     _odometer.clearLiveTripProjection(tripId: session.id);
     _session = null;
@@ -732,6 +818,19 @@ class TripTrackingController extends ChangeNotifier {
     _projection = null;
     notifyListeners();
     return review;
+  }
+
+  Future<void> _flushCloudMirror() async {
+    try {
+      await _cloudMirror.flushPending();
+      if (_cloudMirrorError != null) {
+        _cloudMirrorError = null;
+        notifyListeners();
+      }
+    } catch (error) {
+      _cloudMirrorError = 'Cloud mileage backup is pending: $error';
+      notifyListeners();
+    }
   }
 }
 

@@ -67,11 +67,17 @@ class MaintainiacFirestoreUploadQueueStore {
     return List.unmodifiable(queued);
   }
 
-  List<MaintainiacFirestoreQueuedDocument> nextBatch({int? limit}) {
+  List<MaintainiacFirestoreQueuedDocument> nextBatch({
+    int? limit,
+    String? path,
+  }) {
     final cappedLimit = (limit ?? MaintainiacFirestoreUploadPolicy.maxBatchSize)
         .clamp(0, MaintainiacFirestoreUploadPolicy.maxBatchSize)
         .toInt();
-    return List.unmodifiable(pendingRecords.take(cappedLimit));
+    final candidates = path == null
+        ? pendingRecords
+        : pendingRecords.where((record) => record.path == path);
+    return List.unmodifiable(candidates.take(cappedLimit));
   }
 
   Future<void> markAttempted(
@@ -125,6 +131,12 @@ class MaintainiacFirestoreUploadQueueStore {
     }
   }
 
+  Future<void> discardPendingForPath(String path) async {
+    for (final record in pendingRecords) {
+      if (record.path == path) await _box.delete(record.id);
+    }
+  }
+
   Future<void> clearAll() => _box.clear();
 
   Future<void> _trimOldestIfNeeded() async {
@@ -173,6 +185,7 @@ class MaintainiacFirestoreUploadCoordinator {
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
     int? limit,
+    String? path,
     DateTime? nowUtc,
   }) async {
     if (!_uploadEnabled) {
@@ -185,7 +198,7 @@ class MaintainiacFirestoreUploadCoordinator {
       );
     }
 
-    final batch = _queue.nextBatch(limit: limit);
+    final batch = _queue.nextBatch(limit: limit, path: path);
     if (batch.isEmpty) {
       return const MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.empty,

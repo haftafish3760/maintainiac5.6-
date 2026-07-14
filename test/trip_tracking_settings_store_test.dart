@@ -14,6 +14,7 @@ void main() {
         TripTrackingSamplingPreset.enhancedAccuracy,
       );
       expect(settings.backgroundTrackingEnabled, isFalse);
+      expect(settings.organizationMileageSharingEnabled, isFalse);
       expect(settings.defaultProfile, TripTrackingProfile.roadVehicle);
       expect(settings.bluetoothVehicleRecognitionEnabled, isFalse);
       expect(settings.automaticVehicleSwitchEnabled, isFalse);
@@ -58,6 +59,19 @@ void main() {
       );
     },
   );
+
+  test('organization mileage sharing is a separately persisted opt-in', () {
+    const settings = TripTrackingSettings();
+    final enabled = settings.copyWith(organizationMileageSharingEnabled: true);
+
+    expect(enabled.organizationMileageSharingEnabled, isTrue);
+    expect(
+      TripTrackingSettings.fromMap(
+        enabled.toMap(),
+      ).organizationMileageSharingEnabled,
+      isTrue,
+    );
+  });
 
   test('sampling presets persist and bound a custom interval', () {
     const custom = TripTrackingSettings(

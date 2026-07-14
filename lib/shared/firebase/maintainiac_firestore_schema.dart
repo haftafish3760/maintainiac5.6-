@@ -14,6 +14,7 @@ class MaintainiacFirestoreSchema {
   static const orgInvites = 'invites';
   static const orgVehicles = 'vehicles';
   static const orgExpenses = 'expenses';
+  static const orgMileageRecords = 'mileageRecords';
   static const orgReceiptProofs = 'proofs';
   static const orgSettings = 'settings';
   static const orgInventoryItems = 'inventoryItems';
@@ -38,6 +39,10 @@ class MaintainiacFirestoreSchema {
 
   static String orgCollectionPath(String orgId, String collectionId) {
     return '$orgs/$orgId/$collectionId';
+  }
+
+  static String userCollectionPath(String uid, String collectionId) {
+    return 'users/$uid/$collectionId';
   }
 }
 

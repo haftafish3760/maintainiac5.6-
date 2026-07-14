@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/maintaniac_app.dart';
@@ -13,6 +14,7 @@ import 'screens/invoices/data/invoice_ledger_store.dart';
 import 'shared/state/app_state.dart';
 import 'shared/state/expense_settings_store.dart';
 import 'shared/firebase/maintainiac_firebase.dart';
+import 'shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'shared/context/operational_context_store.dart';
 import 'shared/profiles/user_profile_store.dart';
 import 'shared/signatures/app_signature_store.dart';
@@ -20,6 +22,7 @@ import 'shared/state/global_odometer.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
+import 'shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
 import 'shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -36,7 +39,7 @@ const maintaniacSystemUiStyle = SystemUiOverlayStyle(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MaintainiacFirebase.initializeIfSupported();
+  final firebaseSupported = await MaintainiacFirebase.initializeIfSupported();
   await Hive.initFlutter();
   final expenseSettings = await ExpenseSettingsController.create();
   final expenseLedger = await ExpenseLedgerController.create();
@@ -81,10 +84,53 @@ Future<void> main() async {
     snapshotReader: odometerStore.loadSnapshotForVehicle,
     snapshotWriter: odometerStore.saveSnapshot,
   );
+  final tripTrackingStore = await TripTrackingSessionStore.create();
+  TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror();
+  if (firebaseSupported && userProfiles.activeProfile.id.trim().isNotEmpty) {
+    final queueStore = await MaintainiacFirestoreUploadQueueStore.create();
+    final uploadCoordinator = MaintainiacFirestoreUploadCoordinator(
+      queue: queueStore,
+      sink: FirebaseFirestoreDocumentSink(),
+      uploadEnabled: true,
+    );
+    cloudMirror = TripTrackingFirebaseMirror(
+      queueStore: queueStore,
+      uploadCoordinator: uploadCoordinator,
+      localStore: tripTrackingStore,
+      orgId: operationalContext.context.companyId.isEmpty
+          ? null
+          : operationalContext.context.companyId,
+      personal: operationalContext.context.companyId.isEmpty,
+      createdByUid: FirebaseAuth.instance.currentUser?.uid,
+      firebaseAuth: FirebaseAuth.instance,
+      backupEnabled: () => userProfiles.activeProfile.cloudBackupEnabled,
+      organizationSharingEnabled: () =>
+          tripTrackingSettings.settings.organizationMileageSharingEnabled,
+    );
+    Future<void> syncCloudBackupConsent() async {
+      if (userProfiles.activeProfile.cloudBackupEnabled) {
+        if (!tripTrackingSettings.settings.organizationMileageSharingEnabled) {
+          await cloudMirror.withdrawOrganizationSharingConsent();
+        }
+        await cloudMirror.flushPending();
+      } else {
+        await cloudMirror.withdrawBackupConsent();
+      }
+    }
+
+    unawaited(syncCloudBackupConsent());
+    userProfiles.addListener(() {
+      unawaited(syncCloudBackupConsent());
+    });
+    tripTrackingSettings.addListener(() {
+      unawaited(syncCloudBackupConsent());
+    });
+  }
   final tripTracking = TripTrackingController(
-    sessionStore: await TripTrackingSessionStore.create(),
+    sessionStore: tripTrackingStore,
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
+    cloudMirror: cloudMirror,
   );
   await tripTracking.restore();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

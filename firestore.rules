@@ -101,6 +101,67 @@ service cloud.firestore {
       return !hasForbiddenSensitiveFields();
     }
 
+    function noLocationTrackingFields() {
+      return !request.resource.data.keys().hasAny([
+        'latitude',
+        'longitude',
+        'coordinates',
+        'accuracy',
+        'speed',
+        'location',
+        'route',
+        'routePoints',
+        'routeSummary',
+        'polyline',
+        'geohash',
+        'placeId',
+        'address',
+        'stopAddress',
+        'stopAddresses',
+        'sourceLocations',
+        'rawSamples',
+        'liveLocation',
+        'walkingEvidence',
+        'activityEvidence',
+      ]);
+    }
+
+    function isMileageOnlySummary() {
+      return request.resource.data.schema == 'trip_tracking_review_v1' &&
+        request.resource.data.locationDataIncluded == false &&
+        request.resource.data.visibilityScope == 'mileage_only';
+    }
+
+    // A deny-list cannot reliably protect privacy as native platforms add new
+    // location fields. Mileage backups have a deliberately small, stable
+    // document shape, so reject every field the client does not explicitly
+    // need for a reviewed mileage summary.
+    function hasOnlyMileageSummaryFields() {
+      return request.resource.data.keys().hasOnly([
+        'schema',
+        'tripId',
+        'orgId',
+        'createdByUid',
+        'updatedByUid',
+        'vehicleId',
+        'profile',
+        'startedAt',
+        'finishedAt',
+        'createdAt',
+        'updatedAt',
+        'startingOdometer',
+        'estimatedEndingOdometer',
+        'acceptedMeters',
+        'acceptedMiles',
+        'walkingReviewSuggested',
+        'motionState',
+        'receivedSampleCount',
+        'acceptedSampleCount',
+        'locationDataIncluded',
+        'visibilityScope',
+      ]);
+    }
+
     function noServerManagedFieldsOnCreate() {
       return !request.resource.data.keys().hasAny([
         'plan',
@@ -148,6 +209,24 @@ service cloud.firestore {
         keepsServerManagedFields() &&
         noForbiddenSensitiveFields();
       allow delete: if false;
+
+      match /mileageRecords/{recordId} {
+        allow read: if isSelf(uid);
+        allow create: if isSelf(uid) &&
+          request.resource.data.createdByUid == uid &&
+          request.resource.data.updatedByUid == uid &&
+          isMileageOnlySummary() &&
+          hasOnlyMileageSummaryFields() &&
+          !request.resource.data.keys().hasAny(['orgId']);
+        allow update: if isSelf(uid) &&
+          resource.data.createdByUid == uid &&
+          request.resource.data.createdByUid == uid &&
+          request.resource.data.updatedByUid == uid &&
+          isMileageOnlySummary() &&
+          hasOnlyMileageSummaryFields() &&
+          !request.resource.data.keys().hasAny(['orgId']);
+        allow delete: if false;
+      }
     }
 
     match /usage/{uid}/months/{monthId} {
@@ -305,7 +384,10 @@ service cloud.firestore {
           hasPermission(orgId, 'viewFleetMileageReports') ||
           resource.data.createdByUid == request.auth.uid;
         allow create: if hasPermission(orgId, 'recordMileage') &&
-          writesOwnCreate();
+          writesOwnCreate() &&
+          isMileageOnlySummary() &&
+          hasOnlyMileageSummaryFields() &&
+          request.resource.data.orgId == orgId;
         allow update: if (
             hasPermission(orgId, 'editTeamMileage') ||
             (
@@ -313,7 +395,10 @@ service cloud.firestore {
               resource.data.createdByUid == request.auth.uid
             )
           ) &&
-          keepsCreator();
+          keepsCreator() &&
+          isMileageOnlySummary() &&
+          hasOnlyMileageSummaryFields() &&
+          request.resource.data.orgId == orgId;
         allow delete: if false;
       }
 

@@ -8,7 +8,7 @@ void main() {
   final start = DateTime.utc(2026, 7, 13, 12);
 
   test('seeded hostile samples preserve distance accounting invariants', () {
-    for (final seed in List<int>.generate(24, (index) => 9000 + index)) {
+    for (final seed in List<int>.generate(128, (index) => 9000 + index)) {
       final random = Random(seed);
       final engine = TripTrackingEngine();
       var longitude = -80.0;

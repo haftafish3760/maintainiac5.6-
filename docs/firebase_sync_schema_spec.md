@@ -135,6 +135,36 @@ Fields:
 
 Do not store VIN numbers or license plate numbers.
 
+## GPS-Assisted Mileage Backup Scope
+
+Solo reviewed GPS-assisted trips live at:
+
+```text
+users/{uid}/mileageRecords/{tripId}
+```
+
+Company reviewed trips live at:
+
+```text
+orgs/{orgId}/mileageRecords/{tripId}
+```
+
+The hosted record is a mileage-only summary. It may contain the vehicle,
+odometer values, accepted distance, timestamps, algorithm health counters, and
+review state. It must not contain latitude, longitude, route points, raw GPS
+samples, walking evidence, live-location state, or inferred stop addresses.
+`locationDataIncluded` is explicitly `false` and `visibilityScope` is
+`mileage_only`. Solo records are readable only by their owning authenticated
+user; company records use org membership and mileage permissions. Local Hive
+remains the source of truth while the Firestore document is a queued mirror
+that can be retried after offline or auth failure. Backup is off by default and
+requires an explicit user opt-in; turning it off keeps future reviewed mileage
+local and prevents pending cloud writes from flushing. This permission does
+not authorize live location or route sharing. Firestore rules also require the
+trip schema and these exact summary markers, and reject address, geohash,
+polyline, route-summary, accuracy, speed, activity-evidence, and other
+location/intelligence fields even if a client bypasses the builder.
+
 ```text
 orgs/{orgId}/inventoryLocations/{locationId}
 ```

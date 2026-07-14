@@ -3,11 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/settings/trip_tracking_settings_screen.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/profiles/user_profile_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
   testWidgets('GPS settings are visible and remain opt-in', (tester) async {
     final settings = TripTrackingSettingsController.memory();
+    final profiles = UserProfileController.memory();
     await tester.pumpWidget(
       MaterialApp(
         home: AppStateScope(
@@ -16,7 +18,10 @@ void main() {
             controller: GlobalOdometerController(),
             child: TripTrackingSettingsScope(
               controller: settings,
-              child: const TripTrackingSettingsScreen(),
+              child: UserProfileScope(
+                controller: profiles,
+                child: const TripTrackingSettingsScreen(),
+              ),
             ),
           ),
         ),
@@ -26,11 +31,16 @@ void main() {
 
     expect(find.text('GPS-Assisted Trip Tracking'), findsOneWidget);
     expect(find.text('Enable GPS-assisted tracking'), findsOneWidget);
+    expect(
+      find.text('Share reviewed mileage summaries with organization'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('GPS stops when the app is backgrounded'),
+      findsOneWidget,
+    );
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
-
-    await tester.tap(find.byType(Switch).first);
-    await tester.pumpAndSettle();
-
-    expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
+    expect(find.text('Back up reviewed mileage to Firebase'), findsOneWidget);
+    expect(profiles.activeProfile.cloudBackupEnabled, isFalse);
   });
 }

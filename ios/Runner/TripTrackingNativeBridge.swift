@@ -54,8 +54,18 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
     let authorization = authorizationMap()
     emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
-    guard let result = pendingAuthorizationResult else { return }
     let state = authorization["state"] as? String
+    if tracking && (state == "denied" || state == "restricted") {
+      locationManager.stopUpdatingLocation()
+      motionManager.stopActivityUpdates()
+      tracking = false
+      emit([
+        "type": "error",
+        "errorCode": "trip_tracking_location_denied",
+        "errorMessage": "Location permission was removed while tracking.",
+      ])
+    }
+    guard let result = pendingAuthorizationResult else { return }
     if state == "whileInUse" && requestedBackgroundAuthorization && !backgroundAuthorizationRequested {
       backgroundAuthorizationRequested = true
       locationManager.requestAlwaysAuthorization()
@@ -69,6 +79,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
 
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     for location in locations where location.horizontalAccuracy >= 0 {
+      let simulated = isSimulatedLocation(location)
       emit([
         "type": "location",
         "latitude": location.coordinate.latitude,
@@ -76,8 +87,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
         "recordedAt": ISO8601DateFormatter().string(from: location.timestamp),
         "horizontalAccuracyMeters": location.horizontalAccuracy,
         "speedMetersPerSecond": location.speed >= 0 ? location.speed : NSNull(),
+        "mockedLocation": simulated,
       ])
     }
+  }
+
+  private func isSimulatedLocation(_ location: CLLocation) -> Bool {
+    if #available(iOS 15.0, *) {
+      return location.sourceInformation?.isSimulatedBySoftware == true
+    }
+    return false
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -149,10 +168,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     }
     let arguments = call.arguments as? [String: Any]
     let profile = arguments?["profile"] as? String
+    let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
     let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? true
-    locationManager.desiredAccuracy = kCLLocationAccuracyBest
-    locationManager.distanceFilter = max(0, displacement)
+    applySampling(intervalMillis: intervalMillis, displacement: displacement)
     locationManager.activityType = profile == "roadVehicle" ? .automotiveNavigation : .otherNavigation
     locationManager.pausesLocationUpdatesAutomatically = false
     if #available(iOS 9.0, *) {
@@ -184,9 +203,26 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       return
     }
     let arguments = call.arguments as? [String: Any]
+    let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
-    locationManager.distanceFilter = max(0, displacement)
+    applySampling(intervalMillis: intervalMillis, displacement: displacement)
     result(true)
+  }
+
+  /// Core Location has no fixed polling interval. The requested interval is
+  /// translated into an accuracy tier while the displacement filter remains
+  /// the hard movement bound. This keeps economy/balanced/precision requests
+  /// meaningful on iOS without inventing timer-based location samples.
+  private func applySampling(intervalMillis: Int64, displacement: Double) {
+    let boundedInterval = min(max(intervalMillis, 1000), 60000)
+    if boundedInterval <= 2500 {
+      locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+    } else if boundedInterval <= 7000 {
+      locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+    } else {
+      locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    }
+    locationManager.distanceFilter = max(0, displacement)
   }
 
   private func capabilities() -> [String: Any] {
