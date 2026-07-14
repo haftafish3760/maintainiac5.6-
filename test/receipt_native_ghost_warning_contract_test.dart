@@ -73,13 +73,9 @@ void main() {
   test('photo review surfaces native saved-photo quality warnings', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final controls = await readReceiptPhotoReviewControlsUnit();
-    final previewControls =
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
-        ).readAsString() +
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
-        ).readAsString();
+    final previewContextControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
+    ).readAsString();
     final previewActionTray =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
@@ -217,7 +213,7 @@ void main() {
     expect(models, contains('_isBorderlineDimButReadable'));
     expect(models, contains('_isBrightReadablePaper'));
     expect(controls, isNot(contains("sharpnessBucket == 'captured_soft'")));
-    expect(previewControls, contains("label: 'Add Another Photo'"));
-    expect(previewControls, isNot(contains("label: 'Add Section'")));
+    expect(previewContextControls, contains("label: 'Add Another Photo'"));
+    expect(previewContextControls, isNot(contains("label: 'Add Section'")));
   });
 }

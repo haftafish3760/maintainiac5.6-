@@ -54,6 +54,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$cameraXVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraXVersion")
     implementation("androidx.camera:camera-view:$cameraXVersion")
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("com.google.guava:guava:33.4.8-android")
 }
 
