@@ -59,7 +59,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
   - Switching odometer vehicles is blocked while a live GPS projection exists.
 
 - `lib/shared/odometer/global_odometer_header.dart`
-  - Shared live header. Uses the global controller so the projected odometer updates across the app.
+  - Compatibility export for older callers. The one canonical implementation is `lib/shared/widgets/global_odometer_header.dart`, which uses the global controller so the projected odometer updates across the app.
 
 ### Firebase backup and privacy
 
@@ -79,7 +79,8 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
 
 - `firestore.rules`
   - Rules allowlist the mileage summary fields. Do not replace this allowlist with a loose denylist.
-  - Organization records must be bound to their organization path.
+  - Organization records must be bound to their organization path and carry `organizationSharingConsent: true`.
+  - Elevated organization reads require that consent field; the record creator may still read their own record. This safely hides old or consent-withheld records from fleet views.
   - Rules reject location-like data and unknown fields.
 
 ### Settings and app wiring
@@ -138,6 +139,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
 - With private backup on but organization sharing off: new backup uses `users/{uid}/mileageRecords/...`, not `orgs/{orgId}/mileageRecords/...`.
 - Organization sharing must be explicitly enabled before a newly finished review can use the organization path.
 - Turning organization sharing off clears unsent organization queue entries, including older queue entries created before scope binding existed.
+- Turning it off must not remove an explicitly personal pending backup; that regression is covered in `test/trip_tracking_firebase_bridge_test.dart`.
 - Existing uploaded records are not silently deleted; do not promise remote deletion without an explicit, designed data-retention and authorization workflow.
 
 ### Data forbidden from cloud mileage records

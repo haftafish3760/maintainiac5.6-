@@ -141,6 +141,7 @@ service cloud.firestore {
         'schema',
         'tripId',
         'orgId',
+        'organizationSharingConsent',
         'createdByUid',
         'updatedByUid',
         'vehicleId',
@@ -217,14 +218,20 @@ service cloud.firestore {
           request.resource.data.updatedByUid == uid &&
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
-          !request.resource.data.keys().hasAny(['orgId']);
+          !request.resource.data.keys().hasAny([
+            'orgId',
+            'organizationSharingConsent',
+          ]);
         allow update: if isSelf(uid) &&
           resource.data.createdByUid == uid &&
           request.resource.data.createdByUid == uid &&
           request.resource.data.updatedByUid == uid &&
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
-          !request.resource.data.keys().hasAny(['orgId']);
+          !request.resource.data.keys().hasAny([
+            'orgId',
+            'organizationSharingConsent',
+          ]);
         allow delete: if false;
       }
     }
@@ -380,14 +387,17 @@ service cloud.firestore {
       }
 
       match /mileageRecords/{recordId} {
-        allow read: if isOwnerOrAdmin(orgId) ||
-          hasPermission(orgId, 'viewFleetMileageReports') ||
+        allow read: if (
+            isOwnerOrAdmin(orgId) ||
+            hasPermission(orgId, 'viewFleetMileageReports')
+          ) && resource.data.organizationSharingConsent == true ||
           resource.data.createdByUid == request.auth.uid;
         allow create: if hasPermission(orgId, 'recordMileage') &&
           writesOwnCreate() &&
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
-          request.resource.data.orgId == orgId;
+          request.resource.data.orgId == orgId &&
+          request.resource.data.organizationSharingConsent == true;
         allow update: if (
             hasPermission(orgId, 'editTeamMileage') ||
             (
@@ -398,7 +408,8 @@ service cloud.firestore {
           keepsCreator() &&
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
-          request.resource.data.orgId == orgId;
+          request.resource.data.orgId == orgId &&
+          request.resource.data.organizationSharingConsent == true;
         allow delete: if false;
       }
 

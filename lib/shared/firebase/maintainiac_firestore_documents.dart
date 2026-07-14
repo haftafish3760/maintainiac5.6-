@@ -230,7 +230,10 @@ class MaintainiacFirestoreDocumentBuilder {
           '${MaintainiacFirestoreSchema.orgCollectionPath(safeOrgId, MaintainiacFirestoreSchema.orgMileageRecords)}/$safeTripId',
       creatorUid: safeCreator,
       review: review,
-      scopeFields: {'orgId': safeOrgId},
+      scopeFields: {
+        'orgId': safeOrgId,
+        'organizationSharingConsent': true,
+      },
     );
   }
 

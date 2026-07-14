@@ -57,6 +57,7 @@ void main() {
       'schema',
       'tripId',
       'orgId',
+      'organizationSharingConsent',
       'createdByUid',
       'updatedByUid',
       'vehicleId',
@@ -221,6 +222,50 @@ void main() {
       expect(
         localStore.reviewForTrip('trip 1')?.cloudSyncState,
         TripTrackingCloudSyncState.localOnly,
+      );
+    },
+  );
+
+  test(
+    'organization sharing withdrawal preserves an unsent private backup',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      final privateReview = review().copyWith(
+        cloudAccountUid: 'firebaseUid-1',
+        cloudBackupScope: TripTrackingCloudBackupScope.personal,
+        cloudSyncState: TripTrackingCloudSyncState.queued,
+      );
+      await localStore.saveReview(privateReview);
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      await queue.enqueue(
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: privateReview,
+        ),
+      );
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        orgId: 'orgA',
+        createdByUid: 'firebaseUid-1',
+        organizationSharingEnabled: () => false,
+      );
+
+      await mirror.withdrawOrganizationSharingConsent();
+
+      expect(queue.pendingRecords, hasLength(1));
+      expect(
+        queue.pendingRecords.single.path,
+        'users/firebaseUid-1/mileageRecords/trip_1',
+      );
+      expect(
+        localStore.reviewForTrip('trip 1')?.cloudSyncState,
+        TripTrackingCloudSyncState.queued,
       );
     },
   );

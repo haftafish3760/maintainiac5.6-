@@ -165,6 +165,7 @@ describe('Firestore rules emulator safety', () => {
       schema: 'trip_tracking_review_v1',
       tripId: 'trip1',
       orgId: 'orgA',
+      organizationSharingConsent: true,
       vehicleId: 'truck1',
       acceptedMiles: 12.4,
       locationDataIncluded: false,
@@ -207,6 +208,27 @@ describe('Firestore rules emulator safety', () => {
         orgId: 'another-org',
       }),
     );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip7'), {
+        ...summary,
+        organizationSharingConsent: false,
+      }),
+    );
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(
+        doc(context.firestore(), 'orgs/orgA/mileageRecords/withheldTrip'),
+        {
+          ...summary,
+          tripId: 'withheldTrip',
+          createdByUid: 'anotherEmployee',
+          updatedByUid: 'anotherEmployee',
+          organizationSharingConsent: false,
+        },
+      );
+    });
+    await assertFails(
+      getDoc(doc(owner, 'orgs/orgA/mileageRecords/withheldTrip')),
+    );
   });
 
   test('a mileage recorder can read only their own company summaries', async () => {
@@ -216,6 +238,7 @@ describe('Firestore rules emulator safety', () => {
       schema: 'trip_tracking_review_v1',
       tripId: 'ownerTrip',
       orgId: 'orgA',
+      organizationSharingConsent: true,
       vehicleId: 'truck1',
       acceptedMiles: 12.4,
       locationDataIncluded: false,
@@ -277,6 +300,12 @@ describe('Firestore rules emulator safety', () => {
       setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip3'), {
         ...summary,
         orgId: 'orgA',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip4'), {
+        ...summary,
+        organizationSharingConsent: true,
       }),
     );
   });
