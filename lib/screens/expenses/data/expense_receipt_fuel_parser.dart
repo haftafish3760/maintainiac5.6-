@@ -208,6 +208,20 @@ String _fuelTypeForLine({
 
 String? _fuelTypeSignalFor(String text) {
   if (RegExp(r'\b(def|diesel exhaust fluid)\b').hasMatch(text)) return 'DEF';
+  if (RegExp(r'\b(nitromethane|nitro\s*methane|nm\s+fuel)\b').hasMatch(text)) {
+    return 'Nitromethane';
+  }
+  if (RegExp(
+    r'\b(jet[-\s]?a(?:[-\s]?1)?|jet\s+fuel|turbine\s+fuel|aviation\s+turbine\s+fuel|turbosina)\b',
+  ).hasMatch(text)) {
+    return 'Jet Fuel';
+  }
+  if (RegExp(r'\b(avgas|aviation\s+gasoline|100ll|100/130)\b').hasMatch(text)) {
+    return 'Aviation Gasoline';
+  }
+  if (RegExp(r'\b(race\s+fuel|racing\s+fuel)\b').hasMatch(text)) {
+    return 'Racing Fuel';
+  }
   if (RegExp(
     r'\b(lng|liquefied natural gas|dge|diesel gallon equivalent)\b',
   ).hasMatch(text)) {
@@ -265,10 +279,10 @@ String? _fuelTypeSignalFor(String text) {
 }
 
 String? _ethanolBlendFuelTypeFor(String text) {
-  final compact = RegExp(r'\be[-\s]*(10|15|20|30|50|85)\b').firstMatch(text);
+  final compact = RegExp(r'\be[-\s]*(10|15|20|30|50|85|100)\b').firstMatch(text);
   if (compact != null) return 'E${compact.group(1)}';
   final labeled = RegExp(
-    r'\bethanol\s*(?:blend|fuel)?\s*(10|15|20|30|50|85)\b',
+    r'\bethanol\s*(?:blend|fuel)?\s*(10|15|20|30|50|85|100)\b',
   ).firstMatch(text);
   if (labeled != null) return 'E${labeled.group(1)}';
   if (RegExp(r'\b(unleaded 88|unl 88)\b').hasMatch(text)) return 'E15';

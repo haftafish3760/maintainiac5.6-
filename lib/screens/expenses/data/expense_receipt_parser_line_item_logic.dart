@@ -40,6 +40,20 @@ List<_ParsedReceiptLine> _readLineItems(
       pendingDescriptionRow = null;
       continue;
     }
+    if (_isFuelSaleLineItemRow(
+          lower: lower,
+          amount: amount,
+          context: context,
+          totals: totals,
+        ) &&
+        output.any(
+          (line) =>
+              line.record.category == 'Fuel' &&
+              (line.record.subtotal - amount).abs() < .005,
+        )) {
+      pendingDescriptionRow = null;
+      continue;
+    }
     if (_shouldSkipSummaryLineItemRow(
       lower: lower,
       amount: amount,
