@@ -44,6 +44,9 @@ void main() {
     );
     expect(realProbeSource, contains(r'Usage: $0 <receipt-section-1>'));
     expect(realProbeSource, contains('Missing receipt image:'));
+    expect(realProbeSource, contains('shasum -a 256'));
+    expect(realProbeSource, contains('Receipt stitch altered source image:'));
+    expect(realProbeSource, contains('Receipt stitch source integrity: PASS'));
     expect(realWindowProbeSource, contains('RECEIPT_STITCH_REAL_TALL_IMAGE'));
     expect(
       realWindowProbeSource,

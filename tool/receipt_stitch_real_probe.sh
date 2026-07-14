@@ -11,11 +11,15 @@ if [[ "$#" -lt 2 ]]; then
 fi
 
 joined=""
+source_paths=()
+source_hashes=()
 for path in "$@"; do
   if [[ ! -f "$path" ]]; then
     echo "Missing receipt image: $path" >&2
     exit 66
   fi
+  source_paths+=("$path")
+  source_hashes+=("$(shasum -a 256 "$path" | awk '{print $1}')")
   if [[ -z "$joined" ]]; then
     joined="$path"
   else
@@ -25,3 +29,13 @@ done
 
 RECEIPT_STITCH_REAL_PATHS="$joined" \
   flutter test test/receipt_stitching_real_fixture_probe_test.dart -r compact
+
+for index in "${!source_paths[@]}"; do
+  current_hash="$(shasum -a 256 "${source_paths[$index]}" | awk '{print $1}')"
+  if [[ "$current_hash" != "${source_hashes[$index]}" ]]; then
+    echo "Receipt stitch altered source image: ${source_paths[$index]}" >&2
+    exit 70
+  fi
+done
+
+echo "Receipt stitch source integrity: PASS"
