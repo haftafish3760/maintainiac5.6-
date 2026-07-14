@@ -30,13 +30,17 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
   bool get _isFuelLine => _categoryRule.isFuel;
 
   double get _businessPercent {
+    return _enteredBusinessPercent ?? .5;
+  }
+
+  double? get _enteredBusinessPercent {
     final raw = _businessPercentController.text.trim();
+    if (raw.isEmpty) return null;
     final normalized = raw.replaceAll('%', '').replaceAll(',', '').trim();
     final numeric = double.tryParse(normalized);
-    if (numeric == null) return .5;
+    if (numeric == null) return null;
     final percent = numeric > 1 ? numeric / 100 : numeric;
-    if (percent < 0) return 0;
-    if (percent > 1) return 1;
+    if (percent < 0 || percent > 1) return null;
     return percent;
   }
 

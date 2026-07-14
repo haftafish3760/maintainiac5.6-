@@ -230,8 +230,9 @@ extension _ExpenseReceiptEntryParseApplyActions
     ExpenseReceiptLineRecord line, {
     ExpenseReceiptLineReview? review,
   }) {
+    final sourceText = line.receiptEvidenceText;
     return _ExpenseReceiptLine(
-      description: line.description,
+      description: sourceText.trim().isEmpty ? line.description : sourceText,
       category: line.category,
       use: switch (line.use) {
         ExpenseLineUse.business => _ExpenseLineUse.business,

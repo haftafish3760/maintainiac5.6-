@@ -13,6 +13,19 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
       );
       return;
     }
+    final businessPercent = _use == _ExpenseLineUse.split
+        ? _enteredBusinessPercent
+        : null;
+    if (_use == _ExpenseLineUse.split && businessPercent == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Enter a business percentage for this split line before saving.',
+          ),
+        ),
+      );
+      return;
+    }
     final rule = expenseReceiptRuleForCategory(category);
     final isFuel = rule.isFuel;
     final odometerReading = int.tryParse(
@@ -119,9 +132,7 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         unitsPerPackage: unitsPerPackage,
         stockUnit: stockUnit,
         subtotal: subtotal,
-        businessPercent: _use == _ExpenseLineUse.split
-            ? _businessPercent
-            : null,
+        businessPercent: businessPercent,
         odometerReading: isFuel ? odometerReading : null,
         fuelType: isFuel ? _fuelType : null,
         fillType: isFuel ? _fillType : null,

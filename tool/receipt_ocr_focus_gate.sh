@@ -24,6 +24,7 @@ flutter test --reporter compact \
 	  test/receipt_device_capability_tiers_test.dart \
 	  test/expense_receipt_ocr_progress_deadline_test.dart \
 	  test/expense_receipt_review_mode_totals_test.dart \
+	  test/expense_receipt_faithful_display_and_split_test.dart \
   test/receipt_ocr_source_text_fidelity_test.dart \
   test/receipt_ocr_handoff_test.dart \
   test/expense_receipt_ocr_handler_integration_test.dart \
