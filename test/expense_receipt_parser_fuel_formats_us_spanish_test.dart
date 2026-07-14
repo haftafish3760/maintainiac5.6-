@@ -54,6 +54,26 @@ TOTAL 9.00
     expect(fuel.subtotal, 9);
   });
 
+  test('parses GNV and GLP alternative-fuel abbreviations', () {
+    final cases = [
+      ('GNV 12.000 GGE @ 2.500 30.00', 'CNG', 'GGE'),
+      ('GLP 8.000 GAL @ 3.000 24.00', 'Propane', 'gallon'),
+    ];
+
+    for (final entry in cases) {
+      final parsed = parseExpenseReceiptText('''
+ESTACION DE SERVICIO
+${entry.$1}
+VENTA COMBUSTIBLE ${entry.$1.split(' ').last}
+TOTAL ${entry.$1.split(' ').last}
+''');
+
+      final fuel = parsed.lines.single;
+      expect(fuel.fuelType, entry.$2, reason: entry.$1);
+      expect(fuel.unit, entry.$3, reason: entry.$1);
+    }
+  });
+
   test('parses Spanish EV precio por kWh rates', () {
     final parsed = parseExpenseReceiptText('''
 ESTACION DE CARGA
