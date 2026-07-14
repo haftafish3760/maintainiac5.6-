@@ -33,6 +33,8 @@ void main() {
     expect(report.numericAccuracy, lessThan(1));
     expect(report.totalAccuracy, .5);
     expect(report.merchantAccuracy, 1);
+    expect(report.coverage['merchant'], 1);
+    expect(report.coverage['total'], 2);
     expect(report.below(.9), containsAll(['numeric', 'total']));
   });
 }

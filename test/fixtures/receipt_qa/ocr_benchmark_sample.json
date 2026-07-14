@@ -24,6 +24,33 @@
         "lines": ["HDWR MART", "07/14/2026", "TOTAL 18.37"],
         "route": "expenseReview"
       }
+    },
+    {
+      "id": "synthetic-tax-receipt",
+      "provenance": {
+        "sourceId": "synthetic-tax-receipt-v1",
+        "sourceKind": "synthetic",
+        "engine": "fixture",
+        "processingVersion": "receipt_ocr_benchmark_v1"
+      },
+      "expected": {
+        "text": "SUPPLY SHOP\nSUBTOTAL 10.00\nTAX 0.80\nTOTAL 10.80",
+        "merchant": "SUPPLY SHOP",
+        "subtotal": "10.00",
+        "tax": "0.80",
+        "total": "10.80",
+        "lines": ["SUPPLY SHOP", "SUBTOTAL 10.00", "TAX 0.80", "TOTAL 10.80"],
+        "route": "expenseReview"
+      },
+      "actual": {
+        "text": "SUPPLY SHOP\nSUBTOTAL 10.00\nTAX 0.80\nTOTAL 10.80",
+        "merchant": "SUPPLY SHOP",
+        "subtotal": "10.00",
+        "tax": "0.80",
+        "total": "10.80",
+        "lines": ["SUPPLY SHOP", "SUBTOTAL 10.00", "TAX 0.80", "TOTAL 10.80"],
+        "route": "expenseReview"
+      }
     }
   ]
 }

@@ -4,7 +4,10 @@ import 'dart:io';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_benchmark_metrics.dart';
 
 void main(List<String> args) {
-  final requireReal = args.contains('--require-real');
+  final releaseGate = args.contains('--release-gate');
+  final requireReal = releaseGate || args.contains('--require-real');
+  final requireCompleteCoverage =
+      releaseGate || args.contains('--require-complete-coverage');
   final inputPath = args
       .where((arg) => arg.startsWith('--input='))
       .map((arg) => arg.substring('--input='.length))
@@ -33,19 +36,28 @@ void main(List<String> args) {
   final hasRealEvidence = _hasRealEvidence(decoded);
   final report = scoreReceiptOcrBenchmark(cases);
   final below = report.below(failUnder);
+  final missingCoverage = report.coverage.entries
+      .where((entry) => entry.value == 0)
+      .map((entry) => entry.key)
+      .toList(growable: false);
   stdout.writeln(
     const JsonEncoder.withIndent('  ').convert({
       'caseCount': report.caseCount,
       'minimumRequired': failUnder,
+      'releaseGate': releaseGate,
       'requiresRealEvidence': requireReal,
+      'requiresCompleteCoverage': requireCompleteCoverage,
       'hasRealEvidence': hasRealEvidence,
       'metrics': report.metrics,
+      'metricCaseCounts': report.coverage,
+      'missingCoverage': missingCoverage,
       'belowMinimum': below,
     }),
   );
   if (report.caseCount == 0 ||
       below.isNotEmpty ||
-      (requireReal && !hasRealEvidence)) {
+      (requireReal && !hasRealEvidence) ||
+      (requireCompleteCoverage && missingCoverage.isNotEmpty)) {
     exitCode = 1;
   }
 }
