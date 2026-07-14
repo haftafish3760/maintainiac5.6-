@@ -97,9 +97,10 @@ class ReceiptOcrService {
         if (!duplicatePhotos.duplicateAttachmentIndexes.contains(index))
           photoAttachments[index],
     ];
-    final readablePhotoAttachments = uniquePhotoAttachments
-        .take(maxPhotoOcrAttachments)
-        .toList(growable: false);
+    final readablePhotoAttachments = prioritizeReceiptPhotosForOcr(
+      uniquePhotoAttachments,
+      maximum: maxPhotoOcrAttachments,
+    );
     final skippedPhotoCount =
         uniquePhotoAttachments.length - readablePhotoAttachments.length;
     final photoReadWarnings = <String>[
@@ -113,7 +114,7 @@ class ReceiptOcrService {
       if (skippedPhotoCount > 0)
         maxPhotoOcrAttachments == 0
             ? 'Receipt photo assistance is turned off for this device profile.'
-            : 'Only the first $maxPhotoOcrAttachments receipt photos were read on this device. $skippedPhotoCount extra ${skippedPhotoCount == 1 ? 'photo was' : 'photos were'} saved as proof only.',
+            : 'The clearest $maxPhotoOcrAttachments receipt photos were read on this device. $skippedPhotoCount extra ${skippedPhotoCount == 1 ? 'photo was' : 'photos were'} saved as proof only.',
     ];
     final pdfAttachments = attachments
         .where((attachment) => attachment.isPdf && attachment.path.isNotEmpty)
@@ -357,6 +358,45 @@ class ReceiptOcrService {
 
 const _repeatedAttachmentIdWarning =
     'Some receipt attachments used the same identifier. Their text was kept together; review the saved proof before saving.';
+
+/// Chooses the strongest available receipt sources under a device budget while
+/// retaining the original capture order for document reconstruction.
+List<ReceiptAttachmentRecord> prioritizeReceiptPhotosForOcr(
+  List<ReceiptAttachmentRecord> photos, {
+  required int maximum,
+}) {
+  if (maximum <= 0 || photos.isEmpty) return const [];
+  if (photos.length <= maximum || _hasOrderedReceiptSegments(photos)) {
+    return List.unmodifiable(photos.take(maximum));
+  }
+  final indexed =
+      List.generate(
+        photos.length,
+        (index) => (index: index, photo: photos[index]),
+      )..sort((left, right) {
+        final quality = (right.photo.photoQualityScore ?? -1).compareTo(
+          left.photo.photoQualityScore ?? -1,
+        );
+        return quality != 0 ? quality : left.index.compareTo(right.index);
+      });
+  final selectedIndexes =
+      indexed.take(maximum).map((entry) => entry.index).toList(growable: false)
+        ..sort();
+  return List.unmodifiable([
+    for (final index in selectedIndexes) photos[index],
+  ]);
+}
+
+bool _hasOrderedReceiptSegments(List<ReceiptAttachmentRecord> photos) {
+  return photos.any(
+    (photo) => photo.documentSignals.any((signal) {
+      final normalized = signal.trim().toLowerCase();
+      return normalized.contains('stitch') ||
+          normalized.contains('receipt_section') ||
+          normalized.contains('section_order');
+    }),
+  );
+}
 
 void _appendAttachmentText(
   Map<String, String> textByAttachment,

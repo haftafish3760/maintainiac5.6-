@@ -23,12 +23,19 @@ void main() {
       expect(source, contains('final requireCompleteCoverage ='));
       expect(source, contains("'metricCaseCounts': report.coverage"));
       expect(source, contains("'missingCoverage': missingCoverage"));
+      expect(source, contains("'missingRealScenarioCoverage'"));
+      expect(source, contains("'scenarioBelowMinimum': scenarioBelowMinimum"));
+      expect(source, contains('const _requiredReceiptScenarios'));
+      expect(source, contains('const _minimumRealCasesPerScenario = 3'));
       expect(source, contains('Every benchmark case must be an object.'));
       expect(source, contains('(requireReal && !hasRealEvidence)'));
+      expect(source, contains('missingScenarioCoverage.isNotEmpty ||'));
+      expect(source, contains('scenarioBelowMinimum.isNotEmpty'));
       expect(
         source,
-        contains('(requireCompleteCoverage && missingCoverage.isNotEmpty)'),
+        contains('missingRealScenarioCoverage.isNotEmpty ||'),
       );
+      expect(source, contains('underSampledRealScenarios.isNotEmpty'));
     },
   );
 }

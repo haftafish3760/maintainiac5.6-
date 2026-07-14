@@ -3,6 +3,25 @@ import 'dart:io';
 
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_benchmark_metrics.dart';
 
+const _requiredReceiptScenarios = <String>{
+  'thermal',
+  'faded',
+  'glare',
+  'shadow',
+  'rotated',
+  'perspective',
+  'tiny_print',
+  'low_light',
+  'high_light',
+  'fuel',
+  'inventory',
+  'mixed',
+  'unsupported',
+  'screenshot',
+  'long_receipt_reconstructed',
+};
+const _minimumRealCasesPerScenario = 3;
+
 void main(List<String> args) {
   final releaseGate = args.contains('--release-gate');
   final requireReal = releaseGate || args.contains('--require-real');
@@ -40,6 +59,23 @@ void main(List<String> args) {
       .where((entry) => entry.value == 0)
       .map((entry) => entry.key)
       .toList(growable: false);
+  final scenarioCoverage = _scenarioCoverage(decoded);
+  final realScenarioCoverage = _scenarioCoverage(decoded, realOnly: true);
+  final missingScenarioCoverage = _requiredReceiptScenarios
+      .where((scenario) => !scenarioCoverage.contains(scenario))
+      .toList(growable: false);
+  final missingRealScenarioCoverage = _requiredReceiptScenarios
+      .where((scenario) => !realScenarioCoverage.contains(scenario))
+      .toList(growable: false);
+  final realScenarioCaseCounts = _scenarioCaseCounts(decoded, realOnly: true);
+  final underSampledRealScenarios = _requiredReceiptScenarios
+      .where(
+        (scenario) =>
+            (realScenarioCaseCounts[scenario] ?? 0) <
+            _minimumRealCasesPerScenario,
+      )
+      .toList(growable: false);
+  final scenarioBelowMinimum = _scenarioBelowMinimum(decoded, failUnder);
   stdout.writeln(
     const JsonEncoder.withIndent('  ').convert({
       'caseCount': report.caseCount,
@@ -51,13 +87,27 @@ void main(List<String> args) {
       'metrics': report.metrics,
       'metricCaseCounts': report.coverage,
       'missingCoverage': missingCoverage,
+      'scenarioCoverage': scenarioCoverage.toList()..sort(),
+      'missingScenarioCoverage': missingScenarioCoverage,
+      'realScenarioCoverage': realScenarioCoverage.toList()..sort(),
+      'missingRealScenarioCoverage': missingRealScenarioCoverage,
+      'minimumRealCasesPerScenario': _minimumRealCasesPerScenario,
+      'realScenarioCaseCounts': realScenarioCaseCounts,
+      'underSampledRealScenarios': underSampledRealScenarios,
+      'scenarioBelowMinimum': scenarioBelowMinimum,
       'belowMinimum': below,
     }),
   );
   if (report.caseCount == 0 ||
       below.isNotEmpty ||
       (requireReal && !hasRealEvidence) ||
-      (requireCompleteCoverage && missingCoverage.isNotEmpty)) {
+      (requireCompleteCoverage &&
+          (missingCoverage.isNotEmpty ||
+              missingScenarioCoverage.isNotEmpty ||
+              scenarioBelowMinimum.isNotEmpty)) ||
+      (releaseGate &&
+          (missingRealScenarioCoverage.isNotEmpty ||
+              underSampledRealScenarios.isNotEmpty))) {
     exitCode = 1;
   }
 }
@@ -75,6 +125,89 @@ bool _hasRealEvidence(Object? source) {
         kind == 'gallery_import' ||
         kind == 'file_import';
   });
+}
+
+Set<String> _scenarioCoverage(Object? source, {bool realOnly = false}) {
+  if (source is! Map<String, Object?> || source['cases'] is! List) {
+    return const {};
+  }
+  final covered = <String>{};
+  for (final entry
+      in (source['cases']! as List).whereType<Map<String, Object?>>()) {
+    final provenance = entry['provenance'];
+    if (provenance is! Map<String, Object?>) continue;
+    final sourceKind = provenance['sourceKind'];
+    if (realOnly &&
+        sourceKind != 'camera' &&
+        sourceKind != 'gallery_import' &&
+        sourceKind != 'file_import') {
+      continue;
+    }
+    final tags = provenance['scenarioTags'];
+    if (tags is! List) continue;
+    covered.addAll(
+      tags
+          .whereType<String>()
+          .map((tag) => tag.trim())
+          .where((tag) => tag.isNotEmpty),
+    );
+  }
+  return covered;
+}
+
+Map<String, int> _scenarioCaseCounts(Object? source, {bool realOnly = false}) {
+  if (source is! Map<String, Object?> || source['cases'] is! List) {
+    return const {};
+  }
+  final counts = <String, int>{};
+  for (final entry
+      in (source['cases']! as List).whereType<Map<String, Object?>>()) {
+    final provenance = entry['provenance'];
+    if (provenance is! Map<String, Object?>) continue;
+    final sourceKind = provenance['sourceKind'];
+    if (realOnly &&
+        sourceKind != 'camera' &&
+        sourceKind != 'gallery_import' &&
+        sourceKind != 'file_import') {
+      continue;
+    }
+    final tags = provenance['scenarioTags'];
+    if (tags is! List) continue;
+    for (final tag
+        in tags.whereType<String>().map((tag) => tag.trim()).toSet()) {
+      if (tag.isEmpty) continue;
+      counts[tag] = (counts[tag] ?? 0) + 1;
+    }
+  }
+  return Map.unmodifiable(counts);
+}
+
+Map<String, List<String>> _scenarioBelowMinimum(
+  Object? source,
+  double minimum,
+) {
+  if (source is! Map<String, Object?> || source['cases'] is! List) {
+    return const {};
+  }
+  final casesByScenario = <String, List<ReceiptOcrBenchmarkCase>>{};
+  for (final entry
+      in (source['cases']! as List).whereType<Map<String, Object?>>()) {
+    final provenance = entry['provenance'];
+    if (provenance is! Map<String, Object?>) continue;
+    final tags = provenance['scenarioTags'];
+    if (tags is! List) continue;
+    final benchmarkCase = _caseFromJson(entry);
+    for (final tag in tags.whereType<String>().map((tag) => tag.trim())) {
+      if (tag.isEmpty) continue;
+      (casesByScenario[tag] ??= []).add(benchmarkCase);
+    }
+  }
+  final below = <String, List<String>>{};
+  for (final entry in casesByScenario.entries) {
+    final failedMetrics = scoreReceiptOcrBenchmark(entry.value).below(minimum);
+    if (failedMetrics.isNotEmpty) below[entry.key] = failedMetrics;
+  }
+  return Map.unmodifiable(below);
 }
 
 List<ReceiptOcrBenchmarkCase> _readCases(Object? source) {
