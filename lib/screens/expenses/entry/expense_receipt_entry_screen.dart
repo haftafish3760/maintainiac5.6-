@@ -107,6 +107,7 @@ part 'expense_receipt_entry_capture_diagnostic_helpers.dart';
 part 'expense_receipt_entry_line_mode_helpers.dart';
 part 'expense_receipt_entry_lifecycle_helpers.dart';
 part 'expense_receipt_entry_attachment_panel.dart';
+part 'expense_receipt_entry_start_guide.dart';
 part 'expense_receipt_entry_scaffold.dart';
 part 'expense_receipt_entry_no_line_recovery_panel.dart';
 part 'expense_receipt_entry_byte_bucket.dart';

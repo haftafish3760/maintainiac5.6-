@@ -43,6 +43,7 @@ flutter test --reporter compact \
   test/receipt_native_android_bridge_ui_contract_test.dart \
   test/receipt_native_ios_bridge_exposure_shutter_contract_test.dart \
   test/expense_receipt_assisted_review_flow_test.dart \
+  test/expense_receipt_entry_start_guide_test.dart \
   test/expense_receipt_parser_business_personal_test.dart \
   test/expense_receipt_line_record_test.dart \
   test/expense_receipt_user_review_merge_test.dart

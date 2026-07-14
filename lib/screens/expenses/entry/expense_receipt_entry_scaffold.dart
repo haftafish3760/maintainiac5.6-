@@ -25,6 +25,10 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                   : 'Expense Receipt',
             ),
             const SizedBox(height: 8),
+            if (showAttachmentBeforeReview) ...[
+              const _ReceiptEntryStartGuide(),
+              const SizedBox(height: 8),
+            ],
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
               child: Text(
