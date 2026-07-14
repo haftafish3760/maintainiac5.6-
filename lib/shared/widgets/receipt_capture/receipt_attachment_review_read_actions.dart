@@ -282,31 +282,136 @@ extension _ReceiptAttachmentReviewReadActions
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
+    final deferredPreparation = _usesDeferredSinglePhotoPreparation(result);
+    final preparedArtifacts = <String>[];
+    final ocrSourcePaths = [...result.ocrSourcePhotoPaths];
+    ReceiptPhotoQualityCheck? preparedOcrQuality;
+    var usedPreparedOcrSource = false;
+    var usedOriginalOcrFallback = false;
+    if (deferredPreparation) {
+      final sourcePath = ocrSourcePaths.single;
+      final cleanupSettings = ReceiptImageCleanupSettings.fromDiagnostics(
+        _previousReceiptPhotoMapValue(
+          result.captureDiagnosticsByPhotoPath,
+          sourcePath,
+        ),
+      );
+      try {
+        updateAttachmentState(() {
+          _receiptReadProgressPhase = _ReceiptReadProgressPhase.readingText;
+          _receiptReadStatusMessage =
+              'Preparing the receipt photo for clearer reading. Your editable receipt is already open.';
+        });
+        final preparation =
+            await ReceiptImageProcessor.prepareReceiptSourceWithReport(
+              path: sourcePath,
+              cleanupSettings: cleanupSettings,
+            );
+        if (preparation.ocrSourcePath != sourcePath) {
+          ocrSourcePaths[0] = preparation.ocrSourcePath;
+          preparedArtifacts.add(preparation.ocrSourcePath);
+          usedPreparedOcrSource = true;
+        }
+        preparedOcrQuality = preparation.ocrQuality;
+        _recordDeferredPreparationDiagnostics(
+          sourcePath: sourcePath,
+          preparation: preparation,
+        );
+      } catch (_) {
+        usedOriginalOcrFallback = true;
+        _recordDeferredPreparationFallback(sourcePath);
+      }
+    }
     final now = DateTime.now();
     final ocrAttachments = [
-      for (var index = 0; index < result.ocrSourcePhotoPaths.length; index++)
+      for (var index = 0; index < ocrSourcePaths.length; index++)
         ReceiptAttachmentRecord(
           id: 'RCOCR-${now.microsecondsSinceEpoch}-$index',
-          path: result.ocrSourcePhotoPaths[index],
+          path: ocrSourcePaths[index],
           kind: ReceiptAttachmentKind.photo,
           dataSaverLevel: result.dataSaverLevel,
           createdAt: now,
-          byteSize: receiptAttachmentFileSize(
-            result.ocrSourcePhotoPaths[index],
-          ),
-          sourceLabel: 'Maintainiac OCR source photo',
+          byteSize: receiptAttachmentFileSize(ocrSourcePaths[index]),
+          sourceLabel: usedPreparedOcrSource
+              ? 'Maintainiac prepared OCR source photo'
+              : 'Maintainiac OCR source photo',
           linkedModule: _receiptAttachmentLinkedModule,
           storageState: ReceiptAttachmentStorageState.staged,
-          documentSignals: ocrSourceDocumentSignalsFor(result, index),
+          documentSignals: [
+            ...ocrSourceDocumentSignalsFor(result, index),
+            if (usedPreparedOcrSource)
+              'receipt_ocr_source_deferred_preparation',
+            if (usedOriginalOcrFallback)
+              'receipt_ocr_source_deferred_preparation_fallback',
+          ],
           riskFlags: ocrSourceRiskFlagsFor(result, index),
-        ).withPhotoQuality(qualityForOcrSourceIndex(result, index)),
+        ).withPhotoQuality(
+          preparedOcrQuality ?? qualityForOcrSourceIndex(result, index),
+        ),
     ];
-    return _readAttachmentsForReceiptForm(
-      ocrAttachments,
-      successMessage: reviewedPhotoReadSuccessMessage(result.stitchResult),
-      showDisabledMessage: false,
-      showNoTextMessage: true,
+    try {
+      final successMessage = usedOriginalOcrFallback
+          ? '${reviewedPhotoReadSuccessMessage(result.stitchResult)} The original photo was used because its clearer working copy could not be prepared.'
+          : reviewedPhotoReadSuccessMessage(result.stitchResult);
+      return await _readAttachmentsForReceiptForm(
+        ocrAttachments,
+        successMessage: successMessage,
+        showDisabledMessage: false,
+        showNoTextMessage: true,
+      );
+    } finally {
+      unawaited(
+        deleteTemporaryOcrPhotos(
+          preparedArtifacts,
+          keptReceiptPhotoPaths: result.photoPaths,
+        ),
+      );
+    }
+  }
+
+  bool _usesDeferredSinglePhotoPreparation(ReceiptPhotoReviewResult result) {
+    if (result.photoPaths.length != 1 ||
+        result.ocrSourcePhotoPaths.length != 1) {
+      return false;
+    }
+    final diagnostics = _previousReceiptPhotoMapValue(
+      result.captureDiagnosticsByPhotoPath,
+      result.photoPaths.single,
     );
+    return diagnostics?['receiptPreparationOwner'] ==
+        'receipt_reader_after_form_open';
+  }
+
+  void _recordDeferredPreparationDiagnostics({
+    required String sourcePath,
+    required ReceiptImagePreparationReport preparation,
+  }) {
+    if (!mounted) return;
+    updateAttachmentState(() {
+      final existing = _photoCaptureDiagnosticsByPath[sourcePath] ?? const {};
+      _photoCaptureDiagnosticsByPath[sourcePath] = {
+        ...existing,
+        ...preparation.toDiagnostics(),
+        'receiptPreparationOwner': 'receipt_reader_after_form_open',
+        'receiptDeferredPreparationCompleted': true,
+        'receiptDeferredOcrSourcePath': preparation.ocrSourcePath,
+      };
+    });
+    publishAttachmentChange();
+  }
+
+  void _recordDeferredPreparationFallback(String sourcePath) {
+    if (!mounted) return;
+    updateAttachmentState(() {
+      final existing = _photoCaptureDiagnosticsByPath[sourcePath] ?? const {};
+      _photoCaptureDiagnosticsByPath[sourcePath] = {
+        ...existing,
+        'receiptPreparationOwner': 'receipt_reader_after_form_open',
+        'receiptDeferredPreparationCompleted': false,
+        'receiptDeferredPreparationFallback': 'original_source_used',
+      };
+    });
+    publishAttachmentChange();
   }
 
   T? _previousReceiptPhotoMapValue<T>(

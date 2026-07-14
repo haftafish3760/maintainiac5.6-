@@ -46,12 +46,20 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       },
     );
     try {
-      final parsed = await parseExpenseReceiptTextWithLocalMemory(
-        text,
-        fallbackDate: _selectedDate,
-        parserDepth: capability.parserDepth,
-        maxCatalogCandidates: capability.maxLocalCatalogMatches,
-      ).timeout(_receiptParserTimeout(capability));
+      final ocr = _matchingReceiptOcrResultFor(text);
+      final parsed =
+          await (ocr == null
+                  ? parseExpenseReceiptTextWithLocalMemory(
+                      text,
+                      fallbackDate: _selectedDate,
+                      parserDepth: capability.parserDepth,
+                      maxCatalogCandidates: capability.maxLocalCatalogMatches,
+                    )
+                  : _parseReceiptOcrResultForEditableReview(
+                      ocr,
+                      capability: capability,
+                    ))
+              .timeout(_receiptParserTimeout(capability));
       unawaited(_recordPrivacySafeParseEvent(parsed));
       _recordParserTelemetry(parsed);
       if (!mounted) return;
@@ -73,6 +81,25 @@ extension _ExpenseReceiptEntryImportedTextParseActions
         userMessage: 'Receipt text could not be parsed. Review manually.',
       );
     }
+  }
+
+  ReceiptOcrResult? _matchingReceiptOcrResultFor(String text) {
+    final ocr = _latestOcrResultForReceiptHandoff;
+    if (ocr == null || ocr.appFillText != text) return null;
+    return ocr;
+  }
+
+  Future<ExpenseReceiptParseResult> _parseReceiptOcrResultForEditableReview(
+    ReceiptOcrResult ocr, {
+    required ReceiptDeviceCapability capability,
+  }) async {
+    final handoff = ReceiptOcrHandoff.forUserSelection(
+      ocr: ocr,
+      selectedCategory: widget.initialCategory,
+      inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
+    );
+    final parsed = await _receiptOcrHandoffRouter(capability).dispatch(handoff);
+    return fillMissingExpenseReceiptFieldsFromOcrCandidates(parsed, ocr.layout);
   }
 
   void _handleReceiptParseFailure({

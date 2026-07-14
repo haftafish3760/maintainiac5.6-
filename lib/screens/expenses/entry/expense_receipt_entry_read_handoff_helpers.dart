@@ -97,6 +97,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
       },
     );
     _updateReceiptState(() {
+      _latestOcrResultForReceiptHandoff = result;
       _lastOcrDiagnostics = diagnostics;
       _lastOcrWarnings = result.structuredWarnings;
       if (result.hasText) {

@@ -209,6 +209,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   var _lastReceiptParseCompleted = false;
   var _lastReceiptParseHadUsableData = false;
   var _lastReceiptParseHadSafeLines = false;
+  ReceiptOcrResult? _latestOcrResultForReceiptHandoff;
   ReceiptOcrDiagnostics? _lastOcrDiagnostics;
   List<ReceiptOcrWarning> _lastOcrWarnings = const [];
   final _maintenanceHints = <ExpenseReceiptMaintenanceHint>[];

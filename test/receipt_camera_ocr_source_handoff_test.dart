@@ -172,6 +172,21 @@ void main() {
     expect(reviewActions, contains('savedPaths.add(prepared.backupPath)'));
     expect(reviewActions, contains('...stitch.ocrSourcePaths'));
     expect(importActions, contains('_readReviewedPhotosForReceiptForm'));
+    expect(
+      importActions,
+      contains("'receiptPreparationOwner': 'receipt_reader_after_form_open'"),
+    );
+    expect(importActions, contains('prepareReceiptSourceWithReport'));
+    expect(importActions, contains('receiptDeferredPreparationFallback'));
+    expect(importActions, contains('receipt_ocr_source_deferred_preparation'));
+    expect(
+      importActions,
+      contains('receipt_ocr_source_deferred_preparation_fallback'),
+    );
+    expect(
+      importActions,
+      contains('deleteTemporaryOcrPhotos(\n          preparedArtifacts'),
+    );
     expect(importActions, contains('markReviewedPhotosReadState'));
     expect(
       importActions,

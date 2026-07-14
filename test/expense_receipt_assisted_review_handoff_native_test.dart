@@ -106,6 +106,19 @@ void main() {
       stateActions,
       contains('await _parseImportedReceiptTextWithMemory(text)'),
     );
+    expect(stateActions, contains('_matchingReceiptOcrResultFor'));
+    expect(
+      stateActions,
+      contains('_parseReceiptOcrResultForEditableReview'),
+    );
+    expect(
+      stateActions,
+      contains('ReceiptOcrHandoff.forUserSelection'),
+    );
+    expect(
+      stateActions,
+      contains('fillMissingExpenseReceiptFieldsFromOcrCandidates'),
+    );
     expect(stateActions, contains('_chooseSplitBusinessPercent'));
     expect(
       stateActions,
