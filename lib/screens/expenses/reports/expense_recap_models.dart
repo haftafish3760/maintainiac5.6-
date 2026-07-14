@@ -271,6 +271,8 @@ class ExpenseRecapReport {
       materialsExpense + toolsExpense + maintenanceExpense + repairExpense;
   double get totalVehicleUsageMiles =>
       businessVehicleMiles + personalVehicleMiles;
+  double get propulsionFuelExpense =>
+      liquidFuelExpense + electricFuelExpense + hydrogenFuelExpense;
   double? get vehicleBusinessUsePercent => totalVehicleUsageMiles <= 0
       ? null
       : businessVehicleMiles / totalVehicleUsageMiles;
@@ -278,7 +280,7 @@ class ExpenseRecapReport {
       ? null
       : personalVehicleMiles / totalVehicleUsageMiles;
   double? get vehicleCostPerMile => _perMile(vehicleExpense);
-  double? get fuelCostPerMile => _perMile(fuelExpense);
+  double? get fuelCostPerMile => _perMile(propulsionFuelExpense);
   double? get liquidFuelCostPerMile => _perMile(liquidFuelExpense);
   double? get electricFuelCostPerMile => _perMile(electricFuelExpense);
   double? get hydrogenFuelCostPerMile => _perMile(hydrogenFuelExpense);
