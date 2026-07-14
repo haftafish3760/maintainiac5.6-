@@ -6,6 +6,7 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
   ReceiptParserLearningMemory? materialCatalogMemory,
   ReceiptParserDepth parserDepth = ReceiptParserDepth.inventoryMatching,
   int maxCatalogCandidates = 80,
+  String? targetCategory,
 }) {
   final rows = sourceText
       .split(RegExp(r'\r?\n'))
@@ -32,7 +33,10 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
   final time = _readTimeMinutes(rows);
   final merchantProfile = _readMerchantProfile(rows);
   final merchant = merchantProfile?.displayName ?? _readMerchant(rows);
-  final context = _ReceiptParseContext.fromRows(rows);
+  final context = _ReceiptParseContext.fromRows(
+    rows,
+    targetCategory: targetCategory,
+  );
   final parserExcludedLineCounts = _parserExcludedLineCountsFor(rows);
   final parsedLines = parserDepth == ReceiptParserDepth.proofTotalsOnly
       ? const <_ParsedReceiptLine>[]

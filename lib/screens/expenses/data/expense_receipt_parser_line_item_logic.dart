@@ -172,6 +172,7 @@ List<_ParsedReceiptLine> _readLineItems(
       rows: rows,
       amount: fallbackAmount,
       parserDepth: parserDepth,
+      allowIncompleteFuel: context.targetFuelSelected,
     );
     if (fallback != null) output.add(fallback);
   }
@@ -257,10 +258,14 @@ _ParsedReceiptLine? _fallbackFuelLineFromReceiptRows({
   required List<String> rows,
   required double amount,
   required ReceiptParserDepth parserDepth,
+  bool allowIncompleteFuel = false,
 }) {
   if (amount <= 0) return null;
   final receiptText = rows.join(' ');
-  if (!_looksLikeStrongFuelReceiptLine(receiptText.toLowerCase())) return null;
+  if (!allowIncompleteFuel &&
+      !_looksLikeStrongFuelReceiptLine(receiptText.toLowerCase())) {
+    return null;
+  }
   final details = _fuelDetailsFor(
     rawRow: receiptText,
     description: 'Fuel',
@@ -283,6 +288,7 @@ _ParsedReceiptLine? _fallbackFuelLineFromReceiptRows({
           rawReceiptText: receiptText,
         ),
       ) &&
+      !allowIncompleteFuel &&
       details.unitPrice == null) {
     return null;
   }

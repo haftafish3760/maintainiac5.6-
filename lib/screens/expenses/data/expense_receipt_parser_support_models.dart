@@ -64,18 +64,24 @@ class _ParsedReceiptLine {
 class _ReceiptParseContext {
   const _ReceiptParseContext({
     required this.looksLikeFuelReceipt,
+    required this.targetFuelSelected,
     required this.looksLikeFoodReceipt,
     required this.looksLikeMaterialReceipt,
     required this.looksLikeAutoServiceReceipt,
   });
 
   final bool looksLikeFuelReceipt;
+  final bool targetFuelSelected;
   final bool looksLikeFoodReceipt;
   final bool looksLikeMaterialReceipt;
   final bool looksLikeAutoServiceReceipt;
 
-  factory _ReceiptParseContext.fromRows(List<String> rows) {
+  factory _ReceiptParseContext.fromRows(
+    List<String> rows, {
+    String? targetCategory,
+  }) {
     final text = rows.join(' ').toLowerCase();
+    final selectedFuel = targetCategory?.trim().toLowerCase() == 'fuel';
     return _ReceiptParseContext(
       looksLikeFuelReceipt: RegExp(
         r'\b(pump|island|nozzle|hose|fueling point|fueling position|fuel|motor fuel|combustible|gasolina|'
@@ -90,7 +96,8 @@ class _ReceiptParseContext {
         r'chargepoint|supercharger|octane|grade|'
         r'price per gallon|price/gal|precio\s*/?\s*gal[oó]n|'
         r'precio\s+por\s+gal[oó]n|ppu|ppg|amt\b|vol\b)\b',
-      ).hasMatch(text),
+      ).hasMatch(text) || selectedFuel,
+      targetFuelSelected: selectedFuel,
       looksLikeFoodReceipt: RegExp(
         r'\b(combo|meal|sandwich|burger|fries|drink|coffee|breakfast|lunch|dinner|taco|biscuit|restaurant)\b',
       ).hasMatch(text),
