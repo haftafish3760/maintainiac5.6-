@@ -123,6 +123,8 @@ class TripTrackingReviewRecord {
     this.cloudOrganizationId,
     this.cloudSyncError,
     this.cloudSyncedAt,
+    this.confirmedEndingOdometer,
+    this.odometerConfirmedAt,
     this.schemaVersion = 1,
   });
 
@@ -143,9 +145,13 @@ class TripTrackingReviewRecord {
   final String? cloudOrganizationId;
   final String? cloudSyncError;
   final DateTime? cloudSyncedAt;
+  final int? confirmedEndingOdometer;
+  final DateTime? odometerConfirmedAt;
   final int schemaVersion;
 
   bool get needsWalkingReview => engineSnapshot.walkingReviewSuggested;
+  bool get isOdometerConfirmed =>
+      confirmedEndingOdometer != null && odometerConfirmedAt != null;
 
   TripTrackingReviewRecord copyWith({
     TripTrackingCloudSyncState? cloudSyncState,
@@ -155,6 +161,8 @@ class TripTrackingReviewRecord {
     String? cloudSyncError,
     bool clearCloudSyncError = false,
     DateTime? cloudSyncedAt,
+    int? confirmedEndingOdometer,
+    DateTime? odometerConfirmedAt,
   }) => TripTrackingReviewRecord(
     id: id,
     vehicleId: vehicleId,
@@ -172,6 +180,9 @@ class TripTrackingReviewRecord {
         ? null
         : cloudSyncError ?? this.cloudSyncError,
     cloudSyncedAt: cloudSyncedAt ?? this.cloudSyncedAt,
+    confirmedEndingOdometer:
+        confirmedEndingOdometer ?? this.confirmedEndingOdometer,
+    odometerConfirmedAt: odometerConfirmedAt ?? this.odometerConfirmedAt,
     schemaVersion: schemaVersion,
   );
 
@@ -191,54 +202,62 @@ class TripTrackingReviewRecord {
     if (cloudSyncError != null) 'cloudSyncError': cloudSyncError,
     if (cloudSyncedAt != null)
       'cloudSyncedAt': cloudSyncedAt!.toUtc().toIso8601String(),
+    if (confirmedEndingOdometer != null)
+      'confirmedEndingOdometer': confirmedEndingOdometer,
+    if (odometerConfirmedAt != null)
+      'odometerConfirmedAt': odometerConfirmedAt!.toUtc().toIso8601String(),
     'schemaVersion': schemaVersion,
   };
 
-  factory TripTrackingReviewRecord.fromMap(Map<dynamic, dynamic> map) =>
-      TripTrackingReviewRecord(
-        id: '${map['id'] ?? ''}',
-        vehicleId: '${map['vehicleId'] ?? ''}',
-        startingOdometer: (map['startingOdometer'] as num?)?.round() ?? 0,
-        estimatedEndingOdometer:
-            (map['estimatedEndingOdometer'] as num?)?.round() ?? 0,
-        profile: TripTrackingProfile.values.firstWhere(
-          (value) => value.name == map['profile'],
-          orElse: () => TripTrackingProfile.roadVehicle,
-        ),
-        startedAt:
-            DateTime.tryParse('${map['startedAt'] ?? ''}') ?? DateTime.now(),
-        finishedAt:
-            DateTime.tryParse('${map['finishedAt'] ?? ''}') ?? DateTime.now(),
-        engineSnapshot: map['engineSnapshot'] is Map
-            ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
-            : const TripTrackingEngineSnapshot(
-                totalAcceptedMeters: 0,
-                walkingReviewSuggested: false,
-              ),
-        cloudSyncState: TripTrackingCloudSyncState.values.firstWhere(
-          (value) => value.name == map['cloudSyncState'],
-          orElse: () => TripTrackingCloudSyncState.localOnly,
-        ),
-        cloudAccountUid: map['cloudAccountUid'] is String
-            ? map['cloudAccountUid'] as String
-            : null,
-        cloudBackupScope: map['cloudBackupScope'] is String
-            ? TripTrackingCloudBackupScope.values.firstWhere(
-                (value) => value.name == map['cloudBackupScope'],
-                orElse: () => TripTrackingCloudBackupScope.personal,
-              )
-            : null,
-        cloudOrganizationId:
-            map['cloudBackupScope'] is String &&
-                map['cloudOrganizationId'] is String
-            ? map['cloudOrganizationId'] as String
-            : null,
-        cloudSyncError: map['cloudSyncError'] is String
-            ? map['cloudSyncError'] as String
-            : null,
-        cloudSyncedAt: DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}'),
-        schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
-      );
+  factory TripTrackingReviewRecord.fromMap(
+    Map<dynamic, dynamic> map,
+  ) => TripTrackingReviewRecord(
+    id: '${map['id'] ?? ''}',
+    vehicleId: '${map['vehicleId'] ?? ''}',
+    startingOdometer: (map['startingOdometer'] as num?)?.round() ?? 0,
+    estimatedEndingOdometer:
+        (map['estimatedEndingOdometer'] as num?)?.round() ?? 0,
+    profile: TripTrackingProfile.values.firstWhere(
+      (value) => value.name == map['profile'],
+      orElse: () => TripTrackingProfile.roadVehicle,
+    ),
+    startedAt: DateTime.tryParse('${map['startedAt'] ?? ''}') ?? DateTime.now(),
+    finishedAt:
+        DateTime.tryParse('${map['finishedAt'] ?? ''}') ?? DateTime.now(),
+    engineSnapshot: map['engineSnapshot'] is Map
+        ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
+        : const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ),
+    cloudSyncState: TripTrackingCloudSyncState.values.firstWhere(
+      (value) => value.name == map['cloudSyncState'],
+      orElse: () => TripTrackingCloudSyncState.localOnly,
+    ),
+    cloudAccountUid: map['cloudAccountUid'] is String
+        ? map['cloudAccountUid'] as String
+        : null,
+    confirmedEndingOdometer: (map['confirmedEndingOdometer'] as num?)?.round(),
+    odometerConfirmedAt: DateTime.tryParse(
+      '${map['odometerConfirmedAt'] ?? ''}',
+    ),
+    cloudBackupScope: map['cloudBackupScope'] is String
+        ? TripTrackingCloudBackupScope.values.firstWhere(
+            (value) => value.name == map['cloudBackupScope'],
+            orElse: () => TripTrackingCloudBackupScope.personal,
+          )
+        : null,
+    cloudOrganizationId:
+        map['cloudBackupScope'] is String &&
+            map['cloudOrganizationId'] is String
+        ? map['cloudOrganizationId'] as String
+        : null,
+    cloudSyncError: map['cloudSyncError'] is String
+        ? map['cloudSyncError'] as String
+        : null,
+    cloudSyncedAt: DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}'),
+    schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
+  );
 }
 
 int _sessionSchemaVersion(Object? value) {

@@ -127,6 +127,8 @@ void main() {
       cloudBackupScope: TripTrackingCloudBackupScope.organization,
       cloudOrganizationId: 'org-1',
       cloudSyncedAt: syncedAt,
+      confirmedEndingOdometer: 1013,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 6),
     );
 
     final recovered = TripTrackingReviewRecord.fromMap(review.toMap());
@@ -140,5 +142,7 @@ void main() {
     expect(recovered.cloudOrganizationId, 'org-1');
     expect(recovered.cloudSyncError, isNull);
     expect(recovered.cloudSyncedAt, syncedAt);
+    expect(recovered.confirmedEndingOdometer, 1013);
+    expect(recovered.isOdometerConfirmed, isTrue);
   });
 }

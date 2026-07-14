@@ -422,10 +422,17 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             tripReview: review,
           );
     if (!mounted) return;
+    final reviewConfirmed =
+        odometerSaved &&
+        await tripTracking.confirmOdometerReview(
+          reviewId: review.id,
+          confirmedEndingOdometer: GlobalOdometerScope.of(context).reading,
+        );
+    if (!mounted) return;
     _showGpsMessage(
       review == null
           ? (tripTracking.platformError ?? 'No active GPS trip to stop.')
-          : odometerSaved
+          : reviewConfirmed
           ? 'GPS trip reviewed and odometer confirmed.'
           : cloudMirrorError == null
           ? 'GPS trip ended and is ready for review.'
@@ -435,7 +442,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
 
   Future<void> _reviewLatestGpsTrip() async {
     final tripTracking = TripTrackingScope.maybeOf(context);
-    final review = tripTracking?.latestReview;
+    final review = tripTracking?.latestUnconfirmedReview;
     if (review == null) {
       _showGpsMessage('No saved GPS trip review is available.');
       return;
@@ -447,8 +454,15 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       tripReview: review,
     );
     if (!mounted) return;
+    final reviewConfirmed =
+        saved &&
+        await tripTracking!.confirmOdometerReview(
+          reviewId: review.id,
+          confirmedEndingOdometer: GlobalOdometerScope.of(context).reading,
+        );
+    if (!mounted) return;
     _showGpsMessage(
-      saved
+      reviewConfirmed
           ? 'GPS trip reviewed and odometer confirmed.'
           : 'GPS trip review remains available locally.',
     );
@@ -562,7 +576,7 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (!tracking && controller?.latestReview != null)
+                if (!tracking && controller?.latestUnconfirmedReview != null)
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton(

@@ -69,6 +69,29 @@ class TripTrackingController extends ChangeNotifier {
       _sessionStore.pendingReviews.isEmpty
       ? null
       : _sessionStore.pendingReviews.first;
+  TripTrackingReviewRecord? get latestUnconfirmedReview => _sessionStore
+      .pendingReviews
+      .where((review) => !review.isOdometerConfirmed)
+      .firstOrNull;
+
+  Future<bool> confirmOdometerReview({
+    required String reviewId,
+    required int confirmedEndingOdometer,
+    DateTime? confirmedAt,
+  }) async {
+    final review = _sessionStore.reviewForTrip(reviewId);
+    if (review == null || confirmedEndingOdometer < review.startingOdometer) {
+      return false;
+    }
+    await _sessionStore.saveReview(
+      review.copyWith(
+        confirmedEndingOdometer: confirmedEndingOdometer,
+        odometerConfirmedAt: confirmedAt ?? DateTime.now(),
+      ),
+    );
+    notifyListeners();
+    return true;
+  }
 
   /// Retries locally durable mileage backups without touching the active trip
   /// or confirmed odometer. A successful retry clears any stale dashboard
