@@ -100,6 +100,17 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    if let locationError = error as? CLError, locationError.code == .denied {
+      locationManager.stopUpdatingLocation()
+      motionManager.stopActivityUpdates()
+      tracking = false
+      emit([
+        "type": "error",
+        "errorCode": "trip_tracking_location_denied",
+        "errorMessage": "Location permission was removed while tracking.",
+      ])
+      return
+    }
     emit([
       "type": "error",
       "errorCode": "trip_tracking_location_error",

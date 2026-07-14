@@ -127,6 +127,7 @@ void main() {
     );
     expect(ios, contains('"errorCode": "trip_tracking_location_denied"'));
     expect(ios, contains('trip_tracking_location_error'));
+    expect(ios, contains('locationError.code == .denied'));
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
   });
 }
