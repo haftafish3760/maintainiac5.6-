@@ -101,6 +101,50 @@ void _registerFuelEconomyRecapTests() {
     expect(recaps.metricsByVehicleId['car-1']!.drivenMiles, 100);
     expect(recaps.metricsByVehicleId['car-1']!.fuelCostPerMile, .66);
   });
+
+  test('excludes DEF from a date-window propulsion cost per mile', () {
+    final recap = FuelRecapMetrics.fromReceipts(
+      [
+        _fuelReceipt(
+          id: 'diesel-start',
+          odometer: 10000,
+          quantity: 10,
+          unit: 'gallon',
+          subtotal: 40,
+          fuelType: 'Diesel',
+          receiptDate: DateTime(2026, 6, 3),
+          extraLines: [
+            _fuelLine(
+              id: 'def-line',
+              odometer: 10000,
+              quantity: 2.5,
+              unit: 'gallon',
+              subtotal: 20,
+              fuelType: 'DEF',
+            ),
+          ],
+        ),
+        _fuelReceipt(
+          id: 'diesel-end',
+          odometer: 10200,
+          quantity: 10,
+          unit: 'gallon',
+          subtotal: 50,
+          fuelType: 'Diesel',
+          receiptDate: DateTime(2026, 6, 7),
+        ),
+      ],
+      vehicleId: 'truck_1',
+      period: FuelRecapPeriod(
+        start: DateTime(2026, 6, 3),
+        endExclusive: DateTime(2026, 6, 10),
+      ),
+    );
+
+    expect(recap.receiptPeriodMetrics.fuelExpense, 110);
+    expect(recap.drivenMiles, 200);
+    expect(recap.fuelCostPerMile, .45);
+  });
 }
 
 ExpenseReceiptRecord _fuelReceipt({
