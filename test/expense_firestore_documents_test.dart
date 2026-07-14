@@ -169,4 +169,51 @@ void main() {
     expect(doc.data['hiddenRecapTiles'], ['fuelSpend', 'materialsSpend']);
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
+
+  test('persists fuel metrics without storing raw receipt text', () {
+    final receipt = ExpenseReceiptRecord(
+      id: 'fuel-receipt',
+      receiptDate: DateTime(2026, 7, 13),
+      merchantName: 'Fuel Stop',
+      vehicleId: 'truck-1',
+      odometerReading: 120500,
+      lines: const [
+        ExpenseReceiptLineRecord(
+          id: 'fuel-line',
+          description: 'Regular 87',
+          category: 'Fuel',
+          use: ExpenseLineUse.business,
+          quantity: 14.25,
+          unitsPerPackage: 1,
+          unit: 'gallon',
+          subtotal: 48.31,
+          odometerReading: 120500,
+          fuelType: 'Gasoline',
+          fillType: 'Partial fill',
+          unitPrice: 3.39,
+          rawReceiptText: 'PRIVATE FUEL RECEIPT TEXT',
+        ),
+      ],
+    );
+
+    final doc = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      receipt: receipt,
+      nowUtc: DateTime.utc(2026, 7, 13),
+    );
+    final line = (doc.data['lines'] as List).single as Map<String, Object?>;
+
+    expect(doc.data['vehicleId'], 'truck-1');
+    expect(doc.data['odometerReading'], 120500);
+    expect(line['fuelType'], 'gasoline');
+    expect(line['fillType'], 'partial_fill');
+    expect(line['odometerReading'], 120500);
+    expect(line['quantity'], 14.25);
+    expect(line['unitPriceCents'], 339);
+    expect(line['rawReceiptTextStored'], isFalse);
+    expect(doc.data.toString(), isNot(contains('PRIVATE FUEL RECEIPT TEXT')));
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
 }
