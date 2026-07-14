@@ -603,6 +603,43 @@ void main() {
   });
 
   test(
+    'a native stopped event after a fatal error stays interrupted',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_fatal_then_stopped',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addPlatformError(
+        code: 'trip_tracking_gps_disabled',
+        message: 'GPS was turned off while tracking.',
+      );
+      native.addStatus('stopped');
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(controller.healthState, TripTrackingHealthState.interrupted);
+    },
+  );
+
+  test(
     'a late fatal platform error cannot interrupt a manually paused trip',
     () async {
       final native = _FakeTripTrackingPlatform();
