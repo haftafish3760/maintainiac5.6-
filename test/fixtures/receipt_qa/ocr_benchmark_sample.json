@@ -1,0 +1,29 @@
+{
+  "cases": [
+    {
+      "id": "synthetic-clear-receipt",
+      "provenance": {
+        "sourceId": "synthetic-clear-receipt-v1",
+        "sourceKind": "synthetic",
+        "engine": "fixture",
+        "processingVersion": "receipt_ocr_benchmark_v1"
+      },
+      "expected": {
+        "text": "HDWR MART\n07/14/2026\nTOTAL 18.37",
+        "merchant": "HDWR MART",
+        "date": "07/14/2026",
+        "total": "18.37",
+        "lines": ["HDWR MART", "07/14/2026", "TOTAL 18.37"],
+        "route": "expenseReview"
+      },
+      "actual": {
+        "text": "HDWR MART\n07/14/2026\nTOTAL 18.37",
+        "merchant": "HDWR MART",
+        "date": "07/14/2026",
+        "total": "18.37",
+        "lines": ["HDWR MART", "07/14/2026", "TOTAL 18.37"],
+        "route": "expenseReview"
+      }
+    }
+  ]
+}
