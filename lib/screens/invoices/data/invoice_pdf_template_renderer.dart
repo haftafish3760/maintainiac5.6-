@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../../shared/signatures/app_signature_models.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_record.dart';
 import 'invoice_template_catalog.dart';
@@ -11,6 +13,57 @@ import 'invoice_template_catalog.dart';
 int invoicePdfPageCountForRecord(InvoiceRecord record) {
   return _InvoicePaginator(record).pages.length;
 }
+
+String invoiceSignatureSvg(AppSignatureResult signature) {
+  final strokes = signature.strokes
+      .where((stroke) => stroke.points.length > 1)
+      .toList(growable: false);
+  if (strokes.isEmpty) return _emptySignatureSvg;
+
+  final points = [for (final stroke in strokes) ...stroke.points];
+  var minX = points.first.dx;
+  var maxX = minX;
+  var minY = points.first.dy;
+  var maxY = minY;
+  for (final point in points.skip(1)) {
+    minX = math.min(minX, point.dx);
+    maxX = math.max(maxX, point.dx);
+    minY = math.min(minY, point.dy);
+    maxY = math.max(maxY, point.dy);
+  }
+
+  const width = 280.0;
+  const height = 72.0;
+  const padding = 5.0;
+  final sourceWidth = math.max(1.0, maxX - minX);
+  final sourceHeight = math.max(1.0, maxY - minY);
+  final scale = math.min(
+    (width - (padding * 2)) / sourceWidth,
+    (height - (padding * 2)) / sourceHeight,
+  );
+  String coordinate(double value) => value.toStringAsFixed(2);
+  String pointPath(Offset point) {
+    final x = padding + ((point.dx - minX) * scale);
+    final y = padding + ((point.dy - minY) * scale);
+    return '${coordinate(x)} ${coordinate(y)}';
+  }
+
+  final paths = strokes.map((stroke) {
+    final path = StringBuffer('M ${pointPath(stroke.points.first)}');
+    for (final point in stroke.points.skip(1)) {
+      path.write(' L ${pointPath(point)}');
+    }
+    return '<path d="$path"/>';
+  }).join();
+  return '<svg xmlns="http://www.w3.org/2000/svg" '
+      'viewBox="0 0 $width $height">'
+      '<g fill="none" stroke="#101416" stroke-width="2.4" '
+      'stroke-linecap="round" stroke-linejoin="round">$paths</g>'
+      '</svg>';
+}
+
+const _emptySignatureSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>';
 
 class InvoicePdfTemplateRenderer {
   const InvoicePdfTemplateRenderer();
@@ -389,7 +442,7 @@ class InvoicePdfTemplateRenderer {
             ],
           ),
           pw.Spacer(),
-          _signatureArea(template),
+          _signatureArea(record, template),
         ] else ...[
           pw.Spacer(),
           _continuationFooter(template),
@@ -731,20 +784,45 @@ class InvoicePdfTemplateRenderer {
     );
   }
 
-  pw.Widget _signatureArea(InvoiceTemplateDefinition template) {
+  pw.Widget _signatureArea(
+    InvoiceRecord record,
+    InvoiceTemplateDefinition template,
+  ) {
     return pw.Row(
       children: [
-        pw.Expanded(child: _signatureLine('Authorized Signature', template)),
+        pw.Expanded(
+          child: _signatureLine(
+            'Authorized Signature',
+            template,
+            signature: record.ownerSignature.signature,
+          ),
+        ),
         pw.SizedBox(width: 22),
-        pw.Expanded(child: _signatureLine('Customer Signature', template)),
+        pw.Expanded(
+          child: _signatureLine(
+            'Customer Signature',
+            template,
+            signature: record.customerSignature.signature,
+          ),
+        ),
       ],
     );
   }
 
-  pw.Widget _signatureLine(String label, InvoiceTemplateDefinition template) {
+  pw.Widget _signatureLine(
+    String label,
+    InvoiceTemplateDefinition template, {
+    AppSignatureResult? signature,
+  }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
+        pw.SizedBox(
+          height: 32,
+          child: signature?.hasInk == true
+              ? pw.SvgImage(svg: invoiceSignatureSvg(signature!))
+              : pw.SizedBox(),
+        ),
         pw.Container(height: 1.2, color: template.accent),
         pw.SizedBox(height: 5),
         pw.Text(label, style: const pw.TextStyle(fontSize: 9)),

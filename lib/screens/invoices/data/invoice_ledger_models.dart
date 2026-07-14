@@ -1,5 +1,6 @@
 import '../../../shared/media/app_media_asset.dart';
 import '../../../shared/pdf/app_generated_pdf_models.dart';
+import '../../../shared/signatures/app_signature_models.dart';
 
 enum InvoiceDocumentType { invoice, estimate }
 
@@ -610,6 +611,7 @@ class InvoiceSignatureSnapshot {
     required this.role,
     required this.signedAt,
     this.signatureHashSha256 = '',
+    this.signature,
   });
 
   factory InvoiceSignatureSnapshot.fromMap(Map<dynamic, dynamic>? map) {
@@ -618,6 +620,7 @@ class InvoiceSignatureSnapshot {
       role: map['role'] as String? ?? '',
       signedAt: _dateValue(map['signedAt']) ?? DateTime.now(),
       signatureHashSha256: map['signatureHashSha256'] as String? ?? '',
+      signature: appSignatureFromMap(map['signature']),
     );
   }
 
@@ -629,14 +632,17 @@ class InvoiceSignatureSnapshot {
   final String role;
   final DateTime? signedAt;
   final String signatureHashSha256;
+  final AppSignatureResult? signature;
 
   bool get isPresent => role.trim().isNotEmpty;
+  bool get hasInk => signature?.hasInk ?? false;
 
   Map<String, dynamic> toMap() {
     return {
       'role': role,
       'signedAt': signedAt?.toIso8601String(),
       'signatureHashSha256': signatureHashSha256,
+      'signature': signature == null ? null : appSignatureToMap(signature!),
     };
   }
 }

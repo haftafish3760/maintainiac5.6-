@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_ledger_models.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_record.dart';
 import 'package:maintaniac/screens/invoices/data/invoice_pdf_preview_factory.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_pdf_template_renderer.dart';
+import 'package:maintaniac/screens/invoices/data/invoice_template_catalog.dart';
 import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
+import 'package:maintaniac/shared/signatures/app_signature_models.dart';
 
 void main() {
   test('customer signature binds to the invoice content revision', () {
@@ -91,6 +94,37 @@ void main() {
       contains('previous customer signature is no longer valid'),
     );
   });
+
+  test(
+    'signature ink persists with the invoice and renders as vector PDF art',
+    () async {
+      final record = _record();
+      final ownerInk = AppSignatureResult(
+        role: AppSignatureRole.owner,
+        signedAt: DateTime(2026, 7, 9, 10),
+        strokes: const [
+          AppSignatureStroke([Offset(2, 14), Offset(28, 4), Offset(50, 18)]),
+        ],
+      );
+      final ownerSnapshot = InvoiceSignatureSnapshot(
+        role: 'owner',
+        signedAt: ownerInk.signedAt,
+        signature: ownerInk,
+      );
+      final restored = InvoiceSignatureSnapshot.fromMap(ownerSnapshot.toMap());
+      final signedRecord = record.copyWith(ownerSignature: restored);
+
+      expect(restored.hasInk, isTrue);
+      expect(restored.signature!.strokes.single.points, hasLength(3));
+      expect(invoiceSignatureSvg(restored.signature!), contains('<path'));
+      final bytes = await const InvoicePdfTemplateRenderer()
+          .buildRecordDocumentBytes(
+            record: signedRecord,
+            template: InvoiceTemplateCatalog.byId(signedRecord.templateId),
+          );
+      expect(bytes.take(5), '%PDF-'.codeUnits);
+    },
+  );
 }
 
 InvoiceRecord _record() {
