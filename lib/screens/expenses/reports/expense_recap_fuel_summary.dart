@@ -12,6 +12,7 @@ class _ExpenseRecapFuelSummary {
     required this.completedLiquidFillMiles,
     required this.completedLiquidFillGallons,
     required this.hasMixedLiquidFuelTypes,
+    required this.hasUnmeasuredLiquidFuel,
   });
 
   factory _ExpenseRecapFuelSummary.fromReceipts(
@@ -48,12 +49,18 @@ class _ExpenseRecapFuelSummary {
         0,
         (total, metric) => total + metric.liquidGallons,
       ),
-      electricKwh: metrics.fold(0, (total, metric) => total + metric.electricKwh),
+      electricKwh: metrics.fold(
+        0,
+        (total, metric) => total + metric.electricKwh,
+      ),
       hydrogenKg: metrics.fold(0, (total, metric) => total + metric.hydrogenKg),
       odometerMiles: null,
       completedLiquidFillMiles: null,
       completedLiquidFillGallons: 0,
       hasMixedLiquidFuelTypes: true,
+      hasUnmeasuredLiquidFuel: metrics.any(
+        (metric) => metric.hasUnmeasuredLiquidFuel,
+      ),
     );
   }
 
@@ -69,6 +76,7 @@ class _ExpenseRecapFuelSummary {
       completedLiquidFillMiles: metrics.completedLiquidFillMiles,
       completedLiquidFillGallons: metrics.completedLiquidFillGallons,
       hasMixedLiquidFuelTypes: metrics.hasMixedLiquidFuelTypes,
+      hasUnmeasuredLiquidFuel: metrics.hasUnmeasuredLiquidFuel,
     );
   }
 
@@ -82,6 +90,7 @@ class _ExpenseRecapFuelSummary {
   final int? completedLiquidFillMiles;
   final double completedLiquidFillGallons;
   final bool hasMixedLiquidFuelTypes;
+  final bool hasUnmeasuredLiquidFuel;
 }
 
 bool _isFuelReceiptLine(ExpenseReceiptLineRecord line) {

@@ -104,6 +104,7 @@ class ExpenseRecapReport {
     required this.completedLiquidFillMiles,
     required this.completedLiquidFillGallons,
     required this.hasMixedLiquidFuelTypes,
+    required this.hasUnmeasuredLiquidFuel,
     required this.businessVehicleMiles,
     required this.personalVehicleMiles,
   });
@@ -191,9 +192,7 @@ class ExpenseRecapReport {
       }
     }
 
-    final fuelEconomy = _ExpenseRecapFuelSummary.fromReceipts(
-      includedReceipts,
-    );
+    final fuelEconomy = _ExpenseRecapFuelSummary.fromReceipts(includedReceipts);
     return ExpenseRecapReport(
       range: range,
       receiptCount: receiptCount,
@@ -227,6 +226,7 @@ class ExpenseRecapReport {
       completedLiquidFillMiles: fuelEconomy.completedLiquidFillMiles,
       completedLiquidFillGallons: fuelEconomy.completedLiquidFillGallons,
       hasMixedLiquidFuelTypes: fuelEconomy.hasMixedLiquidFuelTypes,
+      hasUnmeasuredLiquidFuel: fuelEconomy.hasUnmeasuredLiquidFuel,
       businessVehicleMiles: usageTotals.businessMiles,
       personalVehicleMiles: usageTotals.personalMiles,
     );
@@ -264,6 +264,7 @@ class ExpenseRecapReport {
   final int? completedLiquidFillMiles;
   final double completedLiquidFillGallons;
   final bool hasMixedLiquidFuelTypes;
+  final bool hasUnmeasuredLiquidFuel;
   final double businessVehicleMiles;
   final double personalVehicleMiles;
 
@@ -285,14 +286,15 @@ class ExpenseRecapReport {
   double? get electricFuelCostPerMile => _perMile(electricFuelExpense);
   double? get hydrogenFuelCostPerMile => _perMile(hydrogenFuelExpense);
   double? get totalCostPerMile => _perMile(totalExpenses);
-  double? get averageFuelPrice =>
-      fuelUnits <= 0 ? null : liquidFuelExpense / fuelUnits;
+  double? get averageFuelPrice => hasUnmeasuredLiquidFuel || fuelUnits <= 0
+      ? null
+      : liquidFuelExpense / fuelUnits;
   double? get averageElectricKwhPrice =>
       electricKwh <= 0 ? null : electricFuelExpense / electricKwh;
   double? get averageHydrogenKgPrice =>
       hydrogenKg <= 0 ? null : hydrogenFuelExpense / hydrogenKg;
   double? get averageMpg {
-    if (hasMixedLiquidFuelTypes) return null;
+    if (hasMixedLiquidFuelTypes || hasUnmeasuredLiquidFuel) return null;
     final miles = completedLiquidFillMiles ?? odometerMiles;
     final gallons = completedLiquidFillMiles == null
         ? fuelUnits
