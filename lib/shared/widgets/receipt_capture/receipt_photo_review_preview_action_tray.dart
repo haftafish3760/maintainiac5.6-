@@ -175,15 +175,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                             coverageDecision: coverageDecision,
                           ),
                         ],
-                        if (!hasMultiplePhotos && !hasQualityWarning) ...[
-                          const SizedBox(height: 5),
-                          _ReceiptSinglePhotoActionRow(
-                            openingCamera: interactionLocked,
-                            onAddPhoto: onAddPhoto,
-                            onRetake: onRetake,
-                            onModeChanged: onModeChanged,
-                          ),
-                        ],
                       ],
                     ),
                   ),

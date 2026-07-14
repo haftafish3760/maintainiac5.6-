@@ -53,7 +53,8 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         )
         .toList(growable: false);
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (widget.onImportedText == null ||
+    if ((widget.onImportedText == null &&
+            widget.onReceiptOcrReadyForReview == null) ||
         readable.isEmpty ||
         !_appAssistedReceiptFillEnabled) {
       if (showDisabledMessage) {

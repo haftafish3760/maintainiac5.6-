@@ -254,7 +254,11 @@ void main() {
     expect(commonControls, contains("'Proof' => 'Preview saved proof size'"));
     expect(previewControls, contains('class _ReceiptMultiPhotoActionRail'));
     expect(previewControls, contains('onAddPhoto'));
-    expect(previewControls, contains('strings.savedProof'));
+    expect(
+      previewControls,
+      isNot(contains('class _ReceiptSinglePhotoActionRow')),
+    );
+    expect(previewControls, isNot(contains('strings.savedProof')));
     expect(previewControls, contains("? 'Add Bottom Section'"));
     expect(
       previewControls,
@@ -281,7 +285,7 @@ void main() {
     );
     expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt Photo'));
-    expect(previewControls, contains('strings.cropReceiptPhoto'));
+    expect(previewControls, contains('strings.cropCurrentReceiptPhoto'));
     expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
     expect(
       controls,
@@ -382,15 +386,9 @@ void main() {
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
-    expect(previewControls, contains('onPressed: openingCamera'));
-    expect(
-      previewControls,
-      contains(': () => onModeChanged(_ReceiptReviewMode.crop)'),
-    );
-    expect(
-      previewControls,
-      contains(': () => onModeChanged(_ReceiptReviewMode.dataSaver)'),
-    );
+    expect(controls, contains('onRetake: interactionLocked ? null : onRetake'));
+    expect(controls, contains('onCrop: interactionLocked ? null : onCrop'));
+    expect(controls, isNot(contains('_ReceiptSinglePhotoActionRow')));
   });
 
   test('receipt review continuation copy explains the next screen', () async {
