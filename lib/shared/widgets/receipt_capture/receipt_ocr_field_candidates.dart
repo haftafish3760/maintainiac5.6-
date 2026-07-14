@@ -27,6 +27,12 @@ class ReceiptOcrFieldCandidate {
   final ReceiptOcrBounds? bounds;
   final double? confidence;
 
+  /// The receipt wording shown to the user. Candidate values never replace it.
+  String get displayText => sourceText;
+  String get normalizedText => _normalizeReceiptOcrEvidenceText(sourceText);
+  String? get optionalInterpretation => value == sourceText ? null : value;
+  double? get interpretationConfidence =>
+      optionalInterpretation == null ? null : confidence;
   bool get needsReview => confidence == null || confidence! < .84;
 }
 

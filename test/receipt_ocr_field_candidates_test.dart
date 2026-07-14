@@ -103,6 +103,10 @@ void main() {
     expect(candidates.selectedFor(ReceiptOcrFieldKind.tax)?.value, '1.20');
     expect(total.value, '18.37');
     expect(total.sourceText, 'TOTAL 18.37');
+    expect(total.displayText, 'TOTAL 18.37');
+    expect(total.normalizedText, 'TOTAL 18.37');
+    expect(total.optionalInterpretation, '18.37');
+    expect(total.interpretationConfidence, isNull);
     expect(total.sourceLineIndexes, [4]);
     expect(total.bounds?.top, 150);
     expect(total.reason, contains('total-labelled'));

@@ -107,7 +107,7 @@ void main() {
       expect(cameraActivity, isNot(contains('AlertDialog.Builder')));
       expect(cameraActivity, contains('ScrollView(this)'));
       expect(cameraActivity, contains('addView(content)'));
-      expect(cameraActivity, contains('Camera only'));
+      expect(cameraActivity, contains('This camera session'));
       expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
       expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
       expect(cameraActivity, contains('Long receipt mode'));
@@ -124,7 +124,7 @@ void main() {
           'Long receipt mode is unavailable for this device or storage setting.',
         ),
       );
-      expect(cameraActivity, contains('The phone camera owns autofocus.'));
+      expect(cameraActivity, contains('The phone camera owns autofocus;'));
       expect(
         cameraActivity,
         isNot(contains('continuous autofocus/readability guidance')),
@@ -145,11 +145,9 @@ void main() {
       expect(cameraActivity, isNot(contains('Manual Brightness still wins.')));
       expect(cameraActivity, isNot(contains('Reset brightness')));
       expect(cameraActivity, contains('Find receipt edges'));
-      expect(cameraActivity, contains('Long receipts'));
-      expect(cameraActivity, contains('Capture sections from top to bottom'));
       expect(cameraActivity, isNot(contains('IMAGE HANDOFF')));
-      expect(cameraActivity, contains('CAMERA CONTROLS'));
-      expect(cameraActivity, contains('Brightness and light'));
+      expect(cameraActivity, isNot(contains('CAMERA CONTROLS')));
+      expect(cameraActivity, contains('Manual shutter stays available'));
       expect(cameraActivity, isNot(contains('PRIVACY AND DIAGNOSTICS')));
       expect(cameraActivity, contains('Receipt edge guidance is on.'));
       expect(
@@ -168,7 +166,7 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.',
+          'The phone camera owns autofocus; light controls stay on the camera viewer.',
         ),
       );
       expect(cameraActivity, isNot(contains('Receipt guidance warnings')));
@@ -184,7 +182,7 @@ void main() {
         cameraActivity,
         isNot(contains('Warn about shake, glare, low light')),
       );
-      expect(cameraActivity, contains('The phone camera owns autofocus.'));
+      expect(cameraActivity, contains('The phone camera owns autofocus;'));
       expect(cameraActivity, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraActivity, contains('setReceiptGuidanceWarningsEnabled'));
       expect(

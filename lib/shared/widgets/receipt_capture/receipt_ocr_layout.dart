@@ -64,6 +64,9 @@ class ReceiptOcrBlock {
   String get sourceText => text;
   String get displayText => text;
   String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+  String? get optionalInterpretation => null;
+  double? get interpretationConfidence => null;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 class ReceiptOcrLine {
@@ -82,6 +85,9 @@ class ReceiptOcrLine {
   String get sourceText => text;
   String get displayText => text;
   String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+  String? get optionalInterpretation => null;
+  double? get interpretationConfidence => null;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 class ReceiptOcrToken {
@@ -94,10 +100,17 @@ class ReceiptOcrToken {
   String get sourceText => text;
   String get displayText => text;
   String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+  String? get optionalInterpretation => null;
+  double? get interpretationConfidence => null;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 String _normalizeReceiptOcrEvidenceText(String value) {
   return value.trim().replaceAll(RegExp(r'\s+'), ' ');
+}
+
+bool _receiptOcrEvidenceNeedsReview(double? confidence) {
+  return confidence == null || confidence < .85;
 }
 
 class ReceiptOcrBounds {

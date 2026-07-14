@@ -61,12 +61,12 @@ void main() {
     expect(cameraActivity, contains('"detailedlines" -> "detailedLines"'));
     expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
     expect(cameraActivity, contains('Receipt Camera Settings'));
-    expect(cameraActivity, contains('Camera only'));
+    expect(cameraActivity, contains('This camera session'));
     expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
     expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
     expect(cameraActivity, contains('CAPTURE FLOW'));
     expect(cameraActivity, isNot(contains('IMAGE HANDOFF')));
-    expect(cameraActivity, contains('CAMERA CONTROLS'));
+    expect(cameraActivity, isNot(contains('CAMERA CONTROLS')));
     expect(cameraActivity, isNot(contains('PRIVACY AND DIAGNOSTICS')));
     expect(
       cameraActivity,
@@ -350,7 +350,7 @@ void main() {
       ),
     );
     expect(cameraActivity, isNot(contains('OCR reads original first')));
-    expect(cameraActivity, contains('Smaller saved proof copies'));
+    expect(cameraActivity, isNot(contains('Smaller saved proof copies')));
     expect(cameraActivity, isNot(contains('Capture order')));
     expect(cameraActivity, contains('updateSettingsStatusStrip()'));
     expect(cameraActivity, contains('Reset Receipt Camera Defaults'));

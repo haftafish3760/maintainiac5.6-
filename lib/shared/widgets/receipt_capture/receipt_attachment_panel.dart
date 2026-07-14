@@ -80,6 +80,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.onReceiptPhotoReviewAccepted,
     this.onReceiptReadStarted,
     this.onReceiptOcrCompleted,
+    this.onReceiptOcrReadyForReview,
     this.onReceiptReadFinished,
     this.onReceiptCaptureDiagnostic,
     this.receiptContinuationReasonCode,
@@ -98,6 +99,8 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final ValueChanged<ReceiptPhotoReviewResult>? onReceiptPhotoReviewAccepted;
   final VoidCallback? onReceiptReadStarted;
   final ValueChanged<ReceiptOcrResult>? onReceiptOcrCompleted;
+  final FutureOr<void> Function(ReceiptOcrResult result)?
+  onReceiptOcrReadyForReview;
   final ValueChanged<bool>? onReceiptReadFinished;
   final ValueChanged<Map<String, Object?>>? onReceiptCaptureDiagnostic;
   final String? receiptContinuationReasonCode;

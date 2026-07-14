@@ -43,10 +43,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         setPadding(dp(18), dp(12), dp(18), dp(18))
     }
     content.addView(settingSummary(
-        receiptCameraText("Camera only", "Solo cámara"),
+        receiptCameraText("This camera session", "Esta sesión de cámara"),
         receiptCameraText(
-            "These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
-            "Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos.",
+            "These controls apply while you capture this receipt. Saved receipt preferences are available from Receipt Settings before capture.",
+            "Estos controles se aplican mientras captura este recibo. Las preferencias guardadas están disponibles en Configuración de recibos antes de capturar.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
@@ -133,39 +133,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         updateSettingsStatusStrip()
     })
     content.addView(settingSummary(
-        receiptCameraText("Long receipts", "Recibos largos"),
+        receiptCameraText("Manual shutter stays available", "El disparador manual siempre está disponible"),
         receiptCameraText(
-            "Capture sections from top to bottom and repeat a few readable lines between photos so Maintainiac can match them.",
-            "Capture secciones de arriba a abajo y repita algunas líneas legibles entre fotos para que Maintainiac pueda unirlas.",
-        ),
-    ))
-    content.addView(settingSectionHeader(receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
-    content.addView(settingSummary(
-        receiptCameraText("Brightness and light", "Brillo y luz"),
-        receiptCameraText(
-            "Brightness and the receipt light stay on the live camera screen so you can see the receipt while adjusting them.",
-            "El brillo y la luz del recibo permanecen en la cámara en vivo para que pueda ver el recibo mientras los ajusta.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Focus", "Enfoque"),
-        receiptCameraText(
-            "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
-            "La cámara del teléfono controla el enfoque automático. Maintainiac no usa tocar para enfocar en la vista previa.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("OCR source", "Fuente de OCR"),
-        receiptCameraText(
-            "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
-            "El OCR lee primero la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Manual capture", "Captura manual"),
-        receiptCameraText(
-            "The shutter button always works immediately. Guidance can help, but it never blocks a manual receipt photo.",
-            "El disparador siempre funciona de inmediato. La guía ayuda, pero nunca bloquea una foto manual del recibo.",
+            "Guidance can help, but it never blocks a photo. The phone camera owns autofocus; light controls stay on the camera viewer.",
+            "La guía ayuda, pero nunca bloquea una foto. El teléfono controla el enfoque y las luces permanecen en la cámara.",
         ),
     ))
     val scroll = ScrollView(this).apply {

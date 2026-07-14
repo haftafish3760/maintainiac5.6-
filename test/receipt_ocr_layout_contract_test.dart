@@ -45,7 +45,17 @@ void main() {
       expect(layout.pages.single.blocks.single.sourceText, '2 PVC 2.58');
       expect(layout.pages.single.lines.single.displayText, '2 PVC 2.58');
       expect(layout.pages.single.lines.single.normalizedText, '2 PVC 2.58');
+      expect(layout.pages.single.lines.single.optionalInterpretation, isNull);
+      expect(layout.pages.single.lines.single.interpretationConfidence, isNull);
+      expect(layout.pages.single.lines.single.needsReview, isTrue);
       expect(layout.pages.single.lines.single.tokens[1].sourceText, 'PVC');
+      expect(
+        layout.pages.single.lines.single.tokens[1].optionalInterpretation,
+        isNull,
+      );
+      expect(layout.pages.single.lines.single.tokens[1].needsReview, isTrue);
+      const confidentToken = ReceiptOcrToken(text: 'TOTAL', confidence: .9);
+      expect(confidentToken.needsReview, isFalse);
     },
   );
 

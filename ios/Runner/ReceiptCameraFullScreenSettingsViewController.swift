@@ -62,8 +62,8 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
     guard let camera else { return }
     content.arrangedSubviews.forEach { $0.removeFromSuperview() }
     content.addArrangedSubview(note(camera.receiptCameraText(
-      "Camera only. These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
-      "Solo cámara. Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos."
+      "These controls apply while you capture this receipt. Saved receipt preferences are available from Receipt Settings before capture.",
+      "Estos controles se aplican mientras captura este recibo. Las preferencias guardadas están disponibles en Configuración de recibos antes de capturar."
     )))
     content.addArrangedSubview(section(camera.receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
     content.addArrangedSubview(toggle(camera.receiptCameraText("Long receipt mode", "Modo de recibo largo"), value: camera.longReceiptMode) { [weak self] enabled in

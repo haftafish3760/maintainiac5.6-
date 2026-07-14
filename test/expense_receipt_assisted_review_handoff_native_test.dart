@@ -17,6 +17,12 @@ void main() {
     final telemetry = source.telemetry;
 
     expect(attachmentOcr, contains('await Future<void>.sync'));
+    expect(attachmentOcr, contains('onReceiptOcrReadyForReview'));
+    expect(attachmentOcr, contains('onReceiptOcrReadyForReview(result)'));
+    expect(
+      attachmentOcr.indexOf('onReceiptOcrCompleted?.call(result);'),
+      lessThan(attachmentOcr.indexOf('onReceiptOcrReadyForReview(result)')),
+    );
     expect(
       attachmentOcr.indexOf('await Future<void>.sync'),
       lessThan(attachmentOcr.indexOf('_receiptReadStatusMessage = message;')),
@@ -107,14 +113,14 @@ void main() {
       contains('await _parseImportedReceiptTextWithMemory(text)'),
     );
     expect(stateActions, contains('_matchingReceiptOcrResultFor'));
+    expect(stateActions, contains('_parseReceiptOcrResultForEditableReview'));
+    expect(stateActions, contains('_parseReceiptOcrResultForAttachmentReview'));
     expect(
       stateActions,
-      contains('_parseReceiptOcrResultForEditableReview'),
+      contains('receipt_assist_disabled_before_structured_ocr_handoff'),
     );
-    expect(
-      stateActions,
-      contains('ReceiptOcrHandoff.forUserSelection'),
-    );
+    expect(stateActions, contains('_parseReceiptForEditableReview'));
+    expect(stateActions, contains('ReceiptOcrHandoff.forUserSelection'));
     expect(
       stateActions,
       contains('fillMissingExpenseReceiptFieldsFromOcrCandidates'),
@@ -264,7 +270,7 @@ void main() {
     expect(photoControls, contains('Use Receipt'));
     expect(photoControls, contains('receipt sections are saved locally'));
     expect(photoPreviewControls, contains('Add Bottom Section'));
-    expect(photoPreviewControls, contains('minimumSize: const Size(0, 38)'));
+    expect(photoPreviewControls, contains('minimumSize: const Size(0, 32)'));
     expect(photoPreviewControls, contains('BoxConstraints(maxWidth: 132)'));
     expect(photoPreviewControls, contains('message: label'));
     expect(photoPreviewControls, contains('strings.addAnotherReceiptPhoto'));

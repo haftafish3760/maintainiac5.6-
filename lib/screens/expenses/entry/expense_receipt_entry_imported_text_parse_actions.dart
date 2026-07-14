@@ -24,6 +24,46 @@ extension _ExpenseReceiptEntryImportedTextParseActions
   }
 
   Future<void> _parseImportedReceiptTextWithMemory(String text) async {
+    final ocr = _matchingReceiptOcrResultFor(text);
+    await _parseReceiptForEditableReview(
+      (capability) => ocr == null
+          ? parseExpenseReceiptTextWithLocalMemory(
+              text,
+              fallbackDate: _selectedDate,
+              parserDepth: capability.parserDepth,
+              maxCatalogCandidates: capability.maxLocalCatalogMatches,
+            )
+          : _parseReceiptOcrResultForEditableReview(
+              ocr,
+              capability: capability,
+            ),
+    );
+  }
+
+  Future<void> _parseReceiptOcrResultForAttachmentReview(
+    ReceiptOcrResult ocr,
+  ) async {
+    if (!_appAssistedReceiptFillEnabled) {
+      _handleReceiptParseFailure(
+        failureKind: 'assistance_policy_blocked',
+        evidence: 'receipt_assist_disabled_before_structured_ocr_handoff',
+        userMessage:
+            'Receipt text is ready, but Receipt Assist is turned off for Expenses. Turn it on in Receipt Settings or continue manually.',
+      );
+      return;
+    }
+    return _parseReceiptForEditableReview(
+      (capability) =>
+          _parseReceiptOcrResultForEditableReview(ocr, capability: capability),
+    );
+  }
+
+  Future<void> _parseReceiptForEditableReview(
+    Future<ExpenseReceiptParseResult> Function(
+      ReceiptDeviceCapability capability,
+    )
+    parse,
+  ) async {
     if (mounted) {
       _updateReceiptState(() {
         _scanningReceiptPhotos = true;
@@ -46,20 +86,9 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       },
     );
     try {
-      final ocr = _matchingReceiptOcrResultFor(text);
-      final parsed =
-          await (ocr == null
-                  ? parseExpenseReceiptTextWithLocalMemory(
-                      text,
-                      fallbackDate: _selectedDate,
-                      parserDepth: capability.parserDepth,
-                      maxCatalogCandidates: capability.maxLocalCatalogMatches,
-                    )
-                  : _parseReceiptOcrResultForEditableReview(
-                      ocr,
-                      capability: capability,
-                    ))
-              .timeout(_receiptParserTimeout(capability));
+      final parsed = await parse(
+        capability,
+      ).timeout(_receiptParserTimeout(capability));
       unawaited(_recordPrivacySafeParseEvent(parsed));
       _recordParserTelemetry(parsed);
       if (!mounted) return;

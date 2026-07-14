@@ -57,7 +57,9 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         readable.isEmpty ||
         !_appAssistedReceiptFillEnabled) {
       if (showDisabledMessage) {
-        showPickerError('Automatic receipt filling is turned off for this area.');
+        showPickerError(
+          'Automatic receipt filling is turned off for this area.',
+        );
       }
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
@@ -184,16 +186,19 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       );
     }
     final message = result.reviewMessage(successMessage: successMessage);
+    final onReceiptOcrReadyForReview = widget.onReceiptOcrReadyForReview;
     final onImportedText = widget.onImportedText;
     if (mounted) {
       updateAttachmentState(() {
         _receiptReadProgressPhase = _ReceiptReadProgressPhase.openingDetails;
       });
     }
-    if (onImportedText != null) {
+    if (onReceiptOcrReadyForReview != null || onImportedText != null) {
       try {
         await Future<void>.sync(
-          () => onImportedText(result.appFillText),
+          () => onReceiptOcrReadyForReview != null
+              ? onReceiptOcrReadyForReview(result)
+              : onImportedText!(result.appFillText),
         ).timeout(_receiptOcrTimeout(capability, readable.length));
       } catch (_) {
         if (mounted) {
