@@ -103,7 +103,7 @@ class _FuelSyntheticReceipt {
 const _products = [
   _FuelSyntheticProduct(
     label: 'REG UNL',
-    spanishLabel: 'Gasolina Regular',
+    spanishLabel: 'Gasolina Magna Regular',
     fuelType: 'Gasoline',
     unit: 'gallon',
     basePrice: 3.199,
@@ -124,7 +124,7 @@ const _products = [
   ),
   _FuelSyntheticProduct(
     label: '#2 ULSD',
-    spanishLabel: 'Diésel No. 2',
+    spanishLabel: 'Gasoil Diésel No. 2',
     fuelType: 'Diesel',
     unit: 'gallon',
     basePrice: 3.849,
