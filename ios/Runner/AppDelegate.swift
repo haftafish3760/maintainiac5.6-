@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreLocation
 import Flutter
 import UIKit
 
@@ -6,6 +7,7 @@ import UIKit
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private let receiptCameraChannelName = "maintainiac/receipt_camera"
   private var pendingReceiptCameraResult: FlutterResult?
+  private var tripTrackingBridge: TripTrackingNativeBridge?
 
   override func application(
     _ application: UIApplication,
@@ -17,6 +19,9 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     registerReceiptCameraBridge(with: engineBridge.pluginRegistry)
+    let bridge = TripTrackingNativeBridge()
+    bridge.register(with: engineBridge.pluginRegistry)
+    tripTrackingBridge = bridge
   }
 
   private func registerReceiptCameraBridge(with pluginRegistry: FlutterPluginRegistry) {

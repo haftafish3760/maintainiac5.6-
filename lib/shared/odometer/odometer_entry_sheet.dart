@@ -73,6 +73,11 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
             TextField(
               controller: _controller,
               autofocus: true,
+              style: const TextStyle(
+                color: Color(0xFF101416),
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+              ),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
               inputFormatters: [
@@ -99,6 +104,14 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               },
               decoration: InputDecoration(
                 labelText: 'Current odometer reading',
+                // The focused outline must not run through the floating label.
+                // Match the field surface so the label stays legible on the
+                // Start Day sheet on high-contrast Android displays.
+                floatingLabelStyle: const TextStyle(
+                  color: Color(0xFF101416),
+                  backgroundColor: Color(0xFFAAB4B9),
+                  fontWeight: FontWeight.w800,
+                ),
                 hintText: '298150',
                 errorText: _errorText,
                 filled: true,

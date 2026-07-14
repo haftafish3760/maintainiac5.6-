@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import 'master_export_screen.dart';
+import 'trip_tracking_settings_screen.dart';
 
 class DashboardSettingsScreen extends StatelessWidget {
   const DashboardSettingsScreen({super.key});
@@ -60,6 +61,15 @@ class _DashboardSettingsPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          _DashboardSettingRow(
+            title: 'GPS-Assisted Trip Tracking',
+            detail:
+                'Location permission, battery profile, low-speed equipment mode, and walking-review preferences.',
+            icon: Icons.gps_fixed_rounded,
+            onTap: () => Navigator.of(
+              context,
+            ).push(appSlideRoute(const TripTrackingSettingsScreen())),
+          ),
           _DashboardSettingRow(
             title: 'Master Export',
             detail:

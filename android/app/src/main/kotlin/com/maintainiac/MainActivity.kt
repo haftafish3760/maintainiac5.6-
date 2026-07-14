@@ -19,9 +19,13 @@ class MainActivity : FlutterActivity() {
     private val receiptCameraChannelName = "maintainiac/receipt_camera"
     private val receiptCameraRequestCode = 7301
     private var pendingReceiptCameraResult: MethodChannel.Result? = null
+    private lateinit var tripTrackingBridge: TripTrackingNativeBridge
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        tripTrackingBridge = TripTrackingNativeBridge(this).also {
+            it.register(flutterEngine.dartExecutor.binaryMessenger)
+        }
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             receiptCameraChannelName,
@@ -31,6 +35,17 @@ class MainActivity : FlutterActivity() {
                 "captureReceipt" -> openReceiptCamera(result, call.arguments as? Map<*, *>)
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (::tripTrackingBridge.isInitialized) {
+            tripTrackingBridge.onRequestPermissionsResult(requestCode, grantResults)
         }
     }
 

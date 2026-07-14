@@ -19,6 +19,10 @@ import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
+import 'shared/trip_tracking/trip_tracking_controller.dart';
+import 'shared/trip_tracking/trip_tracking_platform.dart';
+import 'shared/trip_tracking/trip_tracking_session_store.dart';
+import 'shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import 'shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
 
@@ -54,10 +58,12 @@ Future<void> main() async {
     ),
   );
   final activeWorkday = await ActiveWorkdayController.create();
+  final tripTrackingSettings = await TripTrackingSettingsController.create();
   final odometerStore = await OdometerStore.create();
   final appState = AppStateController();
-  final activeVehicleId = odometerVehicleIdForLabel(
-    appState.activeVehicle?.nickname,
+  final activeVehicleId = odometerVehicleIdForVehicleId(
+    appState.activeVehicle?.id,
+    fallbackLabel: appState.activeVehicle?.nickname,
   );
   final operationalContext = await OperationalContextController.create(
     profile: userProfiles.activeProfile,
@@ -67,6 +73,20 @@ Future<void> main() async {
         appState.activeVehicle?.usage ?? VehicleUsage.businessPersonal,
   );
   final odometerSnapshot = odometerStore.snapshotForVehicle(activeVehicleId);
+  final globalOdometer = GlobalOdometerController(
+    vehicleId: odometerSnapshot.vehicleId,
+    initialReading: odometerSnapshot.currentReading,
+    initialRecordedAt: odometerSnapshot.updatedAt,
+    initialHistory: odometerSnapshot.history,
+    snapshotReader: odometerStore.loadSnapshotForVehicle,
+    snapshotWriter: odometerStore.saveSnapshot,
+  );
+  final tripTracking = TripTrackingController(
+    sessionStore: await TripTrackingSessionStore.create(),
+    odometer: globalOdometer,
+    platform: TripTrackingPlatform(),
+  );
+  await tripTracking.restore();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(maintaniacSystemUiStyle);
   runApp(
@@ -85,25 +105,24 @@ Future<void> main() async {
                 child: ActiveWorkdayScope(
                   controller: activeWorkday,
                   child: GlobalOdometerScope(
-                    controller: GlobalOdometerController(
-                      vehicleId: odometerSnapshot.vehicleId,
-                      initialReading: odometerSnapshot.currentReading,
-                      initialRecordedAt: odometerSnapshot.updatedAt,
-                      initialHistory: odometerSnapshot.history,
-                      snapshotReader: odometerStore.loadSnapshotForVehicle,
-                      snapshotWriter: odometerStore.saveSnapshot,
-                    ),
-                    child: IncomingReceiptShareScope(
-                      controller: incomingReceiptShare,
-                      child: AppSignatureStoreScope(
-                        store: signatureStore,
-                        child: UserProfileScope(
-                          controller: userProfiles,
-                          child: OperationalContextScope(
-                            controller: operationalContext,
-                            child: InvoiceLedgerScope(
-                              controller: invoiceLedger,
-                              child: const MaintaniacApp(),
+                    controller: globalOdometer,
+                    child: TripTrackingSettingsScope(
+                      controller: tripTrackingSettings,
+                      child: TripTrackingScope(
+                        controller: tripTracking,
+                        child: IncomingReceiptShareScope(
+                          controller: incomingReceiptShare,
+                          child: AppSignatureStoreScope(
+                            store: signatureStore,
+                            child: UserProfileScope(
+                              controller: userProfiles,
+                              child: OperationalContextScope(
+                                controller: operationalContext,
+                                child: InvoiceLedgerScope(
+                                  controller: invoiceLedger,
+                                  child: const MaintaniacApp(),
+                                ),
+                              ),
                             ),
                           ),
                         ),

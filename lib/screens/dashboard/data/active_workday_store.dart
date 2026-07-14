@@ -109,6 +109,38 @@ class ActiveWorkdaySessionRecord {
   final int? endOdometer;
 
   bool get isActive => status != ActiveWorkdayStatus.ended;
+  bool get isPaused => status == ActiveWorkdayStatus.paused;
+
+  /// Elapsed work time excludes each durable paused interval. Event timestamps
+  /// are clamped to the requested end so a stale or future-dated record cannot
+  /// make the dashboard timer negative.
+  Duration elapsedWorkTimeAt(DateTime now) {
+    final end = endedAt != null && endedAt!.isBefore(now) ? endedAt! : now;
+    if (!end.isAfter(startedAt)) return Duration.zero;
+
+    var pausedTotal = Duration.zero;
+    DateTime? pausedAt;
+    final orderedEvents = [...events]
+      ..sort((left, right) => left.occurredAt.compareTo(right.occurredAt));
+    for (final event in orderedEvents) {
+      final occurredAt = event.occurredAt.isBefore(startedAt)
+          ? startedAt
+          : event.occurredAt.isAfter(end)
+          ? end
+          : event.occurredAt;
+      if (event.type == ActiveWorkdayEventType.paused && pausedAt == null) {
+        pausedAt = occurredAt;
+      } else if (event.type == ActiveWorkdayEventType.resumed &&
+          pausedAt != null) {
+        pausedTotal += occurredAt.difference(pausedAt);
+        pausedAt = null;
+      }
+    }
+    if (pausedAt != null) pausedTotal += end.difference(pausedAt);
+
+    final elapsed = end.difference(startedAt) - pausedTotal;
+    return elapsed.isNegative ? Duration.zero : elapsed;
+  }
 
   int milesSoFar(int currentOdometer) {
     final end = endOdometer ?? currentOdometer;

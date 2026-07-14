@@ -8,6 +8,7 @@ import '../../shared/widgets/app_screen_shell.dart';
 import '../profiles/employee_permissions_screen.dart';
 import '../work_supplies/jobs/work_supply_jobs_screen.dart';
 import 'master_export_screen.dart';
+import 'trip_tracking_settings_screen.dart';
 
 class SystemSettingsScreen extends StatelessWidget {
   const SystemSettingsScreen({super.key});
@@ -53,6 +54,13 @@ class _SystemSettingsContent extends StatelessWidget {
         ],
         const _ScreenNavigationPanel(),
         const SizedBox(height: 12),
+        _ScreenButton(
+          label: 'GPS-Assisted Trip Tracking',
+          onTap: () => Navigator.of(
+            context,
+          ).push(appSlideRoute(const TripTrackingSettingsScreen())),
+        ),
+        const SizedBox(height: 4),
         const _SettingsSurface(
           title: 'System Settings',
           intro:

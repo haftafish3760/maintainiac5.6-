@@ -45,6 +45,12 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Maintaniac uses local network access to connect with trusted local tools when you run the app from your computer.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Maintaniac uses your location during a GPS-assisted trip to estimate mileage and help you review the trip.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>When you choose background trip tracking, Maintainiac uses your location during an active trip so mileage can continue if the app is not on screen.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>When you enable activity recognition, Maintainiac uses motion activity during an active trip to help distinguish driving from walking and reduce incorrect mileage.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Maintaniac lets you choose receipt images, document images, or a company logo from your photo library.</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -70,6 +76,10 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

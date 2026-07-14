@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <application
         android:label="maintaniac"
         android:name="${applicationName}"
@@ -96,6 +102,13 @@
                 <data android:mimeType="text/*"/>
             </intent-filter>
         </activity>
+        <service
+            android:name=".TripTrackingForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+        <receiver
+            android:name=".TripTrackingActivityReceiver"
+            android:exported="false" />
         <activity
             android:name=".ReceiptCameraActivity"
             android:exported="false"

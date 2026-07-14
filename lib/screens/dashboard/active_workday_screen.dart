@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
 import '../../shared/state/global_odometer.dart';
+import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_models.dart';
+import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
 import '../expenses/entry/expense_receipt_entry_screen.dart';
@@ -57,10 +60,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   Widget build(BuildContext context) {
     final activeWorkday = ActiveWorkdayScope.of(context);
     final session = activeWorkday.activeSession;
+    final quickActions = _quickActionsFor(session);
     final currentOdometer = GlobalOdometerScope.of(context).reading;
     final elapsed = session == null
         ? _elapsed
-        : DateTime.now().difference(session.startedAt);
+        : session.elapsedWorkTimeAt(DateTime.now());
     final milesToday = session?.milesSoFar(currentOdometer).toString() ?? '0';
 
     return AppScreenShell(
@@ -100,6 +104,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                _GpsTripPanel(onStart: _startGpsTrip, onStop: _stopGpsTrip),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     const Expanded(child: _SectionLabel('QUICK ACTIONS')),
@@ -122,7 +128,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: workdayQuickActions.length,
+                  itemCount: quickActions.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     mainAxisSpacing: 10,
@@ -131,9 +137,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   ),
                   itemBuilder: (context, index) {
                     return _QuickActionButton(
-                      action: workdayQuickActions[index],
-                      onTap: () =>
-                          _handleQuickAction(workdayQuickActions[index]),
+                      action: quickActions[index],
+                      onTap: () => _handleQuickAction(quickActions[index]),
                     );
                   },
                 ),
@@ -162,15 +167,49 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         '${seconds.toString().padLeft(2, '0')}';
   }
 
+  List<WorkdayQuickActionSpec> _quickActionsFor(
+    ActiveWorkdaySessionRecord? session,
+  ) {
+    if (session?.status != ActiveWorkdayStatus.paused) {
+      return workdayQuickActions;
+    }
+
+    return [
+      const WorkdayQuickActionSpec(
+        icon: Icons.play_arrow_rounded,
+        emoji: '▶️',
+        label: 'Resume Day',
+        color: Color(0xFF2AA875),
+        flowTitle: 'Resume Workday',
+        flowSummary: 'Resume the current workday without creating a new day.',
+      ),
+      ...workdayQuickActions.skip(1),
+    ];
+  }
+
   Future<void> _handleQuickAction(WorkdayQuickActionSpec action) async {
     switch (action.label) {
       case 'Pause Day':
-        await _recordOdometerEvent(
+        final paused = await _recordOdometerEvent(
           title: 'Pause Odometer',
           saveLabel: 'Pause Day',
           type: ActiveWorkdayEventType.paused,
         );
+        if (paused) {
+          if (!mounted) return;
+          await TripTrackingScope.maybeOf(context)?.stopNativeTracking();
+        }
+        return;
+      case 'Resume Day':
+        await _recordStoredEvent(ActiveWorkdayEventType.resumed);
+        if (!mounted) return;
+        await _startGpsTrip();
+        return;
       case 'End Day':
+        final tripTracking = TripTrackingScope.maybeOf(context);
+        if (tripTracking?.isTracking == true) {
+          await tripTracking!.finishForReview();
+        }
         final saved = await _recordOdometerEvent(
           title: 'Ending Odometer',
           saveLabel: 'End Day',
@@ -232,11 +271,18 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     String? note,
   }) async {
     if (!mounted) return;
-    await ActiveWorkdayScope.of(context).addEvent(
+    final activeWorkday = ActiveWorkdayScope.of(context);
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    await activeWorkday.addEvent(
       type: type,
       odometerReading: GlobalOdometerScope.of(context).reading,
       note: note,
     );
+    if (type == ActiveWorkdayEventType.stop ||
+        type == ActiveWorkdayEventType.pickup ||
+        type == ActiveWorkdayEventType.dropOff) {
+      await tripTracking?.acknowledgeWalkingReview();
+    }
   }
 
   Future<void> _openStopDialog(String kind, ActiveWorkdayEventType type) async {
@@ -314,4 +360,199 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final suffix = value.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $suffix';
   }
+
+  Future<void> _startGpsTrip() async {
+    final settingsController = TripTrackingSettingsScope.maybeOf(context);
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (settingsController == null || tripTracking == null) return;
+    if (ActiveWorkdayScope.of(context).activeSession?.isPaused == true) {
+      _showGpsMessage('Resume Day before restarting GPS-assisted tracking.');
+      return;
+    }
+    final settings = settingsController.settings;
+    if (!settings.gpsAssistedTrackingEnabled) {
+      _showGpsMessage(
+        'Enable GPS-assisted tracking in Dashboard Settings first.',
+      );
+      return;
+    }
+    var startedNewTrip = false;
+    if (!tripTracking.isTracking) {
+      startedNewTrip = await tripTracking.start(
+        tripId: 'gps-trip-${DateTime.now().microsecondsSinceEpoch}',
+        vehicleId: GlobalOdometerScope.of(context).vehicleId,
+        profile: settings.defaultProfile,
+      );
+      if (!startedNewTrip) {
+        _showGpsMessage('A GPS trip could not be created.');
+        return;
+      }
+    }
+    final started = await tripTracking.startNativeTracking(
+      allowBackground: settings.backgroundTrackingEnabled,
+      samplingOverride: _samplingForPreset(settings),
+      adaptiveSamplingEnabled: settings.adaptiveSamplingEnabled,
+      activityRecognitionEnabled: settings.activityRecognitionEnabled,
+    );
+    if (!started && startedNewTrip) await tripTracking.discardEmptyTrip();
+    if (!mounted) return;
+    _showGpsMessage(
+      started
+          ? 'GPS-assisted trip tracking started.'
+          : (tripTracking.platformError ?? 'GPS tracking could not start.'),
+    );
+  }
+
+  Future<void> _stopGpsTrip() async {
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (tripTracking == null || !tripTracking.isTracking) return;
+    final review = await tripTracking.finishForReview();
+    if (!mounted) return;
+    _showGpsMessage(
+      review == null
+          ? 'No active GPS trip to stop.'
+          : 'GPS trip ended and is ready for review.',
+    );
+  }
+
+  void _showGpsMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 }
+
+class _GpsTripPanel extends StatelessWidget {
+  const _GpsTripPanel({required this.onStart, required this.onStop});
+
+  final Future<void> Function() onStart;
+  final Future<void> Function() onStop;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = TripTrackingScope.maybeOf(context);
+    final settings = TripTrackingSettingsScope.maybeOf(context)?.settings;
+    final tracking = controller?.isTracking == true;
+    final nativeTracking = controller?.nativeTracking == true;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFF142126),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: nativeTracking
+              ? const Color(0xFF20F060)
+              : const Color(0xFF52656D),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            nativeTracking
+                ? Icons.gps_fixed_rounded
+                : Icons.gps_not_fixed_rounded,
+            color: nativeTracking
+                ? const Color(0xFF20F060)
+                : const Color(0xFFFFD166),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'GPS-ASSISTED TRIP',
+                  style: TextStyle(
+                    color: Color(0xFFE2E8EA),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  nativeTracking
+                      ? 'Tracking ${controller!.acceptedMeters.toStringAsFixed(0)} m; odometer is live.'
+                      : tracking
+                      ? 'Trip is recoverable. Resume GPS when ready.'
+                      : settings?.gpsAssistedTrackingEnabled == true
+                      ? 'Ready when you are driving.'
+                      : 'Off in trip tracking settings.',
+                  style: const TextStyle(
+                    color: Color(0xFFCAD2D5),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (controller?.needsWalkingReview == true) ...[
+                  const SizedBox(height: 3),
+                  const Text(
+                    'Possible stop detected. Review before adding it to your day.',
+                    style: TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: nativeTracking ? onStop : onStart,
+            style: FilledButton.styleFrom(
+              backgroundColor: nativeTracking
+                  ? const Color(0xFF8D2D2D)
+                  : const Color(0xFF1976B9),
+            ),
+            child: Text(
+              nativeTracking
+                  ? 'STOP'
+                  : tracking
+                  ? 'RESUME'
+                  : 'START',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+TripSamplingRecommendation _samplingForPreset(
+  TripTrackingSettings settings,
+) => switch (settings.samplingPreset) {
+  TripTrackingSamplingPreset.highAccuracy => const TripSamplingRecommendation(
+    mode: TripSamplingMode.precision,
+    interval: Duration(seconds: 3),
+    minimumDisplacementMeters: 3,
+  ),
+  TripTrackingSamplingPreset.enhancedAccuracy =>
+    const TripSamplingRecommendation(
+      mode: TripSamplingMode.balanced,
+      interval: Duration(seconds: 8),
+      minimumDisplacementMeters: 5,
+    ),
+  TripTrackingSamplingPreset.balanced => const TripSamplingRecommendation(
+    mode: TripSamplingMode.balanced,
+    interval: Duration(seconds: 15),
+    minimumDisplacementMeters: 8,
+  ),
+  TripTrackingSamplingPreset.batterySaver => const TripSamplingRecommendation(
+    mode: TripSamplingMode.economy,
+    interval: Duration(seconds: 30),
+    minimumDisplacementMeters: 20,
+  ),
+  TripTrackingSamplingPreset.extremeOptimized =>
+    const TripSamplingRecommendation(
+      mode: TripSamplingMode.economy,
+      interval: Duration(seconds: 60),
+      minimumDisplacementMeters: 30,
+    ),
+  TripTrackingSamplingPreset.custom => TripSamplingRecommendation(
+    mode: TripSamplingMode.balanced,
+    interval: Duration(seconds: settings.customIntervalSeconds),
+    minimumDisplacementMeters: 8,
+  ),
+};

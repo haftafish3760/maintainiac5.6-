@@ -147,7 +147,7 @@ class OdometerValidationPolicy {
     this.defaultReviewMiles = 500,
     this.minimumReviewBufferMiles = 100,
     this.extremeJumpMiles = 2500,
-    this.drivingPatternReviewEnabled = true,
+    this.drivingPatternReviewEnabled = false,
   });
 
   final int maxSupportedReading;
@@ -161,6 +161,7 @@ class OdometerValidationPolicy {
     required int candidateReading,
     required List<OdometerReadingEvent> history,
     required DateTime enteredAt,
+    bool? drivingPatternReviewEnabled,
   }) {
     if (candidateReading < 0) {
       return const OdometerValidationResult.blocked(
@@ -184,7 +185,7 @@ class OdometerValidationPolicy {
     }
 
     final delta = candidateReading - currentReading;
-    if (!drivingPatternReviewEnabled) {
+    if (!(drivingPatternReviewEnabled ?? this.drivingPatternReviewEnabled)) {
       return const OdometerValidationResult.accepted();
     }
 
@@ -323,6 +324,17 @@ class OdometerTrend {
     final values = weekdaySamples[weekday];
     if (values == null || values.length < 2) return null;
     return values.reduce((sum, value) => sum + value) / values.length;
+  }
+
+  double? maximumDailyMilesForWeekday(int weekday) {
+    final values = weekdaySamples[weekday];
+    if (values == null || values.isEmpty) return null;
+    return values.reduce((current, next) => current > next ? current : next);
+  }
+
+  double? get maximumObservedDailyMiles {
+    if (samples.isEmpty) return null;
+    return samples.reduce((current, next) => current > next ? current : next);
   }
 
   double reviewBufferMiles(int minimumBufferMiles) {

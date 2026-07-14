@@ -1,0 +1,754 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+
+import '../state/global_odometer.dart';
+import 'trip_live_odometer_projection.dart';
+import 'trip_tracking_engine.dart';
+import 'trip_tracking_models.dart';
+import 'trip_tracking_platform.dart';
+import 'trip_tracking_policy.dart';
+import 'trip_tracking_session_store.dart';
+import 'trip_tracking_state_machine.dart';
+
+/// Owns one active GPS-assisted trip. Platform adapters feed it samples; this
+/// controller keeps the UI, local recovery record, and live odometer aligned.
+class TripTrackingController extends ChangeNotifier {
+  TripTrackingController({
+    required TripTrackingSessionStore sessionStore,
+    required GlobalOdometerController odometer,
+    TripTrackingNativeGateway? platform,
+    TripTrackingPolicy policy = const TripTrackingPolicy(),
+  }) : _sessionStore = sessionStore,
+       _odometer = odometer,
+       _platform = platform,
+       _policy = policy;
+
+  final TripTrackingSessionStore _sessionStore;
+  final GlobalOdometerController _odometer;
+  final TripTrackingNativeGateway? _platform;
+  final TripTrackingPolicy _policy;
+  TripTrackingSessionRecord? _session;
+  TripTrackingEngine? _engine;
+  TripLiveOdometerProjection? _projection;
+  StreamSubscription<TripTrackingPlatformEvent>? _platformSubscription;
+  Future<void> _platformEventQueue = Future<void>.value();
+  Future<void> _ingestionQueue = Future<void>.value();
+  Future<void> _nativeLifecycleQueue = Future<void>.value();
+  bool _isDisposed = false;
+  bool _nativeTracking = false;
+  TripSamplingRecommendation? _nativeSampling;
+  bool _activityRecognitionEnabled = true;
+  bool _adaptiveSamplingEnabled = true;
+  String? _platformStatus;
+  String? _platformError;
+  TripActivityObservation? _latestActivity;
+
+  TripTrackingSessionRecord? get activeSession => _session;
+  bool get isTracking => _session != null;
+  double get acceptedMeters => _engine?.totalAcceptedMeters ?? 0;
+  bool get needsWalkingReview => _engine?.needsWalkingReview ?? false;
+  TripMotionState get motionState =>
+      _engine?.motionState ?? TripMotionState.unknown;
+  List<TripTrackingAdvisoryEvent> get advisories =>
+      List.unmodifiable(_session?.advisories ?? const []);
+  TripTrackingSessionLifecycleState? get lifecycleState =>
+      _session?.lifecycleState;
+  TripTrackingHealthState? get healthState => _session?.healthState;
+  bool get nativeTracking => _nativeTracking;
+  String? get platformStatus => _platformStatus;
+  String? get platformError => _platformError;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    unawaited(_platformSubscription?.cancel());
+    _platformSubscription = null;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_isDisposed) super.notifyListeners();
+  }
+
+  Future<bool> start({
+    required String tripId,
+    required String vehicleId,
+    required TripTrackingProfile profile,
+    DateTime? startedAt,
+  }) async {
+    if (_isDisposed ||
+        isTracking ||
+        tripId.trim().isEmpty ||
+        vehicleId.trim().isEmpty) {
+      return false;
+    }
+    final startingOdometer = _odometer.confirmedReading;
+    if (!_odometer.beginLiveTripProjection(
+      tripId: tripId,
+      startingOdometer: startingOdometer,
+    )) {
+      return false;
+    }
+    final now = startedAt ?? DateTime.now();
+    _engine = TripTrackingEngine(profile: profile);
+    _projection = TripLiveOdometerProjection(
+      startingOdometer: startingOdometer,
+    );
+    _session = TripTrackingSessionRecord(
+      id: tripId,
+      vehicleId: vehicleId,
+      startingOdometer: startingOdometer,
+      profile: profile,
+      startedAt: now,
+      updatedAt: now,
+      engineSnapshot: _engine!.snapshot,
+    );
+    await _sessionStore.save(_session!);
+    notifyListeners();
+    return true;
+  }
+
+  Future<bool> restore() async {
+    if (_isDisposed || isTracking) return false;
+    final session = _sessionStore.activeSession;
+    if (session == null) return false;
+    // A review record was durably written before the process died. Do not
+    // resume tracking or risk adding distance to a trip the user ended.
+    if (_sessionStore.reviewForTrip(session.id) != null) {
+      await _sessionStore.clear();
+      return false;
+    }
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: session.startingOdometer,
+    );
+    final estimatedOdometer = projection.updateAcceptedMeters(
+      session.engineSnapshot.totalAcceptedMeters,
+    );
+    if (!_odometer.beginLiveTripProjection(
+      tripId: session.id,
+      startingOdometer: session.startingOdometer,
+    )) {
+      return false;
+    }
+    _odometer.updateLiveTripProjection(
+      tripId: session.id,
+      estimatedOdometer: estimatedOdometer,
+    );
+    _session = session;
+    _engine = TripTrackingEngine.fromSnapshot(
+      session.engineSnapshot,
+      profile: session.profile,
+    );
+    _projection = projection;
+    final pending = _sessionStore.pendingSampleFor(session.id);
+    if (pending != null && pending.sessionId == session.id) {
+      await ingest(pending.sample, activity: pending.activity);
+    }
+    final platform = _platform;
+    if (platform != null) {
+      try {
+        if (await platform.isTracking) {
+          _nativeTracking = true;
+          _platformStatus = 'tracking';
+          _platformSubscription = _listenToPlatformEvents(platform);
+        }
+      } catch (error) {
+        _platformError = 'Could not restore the GPS connection: $error';
+        _platformStatus = 'recoverable';
+      }
+    }
+    notifyListeners();
+    return true;
+  }
+
+  Future<TripSampleDecision?> ingest(
+    TripLocationSample sample, {
+    TripActivityObservation? activity,
+  }) => _enqueueIngestion(() => _ingest(sample, activity: activity));
+
+  Future<TripSampleDecision?> _ingest(
+    TripLocationSample sample, {
+    TripActivityObservation? activity,
+  }) async {
+    if (_isDisposed) return null;
+    final session = _session;
+    final engine = _engine;
+    final projection = _projection;
+    if (session == null || engine == null || projection == null) return null;
+
+    await _sessionStore.savePending(
+      TripTrackingPendingSample(
+        sessionId: session.id,
+        sample: sample,
+        activity: activity,
+      ),
+    );
+
+    final previousMotionState = engine.motionState;
+    final decision = engine.ingest(sample, activity: activity);
+    final advisories = _advisoriesAfterMotionTransition(
+      session,
+      engineSnapshot: engine.snapshot,
+      previousMotionState: previousMotionState,
+      currentMotionState: engine.motionState,
+      detectedAt: sample.recordedAt,
+    );
+    final persistsRecoveryState =
+        decision.accepted ||
+        decision.disposition == TripSampleDisposition.rejectedAccuracy ||
+        decision.disposition == TripSampleDisposition.rejectedMockLocation ||
+        decision.disposition == TripSampleDisposition.rejectedDrift ||
+        decision.disposition == TripSampleDisposition.rejectedGap ||
+        decision.disposition ==
+            TripSampleDisposition.rejectedImplausibleSpeed ||
+        decision.disposition == TripSampleDisposition.rejectedSpeedConflict ||
+        decision.disposition == TripSampleDisposition.excludedWalking;
+    if (persistsRecoveryState) {
+      final nextLifecycleState = _lifecycleAfterDecision(
+        session.lifecycleState,
+        decision,
+      );
+      if (nextLifecycleState != session.lifecycleState) {
+        TripTrackingSessionStateMachine.requireTransition(
+          session.lifecycleState,
+          nextLifecycleState,
+        );
+      }
+      _odometer.updateLiveTripProjection(
+        tripId: session.id,
+        estimatedOdometer: projection.updateAcceptedMeters(
+          decision.totalAcceptedMeters,
+        ),
+      );
+      _session = session.copyWith(
+        updatedAt: sample.recordedAt,
+        engineSnapshot: engine.snapshot,
+        advisories: advisories,
+        lifecycleState: nextLifecycleState,
+        healthState: _healthAfterDecision(session.healthState, decision),
+      );
+      await _sessionStore.save(_session!);
+      notifyListeners();
+    }
+    await _sessionStore.clearPending(session.id);
+    return decision;
+  }
+
+  /// Starts the platform collector only after an active trip exists. Native
+  /// samples are queued one at a time so a fast EventChannel cannot reorder
+  /// distance decisions or overwrite a newer recovery snapshot.
+  Future<bool> startNativeTracking({
+    required bool allowBackground,
+    double? observedSpeedMetersPerSecond,
+    bool vehicleMovementConfirmed = false,
+    TripSamplingRecommendation? samplingOverride,
+    bool activityRecognitionEnabled = true,
+    bool adaptiveSamplingEnabled = true,
+  }) => _enqueueNativeLifecycle(
+    () => _startNativeTracking(
+      allowBackground: allowBackground,
+      observedSpeedMetersPerSecond: observedSpeedMetersPerSecond,
+      vehicleMovementConfirmed: vehicleMovementConfirmed,
+      samplingOverride: samplingOverride,
+      activityRecognitionEnabled: activityRecognitionEnabled,
+      adaptiveSamplingEnabled: adaptiveSamplingEnabled,
+    ),
+  );
+
+  Future<bool> _startNativeTracking({
+    required bool allowBackground,
+    double? observedSpeedMetersPerSecond,
+    bool vehicleMovementConfirmed = false,
+    TripSamplingRecommendation? samplingOverride,
+    bool activityRecognitionEnabled = true,
+    bool adaptiveSamplingEnabled = true,
+  }) async {
+    final platform = _platform;
+    var session = _session;
+    if (_isDisposed || platform == null || session == null || _nativeTracking) {
+      return false;
+    }
+    await _transitionSession(
+      TripTrackingSessionLifecycleState.starting,
+      health: TripTrackingHealthState.healthy,
+    );
+    session = _session;
+    if (session == null) return false;
+    TripTrackingPlatformCapabilities capabilities;
+    try {
+      capabilities = await platform.readCapabilities();
+    } catch (error) {
+      _platformError = 'Could not read GPS capabilities: $error';
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    if (!capabilities.locationAvailable) {
+      _platformError = 'Device location is unavailable.';
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    TripTrackingAuthorization authorization;
+    try {
+      authorization = await platform.requestAuthorization(
+        allowBackground: allowBackground,
+        activityRecognitionEnabled: activityRecognitionEnabled,
+      );
+    } catch (error) {
+      _platformError = 'Could not request GPS permission: $error';
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.permissionBlocked,
+      );
+      notifyListeners();
+      return false;
+    }
+    if (!authorization.canTrackPrecisely ||
+        (allowBackground && !authorization.canTrackInBackground)) {
+      _platformError = allowBackground
+          ? 'Background location permission is required for this tracking mode.'
+          : 'Precise location permission is required to start trip tracking.';
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.permissionRequired,
+        health: TripTrackingHealthState.permissionBlocked,
+      );
+      notifyListeners();
+      return false;
+    }
+    _platformSubscription = _listenToPlatformEvents(platform);
+    final request = TripTrackingNativeRequest(
+      profile: session.profile,
+      sampling:
+          samplingOverride ??
+          _policy.samplingFor(
+            speedMetersPerSecond: observedSpeedMetersPerSecond,
+            vehicleMovementConfirmed: vehicleMovementConfirmed,
+            profile: session.profile,
+            activeTrip: true,
+          ),
+      activityRecognitionEnabled: activityRecognitionEnabled,
+    );
+    bool started;
+    try {
+      started = await platform.start(request);
+    } catch (error) {
+      await _platformSubscription?.cancel();
+      _platformSubscription = null;
+      _platformError = 'The device could not start GPS trip tracking: $error';
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    if (!started) {
+      await _platformSubscription?.cancel();
+      _platformSubscription = null;
+      _platformError = 'The device did not start GPS trip tracking.';
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    _nativeTracking = true;
+    _nativeSampling = request.sampling;
+    _activityRecognitionEnabled = activityRecognitionEnabled;
+    _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
+    _platformError = null;
+    _platformStatus = 'tracking';
+    await _transitionSession(
+      TripTrackingSessionLifecycleState.active,
+      health: TripTrackingHealthState.healthy,
+    );
+    notifyListeners();
+    return true;
+  }
+
+  StreamSubscription<TripTrackingPlatformEvent> _listenToPlatformEvents(
+    TripTrackingNativeGateway platform,
+  ) => platform.events.listen(
+    _enqueuePlatformEvent,
+    onError: (Object error) {
+      unawaited(
+        _handleNativeInterruption('GPS updates stopped unexpectedly: $error'),
+      );
+    },
+    onDone: () {
+      if (!_nativeTracking) return;
+      unawaited(_handleNativeInterruption('GPS updates ended unexpectedly.'));
+    },
+  );
+
+  Future<void> _handleNativeInterruption(String message) async {
+    _platformError = message;
+    _platformStatus = 'error';
+    if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
+        _session?.lifecycleState ==
+            TripTrackingSessionLifecycleState.degraded) {
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.interrupted,
+        health: TripTrackingHealthState.interrupted,
+      );
+    }
+    notifyListeners();
+    await stopNativeTracking();
+  }
+
+  void _enqueuePlatformEvent(TripTrackingPlatformEvent event) {
+    _platformEventQueue = _platformEventQueue
+        .then((_) async {
+          if (_isDisposed) return;
+          if (event.type == TripTrackingPlatformEventType.location &&
+              event.location != null) {
+            final activity = _latestActivity;
+            final decision = await ingest(
+              event.location!,
+              activity:
+                  activity != null &&
+                      !event.location!.recordedAt.isBefore(
+                        activity.recordedAt,
+                      ) &&
+                      event.location!.recordedAt.difference(
+                            activity.recordedAt,
+                          ) <=
+                          const Duration(seconds: 90)
+                  ? activity
+                  : null,
+            );
+            await _maybeUpdateNativeSampling(event.location!, decision);
+          } else if (event.activity != null) {
+            _latestActivity = event.activity;
+          } else if (event.type == TripTrackingPlatformEventType.status) {
+            _platformStatus = event.status;
+            if (event.status == 'stopped') {
+              _nativeTracking = false;
+              _nativeSampling = null;
+              unawaited(_platformSubscription?.cancel());
+              _platformSubscription = null;
+              if (_session?.lifecycleState ==
+                  TripTrackingSessionLifecycleState.active) {
+                await _transitionSession(
+                  TripTrackingSessionLifecycleState.paused,
+                );
+              }
+            }
+            notifyListeners();
+          } else if (event.type == TripTrackingPlatformEventType.error) {
+            _platformError =
+                event.errorMessage ?? event.errorCode ?? 'GPS error';
+            notifyListeners();
+          }
+        })
+        .catchError((Object error, StackTrace _) {
+          if (_isDisposed) return;
+          _platformError = error.toString();
+          notifyListeners();
+        });
+  }
+
+  Future<void> _maybeUpdateNativeSampling(
+    TripLocationSample sample,
+    TripSampleDecision? decision,
+  ) async {
+    final platform = _platform;
+    final session = _session;
+    final current = _nativeSampling;
+    final speed = sample.speedMetersPerSecond;
+    final canDeescalatePrecision =
+        current?.mode == TripSamplingMode.precision &&
+        speed != null &&
+        speed.isFinite &&
+        speed >= 0 &&
+        speed < _policy.precisionExitSpeedMetersPerSecond;
+    if (!_adaptiveSamplingEnabled ||
+        platform == null ||
+        session == null ||
+        !_nativeTracking ||
+        decision == null ||
+        (!decision.accepted && !canDeescalatePrecision)) {
+      return;
+    }
+    final next = _policy.samplingFor(
+      speedMetersPerSecond: sample.speedMetersPerSecond,
+      vehicleMovementConfirmed:
+          decision.disposition == TripSampleDisposition.acceptedDistance,
+      profile: session.profile,
+      currentMode: _nativeSampling?.mode,
+      activeTrip: true,
+    );
+    if (current != null &&
+        current.mode == next.mode &&
+        current.interval == next.interval &&
+        current.minimumDisplacementMeters == next.minimumDisplacementMeters) {
+      return;
+    }
+    bool updated;
+    try {
+      updated = await platform.update(
+        TripTrackingNativeRequest(
+          profile: session.profile,
+          sampling: next,
+          activityRecognitionEnabled: _activityRecognitionEnabled,
+        ),
+      );
+    } catch (error) {
+      _platformError = 'Could not update GPS sampling: $error';
+      notifyListeners();
+      return;
+    }
+    if (updated) {
+      _nativeSampling = next;
+    } else {
+      _platformError =
+          'The device could not apply the updated GPS sampling mode.';
+      notifyListeners();
+    }
+  }
+
+  Future<void> stopNativeTracking() =>
+      _enqueueNativeLifecycle(_stopNativeTracking);
+
+  Future<void> _stopNativeTracking() async {
+    final platform = _platform;
+    if (platform != null && _nativeTracking) {
+      try {
+        await platform.stop();
+      } catch (error) {
+        _platformError =
+            'The device could not cleanly stop GPS tracking: $error';
+      }
+    }
+    await _platformSubscription?.cancel();
+    _platformSubscription = null;
+    // Drain events emitted just before the native stop/cancel boundary so a
+    // final credible sample cannot be dropped before review is recorded.
+    await _platformEventQueue;
+    _nativeTracking = false;
+    _nativeSampling = null;
+    _platformStatus = 'stopped';
+    if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
+        _session?.lifecycleState ==
+            TripTrackingSessionLifecycleState.degraded) {
+      await _transitionSession(TripTrackingSessionLifecycleState.paused);
+    }
+    notifyListeners();
+  }
+
+  Future<T> _enqueueNativeLifecycle<T>(Future<T> Function() operation) {
+    final next = _nativeLifecycleQueue.then<T>((_) => operation());
+    _nativeLifecycleQueue = next.then<void>((_) {}, onError: (_, _) {});
+    return next;
+  }
+
+  Future<T> _enqueueIngestion<T>(Future<T> Function() operation) {
+    final next = _ingestionQueue.then<T>((_) => operation());
+    _ingestionQueue = next.then<void>((_) {}, onError: (_, _) {});
+    return next;
+  }
+
+  Future<void> _transitionSession(
+    TripTrackingSessionLifecycleState next, {
+    TripTrackingHealthState? health,
+  }) async {
+    final session = _session;
+    if (session == null || session.lifecycleState == next) return;
+    TripTrackingSessionStateMachine.requireTransition(
+      session.lifecycleState,
+      next,
+    );
+    _session = session.copyWith(
+      updatedAt: DateTime.now(),
+      lifecycleState: next,
+      healthState: health,
+    );
+    await _sessionStore.save(_session!);
+  }
+
+  TripTrackingHealthState _healthAfterDecision(
+    TripTrackingHealthState current,
+    TripSampleDecision decision,
+  ) => switch (decision.disposition) {
+    TripSampleDisposition.acceptedAnchor ||
+    TripSampleDisposition.acceptedDistance => TripTrackingHealthState.healthy,
+    TripSampleDisposition.rejectedAccuracy => TripTrackingHealthState.poor,
+    TripSampleDisposition.rejectedGap => TripTrackingHealthState.interrupted,
+    _ => current,
+  };
+
+  TripTrackingSessionLifecycleState _lifecycleAfterDecision(
+    TripTrackingSessionLifecycleState current,
+    TripSampleDecision decision,
+  ) {
+    if (decision.disposition == TripSampleDisposition.rejectedAccuracy &&
+        current == TripTrackingSessionLifecycleState.active) {
+      return TripTrackingSessionLifecycleState.degraded;
+    }
+    if (decision.disposition == TripSampleDisposition.rejectedGap &&
+        (current == TripTrackingSessionLifecycleState.active ||
+            current == TripTrackingSessionLifecycleState.degraded)) {
+      return TripTrackingSessionLifecycleState.interrupted;
+    }
+    if (!decision.accepted) return current;
+    return switch (current) {
+      TripTrackingSessionLifecycleState.degraded ||
+      TripTrackingSessionLifecycleState.recovering =>
+        TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.interrupted =>
+        TripTrackingSessionLifecycleState.recovering,
+      _ => current,
+    };
+  }
+
+  /// Persists that a driver reviewed a walking-based possible-stop cue.
+  Future<void> acknowledgeWalkingReview() async {
+    final session = _session;
+    final engine = _engine;
+    if (session == null || engine == null || !engine.needsWalkingReview) return;
+
+    engine.acknowledgeWalkingReview();
+    final latestPendingStopIndex = session.advisories.lastIndexWhere(
+      (event) =>
+          event.type == TripTrackingAdvisoryType.probableStop &&
+          event.disposition == TripTrackingAdvisoryDisposition.pending,
+    );
+    final reviewedAdvisories = [...session.advisories];
+    if (latestPendingStopIndex >= 0) {
+      reviewedAdvisories[latestPendingStopIndex] =
+          reviewedAdvisories[latestPendingStopIndex].copyWith(
+            disposition: TripTrackingAdvisoryDisposition.confirmed,
+          );
+    }
+    _session = session.copyWith(
+      updatedAt: DateTime.now(),
+      engineSnapshot: engine.snapshot,
+      advisories: reviewedAdvisories,
+    );
+    await _sessionStore.save(_session!);
+    notifyListeners();
+  }
+
+  List<TripTrackingAdvisoryEvent> _advisoriesAfterMotionTransition(
+    TripTrackingSessionRecord session, {
+    required TripTrackingEngineSnapshot engineSnapshot,
+    required TripMotionState previousMotionState,
+    required TripMotionState currentMotionState,
+    required DateTime detectedAt,
+  }) {
+    TripTrackingAdvisoryType? type;
+    if (previousMotionState != TripMotionState.stopped &&
+        currentMotionState == TripMotionState.stopped) {
+      type = TripTrackingAdvisoryType.probableStop;
+    } else if (previousMotionState == TripMotionState.stopped &&
+        currentMotionState == TripMotionState.moving) {
+      type = TripTrackingAdvisoryType.resumedMovement;
+    }
+    if (type == null) return session.advisories;
+    final evidenceStartedAt =
+        type == TripTrackingAdvisoryType.probableStop &&
+            engineSnapshot.walkingEvidence.isNotEmpty
+        ? engineSnapshot.walkingEvidence.first.recordedAt
+        : detectedAt;
+    return [
+      ...session.advisories,
+      TripTrackingAdvisoryEvent(
+        id: '${session.id}:${type.name}:${detectedAt.microsecondsSinceEpoch}',
+        type: type,
+        sessionId: session.id,
+        vehicleId: session.vehicleId,
+        profile: session.profile,
+        detectedAt: detectedAt,
+        evidenceStartedAt: evidenceStartedAt,
+        evidenceEndedAt: detectedAt,
+        confidence: type == TripTrackingAdvisoryType.probableStop
+            ? TripTrackingConfidence.high
+            : TripTrackingConfidence.medium,
+        suggestedAction: type == TripTrackingAdvisoryType.probableStop
+            ? 'reviewStop'
+            : 'reviewResumedMovement',
+      ),
+    ];
+  }
+
+  /// Drops a just-created trip only when it has not accepted any distance.
+  /// This is used after permission or hardware startup fails so the global
+  /// odometer is not left locked by a trip that never actually began.
+  Future<bool> discardEmptyTrip() async {
+    final session = _session;
+    if (session == null || acceptedMeters > 0 || _nativeTracking) return false;
+    await _sessionStore.clear();
+    _odometer.clearLiveTripProjection(tripId: session.id);
+    _session = null;
+    _engine = null;
+    _projection = null;
+    notifyListeners();
+    return true;
+  }
+
+  /// Durably stores a review record before dropping crash-recovery state.
+  /// The confirmed odometer stays untouched until a later review action makes
+  /// one auditable permanent odometer event.
+  Future<TripTrackingReviewRecord?> finishForReview({
+    DateTime? finishedAt,
+  }) async {
+    final session = _session;
+    final engine = _engine;
+    final projection = _projection;
+    if (session == null || engine == null || projection == null) return null;
+    if (session.lifecycleState == TripTrackingSessionLifecycleState.active ||
+        session.lifecycleState == TripTrackingSessionLifecycleState.paused ||
+        session.lifecycleState == TripTrackingSessionLifecycleState.degraded) {
+      await _transitionSession(TripTrackingSessionLifecycleState.stopping);
+    }
+    await stopNativeTracking();
+    final review = TripTrackingReviewRecord(
+      id: session.id,
+      vehicleId: session.vehicleId,
+      startingOdometer: session.startingOdometer,
+      estimatedEndingOdometer: projection.updateAcceptedMeters(
+        engine.totalAcceptedMeters,
+      ),
+      profile: session.profile,
+      startedAt: session.startedAt,
+      finishedAt: finishedAt ?? DateTime.now(),
+      engineSnapshot: engine.snapshot,
+    );
+    await _sessionStore.saveReview(review);
+    await _sessionStore.clear();
+    _odometer.clearLiveTripProjection(tripId: session.id);
+    _session = null;
+    _engine = null;
+    _projection = null;
+    notifyListeners();
+    return review;
+  }
+}
+
+class TripTrackingScope extends InheritedNotifier<TripTrackingController> {
+  const TripTrackingScope({
+    super.key,
+    required TripTrackingController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  static TripTrackingController of(BuildContext context) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<TripTrackingScope>();
+    assert(scope != null, 'TripTrackingScope is missing above this context.');
+    return scope!.notifier!;
+  }
+
+  static TripTrackingController? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<TripTrackingScope>()?.notifier;
+}

@@ -1,0 +1,109 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
+
+void main() {
+  test('native request preserves the adaptive sampling recommendation', () {
+    const policy = TripTrackingPolicy();
+    final request = TripTrackingNativeRequest(
+      profile: TripTrackingProfile.roadVehicle,
+      sampling: policy.samplingFor(
+        speedMetersPerSecond: 16,
+        vehicleMovementConfirmed: true,
+      ),
+    );
+
+    expect(request.toMap()['intervalMillis'], 2000);
+    expect(request.toMap()['minimumDisplacementMeters'], 3.0);
+  });
+
+  test('an explicitly started trip has a responsive adaptive baseline', () {
+    const policy = TripTrackingPolicy();
+
+    expect(
+      policy
+          .samplingFor(
+            speedMetersPerSecond: null,
+            vehicleMovementConfirmed: false,
+            activeTrip: true,
+          )
+          .interval,
+      const Duration(seconds: 5),
+    );
+  });
+
+  test(
+    'platform event maps only a declared location payload into a sample',
+    () {
+      final event = TripTrackingPlatformEvent.fromMap({
+        'type': 'location',
+        'latitude': 35.2,
+        'longitude': -80.8,
+        'recordedAt': '2026-07-13T12:00:00.000Z',
+        'horizontalAccuracyMeters': 4.5,
+        'speedMetersPerSecond': 8.1,
+      });
+
+      expect(event.type, TripTrackingPlatformEventType.location);
+      expect(event.location?.horizontalAccuracyMeters, 4.5);
+      expect(event.location?.speedMetersPerSecond, 8.1);
+    },
+  );
+
+  test('unknown native event types fail closed as errors', () {
+    final event = TripTrackingPlatformEvent.fromMap({'type': 'unexpected'});
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.location, isNull);
+  });
+
+  test('malformed location payloads fail closed without fabricated values', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'location',
+      'latitude': 35.2,
+      'horizontalAccuracyMeters': 4.5,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.location, isNull);
+    expect(event.errorCode, 'invalidLocationPayload');
+  });
+
+  test('non-finite native timestamps fail closed without throwing', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': double.nan,
+      'horizontalAccuracyMeters': 4.5,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.errorCode, 'invalidLocationPayload');
+  });
+
+  test('malformed activity payloads cannot invent walking evidence', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'activity',
+      'activity': 'walking',
+      'confidence': 100,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.activity, isNull);
+    expect(event.errorCode, 'invalidActivityPayload');
+  });
+
+  test('non-finite activity confidence fails closed without throwing', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'activity',
+      'activity': 'walking',
+      'confidence': double.nan,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.errorCode, 'invalidActivityPayload');
+  });
+}

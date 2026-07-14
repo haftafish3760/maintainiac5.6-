@@ -51,6 +51,7 @@ extension VehicleUsageDetails on VehicleUsage {
 class VehicleProfile {
   VehicleProfile({
     required this.nickname,
+    this.id = '',
     this.year = '',
     this.make = '',
     this.model = '',
@@ -58,6 +59,10 @@ class VehicleProfile {
   });
 
   final String nickname;
+
+  /// A stable local identity for records. Unlike [nickname], this must not
+  /// change when the user renames the vehicle.
+  final String id;
   final String year;
   final String make;
   final String model;
@@ -222,10 +227,10 @@ class MaintenanceServiceEvent {
 }
 
 class AppStateController extends ChangeNotifier {
-  int _odometer = 128415;
   final List<VehicleProfile> _vehicles = <VehicleProfile>[
     VehicleProfile(
       nickname: 'Work Truck 1',
+      id: 'vehicle_work_truck_1',
       year: '2018',
       make: 'Ford',
       model: 'F-150',
@@ -233,6 +238,7 @@ class AppStateController extends ChangeNotifier {
     ),
     VehicleProfile(
       nickname: 'Work Truck 2',
+      id: 'vehicle_work_truck_2',
       year: '2021',
       make: 'Ram',
       model: '2500',
@@ -240,6 +246,7 @@ class AppStateController extends ChangeNotifier {
     ),
     VehicleProfile(
       nickname: 'Backup Truck 1',
+      id: 'vehicle_backup_truck_1',
       year: '2019',
       make: 'Chevrolet',
       model: 'Silverado',
@@ -247,6 +254,7 @@ class AppStateController extends ChangeNotifier {
     ),
     VehicleProfile(
       nickname: 'Backup Truck 2',
+      id: 'vehicle_backup_truck_2',
       year: '2017',
       make: 'Toyota',
       model: 'Tacoma',
@@ -259,7 +267,6 @@ class AppStateController extends ChangeNotifier {
   late VehicleProfile? _activeVehicle = _vehicles.first;
   WorkProfile? _activeWorkProfile = WorkProfile(name: 'Main Work');
 
-  int get odometer => _odometer;
   List<VehicleProfile> get vehicles => List.unmodifiable(_vehicles);
   List<MaintenanceRecord> get maintenance => List.unmodifiable(_maintenance);
   List<MaintenanceServiceEvent> get maintenanceEvents =>
@@ -267,15 +274,19 @@ class AppStateController extends ChangeNotifier {
   VehicleProfile? get activeVehicle => _activeVehicle;
   WorkProfile? get activeWorkProfile => _activeWorkProfile;
 
-  void updateOdometer(int value) {
-    if (value < 0 || value == _odometer) return;
-    _odometer = value;
-    notifyListeners();
-  }
-
   void addVehicle(VehicleProfile vehicle) {
-    _vehicles.add(vehicle);
-    _activeVehicle ??= vehicle;
+    final storedVehicle = vehicle.id.trim().isEmpty
+        ? VehicleProfile(
+            id: 'vehicle_${DateTime.now().microsecondsSinceEpoch}',
+            nickname: vehicle.nickname,
+            year: vehicle.year,
+            make: vehicle.make,
+            model: vehicle.model,
+            usage: vehicle.usage,
+          )
+        : vehicle;
+    _vehicles.add(storedVehicle);
+    _activeVehicle ??= storedVehicle;
     notifyListeners();
   }
 

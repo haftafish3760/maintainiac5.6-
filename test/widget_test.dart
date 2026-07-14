@@ -14,6 +14,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text('ACTIVE VEHICLE'), findsAtLeastNWidgets(1));
     expect(find.text('READY TO TRACK'), findsOneWidget);

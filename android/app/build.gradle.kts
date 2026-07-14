@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraXVersion")
     implementation("androidx.camera:camera-view:$cameraXVersion")
     implementation("com.google.guava:guava:33.4.8-android")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
 
 tasks.matching { it.name.startsWith("copyFlutterAssets") }.configureEach {

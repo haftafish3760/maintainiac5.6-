@@ -24,6 +24,8 @@ class GlobalOdometerController extends ChangeNotifier {
   }) : _vehicleId = vehicleId,
        _reading = initialReading,
        _validationPolicy = validationPolicy,
+       _drivingPatternReviewEnabled =
+           validationPolicy.drivingPatternReviewEnabled,
        _snapshotReader = snapshotReader,
        _snapshotWriter = snapshotWriter,
        _history = initialHistory == null || initialHistory.isEmpty
@@ -38,8 +40,11 @@ class GlobalOdometerController extends ChangeNotifier {
 
   int _reading;
   String _vehicleId;
+  String? _liveTripId;
+  int? _liveTripEstimatedReading;
   var _eventSequence = 0;
   final OdometerValidationPolicy _validationPolicy;
+  bool _drivingPatternReviewEnabled;
   final Future<OdometerVehicleSnapshot> Function(
     String vehicleId, {
     int fallbackReading,
@@ -49,8 +54,12 @@ class GlobalOdometerController extends ChangeNotifier {
   _snapshotWriter;
   final List<OdometerReadingEvent> _history;
 
-  int get reading => _reading;
+  /// The current display reading. During a GPS-assisted trip this includes the
+  /// live estimate, while [confirmedReading] remains the audit source of truth.
+  int get reading => _liveTripEstimatedReading ?? _reading;
+  int get confirmedReading => _reading;
   String get vehicleId => _vehicleId;
+  bool get hasLiveTripProjection => _liveTripId != null;
   List<OdometerReadingEvent> get history => List.unmodifiable(_history);
   List<OdometerReadingEvent> get unresolvedMileageEvents => _history
       .where(
@@ -65,20 +74,25 @@ class GlobalOdometerController extends ChangeNotifier {
       )
       .toList(growable: false);
 
-  String get displayValue => _reading.toString().padLeft(7, '0');
+  String get displayValue => reading.toString().padLeft(7, '0');
+  bool get drivingPatternReviewEnabled => _drivingPatternReviewEnabled;
 
   OdometerVehicleSnapshot get snapshot => OdometerVehicleSnapshot(
     vehicleId: _vehicleId,
     currentReading: _reading,
     updatedAt: DateTime.now(),
     history: history,
-    drivingPatternReviewEnabled: _validationPolicy.drivingPatternReviewEnabled,
+    drivingPatternReviewEnabled: _drivingPatternReviewEnabled,
   );
 
-  Future<void> switchVehicle(OdometerVehicleSnapshot snapshot) async {
+  /// Prevent changing vehicles while an active GPS trip is projecting the
+  /// odometer. That trip has one vehicle identity and must be reviewed first.
+  Future<bool> switchVehicle(OdometerVehicleSnapshot snapshot) async {
+    if (hasLiveTripProjection) return false;
     await _persistSnapshot();
     _vehicleId = snapshot.vehicleId;
     _reading = snapshot.currentReading;
+    _drivingPatternReviewEnabled = snapshot.drivingPatternReviewEnabled;
     _history
       ..clear()
       ..addAll(
@@ -93,15 +107,56 @@ class GlobalOdometerController extends ChangeNotifier {
       );
     notifyListeners();
     await _persistSnapshot();
+    return true;
   }
 
-  Future<void> switchVehicleById(
+  Future<void> setDrivingPatternReviewEnabled(bool enabled) async {
+    if (_drivingPatternReviewEnabled == enabled) return;
+    _drivingPatternReviewEnabled = enabled;
+    notifyListeners();
+    await _persistSnapshot();
+  }
+
+  bool beginLiveTripProjection({
+    required String tripId,
+    required int startingOdometer,
+  }) {
+    if (tripId.trim().isEmpty || hasLiveTripProjection) return false;
+    if (startingOdometer < _reading) return false;
+    _liveTripId = tripId;
+    _liveTripEstimatedReading = startingOdometer;
+    notifyListeners();
+    return true;
+  }
+
+  bool updateLiveTripProjection({
+    required String tripId,
+    required int estimatedOdometer,
+  }) {
+    if (_liveTripId != tripId || estimatedOdometer < _reading) return false;
+    final current = _liveTripEstimatedReading ?? _reading;
+    if (estimatedOdometer <= current) return true;
+    _liveTripEstimatedReading = estimatedOdometer;
+    notifyListeners();
+    return true;
+  }
+
+  bool clearLiveTripProjection({required String tripId}) {
+    if (_liveTripId != tripId) return false;
+    _liveTripId = null;
+    _liveTripEstimatedReading = null;
+    notifyListeners();
+    return true;
+  }
+
+  Future<bool> switchVehicleById(
     String vehicleId, {
     int fallbackReading = 298150,
   }) async {
+    if (hasLiveTripProjection) return false;
     final reader = _snapshotReader;
     if (reader == null) {
-      await switchVehicle(
+      return switchVehicle(
         OdometerVehicleSnapshot(
           vehicleId: vehicleId,
           currentReading: fallbackReading,
@@ -109,10 +164,9 @@ class GlobalOdometerController extends ChangeNotifier {
           history: const [],
         ),
       );
-      return;
     }
     final snapshot = await reader(vehicleId, fallbackReading: fallbackReading);
-    await switchVehicle(snapshot);
+    return switchVehicle(snapshot);
   }
 
   OdometerUpdateResult updateFromText(
@@ -125,6 +179,11 @@ class GlobalOdometerController extends ChangeNotifier {
     String? sourceType,
     String? sourceId,
   }) {
+    if (hasLiveTripProjection) {
+      return const OdometerUpdateResult.error(
+        'A GPS-assisted trip is active. End or review that trip before entering a manual odometer reading.',
+      );
+    }
     final parseError = parseOdometerInputError(rawValue);
     if (parseError != null) {
       return OdometerUpdateResult.error(parseError);
@@ -150,6 +209,7 @@ class GlobalOdometerController extends ChangeNotifier {
       candidateReading: parsed,
       history: _history,
       enteredAt: enteredAt ?? DateTime.now(),
+      drivingPatternReviewEnabled: _drivingPatternReviewEnabled,
     );
     if (validation.isBlocked) {
       return OdometerUpdateResult.error(validation.message);
@@ -306,6 +366,7 @@ class GlobalOdometerController extends ChangeNotifier {
       candidateReading: parsed,
       history: _history,
       enteredAt: correctedAt ?? DateTime.now(),
+      drivingPatternReviewEnabled: _drivingPatternReviewEnabled,
     );
     if (validation.isBlocked) {
       throw ArgumentError(validation.message);

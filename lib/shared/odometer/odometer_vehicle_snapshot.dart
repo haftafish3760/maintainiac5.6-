@@ -56,3 +56,15 @@ String odometerVehicleIdForLabel(String? label) {
       .replaceAll(RegExp(r'^_+|_+$'), '');
   return normalized.isEmpty ? defaultVehicleId : normalized;
 }
+
+/// Returns the permanent record key for a vehicle.  Older profiles that have
+/// not yet been migrated still fall back to their normalized label so their
+/// existing local odometer history remains reachable.
+String odometerVehicleIdForVehicleId(
+  String? vehicleId, {
+  String? fallbackLabel,
+}) {
+  final stableId = vehicleId?.trim();
+  if (stableId != null && stableId.isNotEmpty) return stableId;
+  return odometerVehicleIdForLabel(fallbackLabel);
+}

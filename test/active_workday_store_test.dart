@@ -93,6 +93,70 @@ void main() {
     },
   );
 
+  test('resuming a paused day restores the active local session state', () async {
+    final store = ActiveWorkdayController.memory();
+    final startedAt = DateTime(2026, 6, 12, 7);
+
+    await store.startDay(
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck 1',
+      workProfileId: 'Business',
+      startOdometer: 1000,
+      startedAt: startedAt,
+    );
+    await store.addEvent(
+      type: ActiveWorkdayEventType.paused,
+      odometerReading: 1015,
+      occurredAt: DateTime(2026, 6, 12, 10),
+    );
+    final resumed = await store.addEvent(
+      type: ActiveWorkdayEventType.resumed,
+      odometerReading: 1015,
+      occurredAt: DateTime(2026, 6, 12, 11),
+    );
+
+    expect(resumed?.status, ActiveWorkdayStatus.active);
+    expect(store.activeSession?.status, ActiveWorkdayStatus.active);
+    expect(store.activeSession?.isPaused, isFalse);
+    expect(
+      store.activeSession?.elapsedWorkTimeAt(DateTime(2026, 6, 12, 12)),
+      const Duration(hours: 4),
+    );
+    expect(store.activeSession?.events.map((event) => event.type), [
+      ActiveWorkdayEventType.started,
+      ActiveWorkdayEventType.paused,
+      ActiveWorkdayEventType.resumed,
+    ]);
+  });
+
+  test('a currently paused workday does not advance its elapsed work timer',
+      () {
+    final record = ActiveWorkdaySessionRecord(
+      id: 'workday-paused',
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck 1',
+      workProfileId: 'Business',
+      startedAt: DateTime(2026, 6, 12, 7),
+      startOdometer: 1000,
+      status: ActiveWorkdayStatus.paused,
+      events: [
+        ActiveWorkdayEvent(
+          id: 'paused',
+          type: ActiveWorkdayEventType.paused,
+          occurredAt: DateTime(2026, 6, 12, 10),
+          odometerReading: 1015,
+          label: 'Day paused',
+        ),
+      ],
+    );
+
+    expect(
+      record.elapsedWorkTimeAt(DateTime(2026, 6, 12, 12)),
+      const Duration(hours: 3),
+    );
+    expect(record.isPaused, isTrue);
+  });
+
   test(
     'serializes and reloads a session record without losing event details',
     () {

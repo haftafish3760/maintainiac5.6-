@@ -79,4 +79,25 @@ void main() {
     expect(store.snapshotForVehicle('truck_2').currentReading, 5050);
     expect(store.snapshotForVehicle('truck_1').currentReading, 1000);
   });
+
+  test(
+    'opt-in driving-pattern review persists with its vehicle snapshot',
+    () async {
+      final store = OdometerStore.memory();
+      final controller = GlobalOdometerController(
+        vehicleId: 'truck_1',
+        initialReading: 1000,
+        snapshotWriter: store.saveSnapshot,
+      );
+
+      expect(controller.drivingPatternReviewEnabled, isFalse);
+      await controller.setDrivingPatternReviewEnabled(true);
+
+      expect(controller.drivingPatternReviewEnabled, isTrue);
+      expect(
+        store.snapshotForVehicle('truck_1').drivingPatternReviewEnabled,
+        isTrue,
+      );
+    },
+  );
 }

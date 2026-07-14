@@ -305,7 +305,7 @@ void main() {
     },
   );
 
-  test('daily average review is enabled by default', () {
+  test('daily average review stays off until the user opts in', () {
     final controller = GlobalOdometerController(
       initialReading: 1300,
       initialHistory: [
@@ -336,10 +336,32 @@ void main() {
       ),
     );
 
-    expect(result.ok, isFalse);
-    expect(result.requiresConfirmation, isTrue);
-    expect(result.message, contains('outside the expected range'));
-    expect(controller.reading, 1300);
+    expect(result.ok, isTrue);
+    expect(result.requiresConfirmation, isFalse);
+    expect(controller.reading, 2100);
+  });
+
+  test('weekday trend retains separate typical and maximum daily mileage', () {
+    final trend = OdometerTrend.fromHistory(
+      [
+        OdometerReadingEvent(reading: 1000, recordedAt: DateTime(2026, 6, 7)),
+        OdometerReadingEvent(reading: 1300, recordedAt: DateTime(2026, 6, 8)),
+        OdometerReadingEvent(reading: 1400, recordedAt: DateTime(2026, 6, 9)),
+        OdometerReadingEvent(reading: 1500, recordedAt: DateTime(2026, 6, 10)),
+        OdometerReadingEvent(reading: 1600, recordedAt: DateTime(2026, 6, 11)),
+        OdometerReadingEvent(reading: 1700, recordedAt: DateTime(2026, 6, 12)),
+        OdometerReadingEvent(reading: 1800, recordedAt: DateTime(2026, 6, 13)),
+        OdometerReadingEvent(reading: 1900, recordedAt: DateTime(2026, 6, 14)),
+        OdometerReadingEvent(reading: 2200, recordedAt: DateTime(2026, 6, 15)),
+        OdometerReadingEvent(reading: 2300, recordedAt: DateTime(2026, 6, 16)),
+      ],
+      currentReading: 2300,
+      enteredAt: DateTime(2026, 6, 16),
+    );
+
+    expect(trend.averageDailyMilesForWeekday(DateTime.monday), 300);
+    expect(trend.maximumDailyMilesForWeekday(DateTime.monday), 300);
+    expect(trend.maximumObservedDailyMiles, 300);
   });
 
   test(
@@ -499,4 +521,65 @@ void main() {
     expect(odometerVehicleIdForLabel('  Ram 2500 / Crew  '), 'ram_2500_crew');
     expect(odometerVehicleIdForLabel(''), defaultVehicleId);
   });
+
+  test('stable vehicle identity survives an editable nickname change', () {
+    const vehicleId = 'vehicle_9c5f0f';
+
+    expect(
+      odometerVehicleIdForVehicleId(vehicleId, fallbackLabel: 'Work Truck 1'),
+      vehicleId,
+    );
+    expect(
+      odometerVehicleIdForVehicleId(vehicleId, fallbackLabel: 'Blue F-150'),
+      vehicleId,
+    );
+  });
+
+  test(
+    'live GPS trip projection updates display without overwriting audit odometer',
+    () {
+      final controller = GlobalOdometerController(initialReading: 1000);
+
+      expect(
+        controller.beginLiveTripProjection(
+          tripId: 'trip_1',
+          startingOdometer: 1000,
+        ),
+        isTrue,
+      );
+      expect(
+        controller.updateLiveTripProjection(
+          tripId: 'trip_1',
+          estimatedOdometer: 1002,
+        ),
+        isTrue,
+      );
+      expect(controller.reading, 1002);
+      expect(controller.confirmedReading, 1000);
+      expect(controller.updateFromText('1003').ok, isFalse);
+      expect(controller.clearLiveTripProjection(tripId: 'trip_1'), isTrue);
+      expect(controller.reading, 1000);
+    },
+  );
+
+  test(
+    'an active GPS trip prevents switching the active odometer vehicle',
+    () async {
+      final controller = GlobalOdometerController(initialReading: 1000);
+      controller.beginLiveTripProjection(
+        tripId: 'trip_1',
+        startingOdometer: 1000,
+      );
+
+      final switched = await controller.switchVehicleById(
+        'vehicle_second',
+        fallbackReading: 2000,
+      );
+
+      expect(switched, isFalse);
+      expect(controller.vehicleId, defaultVehicleId);
+      expect(controller.reading, 1000);
+      expect(controller.hasLiveTripProjection, isTrue);
+    },
+  );
 }

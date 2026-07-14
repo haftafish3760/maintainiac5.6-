@@ -150,20 +150,34 @@ class GlobalOdometerHeader extends StatelessWidget {
                   vehicle: vehicle,
                   selected:
                       vehicle.displayName == state.activeVehicle?.displayName,
-                  onTap: () {
+                  onTap: () async {
+                    final odometer = GlobalOdometerScope.of(context);
+                    final switched = await odometer.switchVehicleById(
+                      odometerVehicleIdForVehicleId(
+                        vehicle.id,
+                        fallbackLabel: vehicle.nickname,
+                      ),
+                    );
+                    if (!context.mounted) return;
+                    if (!switched) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'End or review the active GPS trip before switching vehicles.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     state.selectVehicle(vehicle);
-                    unawaited(
-                      operationalContext?.setActiveVehicle(
-                        vehicleId: odometerVehicleIdForLabel(vehicle.nickname),
+                    if (operationalContext != null) {
+                      await operationalContext.setActiveVehicle(
+                        vehicleId: odometer.vehicleId,
                         vehicleLabel: vehicle.nickname,
                         usage: vehicle.usage,
-                      ),
-                    );
-                    unawaited(
-                      GlobalOdometerScope.of(context).switchVehicleById(
-                        odometerVehicleIdForLabel(vehicle.nickname),
-                      ),
-                    );
+                      );
+                    }
+                    if (!context.mounted) return;
                     Navigator.of(context).pop();
                   },
                 ),
