@@ -44,8 +44,6 @@ const _electricalCoreCableSizes = [
 
 const _electricalCoreWireSizes = ['14 awg', '12 awg', '10 awg'];
 
-const _electricalCoreRacewaySizes = ['1/2 in', '3/4 in', '1 in'];
-
 const _electricalCoreCableSignals = [
   ..._electricalCoreCableSizes,
   ..._electricalCoreWireSizes,

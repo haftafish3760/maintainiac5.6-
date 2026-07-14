@@ -8,7 +8,6 @@ int _tileWaterproofingProfileReceiptScore(_TileReceiptScoreContext context) {
   final itemName = context.itemName;
   final category = context.category;
   final variant = context.variant;
-  final item = context.item;
 
   if (RegExp(
         r'\b(uncoupling membrane|waterproofing membrane|shower membrane|cement board|backer board)\b',

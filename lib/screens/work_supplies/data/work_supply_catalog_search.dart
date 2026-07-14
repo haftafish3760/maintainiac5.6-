@@ -10,7 +10,7 @@ final List<_CatalogSearchEntry> _catalogSearchEntries = [
     ),
 ];
 
-final Map<String, List<_CatalogSearchEntry>> catalogSearchIndex =
+final Map<String, List<_CatalogSearchEntry>> _catalogSearchIndex =
     _buildCatalogSearchIndex(_catalogSearchEntries);
 
 List<WorkSupplyItem> searchWorkSupplies(String query) {
@@ -27,7 +27,7 @@ List<WorkSupplyItem> searchWorkSupplies(String query) {
   for (final token in tokens) {
     final tokenCandidateIds = <String>{};
     for (final alternate in _tokenAlternates(token)) {
-      final entries = catalogSearchIndex[alternate];
+      final entries = _catalogSearchIndex[alternate];
       if (entries == null) continue;
       for (final entry in entries) {
         final id = entry.item.id;
