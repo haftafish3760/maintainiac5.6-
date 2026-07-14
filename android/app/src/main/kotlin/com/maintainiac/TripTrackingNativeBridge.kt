@@ -84,7 +84,6 @@ class TripTrackingNativeBridge(
         pendingActivityAuthorization = call.argument<Boolean>("activityRecognitionEnabled") == true
         locationPermissionRequested = false
         activityPermissionRequested = false
-        notificationPermissionRequested = false
         pendingAuthorizationResult = result
         pendingBackgroundAuthorization = allowBackground
         continueAuthorizationRequest()

@@ -25,6 +25,10 @@ void main() {
     expect(source, contains('Manifest.permission.POST_NOTIFICATIONS'));
     expect(source, contains('hasNotificationPermission()'));
     expect(source, contains('A denial must never silently block mileage'));
+    expect(
+      source,
+      isNot(contains('notificationPermissionRequested = false\n        pendingAuthorizationResult')),
+    );
   });
 
   test(
