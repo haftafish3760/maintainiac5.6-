@@ -403,6 +403,31 @@ void main() {
       expect(report.vehiclePersonalUsePercent, 0);
     },
   );
+
+  test('expense recap exposes hydrogen fuel metrics separately', () async {
+    final ledger = ExpenseLedgerController.memory();
+    for (final receipt in [
+      _hydrogenReceipt('h2-start', DateTime(2026, 6, 1), 10000, 4, 48),
+      _hydrogenReceipt('h2-end', DateTime(2026, 6, 4), 10200, 5, 60),
+    ]) {
+      await ledger.saveReceipt(receipt);
+    }
+
+    final report = ExpenseRecapReport.fromLedger(
+      ledger,
+      ExpenseDateRange(
+        start: DateTime(2026, 6, 1),
+        end: DateTime(2026, 6, 30),
+      ),
+      vehicleId: 'hydrogen_1',
+    );
+
+    expect(report.hydrogenFuelExpense, 108);
+    expect(report.hydrogenKg, 9);
+    expect(report.averageHydrogenKgPrice, 12);
+    expect(report.milesPerHydrogenKg, closeTo(22.222, .001));
+    expect(report.hydrogenFuelCostPerMile, .54);
+  });
 }
 
 ExpenseReceiptRecord _fuelCycleReceipt({
@@ -431,6 +456,35 @@ ExpenseReceiptRecord _fuelCycleReceipt({
         odometerReading: odometer,
         fuelType: 'Gasoline',
         fillType: fillType,
+      ),
+    ],
+  );
+}
+
+ExpenseReceiptRecord _hydrogenReceipt(
+  String id,
+  DateTime date,
+  int odometer,
+  double kilograms,
+  double subtotal,
+) {
+  return ExpenseReceiptRecord(
+    id: id,
+    receiptDate: date,
+    merchantName: 'Hydrogen Station',
+    vehicleId: 'hydrogen_1',
+    lines: [
+      ExpenseReceiptLineRecord(
+        id: '$id-line',
+        description: 'H70 Hydrogen',
+        category: 'Fuel',
+        use: ExpenseLineUse.business,
+        quantity: kilograms,
+        unitsPerPackage: 1,
+        unit: 'kg',
+        subtotal: subtotal,
+        odometerReading: odometer,
+        fuelType: 'Hydrogen',
       ),
     ],
   );

@@ -4,8 +4,10 @@ class _ExpenseRecapFuelSummary {
   const _ExpenseRecapFuelSummary({
     required this.liquidFuelExpense,
     required this.electricFuelExpense,
+    required this.hydrogenFuelExpense,
     required this.liquidGallons,
     required this.electricKwh,
+    required this.hydrogenKg,
     required this.odometerMiles,
     required this.completedLiquidFillMiles,
     required this.completedLiquidFillGallons,
@@ -38,11 +40,16 @@ class _ExpenseRecapFuelSummary {
         0,
         (total, metric) => total + metric.electricFuelExpense,
       ),
+      hydrogenFuelExpense: metrics.fold(
+        0,
+        (total, metric) => total + metric.hydrogenFuelExpense,
+      ),
       liquidGallons: metrics.fold(
         0,
         (total, metric) => total + metric.liquidGallons,
       ),
       electricKwh: metrics.fold(0, (total, metric) => total + metric.electricKwh),
+      hydrogenKg: metrics.fold(0, (total, metric) => total + metric.hydrogenKg),
       odometerMiles: null,
       completedLiquidFillMiles: null,
       completedLiquidFillGallons: 0,
@@ -54,8 +61,10 @@ class _ExpenseRecapFuelSummary {
     return _ExpenseRecapFuelSummary(
       liquidFuelExpense: metrics.liquidFuelExpense,
       electricFuelExpense: metrics.electricFuelExpense,
+      hydrogenFuelExpense: metrics.hydrogenFuelExpense,
       liquidGallons: metrics.liquidGallons,
       electricKwh: metrics.electricKwh,
+      hydrogenKg: metrics.hydrogenKg,
       odometerMiles: metrics.odometerMiles,
       completedLiquidFillMiles: metrics.completedLiquidFillMiles,
       completedLiquidFillGallons: metrics.completedLiquidFillGallons,
@@ -65,8 +74,10 @@ class _ExpenseRecapFuelSummary {
 
   final double liquidFuelExpense;
   final double electricFuelExpense;
+  final double hydrogenFuelExpense;
   final double liquidGallons;
   final double electricKwh;
+  final double hydrogenKg;
   final int? odometerMiles;
   final int? completedLiquidFillMiles;
   final double completedLiquidFillGallons;

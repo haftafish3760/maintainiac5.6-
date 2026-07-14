@@ -83,6 +83,7 @@ class ExpenseRecapReport {
     required this.fuelExpense,
     required this.liquidFuelExpense,
     required this.electricFuelExpense,
+    required this.hydrogenFuelExpense,
     required this.maintenanceExpense,
     required this.repairExpense,
     required this.materialsExpense,
@@ -98,6 +99,7 @@ class ExpenseRecapReport {
     required this.largestReceiptTotal,
     required this.fuelUnits,
     required this.electricKwh,
+    required this.hydrogenKg,
     required this.odometerMiles,
     required this.completedLiquidFillMiles,
     required this.completedLiquidFillGallons,
@@ -204,6 +206,7 @@ class ExpenseRecapReport {
       fuelExpense: fuelExpense,
       liquidFuelExpense: fuelEconomy.liquidFuelExpense,
       electricFuelExpense: fuelEconomy.electricFuelExpense,
+      hydrogenFuelExpense: fuelEconomy.hydrogenFuelExpense,
       maintenanceExpense: maintenanceExpense,
       repairExpense: repairExpense,
       materialsExpense: materialsExpense,
@@ -219,6 +222,7 @@ class ExpenseRecapReport {
       largestReceiptTotal: largestReceiptTotal,
       fuelUnits: fuelEconomy.liquidGallons,
       electricKwh: fuelEconomy.electricKwh,
+      hydrogenKg: fuelEconomy.hydrogenKg,
       odometerMiles: fuelEconomy.odometerMiles,
       completedLiquidFillMiles: fuelEconomy.completedLiquidFillMiles,
       completedLiquidFillGallons: fuelEconomy.completedLiquidFillGallons,
@@ -239,6 +243,7 @@ class ExpenseRecapReport {
   final double fuelExpense;
   final double liquidFuelExpense;
   final double electricFuelExpense;
+  final double hydrogenFuelExpense;
   final double maintenanceExpense;
   final double repairExpense;
   final double materialsExpense;
@@ -254,6 +259,7 @@ class ExpenseRecapReport {
   final double largestReceiptTotal;
   final double fuelUnits;
   final double electricKwh;
+  final double hydrogenKg;
   final int? odometerMiles;
   final int? completedLiquidFillMiles;
   final double completedLiquidFillGallons;
@@ -275,11 +281,14 @@ class ExpenseRecapReport {
   double? get fuelCostPerMile => _perMile(fuelExpense);
   double? get liquidFuelCostPerMile => _perMile(liquidFuelExpense);
   double? get electricFuelCostPerMile => _perMile(electricFuelExpense);
+  double? get hydrogenFuelCostPerMile => _perMile(hydrogenFuelExpense);
   double? get totalCostPerMile => _perMile(totalExpenses);
   double? get averageFuelPrice =>
       fuelUnits <= 0 ? null : liquidFuelExpense / fuelUnits;
   double? get averageElectricKwhPrice =>
       electricKwh <= 0 ? null : electricFuelExpense / electricKwh;
+  double? get averageHydrogenKgPrice =>
+      hydrogenKg <= 0 ? null : hydrogenFuelExpense / hydrogenKg;
   double? get averageMpg {
     if (hasMixedLiquidFuelTypes) return null;
     final miles = completedLiquidFillMiles ?? odometerMiles;
@@ -294,6 +303,12 @@ class ExpenseRecapReport {
     final miles = odometerMiles;
     if (miles == null || miles <= 0 || electricKwh <= 0) return null;
     return miles / electricKwh;
+  }
+
+  double? get milesPerHydrogenKg {
+    final miles = odometerMiles;
+    if (miles == null || miles <= 0 || hydrogenKg <= 0) return null;
+    return miles / hydrogenKg;
   }
 
   double? _perMile(double amount) {
