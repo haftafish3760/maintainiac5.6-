@@ -62,6 +62,7 @@ extension _ExpenseReceiptEntryLifecycleHelpers
   }
 
   void _handleReceiptEntryDependencies() {
+    _telemetrySnapshot = ExpenseScreenTelemetryRecorder.snapshot(context);
     _drafts = ExpenseDraftScope.maybeOf(context);
     if (!_appliedReceiptReviewStyleDefault) {
       _appliedReceiptReviewStyleDefault = true;
@@ -110,28 +111,31 @@ extension _ExpenseReceiptEntryLifecycleHelpers
         .difference(_screenOpenedAtUtc)
         .inMilliseconds
         .clamp(0, 86400000);
-    ExpenseScreenTelemetryRecorder.record(
-      context,
-      ExpenseTelemetryEventType.screenClosed,
-      durationMs: elapsedMs,
-      metadata: {'source': _receiptPrivacyFeatureArea},
-    );
-    ExpenseScreenTelemetryRecorder.record(
-      context,
-      ExpenseTelemetryEventType.timeSpentOnScreen,
-      durationMs: elapsedMs,
-      metadata: {'source': _receiptPrivacyFeatureArea},
-    );
-    if (!_isEditingReceipt && !_telemetryAddFlowFinished) {
-      ExpenseScreenTelemetryRecorder.record(
-        context,
-        ExpenseTelemetryEventType.addExpenseAbandoned,
-        diagnostic: _abandonedReceiptEntryDiagnostic,
-        metadata: {
-          'entryMode': 'receipt',
-          'source': _receiptPrivacyFeatureArea,
-        },
+    final telemetrySnapshot = _telemetrySnapshot;
+    if (telemetrySnapshot != null) {
+      ExpenseScreenTelemetryRecorder.recordSnapshot(
+        telemetrySnapshot,
+        ExpenseTelemetryEventType.screenClosed,
+        durationMs: elapsedMs,
+        metadata: {'source': _receiptPrivacyFeatureArea},
       );
+      ExpenseScreenTelemetryRecorder.recordSnapshot(
+        telemetrySnapshot,
+        ExpenseTelemetryEventType.timeSpentOnScreen,
+        durationMs: elapsedMs,
+        metadata: {'source': _receiptPrivacyFeatureArea},
+      );
+      if (!_isEditingReceipt && !_telemetryAddFlowFinished) {
+        ExpenseScreenTelemetryRecorder.recordSnapshot(
+          telemetrySnapshot,
+          ExpenseTelemetryEventType.addExpenseAbandoned,
+          diagnostic: _abandonedReceiptEntryDiagnostic,
+          metadata: {
+            'entryMode': 'receipt',
+            'source': _receiptPrivacyFeatureArea,
+          },
+        );
+      }
     }
     _draftTimer?.cancel();
     if (!_savedReceipt && !_isEditingReceipt) {

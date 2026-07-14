@@ -55,7 +55,9 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
     if (!foundBoundarySignal && previousExactTail.isNotEmpty) {
       possibleSectionGaps += 1;
     }
-    rawSections.add(rawSectionLines.join('\n'));
+    // Keep the provider's section text unchanged for source evidence. The
+    // parser copy above is intentionally cleaned separately.
+    rawSections.add(section);
     if (parserSectionLines.isNotEmpty) {
       parserSections.add(parserSectionLines.join('\n'));
     }
@@ -76,7 +78,7 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
     sectionIndex += 1;
   }
   return _CombinedReceiptText(
-    rawText: rawSections.join('\n\n').trim(),
+    rawText: rawSections.join('\n\n'),
     parserText: parserSections.join('\n\n').trim(),
     parserLineSourceLocations: List.unmodifiable(parserLineSourceLocations),
     suppressedDuplicateLines: suppressedDuplicateLines,

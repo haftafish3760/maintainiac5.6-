@@ -7,6 +7,7 @@ class _CoreReceiptFixture {
   const _CoreReceiptFixture(
     this.line,
     this.contains, {
+    // ignore: unused_element_parameter
     this.requiredScope = WorkSupplyMarketScope.residential,
   });
 

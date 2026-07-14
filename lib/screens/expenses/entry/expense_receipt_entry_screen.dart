@@ -250,6 +250,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   var _draftLoaded = false;
   var _savedReceipt = false;
   late final DateTime _screenOpenedAtUtc;
+  ExpenseScreenTelemetrySnapshot? _telemetrySnapshot;
   var _telemetryAddFlowFinished = false;
   int _lastAttachmentCount = 0;
   ExpenseReceiptRecord? _editingReceipt;

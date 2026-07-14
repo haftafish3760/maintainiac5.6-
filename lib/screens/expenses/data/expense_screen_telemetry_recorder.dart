@@ -40,6 +40,37 @@ class ExpenseScreenTelemetryRecorder {
     unawaited(_enqueueAndQueueSummary(event, orgIdForSummary));
   }
 
+  static ExpenseScreenTelemetrySnapshot snapshot(BuildContext context) {
+    final profile = UserProfileScope.maybeOf(context)?.activeProfile;
+    return ExpenseScreenTelemetrySnapshot(
+      context: contextFor(context),
+      summaryOrgId: profile?.cloudBackupEnabled == true ? profile?.id : null,
+    );
+  }
+
+  static void recordSnapshot(
+    ExpenseScreenTelemetrySnapshot snapshot,
+    ExpenseTelemetryEventType type, {
+    int durationMs = 0,
+    String? validationErrorKind,
+    String? failureKind,
+    ExpenseFailureDiagnostic? diagnostic,
+    String? categoryGroup,
+    Map<String, Object?> metadata = const {},
+  }) {
+    final event = ExpenseTelemetryEvent(
+      type: type,
+      context: snapshot.context,
+      durationMs: durationMs,
+      validationErrorKind: validationErrorKind,
+      failureKind: failureKind,
+      diagnostic: diagnostic,
+      categoryGroup: categoryGroup,
+      metadata: metadata,
+    );
+    unawaited(_enqueueAndQueueSummary(event, snapshot.summaryOrgId));
+  }
+
   static ExpenseTelemetryContext contextFor(BuildContext context) {
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
     final profile = UserProfileScope.maybeOf(context)?.activeProfile;
@@ -125,4 +156,15 @@ class ExpenseScreenTelemetryRecorder {
       ReceiptDataSaverLevel.maximum => ExpenseTelemetryStorageMode.ultraLow,
     };
   }
+}
+
+@immutable
+class ExpenseScreenTelemetrySnapshot {
+  const ExpenseScreenTelemetrySnapshot({
+    required this.context,
+    this.summaryOrgId,
+  });
+
+  final ExpenseTelemetryContext context;
+  final String? summaryOrgId;
 }

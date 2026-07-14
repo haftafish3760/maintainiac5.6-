@@ -3,6 +3,7 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_confid
 import 'package:maintaniac/screens/work_supplies/data/work_supply_receipt_parser.dart';
 
 class _ReceiptFixture {
+  // ignore: unused_element_parameter
   const _ReceiptFixture(this.line, this.contains, {this.excludes = const []});
 
   final String line;

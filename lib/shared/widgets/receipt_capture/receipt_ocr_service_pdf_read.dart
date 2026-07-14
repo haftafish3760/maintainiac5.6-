@@ -74,8 +74,8 @@ extension _ReceiptOcrServicePdfRead on ReceiptOcrService {
         await imageFile.writeAsBytes(png, flush: true);
         final image = InputImage.fromFilePath(imageFile.path);
         final recognized = await recognizer.processImage(image);
-        final text = recognized.text.trim();
-        if (text.isNotEmpty) pageTexts.add(text);
+        final sourceText = recognized.text;
+        if (sourceText.trim().isNotEmpty) pageTexts.add(sourceText);
         pageIndex += 1;
       }
     } on MissingPluginException {
@@ -90,7 +90,7 @@ extension _ReceiptOcrServicePdfRead on ReceiptOcrService {
         await tempDir.delete(recursive: true);
       }
     }
-    return pageTexts.join('\n\n').trim();
+    return pageTexts.join('\n\n');
   }
 
   Future<Uint8List?> _readPdfRasterBytes(String path) async {

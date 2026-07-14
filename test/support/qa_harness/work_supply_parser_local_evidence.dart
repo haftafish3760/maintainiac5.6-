@@ -119,8 +119,9 @@ Object _decodeCorpus(File file) {
       return _InvalidCorpus(['privacy_exclusions_missing']);
     }
     final cases = root['cases'];
-    if (cases is! List || cases.isEmpty)
+    if (cases is! List || cases.isEmpty) {
       return _InvalidCorpus(['cases_missing']);
+    }
     final entries = <Map<String, Object?>>[];
     for (final entry in cases) {
       if (entry is! Map) return _InvalidCorpus(['case_must_be_object']);

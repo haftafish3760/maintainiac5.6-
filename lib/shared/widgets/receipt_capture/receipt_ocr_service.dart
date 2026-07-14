@@ -72,7 +72,7 @@ class ReceiptOcrService {
       _appendAttachmentText(
         importedTextByAttachment,
         attachment.id,
-        attachment.importedText.trim(),
+        attachment.importedText,
         repeatedAttachmentIds,
       );
       importedTextReadCount += 1;
@@ -208,7 +208,8 @@ class ReceiptOcrService {
         try {
           final image = InputImage.fromFilePath(attachment.path);
           final recognized = await recognizer.processImage(image);
-          final text = recognized.text.trim();
+          final sourceText = recognized.text;
+          final text = sourceText.trim();
           layoutPages.add(
             _receiptOcrLayoutPageFromRecognizedText(
               attachment.id,
@@ -222,7 +223,7 @@ class ReceiptOcrService {
             _appendAttachmentText(
               textByAttachment,
               attachment.id,
-              text,
+              sourceText,
               repeatedAttachmentIds,
             );
           }

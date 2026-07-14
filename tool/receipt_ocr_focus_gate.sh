@@ -21,6 +21,7 @@ flutter analyze \
 flutter test --reporter compact \
   test/receipt_attachment_duplicate_detector_test.dart \
   test/receipt_ocr_layout_contract_test.dart \
+  test/receipt_ocr_source_text_fidelity_test.dart \
   test/receipt_ocr_handoff_test.dart \
   test/expense_receipt_ocr_handler_integration_test.dart \
   test/receipt_ocr_timeout_recovery_test.dart \
@@ -31,6 +32,9 @@ flutter test --reporter compact \
   test/expense_receipt_assisted_review_handoff_test.dart \
   test/expense_receipt_assisted_review_parser_guidance_test.dart \
   test/receipt_camera_result_test.dart \
+  test/receipt_camera_help_flow_test.dart \
+  test/receipt_photo_review_controls_layout_test.dart \
+  test/receipt_camera_result_coverage_totals_test.dart \
   test/receipt_camera_result_frozen_brain_install_test.dart \
   test/receipt_camera_result_frozen_metadata_routes_test.dart \
   test/receipt_camera_result_stitch_scanner_test.dart \
