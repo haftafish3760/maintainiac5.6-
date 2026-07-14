@@ -239,10 +239,10 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       }
       return;
     }
-    if (localStore == null) {
-      await _uploadCoordinator.uploadPending();
-      return;
-    }
+    // The durable local review is the proof that a queue item was physically
+    // confirmed. Without it, an old or foreign queue entry must remain local
+    // rather than being uploaded speculatively.
+    if (localStore == null) return;
     final reviews = localStore.pendingReviews.where(
       (review) =>
           review.cloudSyncState != TripTrackingCloudSyncState.localOnly &&
@@ -250,6 +250,16 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     );
     for (final review in reviews) {
       try {
+        if (!review.isOdometerConfirmed) {
+          await _discardQueuedBackupFor(review);
+          await _saveReviewState(
+            review.copyWith(
+              cloudSyncState: TripTrackingCloudSyncState.localOnly,
+              clearCloudSyncError: true,
+            ),
+          );
+          continue;
+        }
         final boundReview = _bindReview(review, createdByUid);
         if (boundReview == null) {
           await _discardQueuedBackupFor(review);

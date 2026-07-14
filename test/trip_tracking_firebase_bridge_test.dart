@@ -69,6 +69,42 @@ void main() {
     },
   );
 
+  test('flush removes a legacy unconfirmed mileage queue entry', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    final unconfirmed = review(
+      confirmed: false,
+    ).copyWith(cloudSyncState: TripTrackingCloudSyncState.queued);
+    await localStore.saveReview(unconfirmed);
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await queue.enqueue(
+      MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+        uid: 'firebaseUid-1',
+        review: unconfirmed,
+      ),
+    );
+    final sink = _RecordingSink();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await mirror.flushPending();
+
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, isEmpty);
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncState,
+      TripTrackingCloudSyncState.localOnly,
+    );
+  });
+
   test('builds a mileage-only document without location evidence', () {
     final doc = MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
       orgId: 'orgA',
@@ -166,6 +202,8 @@ void main() {
   test(
     'queues and uploads a reviewed trip while preserving local retry state',
     () async {
+      final localStore = TripTrackingSessionStore.memory();
+      await localStore.saveReview(review());
       final queue = await MaintainiacFirestoreUploadQueueStore.create();
       final sink = _RecordingSink();
       final coordinator = MaintainiacFirestoreUploadCoordinator(
@@ -176,6 +214,7 @@ void main() {
       final mirror = TripTrackingFirebaseMirror(
         queueStore: queue,
         uploadCoordinator: coordinator,
+        localStore: localStore,
         orgId: 'orgA',
         createdByUid: 'firebaseUid-1',
       );
