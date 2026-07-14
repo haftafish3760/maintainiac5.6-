@@ -27,6 +27,7 @@ class ReceiptOcrService {
   const ReceiptOcrService({
     this.maxPdfOcrPages = ReceiptPdfInspector.localAssistedReadPageLimit,
     this.pdfPageReadTimeout = const Duration(seconds: 12),
+    this.photoReadTimeout = const Duration(seconds: 12),
     this.maxPhotoOcrAttachments = 8,
     this.maxPdfOcrAttachments = 2,
   }) : assert(maxPdfOcrPages >= 0),
@@ -47,6 +48,7 @@ class ReceiptOcrService {
     return ReceiptOcrService(
       maxPdfOcrPages: capability.maxLocalPdfPages,
       pdfPageReadTimeout: timeout,
+      photoReadTimeout: timeout,
       maxPhotoOcrAttachments: capability.maxLocalPhotoCount,
       maxPdfOcrAttachments: pdfAttachmentLimit,
     );
@@ -54,6 +56,7 @@ class ReceiptOcrService {
 
   final int maxPdfOcrPages;
   final Duration pdfPageReadTimeout;
+  final Duration photoReadTimeout;
   final int maxPhotoOcrAttachments;
   final int maxPdfOcrAttachments;
 
@@ -210,7 +213,9 @@ class ReceiptOcrService {
         final attachment = readablePhotoAttachments[photoIndex];
         try {
           final image = InputImage.fromFilePath(attachment.path);
-          final recognized = await recognizer.processImage(image);
+          final recognized = await recognizer
+              .processImage(image)
+              .timeout(photoReadTimeout);
           final sourceText = recognized.text;
           final text = sourceText.trim();
           layoutPages.add(
@@ -237,6 +242,10 @@ class ReceiptOcrService {
             'Receipt photo assistance is not available in this build.',
           );
           break;
+        } on TimeoutException {
+          warnings.add(
+            'Reading this receipt photo took too long. Try again, use a clearer photo, or continue with the details yourself.',
+          );
         } on PlatformException catch (error) {
           final message = error.message?.trim();
           warnings.add(

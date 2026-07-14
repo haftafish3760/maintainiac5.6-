@@ -54,6 +54,19 @@ void main() {
         isNull,
       );
       expect(layout.pages.single.lines.single.tokens[1].needsReview, isTrue);
+      expect(
+        layout.reconstructedRows.single.sourceTokenReferences.map(
+          (reference) => [
+            reference.sourceLineIndex,
+            reference.sourceTokenIndex,
+          ],
+        ),
+        [
+          [0, 0],
+          [0, 1],
+          [0, 2],
+        ],
+      );
       const confidentToken = ReceiptOcrToken(text: 'TOTAL', confidence: .9);
       expect(confidentToken.needsReview, isFalse);
     },

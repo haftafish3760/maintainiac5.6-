@@ -9,6 +9,7 @@ class ReceiptOcrRow {
     required this.displayText,
     required this.normalizedText,
     required this.sourceLineIndexes,
+    this.sourceTokenReferences = const [],
     this.bounds,
     this.confidence,
     this.optionalInterpretation,
@@ -23,6 +24,7 @@ class ReceiptOcrRow {
   final String displayText;
   final String normalizedText;
   final List<int> sourceLineIndexes;
+  final List<ReceiptOcrTokenReference> sourceTokenReferences;
   final ReceiptOcrBounds? bounds;
   final double? confidence;
   final String? optionalInterpretation;
@@ -30,6 +32,18 @@ class ReceiptOcrRow {
   final bool needsReview;
 
   String get sourceText => sourceFragments.join('\t');
+}
+
+/// Identifies the original token that supports editable receipt evidence.
+/// Attachment and page identity remain on [ReceiptOcrRow].
+class ReceiptOcrTokenReference {
+  const ReceiptOcrTokenReference({
+    required this.sourceLineIndex,
+    required this.sourceTokenIndex,
+  });
+
+  final int sourceLineIndex;
+  final int sourceTokenIndex;
 }
 
 List<ReceiptOcrRow> reconstructReceiptOcrRows(ReceiptOcrDocument document) {
@@ -92,6 +106,9 @@ List<_ReceiptOcrRowCandidate> _rowCandidates(ReceiptOcrPage page) {
             text: line.sourceText,
             bounds: line.bounds,
             confidence: line.confidence,
+            sourceTokenIndexes: List.unmodifiable(
+              List.generate(line.tokens.length, (index) => index),
+            ),
           ),
         );
       }
@@ -131,6 +148,13 @@ ReceiptOcrRow _rowFromUnpositionedCandidate(
     displayText: candidate.text,
     normalizedText: _normalizeReceiptOcrEvidenceText(candidate.text),
     sourceLineIndexes: List.unmodifiable([candidate.sourceLineIndex]),
+    sourceTokenReferences: List.unmodifiable([
+      for (final tokenIndex in candidate.sourceTokenIndexes)
+        ReceiptOcrTokenReference(
+          sourceLineIndex: candidate.sourceLineIndex,
+          sourceTokenIndex: tokenIndex,
+        ),
+    ]),
     confidence: candidate.confidence,
     needsReview: _receiptOcrEvidenceNeedsReview(candidate.confidence),
   );
@@ -226,12 +250,14 @@ class _ReceiptOcrRowCandidate {
     required this.text,
     required this.bounds,
     required this.confidence,
+    required this.sourceTokenIndexes,
   });
 
   final int sourceLineIndex;
   final String text;
   final ReceiptOcrBounds? bounds;
   final double? confidence;
+  final List<int> sourceTokenIndexes;
 }
 
 class _ReceiptOcrRowCluster {
@@ -306,6 +332,14 @@ class _ReceiptOcrRowCluster {
       displayText: displayText,
       normalizedText: _normalizeReceiptOcrEvidenceText(displayText),
       sourceLineIndexes: List.unmodifiable(sourceLineIndexes),
+      sourceTokenReferences: List.unmodifiable([
+        for (final line in lines)
+          for (final tokenIndex in line.sourceTokenIndexes)
+            ReceiptOcrTokenReference(
+              sourceLineIndex: line.sourceLineIndex,
+              sourceTokenIndex: tokenIndex,
+            ),
+      ]),
       bounds: bounds,
       confidence: confidence,
       needsReview: _receiptOcrEvidenceNeedsReview(confidence),

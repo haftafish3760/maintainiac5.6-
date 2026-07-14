@@ -275,6 +275,48 @@ void main() {
     );
   });
 
+  test('field candidates retain original token references', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'TOTAL 18.37',
+              lines: [
+                ReceiptOcrLine(
+                  text: 'TOTAL 18.37',
+                  tokens: [
+                    ReceiptOcrToken(text: 'TOTAL'),
+                    ReceiptOcrToken(text: '18.37'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final total = document.fieldCandidates.selectedFor(
+      ReceiptOcrFieldKind.total,
+    )!;
+    expect(
+      total.sourceTokenReferences
+          .map(
+            (reference) => [
+              reference.sourceLineIndex,
+              reference.sourceTokenIndex,
+            ],
+          )
+          .toList(),
+      [
+        [0, 0],
+        [0, 1],
+      ],
+    );
+  });
+
   test('spaced sub total is accepted as a subtotal candidate', () {
     const document = ReceiptOcrDocument(
       pages: [

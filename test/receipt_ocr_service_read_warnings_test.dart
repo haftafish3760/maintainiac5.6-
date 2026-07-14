@@ -278,11 +278,24 @@ TOTAL 10.48
     expect(light.maxPhotoOcrAttachments, 4);
     expect(light.maxPdfOcrAttachments, 1);
     expect(light.pdfPageReadTimeout, const Duration(seconds: 8));
+    expect(light.photoReadTimeout, const Duration(seconds: 8));
     expect(medium.maxPhotoOcrAttachments, 8);
     expect(medium.maxPdfOcrAttachments, 2);
+    expect(medium.photoReadTimeout, const Duration(seconds: 12));
     expect(heavy.maxPhotoOcrAttachments, 12);
     expect(heavy.maxPdfOcrAttachments, 3);
     expect(heavy.pdfPageReadTimeout, const Duration(seconds: 16));
+    expect(heavy.photoReadTimeout, const Duration(seconds: 16));
+  });
+
+  test('ocr service times out an unresponsive photo read with recovery', () {
+    final source = File(
+      'lib/shared/widgets/receipt_capture/receipt_ocr_service.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('.timeout(photoReadTimeout)'));
+    expect(source, contains('} on TimeoutException {'));
+    expect(source, contains('Reading this receipt photo took too long.'));
   });
 
   test('ocr service uses safe PDF raster byte reads after preflight', () {

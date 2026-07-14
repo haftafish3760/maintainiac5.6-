@@ -11,6 +11,7 @@ class ReceiptOcrFieldCandidate {
     required this.pageIndex,
     required this.readingOrder,
     required this.sourceLineIndexes,
+    this.sourceTokenReferences = const [],
     required this.reason,
     this.bounds,
     this.confidence,
@@ -23,6 +24,7 @@ class ReceiptOcrFieldCandidate {
   final int pageIndex;
   final int readingOrder;
   final List<int> sourceLineIndexes;
+  final List<ReceiptOcrTokenReference> sourceTokenReferences;
   final String reason;
   final ReceiptOcrBounds? bounds;
   final double? confidence;
@@ -139,6 +141,7 @@ ReceiptOcrFieldCandidate _fieldCandidate(
     pageIndex: row.pageIndex,
     readingOrder: row.readingOrder,
     sourceLineIndexes: row.sourceLineIndexes,
+    sourceTokenReferences: row.sourceTokenReferences,
     bounds: row.bounds,
     confidence: row.confidence,
     reason: '$reason Source receipt line ${row.readingOrder + 1}.',
