@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/state/app_state.dart';
+import '../../shared/state/global_odometer.dart';
 import '../../shared/theme/app_action_colors.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/app_back_button.dart';
@@ -113,13 +114,16 @@ class _MaintenanceItemDetailScreenState
   @override
   Widget build(BuildContext context) {
     final appState = AppStateScope.of(context);
+    final currentOdometer = GlobalOdometerScope.of(context).reading;
     final record = appState.maintenance.firstWhere(
       (item) =>
           item.itemName == widget.record.itemName &&
           item.vehicleName == widget.record.vehicleName,
       orElse: () => widget.record,
     );
-    final nextOdometer = _canPreviewNextDue ? _nextOdometer(appState) : null;
+    final nextOdometer = _canPreviewNextDue
+        ? _nextOdometer(currentOdometer)
+        : null;
     final nextDate = _canPreviewNextDue
         ? _addMonths(_lastServiceDate, _effectiveMonthInterval)
         : null;
@@ -317,7 +321,7 @@ class _MaintenanceItemDetailScreenState
                       tone: AppButtonTone.commit,
                       compact: true,
                       onPressed: _canPreviewNextDue
-                          ? () => _save(appState, record)
+                          ? () => _save(appState, currentOdometer, record)
                           : null,
                     ),
                   ],

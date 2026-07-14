@@ -105,6 +105,12 @@ void main() {
 
     expect(appState.maintenanceEvents.length, 1);
     expect(appState.maintenanceEvents.single.itemName, 'Engine Oil');
+    expect(
+      appState.maintenanceEvents.single.odometer,
+      odometer.reading,
+      reason:
+          'Maintenance must use the shared vehicle odometer, not AppState\'s retired shadow value.',
+    );
     expect(appState.maintenance.single.milesSinceService, 0);
     expect(find.text('Tracked Maintenance'), findsOneWidget);
   });

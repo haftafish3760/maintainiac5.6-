@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/state/app_state.dart';
+import '../../shared/state/global_odometer.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/app_back_button.dart';
@@ -64,7 +65,7 @@ class _MaintenanceLogServiceScreenState
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_seededOdometer) return;
-    _odometer.text = AppStateScope.of(context).odometer.toString();
+    _odometer.text = GlobalOdometerScope.of(context).reading.toString();
     _seededOdometer = true;
   }
 
@@ -294,7 +295,7 @@ class _MaintenanceLogServiceScreenState
   Future<void> _save() async {
     final odometerText = _odometer.text.trim();
     final odometer = odometerText.isEmpty
-        ? AppStateScope.of(context).odometer
+        ? GlobalOdometerScope.of(context).reading
         : int.tryParse(odometerText);
     if (odometer == null || odometer < 0) {
       ScaffoldMessenger.of(context).showSnackBar(

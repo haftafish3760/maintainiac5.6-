@@ -44,7 +44,10 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
     final activeVehicle = AppStateScope.of(context).activeVehicle;
     final vehicleId = activeVehicle == null
         ? null
-        : odometerVehicleIdForLabel(activeVehicle.nickname);
+        : odometerVehicleIdForVehicleId(
+            activeVehicle.id,
+            fallbackLabel: activeVehicle.nickname,
+          );
     final range = _period.rangeFor(_anchorDate, customRange: _customRange);
     final report = ExpenseRecapReport.fromLedger(
       ExpenseLedgerScope.of(context),

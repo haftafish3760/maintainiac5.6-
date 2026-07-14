@@ -13,11 +13,11 @@ void main() {
       }
     });
 
-    final result = await Process.run('dart', [
-      'tool/receipt_real_device_result_gate.dart',
-    ], environment: {
-      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
-    });
+    final result = await Process.run(
+      'dart',
+      ['tool/receipt_real_device_result_gate.dart'],
+      environment: {'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path},
+    );
 
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
     expect(
@@ -46,141 +46,155 @@ void main() {
     expect(template, contains('Do not paste full receipt text.'));
     expect(template, contains('Do not paste receipt images into this note.'));
     expect(template, contains('mark it `NOT RUN`'));
-    expect(template, contains('docs/receipt_real_device_runs/YYYY-MM-DD-device-batch.md'));
-  });
-
-  test('real-device result gate rejects run notes with missing snapshot files', () async {
-    final runDir = await Directory.systemTemp.createTemp(
-      'receipt_real_device_gate_missing_',
-    );
-    addTearDown(() async {
-      if (runDir.existsSync()) {
-        await runDir.delete(recursive: true);
-      }
-    });
-
-    final runFile = File('${runDir.path}/9999-12-31-missing-snapshot-test.md');
-    runFile.writeAsStringSync(_runNote(
-      metadataSummary: '/tmp/does-not-exist-summary.txt',
-      flutterLog: '/tmp/does-not-exist-flutter.txt',
-      adbLog: '/tmp/does-not-exist-adb.txt',
-      xcodeLog: '/tmp/does-not-exist-xcode.txt',
-    ));
-
-    final result = await Process.run('dart', [
-      'tool/receipt_real_device_result_gate.dart',
-    ], environment: {
-      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
-    });
-
-    expect(result.exitCode, 1);
     expect(
-      result.stderr.toString(),
-      contains('points to a missing snapshot file for Metadata snapshot summary'),
+      template,
+      contains('docs/receipt_real_device_runs/YYYY-MM-DD-device-batch.md'),
     );
   });
 
-  test('real-device result gate accepts run notes with existing snapshot files', () async {
-    final runDir = await Directory.systemTemp.createTemp(
-      'receipt_real_device_gate_present_',
-    );
-    addTearDown(() async {
-      if (runDir.existsSync()) {
-        await runDir.delete(recursive: true);
-      }
-    });
+  test(
+    'real-device result gate rejects run notes with missing snapshot files',
+    () async {
+      final runDir = await Directory.systemTemp.createTemp(
+        'receipt_real_device_gate_missing_',
+      );
+      addTearDown(() async {
+        if (runDir.existsSync()) {
+          await runDir.delete(recursive: true);
+        }
+      });
 
-    final tempDir = await Directory.systemTemp.createTemp(
-      'receipt_real_device_gate_',
-    );
-    addTearDown(() async {
-      if (tempDir.existsSync()) {
-        await tempDir.delete(recursive: true);
-      }
-    });
+      final runFile = File(
+        '${runDir.path}/9999-12-31-missing-snapshot-test.md',
+      );
+      runFile.writeAsStringSync(
+        _runNote(
+          metadataSummary: '/tmp/does-not-exist-summary.txt',
+          flutterLog: '/tmp/does-not-exist-flutter.txt',
+          adbLog: '/tmp/does-not-exist-adb.txt',
+          xcodeLog: '/tmp/does-not-exist-xcode.txt',
+        ),
+      );
 
-    final summary = File('${tempDir.path}/summary.txt')..writeAsStringSync('ok');
-    final flutter = File('${tempDir.path}/flutter_devices.txt')
-      ..writeAsStringSync('ok');
-    final adb = File('${tempDir.path}/adb_devices.txt')..writeAsStringSync('ok');
-    final xcode = File('${tempDir.path}/xcrun_devices.txt')
-      ..writeAsStringSync('ok');
+      final result = await Process.run(
+        'dart',
+        ['tool/receipt_real_device_result_gate.dart'],
+        environment: {'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path},
+      );
 
-    final runFile = File('${runDir.path}/9999-12-31-existing-snapshot-test.md');
-    runFile.writeAsStringSync(_runNote(
-      metadataSummary: summary.path,
-      flutterLog: flutter.path,
-      adbLog: adb.path,
-      xcodeLog: xcode.path,
-    ));
+      expect(result.exitCode, 1);
+      expect(
+        result.stderr.toString(),
+        contains(
+          'points to a missing snapshot file for Metadata snapshot summary',
+        ),
+      );
+    },
+  );
 
-    final result = await Process.run('dart', [
-      'tool/receipt_real_device_result_gate.dart',
-    ], environment: {
-      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
-    });
+  test(
+    'real-device result gate accepts run notes with existing snapshot files',
+    () async {
+      final runDir = await Directory.systemTemp.createTemp(
+        'receipt_real_device_gate_present_',
+      );
+      addTearDown(() async {
+        if (runDir.existsSync()) {
+          await runDir.delete(recursive: true);
+        }
+      });
 
-    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-    expect(
-      result.stdout.toString(),
-      contains('Receipt real-device result gate: template=ok'),
-    );
-  });
+      final tempDir = await Directory.systemTemp.createTemp(
+        'receipt_real_device_gate_',
+      );
+      addTearDown(() async {
+        if (tempDir.existsSync()) {
+          await tempDir.delete(recursive: true);
+        }
+      });
 
-  test('real-device result gate rejects raw device-list output in note body', () async {
-    final runDir = await Directory.systemTemp.createTemp(
-      'receipt_real_device_gate_device_dump_',
-    );
-    addTearDown(() async {
-      if (runDir.existsSync()) {
-        await runDir.delete(recursive: true);
-      }
-    });
+      final summary = File('${tempDir.path}/summary.txt')
+        ..writeAsStringSync('ok');
+      final flutter = File('${tempDir.path}/flutter_devices.txt')
+        ..writeAsStringSync('ok');
+      final adb = File('${tempDir.path}/adb_devices.txt')
+        ..writeAsStringSync('ok');
+      final xcode = File('${tempDir.path}/xcrun_devices.txt')
+        ..writeAsStringSync('ok');
 
-    final tempDir = await Directory.systemTemp.createTemp(
-      'receipt_real_device_gate_device_dump_files_',
-    );
-    addTearDown(() async {
-      if (tempDir.existsSync()) {
-        await tempDir.delete(recursive: true);
-      }
-    });
+      final runFile = File(
+        '${runDir.path}/9999-12-31-existing-snapshot-test.md',
+      );
+      runFile.writeAsStringSync(
+        _runNote(
+          metadataSummary: summary.path,
+          flutterLog: flutter.path,
+          adbLog: adb.path,
+          xcodeLog: xcode.path,
+        ),
+      );
 
-    final summary = File('${tempDir.path}/summary.txt')..writeAsStringSync('ok');
-    final flutter = File('${tempDir.path}/flutter_devices.txt')
-      ..writeAsStringSync('ok');
-    final adb = File('${tempDir.path}/adb_devices.txt')..writeAsStringSync('ok');
-    final xcode = File('${tempDir.path}/xcrun_devices.txt')
-      ..writeAsStringSync('ok');
+      final result = await Process.run(
+        'dart',
+        ['tool/receipt_real_device_result_gate.dart'],
+        environment: {'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path},
+      );
 
-    final runFile = File('${runDir.path}/9999-12-31-raw-device-dump-test.md');
-    runFile.writeAsStringSync(
-      _runNote(
-        metadataSummary: summary.path,
-        flutterLog: flutter.path,
-        adbLog: adb.path,
-        xcodeLog: xcode.path,
-      ) +
-          '\n- Flutter devices snapshot: Found 4 connected devices:\n'
-          '- Xcode devices snapshot: == Devices ==\n',
-    );
+      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+      expect(
+        result.stdout.toString(),
+        contains('Receipt real-device result gate: template=ok'),
+      );
+    },
+  );
 
-    final result = await Process.run('dart', [
-      'tool/receipt_real_device_result_gate.dart',
-    ], environment: {
-      'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path,
-    });
+  test(
+    'real-device result gate rejects raw device-list output in note body',
+    () async {
+      final runDir = await Directory.systemTemp.createTemp(
+        'receipt_real_device_gate_device_dump_',
+      );
+      addTearDown(() async {
+        if (runDir.existsSync()) {
+          await runDir.delete(recursive: true);
+        }
+      });
 
-    expect(result.exitCode, 1);
-    expect(
-      result.stderr.toString(),
-      contains('contains raw device output'),
-    );
-    expect(
-      result.stderr.toString(),
-      contains('Found 4 connected devices:'),
-    );
-  });
+      final tempDir = await Directory.systemTemp.createTemp(
+        'receipt_real_device_gate_device_dump_files_',
+      );
+      addTearDown(() async {
+        if (tempDir.existsSync()) {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
+      final summary = File('${tempDir.path}/summary.txt')
+        ..writeAsStringSync('ok');
+      final flutter = File('${tempDir.path}/flutter_devices.txt')
+        ..writeAsStringSync('ok');
+      final adb = File('${tempDir.path}/adb_devices.txt')
+        ..writeAsStringSync('ok');
+      final xcode = File('${tempDir.path}/xcrun_devices.txt')
+        ..writeAsStringSync('ok');
+
+      final runFile = File('${runDir.path}/9999-12-31-raw-device-dump-test.md');
+      runFile.writeAsStringSync(
+        '${_runNote(metadataSummary: summary.path, flutterLog: flutter.path, adbLog: adb.path, xcodeLog: xcode.path)}\n- Flutter devices snapshot: Found 4 connected devices:\n'
+        '- Xcode devices snapshot: == Devices ==\n',
+      );
+
+      final result = await Process.run(
+        'dart',
+        ['tool/receipt_real_device_result_gate.dart'],
+        environment: {'RECEIPT_REAL_DEVICE_RUNS_DIR': runDir.path},
+      );
+
+      expect(result.exitCode, 1);
+      expect(result.stderr.toString(), contains('contains raw device output'));
+      expect(result.stderr.toString(), contains('Found 4 connected devices:'));
+    },
+  );
 }
 
 String _runNote({

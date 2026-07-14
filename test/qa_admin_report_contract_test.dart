@@ -107,7 +107,7 @@ QaReport _reportWith([QaFailure? failure]) {
         name: failure?.suite ?? 'inventory.security_privacy',
         duration: const Duration(milliseconds: 9),
         checked: 1,
-        failures: [if (failure != null) failure],
+        failures: [?failure],
       ),
     ],
     startedAt: DateTime(2026, 1, 2, 3, 4, 5),

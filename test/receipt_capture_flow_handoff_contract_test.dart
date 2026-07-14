@@ -258,8 +258,8 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_surface_controls.dart',
         ).readAsString();
-    final topBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+    final uiConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
     ).readAsString();
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
@@ -291,16 +291,16 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_review_result_next_review.dart',
         ).readAsString();
 
-    expect(
-      controls,
-      contains("return 'Use Receipt';"),
-    );
-    expect(screen, contains('_ReceiptReviewMode.preview => .22'));
-    expect(screen, contains('_photoPaths.length > 1 ? 188.0 : 166.0'));
+    expect(controls, contains("return 'Use Receipt';"));
+    expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
+    expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
+    expect(uiConfig, contains('this.previewControlsHeightFraction = .22'));
+    expect(uiConfig, contains('this.previewControlsSinglePhotoHeight = 156'));
+    expect(uiConfig, contains('this.previewControlsMultiPhotoHeight = 178'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
-    expect(previewControls, contains("'Add Another Photo'"));
-    expect(previewControls, contains('minimumSize: const Size(92, 36)'));
+    expect(previewControls, contains('strings.addAnotherReceiptPhoto'));
+    expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(controls, contains('open receipt details'));
     expect(
       controls,
@@ -310,7 +310,10 @@ void main() {
       models,
       contains('Review receipt details and mark Business, Personal, or Mixed.'),
     );
-    expect(models, contains(r'Receipt details open from $nextReviewSourceLabel'));
+    expect(
+      models,
+      contains(r'Receipt details open from $nextReviewSourceLabel'),
+    );
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, contains('Use this photo, retake it'));
     expect(controls, isNot(contains('Saved copy')));

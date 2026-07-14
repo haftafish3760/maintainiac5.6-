@@ -84,6 +84,7 @@ void main() {
       result.textByAttachmentId['reused-id'],
       'FIRST RECEIPT\nSECOND RECEIPT',
     );
+    expect(result.stats.importedTextRead, 2);
     expect(result.warnings.join(' '), contains('same identifier'));
   });
 
