@@ -70,7 +70,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
 ### Firebase backup and privacy
 
 - `lib/shared/trip_tracking/trip_tracking_firebase_bridge.dart`
-  - Local review records are queued to Firebase only when backup consent is enabled.
+  - Local review records are queued to Firebase only when backup consent is enabled and the driver has confirmed the physical ending odometer.
   - Auth/account/organization binding prevents a pending record from being redirected after account or organization changes.
   - Private backup and organization sharing are separate concepts.
   - `withdrawBackupConsent()` cancels unsent backup records but preserves local review records.
@@ -141,7 +141,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
 
 - Default: off.
 - When off: reviewed trips stay local-only.
-- When enabled: only reviewed mileage summaries may be queued.
+- When enabled: only physically confirmed, reviewed mileage summaries may be queued.
 - When later turned off: unsent cloud queue entries are discarded; the local review remains available.
 - A Firebase outage does not lose the review or block finishing a trip.
 

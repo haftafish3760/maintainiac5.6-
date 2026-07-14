@@ -1487,7 +1487,7 @@ void main() {
   );
 
   test(
-    'finish durably queues a review before clearing recoverable tracking',
+    'finish keeps a review local until physical odometer confirmation',
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(initialReading: 1000);
@@ -1518,7 +1518,18 @@ void main() {
       expect(odometer.hasLiveTripProjection, isFalse);
       expect(odometer.confirmedReading, 1000);
       await Future<void>.delayed(Duration.zero);
+      expect(mirror.reviews, isEmpty);
+      expect(mirror.flushCalls, 0);
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: 'trip_review',
+          confirmedEndingOdometer: 1002,
+        ),
+        isTrue,
+      );
+      await Future<void>.delayed(Duration.zero);
       expect(mirror.reviews.single.id, 'trip_review');
+      expect(mirror.reviews.single.isOdometerConfirmed, isTrue);
       expect(mirror.flushCalls, 1);
     },
   );
@@ -1609,6 +1620,10 @@ void main() {
       await controller.finishForReview(
         finishedAt: start.add(const Duration(minutes: 2)),
       );
+      await controller.confirmOdometerReview(
+        reviewId: 'trip_cloud_retry',
+        confirmedEndingOdometer: 1001,
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(store.reviewForTrip('trip_cloud_retry'), isNotNull);
@@ -1634,6 +1649,10 @@ void main() {
 
       await controller.finishForReview(
         finishedAt: start.add(const Duration(minutes: 2)),
+      );
+      await controller.confirmOdometerReview(
+        reviewId: 'trip_manual_retry',
+        confirmedEndingOdometer: 1001,
       );
       await Future<void>.delayed(Duration.zero);
       expect(controller.cloudMirrorError, contains('pending'));

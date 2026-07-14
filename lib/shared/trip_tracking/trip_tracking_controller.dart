@@ -83,12 +83,20 @@ class TripTrackingController extends ChangeNotifier {
     if (review == null || confirmedEndingOdometer < review.startingOdometer) {
       return false;
     }
-    await _sessionStore.saveReview(
-      review.copyWith(
-        confirmedEndingOdometer: confirmedEndingOdometer,
-        odometerConfirmedAt: confirmedAt ?? DateTime.now(),
-      ),
+    final confirmedReview = review.copyWith(
+      confirmedEndingOdometer: confirmedEndingOdometer,
+      odometerConfirmedAt: confirmedAt ?? DateTime.now(),
     );
+    await _sessionStore.saveReview(confirmedReview);
+    try {
+      await _cloudMirror.queueReview(confirmedReview);
+      unawaited(_flushCloudMirror());
+      _cloudMirrorError = null;
+    } catch (error) {
+      // Physical confirmation is durable locally even when a cloud queue is
+      // unavailable. The user can retry backup without reopening the trip.
+      _cloudMirrorError = 'Cloud mileage backup is pending: $error';
+    }
     notifyListeners();
     return true;
   }
@@ -899,15 +907,6 @@ class TripTrackingController extends ChangeNotifier {
           'Could not save the completed trip locally. It remains recoverable: $error';
       notifyListeners();
       return null;
-    }
-    try {
-      await _cloudMirror.queueReview(review);
-      unawaited(_flushCloudMirror());
-      _cloudMirrorError = null;
-    } catch (error) {
-      // Local review durability is authoritative; cloud failure must not
-      // discard a completed trip or block the driver's finish workflow.
-      _cloudMirrorError = 'Cloud mileage backup is pending: $error';
     }
     await _sessionStore.clear();
     _odometer.clearLiveTripProjection(tripId: session.id);
