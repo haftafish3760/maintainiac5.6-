@@ -69,6 +69,7 @@ class MaintainiacFirestoreUploadPolicy {
       draft.data,
       allowPrivateExpenseBackup: _isPrivateExpenseBackupPath(draft.path),
     );
+    _validateTripMileageSummaryShape(draft);
     _validateCatalogReadShape(draft);
   }
 
@@ -111,6 +112,54 @@ class MaintainiacFirestoreUploadPolicy {
         parts.first == MaintainiacFirestoreSchema.orgs &&
         (parts[2] == MaintainiacFirestoreSchema.orgExpenses ||
             parts[2] == MaintainiacFirestoreSchema.orgSettings);
+  }
+
+  static void _validateTripMileageSummaryShape(
+    MaintainiacFirestoreDocumentDraft draft,
+  ) {
+    final parts = draft.path.trim().split('/');
+    final isOrganizationMileagePath =
+        parts.length == 4 &&
+        parts[0] == MaintainiacFirestoreSchema.orgs &&
+        parts[2] == MaintainiacFirestoreSchema.orgMileageRecords;
+    final isPersonalMileagePath =
+        parts.length == 4 &&
+        parts[0] == 'users' &&
+        parts[2] == MaintainiacFirestoreSchema.orgMileageRecords;
+    if (!isOrganizationMileagePath && !isPersonalMileagePath) return;
+
+    if (draft.data['schema'] !=
+            TripTrackingFirestoreContract.reviewedSummarySchema ||
+        draft.data['locationDataIncluded'] != false ||
+        draft.data['visibilityScope'] != 'mileage_only' ||
+        !draft.data.keys.every(
+          TripTrackingFirestoreContract.reviewedSummaryFields.contains,
+        )) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Mileage uploads must be coordinate-free reviewed trip summaries.',
+      );
+    }
+    if (isOrganizationMileagePath) {
+      if (draft.data['orgId'] != parts[1] ||
+          draft.data['organizationSharingConsent'] != true) {
+        throw ArgumentError.value(
+          draft.path,
+          'draft',
+          'Organization mileage requires matching explicit sharing consent.',
+        );
+      }
+      return;
+    }
+    if (draft.data.containsKey('orgId') ||
+        draft.data.containsKey('organizationSharingConsent')) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Personal mileage cannot carry organization sharing fields.',
+      );
+    }
   }
 
   static void _validateNoSensitiveKeys(

@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'maintainiac_firestore_documents.dart';
 import 'maintainiac_firestore_schema.dart';
+import '../trip_tracking/trip_tracking_firestore_contract.dart';
 
 part 'maintainiac_firestore_upload_policy.dart';
 part 'maintainiac_firestore_upload_store.dart';

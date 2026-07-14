@@ -77,6 +77,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
 
 - `lib/shared/firebase/maintainiac_firestore_upload_store.dart`
   - Persistent generic Firestore upload queue. Failed writes remain retryable across restart.
+  - The queue validates the shared trip-summary contract before persistence, so a malformed mileage draft with coordinates, unknown fields, or mismatched organization consent is rejected locally as well as by Firestore rules.
 
 - `firestore.rules`
   - Rules allowlist the mileage summary fields. Do not replace this allowlist with a loose denylist.

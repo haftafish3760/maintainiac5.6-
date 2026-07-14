@@ -96,6 +96,42 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('local upload policy rejects location data before it reaches the queue', () {
+    final doc = MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+      orgId: 'orgA',
+      createdByUid: 'firebaseUid-1',
+      review: review(),
+    );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(
+          path: doc.path,
+          data: {...doc.data, 'latitude': 35.0},
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  test('local upload policy rejects organization fields on private mileage', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(
+          path: doc.path,
+          data: {...doc.data, 'organizationSharingConsent': true},
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test(
     'queues and uploads a reviewed trip while preserving local retry state',
     () async {

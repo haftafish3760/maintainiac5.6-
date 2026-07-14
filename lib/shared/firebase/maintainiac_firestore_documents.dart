@@ -9,6 +9,7 @@ import '../../screens/expenses/data/expense_screen_telemetry.dart';
 import '../../screens/work_supplies/data/work_supply_catalog_health_event.dart';
 import '../../screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart';
 import '../trip_tracking/trip_tracking_session_store.dart';
+import '../trip_tracking/trip_tracking_firestore_contract.dart';
 import 'maintainiac_firestore_schema.dart';
 
 part 'maintainiac_firestore_ocr_contract_sanitizer.dart';
@@ -36,7 +37,6 @@ class MaintainiacFirestoreDocumentBuilder {
   static const _schemaParserHealth = 'parser_health_snapshot_v1';
   static const _schemaExpenseTelemetrySummary = 'expense_telemetry_summary_v1';
   static const _schemaCorrectionCandidate = 'shared_correction_candidate_v1';
-  static const _schemaTripTrackingReview = 'trip_tracking_review_v1';
 
   static MaintainiacFirestoreDocumentDraft catalogPackDocument(
     WorkSupplyHostedCatalogManifest manifest,
@@ -271,7 +271,7 @@ class MaintainiacFirestoreDocumentBuilder {
     return MaintainiacFirestoreDocumentDraft(
       path: path,
       data: Map.unmodifiable({
-        'schema': _schemaTripTrackingReview,
+        'schema': TripTrackingFirestoreContract.reviewedSummarySchema,
         'tripId': safeTripId,
         ...scopeFields,
         'createdByUid': creatorUid,
