@@ -214,7 +214,10 @@ void main() {
       );
       expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.review);
       expect(result.diagnostics.hasBlockingWarnings, isTrue);
-      expect(result.diagnostics.warningSummaryLabel, '1 blocked OCR warning');
+      expect(
+        result.diagnostics.warningSummaryLabel,
+        '1 blocked receipt-reading warning',
+      );
     },
   );
 

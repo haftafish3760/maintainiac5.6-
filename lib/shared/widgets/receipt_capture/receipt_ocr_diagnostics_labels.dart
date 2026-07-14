@@ -121,16 +121,16 @@ extension ReceiptOcrDiagnosticsLabels on ReceiptOcrDiagnostics {
   }
 
   String get warningSummaryLabel {
-    if (warningCount == 0) return 'No OCR warnings';
+    if (warningCount == 0) return 'No receipt-reading warnings';
     final parts = <String>[
       if (blockingWarningCount > 0) '$blockingWarningCount blocked',
       if (partialWarningCount > 0) '$partialWarningCount partial',
       if (reviewWarningCount > 0) '$reviewWarningCount review',
     ];
     if (parts.isEmpty) {
-      return '$warningCount OCR ${warningCount == 1 ? 'warning' : 'warnings'}';
+      return '$warningCount receipt-reading ${warningCount == 1 ? 'warning' : 'warnings'}';
     }
-    return '${parts.join(', ')} OCR ${warningCount == 1 ? 'warning' : 'warnings'}';
+    return '${parts.join(', ')} receipt-reading ${warningCount == 1 ? 'warning' : 'warnings'}';
   }
 
   String get pdfWorkLabel {

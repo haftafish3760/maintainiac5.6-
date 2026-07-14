@@ -96,7 +96,7 @@ void main() {
     expect(find.text('2 read'), findsOneWidget);
     expect(find.text('3 receipt lines ready'), findsOneWidget);
     expect(find.textContaining('parser'), findsNothing);
-    expect(find.text('1 OCR warning'), findsOneWidget);
+    expect(find.text('1 receipt-reading warning'), findsOneWidget);
   });
 
   testWidgets('saved receipt detail hides OCR review when no metadata exists', (

@@ -331,8 +331,8 @@ String _calendarOcrRecoveryHintLabel(ExpenseReceiptOcrReview review) {
   if (!review.hasData || !review.needsReview) return '';
   final issue = review.commandCenterPrimaryIssue.trim();
   if (issue.isEmpty ||
-      issue == 'No OCR review data' ||
-      issue == 'Receipt OCR looks healthy') {
+      issue == 'No receipt-read review data' ||
+      issue == 'Receipt read looks good') {
     return '';
   }
   return issue;

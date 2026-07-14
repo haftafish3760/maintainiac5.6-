@@ -200,9 +200,9 @@ class ExpenseReceiptOcrReview {
       primaryWarningLabel,
     );
     if (warningLabel.isNotEmpty) return warningLabel;
-    if (!hasData) return 'No OCR review data';
-    if (!needsReview) return 'Receipt OCR looks healthy';
-    return 'Receipt OCR needs review';
+    if (!hasData) return 'No receipt-read review data';
+    if (!needsReview) return 'Receipt read looks good';
+    return 'Receipt read needs review';
   }
 
   String get commandCenterPrimaryAction {
@@ -222,8 +222,8 @@ class ExpenseReceiptOcrReview {
     if (kindAction.isNotEmpty) {
       return kindAction;
     }
-    if (!hasData) return 'No receipt OCR action is available yet.';
-    if (!needsReview) return 'No OCR action needed.';
+    if (!hasData) return 'No receipt-reading action is available yet.';
+    if (!needsReview) return 'No receipt-reading action needed.';
     return 'Review the receipt proof and filled receipt fields before saving.';
   }
 

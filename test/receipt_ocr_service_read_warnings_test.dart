@@ -298,6 +298,24 @@ TOTAL 10.48
     expect(source, contains('Reading this receipt photo took too long.'));
   });
 
+  test('a stalled photo read remains a blocking photo-read failure', () {
+    const result = ReceiptOcrResult(
+      rawText: '',
+      parserText: '',
+      textByAttachmentId: {},
+      source: ReceiptProcessingSource.photo,
+      warnings: [
+        'Reading this receipt photo took too long. Try again, use a clearer photo, or continue with the details yourself.',
+      ],
+    );
+
+    expect(
+      result.structuredWarnings.single.kind,
+      ReceiptOcrWarningKind.photoReadFailure,
+    );
+    expect(result.structuredWarnings.single.isBlocking, isTrue);
+  });
+
   test('ocr service uses safe PDF raster byte reads after preflight', () {
     final source = File(
       'lib/shared/widgets/receipt_capture/receipt_ocr_service_pdf_read.dart',

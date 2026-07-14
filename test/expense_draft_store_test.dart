@@ -321,15 +321,18 @@ void main() {
       );
       const empty = ExpenseReceiptOcrReview();
 
-      expect(healthy.commandCenterPrimaryIssue, 'Receipt OCR looks healthy');
-      expect(healthy.commandCenterPrimaryAction, 'No OCR action needed.');
+      expect(healthy.commandCenterPrimaryIssue, 'Receipt read looks good');
+      expect(
+        healthy.commandCenterPrimaryAction,
+        'No receipt-reading action needed.',
+      );
       expect(healthy.commandCenterSummary['needsReview'], isFalse);
       expect(healthy.commandCenterSummary['recoveryAction'], '');
       expect(healthy.commandCenterSummary['recoveryTarget'], '');
-      expect(empty.commandCenterPrimaryIssue, 'No OCR review data');
+      expect(empty.commandCenterPrimaryIssue, 'No receipt-read review data');
       expect(
         empty.commandCenterPrimaryAction,
-        'No receipt OCR action is available yet.',
+        'No receipt-reading action is available yet.',
       );
       expect(empty.commandCenterSummary['warningCount'], 0);
     },

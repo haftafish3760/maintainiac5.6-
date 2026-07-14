@@ -111,13 +111,13 @@ extension ReceiptOcrResultParserViews on ReceiptOcrResult {
     if (!hasText) return const [];
     final warnings = <String>[
       if (itemCandidateLines.isEmpty)
-        'OCR found receipt text but no priced item lines. Review line items or enter them by hand.',
+        'Receipt text was found, but no priced item lines were clear. Review line items or enter them by hand.',
       if (subtotalCandidateLines.isEmpty &&
           taxCandidateLines.isEmpty &&
           totalCandidateLines.isEmpty)
-        'OCR found receipt text but no subtotal, tax, or total signals. Review the receipt totals before saving.',
+        'Receipt text was found, but subtotal, tax, or total amounts were not clear. Review the receipt totals before saving.',
       if (vendorCandidateLines.isEmpty)
-        'OCR found receipt text but no clear store header. Review the vendor before saving.',
+        'Receipt text was found, but the store name was not clear. Review the store before saving.',
     ];
     return List.unmodifiable(warnings);
   }

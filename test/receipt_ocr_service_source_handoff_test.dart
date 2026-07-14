@@ -96,7 +96,10 @@ void main() {
         result.diagnostics.textSummaryLabel,
         '3 receipt lines ready for review',
       );
-      expect(result.diagnostics.warningSummaryLabel, 'No OCR warnings');
+      expect(
+        result.diagnostics.warningSummaryLabel,
+        'No receipt-reading warnings',
+      );
       expect(result.warnings, isEmpty);
       expect(result.structuredWarnings, isEmpty);
     },

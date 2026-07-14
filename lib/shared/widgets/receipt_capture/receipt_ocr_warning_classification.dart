@@ -56,6 +56,7 @@ extension ReceiptOcrWarningClassification on ReceiptOcrWarning {
     }
     if (lower.contains('receipt photo assistance could not find text') ||
         lower.contains('receipt photo assistance failed') ||
+        lower.contains('receipt photo took too long') ||
         lower.contains('receipt photo reading could not read') ||
         lower.contains('receipt photo reading failed') ||
         lower.contains('photo reading failed')) {

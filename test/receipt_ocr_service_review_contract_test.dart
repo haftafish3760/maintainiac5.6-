@@ -104,7 +104,10 @@ void main() {
     );
     expect(result.diagnostics.hasBlockingWarnings, isTrue);
     expect(result.diagnostics.blockingWarningCount, 1);
-    expect(result.diagnostics.warningSummaryLabel, '1 blocked OCR warning');
+    expect(
+      result.diagnostics.warningSummaryLabel,
+      '1 blocked receipt-reading warning',
+    );
     expect(
       result.warnings.single,
       contains('Attach at least one receipt photo'),

@@ -13,11 +13,11 @@ extension ReceiptOcrWarningLabels on ReceiptOcrWarning {
       ReceiptOcrWarningKind.pdfSafety => 'PDF safety warning',
       ReceiptOcrWarningKind.pdfTooLarge => 'PDF too large',
       ReceiptOcrWarningKind.pdfUnreadable => 'PDF unreadable',
-      ReceiptOcrWarningKind.pluginUnavailable => 'OCR unavailable',
+      ReceiptOcrWarningKind.pluginUnavailable => 'Receipt reading unavailable',
       ReceiptOcrWarningKind.photoQuality => 'Photo quality warning',
       ReceiptOcrWarningKind.photoReadFailure => 'Photo read failed',
       ReceiptOcrWarningKind.pdfReadFailure => 'PDF read failed',
-      ReceiptOcrWarningKind.unknown => 'OCR warning',
+      ReceiptOcrWarningKind.unknown => 'Receipt reading warning',
     };
   }
 

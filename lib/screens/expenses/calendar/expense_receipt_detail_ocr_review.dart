@@ -15,7 +15,7 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
       if (review.parserLineCount > 0)
         '${review.parserLineCount} receipt ${review.parserLineCount == 1 ? 'line' : 'lines'} ready',
       if (review.warningCount > 0)
-        '${review.warningCount} OCR ${review.warningCount == 1 ? 'warning' : 'warnings'}',
+        '${review.warningCount} receipt-reading ${review.warningCount == 1 ? 'warning' : 'warnings'}',
     ];
     final warning = review.primaryWarningLabel;
     final primaryIssue = review.commandCenterPrimaryIssue;
@@ -154,7 +154,8 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
   static String _statusDetail(String severity) {
     return switch (severity) {
       'good' => 'The saved receipt read did not need extra review.',
-      'blocked' => 'This receipt was saved, but OCR could not complete.',
+      'blocked' =>
+        'This receipt was saved, but it could not be read completely.',
       'partial' => 'Part of the receipt was saved as proof only.',
       'review' =>
         'The receipt was readable, but the app flagged it for review.',

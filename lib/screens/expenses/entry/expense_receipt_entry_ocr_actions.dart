@@ -410,7 +410,7 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
 
   bool get _appAssistedReceiptFillEnabled {
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    return settings?.appAssistedEnabledFor(_receiptCaptureArea) != false;
+    return settings?.appAssistedEnabledFor(_receiptCaptureArea) ?? false;
   }
 
   Future<void> _recordPrivacySafeOcrEvent(

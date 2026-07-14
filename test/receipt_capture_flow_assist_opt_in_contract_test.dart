@@ -24,6 +24,9 @@ void main() {
     ).readAsString();
     final photoReviewScreen = await _readReceiptPhotoReviewSource();
     final readBoundarySource = await _readReceiptReadBoundarySource();
+    final expenseReadActions = await File(
+      'lib/screens/expenses/entry/expense_receipt_entry_ocr_actions.dart',
+    ).readAsString();
 
     expect(
       settingsStore,
@@ -79,6 +82,14 @@ void main() {
     expect(flowHelpers, isNot(contains('area == null ? true')));
     expect(flowHelpers, isNot(contains('?? true)')));
     expect(readBoundarySource, contains('_appAssistedReceiptFillEnabled'));
+    expect(
+      expenseReadActions,
+      contains('appAssistedEnabledFor(_receiptCaptureArea) ?? false'),
+    );
+    expect(
+      expenseReadActions,
+      isNot(contains('appAssistedEnabledFor(_receiptCaptureArea) != false')),
+    );
     expect(
       readBoundarySource,
       contains('appAssistedEnabledFor(widget.area) ==\n        true'),
