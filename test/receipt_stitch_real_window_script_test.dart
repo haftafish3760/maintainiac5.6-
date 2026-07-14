@@ -7,6 +7,7 @@ void main() {
   late File sourceImage;
   late File secondSourceImage;
   late String flutterPath;
+  late String mutatingFlutterPath;
 
   setUp(() async {
     scratch = await Directory.systemTemp.createTemp('receipt_real_window_');
@@ -20,6 +21,12 @@ void main() {
     await flutter.writeAsString('#!/usr/bin/env bash\nexit 0\n');
     await Process.run('chmod', ['+x', flutter.path]);
     flutterPath = flutter.path;
+    final mutatingFlutter = File('${bin.path}/mutating_flutter');
+    await mutatingFlutter.writeAsString(
+      '#!/usr/bin/env bash\nprintf changed > "\$RECEIPT_STITCH_REAL_TALL_IMAGE"\n',
+    );
+    await Process.run('chmod', ['+x', mutatingFlutter.path]);
+    mutatingFlutterPath = mutatingFlutter.path;
   });
 
   tearDown(() => scratch.delete(recursive: true));
@@ -34,6 +41,17 @@ void main() {
     expect(result.stdout, contains('Receipt stitch source integrity: PASS'));
     expect(await sourceImage.readAsString(), 'receipt-source');
     expect(await secondSourceImage.readAsString(), 'receipt-next-source');
+  });
+
+  test('real-window probe fails closed when a source image changes', () async {
+    final result = await _runScript(
+      'tool/receipt_stitch_real_window_probe.sh',
+      [sourceImage.path, '900', '620'],
+      mutatingFlutterPath,
+    );
+
+    expect(result.exitCode, 70);
+    expect(result.stderr, contains('Receipt stitch altered source image:'));
   });
 
   test(
