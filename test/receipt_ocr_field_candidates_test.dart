@@ -107,4 +107,81 @@ void main() {
     expect(total.bounds?.top, 150);
     expect(total.reason, contains('total-labelled'));
   });
+
+  test('earliest eligible header wins over later receipt boilerplate', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'HDWR MART',
+              lines: [ReceiptOcrLine(text: 'HDWR MART')],
+            ),
+            ReceiptOcrBlock(
+              text: 'WELCOME TO OUR STORE',
+              lines: [ReceiptOcrLine(text: 'WELCOME TO OUR STORE')],
+            ),
+            ReceiptOcrBlock(
+              text: 'CASHIER 4',
+              lines: [ReceiptOcrLine(text: 'CASHIER 4')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.merchant)?.value,
+      'HDWR MART',
+    );
+  });
+
+  test('amount due is accepted as a total candidate', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'AMOUNT DUE 18.37',
+              lines: [ReceiptOcrLine(text: 'AMOUNT DUE 18.37')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.total)?.value,
+      '18.37',
+    );
+  });
+
+  test('currency-marked whole-dollar total is accepted', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: r'TOTAL $20',
+              lines: [ReceiptOcrLine(text: r'TOTAL $20')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.total)?.value,
+      r'$20',
+    );
+  });
 }

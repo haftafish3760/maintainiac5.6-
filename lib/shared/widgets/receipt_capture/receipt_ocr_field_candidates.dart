@@ -86,9 +86,7 @@ ReceiptOcrFieldCandidates extractReceiptOcrFieldCandidates(
         ),
       );
     }
-    if (amount != null &&
-        normalized.contains('total') &&
-        !normalized.contains('subtotal')) {
+    if (amount != null && _hasTotalLabel(normalized)) {
       candidates.add(
         _fieldCandidate(
           ReceiptOcrFieldKind.total,
@@ -139,6 +137,12 @@ int _compareReceiptOcrFieldCandidates(
 ) {
   final kindOrder = left.kind.index.compareTo(right.kind.index);
   if (kindOrder != 0) return kindOrder;
+  // A merchant header is normally the first eligible receipt row. Its OCR
+  // confidence is not a reliable substitute for that document position.
+  if (left.kind == ReceiptOcrFieldKind.merchant) {
+    final readingOrder = left.readingOrder.compareTo(right.readingOrder);
+    if (readingOrder != 0) return readingOrder;
+  }
   final confidenceOrder = (right.confidence ?? -1).compareTo(
     left.confidence ?? -1,
   );
@@ -155,12 +159,20 @@ String? _receiptOcrDate(String value) {
 }
 
 String? _receiptOcrLastAmount(String value) {
-  final matches = RegExp(r'\$?\d{1,3}(?:,\d{3})*\.\d{2}\b').allMatches(value);
+  final matches = RegExp(
+    r'(?:\$?\d{1,3}(?:,\d{3})*\.\d{2}|\$\d{1,3}(?:,\d{3})*)\b',
+  ).allMatches(value);
   return matches.isEmpty ? null : matches.last.group(0);
 }
 
 bool _hasTaxLabel(String value) =>
     value.contains('tax') || value.contains('vat') || value.contains('gst');
+
+bool _hasTotalLabel(String value) {
+  return (value.contains('total') && !value.contains('subtotal')) ||
+      value.contains('amount due') ||
+      value.contains('balance due');
+}
 
 bool _isMerchantHeaderCandidate(
   String normalized,
@@ -171,5 +183,9 @@ bool _isMerchantHeaderCandidate(
   return !normalized.contains('total') &&
       !_hasTaxLabel(normalized) &&
       !normalized.contains('change') &&
-      !normalized.contains('cash');
+      !normalized.contains('cash') &&
+      !normalized.contains('cashier') &&
+      !normalized.contains('register') &&
+      !normalized.contains('welcome') &&
+      !normalized.contains('thank you');
 }

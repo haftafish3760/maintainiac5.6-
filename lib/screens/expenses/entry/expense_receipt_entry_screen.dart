@@ -22,6 +22,7 @@ import '../data/expense_parser_failure_diagnostics.dart';
 import '../data/expense_receipt_category_rules.dart';
 import '../data/expense_receipt_classifier.dart';
 import '../data/expense_receipt_item_memory_store.dart';
+import '../data/expense_receipt_ocr_candidate_fallback.dart';
 import '../data/expense_receipt_parser.dart';
 import '../data/expense_receipt_privacy_event_store.dart';
 import '../data/expense_receipt_user_review_merge.dart';
