@@ -3,6 +3,10 @@ part of 'expense_receipt_entry_screen.dart';
 extension _ExpenseReceiptEntryNoLineRecoveryPanel
     on _ExpenseReceiptEntryScreenState {
   Widget _buildReceiptNoLineRecoveryPanel() {
+    final allowsSplitTotal =
+        _detailEntryMode != _ReceiptDetailEntryMode.quickClassify;
+    final allowsManualLines =
+        _detailEntryMode == _ReceiptDetailEntryMode.detailedItems;
     return ReceiptFormPanel(
       title: _receiptNoLineTitleLabel,
       subtitle: _receiptNoLineSubtitleLabel,
@@ -71,35 +75,37 @@ extension _ExpenseReceiptEntryNoLineRecoveryPanel
                 category: widget.initialCategory ?? 'Uncategorized',
               ),
             ),
-            _ReceiptNoLineRecoveryChip(
-              icon: Icons.call_split_rounded,
-              label: 'Split Total 50/50',
-              color: const Color(0xFFFFD166),
-              onPressed: () => _addReceiptTotalLine(
-                use: _ExpenseLineUse.split,
-                category: widget.initialCategory ?? 'Uncategorized',
+            if (allowsSplitTotal)
+              _ReceiptNoLineRecoveryChip(
+                icon: Icons.call_split_rounded,
+                label: 'Split Total',
+                color: const Color(0xFFFFD166),
+                onPressed: () => _addReceiptTotalLine(
+                  use: _ExpenseLineUse.split,
+                  category: widget.initialCategory ?? 'Uncategorized',
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 10),
-        FilledButton.icon(
-          onPressed: () => _addReceiptLineForMode(
-            use: _ExpenseLineUse.business,
-            category: widget.initialCategory ?? 'Uncategorized',
-          ),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Add Line Manually'),
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFFFD166),
-            foregroundColor: const Color(0xFF101416),
-            minimumSize: const Size.fromHeight(44),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        if (allowsManualLines)
+          FilledButton.icon(
+            onPressed: () => _addReceiptLineForMode(
+              use: _ExpenseLineUse.business,
+              category: widget.initialCategory ?? 'Uncategorized',
             ),
-            textStyle: const TextStyle(fontWeight: FontWeight.w900),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Line Manually'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFFFD166),
+              foregroundColor: const Color(0xFF101416),
+              minimumSize: const Size.fromHeight(44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: const TextStyle(fontWeight: FontWeight.w900),
+            ),
           ),
-        ),
       ],
     );
   }

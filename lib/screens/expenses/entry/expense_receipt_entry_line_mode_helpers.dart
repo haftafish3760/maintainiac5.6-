@@ -65,7 +65,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
       unitsPerPackage: 1,
       stockUnit: 'receipt',
       subtotal: amount,
-      businessPercent: use == _ExpenseLineUse.split ? .5 : null,
+      businessPercent: null,
       rawReceiptText: _rawReceiptText,
       parserConfidence: _lastParseQuality?.confidence,
       parserReviewLabel: 'Review',
@@ -90,7 +90,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
     required int lineNumber,
   }) async {
     final amount = TextEditingController();
-    final businessPercent = TextEditingController(text: '50');
+    final businessPercent = TextEditingController();
     try {
       return await showModalBottomSheet<_ExpenseReceiptLine>(
         context: context,
@@ -156,6 +156,16 @@ extension _ExpenseReceiptEntryLineModeHelpers
                         final percent = _quickSplitBusinessPercent(
                           businessPercent.text,
                         );
+                        if (use == _ExpenseLineUse.split && percent == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Enter the business percentage for this split line.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
                         Navigator.of(context).pop(
                           _ExpenseReceiptLine(
                             description: switch (use) {
@@ -172,7 +182,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
                             stockUnit: 'each',
                             subtotal: subtotal,
                             businessPercent: use == _ExpenseLineUse.split
-                                ? percent.clamp(0, 1)
+                                ? percent
                                 : null,
                           ),
                         );
@@ -199,8 +209,10 @@ extension _ExpenseReceiptEntryLineModeHelpers
   }
 }
 
-double _quickSplitBusinessPercent(String value) {
+double? _quickSplitBusinessPercent(String value) {
   final parsed = double.tryParse(value.replaceAll('%', '').trim());
-  if (parsed == null || !parsed.isFinite) return .5;
+  if (parsed == null || !parsed.isFinite || parsed < 0 || parsed > 100) {
+    return null;
+  }
   return (parsed / 100).clamp(0, 1).toDouble();
 }
