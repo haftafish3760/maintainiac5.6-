@@ -243,12 +243,10 @@ void main() {
       ),
       findsWidgets,
     );
-    await tester.scrollUntilVisible(
-      find.text('Weekly'),
-      220,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Weekly'));
+    final weekly = find.text('Weekly');
+    await tester.ensureVisible(weekly);
+    await tester.pumpAndSettle();
+    await tester.tap(weekly);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Read Summary'),

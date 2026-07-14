@@ -16,7 +16,7 @@ extension _ReceiptPhotoReviewImageEditActions
     Uint8List bytes;
     try {
       bytes = await File(photoPath).readAsBytes();
-    } on FileSystemException {
+    } catch (_) {
       bytes = Uint8List(0);
     }
     final decoded = ReceiptImageProcessor.decodeReceiptImageBytes(bytes);

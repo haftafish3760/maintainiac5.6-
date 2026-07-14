@@ -58,25 +58,23 @@ List<ReceiptOcrRow> reconstructReceiptOcrRows(ReceiptOcrDocument document) {
     }
     clusters.sort((left, right) => left.compareTo(right));
     final usedLineIndexes = <int>{};
+    final pageRows = <_ReceiptOcrRowPageEntry>[];
     for (final cluster in clusters) {
       usedLineIndexes.addAll(cluster.sourceLineIndexes);
-      rows.add(
-        cluster.toRow(
-          attachmentId: page.attachmentId,
-          pageIndex: page.pageIndex,
-          readingOrder: readingOrder++,
-        ),
-      );
+      pageRows.add(_ReceiptOcrRowPageEntry.cluster(cluster));
     }
     for (final candidate in candidates) {
       if (usedLineIndexes.contains(candidate.sourceLineIndex)) continue;
-      rows.add(
-        _rowFromUnpositionedCandidate(
-          page,
+      pageRows.add(
+        _ReceiptOcrRowPageEntry.unpositioned(
           candidate,
-          readingOrder: readingOrder++,
+          estimatedTop: _estimatedUnpositionedRowTop(candidates, candidate),
         ),
       );
+    }
+    pageRows.sort(_compareReceiptOcrRowPageEntries);
+    for (final pageRow in pageRows) {
+      rows.add(pageRow.toRow(page, readingOrder: readingOrder++));
     }
   }
   return List.unmodifiable(rows);
@@ -134,8 +132,92 @@ ReceiptOcrRow _rowFromUnpositionedCandidate(
     normalizedText: _normalizeReceiptOcrEvidenceText(candidate.text),
     sourceLineIndexes: List.unmodifiable([candidate.sourceLineIndex]),
     confidence: candidate.confidence,
-    needsReview: candidate.confidence == null,
+    needsReview: _receiptOcrEvidenceNeedsReview(candidate.confidence),
   );
+}
+
+class _ReceiptOcrRowPageEntry {
+  const _ReceiptOcrRowPageEntry.cluster(this.cluster)
+    : candidate = null,
+      estimatedTop = null;
+
+  _ReceiptOcrRowPageEntry.unpositioned(
+    this.candidate, {
+    required this.estimatedTop,
+  }) : cluster = null;
+
+  final _ReceiptOcrRowCluster? cluster;
+  final _ReceiptOcrRowCandidate? candidate;
+  final double? estimatedTop;
+
+  int get sourceLineIndex =>
+      cluster?.firstSourceLineIndex ?? candidate!.sourceLineIndex;
+  double? get sortTop => cluster?.bounds.top ?? estimatedTop;
+  double get sortLeft => cluster?.bounds.left ?? 0;
+
+  ReceiptOcrRow toRow(ReceiptOcrPage page, {required int readingOrder}) {
+    final positioned = cluster;
+    if (positioned != null) {
+      return positioned.toRow(
+        attachmentId: page.attachmentId,
+        pageIndex: page.pageIndex,
+        readingOrder: readingOrder,
+      );
+    }
+    return _rowFromUnpositionedCandidate(
+      page,
+      candidate!,
+      readingOrder: readingOrder,
+    );
+  }
+}
+
+int _compareReceiptOcrRowPageEntries(
+  _ReceiptOcrRowPageEntry left,
+  _ReceiptOcrRowPageEntry right,
+) {
+  final leftTop = left.sortTop;
+  final rightTop = right.sortTop;
+  if (leftTop != null && rightTop != null) {
+    final topOrder = leftTop.compareTo(rightTop);
+    if (topOrder != 0) return topOrder;
+    final leftOrder = left.sortLeft.compareTo(right.sortLeft);
+    if (leftOrder != 0) return leftOrder;
+  } else if (leftTop != null) {
+    return -1;
+  } else if (rightTop != null) {
+    return 1;
+  }
+  return left.sourceLineIndex.compareTo(right.sourceLineIndex);
+}
+
+double? _estimatedUnpositionedRowTop(
+  List<_ReceiptOcrRowCandidate> candidates,
+  _ReceiptOcrRowCandidate candidate,
+) {
+  _ReceiptOcrRowCandidate? before;
+  _ReceiptOcrRowCandidate? after;
+  for (final other in candidates) {
+    if (other.bounds == null) continue;
+    if (other.sourceLineIndex < candidate.sourceLineIndex &&
+        (before == null || other.sourceLineIndex > before.sourceLineIndex)) {
+      before = other;
+    }
+    if (other.sourceLineIndex > candidate.sourceLineIndex &&
+        (after == null || other.sourceLineIndex < after.sourceLineIndex)) {
+      after = other;
+    }
+  }
+  final beforeBounds = before?.bounds;
+  final afterBounds = after?.bounds;
+  if (beforeBounds != null && afterBounds != null) {
+    return ((beforeBounds.top + beforeBounds.bottom) +
+            (afterBounds.top + afterBounds.bottom)) /
+        4;
+  }
+  if (beforeBounds != null) return beforeBounds.bottom + 8;
+  if (afterBounds != null) return afterBounds.top - 8;
+  return null;
 }
 
 class _ReceiptOcrRowCandidate {
@@ -162,6 +244,9 @@ class _ReceiptOcrRowCluster {
 
   Iterable<int> get sourceLineIndexes =>
       lines.map((line) => line.sourceLineIndex);
+
+  int get firstSourceLineIndex =>
+      lines.map((line) => line.sourceLineIndex).reduce(_minInt);
 
   double verticalMatchScore(ReceiptOcrBounds candidate) {
     final overlap =
@@ -223,10 +308,11 @@ class _ReceiptOcrRowCluster {
       sourceLineIndexes: List.unmodifiable(sourceLineIndexes),
       bounds: bounds,
       confidence: confidence,
-      needsReview: confidence == null,
+      needsReview: _receiptOcrEvidenceNeedsReview(confidence),
     );
   }
 }
 
 double _minDouble(double left, double right) => left < right ? left : right;
 double _maxDouble(double left, double right) => left > right ? left : right;
+int _minInt(int left, int right) => left < right ? left : right;

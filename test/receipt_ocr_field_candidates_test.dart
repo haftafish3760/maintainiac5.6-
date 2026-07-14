@@ -86,12 +86,13 @@ void main() {
     );
 
     final candidates = document.fieldCandidates;
+    final merchant = candidates.selectedFor(ReceiptOcrFieldKind.merchant)!;
     final total = candidates.selectedFor(ReceiptOcrFieldKind.total)!;
 
-    expect(
-      candidates.selectedFor(ReceiptOcrFieldKind.merchant)?.value,
-      'HDWR MART',
-    );
+    expect(merchant.value, 'HDWR MART');
+    expect(merchant.sourceText, 'HDWR MART');
+    expect(merchant.displayText, 'HDWR MART');
+    expect(merchant.optionalInterpretation, isNull);
     expect(
       candidates.selectedFor(ReceiptOcrFieldKind.date)?.value,
       '07/14/2026',
@@ -142,6 +143,39 @@ void main() {
       document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.merchant)?.value,
       'HDWR MART',
     );
+  });
+
+  test('low-confidence field candidates keep their review requirement', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'TOTAL 18.37',
+              lines: [
+                ReceiptOcrLine(
+                  text: 'TOTAL 18.37',
+                  confidence: .84,
+                  bounds: ReceiptOcrBounds(
+                    left: 10,
+                    top: 10,
+                    right: 180,
+                    bottom: 35,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final total = document.fieldCandidates.selectedFor(
+      ReceiptOcrFieldKind.total,
+    )!;
+    expect(total.confidence, .84);
+    expect(total.needsReview, isTrue);
   });
 
   test('address and phone header rows do not replace the merchant', () {

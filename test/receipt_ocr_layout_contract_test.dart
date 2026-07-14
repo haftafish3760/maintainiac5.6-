@@ -76,6 +76,35 @@ void main() {
   });
 
   test(
+    'layout evidence remains readable when provider text is unavailable',
+    () {
+      const layout = ReceiptOcrDocument(
+        pages: [
+          ReceiptOcrPage(
+            attachmentId: 'receipt-photo',
+            blocks: [
+              ReceiptOcrBlock(
+                text: 'HDWR',
+                lines: [ReceiptOcrLine(text: 'HDWR')],
+              ),
+            ],
+          ),
+        ],
+      );
+      const result = ReceiptOcrResult(
+        rawText: '',
+        parserText: '',
+        textByAttachmentId: {},
+        source: ReceiptProcessingSource.photo,
+        layout: layout,
+      );
+
+      expect(result.hasText, isTrue);
+      expect(result.appFillText, 'HDWR');
+    },
+  );
+
+  test(
     'coordinate reconstruction joins same-row fragments without rewriting',
     () {
       const layout = ReceiptOcrDocument(
@@ -138,6 +167,91 @@ void main() {
         layout: layout,
       );
       expect(result.appFillText, 'BLK NTR GLV XL\t9.99');
+    },
+  );
+
+  test('low-confidence reconstructed rows remain visibly reviewable', () {
+    const layout = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-photo',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'HDWR',
+              lines: [
+                ReceiptOcrLine(
+                  text: 'HDWR',
+                  confidence: .62,
+                  bounds: ReceiptOcrBounds(
+                    left: 10,
+                    top: 10,
+                    right: 80,
+                    bottom: 30,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final row = layout.reconstructedRows.single;
+    expect(row.sourceText, 'HDWR');
+    expect(row.confidence, .62);
+    expect(row.needsReview, isTrue);
+  });
+
+  test(
+    'unpositioned OCR lines retain a sensible place in coordinate order',
+    () {
+      const layout = ReceiptOcrDocument(
+        pages: [
+          ReceiptOcrPage(
+            attachmentId: 'receipt-photo',
+            blocks: [
+              ReceiptOcrBlock(
+                text: 'TOP',
+                lines: [
+                  ReceiptOcrLine(
+                    text: 'TOP',
+                    bounds: ReceiptOcrBounds(
+                      left: 10,
+                      top: 10,
+                      right: 60,
+                      bottom: 30,
+                    ),
+                  ),
+                ],
+              ),
+              ReceiptOcrBlock(
+                text: 'MIDDLE',
+                lines: [ReceiptOcrLine(text: 'MIDDLE')],
+              ),
+              ReceiptOcrBlock(
+                text: 'BOTTOM',
+                lines: [
+                  ReceiptOcrLine(
+                    text: 'BOTTOM',
+                    bounds: ReceiptOcrBounds(
+                      left: 10,
+                      top: 90,
+                      right: 90,
+                      bottom: 110,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(layout.reconstructedRows.map((row) => row.sourceText), [
+        'TOP',
+        'MIDDLE',
+        'BOTTOM',
+      ]);
     },
   );
 }

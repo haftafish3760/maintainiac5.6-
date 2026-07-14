@@ -33,7 +33,7 @@ class ReceiptOcrFieldCandidate {
   String? get optionalInterpretation => value == sourceText ? null : value;
   double? get interpretationConfidence =>
       optionalInterpretation == null ? null : confidence;
-  bool get needsReview => confidence == null || confidence! < .84;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 class ReceiptOcrFieldCandidates {

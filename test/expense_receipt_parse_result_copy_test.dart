@@ -29,7 +29,7 @@ void main() {
     },
   );
 
-  test('OCR candidates fill only missing review fields', () {
+  test('OCR candidates preserve printed merchant wording in review fields', () {
     const document = ReceiptOcrDocument(
       pages: [
         ReceiptOcrPage(
@@ -72,10 +72,14 @@ void main() {
       document,
     );
 
-    expect(completed.merchantName, 'Parser Merchant');
+    expect(completed.merchantName, 'HDWR MART');
     expect(completed.receiptDate, DateTime(2026, 7, 14));
     expect(completed.enteredTotal, 18.37);
-    expect(completed.fieldConfidences['merchant'], isNull);
+    expect(completed.fieldConfidences['merchant']?.needsReview, isTrue);
+    expect(
+      completed.fieldConfidences['merchant']?.reason,
+      contains('Confirm against the receipt proof'),
+    );
     expect(completed.fieldConfidences['date']?.needsReview, isTrue);
     expect(
       completed.fieldConfidences['date']?.reason,

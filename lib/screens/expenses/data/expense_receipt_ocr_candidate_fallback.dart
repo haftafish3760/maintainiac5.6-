@@ -1,9 +1,9 @@
 import '../../../shared/widgets/receipt_capture/receipt_ocr_service.dart';
 import 'expense_receipt_parser.dart';
 
-/// Uses OCR evidence only when the receipt parser did not produce a field.
-/// Parsed values always win; candidates remain available on the OCR document
-/// for editable review and source tracing.
+/// Uses OCR evidence to preserve what the receipt visibly says in editable
+/// review. Parser output may supply missing values, but it must not silently
+/// replace the printed merchant wording that the user sees.
 ExpenseReceiptParseResult fillMissingExpenseReceiptFieldsFromOcrCandidates(
   ExpenseReceiptParseResult parsed,
   ReceiptOcrDocument document,
@@ -14,7 +14,8 @@ ExpenseReceiptParseResult fillMissingExpenseReceiptFieldsFromOcrCandidates(
   final subtotal = candidates.selectedFor(ReceiptOcrFieldKind.subtotal);
   final tax = candidates.selectedFor(ReceiptOcrFieldKind.tax);
   final total = candidates.selectedFor(ReceiptOcrFieldKind.total);
-  final merchantValue = parsed.merchantName ?? _candidateText(merchant);
+  final merchantEvidence = _candidateDisplayText(merchant);
+  final merchantValue = merchantEvidence ?? parsed.merchantName;
   final dateValue = parsed.receiptDate ?? _candidateDate(date);
   final subtotalValue = parsed.enteredSubtotal ?? _candidateAmount(subtotal);
   final taxValue = parsed.enteredTax ?? _candidateAmount(tax);
@@ -25,9 +26,7 @@ ExpenseReceiptParseResult fillMissingExpenseReceiptFieldsFromOcrCandidates(
   _addCandidateConfidence(
     fieldConfidences,
     key: 'merchant',
-    candidate: parsed.merchantName == null && merchantValue != null
-        ? merchant
-        : null,
+    candidate: merchantEvidence == null ? null : merchant,
   );
   _addCandidateConfidence(
     fieldConfidences,
@@ -76,8 +75,8 @@ void _addCandidateConfidence(
   );
 }
 
-String? _candidateText(ReceiptOcrFieldCandidate? candidate) {
-  final value = candidate?.value.trim() ?? '';
+String? _candidateDisplayText(ReceiptOcrFieldCandidate? candidate) {
+  final value = candidate?.displayText.trim() ?? '';
   return value.isEmpty ? null : value;
 }
 

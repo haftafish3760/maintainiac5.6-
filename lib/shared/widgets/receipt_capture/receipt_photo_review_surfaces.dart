@@ -82,7 +82,23 @@ extension _ReceiptPhotoReviewSurfaces on _ReceiptPhotoReviewScreenState {
     if (imageBytes == null ||
         imageSize == null ||
         _cropSourcePath != photoPath) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 12),
+            Text(
+              'Opening crop tools…',
+              style: TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      );
     }
     return DecoratedBox(
       decoration: const BoxDecoration(color: Color(0xFF050607)),
