@@ -81,10 +81,14 @@ List<ReceiptOcrBenchmarkCase> _readCases(Object? source) {
   if (source is! Map<String, Object?> || source['cases'] is! List) {
     throw const FormatException('Benchmark input must contain a cases array.');
   }
-  return [
-    for (final entry in source['cases']! as List)
-      if (entry is Map<String, Object?>) _caseFromJson(entry),
-  ];
+  final cases = <ReceiptOcrBenchmarkCase>[];
+  for (final entry in source['cases']! as List) {
+    if (entry is! Map<String, Object?>) {
+      throw const FormatException('Every benchmark case must be an object.');
+    }
+    cases.add(_caseFromJson(entry));
+  }
+  return cases;
 }
 
 ReceiptOcrBenchmarkCase _caseFromJson(Map<String, Object?> source) {
