@@ -102,6 +102,14 @@ final expenseRecapTileDefinitions = <ExpenseRecapTileDefinition>[
     empty: 'Needs EV energy and odometer data',
   ),
   _nullableTile(
+    'electricFuelCostPerMile',
+    'EV Cost Per Mile',
+    'Vehicle',
+    (r) => r.electricFuelCostPerMile,
+    prefix: r'$',
+    empty: 'Needs EV and odometer data',
+  ),
+  _nullableTile(
     'averageHydrogenKgPrice',
     'Average Hydrogen kg Price',
     'Vehicle',
@@ -115,6 +123,14 @@ final expenseRecapTileDefinitions = <ExpenseRecapTileDefinition>[
     'Vehicle',
     (r) => r.milesPerHydrogenKg,
     suffix: ' mi/kg',
+    empty: 'Needs hydrogen and odometer data',
+  ),
+  _nullableTile(
+    'hydrogenFuelCostPerMile',
+    'Hydrogen Cost Per Mile',
+    'Vehicle',
+    (r) => r.hydrogenFuelCostPerMile,
+    prefix: r'$',
     empty: 'Needs hydrogen and odometer data',
   ),
   _percentTile(

@@ -11,8 +11,10 @@ void main() {
         'averageMpg',
         'averageElectricKwhPrice',
         'milesPerKwh',
+        'electricFuelCostPerMile',
         'averageHydrogenKgPrice',
         'milesPerHydrogenKg',
+        'hydrogenFuelCostPerMile',
       ]),
     );
   });
