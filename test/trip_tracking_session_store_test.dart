@@ -144,5 +144,11 @@ void main() {
     expect(recovered.cloudSyncedAt, syncedAt);
     expect(recovered.confirmedEndingOdometer, 1013);
     expect(recovered.isOdometerConfirmed, isTrue);
+
+    final invalidConfirmation = TripTrackingReviewRecord.fromMap({
+      ...review.toMap(),
+      'confirmedEndingOdometer': 999,
+    });
+    expect(invalidConfirmation.isOdometerConfirmed, isFalse);
   });
 }

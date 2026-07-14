@@ -151,7 +151,9 @@ class TripTrackingReviewRecord {
 
   bool get needsWalkingReview => engineSnapshot.walkingReviewSuggested;
   bool get isOdometerConfirmed =>
-      confirmedEndingOdometer != null && odometerConfirmedAt != null;
+      confirmedEndingOdometer != null &&
+      confirmedEndingOdometer! >= startingOdometer &&
+      odometerConfirmedAt != null;
 
   TripTrackingReviewRecord copyWith({
     TripTrackingCloudSyncState? cloudSyncState,
