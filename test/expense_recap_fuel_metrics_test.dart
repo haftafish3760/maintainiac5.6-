@@ -50,6 +50,27 @@ void main() {
     expect(report.averageFuelPrice, isNull);
     expect(report.fuelCostPerMile, .255);
   });
+
+  test('expense recap withholds EV efficiency when kWh is absent', () async {
+    final ledger = ExpenseLedgerController.memory();
+    await ledger.saveReceipt(
+      _unmeasuredElectricReceipt('first', DateTime(2026, 7, 1), 10000, 18),
+    );
+    await ledger.saveReceipt(
+      _unmeasuredElectricReceipt('second', DateTime(2026, 7, 4), 10200, 22),
+    );
+
+    final report = ExpenseRecapReport.fromLedger(
+      ledger,
+      ExpenseDateRange(start: DateTime(2026, 7, 1), end: DateTime(2026, 7, 31)),
+      vehicleId: 'truck_1',
+    );
+
+    expect(report.hasUnmeasuredElectricEnergy, isTrue);
+    expect(report.milesPerKwh, isNull);
+    expect(report.averageElectricKwhPrice, isNull);
+    expect(report.electricFuelCostPerMile, .2);
+  });
 }
 
 ExpenseReceiptRecord _dieselReceipt(
@@ -116,6 +137,34 @@ ExpenseReceiptRecord _unmeasuredFuelReceipt(
         subtotal: id == 'first' ? 24 : 27,
         odometerReading: odometer,
         fuelType: 'CNG',
+      ),
+    ],
+  );
+}
+
+ExpenseReceiptRecord _unmeasuredElectricReceipt(
+  String id,
+  DateTime date,
+  int odometer,
+  double subtotal,
+) {
+  return ExpenseReceiptRecord(
+    id: id,
+    receiptDate: date,
+    merchantName: 'EV Station',
+    vehicleId: 'truck_1',
+    lines: [
+      ExpenseReceiptLineRecord(
+        id: '$id-electric',
+        description: 'EV charging total',
+        category: 'Fuel',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: subtotal,
+        odometerReading: odometer,
+        fuelType: 'Electric',
       ),
     ],
   );

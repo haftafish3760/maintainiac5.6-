@@ -59,6 +59,35 @@ void _registerFuelEconomyCoreTests() {
     expect(metrics.electricFuelCostPerMile, closeTo(.2786, .0001));
   });
 
+  test('preserves EV spend without inventing missing kWh', () {
+    final metrics = FuelEconomyMetrics.fromReceipts([
+      _fuelReceipt(
+        id: 'ev-total-start',
+        odometer: 21000,
+        quantity: 1,
+        unit: 'each',
+        subtotal: 18,
+        fuelType: 'Electric',
+      ),
+      _fuelReceipt(
+        id: 'ev-total-end',
+        odometer: 21200,
+        quantity: 1,
+        unit: 'each',
+        subtotal: 22,
+        fuelType: 'Electric',
+      ),
+    ]);
+
+    expect(metrics.odometerMiles, 200);
+    expect(metrics.electricFuelExpense, 40);
+    expect(metrics.electricKwh, 0);
+    expect(metrics.hasUnmeasuredElectricEnergy, isTrue);
+    expect(metrics.milesPerKwh, isNull);
+    expect(metrics.averageElectricKwhPrice, isNull);
+    expect(metrics.electricFuelCostPerMile, .2);
+  });
+
   test('converts liquid liters to gallons for fuel economy', () {
     final metrics = FuelEconomyMetrics.fromReceipts([
       _fuelReceipt(

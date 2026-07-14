@@ -14,6 +14,13 @@ bool _isElectricFuelLine(ExpenseReceiptLineRecord line) {
 bool _isChargingFeeLine(ExpenseReceiptLineRecord line) =>
     _normalizeFuelToken(line.category) == 'charging fees';
 
+double _electricKwhFor(ExpenseReceiptLineRecord line) {
+  final unit = _normalizeFuelToken(line.unit);
+  return const {'kwh', 'kilowatt hour', 'kilowatt hours'}.contains(unit)
+      ? line.quantity
+      : 0;
+}
+
 bool _isHydrogenFuelLine(ExpenseReceiptLineRecord line) {
   final fuelType = _normalizeFuelToken(line.fuelType ?? '');
   return fuelType == 'hydrogen';
