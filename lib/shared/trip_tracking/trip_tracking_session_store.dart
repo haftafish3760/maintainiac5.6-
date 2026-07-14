@@ -69,7 +69,7 @@ class TripTrackingSessionRecord {
   ) => TripTrackingSessionRecord(
     id: '${map['id'] ?? ''}',
     vehicleId: '${map['vehicleId'] ?? ''}',
-    startingOdometer: (map['startingOdometer'] as num?)?.round() ?? 0,
+    startingOdometer: _persistedOdometerValue(map['startingOdometer']),
     profile: TripTrackingProfile.values.firstWhere(
       (value) => value.name == map['profile'],
       orElse: () => TripTrackingProfile.roadVehicle,

@@ -180,4 +180,21 @@ void main() {
     expect(restored.confirmedEndingOdometer, isNull);
     expect(restored.isOdometerConfirmed, isFalse);
   });
+
+  test('malformed active-trip odometer cannot crash session recovery', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_corrupt_active_odometer',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': double.infinity,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    expect(session.startingOdometer, isZero);
+  });
 }
