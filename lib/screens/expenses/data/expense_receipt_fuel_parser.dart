@@ -147,6 +147,12 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\bgal[oó]n\b'), 'gallon')
       .replaceAll(RegExp(r'\blitros\b'), 'liters')
       .replaceAll(RegExp(r'\blitro\b'), 'liter')
+      .replaceAll(RegExp(r'\bgas\s*oil\b'), 'diesel')
+      .replaceAll(RegExp(r'\bgas\s+natural\s+licuado\b'), 'lng')
+      .replaceAll(RegExp(r'\bgas\s+natural\s+renovable\b'), 'rng')
+      .replaceAll(RegExp(r'\bgas\s+licuado(?:\s+de\s+petroleo)?\b'), 'lpg')
+      .replaceAll(RegExp(r'\bhidr[oó]geno\b'), 'hydrogen')
+      .replaceAll(RegExp(r'\bmagna\b'), 'gasoline')
       .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?c[0o]mbustible\b'), 'fuel sale')
       .replaceAll(RegExp(r'\bc[0o]mbustible\s+de\s+carrera\b'), 'racing fuel')
       .replaceAll(RegExp(r'\bnitrometano\b'), 'nitromethane')
@@ -189,8 +195,10 @@ String _normalizeFuelSignalText(String value) {
         RegExp(r'\bprecio\s+por\s+(?:litro|liter|litre|l)\b'),
         'price per liter',
       )
-      .replaceAll(RegExp(r'\bprecio\s*/?\s*kwh\b'), 'price/kwh')
-      .replaceAll(RegExp(r'\btarifa\s*/?\s*kwh\b'), 'price/kwh')
+      .replaceAll(
+        RegExp(r'\b(?:precio|tarifa)\s*(?:/|por\s+)?kwh\b'),
+        'price/kwh',
+      )
       .replaceAll(RegExp(r'\btarifa\b'), 'rate')
       .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?combustible\b'), 'fuel sale')
       .replaceAll(RegExp(r'\bod[oó]metro\b'), 'odometer')
