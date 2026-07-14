@@ -27,4 +27,19 @@ ODOMETER 44120
       expect(fuel.odometerReading, 44120);
     }
   });
+
+  test('keeps an avgas grade with an at-sign price as a measured fuel line', () {
+    final parsed = parseExpenseReceiptText('''
+AIRFIELD
+AVGAS 100LL 23.000 L @ 1.728 39.75
+CARD SALE 39.75
+''');
+
+    final fuel = parsed.lines.single;
+    expect(fuel.fuelType, 'Aviation Gasoline');
+    expect(fuel.quantity, 23);
+    expect(fuel.unit, 'liter');
+    expect(fuel.unitPrice, 1.728);
+    expect(fuel.subtotal, 39.75);
+  });
 }

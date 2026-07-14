@@ -121,6 +121,7 @@ bool _looksLikeStrongFuelReceiptLine(String text) {
   return RegExp(
     r'\b(unleaded|regular|midgrade|premium|diesel|di[eé]sel|def|'
     r'gasoline|gasolina|c[0o]mbustible|e[-\s]?(?:10|15|20|30|50|85)|ethanol|flex\s*fuel|gasohol|propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[- ]?5|methanol|m85|m100|kerosene|kero|queroseno|k[- ]?1|hydrogen|h2 fuel|fuel cell|h35|h70|'
+    r'avgas|aviation gasoline|jet[-\s]?a(?:[-\s]?1)?|jet fuel|turbine fuel|turbosina|race fuel|racing fuel|combustible de carrera|nitromethane|nitrometano|e[-\s]?100|'
     r'electric|charging|chargepoint|supercharger|sesi[oó]n de carga|'
     r'fuel sale|fuel total|'
     r'energy sale|energy delivered|'

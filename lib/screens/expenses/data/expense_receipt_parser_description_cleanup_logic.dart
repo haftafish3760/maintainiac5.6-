@@ -154,6 +154,7 @@ bool _looksLikeFuelPerUnitAdjustmentMetadataRow(String row) {
 
 bool _looksLikeFuelProductGradeOnlyRow(String row) {
   final lower = row.toLowerCase();
+  if (lower.contains('@') || lower.contains(r'$')) return false;
   if (RegExp(
     r'\b(total|sale|venta|amount|paid|due|tender|visa|mastercard|'
     r'debit|cash|precio|price|rate|ppu|ppg|ppl|@|\$|gal|gallon|'
@@ -163,7 +164,9 @@ bool _looksLikeFuelProductGradeOnlyRow(String row) {
   }
   if (!RegExp(
     r'\b(product|grade|fuel type|regular|reg|unleaded|unl|premium|'
-    r'midgrade|octane|e10|e15|e85|flex fuel|gasoline)\b',
+    r'midgrade|octane|e10|e15|e85|flex fuel|gasoline|race fuel|racing fuel|'
+    r'avgas|jet fuel|nitromethane|combustible de carrera|nitrometano|'
+    r'turbosina|gasolina de aviaci[oó]n)\b',
   ).hasMatch(lower)) {
     return false;
   }
@@ -175,7 +178,7 @@ bool _looksLikeFuelProductGradeOnlyRow(String row) {
   final numbers = RegExp(r'\b\d{1,3}\b').allMatches(lower).toList();
   if (numbers.length != 1) return false;
   final grade = int.tryParse(numbers.single.group(0) ?? '');
-  const productGrades = {10, 15, 85, 87, 88, 89, 91, 93};
+  const productGrades = {10, 15, 85, 87, 88, 89, 91, 93, 100, 110};
   return grade != null && productGrades.contains(grade);
 }
 
