@@ -104,7 +104,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                _GpsTripPanel(onStart: _startGpsTrip, onStop: _stopGpsTrip),
+                _GpsTripPanel(
+                  onStart: _startGpsTrip,
+                  onStop: _stopGpsTrip,
+                  onReviewLatest: _reviewLatestGpsTrip,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -429,6 +433,27 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
+  Future<void> _reviewLatestGpsTrip() async {
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    final review = tripTracking?.latestReview;
+    if (review == null) {
+      _showGpsMessage('No saved GPS trip review is available.');
+      return;
+    }
+    final saved = await openOdometerEntry(
+      context,
+      title: 'Review GPS Trip Odometer',
+      saveLabel: 'Confirm Odometer',
+      tripReview: review,
+    );
+    if (!mounted) return;
+    _showGpsMessage(
+      saved
+          ? 'GPS trip reviewed and odometer confirmed.'
+          : 'GPS trip review remains available locally.',
+    );
+  }
+
   void _showGpsMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -438,10 +463,15 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
 }
 
 class _GpsTripPanel extends StatelessWidget {
-  const _GpsTripPanel({required this.onStart, required this.onStop});
+  const _GpsTripPanel({
+    required this.onStart,
+    required this.onStop,
+    required this.onReviewLatest,
+  });
 
   final Future<void> Function() onStart;
   final Future<void> Function() onStop;
+  final Future<void> Function() onReviewLatest;
 
   @override
   Widget build(BuildContext context) {
@@ -532,6 +562,19 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (!tracking && controller?.latestReview != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: onReviewLatest,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.only(top: 3, right: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('REVIEW LATEST GPS TRIP'),
+                    ),
+                  ),
               ],
             ),
           ),

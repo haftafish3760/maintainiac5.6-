@@ -65,6 +65,10 @@ class TripTrackingController extends ChangeNotifier {
   String? get platformStatus => _platformStatus;
   String? get platformError => _platformError;
   String? get cloudMirrorError => _cloudMirrorError;
+  TripTrackingReviewRecord? get latestReview =>
+      _sessionStore.pendingReviews.isEmpty
+      ? null
+      : _sessionStore.pendingReviews.first;
 
   /// Retries locally durable mileage backups without touching the active trip
   /// or confirmed odometer. A successful retry clears any stale dashboard

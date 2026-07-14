@@ -61,6 +61,7 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
 
 - `lib/shared/odometer/odometer_entry_sheet.dart`
   - Finishing a GPS trip opens a physical-odometer confirmation flow. It compares the entered reading with filtered GPS mileage without pre-filling or overwriting the confirmed odometer; a material difference is a visible review warning.
+  - If the user cancels, the dashboard retains a `REVIEW LATEST GPS TRIP` path to reopen the local review rather than losing the comparison workflow.
 
 - `lib/shared/odometer/global_odometer_header.dart`
   - Compatibility export for older callers. The one canonical implementation is `lib/shared/widgets/global_odometer_header.dart`, which uses the global controller so the projected odometer updates across the app.

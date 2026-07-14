@@ -27,156 +27,174 @@ void main() {
     speedMetersPerSecond: speed,
   );
 
-  test('a failed initial local checkpoint releases the live odometer lock', () async {
-    final hiveDirectory = await Directory.systemTemp.createTemp(
-      'trip_tracking_closed_store_',
-    );
-    Hive.init(hiveDirectory.path);
-    final store = await TripTrackingSessionStore.create();
-    await Hive.close();
-    addTearDown(() async {
-      if (hiveDirectory.existsSync()) {
-        await hiveDirectory.delete(recursive: true);
-      }
-    });
-    final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: odometer,
-    );
+  test(
+    'a failed initial local checkpoint releases the live odometer lock',
+    () async {
+      final hiveDirectory = await Directory.systemTemp.createTemp(
+        'trip_tracking_closed_store_',
+      );
+      Hive.init(hiveDirectory.path);
+      final store = await TripTrackingSessionStore.create();
+      await Hive.close();
+      addTearDown(() async {
+        if (hiveDirectory.existsSync()) {
+          await hiveDirectory.delete(recursive: true);
+        }
+      });
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
 
-    expect(
-      await controller.start(
-        tripId: 'trip_storage_failure',
-        vehicleId: 'vehicle_1',
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-      ),
-      isFalse,
-    );
+      expect(
+        await controller.start(
+          tripId: 'trip_storage_failure',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
 
-    expect(controller.isTracking, isFalse);
-    expect(odometer.hasLiveTripProjection, isFalse);
-    expect(controller.platformStatus, 'storage_failed');
-    expect(controller.platformError, contains('Could not save the trip locally'));
-  });
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        contains('Could not save the trip locally'),
+      );
+    },
+  );
 
-  test('a failed review checkpoint keeps the trip recoverable for retry', () async {
-    final hiveDirectory = await Directory.systemTemp.createTemp(
-      'trip_tracking_review_store_',
-    );
-    Hive.init(hiveDirectory.path);
-    final store = await TripTrackingSessionStore.create();
-    final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: odometer,
-    );
-    expect(
-      await controller.start(
-        tripId: 'trip_review_storage_failure',
-        vehicleId: 'vehicle_1',
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-      ),
-      isTrue,
-    );
-    await Hive.close();
-    addTearDown(() async {
-      if (hiveDirectory.existsSync()) {
-        await hiveDirectory.delete(recursive: true);
-      }
-    });
+  test(
+    'a failed review checkpoint keeps the trip recoverable for retry',
+    () async {
+      final hiveDirectory = await Directory.systemTemp.createTemp(
+        'trip_tracking_review_store_',
+      );
+      Hive.init(hiveDirectory.path);
+      final store = await TripTrackingSessionStore.create();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      expect(
+        await controller.start(
+          tripId: 'trip_review_storage_failure',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await Hive.close();
+      addTearDown(() async {
+        if (hiveDirectory.existsSync()) {
+          await hiveDirectory.delete(recursive: true);
+        }
+      });
 
-    expect(await controller.finishForReview(), isNull);
+      expect(await controller.finishForReview(), isNull);
 
-    expect(controller.isTracking, isTrue);
-    expect(odometer.hasLiveTripProjection, isTrue);
-    expect(controller.platformStatus, 'review_save_failed');
-    expect(
-      controller.platformError,
-      contains('Could not save the completed trip locally'),
-    );
-  });
+      expect(controller.isTracking, isTrue);
+      expect(odometer.hasLiveTripProjection, isTrue);
+      expect(controller.platformStatus, 'review_save_failed');
+      expect(
+        controller.platformError,
+        contains('Could not save the completed trip locally'),
+      );
+    },
+  );
 
-  test('a failed empty-trip discard keeps the durable trip state intact', () async {
-    final hiveDirectory = await Directory.systemTemp.createTemp(
-      'trip_tracking_discard_store_',
-    );
-    Hive.init(hiveDirectory.path);
-    final store = await TripTrackingSessionStore.create();
-    final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: odometer,
-    );
-    expect(
-      await controller.start(
-        tripId: 'trip_discard_storage_failure',
-        vehicleId: 'vehicle_1',
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-      ),
-      isTrue,
-    );
-    await Hive.close();
-    addTearDown(() async {
-      if (hiveDirectory.existsSync()) {
-        await hiveDirectory.delete(recursive: true);
-      }
-    });
+  test(
+    'a failed empty-trip discard keeps the durable trip state intact',
+    () async {
+      final hiveDirectory = await Directory.systemTemp.createTemp(
+        'trip_tracking_discard_store_',
+      );
+      Hive.init(hiveDirectory.path);
+      final store = await TripTrackingSessionStore.create();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      expect(
+        await controller.start(
+          tripId: 'trip_discard_storage_failure',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await Hive.close();
+      addTearDown(() async {
+        if (hiveDirectory.existsSync()) {
+          await hiveDirectory.delete(recursive: true);
+        }
+      });
 
-    expect(await controller.discardEmptyTrip(), isFalse);
+      expect(await controller.discardEmptyTrip(), isFalse);
 
-    expect(controller.isTracking, isTrue);
-    expect(odometer.hasLiveTripProjection, isTrue);
-    expect(controller.platformStatus, 'discard_failed');
-    expect(
-      controller.platformError,
-      contains('Could not discard the empty trip locally'),
-    );
-  });
+      expect(controller.isTracking, isTrue);
+      expect(odometer.hasLiveTripProjection, isTrue);
+      expect(controller.platformStatus, 'discard_failed');
+      expect(
+        controller.platformError,
+        contains('Could not discard the empty trip locally'),
+      );
+    },
+  );
 
-  test('native GPS cannot start without a durable lifecycle checkpoint', () async {
-    final hiveDirectory = await Directory.systemTemp.createTemp(
-      'trip_tracking_lifecycle_store_',
-    );
-    Hive.init(hiveDirectory.path);
-    final store = await TripTrackingSessionStore.create();
-    final native = _FakeTripTrackingPlatform();
-    final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: odometer,
-      platform: native,
-    );
-    expect(
-      await controller.start(
-        tripId: 'trip_lifecycle_storage_failure',
-        vehicleId: 'vehicle_1',
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-      ),
-      isTrue,
-    );
-    await Hive.close();
-    addTearDown(() async {
-      if (hiveDirectory.existsSync()) {
-        await hiveDirectory.delete(recursive: true);
-      }
-    });
+  test(
+    'native GPS cannot start without a durable lifecycle checkpoint',
+    () async {
+      final hiveDirectory = await Directory.systemTemp.createTemp(
+        'trip_tracking_lifecycle_store_',
+      );
+      Hive.init(hiveDirectory.path);
+      final store = await TripTrackingSessionStore.create();
+      final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        platform: native,
+      );
+      expect(
+        await controller.start(
+          tripId: 'trip_lifecycle_storage_failure',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await Hive.close();
+      addTearDown(() async {
+        if (hiveDirectory.existsSync()) {
+          await hiveDirectory.delete(recursive: true);
+        }
+      });
 
-    expect(await controller.startNativeTracking(allowBackground: false), isFalse);
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isFalse,
+      );
 
-    expect(native.startCalls, 0);
-    expect(controller.isTracking, isTrue);
-    expect(odometer.hasLiveTripProjection, isTrue);
-    expect(controller.platformStatus, 'storage_failed');
-    expect(
-      controller.platformError,
-      contains('Could not save trip recovery state locally'),
-    );
-  });
+      expect(native.startCalls, 0);
+      expect(controller.isTracking, isTrue);
+      expect(odometer.hasLiveTripProjection, isTrue);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        contains('Could not save trip recovery state locally'),
+      );
+    },
+  );
 
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
@@ -213,6 +231,29 @@ void main() {
     await controller.finishForReview();
     expect(native.stopCalls, 1);
   });
+
+  test(
+    'latest local review stays available after a trip is finished',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_latest_review',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final review = await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 1)),
+      );
+
+      expect(review, isNotNull);
+      expect(controller.latestReview?.id, 'trip_latest_review');
+    },
+  );
 
   test(
     'finishing a trip drains queued native GPS events into the review',
