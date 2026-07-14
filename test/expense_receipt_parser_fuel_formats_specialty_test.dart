@@ -28,20 +28,23 @@ ODOMETER 44120
     }
   });
 
-  test('keeps an avgas grade with an at-sign price as a measured fuel line', () {
-    final parsed = parseExpenseReceiptText('''
+  test(
+    'keeps an avgas grade with an at-sign price as a measured fuel line',
+    () {
+      final parsed = parseExpenseReceiptText('''
 AIRFIELD
 AVGAS 100LL 23.000 L @ 1.728 39.75
 CARD SALE 39.75
 ''');
 
-    final fuel = parsed.lines.single;
-    expect(fuel.fuelType, 'Aviation Gasoline');
-    expect(fuel.quantity, 23);
-    expect(fuel.unit, 'liter');
-    expect(fuel.unitPrice, 1.728);
-    expect(fuel.subtotal, 39.75);
-  });
+      final fuel = parsed.lines.single;
+      expect(fuel.fuelType, 'Aviation Gasoline');
+      expect(fuel.quantity, 23);
+      expect(fuel.unit, 'liter');
+      expect(fuel.unitPrice, 1.728);
+      expect(fuel.subtotal, 39.75);
+    },
+  );
 
   test('parses dirty Spanish racing fuel labels as one fuel line', () {
     final parsed = parseExpenseReceiptText('''
@@ -58,5 +61,22 @@ Total 72,44
     expect(fuel.quantity, 5.75);
     expect(fuel.unitPrice, 12.598);
     expect(fuel.subtotal, 72.44);
+  });
+
+  test('recognizes the AdBlue DEF product alias', () {
+    final parsed = parseExpenseReceiptText('''
+TRUCK STOP
+AdBlue
+2.500 GAL @ 7.996
+FUEL SALE 19.99
+TOTAL 19.99
+''');
+
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.fuelType, 'DEF');
+    expect(fuel.quantity, 2.5);
+    expect(fuel.unitPrice, 7.996);
+    expect(fuel.subtotal, 19.99);
   });
 }

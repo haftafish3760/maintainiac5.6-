@@ -145,10 +145,7 @@ String _normalizeFuelSignalText(String value) {
       .replaceAll(RegExp(r'\blitros\b'), 'liters')
       .replaceAll(RegExp(r'\blitro\b'), 'liter')
       .replaceAll(RegExp(r'\bventa\s+(?:de\s+)?c[0o]mbustible\b'), 'fuel sale')
-      .replaceAll(
-        RegExp(r'\bc[0o]mbustible\s+de\s+carrera\b'),
-        'racing fuel',
-      )
+      .replaceAll(RegExp(r'\bc[0o]mbustible\s+de\s+carrera\b'), 'racing fuel')
       .replaceAll(RegExp(r'\bnitrometano\b'), 'nitromethane')
       .replaceAll(RegExp(r'\bturbosina\b'), 'jet fuel')
       .replaceAll(RegExp(r'\bgasolina\s+de\s+aviaci[oó]n\b'), 'avgas')
@@ -214,7 +211,9 @@ String _fuelTypeForLine({
 }
 
 String? _fuelTypeSignalFor(String text) {
-  if (RegExp(r'\b(def|diesel exhaust fluid)\b').hasMatch(text)) return 'DEF';
+  if (RegExp(r'\b(def|ad\s*blue|diesel exhaust fluid)\b').hasMatch(text)) {
+    return 'DEF';
+  }
   if (RegExp(r'\b(nitromethane|nitro\s*methane|nm\s+fuel)\b').hasMatch(text)) {
     return 'Nitromethane';
   }
@@ -286,7 +285,9 @@ String? _fuelTypeSignalFor(String text) {
 }
 
 String? _ethanolBlendFuelTypeFor(String text) {
-  final compact = RegExp(r'\be[-\s]*(10|15|20|30|50|85|100)\b').firstMatch(text);
+  final compact = RegExp(
+    r'\be[-\s]*(10|15|20|30|50|85|100)\b',
+  ).firstMatch(text);
   if (compact != null) return 'E${compact.group(1)}';
   final labeled = RegExp(
     r'\bethanol\s*(?:blend|fuel)?\s*(10|15|20|30|50|85|100)\b',
@@ -441,7 +442,7 @@ String? _fuelProductLabelFor(List<String> receiptRows) {
 
 bool _hasFuelProductSignal(String text) {
   return RegExp(
-    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|mid[-\s]?grade|plus|premium|diesel|dsl|d2|d1|ulsd|def|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
+    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|mid[-\s]?grade|plus|premium|diesel|dsl|d2|d1|ulsd|def|ad\s*blue|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
   ).hasMatch(text);
 }
 
