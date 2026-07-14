@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -37,6 +38,7 @@ class ActiveWorkdayScreen extends StatefulWidget {
 
 class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   late final DateTime _startedAt;
+  final Random _tripIdRandom = Random.secure();
   Timer? _timer;
   var _elapsed = Duration.zero;
   late var _activeVehicle = widget.activeVehicle;
@@ -383,7 +385,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     var startedNewTrip = false;
     if (!tripTracking.isTracking) {
       startedNewTrip = await tripTracking.start(
-        tripId: 'gps-trip-${DateTime.now().microsecondsSinceEpoch}',
+        tripId:
+            'gps-trip-${DateTime.now().microsecondsSinceEpoch}-${_tripIdRandom.nextInt(0x100000000).toRadixString(16)}',
         vehicleId: GlobalOdometerScope.of(context).vehicleId,
         profile: settings.defaultProfile,
       );
