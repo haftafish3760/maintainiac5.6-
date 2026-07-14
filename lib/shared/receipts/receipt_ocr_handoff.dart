@@ -38,6 +38,8 @@ class ReceiptOcrHandoff {
   final bool inventoryRequested;
 
   bool get hasReadableText => ocr.hasText;
+  ReceiptOcrDocumentClassification get documentClassification =>
+      ocr.documentClassification;
   bool get needsManualReview => !hasReadableText || ocr.warnings.isNotEmpty;
 }
 

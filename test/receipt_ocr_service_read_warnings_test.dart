@@ -296,6 +296,9 @@ TOTAL 10.48
     expect(source, contains('.timeout(photoReadTimeout)'));
     expect(source, contains('} on TimeoutException {'));
     expect(source, contains('Reading this receipt photo took too long.'));
+    expect(source, contains('timedOutPhotosSkipped ='));
+    expect(source, contains('A Dart timeout cannot cancel the native read'));
+    expect(source, contains('photosSkipped:\n            skippedPhotoCount +'));
   });
 
   test('a stalled photo read remains a blocking photo-read failure', () {

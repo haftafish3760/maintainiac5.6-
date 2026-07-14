@@ -210,7 +210,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
       return const ReceiptNativeSavedPhotoReviewWarning(
         code: 'saved_photo_bottom_too_dark',
         severity: ReceiptNativeSavedPhotoWarningSeverity.warning,
-        title: 'Bottom of photo looks darker',
+        title: 'Check bottom of photo',
         causeCode: 'bottom_receipt_lines_darker_than_upper',
         guidance:
             'Zoom into the bottom receipt lines. Retake or raise Brightness if the total or barcode area is hard to read.',

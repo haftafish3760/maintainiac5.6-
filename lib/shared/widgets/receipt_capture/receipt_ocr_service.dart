@@ -201,6 +201,7 @@ class ReceiptOcrService {
       ...pdfPreflight.messages,
     ];
     var photosRead = 0;
+    var timedOutPhotosSkipped = 0;
     var pdfsRead = 0;
     var pdfsSkipped =
         skippedPdfCount + pdfPreflight.blockedAttachmentIds.length;
@@ -243,9 +244,20 @@ class ReceiptOcrService {
           );
           break;
         } on TimeoutException {
+          timedOutPhotosSkipped =
+              readablePhotoAttachments.length - photoIndex - 1;
           warnings.add(
             'Reading this receipt photo took too long. Try again, use a clearer photo, or continue with the details yourself.',
           );
+          if (timedOutPhotosSkipped > 0) {
+            warnings.add(
+              '$timedOutPhotosSkipped remaining ${timedOutPhotosSkipped == 1 ? 'receipt photo was' : 'receipt photos were'} saved as proof only so the app does not keep waiting on a stalled read.',
+            );
+          }
+          // A Dart timeout cannot cancel the native read already in progress.
+          // Do not issue another request to that recognizer while it may still
+          // be busy; the user can retry from the preserved photos.
+          break;
         } on PlatformException catch (error) {
           final message = error.message?.trim();
           warnings.add(
@@ -329,7 +341,10 @@ class ReceiptOcrService {
       stats: ReceiptOcrReadStats(
         importedTextRead: importedTextReadCount,
         photosRead: photosRead,
-        photosSkipped: skippedPhotoCount + duplicatePhotos.duplicateCount,
+        photosSkipped:
+            skippedPhotoCount +
+            duplicatePhotos.duplicateCount +
+            timedOutPhotosSkipped,
         duplicatePhotosSkipped: duplicatePhotos.duplicateCount,
         pdfsRead: pdfsRead,
         pdfsSkipped: pdfsSkipped,

@@ -79,19 +79,19 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
   String get parserImpactGuidance {
     return switch (parserRiskCode) {
       'ocr_bottom_total_may_fail' =>
-        'If the total, tax, barcode, or final lines are hard to read, use Add Another Photo for a clearer bottom section before OCR review.',
+        'If the total, tax, barcode, or final lines are hard to read, use Add Another Photo for a clearer bottom section before reviewing the receipt.',
       'ocr_bottom_lines_may_fail' =>
-        'If lower item prices or the total look fuzzy, retake or use Add Another Photo for a clearer bottom section before OCR review.',
+        'If lower item prices or the total look fuzzy, retake or use Add Another Photo for a clearer bottom section before reviewing the receipt.',
       'ocr_item_prices_may_fail' =>
-        'OCR may miss item prices if the text is soft; retake before relying on automatic line fill.',
+        'Automatic reading may miss item prices if the text is soft; retake before relying on automatic line fill.',
       'ocr_text_or_total_may_fail' =>
-        'OCR may miss receipt text or totals if the saved photo is darker than the preview.',
+        'Automatic reading may miss receipt text or totals if the saved photo is darker than the preview.',
       'ocr_washed_out_text_may_fail' =>
-        'OCR may miss washed-out totals or prices; reduce glare before relying on automatic line fill.',
+        'Automatic reading may miss washed-out totals or prices; reduce glare before relying on automatic line fill.',
       'ocr_hazy_text_may_fail' =>
-        'OCR may miss cloudy text or prices; wipe the lens and retake if the saved photo looks hazy.',
+        'Automatic reading may miss cloudy text or prices; wipe the lens and retake if the saved photo looks hazy.',
       'ocr_shadowed_text_may_fail' =>
-        'OCR may miss shadowed text or prices; move the receipt into even light and retake if shadows cover important lines.',
+        'Automatic reading may miss shadowed text or prices; move the receipt into even light and retake if shadows cover important lines.',
       'ocr_backup_scan_crop_may_need_review' =>
         'Because this came from backup scanner capture, verify crop, bottom edge, subtotal, tax, and total before relying on automatic line fill.',
       'ocr_phone_backup_focus_may_need_review' =>

@@ -19,6 +19,10 @@ void main() {
 
     expect(handoff.destination, ReceiptOcrHandoffDestination.fuel);
     expect(handoff.hasReadableText, isTrue);
+    expect(
+      handoff.documentClassification.documentType,
+      ReceiptOcrDocumentType.generalExpense,
+    );
   });
 
   test('a user-selected inventory receipt routes to inventory', () {

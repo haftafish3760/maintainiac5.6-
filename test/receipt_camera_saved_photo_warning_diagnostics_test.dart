@@ -123,6 +123,7 @@ void main() {
     expect(shadow.message, contains('even light'));
     expect(checkSharpness.code, 'saved_photo_ok');
     expect(bottomDark.code, 'saved_photo_bottom_too_dark');
+    expect(bottomDark.title, 'Check bottom of photo');
     expect(bottomDark.message, contains('bottom receipt lines'));
     expect(bottomDark.prefersAddSection, isTrue);
     expect(
