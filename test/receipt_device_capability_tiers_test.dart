@@ -86,6 +86,47 @@ void main() {
     },
   );
 
+  test('older Android generations cannot be overworked by RAM alone', () {
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: const ReceiptHardwareProfile(
+        platformName: 'android',
+        availableRamMb: 8192,
+        cpuCores: 8,
+        androidSdk: 29,
+        freeStorageMb: 12000,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+        supportsContinuousFocus: true,
+        supportsExposureCompensation: true,
+        supportsZoom: true,
+        supportsYuvLiveFrames: true,
+        maxStillWidth: 4032,
+        maxStillHeight: 3024,
+      ),
+    );
+
+    expect(capability.tier, ReceiptCapabilityTier.medium);
+    expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.entry);
+    expect(capability.maxLiveAnalysisPixels, 1100000);
+    expect(capability.parserDepth, ReceiptParserDepth.lineItems);
+  });
+
+  test('Android low-RAM declaration always selects the safe tier', () {
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: const ReceiptHardwareProfile(
+        platformName: 'android',
+        availableRamMb: 8192,
+        cpuCores: 8,
+        androidSdk: 35,
+        isLowRamDevice: true,
+        freeStorageMb: 12000,
+      ),
+    );
+
+    expect(capability.tier, ReceiptCapabilityTier.light);
+    expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.light);
+  });
+
   test(
     'camera workload uses measured capability detail within a shared tier',
     () {

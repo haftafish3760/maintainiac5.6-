@@ -27,7 +27,16 @@ class ReceiptOcrResult {
   final List<ReceiptOcrParserLineLocation> parserLineSourceLocations;
 
   bool get hasText => rawText.trim().isNotEmpty;
-  String get appFillText => parserText.trim().isEmpty ? rawText : parserText;
+  String get coordinateReconstructedText => layout.reconstructedRows
+      .map((row) => row.displayText)
+      .where((line) => line.trim().isNotEmpty)
+      .join('\n');
+  String get appFillText {
+    final reconstructed = coordinateReconstructedText;
+    if (reconstructed.isNotEmpty) return reconstructed;
+    return parserText.trim().isEmpty ? rawText : parserText;
+  }
+
   List<String> get orderedRawLines => _receiptOcrLines(rawText);
   List<String> get orderedParserLines => _receiptOcrLines(appFillText);
 

@@ -20,6 +20,9 @@ part 'receipt_ocr_service_text_combiner.dart';
 part 'receipt_ocr_service_layout.dart';
 part 'receipt_ocr_service_pdf_read.dart';
 
+const _receiptOcrEngineIdentity = 'google_mlkit_text_recognition_latin';
+const _receiptOcrProcessingVersion = 'maintainiac_receipt_ocr_v1';
+
 class ReceiptOcrService {
   const ReceiptOcrService({
     this.maxPdfOcrPages = ReceiptPdfInspector.localAssistedReadPageLimit,
@@ -215,6 +218,7 @@ class ReceiptOcrService {
               attachment.id,
               recognized,
               pageIndex: layoutPages.length,
+              sourceImageReference: attachment.path,
             ),
           );
           if (text.isEmpty) {
@@ -307,7 +311,11 @@ class ReceiptOcrService {
       textByAttachmentId: Map.unmodifiable(textByAttachment),
       source: source,
       sourceHandoffSummary: sourceHandoffSummary,
-      layout: ReceiptOcrDocument(pages: layoutPages),
+      layout: ReceiptOcrDocument(
+        pages: layoutPages,
+        engineIdentity: _receiptOcrEngineIdentity,
+        processingVersion: _receiptOcrProcessingVersion,
+      ),
       parserLineSourceLocations: combined.parserLineSourceLocations,
       stats: ReceiptOcrReadStats(
         importedTextRead: importedTextReadCount,

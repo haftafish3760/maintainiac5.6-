@@ -200,6 +200,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   var _receiptReviewFlowStarted = false;
   var _receiptReadAttemptedWithoutText = false;
   var _lastReceiptScanSignature = '';
+  var _pendingReceiptScanSignature = '';
   ExpenseReceiptClassification? _receiptClassification;
   ExpenseReceiptParseQuality? _lastParseQuality;
   ExpenseReceiptParseDiagnostics? _lastParseDiagnostics;

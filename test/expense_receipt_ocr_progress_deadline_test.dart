@@ -31,6 +31,12 @@ void main() {
         source,
         contains('_updateReceiptState(() => _scanningReceiptPhotos = false);'),
       );
+      expect(source, contains('_pendingReceiptScanSignature = signature'));
+      expect(source, contains('await _performReceiptAttachmentScan()'));
+      expect(
+        source,
+        contains("final pendingSignature = _pendingReceiptScanSignature"),
+      );
       expect(source, contains('_receiptOcrHandoffRouter('));
       expect(source, contains('receiptOcrHandoffDestination'));
     },

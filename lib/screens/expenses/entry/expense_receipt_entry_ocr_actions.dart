@@ -30,7 +30,15 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
           ].join(':'),
         )
         .join('|');
-    if (signature.isEmpty || signature == _lastReceiptScanSignature) return;
+    if (signature.isEmpty ||
+        signature == _lastReceiptScanSignature ||
+        signature == _pendingReceiptScanSignature) {
+      return;
+    }
+    if (_scanningReceiptPhotos) {
+      _pendingReceiptScanSignature = signature;
+      return;
+    }
     _lastReceiptScanSignature = signature;
     unawaited(_scanAttachedReceiptAttachments());
   }
@@ -38,6 +46,27 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
   Future<void> _scanAttachedReceiptAttachments() async {
     if (!_appAssistedReceiptFillEnabled) return;
     if (_scanningReceiptPhotos) return;
+    try {
+      await _performReceiptAttachmentScan();
+    } catch (_) {
+      _handleReceiptOcrReadFailure();
+    } finally {
+      if (mounted) {
+        if (_scanningReceiptPhotos) {
+          _updateReceiptState(() => _scanningReceiptPhotos = false);
+        }
+        final pendingSignature = _pendingReceiptScanSignature;
+        _pendingReceiptScanSignature = '';
+        if (pendingSignature.isNotEmpty &&
+            pendingSignature != _lastReceiptScanSignature) {
+          _lastReceiptScanSignature = pendingSignature;
+          unawaited(_scanAttachedReceiptAttachments());
+        }
+      }
+    }
+  }
+
+  Future<void> _performReceiptAttachmentScan() async {
     final readableAttachments = _receiptAttachments
         .where(
           (attachment) =>

@@ -4,10 +4,12 @@ ReceiptOcrPage _receiptOcrLayoutPageFromRecognizedText(
   String attachmentId,
   RecognizedText recognized, {
   required int pageIndex,
+  required String sourceImageReference,
 }) {
   return ReceiptOcrPage(
     attachmentId: attachmentId,
     pageIndex: pageIndex,
+    sourceImageReference: sourceImageReference,
     blocks: [
       for (final block in recognized.blocks)
         ReceiptOcrBlock(

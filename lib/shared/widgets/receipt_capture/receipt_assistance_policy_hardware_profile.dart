@@ -64,6 +64,7 @@ class ReceiptHardwareProfile {
     this.cpuCores,
     this.androidSdk,
     this.androidPerformanceClass,
+    this.isLowRamDevice = false,
     this.freeStorageMb,
     this.lowPowerMode = false,
     this.hasOnDeviceAcceleration = false,
@@ -93,6 +94,7 @@ class ReceiptHardwareProfile {
   final int? cpuCores;
   final int? androidSdk;
   final int? androidPerformanceClass;
+  final bool isLowRamDevice;
   final int? freeStorageMb;
   final bool lowPowerMode;
   final bool hasOnDeviceAcceleration;
@@ -151,6 +153,7 @@ class ReceiptHardwareProfile {
       'supportsYuvLiveFrames': supportsYuvLiveFrames,
       'supportsNativeEdgeSignals': supportsNativeEdgeSignals,
       'maxStillMegapixels': maxStillMegapixels,
+      'isLowRamDevice': isLowRamDevice,
     };
   }
 
@@ -175,18 +178,30 @@ class ReceiptHardwareProfile {
       return ReceiptCameraWorkloadTier.balanced;
     }
     final score = _score;
-    if (score <= 1) return ReceiptCameraWorkloadTier.light;
-    if (score <= 3) return ReceiptCameraWorkloadTier.entry;
-    if (score <= 5) return ReceiptCameraWorkloadTier.balanced;
-    if (score <= 7) return ReceiptCameraWorkloadTier.enhanced;
-    if (score <= 9) return ReceiptCameraWorkloadTier.performance;
-    return ReceiptCameraWorkloadTier.flagship;
+    final measured = switch (score) {
+      <= 1 => ReceiptCameraWorkloadTier.light,
+      <= 3 => ReceiptCameraWorkloadTier.entry,
+      <= 5 => ReceiptCameraWorkloadTier.balanced,
+      <= 7 => ReceiptCameraWorkloadTier.enhanced,
+      <= 9 => ReceiptCameraWorkloadTier.performance,
+      _ => ReceiptCameraWorkloadTier.flagship,
+    };
+    final generationCap = _androidGenerationWorkloadCap;
+    if (generationCap == null || measured.index <= generationCap.index) {
+      return measured;
+    }
+    return generationCap;
   }
 
   ReceiptCapabilityTier _automaticTier({required bool allowHeavy}) {
     if (lowPowerMode || _isConstrained) return ReceiptCapabilityTier.light;
     final score = _score;
-    if (allowHeavy && score >= 8) return ReceiptCapabilityTier.heavyweight;
+    final androidSdkValue = androidSdk;
+    final heavyAllowedByGeneration =
+        androidSdkValue == null || androidSdkValue >= 33;
+    if (allowHeavy && heavyAllowedByGeneration && score >= 8) {
+      return ReceiptCapabilityTier.heavyweight;
+    }
     if (score >= 4) return ReceiptCapabilityTier.medium;
     return ReceiptCapabilityTier.light;
   }
@@ -194,10 +209,20 @@ class ReceiptHardwareProfile {
   bool get _isConstrained {
     final ram = availableRamMb;
     final storage = freeStorageMb;
-    return (cameraCount > 0 && !hasRearCamera) ||
+    return isLowRamDevice ||
+        (cameraCount > 0 && !hasRearCamera) ||
         (ram != null && ram <= 4096) ||
         (storage != null && storage < 1200) ||
         (cpuCores != null && cpuCores! <= 4);
+  }
+
+  ReceiptCameraWorkloadTier? get _androidGenerationWorkloadCap {
+    final sdk = androidSdk;
+    if (sdk == null) return null;
+    if (sdk <= 28) return ReceiptCameraWorkloadTier.light;
+    if (sdk <= 30) return ReceiptCameraWorkloadTier.entry;
+    if (sdk <= 32) return ReceiptCameraWorkloadTier.enhanced;
+    return null;
   }
 
   int get _score {

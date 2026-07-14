@@ -31,9 +31,10 @@ class ReceiptDeviceCapabilityService {
       deviceName: device.name,
       appVersion: package?.version,
       appBuildNumber: package?.buildNumber,
-      availableRamMb: await _readAndroidMemoryMb(),
+      availableRamMb: device.physicalRamMb ?? await _readAndroidMemoryMb(),
       cpuCores: cpuCores <= 0 ? null : cpuCores,
       androidSdk: device.androidSdk ?? _readAndroidSdk(),
+      isLowRamDevice: device.isLowRamDevice,
       freeStorageMb: await _readFreeStorageMb(),
       cameraPermissionGranted: cameraPermission,
       cameraCount: nativeCamera.cameraCount,
@@ -107,6 +108,10 @@ class ReceiptDeviceCapabilityService {
           model: android.model,
           name: android.device,
           androidSdk: android.version.sdkInt,
+          physicalRamMb: android.physicalRamSize > 0
+              ? android.physicalRamSize
+              : null,
+          isLowRamDevice: android.isLowRamDevice,
         );
       }
       if (Platform.isIOS) {
@@ -175,10 +180,14 @@ class _DeviceIdentity {
     this.model,
     this.name,
     this.androidSdk,
+    this.physicalRamMb,
+    this.isLowRamDevice = false,
   });
 
   final String? manufacturer;
   final String? model;
   final String? name;
   final int? androidSdk;
+  final int? physicalRamMb;
+  final bool isLowRamDevice;
 }
