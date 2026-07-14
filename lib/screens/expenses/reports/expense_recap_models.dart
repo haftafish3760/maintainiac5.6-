@@ -98,6 +98,9 @@ class ExpenseRecapReport {
     required this.fuelUnits,
     required this.electricKwh,
     required this.odometerMiles,
+    required this.completedLiquidFillMiles,
+    required this.completedLiquidFillGallons,
+    required this.hasMixedLiquidFuelTypes,
     required this.businessVehicleMiles,
     required this.personalVehicleMiles,
   });
@@ -214,6 +217,9 @@ class ExpenseRecapReport {
       fuelUnits: fuelEconomy.liquidGallons,
       electricKwh: fuelEconomy.electricKwh,
       odometerMiles: fuelEconomy.odometerMiles,
+      completedLiquidFillMiles: fuelEconomy.completedLiquidFillMiles,
+      completedLiquidFillGallons: fuelEconomy.completedLiquidFillGallons,
+      hasMixedLiquidFuelTypes: fuelEconomy.hasMixedLiquidFuelTypes,
       businessVehicleMiles: usageTotals.businessMiles,
       personalVehicleMiles: usageTotals.personalMiles,
     );
@@ -246,6 +252,9 @@ class ExpenseRecapReport {
   final double fuelUnits;
   final double electricKwh;
   final int? odometerMiles;
+  final int? completedLiquidFillMiles;
+  final double completedLiquidFillGallons;
+  final bool hasMixedLiquidFuelTypes;
   final double businessVehicleMiles;
   final double personalVehicleMiles;
 
@@ -269,9 +278,13 @@ class ExpenseRecapReport {
   double? get averageElectricKwhPrice =>
       electricKwh <= 0 ? null : electricFuelExpense / electricKwh;
   double? get averageMpg {
-    final miles = odometerMiles;
-    if (miles == null || miles <= 0 || fuelUnits <= 0) return null;
-    return miles / fuelUnits;
+    if (hasMixedLiquidFuelTypes) return null;
+    final miles = completedLiquidFillMiles ?? odometerMiles;
+    final gallons = completedLiquidFillMiles == null
+        ? fuelUnits
+        : completedLiquidFillGallons;
+    if (miles == null || miles <= 0 || gallons <= 0) return null;
+    return miles / gallons;
   }
 
   double? get milesPerKwh {

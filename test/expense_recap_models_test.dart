@@ -125,6 +125,50 @@ void main() {
     },
   );
 
+  test('expense recap uses completed full-to-full fuel cycles for MPG', () async {
+    final ledger = ExpenseLedgerController.memory();
+    for (final receipt in [
+      _fuelCycleReceipt(
+        id: 'full-start',
+        date: DateTime(2026, 6, 1),
+        odometer: 1000,
+        gallons: 10,
+        fillType: 'Full fill-up',
+      ),
+      _fuelCycleReceipt(
+        id: 'partial-middle',
+        date: DateTime(2026, 6, 5),
+        odometer: 1100,
+        gallons: 5,
+        fillType: 'Partial fill',
+      ),
+      _fuelCycleReceipt(
+        id: 'full-end',
+        date: DateTime(2026, 6, 10),
+        odometer: 1200,
+        gallons: 7,
+        fillType: 'Full fill-up',
+      ),
+    ]) {
+      await ledger.saveReceipt(receipt);
+    }
+
+    final report = ExpenseRecapReport.fromLedger(
+      ledger,
+      ExpenseDateRange(
+        start: DateTime(2026, 6, 1),
+        end: DateTime(2026, 6, 30),
+      ),
+      vehicleId: 'truck_1',
+    );
+
+    expect(report.odometerMiles, 200);
+    expect(report.fuelUnits, 22);
+    expect(report.completedLiquidFillMiles, 200);
+    expect(report.completedLiquidFillGallons, 12);
+    expect(report.averageMpg, closeTo(16.667, .001));
+  });
+
   test(
     'mixed-use vehicle expenses follow business and personal mileage share',
     () async {
@@ -321,5 +365,35 @@ void main() {
       expect(report.vehicleBusinessUsePercent, 1);
       expect(report.vehiclePersonalUsePercent, 0);
     },
+  );
+}
+
+ExpenseReceiptRecord _fuelCycleReceipt({
+  required String id,
+  required DateTime date,
+  required int odometer,
+  required double gallons,
+  required String fillType,
+}) {
+  return ExpenseReceiptRecord(
+    id: id,
+    receiptDate: date,
+    merchantName: 'Fuel Stop',
+    vehicleId: 'truck_1',
+    lines: [
+      ExpenseReceiptLineRecord(
+        id: '$id-line',
+        description: 'Gasoline',
+        category: 'Fuel',
+        use: ExpenseLineUse.business,
+        quantity: gallons,
+        unitsPerPackage: 1,
+        unit: 'gallon',
+        subtotal: gallons * 4,
+        odometerReading: odometer,
+        fuelType: 'Gasoline',
+        fillType: fillType,
+      ),
+    ],
   );
 }
