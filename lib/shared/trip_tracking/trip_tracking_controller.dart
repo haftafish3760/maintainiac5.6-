@@ -137,6 +137,18 @@ class TripTrackingController extends ChangeNotifier {
         vehicleId.trim().isEmpty) {
       return false;
     }
+    try {
+      // Reviews are stored by trip id. Reusing an id would otherwise replace
+      // an existing locally durable audit record when the new trip finishes.
+      if (_sessionStore.reviewForTrip(tripId) != null) return false;
+    } catch (error) {
+      // Do not start GPS or alter the live odometer when we cannot establish
+      // that the immutable local review history is available.
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not save the trip locally: $error';
+      notifyListeners();
+      return false;
+    }
     final startingOdometer = _odometer.confirmedReading;
     if (!_odometer.beginLiveTripProjection(
       tripId: tripId,

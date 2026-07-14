@@ -272,6 +272,15 @@ void main() {
         isFalse,
       );
       expect(controller.latestReview?.confirmedEndingOdometer, 1002);
+      expect(
+        await controller.start(
+          tripId: 'trip_latest_review',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+        ),
+        isFalse,
+      );
+      expect(controller.isTracking, isFalse);
     },
   );
 
