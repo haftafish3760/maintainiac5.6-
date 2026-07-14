@@ -27,6 +27,18 @@ void main() {
         contains('Future<void> continueReceiptPhotoReview()'),
       );
       expect(saveActions, contains('_needsStitchReviewBeforeSave'));
+      expect(
+        saveActions,
+        contains('if (_canOpenSinglePhotoReceiptDetailsImmediately)'),
+      );
+      expect(
+        saveActions,
+        contains('_openSinglePhotoReceiptDetailsImmediately();'),
+      );
+      expect(
+        saveActions,
+        contains("'receiptPreparationOwner': 'receipt_reader_after_form_open'"),
+      );
       expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.stitch;'));
       expect(saveActions, contains('_ensureStitchPreview(force: true)'));
       expect(
@@ -65,6 +77,11 @@ void main() {
       expect(
         stitchExitActions,
         contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr('),
+      );
+      expect(stitchExitActions, contains('if (preparedOcrPaths.length <= 1)'));
+      expect(
+        stitchExitActions,
+        contains('return ReceiptStitchResult.notNeeded(preparedOcrPaths);'),
       );
       expect(imageProcessor, contains('copyReceiptOcrArtifact'));
 

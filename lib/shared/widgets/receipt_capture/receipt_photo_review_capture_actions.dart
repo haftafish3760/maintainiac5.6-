@@ -281,10 +281,16 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     }
     final deviceCapability =
         settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
+    final guidanceEnabled = settings?.cameraGuidanceEnabled ?? true;
     final cameraSettings = ReceiptNativeCameraSettings(
       assistedReceiptFill: widget.assistedReceiptFill,
       longReceiptMode: settings?.cameraLongReceiptTips ?? true,
       autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
+      edgeDetectionEnabled: guidanceEnabled,
+      edgeOverlayEnabled: guidanceEnabled,
+      tooFarTooCloseWarningEnabled: guidanceEnabled,
+      receiptFullyVisibleWarningEnabled: guidanceEnabled,
+      textTooSmallWarningEnabled: guidanceEnabled,
       dataSaverLevel: _dataSaverLevel,
     );
     try {

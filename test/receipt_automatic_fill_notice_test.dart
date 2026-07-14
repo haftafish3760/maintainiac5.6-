@@ -16,4 +16,19 @@ void main() {
       contains("TextButton(onPressed: onTurnOn, child: const Text('Turn On'))"),
     );
   });
+
+  test('automatic filling off releases the receipt form from reading state', () {
+    final actions = File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+    ).readAsStringSync();
+
+    final disabledBranch = actions.substring(
+      actions.indexOf('if (!_appAssistedReceiptFillEnabled'),
+      actions.indexOf('if (result.ocrSourcePhotoPaths.isEmpty)'),
+    );
+    expect(
+      disabledBranch,
+      contains('widget.onReceiptReadFinished?.call(false);'),
+    );
+  });
 }

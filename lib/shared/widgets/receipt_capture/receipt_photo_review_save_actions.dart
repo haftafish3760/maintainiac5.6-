@@ -26,6 +26,13 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         return;
       }
     }
+    // A normal, unedited one-photo receipt does not need an expensive save
+    // operation before the user can reach the form. Return it immediately;
+    // the receipt reader owns preparation and reports its progress there.
+    if (_canOpenSinglePhotoReceiptDetailsImmediately) {
+      _openSinglePhotoReceiptDetailsImmediately();
+      return;
+    }
     _updateReviewState(() => _savingPhotos = true);
     final pathsToSave = widget.bestShotCandidateMode
         ? [_photoPaths[_selectedIndex]]
@@ -154,5 +161,32 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
   void _stopReceiptReviewSave() {
     if (!_reviewWorkActive) return;
     _updateReviewState(() => _savingPhotos = false);
+  }
+
+  bool get _canOpenSinglePhotoReceiptDetailsImmediately =>
+      !widget.bestShotCandidateMode &&
+      _photoPaths.length == 1 &&
+      _generatedEditPaths.isEmpty;
+
+  void _openSinglePhotoReceiptDetailsImmediately() {
+    final photoPath = _photoPaths.single;
+    final navigator = Navigator.of(context);
+    if (!beginReceiptReviewClose()) return;
+    navigator.pop(
+      ReceiptPhotoReviewResult(
+        photoPaths: [photoPath],
+        ocrSourcePhotoPaths: [photoPath],
+        dataSaverLevel: _dataSaverLevel,
+        stitchResult: ReceiptStitchResult.notNeeded([photoPath]),
+        photoQualityChecksByPath: {photoPath: ?_qualityChecksByPath[photoPath]},
+        captureDiagnosticsByPhotoPath: {
+          photoPath: {
+            ...?_captureDiagnosticsByPath[photoPath],
+            'receiptReviewOpeningRoute': 'single_photo_details_immediate',
+            'receiptPreparationOwner': 'receipt_reader_after_form_open',
+          },
+        },
+      ),
+    );
   }
 }

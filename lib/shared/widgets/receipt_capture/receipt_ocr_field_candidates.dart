@@ -66,7 +66,7 @@ ReceiptOcrFieldCandidates extractReceiptOcrFieldCandidates(
         ),
       );
     }
-    if (amount != null && normalized.contains('subtotal')) {
+    if (amount != null && _hasSubtotalLabel(normalized)) {
       candidates.add(
         _fieldCandidate(
           ReceiptOcrFieldKind.subtotal,
@@ -127,7 +127,7 @@ ReceiptOcrFieldCandidate _fieldCandidate(
     sourceLineIndexes: row.sourceLineIndexes,
     bounds: row.bounds,
     confidence: row.confidence,
-    reason: reason,
+    reason: '$reason Source receipt line ${row.readingOrder + 1}.',
   );
 }
 
@@ -153,7 +153,7 @@ int _compareReceiptOcrFieldCandidates(
 
 String? _receiptOcrDate(String value) {
   final match = RegExp(
-    r'\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b',
+    r'\b(?:\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|\d{4}[./-]\d{1,2}[./-]\d{1,2})\b',
   ).firstMatch(value);
   return match?.group(0);
 }
@@ -166,10 +166,17 @@ String? _receiptOcrLastAmount(String value) {
 }
 
 bool _hasTaxLabel(String value) =>
-    value.contains('tax') || value.contains('vat') || value.contains('gst');
+    value.contains('tax') ||
+    value.contains('vat') ||
+    value.contains('gst') ||
+    value.contains('hst') ||
+    value.contains('pst');
+
+bool _hasSubtotalLabel(String value) =>
+    RegExp(r'\bsub\s*total\b').hasMatch(value);
 
 bool _hasTotalLabel(String value) {
-  return (value.contains('total') && !value.contains('subtotal')) ||
+  return (value.contains('total') && !_hasSubtotalLabel(value)) ||
       value.contains('amount due') ||
       value.contains('balance due');
 }
@@ -180,6 +187,15 @@ bool _isMerchantHeaderCandidate(
   String? date,
 ) {
   if (normalized.isEmpty || amount != null || date != null) return false;
+  if (RegExp(
+        r'^\d{1,6}\s+\S+\s+(?:st|street|rd|road|ave|avenue|blvd|lane|ln|dr|drive)\b',
+      ).hasMatch(normalized) ||
+      RegExp(r'\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}').hasMatch(normalized) ||
+      normalized.contains('www.') ||
+      normalized.contains('@') ||
+      normalized.startsWith('store #')) {
+    return false;
+  }
   return !normalized.contains('total') &&
       !_hasTaxLabel(normalized) &&
       !normalized.contains('change') &&

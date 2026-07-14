@@ -107,4 +107,29 @@ void main() {
 
     expect(completed.receiptDate, isNull);
   });
+
+  test('OCR candidate fallback accepts dotted receipt dates', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: '07.14.2026',
+              lines: [ReceiptOcrLine(text: '07.14.2026')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final completed = fillMissingExpenseReceiptFieldsFromOcrCandidates(
+      const ExpenseReceiptParseResult(sourceText: '', lines: []),
+      document,
+    );
+
+    expect(completed.receiptDate, DateTime(2026, 7, 14));
+  });
 }

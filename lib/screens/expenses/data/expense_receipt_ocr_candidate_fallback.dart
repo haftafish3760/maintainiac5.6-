@@ -88,7 +88,7 @@ double? _candidateAmount(ReceiptOcrFieldCandidate? candidate) {
 
 DateTime? _candidateDate(ReceiptOcrFieldCandidate? candidate) {
   final value = candidate?.value ?? '';
-  final parts = value.split(RegExp(r'[/-]')).map(int.tryParse).toList();
+  final parts = value.split(RegExp(r'[./-]')).map(int.tryParse).toList();
   if (parts.length != 3 || parts.any((part) => part == null)) return null;
   final first = parts[0]!;
   final second = parts[1]!;

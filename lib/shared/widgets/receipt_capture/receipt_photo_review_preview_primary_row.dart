@@ -14,6 +14,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.continueLabel,
     required this.onRetake,
     required this.onAddPhoto,
+    required this.onCrop,
     required this.onContinue,
   });
 
@@ -29,6 +30,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   final String continueLabel;
   final VoidCallback? onRetake;
   final VoidCallback? onAddPhoto;
+  final VoidCallback? onCrop;
   final VoidCallback? onContinue;
 
   @override
@@ -84,6 +86,20 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                       height: 1.12,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: savingPhotos ? null : onCrop,
+                  icon: const Icon(Icons.crop_rounded, size: 16),
+                  label: const Text('Crop'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFE8ECEE),
+                    minimumSize: const Size(0, 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    textStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),

@@ -12,13 +12,25 @@ void main() {
   final repoRoot =
       Platform.environment['RECEIPT_EXTERNAL_DATASET_REPO_ROOT'] ??
       Directory.current.path;
+  final requirePresent =
+      Platform.environment['RECEIPT_EXTERNAL_DATASET_REQUIRE_PRESENT'] ==
+      'true';
   final failures = <String>[];
   final manifestFile = File(manifestPath);
 
   if (!manifestFile.existsSync()) {
     failures.add('Missing receipt external dataset manifest: $manifestPath');
   } else {
-    _auditManifest(manifestFile, Directory(repoRoot), failures);
+    final presentCount = _auditManifest(
+      manifestFile,
+      Directory(repoRoot),
+      failures,
+    );
+    if (requirePresent && presentCount == 0) {
+      failures.add(
+        'No local receipt dataset is present. Real receipt benchmark evidence is required for this gate.',
+      );
+    }
   }
 
   if (failures.isNotEmpty) {
@@ -33,7 +45,7 @@ void main() {
   stdout.writeln('Receipt external dataset local audit: PASS');
 }
 
-void _auditManifest(
+int _auditManifest(
   File manifestFile,
   Directory repoRoot,
   List<String> failures,
@@ -41,12 +53,12 @@ void _auditManifest(
   final decoded = jsonDecode(manifestFile.readAsStringSync());
   if (decoded is! Map<String, Object?>) {
     failures.add('External dataset manifest root must be an object.');
-    return;
+    return 0;
   }
   final datasets = decoded['approvedDatasets'];
   if (datasets is! List) {
     failures.add('Manifest approvedDatasets must be a list.');
-    return;
+    return 0;
   }
 
   var presentCount = 0;
@@ -77,6 +89,7 @@ void _auditManifest(
   }
 
   stdout.writeln('present_local_dataset_count=$presentCount');
+  return presentCount;
 }
 
 void _auditLocalDataset(String id, Directory directory, List<String> failures) {

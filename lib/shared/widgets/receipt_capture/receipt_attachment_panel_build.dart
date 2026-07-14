@@ -26,6 +26,23 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
                     : openReceiptImportOptions,
               ),
             ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'Receipt settings',
+              onPressed: _openingPicker || _readingForReview
+                  ? null
+                  : () => unawaited(openReceiptCaptureSettings()),
+              icon: const Icon(Icons.tune_rounded),
+              style: IconButton.styleFrom(
+                foregroundColor: const Color(0xFFE8ECEE),
+                backgroundColor: const Color(0xFF172126),
+                minimumSize: const Size(44, 44),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  side: const BorderSide(color: Color(0xFF526168)),
+                ),
+              ),
+            ),
           ],
         ),
         if (widget.area == ReceiptCaptureArea.expenses &&

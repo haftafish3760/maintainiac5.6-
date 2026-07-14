@@ -5,6 +5,7 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
   ReceiptCaptureFlowOptions options,
 ) {
   final area = options.module.settingsArea;
+  final guidanceEnabled = settings?.cameraGuidanceEnabled ?? true;
   return ReceiptNativeCameraSettings(
     assistedReceiptFill:
         options.forceAssistedReceiptFill ??
@@ -13,6 +14,11 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
         options.forceLongReceiptMode ?? settings?.cameraLongReceiptTips ?? true,
     autoCaptureEnabled:
         options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false,
+    edgeDetectionEnabled: guidanceEnabled,
+    edgeOverlayEnabled: guidanceEnabled,
+    tooFarTooCloseWarningEnabled: guidanceEnabled,
+    receiptFullyVisibleWarningEnabled: guidanceEnabled,
+    textTooSmallWarningEnabled: guidanceEnabled,
     reviewDepth: options.effectiveReviewDepth,
     receiptPhotoBackupEnabled: settings?.receiptPhotoBackupEnabled ?? false,
     dataSaverLevel:

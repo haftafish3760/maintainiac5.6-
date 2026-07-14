@@ -266,6 +266,7 @@ extension _ReceiptAttachmentReviewReadActions
         _receiptReadStatusMessage =
             'Receipt proof saved. Automatic receipt filling is turned off for this area.';
       });
+      widget.onReceiptReadFinished?.call(false);
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
       );
@@ -276,6 +277,7 @@ extension _ReceiptAttachmentReviewReadActions
         _receiptReadStatusMessage =
             'Receipt proof saved: ${result.savedProofCountLabel}. No clear photo version was available to fill the receipt details.';
       });
+      widget.onReceiptReadFinished?.call(false);
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
       );

@@ -16,6 +16,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     required this.onModeChanged,
     required this.onAddPhoto,
     required this.onRetake,
+    required this.onCrop,
     required this.onContinue,
   });
 
@@ -33,6 +34,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
   final ValueChanged<_ReceiptReviewMode> onModeChanged;
   final VoidCallback onAddPhoto;
   final VoidCallback onRetake;
+  final VoidCallback onCrop;
   final VoidCallback? onContinue;
 
   @override
@@ -97,6 +99,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   continueLabel: continueLabel,
                   onRetake: interactionLocked ? null : onRetake,
                   onAddPhoto: interactionLocked ? null : onAddPhoto,
+                  onCrop: interactionLocked ? null : onCrop,
                   onContinue: onContinue,
                 ),
                 Flexible(

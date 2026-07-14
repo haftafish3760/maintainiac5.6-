@@ -13,7 +13,7 @@ class ReceiptPhotoReviewUiConfig {
     this.controlsBorderColor = const Color(0xFF344047),
     this.primaryActionColor = const Color(0xFF28A745),
     this.showTopBar = true,
-    this.showDecisionGuidance = true,
+    this.showDecisionGuidance = false,
     this.showSecondaryTools = true,
     this.topBarBottomSpacing = 4,
     this.previewControlsSinglePhotoHeight = 156,

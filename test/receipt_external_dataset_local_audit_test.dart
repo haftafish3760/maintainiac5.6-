@@ -19,6 +19,42 @@ void main() {
     },
   );
 
+  test('strict dataset audit requires a local benchmark dataset', () async {
+    final root = Directory.systemTemp.createTempSync(
+      'maintainiac_dataset_strict_audit_',
+    );
+    addTearDown(() {
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+    final manifest = File('${root.path}/manifest.json');
+    manifest.writeAsStringSync(
+      jsonEncode({
+        'approvedDatasets': [
+          {
+            'id': 'sample_receipts',
+            'localPath': '.external_datasets/receipts/sample_receipts',
+          },
+        ],
+      }),
+    );
+
+    final result = await Process.run(
+      'dart',
+      ['tool/receipt_external_dataset_local_audit.dart'],
+      environment: {
+        'RECEIPT_EXTERNAL_DATASET_REPO_ROOT': root.path,
+        'RECEIPT_EXTERNAL_DATASET_MANIFEST_PATH': manifest.path,
+        'RECEIPT_EXTERNAL_DATASET_REQUIRE_PRESENT': 'true',
+      },
+    );
+
+    expect(result.exitCode, 1);
+    expect(
+      result.stderr.toString(),
+      contains('Real receipt benchmark evidence'),
+    );
+  });
+
   test(
     'local dataset audit requires license and attribution when present',
     () async {

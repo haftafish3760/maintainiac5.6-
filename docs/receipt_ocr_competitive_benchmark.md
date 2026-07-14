@@ -94,3 +94,7 @@ word, numeric, merchant, date, subtotal, tax, total, line reconstruction, and
 routing accuracy. A single blended score may not hide weak numeric or total
 accuracy. Real-device fixture results remain release evidence, not optional
 polish.
+
+For a release benchmark gate, run
+`RECEIPT_EXTERNAL_DATASET_REQUIRE_PRESENT=true dart tool/receipt_external_dataset_local_audit.dart`.
+It intentionally fails when no licensed local receipt dataset is available.

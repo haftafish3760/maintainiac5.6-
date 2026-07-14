@@ -129,6 +129,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
         onModeChanged: onModeChanged,
         onAddPhoto: onAddPhoto,
         onRetake: onRetake,
+        onCrop: () => onModeChanged(_ReceiptReviewMode.crop),
         onContinue: continueEnabled ? onContinue : null,
       );
     }

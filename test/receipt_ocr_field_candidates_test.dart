@@ -106,6 +106,7 @@ void main() {
     expect(total.sourceLineIndexes, [4]);
     expect(total.bounds?.top, 150);
     expect(total.reason, contains('total-labelled'));
+    expect(total.reason, contains('Source receipt line 5'));
   });
 
   test('earliest eligible header wins over later receipt boilerplate', () {
@@ -139,6 +140,60 @@ void main() {
     );
   });
 
+  test('address and phone header rows do not replace the merchant', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: '123 MAIN ST',
+              lines: [ReceiptOcrLine(text: '123 MAIN ST')],
+            ),
+            ReceiptOcrBlock(
+              text: 'HDWR MART',
+              lines: [ReceiptOcrLine(text: 'HDWR MART')],
+            ),
+            ReceiptOcrBlock(
+              text: '555-123-4567',
+              lines: [ReceiptOcrLine(text: '555-123-4567')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.merchant)?.value,
+      'HDWR MART',
+    );
+  });
+
+  test('merchant names retain their printed store number', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'WALMART STORE #1234',
+              lines: [ReceiptOcrLine(text: 'WALMART STORE #1234')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.merchant)?.value,
+      'WALMART STORE #1234',
+    );
+  });
+
   test('amount due is accepted as a total candidate', () {
     const document = ReceiptOcrDocument(
       pages: [
@@ -159,6 +214,56 @@ void main() {
     expect(
       document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.total)?.value,
       '18.37',
+    );
+  });
+
+  test('spaced sub total is accepted as a subtotal candidate', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'SUB TOTAL 17.17',
+              lines: [ReceiptOcrLine(text: 'SUB TOTAL 17.17')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.subtotal)?.value,
+      '17.17',
+    );
+    expect(
+      document.fieldCandidates.forKind(ReceiptOcrFieldKind.total),
+      isEmpty,
+    );
+  });
+
+  test('HST is accepted as a tax candidate', () {
+    const document = ReceiptOcrDocument(
+      pages: [
+        ReceiptOcrPage(
+          attachmentId: 'receipt-1',
+          pageIndex: 0,
+          sourceImageReference: '/tmp/receipt-1.jpg',
+          blocks: [
+            ReceiptOcrBlock(
+              text: 'HST 2.58',
+              lines: [ReceiptOcrLine(text: 'HST 2.58')],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(
+      document.fieldCandidates.selectedFor(ReceiptOcrFieldKind.tax)?.value,
+      '2.58',
     );
   });
 

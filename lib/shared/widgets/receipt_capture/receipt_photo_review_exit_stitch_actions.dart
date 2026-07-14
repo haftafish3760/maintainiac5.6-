@@ -47,6 +47,11 @@ extension _ReceiptPhotoReviewExitStitchActions
     required List<String> inputPaths,
     required List<String> preparedOcrPaths,
   }) async {
+    // A normal receipt has one source image.  It must go straight to OCR;
+    // stitching belongs exclusively to the multi-section receipt workflow.
+    if (preparedOcrPaths.length <= 1) {
+      return ReceiptStitchResult.notNeeded(preparedOcrPaths);
+    }
     final preview = _stitchPreviewResult;
     final previewPath = preview?.stitchedPath;
     final currentPathOrderMatches = _sameReceiptPhotoOrder(

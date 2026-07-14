@@ -214,29 +214,49 @@ class _ReceiptReadProgressSteps extends StatelessWidget {
       uiConfig.progressOpeningLabel,
     ];
     final current = phases.indexOf(phase).clamp(0, phases.length - 1);
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (var index = 0; index < labels.length; index++) ...[
-          Expanded(
-            child: Text(
-              labels[index],
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: index <= current
-                    ? const Color(0xFFFFD166)
-                    : const Color(0xFF8FA0A8),
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                height: 1.12,
-                letterSpacing: 0,
-              ),
-            ),
+        Text(
+          'Step ${current + 1} of ${phases.length}',
+          style: const TextStyle(
+            color: Color(0xFFFFD166),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w900,
           ),
-          if (index < labels.length - 1)
-            Container(width: 10, height: 1, color: const Color(0xFF526168)),
-        ],
+        ),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            for (var index = 0; index < labels.length; index++) ...[
+              Expanded(
+                child: Text(
+                  '${index + 1}. ${labels[index]}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: index == current
+                        ? const Color(0xFFFFD166)
+                        : const Color(0xFF657277),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    height: 1.12,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+              if (index < labels.length - 1)
+                Container(
+                  width: 10,
+                  height: 1,
+                  color: index < current
+                      ? const Color(0xFF526168)
+                      : const Color(0xFF354147),
+                ),
+            ],
+          ],
+        ),
       ],
     );
   }
