@@ -90,4 +90,99 @@ void main() {
       isFalse,
     );
   });
+
+  test('an ambiguous document recommends both dedicated consumers', () {
+    const classification = ReceiptOcrDocumentClassification(
+      documentType: ReceiptOcrDocumentType.ambiguous,
+      detailLevel: ReceiptOcrDetailLevel.detailed,
+      confidence: .58,
+      evidence: ['fuel_line_evidence', 'inventory_line_evidence'],
+    );
+
+    final plan = receiptOcrHandoffPlanFor(classification: classification);
+
+    expect(plan.destinations, [
+      ReceiptOcrHandoffDestination.fuel,
+      ReceiptOcrHandoffDestination.inventory,
+    ]);
+    expect(plan.runsBothDedicatedConsumers, isTrue);
+    expect(plan.needsReview, isTrue);
+  });
+
+  test(
+    'the user-selected category takes precedence over an ambiguous hint',
+    () {
+      const classification = ReceiptOcrDocumentClassification(
+        documentType: ReceiptOcrDocumentType.ambiguous,
+        detailLevel: ReceiptOcrDetailLevel.detailed,
+        confidence: .58,
+        evidence: ['fuel_line_evidence', 'inventory_line_evidence'],
+      );
+
+      final plan = receiptOcrHandoffPlanFor(
+        selectedCategory: 'Fuel',
+        classification: classification,
+      );
+
+      expect(plan.destinations, [ReceiptOcrHandoffDestination.fuel]);
+      expect(plan.runsBothDedicatedConsumers, isFalse);
+    },
+  );
+
+  test(
+    'an ambiguous plan sends unchanged evidence to both consumers',
+    () async {
+      final router = ReceiptOcrHandoffRouter<String>(
+        expenseReview: (_) => 'review',
+        fuel: (handoff) => 'fuel:${handoff.ocr.rawText}',
+        inventory: (handoff) => 'inventory:${handoff.ocr.rawText}',
+      );
+      const plan = ReceiptOcrHandoffPlan(
+        destinations: [
+          ReceiptOcrHandoffDestination.fuel,
+          ReceiptOcrHandoffDestination.inventory,
+        ],
+        needsReview: true,
+      );
+
+      final results = await router.dispatchPlan(
+        ReceiptOcrHandoff.forUserSelection(ocr: ocr),
+        plan: plan,
+      );
+
+      expect(results, {
+        ReceiptOcrHandoffDestination.fuel: 'fuel:FUEL MART\nTOTAL 40.00',
+        ReceiptOcrHandoffDestination.inventory:
+            'inventory:FUEL MART\nTOTAL 40.00',
+      });
+    },
+  );
+
+  test(
+    'an ambiguous plan falls back to one editable review when unavailable',
+    () async {
+      var reviewCalls = 0;
+      final router = ReceiptOcrHandoffRouter<String>(
+        expenseReview: (_) {
+          reviewCalls += 1;
+          return 'review';
+        },
+      );
+      const plan = ReceiptOcrHandoffPlan(
+        destinations: [
+          ReceiptOcrHandoffDestination.fuel,
+          ReceiptOcrHandoffDestination.inventory,
+        ],
+        needsReview: true,
+      );
+
+      final results = await router.dispatchPlan(
+        ReceiptOcrHandoff.forUserSelection(ocr: ocr),
+        plan: plan,
+      );
+
+      expect(results, {ReceiptOcrHandoffDestination.expenseReview: 'review'});
+      expect(reviewCalls, 1);
+    },
+  );
 }

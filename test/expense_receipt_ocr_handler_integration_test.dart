@@ -16,5 +16,7 @@ void main() {
     expect(screen, contains('this.inventoryOcrHandoff'));
     expect(actions, contains('fuel: widget.fuelOcrHandoff'));
     expect(actions, contains('inventory: widget.inventoryOcrHandoff'));
+    expect(actions, contains('.dispatchPlan(handoff, plan: handoffPlan)'));
+    expect(actions, contains('_selectReceiptHandoffResult('));
   });
 }

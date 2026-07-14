@@ -182,6 +182,7 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       selectedCategory: widget.initialCategory,
       inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
     );
+    final handoffPlan = handoff.routePlan;
     final handoffRouter = _receiptOcrHandoffRouter(capability);
     ExpenseScreenTelemetryRecorder.record(
       context,
@@ -195,9 +196,11 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
         'ocrEngine': capability.tier.name,
         'parserDepth': capability.parserDepth.name,
         'count': readableAttachments.length,
-        'receiptOcrHandoffDestination': handoff.destination.name,
+        'receiptOcrHandoffDestinations': handoffPlan.destinations
+            .map((destination) => destination.name)
+            .join(','),
         'receiptOcrHandoffConsumer':
-            handoffRouter.hasDedicatedHandlerFor(handoff.destination)
+            handoffPlan.destinations.every(handoffRouter.hasDedicatedHandlerFor)
             ? 'dedicated'
             : 'expense_review_fallback',
         ..._ocrCompletionReviewMetadata(ocr.diagnostics),
@@ -299,8 +302,11 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
     }
     late ExpenseReceiptParseResult parsed;
     try {
+      final routedResults = await handoffRouter
+          .dispatchPlan(handoff, plan: handoffPlan)
+          .timeout(remaining);
       parsed = _withReceiptBrainHandoffDiagnostics(
-        await handoffRouter.dispatch(handoff).timeout(remaining),
+        _selectReceiptHandoffResult(routedResults, routePlan: handoffPlan),
       );
       parsed = fillMissingExpenseReceiptFieldsFromOcrCandidates(
         parsed,

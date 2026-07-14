@@ -40,7 +40,7 @@ void main() {
     expect(result.needsReview, isTrue);
   });
 
-  test('classifies fuel evidence without invoking a fuel parser', () {
+  test('marks generic fuel evidence for review without invoking a parser', () {
     final result = classifyReceiptOcrDocument(
       hasReadableText: true,
       handoff: handoff(
@@ -57,7 +57,7 @@ void main() {
 
     expect(result.documentType, ReceiptOcrDocumentType.fuel);
     expect(result.detailLevel, ReceiptOcrDetailLevel.simple);
-    expect(result.needsReview, isFalse);
+    expect(result.needsReview, isTrue);
   });
 
   test('marks mixed fuel and inventory evidence as ambiguous', () {

@@ -102,7 +102,10 @@ ReceiptOcrDocumentClassification classifyReceiptOcrDocument({
     return ReceiptOcrDocumentClassification(
       documentType: ReceiptOcrDocumentType.fuel,
       detailLevel: detailLevel,
-      confidence: hasSummary ? .9 : .78,
+      // This is a generic evidence hint, not fuel interpretation. Keep it
+      // below automatic-acceptance confidence until the downstream owner and
+      // the user have reviewed the preserved receipt evidence.
+      confidence: hasSummary ? .82 : .70,
       evidence: List.unmodifiable(evidence),
     );
   }
@@ -110,14 +113,14 @@ ReceiptOcrDocumentClassification classifyReceiptOcrDocument({
     return ReceiptOcrDocumentClassification(
       documentType: ReceiptOcrDocumentType.inventory,
       detailLevel: detailLevel,
-      confidence: hasSummary ? .88 : .76,
+      confidence: hasSummary ? .80 : .68,
       evidence: List.unmodifiable(evidence),
     );
   }
   return ReceiptOcrDocumentClassification(
     documentType: ReceiptOcrDocumentType.generalExpense,
     detailLevel: detailLevel,
-    confidence: hasSummary ? .86 : .72,
+    confidence: hasSummary ? .80 : .68,
     evidence: List.unmodifiable(evidence),
   );
 }

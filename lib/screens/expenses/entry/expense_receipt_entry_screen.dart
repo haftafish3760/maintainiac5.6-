@@ -104,6 +104,7 @@ part 'expense_receipt_entry_diagnostic_bucket_helpers.dart';
 part 'expense_receipt_entry_read_handoff_helpers.dart';
 part 'expense_receipt_entry_read_handoff_metadata.dart';
 part 'expense_receipt_entry_read_handoff_no_line_labels.dart';
+part 'expense_receipt_entry_handoff_route_helpers.dart';
 part 'expense_receipt_entry_capture_diagnostic_helpers.dart';
 part 'expense_receipt_entry_line_mode_helpers.dart';
 part 'expense_receipt_entry_lifecycle_helpers.dart';
