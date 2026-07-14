@@ -64,6 +64,9 @@ void main() {
     'stitches a long receipt when uploaded and live sections are mixed',
     () async {
       final files = await _writeMixedSourceStack('mixed_receipt_sources');
+      final sourceBytes = <String, List<int>>{
+        for (final file in files) file.path: await file.readAsBytes(),
+      };
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
@@ -79,6 +82,9 @@ void main() {
       expect(result.overlapPixelTotal, greaterThan(850));
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+      for (final file in files) {
+        expect(await file.readAsBytes(), sourceBytes[file.path]);
+      }
     },
     timeout: _uploadedScreenshotTimeout,
   );
