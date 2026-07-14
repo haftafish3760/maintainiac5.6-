@@ -151,4 +151,33 @@ void main() {
     });
     expect(invalidConfirmation.isOdometerConfirmed, isFalse);
   });
+
+  test('malformed persisted odometer values cannot crash review recovery', () {
+    final review = TripTrackingReviewRecord(
+      id: 'trip_corrupt_odometer',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1010,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 100,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final restored = TripTrackingReviewRecord.fromMap({
+      ...review.toMap(),
+      'startingOdometer': double.nan,
+      'estimatedEndingOdometer': double.infinity,
+      'confirmedEndingOdometer': double.nan,
+      'odometerConfirmedAt': DateTime.utc(2026, 7, 14, 13, 1).toIso8601String(),
+    });
+
+    expect(restored.startingOdometer, isZero);
+    expect(restored.estimatedEndingOdometer, isZero);
+    expect(restored.confirmedEndingOdometer, isNull);
+    expect(restored.isOdometerConfirmed, isFalse);
+  });
 }
