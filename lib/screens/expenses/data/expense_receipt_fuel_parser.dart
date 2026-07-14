@@ -211,7 +211,9 @@ String _fuelTypeForLine({
 }
 
 String? _fuelTypeSignalFor(String text) {
-  if (RegExp(r'\b(def|ad\s*blue|diesel exhaust fluid)\b').hasMatch(text)) {
+  if (RegExp(
+    r'\b(def|d[.\s]*e[.\s]*f|ad\s*blue|blue\s*def|diesel exhaust fluid)\b',
+  ).hasMatch(text)) {
     return 'DEF';
   }
   if (RegExp(r'\b(nitromethane|nitro\s*methane|nm\s+fuel)\b').hasMatch(text)) {
@@ -442,7 +444,7 @@ String? _fuelProductLabelFor(List<String> receiptRows) {
 
 bool _hasFuelProductSignal(String text) {
   return RegExp(
-    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|mid[-\s]?grade|plus|premium|diesel|dsl|d2|d1|ulsd|def|ad\s*blue|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
+    r'\b(prod|product|grade|reg\s+unleaded|reg\s+unl|regular|unleaded|unl|mid[-\s]?grade|plus|premium|diesel|dsl|d2|d1|ulsd|def|d[.\s]*e[.\s]*f|ad\s*blue|blue\s*def|e85|ethanol|kerosene|kero|k[-\s]?1|propane|lpg|l\.?p\.?\s+gas|gas\s+l\.?p\.?)\b',
   ).hasMatch(text);
 }
 

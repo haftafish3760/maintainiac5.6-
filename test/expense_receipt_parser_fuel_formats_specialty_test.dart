@@ -79,4 +79,19 @@ TOTAL 19.99
     expect(fuel.unitPrice, 7.996);
     expect(fuel.subtotal, 19.99);
   });
+
+  test('recognizes BlueDEF and punctuated DEF product aliases', () {
+    for (final product in ['BlueDEF', 'D.E.F.']) {
+      final parsed = parseExpenseReceiptText('''
+TRUCK STOP
+$product 2.500 GAL @ 7.996 19.99
+TOTAL 19.99
+''');
+
+      final fuel = parsed.lines.single;
+      expect(fuel.fuelType, 'DEF', reason: product);
+      expect(fuel.quantity, 2.5, reason: product);
+      expect(fuel.subtotal, 19.99, reason: product);
+    }
+  });
 }

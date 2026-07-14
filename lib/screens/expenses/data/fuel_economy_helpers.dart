@@ -28,6 +28,7 @@ bool _isDieselExhaustFluidLine(ExpenseReceiptLineRecord line) {
   return tokens.any(
     (token) =>
         token == 'def' ||
+        token == 'bluedef' ||
         token.contains(' diesel exhaust fluid ') ||
         token.startsWith('diesel exhaust fluid') ||
         token.endsWith('diesel exhaust fluid') ||
