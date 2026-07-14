@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
+flutter_command="${FLUTTER_BIN:-flutter}"
 
 if [[ "$#" -lt 1 ]]; then
   echo "Usage: $0 <tall-receipt-image> [height:stride ...]" >&2
@@ -34,6 +35,13 @@ for config in "${configs[@]}"; do
   fi
   height="${config%%:*}"
   stride="${config##*:}"
+  if [[ ! "$height" =~ ^[1-9][0-9]*$ ||
+        ! "$stride" =~ ^[1-9][0-9]*$ ||
+        "$stride" -ge "$height" ]]; then
+    echo "Invalid matrix config: $config" >&2
+    echo "Use positive height:stride values with stride less than height." >&2
+    exit 64
+  fi
   echo "Receipt stitch real-window matrix: ${height}x${stride}"
   if [[ -z "$matrix" ]]; then
     matrix="${height}:${stride}"
@@ -44,7 +52,7 @@ done
 
 RECEIPT_STITCH_REAL_TALL_IMAGE="$source_image" \
 RECEIPT_STITCH_REAL_WINDOW_MATRIX="$matrix" \
-  flutter test \
+  "$flutter_command" test \
     test/receipt_stitching_real_fixture_probe_test.dart \
     --plain-name 'real tall receipt matrix probes multiple crop windows in one run' \
     -r compact
