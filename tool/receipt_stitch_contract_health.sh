@@ -250,6 +250,14 @@ run_ghost_handoff() {
   echo "Receipt stitch ghost-handoff health: PASS"
 }
 
+run_real_probe_contracts() {
+  echo "Receipt stitch real-probe contract health"
+  run_flutter_test real-probe-contracts \
+    test/receipt_stitch_real_probe_integrity_contract_test.dart \
+    test/receipt_stitch_real_window_script_test.dart
+  echo "Receipt stitch real-probe contract health: PASS"
+}
+
 run_synthetic_dataset() {
   echo "Receipt stitch synthetic-dataset health"
   run_flutter_test synthetic-dataset \
@@ -298,6 +306,8 @@ run_source_size() {
     test/receipt_camera_result_section_order_follow_through_test.dart
     test/receipt_camera_result_section_order_invalid_context_test.dart
     test/receipt_continuation_ghost_handoff_contract_test.dart
+    test/receipt_stitch_real_probe_integrity_contract_test.dart
+    test/receipt_stitch_real_window_script_test.dart
   )
   for file in "${test_files[@]}"; do
     local lines
@@ -327,6 +337,7 @@ run_milestone() {
   run_synthetic_dataset
   run_ghost_handoff
   run_handoff
+  run_real_probe_contracts
   echo "Receipt stitch milestone health: PASS"
 }
 
@@ -353,6 +364,7 @@ run_core_stitch() {
   run_section_order
   run_ghost_handoff
   run_handoff
+  run_real_probe_contracts
   echo "Receipt stitch core health: PASS"
 }
 
@@ -405,7 +417,9 @@ run_full() {
     test/receipt_camera_stitch_candidate_metadata_test.dart \
     test/receipt_continuation_ghost_handoff_contract_test.dart \
     test/receipt_stitch_fallback_metadata_test.dart \
-    test/receipt_ocr_source_section_order_handoff_test.dart
+    test/receipt_ocr_source_section_order_handoff_test.dart \
+    test/receipt_stitch_real_probe_integrity_contract_test.dart \
+    test/receipt_stitch_real_window_script_test.dart
   echo "Receipt stitch contract health: PASS"
 }
 

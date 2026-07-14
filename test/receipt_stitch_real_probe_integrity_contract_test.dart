@@ -18,4 +18,12 @@ void main() {
       expect(source, contains('Receipt stitch source integrity: PASS'));
     }
   });
+
+  test('receipt stitch health gate retains real-probe contracts', () {
+    final source = File('tool/receipt_stitch_contract_health.sh')
+        .readAsStringSync();
+
+    expect(source, contains('run_flutter_test real-probe-contracts'));
+    expect(source, contains('run_real_probe_contracts'));
+  });
 }
