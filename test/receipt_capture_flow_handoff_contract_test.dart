@@ -170,8 +170,8 @@ void main() {
     expect(actions, contains('receiptSectionOrderReviewActionCode'));
     expect(flow, contains('ocr_source_section_order_review_required'));
     expect(actions, contains('ocr_source_section_order_review_required'));
-    expect(flow, contains("sourceLabel: 'Maintainiac OCR source photo'"));
-    expect(actions, contains("sourceLabel: 'Maintainiac OCR source photo'"));
+    expect(flow, contains("sourceLabel: 'Maintainiac clear receipt photo'"));
+    expect(actions, contains("'Maintainiac clear receipt photo'"));
     expect(flow, contains('ReceiptAttachmentStorageState.staged'));
     expect(actions, contains('ReceiptAttachmentStorageState.staged'));
     expect(flow, contains('_savedPhotoWarningsForOcrSourceIndex'));
@@ -215,15 +215,19 @@ void main() {
       actions,
       contains('ocr_source_continuation_ocr_requested_bottom_section_review'),
     );
+    final ocrAttachmentStart = actions.indexOf('final ocrAttachments = [');
+    final ocrAttachmentEnd = actions.indexOf(
+      'return await _readAttachmentsForReceiptForm(',
+      ocrAttachmentStart,
+    );
+    expect(ocrAttachmentStart, isNonNegative);
+    expect(ocrAttachmentEnd, greaterThan(ocrAttachmentStart));
     final ocrAttachmentBlock = actions.substring(
-      actions.indexOf('final ocrAttachments = ['),
-      actions.indexOf('return _readAttachmentsForReceiptForm('),
+      ocrAttachmentStart,
+      ocrAttachmentEnd,
     );
-    expect(ocrAttachmentBlock, contains('result.ocrSourcePhotoPaths.length'));
-    expect(
-      ocrAttachmentBlock,
-      contains('path: result.ocrSourcePhotoPaths[index]'),
-    );
+    expect(ocrAttachmentBlock, contains('ocrSourcePaths.length'));
+    expect(ocrAttachmentBlock, contains('path: ocrSourcePaths[index]'));
     expect(
       ocrAttachmentBlock,
       isNot(
@@ -258,8 +262,8 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_surface_controls.dart',
         ).readAsString();
-    final topBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+    final reviewUiConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
     ).readAsString();
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
@@ -273,6 +277,9 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_mode_controls.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
         ).readAsString();
     final models =
         await File(
@@ -291,12 +298,25 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_review_result_next_review.dart',
         ).readAsString();
 
+    expect(controls, contains("return 'Use Receipt';"));
+    expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
+    expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
     expect(
-      controls,
-      contains("return 'Use Receipt';"),
+      screen,
+      contains('widget.uiConfig.previewControlsSinglePhotoHeight'),
     );
-    expect(screen, contains('_ReceiptReviewMode.preview => .22'));
-    expect(screen, contains('_photoPaths.length > 1 ? 188.0 : 166.0'));
+    expect(
+      reviewUiConfig,
+      contains('this.previewControlsHeightFraction = .22'),
+    );
+    expect(
+      reviewUiConfig,
+      contains('this.previewControlsMultiPhotoHeight = 178'),
+    );
+    expect(
+      reviewUiConfig,
+      contains('this.previewControlsSinglePhotoHeight = 156'),
+    );
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
     expect(previewControls, contains("'Add Another Photo'"));
@@ -310,7 +330,10 @@ void main() {
       models,
       contains('Review receipt details and mark Business, Personal, or Mixed.'),
     );
-    expect(models, contains(r'Receipt details open from $nextReviewSourceLabel'));
+    expect(
+      models,
+      contains(r'Receipt details open from $nextReviewSourceLabel'),
+    );
     expect(controls, isNot(contains('Read receipt')));
     expect(controls, contains('Use this photo, retake it'));
     expect(controls, isNot(contains('Saved copy')));

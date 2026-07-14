@@ -336,8 +336,8 @@ extension _ReceiptAttachmentReviewReadActions
           createdAt: now,
           byteSize: receiptAttachmentFileSize(ocrSourcePaths[index]),
           sourceLabel: usedPreparedOcrSource
-              ? 'Maintainiac prepared OCR source photo'
-              : 'Maintainiac OCR source photo',
+              ? 'Maintainiac prepared clear receipt photo'
+              : 'Maintainiac clear receipt photo',
           linkedModule: _receiptAttachmentLinkedModule,
           storageState: ReceiptAttachmentStorageState.staged,
           documentSignals: [
