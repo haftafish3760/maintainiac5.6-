@@ -118,7 +118,11 @@ Do **not** describe this as complete, production-ready, legally certified, or wo
   - Stops itself and emits errors on permission revocation, disabled/unavailable GPS, service denial, and location-registration failure.
 
 - `android/app/src/main/AndroidManifest.xml`
-  - Declares fine/coarse/background location, foreground-service location, activity recognition, and the location foreground service.
+  - Declares fine/coarse/background location, foreground-service location, activity recognition, optional notification visibility, and the location foreground service.
+
+- Android 13+ notification visibility
+  - The authorization flow requests `POST_NOTIFICATIONS` after location approval so the ongoing tracking indicator can appear in the notification drawer.
+  - Notification denial does not block GPS tracking; the foreground service and app still handle that state safely.
 
 ### iOS
 

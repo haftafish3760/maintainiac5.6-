@@ -13,6 +13,20 @@ void main() {
     expect(source, contains('completeAuthorizationRequest()'));
   });
 
+  test('Android asks for a visible tracking notification without gating GPS', () {
+    final source = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final manifest = File('android/app/src/main/AndroidManifest.xml')
+        .readAsStringSync();
+
+    expect(manifest, contains('android.permission.POST_NOTIFICATIONS'));
+    expect(source, contains('private var notificationPermissionRequested = false'));
+    expect(source, contains('Manifest.permission.POST_NOTIFICATIONS'));
+    expect(source, contains('hasNotificationPermission()'));
+    expect(source, contains('A denial must never silently block mileage'));
+  });
+
   test(
     'iOS escalates location authorization only after foreground approval',
     () {

@@ -38,6 +38,7 @@ class TripTrackingNativeBridge(
     private var pendingActivityAuthorization = false
     private var locationPermissionRequested = false
     private var activityPermissionRequested = false
+    private var notificationPermissionRequested = false
 
     fun register(messenger: BinaryMessenger) {
         MethodChannel(messenger, tripTrackingCommandChannel).setMethodCallHandler(::handle)
@@ -83,6 +84,7 @@ class TripTrackingNativeBridge(
         pendingActivityAuthorization = call.argument<Boolean>("activityRecognitionEnabled") == true
         locationPermissionRequested = false
         activityPermissionRequested = false
+        notificationPermissionRequested = false
         pendingAuthorizationResult = result
         pendingBackgroundAuthorization = allowBackground
         continueAuthorizationRequest()
@@ -106,6 +108,21 @@ class TripTrackingNativeBridge(
             locationPermissionRequested = true
             activity.requestPermissions(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                tripTrackingPermissionRequestCode,
+            )
+            return
+        }
+        // Android 13+ does not require this permission to launch a foreground
+        // service, but asking keeps the ongoing tracking indicator visible in
+        // the notification drawer. A denial must never silently block mileage
+        // tracking after the user approved location.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !hasNotificationPermission() &&
+            !notificationPermissionRequested
+        ) {
+            notificationPermissionRequested = true
+            activity.requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                 tripTrackingPermissionRequestCode,
             )
             return
@@ -202,6 +219,11 @@ class TripTrackingNativeBridge(
     private fun hasBackgroundLocation(): Boolean = ContextCompat.checkSelfPermission(
         activity,
         Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+
+    private fun hasNotificationPermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || ContextCompat.checkSelfPermission(
+        activity,
+        Manifest.permission.POST_NOTIFICATIONS,
     ) == PackageManager.PERMISSION_GRANTED
 
     private fun hasActivityRecognition(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(
