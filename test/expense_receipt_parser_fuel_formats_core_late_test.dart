@@ -62,18 +62,29 @@ ODOMETER 94550
   });
 
   test('uses the selected fuel category as a downstream parsing hint', () {
-    final parsed = parseExpenseReceiptText(
-      '''
+    final parsed = parseExpenseReceiptText('''
 CORNER STORE
 AMOUNT 43.74
 TOTAL 43.74
-''',
-      targetCategory: 'Fuel',
-    );
+''', targetCategory: 'Fuel');
 
     expect(parsed.lines, hasLength(1));
     expect(parsed.lines.single.category, 'Fuel');
     expect(parsed.lines.single.subtotal, 43.74);
+  });
+
+  test('does not label an amount-only fuel fallback as a gallon', () {
+    final parsed = parseExpenseReceiptText('''
+CORNER STORE
+FUEL PURCHASE 43.74
+TOTAL 43.74
+''', targetCategory: 'Fuel');
+
+    final fuel = parsed.lines.single;
+    expect(fuel.category, 'Fuel');
+    expect(fuel.quantity, 1);
+    expect(fuel.unit, 'each');
+    expect(fuel.subtotal, 43.74);
   });
 
   test('parses non-ethanol recreational and marine gas as gasoline', () {

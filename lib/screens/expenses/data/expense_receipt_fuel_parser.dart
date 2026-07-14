@@ -77,7 +77,10 @@ _ParsedQuantity _fuelQuantityWithUnitPriceFallback({
   required String fuelType,
 }) {
   if (unitPrice == null || unitPrice <= 0 || amount <= 0) return quantity;
-  if (quantity.quantity != 1 || quantity.unit != 'gallon') return quantity;
+  if (quantity.quantity != 1 ||
+      (quantity.unit != 'gallon' && quantity.unit != 'each')) {
+    return quantity;
+  }
   var tolerance = amount.abs() * .02;
   if (tolerance < .05) tolerance = .05;
   if ((unitPrice - amount).abs() <= tolerance) return quantity;

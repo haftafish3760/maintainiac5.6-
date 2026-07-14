@@ -15,7 +15,7 @@ _ParsedQuantity _fuelQuantityFor(
     );
     if (fallback != null) return fallback;
   }
-  return const _ParsedQuantity(quantity: 1, unitsPerPackage: 1, unit: 'gallon');
+  return const _ParsedQuantity(quantity: 1, unitsPerPackage: 1, unit: 'each');
 }
 
 _ParsedQuantity? _fuelExplicitLabeledQuantityIn(String text) {
