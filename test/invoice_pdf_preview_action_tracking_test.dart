@@ -66,6 +66,75 @@ void main() {
     expect(find.text('Customer signature saved'), findsOneWidget);
   });
 
+  testWidgets('reopened changed invoice requires a new customer signature', (
+    tester,
+  ) async {
+    final appState = AppStateController();
+    final odometer = GlobalOdometerController();
+    final ledger = InvoiceLedgerStore.memory();
+    addTearDown(appState.dispose);
+    addTearDown(odometer.dispose);
+    final draft = await ledger.createDraft(
+      type: InvoiceDocumentType.invoice,
+      now: DateTime(2026, 7, 14),
+    );
+    final ink = AppSignatureResult(
+      role: AppSignatureRole.customer,
+      signedAt: DateTime(2026, 7, 14, 10),
+      strokes: const [
+        AppSignatureStroke([Offset(2, 8), Offset(28, 16)]),
+      ],
+    );
+    final signed = await ledger.saveRecord(
+      draft.copyWith(
+        customerSignature: InvoiceSignatureSnapshot(
+          role: 'customer',
+          signedAt: ink.signedAt,
+          signatureHashSha256: draft.documentRevisionHashSha256,
+          signature: ink,
+        ),
+      ),
+    );
+    final changed = await ledger.saveRecord(
+      signed.copyWith(
+        lines: const [
+          InvoiceLineItemRecord(
+            id: 'changed-line',
+            name: 'Additional labor',
+            quantity: 1,
+            unit: 'hour',
+            unitPrice: 125,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: GlobalOdometerScope(
+          controller: odometer,
+          child: InvoiceLedgerScope(
+            controller: ledger,
+            child: MaterialApp(home: InvoiceFormScreen(recordId: changed.id)),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.text('Signature'),
+      find.byType(ListView).first,
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Customer signature needs to be collected again'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('invoice preview records generated share and print pdf events', (
     tester,
   ) async {

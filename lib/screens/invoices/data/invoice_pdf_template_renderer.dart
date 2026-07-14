@@ -65,6 +65,11 @@ String invoiceSignatureSvg(AppSignatureResult signature) {
 const _emptySignatureSvg =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>';
 
+AppSignatureResult? invoiceCustomerSignatureForRender(InvoiceRecord record) {
+  if (!record.customerSignatureIsValid) return null;
+  return record.customerSignature.signature;
+}
+
 class InvoicePdfTemplateRenderer {
   const InvoicePdfTemplateRenderer();
 
@@ -800,9 +805,12 @@ class InvoicePdfTemplateRenderer {
         pw.SizedBox(width: 22),
         pw.Expanded(
           child: _signatureLine(
-            'Customer Signature',
+            record.customerSignature.isPresent &&
+                    !record.customerSignatureIsValid
+                ? 'Customer Signature - Re-sign Required'
+                : 'Customer Signature',
             template,
-            signature: record.customerSignature.signature,
+            signature: invoiceCustomerSignatureForRender(record),
           ),
         ),
       ],

@@ -25,11 +25,19 @@ void main() {
 
   test('changing a line item invalidates the bound customer signature', () {
     final record = _record();
+    final customerInk = AppSignatureResult(
+      role: AppSignatureRole.customer,
+      signedAt: DateTime(2026, 7, 9, 10),
+      strokes: const [
+        AppSignatureStroke([Offset(2, 8), Offset(28, 16)]),
+      ],
+    );
     final signed = record.copyWith(
       customerSignature: InvoiceSignatureSnapshot(
         role: 'customer',
-        signedAt: DateTime(2026, 7, 9),
+        signedAt: customerInk.signedAt,
         signatureHashSha256: record.documentRevisionHashSha256,
+        signature: customerInk,
       ),
     );
     final changed = signed.copyWith(
@@ -46,6 +54,7 @@ void main() {
     );
 
     expect(changed.customerSignatureIsValid, isFalse);
+    expect(invoiceCustomerSignatureForRender(changed), isNull);
     expect(
       changed.documentRevisionHashSha256,
       isNot(record.documentRevisionHashSha256),

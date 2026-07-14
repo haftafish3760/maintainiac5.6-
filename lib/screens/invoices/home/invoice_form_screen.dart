@@ -319,7 +319,8 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     if (record.ownerSignature.hasInk) {
       _ownerSignature = record.ownerSignature.signature;
     }
-    _customerSignature = record.customerSignature.hasInk
+    _customerSignature =
+        record.customerSignature.hasInk && record.customerSignatureIsValid
         ? record.customerSignature.signature
         : null;
   }
@@ -517,6 +518,15 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   String get _signatureDetail {
     final owner = _ownerSignature?.hasInk ?? false;
     final customer = _customerSignature?.hasInk ?? false;
+    final record = _record;
+    final customerSignatureStale =
+        record?.customerSignature.isPresent == true &&
+        record?.customerSignatureIsValid == false;
+    if (customerSignatureStale) {
+      return owner
+          ? 'My signature saved. Customer signature needs to be collected again'
+          : 'Customer signature needs to be collected again';
+    }
     if (owner && customer) return 'My signature and customer signature saved';
     if (owner) return 'My signature saved';
     if (customer) return 'Customer signature saved';
