@@ -103,8 +103,9 @@ void main() {
 }
 
 void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {
+  final outcomeDetails = '${result.detailLabel} ${_pairSummary(result)}';
   if (_strictRealProbeStitchExpected()) {
-    expect(result.didStitch, isTrue, reason: result.detailLabel);
+    expect(result.didStitch, isTrue, reason: outcomeDetails);
     expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
   }
   expect(result.inputPaths, paths);
@@ -112,7 +113,7 @@ void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {
   expect(
     result.didStitch || result.requiresOcrSourceReviewBeforeAssistedRead,
     isTrue,
-    reason: result.detailLabel,
+    reason: outcomeDetails,
   );
   if (result.didStitch) {
     expect(result.stitchedPath, isNotNull);
@@ -123,6 +124,19 @@ void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {
     expect(result.usedFallback, isTrue, reason: result.detailLabel);
     expect(result.ocrSourcePaths, paths);
   }
+}
+
+String _pairSummary(ReceiptStitchResult result) {
+  if (result.pairs.isEmpty) return 'No overlap pair was produced.';
+  return result.pairs
+      .map(
+        (pair) =>
+            'pair ${pair.pairIndex + 1}: overlap=${pair.overlapPixels}, '
+            'confidence=${pair.confidence.toStringAsFixed(3)}, '
+            'scale=${pair.scaleCorrection.toStringAsFixed(2)}, '
+            'rotation=${pair.rotationCorrectionDegrees.toStringAsFixed(1)}',
+      )
+      .join('; ');
 }
 
 bool _strictRealProbeStitchExpected() {

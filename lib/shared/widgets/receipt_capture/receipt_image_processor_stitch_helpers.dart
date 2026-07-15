@@ -107,7 +107,10 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   required img.Image previous,
   required img.Image next,
 }) {
-  final maxOverlap = math.min(previous.height, next.height) * .46;
+  // A final receipt section can intentionally repeat most of the prior frame.
+  // Keep matching it when the evidence is distinctive; duplicate safeguards and
+  // confidence scoring still reject ambiguous or repeated captures.
+  final maxOverlap = math.min(previous.height, next.height) * .82;
   final minOverlap = math.min(previous.height, next.height) * .08;
   final minPixels = minOverlap.round().clamp(48, 320);
   final maxPixels = maxOverlap.round().clamp(minPixels + 1, 1400);
