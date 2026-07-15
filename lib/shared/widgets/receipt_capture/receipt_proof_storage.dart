@@ -234,9 +234,12 @@ class ReceiptProofStorage {
     final inspection = attachment.isPdf
         ? await ReceiptPdfInspector.inspect(destination.path)
         : null;
-    try {
-      await source.delete();
-    } catch (_) {}
+    final stagingRoot = await _stagingRoot();
+    if (path.isWithin(stagingRoot.path, source.path)) {
+      try {
+        await source.delete();
+      } catch (_) {}
+    }
     return attachment.copyWith(
       path: destination.path,
       byteSize: await _safeLength(destination),

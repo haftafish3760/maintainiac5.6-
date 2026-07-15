@@ -177,6 +177,32 @@ void main() {
     expect(await external.exists(), isTrue);
   });
 
+  test(
+    'promoting a staged-looking external file never deletes the source',
+    () async {
+      final external = File('${Directory.systemTemp.path}/external_staged.jpg');
+      await external.writeAsBytes([1, 2, 3], flush: true);
+      addTearDown(() {
+        if (external.existsSync()) external.deleteSync();
+      });
+
+      final promoted = await ReceiptProofStorage.instance.persistAttachment(
+        ReceiptAttachmentRecord(
+          id: 'external-staged-photo',
+          path: external.path,
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 14),
+          storageState: ReceiptAttachmentStorageState.staged,
+        ),
+      );
+
+      expect(await external.exists(), isTrue);
+      expect(promoted.storageState, ReceiptAttachmentStorageState.permanent);
+      expect(await File(promoted.path).exists(), isTrue);
+    },
+  );
+
   test('storage refuses renamed non-PDF proof files', () async {
     final source = File('${Directory.systemTemp.path}/fake_receipt.pdf');
     await source.writeAsString('not actually a pdf', flush: true);
