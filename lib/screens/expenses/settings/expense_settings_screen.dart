@@ -5,6 +5,7 @@ import '../data/expense_cloud_backup_service.dart';
 import '../reports/expense_recap_models.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/state/expense_backup_schedule.dart';
+import '../../../shared/storage/app_storage_guard.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/industrial_panel_surface.dart';
 
@@ -15,6 +16,7 @@ part 'expense_recap_tile_settings.dart';
 part 'expense_settings_helpers.dart';
 part 'expense_odometer_prompt_settings.dart';
 part 'expense_backup_schedule_settings.dart';
+part 'expense_storage_status_panel.dart';
 
 class ExpenseSettingsScreen extends StatefulWidget {
   const ExpenseSettingsScreen({super.key});
@@ -105,6 +107,8 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           ),
           const SizedBox(height: 12),
           _BackupScheduleSettingsPanel(settings: settings),
+          const SizedBox(height: 12),
+          const _ExpenseStorageStatusPanel(),
           const SizedBox(height: 12),
           _OdometerPromptSettingsPanel(
             settings: settings,
