@@ -255,6 +255,25 @@ class ExpenseReminderController extends ChangeNotifier {
     return saved;
   }
 
+  /// Imports a user-authorized cloud record only when no local ID exists.
+  ///
+  /// This preserves a cloud tombstone's lifecycle metadata and never replaces
+  /// a local reminder that may have been edited on this device.
+  Future<ExpenseReminderRecord?> importIfMissing(
+    ExpenseReminderRecord reminder,
+  ) async {
+    final id = reminder.id.trim();
+    if (id.isEmpty || recordById(id) != null) return null;
+    await ensureStorageForLocalSave();
+    if (_box == null) {
+      _memory[id] = reminder;
+    } else {
+      await _box.put(id, reminder.toMap());
+    }
+    notifyListeners();
+    return reminder;
+  }
+
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 

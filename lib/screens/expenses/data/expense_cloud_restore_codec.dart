@@ -2,6 +2,7 @@ import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import '../../../shared/state/app_state.dart';
 import 'expense_ledger_models.dart';
+import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
 
 /// Converts trusted Expense backup metadata into local record candidates.
@@ -118,6 +119,43 @@ class ExpenseCloudRestoreCodec {
     );
   }
 
+  static ExpenseCloudRestoredReminder decodeReminder(
+    Map<dynamic, dynamic> data,
+  ) {
+    if ('${data['schema']}'.trim() != 'expense_reminder_backup_v1') {
+      throw const FormatException(
+        'Unsupported Expense reminder backup schema.',
+      );
+    }
+    final id = _text(data['id']);
+    final dueAt = _date(data['dueAt']);
+    if (id.isEmpty || dueAt == null) {
+      throw const FormatException('Expense reminder backup is incomplete.');
+    }
+    final createdAt = _date(data['createdAt']) ?? dueAt;
+    final updatedAt = _date(data['updatedAt']) ?? createdAt;
+    final record = ExpenseReminderRecord.fromMap({
+      'id': id,
+      'title': _text(data['title']),
+      'category': _text(data['category'], fallback: 'Other'),
+      'channel': _text(data['channel'], fallback: 'in_app'),
+      'dueAt': dueAt.toIso8601String(),
+      'cadence': _text(data['cadence']),
+      'details': _text(data['details']),
+      'active': _boolean(data['active']),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'lifecycle': {
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'revision': _integer(data['localRevision']) ?? 1,
+        'state': _text(data['recordState'], fallback: 'active'),
+        'deletedAt': _date(data['deletedAt'])?.toIso8601String(),
+      },
+    });
+    return ExpenseCloudRestoredReminder(record);
+  }
+
   static List<ExpenseReceiptLineRecord> _lines(Object? value) {
     if (value is! List) return const [];
     return List.unmodifiable([
@@ -221,6 +259,12 @@ class ExpenseCloudRestoredVehicles {
 
   final String? activeVehicleId;
   final List<VehicleProfile> vehicles;
+}
+
+class ExpenseCloudRestoredReminder {
+  const ExpenseCloudRestoredReminder(this.record);
+
+  final ExpenseReminderRecord record;
 }
 
 /// Storage facts for a user-authorized restore choice.

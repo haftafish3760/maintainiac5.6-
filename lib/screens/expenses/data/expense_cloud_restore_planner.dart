@@ -1,5 +1,6 @@
 import 'expense_cloud_restore_codec.dart';
 import 'expense_ledger_store.dart';
+import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
 import '../../../shared/state/app_state.dart';
 
@@ -140,6 +141,38 @@ class ExpenseCloudRestorePlanner {
         local.usage == cloud.usage &&
         local.archivedAt?.toUtc() == cloud.archivedAt?.toUtc();
   }
+
+  static ExpenseCloudReminderRestorePlan planReminder({
+    required ExpenseReminderController localReminders,
+    required ExpenseCloudRestoredReminder cloudReminder,
+  }) {
+    final local = localReminders.recordById(cloudReminder.record.id);
+    if (local == null) {
+      return ExpenseCloudReminderRestorePlan.create(cloudReminder);
+    }
+    final localRevision = local.lifecycle?.revision ?? 1;
+    final cloudRevision = cloudReminder.record.lifecycle?.revision ?? 1;
+    if (localRevision > cloudRevision) {
+      return ExpenseCloudReminderRestorePlan.localNewer(
+        cloudReminder: cloudReminder,
+        localRevision: localRevision,
+      );
+    }
+    return ExpenseCloudReminderRestorePlan.needsReview(
+      cloudReminder: cloudReminder,
+      localRevision: localRevision,
+    );
+  }
+
+  static Future<ExpenseReminderRecord?> createReminderIfMissing({
+    required ExpenseReminderController localReminders,
+    required ExpenseCloudReminderRestorePlan plan,
+  }) {
+    if (plan.disposition != ExpenseCloudRestoreDisposition.createLocal) {
+      return Future.value(null);
+    }
+    return localReminders.importIfMissing(plan.cloudReminder.record);
+  }
 }
 
 enum ExpenseCloudRestoreDisposition {
@@ -240,4 +273,42 @@ class ExpenseCloudVehicleRestorePlan {
   final String? proposedActiveVehicleId;
 
   bool get needsUserReview => conflictingCloudVehicles.isNotEmpty;
+}
+
+class ExpenseCloudReminderRestorePlan {
+  const ExpenseCloudReminderRestorePlan._({
+    required this.disposition,
+    required this.cloudReminder,
+    required this.localRevision,
+  });
+
+  const ExpenseCloudReminderRestorePlan.create(
+    ExpenseCloudRestoredReminder reminder,
+  ) : this._(
+        disposition: ExpenseCloudRestoreDisposition.createLocal,
+        cloudReminder: reminder,
+        localRevision: null,
+      );
+
+  const ExpenseCloudReminderRestorePlan.localNewer({
+    required ExpenseCloudRestoredReminder cloudReminder,
+    required int localRevision,
+  }) : this._(
+         disposition: ExpenseCloudRestoreDisposition.localNewer,
+         cloudReminder: cloudReminder,
+         localRevision: localRevision,
+       );
+
+  const ExpenseCloudReminderRestorePlan.needsReview({
+    required ExpenseCloudRestoredReminder cloudReminder,
+    required int localRevision,
+  }) : this._(
+         disposition: ExpenseCloudRestoreDisposition.sameRevisionNeedsReview,
+         cloudReminder: cloudReminder,
+         localRevision: localRevision,
+       );
+
+  final ExpenseCloudRestoreDisposition disposition;
+  final ExpenseCloudRestoredReminder cloudReminder;
+  final int? localRevision;
 }

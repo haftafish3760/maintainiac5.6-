@@ -3,7 +3,9 @@ import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_codec.dar
 import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_planner.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
+import 'package:maintaniac/shared/records/maintainiac_record_lifecycle.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 
 void main() {
@@ -206,6 +208,45 @@ void main() {
       expect(local.vehicleById('old-van')?.isArchived, isTrue);
       expect(local.activeVehicle?.id, selectedId);
       expect(local.vehicleById('van-1')?.nickname, 'Local van');
+    },
+  );
+
+  test(
+    'restores a missing reminder tombstone without replacing local records',
+    () async {
+      final local = ExpenseReminderController.memory();
+      final cloud = ExpenseCloudRestoredReminder(
+        ExpenseReminderRecord(
+          id: 'reminder-restore',
+          title: 'Registration',
+          category: 'Registration',
+          channel: 'in_app',
+          dueAt: DateTime.utc(2026, 8, 1),
+          cadence: ExpenseReminderCadence.yearly,
+          createdAt: DateTime.utc(2026, 7, 1),
+          updatedAt: DateTime.utc(2026, 7, 15),
+          active: false,
+          lifecycle: MaintainiacRecordLifecycle(
+            createdAt: DateTime.utc(2026, 7, 1),
+            updatedAt: DateTime.utc(2026, 7, 15),
+            revision: 4,
+            state: MaintainiacRecordState.deleted,
+            deletedAt: DateTime.utc(2026, 7, 15),
+          ),
+        ),
+      );
+      final plan = ExpenseCloudRestorePlanner.planReminder(
+        localReminders: local,
+        cloudReminder: cloud,
+      );
+
+      expect(plan.disposition, ExpenseCloudRestoreDisposition.createLocal);
+      final imported = await ExpenseCloudRestorePlanner.createReminderIfMissing(
+        localReminders: local,
+        plan: plan,
+      );
+      expect(imported?.isDeleted, isTrue);
+      expect(local.recordById('reminder-restore')?.lifecycle?.revision, 4);
     },
   );
 }

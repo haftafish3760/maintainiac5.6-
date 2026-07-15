@@ -143,6 +143,30 @@ void main() {
     expect(restored.vehicles.last.isArchived, isTrue);
   });
 
+  test('decodes a deleted reminder with its lifecycle metadata', () {
+    final restored = ExpenseCloudRestoreCodec.decodeReminder({
+      'schema': 'expense_reminder_backup_v1',
+      'id': 'reminder-1',
+      'title': 'Vehicle registration',
+      'category': 'Registration',
+      'channel': 'in_app',
+      'cadence': 'yearly',
+      'dueAt': '2026-08-01T12:00:00.000Z',
+      'active': false,
+      'details': 'Renew before expiration.',
+      'createdAt': '2026-07-01T12:00:00.000Z',
+      'updatedAt': '2026-07-15T12:00:00.000Z',
+      'recordState': 'deleted',
+      'localRevision': 4,
+      'deletedAt': '2026-07-15T12:00:00.000Z',
+    });
+
+    expect(restored.record.id, 'reminder-1');
+    expect(restored.record.cadence.name, 'yearly');
+    expect(restored.record.isDeleted, isTrue);
+    expect(restored.record.lifecycle?.revision, 4);
+  });
+
   test(
     'estimates proof storage separately from structured restore records',
     () {
