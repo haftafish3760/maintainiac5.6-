@@ -2,20 +2,27 @@ part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewCompletionActions
     on _ReceiptPhotoReviewScreenState {
-  Future<bool> _confirmReceiptCompleteIfNeeded() async {
-    if (widget.bestShotCandidateMode) return true;
+  Future<_ReceiptContinueDecision> _confirmReceiptCompleteIfNeeded() async {
+    if (!_reviewWorkActive) return _ReceiptContinueDecision.keepReviewing;
+    if (widget.bestShotCandidateMode) {
+      return _ReceiptContinueDecision.continueAnyway;
+    }
     final photoPath = _completionCheckPhotoPath;
-    if (photoPath == null) return true;
-    if (_completionPromptedPhotoPaths.contains(photoPath)) return true;
+    if (photoPath == null) return _ReceiptContinueDecision.continueAnyway;
+    if (_completionPromptedPhotoPaths.contains(photoPath)) {
+      return _ReceiptContinueDecision.continueAnyway;
+    }
     final decision = _coverageDecisionForPhoto(photoPath);
-    if (!decision.shouldPromptForMorePhotos) return true;
+    if (!decision.shouldPromptForMorePhotos) {
+      return _ReceiptContinueDecision.continueAnyway;
+    }
     _completionPromptedPhotoPaths.add(photoPath);
     _recordReceiptCompletionDecision(
       photoPath,
       decision: _ReceiptContinueDecision.continueAnyway,
       coverageDecision: decision,
     );
-    return true;
+    return _ReceiptContinueDecision.continueAnyway;
   }
 
   String? get _completionCheckPhotoPath {

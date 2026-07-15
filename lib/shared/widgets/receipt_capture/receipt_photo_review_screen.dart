@@ -114,10 +114,10 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
     uniqueNormalizedReceiptPhotoPaths(widget.initialPhotoPaths),
   );
   late final List<String> _photoPaths = [..._initialPhotoPaths];
-  late ReceiptDataSaverLevel _dataSaverLevel =
-      widget.initialDataSaverLevel == ReceiptDataSaverLevel.original
-      ? ReceiptDataSaverLevel.balanced
-      : widget.initialDataSaverLevel;
+  // The selected retention level is user intent. In particular, Original
+  // means keep the local proof at original quality rather than silently
+  // downgrading it when the review screen opens.
+  late ReceiptDataSaverLevel _dataSaverLevel = widget.initialDataSaverLevel;
   late var _selectedIndex = _initialSelectedIndex();
   var _openingCamera = false;
   var _controlsVisible = true;

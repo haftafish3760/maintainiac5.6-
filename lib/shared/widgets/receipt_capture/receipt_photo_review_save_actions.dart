@@ -4,8 +4,11 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
   Future<void> continueReceiptPhotoReview() async {
     if (_savingPhotos || _closingReview) return;
     if (_photoPaths.isEmpty) return;
-    final canProceedFromCoverage = await _confirmReceiptCompleteIfNeeded();
-    if (!canProceedFromCoverage) return;
+    final completionDecision = await _confirmReceiptCompleteIfNeeded();
+    if (completionDecision != _ReceiptContinueDecision.continueAnyway ||
+        !_reviewWorkActive) {
+      return;
+    }
     if (_needsStitchReviewBeforeSave) {
       if (_reviewMode != _ReceiptReviewMode.stitch) {
         _updateReviewState(() {
