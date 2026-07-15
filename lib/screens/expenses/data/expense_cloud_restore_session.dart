@@ -106,6 +106,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
   }
 
   final Box<dynamic> _box;
+  Future<void> _writeTail = Future<void>.value();
 
   ExpenseCloudRestoreSession? sessionById(String id) {
     final value = _box.get(id.trim());
@@ -118,7 +119,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     required ExpenseCloudRestoreStoragePlan plan,
     required int totalRecords,
     DateTime? nowUtc,
-  }) async {
+  }) => _enqueue(() async {
     final sessionId = _required(id, 'Restore session ID');
     final safeRequestId = _required(requestId, 'Restore request ID');
     if (!plan.canStart) {
@@ -143,14 +144,14 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         completedRecords: existing?.completedRecords ?? 0,
       ),
     );
-  }
+  });
 
   Future<void> updateProgress({
     required String id,
     required int completedDownloadBytes,
     required int completedRecords,
     DateTime? nowUtc,
-  }) async {
+  }) => _enqueue(() async {
     final current = _active(id);
     final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     await _write(
@@ -162,34 +163,47 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         createdAt: current.createdAt,
         updatedAt: now,
         expectedDownloadBytes: current.expectedDownloadBytes,
-        completedDownloadBytes: _bounded(
+        completedDownloadBytes: _maxBounded(
+          current.completedDownloadBytes,
           completedDownloadBytes,
           current.expectedDownloadBytes,
         ),
         totalRecords: current.totalRecords,
-        completedRecords: _bounded(completedRecords, current.totalRecords),
+        completedRecords: _maxBounded(
+          current.completedRecords,
+          completedRecords,
+          current.totalRecords,
+        ),
       ),
     );
-  }
+  });
 
-  Future<void> pause(String id, {DateTime? nowUtc}) =>
-      _changeState(id, ExpenseCloudRestoreSessionState.paused, nowUtc: nowUtc);
-
-  Future<void> fail(String id, String reason, {DateTime? nowUtc}) =>
-      _changeState(
-        id,
-        ExpenseCloudRestoreSessionState.failed,
-        failureReason: _required(reason, 'Restore failure reason'),
-        nowUtc: nowUtc,
-      );
-
-  Future<void> cancel(String id, {DateTime? nowUtc}) => _changeState(
-    id,
-    ExpenseCloudRestoreSessionState.cancelled,
-    nowUtc: nowUtc,
+  Future<void> pause(String id, {DateTime? nowUtc}) => _enqueue(
+    () => _changeState(
+      id,
+      ExpenseCloudRestoreSessionState.paused,
+      nowUtc: nowUtc,
+    ),
   );
 
-  Future<void> complete(String id, {DateTime? nowUtc}) async {
+  Future<void> fail(String id, String reason, {DateTime? nowUtc}) => _enqueue(
+    () => _changeState(
+      id,
+      ExpenseCloudRestoreSessionState.failed,
+      failureReason: _required(reason, 'Restore failure reason'),
+      nowUtc: nowUtc,
+    ),
+  );
+
+  Future<void> cancel(String id, {DateTime? nowUtc}) => _enqueue(
+    () => _changeState(
+      id,
+      ExpenseCloudRestoreSessionState.cancelled,
+      nowUtc: nowUtc,
+    ),
+  );
+
+  Future<void> complete(String id, {DateTime? nowUtc}) => _enqueue(() async {
     final current = _active(id);
     await _write(
       ExpenseCloudRestoreSession(
@@ -205,7 +219,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         completedRecords: current.totalRecords,
       ),
     );
-  }
+  });
 
   Future<void> _changeState(
     String id,
@@ -246,6 +260,12 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     await _box.put(session.id, session.toMap());
     notifyListeners();
   }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
 }
 
 String _required(String value, String name) {
@@ -257,6 +277,8 @@ String _required(String value, String name) {
 int _nonNegative(Object? value) => value is int && value > 0 ? value : 0;
 int _bounded(int value, int maximum) =>
     value.clamp(0, maximum < 0 ? 0 : maximum);
+int _maxBounded(int current, int incoming, int maximum) =>
+    _bounded(current > incoming ? current : incoming, maximum);
 String _text(Object? value) => value is String ? value.trim() : '';
 String? _nullableText(Object? value) {
   final text = _text(value);

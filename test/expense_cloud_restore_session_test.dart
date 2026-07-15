@@ -113,4 +113,31 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+
+  test('delayed restore progress cannot move a session backward', () async {
+    final store = await ExpenseCloudRestoreSessionStore.create();
+    await store.savePrepared(
+      id: 'restore-progress-order',
+      requestId: 'server-request-progress-order',
+      plan: plan,
+      totalRecords: 3,
+    );
+
+    await Future.wait([
+      store.updateProgress(
+        id: 'restore-progress-order',
+        completedDownloadBytes: 75,
+        completedRecords: 2,
+      ),
+      store.updateProgress(
+        id: 'restore-progress-order',
+        completedDownloadBytes: 10,
+        completedRecords: 1,
+      ),
+    ]);
+
+    final session = store.sessionById('restore-progress-order')!;
+    expect(session.completedDownloadBytes, 75);
+    expect(session.completedRecords, 2);
+  });
 }
