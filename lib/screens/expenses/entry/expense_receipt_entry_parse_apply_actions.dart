@@ -111,7 +111,11 @@ extension _ExpenseReceiptEntryParseApplyActions
       // never gets to decide business ownership for an Expense receipt. Fuel
       // continues to hand its evidence to its dedicated downstream parser.
       if (widget.initialCategory != 'Fuel') {
+        final selectedCategory = widget.initialCategory?.trim();
         line = line.copyWith(
+          category: selectedCategory == null || selectedCategory.isEmpty
+              ? line.category
+              : selectedCategory,
           use: _ExpenseLineUse.unclassified,
           businessPercent: null,
           businessSplitValue: null,

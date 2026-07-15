@@ -7,6 +7,7 @@ import 'expense_job_store.dart';
 import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
 import 'expense_vehicle_profile_store.dart';
+import 'expense_receipt_deletion_store.dart';
 
 class ExpenseFirestoreDocumentBuilder {
   const ExpenseFirestoreDocumentBuilder._();
@@ -86,6 +87,31 @@ class ExpenseFirestoreDocumentBuilder {
       }),
     );
   }
+
+  static MaintainiacFirestoreDocumentDraft expenseReceiptTombstoneDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseReceiptDeletionRecord deletion,
+  }) => MaintainiacFirestoreDocumentDraft(
+    path:
+        '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgExpenses)}/${_pathToken(deletion.receiptId)}',
+    data: Map.unmodifiable({
+      'schema': 'expense_receipt_backup_v1',
+      'schemaVersion': 1,
+      'orgId': _pathToken(orgId),
+      'id': _pathToken(deletion.receiptId),
+      'createdByUid': uid,
+      'updatedByUid': uid,
+      'deviceId': _token(deviceId),
+      'rawOcrStored': false,
+      'cloudRevision': 0,
+      'updatedAt': deletion.deletedAt.toUtc().toIso8601String(),
+      'deletedAt': deletion.deletedAt.toUtc().toIso8601String(),
+      'syncStatus': 'pending',
+      'tombstone': true,
+    }),
+  );
 
   static MaintainiacFirestoreDocumentDraft expenseSettingsDocument({
     required String orgId,

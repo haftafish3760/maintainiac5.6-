@@ -2,10 +2,12 @@ import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_models.dart';
+import 'expense_ledger_store.dart';
 import 'expense_job_store.dart';
 import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
 import 'expense_vehicle_profile_store.dart';
+import 'expense_receipt_deletion_store.dart';
 
 class ExpenseCloudBackupIdentity {
   const ExpenseCloudBackupIdentity({
@@ -49,6 +51,22 @@ class ExpenseCloudBackupQueue {
         nowUtc: nowUtc,
       ),
       queuedAtUtc: nowUtc,
+    );
+  }
+
+  Future<void> queueReceiptDeletion({
+    required ExpenseCloudBackupIdentity identity,
+    required ExpenseReceiptDeletionRecord deletion,
+  }) async {
+    _requireIdentity(identity);
+    await _queue.enqueueReplacingPendingForPath(
+      ExpenseFirestoreDocumentBuilder.expenseReceiptTombstoneDocument(
+        orgId: identity.orgId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        deletion: deletion,
+      ),
+      queuedAtUtc: deletion.deletedAt,
     );
   }
 
@@ -139,6 +157,49 @@ class ExpenseCloudBackupQueue {
         nowUtc: nowUtc,
       ),
       queuedAtUtc: nowUtc,
+    );
+  }
+
+  /// Queues a complete, local-first Expense snapshot after account identity is
+  /// available. The caller still chooses when transport is allowed.
+  Future<void> queueLocalSnapshot({
+    required ExpenseCloudBackupIdentity identity,
+    required ExpenseLedgerController ledger,
+    required ExpenseSettingsController settings,
+    required ExpenseReminderController reminders,
+    required ExpenseJobController jobs,
+    required ExpenseWorkProfileController workProfiles,
+    required ExpenseVehicleProfileController vehicleProfiles,
+    required ExpenseReceiptDeletionController deletions,
+    DateTime? nowUtc,
+  }) async {
+    _requireIdentity(identity);
+    for (final receipt in ledger.storedReceipts) {
+      await queueReceipt(identity: identity, receipt: receipt, nowUtc: nowUtc);
+    }
+    final localReceiptIds = ledger.storedReceipts
+        .map((receipt) => receipt.id)
+        .toSet();
+    for (final deletion in deletions.pendingTombstones) {
+      if (localReceiptIds.contains(deletion.receiptId)) continue;
+      await queueReceiptDeletion(identity: identity, deletion: deletion);
+    }
+    await queueSettings(identity: identity, settings: settings, nowUtc: nowUtc);
+    await queueReminders(
+      identity: identity,
+      reminders: reminders,
+      nowUtc: nowUtc,
+    );
+    await queueJobs(identity: identity, jobs: jobs, nowUtc: nowUtc);
+    await queueWorkProfiles(
+      identity: identity,
+      profiles: workProfiles,
+      nowUtc: nowUtc,
+    );
+    await queueVehicleProfiles(
+      identity: identity,
+      profiles: vehicleProfiles,
+      nowUtc: nowUtc,
     );
   }
 

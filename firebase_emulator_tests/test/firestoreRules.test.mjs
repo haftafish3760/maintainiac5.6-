@@ -124,6 +124,28 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
+  test('expense deletion is a constrained tombstone, not a client delete', async () => {
+    const owner = dbFor('ownerUid');
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'orgs/orgA/expenses/expense1'), {
+        orgId: 'orgA', id: 'expense1', schema: 'expense_receipt_backup_v1',
+        schemaVersion: 1, rawOcrStored: false, cloudRevision: 0,
+        syncStatus: 'pending', deletedAt: null,
+        createdByUid: 'ownerUid', updatedByUid: 'ownerUid',
+      });
+    });
+    await assertSucceeds(
+      setDoc(doc(owner, 'orgs/orgA/expenses/expense1'), {
+        orgId: 'orgA', id: 'expense1', schema: 'expense_receipt_backup_v1',
+        schemaVersion: 1, rawOcrStored: false, cloudRevision: 0,
+        syncStatus: 'pending', tombstone: true,
+        deletedAt: '2026-07-15T03:00:00.000Z',
+        createdByUid: 'ownerUid', updatedByUid: 'ownerUid',
+      }),
+    );
+    await assertFails(deleteDoc(doc(owner, 'orgs/orgA/expenses/expense1')));
+  });
+
   test('vehicles reject VIN and plate fields', async () => {
     const owner = dbFor('ownerUid');
 
@@ -261,6 +283,8 @@ async function seedOrg() {
         'editVehicleProfiles',
         'createJobs',
         'editJobs',
+        'recordExpenses',
+        'editCompanyExpenses',
       ],
       allowedModules: ['expenses', 'admin', 'vehicles', 'jobs'],
     });

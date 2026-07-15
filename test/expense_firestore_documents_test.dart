@@ -8,6 +8,7 @@ import 'package:maintaniac/screens/expenses/data/expense_job_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_vehicle_profile_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_receipt_deletion_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_schema.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
@@ -299,4 +300,22 @@ void main() {
       MaintainiacFirestoreUploadPolicy.validateDraft(vehiclesDoc);
     },
   );
+
+  test('builds a constrained receipt tombstone for a local deletion', () {
+    final doc = ExpenseFirestoreDocumentBuilder.expenseReceiptTombstoneDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      deletion: ExpenseReceiptDeletionRecord(
+        receiptId: 'EXP-1',
+        deletedAt: DateTime.utc(2026, 7, 15, 3),
+      ),
+    );
+    expect(doc.path, 'orgs/ORG-1/expenses/EXP-1');
+    expect(doc.data['tombstone'], isTrue);
+    expect(doc.data['rawOcrStored'], isFalse);
+    expect(doc.data['cloudRevision'], 0);
+    expect(doc.data['deletedAt'], '2026-07-15T03:00:00.000Z');
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
 }

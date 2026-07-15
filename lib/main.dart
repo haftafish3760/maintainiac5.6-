@@ -13,6 +13,7 @@ import 'screens/expenses/data/expense_job_store.dart';
 import 'screens/expenses/data/expense_reminder_store.dart';
 import 'screens/expenses/data/expense_work_profile_store.dart';
 import 'screens/expenses/data/expense_vehicle_profile_store.dart';
+import 'screens/expenses/data/expense_receipt_deletion_store.dart';
 import 'screens/invoices/data/invoice_ledger_store.dart';
 import 'shared/state/app_state.dart';
 import 'shared/state/expense_settings_store.dart';
@@ -44,6 +45,8 @@ Future<void> main() async {
   final expenseReminders = await ExpenseReminderController.create();
   final expenseWorkProfiles = await ExpenseWorkProfileController.create();
   final expenseVehicleProfiles = await ExpenseVehicleProfileController.create();
+  final expenseReceiptDeletions =
+      await ExpenseReceiptDeletionController.create();
   final expenseDrafts = await ExpenseDraftController.create();
   final expenseExports = await ExpenseExportController.create();
   final receiptCaptureSettings =
@@ -101,39 +104,42 @@ Future<void> main() async {
             controller: expenseWorkProfiles,
             child: ExpenseVehicleProfileScope(
               controller: expenseVehicleProfiles,
-              child: ExpenseJobScope(
-                controller: expenseJobs,
-                child: ExpenseReminderScope(
-                  controller: expenseReminders,
-                  child: ExpenseDraftScope(
-                    controller: expenseDrafts,
-                    child: ExpenseExportScope(
-                      controller: expenseExports,
-                      child: ReceiptCaptureSettingsScope(
-                        controller: receiptCaptureSettings,
-                        child: ActiveWorkdayScope(
-                          controller: activeWorkday,
-                          child: GlobalOdometerScope(
-                            controller: GlobalOdometerController(
-                              vehicleId: odometerSnapshot.vehicleId,
-                              initialReading: odometerSnapshot.currentReading,
-                              initialRecordedAt: odometerSnapshot.updatedAt,
-                              initialHistory: odometerSnapshot.history,
-                              snapshotReader:
-                                  odometerStore.loadSnapshotForVehicle,
-                              snapshotWriter: odometerStore.saveSnapshot,
-                            ),
-                            child: IncomingReceiptShareScope(
-                              controller: incomingReceiptShare,
-                              child: AppSignatureStoreScope(
-                                store: signatureStore,
-                                child: UserProfileScope(
-                                  controller: userProfiles,
-                                  child: OperationalContextScope(
-                                    controller: operationalContext,
-                                    child: InvoiceLedgerScope(
-                                      controller: invoiceLedger,
-                                      child: const MaintaniacApp(),
+              child: ExpenseReceiptDeletionScope(
+                controller: expenseReceiptDeletions,
+                child: ExpenseJobScope(
+                  controller: expenseJobs,
+                  child: ExpenseReminderScope(
+                    controller: expenseReminders,
+                    child: ExpenseDraftScope(
+                      controller: expenseDrafts,
+                      child: ExpenseExportScope(
+                        controller: expenseExports,
+                        child: ReceiptCaptureSettingsScope(
+                          controller: receiptCaptureSettings,
+                          child: ActiveWorkdayScope(
+                            controller: activeWorkday,
+                            child: GlobalOdometerScope(
+                              controller: GlobalOdometerController(
+                                vehicleId: odometerSnapshot.vehicleId,
+                                initialReading: odometerSnapshot.currentReading,
+                                initialRecordedAt: odometerSnapshot.updatedAt,
+                                initialHistory: odometerSnapshot.history,
+                                snapshotReader:
+                                    odometerStore.loadSnapshotForVehicle,
+                                snapshotWriter: odometerStore.saveSnapshot,
+                              ),
+                              child: IncomingReceiptShareScope(
+                                controller: incomingReceiptShare,
+                                child: AppSignatureStoreScope(
+                                  store: signatureStore,
+                                  child: UserProfileScope(
+                                    controller: userProfiles,
+                                    child: OperationalContextScope(
+                                      controller: operationalContext,
+                                      child: InvoiceLedgerScope(
+                                        controller: invoiceLedger,
+                                        child: const MaintaniacApp(),
+                                      ),
                                     ),
                                   ),
                                 ),

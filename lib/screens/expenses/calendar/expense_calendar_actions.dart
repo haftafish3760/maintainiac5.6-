@@ -119,6 +119,7 @@ Future<void> _deleteReceipt(
   );
   if (remove != true || !context.mounted) return;
   try {
+    await ExpenseReceiptDeletionScope.of(context).recordDeletion(receipt.id);
     await ExpenseLedgerScope.of(context).deleteReceipt(receipt.id);
   } catch (_) {
     if (context.mounted) {

@@ -121,7 +121,8 @@ service cloud.firestore {
         request.resource.data.rawOcrStored == false &&
         request.resource.data.cloudRevision == 0 &&
         request.resource.data.syncStatus == 'pending' &&
-        request.resource.data.deletedAt == null &&
+        (request.resource.data.deletedAt == null ||
+          request.resource.data.tombstone == true) &&
         !hasUnsafeReceiptEvidenceFields();
     }
 
@@ -133,7 +134,13 @@ service cloud.firestore {
         request.resource.data.rawOcrStored == false &&
         request.resource.data.cloudRevision == resource.data.cloudRevision &&
         request.resource.data.syncStatus == resource.data.syncStatus &&
-        request.resource.data.deletedAt == resource.data.deletedAt &&
+        (
+          request.resource.data.deletedAt == resource.data.deletedAt ||
+          (
+            request.resource.data.tombstone == true &&
+            request.resource.data.deletedAt != null
+          )
+        ) &&
         !hasUnsafeReceiptEvidenceFields();
     }
 
