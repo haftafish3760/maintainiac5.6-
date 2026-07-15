@@ -95,6 +95,29 @@ void main() {
     expect(appState.activeVehicle?.id, second.id);
   });
 
+  test(
+    'an archived-only vehicle snapshot restores without an active vehicle',
+    () async {
+    final box = await Hive.openBox<dynamic>(AppStateController.vehicleBoxName);
+    await box.put('snapshot', {
+        'vehicles': [
+          VehicleProfile(
+            id: 'archived-only',
+            nickname: 'Retired van',
+            archivedAt: DateTime.utc(2026, 7, 15),
+          ).toMap(),
+        ],
+        'activeVehicleId': 'archived-only',
+      });
+
+      final restored = await AppStateController.create();
+
+      expect(restored.vehicles, isEmpty);
+      expect(restored.activeVehicle, isNull);
+      expect(restored.vehicleById('archived-only')?.isArchived, isTrue);
+    },
+  );
+
   test('rejects duplicate stable vehicle IDs', () async {
     final appState = await AppStateController.create();
     final vehicle = VehicleProfile(id: 'vehicle-duplicate', nickname: 'Van');
