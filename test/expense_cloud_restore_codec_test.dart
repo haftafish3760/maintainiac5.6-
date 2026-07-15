@@ -193,6 +193,20 @@ void main() {
     expect(restored.record.lifecycle?.revision, 4);
   });
 
+  test('legacy reminder metadata remains active when active is absent', () {
+    final restored = ExpenseCloudRestoreCodec.decodeReminder({
+      'schema': 'expense_reminder_backup_v1',
+      'id': 'legacy-reminder',
+      'title': 'Renew registration',
+      'category': 'Registration',
+      'dueAt': '2026-08-01T12:00:00.000Z',
+      'createdAt': '2026-07-15T12:00:00.000Z',
+      'updatedAt': '2026-07-15T12:00:00.000Z',
+    });
+
+    expect(restored.record.active, isTrue);
+  });
+
   test(
     'estimates proof storage separately from structured restore records',
     () {

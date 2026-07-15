@@ -166,7 +166,7 @@ class ExpenseCloudRestoreCodec {
       'dueAt': dueAt.toIso8601String(),
       'cadence': _text(data['cadence']),
       'details': _text(data['details']),
-      'active': _boolean(data['active']),
+      'active': _boolean(data['active'], fallback: true),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'lifecycle': {
@@ -252,7 +252,10 @@ class ExpenseCloudRestoreCodec {
     return value.toDouble() / 100;
   }
 
-  static bool _boolean(Object? value) => value == true || value == 'true';
+  static bool _boolean(Object? value, {bool fallback = false}) {
+    if (value == null) return fallback;
+    return value == true || value == 'true';
+  }
 }
 
 class ExpenseCloudRestoredReceipt {
