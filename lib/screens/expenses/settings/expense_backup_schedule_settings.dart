@@ -7,6 +7,7 @@ class _BackupScheduleSettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final schedule = settings.backupSchedule;
     final isScheduled =
         settings.backupSyncMode == ExpenseBackupSyncMode.scheduled;
@@ -16,21 +17,23 @@ class _BackupScheduleSettingsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Scheduled Backup',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          Text(
+            strings.scheduledBackup,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Choose the times and connection type. Nothing transfers until you turn scheduled backup on.',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          Text(
+            strings.scheduledBackupIntro,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
           _BackupSyncModeChoice(
-            title: 'Back up on my schedule',
+            title: strings.backUpOnMySchedule,
             detail: schedule.hasSelectedTimes
-                ? 'Runs at ${_backupScheduleTimesLabel(schedule)}.'
-                : 'Add at least one time before a backup can run.',
+                ? strings.scheduledBackupRunsAt(
+                    _backupScheduleTimesLabel(context, schedule),
+                  )
+                : strings.scheduledBackupNeedsTime,
             selected: isScheduled,
             onTap: () =>
                 settings.setBackupSyncMode(ExpenseBackupSyncMode.scheduled),
@@ -42,32 +45,32 @@ class _BackupScheduleSettingsPanel extends StatelessWidget {
             children: [
               for (final minutes in schedule.timesMinutesAfterMidnight)
                 InputChip(
-                  label: Text(_backupScheduleTimeLabel(minutes)),
+                  label: Text(_backupScheduleTimeLabel(context, minutes)),
                   onDeleted: () => _removeTime(settings, schedule, minutes),
                 ),
               OutlinedButton.icon(
                 onPressed: () => _addTime(context, settings, schedule),
                 icon: const Icon(Icons.add_alarm_outlined),
-                label: const Text('Add time'),
+                label: Text(strings.addBackupTime),
               ),
             ],
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<ExpenseBackupTransport>(
             initialValue: schedule.transport,
-            decoration: const InputDecoration(
-              labelText: 'Connection for scheduled backup',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: strings.scheduledBackupConnection,
+              border: const OutlineInputBorder(),
               isDense: true,
             ),
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: ExpenseBackupTransport.wifiOnly,
-                child: Text('Wi-Fi only'),
+                child: Text(strings.wifiOnly),
               ),
               DropdownMenuItem(
                 value: ExpenseBackupTransport.wifiAndCellular,
-                child: Text('Wi-Fi or mobile data'),
+                child: Text(strings.wifiOrMobileData),
               ),
             ],
             onChanged: (transport) {
@@ -82,9 +85,9 @@ class _BackupScheduleSettingsPanel extends StatelessWidget {
           ),
           if (isScheduled) ...[
             const SizedBox(height: 8),
-            const Text(
-              'Scheduled backup is enabled only on this device. A restored device always asks again.',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            Text(
+              strings.scheduledBackupDeviceConsent,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ],
         ],
@@ -127,13 +130,17 @@ class _BackupScheduleSettingsPanel extends StatelessWidget {
   );
 }
 
-String _backupScheduleTimesLabel(ExpenseBackupSchedule schedule) =>
-    schedule.timesMinutesAfterMidnight.map(_backupScheduleTimeLabel).join(', ');
+String _backupScheduleTimesLabel(
+  BuildContext context,
+  ExpenseBackupSchedule schedule,
+) => schedule.timesMinutesAfterMidnight
+    .map((time) => _backupScheduleTimeLabel(context, time))
+    .join(', ');
 
-String _backupScheduleTimeLabel(int minutes) {
+String _backupScheduleTimeLabel(BuildContext context, int minutes) {
   final hour = minutes ~/ 60;
   final minute = minutes % 60;
-  final suffix = hour >= 12 ? 'PM' : 'AM';
-  final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-  return '$displayHour:${minute.toString().padLeft(2, '0')} $suffix';
+  return MaterialLocalizations.of(
+    context,
+  ).formatTimeOfDay(TimeOfDay(hour: hour, minute: minute));
 }

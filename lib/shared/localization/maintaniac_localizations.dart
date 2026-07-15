@@ -177,6 +177,49 @@ class MaintaniacLocalizations {
     'El procesamiento de recibos necesita espacio temporal. Maintainiac guarda sus registros primero en el dispositivo y nunca elimina sus fotos o archivos para liberar espacio.',
     'Le traitement des reçus nécessite de l’espace temporaire. Maintainiac enregistre d’abord vos données sur l’appareil et ne supprime jamais vos photos ou fichiers pour faire de la place.',
   );
+  String get scheduledBackup => _text(
+    'Scheduled Backup',
+    'Copia de seguridad programada',
+    'Sauvegarde planifiée',
+  );
+  String get scheduledBackupIntro => _text(
+    'Choose the times and connection type. Nothing transfers until you turn scheduled backup on.',
+    'Elija las horas y el tipo de conexión. No se transfiere nada hasta que active la copia programada.',
+    'Choisissez les heures et le type de connexion. Aucun transfert ne commence avant d’activer la sauvegarde planifiée.',
+  );
+  String get backUpOnMySchedule => _text(
+    'Back up on my schedule',
+    'Respaldar según mi horario',
+    'Sauvegarder selon mon horaire',
+  );
+  String scheduledBackupRunsAt(String times) => _text(
+    'Runs at $times.',
+    'Se ejecuta a las $times.',
+    'S’exécute à $times.',
+  );
+  String get scheduledBackupNeedsTime => _text(
+    'Add at least one time before a backup can run.',
+    'Agregue al menos una hora antes de que pueda ejecutarse una copia.',
+    'Ajoutez au moins une heure avant qu’une sauvegarde puisse s’exécuter.',
+  );
+  String get addBackupTime =>
+      _text('Add time', 'Agregar hora', 'Ajouter une heure');
+  String get scheduledBackupConnection => _text(
+    'Connection for scheduled backup',
+    'Conexión para copia programada',
+    'Connexion pour la sauvegarde planifiée',
+  );
+  String get wifiOnly => _text('Wi-Fi only', 'Solo Wi-Fi', 'Wi-Fi seulement');
+  String get wifiOrMobileData => _text(
+    'Wi-Fi or mobile data',
+    'Wi-Fi o datos móviles',
+    'Wi-Fi ou données mobiles',
+  );
+  String get scheduledBackupDeviceConsent => _text(
+    'Scheduled backup is enabled only on this device. A restored device always asks again.',
+    'La copia programada se habilita solo en este dispositivo. Un dispositivo restaurado siempre vuelve a preguntar.',
+    'La sauvegarde planifiée est activée seulement sur cet appareil. Un appareil restauré demande toujours de nouveau.',
+  );
 }
 
 class _MaintaniacLocalizationsDelegate
