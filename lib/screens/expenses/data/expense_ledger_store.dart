@@ -216,6 +216,11 @@ class ExpenseLedgerController extends ChangeNotifier {
     if (existing?.isDeleted ?? false) {
       throw StateError('Restore a removed receipt before changing it.');
     }
+    if (existing != null && receipt.localRevision != existing.localRevision) {
+      throw StateError(
+        'This receipt changed on this device. Review the latest saved version.',
+      );
+    }
     await ensureStorageForLocalSave();
     final now = DateTime.now();
     final audit = [
