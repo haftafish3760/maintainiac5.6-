@@ -11,6 +11,7 @@ import 'screens/expenses/data/expense_draft_store.dart';
 import 'screens/expenses/data/expense_cloud_backup_service.dart';
 import 'screens/expenses/data/expense_export_store.dart';
 import 'screens/expenses/data/expense_ledger_store.dart';
+import 'screens/expenses/data/expense_reminder_store.dart';
 import 'screens/invoices/data/invoice_ledger_store.dart';
 import 'shared/state/app_state.dart';
 import 'shared/state/expense_settings_store.dart';
@@ -47,6 +48,7 @@ Future<void> main() async {
       .getOrCreate();
   final expenseSettings = await ExpenseSettingsController.create();
   final expenseLedger = await ExpenseLedgerController.create();
+  final expenseReminders = await ExpenseReminderController.create();
   final expenseDrafts = await ExpenseDraftController.create();
   final expenseExports = await ExpenseExportController.create();
   final receiptCaptureSettings =
@@ -66,6 +68,7 @@ Future<void> main() async {
     expenseCloudBackup = FirebaseExpenseCloudBackupMirror(
       ledger: expenseLedger,
       settings: expenseSettings,
+      reminders: expenseReminders,
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
       deviceId: installationIdentity.installationId,
@@ -73,6 +76,9 @@ Future<void> main() async {
     );
     unawaited(expenseCloudBackup.syncLocalSnapshot());
     userProfiles.addListener(() {
+      unawaited(expenseCloudBackup.syncLocalSnapshot());
+    });
+    expenseReminders.addListener(() {
       unawaited(expenseCloudBackup.syncLocalSnapshot());
     });
   }
@@ -168,33 +174,36 @@ Future<void> main() async {
         controller: expenseSettings,
         child: ExpenseCloudBackupScope(
           mirror: expenseCloudBackup,
-          child: ExpenseLedgerScope(
-            controller: expenseLedger,
-            child: ExpenseDraftScope(
-              controller: expenseDrafts,
-              child: ExpenseExportScope(
-                controller: expenseExports,
-                child: ReceiptCaptureSettingsScope(
-                  controller: receiptCaptureSettings,
-                  child: ActiveWorkdayScope(
-                    controller: activeWorkday,
-                    child: GlobalOdometerScope(
-                      controller: globalOdometer,
-                      child: TripTrackingSettingsScope(
-                        controller: tripTrackingSettings,
-                        child: TripTrackingScope(
-                          controller: tripTracking,
-                          child: IncomingReceiptShareScope(
-                            controller: incomingReceiptShare,
-                            child: AppSignatureStoreScope(
-                              store: signatureStore,
-                              child: UserProfileScope(
-                                controller: userProfiles,
-                                child: OperationalContextScope(
-                                  controller: operationalContext,
-                                  child: InvoiceLedgerScope(
-                                    controller: invoiceLedger,
-                                    child: const MaintaniacApp(),
+          child: ExpenseReminderScope(
+            controller: expenseReminders,
+            child: ExpenseLedgerScope(
+              controller: expenseLedger,
+              child: ExpenseDraftScope(
+                controller: expenseDrafts,
+                child: ExpenseExportScope(
+                  controller: expenseExports,
+                  child: ReceiptCaptureSettingsScope(
+                    controller: receiptCaptureSettings,
+                    child: ActiveWorkdayScope(
+                      controller: activeWorkday,
+                      child: GlobalOdometerScope(
+                        controller: globalOdometer,
+                        child: TripTrackingSettingsScope(
+                          controller: tripTrackingSettings,
+                          child: TripTrackingScope(
+                            controller: tripTracking,
+                            child: IncomingReceiptShareScope(
+                              controller: incomingReceiptShare,
+                              child: AppSignatureStoreScope(
+                                store: signatureStore,
+                                child: UserProfileScope(
+                                  controller: userProfiles,
+                                  child: OperationalContextScope(
+                                    controller: operationalContext,
+                                    child: InvoiceLedgerScope(
+                                      controller: invoiceLedger,
+                                      child: const MaintaniacApp(),
+                                    ),
                                   ),
                                 ),
                               ),

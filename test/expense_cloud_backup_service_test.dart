@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_backup_service.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
 
@@ -52,17 +53,35 @@ void main() {
         lines: const [],
       ),
     );
+    await service.reminders.save(
+      ExpenseReminderRecord(
+        id: '',
+        title: 'Renew insurance',
+        category: 'Insurance',
+        channel: 'In-app',
+        dueAt: DateTime.utc(2026, 8, 1),
+        cadence: ExpenseReminderCadence.yearly,
+        createdAt: DateTime.utc(2026, 7, 15),
+        updatedAt: DateTime.utc(2026, 7, 15),
+      ),
+    );
 
     final result = await service.backupLocalSnapshot(
       nowUtc: DateTime.utc(2026, 7, 15, 12),
     );
 
     expect(result.completed, isTrue);
-    expect(sink.documents, hasLength(2));
+    expect(sink.documents, hasLength(3));
     expect(sink.documents.keys, contains('orgs/org-1/expenses/receipt-1'));
     expect(
       sink.documents.keys,
       contains('orgs/org-1/settings/expenses_user-1'),
+    );
+    expect(
+      sink.documents.keys.any(
+        (path) => path.startsWith('orgs/org-1/settings/expense_reminder_'),
+      ),
+      isTrue,
     );
     expect(sink.documents.values.join(), isNot(contains('rawOcrText')));
   });
@@ -96,6 +115,7 @@ Future<ExpenseCloudBackupService> _service({
   return ExpenseCloudBackupService(
     ledger: ExpenseLedgerController.memory(),
     settings: await ExpenseSettingsController.create(),
+    reminders: ExpenseReminderController.memory(),
     queueStore: queue,
     uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
       queue: queue,

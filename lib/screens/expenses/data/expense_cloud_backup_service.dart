@@ -7,6 +7,7 @@ import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_store.dart';
+import 'expense_reminder_store.dart';
 
 /// Queues and uploads the authenticated user's Expense records.
 ///
@@ -17,6 +18,7 @@ class ExpenseCloudBackupService {
   const ExpenseCloudBackupService({
     required this.ledger,
     required this.settings,
+    required this.reminders,
     required this.queueStore,
     required this.uploadCoordinator,
     required this.organizationId,
@@ -26,6 +28,7 @@ class ExpenseCloudBackupService {
 
   final ExpenseLedgerController ledger;
   final ExpenseSettingsController settings;
+  final ExpenseReminderController reminders;
   final MaintainiacFirestoreUploadQueueStore queueStore;
   final MaintainiacFirestoreUploadCoordinator uploadCoordinator;
   final String? organizationId;
@@ -97,6 +100,13 @@ class ExpenseCloudBackupService {
         settings: settings,
         nowUtc: timestamp,
       ),
+      for (final reminder in reminders.records)
+        ExpenseFirestoreDocumentBuilder.expenseReminderDocument(
+          orgId: identity.organizationId,
+          uid: identity.uid,
+          deviceId: identity.deviceId,
+          reminder: reminder,
+        ),
       for (final receipt in ledger.storedReceipts)
         ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
           orgId: identity.organizationId,
@@ -271,6 +281,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   FirebaseExpenseCloudBackupMirror({
     required this.ledger,
     required this.settings,
+    required this.reminders,
     required this.queueStore,
     required this.uploadCoordinator,
     required this.deviceId,
@@ -287,6 +298,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   final ExpenseLedgerController ledger;
   final ExpenseSettingsController settings;
+  final ExpenseReminderController reminders;
   final MaintainiacFirestoreUploadQueueStore queueStore;
   final MaintainiacFirestoreUploadCoordinator uploadCoordinator;
   final String deviceId;
@@ -352,6 +364,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     return ExpenseCloudBackupService(
       ledger: ledger,
       settings: settings,
+      reminders: reminders,
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
       organizationId:

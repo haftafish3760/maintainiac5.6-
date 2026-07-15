@@ -3,6 +3,7 @@ import '../../../shared/firebase/maintainiac_firestore_schema.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'expense_ledger_models.dart';
+import 'expense_reminder_store.dart';
 
 class ExpenseFirestoreDocumentBuilder {
   const ExpenseFirestoreDocumentBuilder._();
@@ -104,6 +105,39 @@ class ExpenseFirestoreDocumentBuilder {
         'module': 'expenses',
         'settingsScope': 'member',
         'uploadShape': 'single_settings_document',
+      }),
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft expenseReminderDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseReminderRecord reminder,
+  }) {
+    final id = _pathToken(reminder.id);
+    return MaintainiacFirestoreDocumentDraft(
+      path:
+          '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgSettings)}/expense_reminder_$id',
+      data: Map.unmodifiable({
+        'schema': 'expense_reminder_backup_v1',
+        'id': id,
+        'orgId': _pathToken(orgId),
+        'ownerUid': uid,
+        'createdByUid': uid,
+        'updatedByUid': uid,
+        'deviceId': _token(deviceId),
+        'module': 'expenses',
+        'settingsScope': 'member',
+        'title': _readable(reminder.title, maxLength: 180),
+        'category': _readable(reminder.category, maxLength: 100),
+        'channel': _token(reminder.channel, fallback: 'in_app'),
+        'cadence': reminder.cadence.name,
+        'dueAt': reminder.dueAt.toUtc().toIso8601String(),
+        'active': reminder.active,
+        'details': _readable(reminder.details, maxLength: 1000),
+        'createdAt': reminder.createdAt.toUtc().toIso8601String(),
+        'updatedAt': reminder.updatedAt.toUtc().toIso8601String(),
       }),
     );
   }
