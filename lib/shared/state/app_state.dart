@@ -332,6 +332,7 @@ class AppStateController extends ChangeNotifier {
       <MaintenanceServiceEvent>[];
   late VehicleProfile? _activeVehicle = _vehicles.first;
   WorkProfile? _activeWorkProfile = WorkProfile(name: 'Main Work');
+  Future<void> _vehicleWriteTail = Future<void>.value();
 
   List<VehicleProfile> get allVehicles => List.unmodifiable(_vehicles);
   List<VehicleProfile> get vehicles =>
@@ -349,95 +350,102 @@ class AppStateController extends ChangeNotifier {
   VehicleProfile? get activeVehicle => _activeVehicle;
   WorkProfile? get activeWorkProfile => _activeWorkProfile;
 
-  Future<void> addVehicle(VehicleProfile vehicle) async {
-    final storedVehicle = vehicle.id.trim().isEmpty
-        ? VehicleProfile(
-            id: 'vehicle_${DateTime.now().microsecondsSinceEpoch}',
-            nickname: vehicle.nickname,
-            year: vehicle.year,
-            make: vehicle.make,
-            model: vehicle.model,
-            usage: vehicle.usage,
-          )
-        : vehicle;
-    if (_vehicles.any((item) => item.id == storedVehicle.id)) {
-      throw ArgumentError.value(
-        storedVehicle.id,
-        'vehicle.id',
-        'Vehicle IDs must be unique.',
-      );
-    }
-    final nextVehicles = [..._vehicles, storedVehicle];
-    final nextActiveVehicle = _activeVehicle ?? storedVehicle;
-    await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
-    _vehicles
-      ..clear()
-      ..addAll(nextVehicles);
-    _activeVehicle = nextActiveVehicle;
-    notifyListeners();
-  }
+  Future<void> addVehicle(VehicleProfile vehicle) =>
+      _enqueueVehicleWrite(() async {
+        final storedVehicle = vehicle.id.trim().isEmpty
+            ? VehicleProfile(
+                id: 'vehicle_${DateTime.now().microsecondsSinceEpoch}',
+                nickname: vehicle.nickname,
+                year: vehicle.year,
+                make: vehicle.make,
+                model: vehicle.model,
+                usage: vehicle.usage,
+              )
+            : vehicle;
+        if (_vehicles.any((item) => item.id == storedVehicle.id)) {
+          throw ArgumentError.value(
+            storedVehicle.id,
+            'vehicle.id',
+            'Vehicle IDs must be unique.',
+          );
+        }
+        final nextVehicles = [..._vehicles, storedVehicle];
+        final nextActiveVehicle = _activeVehicle ?? storedVehicle;
+        await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
+        _vehicles
+          ..clear()
+          ..addAll(nextVehicles);
+        _activeVehicle = nextActiveVehicle;
+        notifyListeners();
+      });
 
-  Future<void> selectVehicle(VehicleProfile vehicle) async {
-    final matches = vehicles
-        .where((candidate) => candidate.id == vehicle.id)
-        .toList(growable: false);
-    if (matches.isEmpty) return;
-    final nextActiveVehicle = matches.single;
-    await _writeVehicleSnapshot(_vehicles, nextActiveVehicle);
-    _activeVehicle = nextActiveVehicle;
-    notifyListeners();
-  }
+  Future<void> selectVehicle(VehicleProfile vehicle) =>
+      _enqueueVehicleWrite(() async {
+        final matches = vehicles
+            .where((candidate) => candidate.id == vehicle.id)
+            .toList(growable: false);
+        if (matches.isEmpty) return;
+        final nextActiveVehicle = matches.single;
+        await _writeVehicleSnapshot(_vehicles, nextActiveVehicle);
+        _activeVehicle = nextActiveVehicle;
+        notifyListeners();
+      });
 
-  Future<void> updateVehicle(VehicleProfile vehicle) async {
-    final index = _vehicles.indexWhere((item) => item.id == vehicle.id);
-    if (index < 0) return;
-    final nextVehicles = [..._vehicles]..[index] = vehicle;
-    final nextActiveVehicle = _activeVehicle?.id == vehicle.id
-        ? vehicle
-        : _activeVehicle;
-    await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
-    _vehicles
-      ..clear()
-      ..addAll(nextVehicles);
-    _activeVehicle = nextActiveVehicle;
-    notifyListeners();
-  }
+  Future<void> updateVehicle(VehicleProfile vehicle) =>
+      _enqueueVehicleWrite(() async {
+        final index = _vehicles.indexWhere((item) => item.id == vehicle.id);
+        if (index < 0) return;
+        final nextVehicles = [..._vehicles]..[index] = vehicle;
+        final nextActiveVehicle = _activeVehicle?.id == vehicle.id
+            ? vehicle
+            : _activeVehicle;
+        await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
+        _vehicles
+          ..clear()
+          ..addAll(nextVehicles);
+        _activeVehicle = nextActiveVehicle;
+        notifyListeners();
+      });
 
-  Future<void> deleteVehicle(String vehicleId) async {
-    if (vehicles.length <= 1) return;
-    final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
-    if (index < 0) return;
-    if (_vehicles[index].isArchived) return;
-    final nextVehicles = [..._vehicles]
-      ..[index] = _vehicles[index].copyWith(archivedAt: DateTime.now());
-    final nextActiveVehicle = _activeVehicle?.id == vehicleId
-        ? nextVehicles.firstWhere((vehicle) => !vehicle.isArchived)
-        : _activeVehicle;
-    await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
-    _vehicles
-      ..clear()
-      ..addAll(nextVehicles);
-    _activeVehicle = nextActiveVehicle;
-    notifyListeners();
-  }
+  Future<void> deleteVehicle(String vehicleId) => _enqueueVehicleWrite(
+    () async {
+      if (vehicles.length <= 1) return;
+      final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
+      if (index < 0) return;
+      if (_vehicles[index].isArchived) return;
+      final nextVehicles = [..._vehicles]
+        ..[index] = _vehicles[index].copyWith(archivedAt: DateTime.now());
+      final nextActiveVehicle = _activeVehicle?.id == vehicleId
+          ? nextVehicles.firstWhere((vehicle) => !vehicle.isArchived)
+          : _activeVehicle;
+      await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
+      _vehicles
+        ..clear()
+        ..addAll(nextVehicles);
+      _activeVehicle = nextActiveVehicle;
+      notifyListeners();
+    },
+  );
 
-  Future<void> restoreVehicle(String vehicleId) async {
-    final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
-    if (index < 0 || !_vehicles[index].isArchived) return;
-    final nextVehicles = [..._vehicles]
-      ..[index] = _vehicles[index].copyWith(clearArchivedAt: true);
-    await _writeVehicleSnapshot(nextVehicles, _activeVehicle);
-    _vehicles
-      ..clear()
-      ..addAll(nextVehicles);
-    notifyListeners();
-  }
+  Future<void> restoreVehicle(String vehicleId) => _enqueueVehicleWrite(
+    () async {
+      final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
+      if (index < 0 || !_vehicles[index].isArchived) return;
+      final nextVehicles = [..._vehicles]
+        ..[index] = _vehicles[index].copyWith(clearArchivedAt: true);
+      await _writeVehicleSnapshot(nextVehicles, _activeVehicle);
+      _vehicles
+        ..clear()
+        ..addAll(nextVehicles);
+      notifyListeners();
+    },
+  );
 
-  Future<void> selectCompanyScope() async {
+  Future<void> selectCompanyScope() => _enqueueVehicleWrite(() async {
     await _writeVehicleSnapshot(_vehicles, null);
     _activeVehicle = null;
     notifyListeners();
-  }
+  });
 
   void setWorkProfile(String name) {
     _activeWorkProfile = WorkProfile(name: name);
@@ -552,6 +560,12 @@ class AppStateController extends ChangeNotifier {
       'vehicles': [for (final vehicle in vehicles) vehicle.toMap()],
       'activeVehicleId': activeVehicle?.id,
     });
+  }
+
+  Future<T> _enqueueVehicleWrite<T>(Future<T> Function() operation) {
+    final next = _vehicleWriteTail.then((_) => operation());
+    _vehicleWriteTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
 
