@@ -68,7 +68,13 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
 
   String get allocationSummary {
     if (use != _ExpenseLineUse.split) return use.label;
-    return 'Split ${_percent(effectiveBusinessPercent)} business';
+    final method = splitAllocation;
+    final methodLabel = switch (method?.method) {
+      ExpenseSplitAllocationMethod.amount => 'dollar amount',
+      ExpenseSplitAllocationMethod.quantity => 'quantity',
+      _ => 'percentage',
+    };
+    return 'Split ${_percent(effectiveBusinessPercent)} business · $methodLabel';
   }
 
   bool get hasValidSplitAllocation {
