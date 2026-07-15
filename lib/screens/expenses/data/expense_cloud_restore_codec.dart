@@ -187,17 +187,27 @@ class ExpenseCloudRestoreCodec {
   }
 
   static List<ExpenseReceiptLineRecord> _lines(Object? value) {
-    if (value is! List) return const [];
-    return List.unmodifiable([
-      for (final item in value)
-        if (item is Map)
-          ExpenseReceiptLineRecord.fromMap({
-            ...item,
-            'subtotal': _cents(item['subtotalCents']) ?? 0,
-            'unitPrice': _cents(item['unitPriceCents']),
-            'rawReceiptText': '',
-          }),
-    ]);
+    if (value == null) return const [];
+    if (value is! List) {
+      throw const FormatException('Expense receipt line metadata is corrupt.');
+    }
+    final lines = <ExpenseReceiptLineRecord>[];
+    for (final item in value) {
+      if (item is! Map) {
+        throw const FormatException(
+          'Expense receipt line metadata is corrupt.',
+        );
+      }
+      lines.add(
+        ExpenseReceiptLineRecord.fromMap({
+          ...item,
+          'subtotal': _cents(item['subtotalCents']) ?? 0,
+          'unitPrice': _cents(item['unitPriceCents']),
+          'rawReceiptText': '',
+        }),
+      );
+    }
+    return List.unmodifiable(lines);
   }
 
   static List<ExpenseCloudProofPointer> _proofPointers(Object? value) {
