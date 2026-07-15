@@ -156,6 +156,7 @@ class MaintainiacRecordDraftStore {
   final Box<dynamic>? _box;
   final MaintainiacDraftStorageCheck? _storageCheck;
   final _memory = <String, MaintainiacRecordDraft>{};
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<MaintainiacRecordDraftStore> create({
     MaintainiacDraftStorageCheck? storageCheck,
@@ -195,11 +196,14 @@ class MaintainiacRecordDraftStore {
     required String id,
     required Map<String, dynamic> payload,
     DateTime? now,
-  }) async {
+  }) => _enqueue(() async {
     _validateDraftKey(module, id);
     await _ensureStorageForDraftSave();
     final time = now ?? DateTime.now();
     final existing = draftFor(module, id);
+    if (existing != null && time.isBefore(existing.lifecycle.updatedAt)) {
+      return existing;
+    }
     final lifecycle = existing == null
         ? MaintainiacRecordLifecycle(
             createdAt: time,
@@ -220,7 +224,7 @@ class MaintainiacRecordDraftStore {
       await box.put(draft.storageKey, draft.toMap());
     }
     return draft;
-  }
+  });
 
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
@@ -254,7 +258,7 @@ class MaintainiacRecordDraftStore {
       !module.contains(':') &&
       !id.contains(':');
 
-  Future<void> remove(String module, String id) async {
+  Future<void> remove(String module, String id) => _enqueue(() async {
     if (!_hasValidDraftKey(module, id)) return;
     final key = '$module:$id';
     final box = _box;
@@ -263,6 +267,12 @@ class MaintainiacRecordDraftStore {
     } else {
       await box.delete(key);
     }
+  });
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
 

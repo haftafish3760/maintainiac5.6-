@@ -87,6 +87,33 @@ void main() {
     expect(store.draftsFor('expenses'), hasLength(1));
   });
 
+  test(
+    'shared draft store retains the newer checkpoint on delayed writes',
+    () async {
+      final store = MaintainiacRecordDraftStore.memory();
+      final time = DateTime.utc(2026, 7, 15, 12);
+      await Future.wait([
+        store.save(
+          module: 'expenses',
+          id: 'draft-order',
+          payload: const {'merchant': 'Newest'},
+          now: time.add(const Duration(seconds: 1)),
+        ),
+        store.save(
+          module: 'expenses',
+          id: 'draft-order',
+          payload: const {'merchant': 'Stale'},
+          now: time,
+        ),
+      ]);
+
+      expect(
+        store.draftFor('expenses', 'draft-order')?.payload['merchant'],
+        'Newest',
+      );
+    },
+  );
+
   test('shared draft store refuses an unsafe local write', () async {
     final store = MaintainiacRecordDraftStore.memory(
       storageCheck: () async => const AppStorageCheck(
