@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'expense_backup_schedule.dart';
+import 'expense_settings_write_queue.dart';
 
 enum ExpenseReceiptReviewStyle {
   basicReceipt,
@@ -54,16 +55,22 @@ enum ExpenseBackupSyncMode {
 }
 
 class ExpenseSettingsController extends ChangeNotifier {
-  ExpenseSettingsController._(this._box);
+  ExpenseSettingsController._(
+    this._box, {
+    ExpenseSettingsStorageCheck? storageCheck,
+  }) : _writes = ExpenseSettingsWriteQueue(storageCheck);
 
   static const boxName = 'expense_settings';
 
-  static Future<ExpenseSettingsController> create() async {
+  static Future<ExpenseSettingsController> create({
+    ExpenseSettingsStorageCheck? storageCheck,
+  }) async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return ExpenseSettingsController._(box);
+    return ExpenseSettingsController._(box, storageCheck: storageCheck);
   }
 
   final Box<dynamic> _box;
+  final ExpenseSettingsWriteQueue _writes;
 
   bool get autoTrackTopThree => _readBool(_Keys.autoTrackTopThree, false);
   bool get autoTrackQuickCategories =>
@@ -191,15 +198,16 @@ class ExpenseSettingsController extends ChangeNotifier {
       _writeBool(_Keys.audibleNotifications, value);
   Future<void> setDraftReminder(bool value) =>
       _writeBool(_Keys.draftReminder, value);
-  Future<void> setReceiptReviewStyle(ExpenseReceiptReviewStyle value) async {
-    await _box.put(_Keys.receiptReviewStyle, value.name);
-    notifyListeners();
-  }
+  Future<void> setReceiptReviewStyle(ExpenseReceiptReviewStyle value) =>
+      _writes.enqueue(() async {
+        await _box.put(_Keys.receiptReviewStyle, value.name);
+        notifyListeners();
+      });
 
   Future<void> setBackupSyncMode(
     ExpenseBackupSyncMode value, {
     DateTime? nowUtc,
-  }) async {
+  }) => _writes.enqueue(() async {
     final wasScheduled = backupSyncMode == ExpenseBackupSyncMode.scheduled;
     await _box.put(_Keys.backupSyncMode, value.name);
     if (value == ExpenseBackupSyncMode.scheduled && !wasScheduled) {
@@ -211,20 +219,21 @@ class ExpenseSettingsController extends ChangeNotifier {
       await _box.delete(_Keys.backupScheduleAuthorizedAt);
     }
     notifyListeners();
-  }
+  });
 
-  Future<void> setBackupSchedule(ExpenseBackupSchedule value) async {
-    final normalized = ExpenseBackupSchedule.normalized(
-      timesMinutesAfterMidnight: value.timesMinutesAfterMidnight,
-      transport: value.transport,
-    );
-    await _box.put(
-      _Keys.backupScheduleTimes,
-      normalized.timesMinutesAfterMidnight,
-    );
-    await _box.put(_Keys.backupTransport, normalized.transport.name);
-    notifyListeners();
-  }
+  Future<void> setBackupSchedule(ExpenseBackupSchedule value) =>
+      _writes.enqueue(() async {
+        final normalized = ExpenseBackupSchedule.normalized(
+          timesMinutesAfterMidnight: value.timesMinutesAfterMidnight,
+          transport: value.transport,
+        );
+        await _box.put(
+          _Keys.backupScheduleTimes,
+          normalized.timesMinutesAfterMidnight,
+        );
+        await _box.put(_Keys.backupTransport, normalized.transport.name);
+        notifyListeners();
+      });
 
   Future<void> recordBackupAttempt(DateTime atUtc) =>
       _writeUtcDateTime(_Keys.lastBackupAttemptAt, atUtc);
@@ -232,7 +241,7 @@ class ExpenseSettingsController extends ChangeNotifier {
   Future<void> recordSuccessfulBackup(DateTime atUtc) =>
       _recordSuccessfulBackup(atUtc);
 
-  Future<void> recordBackupFailure(String? reason) async {
+  Future<void> recordBackupFailure(String? reason) => _writes.enqueue(() async {
     final normalized = reason?.trim() ?? '';
     if (normalized.isEmpty) return;
     await _box.put(
@@ -240,7 +249,7 @@ class ExpenseSettingsController extends ChangeNotifier {
       normalized.length <= 240 ? normalized : normalized.substring(0, 240),
     );
     notifyListeners();
-  }
+  });
 
   Future<void> setOdometerPromptEnabled(bool value) =>
       _writeBool(_Keys.odometerPromptEnabled, value);
@@ -250,51 +259,51 @@ class ExpenseSettingsController extends ChangeNotifier {
         !_containsCategory(odometerPromptSuppressedCategories, category);
   }
 
-  Future<void> setOdometerPromptSuppressed(
-    String category,
-    bool suppressed,
-  ) async {
-    final normalized = category.trim();
-    if (normalized.isEmpty) return;
-    final current = [...odometerPromptSuppressedCategories];
-    current.removeWhere((item) => _sameCategory(item, normalized));
-    if (suppressed) current.add(normalized);
-    await _box.put(
-      _Keys.odometerPromptSuppressedCategories,
-      _uniqueCategories(current),
-    );
-    notifyListeners();
-  }
+  Future<void> setOdometerPromptSuppressed(String category, bool suppressed) =>
+      _writes.enqueue(() async {
+        final normalized = category.trim();
+        if (normalized.isEmpty) return;
+        final current = [...odometerPromptSuppressedCategories];
+        current.removeWhere((item) => _sameCategory(item, normalized));
+        if (suppressed) current.add(normalized);
+        await _box.put(
+          _Keys.odometerPromptSuppressedCategories,
+          _uniqueCategories(current),
+        );
+        notifyListeners();
+      });
 
-  Future<void> setQuickCategoryOrder(List<String> categories) async {
+  Future<void> setQuickCategoryOrder(List<String> categories) =>
+      _writes.enqueue(() => _setQuickCategoryOrder(categories));
+
+  Future<void> _setQuickCategoryOrder(List<String> categories) async {
     final normalized = _uniqueCategories(categories);
     await _box.put(_Keys.quickCategoryOrder, normalized);
     notifyListeners();
   }
 
-  Future<void> addQuickCategory(
-    String category, {
-    int maxCategories = 9,
-  }) async {
-    final current = [...quickCategoryOrder];
-    if (_containsCategory(current, category) ||
-        current.length >= maxCategories) {
-      return;
-    }
-    current.add(category);
-    await setQuickCategoryOrder(current);
-  }
+  Future<void> addQuickCategory(String category, {int maxCategories = 9}) =>
+      _writes.enqueue(() async {
+        final current = [...quickCategoryOrder];
+        if (_containsCategory(current, category) ||
+            current.length >= maxCategories) {
+          return;
+        }
+        current.add(category);
+        await _setQuickCategoryOrder(current);
+      });
 
-  Future<void> removeQuickCategory(String category) async {
-    final current = quickCategoryOrder
-        .where((item) => !_sameCategory(item, category))
-        .toList(growable: false);
-    await setQuickCategoryOrder(current);
-  }
+  Future<void> removeQuickCategory(String category) =>
+      _writes.enqueue(() async {
+        final current = quickCategoryOrder
+            .where((item) => !_sameCategory(item, category))
+            .toList(growable: false);
+        await _setQuickCategoryOrder(current);
+      });
 
   /// Adds a user-owned category without changing historical receipt text.
   /// Categories remain strings on saved receipt lines so recaps preserve them.
-  Future<bool> addCustomCategory(String category) async {
+  Future<bool> addCustomCategory(String category) => _writes.enqueue(() async {
     final normalized = _normalizedCategoryName(category);
     if (normalized == null ||
         _containsCategory(customCategoryNames, normalized)) {
@@ -306,53 +315,59 @@ class ExpenseSettingsController extends ChangeNotifier {
     ]);
     notifyListeners();
     return true;
-  }
+  });
 
-  Future<void> removeCustomCategory(String category) async {
-    final remaining = customCategoryNames
-        .where((item) => !_sameCategory(item, category))
-        .toList(growable: false);
-    await _box.put(_Keys.customCategoryNames, remaining);
-    notifyListeners();
-  }
+  Future<void> removeCustomCategory(String category) =>
+      _writes.enqueue(() async {
+        final remaining = customCategoryNames
+            .where((item) => !_sameCategory(item, category))
+            .toList(growable: false);
+        await _box.put(_Keys.customCategoryNames, remaining);
+        notifyListeners();
+      });
 
-  Future<void> setTopThreeCategories(List<String> categories) async {
+  Future<void> setTopThreeCategories(List<String> categories) =>
+      _writes.enqueue(() => _setTopThreeCategories(categories));
+
+  Future<void> _setTopThreeCategories(List<String> categories) async {
     final normalized = _uniqueCategories(categories).take(3).toList();
     await _box.put(_Keys.topThreeCategories, normalized);
     notifyListeners();
   }
 
-  Future<void> setRecapTileVisible(String tileId, bool visible) async {
-    final clean = tileId.trim();
-    if (clean.isEmpty) return;
-    final hidden = [...hiddenRecapTiles];
-    if (visible) {
-      hidden.removeWhere((item) => item == clean);
-    } else if (!hidden.contains(clean)) {
-      hidden.add(clean);
-    }
-    await _box.put(_Keys.hiddenRecapTiles, List.unmodifiable(hidden));
-    notifyListeners();
-  }
+  Future<void> setRecapTileVisible(String tileId, bool visible) =>
+      _writes.enqueue(() async {
+        final clean = tileId.trim();
+        if (clean.isEmpty) return;
+        final hidden = [...hiddenRecapTiles];
+        if (visible) {
+          hidden.removeWhere((item) => item == clean);
+        } else if (!hidden.contains(clean)) {
+          hidden.add(clean);
+        }
+        await _box.put(_Keys.hiddenRecapTiles, List.unmodifiable(hidden));
+        notifyListeners();
+      });
 
-  Future<void> resetRecapTiles() async {
+  Future<void> resetRecapTiles() => _writes.enqueue(() async {
     await _box.delete(_Keys.hiddenRecapTiles);
     notifyListeners();
-  }
+  });
 
-  Future<void> useCategoryInTopThree(String category) async {
-    final current = [
-      category,
-      ...topThreeCategories.where((item) => !_sameCategory(item, category)),
-    ].take(3).toList();
-    await setTopThreeCategories(current);
-  }
+  Future<void> useCategoryInTopThree(String category) =>
+      _writes.enqueue(() async {
+        final current = [
+          category,
+          ...topThreeCategories.where((item) => !_sameCategory(item, category)),
+        ].take(3).toList();
+        await _setTopThreeCategories(current);
+      });
 
-  Future<void> resetCategoryLayout() async {
+  Future<void> resetCategoryLayout() => _writes.enqueue(() async {
     await _box.delete(_Keys.quickCategoryOrder);
     await _box.put(_Keys.topThreeCategories, ['Fuel', 'Meals', 'Materials']);
     notifyListeners();
-  }
+  });
 
   List<String> _uniqueCategories(List<String> categories) {
     final output = <String>[];
@@ -411,22 +426,28 @@ class ExpenseSettingsController extends ChangeNotifier {
   }
 
   Future<void> _writeUtcDateTime(String key, DateTime value) async {
-    await _box.put(key, value.toUtc().toIso8601String());
-    notifyListeners();
+    await _writes.enqueue(() async {
+      await _box.put(key, value.toUtc().toIso8601String());
+      notifyListeners();
+    });
   }
 
   Future<void> _recordSuccessfulBackup(DateTime atUtc) async {
-    await _box.put(
-      _Keys.lastSuccessfulBackupAt,
-      atUtc.toUtc().toIso8601String(),
-    );
-    await _box.delete(_Keys.lastBackupFailureReason);
-    notifyListeners();
+    await _writes.enqueue(() async {
+      await _box.put(
+        _Keys.lastSuccessfulBackupAt,
+        atUtc.toUtc().toIso8601String(),
+      );
+      await _box.delete(_Keys.lastBackupFailureReason);
+      notifyListeners();
+    });
   }
 
   Future<void> _writeBool(String key, bool value) async {
-    await _box.put(key, value);
-    notifyListeners();
+    await _writes.enqueue(() async {
+      await _box.put(key, value);
+      notifyListeners();
+    });
   }
 }
 

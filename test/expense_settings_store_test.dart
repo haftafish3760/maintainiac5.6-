@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/state/expense_backup_schedule.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -72,6 +73,35 @@ void main() {
     await settings.removeQuickCategory('FUEL');
 
     expect(settings.quickCategoryOrder, ['Meals']);
+  });
+
+  test('queued category choices retain every user action', () async {
+    final settings = await ExpenseSettingsController.create();
+
+    await Future.wait([
+      settings.addQuickCategory('Fuel'),
+      settings.addQuickCategory('Meals'),
+      settings.addQuickCategory('Parking'),
+    ]);
+
+    expect(settings.quickCategoryOrder, ['Fuel', 'Meals', 'Parking']);
+  });
+
+  test('settings do not claim a durable write when storage is full', () async {
+    final settings = await ExpenseSettingsController.create(
+      storageCheck: () async => const AppStorageCheck(
+        availableBytes: 0,
+        operationBytes: AppStorageGuard.smallRecordWriteBytes,
+        requiredBytes: AppStorageGuard.smallRecordWriteBytes + 1,
+        purpose: AppStoragePurpose.smallRecordWrite,
+      ),
+    );
+
+    await expectLater(
+      () => settings.addCustomCategory('Professional dues'),
+      throwsA(isA<StateError>()),
+    );
+    expect(settings.customCategoryNames, isEmpty);
   });
 
   test(
