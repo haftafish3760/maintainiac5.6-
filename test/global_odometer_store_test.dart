@@ -4,6 +4,7 @@ import 'package:maintaniac/shared/odometer/odometer_store.dart';
 import 'package:maintaniac/shared/odometer/odometer_validation.dart';
 import 'package:maintaniac/shared/odometer/odometer_vehicle_snapshot.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   test('odometer store saves and restores vehicle snapshots', () async {
@@ -100,4 +101,29 @@ void main() {
       );
     },
   );
+
+  test('odometer history is not changed when storage is full', () async {
+    final store = OdometerStore.memory(
+      storageCheck: () async => const AppStorageCheck(
+        availableBytes: 0,
+        operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        requiredBytes: AppStorageGuard.mileageTrackingWriteBytes + 1,
+        purpose: AppStoragePurpose.mileageTracking,
+      ),
+    );
+
+    await expectLater(
+      () => store.saveSnapshot(
+        OdometerVehicleSnapshot(
+          vehicleId: 'no-space',
+          currentReading: 1200,
+          updatedAt: DateTime.utc(2026, 7, 15),
+          history: const [],
+        ),
+      ),
+      throwsA(isA<StateError>()),
+    );
+    expect(store.snapshotForVehicle('no-space').history, isEmpty);
+    expect(store.snapshotForVehicle('no-space').currentReading, 298150);
+  });
 }
