@@ -115,6 +115,29 @@ class ExpenseCloudBackupService {
     return ExpenseCloudQueueResult.queued(draft.path);
   }
 
+  Future<ExpenseCloudQueueResult> queueWorkProfileDirectory({
+    DateTime? nowUtc,
+  }) async {
+    final identity = _identityOrNull;
+    if (identity == null) {
+      return const ExpenseCloudQueueResult.identityRequired();
+    }
+    final timestamp = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final draft =
+        ExpenseFirestoreDocumentBuilder.expenseWorkProfileDirectoryDocument(
+          orgId: identity.organizationId,
+          uid: identity.uid,
+          deviceId: identity.deviceId,
+          workProfiles: workProfiles,
+          nowUtc: timestamp,
+        );
+    await queueStore.enqueueReplacingPendingForPath(
+      draft,
+      queuedAtUtc: timestamp,
+    );
+    return ExpenseCloudQueueResult.queued(draft.path);
+  }
+
   /// Queues all current local Expense records plus the member-scoped settings
   /// document. It deliberately does not flush unrelated queue entries that may
   /// belong to a signed-out account or a different organization.
@@ -346,6 +369,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
              writer: FirebaseOrganizationBootstrapWriter(),
            ) {
     appState.addListener(_onVehicleStateChanged);
+    workProfiles.addListener(_onWorkProfileStateChanged);
   }
 
   final ExpenseLedgerController ledger;
@@ -363,6 +387,10 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   void _onVehicleStateChanged() {
     unawaited(_schedule(_queueAndSyncVehicleDirectory));
+  }
+
+  void _onWorkProfileStateChanged() {
+    unawaited(_schedule(_queueAndSyncWorkProfileDirectory));
   }
 
   @override
@@ -423,6 +451,25 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     final user = _firebaseAuth.currentUser;
     if (service == null || user == null) return;
     final queued = await service.queueVehicleDirectory();
+    if (!queued.wasQueued ||
+        settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
+      return;
+    }
+    try {
+      await _workspaceBootstrapper.ensurePersonalWorkspace(
+        authenticatedUid: user.uid,
+      );
+    } catch (_) {
+      return;
+    }
+    await service.flushPaths([queued.documentPath!], queuedCount: 1);
+  }
+
+  Future<void> _queueAndSyncWorkProfileDirectory() async {
+    final service = _serviceForCurrentUser();
+    final user = _firebaseAuth.currentUser;
+    if (service == null || user == null) return;
+    final queued = await service.queueWorkProfileDirectory();
     if (!queued.wasQueued ||
         settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
       return;

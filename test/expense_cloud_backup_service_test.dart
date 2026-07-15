@@ -178,6 +178,24 @@ void main() {
     expect(document['deletedAt'], isNotNull);
   });
 
+  test('queues one replaceable work-profile directory locally', () async {
+    final service = await _service(
+      organizationId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+    );
+
+    final queued = await service.queueWorkProfileDirectory(
+      nowUtc: DateTime.utc(2026, 7, 15, 12),
+    );
+
+    expect(queued.wasQueued, isTrue);
+    expect(
+      queued.documentPath,
+      'orgs/org-1/settings/expense_work_profiles_user-1',
+    );
+  });
+
   test('app startup does not automatically flush Expense backups', () async {
     final mainSource = await File('lib/main.dart').readAsString();
     final expenseBackupBlock = mainSource.substring(
