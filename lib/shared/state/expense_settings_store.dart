@@ -93,7 +93,7 @@ class ExpenseSettingsController extends ChangeNotifier {
   );
   List<String> get hiddenRecapTiles => _readStringList(_Keys.hiddenRecapTiles);
   List<String> get customCategoryNames =>
-      _readStringList(_Keys.customCategoryNames);
+      _uniqueCategories(_readStringList(_Keys.customCategoryNames));
   bool get odometerPromptEnabled =>
       _readBool(_Keys.odometerPromptEnabled, true);
   List<String> get odometerPromptSuppressedCategories =>

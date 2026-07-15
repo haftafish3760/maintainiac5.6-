@@ -46,6 +46,59 @@ void main() {
     expect(settings.quickCategoryOrder, ['Meals']);
   });
 
+  test(
+    'custom categories persist and are included in backup settings',
+    () async {
+      final settings = await ExpenseSettingsController.create();
+
+      expect(await settings.addCustomCategory('Professional dues'), isTrue);
+      expect(
+        await settings.addCustomCategory(' professional   dues '),
+        isFalse,
+      );
+      expect(await settings.addCustomCategory(''), isFalse);
+      expect(settings.customCategoryNames, ['Professional dues']);
+
+      final restored = await ExpenseSettingsController.create();
+      expect(restored.customCategoryNames, ['Professional dues']);
+      expect(
+        restored.toBackupMap(
+          ownerUid: 'owner',
+          exportedAtUtc: DateTime.utc(2026),
+        ),
+        containsPair('customCategoryNames', ['Professional dues']),
+      );
+    },
+  );
+
+  test(
+    'legacy custom-category duplicates do not duplicate recaps or backup',
+    () async {
+      final box = await Hive.openBox<dynamic>(
+        ExpenseSettingsController.boxName,
+      );
+      await box.put('custom_category_names', [
+        'Professional dues',
+        ' professional   dues ',
+        'Vehicle wash',
+        'VEHICLE-WASH',
+      ]);
+      final settings = await ExpenseSettingsController.create();
+
+      expect(settings.customCategoryNames, [
+        'Professional dues',
+        'Vehicle wash',
+      ]);
+      expect(
+        settings.toBackupMap(
+          ownerUid: 'owner',
+          exportedAtUtc: DateTime.utc(2026),
+        )['customCategoryNames'],
+        ['Professional dues', 'Vehicle wash'],
+      );
+    },
+  );
+
   test('top three selection keeps the newest category first', () async {
     final settings = await ExpenseSettingsController.create();
 
@@ -151,6 +204,22 @@ void main() {
     expect(
       ExpenseReceiptReviewStyle.fromName('unknown'),
       ExpenseReceiptReviewStyle.simpleAmounts,
+    );
+  });
+
+  test('backup sync is manual until the user chooses another mode', () async {
+    final settings = await ExpenseSettingsController.create();
+
+    expect(settings.backupSyncMode, ExpenseBackupSyncMode.manual);
+    await settings.setBackupSyncMode(ExpenseBackupSyncMode.scheduled);
+
+    expect(settings.backupSyncMode, ExpenseBackupSyncMode.scheduled);
+    expect(
+      settings.toBackupMap(
+        ownerUid: 'owner',
+        exportedAtUtc: DateTime.utc(2026),
+      ),
+      containsPair('backupSyncMode', 'scheduled'),
     );
   });
 
