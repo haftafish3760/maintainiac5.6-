@@ -28,6 +28,21 @@ class ExpenseCloudRestoreCodec {
         'Expense receipt backup is missing its receipt date.',
       );
     }
+    final createdAt = _date(data['createdAt']);
+    final updatedAt = _date(data['updatedAt']);
+    if (createdAt == null || updatedAt == null) {
+      throw const FormatException(
+        'Expense receipt backup is missing its lifecycle timestamps.',
+      );
+    }
+    final recordState = _recordState(data['recordState']);
+    final deletedAt = _deletedAt(data['deletedAt']);
+    _validateReceiptLifecycle(
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      recordState: recordState,
+      deletedAt: deletedAt,
+    );
     final proofPointers = _proofPointers(data['proofs']);
     final receipt = ExpenseReceiptRecord(
       id: id,
@@ -54,11 +69,11 @@ class ExpenseCloudRestoreCodec {
       workProfileId: _nullableText(data['workProfileId']),
       odometerReading: _integer(data['odometerReading']),
       sourceScreen: _text(data['sourceScreen'], fallback: 'expenses'),
-      createdAt: _date(data['createdAt']),
-      updatedAt: _date(data['updatedAt']),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       localRevision: _recordRevision(data['localRevision']),
-      recordState: _recordState(data['recordState']),
-      deletedAt: _deletedAt(data['deletedAt']),
+      recordState: recordState,
+      deletedAt: deletedAt,
       auditEvents: _auditEvents(data['auditEvents'], recordId: id),
       fileHashSha256: _text(data['fileHashSha256']),
       duplicateCheckStatus: ExpenseDuplicateCheckStatus.fromName(
@@ -315,6 +330,35 @@ class ExpenseCloudRestoreCodec {
       );
     }
     return date;
+  }
+
+  static void _validateReceiptLifecycle({
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required MaintainiacRecordState recordState,
+    required DateTime? deletedAt,
+  }) {
+    if (updatedAt.isBefore(createdAt)) {
+      throw const FormatException(
+        'Expense receipt lifecycle timestamps are out of order.',
+      );
+    }
+    if (recordState == MaintainiacRecordState.deleted && deletedAt == null) {
+      throw const FormatException(
+        'Deleted Expense receipt backup is missing its deletion timestamp.',
+      );
+    }
+    if (recordState == MaintainiacRecordState.active && deletedAt != null) {
+      throw const FormatException(
+        'Active Expense receipt backup has a deletion timestamp.',
+      );
+    }
+    if (deletedAt != null &&
+        (deletedAt.isBefore(createdAt) || deletedAt.isAfter(updatedAt))) {
+      throw const FormatException(
+        'Expense receipt deletion timestamp is out of order.',
+      );
+    }
   }
 
   static int _recordRevision(Object? value) {

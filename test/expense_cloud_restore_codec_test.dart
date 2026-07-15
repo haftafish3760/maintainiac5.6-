@@ -277,6 +277,8 @@ void main() {
       'schema': 'expense_receipt_backup_v1',
       'id': 'lifecycle-receipt',
       'receiptDate': '2026-07-15T00:00:00.000Z',
+      'createdAt': '2026-07-15T00:00:00.000Z',
+      'updatedAt': '2026-07-15T00:00:00.000Z',
     };
 
     expect(
@@ -305,6 +307,45 @@ void main() {
         ...receipt,
         'recordState': 'deleted',
         'deletedAt': 'not-a-date',
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects receipt restore metadata with incomplete lifecycle facts', () {
+    const receipt = {
+      'schema': 'expense_receipt_backup_v1',
+      'id': 'lifecycle-facts',
+      'receiptDate': '2026-07-15T00:00:00.000Z',
+      'createdAt': '2026-07-15T00:00:00.000Z',
+      'updatedAt': '2026-07-15T01:00:00.000Z',
+    };
+
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'updatedAt': null,
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'createdAt': '2026-07-16T00:00:00.000Z',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'recordState': 'deleted',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'deletedAt': '2026-07-15T00:30:00.000Z',
       }),
       throwsFormatException,
     );
