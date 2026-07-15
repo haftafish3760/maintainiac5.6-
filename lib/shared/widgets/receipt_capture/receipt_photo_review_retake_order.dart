@@ -38,7 +38,7 @@ class ReceiptPhotoRetakeAlignmentContext {
       'retake_top_with_next_context' =>
         'Retake the top receipt section, then check that it still joins cleanly with the next section in review.',
       _ =>
-        'Retake this receipt section and verify the receipt order before OCR.',
+        'Retake this receipt section and verify the receipt order before reading the details.',
     };
   }
 

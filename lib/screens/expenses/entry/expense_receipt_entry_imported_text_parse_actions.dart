@@ -75,6 +75,71 @@ extension _ExpenseReceiptEntryImportedTextParseActions
     }
   }
 
+  /// Builds the editable expense review directly from the OCR document so the
+  /// parser retains line locations and source evidence instead of receiving a
+  /// flattened text-only copy.
+  Future<void> _parseReceiptOcrResultFromCapture(ReceiptOcrResult ocr) async {
+    if (!_appAssistedReceiptFillEnabled) {
+      _handleReceiptParseFailure(
+        failureKind: 'assistance_policy_blocked',
+        evidence: 'receipt_assist_disabled_before_ocr_result_handoff',
+        userMessage:
+            'Receipt text is ready, but Receipt Assist is turned off for Expenses. Turn it on in Receipt Settings or continue manually.',
+      );
+      return;
+    }
+    if (mounted) {
+      _updateReceiptState(() {
+        _scanningReceiptPhotos = true;
+        _receiptReviewFlowStarted = true;
+        _receiptReadHandoffStage = 'Filling receipt details';
+        _lastReceiptParseCompleted = false;
+        _lastReceiptParseHadUsableData = false;
+        _lastReceiptParseHadSafeLines = false;
+      });
+    }
+    final capability =
+        ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
+        const ReceiptDeviceCapability.standard();
+    ExpenseScreenTelemetryRecorder.record(
+      context,
+      ExpenseTelemetryEventType.parserStarted,
+      metadata: {
+        'source': _receiptPrivacyFeatureArea,
+        'parserDepth': capability.parserDepth.name,
+        'receiptEvidence': 'ocr_document_with_layout',
+      },
+    );
+    final handoff = ReceiptOcrHandoff.forUserSelection(
+      ocr: ocr,
+      selectedCategory: widget.initialCategory,
+      inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
+    );
+    try {
+      final parsed = await _receiptOcrHandoffRouter(
+        capability,
+      ).dispatch(handoff).timeout(_receiptParserTimeout(capability));
+      unawaited(_recordPrivacySafeParseEvent(parsed));
+      _recordParserTelemetry(parsed);
+      if (!mounted) return;
+      _updateReceiptState(() => _scanningReceiptPhotos = false);
+      _applyParsedReceipt(parsed);
+    } on TimeoutException {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_parser_timeout',
+        evidence: 'ocr_document_parser_exceeded_device_timeout',
+        userMessage:
+            'Receipt details took too long to prepare. Continue manually or retry the receipt photos.',
+      );
+    } catch (_) {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_parser_exception',
+        evidence: 'ocr_document_parser_threw_exception',
+        userMessage: 'Receipt text could not be parsed. Review manually.',
+      );
+    }
+  }
+
   void _handleReceiptParseFailure({
     required String failureKind,
     required String evidence,

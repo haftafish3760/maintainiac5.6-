@@ -103,58 +103,30 @@ class _ReceiptSectionPositionChip extends StatelessWidget {
 class _ReceiptSinglePhotoActionRow extends StatelessWidget {
   const _ReceiptSinglePhotoActionRow({
     required this.openingCamera,
-    required this.onAddPhoto,
-    required this.onRetake,
     required this.onModeChanged,
   });
 
   final bool openingCamera;
-  final VoidCallback onAddPhoto;
-  final VoidCallback onRetake;
   final ValueChanged<_ReceiptReviewMode> onModeChanged;
 
   @override
   Widget build(BuildContext context) {
     final strings = MaintaniacLocalizations.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: _ReceiptActionRailButton(
-            icon: Icons.add_a_photo_rounded,
-            label: strings.addAnotherReceiptPhoto,
-            emphasized: true,
-            onPressed: openingCamera ? null : onAddPhoto,
-          ),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: openingCamera
+            ? null
+            : () => onModeChanged(_ReceiptReviewMode.crop),
+        icon: const Icon(Icons.crop_rounded, size: 17),
+        label: Text(strings.cropReceiptPhoto),
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFFC8D0D3),
+          minimumSize: const Size(0, 34),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
         ),
-        const SizedBox(width: 5),
-        Expanded(
-          child: _ReceiptActionRailButton(
-            icon: Icons.camera_alt_rounded,
-            label: strings.retakeReceiptPhoto,
-            onPressed: openingCamera ? null : onRetake,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Expanded(
-          child: _ReceiptActionRailButton(
-            icon: Icons.crop_rounded,
-            label: strings.cropReceiptPhoto,
-            onPressed: openingCamera
-                ? null
-                : () => onModeChanged(_ReceiptReviewMode.crop),
-          ),
-        ),
-        const SizedBox(width: 5),
-        Expanded(
-          child: _ReceiptActionRailButton(
-            icon: Icons.storage_rounded,
-            label: strings.savedProof,
-            onPressed: openingCamera
-                ? null
-                : () => onModeChanged(_ReceiptReviewMode.dataSaver),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

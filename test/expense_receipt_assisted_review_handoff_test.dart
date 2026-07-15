@@ -8,6 +8,7 @@ void main() {
     final entryScreen = source.entryScreen;
     final stateActions = source.stateActions;
     final attachmentPanel = source.attachmentPanel;
+    final attachmentOcr = source.attachmentOcr;
     final importActions = source.importActions;
     final parseReview = source.parseReview;
     final parseModels = source.parseModels;
@@ -81,6 +82,58 @@ void main() {
       contains(
         '_receiptReadHandoffRouteResult =\n          \'Accepted photo review is moving directly into receipt details.',
       ),
+    );
+    expect(
+      entryScreen,
+      contains(
+        'Photo review completes before attachments are installed into the\n      // entry form.',
+      ),
+    );
+    expect(
+      entryScreen,
+      contains(
+        '_scanningReceiptPhotos = false;\n      _receiptReviewFlowStarted = true;',
+      ),
+    );
+    expect(
+      entryScreen,
+      contains(
+        'onReceiptOcrResultForReview: _parseReceiptOcrResultFromCapture',
+      ),
+    );
+    expect(
+      entryScreen,
+      contains('Future<void> _parseReceiptOcrResultFromCapture('),
+    );
+    expect(
+      entryScreen,
+      contains('final handoff = ReceiptOcrHandoff.forUserSelection('),
+    );
+    expect(
+      entryScreen,
+      contains(
+        '_receiptOcrHandoffRouter(\n        capability,\n      ).dispatch(handoff)',
+      ),
+    );
+    expect(
+      attachmentOcr,
+      contains(
+        'final onOcrResultForReview = widget.onReceiptOcrResultForReview;',
+      ),
+    );
+    expect(
+      attachmentOcr,
+      contains(
+        '? onOcrResultForReview(result)\n              : onImportedText!(result.appFillText)',
+      ),
+    );
+    final acceptedPhotoStatus = attachmentPanel.substring(
+      attachmentPanel.indexOf('void _startReviewedPhotoReadStatus('),
+      attachmentPanel.indexOf('bool _pauseReviewedPhotoReadUntilNextSection('),
+    );
+    expect(
+      acceptedPhotoStatus,
+      isNot(contains('widget.onReceiptReadStarted?.call();')),
     );
     expect(
       entryScreen,

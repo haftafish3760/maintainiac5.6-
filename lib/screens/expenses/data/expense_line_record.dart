@@ -202,12 +202,12 @@ class ExpenseReceiptLineRecord {
     final section = safeOcrSourceSectionNumber;
     if (sectionLine != null) {
       if (section != null && section > 1) {
-        return 'OCR section $section line $sectionLine';
+        return 'Receipt section $section line $sectionLine';
       }
-      return 'OCR source line $sectionLine';
+      return 'Receipt line $sectionLine';
     }
     final lineNumber = safeOcrSourceLineNumber;
-    if (lineNumber != null) return 'OCR line $lineNumber';
+    if (lineNumber != null) return 'Receipt line $lineNumber';
     final id = (ocrSourceLineId ?? '').trim();
     if (id.isNotEmpty) return _expensePrivateSafeLineReferenceLabel(id);
     return '';

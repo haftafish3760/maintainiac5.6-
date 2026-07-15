@@ -176,8 +176,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                           const SizedBox(height: 5),
                           _ReceiptSinglePhotoActionRow(
                             openingCamera: interactionLocked,
-                            onAddPhoto: onAddPhoto,
-                            onRetake: onRetake,
                             onModeChanged: onModeChanged,
                           ),
                         ],

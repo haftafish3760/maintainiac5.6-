@@ -174,9 +174,14 @@ extension _ReceiptAttachmentReviewReadActions
   }
 
   void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result) {
-    if (widget.onImportedText == null) return;
+    if (widget.onImportedText == null &&
+        widget.onReceiptOcrResultForReview == null) {
+      return;
+    }
     if (!_appAssistedReceiptFillEnabled) return;
-    widget.onReceiptReadStarted?.call();
+    // This only presents the accepted-photo status. The actual OCR operation
+    // reports its start in _readAttachmentsForReceiptForm, so the parent does
+    // not receive two competing "reading" transitions for one receipt.
     final reviewDecision = result.nextReviewHandoffLabel;
     final action = result.acceptedPhotoHandoffActionLabel;
     final processing = result.acceptedPhotoHandoffProcessingLabel;
@@ -260,7 +265,9 @@ extension _ReceiptAttachmentReviewReadActions
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
-    if (!_appAssistedReceiptFillEnabled || widget.onImportedText == null) {
+    if (!_appAssistedReceiptFillEnabled ||
+        (widget.onImportedText == null &&
+            widget.onReceiptOcrResultForReview == null)) {
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =

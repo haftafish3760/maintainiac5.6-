@@ -51,33 +51,28 @@ extension _ReceiptOcrReviewReadinessHelpers on _ReceiptOcrReviewRow {
       return 'The next receipt section is needed: receipt text was found. ${evidencePrefix}Add the bottom receipt section before saving.';
     }
     if ((tasks['receipt_missing_totals_manual_review'] ?? 0) > 0) {
-      return 'Parser readiness needs totals review: OCR found receipt text, but subtotal/total lines were not found.';
+      return 'Totals need review: receipt text was found, but subtotal or total lines were not found.';
     }
     if ((tasks['fuel_detail_ready'] ?? 0) > 0 &&
         (tasks['fuel_detail_needs_review'] ?? 0) == 0) {
-      return 'Parser readiness: fuel gallons and unit price are ready for app-assisted review.';
+      return 'Receipt details are ready: review fuel gallons and unit price.';
     }
     return switch (diagnostics.parserReadinessStatus) {
-      'receipt_ready' =>
-        'Parser readiness: receipt lines are ready for app-assisted review.',
+      'receipt_ready' => 'Receipt details are ready to review.',
       'inventory_ready' =>
-        'Parser readiness: item lines include material-style quantity or code signals for inventory review.',
-      'missing_vendor' =>
-        'Parser readiness needs review: the store name was not safe enough.',
-      'missing_total' =>
-        'Parser readiness needs review: the receipt total was not safe enough.',
+        'Receipt details include item quantities or codes that may be useful for inventory review.',
+      'missing_vendor' => 'Check the store name before saving.',
+      'missing_total' => 'Check the receipt total before saving.',
       'no_priced_lines' =>
-        'Parser readiness needs review: no receipt lines had safe prices.',
+        'No reliable item prices were found. Review the receipt before saving.',
       'no_item_lines' =>
-        'Parser readiness needs review: priced receipt lines were found, but no item lines were safe enough.',
+        'Prices were found, but item lines need review before saving.',
       'no_parser_ready_items' =>
-        'Parser readiness needs review: item lines were found, but none were safe enough to trust without checking.',
-      'needs_review' =>
-        'Parser readiness needs review: check item lines before saving.',
-      'no_text' => 'Parser readiness needs review: no readable text was found.',
+        'Item lines were found, but they need review before saving.',
+      'needs_review' => 'Check item lines before saving.',
+      'no_text' => 'No readable receipt text was found.',
       'unknown' || '' => '',
-      _ =>
-        'Parser readiness needs review: check store, total, tax, and item lines.',
+      _ => 'Check the store, total, tax, and item lines before saving.',
     };
   }
 

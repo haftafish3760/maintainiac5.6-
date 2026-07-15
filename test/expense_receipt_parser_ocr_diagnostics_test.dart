@@ -42,7 +42,7 @@ TOTAL 17.48
     expect(parsed.lines.single.ocrSourceSectionNumber, 2);
     expect(parsed.lines.single.ocrSourceSectionLineNumber, 1);
     expect(parsed.lines.single.hasOcrSourceLine, isTrue);
-    expect(parsed.lines.single.ocrSourceLineLabel, 'OCR section 2 line 1');
+    expect(parsed.lines.single.ocrSourceLineLabel, 'Receipt section 2 line 1');
     expect(
       parsed.lines.single.receiptProofLineReferenceLabel,
       'Section 2 line 1',

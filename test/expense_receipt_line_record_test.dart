@@ -505,7 +505,7 @@ void main() {
     expect(restored.ocrSourceLineNumber, 3);
     expect(restored.ocrSourceSectionNumber, 2);
     expect(restored.ocrSourceSectionLineNumber, 4);
-    expect(restored.ocrSourceLineLabel, 'OCR section 2 line 4');
+    expect(restored.ocrSourceLineLabel, 'Receipt section 2 line 4');
     expect(restored.receiptLineNumberLabel, 'Section 2 line 4');
     expect(restored.receiptReviewModeCode, 'detailedLine');
     expect(restored.businessUseReviewLabel, 'Business');

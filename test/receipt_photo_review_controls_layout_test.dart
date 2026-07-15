@@ -251,7 +251,9 @@ void main() {
     expect(commonControls, contains("'Proof' => 'Preview saved proof size'"));
     expect(previewControls, contains('class _ReceiptMultiPhotoActionRail'));
     expect(previewControls, contains('onAddPhoto'));
-    expect(previewControls, contains('strings.savedProof'));
+    expect(previewControls, contains('class _ReceiptSinglePhotoActionRow'));
+    expect(previewControls, contains('label: Text(strings.cropReceiptPhoto)'));
+    expect(previewControls, isNot(contains('label: strings.savedProof')));
     expect(previewControls, contains("? 'Add Bottom Section'"));
     expect(
       previewControls,
@@ -386,7 +388,7 @@ void main() {
     );
     expect(
       previewControls,
-      contains(': () => onModeChanged(_ReceiptReviewMode.dataSaver)'),
+      isNot(contains(': () => onModeChanged(_ReceiptReviewMode.dataSaver)')),
     );
   });
 

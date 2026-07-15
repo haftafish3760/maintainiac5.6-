@@ -144,12 +144,12 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     final section = _expenseReceiptSafeSectionNumber(ocrSourceSectionNumber);
     if (sectionLine != null) {
       if (section > 1) {
-        return 'OCR section $section line $sectionLine';
+        return 'Receipt section $section line $sectionLine';
       }
-      return 'OCR source line $sectionLine';
+      return 'Receipt line $sectionLine';
     }
     final lineNumber = _expenseReceiptSafeLineNumber(ocrSourceLineNumber);
-    if (lineNumber != null) return 'OCR line $lineNumber';
+    if (lineNumber != null) return 'Receipt line $lineNumber';
     final sourceId = (ocrSourceLineId ?? '').trim();
     if (sourceId.isNotEmpty) {
       return _expenseReceiptPrivateSafeLineReferenceLabel(sourceId);

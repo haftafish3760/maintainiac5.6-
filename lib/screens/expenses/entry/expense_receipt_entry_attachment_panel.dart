@@ -64,6 +64,7 @@ extension _ExpenseReceiptEntryAttachmentPanel
       onReceiptPhotoReviewAccepted: _markReceiptPhotoReviewAccepted,
       onReceiptReadStarted: _markReceiptReadStarted,
       onReceiptOcrCompleted: _markReceiptOcrCompleted,
+      onReceiptOcrResultForReview: _parseReceiptOcrResultFromCapture,
       onReceiptReadFinished: _markReceiptReadFinished,
       onReceiptCaptureDiagnostic: _recordReceiptCaptureDiagnostic,
     );

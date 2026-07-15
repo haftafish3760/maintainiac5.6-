@@ -53,11 +53,14 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         )
         .toList(growable: false);
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (widget.onImportedText == null ||
+    if (widget.onImportedText == null &&
+            widget.onReceiptOcrResultForReview == null ||
         readable.isEmpty ||
         !_appAssistedReceiptFillEnabled) {
       if (showDisabledMessage) {
-        showPickerError('Automatic receipt filling is turned off for this area.');
+        showPickerError(
+          'Automatic receipt filling is turned off for this area.',
+        );
       }
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
@@ -184,16 +187,19 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       );
     }
     final message = result.reviewMessage(successMessage: successMessage);
+    final onOcrResultForReview = widget.onReceiptOcrResultForReview;
     final onImportedText = widget.onImportedText;
     if (mounted) {
       updateAttachmentState(() {
         _receiptReadProgressPhase = _ReceiptReadProgressPhase.openingDetails;
       });
     }
-    if (onImportedText != null) {
+    if (onOcrResultForReview != null || onImportedText != null) {
       try {
         await Future<void>.sync(
-          () => onImportedText(result.appFillText),
+          () => onOcrResultForReview != null
+              ? onOcrResultForReview(result)
+              : onImportedText!(result.appFillText),
         ).timeout(_receiptOcrTimeout(capability, readable.length));
       } catch (_) {
         if (mounted) {

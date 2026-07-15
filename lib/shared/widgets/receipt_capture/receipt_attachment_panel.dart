@@ -80,6 +80,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.onReceiptPhotoReviewAccepted,
     this.onReceiptReadStarted,
     this.onReceiptOcrCompleted,
+    this.onReceiptOcrResultForReview,
     this.onReceiptReadFinished,
     this.onReceiptCaptureDiagnostic,
     this.receiptContinuationReasonCode,
@@ -98,6 +99,13 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final ValueChanged<ReceiptPhotoReviewResult>? onReceiptPhotoReviewAccepted;
   final VoidCallback? onReceiptReadStarted;
   final ValueChanged<ReceiptOcrResult>? onReceiptOcrCompleted;
+
+  /// Receives the complete OCR evidence for an editable receipt handoff.
+  ///
+  /// Prefer this over [onImportedText] when the consumer can preserve OCR
+  /// layout, coordinates, confidence, and source-image provenance.
+  final FutureOr<void> Function(ReceiptOcrResult result)?
+  onReceiptOcrResultForReview;
   final ValueChanged<bool>? onReceiptReadFinished;
   final ValueChanged<Map<String, Object?>>? onReceiptCaptureDiagnostic;
   final String? receiptContinuationReasonCode;
