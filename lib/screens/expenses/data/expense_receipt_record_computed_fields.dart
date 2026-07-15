@@ -30,7 +30,19 @@ extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
       businessLineSubtotal + _allocatedReceiptAdjustment(businessLineSubtotal);
   double get personalTotal =>
       personalLineSubtotal + _allocatedReceiptAdjustment(personalLineSubtotal);
-  bool get hasReceiptAttachment => hasReceiptProof || attachments.isNotEmpty;
+  bool get hasMissingReceiptProof => attachments.any(
+    (attachment) =>
+        attachment.storageState == ReceiptAttachmentStorageState.missing,
+  );
+  bool get hasReceiptAttachment {
+    final hasUsableAttachment = attachments.any(
+      (attachment) =>
+          attachment.storageState != ReceiptAttachmentStorageState.missing &&
+          attachment.storageState != ReceiptAttachmentStorageState.cleanedUp,
+    );
+    return hasUsableAttachment || (hasReceiptProof && attachments.isEmpty);
+  }
+
   String get title => merchantName.trim().isEmpty ? 'Receipt' : merchantName;
 
   String get primaryFileHashSha256 {
