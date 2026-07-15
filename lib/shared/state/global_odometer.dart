@@ -173,6 +173,7 @@ class GlobalOdometerController extends ChangeNotifier {
     String rawValue, {
     DateTime? enteredAt,
     bool confirmSuspicious = false,
+    bool commit = true,
     OdometerMileageReview? mileageReview,
     OdometerCorrectionReview? correctionReview,
     String? workProfileId,
@@ -199,6 +200,7 @@ class GlobalOdometerController extends ChangeNotifier {
         parsed,
         enteredAt: enteredAt ?? DateTime.now(),
         correctionReview: correctionReview,
+        commit: commit,
         workProfileId: workProfileId,
         sourceType: sourceType,
         sourceId: sourceId,
@@ -243,6 +245,7 @@ class GlobalOdometerController extends ChangeNotifier {
       enteredAt: enteredAt ?? DateTime.now(),
       message: validation.message,
       wasConfirmed: validation.needsConfirmation,
+      commit: commit,
       mileageReview: mileageReview,
       workProfileId: workProfileId,
       sourceType: sourceType,
@@ -254,6 +257,7 @@ class GlobalOdometerController extends ChangeNotifier {
     int parsed, {
     required DateTime enteredAt,
     OdometerCorrectionReview? correctionReview,
+    required bool commit,
     String? workProfileId,
     String? sourceType,
     String? sourceId,
@@ -280,6 +284,14 @@ class GlobalOdometerController extends ChangeNotifier {
 
     if (correctionReview.canSaveHistoricalReading ||
         correctionReview.reason == OdometerCorrectionReason.unresolved) {
+      if (!commit) {
+        return OdometerUpdateResult.success(
+          message:
+              'Lower odometer reading is ready to save for review. Current odometer remains $_reading.',
+          correctionReview: correctionReview,
+          affectsCurrentReading: false,
+        );
+      }
       _history.add(
         OdometerReadingEvent(
           id: _nextEventId(),
@@ -313,6 +325,7 @@ class GlobalOdometerController extends ChangeNotifier {
     required DateTime enteredAt,
     required String message,
     required bool wasConfirmed,
+    required bool commit,
     OdometerMileageReview? mileageReview,
     String? workProfileId,
     String? sourceType,
@@ -320,6 +333,13 @@ class GlobalOdometerController extends ChangeNotifier {
   }) {
     if (parsed == _reading) {
       return OdometerUpdateResult.success(message: message);
+    }
+    if (!commit) {
+      return OdometerUpdateResult.success(
+        message: message,
+        wasConfirmed: wasConfirmed,
+        mileageReview: mileageReview,
+      );
     }
     final previousReading = _reading;
     _reading = parsed;

@@ -14,6 +14,32 @@ void main() {
     expect(controller.reading, 1000);
   });
 
+  test('can validate a reviewed reading before committing it', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+
+    final preview = controller.updateFromText(
+      '1045',
+      commit: false,
+      mileageReview: const OdometerMileageReview(
+        use: OdometerMileageUse.business,
+      ),
+    );
+
+    expect(preview.ok, isTrue);
+    expect(controller.confirmedReading, 1000);
+    expect(controller.history, hasLength(1));
+
+    final saved = controller.updateFromText(
+      '1045',
+      mileageReview: const OdometerMileageReview(
+        use: OdometerMileageUse.business,
+      ),
+    );
+    expect(saved.ok, isTrue);
+    expect(controller.confirmedReading, 1045);
+    expect(controller.history, hasLength(2));
+  });
+
   test('lower odometer reading requires correction review', () {
     final controller = GlobalOdometerController(initialReading: 1000);
     final result = controller.updateFromText('999');
