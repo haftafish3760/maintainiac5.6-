@@ -211,7 +211,9 @@ class ExpenseLedgerController extends ChangeNotifier {
   Future<ExpenseReceiptRecord> saveReceipt(ExpenseReceiptRecord receipt) =>
       _enqueue(() => _saveReceipt(receipt));
 
-  Future<ExpenseReceiptRecord> _saveReceipt(ExpenseReceiptRecord receipt) async {
+  Future<ExpenseReceiptRecord> _saveReceipt(
+    ExpenseReceiptRecord receipt,
+  ) async {
     final existing = receiptById(receipt.id);
     if (existing?.isDeleted ?? false) {
       throw StateError('Restore a removed receipt before changing it.');
@@ -318,6 +320,7 @@ class ExpenseLedgerController extends ChangeNotifier {
   Future<ExpenseReceiptRecord?> deleteReceipt(String id) => _enqueue(() async {
     final existing = receiptById(id);
     if (existing == null || existing.isDeleted) return existing;
+    await ensureStorageForLocalSave();
     final now = DateTime.now();
     final deleted = existing.copyWith(
       updatedAt: now,
@@ -341,6 +344,7 @@ class ExpenseLedgerController extends ChangeNotifier {
   Future<ExpenseReceiptRecord?> restoreReceipt(String id) => _enqueue(() async {
     final existing = receiptById(id);
     if (existing == null || existing.isActive) return existing;
+    await ensureStorageForLocalSave();
     final now = DateTime.now();
     final restored = existing.copyWith(
       updatedAt: now,
