@@ -32,6 +32,18 @@ class ReceiptProofStorage {
         await File(clean).exists();
   }
 
+  /// Removes only an already-verified app-managed proof. Callers must never
+  /// pass gallery, downloads, staged capture, or arbitrary device paths.
+  Future<bool> removeManagedPermanentProof(String filePath) async {
+    if (!await isManagedPermanentProofPath(filePath)) return false;
+    try {
+      await File(filePath).delete();
+      return true;
+    } on FileSystemException {
+      return false;
+    }
+  }
+
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
     List<ReceiptAttachmentRecord> attachments, {
     bool retainStagedSources = false,

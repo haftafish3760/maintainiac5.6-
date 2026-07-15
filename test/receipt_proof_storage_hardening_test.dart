@@ -177,6 +177,37 @@ void main() {
     expect(await external.exists(), isTrue);
   });
 
+  test('only a completed managed proof can be removed', () async {
+    final external = File('${Directory.systemTemp.path}/external_receipt.jpg');
+    await external.writeAsBytes(const [1, 2, 3], flush: true);
+    addTearDown(() {
+      if (external.existsSync()) external.deleteSync();
+    });
+    final managed = await ReceiptProofStorage.instance.persistAttachment(
+      ReceiptAttachmentRecord(
+        id: 'managed-remove',
+        path: external.path,
+        kind: ReceiptAttachmentKind.photo,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        createdAt: DateTime(2026, 6, 14),
+      ),
+    );
+    expect(
+      await ReceiptProofStorage.instance.removeManagedPermanentProof(
+        external.path,
+      ),
+      isFalse,
+    );
+    expect(await external.exists(), isTrue);
+    expect(
+      await ReceiptProofStorage.instance.removeManagedPermanentProof(
+        managed.path,
+      ),
+      isTrue,
+    );
+    expect(await File(managed.path).exists(), isFalse);
+  });
+
   test('storage refuses renamed non-PDF proof files', () async {
     final source = File('${Directory.systemTemp.path}/fake_receipt.pdf');
     await source.writeAsString('not actually a pdf', flush: true);
