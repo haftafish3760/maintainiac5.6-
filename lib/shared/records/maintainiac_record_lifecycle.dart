@@ -17,14 +17,14 @@ enum MaintainiacRecordState {
 
 /// Immutable, local-first lifecycle metadata shared by record modules.
 class MaintainiacRecordLifecycle {
-  const MaintainiacRecordLifecycle({
+  MaintainiacRecordLifecycle({
     required this.createdAt,
     required this.updatedAt,
     this.revision = 1,
     this.state = MaintainiacRecordState.active,
     this.deletedAt,
-    this.auditEvents = const [],
-  });
+    List<String> auditEvents = const [],
+  }) : auditEvents = List.unmodifiable(List<String>.from(auditEvents));
 
   factory MaintainiacRecordLifecycle.fromMap(
     Map<dynamic, dynamic>? map, {
@@ -104,12 +104,12 @@ class MaintainiacRecordLifecycle {
 /// Screens save a checkpoint on meaningful edits and remove it only after the
 /// confirmed record has been written successfully.
 class MaintainiacRecordDraft {
-  const MaintainiacRecordDraft({
+  MaintainiacRecordDraft({
     required this.module,
     required this.id,
-    required this.payload,
+    required Map<String, dynamic> payload,
     required this.lifecycle,
-  });
+  }) : payload = Map.unmodifiable(Map<String, dynamic>.from(payload));
 
   factory MaintainiacRecordDraft.fromMap(Map<dynamic, dynamic> map) {
     final now = DateTime.now();

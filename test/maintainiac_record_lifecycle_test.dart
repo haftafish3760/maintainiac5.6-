@@ -18,6 +18,30 @@ void main() {
     expect(lifecycle.auditEvents, hasLength(2));
   });
 
+  test('shared lifecycle and draft snapshots cannot be mutated after save', () {
+    final events = <String>['created'];
+    final payload = <String, dynamic>{'merchant': 'Store'};
+    final lifecycle = MaintainiacRecordLifecycle(
+      createdAt: DateTime.utc(2026, 7, 15, 12),
+      updatedAt: DateTime.utc(2026, 7, 15, 12),
+      auditEvents: events,
+    );
+    final draft = MaintainiacRecordDraft(
+      module: 'expenses',
+      id: 'draft-immutable',
+      payload: payload,
+      lifecycle: lifecycle,
+    );
+
+    events.add('outside change');
+    payload['total'] = 18.75;
+
+    expect(lifecycle.auditEvents, ['created']);
+    expect(draft.payload, {'merchant': 'Store'});
+    expect(() => lifecycle.auditEvents.add('tamper'), throwsUnsupportedError);
+    expect(() => draft.payload['total'] = 18.75, throwsUnsupportedError);
+  });
+
   test('shared draft checkpoint saves every update locally', () async {
     final store = MaintainiacRecordDraftStore.memory();
     final created = DateTime.utc(2026, 7, 15, 12);
