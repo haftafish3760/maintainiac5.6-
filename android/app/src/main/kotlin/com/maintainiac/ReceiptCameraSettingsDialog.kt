@@ -155,10 +155,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         ),
     ))
     content.addView(settingSummary(
-        receiptCameraText("OCR source", "Fuente de OCR"),
+        receiptCameraText("Receipt reading source", "Fuente de lectura del recibo"),
         receiptCameraText(
-            "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
-            "El OCR lee primero la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo.",
+            "Maintainiac reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt is read.",
+            "Maintainiac lee primero la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo.",
         ),
     ))
     content.addView(settingSummary(

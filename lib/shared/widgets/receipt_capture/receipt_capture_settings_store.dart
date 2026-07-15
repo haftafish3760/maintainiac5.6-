@@ -135,6 +135,16 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
       _writeBool(_Keys.appAssistedMaterials, value);
   Future<void> setAppAssistedMaintenance(bool value) =>
       _writeBool(_Keys.appAssistedMaintenance, value);
+  Future<void> setAppAssistedFor(ReceiptCaptureArea area, bool value) async {
+    if (value) await _box.put(_Keys.appAssistedReceiptFill, true);
+    await _box.put(switch (area) {
+      ReceiptCaptureArea.expenses => _Keys.appAssistedExpenses,
+      ReceiptCaptureArea.materialsInventory => _Keys.appAssistedMaterials,
+      ReceiptCaptureArea.maintenanceRepair => _Keys.appAssistedMaintenance,
+    }, value);
+    notifyListeners();
+  }
+
   Future<void> setReceiptAssistChoiceMadeFor(
     ReceiptCaptureArea area,
     bool value,

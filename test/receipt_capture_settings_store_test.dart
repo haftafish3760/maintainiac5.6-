@@ -141,20 +141,23 @@ void main() {
     expect(settings.receiptCapabilityTier, ReceiptCapabilityTier.light);
   });
 
-  test('invalid saved proof size falls back to device recommendation', () async {
-    final box = await Hive.openBox<dynamic>(
-      ReceiptCaptureSettingsController.boxName,
-    );
-    await box.put('default_data_saver_level', ' stale_proof_size ');
+  test(
+    'invalid saved proof size falls back to device recommendation',
+    () async {
+      final box = await Hive.openBox<dynamic>(
+        ReceiptCaptureSettingsController.boxName,
+      );
+      await box.put('default_data_saver_level', ' stale_proof_size ');
 
-    final settings = await ReceiptCaptureSettingsController.create();
+      final settings = await ReceiptCaptureSettingsController.create();
 
-    expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
-    expect(
-      settings.defaultDataSaverLevel,
-      settings.deviceCapability.recommendedDataSaverLevel,
-    );
-  });
+      expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
+      expect(
+        settings.defaultDataSaverLevel,
+        settings.deviceCapability.recommendedDataSaverLevel,
+      );
+    },
+  );
 
   test('Google Vision receipt limit stays bounded and stale-safe', () async {
     final settings = await ReceiptCaptureSettingsController.create();
@@ -195,6 +198,25 @@ void main() {
 
     expect(settings.cameraStartAssisted, isTrue);
     expect(settings.cameraAutoCapture, isFalse);
+  });
+
+  test('area receipt-fill choice enables the required master opt-in', () async {
+    final settings = await ReceiptCaptureSettingsController.create();
+
+    await settings.setAppAssistedFor(ReceiptCaptureArea.expenses, true);
+
+    expect(settings.appAssistedReceiptFill, isTrue);
+    expect(settings.appAssistedExpenses, isTrue);
+    expect(settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses), isTrue);
+
+    await settings.setAppAssistedFor(ReceiptCaptureArea.expenses, false);
+
+    expect(settings.appAssistedReceiptFill, isTrue);
+    expect(settings.appAssistedExpenses, isFalse);
+    expect(
+      settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses),
+      isFalse,
+    );
   });
 
   test(
@@ -239,6 +261,8 @@ void main() {
       expect(source, contains('receiptPhotoBackupEnabled'));
       expect(source, contains('Backup account'));
       expect(source, contains('Storage remaining'));
+      expect(source, isNot(contains('Automatically Fill Receipts')));
+      expect(source, contains('setAppAssistedFor(area, value)'));
       expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
       expect(source, contains('Ask Every Receipt'));
       expect(source, contains('askSavedProofSizeEachReceipt'));

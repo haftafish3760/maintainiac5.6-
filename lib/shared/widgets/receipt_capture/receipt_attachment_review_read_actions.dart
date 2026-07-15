@@ -299,7 +299,7 @@ extension _ReceiptAttachmentReviewReadActions
           byteSize: receiptAttachmentFileSize(
             result.ocrSourcePhotoPaths[index],
           ),
-          sourceLabel: 'Maintainiac OCR source photo',
+          sourceLabel: 'Maintainiac clear receipt photo',
           linkedModule: _receiptAttachmentLinkedModule,
           storageState: ReceiptAttachmentStorageState.staged,
           documentSignals: ocrSourceDocumentSignalsFor(result, index),

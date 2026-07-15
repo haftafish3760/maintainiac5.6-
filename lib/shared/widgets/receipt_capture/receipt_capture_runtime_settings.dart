@@ -208,38 +208,16 @@ class _ReceiptAssistSettings extends StatelessWidget {
     return _ReceiptSettingsSection(
       icon: Icons.auto_awesome_rounded,
       title: 'Automatic Receipt Filling',
-      subtitle: 'Manual entry always stays available.',
+      subtitle: 'Optional. Manual entry always stays available.',
       children: [
-        _ReceiptSettingsSwitch(
-          title: 'Automatically Fill Receipts',
-          detail:
-              'Allow Maintainiac to read receipt photos locally and prepare editable receipt fields. You review everything before saving.',
-          value: settings.appAssistedReceiptFill,
-          onChanged: settings.setAppAssistedReceiptFill,
-        ),
-        const SizedBox(height: 6),
         _ReceiptSettingsSwitch(
           title: title,
           detail: detail,
           value: settings.appAssistedEnabledFor(area),
-          onChanged: (value) async {
-            if (value) await settings.setAppAssistedReceiptFill(true);
-            await _setAreaEnabled(value);
-          },
+          onChanged: (value) => settings.setAppAssistedFor(area, value),
         ),
       ],
     );
-  }
-
-  Future<void> _setAreaEnabled(bool value) {
-    return switch (area) {
-      ReceiptCaptureArea.expenses => settings.setAppAssistedExpenses(value),
-      ReceiptCaptureArea.materialsInventory => settings.setAppAssistedMaterials(
-        value,
-      ),
-      ReceiptCaptureArea.maintenanceRepair =>
-        settings.setAppAssistedMaintenance(value),
-    };
   }
 }
 
