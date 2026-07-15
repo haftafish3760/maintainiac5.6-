@@ -124,7 +124,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
 
   void _scheduleDraftSave() {
     _draftTimer?.cancel();
-    _draftTimer = Timer(const Duration(milliseconds: 450), () {
+    _draftTimer = Timer(const Duration(milliseconds: 200), () {
       unawaited(_saveDraftNow());
     });
   }

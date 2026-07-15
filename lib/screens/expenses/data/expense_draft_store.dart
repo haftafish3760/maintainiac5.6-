@@ -3,43 +3,48 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import '../../../shared/widgets/receipt_capture/receipt_proof_storage.dart';
 import 'expense_ledger_models.dart';
 
 class ExpenseDraftController extends ChangeNotifier {
-  ExpenseDraftController._(this._box);
-  ExpenseDraftController.memory() : _box = null;
+  ExpenseDraftController._(this._legacyBox, this._drafts);
+  ExpenseDraftController.memory()
+    : _legacyBox = null,
+      _drafts = MaintainiacRecordDraftStore.memory();
 
+  /// Legacy box used only to migrate drafts safely into the shared store.
   static const boxName = 'expense_receipt_drafts';
+  static const _module = 'expenses';
 
-  final Box<dynamic>? _box;
-  final _memoryRecords = <String, ExpenseReceiptDraftRecord>{};
+  final Box<dynamic>? _legacyBox;
+  final MaintainiacRecordDraftStore _drafts;
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<ExpenseDraftController> create() async {
-    final box = await Hive.openBox<dynamic>(boxName);
-    return ExpenseDraftController._(box);
+    final controller = ExpenseDraftController._(
+      await Hive.openBox<dynamic>(boxName),
+      await MaintainiacRecordDraftStore.create(),
+    );
+    await controller._migrateLegacyDrafts();
+    return controller;
   }
 
   List<ExpenseReceiptDraftRecord> get drafts {
-    final source = _box == null ? _memoryRecords.values : _box.values;
-    final records = <ExpenseReceiptDraftRecord>[];
-    for (final value in source) {
-      if (value is ExpenseReceiptDraftRecord) {
-        records.add(value);
-      } else if (value is Map) {
-        records.add(ExpenseReceiptDraftRecord.fromMap(value));
-      }
-    }
+    final records = _drafts
+        .draftsFor(_module)
+        .map((draft) => ExpenseReceiptDraftRecord.fromMap(draft.payload))
+        .toList(growable: false);
     records.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return records;
   }
 
   ExpenseReceiptDraftRecord? draftById(String id) {
-    final value = _box == null ? _memoryRecords[id] : _box.get(id);
-    if (value is ExpenseReceiptDraftRecord) return value;
-    if (value is Map) return ExpenseReceiptDraftRecord.fromMap(value);
-    return null;
+    final draft = _drafts.draftFor(_module, id);
+    return draft == null
+        ? null
+        : ExpenseReceiptDraftRecord.fromMap(draft.payload);
   }
 
   List<ReceiptAttachmentRecord> missingAttachmentsForDraft(String id) {
@@ -97,36 +102,67 @@ class ExpenseDraftController extends ChangeNotifier {
     return snapshot;
   }
 
-  Future<void> saveDraft(ExpenseReceiptDraftRecord draft) async {
+  Future<void> saveDraft(ExpenseReceiptDraftRecord draft) => _enqueue(() async {
     if (!draft.hasUserContent) {
-      await deleteDraft(draft.id, notify: false);
+      await _deleteDraft(draft.id, notify: false);
       notifyListeners();
       return;
     }
-    if (_box == null) {
-      _memoryRecords[draft.id] = draft;
-    } else {
-      await _box.put(draft.id, draft.toMap());
-    }
+    await _drafts.save(
+      module: _module,
+      id: draft.id,
+      payload: draft.toMap(),
+      now: draft.updatedAt,
+    );
     notifyListeners();
-  }
+  });
 
-  Future<void> deleteDraft(String id, {bool notify = true}) async {
+  Future<void> deleteDraft(String id, {bool notify = true}) =>
+      _enqueue(() => _deleteDraft(id, notify: notify));
+
+  Future<void> _deleteDraft(String id, {bool notify = true}) async {
     await _deleteStagedProofsForDraft(id);
-    if (_box == null) {
-      _memoryRecords.remove(id);
-    } else {
-      await _box.delete(id);
-    }
+    await _drafts.remove(_module, id);
     if (notify) notifyListeners();
   }
 
-  Future<void> clear() async {
+  Future<void> clear() => _enqueue(() async {
     final attachments = [for (final draft in drafts) ...draft.attachments];
     await ReceiptProofStorage.instance.deleteStagedAttachments(attachments);
-    _memoryRecords.clear();
-    await _box?.clear();
+    for (final draft in drafts) {
+      await _drafts.remove(_module, draft.id);
+    }
     notifyListeners();
+  });
+
+  Future<void> _enqueue(Future<void> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.catchError((_) {});
+    return next;
+  }
+
+  Future<void> _migrateLegacyDrafts() async {
+    final box = _legacyBox;
+    if (box == null) return;
+    for (final key in box.keys.toList(growable: false)) {
+      final value = box.get(key);
+      if (value is! Map) continue;
+      try {
+        final draft = ExpenseReceiptDraftRecord.fromMap(value);
+        if (draft.id.trim().isEmpty) continue;
+        if (_drafts.draftFor(_module, draft.id) == null) {
+          await _drafts.save(
+            module: _module,
+            id: draft.id,
+            payload: draft.toMap(),
+            now: draft.updatedAt,
+          );
+        }
+        await box.delete(key);
+      } catch (_) {
+        // Preserve malformed legacy data rather than discarding it.
+      }
+    }
   }
 
   Future<void> _deleteStagedProofsForDraft(String id) async {

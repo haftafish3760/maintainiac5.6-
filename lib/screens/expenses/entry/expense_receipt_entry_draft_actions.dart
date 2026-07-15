@@ -2,7 +2,6 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
   Future<void> _saveDraftNow() {
-    if (_isEditingReceipt) return Future<void>.value();
     final drafts = _drafts;
     if (drafts == null) return Future<void>.value();
     final draft = ExpenseReceiptDraftRecord(
@@ -39,6 +38,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       enteredTax: _enteredReceiptTax,
       enteredTotal: _enteredReceiptTotal,
       trackMaterialsInInventory: _trackMaterialsInInventory,
+      editingReceiptId: _isEditingReceipt ? widget.receiptId : null,
       sourceScreen: _isMaterialsFlow
           ? 'materials_expense_receipt'
           : _isMaintenanceRepairFlow

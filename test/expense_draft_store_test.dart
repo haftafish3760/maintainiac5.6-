@@ -72,6 +72,93 @@ void main() {
     expect(drafts.drafts.map((item) => item.id), ['draft-1']);
   });
 
+  test('rapid local checkpoints keep the most recent receipt draft', () async {
+    final drafts = ExpenseDraftController.memory();
+    final earlier = ExpenseReceiptDraftRecord(
+      id: 'draft-checkpoint-order',
+      receiptDate: DateTime(2026, 7, 15),
+      updatedAt: DateTime(2026, 7, 15, 12),
+      merchantName: 'First value',
+    );
+    final latest = ExpenseReceiptDraftRecord(
+      id: earlier.id,
+      receiptDate: earlier.receiptDate,
+      updatedAt: earlier.updatedAt.add(const Duration(seconds: 1)),
+      merchantName: 'Latest value',
+    );
+
+    await Future.wait([drafts.saveDraft(earlier), drafts.saveDraft(latest)]);
+
+    expect(drafts.draftById(earlier.id)?.merchantName, 'Latest value');
+  });
+
+  test(
+    'moves existing expense drafts into the shared durable draft store',
+    () async {
+      final legacy = await Hive.openBox<dynamic>(
+        ExpenseDraftController.boxName,
+      );
+      final draft = ExpenseReceiptDraftRecord(
+        id: 'legacy-draft',
+        receiptDate: DateTime(2026, 7, 15),
+        updatedAt: DateTime(2026, 7, 15, 12),
+        merchantName: 'Legacy Store',
+        enteredTotal: 16.25,
+      );
+      await legacy.put(draft.id, draft.toMap());
+
+      final drafts = await ExpenseDraftController.create();
+
+      expect(drafts.draftById(draft.id)?.merchantName, 'Legacy Store');
+      expect(drafts.draftById(draft.id)?.total, 16.25);
+      expect(legacy.containsKey(draft.id), isFalse);
+    },
+  );
+
+  test(
+    'receipt entry flushes its local draft when the app is interrupted',
+    () async {
+      final source = await File(
+        'lib/screens/expenses/entry/expense_receipt_entry_screen.dart',
+      ).readAsString();
+      final scheduling = await File(
+        'lib/screens/expenses/entry/expense_receipt_entry_state_actions.dart',
+      ).readAsString();
+
+      expect(source, contains('with WidgetsBindingObserver'));
+      expect(source, contains('didChangeAppLifecycleState'));
+      expect(source, contains('unawaited(_saveDraftNow())'));
+      expect(scheduling, contains('Duration(milliseconds: 200)'));
+    },
+  );
+
+  test('edit drafts retain the receipt they must resume', () {
+    final draft = ExpenseReceiptDraftRecord.fromMap({
+      'id': 'EXPD-EDIT-receipt-1',
+      'receiptDate': DateTime.utc(2026, 7, 15).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 15).toIso8601String(),
+      'editingReceiptId': 'receipt-1',
+      'merchantName': 'Saved merchant',
+    });
+
+    expect(draft.editingReceiptId, 'receipt-1');
+    expect(draft.hasUserContent, isTrue);
+    expect(draft.toMap()['editingReceiptId'], 'receipt-1');
+  });
+
+  test(
+    'receipt save shows the storage recovery message without losing a draft',
+    () async {
+      final source = await File(
+        'lib/screens/expenses/entry/expense_receipt_save_actions.dart',
+      ).readAsString();
+
+      expect(source, contains('error is StateError'));
+      expect(source, contains('storage_guard_blocked_local_record_save'));
+      expect(source, contains('storageMessage ??'));
+    },
+  );
+
   test('drafts keep OCR review metadata for resumed receipt review', () async {
     final ocr = await const ReceiptOcrService().recognizeTextFromAttachments([
       ReceiptAttachmentRecord(

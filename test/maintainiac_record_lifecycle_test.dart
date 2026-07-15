@@ -1,0 +1,40 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/records/maintainiac_record_lifecycle.dart';
+
+void main() {
+  test('shared lifecycle preserves delete and restore history', () {
+    final created = DateTime.utc(2026, 7, 15, 12);
+    final deleted = created.add(const Duration(minutes: 1));
+    final restored = deleted.add(const Duration(minutes: 1));
+    final lifecycle =
+        MaintainiacRecordLifecycle(createdAt: created, updatedAt: created)
+            .deleted(deleted, event: 'removed record')
+            .restored(restored, event: 'restored record');
+
+    expect(lifecycle.state, MaintainiacRecordState.active);
+    expect(lifecycle.deletedAt, isNull);
+    expect(lifecycle.revision, 3);
+    expect(lifecycle.auditEvents, hasLength(2));
+  });
+
+  test('shared draft checkpoint saves every update locally', () async {
+    final store = MaintainiacRecordDraftStore.memory();
+    final created = DateTime.utc(2026, 7, 15, 12);
+    await store.save(
+      module: 'expenses',
+      id: 'draft-1',
+      payload: const {'merchant': 'Store'},
+      now: created,
+    );
+    final saved = await store.save(
+      module: 'expenses',
+      id: 'draft-1',
+      payload: const {'merchant': 'Store', 'total': 18.75},
+      now: created.add(const Duration(seconds: 1)),
+    );
+
+    expect(saved.lifecycle.revision, 2);
+    expect(store.draftFor('expenses', 'draft-1')?.payload['total'], 18.75);
+    expect(store.draftsFor('expenses'), hasLength(1));
+  });
+}

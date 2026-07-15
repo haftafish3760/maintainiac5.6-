@@ -35,6 +35,7 @@ class ExpenseReceiptDraftRecord {
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
     this.odometerReading,
+    this.editingReceiptId,
     this.sourceScreen = 'expenses',
     this.lines = const [],
   });
@@ -90,6 +91,7 @@ class ExpenseReceiptDraftRecord {
       enteredTotal: _expenseDouble(map['enteredTotal']),
       trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
       odometerReading: _expenseInt(map['odometerReading']),
+      editingReceiptId: _nullableExpenseString(map['editingReceiptId']),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
       updatedAt: _expenseDateTime(map['updatedAt']) ?? DateTime.now(),
       lines:
@@ -133,6 +135,7 @@ class ExpenseReceiptDraftRecord {
   final double? enteredTotal;
   final bool trackMaterialsInInventory;
   final int? odometerReading;
+  final String? editingReceiptId;
   final String sourceScreen;
   final DateTime updatedAt;
   final List<ExpenseReceiptLineRecord> lines;
@@ -156,6 +159,7 @@ class ExpenseReceiptDraftRecord {
         enteredTax != null ||
         enteredTotal != null ||
         odometerReading != null ||
+        editingReceiptId != null ||
         lines.isNotEmpty;
   }
 
@@ -210,6 +214,7 @@ class ExpenseReceiptDraftRecord {
       'enteredTotal': enteredTotal,
       'trackMaterialsInInventory': trackMaterialsInInventory,
       'odometerReading': odometerReading,
+      'editingReceiptId': editingReceiptId,
       'sourceScreen': sourceScreen,
       'updatedAt': updatedAt.toIso8601String(),
       'lines': [for (final line in lines) line.toMap()],

@@ -5,7 +5,10 @@ extension _ExpenseReceiptEntryLifecycleHelpers
   void _initReceiptEntryState() {
     _screenOpenedAtUtc = DateTime.now().toUtc();
     _draftId =
-        widget.draftId ?? 'EXPD-${DateTime.now().microsecondsSinceEpoch}';
+        widget.draftId ??
+        (widget.receiptId == null
+            ? 'EXPD-${DateTime.now().microsecondsSinceEpoch}'
+            : 'EXPD-EDIT-${widget.receiptId}');
     final date = widget.initialDate ?? DateTime.now();
     _selectedDate = DateTime(date.year, date.month, date.day);
     _receiptAttachments.addAll(widget.initialAttachments);
@@ -74,6 +77,11 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     _draftLoaded = true;
     final receiptId = widget.receiptId;
     if (receiptId != null) {
+      final editDraft = _drafts?.draftById(_draftId);
+      if (editDraft?.editingReceiptId == receiptId) {
+        _applyDraft(editDraft!);
+        return;
+      }
       final receipt = ExpenseLedgerScope.of(context).receiptById(receiptId);
       if (receipt == null) return;
       _applyReceipt(receipt);
@@ -138,11 +146,8 @@ extension _ExpenseReceiptEntryLifecycleHelpers
       }
     }
     _draftTimer?.cancel();
-    if (!_savedReceipt && !_isEditingReceipt) {
+    if (!_savedReceipt) {
       unawaited(_saveDraftNow());
-    }
-    if (!_savedReceipt && _isEditingReceipt) {
-      unawaited(_discardUncommittedEditProofs());
     }
     for (final controller in [
       _storeController,
@@ -184,18 +189,6 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     _salesTaxController.dispose();
     _receiptTotalController.dispose();
     _receiptScrollController.dispose();
-  }
-
-  Future<void> _discardUncommittedEditProofs() {
-    final originalIds = widget.initialAttachments
-        .map((attachment) => attachment.id)
-        .toSet();
-    final uncommitted = _receiptAttachments.where(
-      (attachment) =>
-          attachment.storageState == ReceiptAttachmentStorageState.staged &&
-          !originalIds.contains(attachment.id),
-    );
-    return ReceiptProofStorage.instance.deleteStagedAttachments(uncommitted);
   }
 
   void _trackMerchantUserEdit() {
