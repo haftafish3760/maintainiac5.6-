@@ -83,4 +83,18 @@ void main() {
     );
     expect(store.draftFor('expenses', 'draft-no-space'), isNull);
   });
+
+  test('shared draft store rejects ambiguous durable keys', () async {
+    final store = MaintainiacRecordDraftStore.memory();
+
+    await expectLater(
+      () => store.save(module: '', id: 'draft', payload: const {}),
+      throwsArgumentError,
+    );
+    await expectLater(
+      () => store.save(module: 'expenses', id: 'draft:1', payload: const {}),
+      throwsArgumentError,
+    );
+    expect(store.draftsFor('expenses'), isEmpty);
+  });
 }

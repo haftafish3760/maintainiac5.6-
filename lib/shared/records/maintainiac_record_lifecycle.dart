@@ -194,6 +194,7 @@ class MaintainiacRecordDraftStore {
     required Map<String, dynamic> payload,
     DateTime? now,
   }) async {
+    _validateDraftKey(module, id);
     await _ensureStorageForDraftSave();
     final time = now ?? DateTime.now();
     final existing = draftFor(module, id);
@@ -227,6 +228,15 @@ class MaintainiacRecordDraftStore {
     if (check == null) return;
     final storage = await check();
     if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
+
+  void _validateDraftKey(String module, String id) {
+    if (module.trim().isEmpty || id.trim().isEmpty) {
+      throw ArgumentError('A draft needs both a module and a stable ID.');
+    }
+    if (module.contains(':') || id.contains(':')) {
+      throw ArgumentError('Draft module and ID values cannot contain a colon.');
+    }
   }
 
   Future<void> remove(String module, String id) async {
