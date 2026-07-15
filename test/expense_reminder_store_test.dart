@@ -6,6 +6,25 @@ import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
+  test('rejects corrupt persisted reminder lifecycle metadata', () {
+    expect(
+      () => ExpenseReminderRecord.fromMap({
+        'id': 'corrupt-reminder',
+        'title': 'Broken reminder',
+        'dueAt': '2026-07-15T12:00:00.000Z',
+        'createdAt': '2026-07-15T12:00:00.000Z',
+        'updatedAt': '2026-07-15T12:00:00.000Z',
+        'lifecycle': {
+          'createdAt': '2026-07-15T12:00:00.000Z',
+          'updatedAt': '2026-07-15T12:00:00.000Z',
+          'revision': 2,
+          'state': 'deleted',
+        },
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('queued reminder save and delete preserve lifecycle order', () async {
     final reminders = ExpenseReminderController.memory();
     final record = ExpenseReminderRecord(

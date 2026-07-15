@@ -50,12 +50,7 @@ class ExpenseReminderRecord {
       active: map['active'] != false,
       createdAt: DateTime.tryParse('${map['createdAt'] ?? ''}') ?? now,
       updatedAt: DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? now,
-      lifecycle: map['lifecycle'] is Map
-          ? MaintainiacRecordLifecycle.fromMap(
-              map['lifecycle'] as Map,
-              fallbackTime: now,
-            )
-          : null,
+      lifecycle: _decodeReminderLifecycle(map['lifecycle']),
     );
   }
 
@@ -169,6 +164,47 @@ DateTime _recurringOccurrence(
   );
 }
 
+MaintainiacRecordLifecycle? _decodeReminderLifecycle(Object? value) {
+  if (value == null) return null;
+  if (value is! Map) {
+    throw const FormatException('Reminder lifecycle is corrupt.');
+  }
+  final createdAt = DateTime.tryParse('${value['createdAt'] ?? ''}');
+  final updatedAt = DateTime.tryParse('${value['updatedAt'] ?? ''}');
+  final deletedAt = value['deletedAt'] == null
+      ? null
+      : DateTime.tryParse('${value['deletedAt']}');
+  final revision = value['revision'];
+  final stateName = '${value['state'] ?? ''}';
+  final states = MaintainiacRecordState.values.where(
+    (state) => state.name == stateName,
+  );
+  if (createdAt == null ||
+      updatedAt == null ||
+      updatedAt.isBefore(createdAt) ||
+      revision is! int ||
+      revision < 1 ||
+      states.length != 1 ||
+      (stateName == MaintainiacRecordState.deleted.name && deletedAt == null) ||
+      (stateName == MaintainiacRecordState.active.name && deletedAt != null) ||
+      (deletedAt != null &&
+          (deletedAt.isBefore(createdAt) || deletedAt.isAfter(updatedAt)))) {
+    throw const FormatException('Reminder lifecycle is corrupt.');
+  }
+  return MaintainiacRecordLifecycle(
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+    revision: revision,
+    state: states.single,
+    deletedAt: deletedAt,
+    auditEvents:
+        (value['auditEvents'] as List?)?.whereType<String>().toList(
+          growable: false,
+        ) ??
+        const [],
+  );
+}
+
 typedef ExpenseReminderStorageCheck = Future<AppStorageCheck> Function();
 
 class ExpenseReminderController extends ChangeNotifier {
@@ -209,7 +245,11 @@ class ExpenseReminderController extends ChangeNotifier {
       if (value is ExpenseReminderRecord) {
         reminders.add(value);
       } else if (value is Map) {
-        reminders.add(ExpenseReminderRecord.fromMap(value));
+        try {
+          reminders.add(ExpenseReminderRecord.fromMap(value));
+        } on FormatException {
+          continue;
+        }
       }
     }
     reminders.sort((a, b) => a.dueAt.compareTo(b.dueAt));
