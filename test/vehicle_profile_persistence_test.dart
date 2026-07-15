@@ -67,6 +67,23 @@ void main() {
     },
   );
 
+  test('rejects duplicate stable vehicle IDs', () async {
+    final appState = await AppStateController.create();
+    final vehicle = VehicleProfile(id: 'vehicle-duplicate', nickname: 'Van');
+    await appState.addVehicle(vehicle);
+
+    await expectLater(
+      () => appState.addVehicle(
+        VehicleProfile(id: vehicle.id, nickname: 'Different label'),
+      ),
+      throwsArgumentError,
+    );
+    expect(
+      appState.allVehicles.where((item) => item.id == vehicle.id),
+      hasLength(1),
+    );
+  });
+
   test(
     'deleting the active vehicle archives its historical identity',
     () async {

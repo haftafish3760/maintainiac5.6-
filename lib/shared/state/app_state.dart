@@ -360,6 +360,13 @@ class AppStateController extends ChangeNotifier {
             usage: vehicle.usage,
           )
         : vehicle;
+    if (_vehicles.any((item) => item.id == storedVehicle.id)) {
+      throw ArgumentError.value(
+        storedVehicle.id,
+        'vehicle.id',
+        'Vehicle IDs must be unique.',
+      );
+    }
     final nextVehicles = [..._vehicles, storedVehicle];
     final nextActiveVehicle = _activeVehicle ?? storedVehicle;
     await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
