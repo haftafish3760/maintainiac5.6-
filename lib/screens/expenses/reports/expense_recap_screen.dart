@@ -51,10 +51,10 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
         ? null
         : odometerVehicleIdForVehicleId(
             _selectedVehicleId,
-            fallbackLabel: appState.vehicles
+            fallbackLabel: appState.allVehicles
                 .firstWhere(
                   (vehicle) => vehicle.id == _selectedVehicleId,
-                  orElse: () => appState.activeVehicle!,
+                  orElse: () => VehicleProfile(nickname: 'Vehicle'),
                 )
                 .nickname,
           );
@@ -98,8 +98,8 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
           _RecapScopePanel(
             selectedVehicleId: _selectedVehicleId,
             selectedWorkProfileId: _selectedWorkProfileId,
-            vehicles: appState.vehicles,
-            workProfiles: profiles.profiles,
+            vehicles: appState.allVehicles,
+            workProfiles: profiles.allProfiles,
             onVehicleChanged: (vehicleId) =>
                 setState(() => _selectedVehicleId = vehicleId),
             onWorkProfileChanged: (profileId) =>

@@ -38,7 +38,12 @@ class _RecapScopePanel extends StatelessWidget {
                 label: 'All profiles · Grand Total',
               ),
               for (final profile in workProfiles)
-                _RecapScopeEntry(id: profile.id, label: profile.name),
+                _RecapScopeEntry(
+                  id: profile.id,
+                  label: profile.isArchived
+                      ? '${profile.name} · Archived'
+                      : profile.name,
+                ),
             ],
             onChanged: onWorkProfileChanged,
           ),
@@ -49,7 +54,12 @@ class _RecapScopePanel extends StatelessWidget {
             entries: [
               const _RecapScopeEntry(id: '', label: 'All vehicles'),
               for (final vehicle in vehicles)
-                _RecapScopeEntry(id: vehicle.id, label: vehicle.displayName),
+                _RecapScopeEntry(
+                  id: vehicle.id,
+                  label: vehicle.isArchived
+                      ? '${vehicle.displayName} · Archived'
+                      : vehicle.displayName,
+                ),
             ],
             onChanged: onVehicleChanged,
           ),
