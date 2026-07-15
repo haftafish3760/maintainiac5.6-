@@ -165,6 +165,7 @@ class MaintainiacRecordDraftStore {
   );
 
   MaintainiacRecordDraft? draftFor(String module, String id) {
+    if (!_hasValidDraftKey(module, id)) return null;
     final box = _box;
     final value = box == null ? _memory['$module:$id'] : box.get('$module:$id');
     if (value is MaintainiacRecordDraft) return value;
@@ -172,6 +173,7 @@ class MaintainiacRecordDraftStore {
   }
 
   List<MaintainiacRecordDraft> draftsFor(String module) {
+    if (module.trim().isEmpty || module.contains(':')) return const [];
     final box = _box;
     final drafts = <MaintainiacRecordDraft>[];
     for (final value in box == null ? _memory.values : box.values) {
@@ -239,7 +241,14 @@ class MaintainiacRecordDraftStore {
     }
   }
 
+  bool _hasValidDraftKey(String module, String id) =>
+      module.trim().isNotEmpty &&
+      id.trim().isNotEmpty &&
+      !module.contains(':') &&
+      !id.contains(':');
+
   Future<void> remove(String module, String id) async {
+    if (!_hasValidDraftKey(module, id)) return;
     final key = '$module:$id';
     final box = _box;
     if (box == null) {
