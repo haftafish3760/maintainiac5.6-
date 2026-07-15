@@ -73,6 +73,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
   final Box<dynamic>? _box;
   final _memory = <String, ExpenseWorkProfile>{};
   String? _memoryActiveProfileId;
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<ExpenseWorkProfileController> create() async {
     final controller = ExpenseWorkProfileController._(
@@ -129,18 +130,25 @@ class ExpenseWorkProfileController extends ChangeNotifier {
       _memoryActiveProfileId ??
       defaultProfileId;
 
-  Future<ExpenseWorkProfile> save(ExpenseWorkProfile profile) async {
+  Future<ExpenseWorkProfile> save(ExpenseWorkProfile profile) =>
+      _enqueue(() => _save(profile));
+
+  Future<ExpenseWorkProfile> _save(ExpenseWorkProfile profile) async {
     final name = profile.name.trim();
     if (name.isEmpty) throw ArgumentError.value(name, 'name', 'Required');
     final now = DateTime.now();
     final id = profile.id.trim().isEmpty
         ? 'expense_work_${now.microsecondsSinceEpoch}'
         : profile.id.trim();
+    final existing = profileById(id);
+    if (existing != null && profile.updatedAt.isBefore(existing.updatedAt)) {
+      throw StateError('Reload the newer work profile before saving changes.');
+    }
     final saved = ExpenseWorkProfile(
       id: id,
       name: name,
       isDefault: id == defaultProfileId,
-      createdAt: profile.createdAt,
+      createdAt: existing?.createdAt ?? profile.createdAt,
       updatedAt: now,
       archivedAt: id == defaultProfileId ? null : profile.archivedAt,
     );
@@ -149,7 +157,9 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     return saved;
   }
 
-  Future<void> select(String profileId) async {
+  Future<void> select(String profileId) => _enqueue(() => _select(profileId));
+
+  Future<void> _select(String profileId) async {
     if (!profiles.any((profile) => profile.id == profileId)) {
       throw ArgumentError.value(profileId, 'profileId', 'Unknown work profile');
     }
@@ -161,7 +171,9 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> delete(String profileId) async {
+  Future<void> delete(String profileId) => _enqueue(() => _delete(profileId));
+
+  Future<void> _delete(String profileId) async {
     if (profileId == defaultProfileId) {
       throw StateError('The default work profile cannot be deleted.');
     }
@@ -169,11 +181,13 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     if (profile == null || profile.isArchived) return;
     final now = DateTime.now();
     await _writeProfile(profile.copyWith(updatedAt: now, archivedAt: now));
-    if (_activeProfileId == profileId) await select(defaultProfileId);
+    if (_activeProfileId == profileId) await _select(defaultProfileId);
     notifyListeners();
   }
 
-  Future<void> restore(String profileId) async {
+  Future<void> restore(String profileId) => _enqueue(() => _restore(profileId));
+
+  Future<void> _restore(String profileId) async {
     final profile = profileById(profileId);
     if (profile == null || !profile.isArchived) return;
     await _writeProfile(
@@ -213,6 +227,12 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     } else {
       await _box.put(profile.id, profile.toMap());
     }
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
 

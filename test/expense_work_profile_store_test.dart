@@ -37,6 +37,26 @@ void main() {
     );
   });
 
+  test('an older profile edit cannot overwrite a newer local edit', () async {
+    final profiles = ExpenseWorkProfileController.memory();
+    final original = await profiles.save(
+      ExpenseWorkProfile(
+        id: 'profile-order',
+        name: 'Original',
+        createdAt: DateTime.utc(2026, 7, 15),
+        updatedAt: DateTime.utc(2026, 7, 15),
+      ),
+    );
+    final newer = await profiles.save(original.copyWith(name: 'Newer'));
+
+    await expectLater(
+      () => profiles.save(original.copyWith(name: 'Stale')),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(profiles.profileById(original.id)?.name, newer.name);
+  });
+
   test(
     'the default profile cannot be archived through a saved update',
     () async {
