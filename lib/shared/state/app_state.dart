@@ -433,7 +433,8 @@ class AppStateController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectCompanyScope() {
+  Future<void> selectCompanyScope() async {
+    await _writeVehicleSnapshot(_vehicles, null);
     _activeVehicle = null;
     notifyListeners();
   }
@@ -528,10 +529,12 @@ class AppStateController extends ChangeNotifier {
       ..addAll(restored);
     final activeId = snapshot['activeVehicleId']?.toString();
     final activeVehicles = vehicles;
-    _activeVehicle = activeVehicles.firstWhere(
-      (vehicle) => vehicle.id == activeId,
-      orElse: () => activeVehicles.first,
-    );
+    _activeVehicle = activeId == null || activeVehicles.isEmpty
+        ? null
+        : activeVehicles.firstWhere(
+            (vehicle) => vehicle.id == activeId,
+            orElse: () => activeVehicles.first,
+          );
     notifyListeners();
   }
 

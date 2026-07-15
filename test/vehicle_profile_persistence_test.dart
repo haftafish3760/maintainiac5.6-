@@ -67,6 +67,19 @@ void main() {
     },
   );
 
+  test('all-vehicles scope persists across an app restart', () async {
+    final first = await AppStateController.create();
+    await first.selectCompanyScope();
+    expect(first.activeVehicle, isNull);
+
+    await Hive.close();
+    Hive.init(hiveDirectory.path);
+    final restored = await AppStateController.create();
+
+    expect(restored.activeVehicle, isNull);
+    expect(restored.vehicles, isNotEmpty);
+  });
+
   test('rejects duplicate stable vehicle IDs', () async {
     final appState = await AppStateController.create();
     final vehicle = VehicleProfile(id: 'vehicle-duplicate', nickname: 'Van');
