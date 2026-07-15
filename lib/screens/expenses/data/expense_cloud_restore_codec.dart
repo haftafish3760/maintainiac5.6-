@@ -158,6 +158,54 @@ class ExpenseCloudRestoredReceipt {
   final List<ExpenseCloudProofPointer> proofPointers;
 }
 
+/// Storage facts for a user-authorized restore choice.
+///
+/// The estimate intentionally separates structured records from proof files:
+/// records-only restores do not require downloading proof bytes, while a full
+/// restore can disclose the known proof-file total before it starts.
+class ExpenseCloudRestoreEstimate {
+  const ExpenseCloudRestoreEstimate({
+    required this.recordCount,
+    required this.proofCount,
+    required this.knownProofBytes,
+    required this.proofsWithUnknownSize,
+  });
+
+  factory ExpenseCloudRestoreEstimate.fromReceipts(
+    Iterable<ExpenseCloudRestoredReceipt> receipts,
+  ) {
+    var recordCount = 0;
+    var proofCount = 0;
+    var knownProofBytes = 0;
+    var proofsWithUnknownSize = 0;
+    for (final receipt in receipts) {
+      recordCount += 1;
+      for (final proof in receipt.proofPointers) {
+        proofCount += 1;
+        final byteSize = proof.byteSize;
+        if (byteSize == null || byteSize < 0) {
+          proofsWithUnknownSize += 1;
+        } else {
+          knownProofBytes += byteSize;
+        }
+      }
+    }
+    return ExpenseCloudRestoreEstimate(
+      recordCount: recordCount,
+      proofCount: proofCount,
+      knownProofBytes: knownProofBytes,
+      proofsWithUnknownSize: proofsWithUnknownSize,
+    );
+  }
+
+  final int recordCount;
+  final int proofCount;
+  final int knownProofBytes;
+  final int proofsWithUnknownSize;
+
+  bool get hasCompleteProofByteEstimate => proofsWithUnknownSize == 0;
+}
+
 class ExpenseCloudProofPointer {
   const ExpenseCloudProofPointer({
     required this.id,

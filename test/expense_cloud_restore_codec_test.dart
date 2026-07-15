@@ -82,4 +82,57 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test(
+    'estimates proof storage separately from structured restore records',
+    () {
+      final knownProof = ExpenseCloudRestoredReceipt(
+        receipt: ExpenseReceiptRecord(
+          id: 'known-proof',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          lines: const [],
+        ),
+        proofPointers: const [
+          ExpenseCloudProofPointer(
+            id: 'proof-1',
+            storagePath: 'receipt-proofs/optimized/proof-1',
+            kind: ReceiptAttachmentKind.photo,
+            mimeType: 'image/jpeg',
+            byteSize: 1234,
+            fileHashSha256: '',
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          ),
+        ],
+      );
+      final unknownProof = ExpenseCloudRestoredReceipt(
+        receipt: ExpenseReceiptRecord(
+          id: 'unknown-proof',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          lines: const [],
+        ),
+        proofPointers: const [
+          ExpenseCloudProofPointer(
+            id: 'proof-2',
+            storagePath: 'receipt-proofs/pdf/proof-2',
+            kind: ReceiptAttachmentKind.pdf,
+            mimeType: 'application/pdf',
+            byteSize: null,
+            fileHashSha256: '',
+            dataSaverLevel: ReceiptDataSaverLevel.original,
+          ),
+        ],
+      );
+
+      final estimate = ExpenseCloudRestoreEstimate.fromReceipts([
+        knownProof,
+        unknownProof,
+      ]);
+
+      expect(estimate.recordCount, 2);
+      expect(estimate.proofCount, 2);
+      expect(estimate.knownProofBytes, 1234);
+      expect(estimate.proofsWithUnknownSize, 1);
+      expect(estimate.hasCompleteProofByteEstimate, isFalse);
+    },
+  );
 }
