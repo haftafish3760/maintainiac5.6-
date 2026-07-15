@@ -87,11 +87,16 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
             onBackupNow: () async {
               final backup = ExpenseCloudBackupScope.maybeOf(context);
               if (backup == null) return;
-              await backup.syncLocalSnapshot();
+              final result = await backup.syncLocalSnapshot();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Expense backup request finished.'),
+                SnackBar(
+                  content: Text(
+                    result.completed
+                        ? 'Expense backup completed.'
+                        : result.reason ??
+                              'Expense backup is still pending. Your local records remain safe.',
+                  ),
                 ),
               );
             },

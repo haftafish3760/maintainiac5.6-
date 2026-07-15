@@ -360,6 +360,17 @@ void main() {
     expect(result.status, ExpenseScheduledBackupStatus.notAuthorized);
     expect(result.didAttempt, isFalse);
   });
+
+  test(
+    'noop cloud mirror reports that a manual backup needs an identity',
+    () async {
+      final result = await const NoopExpenseCloudBackupMirror()
+          .syncLocalSnapshot();
+
+      expect(result.completed, isFalse);
+      expect(result.reason, contains('Sign in'));
+    },
+  );
 }
 
 Future<ExpenseCloudBackupService> _service({

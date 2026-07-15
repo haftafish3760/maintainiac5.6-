@@ -356,6 +356,13 @@ class ExpenseCloudBackupResult {
       status = MaintainiacFirestoreUploadStatus.empty,
       reason = 'The local receipt no longer exists.';
 
+  const ExpenseCloudBackupResult.deliveryUnavailable(String this.reason)
+    : queuedCount = 0,
+      attemptedCount = 0,
+      uploadedCount = 0,
+      failedCount = 1,
+      status = MaintainiacFirestoreUploadStatus.failed;
+
   final int queuedCount;
   final int attemptedCount;
   final int uploadedCount;
@@ -442,7 +449,7 @@ class _ExpenseCloudIdentity {
 abstract interface class ExpenseCloudBackupMirror {
   Future<void> queueReceipt(String receiptId);
 
-  Future<void> syncLocalSnapshot();
+  Future<ExpenseCloudBackupResult> syncLocalSnapshot();
 
   Future<ExpenseScheduledBackupResult> syncScheduledSnapshot({
     required ExpenseBackupNetworkAvailability network,
@@ -457,7 +464,8 @@ class NoopExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   Future<void> queueReceipt(String receiptId) async {}
 
   @override
-  Future<void> syncLocalSnapshot() async {}
+  Future<ExpenseCloudBackupResult> syncLocalSnapshot() async =>
+      const ExpenseCloudBackupResult.identityRequired();
 
   @override
   Future<ExpenseScheduledBackupResult> syncScheduledSnapshot({
@@ -558,11 +566,13 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   }
 
   @override
-  Future<void> syncLocalSnapshot() async {
+  Future<ExpenseCloudBackupResult> syncLocalSnapshot() async {
     try {
-      await _schedule(_syncSnapshot);
+      return await _schedule(_syncSnapshot);
     } catch (_) {
-      // A later user-authorized retry can use the local source of truth.
+      return const ExpenseCloudBackupResult.deliveryUnavailable(
+        'Backup could not be completed. Your local records remain safe and can be retried.',
+      );
     }
   }
 
@@ -618,18 +628,22 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     await service.flushPaths([queued.documentPath!], queuedCount: 1);
   }
 
-  Future<void> _syncSnapshot() async {
+  Future<ExpenseCloudBackupResult> _syncSnapshot() async {
     final service = _serviceForCurrentUser();
     final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) return;
+    if (service == null || user == null) {
+      return const ExpenseCloudBackupResult.identityRequired();
+    }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
         authenticatedUid: user.uid,
       );
     } catch (_) {
-      return;
+      return const ExpenseCloudBackupResult.deliveryUnavailable(
+        'Backup could not reach your account workspace. Your local records remain safe and can be retried.',
+      );
     }
-    await service.backupLocalSnapshot();
+    return service.backupLocalSnapshot();
   }
 
   Future<ExpenseScheduledBackupResult> _syncScheduledSnapshot({
