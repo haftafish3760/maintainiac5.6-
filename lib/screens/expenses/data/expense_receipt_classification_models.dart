@@ -2,6 +2,8 @@ part of 'expense_receipt_classifier.dart';
 
 enum ExpenseReceiptClassificationKind {
   ambiguous,
+  notReceipt,
+  unsupported,
   expenseReceipt,
   fuel,
   materials,

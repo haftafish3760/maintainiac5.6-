@@ -95,6 +95,26 @@ TOTAL 51.74
     expect(result.confidenceLabel, 'Low');
   });
 
+  test('does not pretend unknown text is a receipt', () {
+    final result = ExpenseReceiptClassifier.classifyText('');
+
+    expect(result.kind, ExpenseReceiptClassificationKind.notReceipt);
+    expect(result.category, isNull);
+    expect(result.title, 'Not Clearly a Receipt');
+  });
+
+  test('marks message-only unsupported shares without forcing a category', () {
+    final result = ExpenseReceiptClassifier.classifySharedReceipt(
+      attachments: const [],
+      importedText: '',
+      messages: const ['archive.zip could not be used as receipt proof.'],
+    );
+
+    expect(result.kind, ExpenseReceiptClassificationKind.unsupported);
+    expect(result.category, isNull);
+    expect(result.title, 'Unsupported Receipt Import');
+  });
+
   test('shared PDF document signals influence destination suggestion', () {
     final receipt = ExpenseReceiptClassifier.classifySharedReceipt(
       attachments: [

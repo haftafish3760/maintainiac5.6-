@@ -154,6 +154,8 @@ class _IncomingReceiptDestinationScreenState
   ) {
     switch (suggestion.kind) {
       case ExpenseReceiptClassificationKind.ambiguous:
+      case ExpenseReceiptClassificationKind.notReceipt:
+      case ExpenseReceiptClassificationKind.unsupported:
         _openReceipt(context);
       case ExpenseReceiptClassificationKind.fuel:
         _openReceipt(context, initialCategory: 'Fuel');

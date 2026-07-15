@@ -11,6 +11,15 @@ class ExpenseReceiptClassifier {
     required String importedText,
     required List<String> messages,
   }) {
+    if (attachments.isEmpty &&
+        importedText.trim().isEmpty &&
+        messages.any((message) => message.trim().isNotEmpty)) {
+      return _classificationFor(
+        ExpenseReceiptClassificationKind.unsupported,
+        score: 0,
+        secondScore: 0,
+      );
+    }
     final haystack = [
       importedText,
       ...messages,
@@ -43,7 +52,7 @@ class ExpenseReceiptClassifier {
       return _classificationFor(
         hasPdfAttachment
             ? ExpenseReceiptClassificationKind.expenseReceipt
-            : ExpenseReceiptClassificationKind.otherDocument,
+            : ExpenseReceiptClassificationKind.notReceipt,
         score: hasPdfAttachment ? 1 : 0,
         secondScore: 0,
       );
@@ -94,6 +103,25 @@ class ExpenseReceiptClassifier {
         confidence: confidence,
         score: score,
       ),
+      ExpenseReceiptClassificationKind.notReceipt => ExpenseReceiptClassification(
+        kind: kind,
+        title: 'Not Clearly a Receipt',
+        category: null,
+        detail:
+            'Maintainiac could not find enough receipt evidence to suggest a category. You can still choose where it belongs or enter it manually.',
+        confidence: confidence,
+        score: score,
+      ),
+      ExpenseReceiptClassificationKind.unsupported =>
+        ExpenseReceiptClassification(
+          kind: kind,
+          title: 'Unsupported Receipt Import',
+          category: null,
+          detail:
+              'Maintainiac could not use the shared item as receipt proof. You can attach a photo, select a supported file, or enter the receipt manually.',
+          confidence: confidence,
+          score: score,
+        ),
       ExpenseReceiptClassificationKind.fuel => ExpenseReceiptClassification(
         kind: kind,
         title: 'Fuel Receipt',
