@@ -15,13 +15,13 @@ void main() {
     expect(cameraActivity, contains('orientationCorrectionEnabled'));
     expect(
       cameraActivity,
-      contains('OCR reads the temporary full-quality photo first.'),
+      contains('Maintainiac reads the temporary full-quality photo first.'),
     );
     expect(cameraActivity, isNot(contains('OCR reads original first')));
     expect(
       cameraActivity,
       contains(
-        'Smaller saved proof copies are made after the receipt has been read.',
+        'Smaller saved proof copies are made after the receipt is read.',
       ),
     );
     expect(
@@ -64,7 +64,9 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('if (!experimentalLiveReceiptQualityPolicyEnabled()) return false'),
+      contains(
+        'if (!experimentalLiveReceiptQualityPolicyEnabled()) return false',
+      ),
     );
     expect(
       cameraActivity,
@@ -222,8 +224,8 @@ void main() {
     expect(cameraActivity, contains('latestFrameBrightness <= 55.0'));
     expect(cameraActivity, contains('latestFrameBrightness <= 70.0'));
     expect(cameraActivity, contains('latestFrameBrightness <= 104.0'));
-    expect(cameraActivity, contains('latestFrameBrightness <= 138.0'));
-    expect(cameraActivity, contains('latestFrameBrightness <= 150.0'));
+    expect(cameraActivity, isNot(contains('latestFrameBrightness <= 138.0')));
+    expect(cameraActivity, isNot(contains('latestFrameBrightness <= 150.0')));
     expect(cameraActivity, contains('latestFrameBrightness >= 238.0'));
     expect(cameraActivity, contains('"native_auto_exposure_kept_for_capture"'));
     expect(

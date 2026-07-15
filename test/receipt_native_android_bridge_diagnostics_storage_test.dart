@@ -194,22 +194,18 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'latestFrameBrightness <= 104.0 -> (current + 2).coerceAtMost(range.upper)',
+          'latestFrameBrightness <= 104.0 -> (current + 1).coerceAtMost(range.upper)',
         ),
       );
       expect(
         cameraActivity,
-        contains(
-          'latestFrameBrightness <= 138.0 -> (current + 2).coerceAtMost(range.upper)',
-        ),
+        isNot(contains('latestFrameBrightness <= 138.0 ->')),
       );
       expect(
         cameraActivity,
-        contains(
-          'latestFrameBrightness <= 150.0 -> (current + 1).coerceAtMost(range.upper)',
-        ),
+        isNot(contains('latestFrameBrightness <= 150.0 ->')),
       );
-      expect(cameraActivity, contains('latestFrameBrightness in 150.0..238.0'));
+      expect(cameraActivity, contains('latestFrameBrightness in 104.0..238.0'));
       expect(
         cameraActivity,
         contains(

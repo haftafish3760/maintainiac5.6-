@@ -160,14 +160,10 @@ extension ReceiptCameraViewController {
     if latestFrameBrightness <= 70 {
       return min(current + 1.0, maxBias)
     }
+    // Let the device exposure system keep normal paper at its native baseline. A
+    // last-second lift can slow the shutter and soften small thermal print.
     if latestFrameBrightness <= 104 {
       return min(current + 0.5, maxBias)
-    }
-    if latestFrameBrightness <= 138 {
-      return min(current + 0.5, maxBias)
-    }
-    if latestFrameBrightness <= 150 {
-      return min(current + 0.25, maxBias)
     }
     // Last-second prep should not dim readable bright receipts. Native AE, live assist,
     // and glare guidance handle that while the manual shutter remains predictable.
@@ -178,7 +174,7 @@ extension ReceiptCameraViewController {
   }
 
   func preCaptureExposureSkipDecision() -> String {
-    if latestFrameBrightness >= 150 && latestFrameBrightness <= 238 {
+    if latestFrameBrightness >= 104 && latestFrameBrightness <= 238 {
       return "native_auto_exposure_kept_for_capture"
     }
     if latestFrameBrightness > 238 {
