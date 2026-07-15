@@ -98,8 +98,34 @@ void main() {
       source,
       contains("const Text('Reminder removed. It can be restored.')"),
     );
-    expect(source, contains('controller.restore(reminder.id)'));
+    expect(source, contains('_restoreReminder(controller, reminder.id)'));
   });
+
+  test(
+    'does not delete a reminder when device storage becomes unavailable',
+    () async {
+      var storageAvailable = true;
+      final store = ExpenseReminderController.memory(
+        storageCheck: () async => AppStorageCheck(
+          availableBytes: storageAvailable
+              ? AppStorageGuard.smallRecordWriteBytes * 2
+              : 0,
+          operationBytes: AppStorageGuard.smallRecordWriteBytes,
+          requiredBytes: AppStorageGuard.smallRecordWriteBytes,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+      final saved = await store.save(_reminder('Existing', DateTime(2026, 7)));
+      storageAvailable = false;
+
+      await expectLater(
+        () => store.delete(saved.id),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(store.recordById(saved.id)?.isDeleted, isFalse);
+    },
+  );
 }
 
 ExpenseReminderRecord _reminder(String title, DateTime dueAt) {

@@ -101,9 +101,8 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
                 _ReminderCard(
                   reminder: reminder,
                   onEdit: () => _beginEditing(reminder),
-                  onEnabledChanged: (value) => ExpenseReminderScope.of(
-                    context,
-                  ).setActive(reminder, value),
+                  onEnabledChanged: (value) =>
+                      _setReminderActive(reminder, value),
                   onDelete: () => _removeReminder(reminder),
                 ),
             ],
@@ -227,17 +226,56 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
 
   Future<void> _removeReminder(ExpenseReminderRecord reminder) async {
     final controller = ExpenseReminderScope.of(context);
-    await controller.delete(reminder.id);
+    try {
+      await controller.delete(reminder.id);
+    } on StateError catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message.toString())));
+      }
+      return;
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Reminder removed. It can be restored.'),
         action: SnackBarAction(
           label: 'Restore',
-          onPressed: () => controller.restore(reminder.id),
+          onPressed: () => _restoreReminder(controller, reminder.id),
         ),
       ),
     );
+  }
+
+  Future<void> _setReminderActive(
+    ExpenseReminderRecord reminder,
+    bool active,
+  ) async {
+    try {
+      await ExpenseReminderScope.of(context).setActive(reminder, active);
+    } on StateError catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message.toString())));
+      }
+    }
+  }
+
+  Future<void> _restoreReminder(
+    ExpenseReminderController controller,
+    String reminderId,
+  ) async {
+    try {
+      await controller.restore(reminderId);
+    } on StateError catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message.toString())));
+      }
+    }
   }
 
   Future<ExpenseReminderRecord?> _saveReminderLocally(String title) async {

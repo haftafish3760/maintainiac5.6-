@@ -264,6 +264,7 @@ class ExpenseReminderController extends ChangeNotifier {
   Future<void> delete(String id) async {
     final existing = recordById(id);
     if (existing == null || existing.isDeleted) return;
+    await ensureStorageForLocalSave();
     final now = DateTime.now();
     final lifecycle =
         (existing.lifecycle ??
@@ -284,6 +285,7 @@ class ExpenseReminderController extends ChangeNotifier {
   Future<void> restore(String id) async {
     final existing = recordById(id);
     if (existing == null || !existing.isDeleted) return;
+    await ensureStorageForLocalSave();
     final now = DateTime.now();
     final lifecycle = existing.lifecycle!.restored(
       now,
