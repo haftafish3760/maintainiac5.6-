@@ -195,6 +195,21 @@ class GlobalOdometerController extends ChangeNotifier {
         'Use numbers only for the odometer reading.',
       );
     }
+    final existingSourceEvent = _eventForSource(sourceType, sourceId);
+    if (existingSourceEvent != null) {
+      if (existingSourceEvent.reading == parsed) {
+        return OdometerUpdateResult.success(
+          message:
+              'This odometer reading is already recorded for this receipt.',
+          mileageReview: existingSourceEvent.mileageReview,
+          correctionReview: existingSourceEvent.correctionReview,
+          affectsCurrentReading: existingSourceEvent.affectsCurrentReading,
+        );
+      }
+      return const OdometerUpdateResult.error(
+        'This receipt already has a different odometer history entry. Use the odometer correction flow before changing it.',
+      );
+    }
     if (parsed < _reading) {
       return _handleLowerReading(
         parsed,
@@ -362,6 +377,16 @@ class GlobalOdometerController extends ChangeNotifier {
       wasConfirmed: wasConfirmed,
       mileageReview: mileageReview,
     );
+  }
+
+  OdometerReadingEvent? _eventForSource(String? sourceType, String? sourceId) {
+    final type = sourceType?.trim() ?? '';
+    final id = sourceId?.trim() ?? '';
+    if (type.isEmpty || id.isEmpty) return null;
+    for (final event in _history.reversed) {
+      if (event.sourceType == type && event.sourceId == id) return event;
+    }
+    return null;
   }
 
   Future<void> applyAuditCorrection({

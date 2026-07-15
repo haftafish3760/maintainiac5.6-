@@ -40,6 +40,41 @@ void main() {
     expect(controller.history, hasLength(2));
   });
 
+  test('does not duplicate a receipt-linked odometer history event', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+    const review = OdometerMileageReview(use: OdometerMileageUse.business);
+
+    final first = controller.updateFromText(
+      '1045',
+      mileageReview: review,
+      sourceType: 'expense_receipt',
+      sourceId: 'expense-1',
+    );
+    final repeated = controller.updateFromText(
+      '1045',
+      mileageReview: review,
+      sourceType: 'expense_receipt',
+      sourceId: 'expense-1',
+    );
+
+    expect(first.ok, isTrue);
+    expect(repeated.ok, isTrue);
+    expect(controller.history, hasLength(2));
+    expect(
+      controller
+          .updateFromText(
+            '1050',
+            mileageReview: const OdometerMileageReview(
+              use: OdometerMileageUse.business,
+            ),
+            sourceType: 'expense_receipt',
+            sourceId: 'expense-1',
+          )
+          .ok,
+      isFalse,
+    );
+  });
+
   test('lower odometer reading requires correction review', () {
     final controller = GlobalOdometerController(initialReading: 1000);
     final result = controller.updateFromText('999');
