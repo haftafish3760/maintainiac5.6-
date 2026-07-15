@@ -87,6 +87,9 @@ class ExpenseCloudRestoreCodec {
     }
     final profiles = <ExpenseWorkProfile>[];
     final source = data['profiles'];
+    if (source != null && source is! List) {
+      throw const FormatException('Expense work-profile backup is corrupt.');
+    }
     if (source is List) {
       for (final entry in source) {
         if (entry is! Map) {
@@ -124,6 +127,9 @@ class ExpenseCloudRestoreCodec {
     }
     final vehicles = <VehicleProfile>[];
     final source = data['vehicles'];
+    if (source != null && source is! List) {
+      throw const FormatException('Expense vehicle backup is corrupt.');
+    }
     if (source is List) {
       for (final entry in source) {
         if (entry is! Map || _text(entry['id']).isEmpty) {
@@ -195,7 +201,10 @@ class ExpenseCloudRestoreCodec {
   }
 
   static List<ExpenseCloudProofPointer> _proofPointers(Object? value) {
-    if (value is! List) return const [];
+    if (value == null) return const [];
+    if (value is! List) {
+      throw const FormatException('Expense receipt proof metadata is corrupt.');
+    }
     return List.unmodifiable([
       for (final item in value)
         if (item is Map && _text(item['id']).isNotEmpty)

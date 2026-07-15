@@ -138,6 +138,32 @@ void main() {
     );
   });
 
+  test('rejects malformed directory and proof collection types', () {
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeWorkProfileDirectory({
+        'schema': 'expense_work_profile_directory_backup_v1',
+        'profiles': 'not-a-list',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeVehicleDirectory({
+        'schema': 'expense_vehicle_directory_backup_v1',
+        'vehicles': {'id': 'not-a-list'},
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        'schema': 'expense_receipt_backup_v1',
+        'id': 'bad-proofs',
+        'receiptDate': '2026-07-15T00:00:00.000Z',
+        'proofs': {'id': 'not-a-list'},
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('decodes active and archived vehicle restore metadata', () {
     final restored = ExpenseCloudRestoreCodec.decodeVehicleDirectory({
       'schema': 'expense_vehicle_directory_backup_v1',
