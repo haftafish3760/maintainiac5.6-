@@ -142,7 +142,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
       isDefault: id == defaultProfileId,
       createdAt: profile.createdAt,
       updatedAt: now,
-      archivedAt: profile.archivedAt,
+      archivedAt: id == defaultProfileId ? null : profile.archivedAt,
     );
     await _writeProfile(saved);
     notifyListeners();
@@ -183,7 +183,18 @@ class ExpenseWorkProfileController extends ChangeNotifier {
   }
 
   Future<void> _ensureDefault() async {
-    if (allProfiles.any((profile) => profile.id == defaultProfileId)) return;
+    final defaultProfile = profileById(defaultProfileId);
+    if (defaultProfile != null) {
+      if (defaultProfile.isArchived) {
+        await _writeProfile(
+          defaultProfile.copyWith(
+            updatedAt: DateTime.now(),
+            clearArchivedAt: true,
+          ),
+        );
+      }
+      return;
+    }
     final now = DateTime.now();
     await _writeProfile(
       ExpenseWorkProfile(

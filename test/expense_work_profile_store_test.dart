@@ -38,6 +38,21 @@ void main() {
   });
 
   test(
+    'the default profile cannot be archived through a saved update',
+    () async {
+      final profiles = ExpenseWorkProfileController.memory();
+      final defaultProfile = profiles.activeWorkProfile;
+
+      await profiles.save(
+        defaultProfile.copyWith(archivedAt: DateTime(2026, 7, 15)),
+      );
+
+      expect(profiles.activeWorkProfile.id, defaultProfile.id);
+      expect(profiles.profileById(defaultProfile.id)?.isArchived, isFalse);
+    },
+  );
+
+  test(
     'deleting a work profile archives its stable historical identity',
     () async {
       final profiles = ExpenseWorkProfileController.memory();
