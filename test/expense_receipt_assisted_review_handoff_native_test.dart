@@ -109,13 +109,11 @@ void main() {
     expect(stateActions, contains('_chooseSplitBusinessPercent'));
     expect(
       stateActions,
-      contains('parserNeedsReview: use == _ExpenseLineUse.split'),
+      contains('parserNeedsReview: use == _ExpenseLineUse.unclassified'),
     );
     expect(
       stateActions,
-      contains(
-        "parserReviewLabel: use == _ExpenseLineUse.split ? 'Review' : 'Good'",
-      ),
+      contains("parserReviewLabel: use == _ExpenseLineUse.unclassified"),
     );
     expect(stateActions, contains('_scrollToReceiptReview();'));
     expect(

@@ -232,7 +232,7 @@ extension _ExpenseReceiptEntryParseApplyActions
   }) {
     return _ExpenseReceiptLine(
       description: line.receiptDisplayText,
-      category: line.category,
+      category: _selectedCategoryForParsedReceiptLine(),
       // Parser ownership signals are compatibility evidence for downstream
       // parsers only. The editable Expense record starts unclassified until
       // the user chooses Business, Personal, or Split.
@@ -267,5 +267,10 @@ extension _ExpenseReceiptEntryParseApplyActions
       parserExpenseFamily: line.parserExpenseFamily,
       parserHint: line.parserHint,
     );
+  }
+
+  String _selectedCategoryForParsedReceiptLine() {
+    final selected = widget.initialCategory?.trim() ?? '';
+    return selected.isEmpty ? 'Uncategorized' : selected;
   }
 }

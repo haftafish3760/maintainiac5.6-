@@ -94,7 +94,11 @@ void main() {
         contains("'ocrSourceSectionLineNumber': ?sectionLine"),
       );
       expect(lineModels, contains('bool get isAllocationOnlyLine'));
-      expect(lineModels, contains('rawReceiptText.trim().isNotEmpty'));
+      expect(lineModels, contains('receiptSourceText.isNotEmpty'));
+      expect(
+        entryScreen,
+        contains('category: _selectedCategoryForParsedReceiptLine()'),
+      );
       expect(
         lineModels,
         isNot(
