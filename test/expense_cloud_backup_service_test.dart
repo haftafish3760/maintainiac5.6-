@@ -196,6 +196,43 @@ void main() {
     );
   });
 
+  test(
+    'queues an individual reminder change without a full snapshot',
+    () async {
+      final reminders = ExpenseReminderController.memory();
+      final reminder = await reminders.save(
+        ExpenseReminderRecord(
+          id: 'reminder-1',
+          title: 'Renew insurance',
+          category: 'Insurance',
+          channel: 'In-app',
+          dueAt: DateTime.utc(2026, 8, 1),
+          cadence: ExpenseReminderCadence.yearly,
+          createdAt: DateTime.utc(2026, 7, 15),
+          updatedAt: DateTime.utc(2026, 7, 15),
+        ),
+      );
+      await reminders.delete(reminder.id);
+      final service = await _service(
+        reminders: reminders,
+        organizationId: 'org-1',
+        uid: 'user-1',
+        deviceId: 'device-1',
+      );
+
+      final queued = await service.queueReminder(
+        reminder.id,
+        nowUtc: DateTime.utc(2026, 7, 15, 12),
+      );
+
+      expect(queued.wasQueued, isTrue);
+      expect(
+        queued.documentPath,
+        'orgs/org-1/settings/expense_reminder_reminder-1',
+      );
+    },
+  );
+
   test('app startup does not automatically flush Expense backups', () async {
     final mainSource = await File('lib/main.dart').readAsString();
     final expenseBackupBlock = mainSource.substring(

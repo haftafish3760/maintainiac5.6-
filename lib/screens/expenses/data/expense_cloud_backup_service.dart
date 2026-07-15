@@ -138,6 +138,35 @@ class ExpenseCloudBackupService {
     return ExpenseCloudQueueResult.queued(draft.path);
   }
 
+  /// Queues one durable reminder record, including a tombstone when the user
+  /// deleted it locally.  This keeps an immediate-sync reminder change from
+  /// depending on a later full backup.
+  Future<ExpenseCloudQueueResult> queueReminder(
+    String reminderId, {
+    DateTime? nowUtc,
+  }) async {
+    final reminder = reminders.recordById(reminderId);
+    if (reminder == null) {
+      return const ExpenseCloudQueueResult.localRecordMissing();
+    }
+    final identity = _identityOrNull;
+    if (identity == null) {
+      return const ExpenseCloudQueueResult.identityRequired();
+    }
+    final timestamp = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final draft = ExpenseFirestoreDocumentBuilder.expenseReminderDocument(
+      orgId: identity.organizationId,
+      uid: identity.uid,
+      deviceId: identity.deviceId,
+      reminder: reminder,
+    );
+    await queueStore.enqueueReplacingPendingForPath(
+      draft,
+      queuedAtUtc: timestamp,
+    );
+    return ExpenseCloudQueueResult.queued(draft.path);
+  }
+
   /// Queues all current local Expense records plus the member-scoped settings
   /// document. It deliberately does not flush unrelated queue entries that may
   /// belong to a signed-out account or a different organization.
@@ -370,6 +399,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
            ) {
     appState.addListener(_onVehicleStateChanged);
     workProfiles.addListener(_onWorkProfileStateChanged);
+    _rememberReminderRevisions();
+    reminders.addListener(_onReminderStateChanged);
   }
 
   final ExpenseLedgerController ledger;
@@ -384,6 +415,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   final FirebaseAuth _firebaseAuth;
   final MaintainiacOrganizationBootstrapper _workspaceBootstrapper;
   Future<void> _taskChain = Future<void>.value();
+  final _knownReminderRevisions = <String, int>{};
 
   void _onVehicleStateChanged() {
     unawaited(_schedule(_queueAndSyncVehicleDirectory));
@@ -391,6 +423,38 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   void _onWorkProfileStateChanged() {
     unawaited(_schedule(_queueAndSyncWorkProfileDirectory));
+  }
+
+  void _onReminderStateChanged() {
+    final changedIds = _changedReminderIds();
+    if (changedIds.isEmpty) return;
+    unawaited(_schedule(() => _queueAndSyncReminders(changedIds)));
+  }
+
+  List<String> _changedReminderIds() {
+    final current = <String, int>{
+      for (final reminder in reminders.storedRecords)
+        if (reminder.id.isNotEmpty)
+          reminder.id: reminder.lifecycle?.revision ?? 1,
+    };
+    final changedIds = current.entries
+        .where((entry) => _knownReminderRevisions[entry.key] != entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    _knownReminderRevisions
+      ..clear()
+      ..addAll(current);
+    return changedIds;
+  }
+
+  void _rememberReminderRevisions() {
+    _knownReminderRevisions
+      ..clear()
+      ..addAll({
+        for (final reminder in reminders.storedRecords)
+          if (reminder.id.isNotEmpty)
+            reminder.id: reminder.lifecycle?.revision ?? 1,
+      });
   }
 
   @override
@@ -482,6 +546,27 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
       return;
     }
     await service.flushPaths([queued.documentPath!], queuedCount: 1);
+  }
+
+  Future<void> _queueAndSyncReminders(List<String> reminderIds) async {
+    final service = _serviceForCurrentUser();
+    final user = _firebaseAuth.currentUser;
+    if (service == null || user == null) return;
+    for (final reminderId in reminderIds) {
+      final queued = await service.queueReminder(reminderId);
+      if (!queued.wasQueued ||
+          settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
+        continue;
+      }
+      try {
+        await _workspaceBootstrapper.ensurePersonalWorkspace(
+          authenticatedUid: user.uid,
+        );
+      } catch (_) {
+        return;
+      }
+      await service.flushPaths([queued.documentPath!], queuedCount: 1);
+    }
   }
 
   ExpenseCloudBackupService? _serviceForCurrentUser() {
