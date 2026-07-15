@@ -42,6 +42,30 @@ void main() {
     expect(() => draft.payload['total'] = 18.75, throwsUnsupportedError);
   });
 
+  test('shared draft snapshots deep-copy nested form values', () {
+    final line = <String, dynamic>{'total': 18.75};
+    final lines = <Map<String, dynamic>>[line];
+    final draft = MaintainiacRecordDraft(
+      module: 'expenses',
+      id: 'draft-nested-immutable',
+      payload: {'lines': lines},
+      lifecycle: MaintainiacRecordLifecycle(
+        createdAt: DateTime.utc(2026, 7, 15, 12),
+        updatedAt: DateTime.utc(2026, 7, 15, 12),
+      ),
+    );
+
+    line['total'] = 99.99;
+    lines.add({'total': 4.50});
+    final frozenLines = draft.payload['lines'] as List<dynamic>;
+    final frozenLine = frozenLines.single as Map<dynamic, dynamic>;
+
+    expect(frozenLine['total'], 18.75);
+    expect(frozenLines, hasLength(1));
+    expect(() => frozenLines.add({}), throwsUnsupportedError);
+    expect(() => frozenLine['total'] = 99.99, throwsUnsupportedError);
+  });
+
   test('shared draft checkpoint saves every update locally', () async {
     final store = MaintainiacRecordDraftStore.memory();
     final created = DateTime.utc(2026, 7, 15, 12);

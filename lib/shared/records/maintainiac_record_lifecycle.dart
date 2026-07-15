@@ -109,7 +109,7 @@ class MaintainiacRecordDraft {
     required this.id,
     required Map<String, dynamic> payload,
     required this.lifecycle,
-  }) : payload = Map.unmodifiable(Map<String, dynamic>.from(payload));
+  }) : payload = _freezeDraftPayload(payload);
 
   factory MaintainiacRecordDraft.fromMap(Map<dynamic, dynamic> map) {
     final now = DateTime.now();
@@ -255,3 +255,23 @@ DateTime? _date(Object? value) =>
 
 int? _int(Object? value) =>
     value is int ? value : int.tryParse(value?.toString() ?? '');
+
+Map<String, dynamic> _freezeDraftPayload(Map<String, dynamic> payload) {
+  return Map.unmodifiable({
+    for (final entry in payload.entries)
+      entry.key: _freezeDraftValue(entry.value),
+  });
+}
+
+Object? _freezeDraftValue(Object? value) {
+  if (value is Map) {
+    return Map.unmodifiable({
+      for (final entry in value.entries)
+        entry.key: _freezeDraftValue(entry.value),
+    });
+  }
+  if (value is List) {
+    return List.unmodifiable(value.map(_freezeDraftValue));
+  }
+  return value;
+}
