@@ -349,6 +349,17 @@ void main() {
       expect(service.settings.lastBackupAttemptAt, isNull);
     },
   );
+
+  test('noop cloud mirror never schedules a transfer', () async {
+    final result = await const NoopExpenseCloudBackupMirror()
+        .syncScheduledSnapshot(
+          network: ExpenseBackupNetworkAvailability.wifi,
+          now: DateTime(2026, 7, 15, 9),
+        );
+
+    expect(result.status, ExpenseScheduledBackupStatus.notAuthorized);
+    expect(result.didAttempt, isFalse);
+  });
 }
 
 Future<ExpenseCloudBackupService> _service({

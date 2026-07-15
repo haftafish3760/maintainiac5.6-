@@ -439,6 +439,11 @@ abstract interface class ExpenseCloudBackupMirror {
   Future<void> queueReceipt(String receiptId);
 
   Future<void> syncLocalSnapshot();
+
+  Future<ExpenseScheduledBackupResult> syncScheduledSnapshot({
+    required ExpenseBackupNetworkAvailability network,
+    DateTime? now,
+  });
 }
 
 class NoopExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
@@ -449,6 +454,12 @@ class NoopExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   @override
   Future<void> syncLocalSnapshot() async {}
+
+  @override
+  Future<ExpenseScheduledBackupResult> syncScheduledSnapshot({
+    required ExpenseBackupNetworkAvailability network,
+    DateTime? now,
+  }) async => const ExpenseScheduledBackupResult.notAuthorized();
 }
 
 /// The live Expense backup bridge. It stays local-first: a receipt is queued
@@ -543,12 +554,20 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     return _schedule(_syncSnapshot);
   }
 
+  @override
+  Future<ExpenseScheduledBackupResult> syncScheduledSnapshot({
+    required ExpenseBackupNetworkAvailability network,
+    DateTime? now,
+  }) {
+    return _schedule(() => _syncScheduledSnapshot(network: network, now: now));
+  }
+
   /// Serializes background work without dropping a receipt saved while an
   /// earlier upload is still in flight. Failures remain local and never break
   /// the following queued receipt.
-  Future<void> _schedule(Future<void> Function() action) {
-    final next = _taskChain.then((_) => action()).catchError((_) {});
-    _taskChain = next;
+  Future<T> _schedule<T>(Future<T> Function() action) {
+    final next = _taskChain.then((_) => action());
+    _taskChain = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
 
@@ -584,6 +603,38 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
       return;
     }
     await service.backupLocalSnapshot();
+  }
+
+  Future<ExpenseScheduledBackupResult> _syncScheduledSnapshot({
+    required ExpenseBackupNetworkAvailability network,
+    required DateTime? now,
+  }) async {
+    final service = _serviceForCurrentUser();
+    final user = _firebaseAuth.currentUser;
+    if (service == null || user == null) {
+      return const ExpenseScheduledBackupResult.notAuthorized();
+    }
+    final localNow = (now ?? DateTime.now()).toLocal();
+    if (settings.backupSyncMode != ExpenseBackupSyncMode.scheduled) {
+      return const ExpenseScheduledBackupResult.notAuthorized();
+    }
+    if (!network.permits(settings.backupSchedule.transport)) {
+      return ExpenseScheduledBackupResult.waitingForApprovedNetwork(network);
+    }
+    if (!settings.isScheduledBackupDueAt(
+      localNow,
+      lastAttemptAt: settings.lastBackupAttemptAt,
+    )) {
+      return const ExpenseScheduledBackupResult.notDue();
+    }
+    try {
+      await _workspaceBootstrapper.ensurePersonalWorkspace(
+        authenticatedUid: user.uid,
+      );
+    } catch (_) {
+      return const ExpenseScheduledBackupResult.notAuthorized();
+    }
+    return service.backupScheduledSnapshot(network: network, now: localNow);
   }
 
   Future<void> _queueAndSyncVehicleDirectory() async {
