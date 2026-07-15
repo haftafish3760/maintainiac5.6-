@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 
 void main() {
@@ -63,6 +65,53 @@ void main() {
         restored.activeWorkProfile.id,
         ExpenseWorkProfileController.defaultProfileId,
       );
+    },
+  );
+
+  test(
+    'a historical receipt retains its archived work-profile identity',
+    () async {
+      final profiles = await ExpenseWorkProfileController.create();
+      final profile = await profiles.save(
+        ExpenseWorkProfile(
+          id: 'seasonal-contract',
+          name: 'Seasonal contract',
+          createdAt: DateTime.utc(2026, 7, 15),
+          updatedAt: DateTime.utc(2026, 7, 15),
+        ),
+      );
+      final ledger = await ExpenseLedgerController.create();
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'seasonal-receipt',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          workProfileId: profile.id,
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'seasonal-line',
+              description: 'Parking',
+              category: 'Parking',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 12,
+            ),
+          ],
+        ),
+      );
+      await profiles.delete(profile.id);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final restoredProfiles = await ExpenseWorkProfileController.create();
+      final restoredLedger = await ExpenseLedgerController.create();
+
+      expect(
+        restoredLedger.receiptById('seasonal-receipt')?.workProfileId,
+        profile.id,
+      );
+      expect(restoredProfiles.profileById(profile.id)?.isArchived, isTrue);
     },
   );
 }
