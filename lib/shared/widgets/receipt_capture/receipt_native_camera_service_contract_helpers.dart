@@ -136,10 +136,11 @@ Map<String, Object?> _sessionArguments(
 
 String _receiptCameraUiLocale() {
   final locale = PlatformDispatcher.instance.locale;
-  // The native viewer only owns its own short, operational copy. Keep its
-  // locale contract deliberately small and predictable until app-wide locale
-  // selection is introduced.
-  return locale.languageCode.toLowerCase() == 'es' ? 'es-US' : 'en-US';
+  final language = locale.languageCode.toLowerCase();
+  final country = locale.countryCode?.toUpperCase();
+  if (language == 'fr') return 'fr-CA';
+  if (language == 'es') return 'es-US';
+  return country == 'CA' ? 'en-CA' : 'en-US';
 }
 
 Map<String, Object?> _nextSectionArguments(
