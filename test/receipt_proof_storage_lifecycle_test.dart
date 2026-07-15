@@ -268,44 +268,47 @@ void main() {
     expect(permanentFiles, isEmpty);
   });
 
-  test('receipt proof storage can clean orphan proof files', () async {
-    final kept = File('${Directory.systemTemp.path}/kept_receipt.pdf');
-    final orphan = File('${Directory.systemTemp.path}/orphan_receipt.pdf');
-    final pdf = pw.Document()
-      ..addPage(pw.Page(build: (_) => pw.Text('Counter receipt')));
-    await kept.writeAsBytes(await pdf.save(), flush: true);
-    await orphan.writeAsBytes(await pdf.save(), flush: true);
-    addTearDown(() {
-      if (kept.existsSync()) kept.deleteSync();
-      if (orphan.existsSync()) orphan.deleteSync();
-    });
+  test(
+    'receipt proof storage never auto-deletes permanent proof files',
+    () async {
+      final kept = File('${Directory.systemTemp.path}/kept_receipt.pdf');
+      final orphan = File('${Directory.systemTemp.path}/orphan_receipt.pdf');
+      final pdf = pw.Document()
+        ..addPage(pw.Page(build: (_) => pw.Text('Counter receipt')));
+      await kept.writeAsBytes(await pdf.save(), flush: true);
+      await orphan.writeAsBytes(await pdf.save(), flush: true);
+      addTearDown(() {
+        if (kept.existsSync()) kept.deleteSync();
+        if (orphan.existsSync()) orphan.deleteSync();
+      });
 
-    final savedKept = await ReceiptProofStorage.instance.persistAttachment(
-      ReceiptAttachmentRecord(
-        id: 'pdf-kept',
-        path: kept.path,
-        kind: ReceiptAttachmentKind.pdf,
-        dataSaverLevel: ReceiptDataSaverLevel.original,
-        createdAt: DateTime(2026, 6, 13),
-      ),
-    );
-    final savedOrphan = await ReceiptProofStorage.instance.persistAttachment(
-      ReceiptAttachmentRecord(
-        id: 'pdf-orphan',
-        path: orphan.path,
-        kind: ReceiptAttachmentKind.pdf,
-        dataSaverLevel: ReceiptDataSaverLevel.original,
-        createdAt: DateTime(2026, 6, 13),
-      ),
-    );
+      final savedKept = await ReceiptProofStorage.instance.persistAttachment(
+        ReceiptAttachmentRecord(
+          id: 'pdf-kept',
+          path: kept.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 13),
+        ),
+      );
+      final savedOrphan = await ReceiptProofStorage.instance.persistAttachment(
+        ReceiptAttachmentRecord(
+          id: 'pdf-orphan',
+          path: orphan.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 13),
+        ),
+      );
 
-    await ReceiptProofStorage.instance.cleanOrphanProofFiles(
-      retainedPaths: [savedKept.path],
-    );
+      await ReceiptProofStorage.instance.cleanOrphanProofFiles(
+        retainedPaths: [savedKept.path],
+      );
 
-    expect(await File(savedKept.path).exists(), isTrue);
-    expect(await File(savedOrphan.path).exists(), isFalse);
-  });
+      expect(await File(savedKept.path).exists(), isTrue);
+      expect(await File(savedOrphan.path).exists(), isTrue);
+    },
+  );
 
   test('startup cleanup removes only old unreferenced staged PDFs', () async {
     final source = File('${Directory.systemTemp.path}/cleanup_receipt.pdf');

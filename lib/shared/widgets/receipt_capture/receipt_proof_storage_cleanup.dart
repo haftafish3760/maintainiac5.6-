@@ -24,22 +24,10 @@ extension ReceiptProofStorageCleanup on ReceiptProofStorage {
   Future<void> cleanOrphanProofFiles({
     required Iterable<String> retainedPaths,
   }) async {
-    final retained = retainedPaths
-        .map((item) => path.normalize(item.trim()))
-        .where((item) => item.isNotEmpty)
-        .toSet();
-    final root = await _proofRoot();
-    if (!await root.exists()) return;
-    await for (final entity in root.list(recursive: true)) {
-      if (entity is! File) continue;
-      final normalized = path.normalize(entity.path);
-      if (retained.contains(normalized)) continue;
-      try {
-        await entity.delete();
-      } catch (_) {
-        continue;
-      }
-    }
+    // Permanent receipt evidence is never garbage-collected from a path list.
+    // A temporary incomplete index, interrupted restore, or delayed record
+    // write must not turn a user's proof into an "orphan". Only explicitly
+    // discarded drafts may remove their own staged, app-owned copies.
   }
 
   Future<void> cleanOldStagedFiles({
