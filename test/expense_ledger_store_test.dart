@@ -379,4 +379,124 @@ void main() {
       );
     },
   );
+
+  test(
+    'backdated creates, edits, and deletes immediately recalculate every affected recap',
+    () async {
+      final ledger = await ExpenseLedgerController.create();
+      const currentLine = ExpenseReceiptLineRecord(
+        id: 'LINE-current',
+        description: 'Current expense',
+        category: 'Tools',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 10,
+      );
+      const historicalLine = ExpenseReceiptLineRecord(
+        id: 'LINE-history',
+        description: 'Historical expense',
+        category: 'Materials',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 30,
+      );
+      final yearRange = ExpenseDateRange(
+        start: DateTime(2026),
+        end: DateTime(2026, 12, 31),
+      );
+
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-current',
+          receiptDate: DateTime(2026, 7, 15),
+          lines: const [currentLine],
+        ),
+      );
+      expect(ledger.summaryForRange(yearRange).total, 10);
+
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-historical',
+          receiptDate: DateTime(2026, 1, 4),
+          lines: const [historicalLine],
+        ),
+      );
+      expect(ledger.summaryForDay(DateTime(2026, 1, 4)).total, 30);
+      expect(ledger.summaryForWeek(DateTime(2026, 1, 4)).total, 30);
+      expect(ledger.summaryForMonth(DateTime(2026, 1, 20)).total, 30);
+      expect(ledger.summaryForRange(yearRange).total, 40);
+
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-historical',
+          receiptDate: DateTime(2026, 1, 4),
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-history',
+              description: 'Historical expense corrected',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 55,
+            ),
+          ],
+        ),
+      );
+      expect(ledger.summaryForDay(DateTime(2026, 1, 4)).total, 55);
+      expect(ledger.summaryForRange(yearRange).total, 65);
+
+      await ledger.deleteReceipt('EXP-historical');
+      expect(ledger.summaryForDay(DateTime(2026, 1, 4)).total, 0);
+      expect(ledger.summaryForWeek(DateTime(2026, 1, 4)).total, 0);
+      expect(ledger.summaryForMonth(DateTime(2026, 1, 20)).total, 0);
+      expect(ledger.summaryForRange(yearRange).total, 10);
+    },
+  );
+
+  test('dollar and quantity splits reconcile in ledger recaps', () async {
+    final ledger = await ExpenseLedgerController.create();
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'EXP-split-methods',
+        receiptDate: DateTime(2026, 7, 15),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'LINE-dollar',
+            description: 'Shared purchase',
+            category: 'Materials',
+            use: ExpenseLineUse.split,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 40,
+            splitAllocationMethod: ExpenseSplitAllocationMethod.dollar,
+            businessSplitValue: 24,
+          ),
+          ExpenseReceiptLineRecord(
+            id: 'LINE-quantity',
+            description: 'Shared supplies',
+            category: 'Materials',
+            use: ExpenseLineUse.split,
+            quantity: 10,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 50,
+            splitAllocationMethod: ExpenseSplitAllocationMethod.quantity,
+            businessSplitValue: 6,
+          ),
+        ],
+      ),
+    );
+
+    final recap = ledger.summaryForDay(DateTime(2026, 7, 15));
+    expect(recap.total, 90);
+    expect(recap.business, 54);
+    expect(recap.personal, 36);
+  });
 }

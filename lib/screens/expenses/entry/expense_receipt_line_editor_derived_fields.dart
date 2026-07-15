@@ -39,9 +39,28 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
     final normalized = raw.replaceAll('%', '').replaceAll(',', '').trim();
     final numeric = double.tryParse(normalized);
     if (numeric == null) return null;
-    final percent = numeric > 1 ? numeric / 100 : numeric;
+    final percent = switch (_splitAllocationMethod) {
+      ExpenseSplitAllocationMethod.percentage =>
+        numeric > 1 ? numeric / 100 : numeric,
+      ExpenseSplitAllocationMethod.dollar =>
+        (_parseMoneyInput(_subtotalController.text) ?? 0) <= 0
+            ? -1.0
+            : numeric / (_parseMoneyInput(_subtotalController.text) ?? 0),
+      ExpenseSplitAllocationMethod.quantity =>
+        _quantityForSave <= 0 ? -1.0 : numeric / _quantityForSave,
+    };
     if (percent < 0 || percent > 1) return null;
     return percent;
+  }
+
+  double? get _enteredBusinessSplitValue {
+    if (_splitAllocationMethod == ExpenseSplitAllocationMethod.percentage) {
+      return null;
+    }
+    final raw = _businessPercentController.text.trim().replaceAll(',', '');
+    final value = double.tryParse(raw.replaceAll(r'$', ''));
+    if (value == null || !value.isFinite || value < 0) return null;
+    return value;
   }
 
   String get _descriptionLabel {

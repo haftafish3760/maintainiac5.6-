@@ -124,10 +124,18 @@ class _SplitAllocationFields extends StatelessWidget {
   const _SplitAllocationFields({
     required this.businessPercentController,
     required this.businessPercent,
+    required this.method,
+    required this.quantity,
+    required this.subtotal,
+    required this.onMethodChanged,
   });
 
   final TextEditingController businessPercentController;
   final double businessPercent;
+  final ExpenseSplitAllocationMethod method;
+  final double quantity;
+  final double subtotal;
+  final ValueChanged<ExpenseSplitAllocationMethod> onMethodChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -152,11 +160,30 @@ class _SplitAllocationFields extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          RecordDropdownField<ExpenseSplitAllocationMethod>(
+            label: 'Business Allocation Method',
+            value: method,
+            items: ExpenseSplitAllocationMethod.values,
+            itemLabel: (method) => method.label,
+            onChanged: onMethodChanged,
+          ),
+          const SizedBox(height: 8),
           RecordTextField(
-            label: 'Business Percent',
+            label: switch (method) {
+              ExpenseSplitAllocationMethod.percentage => 'Business Percent',
+              ExpenseSplitAllocationMethod.dollar => 'Business Dollar Amount',
+              ExpenseSplitAllocationMethod.quantity => 'Business Quantity',
+            },
             controller: businessPercentController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            helperText: 'Enter 75 for 75%. The rest is personal.',
+            helperText: switch (method) {
+              ExpenseSplitAllocationMethod.percentage =>
+                'Enter 75 for 75%. The rest is personal.',
+              ExpenseSplitAllocationMethod.dollar =>
+                'Enter the business share of ${_money(subtotal)}. The rest is personal.',
+              ExpenseSplitAllocationMethod.quantity =>
+                'Enter the business share of ${_formatNumber(quantity)} detected items.',
+            },
           ),
           const SizedBox(height: 8),
           Text(

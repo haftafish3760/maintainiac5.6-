@@ -11,6 +11,9 @@ class _ExpenseReceiptLine {
     required this.stockUnit,
     required this.subtotal,
     this.businessPercent,
+    this.splitAllocationMethod = ExpenseSplitAllocationMethod.percentage,
+    this.businessSplitValue,
+    this.splitConfirmed = true,
     this.odometerReading,
     this.fuelType,
     this.fillType,
@@ -59,12 +62,16 @@ class _ExpenseReceiptLine {
         ExpenseLineUse.business => _ExpenseLineUse.business,
         ExpenseLineUse.personal => _ExpenseLineUse.personal,
         ExpenseLineUse.split => _ExpenseLineUse.split,
+        ExpenseLineUse.unclassified => _ExpenseLineUse.unclassified,
       },
       quantity: line.quantity,
       unitsPerPackage: line.unitsPerPackage,
       stockUnit: line.unit,
       subtotal: line.subtotal,
       businessPercent: line.businessPercent,
+      splitAllocationMethod: line.splitAllocationMethod,
+      businessSplitValue: line.businessSplitValue,
+      splitConfirmed: line.splitConfirmed,
       odometerReading: line.odometerReading,
       fuelType: line.fuelType,
       fillType: line.fillType,
@@ -97,6 +104,9 @@ class _ExpenseReceiptLine {
   final String stockUnit;
   final double subtotal;
   final double? businessPercent;
+  final ExpenseSplitAllocationMethod splitAllocationMethod;
+  final double? businessSplitValue;
+  final bool splitConfirmed;
   final int? odometerReading;
   final String? fuelType;
   final String? fillType;
@@ -132,6 +142,9 @@ class _ExpenseReceiptLine {
     double? catalogMatchConfidence,
     List<String>? catalogMatchedTerms,
     Object? businessPercent = _noBusinessPercentChange,
+    ExpenseSplitAllocationMethod? splitAllocationMethod,
+    Object? businessSplitValue = _noBusinessPercentChange,
+    bool? splitConfirmed,
     double? parserConfidence,
     String? parserReviewLabel,
     String? parserReviewReason,
@@ -155,6 +168,13 @@ class _ExpenseReceiptLine {
       businessPercent: identical(businessPercent, _noBusinessPercentChange)
           ? this.businessPercent
           : businessPercent as double?,
+      splitAllocationMethod:
+          splitAllocationMethod ?? this.splitAllocationMethod,
+      businessSplitValue:
+          identical(businessSplitValue, _noBusinessPercentChange)
+          ? this.businessSplitValue
+          : businessSplitValue as double?,
+      splitConfirmed: splitConfirmed ?? this.splitConfirmed,
       odometerReading: odometerReading,
       fuelType: fuelType ?? this.fuelType,
       fillType: fillType ?? this.fillType,
@@ -212,6 +232,8 @@ class _ExpenseReceiptLine {
       'businessUseLabel': allocationSummary,
       'businessPercent': effectiveBusinessPercent,
       'personalPercent': effectivePersonalPercent,
+      'splitAllocationMethod': splitAllocationMethod.name,
+      'splitConfirmed': splitConfirmed,
       'hasDetailText': !isAllocationOnlyLine,
       'redactionAnchorCode': receiptProofRedactionAnchorCode,
       'ocrSourceLineNumber': ?lineNumber,

@@ -164,6 +164,9 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
         _lines[index] = line.copyWith(
           use: use,
           businessPercent: use == _ExpenseLineUse.split ? .5 : null,
+          splitAllocationMethod: ExpenseSplitAllocationMethod.percentage,
+          businessSplitValue: null,
+          splitConfirmed: use != _ExpenseLineUse.split,
           // The convenience 50% value is only a preview. It is not user
           // intent, so keep the line blocked until the user confirms or
           // edits the allocation in review.
@@ -176,6 +179,8 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
               'User marked the full receipt as personal.',
             _ExpenseLineUse.split =>
               'Mixed receipt lines default to 50% business for review only; confirm each allocation before saving.',
+            _ExpenseLineUse.unclassified =>
+              'User left the receipt lines unclassified for later review.',
           },
         );
       }
@@ -185,6 +190,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       _ExpenseLineUse.business => 'business',
       _ExpenseLineUse.personal => 'personal',
       _ExpenseLineUse.split => 'mixed',
+      _ExpenseLineUse.unclassified => 'unclassified',
     };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Marked the full receipt as $label.')),
@@ -203,6 +209,9 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       _lines[index] = line.copyWith(
         use: use,
         businessPercent: use == _ExpenseLineUse.split ? splitPercent : null,
+        splitAllocationMethod: ExpenseSplitAllocationMethod.percentage,
+        businessSplitValue: null,
+        splitConfirmed: true,
         parserNeedsReview: false,
         parserReviewLabel: 'Good',
         parserReviewReason: switch (use) {
@@ -211,6 +220,8 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
           _ExpenseLineUse.personal =>
             'User marked this receipt line as personal.',
           _ExpenseLineUse.split => _splitLineReviewReason(splitPercent),
+          _ExpenseLineUse.unclassified =>
+            'User left this receipt line unclassified for later review.',
         },
       );
     });

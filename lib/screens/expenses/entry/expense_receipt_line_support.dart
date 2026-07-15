@@ -7,7 +7,8 @@ const _maxExpenseReceiptDraftSectionNumber = 999;
 enum _ExpenseLineUse {
   business('Business'),
   personal('Personal'),
-  split('Split');
+  split('Split'),
+  unclassified('Unclassified');
 
   const _ExpenseLineUse(this.label);
 
@@ -20,6 +21,7 @@ extension on _ExpenseLineUse {
       _ExpenseLineUse.business => ExpenseLineUse.business,
       _ExpenseLineUse.personal => ExpenseLineUse.personal,
       _ExpenseLineUse.split => ExpenseLineUse.split,
+      _ExpenseLineUse.unclassified => ExpenseLineUse.unclassified,
     };
   }
 }

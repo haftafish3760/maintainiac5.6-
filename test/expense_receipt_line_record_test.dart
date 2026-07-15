@@ -81,6 +81,110 @@ void main() {
     expect(underAllocated.toMap()['businessPercent'], 0);
   });
 
+  test(
+    'split receipt lines preserve confirmed dollar and quantity allocations',
+    () {
+      const dollars = ExpenseReceiptLineRecord(
+        id: 'line-dollars',
+        description: 'Shared item',
+        category: 'Materials',
+        use: ExpenseLineUse.split,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 40,
+        splitAllocationMethod: ExpenseSplitAllocationMethod.dollar,
+        businessSplitValue: 24,
+      );
+      const quantity = ExpenseReceiptLineRecord(
+        id: 'line-quantity',
+        description: 'Shared gloves',
+        category: 'Safety Gear',
+        use: ExpenseLineUse.split,
+        quantity: 10,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 50,
+        splitAllocationMethod: ExpenseSplitAllocationMethod.quantity,
+        businessSplitValue: 6,
+      );
+
+      expect(dollars.effectiveBusinessPercent, .6);
+      expect(dollars.businessAmount, 24);
+      expect(dollars.personalAmount, 16);
+      expect(dollars.hasValidSplitAllocation, isTrue);
+      expect(dollars.toMap()['splitAllocationMethod'], 'dollar');
+      expect(dollars.toMap()['businessSplitValue'], 24);
+      expect(
+        dollars.privacySafeLineReviewContract['splitAllocationMethod'],
+        'dollar',
+      );
+      expect(dollars.privacySafeLineReviewContract['splitConfirmed'], isTrue);
+
+      final restoredDollars = ExpenseReceiptLineRecord.fromMap(dollars.toMap());
+      expect(
+        restoredDollars.splitAllocationMethod,
+        ExpenseSplitAllocationMethod.dollar,
+      );
+      expect(restoredDollars.businessSplitValue, 24);
+      expect(restoredDollars.splitConfirmed, isTrue);
+      expect(restoredDollars.businessAmount, 24);
+
+      expect(quantity.effectiveBusinessPercent, .6);
+      expect(quantity.businessAmount, 30);
+      expect(quantity.personalAmount, 20);
+      expect(quantity.hasValidSplitAllocation, isTrue);
+    },
+  );
+
+  test('unconfirmed or unreconciled split allocations are not valid', () {
+    const unconfirmed = ExpenseReceiptLineRecord(
+      id: 'line-unconfirmed',
+      description: 'Shared item',
+      category: 'Materials',
+      use: ExpenseLineUse.split,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 40,
+      businessPercent: .5,
+      splitConfirmed: false,
+    );
+    const tooMany = ExpenseReceiptLineRecord(
+      id: 'line-too-many',
+      description: 'Shared items',
+      category: 'Materials',
+      use: ExpenseLineUse.split,
+      quantity: 4,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 40,
+      splitAllocationMethod: ExpenseSplitAllocationMethod.quantity,
+      businessSplitValue: 5,
+    );
+
+    expect(unconfirmed.hasValidSplitAllocation, isFalse);
+    expect(tooMany.hasValidSplitAllocation, isFalse);
+  });
+
+  test('unclassified receipt lines preserve the amount without inventing use', () {
+    const line = ExpenseReceiptLineRecord(
+      id: 'line-unclassified',
+      description: 'Store wording',
+      category: 'Tools',
+      use: ExpenseLineUse.unclassified,
+      quantity: 1,
+      unitsPerPackage: 1,
+      unit: 'each',
+      subtotal: 18,
+    );
+
+    expect(line.businessAmount, 0);
+    expect(line.personalAmount, 0);
+    expect(line.businessUseReviewLabel, 'Unclassified');
+    expect(ExpenseLineUse.fromName('unknown'), ExpenseLineUse.unclassified);
+  });
+
   test('receipt line records reject non-finite numeric payloads', () {
     final restored = ExpenseReceiptLineRecord.fromMap({
       'id': 'line-nonfinite',

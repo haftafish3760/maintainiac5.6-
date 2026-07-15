@@ -194,6 +194,13 @@ class _ReceiptLineUseSegment extends StatelessWidget {
           color: const Color(0xFF2E756C),
           onSelected: onSelected,
         ),
+        _ReceiptLineUseChip(
+          label: 'Later',
+          use: _ExpenseLineUse.unclassified,
+          selected: selected == _ExpenseLineUse.unclassified,
+          color: const Color(0xFF7B8794),
+          onSelected: onSelected,
+        ),
       ],
     );
   }

@@ -13,6 +13,7 @@ Future<ExpenseReceiptLineRecord?> showExpenseReceiptLineEditor(
             ExpenseLineUse.business => _ExpenseLineUse.business,
             ExpenseLineUse.personal => _ExpenseLineUse.personal,
             ExpenseLineUse.split => _ExpenseLineUse.split,
+            ExpenseLineUse.unclassified => _ExpenseLineUse.unclassified,
           },
           category: defaultCategory,
         )

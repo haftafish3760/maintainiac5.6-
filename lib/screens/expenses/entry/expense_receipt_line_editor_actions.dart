@@ -16,11 +16,14 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
     final businessPercent = _use == _ExpenseLineUse.split
         ? _enteredBusinessPercent
         : null;
+    final businessSplitValue = _use == _ExpenseLineUse.split
+        ? _enteredBusinessSplitValue
+        : null;
     if (_use == _ExpenseLineUse.split && businessPercent == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Enter a business percentage for this split line before saving.',
+            'Enter a valid business allocation for this split line before saving.',
           ),
         ),
       );
@@ -133,6 +136,10 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         stockUnit: stockUnit,
         subtotal: subtotal,
         businessPercent: businessPercent,
+        splitAllocationMethod: _splitAllocationMethod,
+        businessSplitValue: businessSplitValue,
+        splitConfirmed:
+            _use != _ExpenseLineUse.split || businessPercent != null,
         odometerReading: isFuel ? odometerReading : null,
         fuelType: isFuel ? _fuelType : null,
         fillType: isFuel ? _fillType : null,
@@ -226,6 +233,7 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
       _ExpenseLineUse.business => 'Business receipt items',
       _ExpenseLineUse.personal => 'Personal receipt items',
       _ExpenseLineUse.split => 'Split receipt items',
+      _ExpenseLineUse.unclassified => 'Unclassified receipt items',
     };
   }
 }

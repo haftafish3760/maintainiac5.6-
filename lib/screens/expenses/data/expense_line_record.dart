@@ -6,7 +6,8 @@ const _maxExpenseReceiptSectionNumber = 999;
 enum ExpenseLineUse {
   business('Business'),
   personal('Personal'),
-  split('Split');
+  split('Split'),
+  unclassified('Unclassified');
 
   const ExpenseLineUse(this.label);
 
@@ -18,7 +19,27 @@ enum ExpenseLineUse {
       (value) =>
           value.name == normalizedName ||
           value.label.toLowerCase() == normalizedName,
-      orElse: () => ExpenseLineUse.business,
+      // Never invent an ownership classification from malformed or legacy
+      // input. The person reviewing the receipt is the authority.
+      orElse: () => ExpenseLineUse.unclassified,
+    );
+  }
+}
+
+enum ExpenseSplitAllocationMethod {
+  percentage('Percentage'),
+  dollar('Dollar amount'),
+  quantity('Quantity');
+
+  const ExpenseSplitAllocationMethod(this.label);
+
+  final String label;
+
+  static ExpenseSplitAllocationMethod fromName(String? value) {
+    final clean = value?.trim().toLowerCase();
+    return ExpenseSplitAllocationMethod.values.firstWhere(
+      (method) => method.name == clean || method.label.toLowerCase() == clean,
+      orElse: () => ExpenseSplitAllocationMethod.percentage,
     );
   }
 }
@@ -43,6 +64,9 @@ class ExpenseReceiptLineRecord {
     required this.unit,
     required this.subtotal,
     this.businessPercent,
+    this.splitAllocationMethod = ExpenseSplitAllocationMethod.percentage,
+    this.businessSplitValue,
+    this.splitConfirmed = true,
     this.odometerReading,
     this.fuelType,
     this.fillType,
@@ -66,11 +90,13 @@ class ExpenseReceiptLineRecord {
   });
 
   factory ExpenseReceiptLineRecord.fromMap(Map<dynamic, dynamic> map) {
+    final use = ExpenseLineUse.fromName(_expenseString(map['use']));
+    final parserNeedsReview = _expenseBool(map['parserNeedsReview']);
     return ExpenseReceiptLineRecord(
       id: _expenseString(map['id']),
       description: _expenseString(map['description']),
       category: _expenseString(map['category'], fallback: 'Uncategorized'),
-      use: ExpenseLineUse.fromName(_expenseString(map['use'])),
+      use: use,
       quantity: _expenseDouble(map['quantity']) ?? 1,
       unitsPerPackage: _expenseDouble(map['unitsPerPackage']) ?? 1,
       unit: _expenseString(map['unit'], fallback: 'each'),
@@ -81,6 +107,13 @@ class ExpenseReceiptLineRecord {
           ) ??
           0,
       businessPercent: _clampedPercent(_expenseDouble(map['businessPercent'])),
+      splitAllocationMethod: ExpenseSplitAllocationMethod.fromName(
+        _expenseString(map['splitAllocationMethod']),
+      ),
+      businessSplitValue: _expenseDouble(map['businessSplitValue']),
+      splitConfirmed: map.containsKey('splitConfirmed')
+          ? _expenseBool(map['splitConfirmed'])
+          : use != ExpenseLineUse.split || !parserNeedsReview,
       odometerReading: _expenseInt(map['odometerReading']),
       fuelType: _nullableExpenseString(map['fuelType']),
       fillType: _nullableExpenseString(map['fillType']),
@@ -105,7 +138,7 @@ class ExpenseReceiptLineRecord {
       ),
       parserReviewLabel: _nullableExpenseString(map['parserReviewLabel']),
       parserReviewReason: _nullableExpenseString(map['parserReviewReason']),
-      parserNeedsReview: _expenseBool(map['parserNeedsReview']),
+      parserNeedsReview: parserNeedsReview,
       ocrSourceLineId: _nullableExpenseString(map['ocrSourceLineId']),
       ocrSourceLineNumber: _expenseInt(map['ocrSourceLineNumber']),
       ocrSourceSectionNumber: _expenseInt(map['ocrSourceSectionNumber']),
@@ -126,6 +159,9 @@ class ExpenseReceiptLineRecord {
   final String unit;
   final double subtotal;
   final double? businessPercent;
+  final ExpenseSplitAllocationMethod splitAllocationMethod;
+  final double? businessSplitValue;
+  final bool splitConfirmed;
   final int? odometerReading;
   final String? fuelType;
   final String? fillType;
@@ -261,6 +297,7 @@ class ExpenseReceiptLineRecord {
       ExpenseLineUse.personal => 'Personal',
       ExpenseLineUse.split =>
         'Split ${((effectiveBusinessPercent) * 100).round()}% business',
+      ExpenseLineUse.unclassified => 'Unclassified',
     };
   }
 
@@ -280,6 +317,8 @@ class ExpenseReceiptLineRecord {
       'businessUseLabel': businessUseReviewLabel,
       'businessPercent': effectiveBusinessPercent,
       'personalPercent': effectivePersonalPercent,
+      'splitAllocationMethod': splitAllocationMethod.name,
+      'splitConfirmed': splitConfirmed,
       'hasDetailText': !isAllocationOnlyLine,
       'hasAmount': subtotal != 0,
       'redactionAnchorCode': receiptProofRedactionAnchorCode,
@@ -392,6 +431,7 @@ class ExpenseReceiptLineRecord {
       ExpenseLineUse.business => 'Business receipt items',
       ExpenseLineUse.personal => 'Personal receipt items',
       ExpenseLineUse.split => 'Split receipt items',
+      ExpenseLineUse.unclassified => 'Unclassified receipt items',
     };
   }
 
@@ -417,22 +457,67 @@ class ExpenseReceiptLineRecord {
     return switch (use) {
       ExpenseLineUse.business => 1,
       ExpenseLineUse.personal => 0,
-      ExpenseLineUse.split => _clampedPercent(businessPercent) ?? .5,
+      ExpenseLineUse.unclassified => 0,
+      ExpenseLineUse.split => _splitBusinessPercent,
     };
   }
 
-  double get effectivePersonalPercent => 1 - effectiveBusinessPercent;
+  double get _splitBusinessPercent {
+    final value = businessSplitValue;
+    return switch (splitAllocationMethod) {
+      ExpenseSplitAllocationMethod.percentage =>
+        _clampedPercent(businessPercent) ?? .5,
+      ExpenseSplitAllocationMethod.dollar =>
+        subtotal == 0 || value == null
+            ? .5
+            : (value / subtotal).clamp(0, 1).toDouble(),
+      ExpenseSplitAllocationMethod.quantity =>
+        quantity <= 0 || value == null
+            ? .5
+            : (value / quantity).clamp(0, 1).toDouble(),
+    };
+  }
+
+  bool get hasValidSplitAllocation {
+    if (use != ExpenseLineUse.split || !splitConfirmed) return false;
+    final value = businessSplitValue;
+    return switch (splitAllocationMethod) {
+      ExpenseSplitAllocationMethod.percentage =>
+        businessPercent != null &&
+            businessPercent!.isFinite &&
+            businessPercent! >= 0 &&
+            businessPercent! <= 1,
+      ExpenseSplitAllocationMethod.dollar =>
+        value != null && value.isFinite && value >= 0 && value <= subtotal,
+      ExpenseSplitAllocationMethod.quantity =>
+        value != null &&
+            value.isFinite &&
+            value >= 0 &&
+            quantity > 0 &&
+            value <= quantity,
+    };
+  }
+
+  double get effectivePersonalPercent => switch (use) {
+    ExpenseLineUse.unclassified => 0,
+    _ => 1 - effectiveBusinessPercent,
+  };
 
   int get businessCents {
     return switch (use) {
       ExpenseLineUse.business => subtotalCents,
       ExpenseLineUse.personal => 0,
+      ExpenseLineUse.unclassified => 0,
       ExpenseLineUse.split =>
         (subtotalCents * effectiveBusinessPercent).round(),
     };
   }
 
-  int get personalCents => subtotalCents - businessCents;
+  int get personalCents => switch (use) {
+    ExpenseLineUse.personal => subtotalCents,
+    ExpenseLineUse.split => subtotalCents - businessCents,
+    _ => 0,
+  };
 
   double get businessAmount => businessCents / 100;
 

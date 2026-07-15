@@ -58,6 +58,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
         _ExpenseLineUse.business => 'Business receipt total',
         _ExpenseLineUse.personal => 'Personal receipt total',
         _ExpenseLineUse.split => 'Split receipt total',
+        _ExpenseLineUse.unclassified => 'Unclassified receipt total',
       },
       category: category,
       use: use,
@@ -65,7 +66,11 @@ extension _ExpenseReceiptEntryLineModeHelpers
       unitsPerPackage: 1,
       stockUnit: 'receipt',
       subtotal: amount,
-      businessPercent: null,
+      // A receipt-total split is only a convenience preview.  It cannot be
+      // saved until the user opens the line and confirms a real allocation.
+      businessPercent: use == _ExpenseLineUse.split ? .5 : null,
+      splitAllocationMethod: ExpenseSplitAllocationMethod.percentage,
+      splitConfirmed: use != _ExpenseLineUse.split,
       rawReceiptText: _rawReceiptText,
       parserConfidence: _lastParseQuality?.confidence,
       parserReviewLabel: 'Review',
@@ -115,11 +120,13 @@ extension _ExpenseReceiptEntryLineModeHelpers
                     _ExpenseLineUse.business => Icons.business_center_rounded,
                     _ExpenseLineUse.personal => Icons.person_rounded,
                     _ExpenseLineUse.split => Icons.call_split_rounded,
+                    _ExpenseLineUse.unclassified => Icons.help_outline_rounded,
                   },
                   accentColor: switch (use) {
                     _ExpenseLineUse.business => const Color(0xFF34A9E8),
                     _ExpenseLineUse.personal => const Color(0xFF8F9BA1),
                     _ExpenseLineUse.split => const Color(0xFFFFD166),
+                    _ExpenseLineUse.unclassified => const Color(0xFF7B8794),
                   },
                   children: [
                     _LineUseBanner(use: use),
@@ -174,6 +181,8 @@ extension _ExpenseReceiptEntryLineModeHelpers
                               _ExpenseLineUse.personal =>
                                 'Personal receipt items',
                               _ExpenseLineUse.split => 'Split receipt items',
+                              _ExpenseLineUse.unclassified =>
+                                'Unclassified receipt items',
                             },
                             category: category,
                             use: use,
@@ -184,6 +193,9 @@ extension _ExpenseReceiptEntryLineModeHelpers
                             businessPercent: use == _ExpenseLineUse.split
                                 ? percent
                                 : null,
+                            splitAllocationMethod:
+                                ExpenseSplitAllocationMethod.percentage,
+                            splitConfirmed: true,
                           ),
                         );
                       },

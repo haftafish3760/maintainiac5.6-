@@ -29,6 +29,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
       _ExpenseLineUse.business => 'Business receipt items',
       _ExpenseLineUse.personal => 'Personal receipt items',
       _ExpenseLineUse.split => 'Split receipt items',
+      _ExpenseLineUse.unclassified => 'Unclassified receipt items',
     };
   }
 
@@ -36,7 +37,18 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     return switch (use) {
       _ExpenseLineUse.business => 1,
       _ExpenseLineUse.personal => 0,
-      _ExpenseLineUse.split => _boundedBusinessPercent,
+      _ExpenseLineUse.unclassified => 0,
+      _ExpenseLineUse.split => switch (splitAllocationMethod) {
+        ExpenseSplitAllocationMethod.percentage => _boundedBusinessPercent,
+        ExpenseSplitAllocationMethod.dollar =>
+          subtotal == 0 || businessSplitValue == null
+              ? .5
+              : (businessSplitValue! / subtotal).clamp(0, 1).toDouble(),
+        ExpenseSplitAllocationMethod.quantity =>
+          quantity <= 0 || businessSplitValue == null
+              ? .5
+              : (businessSplitValue! / quantity).clamp(0, 1).toDouble(),
+      },
     };
   }
 
@@ -48,17 +60,41 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     return percent;
   }
 
-  double get effectivePersonalPercent => 1 - effectiveBusinessPercent;
+  double get effectivePersonalPercent => use == _ExpenseLineUse.unclassified
+      ? 0
+      : 1 - effectiveBusinessPercent;
+
+  bool get hasValidSplitAllocation {
+    if (use != _ExpenseLineUse.split || !splitConfirmed) return false;
+    final value = businessSplitValue;
+    return switch (splitAllocationMethod) {
+      ExpenseSplitAllocationMethod.percentage =>
+        businessPercent != null &&
+            businessPercent!.isFinite &&
+            businessPercent! >= 0 &&
+            businessPercent! <= 1,
+      ExpenseSplitAllocationMethod.dollar =>
+        value != null && value.isFinite && value >= 0 && value <= subtotal,
+      ExpenseSplitAllocationMethod.quantity =>
+        value != null &&
+            value.isFinite &&
+            value >= 0 &&
+            quantity > 0 &&
+            value <= quantity,
+    };
+  }
 
   String get allocationSummary {
     if (use != _ExpenseLineUse.split) return use.label;
-    return 'Split ${_percent(effectiveBusinessPercent)} business';
+    return 'Split ${splitAllocationMethod.label.toLowerCase()} '
+        '${_percent(effectiveBusinessPercent)} business';
   }
 
   String get allocationDetail {
     return switch (use) {
       _ExpenseLineUse.business => 'Business ${_money(subtotal)}',
       _ExpenseLineUse.personal => 'Personal ${_money(subtotal)}',
+      _ExpenseLineUse.unclassified => 'Unclassified ${_money(subtotal)}',
       _ExpenseLineUse.split =>
         'Business ${_money(businessAmount)} | Personal ${_money(personalAmount)}',
     };
@@ -116,6 +152,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     return switch (use) {
       _ExpenseLineUse.business => subtotal,
       _ExpenseLineUse.personal => 0,
+      _ExpenseLineUse.unclassified => 0,
       _ExpenseLineUse.split => subtotal * effectiveBusinessPercent,
     };
   }
@@ -124,6 +161,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     return switch (use) {
       _ExpenseLineUse.business => 0,
       _ExpenseLineUse.personal => subtotal,
+      _ExpenseLineUse.unclassified => 0,
       _ExpenseLineUse.split => subtotal * effectivePersonalPercent,
     };
   }

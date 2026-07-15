@@ -28,7 +28,13 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
     text: widget.initial.subtotalText,
   );
   late final _businessPercentController = TextEditingController(
-    text: widget.initial.businessPercentText,
+    text: switch (widget.initial.splitAllocationMethod) {
+      ExpenseSplitAllocationMethod.percentage =>
+        widget.initial.businessPercentText,
+      ExpenseSplitAllocationMethod.dollar ||
+      ExpenseSplitAllocationMethod.quantity =>
+        widget.initial.businessSplitValue?.toString() ?? '',
+    },
   );
   late final _odometerController = TextEditingController(
     text: widget.initial.odometerReading?.toString() ?? '',
@@ -44,6 +50,8 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
         : widget.initial.category,
   );
   late final _ExpenseLineUse _use = widget.initial.use;
+  late ExpenseSplitAllocationMethod _splitAllocationMethod =
+      widget.initial.splitAllocationMethod;
   late String _category = widget.initial.category;
   late String _stockUnit = widget.initial.stockUnit;
   late String _fuelType = widget.initial.fuelType ?? 'Gasoline';
@@ -56,6 +64,7 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
     _quantityController.addListener(_refreshPreview);
     _unitsPerPackageController.addListener(_refreshPreview);
     _businessPercentController.addListener(_refreshPreview);
+    _subtotalController.addListener(_refreshPreview);
     _odometerController.addListener(_refreshPreview);
     _unitPriceController.addListener(_refreshPreview);
     _categorySearchController.addListener(_refreshPreview);
@@ -84,6 +93,7 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
     _quantityController.removeListener(_refreshPreview);
     _unitsPerPackageController.removeListener(_refreshPreview);
     _businessPercentController.removeListener(_refreshPreview);
+    _subtotalController.removeListener(_refreshPreview);
     _odometerController.removeListener(_refreshPreview);
     _unitPriceController.removeListener(_refreshPreview);
     _categorySearchController.removeListener(_refreshPreview);
@@ -132,6 +142,13 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
                 _SplitAllocationFields(
                   businessPercentController: _businessPercentController,
                   businessPercent: _businessPercent,
+                  method: _splitAllocationMethod,
+                  quantity: _quantityForSave,
+                  subtotal: _parseMoneyInput(_subtotalController.text) ?? 0,
+                  onMethodChanged: (method) => setState(() {
+                    _splitAllocationMethod = method;
+                    _businessPercentController.clear();
+                  }),
                 ),
               ],
               const SizedBox(height: 10),

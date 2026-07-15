@@ -120,6 +120,9 @@ void main() {
     });
     expect(doc.data['odometerReading'], 150125);
     expect((doc.data['lines'] as List).single.toString(), contains('Hammer'));
+    final line = (doc.data['lines'] as List).single as Map<String, Object?>;
+    expect(line['splitAllocationMethod'], 'percentage');
+    expect(line['splitConfirmed'], isTrue);
     expect(doc.data['rawOcrStored'], isFalse);
     final ocrReview = doc.data['ocrReview'] as Map<String, Object?>;
     expect(ocrReview['warningKindCounts'], {'sectionGap': 1});

@@ -21,11 +21,11 @@ extension _ExpenseReceiptSaveReadinessHelpers
     if (splitPercentMissingCount > 0) {
       issues.add(
         _ReceiptSaveReadinessIssue(
-          kind: 'mixed_receipt_split_percent_missing',
-          title: 'Mixed receipt split needs a percent',
+          kind: 'mixed_receipt_split_allocation_missing',
+          title: 'Split receipt allocation is required',
           detail: splitPercentMissingCount == 1
-              ? 'One mixed receipt line still needs a business percent before the app can split business and personal totals cleanly.'
-              : '$splitPercentMissingCount mixed receipt lines still need business percents before the app can split business and personal totals cleanly.',
+              ? 'One split receipt line still needs a confirmed percentage, dollar, or quantity allocation.'
+              : '$splitPercentMissingCount split receipt lines still need confirmed allocations.',
         ),
       );
     }
@@ -88,10 +88,7 @@ extension _ExpenseReceiptSaveReadinessHelpers
         .where(
           (line) =>
               line.use == _ExpenseLineUse.split &&
-              (line.businessPercent == null ||
-                  !line.businessPercent!.isFinite ||
-                  line.businessPercent! < 0 ||
-                  line.businessPercent! > 1),
+              !line.hasValidSplitAllocation,
         )
         .length;
   }
