@@ -88,4 +88,16 @@ void main() {
     expect(source, contains('_clearDraftAfterConfirmedSave(saved.id)'));
     expect(source, contains('A stale checkpoint'));
   });
+
+  test(
+    'reminder save shows a local storage failure instead of losing form work',
+    () async {
+      final source = await File(
+        'lib/screens/expenses/reminders/expense_reminder_screen.dart',
+      ).readAsString();
+
+      expect(source, contains('_saveReminderLocally(title)'));
+      expect(source, contains('on StateError catch (error)'));
+    },
+  );
 }

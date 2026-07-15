@@ -215,19 +215,8 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
       );
       return;
     }
-    final saved = await ExpenseReminderScope.of(context).save(
-      ExpenseReminderRecord(
-        id: _editingReminder?.id ?? '',
-        title: title,
-        category: _category,
-        channel: _channel,
-        dueAt: _dueAt,
-        cadence: _cadence,
-        details: _detailsController.text,
-        createdAt: _editingReminder?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    );
+    final saved = await _saveReminderLocally(title);
+    if (saved == null) return;
     await _clearDraftAfterConfirmedSave(saved.id);
     if (!mounted) return;
     _clearForm();
@@ -249,6 +238,31 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
         ),
       ),
     );
+  }
+
+  Future<ExpenseReminderRecord?> _saveReminderLocally(String title) async {
+    try {
+      return await ExpenseReminderScope.of(context).save(
+        ExpenseReminderRecord(
+          id: _editingReminder?.id ?? '',
+          title: title,
+          category: _category,
+          channel: _channel,
+          dueAt: _dueAt,
+          cadence: _cadence,
+          details: _detailsController.text,
+          createdAt: _editingReminder?.createdAt ?? DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+    } on StateError catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message.toString())));
+      }
+      return null;
+    }
   }
 
   static String _formatDate(DateTime value) {
