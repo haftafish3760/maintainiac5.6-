@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/storage/app_storage_guard.dart';
+
 /// A durable Expense-only work context.  It is deliberately separate from
 /// accounting, payroll, and the downstream receipt parsers: it only answers
 /// which user-created work profile owns an Expense record.
@@ -61,9 +63,17 @@ class ExpenseWorkProfile {
   }
 }
 
+typedef ExpenseWorkProfileStorageCheck = Future<AppStorageCheck> Function();
+
 class ExpenseWorkProfileController extends ChangeNotifier {
-  ExpenseWorkProfileController._(this._box);
-  ExpenseWorkProfileController.memory() : _box = null {
+  ExpenseWorkProfileController._(
+    this._box, {
+    ExpenseWorkProfileStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+  ExpenseWorkProfileController.memory({
+    ExpenseWorkProfileStorageCheck? storageCheck,
+  }) : _box = null,
+       _storageCheck = storageCheck {
     _ensureDefault();
   }
 
@@ -71,13 +81,17 @@ class ExpenseWorkProfileController extends ChangeNotifier {
   static const _activeProfileKey = '_active_profile_id';
   static const defaultProfileId = 'expense_work_default';
   final Box<dynamic>? _box;
+  final ExpenseWorkProfileStorageCheck? _storageCheck;
   final _memory = <String, ExpenseWorkProfile>{};
   String? _memoryActiveProfileId;
   Future<void> _writeTail = Future<void>.value();
 
-  static Future<ExpenseWorkProfileController> create() async {
+  static Future<ExpenseWorkProfileController> create({
+    ExpenseWorkProfileStorageCheck? storageCheck,
+  }) async {
     final controller = ExpenseWorkProfileController._(
       await Hive.openBox<dynamic>(boxName),
+      storageCheck: storageCheck,
     );
     await controller._ensureDefault();
     return controller;
@@ -134,6 +148,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
       _enqueue(() => _save(profile));
 
   Future<ExpenseWorkProfile> _save(ExpenseWorkProfile profile) async {
+    await _ensureStorageForWrite();
     final name = profile.name.trim();
     if (name.isEmpty) throw ArgumentError.value(name, 'name', 'Required');
     final now = DateTime.now();
@@ -160,6 +175,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
   Future<void> select(String profileId) => _enqueue(() => _select(profileId));
 
   Future<void> _select(String profileId) async {
+    await _ensureStorageForWrite();
     if (!profiles.any((profile) => profile.id == profileId)) {
       throw ArgumentError.value(profileId, 'profileId', 'Unknown work profile');
     }
@@ -179,6 +195,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     }
     final profile = profileById(profileId);
     if (profile == null || profile.isArchived) return;
+    await _ensureStorageForWrite();
     final now = DateTime.now();
     await _writeProfile(profile.copyWith(updatedAt: now, archivedAt: now));
     if (_activeProfileId == profileId) await _select(defaultProfileId);
@@ -190,6 +207,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
   Future<void> _restore(String profileId) async {
     final profile = profileById(profileId);
     if (profile == null || !profile.isArchived) return;
+    await _ensureStorageForWrite();
     await _writeProfile(
       profile.copyWith(updatedAt: DateTime.now(), clearArchivedAt: true),
     );
@@ -227,6 +245,16 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     } else {
       await _box.put(profile.id, profile.toMap());
     }
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  Future<void> _ensureStorageForWrite() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {

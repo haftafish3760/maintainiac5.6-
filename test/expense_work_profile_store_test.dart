@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   test(
@@ -36,6 +37,33 @@ void main() {
       throwsStateError,
     );
   });
+
+  test(
+    'does not claim a work profile saved when device storage is full',
+    () async {
+      final profiles = ExpenseWorkProfileController.memory(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: AppStorageGuard.smallRecordWriteBytes,
+          requiredBytes: AppStorageGuard.smallRecordWriteBytes + 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+
+      await expectLater(
+        () => profiles.save(
+          ExpenseWorkProfile(
+            id: 'no-space',
+            name: 'No space',
+            createdAt: DateTime.utc(2026, 7, 15),
+            updatedAt: DateTime.utc(2026, 7, 15),
+          ),
+        ),
+        throwsA(isA<StateError>()),
+      );
+      expect(profiles.profileById('no-space'), isNull);
+    },
+  );
 
   test('an older profile edit cannot overwrite a newer local edit', () async {
     final profiles = ExpenseWorkProfileController.memory();
