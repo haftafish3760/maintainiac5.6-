@@ -80,6 +80,16 @@ class ExpenseJobController extends ChangeNotifier {
   List<ExpenseJobRecord> get activeJobs =>
       jobs.where((job) => !job.archived).toList(growable: false);
 
+  Map<String, Object?> toBackupMap({
+    required String ownerUid,
+    required DateTime exportedAtUtc,
+  }) => {
+    'schema': 'expense_jobs_v1',
+    'ownerUid': ownerUid.trim(),
+    'exportedAtUtc': exportedAtUtc.toUtc().toIso8601String(),
+    'jobs': [for (final job in jobs) job.toMap()],
+  };
+
   Future<ExpenseJobRecord> save(ExpenseJobRecord job) async {
     final now = DateTime.now();
     final existing = _jobById(job.id);

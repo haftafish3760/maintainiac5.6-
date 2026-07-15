@@ -74,6 +74,16 @@ class ExpenseWorkProfileController extends ChangeNotifier {
   List<ExpenseWorkProfileRecord> get activeProfiles =>
       profiles.where((profile) => !profile.archived).toList(growable: false);
 
+  Map<String, Object?> toBackupMap({
+    required String ownerUid,
+    required DateTime exportedAtUtc,
+  }) => {
+    'schema': 'expense_work_profiles_v1',
+    'ownerUid': ownerUid.trim(),
+    'exportedAtUtc': exportedAtUtc.toUtc().toIso8601String(),
+    'profiles': [for (final profile in profiles) profile.toMap()],
+  };
+
   ExpenseWorkProfileRecord? profileById(String id) {
     for (final profile in profiles) {
       if (profile.id == id.trim()) return profile;

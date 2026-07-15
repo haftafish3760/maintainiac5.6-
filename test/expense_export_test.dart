@@ -282,6 +282,37 @@ void main() {
     },
   );
 
+  test('business and personal exports exclude lines awaiting classification', () {
+    final receipt = ExpenseReceiptRecord(
+      id: 'EXP-review-export',
+      receiptDate: DateTime(2026, 7, 15),
+      lines: const [
+        ExpenseReceiptLineRecord(
+          id: 'LINE-review', description: 'Original receipt text',
+          category: 'Tools', use: ExpenseLineUse.unclassified,
+          quantity: 1, unitsPerPackage: 1, unit: 'each', subtotal: 18,
+        ),
+      ],
+    );
+    final range = ExpenseDateRange(
+      start: DateTime(2026, 7, 1), end: DateTime(2026, 7, 31),
+    );
+    expect(
+      buildExpenseExportSnapshot(
+        receipts: [receipt], range: range,
+        categoryFilter: ExpenseExportCategoryFilter.business,
+      ).lineCount,
+      0,
+    );
+    expect(
+      buildExpenseExportSnapshot(
+        receipts: [receipt], range: range,
+        categoryFilter: ExpenseExportCategoryFilter.personal,
+      ).lineCount,
+      0,
+    );
+  });
+
   test('command center OCR contract privacy audit catches unsafe drift', () {
     final safeContract = ExpenseExportSnapshot(
       exportedAt: DateTime.utc(2026, 6, 12, 12),

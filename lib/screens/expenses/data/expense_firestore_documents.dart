@@ -3,7 +3,10 @@ import '../../../shared/firebase/maintainiac_firestore_schema.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'expense_ledger_models.dart';
+import 'expense_job_store.dart';
 import 'expense_reminder_store.dart';
+import 'expense_work_profile_store.dart';
+import 'expense_vehicle_profile_store.dart';
 
 class ExpenseFirestoreDocumentBuilder {
   const ExpenseFirestoreDocumentBuilder._();
@@ -137,6 +140,89 @@ class ExpenseFirestoreDocumentBuilder {
       }),
     );
   }
+
+  static MaintainiacFirestoreDocumentDraft expenseJobsDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseJobController jobs,
+    DateTime? nowUtc,
+  }) {
+    final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return _memberBackupDocument(
+      orgId: orgId,
+      uid: uid,
+      deviceId: deviceId,
+      id: 'expense_jobs_${_pathToken(uid)}',
+      uploadShape: 'single_jobs_document',
+      data: jobs.toBackupMap(ownerUid: uid, exportedAtUtc: exportedAt),
+      exportedAt: exportedAt,
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft expenseWorkProfilesDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseWorkProfileController profiles,
+    DateTime? nowUtc,
+  }) {
+    final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return _memberBackupDocument(
+      orgId: orgId,
+      uid: uid,
+      deviceId: deviceId,
+      id: 'expense_work_profiles_${_pathToken(uid)}',
+      uploadShape: 'single_work_profiles_document',
+      data: profiles.toBackupMap(ownerUid: uid, exportedAtUtc: exportedAt),
+      exportedAt: exportedAt,
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft expenseVehicleProfilesDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseVehicleProfileController profiles,
+    DateTime? nowUtc,
+  }) {
+    final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return _memberBackupDocument(
+      orgId: orgId,
+      uid: uid,
+      deviceId: deviceId,
+      id: 'expense_vehicle_profiles_${_pathToken(uid)}',
+      uploadShape: 'single_vehicle_profiles_document',
+      data: profiles.toBackupMap(ownerUid: uid, exportedAtUtc: exportedAt),
+      exportedAt: exportedAt,
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft _memberBackupDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required String id,
+    required String uploadShape,
+    required Map<String, Object?> data,
+    required DateTime exportedAt,
+  }) => MaintainiacFirestoreDocumentDraft(
+    path:
+        '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgSettings)}/$id',
+    data: Map.unmodifiable({
+      ...data,
+      'orgId': _pathToken(orgId),
+      'id': id,
+      'createdByUid': uid,
+      'updatedByUid': uid,
+      'deviceId': _token(deviceId),
+      'createdAt': exportedAt.toIso8601String(),
+      'updatedAt': exportedAt.toIso8601String(),
+      'module': 'expenses',
+      'settingsScope': 'member',
+      'uploadShape': uploadShape,
+    }),
+  );
 }
 
 Map<String, Object?> _lineFor(ExpenseReceiptLineRecord line) {

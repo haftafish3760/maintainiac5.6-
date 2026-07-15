@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_ledger_scope_filter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/screens/expenses/reports/expense_recap_models.dart';
 
@@ -346,5 +347,65 @@ void main() {
     expect(report.businessExpenses, 0);
     expect(report.personalExpenses, 0);
     expect(report.unclassifiedExpenses, 14);
+  });
+
+  test('recap scope filters only the selected independent work context',
+      () async {
+    final ledger = ExpenseLedgerController.memory();
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'job-a',
+        receiptDate: DateTime(2026, 7, 1),
+        contextSnapshot: const ExpenseReceiptContextSnapshot(
+          workProfileId: 'delivery',
+          vehicleId: 'van',
+          jobId: 'job-a',
+        ),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'job-a-line',
+            description: 'Original line',
+            category: 'Materials',
+            use: ExpenseLineUse.business,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 40,
+          ),
+        ],
+      ),
+    );
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'job-b',
+        receiptDate: DateTime(2026, 7, 1),
+        contextSnapshot: const ExpenseReceiptContextSnapshot(
+          workProfileId: 'rideshare',
+          vehicleId: 'car',
+          jobId: 'job-b',
+        ),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'job-b-line',
+            description: 'Original line',
+            category: 'Fuel',
+            use: ExpenseLineUse.business,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 60,
+          ),
+        ],
+      ),
+    );
+    final report = ExpenseRecapReport.fromLedger(
+      ledger,
+      ExpenseDateRange(start: DateTime(2026, 7, 1), end: DateTime(2026, 7, 31)),
+      scope: const ExpenseLedgerScopeFilter(
+        workProfileId: 'delivery', vehicleId: 'van', jobId: 'job-a',
+      ),
+    );
+    expect(report.receiptCount, 1);
+    expect(report.totalExpenses, 40);
   });
 }

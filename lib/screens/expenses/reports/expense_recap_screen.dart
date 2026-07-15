@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/odometer/odometer_vehicle_snapshot.dart';
-import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
+import '../data/expense_job_store.dart';
+import '../data/expense_ledger_scope_filter.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
+import '../data/expense_work_profile_store.dart';
+import '../data/expense_vehicle_profile_store.dart';
 import 'expense_recap_models.dart';
 
 part 'expense_recap_range_panel.dart';
+part 'expense_recap_scope_panel.dart';
 part 'expense_recap_tile_panels.dart';
 
 class ExpenseRecapScreen extends StatefulWidget {
@@ -28,6 +31,9 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
       widget.initialRange ??
       ExpenseDateRange(start: _anchorDate, end: _anchorDate);
   var _period = ExpenseRecapPeriod.month;
+  var _workProfileId = '';
+  var _vehicleId = '';
+  var _jobId = '';
 
   @override
   void initState() {
@@ -41,15 +47,20 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ExpenseSettingsScope.of(context);
-    final activeVehicle = AppStateScope.of(context).activeVehicle;
-    final vehicleId = activeVehicle == null
-        ? null
-        : odometerVehicleIdForLabel(activeVehicle.nickname);
+    final workProfiles = ExpenseWorkProfileScope.of(context).activeProfiles;
+    final vehicleProfiles = ExpenseVehicleProfileScope.of(
+      context,
+    ).activeProfiles;
+    final jobs = ExpenseJobScope.of(context).activeJobs;
     final range = _period.rangeFor(_anchorDate, customRange: _customRange);
     final report = ExpenseRecapReport.fromLedger(
       ExpenseLedgerScope.of(context),
       range,
-      vehicleId: vehicleId,
+      scope: ExpenseLedgerScopeFilter(
+        workProfileId: _workProfileId,
+        vehicleId: _vehicleId,
+        jobId: _jobId,
+      ),
     );
     final visibleTiles = expenseRecapTileDefinitions
         .where((tile) => settings.recapTileVisible(tile.id))
@@ -81,9 +92,26 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
             }),
           ),
           const SizedBox(height: 8),
+          _RecapScopePanel(
+            workProfileId: _workProfileId,
+            vehicleId: _vehicleId,
+            jobId: _jobId,
+            workProfiles: workProfiles,
+            vehicles: vehicleProfiles,
+            jobs: jobs,
+            onWorkProfileChanged: (value) =>
+                setState(() => _workProfileId = value),
+            onVehicleChanged: (value) => setState(() => _vehicleId = value),
+            onJobChanged: (value) => setState(() => _jobId = value),
+          ),
+          const SizedBox(height: 8),
           _RecapHeroPanel(
             report: report,
-            rangeLabel: _scopeRangeLabel(activeVehicle),
+            rangeLabel: _scopeRangeLabel(
+              workProfiles: workProfiles,
+              vehicles: vehicleProfiles,
+              jobs: jobs,
+            ),
           ),
           const SizedBox(height: 8),
           if (visibleTiles.isEmpty)
@@ -98,12 +126,40 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
   String get _rangeLabel =>
       _period.rangeLabel(_anchorDate, customRange: _customRange);
 
-  String _scopeRangeLabel(VehicleProfile? activeVehicle) {
-    final scope = activeVehicle == null
-        ? 'All company expenses'
-        : activeVehicle.nickname;
+  String _scopeRangeLabel({
+    required List<ExpenseWorkProfileRecord> workProfiles,
+    required List<ExpenseVehicleProfileRecord> vehicles,
+    required List<ExpenseJobRecord> jobs,
+  }) {
+    final selectedJob = _firstMatching(jobs, _jobId);
+    final selectedWorkProfile = _firstMatching(workProfiles, _workProfileId);
+    final selectedVehicle = _firstMatching(
+      vehicles,
+      _vehicleId,
+      idFor: (vehicle) => vehicle.id,
+    );
+    final scopes = [
+      if (selectedWorkProfile != null) selectedWorkProfile.name,
+      if (selectedVehicle != null) selectedVehicle.nickname,
+      if (selectedJob != null) selectedJob.name,
+    ];
+    final scope = scopes.isEmpty ? 'Everything together' : scopes.join(' | ');
     return '$scope | $_rangeLabel';
   }
+}
+
+T? _firstMatching<T>(
+  Iterable<T> values,
+  String id, {
+  String Function(T value)? idFor,
+}) {
+  final normalizedId = id.trim();
+  if (normalizedId.isEmpty) return null;
+  for (final value in values) {
+    final candidate = idFor?.call(value) ?? (value as dynamic).id as String;
+    if (candidate == normalizedId) return value;
+  }
+  return null;
 }
 
 DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);

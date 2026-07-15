@@ -265,8 +265,10 @@ bool _lineMatchesFilter(
   final category = _normalized(line.category);
   return switch (filter) {
     ExpenseExportCategoryFilter.all => true,
-    ExpenseExportCategoryFilter.business => line.use != ExpenseLineUse.personal,
-    ExpenseExportCategoryFilter.personal => line.use != ExpenseLineUse.business,
+    ExpenseExportCategoryFilter.business =>
+      line.use == ExpenseLineUse.business || line.use == ExpenseLineUse.split,
+    ExpenseExportCategoryFilter.personal =>
+      line.use == ExpenseLineUse.personal || line.use == ExpenseLineUse.split,
     ExpenseExportCategoryFilter.vehicle => _vehicleCategories.contains(
       category,
     ),

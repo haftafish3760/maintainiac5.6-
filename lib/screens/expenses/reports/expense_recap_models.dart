@@ -1,4 +1,5 @@
 import '../data/fuel_economy_metrics.dart';
+import '../data/expense_ledger_scope_filter.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
 
@@ -107,6 +108,7 @@ class ExpenseRecapReport {
     ExpenseLedgerController ledger,
     ExpenseDateRange range, {
     String? vehicleId,
+    ExpenseLedgerScopeFilter? scope,
     Map<String, ExpenseVehicleUsageSnapshot> vehicleUsage = const {},
   }) {
     final categoryTotals = <String, double>{};
@@ -137,6 +139,7 @@ class ExpenseRecapReport {
     for (final receipt in ledger.receipts) {
       if (!range.contains(receipt.receiptDate)) continue;
       if (vehicleId != null && receipt.vehicleId != vehicleId) continue;
+      if (scope != null && !scope.matches(receipt)) continue;
       includedReceipts.add(receipt);
       receiptCount += 1;
       lineCount += receipt.lines.length;

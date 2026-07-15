@@ -101,12 +101,27 @@ extension _ExpenseReceiptEntryParseApplyActions
   ) {
     final parsedLines = <ExpenseReceiptLineRecord>[];
     for (var index = 0; index < parsed.lines.length; index++) {
-      final line = _lineFromParsedReceipt(
+      var line = _lineFromParsedReceipt(
         parsed.lines[index],
         review: index < parsed.lineReviews.length
             ? parsed.lineReviews[index]
             : null,
       );
+      // OCR may identify document structure and candidate categories, but it
+      // never gets to decide business ownership for an Expense receipt. Fuel
+      // continues to hand its evidence to its dedicated downstream parser.
+      if (widget.initialCategory != 'Fuel') {
+        line = line.copyWith(
+          use: _ExpenseLineUse.unclassified,
+          businessPercent: null,
+          businessSplitValue: null,
+          splitConfirmed: true,
+          parserNeedsReview: true,
+          parserReviewLabel: 'Review',
+          parserReviewReason:
+              'Review business, personal, or split use before saving this app-filled receipt line.',
+        );
+      }
       parsedLines.add(line.toLedgerLine(id: line.id));
     }
     final existingAppAssistedLines = _lines

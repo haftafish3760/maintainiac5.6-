@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_firestore_documents.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_job_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_vehicle_profile_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_schema.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
@@ -195,20 +198,105 @@ void main() {
     final now = DateTime.utc(2026, 6, 24, 12);
     await reminders.save(
       ExpenseReminderRecord(
-        id: 'REM-1', title: 'Insurance renewal', category: 'Insurance',
+        id: 'REM-1',
+        title: 'Insurance renewal',
+        category: 'Insurance',
         dueAt: DateTime.utc(2026, 7, 1),
         frequency: ExpenseReminderFrequency.yearly,
         channel: ExpenseReminderChannel.inApp,
-        createdAt: now, updatedAt: now,
+        createdAt: now,
+        updatedAt: now,
       ),
     );
     final doc = ExpenseFirestoreDocumentBuilder.expenseRemindersDocument(
-      orgId: 'ORG-1', uid: 'USER-1', deviceId: 'DEVICE-1',
-      reminders: reminders, nowUtc: now,
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      reminders: reminders,
+      nowUtc: now,
     );
     expect(doc.data['schema'], 'expense_reminders_v1');
     expect(doc.data['uploadShape'], 'single_reminders_document');
-    expect((doc.data['reminders'] as List).single.toString(), contains('Insurance renewal'));
+    expect(
+      (doc.data['reminders'] as List).single.toString(),
+      contains('Insurance renewal'),
+    );
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
+
+  test(
+    'backs up jobs and work profiles as separate member documents',
+    () async {
+      final now = DateTime.utc(2026, 6, 24, 12);
+      final jobs = ExpenseJobController.memory();
+      final profiles = ExpenseWorkProfileController.memory();
+      final vehicles = ExpenseVehicleProfileController.memory();
+      await jobs.save(
+        ExpenseJobRecord(
+          id: 'JOB-1',
+          name: 'Kitchen repair',
+          workProfileId: 'contractor',
+          vehicleId: 'truck-1',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await profiles.save(
+        ExpenseWorkProfileRecord(
+          id: 'contractor',
+          name: 'Contractor',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await vehicles.ensureProfile(id: 'truck-1', nickname: 'Work Truck');
+      final jobsDoc = ExpenseFirestoreDocumentBuilder.expenseJobsDocument(
+        orgId: 'ORG-1',
+        uid: 'USER-1',
+        deviceId: 'DEVICE-1',
+        jobs: jobs,
+        nowUtc: now,
+      );
+      final profilesDoc =
+          ExpenseFirestoreDocumentBuilder.expenseWorkProfilesDocument(
+            orgId: 'ORG-1',
+            uid: 'USER-1',
+            deviceId: 'DEVICE-1',
+            profiles: profiles,
+            nowUtc: now,
+          );
+      final vehiclesDoc =
+          ExpenseFirestoreDocumentBuilder.expenseVehicleProfilesDocument(
+            orgId: 'ORG-1',
+            uid: 'USER-1',
+            deviceId: 'DEVICE-1',
+            profiles: vehicles,
+            nowUtc: now,
+          );
+      expect(jobsDoc.data['schema'], 'expense_jobs_v1');
+      expect(jobsDoc.data['uploadShape'], 'single_jobs_document');
+      expect(
+        (jobsDoc.data['jobs'] as List).single.toString(),
+        contains('Kitchen repair'),
+      );
+      expect(profilesDoc.data['schema'], 'expense_work_profiles_v1');
+      expect(profilesDoc.data['uploadShape'], 'single_work_profiles_document');
+      expect(
+        (profilesDoc.data['profiles'] as List).single.toString(),
+        contains('Contractor'),
+      );
+      expect(vehiclesDoc.data['schema'], 'expense_vehicle_profiles_v1');
+      expect(
+        vehiclesDoc.data['uploadShape'],
+        'single_vehicle_profiles_document',
+      );
+      expect(
+        (vehiclesDoc.data['profiles'] as List).single.toString(),
+        contains('Work Truck'),
+      );
+      MaintainiacFirestoreUploadPolicy.validateDraft(jobsDoc);
+      MaintainiacFirestoreUploadPolicy.validateDraft(profilesDoc);
+      MaintainiacFirestoreUploadPolicy.validateDraft(vehiclesDoc);
+    },
+  );
 }

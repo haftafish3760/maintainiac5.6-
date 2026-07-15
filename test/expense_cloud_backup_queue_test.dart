@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_backup_queue.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_job_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_vehicle_profile_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 
@@ -35,11 +38,11 @@ void main() {
         uid: 'USER-1',
         deviceId: 'DEVICE-1',
       );
-    final receipt = ExpenseReceiptRecord(
-      id: 'EXP-1',
-      receiptDate: DateTime.utc(2026, 7, 15),
-      lines: const [],
-    );
+      final receipt = ExpenseReceiptRecord(
+        id: 'EXP-1',
+        receiptDate: DateTime.utc(2026, 7, 15),
+        lines: const [],
+      );
 
       await backup.queueReceipt(
         identity: identity,
@@ -69,7 +72,9 @@ void main() {
       final reminders = ExpenseReminderController.memory();
       await reminders.save(
         ExpenseReminderRecord(
-          id: 'REM-1', title: 'Registration', category: 'Registration',
+          id: 'REM-1',
+          title: 'Registration',
+          category: 'Registration',
           dueAt: DateTime.utc(2026, 8, 1),
           frequency: ExpenseReminderFrequency.yearly,
           channel: ExpenseReminderChannel.inApp,
@@ -78,7 +83,13 @@ void main() {
         ),
       );
       await backup.queueReminders(identity: identity, reminders: reminders);
-      expect(queue.pendingRecords, hasLength(2));
+      final jobs = ExpenseJobController.memory();
+      final profiles = ExpenseWorkProfileController.memory();
+      final vehicles = ExpenseVehicleProfileController.memory();
+      await backup.queueJobs(identity: identity, jobs: jobs);
+      await backup.queueWorkProfiles(identity: identity, profiles: profiles);
+      await backup.queueVehicleProfiles(identity: identity, profiles: vehicles);
+      expect(queue.pendingRecords, hasLength(5));
     },
   );
 

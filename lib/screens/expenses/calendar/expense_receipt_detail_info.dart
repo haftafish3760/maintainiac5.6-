@@ -89,13 +89,24 @@ class _ReceiptAllocationPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final businessLines = receipt.lines
-        .where((line) => line.use != ExpenseLineUse.personal)
+        .where(
+          (line) =>
+              line.use == ExpenseLineUse.business ||
+              line.use == ExpenseLineUse.split,
+        )
         .length;
     final personalLines = receipt.lines
-        .where((line) => line.use != ExpenseLineUse.business)
+        .where(
+          (line) =>
+              line.use == ExpenseLineUse.personal ||
+              line.use == ExpenseLineUse.split,
+        )
         .length;
     final splitLines = receipt.lines
         .where((line) => line.use == ExpenseLineUse.split)
+        .length;
+    final unclassifiedLines = receipt.lines
+        .where((line) => line.use == ExpenseLineUse.unclassified)
         .length;
     final status = receipt.ocrReview.hasData
         ? (receipt.ocrReview.needsReview ? 'Read needs review' : 'Read saved')
@@ -119,6 +130,15 @@ class _ReceiptAllocationPanel extends StatelessWidget {
               letterSpacing: 0,
             ),
           ),
+          if (unclassifiedLines > 0) ...[
+            const SizedBox(height: 8),
+            _ReceiptBreakdownTile(
+              label: 'Needs classification',
+              value: _money(receipt.unclassifiedTotal),
+              detail: '$unclassifiedLines lines',
+              color: const Color(0xFFFFD166),
+            ),
+          ],
           const SizedBox(height: 8),
           Row(
             children: [

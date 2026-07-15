@@ -2,7 +2,10 @@ import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_models.dart';
+import 'expense_job_store.dart';
 import 'expense_reminder_store.dart';
+import 'expense_work_profile_store.dart';
+import 'expense_vehicle_profile_store.dart';
 
 class ExpenseCloudBackupIdentity {
   const ExpenseCloudBackupIdentity({
@@ -79,6 +82,60 @@ class ExpenseCloudBackupQueue {
         uid: identity.uid,
         deviceId: identity.deviceId,
         reminders: reminders,
+        nowUtc: nowUtc,
+      ),
+      queuedAtUtc: nowUtc,
+    );
+  }
+
+  Future<void> queueJobs({
+    required ExpenseCloudBackupIdentity identity,
+    required ExpenseJobController jobs,
+    DateTime? nowUtc,
+  }) async {
+    _requireIdentity(identity);
+    await _queue.enqueueReplacingPendingForPath(
+      ExpenseFirestoreDocumentBuilder.expenseJobsDocument(
+        orgId: identity.orgId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        jobs: jobs,
+        nowUtc: nowUtc,
+      ),
+      queuedAtUtc: nowUtc,
+    );
+  }
+
+  Future<void> queueWorkProfiles({
+    required ExpenseCloudBackupIdentity identity,
+    required ExpenseWorkProfileController profiles,
+    DateTime? nowUtc,
+  }) async {
+    _requireIdentity(identity);
+    await _queue.enqueueReplacingPendingForPath(
+      ExpenseFirestoreDocumentBuilder.expenseWorkProfilesDocument(
+        orgId: identity.orgId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        profiles: profiles,
+        nowUtc: nowUtc,
+      ),
+      queuedAtUtc: nowUtc,
+    );
+  }
+
+  Future<void> queueVehicleProfiles({
+    required ExpenseCloudBackupIdentity identity,
+    required ExpenseVehicleProfileController profiles,
+    DateTime? nowUtc,
+  }) async {
+    _requireIdentity(identity);
+    await _queue.enqueueReplacingPendingForPath(
+      ExpenseFirestoreDocumentBuilder.expenseVehicleProfilesDocument(
+        orgId: identity.orgId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        profiles: profiles,
         nowUtc: nowUtc,
       ),
       queuedAtUtc: nowUtc,

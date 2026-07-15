@@ -69,6 +69,8 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
             const SizedBox(height: 8),
             _buildWorkProfilePanel(context),
             const SizedBox(height: 8),
+            _buildVehicleProfilePanel(context),
+            const SizedBox(height: 8),
             _buildJobContextPanel(context),
             const SizedBox(height: 8),
             KeyedSubtree(
