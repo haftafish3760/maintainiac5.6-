@@ -2,16 +2,20 @@ part of 'expense_ledger_models.dart';
 
 class ExpenseLedgerSummary {
   const ExpenseLedgerSummary({
-    required this.total,
-    required this.business,
-    required this.personal,
+    required this.totalCents,
+    required this.businessCents,
+    required this.personalCents,
     required this.recordCount,
   });
 
-  final double total;
-  final double business;
-  final double personal;
+  final int totalCents;
+  final int businessCents;
+  final int personalCents;
   final int recordCount;
+
+  double get total => totalCents / 100;
+  double get business => businessCents / 100;
+  double get personal => personalCents / 100;
 }
 
 class ExpenseDateRange {

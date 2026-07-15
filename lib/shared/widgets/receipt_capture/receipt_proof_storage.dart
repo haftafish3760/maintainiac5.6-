@@ -20,12 +20,16 @@ class ReceiptProofStorage {
   static const instance = ReceiptProofStorage._();
 
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
-    List<ReceiptAttachmentRecord> attachments,
-  ) async {
+    List<ReceiptAttachmentRecord> attachments, {
+    bool retainStagedSources = false,
+  }) async {
     final saved = <ReceiptAttachmentRecord>[];
     try {
       for (final attachment in attachments) {
-        final persisted = await persistAttachment(attachment);
+        final persisted = await persistAttachment(
+          attachment,
+          retainStagedSource: retainStagedSources,
+        );
         saved.add(persisted);
       }
     } catch (_) {
@@ -36,8 +40,9 @@ class ReceiptProofStorage {
   }
 
   Future<ReceiptAttachmentRecord> persistAttachment(
-    ReceiptAttachmentRecord attachment,
-  ) async {
+    ReceiptAttachmentRecord attachment, {
+    bool retainStagedSource = false,
+  }) async {
     if (attachment.path.trim().isEmpty || attachment.isImportedText) {
       return attachment;
     }
@@ -47,7 +52,10 @@ class ReceiptProofStorage {
 
     final proofRoot = await _proofRoot();
     if (attachment.storageState == ReceiptAttachmentStorageState.staged) {
-      return promoteStagedAttachment(attachment);
+      return promoteStagedAttachment(
+        attachment,
+        retainStagedSource: retainStagedSource,
+      );
     }
     if (path.isWithin(proofRoot.path, source.path)) {
       final inspection = attachment.isPdf
@@ -186,8 +194,9 @@ class ReceiptProofStorage {
   }
 
   Future<ReceiptAttachmentRecord> promoteStagedAttachment(
-    ReceiptAttachmentRecord attachment,
-  ) async {
+    ReceiptAttachmentRecord attachment, {
+    bool retainStagedSource = false,
+  }) async {
     if (attachment.storageState != ReceiptAttachmentStorageState.staged) {
       return persistAttachment(attachment);
     }
@@ -230,9 +239,11 @@ class ReceiptProofStorage {
     final inspection = attachment.isPdf
         ? await ReceiptPdfInspector.inspect(destination.path)
         : null;
-    try {
-      await source.delete();
-    } catch (_) {}
+    if (!retainStagedSource) {
+      try {
+        await source.delete();
+      } catch (_) {}
+    }
     return attachment.copyWith(
       path: destination.path,
       byteSize: await _safeLength(destination),

@@ -90,14 +90,8 @@ extension _ReceiptAttachmentReviewReadActions
     publishAttachmentChange();
     widget.onReceiptPhotoReviewAccepted?.call(result);
     if (_pauseReviewedPhotoReadUntilNextSection(result)) return true;
-    _startReviewedPhotoReadStatus(result);
-    final readResult = await _readReviewedPhotosForReceiptForm(result);
-    unawaited(
-      deleteTemporaryOcrPhotos(
-        result.ocrSourcePhotoPaths,
-        keptReceiptPhotoPaths: result.photoPaths,
-      ),
-    );
+    final readResult = await _readAcceptedPhotosForReceiptForm(result);
+    if (readResult == null) return true;
     if (!mounted) return false;
     mergeOcrTotalsEvidenceIntoAcceptedPhotoDiagnostics(result, readResult);
     markReviewedPhotosReadState(result, readResult);
@@ -160,17 +154,33 @@ extension _ReceiptAttachmentReviewReadActions
     publishAttachmentChange();
     widget.onReceiptPhotoReviewAccepted?.call(result);
     if (_pauseReviewedPhotoReadUntilNextSection(result)) return;
-    _startReviewedPhotoReadStatus(result);
-    final readResult = await _readReviewedPhotosForReceiptForm(result);
-    unawaited(
-      deleteTemporaryOcrPhotos(
-        result.ocrSourcePhotoPaths,
-        keptReceiptPhotoPaths: result.photoPaths,
-      ),
-    );
+    final readResult = await _readAcceptedPhotosForReceiptForm(result);
+    if (readResult == null) return;
     if (!mounted) return;
     mergeOcrTotalsEvidenceIntoAcceptedPhotoDiagnostics(result, readResult);
     markReviewedPhotosReadState(result, readResult);
+  }
+
+  Future<_ReceiptAttachmentReadResult?> _readAcceptedPhotosForReceiptForm(
+    ReceiptPhotoReviewResult result,
+  ) async {
+    if (_reviewedPhotoReadInFlight) {
+      showPickerMessage('Receipt details are already being prepared.');
+      return null;
+    }
+    _reviewedPhotoReadInFlight = true;
+    try {
+      _startReviewedPhotoReadStatus(result);
+      return await _readReviewedPhotosForReceiptForm(result);
+    } finally {
+      _reviewedPhotoReadInFlight = false;
+      unawaited(
+        deleteTemporaryOcrPhotos(
+          result.ocrSourcePhotoPaths,
+          keptReceiptPhotoPaths: result.photoPaths,
+        ),
+      );
+    }
   }
 
   void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result) {

@@ -81,51 +81,43 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ReceiptCaptureSettingsScope.of(context);
-    const cloudStatus = CloudBackupStatusSnapshot.notConnected();
-    final quotaCheck = cloudStatus.checkPendingBytes(0);
-    final policy = settings.defaultDataSaverProofTargetSizePolicy;
-    final estimate = _estimatedReceiptCount(policy);
-    final sizeLabel = policy.keepsOriginalLocalOnly
-        ? 'saved proof copy'
-        : policy.targetLabel;
-    return _ReceiptSettingsSection(
-      icon: Icons.cloud_done_rounded,
-      title: 'Backup And Storage',
-      subtitle: 'Choose whether receipt proof photos use Maintainiac backup.',
-      children: [
-        _ReceiptSettingsSwitch(
-          title: 'Back Up Receipt Photos',
-          detail:
-              'When enabled, saved proof copies can be included in Maintainiac cloud backup. Original full-size photos stay temporary unless you choose to keep them.',
-          value: settings.receiptPhotoBackupEnabled,
-          onChanged: settings.setReceiptPhotoBackupEnabled,
-        ),
-        const SizedBox(height: 8),
-        _ReceiptStorageMetricRow(
-          label: 'Backup account',
-          value: cloudStatus.connectionState.label,
-          detail: cloudStatus.message ?? 'Local receipt saving still works.',
-        ),
-        const SizedBox(height: 8),
-        _ReceiptStorageMetricRow(
-          label: 'Storage remaining',
-          value: '${quotaCheck.remainingLabel} of ${quotaCheck.quotaLabel}',
-          detail: policy.keepsOriginalLocalOnly
-              ? 'Original photos stay local by default. Backup should use a smaller proof copy when enabled.'
-              : 'At about $sizeLabel per receipt, that is roughly $estimate receipt proofs before extra storage.',
-        ),
-      ],
+    return FutureBuilder<AppStorageCheck>(
+      future: AppStorageGuard.check(AppStoragePurpose.receiptPhotoCapture),
+      builder: (context, snapshot) {
+        final storage = snapshot.data;
+        final value = storage == null
+            ? 'Checking…'
+            : storage.canVerify
+            ? storage.availableLabel
+            : 'Unavailable';
+        final detail = storage == null
+            ? 'Checking free device storage before you add receipt photos.'
+            : storage.canVerify
+            ? storage.shouldWarnLowStorage
+                  ? storage.warningMessage()
+                  : 'Maintainiac keeps a ${storage.reserveLabel} safety reserve and needs at least ${storage.minimumLabel} before another receipt photo.'
+            : storage.unknownMessage();
+        return _ReceiptSettingsSection(
+          icon: Icons.phone_android_rounded,
+          title: 'Device Storage',
+          subtitle: 'Receipt photos save to your device first.',
+          children: [
+            _ReceiptStorageMetricRow(
+              label: 'Free on this device',
+              value: value,
+              detail: detail,
+            ),
+            const SizedBox(height: 8),
+            const _ReceiptStorageMetricRow(
+              label: 'Cloud backup',
+              value: 'Not connected',
+              detail:
+                  'Cloud backup, storage plans, and upload choices will appear here only after they are connected and working. Local receipt saving is available now.',
+            ),
+          ],
+        );
+      },
     );
-  }
-
-  static int _estimatedReceiptCount(ReceiptProofTargetSizePolicy policy) {
-    if (policy.targetBytes <= 0) return 0;
-    return (CloudBackupStatusSnapshot.notConnected()
-                .checkPendingBytes(0)
-                .remainingBytes /
-            policy.targetBytes)
-        .floor();
   }
 }
 
@@ -208,14 +200,6 @@ class _ReceiptAssistSettings extends StatelessWidget {
       title: 'Automatic Receipt Filling',
       subtitle: 'Manual entry always stays available.',
       children: [
-        _ReceiptSettingsSwitch(
-          title: 'Automatically Fill Receipts',
-          detail:
-              'Allow Maintainiac to read receipt photos locally and prepare editable receipt fields. You review everything before saving.',
-          value: settings.appAssistedReceiptFill,
-          onChanged: settings.setAppAssistedReceiptFill,
-        ),
-        const SizedBox(height: 6),
         _ReceiptSettingsSwitch(
           title: title,
           detail: detail,

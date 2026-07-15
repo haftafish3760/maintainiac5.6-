@@ -49,6 +49,25 @@ double? _expenseDouble(dynamic value) {
   return null;
 }
 
+int? _expenseMoneyCents(dynamic value) {
+  final cents = _expenseInt(value);
+  return cents;
+}
+
+int? _expenseCentsFromAmount(double? value) {
+  if (value == null || !value.isFinite) return null;
+  return (value * 100).round();
+}
+
+double? _expenseAmountFromStoredMoney(
+  dynamic centsValue,
+  dynamic legacyAmount,
+) {
+  final cents = _expenseMoneyCents(centsValue);
+  if (cents != null) return cents / 100;
+  return _expenseDouble(legacyAmount);
+}
+
 bool _expenseBool(dynamic value, {bool fallback = false}) {
   if (value is bool) return value;
   if (value is String) {

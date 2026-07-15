@@ -10,9 +10,9 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
     final cloudAssistPlan = settings.defaultDataSaverCloudAssistPlan;
     return _ReceiptSettingsSection(
       icon: Icons.photo_size_select_large_rounded,
-      title: 'Receipt Details And Saved Proof',
+      title: 'Saved Receipt Copy',
       subtitle:
-          'Choose the default backup copy size. OCR still uses the clearest receipt source first.',
+          'Choose how Maintainiac keeps its app-owned receipt copy. Reading still uses the clearest source first.',
       children: [
         _ReceiptSettingsSwitch(
           title: 'Ask Every Receipt',
@@ -75,6 +75,7 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
   }
 
   static const _receiptBackupLevels = [
+    ReceiptDataSaverLevel.original,
     ReceiptDataSaverLevel.light,
     ReceiptDataSaverLevel.balanced,
     ReceiptDataSaverLevel.strong,

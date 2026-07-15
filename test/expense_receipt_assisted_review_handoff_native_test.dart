@@ -61,17 +61,17 @@ void main() {
     expect(
       importActions,
       contains(
-        'final readResult = await _readReviewedPhotosForReceiptForm(result);',
+        'final readResult = await _readAcceptedPhotosForReceiptForm(result);',
       ),
     );
     expect(
       importActions.indexOf('_publishAttachmentChange();'),
       lessThan(
-        importActions.indexOf('_readReviewedPhotosForReceiptForm(result);'),
+        importActions.indexOf('_readAcceptedPhotosForReceiptForm(result);'),
       ),
     );
     expect(
-      importActions.indexOf('_readReviewedPhotosForReceiptForm(result);'),
+      importActions.indexOf('_readAcceptedPhotosForReceiptForm(result);'),
       lessThan(
         importActions.indexOf('keptReceiptPhotoPaths: result.photoPaths'),
       ),

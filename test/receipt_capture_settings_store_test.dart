@@ -234,12 +234,11 @@ void main() {
       expect(source, contains('effectiveCameraRuntimeProfile'));
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
-      expect(source, contains('Backup And Storage'));
-      expect(source, contains('Back Up Receipt Photos'));
-      expect(source, contains('receiptPhotoBackupEnabled'));
-      expect(source, contains('Backup account'));
-      expect(source, contains('Storage remaining'));
-      expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
+      expect(source, contains('Device Storage'));
+      expect(source, contains('Free on this device'));
+      expect(source, contains('Cloud backup'));
+      expect(source, contains('Cloud backup, storage plans, and upload choices'));
+      expect(source, contains('AppStorageGuard.check'));
       expect(source, contains('Ask Every Receipt'));
       expect(source, contains('askSavedProofSizeEachReceipt'));
       expect(

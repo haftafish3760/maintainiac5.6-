@@ -94,6 +94,10 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
         ..addAll(promotedAttachments);
       _hasReceipt = promotedAttachments.isNotEmpty || _hasReceipt;
     });
+    if (!await _checkpointPromotedProofDraft()) return;
+    await ReceiptProofStorage.instance.deleteStagedAttachments(
+      receipt.attachments,
+    );
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
     await _syncMaterialsReceipt(saved);
@@ -121,6 +125,37 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     await _drafts?.deleteDraft(_draftId);
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<bool> _checkpointPromotedProofDraft() async {
+    if (_isEditingReceipt) return true;
+    try {
+      await _saveDraftNow();
+      return true;
+    } catch (_) {
+      if (!mounted) return false;
+      ExpenseScreenTelemetryRecorder.record(
+        context,
+        ExpenseTelemetryEventType.saveFailure,
+        failureKind: 'promoted_proof_draft_checkpoint_failed',
+        diagnostic: const ExpenseFailureDiagnostic(
+          workflowStep: ExpenseWorkflowStep.saveExpense,
+          failedAt: 'checkpoint_promoted_receipt_proof_draft',
+          confirmedCause: 'cause_not_confirmed_draft_checkpoint_failed',
+          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
+          evidence: 'draft_save_threw_after_proof_promotion',
+          missingEvidence: 'exception_type_and_draft_store_state',
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'The receipt recovery record could not be updated. Keep this screen open and try saving again.',
+          ),
+        ),
+      );
+      return false;
+    }
   }
 
   ExpenseReceiptRecord _buildReceiptForSave() {
@@ -188,6 +223,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
               ),
             )
             .toList(growable: false),
+        retainStagedSources: true,
       );
     } on ReceiptProofStorageException catch (error) {
       if (!mounted) return null;

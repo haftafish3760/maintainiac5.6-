@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../../backup/cloud_backup_status.dart';
 import '../../navigation/app_page_routes.dart';
 import '../../state/expense_settings_store.dart';
+import '../../storage/app_storage_guard.dart';
 import '../receipt_form/receipt_form_panel.dart';
 import 'receipt_capture_flow.dart';
 import 'receipt_capture_models.dart';
@@ -124,6 +124,7 @@ class _SharedReceiptAttachmentPanelState
   final List<ReceiptAttachmentRecord> _documentAttachments = [];
   var _openingPicker = false;
   var _readingForReview = false;
+  var _reviewedPhotoReadInFlight = false;
   var _needsBottomReceiptSection = false;
   var _receiptReadStatus = _ReceiptReadStatusKind.success;
   var _receiptReadStatusMessage = '';

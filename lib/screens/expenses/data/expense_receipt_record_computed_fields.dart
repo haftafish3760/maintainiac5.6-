@@ -1,35 +1,48 @@
 part of 'expense_ledger_models.dart';
 
 extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
-  double get lineSubtotal => lines.fold(0, (sum, line) => sum + line.subtotal);
-  double get receiptSubtotal => enteredSubtotal ?? lineSubtotal;
-  double get receiptTax {
-    if (enteredTax != null) return enteredTax!;
-    final total = enteredTotal;
-    final subtotal = enteredSubtotal;
-    if (total != null && subtotal != null) {
-      return total - subtotal;
-    }
+  int get lineSubtotalCents =>
+      lines.fold(0, (sum, line) => sum + line.subtotalCents);
+  int get receiptSubtotalCents => enteredSubtotalCents ?? lineSubtotalCents;
+  int get receiptTaxCents {
+    final entered = enteredTaxCents;
+    if (entered != null) return entered;
+    final total = enteredTotalCents;
+    final subtotal = enteredSubtotalCents;
+    if (total != null && subtotal != null) return total - subtotal;
     return 0;
   }
 
-  double get total => enteredTotal ?? lineSubtotal + receiptAdjustment;
-  double get receiptAdjustment =>
-      (enteredTotal ?? receiptSubtotal + receiptTax) - lineSubtotal;
+  int get totalCents =>
+      enteredTotalCents ?? receiptSubtotalCents + receiptTaxCents;
+  int get receiptAdjustmentCents => totalCents - lineSubtotalCents;
+
+  double get lineSubtotal => lineSubtotalCents / 100;
+  double get receiptSubtotal => receiptSubtotalCents / 100;
+  double get receiptTax {
+    return receiptTaxCents / 100;
+  }
+
+  double get total => totalCents / 100;
+  double get receiptAdjustment => receiptAdjustmentCents / 100;
   double? get effectiveTaxRate {
     final subtotal = receiptSubtotal;
     if (subtotal <= 0 || receiptTax == 0) return null;
     return receiptTax / subtotal;
   }
 
-  double get businessLineSubtotal =>
-      lines.fold(0, (sum, line) => sum + line.businessAmount);
-  double get personalLineSubtotal =>
-      lines.fold(0, (sum, line) => sum + line.personalAmount);
-  double get businessTotal =>
-      businessLineSubtotal + _allocatedReceiptAdjustment(businessLineSubtotal);
-  double get personalTotal =>
-      personalLineSubtotal + _allocatedReceiptAdjustment(personalLineSubtotal);
+  int get businessLineSubtotalCents =>
+      lines.fold(0, (sum, line) => sum + line.businessCents);
+  int get personalLineSubtotalCents =>
+      lines.fold(0, (sum, line) => sum + line.personalCents);
+  double get businessLineSubtotal => businessLineSubtotalCents / 100;
+  double get personalLineSubtotal => personalLineSubtotalCents / 100;
+  int get businessTotalCents =>
+      businessLineSubtotalCents +
+      _allocatedReceiptAdjustmentCents(businessLineSubtotalCents);
+  int get personalTotalCents => totalCents - businessTotalCents;
+  double get businessTotal => businessTotalCents / 100;
+  double get personalTotal => personalTotalCents / 100;
   bool get hasReceiptAttachment => hasReceiptProof || attachments.isNotEmpty;
   String get title => merchantName.trim().isEmpty ? 'Receipt' : merchantName;
 
@@ -91,5 +104,11 @@ extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
     final subtotal = lineSubtotal;
     if (subtotal <= 0 || receiptAdjustment == 0) return 0;
     return receiptAdjustment * (lineAmount / subtotal);
+  }
+
+  int _allocatedReceiptAdjustmentCents(int lineAmountCents) {
+    if (lineSubtotalCents <= 0 || receiptAdjustmentCents == 0) return 0;
+    return (receiptAdjustmentCents * lineAmountCents / lineSubtotalCents)
+        .round();
   }
 }

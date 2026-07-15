@@ -85,9 +85,18 @@ class ExpenseReceiptDraftRecord {
       receiptReviewModeChangedByUser: _expenseBool(
         map['receiptReviewModeChangedByUser'],
       ),
-      enteredSubtotal: _expenseDouble(map['enteredSubtotal']),
-      enteredTax: _expenseDouble(map['enteredTax']),
-      enteredTotal: _expenseDouble(map['enteredTotal']),
+      enteredSubtotal: _expenseAmountFromStoredMoney(
+        map['enteredSubtotalCents'],
+        map['enteredSubtotal'],
+      ),
+      enteredTax: _expenseAmountFromStoredMoney(
+        map['enteredTaxCents'],
+        map['enteredTax'],
+      ),
+      enteredTotal: _expenseAmountFromStoredMoney(
+        map['enteredTotalCents'],
+        map['enteredTotal'],
+      ),
       trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
       odometerReading: _expenseInt(map['odometerReading']),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
@@ -131,6 +140,9 @@ class ExpenseReceiptDraftRecord {
   final double? enteredSubtotal;
   final double? enteredTax;
   final double? enteredTotal;
+  int? get enteredSubtotalCents => _expenseCentsFromAmount(enteredSubtotal);
+  int? get enteredTaxCents => _expenseCentsFromAmount(enteredTax);
+  int? get enteredTotalCents => _expenseCentsFromAmount(enteredTotal);
   final bool trackMaterialsInInventory;
   final int? odometerReading;
   final String sourceScreen;
@@ -208,6 +220,9 @@ class ExpenseReceiptDraftRecord {
       'enteredSubtotal': enteredSubtotal,
       'enteredTax': enteredTax,
       'enteredTotal': enteredTotal,
+      'enteredSubtotalCents': enteredSubtotalCents,
+      'enteredTaxCents': enteredTaxCents,
+      'enteredTotalCents': enteredTotalCents,
       'trackMaterialsInInventory': trackMaterialsInInventory,
       'odometerReading': odometerReading,
       'sourceScreen': sourceScreen,
