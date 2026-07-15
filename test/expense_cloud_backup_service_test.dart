@@ -147,6 +147,11 @@ void main() {
     expect(document['localRevision'], 2);
     expect(document['syncStatus'], 'pending_delete');
     expect(document['deletedAt'], isNotNull);
+    expect(service.settings.lastBackupAttemptAt, DateTime.utc(2026, 7, 15, 12));
+    expect(
+      service.settings.lastSuccessfulBackupAt,
+      DateTime.utc(2026, 7, 15, 12),
+    );
   });
 
   test('includes deleted reminder tombstones in an authorized backup', () async {

@@ -56,7 +56,17 @@ class ExpenseCloudBackupService {
   }) async {
     final queued = await queueReceipt(receiptId, nowUtc: nowUtc);
     if (!queued.wasQueued) return queued.toBackupResult();
-    return flushPaths([queued.documentPath!], queuedCount: 1, nowUtc: nowUtc);
+    final timestamp = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    await settings.recordBackupAttempt(timestamp);
+    final result = await flushPaths(
+      [queued.documentPath!],
+      queuedCount: 1,
+      nowUtc: timestamp,
+    );
+    if (result.completed) {
+      await settings.recordSuccessfulBackup(timestamp);
+    }
+    return result;
   }
 
   /// Writes a durable local queue entry before any network operation. This is
