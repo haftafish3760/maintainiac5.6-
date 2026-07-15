@@ -2,6 +2,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 
 void main() {
+  test(
+    'unknown ownership is preserved as unclassified with no allocated total',
+    () {
+      final line = ExpenseReceiptLineRecord.fromMap({
+        'id': 'line-unclassified',
+        'description': 'HDWR',
+        'category': 'Uncategorized',
+        'use': 'unknown legacy parser signal',
+        'subtotal': 42,
+      });
+
+      expect(line.use, ExpenseLineUse.unclassified);
+      expect(line.displayDescription, 'HDWR');
+      expect(line.businessUseReviewLabel, 'Needs classification');
+      expect(line.businessAmount, 0);
+      expect(line.personalAmount, 0);
+      expect(line.toMap()['use'], 'unclassified');
+    },
+  );
+
   test('receipt lines can be allocation-only without item descriptions', () {
     const business = ExpenseReceiptLineRecord(
       id: 'line-business',

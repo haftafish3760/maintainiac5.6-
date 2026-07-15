@@ -167,9 +167,17 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
           // The convenience 50% value is only a preview. It is not user
           // intent, so keep the line blocked until the user confirms or
           // edits the allocation in review.
-          parserNeedsReview: use == _ExpenseLineUse.split,
-          parserReviewLabel: use == _ExpenseLineUse.split ? 'Review' : 'Good',
+          parserNeedsReview:
+              use == _ExpenseLineUse.unclassified ||
+              use == _ExpenseLineUse.split,
+          parserReviewLabel:
+              use == _ExpenseLineUse.unclassified ||
+                  use == _ExpenseLineUse.split
+              ? 'Review'
+              : 'Good',
           parserReviewReason: switch (use) {
+            _ExpenseLineUse.unclassified =>
+              'Ownership still requires the user to choose business, personal, or split.',
             _ExpenseLineUse.business =>
               'User marked the full receipt as business.',
             _ExpenseLineUse.personal =>
@@ -182,6 +190,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
     });
     _scheduleDraftSave();
     final label = switch (use) {
+      _ExpenseLineUse.unclassified => 'unclassified',
       _ExpenseLineUse.business => 'business',
       _ExpenseLineUse.personal => 'personal',
       _ExpenseLineUse.split => 'mixed',
@@ -203,9 +212,13 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
       _lines[index] = line.copyWith(
         use: use,
         businessPercent: use == _ExpenseLineUse.split ? splitPercent : null,
-        parserNeedsReview: false,
-        parserReviewLabel: 'Good',
+        parserNeedsReview: use == _ExpenseLineUse.unclassified,
+        parserReviewLabel: use == _ExpenseLineUse.unclassified
+            ? 'Needs classification'
+            : 'Good',
         parserReviewReason: switch (use) {
+          _ExpenseLineUse.unclassified =>
+            'Ownership still requires the user to choose business, personal, or split.',
           _ExpenseLineUse.business =>
             'User marked this receipt line as business.',
           _ExpenseLineUse.personal =>

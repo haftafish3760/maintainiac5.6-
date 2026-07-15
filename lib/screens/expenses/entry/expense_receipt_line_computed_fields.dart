@@ -25,6 +25,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
       return clean;
     }
     return switch (use) {
+      _ExpenseLineUse.unclassified => 'Receipt items',
       _ExpenseLineUse.business => 'Business receipt items',
       _ExpenseLineUse.personal => 'Personal receipt items',
       _ExpenseLineUse.split => 'Split receipt items',
@@ -33,6 +34,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
 
   double get effectiveBusinessPercent {
     return switch (use) {
+      _ExpenseLineUse.unclassified => 0,
       _ExpenseLineUse.business => 1,
       _ExpenseLineUse.personal => 0,
       _ExpenseLineUse.split => _boundedBusinessPercent,
@@ -47,7 +49,10 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
     return percent;
   }
 
-  double get effectivePersonalPercent => 1 - effectiveBusinessPercent;
+  double get effectivePersonalPercent {
+    if (use == _ExpenseLineUse.unclassified) return 0;
+    return 1 - effectiveBusinessPercent;
+  }
 
   String get allocationSummary {
     if (use != _ExpenseLineUse.split) return use.label;
@@ -56,6 +61,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
 
   String get allocationDetail {
     return switch (use) {
+      _ExpenseLineUse.unclassified => 'Choose business, personal, or split',
       _ExpenseLineUse.business => 'Business ${_money(subtotal)}',
       _ExpenseLineUse.personal => 'Personal ${_money(subtotal)}',
       _ExpenseLineUse.split =>
@@ -113,6 +119,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
 
   double get businessAmount {
     return switch (use) {
+      _ExpenseLineUse.unclassified => 0,
       _ExpenseLineUse.business => subtotal,
       _ExpenseLineUse.personal => 0,
       _ExpenseLineUse.split => subtotal * effectiveBusinessPercent,
@@ -121,6 +128,7 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
 
   double get personalAmount {
     return switch (use) {
+      _ExpenseLineUse.unclassified => 0,
       _ExpenseLineUse.business => 0,
       _ExpenseLineUse.personal => subtotal,
       _ExpenseLineUse.split => subtotal * effectivePersonalPercent,

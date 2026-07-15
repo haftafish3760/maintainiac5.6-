@@ -233,11 +233,10 @@ extension _ExpenseReceiptEntryParseApplyActions
     return _ExpenseReceiptLine(
       description: line.description,
       category: line.category,
-      use: switch (line.use) {
-        ExpenseLineUse.business => _ExpenseLineUse.business,
-        ExpenseLineUse.personal => _ExpenseLineUse.personal,
-        ExpenseLineUse.split => _ExpenseLineUse.split,
-      },
+      // Parser ownership signals are compatibility evidence for downstream
+      // parsers only. The editable Expense record starts unclassified until
+      // the user chooses Business, Personal, or Split.
+      use: _ExpenseLineUse.unclassified,
       quantity: line.quantity,
       unitsPerPackage: line.unitsPerPackage,
       stockUnit: line.unit,
@@ -254,9 +253,10 @@ extension _ExpenseReceiptEntryParseApplyActions
       catalogMatchConfidence: line.catalogMatchConfidence,
       catalogMatchedTerms: line.catalogMatchedTerms,
       parserConfidence: review?.confidence ?? line.parserConfidence,
-      parserReviewLabel: review?.label ?? line.parserReviewLabel,
-      parserReviewReason: review?.reason ?? line.parserReviewReason,
-      parserNeedsReview: review?.needsReview ?? line.parserNeedsReview,
+      parserReviewLabel: 'Needs classification',
+      parserReviewReason:
+          'The app read this line but cannot decide whether it is business, personal, or split.',
+      parserNeedsReview: true,
       ocrSourceLineId: line.ocrSourceLineId,
       ocrSourceLineNumber: line.ocrSourceLineNumber,
       ocrSourceSectionNumber: line.ocrSourceSectionNumber,

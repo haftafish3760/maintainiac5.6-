@@ -212,6 +212,7 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
 
   String _defaultReceiptLineDescription(_ExpenseLineUse use) {
     return switch (use) {
+      _ExpenseLineUse.unclassified => 'Receipt items',
       _ExpenseLineUse.business => 'Business receipt items',
       _ExpenseLineUse.personal => 'Personal receipt items',
       _ExpenseLineUse.split => 'Split receipt items',

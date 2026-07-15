@@ -55,6 +55,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
     }
     final line = _ExpenseReceiptLine(
       description: switch (use) {
+        _ExpenseLineUse.unclassified => 'Receipt total',
         _ExpenseLineUse.business => 'Business receipt total',
         _ExpenseLineUse.personal => 'Personal receipt total',
         _ExpenseLineUse.split => 'Split receipt total',
@@ -112,11 +113,13 @@ extension _ExpenseReceiptEntryLineModeHelpers
                   subtitle:
                       'Enter the amount from this receipt line and choose how it should count. The receipt photo stays attached as proof.',
                   icon: switch (use) {
+                    _ExpenseLineUse.unclassified => Icons.help_outline_rounded,
                     _ExpenseLineUse.business => Icons.business_center_rounded,
                     _ExpenseLineUse.personal => Icons.person_rounded,
                     _ExpenseLineUse.split => Icons.call_split_rounded,
                   },
                   accentColor: switch (use) {
+                    _ExpenseLineUse.unclassified => const Color(0xFFFFD166),
                     _ExpenseLineUse.business => const Color(0xFF34A9E8),
                     _ExpenseLineUse.personal => const Color(0xFF8F9BA1),
                     _ExpenseLineUse.split => const Color(0xFFFFD166),
@@ -159,6 +162,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
                         Navigator.of(context).pop(
                           _ExpenseReceiptLine(
                             description: switch (use) {
+                              _ExpenseLineUse.unclassified => 'Receipt items',
                               _ExpenseLineUse.business =>
                                 'Business receipt items',
                               _ExpenseLineUse.personal =>

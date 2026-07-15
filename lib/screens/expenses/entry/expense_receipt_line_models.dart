@@ -56,6 +56,7 @@ class _ExpenseReceiptLine {
       description: line.description,
       category: line.category,
       use: switch (line.use) {
+        ExpenseLineUse.unclassified => _ExpenseLineUse.unclassified,
         ExpenseLineUse.business => _ExpenseLineUse.business,
         ExpenseLineUse.personal => _ExpenseLineUse.personal,
         ExpenseLineUse.split => _ExpenseLineUse.split,

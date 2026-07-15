@@ -23,9 +23,13 @@ extension _ExpenseReceiptLineReviewActions on _ExpenseReceiptLine {
       catalogMatchConfidence: catalogMatchConfidence,
       catalogMatchedTerms: catalogMatchedTerms,
       parserConfidence: parserConfidence ?? catalogMatchConfidence ?? .9,
-      parserReviewLabel: 'Good',
-      parserReviewReason: 'User confirmed this parsed receipt line.',
-      parserNeedsReview: false,
+      parserReviewLabel: use == _ExpenseLineUse.unclassified
+          ? 'Needs classification'
+          : 'Good',
+      parserReviewReason: use == _ExpenseLineUse.unclassified
+          ? 'The receipt text was confirmed, but ownership still requires the user to choose business, personal, or split.'
+          : 'User confirmed this parsed receipt line.',
+      parserNeedsReview: use == _ExpenseLineUse.unclassified,
       ocrSourceLineId: ocrSourceLineId,
       ocrSourceLineNumber: ocrSourceLineNumber,
       ocrSourceSectionNumber: ocrSourceSectionNumber,

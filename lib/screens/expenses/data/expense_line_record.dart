@@ -4,6 +4,7 @@ const _maxExpenseReceiptLineNumber = 9999;
 const _maxExpenseReceiptSectionNumber = 999;
 
 enum ExpenseLineUse {
+  unclassified('Needs classification'),
   business('Business'),
   personal('Personal'),
   split('Split');
@@ -18,7 +19,7 @@ enum ExpenseLineUse {
       (value) =>
           value.name == normalizedName ||
           value.label.toLowerCase() == normalizedName,
-      orElse: () => ExpenseLineUse.business,
+      orElse: () => ExpenseLineUse.unclassified,
     );
   }
 }
@@ -247,6 +248,7 @@ class ExpenseReceiptLineRecord {
 
   String get businessUseReviewLabel {
     return switch (use) {
+      ExpenseLineUse.unclassified => 'Needs classification',
       ExpenseLineUse.business => 'Business',
       ExpenseLineUse.personal => 'Personal',
       ExpenseLineUse.split =>
@@ -379,6 +381,7 @@ class ExpenseReceiptLineRecord {
       return clean;
     }
     return switch (use) {
+      ExpenseLineUse.unclassified => 'Receipt items',
       ExpenseLineUse.business => 'Business receipt items',
       ExpenseLineUse.personal => 'Personal receipt items',
       ExpenseLineUse.split => 'Split receipt items',
@@ -405,16 +408,21 @@ class ExpenseReceiptLineRecord {
 
   double get effectiveBusinessPercent {
     return switch (use) {
+      ExpenseLineUse.unclassified => 0,
       ExpenseLineUse.business => 1,
       ExpenseLineUse.personal => 0,
       ExpenseLineUse.split => _clampedPercent(businessPercent) ?? .5,
     };
   }
 
-  double get effectivePersonalPercent => 1 - effectiveBusinessPercent;
+  double get effectivePersonalPercent {
+    if (use == ExpenseLineUse.unclassified) return 0;
+    return 1 - effectiveBusinessPercent;
+  }
 
   double get businessAmount {
     return switch (use) {
+      ExpenseLineUse.unclassified => 0,
       ExpenseLineUse.business => subtotal,
       ExpenseLineUse.personal => 0,
       ExpenseLineUse.split => subtotal * effectiveBusinessPercent,
@@ -423,6 +431,7 @@ class ExpenseReceiptLineRecord {
 
   double get personalAmount {
     return switch (use) {
+      ExpenseLineUse.unclassified => 0,
       ExpenseLineUse.business => 0,
       ExpenseLineUse.personal => subtotal,
       ExpenseLineUse.split => subtotal * effectivePersonalPercent,

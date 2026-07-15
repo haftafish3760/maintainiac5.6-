@@ -10,6 +10,7 @@ Future<ExpenseReceiptLineRecord?> showExpenseReceiptLineEditor(
   final initial = line == null
       ? _ExpenseReceiptLine.blank(
           use: switch (defaultUse) {
+            ExpenseLineUse.unclassified => _ExpenseLineUse.unclassified,
             ExpenseLineUse.business => _ExpenseLineUse.business,
             ExpenseLineUse.personal => _ExpenseLineUse.personal,
             ExpenseLineUse.split => _ExpenseLineUse.split,
