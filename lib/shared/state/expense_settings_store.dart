@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'expense_backup_schedule.dart';
+
 enum ExpenseReceiptReviewStyle {
   basicReceipt,
   simpleAmounts,
@@ -85,6 +87,13 @@ class ExpenseSettingsController extends ChangeNotifier {
     return ExpenseBackupSyncMode.fromName(value is String ? value : null);
   }
 
+  ExpenseBackupSchedule get backupSchedule => ExpenseBackupSchedule.normalized(
+    timesMinutesAfterMidnight: _readIntList(_Keys.backupScheduleTimes),
+    transport: ExpenseBackupTransport.fromName(
+      _box.get(_Keys.backupTransport) as String?,
+    ),
+  );
+
   List<String> get quickCategoryOrder =>
       _readStringList(_Keys.quickCategoryOrder);
   List<String> get topThreeCategories => _readStringList(
@@ -118,6 +127,8 @@ class ExpenseSettingsController extends ChangeNotifier {
       'draftReminder': draftReminder,
       'receiptReviewStyle': receiptReviewStyle.name,
       'backupSyncMode': backupSyncMode.name,
+      'backupScheduleTimesMinutes': backupSchedule.timesMinutesAfterMidnight,
+      'backupTransport': backupSchedule.transport.name,
       'quickCategoryOrder': quickCategoryOrder,
       'topThreeCategories': topThreeCategories,
       'hiddenRecapTiles': hiddenRecapTiles,
@@ -156,6 +167,19 @@ class ExpenseSettingsController extends ChangeNotifier {
 
   Future<void> setBackupSyncMode(ExpenseBackupSyncMode value) async {
     await _box.put(_Keys.backupSyncMode, value.name);
+    notifyListeners();
+  }
+
+  Future<void> setBackupSchedule(ExpenseBackupSchedule value) async {
+    final normalized = ExpenseBackupSchedule.normalized(
+      timesMinutesAfterMidnight: value.timesMinutesAfterMidnight,
+      transport: value.transport,
+    );
+    await _box.put(
+      _Keys.backupScheduleTimes,
+      normalized.timesMinutesAfterMidnight,
+    );
+    await _box.put(_Keys.backupTransport, normalized.transport.name);
     notifyListeners();
   }
 
@@ -312,6 +336,15 @@ class ExpenseSettingsController extends ChangeNotifier {
     return List.unmodifiable(fallback);
   }
 
+  List<int> _readIntList(String key) {
+    final value = _box.get(key);
+    if (value is! List) return const [];
+    return value
+        .whereType<num>()
+        .map((item) => item.toInt())
+        .toList(growable: false);
+  }
+
   Future<void> _writeBool(String key, bool value) async {
     await _box.put(key, value);
     notifyListeners();
@@ -362,6 +395,8 @@ class _Keys {
   static const draftReminder = 'draft_reminder';
   static const receiptReviewStyle = 'receipt_review_style';
   static const backupSyncMode = 'expense_backup_sync_mode';
+  static const backupScheduleTimes = 'expense_backup_schedule_times';
+  static const backupTransport = 'expense_backup_transport';
   static const odometerPromptEnabled = 'expense_odometer_prompt_enabled';
   static const odometerPromptSuppressedCategories =
       'expense_odometer_prompt_suppressed_categories';

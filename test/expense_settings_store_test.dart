@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/shared/state/expense_backup_schedule.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
 
 void main() {
@@ -34,6 +35,33 @@ void main() {
 
     expect(settings.quickCategoryOrder, ['Fuel', 'Materials', 'Parking']);
   });
+
+  test(
+    'scheduled backup choices persist without enabling automatic upload',
+    () async {
+      final settings = await ExpenseSettingsController.create();
+      await settings.setBackupSchedule(
+        ExpenseBackupSchedule.normalized(
+          timesMinutesAfterMidnight: [17 * 60 + 30, -1, 8 * 60, 8 * 60],
+          transport: ExpenseBackupTransport.wifiAndCellular,
+        ),
+      );
+
+      expect(settings.backupSyncMode, ExpenseBackupSyncMode.manual);
+      expect(settings.backupSchedule.timesMinutesAfterMidnight, [480, 1050]);
+      expect(
+        settings.backupSchedule.transport,
+        ExpenseBackupTransport.wifiAndCellular,
+      );
+      expect(
+        settings.toBackupMap(
+          ownerUid: 'owner',
+          exportedAtUtc: DateTime.utc(2026),
+        )['backupScheduleTimesMinutes'],
+        [480, 1050],
+      );
+    },
+  );
 
   test('quick category add and remove update saved home buttons', () async {
     final settings = await ExpenseSettingsController.create();
