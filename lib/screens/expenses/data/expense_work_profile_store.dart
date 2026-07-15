@@ -11,6 +11,7 @@ class ExpenseWorkProfile {
     required this.createdAt,
     required this.updatedAt,
     this.isDefault = false,
+    this.archivedAt,
   });
 
   factory ExpenseWorkProfile.fromMap(Map<dynamic, dynamic> map) {
@@ -21,6 +22,7 @@ class ExpenseWorkProfile {
       isDefault: map['isDefault'] == true,
       createdAt: DateTime.tryParse('${map['createdAt'] ?? ''}') ?? now,
       updatedAt: DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? now,
+      archivedAt: DateTime.tryParse('${map['archivedAt'] ?? ''}'),
     );
   }
 
@@ -29,6 +31,9 @@ class ExpenseWorkProfile {
   final bool isDefault;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? archivedAt;
+
+  bool get isArchived => archivedAt != null;
 
   Map<String, Object?> toMap() => {
     'id': id,
@@ -36,15 +41,22 @@ class ExpenseWorkProfile {
     'isDefault': isDefault,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'updatedAt': updatedAt.toUtc().toIso8601String(),
+    'archivedAt': archivedAt?.toUtc().toIso8601String(),
   };
 
-  ExpenseWorkProfile copyWith({String? name, DateTime? updatedAt}) {
+  ExpenseWorkProfile copyWith({
+    String? name,
+    DateTime? updatedAt,
+    DateTime? archivedAt,
+    bool clearArchivedAt = false,
+  }) {
     return ExpenseWorkProfile(
       id: id,
       name: name ?? this.name,
       isDefault: isDefault,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: clearArchivedAt ? null : archivedAt ?? this.archivedAt,
     );
   }
 }
@@ -70,7 +82,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     return controller;
   }
 
-  List<ExpenseWorkProfile> get profiles {
+  List<ExpenseWorkProfile> get allProfiles {
     final box = _box;
     final values = box == null ? _memory.values : box.values;
     final profiles = <ExpenseWorkProfile>[];
@@ -89,6 +101,16 @@ class ExpenseWorkProfileController extends ChangeNotifier {
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
     return List.unmodifiable(profiles);
+  }
+
+  List<ExpenseWorkProfile> get profiles =>
+      List.unmodifiable(allProfiles.where((profile) => !profile.isArchived));
+
+  ExpenseWorkProfile? profileById(String profileId) {
+    for (final profile in allProfiles) {
+      if (profile.id == profileId) return profile;
+    }
+    return null;
   }
 
   ExpenseWorkProfile get activeWorkProfile {
@@ -120,6 +142,7 @@ class ExpenseWorkProfileController extends ChangeNotifier {
       isDefault: id == defaultProfileId,
       createdAt: profile.createdAt,
       updatedAt: now,
+      archivedAt: profile.archivedAt,
     );
     await _writeProfile(saved);
     notifyListeners();
@@ -142,17 +165,25 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     if (profileId == defaultProfileId) {
       throw StateError('The default work profile cannot be deleted.');
     }
-    if (_box == null) {
-      _memory.remove(profileId);
-    } else {
-      await _box.delete(profileId);
-    }
+    final profile = profileById(profileId);
+    if (profile == null || profile.isArchived) return;
+    final now = DateTime.now();
+    await _writeProfile(profile.copyWith(updatedAt: now, archivedAt: now));
     if (_activeProfileId == profileId) await select(defaultProfileId);
     notifyListeners();
   }
 
+  Future<void> restore(String profileId) async {
+    final profile = profileById(profileId);
+    if (profile == null || !profile.isArchived) return;
+    await _writeProfile(
+      profile.copyWith(updatedAt: DateTime.now(), clearArchivedAt: true),
+    );
+    notifyListeners();
+  }
+
   Future<void> _ensureDefault() async {
-    if (profiles.any((profile) => profile.id == defaultProfileId)) return;
+    if (allProfiles.any((profile) => profile.id == defaultProfileId)) return;
     final now = DateTime.now();
     await _writeProfile(
       ExpenseWorkProfile(

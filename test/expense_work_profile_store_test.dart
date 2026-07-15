@@ -36,4 +36,34 @@ void main() {
       throwsStateError,
     );
   });
+
+  test(
+    'deleting a work profile archives its stable historical identity',
+    () async {
+      final profiles = ExpenseWorkProfileController.memory();
+      final added = await profiles.save(
+        ExpenseWorkProfile(
+          id: 'weekend-contract',
+          name: 'Weekend contract',
+          createdAt: DateTime(2026, 7, 15),
+          updatedAt: DateTime(2026, 7, 15),
+        ),
+      );
+
+      await profiles.delete(added.id);
+
+      expect(
+        profiles.profiles.any((profile) => profile.id == added.id),
+        isFalse,
+      );
+      expect(profiles.profileById(added.id)?.name, 'Weekend contract');
+      expect(profiles.profileById(added.id)?.isArchived, isTrue);
+
+      await profiles.restore(added.id);
+      expect(
+        profiles.profiles.any((profile) => profile.id == added.id),
+        isTrue,
+      );
+    },
+  );
 }

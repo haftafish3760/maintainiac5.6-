@@ -307,8 +307,17 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
-  test('backs up a replaceable work-profile directory', () {
+  test('backs up active and archived work-profile identities', () async {
     final profiles = ExpenseWorkProfileController.memory();
+    final archived = await profiles.save(
+      ExpenseWorkProfile(
+        id: 'archived-profile',
+        name: 'Archived contract',
+        createdAt: DateTime.utc(2026, 7, 15),
+        updatedAt: DateTime.utc(2026, 7, 15),
+      ),
+    );
+    await profiles.delete(archived.id);
     final doc =
         ExpenseFirestoreDocumentBuilder.expenseWorkProfileDirectoryDocument(
           orgId: 'ORG-1',
@@ -324,7 +333,14 @@ void main() {
     );
     expect(doc.data['schema'], 'expense_work_profile_directory_backup_v1');
     expect(doc.data['activeWorkProfileId'], 'expense_work_default');
-    expect((doc.data['profiles'] as List), hasLength(1));
+    final exportedProfiles = doc.data['profiles'] as List;
+    expect(exportedProfiles, hasLength(2));
+    expect(
+      exportedProfiles.whereType<Map>().singleWhere(
+        (profile) => profile['id'] == 'archived-profile',
+      )['archivedAt'],
+      isNotNull,
+    );
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 }

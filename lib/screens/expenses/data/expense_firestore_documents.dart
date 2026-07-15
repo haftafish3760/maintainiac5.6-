@@ -209,13 +209,14 @@ class ExpenseFirestoreDocumentBuilder {
         'settingsScope': 'member',
         'activeWorkProfileId': _pathToken(workProfiles.activeWorkProfile.id),
         'profiles': [
-          for (final profile in workProfiles.profiles)
+          for (final profile in workProfiles.allProfiles)
             {
               'id': _pathToken(profile.id),
               'name': _readable(profile.name, maxLength: 160),
               'isDefault': profile.isDefault,
               'createdAt': profile.createdAt.toUtc().toIso8601String(),
               'updatedAt': profile.updatedAt.toUtc().toIso8601String(),
+              'archivedAt': profile.archivedAt?.toUtc().toIso8601String(),
             },
         ],
         'createdAt': exportedAt.toIso8601String(),
