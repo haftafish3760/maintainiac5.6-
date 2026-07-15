@@ -89,7 +89,24 @@ class ExpenseCloudRestoreCodec {
     final source = data['profiles'];
     if (source is List) {
       for (final entry in source) {
-        if (entry is! Map || _text(entry['id']).isEmpty) continue;
+        if (entry is! Map) {
+          throw const FormatException(
+            'Expense work-profile backup is corrupt.',
+          );
+        }
+        if (_text(entry['id']).isEmpty ||
+            _text(entry['name']).isEmpty ||
+            _date(entry['createdAt']) == null ||
+            _date(entry['updatedAt']) == null) {
+          throw const FormatException(
+            'Expense work-profile backup is incomplete.',
+          );
+        }
+        if (entry['archivedAt'] != null && _date(entry['archivedAt']) == null) {
+          throw const FormatException(
+            'Expense work-profile archive date is invalid.',
+          );
+        }
         profiles.add(ExpenseWorkProfile.fromMap(entry));
       }
     }
@@ -109,7 +126,14 @@ class ExpenseCloudRestoreCodec {
     final source = data['vehicles'];
     if (source is List) {
       for (final entry in source) {
-        if (entry is! Map || _text(entry['id']).isEmpty) continue;
+        if (entry is! Map || _text(entry['id']).isEmpty) {
+          throw const FormatException('Expense vehicle backup is corrupt.');
+        }
+        if (entry['archivedAt'] != null && _date(entry['archivedAt']) == null) {
+          throw const FormatException(
+            'Expense vehicle archive date is invalid.',
+          );
+        }
         vehicles.add(VehicleProfile.fromMap(entry));
       }
     }

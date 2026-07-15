@@ -112,6 +112,32 @@ void main() {
     expect(restored.profiles.last.isArchived, isTrue);
   });
 
+  test('rejects corrupt profile and vehicle directory metadata', () {
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeWorkProfileDirectory({
+        'schema': 'expense_work_profile_directory_backup_v1',
+        'profiles': [
+          {
+            'id': 'profile-1',
+            'name': 'Broken profile',
+            'createdAt': 'not-a-date',
+            'updatedAt': '2026-07-15T12:00:00.000Z',
+          },
+        ],
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeVehicleDirectory({
+        'schema': 'expense_vehicle_directory_backup_v1',
+        'vehicles': [
+          {'id': 'vehicle-1', 'archivedAt': 'not-a-date'},
+        ],
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('decodes active and archived vehicle restore metadata', () {
     final restored = ExpenseCloudRestoreCodec.decodeVehicleDirectory({
       'schema': 'expense_vehicle_directory_backup_v1',
