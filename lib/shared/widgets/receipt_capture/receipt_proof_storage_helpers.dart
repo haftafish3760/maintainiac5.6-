@@ -35,6 +35,8 @@ Future<void> _restoreStagedSourceIfNeeded(
       path.normalize(original.path) == path.normalize(saved.path)) {
     return;
   }
+  final stagingRoot = await _stagingRoot();
+  if (!path.isWithin(stagingRoot.path, original.path)) return;
   final staged = File(original.path);
   if (await staged.exists()) return;
   try {
