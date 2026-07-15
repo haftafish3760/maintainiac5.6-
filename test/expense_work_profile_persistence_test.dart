@@ -69,6 +69,32 @@ void main() {
   );
 
   test(
+    'a corrupt work profile is ignored instead of being reconstructed',
+    () async {
+      await ExpenseWorkProfileController.create();
+      final box = await Hive.openBox<dynamic>(
+        ExpenseWorkProfileController.boxName,
+      );
+      await box.put('corrupt-profile', <String, Object?>{
+        'id': 'corrupt-profile',
+        'name': 'Corrupt profile',
+        'createdAt': 'not-a-date',
+        'updatedAt': 'not-a-date',
+      });
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final restored = await ExpenseWorkProfileController.create();
+
+      expect(restored.profileById('corrupt-profile'), isNull);
+      expect(
+        restored.activeWorkProfile.id,
+        ExpenseWorkProfileController.defaultProfileId,
+      );
+    },
+  );
+
+  test(
     'a historical receipt retains its archived work-profile identity',
     () async {
       final profiles = await ExpenseWorkProfileController.create();

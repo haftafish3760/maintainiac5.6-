@@ -17,14 +17,26 @@ class ExpenseWorkProfile {
   });
 
   factory ExpenseWorkProfile.fromMap(Map<dynamic, dynamic> map) {
-    final now = DateTime.now();
+    final id = '${map['id'] ?? ''}'.trim();
+    final name = '${map['name'] ?? ''}'.trim();
+    final createdAt = DateTime.tryParse('${map['createdAt'] ?? ''}');
+    final updatedAt = DateTime.tryParse('${map['updatedAt'] ?? ''}');
+    final archivedAt = DateTime.tryParse('${map['archivedAt'] ?? ''}');
+    if (id.isEmpty ||
+        name.isEmpty ||
+        createdAt == null ||
+        updatedAt == null ||
+        updatedAt.isBefore(createdAt) ||
+        (archivedAt != null && archivedAt.isBefore(createdAt))) {
+      throw const FormatException('Invalid stored Expense work profile.');
+    }
     return ExpenseWorkProfile(
-      id: '${map['id'] ?? ''}'.trim(),
-      name: '${map['name'] ?? ''}'.trim(),
+      id: id,
+      name: name,
       isDefault: map['isDefault'] == true,
-      createdAt: DateTime.tryParse('${map['createdAt'] ?? ''}') ?? now,
-      updatedAt: DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? now,
-      archivedAt: DateTime.tryParse('${map['archivedAt'] ?? ''}'),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      archivedAt: archivedAt,
     );
   }
 
@@ -102,11 +114,16 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     final values = box == null ? _memory.values : box.values;
     final profiles = <ExpenseWorkProfile>[];
     for (final value in values) {
-      final profile = switch (value) {
-        ExpenseWorkProfile() => value,
-        Map() => ExpenseWorkProfile.fromMap(value),
-        _ => null,
-      };
+      ExpenseWorkProfile? profile;
+      try {
+        profile = switch (value) {
+          ExpenseWorkProfile() => value,
+          Map() => ExpenseWorkProfile.fromMap(value),
+          _ => null,
+        };
+      } on FormatException {
+        continue;
+      }
       if (profile != null && profile.id.isNotEmpty && profile.name.isNotEmpty) {
         profiles.add(profile);
       }
