@@ -184,6 +184,7 @@ class ExpenseReminderController extends ChangeNotifier {
   final Box<dynamic>? _box;
   final ExpenseReminderStorageCheck? _storageCheck;
   final _memory = <String, ExpenseReminderRecord>{};
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<ExpenseReminderController> create({
     ExpenseReminderStorageCheck? storageCheck,
@@ -222,7 +223,10 @@ class ExpenseReminderController extends ChangeNotifier {
     return null;
   }
 
-  Future<ExpenseReminderRecord> save(ExpenseReminderRecord reminder) async {
+  Future<ExpenseReminderRecord> save(ExpenseReminderRecord reminder) =>
+      _enqueue(() => _save(reminder));
+
+  Future<ExpenseReminderRecord> _save(ExpenseReminderRecord reminder) async {
     final title = reminder.title.trim();
     if (title.isEmpty) throw ArgumentError.value(title, 'title', 'Required');
     await ensureStorageForLocalSave();
@@ -274,6 +278,10 @@ class ExpenseReminderController extends ChangeNotifier {
   /// a local reminder that may have been edited on this device.
   Future<ExpenseReminderRecord?> importIfMissing(
     ExpenseReminderRecord reminder,
+  ) => _enqueue(() => _importIfMissing(reminder));
+
+  Future<ExpenseReminderRecord?> _importIfMissing(
+    ExpenseReminderRecord reminder,
   ) async {
     final id = reminder.id.trim();
     if (id.isEmpty || recordById(id) != null) return null;
@@ -301,7 +309,9 @@ class ExpenseReminderController extends ChangeNotifier {
     return save(reminder.copyWith(active: active));
   }
 
-  Future<void> delete(String id) async {
+  Future<void> delete(String id) => _enqueue(() => _delete(id));
+
+  Future<void> _delete(String id) async {
     final existing = recordById(id);
     if (existing == null || existing.isDeleted) return;
     await ensureStorageForLocalSave();
@@ -322,7 +332,9 @@ class ExpenseReminderController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> restore(String id) async {
+  Future<void> restore(String id) => _enqueue(() => _restore(id));
+
+  Future<void> _restore(String id) async {
     final existing = recordById(id);
     if (existing == null || !existing.isDeleted) return;
     await ensureStorageForLocalSave();
@@ -338,6 +350,12 @@ class ExpenseReminderController extends ChangeNotifier {
       await _box.put(id, restored.toMap());
     }
     notifyListeners();
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
 
