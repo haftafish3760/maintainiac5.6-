@@ -75,9 +75,14 @@ class ExpenseBackupSchedule {
     return DateTime(now.year, now.month, now.day + 1, first ~/ 60, first % 60);
   }
 
-  bool isDueAt(DateTime now, {DateTime? lastAttemptAt}) {
-    if (lastAttemptAt == null) return false;
-    final next = nextRunAfter(lastAttemptAt);
+  bool isDueAt(
+    DateTime now, {
+    DateTime? lastAttemptAt,
+    DateTime? authorizationBeganAt,
+  }) {
+    final reference = lastAttemptAt ?? authorizationBeganAt;
+    if (reference == null) return false;
+    final next = nextRunAfter(reference);
     return next != null && !next.isAfter(now);
   }
 }

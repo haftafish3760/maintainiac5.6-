@@ -51,4 +51,20 @@ void main() {
       );
     },
   );
+
+  test('first scheduled run starts only after user authorization', () {
+    final schedule = ExpenseBackupSchedule.normalized(
+      timesMinutesAfterMidnight: [8 * 60],
+      transport: ExpenseBackupTransport.wifiOnly,
+    );
+
+    expect(schedule.isDueAt(DateTime(2026, 7, 15, 9)), isFalse);
+    expect(
+      schedule.isDueAt(
+        DateTime(2026, 7, 15, 9),
+        authorizationBeganAt: DateTime(2026, 7, 15, 7),
+      ),
+      isTrue,
+    );
+  });
 }

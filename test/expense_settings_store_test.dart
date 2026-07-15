@@ -239,15 +239,35 @@ void main() {
     final settings = await ExpenseSettingsController.create();
 
     expect(settings.backupSyncMode, ExpenseBackupSyncMode.manual);
-    await settings.setBackupSyncMode(ExpenseBackupSyncMode.scheduled);
+    await settings.setBackupSchedule(
+      ExpenseBackupSchedule.normalized(
+        timesMinutesAfterMidnight: [8 * 60],
+        transport: ExpenseBackupTransport.wifiOnly,
+      ),
+    );
+    await settings.setBackupSyncMode(
+      ExpenseBackupSyncMode.scheduled,
+      nowUtc: DateTime.utc(2026, 7, 15, 11),
+    );
 
     expect(settings.backupSyncMode, ExpenseBackupSyncMode.scheduled);
+    expect(settings.backupScheduleAuthorizedAt, DateTime.utc(2026, 7, 15, 11));
+    expect(
+      settings.isScheduledBackupDueAt(DateTime.utc(2026, 7, 15, 13)),
+      isTrue,
+    );
     expect(
       settings.toBackupMap(
         ownerUid: 'owner',
         exportedAtUtc: DateTime.utc(2026),
       ),
       containsPair('backupSyncMode', 'scheduled'),
+    );
+    await settings.setBackupSyncMode(ExpenseBackupSyncMode.manual);
+    expect(settings.backupScheduleAuthorizedAt, isNull);
+    expect(
+      settings.isScheduledBackupDueAt(DateTime.utc(2026, 7, 16, 9)),
+      isFalse,
     );
   });
 

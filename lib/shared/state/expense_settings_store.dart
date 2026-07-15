@@ -94,6 +94,24 @@ class ExpenseSettingsController extends ChangeNotifier {
     ),
   );
 
+  /// Local-only timestamp for the current scheduled-backup authorization.
+  /// It is intentionally not restored on another device, where the user must
+  /// make a fresh choice before any automatic transfer can occur.
+  DateTime? get backupScheduleAuthorizedAt {
+    final value = _box.get(_Keys.backupScheduleAuthorizedAt);
+    if (value is! String) return null;
+    return DateTime.tryParse(value)?.toUtc();
+  }
+
+  bool isScheduledBackupDueAt(DateTime now, {DateTime? lastAttemptAt}) {
+    if (backupSyncMode != ExpenseBackupSyncMode.scheduled) return false;
+    return backupSchedule.isDueAt(
+      now.toLocal(),
+      lastAttemptAt: lastAttemptAt?.toLocal(),
+      authorizationBeganAt: backupScheduleAuthorizedAt?.toLocal(),
+    );
+  }
+
   List<String> get quickCategoryOrder =>
       _readStringList(_Keys.quickCategoryOrder);
   List<String> get topThreeCategories => _readStringList(
@@ -165,8 +183,20 @@ class ExpenseSettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setBackupSyncMode(ExpenseBackupSyncMode value) async {
+  Future<void> setBackupSyncMode(
+    ExpenseBackupSyncMode value, {
+    DateTime? nowUtc,
+  }) async {
+    final wasScheduled = backupSyncMode == ExpenseBackupSyncMode.scheduled;
     await _box.put(_Keys.backupSyncMode, value.name);
+    if (value == ExpenseBackupSyncMode.scheduled && !wasScheduled) {
+      await _box.put(
+        _Keys.backupScheduleAuthorizedAt,
+        (nowUtc ?? DateTime.now().toUtc()).toUtc().toIso8601String(),
+      );
+    } else if (value != ExpenseBackupSyncMode.scheduled) {
+      await _box.delete(_Keys.backupScheduleAuthorizedAt);
+    }
     notifyListeners();
   }
 
@@ -397,6 +427,8 @@ class _Keys {
   static const backupSyncMode = 'expense_backup_sync_mode';
   static const backupScheduleTimes = 'expense_backup_schedule_times';
   static const backupTransport = 'expense_backup_transport';
+  static const backupScheduleAuthorizedAt =
+      'expense_backup_schedule_authorized_at';
   static const odometerPromptEnabled = 'expense_odometer_prompt_enabled';
   static const odometerPromptSuppressedCategories =
       'expense_odometer_prompt_suppressed_categories';
