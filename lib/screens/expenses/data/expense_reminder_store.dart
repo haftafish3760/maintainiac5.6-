@@ -238,6 +238,9 @@ class ExpenseReminderController extends ChangeNotifier {
     if (existing?.isDeleted ?? false) {
       throw StateError('Restore a removed reminder before changing it.');
     }
+    if (existing != null && reminder.updatedAt.isBefore(existing.updatedAt)) {
+      throw StateError('Reload the newer reminder before saving changes.');
+    }
     final lifecycle = existing == null
         ? MaintainiacRecordLifecycle(
             createdAt: reminder.createdAt,

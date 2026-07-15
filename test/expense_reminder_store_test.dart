@@ -23,6 +23,23 @@ void main() {
 
     expect(reminders.recordById(record.id)?.isDeleted, isTrue);
   });
+
+  test('an older reminder edit cannot overwrite a newer local edit', () async {
+    final reminders = ExpenseReminderController.memory();
+    final original = await reminders.save(
+      _reminder('Insurance', DateTime.utc(2026, 7, 15)),
+    );
+    final newer = await reminders.save(
+      original.copyWith(category: 'Vehicle insurance'),
+    );
+
+    await expectLater(
+      () => reminders.save(original.copyWith(category: 'Old category')),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(reminders.recordById(original.id)?.category, newer.category);
+  });
   late Directory hiveDirectory;
 
   setUp(() async {
