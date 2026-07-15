@@ -117,13 +117,26 @@ class ExpenseReminderRecord {
     if (cadence == ExpenseReminderCadence.once || dueAt.isAfter(reference)) {
       return dueAt;
     }
-    var occurrence = 1;
+    var occurrence = _firstOccurrenceOnOrBefore(reference);
     var next = _recurringOccurrence(dueAt, cadence, occurrence);
     while (!next.isAfter(reference)) {
       occurrence += 1;
       next = _recurringOccurrence(dueAt, cadence, occurrence);
     }
     return next;
+  }
+
+  int _firstOccurrenceOnOrBefore(DateTime reference) {
+    final monthsBetween =
+        (reference.year - dueAt.year) * 12 + reference.month - dueAt.month;
+    return switch (cadence) {
+      ExpenseReminderCadence.once => 1,
+      ExpenseReminderCadence.monthly => monthsBetween < 1 ? 1 : monthsBetween,
+      ExpenseReminderCadence.quarterly =>
+        monthsBetween < 3 ? 1 : monthsBetween ~/ 3,
+      ExpenseReminderCadence.yearly =>
+        reference.year - dueAt.year < 1 ? 1 : reference.year - dueAt.year,
+    };
   }
 }
 

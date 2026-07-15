@@ -81,6 +81,26 @@ void main() {
     );
   });
 
+  test(
+    'finds a far-future recurring reminder without replaying every month',
+    () {
+      final monthly = _reminder('Old monthly', DateTime(2000, 1, 31));
+      final quarterly = _reminder(
+        'Old quarterly',
+        DateTime(2000, 1, 31),
+      ).copyWith(cadence: ExpenseReminderCadence.quarterly);
+
+      expect(
+        monthly.nextOccurrenceAfter(DateTime(2026, 7, 31)),
+        DateTime(2026, 8, 31),
+      );
+      expect(
+        quarterly.nextOccurrenceAfter(DateTime(2026, 7, 31)),
+        DateTime(2026, 10, 31),
+      );
+    },
+  );
+
   test('reminder deletion is recoverable local record history', () async {
     final store = ExpenseReminderController.memory();
     final saved = await store.save(_reminder('Recover me', DateTime(2026, 7)));
