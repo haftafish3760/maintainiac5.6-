@@ -56,6 +56,31 @@ void main() {
     expect(next, DateTime(2026, 8, 15));
   });
 
+  test('keeps recurring reminders on their intended month-end day', () {
+    final monthly = _reminder('Month end', DateTime(2026, 1, 31));
+    final leapDay = _reminder(
+      'Leap day',
+      DateTime(2024, 2, 29),
+    ).copyWith(cadence: ExpenseReminderCadence.yearly);
+
+    expect(
+      monthly.nextOccurrenceAfter(DateTime(2026, 2, 1)),
+      DateTime(2026, 2, 28),
+    );
+    expect(
+      monthly.nextOccurrenceAfter(DateTime(2026, 2, 28)),
+      DateTime(2026, 3, 31),
+    );
+    expect(
+      leapDay.nextOccurrenceAfter(DateTime(2025, 1, 1)),
+      DateTime(2025, 2, 28),
+    );
+    expect(
+      leapDay.nextOccurrenceAfter(DateTime(2027, 2, 28)),
+      DateTime(2028, 2, 29),
+    );
+  });
+
   test('reminder deletion is recoverable local record history', () async {
     final store = ExpenseReminderController.memory();
     final saved = await store.save(_reminder('Recover me', DateTime(2026, 7)));

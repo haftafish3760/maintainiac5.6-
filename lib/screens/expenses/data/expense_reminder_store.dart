@@ -117,35 +117,43 @@ class ExpenseReminderRecord {
     if (cadence == ExpenseReminderCadence.once || dueAt.isAfter(reference)) {
       return dueAt;
     }
-    var next = dueAt;
+    var occurrence = 1;
+    var next = _recurringOccurrence(dueAt, cadence, occurrence);
     while (!next.isAfter(reference)) {
-      next = switch (cadence) {
-        ExpenseReminderCadence.once => next,
-        ExpenseReminderCadence.monthly => DateTime(
-          next.year,
-          next.month + 1,
-          next.day,
-          next.hour,
-          next.minute,
-        ),
-        ExpenseReminderCadence.quarterly => DateTime(
-          next.year,
-          next.month + 3,
-          next.day,
-          next.hour,
-          next.minute,
-        ),
-        ExpenseReminderCadence.yearly => DateTime(
-          next.year + 1,
-          next.month,
-          next.day,
-          next.hour,
-          next.minute,
-        ),
-      };
+      occurrence += 1;
+      next = _recurringOccurrence(dueAt, cadence, occurrence);
     }
     return next;
   }
+}
+
+DateTime _recurringOccurrence(
+  DateTime dueAt,
+  ExpenseReminderCadence cadence,
+  int occurrence,
+) {
+  final targetMonth = switch (cadence) {
+    ExpenseReminderCadence.once => dueAt.month,
+    ExpenseReminderCadence.monthly => dueAt.month + occurrence,
+    ExpenseReminderCadence.quarterly => dueAt.month + (occurrence * 3),
+    ExpenseReminderCadence.yearly => dueAt.month,
+  };
+  final targetYear = switch (cadence) {
+    ExpenseReminderCadence.yearly => dueAt.year + occurrence,
+    _ => dueAt.year,
+  };
+  final monthStart = DateTime(targetYear, targetMonth);
+  final lastDay = DateTime(monthStart.year, monthStart.month + 1, 0).day;
+  return DateTime(
+    monthStart.year,
+    monthStart.month,
+    dueAt.day.clamp(1, lastDay),
+    dueAt.hour,
+    dueAt.minute,
+    dueAt.second,
+    dueAt.millisecond,
+    dueAt.microsecond,
+  );
 }
 
 typedef ExpenseReminderStorageCheck = Future<AppStorageCheck> Function();
