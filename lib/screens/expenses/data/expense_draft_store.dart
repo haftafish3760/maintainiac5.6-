@@ -144,17 +144,20 @@ class ExpenseDraftController extends ChangeNotifier {
   });
 
   Future<void> _deleteDraft(String id, {bool notify = true}) async {
-    await _deleteStagedProofsForDraft(id);
+    final attachments = draftById(id)?.attachments ?? const [];
     await _drafts.remove(_module, id);
+    await ReceiptProofStorage.instance.deleteStagedAttachments(attachments);
     if (notify) notifyListeners();
   }
 
   Future<void> clear() => _enqueue(() async {
-    final attachments = [for (final draft in drafts) ...draft.attachments];
-    await ReceiptProofStorage.instance.deleteStagedAttachments(attachments);
-    for (final draft in drafts) {
+    final removedDrafts = List<ExpenseReceiptDraftRecord>.from(drafts);
+    for (final draft in removedDrafts) {
       await _drafts.remove(_module, draft.id);
     }
+    await ReceiptProofStorage.instance.deleteStagedAttachments([
+      for (final draft in removedDrafts) ...draft.attachments,
+    ]);
     notifyListeners();
   });
 
