@@ -3,7 +3,8 @@ part of 'expense_receipt_entry_screen.dart';
 extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
   Future<void> _save() async {
     final typedCategory = _categorySearchController.text.trim();
-    final category = _expenseCategoryNames.contains(typedCategory)
+    final category =
+        _availableExpenseCategoryNames(context).contains(typedCategory)
         ? typedCategory
         : _category;
     final subtotal = _parseMoneyInput(_subtotalController.text) ?? 0;
