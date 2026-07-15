@@ -114,6 +114,29 @@ void main() {
     );
   });
 
+  test(
+    'an active restore session cannot be rebound to another request',
+    () async {
+      final store = await ExpenseCloudRestoreSessionStore.create();
+      await store.savePrepared(
+        id: 'restore-request-binding',
+        requestId: 'server-request-original',
+        plan: plan,
+        totalRecords: 3,
+      );
+
+      await expectLater(
+        store.savePrepared(
+          id: 'restore-request-binding',
+          requestId: 'server-request-other',
+          plan: plan,
+          totalRecords: 3,
+        ),
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
+
   test('delayed restore progress cannot move a session backward', () async {
     final store = await ExpenseCloudRestoreSessionStore.create();
     await store.savePrepared(

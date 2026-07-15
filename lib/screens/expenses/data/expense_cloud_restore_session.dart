@@ -129,6 +129,9 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     if (existing?.isTerminal ?? false) {
       throw StateError('This restore session is already finished.');
     }
+    if (existing != null && existing.requestId != safeRequestId) {
+      throw StateError('This restore session belongs to another request.');
+    }
     final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     await _write(
       ExpenseCloudRestoreSession(
