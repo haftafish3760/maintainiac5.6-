@@ -184,6 +184,8 @@ abstract class MaintainiacFirestoreDocumentSink {
   });
 }
 
+Future<void> _firestoreUploadTail = Future<void>.value();
+
 class MaintainiacFirestoreUploadCoordinator {
   const MaintainiacFirestoreUploadCoordinator({
     required MaintainiacFirestoreUploadQueueStore queue,
@@ -198,6 +200,13 @@ class MaintainiacFirestoreUploadCoordinator {
   final bool _uploadEnabled;
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
+    int? limit,
+    String? path,
+    DateTime? nowUtc,
+  }) =>
+      _enqueue(() => _uploadPending(limit: limit, path: path, nowUtc: nowUtc));
+
+  Future<MaintainiacFirestoreUploadResult> _uploadPending({
     int? limit,
     String? path,
     DateTime? nowUtc,
@@ -258,5 +267,11 @@ class MaintainiacFirestoreUploadCoordinator {
       uploadedCount: uploadedCount,
       failedCount: failedCount,
     );
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _firestoreUploadTail.then((_) => operation());
+    _firestoreUploadTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }

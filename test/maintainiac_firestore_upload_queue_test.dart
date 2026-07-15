@@ -67,6 +67,25 @@ void main() {
     );
   });
 
+  test('concurrent flushes upload a queued document only once', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/concurrent_upload'));
+    final coordinator = MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+    );
+
+    await Future.wait([
+      coordinator.uploadPending(),
+      coordinator.uploadPending(),
+    ]);
+
+    expect(sink.writes, hasLength(1));
+    expect(queue.pendingRecords, isEmpty);
+  });
+
   test('replaces pending documents for the same path', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final draft = _safeDraft('parserHealth/receipt_parser_v1');
