@@ -67,6 +67,8 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       return;
     }
     var receipt = _buildReceiptForSave();
+    final odometerCommit = await _prepareReceiptOdometerCommit(receipt);
+    if (!mounted || odometerCommit == null) return;
     final duplicateCheck = ledger.checkDuplicatesFor(receipt);
     receipt = receipt.copyWith(
       fileHashSha256: duplicateCheck.fileHashSha256,
@@ -107,6 +109,17 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
     if (!mounted) return;
+    final odometerResult = odometerCommit.commit();
+    if (!odometerResult.ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            odometerResult.message ??
+                'The receipt saved, but its odometer history needs review.',
+          ),
+        ),
+      );
+    }
     final cloudBackup = ExpenseCloudBackupScope.maybeOf(context);
     if (cloudBackup != null) {
       unawaited(cloudBackup.queueReceipt(saved.id));

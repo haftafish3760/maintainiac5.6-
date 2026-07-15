@@ -116,6 +116,7 @@ part 'expense_receipt_entry_no_line_recovery_panel.dart';
 part 'expense_receipt_entry_byte_bucket.dart';
 part 'expense_receipt_entry_odometer_prompt.dart';
 part 'expense_receipt_entry_odometer_panel.dart';
+part 'expense_receipt_entry_odometer_lifecycle.dart';
 
 enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 
