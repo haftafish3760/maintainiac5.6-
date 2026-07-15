@@ -1,5 +1,6 @@
 import 'expense_cloud_restore_codec.dart';
 import 'expense_ledger_store.dart';
+import 'expense_work_profile_store.dart';
 
 /// Plans a receipt restore without overwriting device data.
 ///
@@ -51,6 +52,48 @@ class ExpenseCloudRestorePlanner {
     }
     final saved = await ledger.saveReceipt(plan.cloudRecord.receipt);
     return ExpenseCloudRestoreApplyResult.created(saved.id);
+  }
+
+  static ExpenseCloudWorkProfileRestorePlan planWorkProfiles({
+    required ExpenseWorkProfileController localProfiles,
+    required ExpenseCloudRestoredWorkProfiles cloudProfiles,
+  }) {
+    final missing = <ExpenseWorkProfile>[];
+    final conflicts = <ExpenseWorkProfile>[];
+    for (final cloudProfile in cloudProfiles.profiles) {
+      final local = localProfiles.profileById(cloudProfile.id);
+      if (local == null) {
+        missing.add(cloudProfile);
+      } else if (!_sameProfile(local, cloudProfile)) {
+        conflicts.add(cloudProfile);
+      }
+    }
+    return ExpenseCloudWorkProfileRestorePlan(
+      missingProfiles: List.unmodifiable(missing),
+      conflictingCloudProfiles: List.unmodifiable(conflicts),
+      proposedActiveProfileId: cloudProfiles.activeProfileId,
+    );
+  }
+
+  /// Restores only unknown IDs. Existing local profiles, including the active
+  /// selection, remain untouched until the user resolves a conflict explicitly.
+  static Future<int> createMissingWorkProfiles({
+    required ExpenseWorkProfileController localProfiles,
+    required ExpenseCloudWorkProfileRestorePlan plan,
+  }) async {
+    var created = 0;
+    for (final profile in plan.missingProfiles) {
+      if (localProfiles.profileById(profile.id) != null) continue;
+      await localProfiles.save(profile);
+      created += 1;
+    }
+    return created;
+  }
+
+  static bool _sameProfile(ExpenseWorkProfile local, ExpenseWorkProfile cloud) {
+    return local.name == cloud.name &&
+        local.isDefault == cloud.isDefault &&
+        local.archivedAt?.toUtc() == cloud.archivedAt?.toUtc();
   }
 }
 
@@ -124,4 +167,18 @@ class ExpenseCloudRestoreApplyResult {
   final String? reason;
 
   bool get wasCreated => createdReceiptId != null;
+}
+
+class ExpenseCloudWorkProfileRestorePlan {
+  const ExpenseCloudWorkProfileRestorePlan({
+    required this.missingProfiles,
+    required this.conflictingCloudProfiles,
+    required this.proposedActiveProfileId,
+  });
+
+  final List<ExpenseWorkProfile> missingProfiles;
+  final List<ExpenseWorkProfile> conflictingCloudProfiles;
+  final String? proposedActiveProfileId;
+
+  bool get needsUserReview => conflictingCloudProfiles.isNotEmpty;
 }

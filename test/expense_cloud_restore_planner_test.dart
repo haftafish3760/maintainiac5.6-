@@ -3,6 +3,7 @@ import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_codec.dar
 import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_planner.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 
 void main() {
   ExpenseCloudRestoredReceipt cloudReceipt({int revision = 2}) {
@@ -92,4 +93,61 @@ void main() {
       ExpenseCloudRestoreDisposition.cloudNewerNeedsReview,
     );
   });
+
+  test(
+    'restores only missing work profiles and preserves conflicting locals',
+    () async {
+      final local = ExpenseWorkProfileController.memory();
+      await local.save(
+        ExpenseWorkProfile(
+          id: 'delivery',
+          name: 'Local delivery',
+          createdAt: DateTime.utc(2026, 7, 15),
+          updatedAt: DateTime.utc(2026, 7, 15),
+        ),
+      );
+      final cloud = ExpenseCloudRestoredWorkProfiles(
+        activeProfileId: 'delivery',
+        profiles: [
+          ExpenseWorkProfile(
+            id: 'delivery',
+            name: 'Cloud delivery',
+            createdAt: DateTime.utc(2026, 7, 15),
+            updatedAt: DateTime.utc(2026, 7, 15),
+          ),
+          ExpenseWorkProfile(
+            id: 'seasonal',
+            name: 'Seasonal contract',
+            createdAt: DateTime.utc(2026, 7, 15),
+            updatedAt: DateTime.utc(2026, 7, 15),
+            archivedAt: DateTime.utc(2026, 7, 16),
+          ),
+        ],
+      );
+
+      final plan = ExpenseCloudRestorePlanner.planWorkProfiles(
+        localProfiles: local,
+        cloudProfiles: cloud,
+      );
+
+      expect(plan.missingProfiles.map((profile) => profile.id), ['seasonal']);
+      expect(plan.conflictingCloudProfiles.map((profile) => profile.id), [
+        'delivery',
+      ]);
+      expect(
+        local.activeWorkProfile.id,
+        ExpenseWorkProfileController.defaultProfileId,
+      );
+
+      expect(
+        await ExpenseCloudRestorePlanner.createMissingWorkProfiles(
+          localProfiles: local,
+          plan: plan,
+        ),
+        1,
+      );
+      expect(local.profileById('seasonal')?.isArchived, isTrue);
+      expect(local.profileById('delivery')?.name, 'Local delivery');
+    },
+  );
 }

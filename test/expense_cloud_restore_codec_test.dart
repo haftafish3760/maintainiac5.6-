@@ -83,6 +83,35 @@ void main() {
     );
   });
 
+  test('decodes active and archived work-profile restore metadata', () {
+    final restored = ExpenseCloudRestoreCodec.decodeWorkProfileDirectory({
+      'schema': 'expense_work_profile_directory_backup_v1',
+      'activeWorkProfileId': 'delivery',
+      'profiles': [
+        {
+          'id': 'delivery',
+          'name': 'Evening delivery',
+          'isDefault': false,
+          'createdAt': '2026-07-15T12:00:00.000Z',
+          'updatedAt': '2026-07-15T12:00:00.000Z',
+          'archivedAt': null,
+        },
+        {
+          'id': 'old-contract',
+          'name': 'Old contract',
+          'isDefault': false,
+          'createdAt': '2026-07-15T12:00:00.000Z',
+          'updatedAt': '2026-07-15T12:00:00.000Z',
+          'archivedAt': '2026-07-16T12:00:00.000Z',
+        },
+      ],
+    });
+
+    expect(restored.activeProfileId, 'delivery');
+    expect(restored.profiles, hasLength(2));
+    expect(restored.profiles.last.isArchived, isTrue);
+  });
+
   test(
     'estimates proof storage separately from structured restore records',
     () {

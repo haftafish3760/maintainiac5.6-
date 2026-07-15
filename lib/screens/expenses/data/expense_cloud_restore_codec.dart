@@ -1,6 +1,7 @@
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import 'expense_ledger_models.dart';
+import 'expense_work_profile_store.dart';
 
 /// Converts trusted Expense backup metadata into local record candidates.
 ///
@@ -70,6 +71,29 @@ class ExpenseCloudRestoreCodec {
     return ExpenseCloudRestoredReceipt(
       receipt: receipt,
       proofPointers: proofPointers,
+    );
+  }
+
+  static ExpenseCloudRestoredWorkProfiles decodeWorkProfileDirectory(
+    Map<dynamic, dynamic> data,
+  ) {
+    if ('${data['schema']}'.trim() !=
+        'expense_work_profile_directory_backup_v1') {
+      throw const FormatException(
+        'Unsupported Expense work-profile backup schema.',
+      );
+    }
+    final profiles = <ExpenseWorkProfile>[];
+    final source = data['profiles'];
+    if (source is List) {
+      for (final entry in source) {
+        if (entry is! Map || _text(entry['id']).isEmpty) continue;
+        profiles.add(ExpenseWorkProfile.fromMap(entry));
+      }
+    }
+    return ExpenseCloudRestoredWorkProfiles(
+      activeProfileId: _nullableText(data['activeWorkProfileId']),
+      profiles: List.unmodifiable(profiles),
     );
   }
 
@@ -156,6 +180,16 @@ class ExpenseCloudRestoredReceipt {
 
   final ExpenseReceiptRecord receipt;
   final List<ExpenseCloudProofPointer> proofPointers;
+}
+
+class ExpenseCloudRestoredWorkProfiles {
+  const ExpenseCloudRestoredWorkProfiles({
+    required this.activeProfileId,
+    required this.profiles,
+  });
+
+  final String? activeProfileId;
+  final List<ExpenseWorkProfile> profiles;
 }
 
 /// Storage facts for a user-authorized restore choice.
