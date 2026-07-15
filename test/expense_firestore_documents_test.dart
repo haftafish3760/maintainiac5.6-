@@ -136,10 +136,12 @@ void main() {
     );
     expect(ocrReview['hadDuplicateOrOverlapText'], isTrue);
     final proof = (doc.data['proofs'] as List).single as Map<String, Object?>;
-    expect(proof.toString(), contains('proofs'));
+    expect(proof.toString(), isNot(contains('receipt-proofs/')));
     expect(proof['byteSize'], 12345);
     expect(proof['backupByteSize'], 12345);
     expect(proof['backupSizeBucket'], 'tiny_under_100kb');
+    expect(proof['cloudProofState'], 'metadata_only');
+    expect(proof.containsKey('storagePath'), isFalse);
     expect(proof['dataSaverLevel'], 'balanced');
     expect(proof['localPathStored'], isFalse);
 

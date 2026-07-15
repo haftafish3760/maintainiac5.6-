@@ -66,10 +66,8 @@ void main() {
       '2026-07-15T14:00:00.000Z created receipt restore-receipt',
     ]);
     expect(restored.proofPointers, hasLength(1));
-    expect(
-      restored.proofPointers.single.storagePath,
-      'receipt-proofs/optimized/proof-1',
-    );
+    expect(restored.proofPointers.single.storagePath, isNull);
+    expect(restored.proofPointers.single.isCloudBacked, isFalse);
     expect(restored.proofPointers.single.byteSize, 1234);
   });
 
@@ -173,6 +171,20 @@ void main() {
         'proofs': [
           {'id': 'proof-1'},
           'not-a-proof',
+        ],
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects an uploaded proof that has no cloud storage path', () {
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        'schema': 'expense_receipt_backup_v1',
+        'id': 'missing-cloud-proof-path',
+        'receiptDate': '2026-07-15T00:00:00.000Z',
+        'proofs': [
+          {'id': 'proof-1', 'cloudProofState': 'available'},
         ],
       }),
       throwsFormatException,
@@ -358,6 +370,7 @@ void main() {
           ExpenseCloudProofPointer(
             id: 'proof-1',
             storagePath: 'receipt-proofs/optimized/proof-1',
+            availability: ExpenseCloudProofAvailability.available,
             kind: ReceiptAttachmentKind.photo,
             mimeType: 'image/jpeg',
             byteSize: 1234,
@@ -376,6 +389,7 @@ void main() {
           ExpenseCloudProofPointer(
             id: 'proof-2',
             storagePath: 'receipt-proofs/pdf/proof-2',
+            availability: ExpenseCloudProofAvailability.available,
             kind: ReceiptAttachmentKind.pdf,
             mimeType: 'application/pdf',
             byteSize: null,
@@ -392,6 +406,8 @@ void main() {
 
       expect(estimate.recordCount, 2);
       expect(estimate.proofCount, 2);
+      expect(estimate.cloudProofCount, 2);
+      expect(estimate.metadataOnlyProofCount, 0);
       expect(estimate.knownProofBytes, 1234);
       expect(estimate.proofsWithUnknownSize, 1);
       expect(estimate.hasCompleteProofByteEstimate, isFalse);

@@ -222,10 +222,23 @@ class ExpenseCloudRestoreCodec {
           'Expense receipt proof metadata is corrupt.',
         );
       }
+      final availability = ExpenseCloudProofAvailability.fromBackupValue(
+        item['cloudProofState'],
+      );
+      final storagePath = _nullableText(item['storagePath']);
+      if (availability == ExpenseCloudProofAvailability.available &&
+          storagePath == null) {
+        throw const FormatException(
+          'Cloud receipt proof metadata is missing its storage path.',
+        );
+      }
       pointers.add(
         ExpenseCloudProofPointer(
           id: _text(item['id']),
-          storagePath: _text(item['storagePath']),
+          storagePath: availability == ExpenseCloudProofAvailability.available
+              ? storagePath
+              : null,
+          availability: availability,
           kind: ReceiptAttachmentKind.fromName(_text(item['kind'])),
           mimeType: _text(item['mimeType']),
           byteSize: _integer(item['backupByteSize'] ?? item['byteSize']),
@@ -378,6 +391,8 @@ class ExpenseCloudRestoreEstimate {
   const ExpenseCloudRestoreEstimate({
     required this.recordCount,
     required this.proofCount,
+    required this.cloudProofCount,
+    required this.metadataOnlyProofCount,
     required this.knownProofBytes,
     required this.proofsWithUnknownSize,
   });
@@ -387,12 +402,19 @@ class ExpenseCloudRestoreEstimate {
   ) {
     var recordCount = 0;
     var proofCount = 0;
+    var cloudProofCount = 0;
+    var metadataOnlyProofCount = 0;
     var knownProofBytes = 0;
     var proofsWithUnknownSize = 0;
     for (final receipt in receipts) {
       recordCount += 1;
       for (final proof in receipt.proofPointers) {
         proofCount += 1;
+        if (!proof.isCloudBacked) {
+          metadataOnlyProofCount += 1;
+          continue;
+        }
+        cloudProofCount += 1;
         final byteSize = proof.byteSize;
         if (byteSize == null || byteSize < 0) {
           proofsWithUnknownSize += 1;
@@ -404,6 +426,8 @@ class ExpenseCloudRestoreEstimate {
     return ExpenseCloudRestoreEstimate(
       recordCount: recordCount,
       proofCount: proofCount,
+      cloudProofCount: cloudProofCount,
+      metadataOnlyProofCount: metadataOnlyProofCount,
       knownProofBytes: knownProofBytes,
       proofsWithUnknownSize: proofsWithUnknownSize,
     );
@@ -411,16 +435,33 @@ class ExpenseCloudRestoreEstimate {
 
   final int recordCount;
   final int proofCount;
+  final int cloudProofCount;
+  final int metadataOnlyProofCount;
   final int knownProofBytes;
   final int proofsWithUnknownSize;
 
   bool get hasCompleteProofByteEstimate => proofsWithUnknownSize == 0;
 }
 
+enum ExpenseCloudProofAvailability {
+  metadataOnly,
+  available;
+
+  static ExpenseCloudProofAvailability fromBackupValue(Object? value) {
+    final normalized = '${value ?? ''}'.trim().toLowerCase();
+    return switch (normalized) {
+      '' || 'metadata_only' => metadataOnly,
+      'available' => available,
+      _ => throw const FormatException('Cloud receipt proof state is corrupt.'),
+    };
+  }
+}
+
 class ExpenseCloudProofPointer {
   const ExpenseCloudProofPointer({
     required this.id,
     required this.storagePath,
+    required this.availability,
     required this.kind,
     required this.mimeType,
     required this.byteSize,
@@ -429,10 +470,14 @@ class ExpenseCloudProofPointer {
   });
 
   final String id;
-  final String storagePath;
+  final String? storagePath;
+  final ExpenseCloudProofAvailability availability;
   final ReceiptAttachmentKind kind;
   final String mimeType;
   final int? byteSize;
   final String fileHashSha256;
   final ReceiptDataSaverLevel dataSaverLevel;
+
+  bool get isCloudBacked =>
+      availability == ExpenseCloudProofAvailability.available;
 }

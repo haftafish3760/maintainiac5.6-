@@ -310,7 +310,9 @@ Map<String, Object?> _proofPointerFor(ReceiptAttachmentRecord attachment) {
     'storageState': attachment.storageState.name,
     'readState': attachment.readState.name,
     'photoQualityScore': attachment.photoQualityScore,
-    'storagePath': _storageProofPath(attachment),
+    // Proof-image upload is intentionally separate from metadata backup.
+    // Never advertise a deterministic future object path as an uploaded file.
+    'cloudProofState': 'metadata_only',
     'localPathStored': false,
     'importedTextStored': false,
   };
@@ -418,17 +420,6 @@ Map<String, Object?> _ocrCommandCenterSummary(ExpenseReceiptOcrReview review) {
       fallback: 'none',
     ),
   };
-}
-
-String _storageProofPath(ReceiptAttachmentRecord attachment) {
-  final id = _pathToken(attachment.id);
-  final bucket = switch (attachment.kind) {
-    ReceiptAttachmentKind.pdf => 'pdf',
-    ReceiptAttachmentKind.photo => 'optimized',
-    ReceiptAttachmentKind.emailText ||
-    ReceiptAttachmentKind.textMessageText => 'text',
-  };
-  return '${MaintainiacStorageSchema.receiptProofsPrefix}/$bucket/$id';
 }
 
 String _dateOnly(DateTime value) {
