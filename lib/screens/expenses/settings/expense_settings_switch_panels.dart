@@ -64,6 +64,97 @@ class _ReceiptReviewStyleSettingsPanel extends StatelessWidget {
   }
 }
 
+class _CloudSyncSettingsPanel extends StatelessWidget {
+  const _CloudSyncSettingsPanel({required this.settings});
+
+  final ExpenseSettingsController settings;
+
+  @override
+  Widget build(BuildContext context) {
+    return IndustrialPanelSurface(
+      dark: true,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Expense Backup And Sync',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Every expense saves to this device first. Cloud sync remains queued until an account and connection are available.',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          _SyncChoice<ExpenseCloudSyncPreference>(
+            label: 'When to sync',
+            value: settings.cloudSyncPreference,
+            values: ExpenseCloudSyncPreference.values,
+            itemLabel: (value) => switch (value) {
+              ExpenseCloudSyncPreference.manual => 'Only when I sync',
+              ExpenseCloudSyncPreference.wifiOnly => 'Automatically on Wi-Fi',
+              ExpenseCloudSyncPreference.wifiOrCellular =>
+                'Automatically on Wi-Fi or cellular',
+            },
+            onChanged: settings.setCloudSyncPreference,
+          ),
+          const SizedBox(height: 10),
+          _SyncChoice<ExpenseReceiptCopyRetention>(
+            label: 'Receipt copy after verified backup',
+            value: settings.receiptCopyRetention,
+            values: ExpenseReceiptCopyRetention.values,
+            itemLabel: (value) => switch (value) {
+              ExpenseReceiptCopyRetention.keepOriginal =>
+                'Keep original app copy',
+              ExpenseReceiptCopyRetention.keepOptimizedCopy =>
+                'Keep smaller readable app copy',
+              ExpenseReceiptCopyRetention.cloudOnlyAfterVerifiedUpload =>
+                'Remove app copy after verified backup',
+            },
+            onChanged: settings.setReceiptCopyRetention,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'These choices never delete gallery photos or any file outside Maintainiac-managed storage.',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SyncChoice<T> extends StatelessWidget {
+  const _SyncChoice({
+    required this.label,
+    required this.value,
+    required this.values,
+    required this.itemLabel,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T value;
+  final List<T> values;
+  final String Function(T value) itemLabel;
+  final Future<void> Function(T value) onChanged;
+
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<T>(
+    value: value,
+    isExpanded: true,
+    decoration: InputDecoration(labelText: label),
+    items: [
+      for (final choice in values)
+        DropdownMenuItem(value: choice, child: Text(itemLabel(choice))),
+    ],
+    onChanged: (next) {
+      if (next != null) onChanged(next);
+    },
+  );
+}
+
 class _ReceiptReviewStyleChoice extends StatelessWidget {
   const _ReceiptReviewStyleChoice({
     required this.style,

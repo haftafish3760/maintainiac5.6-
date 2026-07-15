@@ -101,6 +101,42 @@ service cloud.firestore {
       return !hasForbiddenSensitiveFields();
     }
 
+    function hasUnsafeReceiptEvidenceFields() {
+      return request.resource.data.keys().hasAny([
+        'rawReceiptText',
+        'rawOcrText',
+        'ocrText',
+        'importedText',
+        'localPath',
+        'localFilePath',
+        'sourceImagePath',
+      ]);
+    }
+
+    function validExpenseCreate(orgId, expenseId) {
+      return request.resource.data.orgId == orgId &&
+        request.resource.data.id == expenseId &&
+        request.resource.data.schema == 'expense_receipt_backup_v1' &&
+        request.resource.data.schemaVersion == 1 &&
+        request.resource.data.rawOcrStored == false &&
+        request.resource.data.cloudRevision == 0 &&
+        request.resource.data.syncStatus == 'pending' &&
+        request.resource.data.deletedAt == null &&
+        !hasUnsafeReceiptEvidenceFields();
+    }
+
+    function validExpenseUpdate(orgId, expenseId) {
+      return request.resource.data.orgId == orgId &&
+        request.resource.data.id == expenseId &&
+        request.resource.data.schema == resource.data.schema &&
+        request.resource.data.schemaVersion == resource.data.schemaVersion &&
+        request.resource.data.rawOcrStored == false &&
+        request.resource.data.cloudRevision == resource.data.cloudRevision &&
+        request.resource.data.syncStatus == resource.data.syncStatus &&
+        request.resource.data.deletedAt == resource.data.deletedAt &&
+        !hasUnsafeReceiptEvidenceFields();
+    }
+
     function noServerManagedFieldsOnCreate() {
       return !request.resource.data.keys().hasAny([
         'plan',
@@ -288,7 +324,9 @@ service cloud.firestore {
             hasPermission(orgId, 'addOwnReceipts') ||
             hasPermission(orgId, 'addCompanyExpenses')
           ) &&
-          writesOwnCreate();
+          writesOwnCreate() &&
+          validExpenseCreate(orgId, expenseId) &&
+          noForbiddenSensitiveFields();
         allow update: if (
             hasPermission(orgId, 'editCompanyExpenses') ||
             (
@@ -296,7 +334,9 @@ service cloud.firestore {
               resource.data.createdByUid == request.auth.uid
             )
           ) &&
-          keepsCreator();
+          keepsCreator() &&
+          validExpenseUpdate(orgId, expenseId) &&
+          noForbiddenSensitiveFields();
         allow delete: if isOwnerOrAdmin(orgId);
       }
 

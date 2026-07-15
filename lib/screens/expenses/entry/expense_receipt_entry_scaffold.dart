@@ -67,6 +67,10 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               },
             ),
             const SizedBox(height: 8),
+            _buildWorkProfilePanel(context),
+            const SizedBox(height: 8),
+            _buildJobContextPanel(context),
+            const SizedBox(height: 8),
             KeyedSubtree(
               key: _receiptReadHandoffKey,
               child: Column(

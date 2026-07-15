@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
+import '../../../shared/context/operational_context_store.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/app_back_button.dart';
@@ -10,6 +11,7 @@ import '../calendar/expense_calendar.dart';
 import '../categories/expense_categories.dart';
 import '../data/expense_draft_store.dart';
 import '../data/expense_ledger_models.dart';
+import '../data/expense_ledger_scope_filter.dart';
 import '../data/expense_ledger_store.dart';
 import '../data/expense_screen_telemetry.dart';
 import '../data/expense_screen_telemetry_recorder.dart';
@@ -39,6 +41,7 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   var _anchorDate = _dateOnly(DateTime.now());
+  var _showAllProfiles = false;
   late final DateTime _screenOpenedAtUtc;
 
   @override
@@ -91,6 +94,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             onShiftDay: _shiftDay,
             onToday: () =>
                 setState(() => _anchorDate = _dateOnly(DateTime.now())),
+            showAllProfiles: _showAllProfiles,
+            onToggleProfileScope: () =>
+                setState(() => _showAllProfiles = !_showAllProfiles),
           ),
         ],
       ),
@@ -109,11 +115,15 @@ class _ExpenseHomeContent extends StatelessWidget {
     required this.anchorDate,
     required this.onShiftDay,
     required this.onToday,
+    required this.showAllProfiles,
+    required this.onToggleProfileScope,
   });
 
   final DateTime anchorDate;
   final ValueChanged<int> onShiftDay;
   final VoidCallback onToday;
+  final bool showAllProfiles;
+  final VoidCallback onToggleProfileScope;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +140,8 @@ class _ExpenseHomeContent extends StatelessWidget {
               _ExpenseTotalsPanel(
                 period: _ExpenseViewPeriod.day,
                 anchorDate: anchorDate,
+                showAllProfiles: showAllProfiles,
+                onToggleProfileScope: onToggleProfileScope,
               ),
               const SizedBox(height: 8),
               const _UpcomingExpensesPanel(),

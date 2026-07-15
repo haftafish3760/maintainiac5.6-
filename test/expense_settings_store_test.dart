@@ -173,6 +173,15 @@ void main() {
     );
     expect(backup['cloudSyncPreference'], 'wifiOnly');
     expect(backup['receiptCopyRetention'], 'cloudOnlyAfterVerifiedUpload');
+    expect(settings.saveOptimizedReceiptCopy, isFalse);
+
+    await settings.setSaveOptimizedReceiptCopy(true);
+
+    expect(
+      settings.receiptCopyRetention,
+      ExpenseReceiptCopyRetention.keepOptimizedCopy,
+    );
+    expect(settings.saveOptimizedReceiptCopy, isTrue);
   });
 
   test(

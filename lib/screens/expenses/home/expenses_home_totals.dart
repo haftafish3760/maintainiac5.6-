@@ -1,18 +1,35 @@
 part of 'expenses_home_screen.dart';
 
 class _ExpenseTotalsPanel extends StatelessWidget {
-  const _ExpenseTotalsPanel({required this.period, required this.anchorDate});
+  const _ExpenseTotalsPanel({
+    required this.period,
+    required this.anchorDate,
+    required this.showAllProfiles,
+    required this.onToggleProfileScope,
+  });
 
   final _ExpenseViewPeriod period;
   final DateTime anchorDate;
+  final bool showAllProfiles;
+  final VoidCallback onToggleProfileScope;
 
   @override
   Widget build(BuildContext context) {
     final ledger = ExpenseLedgerScope.of(context);
+    final activeContext = OperationalContextScope.of(context).context;
     final range = period.rangeFor(anchorDate);
-    final ledgerSummary = ledger.summaryForRange(range);
+    final scope = showAllProfiles
+        ? const ExpenseLedgerScopeFilter()
+        : ExpenseLedgerScopeFilter(
+            workProfileId: activeContext.workProfileId,
+            vehicleId: activeContext.activeVehicleId,
+          );
+    final ledgerSummary = ledger.summaryForRange(range, scope: scope);
     final rangeLabel = period.rangeLabel(anchorDate);
     final detailLabel = '${period.buttonLabel} | $rangeLabel';
+    final scopeLabel = showAllProfiles
+        ? 'All profiles'
+        : '${activeContext.workProfileName} · ${activeContext.activeVehicleLabel}';
     return _SolidSection(
       backgroundColor: _paper,
       borderColor: const Color(0xFF3E4A50),
@@ -27,7 +44,7 @@ class _ExpenseTotalsPanel extends StatelessWidget {
                 child: _SectionHeader(
                   eyebrow: period.eyebrow,
                   title: period.title,
-                  detail: '$rangeLabel | Active vehicle only',
+                  detail: '$rangeLabel | $scopeLabel',
                 ),
               ),
               _BigMoney(
@@ -82,6 +99,19 @@ class _ExpenseTotalsPanel extends StatelessWidget {
             },
           ),
           const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: onToggleProfileScope,
+              icon: Icon(
+                showAllProfiles ? Icons.filter_alt_off : Icons.filter_alt,
+                size: 18,
+              ),
+              label: Text(
+                showAllProfiles ? 'Show current profile' : 'Show all profiles',
+              ),
+            ),
+          ),
           Align(
             alignment: Alignment.centerRight,
             child: _SmallTextButton(

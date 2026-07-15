@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_ledger_scope_filter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 
 void main() {
@@ -292,6 +293,90 @@ void main() {
       expect(ledger.summaryForWeek(DateTime(2026, 5, 12)).total, 125);
       expect(ledger.summaryForMonth(DateTime(2026, 5, 20)).total, 125);
       expect(yearToDate().total, 125);
+    },
+  );
+
+  test(
+    'scope filters keep all-profile, vehicle, and job recaps exact',
+    () async {
+      final ledger = await ExpenseLedgerController.create();
+      Future<void> save({
+        required String id,
+        required int total,
+        required ExpenseReceiptContextSnapshot context,
+      }) => ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: id,
+          receiptDate: DateTime(2026, 6, 8),
+          contextSnapshot: context,
+          lines: [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-$id',
+              description: 'Expense',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: total.toDouble(),
+            ),
+          ],
+        ),
+      );
+
+      await save(
+        id: 'EXP-job-a',
+        total: 25,
+        context: const ExpenseReceiptContextSnapshot(
+          workProfileId: 'work-a',
+          vehicleId: 'vehicle-a',
+          jobId: 'job-a',
+        ),
+      );
+      await save(
+        id: 'EXP-job-b',
+        total: 40,
+        context: const ExpenseReceiptContextSnapshot(
+          workProfileId: 'work-a',
+          vehicleId: 'vehicle-b',
+          jobId: 'job-b',
+        ),
+      );
+      await save(
+        id: 'EXP-work-b',
+        total: 65,
+        context: const ExpenseReceiptContextSnapshot(
+          workProfileId: 'work-b',
+          vehicleId: 'vehicle-a',
+        ),
+      );
+
+      final range = ExpenseDateRange(
+        start: DateTime(2026, 6, 1),
+        end: DateTime(2026, 6, 30),
+      );
+      expect(ledger.summaryForRange(range).total, 130);
+      expect(
+        ledger
+            .summaryForRange(
+              range,
+              scope: const ExpenseLedgerScopeFilter(
+                workProfileId: 'work-a',
+                vehicleId: 'vehicle-a',
+              ),
+            )
+            .total,
+        25,
+      );
+      expect(
+        ledger
+            .summaryForRange(
+              range,
+              scope: const ExpenseLedgerScopeFilter(jobId: 'job-b'),
+            )
+            .total,
+        40,
+      );
     },
   );
 }

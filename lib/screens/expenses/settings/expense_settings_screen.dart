@@ -73,6 +73,8 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           const SizedBox(height: 12),
           _ReceiptReviewStyleSettingsPanel(settings: settings),
           const SizedBox(height: 12),
+          _CloudSyncSettingsPanel(settings: settings),
+          const SizedBox(height: 12),
           _SettingsSwitchPanel(
             title: 'Receipts And OCR',
             rows: [
@@ -85,11 +87,6 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
                 label: 'Allow multiple photos per receipt',
                 value: settings.allowMultipleReceiptPhotos,
                 onChanged: settings.setAllowMultipleReceiptPhotos,
-              ),
-              _SettingsSwitchRowData(
-                label: 'Save optimized receipt image copy',
-                value: settings.saveOptimizedReceiptCopy,
-                onChanged: settings.setSaveOptimizedReceiptCopy,
               ),
             ],
           ),

@@ -144,7 +144,11 @@ class ExpenseSettingsController extends ChangeNotifier {
   Future<void> setAllowMultipleReceiptPhotos(bool value) =>
       _writeBool(_Keys.allowMultipleReceiptPhotos, value);
   Future<void> setSaveOptimizedReceiptCopy(bool value) =>
-      _writeBool(_Keys.saveOptimizedReceiptCopy, value);
+      setReceiptCopyRetention(
+        value
+            ? ExpenseReceiptCopyRetention.keepOptimizedCopy
+            : ExpenseReceiptCopyRetention.keepOriginal,
+      );
   Future<void> setInAppNotifications(bool value) =>
       _writeBool(_Keys.inAppNotifications, value);
   Future<void> setPushNotifications(bool value) =>
@@ -167,6 +171,10 @@ class ExpenseSettingsController extends ChangeNotifier {
     ExpenseReceiptCopyRetention value,
   ) async {
     await _box.put(_Keys.receiptCopyRetention, value.name);
+    await _box.put(
+      _Keys.saveOptimizedReceiptCopy,
+      value == ExpenseReceiptCopyRetention.keepOptimizedCopy,
+    );
     notifyListeners();
   }
 

@@ -19,6 +19,19 @@ class ReceiptProofStorage {
 
   static const instance = ReceiptProofStorage._();
 
+  /// True only for a completed copy inside Maintainiac's private proof root.
+  /// Gallery, downloads, and temporary capture paths can never be deleted or
+  /// uploaded as a managed permanent proof by this subsystem.
+  Future<bool> isManagedPermanentProofPath(String filePath) async {
+    final clean = filePath.trim();
+    if (clean.isEmpty) return false;
+    final root = await _proofRoot();
+    final staging = await _stagingRoot();
+    return path.isWithin(root.path, clean) &&
+        !path.isWithin(staging.path, clean) &&
+        await File(clean).exists();
+  }
+
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
     List<ReceiptAttachmentRecord> attachments, {
     bool retainStagedSources = false,
