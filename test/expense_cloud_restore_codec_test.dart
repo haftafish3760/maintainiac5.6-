@@ -206,6 +206,35 @@ void main() {
     );
   });
 
+  test('rejects duplicate receipt line and proof identifiers', () {
+    const receipt = {
+      'schema': 'expense_receipt_backup_v1',
+      'id': 'duplicate-identifiers',
+      'receiptDate': '2026-07-15T00:00:00.000Z',
+    };
+
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'lines': [
+          {'id': 'line-1', 'subtotalCents': 125},
+          {'id': 'line-1', 'subtotalCents': 125},
+        ],
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'proofs': [
+          {'id': 'proof-1'},
+          {'id': 'proof-1'},
+        ],
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('rejects malformed receipt audit history instead of dropping it', () {
     expect(
       () => ExpenseCloudRestoreCodec.decodeReceipt({
@@ -219,6 +248,24 @@ void main() {
             'recordId': 'bad-audit-entry',
           },
           {'action': 'edited'},
+        ],
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects audit history that belongs to a different receipt', () {
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        'schema': 'expense_receipt_backup_v1',
+        'id': 'receipt-a',
+        'receiptDate': '2026-07-15T00:00:00.000Z',
+        'auditEvents': [
+          {
+            'occurredAt': '2026-07-15T00:00:00.000Z',
+            'action': 'created',
+            'recordId': 'receipt-b',
+          },
         ],
       }),
       throwsFormatException,

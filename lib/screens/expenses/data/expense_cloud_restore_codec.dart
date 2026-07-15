@@ -59,7 +59,7 @@ class ExpenseCloudRestoreCodec {
       localRevision: _recordRevision(data['localRevision']),
       recordState: _recordState(data['recordState']),
       deletedAt: _deletedAt(data['deletedAt']),
-      auditEvents: _auditEvents(data['auditEvents']),
+      auditEvents: _auditEvents(data['auditEvents'], recordId: id),
       fileHashSha256: _text(data['fileHashSha256']),
       duplicateCheckStatus: ExpenseDuplicateCheckStatus.fromName(
         _text(data['duplicateCheckStatus']),
@@ -192,8 +192,10 @@ class ExpenseCloudRestoreCodec {
       throw const FormatException('Expense receipt line metadata is corrupt.');
     }
     final lines = <ExpenseReceiptLineRecord>[];
+    final ids = <String>{};
     for (final item in value) {
-      if (item is! Map) {
+      final id = item is Map ? _text(item['id']) : '';
+      if (item is! Map || id.isEmpty || !ids.add(id)) {
         throw const FormatException(
           'Expense receipt line metadata is corrupt.',
         );
@@ -216,8 +218,10 @@ class ExpenseCloudRestoreCodec {
       throw const FormatException('Expense receipt proof metadata is corrupt.');
     }
     final pointers = <ExpenseCloudProofPointer>[];
+    final ids = <String>{};
     for (final item in value) {
-      if (item is! Map || _text(item['id']).isEmpty) {
+      final id = item is Map ? _text(item['id']) : '';
+      if (item is! Map || id.isEmpty || !ids.add(id)) {
         throw const FormatException(
           'Expense receipt proof metadata is corrupt.',
         );
@@ -252,7 +256,7 @@ class ExpenseCloudRestoreCodec {
     return List.unmodifiable(pointers);
   }
 
-  static List<String> _auditEvents(Object? value) {
+  static List<String> _auditEvents(Object? value, {required String recordId}) {
     if (value == null) return const [];
     if (value is! List) {
       throw const FormatException('Expense receipt audit metadata is corrupt.');
@@ -262,7 +266,7 @@ class ExpenseCloudRestoreCodec {
       if (item is! Map ||
           _date(item['occurredAt']) == null ||
           _text(item['action']).isEmpty ||
-          _text(item['recordId']).isEmpty) {
+          _text(item['recordId']) != recordId) {
         throw const FormatException(
           'Expense receipt audit metadata is corrupt.',
         );
