@@ -66,6 +66,10 @@ class ExpenseCloudBackupService {
     );
     if (result.completed) {
       await settings.recordSuccessfulBackup(timestamp);
+    } else {
+      await settings.recordBackupFailure(
+        result.reason ?? 'Backup is waiting to retry.',
+      );
     }
     return result;
   }
@@ -242,6 +246,10 @@ class ExpenseCloudBackupService {
     );
     if (result.completed) {
       await settings.recordSuccessfulBackup(timestamp);
+    } else {
+      await settings.recordBackupFailure(
+        result.reason ?? 'Backup is waiting to retry.',
+      );
     }
     return result;
   }

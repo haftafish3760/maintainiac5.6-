@@ -108,6 +108,13 @@ class ExpenseSettingsController extends ChangeNotifier {
       _readUtcDateTime(_Keys.lastBackupAttemptAt);
   DateTime? get lastSuccessfulBackupAt =>
       _readUtcDateTime(_Keys.lastSuccessfulBackupAt);
+  String? get lastBackupFailureReason {
+    final value = _box.get(_Keys.lastBackupFailureReason);
+    if (value is! String || value.trim().isEmpty) return null;
+    return value.trim();
+  }
+
+  bool get backupRetryPending => lastBackupFailureReason != null;
 
   bool isScheduledBackupDueAt(DateTime now, {DateTime? lastAttemptAt}) {
     if (backupSyncMode != ExpenseBackupSyncMode.scheduled) return false;
@@ -223,7 +230,17 @@ class ExpenseSettingsController extends ChangeNotifier {
       _writeUtcDateTime(_Keys.lastBackupAttemptAt, atUtc);
 
   Future<void> recordSuccessfulBackup(DateTime atUtc) =>
-      _writeUtcDateTime(_Keys.lastSuccessfulBackupAt, atUtc);
+      _recordSuccessfulBackup(atUtc);
+
+  Future<void> recordBackupFailure(String? reason) async {
+    final normalized = reason?.trim() ?? '';
+    if (normalized.isEmpty) return;
+    await _box.put(
+      _Keys.lastBackupFailureReason,
+      normalized.length <= 240 ? normalized : normalized.substring(0, 240),
+    );
+    notifyListeners();
+  }
 
   Future<void> setOdometerPromptEnabled(bool value) =>
       _writeBool(_Keys.odometerPromptEnabled, value);
@@ -398,6 +415,15 @@ class ExpenseSettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _recordSuccessfulBackup(DateTime atUtc) async {
+    await _box.put(
+      _Keys.lastSuccessfulBackupAt,
+      atUtc.toUtc().toIso8601String(),
+    );
+    await _box.delete(_Keys.lastBackupFailureReason);
+    notifyListeners();
+  }
+
   Future<void> _writeBool(String key, bool value) async {
     await _box.put(key, value);
     notifyListeners();
@@ -454,6 +480,7 @@ class _Keys {
       'expense_backup_schedule_authorized_at';
   static const lastBackupAttemptAt = 'expense_last_backup_attempt_at';
   static const lastSuccessfulBackupAt = 'expense_last_successful_backup_at';
+  static const lastBackupFailureReason = 'expense_last_backup_failure_reason';
   static const odometerPromptEnabled = 'expense_odometer_prompt_enabled';
   static const odometerPromptSuppressedCategories =
       'expense_odometer_prompt_suppressed_categories';

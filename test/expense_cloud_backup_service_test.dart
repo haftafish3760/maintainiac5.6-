@@ -99,6 +99,7 @@ void main() {
       service.settings.lastSuccessfulBackupAt,
       DateTime.utc(2026, 7, 15, 12),
     );
+    expect(service.settings.backupRetryPending, isFalse);
     expect(sink.documents.values.join(), isNot(contains('rawOcrText')));
   });
 

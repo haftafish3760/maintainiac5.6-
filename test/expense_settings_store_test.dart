@@ -284,6 +284,14 @@ void main() {
 
       expect(reopened.lastBackupAttemptAt, attemptedAt);
       expect(reopened.lastSuccessfulBackupAt, successfulAt);
+      await reopened.recordBackupFailure('Temporary network issue');
+      expect(reopened.backupRetryPending, isTrue);
+      expect(reopened.lastBackupFailureReason, 'Temporary network issue');
+      await reopened.recordSuccessfulBackup(
+        successfulAt.add(const Duration(minutes: 1)),
+      );
+      expect(reopened.backupRetryPending, isFalse);
+      expect(reopened.lastBackupFailureReason, isNull);
       expect(
         reopened
             .toBackupMap(ownerUid: 'owner', exportedAtUtc: DateTime.utc(2026))
