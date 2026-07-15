@@ -6,6 +6,7 @@ import 'package:maintaniac/screens/expenses/data/expense_export_file_writer.dart
 import 'package:maintaniac/screens/expenses/data/expense_export_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_export_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -71,6 +72,49 @@ void main() {
       expect(store.hasFreeCloudExportAvailable(DateTime(2026, 7, 1)), isTrue);
     },
   );
+
+  test('corrupt export history is ignored instead of being rebuilt', () async {
+    final box = await Hive.openBox<dynamic>(ExpenseExportController.boxName);
+    await box.put('corrupt-export', <String, Object?>{
+      'id': 'corrupt-export',
+      'exportedAt': 'not-a-date',
+      'rangeStart': 'not-a-date',
+      'rangeEnd': 'not-a-date',
+      'receiptCount': 1,
+      'lineCount': 1,
+      'total': 1,
+    });
+
+    final store = await ExpenseExportController.create();
+
+    expect(store.exports, isEmpty);
+  });
+
+  test('export history is not marked saved when storage is full', () async {
+    final store = ExpenseExportController.memory(
+      storageCheck: () async => const AppStorageCheck(
+        availableBytes: 0,
+        operationBytes: AppStorageGuard.smallRecordWriteBytes,
+        requiredBytes: AppStorageGuard.smallRecordWriteBytes + 1,
+        purpose: AppStoragePurpose.smallRecordWrite,
+      ),
+    );
+    final snapshot = buildExpenseExportSnapshot(
+      receipts: const [],
+      range: ExpenseDateRange(
+        start: DateTime.utc(2026, 7, 1),
+        end: DateTime.utc(2026, 7, 1),
+      ),
+      categoryFilter: ExpenseExportCategoryFilter.all,
+      exportedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    await expectLater(
+      () => store.markExported(snapshot),
+      throwsA(isA<StateError>()),
+    );
+    expect(store.exports, isEmpty);
+  });
 
   test('expense export writer creates csv and manifest files', () async {
     final outputDirectory = await Directory.systemTemp.createTemp(

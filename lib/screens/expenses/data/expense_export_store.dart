@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_export_models.dart';
 import 'expense_ledger_models.dart';
 
@@ -21,23 +22,39 @@ class ExpenseExportRecord {
   });
 
   factory ExpenseExportRecord.fromMap(Map<dynamic, dynamic> map) {
+    final id = '${map['id'] ?? ''}'.trim();
+    final exportedAt = DateTime.tryParse('${map['exportedAt'] ?? ''}');
+    final rangeStart = DateTime.tryParse('${map['rangeStart'] ?? ''}');
+    final rangeEnd = DateTime.tryParse('${map['rangeEnd'] ?? ''}');
+    final receiptCount = (map['receiptCount'] as num?)?.toInt();
+    final lineCount = (map['lineCount'] as num?)?.toInt();
+    final total = (map['total'] as num?)?.toDouble();
+    if (id.isEmpty ||
+        exportedAt == null ||
+        rangeStart == null ||
+        rangeEnd == null ||
+        rangeEnd.isBefore(rangeStart) ||
+        receiptCount == null ||
+        receiptCount < 0 ||
+        lineCount == null ||
+        lineCount < 0 ||
+        total == null ||
+        !total.isFinite ||
+        total < 0) {
+      throw const FormatException('Invalid stored Expense export record.');
+    }
     return ExpenseExportRecord(
-      id: map['id'] as String? ?? '',
-      exportedAt:
-          DateTime.tryParse(map['exportedAt'] as String? ?? '') ??
-          DateTime.now(),
-      rangeStart:
-          DateTime.tryParse(map['rangeStart'] as String? ?? '') ??
-          DateTime.now(),
-      rangeEnd:
-          DateTime.tryParse(map['rangeEnd'] as String? ?? '') ?? DateTime.now(),
+      id: id,
+      exportedAt: exportedAt,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
       categoryFilter: ExpenseExportCategoryFilter.values.firstWhere(
         (value) => value.name == map['categoryFilter'],
         orElse: () => ExpenseExportCategoryFilter.all,
       ),
-      receiptCount: (map['receiptCount'] as num?)?.toInt() ?? 0,
-      lineCount: (map['lineCount'] as num?)?.toInt() ?? 0,
-      total: (map['total'] as num?)?.toDouble() ?? 0,
+      receiptCount: receiptCount,
+      lineCount: lineCount,
+      total: total,
       source: ExpenseExportSource.values.firstWhere(
         (value) => value.name == map['source'],
         orElse: () => ExpenseExportSource.localDevice,
@@ -86,18 +103,29 @@ class ExpenseExportRecord {
   }
 }
 
+typedef ExpenseExportStorageCheck = Future<AppStorageCheck> Function();
+
 class ExpenseExportController extends ChangeNotifier {
-  ExpenseExportController._(this._box);
-  ExpenseExportController.memory() : _box = null;
+  ExpenseExportController._(
+    this._box, {
+    ExpenseExportStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+  ExpenseExportController.memory({ExpenseExportStorageCheck? storageCheck})
+    : _box = null,
+      _storageCheck = storageCheck;
 
   static const boxName = 'expense_export_history';
 
   final Box<dynamic>? _box;
+  final ExpenseExportStorageCheck? _storageCheck;
   final _memoryRecords = <String, ExpenseExportRecord>{};
+  Future<void> _writeTail = Future<void>.value();
 
-  static Future<ExpenseExportController> create() async {
+  static Future<ExpenseExportController> create({
+    ExpenseExportStorageCheck? storageCheck,
+  }) async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return ExpenseExportController._(box);
+    return ExpenseExportController._(box, storageCheck: storageCheck);
   }
 
   List<ExpenseExportRecord> get exports {
@@ -107,7 +135,11 @@ class ExpenseExportController extends ChangeNotifier {
       if (value is ExpenseExportRecord) {
         records.add(value);
       } else if (value is Map) {
-        records.add(ExpenseExportRecord.fromMap(value));
+        try {
+          records.add(ExpenseExportRecord.fromMap(value));
+        } on FormatException {
+          continue;
+        }
       }
     }
     records.sort((a, b) => b.exportedAt.compareTo(a.exportedAt));
@@ -146,7 +178,7 @@ class ExpenseExportController extends ChangeNotifier {
     ExpenseExportSnapshot snapshot, {
     String? outputDirectory,
     List<String>? fileNames,
-  }) async {
+  }) => _enqueue(() async {
     final record = ExpenseExportRecord(
       id: 'EXP-EXPORT-${snapshot.exportedAt.microsecondsSinceEpoch}',
       exportedAt: snapshot.exportedAt,
@@ -168,6 +200,24 @@ class ExpenseExportController extends ChangeNotifier {
     }
     notifyListeners();
     return record;
+  });
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) async {
+      final check = _storageCheck;
+      if (check != null) {
+        final storage = await check();
+        if (!storage.hasEnoughSpace) {
+          throw StateError(storage.blockingMessage());
+        }
+      }
+      return operation();
+    });
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
 
