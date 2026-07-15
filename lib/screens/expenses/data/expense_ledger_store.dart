@@ -361,11 +361,11 @@ class ExpenseLedgerController extends ChangeNotifier {
     return restored;
   });
 
-  Future<void> clear() async {
+  Future<void> clear() => _enqueue(() async {
     _memoryRecords.clear();
     await _box?.clear();
     notifyListeners();
-  }
+  });
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
     final next = _writeTail.then((_) => operation());
