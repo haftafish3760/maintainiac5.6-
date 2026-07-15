@@ -42,17 +42,34 @@ class ExpenseCloudRestoreSession {
   });
 
   factory ExpenseCloudRestoreSession.fromMap(Map<dynamic, dynamic> map) {
+    final id = _required(_text(map['id']), 'Restore session ID');
+    final requestId = _required(_text(map['requestId']), 'Restore request ID');
+    final createdAt = _date(map['createdAt']);
+    final updatedAt = _date(map['updatedAt']);
+    if (createdAt == null ||
+        updatedAt == null ||
+        updatedAt.isBefore(createdAt)) {
+      throw const FormatException('Restore session lifecycle is corrupt.');
+    }
+    final expectedDownloadBytes = _nonNegative(map['expectedDownloadBytes']);
+    final completedDownloadBytes = _nonNegative(map['completedDownloadBytes']);
+    final totalRecords = _nonNegative(map['totalRecords']);
+    final completedRecords = _nonNegative(map['completedRecords']);
+    if (completedDownloadBytes > expectedDownloadBytes ||
+        completedRecords > totalRecords) {
+      throw const FormatException('Restore session progress is corrupt.');
+    }
     return ExpenseCloudRestoreSession(
-      id: _text(map['id']),
-      requestId: _text(map['requestId']),
+      id: id,
+      requestId: requestId,
       mode: _mode(map['mode']),
-      state: ExpenseCloudRestoreSessionState.fromName(_text(map['state'])),
-      createdAt: _date(map['createdAt']) ?? DateTime.now().toUtc(),
-      updatedAt: _date(map['updatedAt']) ?? DateTime.now().toUtc(),
-      expectedDownloadBytes: _nonNegative(map['expectedDownloadBytes']),
-      completedDownloadBytes: _nonNegative(map['completedDownloadBytes']),
-      totalRecords: _nonNegative(map['totalRecords']),
-      completedRecords: _nonNegative(map['completedRecords']),
+      state: _state(map['state']),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      expectedDownloadBytes: expectedDownloadBytes,
+      completedDownloadBytes: completedDownloadBytes,
+      totalRecords: totalRecords,
+      completedRecords: completedRecords,
       failureReason: _nullableText(map['failureReason']),
     );
   }
@@ -113,7 +130,14 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
 
   ExpenseCloudRestoreSession? sessionById(String id) {
     final value = _box.get(id.trim());
-    return value is Map ? ExpenseCloudRestoreSession.fromMap(value) : null;
+    if (value is! Map) return null;
+    try {
+      return ExpenseCloudRestoreSession.fromMap(value);
+    } on FormatException {
+      return null;
+    } on StateError {
+      return null;
+    }
   }
 
   Future<void> savePrepared({
@@ -305,5 +329,14 @@ DateTime? _date(Object? value) =>
 ExpenseCloudRestoreMode _mode(Object? value) => switch (_text(value)) {
   'full' => ExpenseCloudRestoreMode.full,
   'smart' => ExpenseCloudRestoreMode.smart,
-  _ => ExpenseCloudRestoreMode.recordsOnly,
+  'recordsOnly' => ExpenseCloudRestoreMode.recordsOnly,
+  _ => throw const FormatException('Restore session mode is corrupt.'),
 };
+
+ExpenseCloudRestoreSessionState _state(Object? value) {
+  final name = _text(value);
+  for (final state in ExpenseCloudRestoreSessionState.values) {
+    if (state.name == name) return state;
+  }
+  throw const FormatException('Restore session state is corrupt.');
+}

@@ -119,6 +119,41 @@ void main() {
     );
   });
 
+  test('does not resume corrupt local restore session state', () async {
+    final store = await ExpenseCloudRestoreSessionStore.create();
+    await Hive.box<dynamic>(
+      ExpenseCloudRestoreSessionStore.boxName,
+    ).put('corrupt-restore', {
+      'id': 'corrupt-restore',
+      'requestId': 'server-request-corrupt',
+      'mode': 'smart',
+      'state': 'transferring',
+      'createdAt': '2026-07-15T00:00:00.000Z',
+      'updatedAt': '2026-07-15T00:00:00.000Z',
+      'expectedDownloadBytes': 10,
+      'completedDownloadBytes': 11,
+      'totalRecords': 1,
+      'completedRecords': 1,
+    });
+
+    expect(store.sessionById('corrupt-restore'), isNull);
+
+    await Hive.box<dynamic>(
+      ExpenseCloudRestoreSessionStore.boxName,
+    ).put('missing-request', {
+      'id': 'missing-request',
+      'mode': 'smart',
+      'state': 'prepared',
+      'createdAt': '2026-07-15T00:00:00.000Z',
+      'updatedAt': '2026-07-15T00:00:00.000Z',
+      'expectedDownloadBytes': 0,
+      'completedDownloadBytes': 0,
+      'totalRecords': 0,
+      'completedRecords': 0,
+    });
+    expect(store.sessionById('missing-request'), isNull);
+  });
+
   test('does not mark an incomplete restore as completed', () async {
     final store = await ExpenseCloudRestoreSessionStore.create();
     await store.savePrepared(
