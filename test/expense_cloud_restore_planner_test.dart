@@ -91,6 +91,36 @@ void main() {
     },
   );
 
+  test('restores a missing receipt tombstone without reviving it', () async {
+    final ledger = ExpenseLedgerController.memory();
+    final cloud = ExpenseCloudRestoredReceipt(
+      receipt: ExpenseReceiptRecord(
+        id: 'deleted-cloud-receipt',
+        receiptDate: DateTime.utc(2026, 7, 15),
+        recordState: MaintainiacRecordState.deleted,
+        deletedAt: DateTime.utc(2026, 7, 15, 12),
+        localRevision: 4,
+        lines: const [],
+      ),
+      proofPointers: const [],
+    );
+    final plan = ExpenseCloudRestorePlanner.planReceipt(
+      ledger: ledger,
+      cloudRecord: cloud,
+    );
+
+    expect(plan.disposition, ExpenseCloudRestoreDisposition.createLocal);
+    expect(
+      (await ExpenseCloudRestorePlanner.createIfMissing(
+        ledger: ledger,
+        plan: plan,
+      )).wasCreated,
+      isTrue,
+    );
+    expect(ledger.receiptById('deleted-cloud-receipt')?.isDeleted, isTrue);
+    expect(ledger.receipts, isEmpty);
+  });
+
   test('never overwrites an existing local receipt during restore', () async {
     final ledger = ExpenseLedgerController.memory();
     await ledger.saveReceipt(
