@@ -118,11 +118,6 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
                 value: settings.allowMultipleReceiptPhotos,
                 onChanged: settings.setAllowMultipleReceiptPhotos,
               ),
-              _SettingsSwitchRowData(
-                label: 'Save optimized receipt image copy',
-                value: settings.saveOptimizedReceiptCopy,
-                onChanged: settings.setSaveOptimizedReceiptCopy,
-              ),
             ],
           ),
           const SizedBox(height: 12),
