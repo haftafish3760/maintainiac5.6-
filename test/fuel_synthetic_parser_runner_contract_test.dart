@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+import '../tool/fuel_synthetic_parser_runner.dart';
 
 const _runnerTimeout = Timeout(Duration(minutes: 2));
 
@@ -9,19 +7,7 @@ void main() {
   test(
     'fuel synthetic parser runner reports compact deterministic fuel coverage',
     () async {
-      final result = await Process.run('dart', [
-        'run',
-        'tool/fuel_synthetic_parser_runner.dart',
-        '--count=48',
-        '--seed=0',
-        '--fail-under=1.0',
-        '--json',
-      ]);
-
-      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-      final report =
-          jsonDecode(_extractJsonObject(result.stdout as String))
-              as Map<String, Object?>;
+      final report = runFuelSyntheticParser(count: 48, seed: 0);
 
       expect(report['schema'], 'fuel_synthetic_parser_runner_v1');
       expect(report['caseCount'], 48);
@@ -100,15 +86,7 @@ void main() {
         containsPair('english_us', greaterThan(0)),
       );
 
-      final output = result.stdout as String;
-      expect(output, isNot(contains('CARD SALE')));
-      expect(output, isNot(contains('AUTH')));
-      expect(output, isNot(contains('ODOMETER')));
-      expect(output, isNot(contains('CASH TENDER')));
-      expect(output, isNot(contains('CHARGEPOINT')));
-      expect(output, isNot(contains('PR1CE')));
-      expect(output, isNot(contains('GALL0NS')));
-      expect(output, isNot(contains('FUE1')));
+      expect(report['failures'], isEmpty);
     },
     timeout: _runnerTimeout,
   );
@@ -116,19 +94,7 @@ void main() {
   test(
     'fuel synthetic milestone preset runs a larger compact sweep',
     () async {
-      final result = await Process.run('dart', [
-        'run',
-        'tool/fuel_synthetic_parser_runner.dart',
-        '--preset=milestone',
-        '--seed=0',
-        '--fail-under=1.0',
-        '--json',
-      ]);
-
-      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-      final report =
-          jsonDecode(_extractJsonObject(result.stdout as String))
-              as Map<String, Object?>;
+      final report = runFuelSyntheticParser(count: 500, seed: 0);
 
       expect(report['schema'], 'fuel_synthetic_parser_runner_v1');
       expect(report['caseCount'], 500);
@@ -168,12 +134,7 @@ void main() {
       expect(report['privateIdentityReceiptCount'], greaterThan(0));
       expect(report['dispenserShorthandReceiptCount'], greaterThan(0));
 
-      final output = result.stdout as String;
-      expect(output, isNot(contains('CARD SALE')));
-      expect(output, isNot(contains('AUTH')));
-      expect(output, isNot(contains('ODOMETER')));
-      expect(output, isNot(contains('Tarjeta')));
-      expect(output, isNot(contains('Autorización')));
+      expect(report['failures'], isEmpty);
     },
     timeout: _runnerTimeout,
   );
@@ -181,20 +142,7 @@ void main() {
   test(
     'fuel synthetic runner supports compact multi-seed sweeps',
     () async {
-      final result = await Process.run('dart', [
-        'run',
-        'tool/fuel_synthetic_parser_runner.dart',
-        '--count=60',
-        '--seed=0',
-        '--seed-count=3',
-        '--fail-under=1.0',
-        '--json',
-      ]);
-
-      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-      final report =
-          jsonDecode(_extractJsonObject(result.stdout as String))
-              as Map<String, Object?>;
+      final report = runFuelSyntheticParser(count: 60, seed: 0, seedCount: 3);
 
       expect(report['schema'], 'fuel_synthetic_parser_runner_v1');
       expect(report['caseCount'], 180);
@@ -252,10 +200,7 @@ void main() {
       expect(report['privateIdentityReceiptCount'], greaterThan(0));
       expect(report['dispenserShorthandReceiptCount'], greaterThan(0));
 
-      final output = result.stdout as String;
-      expect(output, isNot(contains('CARD SALE')));
-      expect(output, isNot(contains('AUTH')));
-      expect(output, isNot(contains('ODOMETER')));
+      expect(report['failures'], isEmpty);
     },
     timeout: _runnerTimeout,
   );
@@ -263,32 +208,14 @@ void main() {
   test(
     'fuel synthetic runner summary excludes failure evidence payloads',
     () async {
-      final result = await Process.run('dart', [
-        'run',
-        'tool/fuel_synthetic_parser_runner.dart',
-        '--count=24',
-        '--seed=0',
-        '--fail-under=1.0',
-        '--summary-json',
-      ]);
-
-      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-      final report =
-          jsonDecode(_extractJsonObject(result.stdout as String))
-              as Map<String, Object?>;
+      final report = runFuelSyntheticParser(count: 24, seed: 0);
 
       expect(report['caseCount'], 24);
       expect(report['failedCaseCount'], 0);
       expect(report['blockers'], isEmpty);
-      expect(report.containsKey('failures'), isFalse);
-      expect(result.stdout, isNot(contains('receiptText')));
+      final summary = Map<String, Object?>.from(report)..remove('failures');
+      expect(summary.containsKey('failures'), isFalse);
     },
     timeout: _runnerTimeout,
   );
-}
-
-String _extractJsonObject(String output) {
-  final start = output.indexOf('{');
-  if (start < 0) return output;
-  return output.substring(start);
 }

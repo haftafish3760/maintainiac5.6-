@@ -17,39 +17,54 @@ const _presetCounts = {'smoke': 24, 'milestone': 500};
 
 void main(List<String> args) {
   final config = _FuelSyntheticRunnerConfig.fromArgs(args);
-  final cases = <_FuelSyntheticReceipt>[];
-  for (var seedOffset = 0; seedOffset < config.seedCount; seedOffset += 1) {
-    cases.addAll(
-      _generateSyntheticFuelReceipts(
-        count: config.count,
-        seed: config.seed + seedOffset,
-      ),
-    );
-  }
-  final report = _scoreFuelReceipts(cases);
-  final blocker = report.accuracy < config.failUnder;
+  final report = runFuelSyntheticParser(
+    count: config.count,
+    seed: config.seed,
+    seedCount: config.seedCount,
+    failUnder: config.failUnder,
+  );
+  final blocker = (report['blockers'] as List<Object?>).isNotEmpty;
 
   if (config.summaryJson || config.json) {
     stdout.writeln(
-      const JsonEncoder.withIndent('  ').convert(
-        config.summaryJson
-            ? report.toSummaryJson(failUnder: config.failUnder)
-            : report.toJson(failUnder: config.failUnder),
-      ),
+      const JsonEncoder.withIndent(
+        '  ',
+      ).convert(config.summaryJson ? _withoutFailureEvidence(report) : report),
     );
   } else {
     stdout.writeln(
       'Fuel synthetic parser runner: '
-      '${report.passedCaseCount}/${report.caseCount} cases passed '
-      '(${(report.accuracy * 100).toStringAsFixed(1)}%).',
+      '${report['passedCaseCount']}/${report['caseCount']} cases passed '
+      '(${((report['accuracy'] as double) * 100).toStringAsFixed(1)}%).',
     );
-    if (report.failures.isNotEmpty) {
-      stdout.writeln('Failures:');
-      for (final failure in report.failures.take(10)) {
-        stdout.writeln('  - ${failure.caseName}: ${failure.issues.join('; ')}');
-      }
-    }
   }
 
   if (blocker) exitCode = 1;
+}
+
+/// Runs the deterministic fuel parser matrix inside a Flutter-capable process.
+///
+/// The parser's record model depends on Flutter storage types, so focused
+/// regression tests call this directly instead of shelling out to a standalone
+/// Dart VM, which cannot load `dart:ui`.
+Map<String, Object?> runFuelSyntheticParser({
+  required int count,
+  required int seed,
+  int seedCount = 1,
+  double failUnder = _defaultFailUnder,
+}) {
+  final cases = <_FuelSyntheticReceipt>[];
+  for (var seedOffset = 0; seedOffset < seedCount; seedOffset += 1) {
+    cases.addAll(
+      _generateSyntheticFuelReceipts(count: count, seed: seed + seedOffset),
+    );
+  }
+  final report = _scoreFuelReceipts(cases);
+  return report.toJson(failUnder: failUnder);
+}
+
+Map<String, Object?> _withoutFailureEvidence(Map<String, Object?> report) {
+  final summary = Map<String, Object?>.from(report);
+  summary.remove('failures');
+  return summary;
 }
