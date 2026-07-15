@@ -82,6 +82,7 @@ class ExpenseFirestoreDocumentBuilder {
         'ocrReview': _ocrReviewFor(receipt.ocrReview),
         'rawOcrStored': false,
         'auditEventCount': receipt.auditEvents.length,
+        'auditEvents': _auditEventsFor(receipt.auditEvents),
         'fileHashSha256': _hashToken(receipt.primaryFileHashSha256),
         'duplicateCheckStatus': receipt.duplicateCheckStatus.name,
         'duplicateOverride': receipt.duplicateOverride,
@@ -330,6 +331,25 @@ Map<String, int> _useSummary(ExpenseReceiptRecord receipt) {
     counts[line.use.name] = (counts[line.use.name] ?? 0) + 1;
   }
   return Map.unmodifiable(counts);
+}
+
+List<Map<String, Object?>> _auditEventsFor(Iterable<String> events) {
+  final serialized = <Map<String, Object?>>[];
+  final pattern = RegExp(
+    r'^(\S+)\s+(created|updated|deleted|restored)\s+receipt\s+(.+)$',
+  );
+  for (final event in events) {
+    final match = pattern.firstMatch(event.trim());
+    if (match == null) continue;
+    final occurredAt = DateTime.tryParse(match.group(1) ?? '');
+    if (occurredAt == null) continue;
+    serialized.add({
+      'occurredAt': occurredAt.toUtc().toIso8601String(),
+      'action': match.group(2),
+      'recordId': _pathToken(match.group(3) ?? ''),
+    });
+  }
+  return List.unmodifiable(serialized);
 }
 
 Map<String, Object?> _ocrReviewFor(ExpenseReceiptOcrReview review) {

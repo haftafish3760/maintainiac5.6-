@@ -248,6 +248,43 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('backs up structured receipt audit history without OCR text', () {
+    final receipt = ExpenseReceiptRecord(
+      id: 'audited-receipt',
+      receiptDate: DateTime.utc(2026, 7, 15),
+      auditEvents: const [
+        '2026-07-15T14:00:00.000Z created receipt audited-receipt',
+        '2026-07-15T14:05:00.000Z updated receipt audited-receipt',
+        'untrusted receipt text must not sync',
+      ],
+      lines: const [],
+    );
+
+    final doc = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      receipt: receipt,
+      nowUtc: DateTime.utc(2026, 7, 15, 15),
+    );
+
+    expect(doc.data['auditEventCount'], 3);
+    expect(doc.data['auditEvents'], [
+      {
+        'occurredAt': '2026-07-15T14:00:00.000Z',
+        'action': 'created',
+        'recordId': 'audited-receipt',
+      },
+      {
+        'occurredAt': '2026-07-15T14:05:00.000Z',
+        'action': 'updated',
+        'recordId': 'audited-receipt',
+      },
+    ]);
+    expect(doc.data.toString(), isNot(contains('untrusted receipt text')));
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
   test('backs up split allocation evidence without source receipt text', () {
     final receipt = ExpenseReceiptRecord(
       id: 'split-evidence',
@@ -312,7 +349,7 @@ void main() {
       expect(doc.data['schema'], 'expense_vehicle_directory_backup_v1');
       expect(doc.data['activeVehicleId'], 'vehicle_work_truck_1');
       final vehicles = doc.data['vehicles'] as List;
-    expect(vehicles, isNotEmpty);
+      expect(vehicles, isNotEmpty);
       expect(
         vehicles.whereType<Map>().singleWhere(
           (vehicle) => vehicle['id'] == 'archived-vehicle',
