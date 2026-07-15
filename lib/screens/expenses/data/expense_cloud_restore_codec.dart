@@ -56,9 +56,9 @@ class ExpenseCloudRestoreCodec {
       sourceScreen: _text(data['sourceScreen'], fallback: 'expenses'),
       createdAt: _date(data['createdAt']),
       updatedAt: _date(data['updatedAt']),
-      localRevision: _integer(data['localRevision']) ?? 1,
-      recordState: MaintainiacRecordState.fromName(_text(data['recordState'])),
-      deletedAt: _date(data['deletedAt']),
+      localRevision: _recordRevision(data['localRevision']),
+      recordState: _recordState(data['recordState']),
+      deletedAt: _deletedAt(data['deletedAt']),
       auditEvents: _auditEvents(data['auditEvents']),
       fileHashSha256: _text(data['fileHashSha256']),
       duplicateCheckStatus: ExpenseDuplicateCheckStatus.fromName(
@@ -178,9 +178,9 @@ class ExpenseCloudRestoreCodec {
       'lifecycle': {
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
-        'revision': _integer(data['localRevision']) ?? 1,
-        'state': _text(data['recordState'], fallback: 'active'),
-        'deletedAt': _date(data['deletedAt'])?.toIso8601String(),
+        'revision': _recordRevision(data['localRevision']),
+        'state': _recordState(data['recordState']).name,
+        'deletedAt': _deletedAt(data['deletedAt'])?.toIso8601String(),
       },
     });
     return ExpenseCloudRestoredReminder(record);
@@ -277,6 +277,45 @@ class ExpenseCloudRestoreCodec {
 
   static DateTime? _date(Object? value) =>
       DateTime.tryParse(_text(value))?.toUtc();
+
+  static MaintainiacRecordState _recordState(Object? value) {
+    if (value == null || _text(value).isEmpty) {
+      return MaintainiacRecordState.active;
+    }
+    final name = _text(value).toLowerCase();
+    for (final state in MaintainiacRecordState.values) {
+      if (state.name == name) return state;
+    }
+    throw const FormatException('Expense record lifecycle state is corrupt.');
+  }
+
+  static DateTime? _deletedAt(Object? value) {
+    if (value == null || _text(value).isEmpty) return null;
+    final date = _date(value);
+    if (date == null) {
+      throw const FormatException(
+        'Expense record deletion timestamp is corrupt.',
+      );
+    }
+    return date;
+  }
+
+  static int _recordRevision(Object? value) {
+    if (value == null || _text(value).isEmpty) return 1;
+    final revision = switch (value) {
+      int number => number,
+      double number when number.isFinite && number == number.truncate() =>
+        number.toInt(),
+      String text => int.tryParse(text.trim()),
+      _ => null,
+    };
+    if (revision == null || revision < 1) {
+      throw const FormatException(
+        'Expense record lifecycle revision is corrupt.',
+      );
+    }
+    return revision;
+  }
 
   static int? _integer(Object? value) {
     if (value is num) return value.isFinite ? value.round() : null;

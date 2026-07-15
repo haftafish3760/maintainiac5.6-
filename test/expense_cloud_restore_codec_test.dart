@@ -213,6 +213,44 @@ void main() {
     );
   });
 
+  test('rejects corrupt receipt lifecycle metadata instead of reviving it', () {
+    const receipt = {
+      'schema': 'expense_receipt_backup_v1',
+      'id': 'lifecycle-receipt',
+      'receiptDate': '2026-07-15T00:00:00.000Z',
+    };
+
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'recordState': 'unknown',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'localRevision': 0,
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'localRevision': 1.5,
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        ...receipt,
+        'recordState': 'deleted',
+        'deletedAt': 'not-a-date',
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('decodes active and archived vehicle restore metadata', () {
     final restored = ExpenseCloudRestoreCodec.decodeVehicleDirectory({
       'schema': 'expense_vehicle_directory_backup_v1',
@@ -280,6 +318,31 @@ void main() {
     });
 
     expect(restored.record.active, isTrue);
+  });
+
+  test('rejects corrupt reminder lifecycle metadata', () {
+    const reminder = {
+      'schema': 'expense_reminder_backup_v1',
+      'id': 'lifecycle-reminder',
+      'title': 'Renew registration',
+      'category': 'Registration',
+      'dueAt': '2026-08-01T12:00:00.000Z',
+    };
+
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReminder({
+        ...reminder,
+        'recordState': 'unknown',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReminder({
+        ...reminder,
+        'localRevision': -1,
+      }),
+      throwsFormatException,
+    );
   });
 
   test(
