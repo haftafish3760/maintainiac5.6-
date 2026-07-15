@@ -103,6 +103,12 @@ class ExpenseDraftController extends ChangeNotifier {
   }
 
   Future<void> saveDraft(ExpenseReceiptDraftRecord draft) => _enqueue(() async {
+    final existing = draftById(draft.id);
+    // An older entry screen or delayed lifecycle callback must never erase a
+    // newer checkpoint that has already reached this device.
+    if (existing != null && existing.updatedAt.isAfter(draft.updatedAt)) {
+      return;
+    }
     if (!draft.hasUserContent) {
       await _deleteDraft(draft.id, notify: false);
       notifyListeners();
