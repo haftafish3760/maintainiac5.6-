@@ -269,6 +269,29 @@ class MaintainiacRecordDraftStore {
     }
   });
 
+  /// Removes a checkpoint only when it is still the version acknowledged by
+  /// the confirmed-record save. A delayed completion must not erase edits that
+  /// were checkpointed while that save was in flight.
+  Future<bool> removeIfUnchanged({
+    required String module,
+    required String id,
+    required DateTime expectedUpdatedAt,
+  }) => _enqueue(() async {
+    if (!_hasValidDraftKey(module, id)) return false;
+    final existing = draftFor(module, id);
+    if (existing == null ||
+        !existing.lifecycle.updatedAt.isAtSameMomentAs(expectedUpdatedAt)) {
+      return false;
+    }
+    final box = _box;
+    if (box == null) {
+      _memory.remove(existing.storageKey);
+    } else {
+      await box.delete(existing.storageKey);
+    }
+    return true;
+  });
+
   Future<T> _enqueue<T>(Future<T> Function() operation) {
     final next = _writeTail.then((_) => operation());
     _writeTail = next.then<void>((_) {}, onError: (Object _) {});

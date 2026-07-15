@@ -44,4 +44,36 @@ void main() {
 
     expect(drafts.draftById(newest.id)?.merchantName, 'Keep this draft');
   });
+
+  test('confirmation only clears the draft version it saved', () async {
+    final drafts = ExpenseDraftController.memory();
+    final time = DateTime.utc(2026, 7, 15, 12);
+    final confirmed = ExpenseReceiptDraftRecord(
+      id: 'draft-confirmation',
+      receiptDate: time,
+      updatedAt: time,
+      merchantName: 'Before save',
+    );
+    await drafts.saveDraft(confirmed);
+    final checkpoint = drafts.draftById(confirmed.id)!;
+    await drafts.saveDraft(
+      ExpenseReceiptDraftRecord(
+        id: confirmed.id,
+        receiptDate: time,
+        updatedAt: time.add(const Duration(seconds: 1)),
+        merchantName: 'Changed while save was running',
+      ),
+    );
+
+    final deleted = await drafts.deleteDraftIfUnchanged(
+      confirmed.id,
+      expectedUpdatedAt: checkpoint.updatedAt,
+    );
+
+    expect(deleted, isFalse);
+    expect(
+      drafts.draftById(confirmed.id)?.merchantName,
+      'Changed while save was running',
+    );
+  });
 }

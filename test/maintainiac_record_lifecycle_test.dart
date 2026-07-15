@@ -135,6 +135,35 @@ void main() {
     expect(store.draftFor('expenses', 'draft-no-space'), isNull);
   });
 
+  test('confirmed save cannot remove a newer draft checkpoint', () async {
+    final store = MaintainiacRecordDraftStore.memory();
+    final created = DateTime.utc(2026, 7, 15, 12);
+    final confirmedCheckpoint = await store.save(
+      module: 'expenses',
+      id: 'draft-confirmed-save',
+      payload: const {'merchant': 'Before confirmation'},
+      now: created,
+    );
+    await store.save(
+      module: 'expenses',
+      id: 'draft-confirmed-save',
+      payload: const {'merchant': 'Newer local edit'},
+      now: created.add(const Duration(seconds: 1)),
+    );
+
+    final deleted = await store.removeIfUnchanged(
+      module: 'expenses',
+      id: 'draft-confirmed-save',
+      expectedUpdatedAt: confirmedCheckpoint.lifecycle.updatedAt,
+    );
+
+    expect(deleted, isFalse);
+    expect(
+      store.draftFor('expenses', 'draft-confirmed-save')?.payload['merchant'],
+      'Newer local edit',
+    );
+  });
+
   test('shared draft store rejects ambiguous durable keys', () async {
     final store = MaintainiacRecordDraftStore.memory();
     await store.save(module: 'expenses', id: 'draft-safe', payload: const {});

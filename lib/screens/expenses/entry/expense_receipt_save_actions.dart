@@ -106,6 +106,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       _hasReceipt = promotedAttachments.isNotEmpty || _hasReceipt;
     });
     if (!await _saveDraftNow()) return;
+    final draftCheckpointUpdatedAt = _drafts?.draftById(_draftId)?.updatedAt;
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
     if (!mounted) return;
@@ -146,7 +147,12 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
         metadata: {'saveDestination': 'local_first'},
       );
     }
-    await _drafts?.deleteDraft(_draftId);
+    if (draftCheckpointUpdatedAt != null) {
+      await _drafts?.deleteDraftIfUnchanged(
+        _draftId,
+        expectedUpdatedAt: draftCheckpointUpdatedAt,
+      );
+    }
     if (!mounted) return;
     Navigator.of(context).pop();
   }

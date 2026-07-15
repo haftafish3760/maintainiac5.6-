@@ -126,6 +126,23 @@ class ExpenseDraftController extends ChangeNotifier {
   Future<void> deleteDraft(String id, {bool notify = true}) =>
       _enqueue(() => _deleteDraft(id, notify: notify));
 
+  /// Clears a draft after a confirmed record save without risking a newer
+  /// checkpoint that arrived while the confirmation was in flight.
+  Future<bool> deleteDraftIfUnchanged(
+    String id, {
+    required DateTime expectedUpdatedAt,
+  }) => _enqueue(() async {
+    final deleted = await _drafts.removeIfUnchanged(
+      module: _module,
+      id: id,
+      expectedUpdatedAt: expectedUpdatedAt,
+    );
+    if (!deleted) return false;
+    await _deleteStagedProofsForDraft(id);
+    notifyListeners();
+    return true;
+  });
+
   Future<void> _deleteDraft(String id, {bool notify = true}) async {
     await _deleteStagedProofsForDraft(id);
     await _drafts.remove(_module, id);
@@ -141,9 +158,9 @@ class ExpenseDraftController extends ChangeNotifier {
     notifyListeners();
   });
 
-  Future<void> _enqueue(Future<void> Function() operation) {
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
     final next = _writeTail.then((_) => operation());
-    _writeTail = next.catchError((_) {});
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
 
