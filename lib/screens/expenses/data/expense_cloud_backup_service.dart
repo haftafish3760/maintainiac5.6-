@@ -403,6 +403,7 @@ enum ExpenseScheduledBackupStatus {
   waitingForApprovedNetwork,
   notDue,
   attempted,
+  retryPending,
 }
 
 class ExpenseScheduledBackupResult {
@@ -413,6 +414,9 @@ class ExpenseScheduledBackupResult {
 
   const ExpenseScheduledBackupResult.notDue()
     : this._(ExpenseScheduledBackupStatus.notDue);
+
+  const ExpenseScheduledBackupResult.retryPending()
+    : this._(ExpenseScheduledBackupStatus.retryPending);
 
   ExpenseScheduledBackupResult.waitingForApprovedNetwork(
     ExpenseBackupNetworkAvailability network,
@@ -505,17 +509,17 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   final _knownReminderRevisions = <String, int>{};
 
   void _onVehicleStateChanged() {
-    unawaited(_schedule(_queueAndSyncVehicleDirectory));
+    _scheduleBackground(_queueAndSyncVehicleDirectory);
   }
 
   void _onWorkProfileStateChanged() {
-    unawaited(_schedule(_queueAndSyncWorkProfileDirectory));
+    _scheduleBackground(_queueAndSyncWorkProfileDirectory);
   }
 
   void _onReminderStateChanged() {
     final changedIds = _changedReminderIds();
     if (changedIds.isEmpty) return;
-    unawaited(_schedule(() => _queueAndSyncReminders(changedIds)));
+    _scheduleBackground(() => _queueAndSyncReminders(changedIds));
   }
 
   List<String> _changedReminderIds() {
@@ -545,21 +549,44 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   }
 
   @override
-  Future<void> queueReceipt(String receiptId) {
-    return _schedule(() => _queueAndSyncReceipt(receiptId));
+  Future<void> queueReceipt(String receiptId) async {
+    try {
+      await _schedule(() => _queueAndSyncReceipt(receiptId));
+    } catch (_) {
+      // The durable local receipt and retry queue remain available.
+    }
   }
 
   @override
-  Future<void> syncLocalSnapshot() {
-    return _schedule(_syncSnapshot);
+  Future<void> syncLocalSnapshot() async {
+    try {
+      await _schedule(_syncSnapshot);
+    } catch (_) {
+      // A later user-authorized retry can use the local source of truth.
+    }
   }
 
   @override
   Future<ExpenseScheduledBackupResult> syncScheduledSnapshot({
     required ExpenseBackupNetworkAvailability network,
     DateTime? now,
-  }) {
-    return _schedule(() => _syncScheduledSnapshot(network: network, now: now));
+  }) => _syncScheduledSnapshotSafely(network: network, now: now);
+
+  Future<ExpenseScheduledBackupResult> _syncScheduledSnapshotSafely({
+    required ExpenseBackupNetworkAvailability network,
+    required DateTime? now,
+  }) async {
+    try {
+      return await _schedule(
+        () => _syncScheduledSnapshot(network: network, now: now),
+      );
+    } catch (_) {
+      return const ExpenseScheduledBackupResult.retryPending();
+    }
+  }
+
+  void _scheduleBackground(Future<void> Function() action) {
+    unawaited(_schedule(action).catchError((_) {}));
   }
 
   /// Serializes background work without dropping a receipt saved while an
