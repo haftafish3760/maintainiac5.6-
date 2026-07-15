@@ -39,4 +39,30 @@ void main() {
     expect(restored.profileById(profile.id)?.name, 'Seasonal contract');
     expect(restored.profileById(profile.id)?.isArchived, isTrue);
   });
+
+  test(
+    'archiving the active profile durably returns to the default profile',
+    () async {
+      final first = await ExpenseWorkProfileController.create();
+      final profile = await first.save(
+        ExpenseWorkProfile(
+          id: 'seasonal-contract',
+          name: 'Seasonal contract',
+          createdAt: DateTime.utc(2026, 7, 15),
+          updatedAt: DateTime.utc(2026, 7, 15),
+        ),
+      );
+      await first.select(profile.id);
+      await first.delete(profile.id);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final restored = await ExpenseWorkProfileController.create();
+
+      expect(
+        restored.activeWorkProfile.id,
+        ExpenseWorkProfileController.defaultProfileId,
+      );
+    },
+  );
 }
