@@ -203,6 +203,35 @@ void main() {
     },
   );
 
+  test(
+    'changed permanent proof bytes never replace the saved fingerprint',
+    () async {
+      final source = File('${Directory.systemTemp.path}/immutable_hash.jpg');
+      await source.writeAsBytes([1, 2, 3], flush: true);
+      addTearDown(() {
+        if (source.existsSync()) source.deleteSync();
+      });
+
+      final saved = await ReceiptProofStorage.instance.persistAttachment(
+        ReceiptAttachmentRecord(
+          id: 'immutable-hash',
+          path: source.path,
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 7, 15),
+        ),
+      );
+      await File(saved.path).writeAsBytes([9, 9, 9], flush: true);
+
+      final checked = await ReceiptProofStorage.instance.persistAttachment(
+        saved,
+      );
+
+      expect(checked.storageState, ReceiptAttachmentStorageState.missing);
+      expect(checked.fileHash, saved.fileHash);
+    },
+  );
+
   test('storage refuses renamed non-PDF proof files', () async {
     final source = File('${Directory.systemTemp.path}/fake_receipt.pdf');
     await source.writeAsString('not actually a pdf', flush: true);

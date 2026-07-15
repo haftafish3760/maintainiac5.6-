@@ -54,12 +54,22 @@ class ReceiptProofStorage {
       return promoteStagedAttachment(attachment);
     }
     if (path.isWithin(proofRoot.path, source.path)) {
+      final currentHash = await _safeHash(source);
+      // A previously saved immutable proof must never silently adopt a new
+      // hash. Treat changed or unreadable bytes as unavailable evidence so the
+      // record retains its original fingerprint and asks for recovery.
+      if (attachment.fileHash.trim().isNotEmpty &&
+          (currentHash.isEmpty || currentHash != attachment.fileHash)) {
+        return attachment.copyWith(
+          storageState: ReceiptAttachmentStorageState.missing,
+        );
+      }
       final inspection = attachment.isPdf
           ? await ReceiptPdfInspector.inspect(source.path)
           : null;
       return attachment.copyWith(
         byteSize: await _safeLength(source),
-        fileHash: await _safeHash(source),
+        fileHash: currentHash,
         pageCount: inspection?.pageCount ?? attachment.pageCount,
         pageCountStatus:
             inspection?.pageCountStatus ?? attachment.pageCountStatus,
