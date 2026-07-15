@@ -9,6 +9,7 @@ import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/state/expense_backup_schedule.dart';
 import '../../../shared/state/app_state.dart';
+import 'expense_backup_draft_guard.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_store.dart';
 import 'expense_reminder_store.dart';
@@ -97,6 +98,10 @@ class ExpenseCloudBackupService {
       receipt: receipt,
       nowUtc: nowUtc,
     );
+    final rejection = ExpenseBackupDraftGuard.rejectionFor([draft]);
+    if (rejection != null) {
+      return ExpenseCloudQueueResult.rejected(rejection);
+    }
     await queueStore.enqueueReplacingPendingForPath(
       draft,
       queuedAtUtc: (nowUtc ?? DateTime.now().toUtc()).toUtc(),
@@ -231,6 +236,12 @@ class ExpenseCloudBackupService {
           nowUtc: timestamp,
         ),
     ];
+    final rejection = ExpenseBackupDraftGuard.rejectionFor(drafts);
+    if (rejection != null) {
+      await settings.recordBackupAttempt(timestamp);
+      await settings.recordBackupFailure(rejection);
+      return ExpenseCloudBackupResult.deliveryUnavailable(rejection);
+    }
     for (final draft in drafts) {
       await queueStore.enqueueReplacingPendingForPath(
         draft,
@@ -384,17 +395,25 @@ class ExpenseCloudBackupResult {
 
 class ExpenseCloudQueueResult {
   const ExpenseCloudQueueResult.queued(String this.documentPath)
-    : reason = null;
+    : status = MaintainiacFirestoreUploadStatus.empty,
+      reason = null;
 
   const ExpenseCloudQueueResult.identityRequired()
     : documentPath = null,
+      status = MaintainiacFirestoreUploadStatus.disabled,
       reason = 'Sign in and an account workspace are required before backup.';
 
   const ExpenseCloudQueueResult.localRecordMissing()
     : documentPath = null,
+      status = MaintainiacFirestoreUploadStatus.empty,
       reason = 'The local receipt no longer exists.';
 
+  const ExpenseCloudQueueResult.rejected(String this.reason)
+    : documentPath = null,
+      status = MaintainiacFirestoreUploadStatus.failed;
+
   final String? documentPath;
+  final MaintainiacFirestoreUploadStatus status;
   final String? reason;
 
   bool get wasQueued => documentPath != null;
@@ -405,9 +424,7 @@ class ExpenseCloudQueueResult {
       attemptedCount: 0,
       uploadedCount: 0,
       failedCount: 0,
-      status: reason?.contains('Sign in') == true
-          ? MaintainiacFirestoreUploadStatus.disabled
-          : MaintainiacFirestoreUploadStatus.empty,
+      status: status,
       reason: reason,
     );
   }

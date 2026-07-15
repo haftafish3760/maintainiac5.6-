@@ -121,6 +121,47 @@ void main() {
     },
   );
 
+  test(
+    'refuses an oversized receipt backup without truncating local lines',
+    () async {
+      final sink = _RecordingSink();
+      final service = await _service(
+        sink: sink,
+        organizationId: 'org-1',
+        uid: 'user-1',
+        deviceId: 'device-1',
+      );
+      final lines = List.generate(
+        3000,
+        (index) => ExpenseReceiptLineRecord(
+          id: 'large-line-$index',
+          description: 'x' * 240,
+          category: 'Materials',
+          use: ExpenseLineUse.business,
+          quantity: 1,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 1,
+        ),
+      );
+      final saved = await service.ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'oversized-receipt',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          lines: lines,
+        ),
+      );
+
+      final result = await service.backupReceipt(saved.id);
+
+      expect(result.completed, isFalse);
+      expect(result.status, MaintainiacFirestoreUploadStatus.failed);
+      expect(result.reason, contains('too large'));
+      expect(sink.documents, isEmpty);
+      expect(service.ledger.receiptById(saved.id)?.lines, hasLength(3000));
+    },
+  );
+
   test('queues a deleted local receipt as a durable cloud tombstone', () async {
     final sink = _RecordingSink();
     final service = await _service(

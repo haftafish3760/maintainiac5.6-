@@ -177,6 +177,35 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('keeps every detailed receipt line in the backup draft', () {
+    final lines = List.generate(
+      251,
+      (index) => ExpenseReceiptLineRecord(
+        id: 'line-$index',
+        description: 'Printed item $index',
+        category: 'Materials',
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 1,
+      ),
+    );
+    final document = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+      receipt: ExpenseReceiptRecord(
+        id: 'every-line',
+        receiptDate: DateTime.utc(2026, 7, 15),
+        lines: lines,
+      ),
+    );
+
+    expect(document.data['lineCount'], 251);
+    expect((document.data['lines'] as List), hasLength(251));
+  });
+
   test('persists fuel metrics without storing raw receipt text', () {
     final receipt = ExpenseReceiptRecord(
       id: 'fuel-receipt',

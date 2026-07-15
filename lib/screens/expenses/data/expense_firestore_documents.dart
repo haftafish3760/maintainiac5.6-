@@ -78,7 +78,7 @@ class ExpenseFirestoreDocumentBuilder {
         'primaryCategory': _readable(receipt.primaryCategoryLabel),
         'useSummary': _useSummary(receipt),
         'lineCount': receipt.lines.length,
-        'lines': [for (final line in receipt.lines.take(250)) _lineFor(line)],
+        'lines': [for (final line in receipt.lines) _lineFor(line)],
         'ocrReview': _ocrReviewFor(receipt.ocrReview),
         'rawOcrStored': false,
         'auditEventCount': receipt.auditEvents.length,
