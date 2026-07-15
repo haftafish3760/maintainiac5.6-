@@ -48,6 +48,26 @@ void main() {
   );
 
   test(
+    'cannot select an unknown or archived vehicle as the active context',
+    () async {
+      final appState = await AppStateController.create();
+      final originalId = appState.activeVehicle!.id;
+
+      await appState.selectVehicle(
+        VehicleProfile(id: 'unknown', nickname: 'Unknown vehicle'),
+      );
+      expect(appState.activeVehicle?.id, originalId);
+
+      final vehicle = VehicleProfile(id: 'archived', nickname: 'Old van');
+      await appState.addVehicle(vehicle);
+      await appState.deleteVehicle(vehicle.id);
+      await appState.selectVehicle(vehicle);
+
+      expect(appState.activeVehicle?.id, originalId);
+    },
+  );
+
+  test(
     'deleting the active vehicle archives its historical identity',
     () async {
       final first = await AppStateController.create();

@@ -371,10 +371,11 @@ class AppStateController extends ChangeNotifier {
   }
 
   Future<void> selectVehicle(VehicleProfile vehicle) async {
-    final nextActiveVehicle = vehicles.firstWhere(
-      (candidate) => candidate.id == vehicle.id,
-      orElse: () => vehicle,
-    );
+    final matches = vehicles
+        .where((candidate) => candidate.id == vehicle.id)
+        .toList(growable: false);
+    if (matches.isEmpty) return;
+    final nextActiveVehicle = matches.single;
     await _writeVehicleSnapshot(_vehicles, nextActiveVehicle);
     _activeVehicle = nextActiveVehicle;
     notifyListeners();
