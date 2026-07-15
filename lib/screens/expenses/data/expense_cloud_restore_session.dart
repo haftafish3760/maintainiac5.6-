@@ -142,9 +142,15 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
         expectedDownloadBytes: plan.knownDownloadBytes,
-        completedDownloadBytes: existing?.completedDownloadBytes ?? 0,
+        completedDownloadBytes: _bounded(
+          existing?.completedDownloadBytes ?? 0,
+          plan.knownDownloadBytes,
+        ),
         totalRecords: totalRecords < 0 ? 0 : totalRecords,
-        completedRecords: existing?.completedRecords ?? 0,
+        completedRecords: _bounded(
+          existing?.completedRecords ?? 0,
+          totalRecords < 0 ? 0 : totalRecords,
+        ),
       ),
     );
   });

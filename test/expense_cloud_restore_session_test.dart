@@ -163,4 +163,46 @@ void main() {
     expect(session.completedDownloadBytes, 75);
     expect(session.completedRecords, 2);
   });
+
+  test(
+    'a resumed plan bounds retained progress to its verified size',
+    () async {
+      final store = await ExpenseCloudRestoreSessionStore.create();
+      await store.savePrepared(
+        id: 'restore-replan',
+        requestId: 'server-request-replan',
+        plan: plan,
+        totalRecords: 3,
+      );
+      await store.updateProgress(
+        id: 'restore-replan',
+        completedDownloadBytes: 100,
+        completedRecords: 3,
+      );
+      await store.savePrepared(
+        id: 'restore-replan',
+        requestId: 'server-request-replan',
+        plan: ExpenseCloudRestoreStoragePlan.forMode(
+          mode: ExpenseCloudRestoreMode.recordsOnly,
+          estimate: const ExpenseCloudRestoreEstimate(
+            recordCount: 1,
+            proofCount: 0,
+            cloudProofCount: 0,
+            metadataOnlyProofCount: 0,
+            knownProofBytes: 0,
+            proofsWithUnknownSize: 0,
+          ),
+          structuredRecordBytes: 10,
+          availableBytes: 200,
+        ),
+        totalRecords: 1,
+      );
+      final session = store.sessionById('restore-replan')!;
+      expect(
+        session.completedDownloadBytes,
+        lessThanOrEqualTo(session.expectedDownloadBytes),
+      );
+      expect(session.completedRecords, 1);
+    },
+  );
 }
