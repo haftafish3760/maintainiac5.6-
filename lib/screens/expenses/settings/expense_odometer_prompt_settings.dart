@@ -11,6 +11,7 @@ class _OdometerPromptSettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final suppressed = settings.odometerPromptSuppressedCategories;
     return IndustrialPanelSurface(
       dark: true,
@@ -18,26 +19,26 @@ class _OdometerPromptSettingsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Odometer Prompts By Category',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          Text(
+            strings.odometerPromptsByCategory,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'An odometer reading is always optional. Choose which expense categories should ask before you record the expense.',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          Text(
+            strings.odometerPromptExplanation,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Ask for an odometer reading'),
-            subtitle: const Text('You can still enter a reading manually.'),
+            title: Text(strings.askForOdometerReading),
+            subtitle: Text(strings.odometerStillManual),
             value: settings.odometerPromptEnabled,
             onChanged: settings.setOdometerPromptEnabled,
           ),
           const SizedBox(height: 8),
           Text(
-            'Ask for these categories',
+            strings.askForTheseCategories,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 8),

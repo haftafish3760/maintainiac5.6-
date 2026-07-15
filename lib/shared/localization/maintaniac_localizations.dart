@@ -220,6 +220,31 @@ class MaintaniacLocalizations {
     'La copia programada se habilita solo en este dispositivo. Un dispositivo restaurado siempre vuelve a preguntar.',
     'La sauvegarde planifiée est activée seulement sur cet appareil. Un appareil restauré demande toujours de nouveau.',
   );
+  String get odometerPromptsByCategory => _text(
+    'Odometer Prompts By Category',
+    'Avisos de odómetro por categoría',
+    'Demandes d’odomètre par catégorie',
+  );
+  String get odometerPromptExplanation => _text(
+    'An odometer reading is always optional. Choose which expense categories should ask before you record the expense.',
+    'La lectura del odómetro siempre es opcional. Elija qué categorías deben preguntar antes de registrar el gasto.',
+    'La lecture de l’odomètre est toujours facultative. Choisissez les catégories qui doivent demander une lecture avant d’enregistrer la dépense.',
+  );
+  String get askForOdometerReading => _text(
+    'Ask for an odometer reading',
+    'Preguntar por una lectura de odómetro',
+    'Demander une lecture d’odomètre',
+  );
+  String get odometerStillManual => _text(
+    'You can still enter a reading manually.',
+    'Aún puede ingresar una lectura manualmente.',
+    'Vous pouvez toujours entrer une lecture manuellement.',
+  );
+  String get askForTheseCategories => _text(
+    'Ask for these categories',
+    'Preguntar para estas categorías',
+    'Demander pour ces catégories',
+  );
 }
 
 class _MaintaniacLocalizationsDelegate
