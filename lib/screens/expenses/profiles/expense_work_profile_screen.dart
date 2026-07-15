@@ -11,6 +11,9 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final profiles = ExpenseWorkProfileScope.of(context);
     final active = profiles.activeWorkProfile;
+    final archivedProfiles = profiles.allProfiles
+        .where((profile) => profile.isArchived)
+        .toList(growable: false);
     return AppScreenShell(
       section: AppSection.expenses,
       body: ListView(
@@ -51,6 +54,23 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
                   : () => _deleteProfile(context, profile),
             ),
             const SizedBox(height: 8),
+          ],
+          if (archivedProfiles.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Archived profiles',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            for (final profile in archivedProfiles) ...[
+              _ArchivedProfileTile(
+                profile: profile,
+                onRestore: () => _restoreProfile(context, profile),
+              ),
+              const SizedBox(height: 8),
+            ],
           ],
           const SizedBox(height: 8),
           OutlinedButton.icon(
@@ -154,6 +174,19 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
     await ExpenseWorkProfileScope.of(context).delete(profile.id);
   }
+
+  Future<void> _restoreProfile(
+    BuildContext context,
+    ExpenseWorkProfile profile,
+  ) async {
+    await ExpenseWorkProfileScope.of(context).restore(profile.id);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('“${profile.name}” is available for new expenses.'),
+      ),
+    );
+  }
 }
 
 class _ProfileExplanation extends StatelessWidget {
@@ -253,6 +286,49 @@ class _ProfileTile extends StatelessWidget {
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ArchivedProfileTile extends StatelessWidget {
+  const _ArchivedProfileTile({required this.profile, required this.onRestore});
+
+  final ExpenseWorkProfile profile;
+  final VoidCallback onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF11181C),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF36515B)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+        child: Row(
+          children: [
+            const Icon(Icons.archive_outlined, color: Color(0xFF9AAAB1)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profile.name,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  Text(
+                    'Existing expenses keep this profile',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            TextButton(onPressed: onRestore, child: const Text('Restore')),
+          ],
         ),
       ),
     );
