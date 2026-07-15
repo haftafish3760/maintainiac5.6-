@@ -1,5 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../storage/app_storage_guard.dart';
+
 /// The one lifecycle vocabulary used by durable Maintainiac records.
 enum MaintainiacRecordState {
   active,
@@ -137,17 +139,30 @@ class MaintainiacRecordDraft {
   };
 }
 
+typedef MaintainiacDraftStorageCheck = Future<AppStorageCheck> Function();
+
 class MaintainiacRecordDraftStore {
-  MaintainiacRecordDraftStore._(this._box);
-  MaintainiacRecordDraftStore.memory() : _box = null;
+  MaintainiacRecordDraftStore._(
+    this._box, {
+    MaintainiacDraftStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+  MaintainiacRecordDraftStore.memory({
+    MaintainiacDraftStorageCheck? storageCheck,
+  }) : _box = null,
+       _storageCheck = storageCheck;
 
   static const boxName = 'maintainiac_record_drafts';
 
   final Box<dynamic>? _box;
+  final MaintainiacDraftStorageCheck? _storageCheck;
   final _memory = <String, MaintainiacRecordDraft>{};
 
-  static Future<MaintainiacRecordDraftStore> create() async =>
-      MaintainiacRecordDraftStore._(await Hive.openBox<dynamic>(boxName));
+  static Future<MaintainiacRecordDraftStore> create({
+    MaintainiacDraftStorageCheck? storageCheck,
+  }) async => MaintainiacRecordDraftStore._(
+    await Hive.openBox<dynamic>(boxName),
+    storageCheck: storageCheck,
+  );
 
   MaintainiacRecordDraft? draftFor(String module, String id) {
     final box = _box;
@@ -179,6 +194,7 @@ class MaintainiacRecordDraftStore {
     required Map<String, dynamic> payload,
     DateTime? now,
   }) async {
+    await _ensureStorageForDraftSave();
     final time = now ?? DateTime.now();
     final existing = draftFor(module, id);
     final lifecycle = existing == null
@@ -201,6 +217,16 @@ class MaintainiacRecordDraftStore {
       await box.put(draft.storageKey, draft.toMap());
     }
     return draft;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  Future<void> _ensureStorageForDraftSave() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
   }
 
   Future<void> remove(String module, String id) async {
