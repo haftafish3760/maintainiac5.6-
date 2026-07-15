@@ -1,5 +1,6 @@
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
+import '../../../shared/state/app_state.dart';
 import 'expense_ledger_models.dart';
 import 'expense_work_profile_store.dart';
 
@@ -97,6 +98,26 @@ class ExpenseCloudRestoreCodec {
     );
   }
 
+  static ExpenseCloudRestoredVehicles decodeVehicleDirectory(
+    Map<dynamic, dynamic> data,
+  ) {
+    if ('${data['schema']}'.trim() != 'expense_vehicle_directory_backup_v1') {
+      throw const FormatException('Unsupported Expense vehicle backup schema.');
+    }
+    final vehicles = <VehicleProfile>[];
+    final source = data['vehicles'];
+    if (source is List) {
+      for (final entry in source) {
+        if (entry is! Map || _text(entry['id']).isEmpty) continue;
+        vehicles.add(VehicleProfile.fromMap(entry));
+      }
+    }
+    return ExpenseCloudRestoredVehicles(
+      activeVehicleId: _nullableText(data['activeVehicleId']),
+      vehicles: List.unmodifiable(vehicles),
+    );
+  }
+
   static List<ExpenseReceiptLineRecord> _lines(Object? value) {
     if (value is! List) return const [];
     return List.unmodifiable([
@@ -190,6 +211,16 @@ class ExpenseCloudRestoredWorkProfiles {
 
   final String? activeProfileId;
   final List<ExpenseWorkProfile> profiles;
+}
+
+class ExpenseCloudRestoredVehicles {
+  const ExpenseCloudRestoredVehicles({
+    required this.activeVehicleId,
+    required this.vehicles,
+  });
+
+  final String? activeVehicleId;
+  final List<VehicleProfile> vehicles;
 }
 
 /// Storage facts for a user-authorized restore choice.

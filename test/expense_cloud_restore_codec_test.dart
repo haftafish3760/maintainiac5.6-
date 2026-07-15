@@ -112,6 +112,37 @@ void main() {
     expect(restored.profiles.last.isArchived, isTrue);
   });
 
+  test('decodes active and archived vehicle restore metadata', () {
+    final restored = ExpenseCloudRestoreCodec.decodeVehicleDirectory({
+      'schema': 'expense_vehicle_directory_backup_v1',
+      'activeVehicleId': 'van-1',
+      'vehicles': [
+        {
+          'id': 'van-1',
+          'nickname': 'Cargo van',
+          'year': '2024',
+          'make': 'Ford',
+          'model': 'Transit',
+          'usage': 'businessOnly',
+          'archivedAt': null,
+        },
+        {
+          'id': 'old-van',
+          'nickname': 'Old van',
+          'year': '2016',
+          'make': 'Ford',
+          'model': 'Transit',
+          'usage': 'businessPersonal',
+          'archivedAt': '2026-07-16T12:00:00.000Z',
+        },
+      ],
+    });
+
+    expect(restored.activeVehicleId, 'van-1');
+    expect(restored.vehicles, hasLength(2));
+    expect(restored.vehicles.last.isArchived, isTrue);
+  });
+
   test(
     'estimates proof storage separately from structured restore records',
     () {

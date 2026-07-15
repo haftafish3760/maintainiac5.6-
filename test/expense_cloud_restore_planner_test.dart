@@ -4,6 +4,7 @@ import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_planner.d
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
+import 'package:maintaniac/shared/state/app_state.dart';
 
 void main() {
   ExpenseCloudRestoredReceipt cloudReceipt({int revision = 2}) {
@@ -148,6 +149,63 @@ void main() {
       );
       expect(local.profileById('seasonal')?.isArchived, isTrue);
       expect(local.profileById('delivery')?.name, 'Local delivery');
+    },
+  );
+
+  test(
+    'restores only missing vehicles and keeps local selection untouched',
+    () async {
+      final local = AppStateController();
+      await local.addVehicle(
+        VehicleProfile(
+          id: 'van-1',
+          nickname: 'Local van',
+          year: '2024',
+          make: 'Ford',
+          model: 'Transit',
+        ),
+      );
+      final selectedId = local.activeVehicle!.id;
+      final cloud = ExpenseCloudRestoredVehicles(
+        activeVehicleId: 'van-1',
+        vehicles: [
+          VehicleProfile(
+            id: 'van-1',
+            nickname: 'Cloud van',
+            year: '2024',
+            make: 'Ford',
+            model: 'Transit',
+          ),
+          VehicleProfile(
+            id: 'old-van',
+            nickname: 'Old van',
+            year: '2016',
+            make: 'Ford',
+            model: 'Transit',
+            archivedAt: DateTime.utc(2026, 7, 16),
+          ),
+        ],
+      );
+
+      final plan = ExpenseCloudRestorePlanner.planVehicles(
+        localAppState: local,
+        cloudVehicles: cloud,
+      );
+
+      expect(plan.missingVehicles.map((vehicle) => vehicle.id), ['old-van']);
+      expect(plan.conflictingCloudVehicles.map((vehicle) => vehicle.id), [
+        'van-1',
+      ]);
+      expect(
+        await ExpenseCloudRestorePlanner.createMissingVehicles(
+          localAppState: local,
+          plan: plan,
+        ),
+        1,
+      );
+      expect(local.vehicleById('old-van')?.isArchived, isTrue);
+      expect(local.activeVehicle?.id, selectedId);
+      expect(local.vehicleById('van-1')?.nickname, 'Local van');
     },
   );
 }

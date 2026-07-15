@@ -1,6 +1,7 @@
 import 'expense_cloud_restore_codec.dart';
 import 'expense_ledger_store.dart';
 import 'expense_work_profile_store.dart';
+import '../../../shared/state/app_state.dart';
 
 /// Plans a receipt restore without overwriting device data.
 ///
@@ -95,6 +96,50 @@ class ExpenseCloudRestorePlanner {
         local.isDefault == cloud.isDefault &&
         local.archivedAt?.toUtc() == cloud.archivedAt?.toUtc();
   }
+
+  static ExpenseCloudVehicleRestorePlan planVehicles({
+    required AppStateController localAppState,
+    required ExpenseCloudRestoredVehicles cloudVehicles,
+  }) {
+    final missing = <VehicleProfile>[];
+    final conflicts = <VehicleProfile>[];
+    for (final cloudVehicle in cloudVehicles.vehicles) {
+      final local = localAppState.vehicleById(cloudVehicle.id);
+      if (local == null) {
+        missing.add(cloudVehicle);
+      } else if (!_sameVehicle(local, cloudVehicle)) {
+        conflicts.add(cloudVehicle);
+      }
+    }
+    return ExpenseCloudVehicleRestorePlan(
+      missingVehicles: List.unmodifiable(missing),
+      conflictingCloudVehicles: List.unmodifiable(conflicts),
+      proposedActiveVehicleId: cloudVehicles.activeVehicleId,
+    );
+  }
+
+  /// Restores only unknown vehicle IDs and never changes the selected vehicle.
+  static Future<int> createMissingVehicles({
+    required AppStateController localAppState,
+    required ExpenseCloudVehicleRestorePlan plan,
+  }) async {
+    var created = 0;
+    for (final vehicle in plan.missingVehicles) {
+      if (localAppState.vehicleById(vehicle.id) != null) continue;
+      await localAppState.addVehicle(vehicle);
+      created += 1;
+    }
+    return created;
+  }
+
+  static bool _sameVehicle(VehicleProfile local, VehicleProfile cloud) {
+    return local.nickname == cloud.nickname &&
+        local.year == cloud.year &&
+        local.make == cloud.make &&
+        local.model == cloud.model &&
+        local.usage == cloud.usage &&
+        local.archivedAt?.toUtc() == cloud.archivedAt?.toUtc();
+  }
 }
 
 enum ExpenseCloudRestoreDisposition {
@@ -181,4 +226,18 @@ class ExpenseCloudWorkProfileRestorePlan {
   final String? proposedActiveProfileId;
 
   bool get needsUserReview => conflictingCloudProfiles.isNotEmpty;
+}
+
+class ExpenseCloudVehicleRestorePlan {
+  const ExpenseCloudVehicleRestorePlan({
+    required this.missingVehicles,
+    required this.conflictingCloudVehicles,
+    required this.proposedActiveVehicleId,
+  });
+
+  final List<VehicleProfile> missingVehicles;
+  final List<VehicleProfile> conflictingCloudVehicles;
+  final String? proposedActiveVehicleId;
+
+  bool get needsUserReview => conflictingCloudVehicles.isNotEmpty;
 }
