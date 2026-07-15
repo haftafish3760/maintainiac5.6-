@@ -20,25 +20,25 @@ enum CloudBackupConnectionState {
 class CloudBackupStatusSnapshot {
   const CloudBackupStatusSnapshot({
     required this.connectionState,
-    required this.tier,
+    required this.entitlement,
     required this.usedBytes,
     this.message,
   });
 
   const CloudBackupStatusSnapshot.notConnected()
     : connectionState = CloudBackupConnectionState.notConnected,
-      tier = CloudBackupQuotaPolicy.defaultTrialTier,
+      entitlement = const CloudBackupEntitlement.localOnly(),
       usedBytes = 0,
       message = 'Backup is not turned on yet.';
 
   const CloudBackupStatusSnapshot.unavailable({
-    this.tier = CloudBackupQuotaPolicy.defaultTrialTier,
+    this.entitlement = const CloudBackupEntitlement.localOnly(),
     this.usedBytes = 0,
     this.message = 'Backup is unavailable. Local receipt saving still works.',
   }) : connectionState = CloudBackupConnectionState.unavailable;
 
   final CloudBackupConnectionState connectionState;
-  final CloudBackupTier tier;
+  final CloudBackupEntitlement entitlement;
   final int usedBytes;
   final String? message;
 
@@ -46,7 +46,7 @@ class CloudBackupStatusSnapshot {
 
   CloudBackupQuotaCheck checkPendingBytes(int pendingBytes) {
     return CloudBackupQuotaPolicy.check(
-      tier: tier,
+      entitlement: entitlement,
       usedBytes: usedBytes,
       pendingBytes: pendingBytes,
       backupEnabled: isEnabled,

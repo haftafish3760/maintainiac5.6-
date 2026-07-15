@@ -149,7 +149,14 @@ void main() {
         photoCount: 3,
         averageOriginalPhotoBytes: 20 * 1024 * 1024,
         cloudQuota: CloudBackupQuotaPolicy.check(
-          tier: CloudBackupTier.freeTrial,
+          entitlement: const CloudBackupEntitlement(
+            planId: 'test',
+            displayName: 'Test',
+            quotaBytes: 100 * 1024 * 1024,
+            dailySyncLimit: 4,
+            immediateSyncAllowed: false,
+            policyVersion: 1,
+          ),
           usedBytes: 50 * 1024 * 1024,
           pendingBytes: 0,
           backupEnabled: true,

@@ -112,8 +112,7 @@ Map<String, Object?> _sessionArguments(
     'storageConstrained': config.storageConstrained,
     'storageSafetyReason': config.storageSafetyReason,
     'receiptBackupConnectionLabel': 'Backup account not connected',
-    'receiptBackupQuotaBytes':
-        CloudBackupQuotaPolicy.defaultTrialTier.quotaBytes,
+    'receiptBackupQuotaBytes': 0,
     'receiptBackupUsedBytes': 0,
     'workloadProtectionPolicy': config.workloadProtectionPolicy,
     'maxSectionCount': config.maxSectionCount,

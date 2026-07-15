@@ -7,7 +7,14 @@ void main() {
     final estimate = ReceiptCaptureStorageEstimate(
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
       cloudQuota: CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.freeTrial,
+        entitlement: const CloudBackupEntitlement(
+          planId: 'test',
+          displayName: 'Test',
+          quotaBytes: 100 * 1024 * 1024,
+          dailySyncLimit: 4,
+          immediateSyncAllowed: false,
+          policyVersion: 1,
+        ),
         usedBytes: 10 * 1024 * 1024,
         pendingBytes: 0,
         backupEnabled: true,
@@ -35,7 +42,14 @@ void main() {
       photoCount: 4,
       averageOriginalPhotoBytes: 18 * 1024 * 1024,
       cloudQuota: CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.oneGig,
+        entitlement: const CloudBackupEntitlement(
+          planId: 'test',
+          displayName: 'Test',
+          quotaBytes: 1024 * 1024 * 1024,
+          dailySyncLimit: 4,
+          immediateSyncAllowed: false,
+          policyVersion: 1,
+        ),
         usedBytes: 200 * 1024 * 1024,
         pendingBytes: 0,
         backupEnabled: true,
@@ -56,7 +70,14 @@ void main() {
     final estimate = ReceiptCaptureStorageEstimate(
       dataSaverLevel: ReceiptDataSaverLevel.original,
       cloudQuota: CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.freeTrial,
+        entitlement: const CloudBackupEntitlement(
+          planId: 'test',
+          displayName: 'Test',
+          quotaBytes: 100 * 1024 * 1024,
+          dailySyncLimit: 4,
+          immediateSyncAllowed: false,
+          policyVersion: 1,
+        ),
         usedBytes: 0,
         pendingBytes: 0,
         backupEnabled: true,
@@ -77,7 +98,14 @@ void main() {
     final estimate = ReceiptCaptureStorageEstimate(
       dataSaverLevel: ReceiptDataSaverLevel.strong,
       cloudQuota: CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.freeTrial,
+        entitlement: const CloudBackupEntitlement(
+          planId: 'test',
+          displayName: 'Test',
+          quotaBytes: 100 * 1024 * 1024,
+          dailySyncLimit: 4,
+          immediateSyncAllowed: false,
+          policyVersion: 1,
+        ),
         usedBytes: 99 * 1024 * 1024,
         pendingBytes: 3 * 1024 * 1024,
         backupEnabled: true,
@@ -96,7 +124,7 @@ void main() {
     final estimate = ReceiptCaptureStorageEstimate(
       dataSaverLevel: ReceiptDataSaverLevel.maximum,
       cloudQuota: CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.localOnly,
+        entitlement: const CloudBackupEntitlement.localOnly(),
         usedBytes: 0,
         pendingBytes: 0,
       ),

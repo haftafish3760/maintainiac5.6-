@@ -1,5 +1,6 @@
 import '../storage/app_storage_guard.dart';
 
+@Deprecated('Use CloudBackupEntitlement for account backup decisions.')
 enum CloudBackupTier {
   localOnly('Local only', 0),
   freeTrial('Free cloud backup', 100 * 1024 * 1024),
@@ -16,13 +17,74 @@ enum CloudBackupTier {
   String get quotaLabel => AppStorageGuard.formatBytes(quotaBytes);
 }
 
+class CloudBackupEntitlement {
+  const CloudBackupEntitlement({
+    required this.planId,
+    required this.displayName,
+    required this.quotaBytes,
+    required this.dailySyncLimit,
+    required this.immediateSyncAllowed,
+    required this.policyVersion,
+  });
+
+  const CloudBackupEntitlement.localOnly()
+    : planId = 'local_only',
+      displayName = 'Local only',
+      quotaBytes = 0,
+      dailySyncLimit = 0,
+      immediateSyncAllowed = false,
+      policyVersion = 0;
+
+  /// Decodes a policy supplied after authenticated account authorization.
+  /// Invalid or incomplete input deliberately grants no cloud capability.
+  static CloudBackupEntitlement? tryParseServerPayload(
+    Map<Object?, Object?> payload,
+  ) {
+    final planId = payload['planId'];
+    final displayName = payload['displayName'];
+    final quotaBytes = payload['storageQuotaBytes'];
+    final dailySyncLimit = payload['dailySyncLimit'];
+    final immediateSyncAllowed = payload['immediateSyncAllowed'];
+    final policyVersion = payload['policyVersion'];
+    if (planId is! String ||
+        planId.trim().isEmpty ||
+        displayName is! String ||
+        displayName.trim().isEmpty ||
+        quotaBytes is! int ||
+        quotaBytes < 0 ||
+        dailySyncLimit is! int ||
+        dailySyncLimit < 0 ||
+        immediateSyncAllowed is! bool ||
+        policyVersion is! int ||
+        policyVersion <= 0) {
+      return null;
+    }
+    return CloudBackupEntitlement(
+      planId: planId.trim(),
+      displayName: displayName.trim(),
+      quotaBytes: quotaBytes,
+      dailySyncLimit: dailySyncLimit,
+      immediateSyncAllowed: immediateSyncAllowed,
+      policyVersion: policyVersion,
+    );
+  }
+
+  final String planId;
+  final String displayName;
+  final int quotaBytes;
+  final int dailySyncLimit;
+  final bool immediateSyncAllowed;
+  final int policyVersion;
+
+  bool get hasCloudStorage => quotaBytes > 0;
+  String get quotaLabel => AppStorageGuard.formatBytes(quotaBytes);
+}
+
 class CloudBackupQuotaPolicy {
   const CloudBackupQuotaPolicy._();
 
-  static const CloudBackupTier defaultTrialTier = CloudBackupTier.freeTrial;
-
   static CloudBackupQuotaCheck check({
-    required CloudBackupTier tier,
+    required CloudBackupEntitlement entitlement,
     required int usedBytes,
     required int pendingBytes,
     bool backupEnabled = false,
@@ -30,7 +92,7 @@ class CloudBackupQuotaPolicy {
     final safeUsed = usedBytes < 0 ? 0 : usedBytes;
     final safePending = pendingBytes < 0 ? 0 : pendingBytes;
     return CloudBackupQuotaCheck(
-      tier: tier,
+      entitlement: entitlement,
       usedBytes: safeUsed,
       pendingBytes: safePending,
       backupEnabled: backupEnabled,
@@ -40,34 +102,34 @@ class CloudBackupQuotaPolicy {
 
 class CloudBackupQuotaCheck {
   const CloudBackupQuotaCheck({
-    required this.tier,
+    required this.entitlement,
     required this.usedBytes,
     required this.pendingBytes,
     required this.backupEnabled,
   });
 
-  final CloudBackupTier tier;
+  final CloudBackupEntitlement entitlement;
   final int usedBytes;
   final int pendingBytes;
   final bool backupEnabled;
 
-  int get quotaBytes => tier.quotaBytes;
+  int get quotaBytes => entitlement.quotaBytes;
   int get afterSaveBytes => usedBytes + pendingBytes;
   int get remainingBytes => (quotaBytes - usedBytes).clamp(0, quotaBytes);
   int get remainingAfterSaveBytes =>
       (quotaBytes - afterSaveBytes).clamp(0, quotaBytes);
 
-  bool get isLocalOnly => !backupEnabled || !tier.hasCloudStorage;
+  bool get isLocalOnly => !backupEnabled || !entitlement.hasCloudStorage;
   bool get allowsLocalSave => true;
   bool get willAttemptCloudBackup => !isLocalOnly && wouldFitCloudTier;
   bool get wouldFitCloudTier =>
-      tier.hasCloudStorage && afterSaveBytes <= quotaBytes;
+      entitlement.hasCloudStorage && afterSaveBytes <= quotaBytes;
   bool get wouldExceedCloudTier =>
-      tier.hasCloudStorage && afterSaveBytes > quotaBytes;
+      entitlement.hasCloudStorage && afterSaveBytes > quotaBytes;
 
   String get usedLabel => AppStorageGuard.formatBytes(usedBytes);
   String get pendingLabel => AppStorageGuard.formatBytes(pendingBytes);
-  String get quotaLabel => tier.quotaLabel;
+  String get quotaLabel => entitlement.quotaLabel;
   String get remainingLabel => AppStorageGuard.formatBytes(remainingBytes);
   String get remainingAfterSaveLabel =>
       AppStorageGuard.formatBytes(remainingAfterSaveBytes);
@@ -80,7 +142,7 @@ class CloudBackupQuotaCheck {
 
   String get detailLabel {
     if (isLocalOnly) {
-      return 'Cloud backup is off. The first cloud tier is ${CloudBackupQuotaPolicy.defaultTrialTier.quotaLabel}.';
+      return 'Cloud backup is off or no authorized cloud plan is available. Local saving still works.';
     }
     if (wouldExceedCloudTier) {
       return 'This save would put cloud backup at ${AppStorageGuard.formatBytes(afterSaveBytes)} of $quotaLabel.';

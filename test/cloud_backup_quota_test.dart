@@ -5,18 +5,43 @@ import 'package:maintaniac/shared/backup/cloud_backup_status.dart';
 
 void main() {
   group('CloudBackupQuotaPolicy', () {
-    test('free cloud backup tier is 100 MB', () {
-      expect(
-        CloudBackupQuotaPolicy.defaultTrialTier,
-        CloudBackupTier.freeTrial,
-      );
-      expect(CloudBackupTier.freeTrial.quotaBytes, 100 * 1024 * 1024);
-      expect(CloudBackupTier.freeTrial.quotaLabel, '100 MB');
+    const freeEntitlement = CloudBackupEntitlement(
+      planId: 'early_access',
+      displayName: 'Early access backup',
+      quotaBytes: 100 * 1024 * 1024,
+      dailySyncLimit: 4,
+      immediateSyncAllowed: false,
+      policyVersion: 1,
+    );
+
+    test('accepts a complete server-provided entitlement', () {
+      final entitlement = CloudBackupEntitlement.tryParseServerPayload({
+        'planId': 'early_access',
+        'displayName': 'Early access backup',
+        'storageQuotaBytes': 100 * 1024 * 1024,
+        'dailySyncLimit': 4,
+        'immediateSyncAllowed': false,
+        'policyVersion': 1,
+      });
+
+      expect(entitlement, isNotNull);
+      expect(entitlement!.quotaLabel, '100 MB');
+      expect(entitlement.dailySyncLimit, 4);
+      expect(entitlement.immediateSyncAllowed, isFalse);
+    });
+
+    test('fails closed for incomplete server entitlement data', () {
+      final entitlement = CloudBackupEntitlement.tryParseServerPayload({
+        'planId': 'bad',
+        'storageQuotaBytes': 100,
+      });
+
+      expect(entitlement, isNull);
     });
 
     test('local-only mode never treats pending files as cloud uploads', () {
       final check = CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.freeTrial,
+        entitlement: freeEntitlement,
         usedBytes: 96 * 1024 * 1024,
         pendingBytes: 4 * 1024 * 1024,
       );
@@ -26,12 +51,12 @@ void main() {
       expect(check.willAttemptCloudBackup, isFalse);
       expect(check.statusLabel, 'Off');
       expect(check.detailLabel, contains('Cloud backup is off'));
-      expect(check.detailLabel, contains('100 MB'));
+      expect(check.detailLabel, contains('Local saving still works'));
     });
 
     test('enabled backup detects files that fit the current tier', () {
       final check = CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.freeTrial,
+        entitlement: freeEntitlement,
         usedBytes: 10 * 1024 * 1024,
         pendingBytes: 5 * 1024 * 1024,
         backupEnabled: true,
@@ -50,7 +75,7 @@ void main() {
       'enabled backup flags over-limit saves without blocking local save',
       () {
         final check = CloudBackupQuotaPolicy.check(
-          tier: CloudBackupTier.freeTrial,
+          entitlement: freeEntitlement,
           usedBytes: 99 * 1024 * 1024,
           pendingBytes: 3 * 1024 * 1024,
           backupEnabled: true,
@@ -65,15 +90,23 @@ void main() {
       },
     );
 
-    test('paid tiers keep separate quotas from the free tier', () {
-      expect(CloudBackupTier.adFreeStarter.quotaLabel, '250 MB');
-      expect(CloudBackupTier.oneGig.quotaLabel, '1.0 GB');
-      expect(CloudBackupTier.fleet.quotaLabel, '50.0 GB');
+    test('different server plans can supply independent quotas', () {
+      const plan = CloudBackupEntitlement(
+        planId: 'paid',
+        displayName: 'Paid backup',
+        quotaBytes: 250 * 1024 * 1024,
+        dailySyncLimit: 24,
+        immediateSyncAllowed: true,
+        policyVersion: 9,
+      );
+
+      expect(plan.quotaLabel, '250 MB');
+      expect(plan.immediateSyncAllowed, isTrue);
     });
 
     test('negative byte inputs are sanitized', () {
       final check = CloudBackupQuotaPolicy.check(
-        tier: CloudBackupTier.freeTrial,
+        entitlement: freeEntitlement,
         usedBytes: -1,
         pendingBytes: -1,
         backupEnabled: true,
@@ -92,7 +125,7 @@ void main() {
 
       expect(status.isEnabled, isFalse);
       expect(status.connectionState.label, 'Not connected');
-      expect(status.tier, CloudBackupTier.freeTrial);
+      expect(status.entitlement.hasCloudStorage, isFalse);
       expect(check.isLocalOnly, isTrue);
     });
 

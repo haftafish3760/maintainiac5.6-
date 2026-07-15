@@ -75,6 +75,7 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptBackupStorageSummary extends StatelessWidget {
   const _ReceiptBackupStorageSummary();
 
@@ -109,10 +110,14 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
         const SizedBox(height: 8),
         _ReceiptStorageMetricRow(
           label: 'Storage remaining',
-          value: '${quotaCheck.remainingLabel} of ${quotaCheck.quotaLabel}',
+          value: quotaCheck.entitlement.hasCloudStorage
+              ? '${quotaCheck.remainingLabel} of ${quotaCheck.quotaLabel}'
+              : 'Available after sign-in',
           detail: policy.keepsOriginalLocalOnly
               ? 'Original photos stay local by default. Backup should use a smaller proof copy when enabled.'
-              : 'At about $sizeLabel per receipt, that is roughly $estimate receipt proofs before extra storage.',
+              : quotaCheck.entitlement.hasCloudStorage
+              ? 'At about $sizeLabel per receipt, that is roughly $estimate receipt proofs before extra storage.'
+              : 'Your authorized backup plan will show its storage limit after sign-in.',
         ),
       ],
     );
@@ -120,13 +125,12 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
 
   static int _estimatedReceiptCount(ReceiptProofTargetSizePolicy policy) {
     if (policy.targetBytes <= 0) return 0;
-    return (CloudBackupStatusSnapshot.notConnected()
-                .checkPendingBytes(0)
-                .remainingBytes /
-            policy.targetBytes)
-        .floor();
+    const status = CloudBackupStatusSnapshot.notConnected();
+    final remainingBytes = status.checkPendingBytes(0).remainingBytes;
+    return (remainingBytes / policy.targetBytes).floor();
   }
 }
+
 class _ReceiptStorageMetricRow extends StatelessWidget {
   const _ReceiptStorageMetricRow({
     required this.label,
@@ -289,6 +293,7 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
   const _ReceiptPostCaptureWorkflowSettings();
 
@@ -320,6 +325,7 @@ class _ReceiptPostCaptureWorkflowSettings extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptDiagnosticsSettings extends StatelessWidget {
   const _ReceiptDiagnosticsSettings({required this.settings});
 
@@ -343,6 +349,7 @@ class _ReceiptDiagnosticsSettings extends StatelessWidget {
     );
   }
 }
+
 class _ReceiptSettingsSwitch extends StatelessWidget {
   const _ReceiptSettingsSwitch({
     required this.title,
