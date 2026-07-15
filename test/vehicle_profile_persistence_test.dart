@@ -80,6 +80,21 @@ void main() {
     expect(restored.vehicles, isNotEmpty);
   });
 
+  test('queued vehicle selections retain the last requested context', () async {
+    final appState = await AppStateController.create();
+    final first = VehicleProfile(id: 'queued-first', nickname: 'First van');
+    final second = VehicleProfile(id: 'queued-second', nickname: 'Second van');
+    await appState.addVehicle(first);
+    await appState.addVehicle(second);
+
+    await Future.wait([
+      appState.selectVehicle(first),
+      appState.selectVehicle(second),
+    ]);
+
+    expect(appState.activeVehicle?.id, second.id);
+  });
+
   test('rejects duplicate stable vehicle IDs', () async {
     final appState = await AppStateController.create();
     final vehicle = VehicleProfile(id: 'vehicle-duplicate', nickname: 'Van');
