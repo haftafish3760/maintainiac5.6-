@@ -200,6 +200,54 @@ void main() {
   });
 
   test(
+    'saved-copy preview uses the final adaptive compression result',
+    () async {
+      final dir = await Directory.systemTemp.createTemp(
+        'receipt_preview_size_',
+      );
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final noisy = img.Image(width: 1800, height: 2500);
+      for (var y = 0; y < noisy.height; y++) {
+        for (var x = 0; x < noisy.width; x++) {
+          final value = (x * 37 + y * 19 + x * y) & 0xff;
+          noisy.setPixelRgb(
+            x,
+            y,
+            value,
+            (value * 13) & 0xff,
+            (value * 29) & 0xff,
+          );
+        }
+      }
+      final source = await writeReceiptFixtureImage(dir, 'noisy.jpg', noisy);
+
+      final preview = await ReceiptImageProcessor.previewFile(
+        path: source.path,
+        level: ReceiptDataSaverLevel.maximum,
+      );
+      final savedCopy = await ReceiptImageProcessor.optimizeFile(
+        path: source.path,
+        level: ReceiptDataSaverLevel.maximum,
+      );
+      addTearDown(() async {
+        final saved = File(savedCopy);
+        if (await saved.exists()) await saved.delete();
+      });
+
+      expect(preview.estimatedBytes, await File(savedCopy).length());
+      expect(
+        preview.estimatedBytes,
+        lessThanOrEqualTo(
+          ReceiptDataSaverLevel.maximum.proofTargetSizePolicy.maxBytes,
+        ),
+      );
+    },
+  );
+
+  test(
     'receipt preparation keeps OCR source separate from backup copy',
     () async {
       final dir = await Directory.systemTemp.createTemp('receipt_ocr_backup_');

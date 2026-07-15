@@ -95,6 +95,24 @@ Future<String> _writeProofJpg(
   required ReceiptDataSaverLevel level,
   required int quality,
 }) async {
+  final encoded = _encodeProofJpgToPolicy(
+    source,
+    level: level,
+    quality: quality,
+  );
+  final file = File(
+    '${Directory.systemTemp.path}/maintaniac_receipt_optimized_'
+    '${DateTime.now().microsecondsSinceEpoch}.jpg',
+  );
+  await file.writeAsBytes(encoded.bytes, flush: true);
+  return file.path;
+}
+
+_ReceiptProofJpegEncoding _encodeProofJpgToPolicy(
+  img.Image source, {
+  required ReceiptDataSaverLevel level,
+  required int quality,
+}) {
   final maximumBytes = level.proofTargetSizePolicy.maxBytes;
   var output = source;
   var encodedQuality = quality;
@@ -113,12 +131,7 @@ Future<String> _writeProofJpg(
     }
     encoded = img.encodeJpg(output, quality: encodedQuality);
   }
-  final file = File(
-    '${Directory.systemTemp.path}/maintaniac_receipt_optimized_'
-    '${DateTime.now().microsecondsSinceEpoch}.jpg',
-  );
-  await file.writeAsBytes(encoded, flush: true);
-  return file.path;
+  return _ReceiptProofJpegEncoding(bytes: encoded, output: output);
 }
 
 Future<ReceiptImageStoragePreview> _previewFile({
@@ -147,14 +160,17 @@ Future<ReceiptImageStoragePreview> _previewFile({
   }
   final profile = _profileFor(level);
   final output = _applyDataSaverProfile(decoded, profile);
-  final estimatedBytes = level == ReceiptDataSaverLevel.original
-      ? originalBytes
-      : img.encodeJpg(output, quality: profile.quality).length;
+  final encoded = level == ReceiptDataSaverLevel.original
+      ? null
+      : _encodeProofJpgToPolicy(output, level: level, quality: profile.quality);
+  final savedCopy = encoded == null
+      ? output
+      : ReceiptImageProcessor._decodeImage(encoded.bytes) ?? encoded.output;
   return ReceiptImageStoragePreview(
     originalBytes: originalBytes,
-    estimatedBytes: estimatedBytes,
+    estimatedBytes: encoded?.bytes.length ?? originalBytes,
     level: level,
-    quality: _qualityCheck(output),
+    quality: _qualityCheck(savedCopy),
   );
 }
 
@@ -179,4 +195,11 @@ img.Image _applyDataSaverProfile(img.Image source, _DataSaverProfile profile) {
     output = img.contrast(output, contrast: profile.contrast);
   }
   return output;
+}
+
+class _ReceiptProofJpegEncoding {
+  const _ReceiptProofJpegEncoding({required this.bytes, required this.output});
+
+  final Uint8List bytes;
+  final img.Image output;
 }
