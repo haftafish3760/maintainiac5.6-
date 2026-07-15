@@ -272,6 +272,28 @@ void main() {
   });
 
   test(
+    'backup activity status stays local while persisting across restart',
+    () async {
+      final settings = await ExpenseSettingsController.create();
+      final attemptedAt = DateTime.utc(2026, 7, 15, 12);
+      final successfulAt = DateTime.utc(2026, 7, 15, 12, 5);
+
+      await settings.recordBackupAttempt(attemptedAt);
+      await settings.recordSuccessfulBackup(successfulAt);
+      final reopened = await ExpenseSettingsController.create();
+
+      expect(reopened.lastBackupAttemptAt, attemptedAt);
+      expect(reopened.lastSuccessfulBackupAt, successfulAt);
+      expect(
+        reopened
+            .toBackupMap(ownerUid: 'owner', exportedAtUtc: DateTime.utc(2026))
+            .keys,
+        isNot(contains('lastBackupAttemptAt')),
+      );
+    },
+  );
+
+  test(
     'receipt review style ignores corrupted non-string storage values',
     () async {
       final settings = await ExpenseSettingsController.create();

@@ -93,6 +93,11 @@ void main() {
       sink.documents.keys,
       contains('orgs/org-1/settings/expense_vehicles_user-1'),
     );
+    expect(service.settings.lastBackupAttemptAt, DateTime.utc(2026, 7, 15, 12));
+    expect(
+      service.settings.lastSuccessfulBackupAt,
+      DateTime.utc(2026, 7, 15, 12),
+    );
     expect(sink.documents.values.join(), isNot(contains('rawOcrText')));
   });
 

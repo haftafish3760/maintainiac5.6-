@@ -223,11 +223,16 @@ class ExpenseCloudBackupService {
       );
     }
 
-    return flushPaths(
+    await settings.recordBackupAttempt(timestamp);
+    final result = await flushPaths(
       drafts.map((draft) => draft.path),
       queuedCount: drafts.length,
       nowUtc: timestamp,
     );
+    if (result.completed) {
+      await settings.recordSuccessfulBackup(timestamp);
+    }
+    return result;
   }
 
   /// Flushes only the supplied paths. This prevents a newly signed-in account

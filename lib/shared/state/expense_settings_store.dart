@@ -98,10 +98,16 @@ class ExpenseSettingsController extends ChangeNotifier {
   /// It is intentionally not restored on another device, where the user must
   /// make a fresh choice before any automatic transfer can occur.
   DateTime? get backupScheduleAuthorizedAt {
-    final value = _box.get(_Keys.backupScheduleAuthorizedAt);
-    if (value is! String) return null;
-    return DateTime.tryParse(value)?.toUtc();
+    return _readUtcDateTime(_Keys.backupScheduleAuthorizedAt);
   }
+
+  /// Device-local backup activity status. It is never restored onto another
+  /// device, because restore must not masquerade as a successful new-device
+  /// backup or authorize a future automatic transfer.
+  DateTime? get lastBackupAttemptAt =>
+      _readUtcDateTime(_Keys.lastBackupAttemptAt);
+  DateTime? get lastSuccessfulBackupAt =>
+      _readUtcDateTime(_Keys.lastSuccessfulBackupAt);
 
   bool isScheduledBackupDueAt(DateTime now, {DateTime? lastAttemptAt}) {
     if (backupSyncMode != ExpenseBackupSyncMode.scheduled) return false;
@@ -212,6 +218,12 @@ class ExpenseSettingsController extends ChangeNotifier {
     await _box.put(_Keys.backupTransport, normalized.transport.name);
     notifyListeners();
   }
+
+  Future<void> recordBackupAttempt(DateTime atUtc) =>
+      _writeUtcDateTime(_Keys.lastBackupAttemptAt, atUtc);
+
+  Future<void> recordSuccessfulBackup(DateTime atUtc) =>
+      _writeUtcDateTime(_Keys.lastSuccessfulBackupAt, atUtc);
 
   Future<void> setOdometerPromptEnabled(bool value) =>
       _writeBool(_Keys.odometerPromptEnabled, value);
@@ -375,6 +387,17 @@ class ExpenseSettingsController extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  DateTime? _readUtcDateTime(String key) {
+    final value = _box.get(key);
+    if (value is! String) return null;
+    return DateTime.tryParse(value)?.toUtc();
+  }
+
+  Future<void> _writeUtcDateTime(String key, DateTime value) async {
+    await _box.put(key, value.toUtc().toIso8601String());
+    notifyListeners();
+  }
+
   Future<void> _writeBool(String key, bool value) async {
     await _box.put(key, value);
     notifyListeners();
@@ -429,6 +452,8 @@ class _Keys {
   static const backupTransport = 'expense_backup_transport';
   static const backupScheduleAuthorizedAt =
       'expense_backup_schedule_authorized_at';
+  static const lastBackupAttemptAt = 'expense_last_backup_attempt_at';
+  static const lastSuccessfulBackupAt = 'expense_last_successful_backup_at';
   static const odometerPromptEnabled = 'expense_odometer_prompt_enabled';
   static const odometerPromptSuppressedCategories =
       'expense_odometer_prompt_suppressed_categories';
