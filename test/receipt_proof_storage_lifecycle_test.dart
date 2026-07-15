@@ -66,6 +66,24 @@ void main() {
     expect(saved.isOriginalImmutable, isTrue);
   });
 
+  test(
+    'missing proof files remain traceable instead of appearing saved',
+    () async {
+      final missing = await ReceiptProofStorage.instance.persistAttachment(
+        ReceiptAttachmentRecord(
+          id: 'missing-proof',
+          path: '${documentsDirectory.path}/no-longer-available.pdf',
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 7, 15),
+        ),
+      );
+
+      expect(missing.storageState, ReceiptAttachmentStorageState.missing);
+      expect(missing.path, endsWith('no-longer-available.pdf'));
+    },
+  );
+
   test('pdf import stages proof before permanent save', () async {
     final source = File('${Directory.systemTemp.path}/staged_receipt.pdf');
     final pdf = pw.Document()

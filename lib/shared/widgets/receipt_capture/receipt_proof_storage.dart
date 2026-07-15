@@ -42,7 +42,11 @@ class ReceiptProofStorage {
       return attachment;
     }
     final source = File(attachment.path);
-    if (!await source.exists()) return attachment;
+    if (!await source.exists()) {
+      return attachment.copyWith(
+        storageState: ReceiptAttachmentStorageState.missing,
+      );
+    }
     await _validatePdfSourceForStorage(attachment, source);
 
     final proofRoot = await _proofRoot();
