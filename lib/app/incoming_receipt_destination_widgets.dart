@@ -281,6 +281,7 @@ class _DestinationPanel extends StatelessWidget {
 
 IconData _incomingSuggestionIconFor(ExpenseReceiptClassificationKind kind) {
   return switch (kind) {
+    ExpenseReceiptClassificationKind.ambiguous => Icons.help_outline_rounded,
     ExpenseReceiptClassificationKind.fuel => Icons.local_gas_station_rounded,
     ExpenseReceiptClassificationKind.materials => Icons.inventory_2_rounded,
     ExpenseReceiptClassificationKind.maintenance ||

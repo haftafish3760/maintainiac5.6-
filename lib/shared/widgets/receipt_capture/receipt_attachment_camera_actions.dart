@@ -278,17 +278,7 @@ extension _ReceiptAttachmentCameraActions
     _ReceiptFirstUseCameraAction action,
   ) async {
     final useAssist = action == _ReceiptFirstUseCameraAction.useReceiptAssist;
-    if (useAssist) {
-      await settings.setAppAssistedReceiptFill(true);
-    }
-    switch (widget.area) {
-      case ReceiptCaptureArea.expenses:
-        await settings.setAppAssistedExpenses(useAssist);
-      case ReceiptCaptureArea.materialsInventory:
-        await settings.setAppAssistedMaterials(useAssist);
-      case ReceiptCaptureArea.maintenanceRepair:
-        await settings.setAppAssistedMaintenance(useAssist);
-    }
+    await settings.setAppAssistedFor(widget.area, useAssist);
   }
 
   String _nativeCameraOpenErrorMessage(PlatformException error) {

@@ -68,6 +68,21 @@ Total 51.74
     expect(result.detail, contains('inventory'));
   });
 
+  test('leaves closely competing receipt categories for user review', () {
+    final result = ExpenseReceiptClassifier.classifyText('''
+PUMP 07
+Diesel 12 GAL
+THE HOME DEPOT
+MATERIALS
+PVC PIPE
+TOTAL 51.74
+''');
+
+    expect(result.kind, ExpenseReceiptClassificationKind.ambiguous);
+    expect(result.category, isNull);
+    expect(result.title, 'Receipt Needs Category Review');
+  });
+
   test('generic shared PDF falls back to receipt review', () {
     final result = ExpenseReceiptClassifier.classifySharedReceipt(
       attachments: [_pdfAttachment()],

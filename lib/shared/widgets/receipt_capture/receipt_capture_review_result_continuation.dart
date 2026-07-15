@@ -183,20 +183,20 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
   String get ocrSourceFirstActionLabel {
     return switch (ocrSourceFirstOutcome) {
       'prepared_source_ready' =>
-        'OCR reads prepared receipt source before saved proof',
+        'Receipt details use the prepared photo before the saved copy',
       'temporary_full_quality_ready' =>
-        'OCR reads temporary full-quality source before saved proof',
+        'Receipt details use the full-quality photo before the saved copy',
       'combined_source_ready' =>
-        'OCR reads one combined stitched source before saved proof',
+        'Receipt details use the combined receipt image before the saved copy',
       'imported_source_ready' =>
-        'OCR reads the imported receipt photo source before saved proof',
+        'Receipt details use the imported photo before the saved copy',
       'separate_source_ready' =>
-        'OCR reads separate source copies before saved proof',
+        'Receipt details use the clear photos before the saved copy',
       'saved_source_matched_original' =>
-        'OCR source matches the accepted receipt proof',
+        'The clear photo matches the accepted receipt copy',
       'fallback_saved_proof_review_required' =>
-        'OCR fell back to saved proof; review the filled receipt carefully',
-      _ => 'OCR source was not ready before saved proof',
+        'Receipt details used the saved copy; review the filled receipt carefully',
+      _ => 'The clear receipt photo was not ready before the saved copy',
     };
   }
 }

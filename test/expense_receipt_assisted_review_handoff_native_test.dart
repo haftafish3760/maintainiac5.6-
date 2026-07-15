@@ -115,6 +115,11 @@ void main() {
       stateActions,
       contains("parserReviewLabel: use == _ExpenseLineUse.unclassified"),
     );
+    expect(stateActions, contains('businessPercent: null'));
+    expect(
+      stateActions,
+      contains('category: _selectedCategoryForParsedReceiptLine()'),
+    );
     expect(stateActions, contains('_scrollToReceiptReview();'));
     expect(
       stateActions,

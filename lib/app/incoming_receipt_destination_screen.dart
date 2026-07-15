@@ -153,6 +153,8 @@ class _IncomingReceiptDestinationScreenState
     ExpenseReceiptClassification suggestion,
   ) {
     switch (suggestion.kind) {
+      case ExpenseReceiptClassificationKind.ambiguous:
+        _openReceipt(context);
       case ExpenseReceiptClassificationKind.fuel:
         _openReceipt(context, initialCategory: 'Fuel');
       case ExpenseReceiptClassificationKind.materials:

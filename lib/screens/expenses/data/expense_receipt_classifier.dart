@@ -48,6 +48,17 @@ class ExpenseReceiptClassifier {
         secondScore: 0,
       );
     }
+    final second = scored.length > 1 ? scored[1] : null;
+    if (second != null &&
+        best.score >= 6 &&
+        second.score >= 6 &&
+        (best.score - second.score).abs() <= 1) {
+      return _classificationFor(
+        ExpenseReceiptClassificationKind.ambiguous,
+        score: best.score,
+        secondScore: second.score,
+      );
+    }
     return _classificationFor(
       best.kind,
       score: best.score,
@@ -74,6 +85,15 @@ class ExpenseReceiptClassifier {
   }) {
     final confidence = _confidence(score, secondScore);
     return switch (kind) {
+      ExpenseReceiptClassificationKind.ambiguous => ExpenseReceiptClassification(
+        kind: kind,
+        title: 'Receipt Needs Category Review',
+        category: null,
+        detail:
+            'This receipt has strong signals for more than one category. Maintainiac left the category unchanged so you can choose.',
+        confidence: confidence,
+        score: score,
+      ),
       ExpenseReceiptClassificationKind.fuel => ExpenseReceiptClassification(
         kind: kind,
         title: 'Fuel Receipt',

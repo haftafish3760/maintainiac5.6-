@@ -22,7 +22,7 @@ void main() {
         handoffMetadata,
         containsPair(
           'nextReviewMatchReadinessLabel',
-          'Single receipt source is ready for app-assisted review.',
+          'The receipt photo is ready for review.',
         ),
       );
       expect(
@@ -54,7 +54,7 @@ void main() {
         handoffMetadata,
         containsPair(
           'ocrSourceFirstActionLabel',
-          'OCR reads prepared receipt source before saved proof',
+          'Receipt details use the prepared photo before the saved copy',
         ),
       );
       expect(

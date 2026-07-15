@@ -165,7 +165,7 @@ void main() {
     expect(result.ocrSourceFirstOutcome, 'prepared_source_ready');
     expect(
       result.ocrSourceFirstActionLabel,
-      'OCR reads prepared receipt source before saved proof',
+      'Receipt details use the prepared photo before the saved copy',
     );
   });
 }

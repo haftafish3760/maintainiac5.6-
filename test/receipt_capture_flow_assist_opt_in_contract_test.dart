@@ -62,7 +62,8 @@ void main() {
     final settingsSheet = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
     ).readAsString();
-    expect(settingsSheet, contains('Automatically Fill Receipts'));
+    expect(settingsSheet, contains('Automatic Receipt Filling'));
+    expect(settingsSheet, contains('settings.setAppAssistedFor(area, value)'));
     expect(settingsSheet, contains('Automatic Photo Capture'));
     expect(photoReviewScreen, contains('this.assistedReceiptFill = false'));
     expect(

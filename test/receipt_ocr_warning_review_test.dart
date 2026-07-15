@@ -3,6 +3,20 @@ import 'package:maintaniac/shared/receipts/receipt_processing_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.dart';
 
 void main() {
+  test('receipt reader warning labels avoid internal implementation terms', () {
+    final unavailable = ReceiptOcrWarning.fromMessage(
+      'Receipt text assistance is not available in this build.',
+    );
+    final unknown = ReceiptOcrWarning.fromMessage(
+      'Unexpected receipt text processing issue.',
+    );
+
+    expect(unavailable.kind, ReceiptOcrWarningKind.pluginUnavailable);
+    expect(unavailable.label, 'Receipt reader unavailable');
+    expect(unknown.kind, ReceiptOcrWarningKind.unknown);
+    expect(unknown.label, 'Receipt reading warning');
+  });
+
   test('ocr result promotes strongest warning into user action copy', () {
     const result = ReceiptOcrResult(
       rawText: '',

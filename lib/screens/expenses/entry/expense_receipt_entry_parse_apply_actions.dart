@@ -241,7 +241,9 @@ extension _ExpenseReceiptEntryParseApplyActions
       unitsPerPackage: line.unitsPerPackage,
       stockUnit: line.unit,
       subtotal: line.subtotal,
-      businessPercent: line.businessPercent,
+      // A text-reading or downstream interpretation result must never become
+      // an ownership allocation. Leave this unset until the user chooses it.
+      businessPercent: null,
       odometerReading: line.odometerReading,
       fuelType: line.fuelType,
       fillType: line.fillType,

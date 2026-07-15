@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/app/incoming_receipt_destination_screen.dart';
+import 'package:maintaniac/screens/expenses/data/expense_receipt_classifier.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
@@ -97,6 +98,46 @@ void main() {
 
     expect(find.text('Suggested: Cell Phone Receipt'), findsOneWidget);
     expect(find.textContaining('%'), findsOneWidget);
+  });
+
+  testWidgets('competing receipt signals leave the category to the user', (
+    tester,
+  ) async {
+    final attachment = _pdfAttachment('ambiguous');
+    final suggestion = ExpenseReceiptClassifier.classifySharedReceipt(
+      attachments: [attachment],
+      importedText: '''
+PUMP 07
+Diesel 12 GAL
+THE HOME DEPOT
+MATERIALS
+PVC PIPE
+TOTAL 51.74
+''',
+      messages: const [],
+    );
+    expect(suggestion.kind, ExpenseReceiptClassificationKind.ambiguous);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: IncomingReceiptDestinationScreen(
+          attachments: [attachment],
+          importedText: '''
+PUMP 07
+Diesel 12 GAL
+THE HOME DEPOT
+MATERIALS
+PVC PIPE
+TOTAL 51.74
+''',
+        ),
+      ),
+    );
+
+    expect(
+      find.text('Suggested: Receipt Needs Category Review'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('left the category unchanged'), findsOneWidget);
   });
 
   testWidgets('other document is enabled and opens document proof flow', (
