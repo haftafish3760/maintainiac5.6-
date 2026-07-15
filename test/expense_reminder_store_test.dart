@@ -6,6 +6,23 @@ import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
+  test('queued reminder save and delete preserve lifecycle order', () async {
+    final reminders = ExpenseReminderController.memory();
+    final record = ExpenseReminderRecord(
+      id: 'queued-reminder',
+      title: 'Queued reminder',
+      category: 'Tools',
+      channel: 'In-app',
+      dueAt: DateTime.utc(2026, 7, 15),
+      cadence: ExpenseReminderCadence.once,
+      createdAt: DateTime.utc(2026, 7, 15),
+      updatedAt: DateTime.utc(2026, 7, 15),
+    );
+
+    await Future.wait([reminders.save(record), reminders.delete(record.id)]);
+
+    expect(reminders.recordById(record.id)?.isDeleted, isTrue);
+  });
   late Directory hiveDirectory;
 
   setUp(() async {
