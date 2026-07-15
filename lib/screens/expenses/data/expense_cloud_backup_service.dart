@@ -254,6 +254,9 @@ class ExpenseCloudBackupService {
     DateTime? now,
   }) async {
     final localNow = (now ?? DateTime.now()).toLocal();
+    if (!hasTrustedIdentity) {
+      return const ExpenseScheduledBackupResult.notAuthorized();
+    }
     if (settings.backupSyncMode != ExpenseBackupSyncMode.scheduled) {
       return const ExpenseScheduledBackupResult.notAuthorized();
     }

@@ -323,6 +323,32 @@ void main() {
     expect(wifi.backup?.completed, isTrue);
     expect(sink.writeCount, 3);
   });
+
+  test(
+    'scheduled backup cannot leave the device without an account identity',
+    () async {
+      final service = await _service();
+      await service.settings.setBackupSchedule(
+        ExpenseBackupSchedule.normalized(
+          timesMinutesAfterMidnight: [8 * 60],
+          transport: ExpenseBackupTransport.wifiOnly,
+        ),
+      );
+      await service.settings.setBackupSyncMode(
+        ExpenseBackupSyncMode.scheduled,
+        nowUtc: DateTime.utc(2026, 7, 15, 11),
+      );
+
+      final result = await service.backupScheduledSnapshot(
+        network: ExpenseBackupNetworkAvailability.wifi,
+        now: DateTime(2026, 7, 15, 9),
+      );
+
+      expect(result.status, ExpenseScheduledBackupStatus.notAuthorized);
+      expect(result.didAttempt, isFalse);
+      expect(service.settings.lastBackupAttemptAt, isNull);
+    },
+  );
 }
 
 Future<ExpenseCloudBackupService> _service({
