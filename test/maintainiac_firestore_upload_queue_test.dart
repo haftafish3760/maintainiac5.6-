@@ -89,6 +89,27 @@ void main() {
   });
 
   test(
+    'never discards pending uploads when the queue exceeds its soft cap',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final count = MaintainiacFirestoreUploadPolicy.maxQueuedRecords + 1;
+
+      for (var index = 0; index < count; index += 1) {
+        await queue.enqueue(
+          _safeDraft('parserHealth/pending_$index'),
+          queuedAtUtc: DateTime.utc(2026, 7, 15, 12, 0, index ~/ 1000),
+        );
+      }
+
+      expect(queue.pendingRecords, hasLength(count));
+      expect(
+        queue.pendingRecords.map((record) => record.path),
+        contains('parserHealth/pending_0'),
+      );
+    },
+  );
+
+  test(
     'pending upload survives a local queue restart without duplication',
     () async {
       final queue = await MaintainiacFirestoreUploadQueueStore.create();

@@ -143,7 +143,11 @@ class MaintainiacFirestoreUploadQueueStore {
     final extraCount =
         records.length - MaintainiacFirestoreUploadPolicy.maxQueuedRecords;
     if (extraCount <= 0) return;
-    for (final record in records.take(extraCount)) {
+    // Pending records are the durable retry ledger. A size cap must never
+    // silently discard unsynced local changes; only already-uploaded
+    // acknowledgments may be trimmed here.
+    final uploaded = records.where((record) => record.uploadedAtUtc != null);
+    for (final record in uploaded.take(extraCount)) {
       await _box.delete(record.id);
     }
   }
