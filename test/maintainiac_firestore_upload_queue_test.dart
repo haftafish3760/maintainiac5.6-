@@ -89,6 +89,31 @@ void main() {
   });
 
   test(
+    'concurrent replacements preserve one newest pending document',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final draft = _safeDraft('parserHealth/concurrent_replacement');
+
+      await Future.wait([
+        queue.enqueueReplacingPendingForPath(
+          draft,
+          queuedAtUtc: DateTime.utc(2026, 7, 15, 12),
+        ),
+        queue.enqueueReplacingPendingForPath(
+          draft,
+          queuedAtUtc: DateTime.utc(2026, 7, 15, 12, 1),
+        ),
+      ]);
+
+      expect(queue.pendingRecords, hasLength(1));
+      expect(
+        queue.pendingRecords.single.queuedAtUtc,
+        DateTime.utc(2026, 7, 15, 12, 1),
+      );
+    },
+  );
+
+  test(
     'never discards pending uploads when the queue exceeds its soft cap',
     () async {
       final queue = await MaintainiacFirestoreUploadQueueStore.create();

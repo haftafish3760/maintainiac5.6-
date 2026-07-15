@@ -6,6 +6,7 @@ class MaintainiacFirestoreUploadQueueStore {
   static const boxName = 'maintainiac_firestore_upload_queue';
 
   final Box<dynamic> _box;
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<MaintainiacFirestoreUploadQueueStore> create() async {
     final box = await Hive.openBox<dynamic>(boxName);
@@ -29,6 +30,11 @@ class MaintainiacFirestoreUploadQueueStore {
   Future<MaintainiacFirestoreQueuedDocument> enqueue(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
+  }) => _enqueue(() => _enqueueDocument(draft, queuedAtUtc: queuedAtUtc));
+
+  Future<MaintainiacFirestoreQueuedDocument> _enqueueDocument(
+    MaintainiacFirestoreDocumentDraft draft, {
+    DateTime? queuedAtUtc,
   }) async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();
@@ -46,26 +52,26 @@ class MaintainiacFirestoreUploadQueueStore {
   Future<MaintainiacFirestoreQueuedDocument> enqueueReplacingPendingForPath(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
-  }) async {
+  }) => _enqueue(() async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     for (final record in pendingRecords) {
       if (record.path == draft.path) {
         await _box.delete(record.id);
       }
     }
-    return enqueue(draft, queuedAtUtc: queuedAtUtc);
-  }
+    return _enqueueDocument(draft, queuedAtUtc: queuedAtUtc);
+  });
 
   Future<List<MaintainiacFirestoreQueuedDocument>> enqueueAll(
     Iterable<MaintainiacFirestoreDocumentDraft> drafts, {
     DateTime? queuedAtUtc,
-  }) async {
+  }) => _enqueue(() async {
     final queued = <MaintainiacFirestoreQueuedDocument>[];
     for (final draft in drafts) {
-      queued.add(await enqueue(draft, queuedAtUtc: queuedAtUtc));
+      queued.add(await _enqueueDocument(draft, queuedAtUtc: queuedAtUtc));
     }
     return List.unmodifiable(queued);
-  }
+  });
 
   List<MaintainiacFirestoreQueuedDocument> nextBatch({
     int? limit,
@@ -84,7 +90,7 @@ class MaintainiacFirestoreUploadQueueStore {
     MaintainiacFirestoreQueuedDocument record, {
     required String error,
     DateTime? nowUtc,
-  }) async {
+  }) => _enqueue(() async {
     if (record.isEmpty) return;
     final attempted = MaintainiacFirestoreQueuedDocument(
       id: record.id,
@@ -97,47 +103,45 @@ class MaintainiacFirestoreUploadQueueStore {
       uploadedAtUtc: record.uploadedAtUtc,
     );
     await _box.put(attempted.id, attempted.toMap());
-  }
+  });
 
-  Future<void> markUploaded(
-    Iterable<String> recordIds, {
-    DateTime? nowUtc,
-  }) async {
-    final uploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
-    for (final id in recordIds) {
-      final record = MaintainiacFirestoreQueuedDocument.fromStored(
-        _box.get(id),
-      );
-      if (record.isEmpty) continue;
-      final uploaded = MaintainiacFirestoreQueuedDocument(
-        id: record.id,
-        path: record.path,
-        data: record.data,
-        queuedAtUtc: record.queuedAtUtc,
-        attemptCount: record.attemptCount,
-        lastAttemptAtUtc: record.lastAttemptAtUtc,
-        lastError: record.lastError,
-        uploadedAtUtc: uploadedAt,
-      );
-      await _box.put(uploaded.id, uploaded.toMap());
-    }
-  }
+  Future<void> markUploaded(Iterable<String> recordIds, {DateTime? nowUtc}) =>
+      _enqueue(() async {
+        final uploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+        for (final id in recordIds) {
+          final record = MaintainiacFirestoreQueuedDocument.fromStored(
+            _box.get(id),
+          );
+          if (record.isEmpty) continue;
+          final uploaded = MaintainiacFirestoreQueuedDocument(
+            id: record.id,
+            path: record.path,
+            data: record.data,
+            queuedAtUtc: record.queuedAtUtc,
+            attemptCount: record.attemptCount,
+            lastAttemptAtUtc: record.lastAttemptAtUtc,
+            lastError: record.lastError,
+            uploadedAtUtc: uploadedAt,
+          );
+          await _box.put(uploaded.id, uploaded.toMap());
+        }
+      });
 
-  Future<void> clearUploaded() async {
+  Future<void> clearUploaded() => _enqueue(() async {
     for (final record in records) {
       if (record.uploadedAtUtc != null) {
         await _box.delete(record.id);
       }
     }
-  }
+  });
 
-  Future<void> discardPendingForPath(String path) async {
+  Future<void> discardPendingForPath(String path) => _enqueue(() async {
     for (final record in pendingRecords) {
       if (record.path == path) await _box.delete(record.id);
     }
-  }
+  });
 
-  Future<void> clearAll() => _box.clear();
+  Future<void> clearAll() => _enqueue(() => _box.clear());
 
   Future<void> _trimOldestIfNeeded() async {
     final extraCount =
@@ -164,6 +168,12 @@ class MaintainiacFirestoreUploadQueueStore {
       suffix += 1;
     }
     return id;
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
 
