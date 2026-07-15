@@ -240,16 +240,26 @@ class ExpenseCloudRestoreCodec {
   }
 
   static List<String> _auditEvents(Object? value) {
-    if (value is! List) return const [];
-    return List.unmodifiable([
-      for (final item in value)
-        if (item is Map)
-          if (_date(item['occurredAt']) != null &&
-              _text(item['action']).isNotEmpty &&
-              _text(item['recordId']).isNotEmpty)
-            '${_date(item['occurredAt'])!.toUtc().toIso8601String()} '
-                '${_text(item['action'])} receipt ${_text(item['recordId'])}',
-    ]);
+    if (value == null) return const [];
+    if (value is! List) {
+      throw const FormatException('Expense receipt audit metadata is corrupt.');
+    }
+    final events = <String>[];
+    for (final item in value) {
+      if (item is! Map ||
+          _date(item['occurredAt']) == null ||
+          _text(item['action']).isEmpty ||
+          _text(item['recordId']).isEmpty) {
+        throw const FormatException(
+          'Expense receipt audit metadata is corrupt.',
+        );
+      }
+      events.add(
+        '${_date(item['occurredAt'])!.toUtc().toIso8601String()} '
+        '${_text(item['action'])} receipt ${_text(item['recordId'])}',
+      );
+    }
+    return List.unmodifiable(events);
   }
 
   static Map<dynamic, dynamic> _map(Object? value) =>

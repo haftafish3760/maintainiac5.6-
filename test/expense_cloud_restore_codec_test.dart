@@ -194,6 +194,25 @@ void main() {
     );
   });
 
+  test('rejects malformed receipt audit history instead of dropping it', () {
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        'schema': 'expense_receipt_backup_v1',
+        'id': 'bad-audit-entry',
+        'receiptDate': '2026-07-15T00:00:00.000Z',
+        'auditEvents': [
+          {
+            'occurredAt': '2026-07-15T00:00:00.000Z',
+            'action': 'created',
+            'recordId': 'bad-audit-entry',
+          },
+          {'action': 'edited'},
+        ],
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('decodes active and archived vehicle restore metadata', () {
     final restored = ExpenseCloudRestoreCodec.decodeVehicleDirectory({
       'schema': 'expense_vehicle_directory_backup_v1',
