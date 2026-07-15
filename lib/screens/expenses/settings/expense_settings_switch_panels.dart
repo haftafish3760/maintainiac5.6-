@@ -26,6 +26,62 @@ class _SettingsSwitchPanel extends StatelessWidget {
   }
 }
 
+class _ExpenseStorageStatusPanel extends StatelessWidget {
+  const _ExpenseStorageStatusPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<AppStorageCheck>(
+      future: AppStorageGuard.check(AppStoragePurpose.backupCache),
+      builder: (context, snapshot) {
+        final check = snapshot.data;
+        final availableBytes = check?.availableBytes;
+        final color = availableBytes == null
+            ? const Color(0xFF7B8794)
+            : availableBytes >= 1024 * 1024 * 1024
+            ? const Color(0xFF28A745)
+            : availableBytes >= 500 * 1024 * 1024
+            ? const Color(0xFFFFD166)
+            : const Color(0xFFE55353);
+        final deviceMessage = availableBytes == null
+            ? 'Device free space could not be checked right now.'
+            : '${AppStorageGuard.formatBytes(availableBytes)} free on this device';
+        return IndustrialPanelSurface(
+          dark: true,
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(Icons.storage_rounded, color: color),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Storage',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      deviceMessage,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Cloud storage usage appears here after a signed-in backup account is connected. Maintainiac never removes other apps’ files or gallery photos.',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _ReceiptReviewStyleSettingsPanel extends StatelessWidget {
   const _ReceiptReviewStyleSettingsPanel({required this.settings});
 
@@ -142,7 +198,8 @@ class _SyncChoice<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<T>(
-    value: value,
+    key: ValueKey('$label:$value'),
+    initialValue: value,
     isExpanded: true,
     decoration: InputDecoration(labelText: label),
     items: [

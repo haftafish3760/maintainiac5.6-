@@ -322,4 +322,29 @@ void main() {
       expect(report.vehiclePersonalUsePercent, 0);
     },
   );
+
+  test('recap reports keep unclassified receipt value visible for review', () async {
+    final ledger = ExpenseLedgerController.memory();
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'review-1',
+        receiptDate: DateTime(2026, 7, 15),
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'review-line', description: 'Original store wording',
+            category: 'Tools', use: ExpenseLineUse.unclassified,
+            quantity: 1, unitsPerPackage: 1, unit: 'each', subtotal: 14,
+          ),
+        ],
+      ),
+    );
+    final report = ExpenseRecapReport.fromLedger(
+      ledger,
+      ExpenseDateRange(start: DateTime(2026, 7, 1), end: DateTime(2026, 7, 31)),
+    );
+    expect(report.totalExpenses, 14);
+    expect(report.businessExpenses, 0);
+    expect(report.personalExpenses, 0);
+    expect(report.unclassifiedExpenses, 14);
+  });
 }

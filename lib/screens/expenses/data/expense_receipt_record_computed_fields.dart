@@ -35,14 +35,23 @@ extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
       lines.fold(0, (sum, line) => sum + line.businessCents);
   int get personalLineSubtotalCents =>
       lines.fold(0, (sum, line) => sum + line.personalCents);
+  int get unclassifiedLineSubtotalCents => lines
+      .where((line) => line.use == ExpenseLineUse.unclassified)
+      .fold(0, (sum, line) => sum + line.subtotalCents);
   double get businessLineSubtotal => businessLineSubtotalCents / 100;
   double get personalLineSubtotal => personalLineSubtotalCents / 100;
+  double get unclassifiedLineSubtotal => unclassifiedLineSubtotalCents / 100;
   int get businessTotalCents =>
       businessLineSubtotalCents +
       _allocatedReceiptAdjustmentCents(businessLineSubtotalCents);
-  int get personalTotalCents => totalCents - businessTotalCents;
+  int get personalTotalCents =>
+      personalLineSubtotalCents +
+      _allocatedReceiptAdjustmentCents(personalLineSubtotalCents);
+  int get unclassifiedTotalCents =>
+      totalCents - businessTotalCents - personalTotalCents;
   double get businessTotal => businessTotalCents / 100;
   double get personalTotal => personalTotalCents / 100;
+  double get unclassifiedTotal => unclassifiedTotalCents / 100;
   bool get hasReceiptAttachment => hasReceiptProof || attachments.isNotEmpty;
   String get title => merchantName.trim().isEmpty ? 'Receipt' : merchantName;
 
@@ -78,6 +87,11 @@ extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
   double personalTotalForLine(ExpenseReceiptLineRecord line) {
     return line.personalAmount +
         _allocatedReceiptAdjustment(line.personalAmount);
+  }
+
+  double unclassifiedTotalForLine(ExpenseReceiptLineRecord line) {
+    if (line.use != ExpenseLineUse.unclassified) return 0;
+    return line.subtotal + _allocatedReceiptAdjustment(line.subtotal);
   }
 
   DateTime get sortDate {

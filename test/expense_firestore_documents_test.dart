@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_firestore_documents.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_schema.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
@@ -186,6 +187,28 @@ void main() {
     expect(doc.data['module'], 'expenses');
     expect(doc.data['uploadShape'], 'single_settings_document');
     expect(doc.data['hiddenRecapTiles'], ['fuelSpend', 'materialsSpend']);
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('backs up reminders in their own member-scoped document', () async {
+    final reminders = ExpenseReminderController.memory();
+    final now = DateTime.utc(2026, 6, 24, 12);
+    await reminders.save(
+      ExpenseReminderRecord(
+        id: 'REM-1', title: 'Insurance renewal', category: 'Insurance',
+        dueAt: DateTime.utc(2026, 7, 1),
+        frequency: ExpenseReminderFrequency.yearly,
+        channel: ExpenseReminderChannel.inApp,
+        createdAt: now, updatedAt: now,
+      ),
+    );
+    final doc = ExpenseFirestoreDocumentBuilder.expenseRemindersDocument(
+      orgId: 'ORG-1', uid: 'USER-1', deviceId: 'DEVICE-1',
+      reminders: reminders, nowUtc: now,
+    );
+    expect(doc.data['schema'], 'expense_reminders_v1');
+    expect(doc.data['uploadShape'], 'single_reminders_document');
+    expect((doc.data['reminders'] as List).single.toString(), contains('Insurance renewal'));
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 }

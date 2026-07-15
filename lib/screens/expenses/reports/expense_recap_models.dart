@@ -77,6 +77,7 @@ class ExpenseRecapReport {
     required this.totalExpenses,
     required this.businessExpenses,
     required this.personalExpenses,
+    required this.unclassifiedExpenses,
     required this.categoryTotals,
     required this.vehicleExpense,
     required this.fuelExpense,
@@ -116,6 +117,7 @@ class ExpenseRecapReport {
     var totalExpenses = 0.0;
     var businessExpenses = 0.0;
     var personalExpenses = 0.0;
+    var unclassifiedExpenses = 0.0;
     var vehicleExpense = 0.0;
     var fuelExpense = 0.0;
     var maintenanceExpense = 0.0;
@@ -158,7 +160,11 @@ class ExpenseRecapReport {
           usage: usage,
         );
         businessExpenses += businessAmount;
-        personalExpenses += amount - businessAmount;
+        final personalAmount = line.use == ExpenseLineUse.unclassified
+            ? 0.0
+            : amount - businessAmount;
+        personalExpenses += personalAmount;
+        unclassifiedExpenses += amount - businessAmount - personalAmount;
         final normalized = _normalizedCategory(line.category);
         categoryTotals.update(
           normalized,
@@ -193,6 +199,7 @@ class ExpenseRecapReport {
       totalExpenses: totalExpenses,
       businessExpenses: businessExpenses,
       personalExpenses: personalExpenses,
+      unclassifiedExpenses: unclassifiedExpenses,
       categoryTotals: Map.unmodifiable(categoryTotals),
       vehicleExpense: vehicleExpense,
       fuelExpense: fuelExpense,
@@ -225,6 +232,7 @@ class ExpenseRecapReport {
   final double totalExpenses;
   final double businessExpenses;
   final double personalExpenses;
+  final double unclassifiedExpenses;
   final Map<String, double> categoryTotals;
   final double vehicleExpense;
   final double fuelExpense;

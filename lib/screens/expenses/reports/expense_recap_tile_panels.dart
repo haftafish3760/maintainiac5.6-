@@ -36,6 +36,13 @@ class _RecapHeroPanel extends StatelessWidget {
               const SizedBox(width: 7),
               Expanded(
                 child: _MiniMetric(
+                  label: 'Review',
+                  value: _money(report.unclassifiedExpenses),
+                ),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: _MiniMetric(
                   label: 'Receipts',
                   value: report.receiptCount.toString(),
                 ),

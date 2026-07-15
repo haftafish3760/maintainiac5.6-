@@ -5,17 +5,20 @@ class ExpenseLedgerSummary {
     required this.totalCents,
     required this.businessCents,
     required this.personalCents,
+    required this.unclassifiedCents,
     required this.recordCount,
   });
 
   final int totalCents;
   final int businessCents;
   final int personalCents;
+  final int unclassifiedCents;
   final int recordCount;
 
   double get total => totalCents / 100;
   double get business => businessCents / 100;
   double get personal => personalCents / 100;
+  double get unclassified => unclassifiedCents / 100;
 }
 
 class ExpenseDateRange {

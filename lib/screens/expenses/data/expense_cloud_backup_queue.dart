@@ -2,6 +2,7 @@ import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_models.dart';
+import 'expense_reminder_store.dart';
 
 class ExpenseCloudBackupIdentity {
   const ExpenseCloudBackupIdentity({
@@ -60,6 +61,24 @@ class ExpenseCloudBackupQueue {
         uid: identity.uid,
         deviceId: identity.deviceId,
         settings: settings,
+        nowUtc: nowUtc,
+      ),
+      queuedAtUtc: nowUtc,
+    );
+  }
+
+  Future<void> queueReminders({
+    required ExpenseCloudBackupIdentity identity,
+    required ExpenseReminderController reminders,
+    DateTime? nowUtc,
+  }) async {
+    _requireIdentity(identity);
+    await _queue.enqueueReplacingPendingForPath(
+      ExpenseFirestoreDocumentBuilder.expenseRemindersDocument(
+        orgId: identity.orgId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        reminders: reminders,
         nowUtc: nowUtc,
       ),
       queuedAtUtc: nowUtc,

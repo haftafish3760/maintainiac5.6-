@@ -168,6 +168,10 @@ class ExpenseLedgerController extends ChangeNotifier {
         0,
         (sum, receipt) => sum + receipt.personalTotalCents,
       ),
+      unclassifiedCents: records.fold(
+        0,
+        (sum, receipt) => sum + receipt.unclassifiedTotalCents,
+      ),
       recordCount: records.length,
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../categories/expense_categories.dart';
 import '../reports/expense_recap_models.dart';
 import '../../../shared/state/expense_settings_store.dart';
+import '../../../shared/storage/app_storage_guard.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/industrial_panel_surface.dart';
 
@@ -32,6 +33,8 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
         children: [
           const GlobalOdometerHeader(section: AppSection.expenses),
           const SizedBox(height: 10),
+          const _ExpenseStorageStatusPanel(),
+          const SizedBox(height: 12),
           const _SettingsIntro(),
           const SizedBox(height: 12),
           _TopThreeSettingsPanel(

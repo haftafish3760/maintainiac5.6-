@@ -75,6 +75,12 @@ class _VehicleExpenseMetricsPanel extends StatelessWidget {
             value: _money(metrics.personalExpense),
             color: const Color(0xFF79C8FF),
           ),
+          if (metrics.unclassifiedExpense > 0)
+            _CalendarRecapRow(
+              label: 'Needs Classification',
+              value: _money(metrics.unclassifiedExpense),
+              color: const Color(0xFFFFD166),
+            ),
           const _CalendarRecapDivider('Receipt Reads'),
           _CalendarRecapRow(
             label: 'Receipt Read Status',

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_backup_queue.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 
@@ -64,6 +65,20 @@ void main() {
         ),
         throwsArgumentError,
       );
+
+      final reminders = ExpenseReminderController.memory();
+      await reminders.save(
+        ExpenseReminderRecord(
+          id: 'REM-1', title: 'Registration', category: 'Registration',
+          dueAt: DateTime.utc(2026, 8, 1),
+          frequency: ExpenseReminderFrequency.yearly,
+          channel: ExpenseReminderChannel.inApp,
+          createdAt: DateTime.utc(2026, 7, 15),
+          updatedAt: DateTime.utc(2026, 7, 15),
+        ),
+      );
+      await backup.queueReminders(identity: identity, reminders: reminders);
+      expect(queue.pendingRecords, hasLength(2));
     },
   );
 

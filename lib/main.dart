@@ -10,6 +10,7 @@ import 'screens/expenses/data/expense_draft_store.dart';
 import 'screens/expenses/data/expense_export_store.dart';
 import 'screens/expenses/data/expense_ledger_store.dart';
 import 'screens/expenses/data/expense_job_store.dart';
+import 'screens/expenses/data/expense_reminder_store.dart';
 import 'screens/expenses/data/expense_work_profile_store.dart';
 import 'screens/invoices/data/invoice_ledger_store.dart';
 import 'shared/state/app_state.dart';
@@ -39,6 +40,7 @@ Future<void> main() async {
   final expenseSettings = await ExpenseSettingsController.create();
   final expenseLedger = await ExpenseLedgerController.create();
   final expenseJobs = await ExpenseJobController.create();
+  final expenseReminders = await ExpenseReminderController.create();
   final expenseWorkProfiles = await ExpenseWorkProfileController.create();
   final expenseDrafts = await ExpenseDraftController.create();
   final expenseExports = await ExpenseExportController.create();
@@ -89,7 +91,9 @@ Future<void> main() async {
             controller: expenseWorkProfiles,
             child: ExpenseJobScope(
               controller: expenseJobs,
-              child: ExpenseDraftScope(
+              child: ExpenseReminderScope(
+                controller: expenseReminders,
+                child: ExpenseDraftScope(
                 controller: expenseDrafts,
                 child: ExpenseExportScope(
                   controller: expenseExports,
@@ -125,6 +129,7 @@ Future<void> main() async {
                       ),
                     ),
                   ),
+                ),
                 ),
               ),
             ),

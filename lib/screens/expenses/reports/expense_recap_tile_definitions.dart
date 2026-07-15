@@ -30,6 +30,12 @@ final expenseRecapTileDefinitions = <ExpenseRecapTileDefinition>[
     'Core',
     (r) => r.personalExpenses,
   ),
+  _moneyTile(
+    'unclassifiedExpenses',
+    'Needs Classification',
+    'Core',
+    (r) => r.unclassifiedExpenses,
+  ),
   _countTile('receiptCount', 'Receipt Count', 'Core', (r) => r.receiptCount),
   _moneyTile('fuelSpend', 'Fuel Spend', 'Vehicle', (r) => r.fuelExpense),
   _moneyTile(

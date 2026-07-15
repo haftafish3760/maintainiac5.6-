@@ -117,6 +117,7 @@ class _VehicleExpenseMetrics {
     required this.totalExpense,
     required this.businessExpense,
     required this.personalExpense,
+    required this.unclassifiedExpense,
     required this.vehicleExpense,
     required this.fuelExpense,
     required this.fuelUnits,
@@ -131,6 +132,7 @@ class _VehicleExpenseMetrics {
     var totalExpense = 0.0;
     var businessExpense = 0.0;
     var personalExpense = 0.0;
+    var unclassifiedExpense = 0.0;
     var vehicleExpense = 0.0;
     var fuelExpense = 0.0;
     var fuelUnits = 0.0;
@@ -139,6 +141,7 @@ class _VehicleExpenseMetrics {
       totalExpense += receipt.total;
       businessExpense += receipt.businessTotal;
       personalExpense += receipt.personalTotal;
+      unclassifiedExpense += receipt.unclassifiedTotal;
       for (final line in receipt.lines) {
         final lineTotal = receipt.totalForLine(line);
         if (_isVehicleExpenseCategory(line.category)) {
@@ -161,6 +164,7 @@ class _VehicleExpenseMetrics {
       totalExpense: totalExpense,
       businessExpense: businessExpense,
       personalExpense: personalExpense,
+      unclassifiedExpense: unclassifiedExpense,
       vehicleExpense: vehicleExpense,
       fuelExpense: fuelExpense,
       fuelUnits: fuelUnits,
@@ -172,6 +176,7 @@ class _VehicleExpenseMetrics {
   final double totalExpense;
   final double businessExpense;
   final double personalExpense;
+  final double unclassifiedExpense;
   final double vehicleExpense;
   final double fuelExpense;
   final double fuelUnits;

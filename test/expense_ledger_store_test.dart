@@ -499,4 +499,32 @@ void main() {
     expect(recap.business, 54);
     expect(recap.personal, 36);
   });
+
+  test('unclassified receipt lines remain outside business and personal recaps', () async {
+    final ledger = await ExpenseLedgerController.create();
+    await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'EXP-unclassified',
+        receiptDate: DateTime(2026, 7, 15),
+        enteredTotal: 11,
+        lines: const [
+          ExpenseReceiptLineRecord(
+            id: 'LINE-unclassified',
+            description: 'Store wording',
+            category: 'Tools',
+            use: ExpenseLineUse.unclassified,
+            quantity: 1,
+            unitsPerPackage: 1,
+            unit: 'each',
+            subtotal: 10,
+          ),
+        ],
+      ),
+    );
+    final recap = ledger.summaryForDay(DateTime(2026, 7, 15));
+    expect(recap.total, 11);
+    expect(recap.business, 0);
+    expect(recap.personal, 0);
+    expect(recap.unclassified, 11);
+  });
 }

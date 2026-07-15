@@ -74,6 +74,15 @@ class _ExpenseTotalsPanel extends StatelessWidget {
                   range: range,
                   detail: detailLabel,
                 ),
+                if (ledgerSummary.unclassifiedCents > 0)
+                  _MoneyStatData(
+                    '${period.statPrefix} Needs Classification',
+                    _money(ledgerSummary.unclassified),
+                    const Color(0xFFFFD166),
+                    scope: 'Unclassified',
+                    range: range,
+                    detail: detailLabel,
+                  ),
               ];
               if (narrow) {
                 return Wrap(

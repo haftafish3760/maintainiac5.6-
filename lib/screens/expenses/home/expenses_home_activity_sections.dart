@@ -48,6 +48,14 @@ class _UpcomingExpensesPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeContext = OperationalContextScope.of(context).context;
+    final reminders = ExpenseReminderScope.of(context)
+        .upcomingForScope(
+          workProfileId: activeContext.workProfileId,
+          vehicleId: activeContext.activeVehicleId,
+        )
+        .take(3)
+        .toList();
     return _SolidSection(
       backgroundColor: _paper,
       borderColor: const Color(0xFF3E4A50),
@@ -74,15 +82,29 @@ class _UpcomingExpensesPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'No upcoming expenses scheduled yet.',
-            style: TextStyle(
-              color: Color(0xFFC8D0D3),
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0,
-            ),
-          ),
+          if (reminders.isEmpty)
+            const Text(
+              'No upcoming expenses scheduled yet.',
+              style: TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
+              ),
+            )
+          else
+            for (final reminder in reminders)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '${reminder.title} · ${reminder.dueLabel(DateTime.now())}',
+                  style: const TextStyle(
+                    color: Color(0xFFE8ECEE),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
         ],
       ),
     );

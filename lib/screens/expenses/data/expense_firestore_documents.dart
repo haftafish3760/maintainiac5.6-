@@ -3,6 +3,7 @@ import '../../../shared/firebase/maintainiac_firestore_schema.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'expense_ledger_models.dart';
+import 'expense_reminder_store.dart';
 
 class ExpenseFirestoreDocumentBuilder {
   const ExpenseFirestoreDocumentBuilder._();
@@ -65,6 +66,7 @@ class ExpenseFirestoreDocumentBuilder {
         'lineSubtotalCents': _moneyCents(receipt.lineSubtotal),
         'businessTotalCents': _moneyCents(receipt.businessTotal),
         'personalTotalCents': _moneyCents(receipt.personalTotal),
+        'unclassifiedTotalCents': _moneyCents(receipt.unclassifiedTotal),
         'primaryCategory': _readable(receipt.primaryCategoryLabel),
         'useSummary': _useSummary(receipt),
         'lineCount': receipt.lines.length,
@@ -105,6 +107,33 @@ class ExpenseFirestoreDocumentBuilder {
         'module': 'expenses',
         'settingsScope': 'member',
         'uploadShape': 'single_settings_document',
+      }),
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft expenseRemindersDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseReminderController reminders,
+    DateTime? nowUtc,
+  }) {
+    final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return MaintainiacFirestoreDocumentDraft(
+      path:
+          '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgSettings)}/expense_reminders_${_pathToken(uid)}',
+      data: Map.unmodifiable({
+        ...reminders.toBackupMap(ownerUid: uid, exportedAtUtc: exportedAt),
+        'orgId': _pathToken(orgId),
+        'id': 'expense_reminders_${_pathToken(uid)}',
+        'createdByUid': uid,
+        'updatedByUid': uid,
+        'deviceId': _token(deviceId),
+        'createdAt': exportedAt.toIso8601String(),
+        'updatedAt': exportedAt.toIso8601String(),
+        'module': 'expenses',
+        'settingsScope': 'member',
+        'uploadShape': 'single_reminders_document',
       }),
     );
   }
