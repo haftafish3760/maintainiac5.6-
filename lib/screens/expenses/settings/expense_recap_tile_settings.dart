@@ -7,6 +7,7 @@ class _RecapTileSettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final groups = expenseRecapTileDefinitions
         .map((tile) => tile.group)
         .toSet()
@@ -21,23 +22,26 @@ class _RecapTileSettingsPanel extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Recap Tiles',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                    strings.recapTiles,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
                 TextButton.icon(
                   onPressed: settings.resetRecapTiles,
                   icon: const Icon(Icons.visibility_rounded, size: 18),
-                  label: const Text('Show Everything'),
+                  label: Text(strings.showEverything),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Choose which tiles appear on the Expense Recap screen.',
-              style: TextStyle(
+            Text(
+              strings.recapTilesExplanation,
+              style: const TextStyle(
                 color: Color(0xFFC8D0D3),
                 fontWeight: FontWeight.w700,
               ),

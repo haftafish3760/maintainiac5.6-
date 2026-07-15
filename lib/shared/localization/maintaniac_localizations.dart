@@ -245,6 +245,15 @@ class MaintaniacLocalizations {
     'Preguntar para estas categorías',
     'Demander pour ces catégories',
   );
+  String get recapTiles =>
+      _text('Recap Tiles', 'Tarjetas de resumen', 'Tuiles de récapitulatif');
+  String get showEverything =>
+      _text('Show Everything', 'Mostrar todo', 'Tout afficher');
+  String get recapTilesExplanation => _text(
+    'Choose which tiles appear on the Expense Recap screen.',
+    'Elija qué tarjetas aparecen en la pantalla de resumen de gastos.',
+    'Choisissez les tuiles à afficher dans l’écran de récapitulatif des dépenses.',
+  );
 }
 
 class _MaintaniacLocalizationsDelegate
