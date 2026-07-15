@@ -14,11 +14,12 @@ part 'receipt_proof_storage_copy.dart';
 part 'receipt_proof_storage_helpers.dart';
 part 'receipt_proof_storage_cleanup.dart';
 
-class ReceiptProofStorage {
-  ReceiptProofStorage._();
+Future<void> _receiptProofWriteTail = Future<void>.value();
 
-  static final instance = ReceiptProofStorage._();
-  Future<void> _writeTail = Future<void>.value();
+class ReceiptProofStorage {
+  const ReceiptProofStorage._();
+
+  static const instance = ReceiptProofStorage._();
 
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
     List<ReceiptAttachmentRecord> attachments,
@@ -285,8 +286,8 @@ class ReceiptProofStorage {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
-    final next = _writeTail.then((_) => operation());
-    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    final next = _receiptProofWriteTail.then((_) => operation());
+    _receiptProofWriteTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
 }
