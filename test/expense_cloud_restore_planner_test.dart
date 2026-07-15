@@ -50,6 +50,47 @@ void main() {
     expect(ledger.receiptById('restore-me'), isNotNull);
   });
 
+  test(
+    'requires review before restoring a duplicate receipt under a new ID',
+    () async {
+      final ledger = ExpenseLedgerController.memory();
+      await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'local-receipt',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          fileHashSha256: 'abcdef',
+          lines: const [],
+        ),
+      );
+      final cloud = ExpenseCloudRestoredReceipt(
+        receipt: ExpenseReceiptRecord(
+          id: 'cloud-receipt',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          fileHashSha256: 'abcdef',
+          lines: const [],
+        ),
+        proofPointers: const [],
+      );
+
+      final plan = ExpenseCloudRestorePlanner.planReceipt(
+        ledger: ledger,
+        cloudRecord: cloud,
+      );
+
+      expect(
+        plan.disposition,
+        ExpenseCloudRestoreDisposition.duplicateCandidatesNeedReview,
+      );
+      expect(plan.duplicateCandidates.single.receiptId, 'local-receipt');
+      final result = await ExpenseCloudRestorePlanner.createIfMissing(
+        ledger: ledger,
+        plan: plan,
+      );
+      expect(result.wasCreated, isFalse);
+      expect(ledger.receiptById('cloud-receipt'), isNull);
+    },
+  );
+
   test('never overwrites an existing local receipt during restore', () async {
     final ledger = ExpenseLedgerController.memory();
     await ledger.saveReceipt(

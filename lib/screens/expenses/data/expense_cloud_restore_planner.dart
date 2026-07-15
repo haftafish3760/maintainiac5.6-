@@ -1,4 +1,5 @@
 import 'expense_cloud_restore_codec.dart';
+import 'expense_ledger_models.dart';
 import 'expense_ledger_store.dart';
 import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
@@ -18,6 +19,15 @@ class ExpenseCloudRestorePlanner {
   }) {
     final local = ledger.receiptById(cloudRecord.receipt.id);
     if (local == null) {
+      final duplicateCandidates = ledger.duplicateCandidatesFor(
+        cloudRecord.receipt,
+      );
+      if (duplicateCandidates.isNotEmpty) {
+        return ExpenseCloudReceiptRestorePlan.duplicateCandidatesNeedReview(
+          cloudRecord: cloudRecord,
+          duplicateCandidates: duplicateCandidates,
+        );
+      }
       return ExpenseCloudReceiptRestorePlan.create(cloudRecord);
     }
     final cloudRevision = cloudRecord.receipt.localRevision;
@@ -177,6 +187,7 @@ class ExpenseCloudRestorePlanner {
 
 enum ExpenseCloudRestoreDisposition {
   createLocal,
+  duplicateCandidatesNeedReview,
   localNewer,
   cloudNewerNeedsReview,
   sameRevisionNeedsReview,
@@ -187,6 +198,7 @@ class ExpenseCloudReceiptRestorePlan {
     required this.disposition,
     required this.cloudRecord,
     required this.localRevision,
+    this.duplicateCandidates = const [],
   });
 
   const ExpenseCloudReceiptRestorePlan.create(
@@ -196,6 +208,17 @@ class ExpenseCloudReceiptRestorePlan {
         cloudRecord: record,
         localRevision: null,
       );
+
+  const ExpenseCloudReceiptRestorePlan.duplicateCandidatesNeedReview({
+    required ExpenseCloudRestoredReceipt cloudRecord,
+    required List<ExpenseReceiptDuplicateCandidate> duplicateCandidates,
+  }) : this._(
+         disposition:
+             ExpenseCloudRestoreDisposition.duplicateCandidatesNeedReview,
+         cloudRecord: cloudRecord,
+         localRevision: null,
+         duplicateCandidates: duplicateCandidates,
+       );
 
   const ExpenseCloudReceiptRestorePlan.localNewer({
     required ExpenseCloudRestoredReceipt cloudRecord,
@@ -227,6 +250,7 @@ class ExpenseCloudReceiptRestorePlan {
   final ExpenseCloudRestoreDisposition disposition;
   final ExpenseCloudRestoredReceipt cloudRecord;
   final int? localRevision;
+  final List<ExpenseReceiptDuplicateCandidate> duplicateCandidates;
 }
 
 class ExpenseCloudRestoreApplyResult {
