@@ -244,6 +244,36 @@ void main() {
 
     expect(expenseBackupBlock, isNot(contains('syncLocalSnapshot()')));
   });
+
+  test('flushes each requested cloud document path only once', () async {
+    final sink = _RecordingSink();
+    final service = await _service(
+      sink: sink,
+      organizationId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+    );
+    final saved = await service.ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'receipt-one-write',
+        receiptDate: DateTime.utc(2026, 7, 15),
+        lines: const [],
+      ),
+    );
+    final queued = await service.queueReceipt(saved.id);
+
+    final result = await service.flushPaths([
+      queued.documentPath!,
+      queued.documentPath!,
+      '  ',
+    ], queuedCount: 3);
+
+    expect(result.queuedCount, 1);
+    expect(result.attemptedCount, 1);
+    expect(result.uploadedCount, 1);
+    expect(result.completed, isTrue);
+    expect(sink.writeCount, 1);
+  });
 }
 
 Future<ExpenseCloudBackupService> _service({
@@ -274,12 +304,14 @@ Future<ExpenseCloudBackupService> _service({
 
 class _RecordingSink implements MaintainiacFirestoreDocumentSink {
   final documents = <String, Map<String, Object?>>{};
+  var writeCount = 0;
 
   @override
   Future<void> writeDocument({
     required String path,
     required Map<String, Object?> data,
   }) async {
+    writeCount++;
     documents[path] = data;
   }
 }

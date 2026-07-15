@@ -238,13 +238,17 @@ class ExpenseCloudBackupService {
     required int queuedCount,
     DateTime? nowUtc,
   }) async {
+    final targetPaths = <String>{
+      for (final path in paths)
+        if (path.trim().isNotEmpty) path.trim(),
+    };
     var attemptedCount = 0;
     var uploadedCount = 0;
     var failedCount = 0;
     MaintainiacFirestoreUploadStatus lastStatus =
         MaintainiacFirestoreUploadStatus.empty;
     String? reason;
-    for (final path in paths) {
+    for (final path in targetPaths) {
       final upload = await uploadCoordinator.uploadPending(
         limit: 1,
         path: path,
@@ -257,7 +261,7 @@ class ExpenseCloudBackupService {
       reason ??= upload.reason;
     }
     return ExpenseCloudBackupResult(
-      queuedCount: queuedCount,
+      queuedCount: targetPaths.length,
       attemptedCount: attemptedCount,
       uploadedCount: uploadedCount,
       failedCount: failedCount,
