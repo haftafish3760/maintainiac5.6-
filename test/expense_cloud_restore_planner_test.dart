@@ -97,9 +97,14 @@ void main() {
       receipt: ExpenseReceiptRecord(
         id: 'deleted-cloud-receipt',
         receiptDate: DateTime.utc(2026, 7, 15),
+        createdAt: DateTime.utc(2026, 7, 15, 8),
+        updatedAt: DateTime.utc(2026, 7, 15, 12),
         recordState: MaintainiacRecordState.deleted,
         deletedAt: DateTime.utc(2026, 7, 15, 12),
         localRevision: 4,
+        auditEvents: const [
+          '2026-07-15T12:00:00.000Z deleted receipt deleted-cloud-receipt',
+        ],
         lines: const [],
       ),
       proofPointers: const [],
@@ -117,8 +122,14 @@ void main() {
       )).wasCreated,
       isTrue,
     );
-    expect(ledger.receiptById('deleted-cloud-receipt')?.isDeleted, isTrue);
-    expect(ledger.receiptById('deleted-cloud-receipt')?.localRevision, 4);
+    final restored = ledger.receiptById('deleted-cloud-receipt')!;
+    expect(restored.isDeleted, isTrue);
+    expect(restored.localRevision, 4);
+    expect(restored.createdAt, DateTime.utc(2026, 7, 15, 8));
+    expect(restored.updatedAt, DateTime.utc(2026, 7, 15, 12));
+    expect(restored.auditEvents, [
+      '2026-07-15T12:00:00.000Z deleted receipt deleted-cloud-receipt',
+    ]);
     expect(ledger.receipts, isEmpty);
   });
 

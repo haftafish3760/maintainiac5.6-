@@ -59,11 +59,10 @@ class ExpenseCloudRestorePlanner {
     if (plan.disposition != ExpenseCloudRestoreDisposition.createLocal) {
       return const ExpenseCloudRestoreApplyResult.notApplied();
     }
-    if (ledger.receiptById(plan.cloudRecord.receipt.id) != null) {
-      return const ExpenseCloudRestoreApplyResult.localRecordExists();
-    }
-    final saved = await ledger.saveReceipt(plan.cloudRecord.receipt);
-    return ExpenseCloudRestoreApplyResult.created(saved.id);
+    final saved = await ledger.importReceiptIfMissing(plan.cloudRecord.receipt);
+    return saved == null
+        ? const ExpenseCloudRestoreApplyResult.localRecordExists()
+        : ExpenseCloudRestoreApplyResult.created(saved.id);
   }
 
   static ExpenseCloudWorkProfileRestorePlan planWorkProfiles({
