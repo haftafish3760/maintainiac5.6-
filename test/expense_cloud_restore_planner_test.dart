@@ -118,6 +118,7 @@ void main() {
       isTrue,
     );
     expect(ledger.receiptById('deleted-cloud-receipt')?.isDeleted, isTrue);
+    expect(ledger.receiptById('deleted-cloud-receipt')?.localRevision, 4);
     expect(ledger.receipts, isEmpty);
   });
 
