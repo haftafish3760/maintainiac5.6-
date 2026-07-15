@@ -300,6 +300,10 @@ class ExpenseCloudBackupService {
     required int queuedCount,
     DateTime? nowUtc,
   }) async {
+    final identity = _identityOrNull;
+    if (identity == null) {
+      return const ExpenseCloudBackupResult.identityRequired();
+    }
     final targetPaths = <String>{
       for (final path in paths)
         if (path.trim().isNotEmpty) path.trim(),
@@ -311,6 +315,17 @@ class ExpenseCloudBackupService {
         MaintainiacFirestoreUploadStatus.empty;
     String? reason;
     for (final path in targetPaths) {
+      final pendingForPath = queueStore.pendingRecords.where(
+        (record) => record.path == path,
+      );
+      if (pendingForPath.any(
+        (record) => !_belongsToCurrentIdentity(record, identity),
+      )) {
+        failedCount += 1;
+        reason ??=
+            'A queued backup belongs to a different account or workspace.';
+        continue;
+      }
       final upload = await uploadCoordinator.uploadPending(
         limit: 1,
         path: path,
@@ -347,6 +362,19 @@ class ExpenseCloudBackupService {
   }
 
   static String _clean(String? value) => value?.trim() ?? '';
+
+  static bool _belongsToCurrentIdentity(
+    MaintainiacFirestoreQueuedDocument record,
+    _ExpenseCloudIdentity identity,
+  ) {
+    if (!record.path.startsWith('orgs/${identity.organizationId}/')) {
+      return false;
+    }
+    final data = record.data;
+    return _clean(data['orgId']?.toString()) == identity.organizationId &&
+        _clean(data['createdByUid']?.toString()) == identity.uid &&
+        _clean(data['updatedByUid']?.toString()) == identity.uid;
+  }
 }
 
 class ExpenseCloudBackupResult {

@@ -122,6 +122,41 @@ void main() {
   );
 
   test(
+    'never flushes a queue entry from another account or workspace',
+    () async {
+      final previous = await _service(
+        organizationId: 'org-previous',
+        uid: 'user-previous',
+        deviceId: 'device-previous',
+      );
+      final receipt = await previous.ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'receipt-previous',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          lines: const [],
+        ),
+      );
+      final queued = await previous.queueReceipt(receipt.id);
+      final sink = _RecordingSink();
+      final current = await _service(
+        sink: sink,
+        organizationId: 'org-current',
+        uid: 'user-current',
+        deviceId: 'device-current',
+      );
+
+      final result = await current.flushPaths([
+        queued.documentPath!,
+      ], queuedCount: 1);
+
+      expect(result.completed, isFalse);
+      expect(result.failedCount, 1);
+      expect(result.reason, contains('different account'));
+      expect(sink.documents, isEmpty);
+    },
+  );
+
+  test(
     'refuses an oversized receipt backup without truncating local lines',
     () async {
       final sink = _RecordingSink();
