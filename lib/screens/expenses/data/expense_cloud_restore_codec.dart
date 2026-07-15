@@ -205,21 +205,28 @@ class ExpenseCloudRestoreCodec {
     if (value is! List) {
       throw const FormatException('Expense receipt proof metadata is corrupt.');
     }
-    return List.unmodifiable([
-      for (final item in value)
-        if (item is Map && _text(item['id']).isNotEmpty)
-          ExpenseCloudProofPointer(
-            id: _text(item['id']),
-            storagePath: _text(item['storagePath']),
-            kind: ReceiptAttachmentKind.fromName(_text(item['kind'])),
-            mimeType: _text(item['mimeType']),
-            byteSize: _integer(item['backupByteSize'] ?? item['byteSize']),
-            fileHashSha256: _text(item['fileHashSha256']),
-            dataSaverLevel: ReceiptDataSaverLevel.fromName(
-              _text(item['dataSaverLevel']),
-            ),
+    final pointers = <ExpenseCloudProofPointer>[];
+    for (final item in value) {
+      if (item is! Map || _text(item['id']).isEmpty) {
+        throw const FormatException(
+          'Expense receipt proof metadata is corrupt.',
+        );
+      }
+      pointers.add(
+        ExpenseCloudProofPointer(
+          id: _text(item['id']),
+          storagePath: _text(item['storagePath']),
+          kind: ReceiptAttachmentKind.fromName(_text(item['kind'])),
+          mimeType: _text(item['mimeType']),
+          byteSize: _integer(item['backupByteSize'] ?? item['byteSize']),
+          fileHashSha256: _text(item['fileHashSha256']),
+          dataSaverLevel: ReceiptDataSaverLevel.fromName(
+            _text(item['dataSaverLevel']),
           ),
-    ]);
+        ),
+      );
+    }
+    return List.unmodifiable(pointers);
   }
 
   static List<String> _auditEvents(Object? value) {

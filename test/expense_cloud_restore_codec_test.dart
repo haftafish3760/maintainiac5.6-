@@ -164,6 +164,21 @@ void main() {
     );
   });
 
+  test('rejects malformed proof entries instead of dropping them', () {
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt({
+        'schema': 'expense_receipt_backup_v1',
+        'id': 'bad-proof-entry',
+        'receiptDate': '2026-07-15T00:00:00.000Z',
+        'proofs': [
+          {'id': 'proof-1'},
+          'not-a-proof',
+        ],
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('decodes active and archived vehicle restore metadata', () {
     final restored = ExpenseCloudRestoreCodec.decodeVehicleDirectory({
       'schema': 'expense_vehicle_directory_backup_v1',
