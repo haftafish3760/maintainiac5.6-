@@ -35,6 +35,7 @@ class ExpenseReceiptDraftRecord {
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
     this.odometerReading,
+    this.contextSnapshot = const ExpenseReceiptContextSnapshot(),
     this.sourceScreen = 'expenses',
     this.lines = const [],
   });
@@ -99,6 +100,9 @@ class ExpenseReceiptDraftRecord {
       ),
       trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
       odometerReading: _expenseInt(map['odometerReading']),
+      contextSnapshot: ExpenseReceiptContextSnapshot.fromMap(
+        _expenseMap(map['contextSnapshot']),
+      ),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
       updatedAt: _expenseDateTime(map['updatedAt']) ?? DateTime.now(),
       lines:
@@ -145,6 +149,7 @@ class ExpenseReceiptDraftRecord {
   int? get enteredTotalCents => _expenseCentsFromAmount(enteredTotal);
   final bool trackMaterialsInInventory;
   final int? odometerReading;
+  final ExpenseReceiptContextSnapshot contextSnapshot;
   final String sourceScreen;
   final DateTime updatedAt;
   final List<ExpenseReceiptLineRecord> lines;
@@ -225,6 +230,7 @@ class ExpenseReceiptDraftRecord {
       'enteredTotalCents': enteredTotalCents,
       'trackMaterialsInInventory': trackMaterialsInInventory,
       'odometerReading': odometerReading,
+      'contextSnapshot': contextSnapshot.toMap(),
       'sourceScreen': sourceScreen,
       'updatedAt': updatedAt.toIso8601String(),
       'lines': [for (final line in lines) line.toMap()],

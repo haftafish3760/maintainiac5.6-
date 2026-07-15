@@ -35,6 +35,32 @@ enum ExpenseReceiptReviewStyle {
   }
 }
 
+enum ExpenseCloudSyncPreference {
+  manual,
+  wifiOnly,
+  wifiOrCellular;
+
+  static ExpenseCloudSyncPreference fromName(String? value) {
+    return ExpenseCloudSyncPreference.values.firstWhere(
+      (preference) => preference.name == value?.trim(),
+      orElse: () => ExpenseCloudSyncPreference.manual,
+    );
+  }
+}
+
+enum ExpenseReceiptCopyRetention {
+  keepOriginal,
+  keepOptimizedCopy,
+  cloudOnlyAfterVerifiedUpload;
+
+  static ExpenseReceiptCopyRetention fromName(String? value) {
+    return ExpenseReceiptCopyRetention.values.firstWhere(
+      (retention) => retention.name == value?.trim(),
+      orElse: () => ExpenseReceiptCopyRetention.keepOptimizedCopy,
+    );
+  }
+}
+
 class ExpenseSettingsController extends ChangeNotifier {
   ExpenseSettingsController._(this._box);
 
@@ -64,6 +90,13 @@ class ExpenseSettingsController extends ChangeNotifier {
     return ExpenseReceiptReviewStyle.fromName(value is String ? value : null);
   }
 
+  ExpenseCloudSyncPreference get cloudSyncPreference =>
+      ExpenseCloudSyncPreference.fromName(_box.get(_Keys.cloudSyncPreference));
+  ExpenseReceiptCopyRetention get receiptCopyRetention =>
+      ExpenseReceiptCopyRetention.fromName(
+        _box.get(_Keys.receiptCopyRetention),
+      );
+
   List<String> get quickCategoryOrder =>
       _readStringList(_Keys.quickCategoryOrder);
   List<String> get topThreeCategories => _readStringList(
@@ -90,6 +123,8 @@ class ExpenseSettingsController extends ChangeNotifier {
       'audibleNotifications': audibleNotifications,
       'draftReminder': draftReminder,
       'receiptReviewStyle': receiptReviewStyle.name,
+      'cloudSyncPreference': cloudSyncPreference.name,
+      'receiptCopyRetention': receiptCopyRetention.name,
       'quickCategoryOrder': quickCategoryOrder,
       'topThreeCategories': topThreeCategories,
       'hiddenRecapTiles': hiddenRecapTiles,
@@ -120,6 +155,18 @@ class ExpenseSettingsController extends ChangeNotifier {
       _writeBool(_Keys.draftReminder, value);
   Future<void> setReceiptReviewStyle(ExpenseReceiptReviewStyle value) async {
     await _box.put(_Keys.receiptReviewStyle, value.name);
+    notifyListeners();
+  }
+
+  Future<void> setCloudSyncPreference(ExpenseCloudSyncPreference value) async {
+    await _box.put(_Keys.cloudSyncPreference, value.name);
+    notifyListeners();
+  }
+
+  Future<void> setReceiptCopyRetention(
+    ExpenseReceiptCopyRetention value,
+  ) async {
+    await _box.put(_Keys.receiptCopyRetention, value.name);
     notifyListeners();
   }
 
@@ -271,6 +318,8 @@ class _Keys {
   static const audibleNotifications = 'audible_notifications';
   static const draftReminder = 'draft_reminder';
   static const receiptReviewStyle = 'receipt_review_style';
+  static const cloudSyncPreference = 'cloud_sync_preference';
+  static const receiptCopyRetention = 'receipt_copy_retention';
   static const quickCategoryOrder = 'quick_category_order';
   static const topThreeCategories = 'top_three_categories';
   static const hiddenRecapTiles = 'hidden_recap_tiles';

@@ -39,6 +39,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       enteredTax: _enteredReceiptTax,
       enteredTotal: _enteredReceiptTotal,
       trackMaterialsInInventory: _trackMaterialsInInventory,
+      contextSnapshot: _expenseContext,
       sourceScreen: _isMaterialsFlow
           ? 'materials_expense_receipt'
           : _isMaintenanceRepairFlow
@@ -63,6 +64,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
   }
 
   void _applyDraft(ExpenseReceiptDraftRecord draft) {
+    _expenseContext = draft.contextSnapshot;
     _selectedDate = DateTime(
       draft.receiptDate.year,
       draft.receiptDate.month,
@@ -140,6 +142,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
 
   void _applyReceipt(ExpenseReceiptRecord receipt) {
     _editingReceipt = receipt;
+    _expenseContext = receipt.contextSnapshot;
     _selectedDate = DateTime(
       receipt.receiptDate.year,
       receipt.receiptDate.month,

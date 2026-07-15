@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'active_workday_screen.dart';
@@ -32,7 +34,6 @@ class _PreDayDashboardBody extends StatefulWidget {
 
 class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
   var _activeVehicle = defaultVehicleProfile;
-  final _workProfile = 'Business';
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +44,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         : '${activeContext.dashboardMode.label} / '
               '${activeContext.mileageMode.label} / '
               '${activeContext.syncMode.label}';
+    final workProfile = activeContext?.workProfileName ?? 'Business';
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 10)),
@@ -51,9 +53,18 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         SliverToBoxAdapter(
           child: DashboardContextSelectors(
             activeVehicle: _activeVehicle,
-            workProfile: _workProfile,
+            workProfile: workProfile,
             onVehicleChanged: (vehicle) {
               setState(() => _activeVehicle = vehicle);
+              if (operationalContext != null) {
+                unawaited(
+                  operationalContext.setActiveVehicle(
+                    vehicleId: odometerVehicleIdForLabel(vehicle.nickname),
+                    vehicleLabel: vehicle.nickname,
+                    usage: vehicle.usage,
+                  ),
+                );
+              }
             },
           ),
         ),
@@ -80,6 +91,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
   Future<void> _startDay() async {
     final operationalContext = OperationalContextScope.maybeOf(context);
     final activeContext = operationalContext?.context;
+    final workProfile = activeContext?.workProfileName ?? 'Business';
     final saved = await openOdometerEntry(
       context,
       title: 'Starting Odometer',
@@ -93,7 +105,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
           odometerVehicleIdForLabel(_activeVehicle.nickname),
       vehicleLabel:
           activeContext?.activeVehicleLabel ?? _activeVehicle.nickname,
-      workProfileId: activeContext?.workProfileId ?? _workProfile,
+      workProfileId: activeContext?.workProfileId ?? workProfile,
       startOdometer: odometer.reading,
     );
     if (!mounted) return;
@@ -101,7 +113,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       appSlideRoute(
         ActiveWorkdayScreen(
           activeVehicle: _activeVehicle,
-          workProfileName: _workProfile,
+          workProfileName: workProfile,
         ),
       ),
     );

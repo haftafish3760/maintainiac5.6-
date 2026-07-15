@@ -56,6 +56,10 @@ void main() {
 
       await controller.setDashboardMode(OperationalDashboardMode.fleetOwner);
       await controller.setSyncMode(OperationalSyncMode.companySync);
+      await controller.setWorkProfile(
+        workProfileId: 'delivery-evening',
+        workProfileName: 'Evening Delivery',
+      );
       await controller.setActiveVehicle(
         vehicleId: 'truck-2',
         vehicleLabel: 'Work Truck 2',
@@ -78,6 +82,8 @@ void main() {
       );
       expect(reloaded.context.mileageMode, OperationalMileageMode.fleetReview);
       expect(reloaded.context.syncMode, OperationalSyncMode.companySync);
+      expect(reloaded.context.workProfileId, 'delivery-evening');
+      expect(reloaded.context.workProfileName, 'Evening Delivery');
       expect(reloaded.context.activeVehicleId, 'truck-2');
       expect(reloaded.context.activeVehicleUsage, VehicleUsage.businessOnly);
     },

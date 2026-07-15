@@ -34,6 +34,7 @@ import '../../../shared/odometer/odometer_vehicle_snapshot.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/state/global_odometer.dart';
+import '../../../shared/context/operational_context_store.dart';
 
 part 'expense_receipt_entry_state_actions.dart';
 part 'expense_receipt_entry_split_percent_actions.dart';
@@ -258,6 +259,8 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   var _telemetryAddFlowFinished = false;
   int _lastAttachmentCount = 0;
   ExpenseReceiptRecord? _editingReceipt;
+  ExpenseReceiptContextSnapshot _expenseContext =
+      const ExpenseReceiptContextSnapshot();
 
   void _setReceiptEntryState(VoidCallback update) {
     setState(update);

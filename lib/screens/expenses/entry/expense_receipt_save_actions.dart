@@ -189,6 +189,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
           (activeVehicle == null
               ? null
               : odometerVehicleIdForLabel(activeVehicle.nickname)),
+      contextSnapshot: editing?.contextSnapshot ?? _expenseContext,
       sourceScreen:
           editing?.sourceScreen ??
           (_isMaterialsFlow

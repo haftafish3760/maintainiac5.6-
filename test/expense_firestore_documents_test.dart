@@ -35,6 +35,14 @@ void main() {
       rawOcrText: 'RAW PRIVATE OCR TEXT SHOULD NOT SYNC',
       enteredTotal: 42.25,
       vehicleId: 'truck-1',
+      contextSnapshot: const ExpenseReceiptContextSnapshot(
+        workProfileId: 'contractor',
+        workProfileName: 'Home repairs',
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck',
+        jobId: 'job-1',
+        jobLabel: 'Kitchen repair',
+      ),
       odometerReading: 150125,
       hasReceiptProof: true,
       ocrReview: const ExpenseReceiptOcrReview(
@@ -102,6 +110,14 @@ void main() {
     expect(doc.data['merchantName'], 'Local Hardware');
     expect(doc.data['enteredTotalCents'], 4225);
     expect(doc.data['vehicleId'], 'truck-1');
+    expect(doc.data['context'], {
+      'workProfileId': 'contractor',
+      'workProfileName': 'Home repairs',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck',
+      'jobId': 'job-1',
+      'jobLabel': 'Kitchen repair',
+    });
     expect(doc.data['odometerReading'], 150125);
     expect((doc.data['lines'] as List).single.toString(), contains('Hammer'));
     expect(doc.data['rawOcrStored'], isFalse);

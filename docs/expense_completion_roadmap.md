@@ -1,14 +1,127 @@
-# Independent Expense Completion Roadmap
+# Maintainiac Independent Expense System Completion Charter
 
-This roadmap covers the independent-user Expense lane only. It intentionally
-does not implement fuel interpretation, inventory interpretation, long-receipt
-stitching, taxes, accounting, payroll, or fleet workflows.
+This is the end-to-end completion charter for Maintainiac's Expense
+application: everything reached from the bottom Expense navigation button. It
+must serve an independent user, a small company, and a commercial fleet from
+two employees through materially larger teams without requiring a separate
+Expense product. It is not a local-records-only task and it is not complete
+until the working Expense experience, its local-first data, receipt/OCR flow,
+categories, context, recaps, user-controlled backup/sync, Firebase transport,
+Firebase rules, permissions, and release validation work together.
+
+Fuel interpretation, inventory interpretation, long-receipt stitching, taxes,
+accounting, and payroll remain separate owned systems. Fleet Expense workflows
+are part of this charter: they must use the same dependable local-first and
+cloud-backed expense model while enforcing organization and employee
+permissions. The Expense system must integrate with other owned systems through
+their published contracts without rebuilding or taking ownership of their
+internal logic.
 
 ## Completion rule
 
 An item is complete only when its local behavior works, its saved data round
-trips without loss, focused regression tests pass, and its UI does not pretend
-that a future backend exists.
+trips without loss, its Firebase-backed behavior works where promised, focused
+regression tests pass, and its UI does not pretend that a future backend exists.
+
+## System-wide completion gates
+
+The independent Expense system is not complete until every gate below has
+working code, durable data, and focused regression coverage.
+
+1. **Expense lifecycle** — create, draft, resume, edit, duplicate prevention,
+   delete, restore/recovery where supported, and history/audit timestamps.
+2. **Truthful receipt evidence** — preserve source photo/proof, OCR wording,
+   source coordinates, confidence, user edits, and the original source after
+   edits. OCR must never silently rewrite the printed receipt.
+3. **Receipt modes** — Basic, Simple, and Detailed review modes must save the
+   appropriate level of user-reviewed structure from the same source evidence.
+4. **Receipt form fill** — a readable receipt must populate editable merchant,
+   date, subtotal, tax, total, and lines when evidence supports them; an
+   unreadable receipt must retain proof and continue manually without loss.
+5. **Categories** — every Expense category, including job-related expenses,
+   must save to the selected category and appear in that category's recap.
+6. **Mixed receipts and allocation** — each receipt line can have its own
+   category and Business, Personal, Split, or Unclassified status. Split cents
+   must reconcile exactly and cannot silently use an unconfirmed 50% default.
+7. **Independent context** — expenses retain the original work-profile,
+   vehicle, and optional job context. Later profile/vehicle changes never
+   rewrite historic records.
+8. **Job linkage** — a confirmed job can show its linked expenses by stable
+   job ID. Receipt/OCR never mutates an estimate, job total, inventory, or fuel
+   record directly. A real Job store must replace the current demo Jobs UI
+   before job selection is exposed to users.
+9. **Recap correctness** — every add, edit, delete, restore, or context change
+   immediately yields correct total, business, personal, category, profile,
+   vehicle, job, calendar-day, Past 7/30/90, year-to-date, custom-range, and
+   configured-week recaps. Receipt date is the expense date; created and
+   modified timestamps remain separately visible to the data layer.
+10. **Calendar and backdating** — entering a receipt from any past date puts it
+    on that date and in the correct historical category/context recap.
+11. **Local-first storage** — save locally before any queue/upload, preserve
+    staged proof until durable checkpoint, never delete gallery photos or
+    unrelated user files, and handle low device storage without silent loss.
+12. **User-controlled backup** — expose truthful settings for manual sync,
+    Wi-Fi-only, Wi-Fi/cellular, receipt-copy retention, quota/entitlement,
+    offline queue state, retry, and verified-upload-only cleanup.
+13. **Firebase integration** — authenticated account identity, Firestore
+    document writes, Storage uploads, idempotent queued sync, conflict/retry
+    behavior, quota enforcement, Firebase emulators, and owner-only rules.
+    No screen may claim a cloud backup succeeded until the remote write and
+    required proof upload have both verified.
+14. **Security and privacy** — user/tenant isolation, least-privilege rules,
+    opt-in diagnostics, no raw OCR/local paths in telemetry or backup metadata,
+    account/export/deletion behavior, and focused security validation.
+15. **Optional AI assist** — only after the fully manual and deterministic
+    flow works. It must be explicit opt-in, disclose remote processing, retain
+    original receipt text/evidence, return suggestions rather than decisions,
+    respect budget/rate limits, and never bypass user review or local fallback.
+16. **Fleet scale and permissions** — the same Expense app must support an
+    owner with multiple employees and vehicles, company-wide plus per-employee,
+    per-vehicle, and per-job views, role-based visibility/edit permissions,
+    conflict-safe sync, and recap scopes that remain accurate at fleet scale.
+17. **Employee payment recording only** — an authorized owner can record an
+    employee-payment expense with amount, date, recipient, category, proof,
+    and notes. This is record-keeping only: no withholding, tax calculation,
+    pay-rate calculation, timesheet-to-payroll conversion, payroll filing, or
+    payroll advice belongs in Maintainiac.
+
+## Required delivery order
+
+This order prevents a receipt, recap, or category from attaching to a fake or
+unfinished target. Work continues through these packages without treating a
+package boundary as the end of the Expense assignment.
+
+1. **Independent profile foundation** — durable default work and vehicle
+   context; create, edit, archive, select, and restore profile records; a user
+   who never configures profiles continues safely on defaults.
+2. **Independent Job expense foundation** — replace the demo Job screen with a
+   durable Job record and an Expense-facing job reference/list. Expenses can
+   attach to a completed Job record; neither system duplicates the other's
+   totals or business logic.
+3. **Universal Expense attachment contract** — categories, repairs,
+   maintenance, employee payments, jobs, vehicles, and work profiles all use
+   the same Expense record and audit/recovery path. Category-specific systems
+   may add metadata but do not create shadow expense ledgers.
+4. **Receipt/OCR to editable Expense review** — complete camera/import,
+   quality/recovery, faithful extraction, form fill, Basic/Simple/Detailed
+   modes, category allocation, split validation, and parser handoff.
+5. **Accurate recaps and calendar** — category, context, job, Business/
+   Personal, date-range, and all-profile recaps recompute after every create,
+   edit, delete, restore, or reassignment.
+6. **Storage and local-first safety** — immediate durable local checkpoints,
+   app-managed proof retention choices, low-storage recovery, and no access to
+   unrelated device files.
+7. **User-controlled cloud backup/sync** — manual/scheduled preferences,
+   free/paid entitlement configuration, offline queue, retry, verified upload,
+   and local-copy cleanup only under the user's selected retention policy.
+8. **Firebase completion** — authenticated account wiring, Firestore/Storage
+   transport, Firebase emulator/rules coverage, tenant isolation, quota and
+   cost controls, conflict behavior, and recovery from remote failure.
+9. **Fleet extension** — after the independent lane passes its full integrated
+   validation, add organization/employee context, permissions, team/vehicle/job
+   recap scopes, and fleet-scale sync without changing the core Expense record.
+10. **Release gate** — run integrated regression, device validation, emulator
+    rules validation, focused security review, and documented recovery tests.
 
 ## 1. Durable local expense records
 

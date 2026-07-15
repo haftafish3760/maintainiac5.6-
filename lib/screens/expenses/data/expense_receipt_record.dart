@@ -26,6 +26,7 @@ class ExpenseReceiptRecord {
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
     this.vehicleId,
+    this.contextSnapshot = const ExpenseReceiptContextSnapshot(),
     this.odometerReading,
     this.sourceScreen = 'expenses',
     this.createdAt,
@@ -80,6 +81,9 @@ class ExpenseReceiptRecord {
       vehicleId: _expenseString(map['vehicleId']).trim().isEmpty
           ? null
           : _expenseString(map['vehicleId']),
+      contextSnapshot: ExpenseReceiptContextSnapshot.fromMap(
+        _expenseMap(map['contextSnapshot']),
+      ),
       odometerReading: _expenseInt(map['odometerReading']),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
       createdAt: _expenseDateTime(map['createdAt']),
@@ -138,6 +142,7 @@ class ExpenseReceiptRecord {
   int? get enteredTotalCents => _expenseCentsFromAmount(enteredTotal);
   final bool trackMaterialsInInventory;
   final String? vehicleId;
+  final ExpenseReceiptContextSnapshot contextSnapshot;
   final int? odometerReading;
   final String sourceScreen;
   final DateTime? createdAt;
@@ -176,6 +181,7 @@ class ExpenseReceiptRecord {
     Object? enteredTotal = _unset,
     Object? trackMaterialsInInventory = _unset,
     Object? vehicleId = _unset,
+    ExpenseReceiptContextSnapshot? contextSnapshot,
     Object? odometerReading = _unset,
     Object? sourceScreen = _unset,
     DateTime? createdAt,
@@ -235,6 +241,7 @@ class ExpenseReceiptRecord {
           ? this.trackMaterialsInInventory
           : trackMaterialsInInventory as bool,
       vehicleId: vehicleId == _unset ? this.vehicleId : vehicleId as String?,
+      contextSnapshot: contextSnapshot ?? this.contextSnapshot,
       odometerReading: odometerReading == _unset
           ? this.odometerReading
           : odometerReading as int?,

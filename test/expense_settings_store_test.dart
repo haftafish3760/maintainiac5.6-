@@ -154,6 +154,27 @@ void main() {
     );
   });
 
+  test('cloud sync and receipt retention choices persist for backup', () async {
+    final settings = await ExpenseSettingsController.create();
+
+    expect(settings.cloudSyncPreference, ExpenseCloudSyncPreference.manual);
+    expect(
+      settings.receiptCopyRetention,
+      ExpenseReceiptCopyRetention.keepOptimizedCopy,
+    );
+    await settings.setCloudSyncPreference(ExpenseCloudSyncPreference.wifiOnly);
+    await settings.setReceiptCopyRetention(
+      ExpenseReceiptCopyRetention.cloudOnlyAfterVerifiedUpload,
+    );
+
+    final backup = settings.toBackupMap(
+      ownerUid: 'owner',
+      exportedAtUtc: DateTime.utc(2026),
+    );
+    expect(backup['cloudSyncPreference'], 'wifiOnly');
+    expect(backup['receiptCopyRetention'], 'cloudOnlyAfterVerifiedUpload');
+  });
+
   test(
     'receipt review style ignores corrupted non-string storage values',
     () async {

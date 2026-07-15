@@ -101,6 +101,28 @@ class OperationalContextController extends ChangeNotifier {
     );
   }
 
+  Future<void> setWorkProfile({
+    required String workProfileId,
+    required String workProfileName,
+  }) async {
+    final id = workProfileId.trim();
+    final name = workProfileName.trim();
+    if (id.isEmpty || name.isEmpty) {
+      throw ArgumentError.value(
+        workProfileId,
+        'workProfileId',
+        'A work profile needs a stable ID and a visible name.',
+      );
+    }
+    await save(
+      _context.copyWith(
+        workProfileId: id,
+        workProfileName: name,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
   Future<void> setDashboardMode(OperationalDashboardMode mode) async {
     await save(
       _context.copyWith(
