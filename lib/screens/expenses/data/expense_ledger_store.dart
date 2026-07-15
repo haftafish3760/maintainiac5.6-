@@ -258,6 +258,19 @@ class ExpenseLedgerController extends ChangeNotifier {
     if (receipt.id.trim().isEmpty) {
       throw ArgumentError.value(receipt.id, 'receipt.id', 'must not be empty');
     }
+    final createdAt = receipt.createdAt;
+    final updatedAt = receipt.updatedAt;
+    final deletedAt = receipt.deletedAt;
+    if (createdAt == null ||
+        updatedAt == null ||
+        updatedAt.isBefore(createdAt) ||
+        receipt.localRevision < 1 ||
+        (receipt.isDeleted && deletedAt == null) ||
+        (receipt.isActive && deletedAt != null) ||
+        (deletedAt != null &&
+            (deletedAt.isBefore(createdAt) || deletedAt.isAfter(updatedAt)))) {
+      throw const FormatException('Imported receipt lifecycle is invalid.');
+    }
     if (receiptById(receipt.id) != null) return null;
     await ensureStorageForLocalSave();
     if (receiptById(receipt.id) != null) return null;

@@ -14,6 +14,8 @@ void main() {
       receipt: ExpenseReceiptRecord(
         id: 'restore-me',
         receiptDate: DateTime.utc(2026, 7, 15),
+        createdAt: DateTime.utc(2026, 7, 15),
+        updatedAt: DateTime.utc(2026, 7, 15),
         localRevision: revision,
         lines: const [
           ExpenseReceiptLineRecord(
@@ -48,6 +50,22 @@ void main() {
     );
     expect(result.wasCreated, isTrue);
     expect(ledger.receiptById('restore-me'), isNotNull);
+  });
+
+  test('refuses a cloud import without a durable receipt lifecycle', () async {
+    final ledger = ExpenseLedgerController.memory();
+
+    await expectLater(
+      ledger.importReceiptIfMissing(
+        ExpenseReceiptRecord(
+          id: 'invalid-cloud-receipt',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          lines: const [],
+        ),
+      ),
+      throwsFormatException,
+    );
+    expect(ledger.receiptById('invalid-cloud-receipt'), isNull);
   });
 
   test(
