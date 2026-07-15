@@ -9,6 +9,7 @@ import '../categories/expense_categories.dart';
 import '../data/expense_reminder_draft.dart';
 import '../data/expense_reminder_store.dart';
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
+import '../../../shared/state/expense_settings_store.dart';
 
 class ExpenseReminderScreen extends StatefulWidget {
   const ExpenseReminderScreen({super.key});
@@ -72,6 +73,12 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
   @override
   Widget build(BuildContext context) {
     final reminders = ExpenseReminderScope.of(context).records;
+    final settings = ExpenseSettingsScope.of(context);
+    final categories = {
+      ..._categories,
+      ...settings.customCategoryNames,
+      _category,
+    }.toList()..sort();
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
       body: SafeArea(
@@ -82,7 +89,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
             const SizedBox(height: 10),
             const GlobalOdometerHeader(section: AppSection.expenses),
             const SizedBox(height: 10),
-            _buildReminderForm(context),
+            _buildReminderForm(context, categories),
             if (reminders.isNotEmpty) ...[
               const SizedBox(height: 18),
               Text(
@@ -106,7 +113,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
     );
   }
 
-  Widget _buildReminderForm(BuildContext context) {
+  Widget _buildReminderForm(BuildContext context, List<String> categories) {
     return RecordFormPanel(
       children: [
         RecordTextField(label: 'Reminder title', controller: _titleController),
@@ -114,7 +121,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
         RecordDropdownField<String>(
           label: 'Expense category',
           value: _category,
-          items: _categories,
+          items: categories,
           itemLabel: (value) => value,
           onChanged: (value) => setState(() {
             _category = value;
@@ -221,16 +228,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
         updatedAt: DateTime.now(),
       ),
     );
-    final store = _draftStore;
-    if (store != null) {
-      await ExpenseReminderDraft.clear(store, _draftId);
-      if (_editingReminder != null) {
-        await ExpenseReminderDraft.clear(
-          store,
-          ExpenseReminderDraft.idForEditing(saved.id),
-        );
-      }
-    }
+    await _clearDraftAfterConfirmedSave(saved.id);
     if (!mounted) return;
     _clearForm();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -285,6 +283,23 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
     if (store != null) unawaited(ExpenseReminderDraft.clear(store, draftId));
   }
 
+  Future<void> _clearDraftAfterConfirmedSave(String savedReminderId) async {
+    final store = _draftStore;
+    if (store == null) return;
+    try {
+      await ExpenseReminderDraft.clear(store, _draftId);
+      if (_editingReminder != null) {
+        await ExpenseReminderDraft.clear(
+          store,
+          ExpenseReminderDraft.idForEditing(savedReminderId),
+        );
+      }
+    } catch (_) {
+      // The confirmed local reminder remains authoritative. A stale checkpoint
+      // is safer than turning a successful save into an apparent failure.
+    }
+  }
+
   String get _draftId => _editingReminder == null
       ? ExpenseReminderDraft.newReminderId
       : ExpenseReminderDraft.idForEditing(_editingReminder!.id);
@@ -293,6 +308,10 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
     final store = await MaintainiacRecordDraftStore.create();
     if (!mounted) return;
     _draftStore = store;
+    if (_hasCurrentFormContent) {
+      _scheduleDraftSave();
+      return;
+    }
     _applyDraft(
       ExpenseReminderDraft.load(store, ExpenseReminderDraft.newReminderId),
     );
@@ -333,6 +352,11 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
     _draftTimer?.cancel();
     _draftTimer = Timer(const Duration(milliseconds: 200), _saveDraftNow);
   }
+
+  bool get _hasCurrentFormContent =>
+      _titleController.text.trim().isNotEmpty ||
+      _detailsController.text.trim().isNotEmpty ||
+      _editingReminder != null;
 
   Future<void> _saveDraftNow() async {
     if (_restoringDraft) return;

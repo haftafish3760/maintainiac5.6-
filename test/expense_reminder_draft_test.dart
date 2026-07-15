@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_draft.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
@@ -48,4 +50,42 @@ void main() {
       expect(ExpenseReminderDraft.load(store, id), isNull);
     },
   );
+
+  test(
+    'form opening preserves edits made before shared draft storage opens',
+    () async {
+      final source = await File(
+        'lib/screens/expenses/reminders/expense_reminder_screen.dart',
+      ).readAsString();
+
+      final storeAssignment = source.indexOf('_draftStore = store;');
+      final preserveCurrentInput = source.indexOf(
+        'if (_hasCurrentFormContent)',
+      );
+      final draftRestore = source.indexOf(
+        'ExpenseReminderDraft.load(store, ExpenseReminderDraft.newReminderId)',
+      );
+
+      expect(preserveCurrentInput, greaterThan(storeAssignment));
+      expect(draftRestore, greaterThan(preserveCurrentInput));
+    },
+  );
+
+  test('reminder categories include user-created Expense categories', () async {
+    final source = await File(
+      'lib/screens/expenses/reminders/expense_reminder_screen.dart',
+    ).readAsString();
+
+    expect(source, contains('ExpenseSettingsScope.of(context)'));
+    expect(source, contains('...settings.customCategoryNames'));
+  });
+
+  test('draft cleanup cannot undo a confirmed local reminder save', () async {
+    final source = await File(
+      'lib/screens/expenses/reminders/expense_reminder_screen.dart',
+    ).readAsString();
+
+    expect(source, contains('_clearDraftAfterConfirmedSave(saved.id)'));
+    expect(source, contains('A stale checkpoint'));
+  });
 }
