@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 
@@ -5,9 +7,11 @@ import '../../../shared/firebase/maintainiac_organization_bootstrap.dart';
 import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
+import '../../../shared/state/app_state.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_store.dart';
 import 'expense_reminder_store.dart';
+import 'expense_work_profile_store.dart';
 
 /// Queues and uploads the authenticated user's Expense records.
 ///
@@ -19,6 +23,8 @@ class ExpenseCloudBackupService {
     required this.ledger,
     required this.settings,
     required this.reminders,
+    required this.workProfiles,
+    required this.appState,
     required this.queueStore,
     required this.uploadCoordinator,
     required this.organizationId,
@@ -29,6 +35,8 @@ class ExpenseCloudBackupService {
   final ExpenseLedgerController ledger;
   final ExpenseSettingsController settings;
   final ExpenseReminderController reminders;
+  final ExpenseWorkProfileController workProfiles;
+  final AppStateController appState;
   final MaintainiacFirestoreUploadQueueStore queueStore;
   final MaintainiacFirestoreUploadCoordinator uploadCoordinator;
   final String? organizationId;
@@ -81,6 +89,32 @@ class ExpenseCloudBackupService {
     return ExpenseCloudQueueResult.queued(draft.path);
   }
 
+  /// Queues the complete current vehicle directory as one replaceable member
+  /// document. This keeps vehicle deletion recoverable without mutating any
+  /// historical Expense record.
+  Future<ExpenseCloudQueueResult> queueVehicleDirectory({
+    DateTime? nowUtc,
+  }) async {
+    final identity = _identityOrNull;
+    if (identity == null) {
+      return const ExpenseCloudQueueResult.identityRequired();
+    }
+    final timestamp = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final draft =
+        ExpenseFirestoreDocumentBuilder.expenseVehicleDirectoryDocument(
+          orgId: identity.organizationId,
+          uid: identity.uid,
+          deviceId: identity.deviceId,
+          appState: appState,
+          nowUtc: timestamp,
+        );
+    await queueStore.enqueueReplacingPendingForPath(
+      draft,
+      queuedAtUtc: timestamp,
+    );
+    return ExpenseCloudQueueResult.queued(draft.path);
+  }
+
   /// Queues all current local Expense records plus the member-scoped settings
   /// document. It deliberately does not flush unrelated queue entries that may
   /// belong to a signed-out account or a different organization.
@@ -100,13 +134,27 @@ class ExpenseCloudBackupService {
         settings: settings,
         nowUtc: timestamp,
       ),
-      for (final reminder in reminders.records)
+      for (final reminder in reminders.storedRecords)
         ExpenseFirestoreDocumentBuilder.expenseReminderDocument(
           orgId: identity.organizationId,
           uid: identity.uid,
           deviceId: identity.deviceId,
           reminder: reminder,
         ),
+      ExpenseFirestoreDocumentBuilder.expenseWorkProfileDirectoryDocument(
+        orgId: identity.organizationId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        workProfiles: workProfiles,
+        nowUtc: timestamp,
+      ),
+      ExpenseFirestoreDocumentBuilder.expenseVehicleDirectoryDocument(
+        orgId: identity.organizationId,
+        uid: identity.uid,
+        deviceId: identity.deviceId,
+        appState: appState,
+        nowUtc: timestamp,
+      ),
       for (final receipt in ledger.storedReceipts)
         ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
           orgId: identity.organizationId,
@@ -282,6 +330,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     required this.ledger,
     required this.settings,
     required this.reminders,
+    required this.workProfiles,
+    required this.appState,
     required this.queueStore,
     required this.uploadCoordinator,
     required this.deviceId,
@@ -294,11 +344,15 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
            workspaceBootstrapper ??
            MaintainiacOrganizationBootstrapper(
              writer: FirebaseOrganizationBootstrapWriter(),
-           );
+           ) {
+    appState.addListener(_onVehicleStateChanged);
+  }
 
   final ExpenseLedgerController ledger;
   final ExpenseSettingsController settings;
   final ExpenseReminderController reminders;
+  final ExpenseWorkProfileController workProfiles;
+  final AppStateController appState;
   final MaintainiacFirestoreUploadQueueStore queueStore;
   final MaintainiacFirestoreUploadCoordinator uploadCoordinator;
   final String deviceId;
@@ -306,6 +360,10 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   final FirebaseAuth _firebaseAuth;
   final MaintainiacOrganizationBootstrapper _workspaceBootstrapper;
   Future<void> _taskChain = Future<void>.value();
+
+  void _onVehicleStateChanged() {
+    unawaited(_schedule(_queueAndSyncVehicleDirectory));
+  }
 
   @override
   Future<void> queueReceipt(String receiptId) {
@@ -332,6 +390,9 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     if (service == null || user == null) return;
     final queued = await service.queueReceipt(receiptId);
     if (!queued.wasQueued) return;
+    if (settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
+      return;
+    }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
         authenticatedUid: user.uid,
@@ -357,6 +418,25 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     await service.backupLocalSnapshot();
   }
 
+  Future<void> _queueAndSyncVehicleDirectory() async {
+    final service = _serviceForCurrentUser();
+    final user = _firebaseAuth.currentUser;
+    if (service == null || user == null) return;
+    final queued = await service.queueVehicleDirectory();
+    if (!queued.wasQueued ||
+        settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
+      return;
+    }
+    try {
+      await _workspaceBootstrapper.ensurePersonalWorkspace(
+        authenticatedUid: user.uid,
+      );
+    } catch (_) {
+      return;
+    }
+    await service.flushPaths([queued.documentPath!], queuedCount: 1);
+  }
+
   ExpenseCloudBackupService? _serviceForCurrentUser() {
     if (!_isBackupEnabled) return null;
     final uid = _firebaseAuth.currentUser?.uid.trim() ?? '';
@@ -365,6 +445,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
       ledger: ledger,
       settings: settings,
       reminders: reminders,
+      workProfiles: workProfiles,
+      appState: appState,
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
       organizationId:

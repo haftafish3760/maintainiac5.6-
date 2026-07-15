@@ -1,9 +1,9 @@
 part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
-  Future<void> _saveDraftNow() {
+  Future<bool> _saveDraftNow() async {
     final drafts = _drafts;
-    if (drafts == null) return Future<void>.value();
+    if (drafts == null) return true;
     final draft = ExpenseReceiptDraftRecord(
       id: _draftId,
       receiptDate: _selectedDate,
@@ -38,6 +38,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       enteredTax: _enteredReceiptTax,
       enteredTotal: _enteredReceiptTotal,
       trackMaterialsInInventory: _trackMaterialsInInventory,
+      odometerReading: _expenseOdometerReading,
       editingReceiptId: _isEditingReceipt ? widget.receiptId : null,
       sourceScreen: _isMaterialsFlow
           ? 'materials_expense_receipt'
@@ -50,7 +51,21 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
           _lines[index].toLedgerLine(id: 'DRAFT-LINE-$index'),
       ],
     );
-    return drafts.saveDraft(draft);
+    try {
+      await drafts.saveDraft(draft);
+      _draftSaveFailureShown = false;
+      return true;
+    } catch (error) {
+      if (!mounted || _draftSaveFailureShown) return false;
+      _draftSaveFailureShown = true;
+      final message = error is StateError
+          ? error.message.toString()
+          : 'Could not save your progress on this device. Keep this screen open and try again.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      return false;
+    }
   }
 
   ExpenseReceiptOcrReview _currentOcrReview() {
@@ -124,6 +139,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
     _lastOcrWarnings = const [];
     _maintenanceHints.clear();
     _trackMaterialsInInventory = draft.trackMaterialsInInventory;
+    _expenseOdometerReading = draft.odometerReading;
     _lines
       ..clear()
       ..addAll(draft.lines.map(_ExpenseReceiptLine.fromLedgerLine));
@@ -184,6 +200,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
     _lastOcrWarnings = const [];
     _maintenanceHints.clear();
     _trackMaterialsInInventory = receipt.trackMaterialsInInventory;
+    _expenseOdometerReading = receipt.odometerReading;
     _lines
       ..clear()
       ..addAll(receipt.lines.map(_ExpenseReceiptLine.fromLedgerLine));

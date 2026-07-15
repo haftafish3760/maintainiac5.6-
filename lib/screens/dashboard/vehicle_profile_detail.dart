@@ -3,10 +3,26 @@ import 'package:flutter/material.dart';
 import '../../shared/theme/app_action_colors.dart';
 import 'vehicle_profile_widgets.dart';
 
-class VehicleProfileDetailScreen extends StatefulWidget {
-  const VehicleProfileDetailScreen({super.key, required this.vehicle});
+class VehicleProfileDetailOutcome {
+  const VehicleProfileDetailOutcome.updated(this.vehicle) : deleted = false;
+
+  const VehicleProfileDetailOutcome.deleted(this.vehicle) : deleted = true;
 
   final VehicleProfilePreview vehicle;
+  final bool deleted;
+}
+
+class VehicleProfileDetailScreen extends StatefulWidget {
+  const VehicleProfileDetailScreen({
+    super.key,
+    required this.vehicle,
+    this.canDelete = false,
+    this.onDelete,
+  });
+
+  final VehicleProfilePreview vehicle;
+  final bool canDelete;
+  final Future<VehicleProfilePreview> Function()? onDelete;
 
   @override
   State<VehicleProfileDetailScreen> createState() =>
@@ -84,7 +100,12 @@ class _VehicleProfileDetailScreenState
               ),
               _ProfileFactRow(label: 'Status', value: widget.vehicle.status),
               const SizedBox(height: 20),
-              _ProfileActionRow(onSave: _saveChanges, onDelete: () {}),
+              _ProfileActionRow(
+                onSave: _saveChanges,
+                onDelete: widget.canDelete && widget.onDelete != null
+                    ? _deleteVehicle
+                    : null,
+              ),
             ],
           ),
         ),
@@ -143,6 +164,51 @@ class _VehicleProfileDetailScreenState
 
   void _saveChanges() {
     FocusManager.instance.primaryFocus?.unfocus();
+    Navigator.of(context).pop(
+      VehicleProfileDetailOutcome.updated(
+        VehicleProfilePreview(
+          id: widget.vehicle.id,
+          nickname: _nicknameController.text.trim().isEmpty
+              ? widget.vehicle.nickname
+              : _nicknameController.text.trim(),
+          year: _yearController.text.trim(),
+          make: _makeController.text.trim(),
+          model: _modelController.text.trim(),
+          odometer: widget.vehicle.odometer,
+          status: widget.vehicle.status,
+          usage: _usage,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteVehicle() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete vehicle?'),
+        content: Text(
+          '${widget.vehicle.nickname} will be removed from your saved vehicles. '
+          'Existing records keep their vehicle association.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final replacement = await widget.onDelete!();
+    if (!mounted) return;
+    setState(() => _leaving = true);
+    Navigator.of(context).pop(VehicleProfileDetailOutcome.deleted(replacement));
   }
 
   Future<void> _handleBackNavigation() async {
@@ -164,6 +230,7 @@ class _VehicleProfileDetailScreenState
 
     if (choice == _UnsavedVehicleChoice.save) {
       _saveChanges();
+      return;
     }
 
     _leaveScreen();
@@ -179,7 +246,7 @@ class _ProfileActionRow extends StatelessWidget {
   const _ProfileActionRow({required this.onSave, required this.onDelete});
 
   final VoidCallback onSave;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {

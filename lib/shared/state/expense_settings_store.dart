@@ -35,6 +35,22 @@ enum ExpenseReceiptReviewStyle {
   }
 }
 
+/// Determines whether a user-approved Expense backup may leave the device.
+/// Manual is the safe default; records always save locally regardless.
+enum ExpenseBackupSyncMode {
+  manual,
+  scheduled,
+  immediate;
+
+  static ExpenseBackupSyncMode fromName(String? value) {
+    return switch (value?.trim().toLowerCase()) {
+      'scheduled' => ExpenseBackupSyncMode.scheduled,
+      'immediate' => ExpenseBackupSyncMode.immediate,
+      _ => ExpenseBackupSyncMode.manual,
+    };
+  }
+}
+
 class ExpenseSettingsController extends ChangeNotifier {
   ExpenseSettingsController._(this._box);
 
@@ -64,6 +80,11 @@ class ExpenseSettingsController extends ChangeNotifier {
     return ExpenseReceiptReviewStyle.fromName(value is String ? value : null);
   }
 
+  ExpenseBackupSyncMode get backupSyncMode {
+    final value = _box.get(_Keys.backupSyncMode);
+    return ExpenseBackupSyncMode.fromName(value is String ? value : null);
+  }
+
   List<String> get quickCategoryOrder =>
       _readStringList(_Keys.quickCategoryOrder);
   List<String> get topThreeCategories => _readStringList(
@@ -71,6 +92,12 @@ class ExpenseSettingsController extends ChangeNotifier {
     fallback: const ['Fuel', 'Meals', 'Materials'],
   );
   List<String> get hiddenRecapTiles => _readStringList(_Keys.hiddenRecapTiles);
+  List<String> get customCategoryNames =>
+      _readStringList(_Keys.customCategoryNames);
+  bool get odometerPromptEnabled =>
+      _readBool(_Keys.odometerPromptEnabled, true);
+  List<String> get odometerPromptSuppressedCategories =>
+      _readStringList(_Keys.odometerPromptSuppressedCategories);
 
   Map<String, Object?> toBackupMap({
     required String ownerUid,
@@ -90,9 +117,13 @@ class ExpenseSettingsController extends ChangeNotifier {
       'audibleNotifications': audibleNotifications,
       'draftReminder': draftReminder,
       'receiptReviewStyle': receiptReviewStyle.name,
+      'backupSyncMode': backupSyncMode.name,
       'quickCategoryOrder': quickCategoryOrder,
       'topThreeCategories': topThreeCategories,
       'hiddenRecapTiles': hiddenRecapTiles,
+      'customCategoryNames': customCategoryNames,
+      'odometerPromptEnabled': odometerPromptEnabled,
+      'odometerPromptSuppressedCategories': odometerPromptSuppressedCategories,
     };
   }
 
@@ -123,6 +154,35 @@ class ExpenseSettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setBackupSyncMode(ExpenseBackupSyncMode value) async {
+    await _box.put(_Keys.backupSyncMode, value.name);
+    notifyListeners();
+  }
+
+  Future<void> setOdometerPromptEnabled(bool value) =>
+      _writeBool(_Keys.odometerPromptEnabled, value);
+
+  bool shouldPromptForOdometer(String category) {
+    return odometerPromptEnabled &&
+        !_containsCategory(odometerPromptSuppressedCategories, category);
+  }
+
+  Future<void> setOdometerPromptSuppressed(
+    String category,
+    bool suppressed,
+  ) async {
+    final normalized = category.trim();
+    if (normalized.isEmpty) return;
+    final current = [...odometerPromptSuppressedCategories];
+    current.removeWhere((item) => _sameCategory(item, normalized));
+    if (suppressed) current.add(normalized);
+    await _box.put(
+      _Keys.odometerPromptSuppressedCategories,
+      _uniqueCategories(current),
+    );
+    notifyListeners();
+  }
+
   Future<void> setQuickCategoryOrder(List<String> categories) async {
     final normalized = _uniqueCategories(categories);
     await _box.put(_Keys.quickCategoryOrder, normalized);
@@ -147,6 +207,30 @@ class ExpenseSettingsController extends ChangeNotifier {
         .where((item) => !_sameCategory(item, category))
         .toList(growable: false);
     await setQuickCategoryOrder(current);
+  }
+
+  /// Adds a user-owned category without changing historical receipt text.
+  /// Categories remain strings on saved receipt lines so recaps preserve them.
+  Future<bool> addCustomCategory(String category) async {
+    final normalized = _normalizedCategoryName(category);
+    if (normalized == null ||
+        _containsCategory(customCategoryNames, normalized)) {
+      return false;
+    }
+    await _box.put(_Keys.customCategoryNames, [
+      ...customCategoryNames,
+      normalized,
+    ]);
+    notifyListeners();
+    return true;
+  }
+
+  Future<void> removeCustomCategory(String category) async {
+    final remaining = customCategoryNames
+        .where((item) => !_sameCategory(item, category))
+        .toList(growable: false);
+    await _box.put(_Keys.customCategoryNames, remaining);
+    notifyListeners();
   }
 
   Future<void> setTopThreeCategories(List<String> categories) async {
@@ -207,6 +291,12 @@ class ExpenseSettingsController extends ChangeNotifier {
 
   String _categoryKey(String value) {
     return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+  }
+
+  String? _normalizedCategoryName(String value) {
+    final normalized = value.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty || normalized.length > 60) return null;
+    return normalized;
   }
 
   bool _readBool(String key, bool fallback) {
@@ -271,7 +361,12 @@ class _Keys {
   static const audibleNotifications = 'audible_notifications';
   static const draftReminder = 'draft_reminder';
   static const receiptReviewStyle = 'receipt_review_style';
+  static const backupSyncMode = 'expense_backup_sync_mode';
+  static const odometerPromptEnabled = 'expense_odometer_prompt_enabled';
+  static const odometerPromptSuppressedCategories =
+      'expense_odometer_prompt_suppressed_categories';
   static const quickCategoryOrder = 'quick_category_order';
   static const topThreeCategories = 'top_three_categories';
   static const hiddenRecapTiles = 'hidden_recap_tiles';
+  static const customCategoryNames = 'custom_category_names';
 }

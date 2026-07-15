@@ -17,6 +17,7 @@ import '../data/expense_draft_store.dart';
 import '../data/expense_cloud_backup_service.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
+import '../data/expense_work_profile_store.dart';
 import '../data/expense_materials_receipt_bridge.dart';
 import '../data/expense_ocr_failure_diagnostics.dart';
 import '../data/expense_parser_failure_diagnostics.dart';
@@ -112,6 +113,8 @@ part 'expense_receipt_entry_start_guide.dart';
 part 'expense_receipt_entry_scaffold.dart';
 part 'expense_receipt_entry_no_line_recovery_panel.dart';
 part 'expense_receipt_entry_byte_bucket.dart';
+part 'expense_receipt_entry_odometer_prompt.dart';
+part 'expense_receipt_entry_odometer_panel.dart';
 
 enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 
@@ -175,7 +178,8 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
       _ExpenseReceiptEntryScreenState();
 }
 
-class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
+class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
+    with WidgetsBindingObserver {
   final _storeController = TextEditingController();
   final _phoneController = TextEditingController();
   final _streetController = TextEditingController();
@@ -231,6 +235,8 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   Map<String, int> _receiptInstallBaseUsefulOnTinyPhonesCounts = const {};
   Map<String, int> _receiptInstallOptionalPacksRequireConsentCounts = const {};
   var _trackMaterialsInInventory = false;
+  int? _expenseOdometerReading;
+  var _odometerPromptEvaluated = false;
   var _detailEntryMode = _ReceiptDetailEntryMode.quickClassify;
   var _receiptReviewModeChangedByUser = false;
   var _appliedReceiptReviewStyleDefault = false;
@@ -251,6 +257,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   ExpenseDraftController? _drafts;
   var _draftLoaded = false;
   var _savedReceipt = false;
+  var _draftSaveFailureShown = false;
   late final DateTime _screenOpenedAtUtc;
   ExpenseScreenTelemetrySnapshot? _telemetrySnapshot;
   var _telemetryAddFlowFinished = false;
@@ -264,6 +271,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initReceiptEntryState();
   }
 
@@ -275,8 +283,20 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _disposeReceiptEntryState();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.inactive &&
+        state != AppLifecycleState.paused &&
+        state != AppLifecycleState.detached) {
+      return;
+    }
+    _draftTimer?.cancel();
+    unawaited(_saveDraftNow());
   }
 
   @override

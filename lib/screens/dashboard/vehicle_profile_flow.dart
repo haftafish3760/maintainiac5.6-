@@ -7,29 +7,18 @@ import '../../shared/widgets/app_back_button.dart';
 import 'vehicle_profile_detail.dart';
 import 'vehicle_profile_widgets.dart';
 
-const _savedVehiclePreviews = [
-  VehicleProfilePreview(
-    nickname: 'Truck 1',
-    year: '2021',
-    make: 'Ford',
-    model: 'Transit',
-    odometer: '298,150',
-    status: 'Active',
-    usage: VehicleUsage.businessPersonal,
-  ),
-  VehicleProfilePreview(
-    nickname: 'Backup Van',
-    year: '2017',
-    make: 'Chevrolet',
-    model: 'Express',
-    odometer: '142,880',
+VehicleProfilePreview _previewForVehicle(VehicleProfile vehicle) {
+  return VehicleProfilePreview(
+    id: vehicle.id,
+    nickname: vehicle.nickname,
+    year: vehicle.year,
+    make: vehicle.make,
+    model: vehicle.model,
+    odometer: '',
     status: 'Available',
-    usage: VehicleUsage.businessOnly,
-  ),
-];
-
-List<VehicleProfilePreview> get savedVehiclePreviews =>
-    List.unmodifiable(_savedVehiclePreviews);
+    usage: vehicle.usage,
+  );
+}
 
 class ActiveVehicleDrawer extends StatelessWidget {
   const ActiveVehicleDrawer({
@@ -102,7 +91,15 @@ class ActiveVehicleDrawer extends StatelessWidget {
   }
 }
 
-VehicleProfilePreview get defaultVehicleProfile => _savedVehiclePreviews.first;
+VehicleProfilePreview get defaultVehicleProfile => VehicleProfilePreview(
+  id: 'vehicle_work_truck_1',
+  nickname: 'Work Truck 1',
+  year: '2018',
+  make: 'Ford',
+  model: 'F-150',
+  odometer: '',
+  status: 'Active',
+);
 
 class SavedVehiclesScreen extends StatefulWidget {
   const SavedVehiclesScreen({super.key, required this.activeVehicle});
@@ -118,6 +115,10 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = AppStateScope.of(context);
+    final vehicles = appState.vehicles
+        .map(_previewForVehicle)
+        .toList(growable: false);
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
 
@@ -133,10 +134,10 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
               'Choose a saved vehicle, then use it for the day, edit its profile, or add another vehicle.',
             ),
             const SizedBox(height: 12),
-            for (final vehicle in _savedVehiclePreviews) ...[
+            for (final vehicle in vehicles) ...[
               SavedVehicleButton(
                 vehicle: vehicle,
-                selected: vehicle.nickname == _selectedVehicle.nickname,
+                selected: vehicle.id == _selectedVehicle.id,
                 onSelect: () => _selectVehicle(vehicle),
               ),
               const SizedBox(height: 8),
@@ -146,9 +147,7 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
               onUseVehicle: _confirmSelectedVehicle,
               onEditVehicle: () =>
                   _openVehicleProfile(context, _selectedVehicle),
-              onAddVehicle: () => Navigator.of(
-                context,
-              ).push(appNativeRoute(context, const AddVehicleProfileScreen())),
+              onAddVehicle: _openAddVehicle,
             ),
           ],
         ),
@@ -160,17 +159,60 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
     setState(() => _selectedVehicle = vehicle);
   }
 
-  void _confirmSelectedVehicle() {
+  Future<void> _confirmSelectedVehicle() async {
+    final selected = AppStateScope.of(context).vehicles.firstWhere(
+      (vehicle) => vehicle.id == _selectedVehicle.id,
+      orElse: () => AppStateScope.of(context).activeVehicle!,
+    );
+    await AppStateScope.of(context).selectVehicle(selected);
+    if (!mounted) return;
     Navigator.of(context).pop(_selectedVehicle);
   }
 
-  void _openVehicleProfile(
+  Future<void> _openVehicleProfile(
     BuildContext context,
     VehicleProfilePreview vehicle,
-  ) {
-    Navigator.of(context).push(
-      appNativeRoute(context, VehicleProfileDetailScreen(vehicle: vehicle)),
+  ) async {
+    final outcome = await Navigator.of(context)
+        .push<VehicleProfileDetailOutcome>(
+          appNativeRoute(
+            context,
+            VehicleProfileDetailScreen(
+              vehicle: vehicle,
+              canDelete: AppStateScope.of(context).vehicles.length > 1,
+              onDelete: () async {
+                final appState = AppStateScope.of(context);
+                await appState.deleteVehicle(vehicle.id);
+                return _previewForVehicle(appState.activeVehicle!);
+              },
+            ),
+          ),
+        );
+    if (!context.mounted || outcome == null) return;
+    if (outcome.deleted) {
+      setState(() => _selectedVehicle = outcome.vehicle);
+      return;
+    }
+    final edited = outcome.vehicle;
+    await AppStateScope.of(context).updateVehicle(
+      VehicleProfile(
+        id: edited.id,
+        nickname: edited.nickname,
+        year: edited.year,
+        make: edited.make,
+        model: edited.model,
+        usage: edited.usage,
+      ),
     );
+    if (mounted) setState(() => _selectedVehicle = edited);
+  }
+
+  Future<void> _openAddVehicle() async {
+    final added = await Navigator.of(context).push<VehicleProfilePreview>(
+      appNativeRoute(context, const AddVehicleProfileScreen()),
+    );
+    if (!mounted || added == null) return;
+    setState(() => _selectedVehicle = added);
   }
 }
 
@@ -358,18 +400,18 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
     );
   }
 
-  void _savePreviewVehicle() {
+  Future<void> _savePreviewVehicle() async {
     final nickname = _nicknameController.text.trim();
-    Navigator.of(context).pop(
-      VehicleProfilePreview(
-        nickname: nickname.isEmpty ? 'New Vehicle' : nickname,
-        year: _yearController.text.trim(),
-        make: _makeController.text.trim(),
-        model: _modelController.text.trim(),
-        odometer: '0',
-        status: 'Available',
-        usage: _usage,
-      ),
+    final vehicle = VehicleProfile(
+      id: 'vehicle_${DateTime.now().microsecondsSinceEpoch}',
+      nickname: nickname.isEmpty ? 'New Vehicle' : nickname,
+      year: _yearController.text.trim(),
+      make: _makeController.text.trim(),
+      model: _modelController.text.trim(),
+      usage: _usage,
     );
+    await AppStateScope.of(context).addVehicle(vehicle);
+    if (!mounted) return;
+    Navigator.of(context).pop(_previewForVehicle(vehicle));
   }
 }

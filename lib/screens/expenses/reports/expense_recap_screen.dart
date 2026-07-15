@@ -7,9 +7,11 @@ import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../data/expense_ledger_models.dart';
 import '../data/expense_ledger_store.dart';
+import '../data/expense_work_profile_store.dart';
 import 'expense_recap_models.dart';
 
 part 'expense_recap_range_panel.dart';
+part 'expense_recap_scope_panel.dart';
 part 'expense_recap_tile_panels.dart';
 
 class ExpenseRecapScreen extends StatefulWidget {
@@ -28,6 +30,8 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
       widget.initialRange ??
       ExpenseDateRange(start: _anchorDate, end: _anchorDate);
   var _period = ExpenseRecapPeriod.month;
+  var _selectedVehicleId = '';
+  var _selectedWorkProfileId = '';
 
   @override
   void initState() {
@@ -41,15 +45,25 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ExpenseSettingsScope.of(context);
-    final activeVehicle = AppStateScope.of(context).activeVehicle;
-    final vehicleId = activeVehicle == null
+    final appState = AppStateScope.of(context);
+    final profiles = ExpenseWorkProfileScope.of(context);
+    final vehicleId = _selectedVehicleId.isEmpty
         ? null
-        : odometerVehicleIdForLabel(activeVehicle.nickname);
+        : odometerVehicleIdForVehicleId(
+            _selectedVehicleId,
+            fallbackLabel: appState.vehicles
+                .firstWhere(
+                  (vehicle) => vehicle.id == _selectedVehicleId,
+                  orElse: () => appState.activeVehicle!,
+                )
+                .nickname,
+          );
     final range = _period.rangeFor(_anchorDate, customRange: _customRange);
     final report = ExpenseRecapReport.fromLedger(
       ExpenseLedgerScope.of(context),
       range,
       vehicleId: vehicleId,
+      workProfileId: _selectedWorkProfileId,
     );
     final visibleTiles = expenseRecapTileDefinitions
         .where((tile) => settings.recapTileVisible(tile.id))
@@ -81,9 +95,20 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
             }),
           ),
           const SizedBox(height: 8),
+          _RecapScopePanel(
+            selectedVehicleId: _selectedVehicleId,
+            selectedWorkProfileId: _selectedWorkProfileId,
+            vehicles: appState.vehicles,
+            workProfiles: profiles.profiles,
+            onVehicleChanged: (vehicleId) =>
+                setState(() => _selectedVehicleId = vehicleId),
+            onWorkProfileChanged: (profileId) =>
+                setState(() => _selectedWorkProfileId = profileId),
+          ),
+          const SizedBox(height: 8),
           _RecapHeroPanel(
             report: report,
-            rangeLabel: _scopeRangeLabel(activeVehicle),
+            rangeLabel: _scopeRangeLabel(appState, profiles),
           ),
           const SizedBox(height: 8),
           if (visibleTiles.isEmpty)
@@ -98,11 +123,27 @@ class _ExpenseRecapScreenState extends State<ExpenseRecapScreen> {
   String get _rangeLabel =>
       _period.rangeLabel(_anchorDate, customRange: _customRange);
 
-  String _scopeRangeLabel(VehicleProfile? activeVehicle) {
-    final scope = activeVehicle == null
-        ? 'All company expenses'
-        : activeVehicle.nickname;
-    return '$scope | $_rangeLabel';
+  String _scopeRangeLabel(
+    AppStateController appState,
+    ExpenseWorkProfileController profiles,
+  ) {
+    final vehicleScope = _selectedVehicleId.isEmpty
+        ? 'All vehicles'
+        : appState.vehicles
+              .firstWhere(
+                (vehicle) => vehicle.id == _selectedVehicleId,
+                orElse: () => appState.activeVehicle!,
+              )
+              .nickname;
+    final profileScope = _selectedWorkProfileId.isEmpty
+        ? 'Grand Total'
+        : profiles.profiles
+              .firstWhere(
+                (profile) => profile.id == _selectedWorkProfileId,
+                orElse: () => profiles.activeWorkProfile,
+              )
+              .name;
+    return '$profileScope · $vehicleScope | $_rangeLabel';
   }
 }
 

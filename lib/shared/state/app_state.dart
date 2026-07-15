@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 enum VehicleUsage { businessOnly, personalOnly, businessPersonal }
 
@@ -76,6 +79,29 @@ class VehicleProfile {
     ].where((part) => part.trim().isNotEmpty).join(' ');
     return details.isEmpty ? nickname : '$nickname - $details';
   }
+
+  factory VehicleProfile.fromMap(Map<dynamic, dynamic> map) {
+    return VehicleProfile(
+      id: map['id']?.toString() ?? '',
+      nickname: map['nickname']?.toString() ?? 'Vehicle',
+      year: map['year']?.toString() ?? '',
+      make: map['make']?.toString() ?? '',
+      model: map['model']?.toString() ?? '',
+      usage: VehicleUsage.values.firstWhere(
+        (usage) => usage.name == map['usage']?.toString(),
+        orElse: () => VehicleUsage.businessPersonal,
+      ),
+    );
+  }
+
+  Map<String, Object?> toMap() => {
+    'id': id,
+    'nickname': nickname,
+    'year': year,
+    'make': make,
+    'model': model,
+    'usage': usage.name,
+  };
 }
 
 class WorkProfile {
@@ -227,6 +253,21 @@ class MaintenanceServiceEvent {
 }
 
 class AppStateController extends ChangeNotifier {
+  AppStateController() : _vehicleBox = null;
+  AppStateController._(this._vehicleBox);
+
+  static const vehicleBoxName = 'maintainiac_vehicle_profiles';
+  static const _vehicleSnapshotKey = 'snapshot';
+
+  static Future<AppStateController> create() async {
+    final controller = AppStateController._(
+      await Hive.openBox<dynamic>(vehicleBoxName),
+    );
+    await controller._restoreVehicles();
+    return controller;
+  }
+
+  final Box<dynamic>? _vehicleBox;
   final List<VehicleProfile> _vehicles = <VehicleProfile>[
     VehicleProfile(
       nickname: 'Work Truck 1',
@@ -274,7 +315,7 @@ class AppStateController extends ChangeNotifier {
   VehicleProfile? get activeVehicle => _activeVehicle;
   WorkProfile? get activeWorkProfile => _activeWorkProfile;
 
-  void addVehicle(VehicleProfile vehicle) {
+  Future<void> addVehicle(VehicleProfile vehicle) async {
     final storedVehicle = vehicle.id.trim().isEmpty
         ? VehicleProfile(
             id: 'vehicle_${DateTime.now().microsecondsSinceEpoch}',
@@ -285,13 +326,54 @@ class AppStateController extends ChangeNotifier {
             usage: vehicle.usage,
           )
         : vehicle;
-    _vehicles.add(storedVehicle);
-    _activeVehicle ??= storedVehicle;
+    final nextVehicles = [..._vehicles, storedVehicle];
+    final nextActiveVehicle = _activeVehicle ?? storedVehicle;
+    await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
+    _vehicles
+      ..clear()
+      ..addAll(nextVehicles);
+    _activeVehicle = nextActiveVehicle;
     notifyListeners();
   }
 
-  void selectVehicle(VehicleProfile vehicle) {
-    _activeVehicle = vehicle;
+  Future<void> selectVehicle(VehicleProfile vehicle) async {
+    final nextActiveVehicle = _vehicles.firstWhere(
+      (candidate) => candidate.id == vehicle.id,
+      orElse: () => vehicle,
+    );
+    await _writeVehicleSnapshot(_vehicles, nextActiveVehicle);
+    _activeVehicle = nextActiveVehicle;
+    notifyListeners();
+  }
+
+  Future<void> updateVehicle(VehicleProfile vehicle) async {
+    final index = _vehicles.indexWhere((item) => item.id == vehicle.id);
+    if (index < 0) return;
+    final nextVehicles = [..._vehicles]..[index] = vehicle;
+    final nextActiveVehicle = _activeVehicle?.id == vehicle.id
+        ? vehicle
+        : _activeVehicle;
+    await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
+    _vehicles
+      ..clear()
+      ..addAll(nextVehicles);
+    _activeVehicle = nextActiveVehicle;
+    notifyListeners();
+  }
+
+  Future<void> deleteVehicle(String vehicleId) async {
+    if (_vehicles.length <= 1) return;
+    final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
+    if (index < 0) return;
+    final nextVehicles = [..._vehicles]..removeAt(index);
+    final nextActiveVehicle = _activeVehicle?.id == vehicleId
+        ? nextVehicles.first
+        : _activeVehicle;
+    await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
+    _vehicles
+      ..clear()
+      ..addAll(nextVehicles);
+    _activeVehicle = nextActiveVehicle;
     notifyListeners();
   }
 
@@ -366,6 +448,50 @@ class AppStateController extends ChangeNotifier {
     }
     _sortMaintenanceRecords();
     notifyListeners();
+  }
+
+  Future<void> _restoreVehicles() async {
+    final box = _vehicleBox;
+    if (box == null) return;
+    final snapshot = box.get(_vehicleSnapshotKey);
+    if (snapshot is! Map) {
+      await _persistVehicles();
+      return;
+    }
+    final restored = (snapshot['vehicles'] as List? ?? const [])
+        .whereType<Map>()
+        .map(VehicleProfile.fromMap)
+        .where((vehicle) => vehicle.id.trim().isNotEmpty)
+        .toList(growable: false);
+    if (restored.isEmpty) {
+      await _persistVehicles();
+      return;
+    }
+    _vehicles
+      ..clear()
+      ..addAll(restored);
+    final activeId = snapshot['activeVehicleId']?.toString();
+    _activeVehicle = _vehicles.firstWhere(
+      (vehicle) => vehicle.id == activeId,
+      orElse: () => _vehicles.first,
+    );
+    notifyListeners();
+  }
+
+  Future<void> _persistVehicles() async {
+    await _writeVehicleSnapshot(_vehicles, _activeVehicle);
+  }
+
+  Future<void> _writeVehicleSnapshot(
+    List<VehicleProfile> vehicles,
+    VehicleProfile? activeVehicle,
+  ) async {
+    final box = _vehicleBox;
+    if (box == null) return;
+    await box.put(_vehicleSnapshotKey, {
+      'vehicles': [for (final vehicle in vehicles) vehicle.toMap()],
+      'activeVehicleId': activeVehicle?.id,
+    });
   }
 }
 

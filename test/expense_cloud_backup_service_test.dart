@@ -6,7 +6,9 @@ import 'package:maintaniac/screens/expenses/data/expense_cloud_backup_service.da
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
+import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
 
 void main() {
@@ -71,7 +73,7 @@ void main() {
     );
 
     expect(result.completed, isTrue);
-    expect(sink.documents, hasLength(3));
+    expect(sink.documents, hasLength(5));
     expect(sink.documents.keys, contains('orgs/org-1/expenses/receipt-1'));
     expect(
       sink.documents.keys,
@@ -82,6 +84,14 @@ void main() {
         (path) => path.startsWith('orgs/org-1/settings/expense_reminder_'),
       ),
       isTrue,
+    );
+    expect(
+      sink.documents.keys,
+      contains('orgs/org-1/settings/expense_work_profiles_user-1'),
+    );
+    expect(
+      sink.documents.keys,
+      contains('orgs/org-1/settings/expense_vehicles_user-1'),
     );
     expect(sink.documents.values.join(), isNot(contains('rawOcrText')));
   });
@@ -103,10 +113,87 @@ void main() {
       expect(sink.documents, isEmpty);
     },
   );
+
+  test('queues a deleted local receipt as a durable cloud tombstone', () async {
+    final sink = _RecordingSink();
+    final service = await _service(
+      sink: sink,
+      organizationId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+    );
+    final saved = await service.ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'receipt-deleted',
+        receiptDate: DateTime.utc(2026, 7, 15),
+        lines: const [],
+      ),
+    );
+    await service.ledger.deleteReceipt(saved.id);
+
+    final result = await service.backupReceipt(
+      saved.id,
+      nowUtc: DateTime.utc(2026, 7, 15, 12),
+    );
+    final document = sink.documents['orgs/org-1/expenses/receipt-deleted']!;
+
+    expect(result.completed, isTrue);
+    expect(document['recordState'], 'deleted');
+    expect(document['localRevision'], 2);
+    expect(document['syncStatus'], 'pending_delete');
+    expect(document['deletedAt'], isNotNull);
+  });
+
+  test('includes deleted reminder tombstones in an authorized backup', () async {
+    final sink = _RecordingSink();
+    final reminders = ExpenseReminderController.memory();
+    final reminder = await reminders.save(
+      ExpenseReminderRecord(
+        id: 'reminder-tombstone',
+        title: 'Renew registration',
+        category: 'Registration',
+        channel: 'In-app',
+        dueAt: DateTime.utc(2026, 8, 1),
+        cadence: ExpenseReminderCadence.yearly,
+        createdAt: DateTime.utc(2026, 7, 15),
+        updatedAt: DateTime.utc(2026, 7, 15),
+      ),
+    );
+    await reminders.delete(reminder.id);
+
+    final service = await _service(
+      sink: sink,
+      reminders: reminders,
+      organizationId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+    );
+    final result = await service.backupLocalSnapshot();
+    final document = sink
+        .documents['orgs/org-1/settings/expense_reminder_reminder-tombstone']!;
+
+    expect(result.completed, isTrue);
+    expect(document['recordState'], 'deleted');
+    expect(document['localRevision'], 2);
+    expect(document['deletedAt'], isNotNull);
+  });
+
+  test('app startup does not automatically flush Expense backups', () async {
+    final mainSource = await File('lib/main.dart').readAsString();
+    final expenseBackupBlock = mainSource.substring(
+      mainSource.indexOf(
+        'expenseCloudBackup = FirebaseExpenseCloudBackupMirror',
+      ),
+      mainSource.indexOf('final incomingReceiptShare'),
+    );
+
+    expect(expenseBackupBlock, isNot(contains('syncLocalSnapshot()')));
+  });
 }
 
 Future<ExpenseCloudBackupService> _service({
   _RecordingSink? sink,
+  ExpenseReminderController? reminders,
   String? organizationId,
   String? uid,
   String? deviceId,
@@ -115,7 +202,9 @@ Future<ExpenseCloudBackupService> _service({
   return ExpenseCloudBackupService(
     ledger: ExpenseLedgerController.memory(),
     settings: await ExpenseSettingsController.create(),
-    reminders: ExpenseReminderController.memory(),
+    reminders: reminders ?? ExpenseReminderController.memory(),
+    workProfiles: ExpenseWorkProfileController.memory(),
+    appState: AppStateController(),
     queueStore: queue,
     uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
       queue: queue,

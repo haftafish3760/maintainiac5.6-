@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/records/maintainiac_record_lifecycle.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_firestore_documents.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
+import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_schema.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
+import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
@@ -35,6 +38,7 @@ void main() {
       rawOcrText: 'RAW PRIVATE OCR TEXT SHOULD NOT SYNC',
       enteredTotal: 42.25,
       vehicleId: 'truck-1',
+      workProfileId: 'evening-delivery',
       odometerReading: 150125,
       hasReceiptProof: true,
       ocrReview: const ExpenseReceiptOcrReview(
@@ -102,6 +106,7 @@ void main() {
     expect(doc.data['merchantName'], 'Local Hardware');
     expect(doc.data['enteredTotalCents'], 4225);
     expect(doc.data['vehicleId'], 'truck-1');
+    expect(doc.data['workProfileId'], 'evening-delivery');
     expect(doc.data['odometerReading'], 150125);
     expect((doc.data['lines'] as List).single.toString(), contains('Hammer'));
     expect(doc.data['rawOcrStored'], isFalse);
@@ -214,6 +219,74 @@ void main() {
     expect(line['unitPriceCents'], 339);
     expect(line['rawReceiptTextStored'], isFalse);
     expect(doc.data.toString(), isNot(contains('PRIVATE FUEL RECEIPT TEXT')));
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('backs up a deleted receipt as a revisioned tombstone', () {
+    final deletedAt = DateTime.utc(2026, 7, 15, 14, 30);
+    final receipt = ExpenseReceiptRecord(
+      id: 'deleted-receipt',
+      receiptDate: DateTime.utc(2026, 7, 15),
+      localRevision: 8,
+      recordState: MaintainiacRecordState.deleted,
+      deletedAt: deletedAt,
+      lines: const [],
+    );
+
+    final doc = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      receipt: receipt,
+      nowUtc: DateTime.utc(2026, 7, 15, 15),
+    );
+
+    expect(doc.data['recordState'], 'deleted');
+    expect(doc.data['deletedAt'], deletedAt.toIso8601String());
+    expect(doc.data['localRevision'], 8);
+    expect(doc.data['syncStatus'], 'pending_delete');
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('backs up a replaceable vehicle directory without local paths', () {
+    final appState = AppStateController();
+    final doc = ExpenseFirestoreDocumentBuilder.expenseVehicleDirectoryDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      appState: appState,
+      nowUtc: DateTime.utc(2026, 7, 15, 12),
+    );
+
+    expect(
+      doc.path,
+      'orgs/ORG-1/${MaintainiacFirestoreSchema.orgSettings}/expense_vehicles_USER-1',
+    );
+    expect(doc.data['schema'], 'expense_vehicle_directory_backup_v1');
+    expect(doc.data['activeVehicleId'], 'vehicle_work_truck_1');
+    expect((doc.data['vehicles'] as List), isNotEmpty);
+    expect(doc.data.toString(), isNot(contains('localPath')));
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('backs up a replaceable work-profile directory', () {
+    final profiles = ExpenseWorkProfileController.memory();
+    final doc =
+        ExpenseFirestoreDocumentBuilder.expenseWorkProfileDirectoryDocument(
+          orgId: 'ORG-1',
+          uid: 'USER-1',
+          deviceId: 'DEVICE-1',
+          workProfiles: profiles,
+          nowUtc: DateTime.utc(2026, 7, 15, 12),
+        );
+
+    expect(
+      doc.path,
+      'orgs/ORG-1/${MaintainiacFirestoreSchema.orgSettings}/expense_work_profiles_USER-1',
+    );
+    expect(doc.data['schema'], 'expense_work_profile_directory_backup_v1');
+    expect(doc.data['activeWorkProfileId'], 'expense_work_default');
+    expect((doc.data['profiles'] as List), hasLength(1));
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 }

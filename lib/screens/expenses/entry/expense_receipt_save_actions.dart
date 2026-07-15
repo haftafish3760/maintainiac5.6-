@@ -57,6 +57,15 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       }
     }
     final ledger = ExpenseLedgerScope.of(context);
+    try {
+      await ledger.ensureStorageForLocalSave();
+    } on StateError catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message.toString())));
+      return;
+    }
     var receipt = _buildReceiptForSave();
     final duplicateCheck = ledger.checkDuplicatesFor(receipt);
     receipt = receipt.copyWith(
@@ -94,11 +103,13 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
         ..addAll(promotedAttachments);
       _hasReceipt = promotedAttachments.isNotEmpty || _hasReceipt;
     });
+    if (!await _saveDraftNow()) return;
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
+    if (!mounted) return;
     final cloudBackup = ExpenseCloudBackupScope.maybeOf(context);
     if (cloudBackup != null) {
-      unawaited(cloudBackup.mirror.queueReceipt(saved.id));
+      unawaited(cloudBackup.queueReceipt(saved.id));
     }
     await _syncMaterialsReceipt(saved);
     if (!mounted) return;
@@ -130,6 +141,9 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
   ExpenseReceiptRecord _buildReceiptForSave() {
     final editing = _editingReceipt;
     final activeVehicle = AppStateScope.of(context).activeVehicle;
+    final activeWorkProfile = ExpenseWorkProfileScope.of(
+      context,
+    ).activeWorkProfile;
     return ExpenseReceiptRecord(
       id: editing?.id ?? 'EXP-${DateTime.now().microsecondsSinceEpoch}',
       receiptDate: _selectedDate,
@@ -157,7 +171,12 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
           editing?.vehicleId ??
           (activeVehicle == null
               ? null
-              : odometerVehicleIdForLabel(activeVehicle.nickname)),
+              : odometerVehicleIdForVehicleId(
+                  activeVehicle.id,
+                  fallbackLabel: activeVehicle.nickname,
+                )),
+      workProfileId: editing?.workProfileId ?? activeWorkProfile.id,
+      odometerReading: _expenseOdometerReading,
       sourceScreen:
           editing?.sourceScreen ??
           (_isMaterialsFlow
@@ -240,24 +259,37 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
   ) async {
     try {
       return ledger.saveReceipt(receipt);
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return null;
+      final storageMessage = error is StateError
+          ? error.message.toString()
+          : null;
       ExpenseScreenTelemetryRecorder.record(
         context,
         ExpenseTelemetryEventType.saveFailure,
         failureKind: 'ledger_save_failed',
-        diagnostic: const ExpenseFailureDiagnostic(
+        diagnostic: ExpenseFailureDiagnostic(
           workflowStep: ExpenseWorkflowStep.saveExpense,
           failedAt: 'ledger_save_receipt',
-          confirmedCause: 'cause_not_confirmed_ledger_save_failed',
-          causeStatus: ExpenseFailureCauseStatus.notConfirmed,
-          evidence: 'ledger_save_threw_exception',
-          missingEvidence: 'exception_type_and_hive_box_state',
+          confirmedCause: storageMessage == null
+              ? 'cause_not_confirmed_ledger_save_failed'
+              : 'device_storage_insufficient',
+          causeStatus: storageMessage == null
+              ? ExpenseFailureCauseStatus.notConfirmed
+              : ExpenseFailureCauseStatus.confirmed,
+          evidence: storageMessage == null
+              ? 'ledger_save_threw_exception'
+              : 'storage_guard_blocked_local_record_save',
+          missingEvidence: storageMessage == null
+              ? 'exception_type_and_hive_box_state'
+              : 'none',
         ),
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('That receipt could not be saved. Try again.'),
+        SnackBar(
+          content: Text(
+            storageMessage ?? 'That receipt could not be saved. Try again.',
+          ),
         ),
       );
       return null;

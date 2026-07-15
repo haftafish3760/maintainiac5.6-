@@ -206,6 +206,11 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               },
             ),
             const SizedBox(height: 8),
+            _ExpenseOdometerPanel(
+              reading: _expenseOdometerReading,
+              onEdit: _editExpenseOdometerReading,
+            ),
+            const SizedBox(height: 8),
             _ReceiptDetailModePanel(
               value: _detailEntryMode,
               onChanged: _setReceiptReviewMode,

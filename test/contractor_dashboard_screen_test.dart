@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/dashboard.dart';
+import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 
 void main() {
   late AppStateController appState;
   late GlobalOdometerController odometer;
+  late ExpenseWorkProfileController workProfiles;
 
   setUp(() {
     appState = AppStateController();
     odometer = GlobalOdometerController();
+    workProfiles = ExpenseWorkProfileController.memory();
   });
 
   tearDown(() {
@@ -19,7 +22,7 @@ void main() {
   });
 
   testWidgets('dashboard opens contractor command center', (tester) async {
-    await _pumpDashboard(tester, appState, odometer);
+    await _pumpDashboard(tester, appState, odometer, workProfiles);
 
     expect(find.text('Contractor Dashboard'), findsOneWidget);
 
@@ -43,7 +46,7 @@ void main() {
   });
 
   testWidgets('contractor dashboard exposes active day tools', (tester) async {
-    await _pumpDashboard(tester, appState, odometer);
+    await _pumpDashboard(tester, appState, odometer, workProfiles);
 
     await tester.tap(find.text('Contractor Dashboard'));
     await tester.pumpAndSettle();
@@ -70,6 +73,7 @@ Future<void> _pumpDashboard(
   WidgetTester tester,
   AppStateController appState,
   GlobalOdometerController odometer,
+  ExpenseWorkProfileController workProfiles,
 ) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(900, 1500);
@@ -79,9 +83,12 @@ Future<void> _pumpDashboard(
   await tester.pumpWidget(
     AppStateScope(
       controller: appState,
-      child: GlobalOdometerScope(
-        controller: odometer,
-        child: const MaterialApp(home: DashboardScreen()),
+      child: ExpenseWorkProfileScope(
+        controller: workProfiles,
+        child: GlobalOdometerScope(
+          controller: odometer,
+          child: const MaterialApp(home: DashboardScreen()),
+        ),
       ),
     ),
   );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../categories/expense_categories.dart';
+import '../data/expense_cloud_backup_service.dart';
 import '../reports/expense_recap_models.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
@@ -11,6 +12,7 @@ part 'expense_category_settings_sections.dart';
 part 'expense_settings_switch_panels.dart';
 part 'expense_recap_tile_settings.dart';
 part 'expense_settings_helpers.dart';
+part 'expense_odometer_prompt_settings.dart';
 
 class ExpenseSettingsScreen extends StatefulWidget {
   const ExpenseSettingsScreen({super.key});
@@ -54,6 +56,13 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
             onCategoryPressed: _showCategorySettings,
           ),
           const SizedBox(height: 12),
+          _CustomCategorySettingsPanel(
+            settings: settings,
+            standardCategoryNames: _allExpenseCategories
+                .map((category) => category.category)
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 12),
           _SettingsSwitchPanel(
             title: 'Category Automation',
             rows: [
@@ -72,6 +81,29 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           _RecapTileSettingsPanel(settings: settings),
           const SizedBox(height: 12),
           _ReceiptReviewStyleSettingsPanel(settings: settings),
+          const SizedBox(height: 12),
+          _BackupSyncModeSettingsPanel(
+            settings: settings,
+            onBackupNow: () async {
+              final backup = ExpenseCloudBackupScope.maybeOf(context);
+              if (backup == null) return;
+              await backup.syncLocalSnapshot();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Expense backup request finished.'),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _OdometerPromptSettingsPanel(
+            settings: settings,
+            categories: {
+              ..._allExpenseCategories.map((category) => category.category),
+              ...settings.customCategoryNames,
+            }.toList()..sort(),
+          ),
           const SizedBox(height: 12),
           _SettingsSwitchPanel(
             title: 'Receipts And OCR',
@@ -186,6 +218,112 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Expense category layout reset to the release defaults.'),
+      ),
+    );
+  }
+}
+
+class _CustomCategorySettingsPanel extends StatefulWidget {
+  const _CustomCategorySettingsPanel({
+    required this.settings,
+    required this.standardCategoryNames,
+  });
+
+  final ExpenseSettingsController settings;
+  final List<String> standardCategoryNames;
+
+  @override
+  State<_CustomCategorySettingsPanel> createState() =>
+      _CustomCategorySettingsPanelState();
+}
+
+class _CustomCategorySettingsPanelState
+    extends State<_CustomCategorySettingsPanel> {
+  Future<void> _addCategory() async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Custom Category'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 60,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Category name',
+            hintText: 'Example: Professional dues',
+          ),
+          onSubmitted: (value) => Navigator.of(context).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || !mounted) return;
+    final duplicateStandard = widget.standardCategoryNames.any(
+      (item) => _sameCategory(item, name),
+    );
+    final added = duplicateStandard
+        ? false
+        : await widget.settings.addCustomCategory(name);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added
+              ? 'Custom category added to the receipt category list.'
+              : 'Enter a unique category name that is 60 characters or less.',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final categories = widget.settings.customCategoryNames;
+    return IndustrialPanelSurface(
+      dark: true,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Custom Categories',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 5),
+          const Text(
+            'Custom categories are available on receipt lines and appear in recaps.',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          for (final category in categories)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(category),
+              trailing: IconButton(
+                tooltip: 'Remove $category',
+                onPressed: () => widget.settings.removeCustomCategory(category),
+                icon: const Icon(Icons.delete_outline_rounded),
+              ),
+            ),
+          _SettingsActionButton(
+            label: 'Add custom category',
+            icon: Icons.add_rounded,
+            onPressed: _addCategory,
+          ),
+        ],
       ),
     );
   }

@@ -13,6 +13,7 @@ import '../../shared/odometer/open_odometer_entry.dart';
 import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/widgets/app_screen_shell.dart';
+import '../expenses/data/expense_work_profile_store.dart';
 import 'data/active_workday_store.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -32,11 +33,25 @@ class _PreDayDashboardBody extends StatefulWidget {
 }
 
 class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
-  var _activeVehicle = defaultVehicleProfile;
-  final _workProfile = 'Business';
-
   @override
   Widget build(BuildContext context) {
+    final appState = AppStateScope.of(context);
+    final selectedVehicle = appState.activeVehicle;
+    final activeVehicle = selectedVehicle == null
+        ? defaultVehicleProfile
+        : VehicleProfilePreview(
+            id: selectedVehicle.id,
+            nickname: selectedVehicle.nickname,
+            year: selectedVehicle.year,
+            make: selectedVehicle.make,
+            model: selectedVehicle.model,
+            odometer: '',
+            status: 'Active',
+            usage: selectedVehicle.usage,
+          );
+    final activeWorkProfile = ExpenseWorkProfileScope.of(
+      context,
+    ).activeWorkProfile;
     final operationalContext = OperationalContextScope.maybeOf(context);
     final activeContext = operationalContext?.context;
     final contextLabel = activeContext == null
@@ -51,10 +66,14 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
           child: DashboardContextSelectors(
-            activeVehicle: _activeVehicle,
-            workProfile: _workProfile,
-            onVehicleChanged: (vehicle) {
-              setState(() => _activeVehicle = vehicle);
+            activeVehicle: activeVehicle,
+            workProfile: activeWorkProfile.name,
+            onVehicleChanged: (vehicle) async {
+              final match = appState.vehicles.where(
+                (candidate) => candidate.id == vehicle.id,
+              );
+              if (match.isEmpty) return;
+              await appState.selectVehicle(match.first);
             },
           ),
         ),
@@ -87,13 +106,16 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
     if (!saved || !mounted) return;
     final odometer = GlobalOdometerScope.of(context);
     final activeVehicle = AppStateScope.of(context).activeVehicle;
+    final activeWorkProfile = ExpenseWorkProfileScope.of(
+      context,
+    ).activeWorkProfile;
     if (activeVehicle == null) return;
     await ActiveWorkdayScope.of(context).startDay(
       vehicleId: odometer.vehicleId,
       vehicleLabel: activeVehicle.nickname,
       workProfileId:
           OperationalContextScope.maybeOf(context)?.context.workProfileId ??
-          _workProfile,
+          activeWorkProfile.id,
       startOdometer: odometer.reading,
     );
     if (!mounted) return;
@@ -101,6 +123,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       appSlideRoute(
         ActiveWorkdayScreen(
           activeVehicle: VehicleProfilePreview(
+            id: activeVehicle.id,
             nickname: activeVehicle.nickname,
             year: activeVehicle.year,
             make: activeVehicle.make,
@@ -109,7 +132,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
             status: 'ACTIVE',
             usage: activeVehicle.usage,
           ),
-          workProfileName: _workProfile,
+          workProfileName: activeWorkProfile.name,
         ),
       ),
     );

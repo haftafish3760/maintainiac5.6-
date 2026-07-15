@@ -1,9 +1,11 @@
 import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_schema.dart';
+import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'expense_ledger_models.dart';
 import 'expense_reminder_store.dart';
+import 'expense_work_profile_store.dart';
 
 class ExpenseFirestoreDocumentBuilder {
   const ExpenseFirestoreDocumentBuilder._();
@@ -19,6 +21,12 @@ class ExpenseFirestoreDocumentBuilder {
     final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     final createdAt = (receipt.createdAt ?? exportedAt).toUtc();
     final updatedAt = (receipt.updatedAt ?? exportedAt).toUtc();
+    final syncRevision = receipt.localRevision > 0
+        ? receipt.localRevision
+        : localRevision < 1
+        ? 1
+        : localRevision;
+    final isDeleted = receipt.isDeleted;
     return MaintainiacFirestoreDocumentDraft(
       path:
           '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgExpenses)}/${_pathToken(receipt.id)}',
@@ -32,10 +40,11 @@ class ExpenseFirestoreDocumentBuilder {
         'deviceId': _token(deviceId),
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
-        'deletedAt': null,
-        'localRevision': localRevision < 1 ? 1 : localRevision,
+        'deletedAt': receipt.deletedAt?.toUtc().toIso8601String(),
+        'recordState': receipt.recordState.name,
+        'localRevision': syncRevision,
         'cloudRevision': 0,
-        'syncStatus': 'pending',
+        'syncStatus': isDeleted ? 'pending_delete' : 'pending',
         'sourceScreen': _token(receipt.sourceScreen, fallback: 'expenses'),
         'receiptDate': _dateOnly(receipt.receiptDate),
         'receiptTimeMinutes': receipt.receiptTimeMinutes,
@@ -51,6 +60,7 @@ class ExpenseFirestoreDocumentBuilder {
         'receiptNumber': _readable(receipt.receiptNumber),
         'paymentMethod': _readable(receipt.paymentMethod),
         'vehicleId': _nullableToken(receipt.vehicleId),
+        'workProfileId': _nullableToken(receipt.workProfileId),
         'odometerReading': receipt.odometerReading,
         'trackMaterialsInInventory': receipt.trackMaterialsInInventory,
         'hasReceiptProof': receipt.hasReceiptAttachment,
@@ -138,6 +148,121 @@ class ExpenseFirestoreDocumentBuilder {
         'details': _readable(reminder.details, maxLength: 1000),
         'createdAt': reminder.createdAt.toUtc().toIso8601String(),
         'updatedAt': reminder.updatedAt.toUtc().toIso8601String(),
+        'recordState': reminder.lifecycle?.state.name ?? 'active',
+        'localRevision': reminder.lifecycle?.revision ?? 1,
+        'deletedAt': reminder.lifecycle?.deletedAt?.toUtc().toIso8601String(),
+      }),
+    );
+  }
+
+  static MaintainiacFirestoreDocumentDraft expenseWorkProfileDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseWorkProfile profile,
+  }) {
+    final id = _pathToken(profile.id);
+    return MaintainiacFirestoreDocumentDraft(
+      path:
+          '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgSettings)}/expense_work_profile_$id',
+      data: Map.unmodifiable({
+        'schema': 'expense_work_profile_backup_v1',
+        'id': id,
+        'orgId': _pathToken(orgId),
+        'ownerUid': uid,
+        'createdByUid': uid,
+        'updatedByUid': uid,
+        'deviceId': _token(deviceId),
+        'module': 'expenses',
+        'settingsScope': 'member',
+        'name': _readable(profile.name, maxLength: 160),
+        'isDefault': profile.isDefault,
+        'createdAt': profile.createdAt.toUtc().toIso8601String(),
+        'updatedAt': profile.updatedAt.toUtc().toIso8601String(),
+      }),
+    );
+  }
+
+  /// One replaceable directory document prevents an archived work profile
+  /// from reappearing after restore and keeps snapshot write volume bounded.
+  static MaintainiacFirestoreDocumentDraft expenseWorkProfileDirectoryDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required ExpenseWorkProfileController workProfiles,
+    DateTime? nowUtc,
+  }) {
+    final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return MaintainiacFirestoreDocumentDraft(
+      path:
+          '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgSettings)}/expense_work_profiles_${_pathToken(uid)}',
+      data: Map.unmodifiable({
+        'schema': 'expense_work_profile_directory_backup_v1',
+        'schemaVersion': 1,
+        'id': 'expense_work_profiles_${_pathToken(uid)}',
+        'orgId': _pathToken(orgId),
+        'ownerUid': uid,
+        'createdByUid': uid,
+        'updatedByUid': uid,
+        'deviceId': _token(deviceId),
+        'module': 'expenses',
+        'settingsScope': 'member',
+        'activeWorkProfileId': _pathToken(workProfiles.activeWorkProfile.id),
+        'profiles': [
+          for (final profile in workProfiles.profiles)
+            {
+              'id': _pathToken(profile.id),
+              'name': _readable(profile.name, maxLength: 160),
+              'isDefault': profile.isDefault,
+              'createdAt': profile.createdAt.toUtc().toIso8601String(),
+              'updatedAt': profile.updatedAt.toUtc().toIso8601String(),
+            },
+        ],
+        'createdAt': exportedAt.toIso8601String(),
+        'updatedAt': exportedAt.toIso8601String(),
+      }),
+    );
+  }
+
+  /// One replaceable directory document keeps vehicle-profile backup compact.
+  /// A removed vehicle disappears from the next directory snapshot while saved
+  /// Expense records continue to retain their historical vehicle ID.
+  static MaintainiacFirestoreDocumentDraft expenseVehicleDirectoryDocument({
+    required String orgId,
+    required String uid,
+    required String deviceId,
+    required AppStateController appState,
+    DateTime? nowUtc,
+  }) {
+    final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return MaintainiacFirestoreDocumentDraft(
+      path:
+          '${MaintainiacFirestoreSchema.orgCollectionPath(_pathToken(orgId), MaintainiacFirestoreSchema.orgSettings)}/expense_vehicles_${_pathToken(uid)}',
+      data: Map.unmodifiable({
+        'schema': 'expense_vehicle_directory_backup_v1',
+        'schemaVersion': 1,
+        'id': 'expense_vehicles_${_pathToken(uid)}',
+        'orgId': _pathToken(orgId),
+        'ownerUid': uid,
+        'createdByUid': uid,
+        'updatedByUid': uid,
+        'deviceId': _token(deviceId),
+        'module': 'expenses',
+        'settingsScope': 'member',
+        'activeVehicleId': _nullableToken(appState.activeVehicle?.id),
+        'vehicles': [
+          for (final vehicle in appState.vehicles)
+            {
+              'id': _pathToken(vehicle.id),
+              'nickname': _readable(vehicle.nickname, maxLength: 160),
+              'year': _readable(vehicle.year, maxLength: 12),
+              'make': _readable(vehicle.make, maxLength: 80),
+              'model': _readable(vehicle.model, maxLength: 100),
+              'usage': vehicle.usage.name,
+            },
+        ],
+        'createdAt': exportedAt.toIso8601String(),
+        'updatedAt': exportedAt.toIso8601String(),
       }),
     );
   }
