@@ -236,6 +236,11 @@ class MaintainiacRecordDraftStore {
     if (module.trim().isEmpty || id.trim().isEmpty) {
       throw ArgumentError('A draft needs both a module and a stable ID.');
     }
+    if (module != module.trim() || id != id.trim()) {
+      throw ArgumentError(
+        'Draft module and ID values cannot begin or end with spaces.',
+      );
+    }
     if (module.contains(':') || id.contains(':')) {
       throw ArgumentError('Draft module and ID values cannot contain a colon.');
     }
@@ -244,6 +249,8 @@ class MaintainiacRecordDraftStore {
   bool _hasValidDraftKey(String module, String id) =>
       module.trim().isNotEmpty &&
       id.trim().isNotEmpty &&
+      module == module.trim() &&
+      id == id.trim() &&
       !module.contains(':') &&
       !id.contains(':');
 

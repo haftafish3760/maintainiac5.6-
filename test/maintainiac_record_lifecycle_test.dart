@@ -120,6 +120,10 @@ void main() {
       () => store.save(module: 'expenses', id: 'draft:1', payload: const {}),
       throwsArgumentError,
     );
+    await expectLater(
+      () => store.save(module: ' expenses', id: 'draft-1', payload: const {}),
+      throwsArgumentError,
+    );
     await store.remove('expenses:other', 'draft-safe');
     expect(store.draftFor('expenses', 'draft-safe'), isNotNull);
     expect(store.draftFor('expenses:other', 'draft-safe'), isNull);
