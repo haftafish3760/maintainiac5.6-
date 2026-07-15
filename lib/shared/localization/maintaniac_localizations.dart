@@ -135,6 +135,48 @@ class MaintaniacLocalizations {
     'La asistencia de recibos usa primero la fuente OCR clara. Este ajuste solo controla el comprobante guardado más pequeño.',
     'L’assistance des reçus utilise d’abord la source OCR claire. Ce réglage ne contrôle que la plus petite preuve enregistrée.',
   );
+  String get deviceStorage => _text(
+    'Device Storage',
+    'Almacenamiento del dispositivo',
+    'Stockage de l’appareil',
+  );
+  String get refreshStorage => _text(
+    'Refresh storage',
+    'Actualizar almacenamiento',
+    'Actualiser le stockage',
+  );
+  String get storageUnavailable => _text(
+    'Available storage could not be verified right now.',
+    'No se pudo verificar el almacenamiento disponible en este momento.',
+    'Le stockage disponible ne peut pas être vérifié pour le moment.',
+  );
+  String storageAvailable(String size) =>
+      _text('$size available', '$size disponibles', '$size disponibles');
+  String get storageHealthyForReceipts => _text(
+    'Storage is healthy for receipt capture and local proof saving.',
+    'El almacenamiento es suficiente para capturar recibos y guardar comprobantes locales.',
+    'Le stockage est suffisant pour capturer des reçus et enregistrer des preuves locales.',
+  );
+  String get storageLowForReceipts => _text(
+    'Storage is getting low. Consider freeing space before importing more receipts.',
+    'El almacenamiento se está agotando. Libere espacio antes de importar más recibos.',
+    'Le stockage commence à manquer. Libérez de l’espace avant d’importer d’autres reçus.',
+  );
+  String get storageCriticalForReceipts => _text(
+    'Storage is critically low. Free space before capturing or importing another receipt.',
+    'El almacenamiento está críticamente bajo. Libere espacio antes de capturar o importar otro recibo.',
+    'Le stockage est extrêmement faible. Libérez de l’espace avant de capturer ou d’importer un autre reçu.',
+  );
+  String get storageCheckBeforeImport => _text(
+    'Refresh to try again before importing a large receipt or PDF.',
+    'Actualice e inténtelo de nuevo antes de importar un recibo o PDF grande.',
+    'Actualisez avant d’importer un grand reçu ou PDF.',
+  );
+  String get receiptStorageSafetyNote => _text(
+    'Receipt processing needs temporary device space. Maintainiac saves your records locally first and never deletes your photos or files to make room.',
+    'El procesamiento de recibos necesita espacio temporal. Maintainiac guarda sus registros primero en el dispositivo y nunca elimina sus fotos o archivos para liberar espacio.',
+    'Le traitement des reçus nécessite de l’espace temporaire. Maintainiac enregistre d’abord vos données sur l’appareil et ne supprime jamais vos photos ou fichiers pour faire de la place.',
+  );
 }
 
 class _MaintaniacLocalizationsDelegate

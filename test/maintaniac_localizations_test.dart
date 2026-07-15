@@ -23,6 +23,8 @@ void main() {
     expect(spanish.takeReceiptPhoto, 'Tomar foto del recibo');
     expect(french.takeReceiptPhoto, 'Prendre une photo du reçu');
     expect(french.savedProofBlackAndWhite, 'noir et blanc');
+    expect(spanish.deviceStorage, 'Almacenamiento del dispositivo');
+    expect(french.storageAvailable('1 GB'), '1 GB disponibles');
   });
 
   test(

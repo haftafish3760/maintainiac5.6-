@@ -34,6 +34,7 @@ class _ExpenseStorageStatusPanelState
 
   @override
   Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
     final storage = _storage;
     final available = storage?.availableBytes;
     final state = _ExpenseStorageHealthPresentation.fromBytes(available);
@@ -45,14 +46,17 @@ class _ExpenseStorageStatusPanelState
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Device Storage',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  strings.deviceStorage,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               IconButton(
-                tooltip: 'Refresh storage',
+                tooltip: strings.refreshStorage,
                 onPressed: _checking ? null : _refresh,
                 icon: const Icon(Icons.refresh_rounded),
               ),
@@ -60,8 +64,10 @@ class _ExpenseStorageStatusPanelState
           ),
           Text(
             available == null
-                ? 'Available storage could not be verified right now.'
-                : '${AppStorageGuard.formatBytes(available)} available',
+                ? strings.storageUnavailable
+                : strings.storageAvailable(
+                    AppStorageGuard.formatBytes(available),
+                  ),
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w900,
@@ -70,13 +76,13 @@ class _ExpenseStorageStatusPanelState
           ),
           const SizedBox(height: 5),
           Text(
-            state.message,
+            state.message(strings),
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 5),
-          const Text(
-            'Receipt processing needs temporary device space. Maintainiac saves your records locally first and never deletes your photos or files to make room.',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          Text(
+            strings.receiptStorageSafetyNote,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -101,14 +107,10 @@ extension _ExpenseStorageHealthPresentation on _ExpenseStorageHealth {
     _ExpenseStorageHealth.unknown => const Color(0xFFC8D0D3),
   };
 
-  String get message => switch (this) {
-    _ExpenseStorageHealth.healthy =>
-      'Storage is healthy for receipt capture and local proof saving.',
-    _ExpenseStorageHealth.warning =>
-      'Storage is getting low. Consider freeing space before importing more receipts.',
-    _ExpenseStorageHealth.critical =>
-      'Storage is critically low. Free space before capturing or importing another receipt.',
-    _ExpenseStorageHealth.unknown =>
-      'Refresh to try again before importing a large receipt or PDF.',
+  String message(MaintaniacLocalizations strings) => switch (this) {
+    _ExpenseStorageHealth.healthy => strings.storageHealthyForReceipts,
+    _ExpenseStorageHealth.warning => strings.storageLowForReceipts,
+    _ExpenseStorageHealth.critical => strings.storageCriticalForReceipts,
+    _ExpenseStorageHealth.unknown => strings.storageCheckBeforeImport,
   };
 }
