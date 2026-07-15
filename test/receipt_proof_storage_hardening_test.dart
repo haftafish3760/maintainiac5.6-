@@ -203,6 +203,31 @@ void main() {
     },
   );
 
+  test('concurrent proof writes preserve separate immutable copies', () async {
+    final source = File('${Directory.systemTemp.path}/concurrent_proof.jpg');
+    await source.writeAsBytes([1, 2, 3], flush: true);
+    addTearDown(() {
+      if (source.existsSync()) source.deleteSync();
+    });
+    final attachment = ReceiptAttachmentRecord(
+      id: 'same-proof',
+      path: source.path,
+      kind: ReceiptAttachmentKind.photo,
+      dataSaverLevel: ReceiptDataSaverLevel.original,
+      createdAt: DateTime.utc(2026, 7, 15),
+    );
+
+    final saved = await Future.wait([
+      ReceiptProofStorage.instance.persistAttachment(attachment),
+      ReceiptProofStorage.instance.persistAttachment(attachment),
+    ]);
+
+    expect(saved[0].path, isNot(saved[1].path));
+    expect(await File(saved[0].path).exists(), isTrue);
+    expect(await File(saved[1].path).exists(), isTrue);
+    expect(await source.exists(), isTrue);
+  });
+
   test(
     'changed permanent proof bytes never replace the saved fingerprint',
     () async {

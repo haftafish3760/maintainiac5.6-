@@ -15,17 +15,22 @@ part 'receipt_proof_storage_helpers.dart';
 part 'receipt_proof_storage_cleanup.dart';
 
 class ReceiptProofStorage {
-  const ReceiptProofStorage._();
+  ReceiptProofStorage._();
 
-  static const instance = ReceiptProofStorage._();
+  static final instance = ReceiptProofStorage._();
+  Future<void> _writeTail = Future<void>.value();
 
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
+    List<ReceiptAttachmentRecord> attachments,
+  ) => _enqueue(() => _persistAttachments(attachments));
+
+  Future<List<ReceiptAttachmentRecord>> _persistAttachments(
     List<ReceiptAttachmentRecord> attachments,
   ) async {
     final saved = <ReceiptAttachmentRecord>[];
     try {
       for (final attachment in attachments) {
-        final persisted = await persistAttachment(attachment);
+        final persisted = await _persistAttachment(attachment);
         saved.add(persisted);
       }
     } catch (_) {
@@ -36,6 +41,10 @@ class ReceiptProofStorage {
   }
 
   Future<ReceiptAttachmentRecord> persistAttachment(
+    ReceiptAttachmentRecord attachment,
+  ) => _enqueue(() => _persistAttachment(attachment));
+
+  Future<ReceiptAttachmentRecord> _persistAttachment(
     ReceiptAttachmentRecord attachment,
   ) async {
     if (attachment.path.trim().isEmpty || attachment.isImportedText) {
@@ -51,7 +60,7 @@ class ReceiptProofStorage {
 
     final proofRoot = await _proofRoot();
     if (attachment.storageState == ReceiptAttachmentStorageState.staged) {
-      return promoteStagedAttachment(attachment);
+      return _promoteStagedAttachment(attachment);
     }
     if (path.isWithin(proofRoot.path, source.path)) {
       final currentHash = await _safeHash(source);
@@ -147,6 +156,10 @@ class ReceiptProofStorage {
 
   Future<ReceiptAttachmentRecord> stageAttachment(
     ReceiptAttachmentRecord attachment,
+  ) => _enqueue(() => _stageAttachment(attachment));
+
+  Future<ReceiptAttachmentRecord> _stageAttachment(
+    ReceiptAttachmentRecord attachment,
   ) async {
     if (attachment.path.trim().isEmpty || attachment.isImportedText) {
       return attachment;
@@ -201,9 +214,13 @@ class ReceiptProofStorage {
 
   Future<ReceiptAttachmentRecord> promoteStagedAttachment(
     ReceiptAttachmentRecord attachment,
+  ) => _enqueue(() => _promoteStagedAttachment(attachment));
+
+  Future<ReceiptAttachmentRecord> _promoteStagedAttachment(
+    ReceiptAttachmentRecord attachment,
   ) async {
     if (attachment.storageState != ReceiptAttachmentStorageState.staged) {
-      return persistAttachment(attachment);
+      return _persistAttachment(attachment);
     }
     final source = File(attachment.path);
     if (!await source.exists()) {
@@ -265,5 +282,11 @@ class ReceiptProofStorage {
       storageState: ReceiptAttachmentStorageState.permanent,
       promotedAt: DateTime.now(),
     );
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
