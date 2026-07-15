@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -67,6 +68,26 @@ void main() {
     expect(store.records.single.id, saved.id);
     expect(store.recordById(saved.id)?.lifecycle?.revision, 3);
   });
+
+  test(
+    'does not claim a reminder is saved when device storage is full',
+    () async {
+      final store = ExpenseReminderController.memory(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: AppStorageGuard.smallRecordWriteBytes,
+          requiredBytes: AppStorageGuard.smallRecordWriteBytes + 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+
+      await expectLater(
+        () => store.save(_reminder('Blocked storage', DateTime(2026, 7))),
+        throwsA(isA<StateError>()),
+      );
+      expect(store.records, isEmpty);
+    },
+  );
 
   test('reminder screen offers immediate restore after removal', () async {
     final source = await File(

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
+import '../../../shared/storage/app_storage_guard.dart';
 
 enum ExpenseReminderCadence {
   once('One time'),
@@ -147,16 +148,29 @@ class ExpenseReminderRecord {
   }
 }
 
+typedef ExpenseReminderStorageCheck = Future<AppStorageCheck> Function();
+
 class ExpenseReminderController extends ChangeNotifier {
-  ExpenseReminderController._(this._box);
-  ExpenseReminderController.memory() : _box = null;
+  ExpenseReminderController._(
+    this._box, {
+    ExpenseReminderStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+  ExpenseReminderController.memory({ExpenseReminderStorageCheck? storageCheck})
+    : _box = null,
+      _storageCheck = storageCheck;
 
   static const boxName = 'expense_reminders_v1';
   final Box<dynamic>? _box;
+  final ExpenseReminderStorageCheck? _storageCheck;
   final _memory = <String, ExpenseReminderRecord>{};
 
-  static Future<ExpenseReminderController> create() async {
-    return ExpenseReminderController._(await Hive.openBox<dynamic>(boxName));
+  static Future<ExpenseReminderController> create({
+    ExpenseReminderStorageCheck? storageCheck,
+  }) async {
+    return ExpenseReminderController._(
+      await Hive.openBox<dynamic>(boxName),
+      storageCheck: storageCheck,
+    );
   }
 
   List<ExpenseReminderRecord> get records {
@@ -190,6 +204,7 @@ class ExpenseReminderController extends ChangeNotifier {
   Future<ExpenseReminderRecord> save(ExpenseReminderRecord reminder) async {
     final title = reminder.title.trim();
     if (title.isEmpty) throw ArgumentError.value(title, 'title', 'Required');
+    await ensureStorageForLocalSave();
     final now = DateTime.now();
     final id = reminder.id.trim().isEmpty
         ? 'EXP-REM-${now.microsecondsSinceEpoch}'
@@ -230,6 +245,16 @@ class ExpenseReminderController extends ChangeNotifier {
     }
     notifyListeners();
     return saved;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  Future<void> ensureStorageForLocalSave() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
   }
 
   Future<void> setActive(ExpenseReminderRecord reminder, bool active) {
