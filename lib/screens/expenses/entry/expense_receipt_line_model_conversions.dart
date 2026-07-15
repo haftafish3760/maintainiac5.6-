@@ -12,6 +12,7 @@ extension _ExpenseReceiptLineModelConversions on _ExpenseReceiptLine {
       unit: stockUnit,
       subtotal: subtotal,
       businessPercent: businessPercent,
+      splitAllocation: splitAllocation,
       odometerReading: odometerReading,
       fuelType: fuelType,
       fillType: fillType,

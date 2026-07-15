@@ -66,13 +66,13 @@ extension _ExpenseReceiptEntryLineModeHelpers
       unitsPerPackage: 1,
       stockUnit: 'receipt',
       subtotal: amount,
-      businessPercent: use == _ExpenseLineUse.split ? .5 : null,
+      businessPercent: null,
       rawReceiptText: _rawReceiptText,
       parserConfidence: _lastParseQuality?.confidence,
       parserReviewLabel: 'Review',
       parserReviewReason:
           'Receipt text was found, but line items were not safe enough. User chose to save the receipt total.',
-      parserNeedsReview: false,
+      parserNeedsReview: use == _ExpenseLineUse.split,
     );
     _setReceiptEntryState(() => _lines.add(line));
     _scheduleDraftSave();
@@ -91,7 +91,7 @@ extension _ExpenseReceiptEntryLineModeHelpers
     required int lineNumber,
   }) async {
     final amount = TextEditingController();
-    final businessPercent = TextEditingController(text: '50');
+    final businessPercent = TextEditingController();
     try {
       return await showModalBottomSheet<_ExpenseReceiptLine>(
         context: context,
@@ -156,9 +156,19 @@ extension _ExpenseReceiptEntryLineModeHelpers
                           );
                           return;
                         }
-                        final percent = _quickSplitBusinessPercent(
-                          businessPercent.text,
-                        );
+                        final percent = use == _ExpenseLineUse.split
+                            ? _quickSplitBusinessPercent(businessPercent.text)
+                            : null;
+                        if (use == _ExpenseLineUse.split && percent == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Enter a business percentage from 0 to 100.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
                         Navigator.of(context).pop(
                           _ExpenseReceiptLine(
                             description: switch (use) {
@@ -175,9 +185,14 @@ extension _ExpenseReceiptEntryLineModeHelpers
                             unitsPerPackage: 1,
                             stockUnit: 'each',
                             subtotal: subtotal,
-                            businessPercent: use == _ExpenseLineUse.split
-                                ? percent.clamp(0, 1)
-                                : null,
+                            businessPercent: percent,
+                            splitAllocation: percent == null
+                                ? null
+                                : ExpenseSplitAllocation(
+                                    method:
+                                        ExpenseSplitAllocationMethod.percentage,
+                                    businessValue: percent,
+                                  ),
                           ),
                         );
                       },
@@ -203,8 +218,5 @@ extension _ExpenseReceiptEntryLineModeHelpers
   }
 }
 
-double _quickSplitBusinessPercent(String value) {
-  final parsed = double.tryParse(value.replaceAll('%', '').trim());
-  if (parsed == null || !parsed.isFinite) return .5;
-  return (parsed / 100).clamp(0, 1).toDouble();
-}
+double? _quickSplitBusinessPercent(String value) =>
+    _customSplitBusinessPercent(value);

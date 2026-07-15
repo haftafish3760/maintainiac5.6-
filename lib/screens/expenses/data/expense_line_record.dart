@@ -44,6 +44,7 @@ class ExpenseReceiptLineRecord {
     required this.unit,
     required this.subtotal,
     this.businessPercent,
+    this.splitAllocation,
     this.odometerReading,
     this.fuelType,
     this.fillType,
@@ -77,6 +78,9 @@ class ExpenseReceiptLineRecord {
       unit: _expenseString(map['unit'], fallback: 'each'),
       subtotal: _expenseDouble(map['subtotal']) ?? 0,
       businessPercent: _clampedPercent(_expenseDouble(map['businessPercent'])),
+      splitAllocation: ExpenseSplitAllocation.fromMap(
+        _expenseMap(map['splitAllocation']),
+      ),
       odometerReading: _expenseInt(map['odometerReading']),
       fuelType: _nullableExpenseString(map['fuelType']),
       fillType: _nullableExpenseString(map['fillType']),
@@ -119,6 +123,7 @@ class ExpenseReceiptLineRecord {
   final String unit;
   final double subtotal;
   final double? businessPercent;
+  final ExpenseSplitAllocation? splitAllocation;
   final int? odometerReading;
   final String? fuelType;
   final String? fillType;
@@ -407,12 +412,22 @@ class ExpenseReceiptLineRecord {
   }
 
   double get effectiveBusinessPercent {
+    final allocationPercent = splitAllocation?.businessPercentFor(this);
     return switch (use) {
       ExpenseLineUse.unclassified => 0,
       ExpenseLineUse.business => 1,
       ExpenseLineUse.personal => 0,
-      ExpenseLineUse.split => _clampedPercent(businessPercent) ?? .5,
+      ExpenseLineUse.split =>
+        allocationPercent ?? _clampedPercent(businessPercent) ?? .5,
     };
+  }
+
+  bool get hasValidSplitAllocation {
+    if (use != ExpenseLineUse.split) return true;
+    final allocation = splitAllocation;
+    if (allocation != null) return allocation.isValidFor(this);
+    final percent = businessPercent;
+    return percent != null && percent.isFinite && percent >= 0 && percent <= 1;
   }
 
   double get effectivePersonalPercent {

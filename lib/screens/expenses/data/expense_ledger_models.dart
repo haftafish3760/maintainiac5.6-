@@ -1,8 +1,10 @@
 import '../../../shared/receipts/receipt_ocr_contract.dart';
+import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 part 'expense_line_record.dart';
 part 'expense_line_record_serialization.dart';
+part 'expense_split_allocation.dart';
 part 'expense_receipt_duplicate_models.dart';
 part 'expense_receipt_ocr_review.dart';
 part 'expense_receipt_ocr_review_helpers.dart';

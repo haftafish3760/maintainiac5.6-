@@ -42,7 +42,19 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
   }
 
   double get _boundedBusinessPercent {
-    final percent = businessPercent;
+    final allocationPercent = splitAllocation?.businessPercentFor(
+      ExpenseReceiptLineRecord(
+        id: id ?? '',
+        description: description,
+        category: category,
+        use: use.ledgerUse,
+        quantity: quantity,
+        unitsPerPackage: unitsPerPackage,
+        unit: stockUnit,
+        subtotal: subtotal,
+      ),
+    );
+    final percent = allocationPercent ?? businessPercent;
     if (percent == null) return .5;
     if (percent < 0) return 0;
     if (percent > 1) return 1;
@@ -57,6 +69,30 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
   String get allocationSummary {
     if (use != _ExpenseLineUse.split) return use.label;
     return 'Split ${_percent(effectiveBusinessPercent)} business';
+  }
+
+  bool get hasValidSplitAllocation {
+    if (use != _ExpenseLineUse.split) return true;
+    final allocation = splitAllocation;
+    if (allocation == null) {
+      final percent = businessPercent;
+      return percent != null &&
+          percent.isFinite &&
+          percent >= 0 &&
+          percent <= 1;
+    }
+    return allocation.isValidFor(
+      ExpenseReceiptLineRecord(
+        id: id ?? '',
+        description: description,
+        category: category,
+        use: ExpenseLineUse.split,
+        quantity: quantity,
+        unitsPerPackage: unitsPerPackage,
+        unit: stockUnit,
+        subtotal: subtotal,
+      ),
+    );
   }
 
   String get allocationDetail {

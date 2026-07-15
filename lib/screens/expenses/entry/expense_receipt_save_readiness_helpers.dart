@@ -88,10 +88,12 @@ extension _ExpenseReceiptSaveReadinessHelpers
         .where(
           (line) =>
               line.use == _ExpenseLineUse.split &&
-              (line.businessPercent == null ||
-                  !line.businessPercent!.isFinite ||
-                  line.businessPercent! < 0 ||
-                  line.businessPercent! > 1),
+              ((line.splitAllocation == null &&
+                      (line.businessPercent == null ||
+                          !line.businessPercent!.isFinite ||
+                          line.businessPercent! < 0 ||
+                          line.businessPercent! > 1)) ||
+                  !line.hasValidSplitAllocation),
         )
         .length;
   }

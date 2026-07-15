@@ -248,6 +248,44 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('backs up split allocation evidence without source receipt text', () {
+    final receipt = ExpenseReceiptRecord(
+      id: 'split-evidence',
+      receiptDate: DateTime.utc(2026, 7, 15),
+      lines: const [
+        ExpenseReceiptLineRecord(
+          id: 'line-1',
+          description: 'Shared supplies',
+          category: 'Supplies',
+          use: ExpenseLineUse.split,
+          quantity: 10,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 25,
+          splitAllocation: ExpenseSplitAllocation(
+            method: ExpenseSplitAllocationMethod.quantity,
+            businessValue: 4,
+          ),
+          rawReceiptText: 'PRIVATE SHARED SUPPLIES',
+        ),
+      ],
+    );
+    final doc = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      receipt: receipt,
+    );
+    final line = (doc.data['lines'] as List).single as Map<String, Object?>;
+
+    expect(line['splitAllocation'], {
+      'method': 'quantity',
+      'businessValue': 4.0,
+    });
+    expect(doc.data.toString(), isNot(contains('PRIVATE SHARED SUPPLIES')));
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
   test('backs up a replaceable vehicle directory without local paths', () {
     final appState = AppStateController();
     final doc = ExpenseFirestoreDocumentBuilder.expenseVehicleDirectoryDocument(

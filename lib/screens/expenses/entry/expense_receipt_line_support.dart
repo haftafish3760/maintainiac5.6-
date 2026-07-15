@@ -1,6 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
 const Object _noBusinessPercentChange = Object();
+const Object _noSplitAllocationChange = Object();
 const _maxExpenseReceiptDraftLineNumber = 9999;
 const _maxExpenseReceiptDraftSectionNumber = 999;
 

@@ -11,6 +11,7 @@ class _ExpenseReceiptLine {
     required this.stockUnit,
     required this.subtotal,
     this.businessPercent,
+    this.splitAllocation,
     this.odometerReading,
     this.fuelType,
     this.fillType,
@@ -66,6 +67,7 @@ class _ExpenseReceiptLine {
       stockUnit: line.unit,
       subtotal: line.subtotal,
       businessPercent: line.businessPercent,
+      splitAllocation: line.splitAllocation,
       odometerReading: line.odometerReading,
       fuelType: line.fuelType,
       fillType: line.fillType,
@@ -98,6 +100,7 @@ class _ExpenseReceiptLine {
   final String stockUnit;
   final double subtotal;
   final double? businessPercent;
+  final ExpenseSplitAllocation? splitAllocation;
   final int? odometerReading;
   final String? fuelType;
   final String? fillType;
@@ -133,6 +136,7 @@ class _ExpenseReceiptLine {
     double? catalogMatchConfidence,
     List<String>? catalogMatchedTerms,
     Object? businessPercent = _noBusinessPercentChange,
+    Object? splitAllocation = _noSplitAllocationChange,
     double? parserConfidence,
     String? parserReviewLabel,
     String? parserReviewReason,
@@ -156,6 +160,9 @@ class _ExpenseReceiptLine {
       businessPercent: identical(businessPercent, _noBusinessPercentChange)
           ? this.businessPercent
           : businessPercent as double?,
+      splitAllocation: identical(splitAllocation, _noSplitAllocationChange)
+          ? this.splitAllocation
+          : splitAllocation as ExpenseSplitAllocation?,
       odometerReading: odometerReading,
       fuelType: fuelType ?? this.fuelType,
       fillType: fillType ?? this.fillType,

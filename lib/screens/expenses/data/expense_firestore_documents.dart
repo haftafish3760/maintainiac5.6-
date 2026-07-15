@@ -279,6 +279,7 @@ Map<String, Object?> _lineFor(ExpenseReceiptLineRecord line) {
     'unit': _token(line.unit, fallback: 'each'),
     'subtotalCents': _moneyCents(line.subtotal),
     'businessPercent': _finiteNumber(line.businessPercent),
+    'splitAllocation': line.splitAllocation?.toMap(),
     'odometerReading': line.odometerReading,
     'fuelType': _nullableToken(line.fuelType),
     'fillType': _nullableToken(line.fillType),

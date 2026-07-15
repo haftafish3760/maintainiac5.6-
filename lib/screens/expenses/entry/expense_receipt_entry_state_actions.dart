@@ -163,7 +163,8 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
         final line = _lines[index];
         _lines[index] = line.copyWith(
           use: use,
-          businessPercent: use == _ExpenseLineUse.split ? .5 : null,
+          businessPercent: null,
+          splitAllocation: null,
           // The convenience 50% value is only a preview. It is not user
           // intent, so keep the line blocked until the user confirms or
           // edits the allocation in review.
@@ -202,16 +203,20 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
 
   Future<void> _setReceiptLineUse(int index, _ExpenseLineUse use) async {
     if (index < 0 || index >= _lines.length) return;
-    double? splitPercent;
+    ExpenseSplitAllocation? splitAllocation;
     if (use == _ExpenseLineUse.split) {
-      splitPercent = await _chooseSplitBusinessPercent(index);
-      if (!mounted || splitPercent == null) return;
+      splitAllocation = await _chooseSplitAllocation(index);
+      if (!mounted || splitAllocation == null) return;
     }
+    final splitPercent = use == _ExpenseLineUse.split
+        ? splitAllocation?.businessPercentFor(_lines[index].toLedgerLine())
+        : null;
     _updateReceiptState(() {
       final line = _lines[index];
       _lines[index] = line.copyWith(
         use: use,
-        businessPercent: use == _ExpenseLineUse.split ? splitPercent : null,
+        businessPercent: splitPercent,
+        splitAllocation: use == _ExpenseLineUse.split ? splitAllocation : null,
         parserNeedsReview: use == _ExpenseLineUse.unclassified,
         parserReviewLabel: use == _ExpenseLineUse.unclassified
             ? 'Needs classification'

@@ -12,6 +12,7 @@ extension ExpenseReceiptLineRecordSerialization on ExpenseReceiptLineRecord {
       'unit': unit,
       'subtotal': subtotal,
       'businessPercent': _clampedPercent(businessPercent),
+      'splitAllocation': splitAllocation?.toMap(),
       'odometerReading': odometerReading,
       'fuelType': fuelType,
       'fillType': fillType,
