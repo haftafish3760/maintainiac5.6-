@@ -18,6 +18,23 @@ void main() {
     expect(lifecycle.auditEvents, hasLength(2));
   });
 
+  test('corrupt shared draft maps are rejected instead of recreated', () {
+    expect(
+      () => MaintainiacRecordDraft.fromMap({
+        'module': 'expenses',
+        'id': 'corrupt-draft',
+        'payload': const {},
+        'lifecycle': {
+          'createdAt': '2026-07-15T12:00:00.000Z',
+          'updatedAt': '2026-07-15T12:00:00.000Z',
+          'revision': 1,
+          'state': 'deleted',
+        },
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('shared lifecycle and draft snapshots cannot be mutated after save', () {
     final events = <String>['created'];
     final payload = <String, dynamic>{'merchant': 'Store'};

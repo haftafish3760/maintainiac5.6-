@@ -112,14 +112,55 @@ class MaintainiacRecordDraft {
   }) : payload = _freezeDraftPayload(payload);
 
   factory MaintainiacRecordDraft.fromMap(Map<dynamic, dynamic> map) {
-    final now = DateTime.now();
+    final module = map['module'];
+    final id = map['id'];
+    final payload = map['payload'];
+    final lifecycleMap = map['lifecycle'];
+    if (module is! String ||
+        id is! String ||
+        !_hasValidDurableDraftKey(module, id) ||
+        payload is! Map ||
+        lifecycleMap is! Map) {
+      throw const FormatException('Draft record is corrupt.');
+    }
+    final createdAt = _date(lifecycleMap['createdAt']);
+    final updatedAt = _date(lifecycleMap['updatedAt']);
+    final revision = _int(lifecycleMap['revision']);
+    final stateName = lifecycleMap['state'];
+    final deletedAt = _date(lifecycleMap['deletedAt']);
+    final state = MaintainiacRecordState.values.where(
+      (state) => state.name == stateName,
+    );
+    if (createdAt == null ||
+        updatedAt == null ||
+        updatedAt.isBefore(createdAt) ||
+        revision == null ||
+        revision < 1 ||
+        state.length != 1) {
+      throw const FormatException('Draft lifecycle is corrupt.');
+    }
+    final recordState = state.single;
+    if ((recordState == MaintainiacRecordState.deleted && deletedAt == null) ||
+        (recordState == MaintainiacRecordState.active && deletedAt != null) ||
+        (deletedAt != null &&
+            (deletedAt.isBefore(createdAt) || deletedAt.isAfter(updatedAt)))) {
+      throw const FormatException('Draft lifecycle is inconsistent.');
+    }
     return MaintainiacRecordDraft(
-      module: map['module'] as String? ?? '',
-      id: map['id'] as String? ?? '',
-      payload: Map<String, dynamic>.from(map['payload'] as Map? ?? const {}),
-      lifecycle: MaintainiacRecordLifecycle.fromMap(
-        map['lifecycle'] as Map?,
-        fallbackTime: now,
+      module: module,
+      id: id,
+      payload: Map<String, dynamic>.from(payload),
+      lifecycle: MaintainiacRecordLifecycle(
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        revision: revision,
+        state: recordState,
+        deletedAt: deletedAt,
+        auditEvents:
+            (lifecycleMap['auditEvents'] as List?)?.whereType<String>().toList(
+              growable: false,
+            ) ??
+            const [],
       ),
     );
   }
@@ -170,7 +211,7 @@ class MaintainiacRecordDraftStore {
     final box = _box;
     final value = box == null ? _memory['$module:$id'] : box.get('$module:$id');
     if (value is MaintainiacRecordDraft) return value;
-    return value is Map ? MaintainiacRecordDraft.fromMap(value) : null;
+    return _decodeStoredDraft(value);
   }
 
   List<MaintainiacRecordDraft> draftsFor(String module) {
@@ -178,11 +219,7 @@ class MaintainiacRecordDraftStore {
     final box = _box;
     final drafts = <MaintainiacRecordDraft>[];
     for (final value in box == null ? _memory.values : box.values) {
-      final draft = value is MaintainiacRecordDraft
-          ? value
-          : value is Map
-          ? MaintainiacRecordDraft.fromMap(value)
-          : null;
+      final draft = _decodeStoredDraft(value);
       if (draft != null && draft.module == module) drafts.add(draft);
     }
     drafts.sort(
@@ -297,10 +334,28 @@ class MaintainiacRecordDraftStore {
     _writeTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
+
+  MaintainiacRecordDraft? _decodeStoredDraft(Object? value) {
+    if (value is MaintainiacRecordDraft) return value;
+    if (value is! Map) return null;
+    try {
+      return MaintainiacRecordDraft.fromMap(value);
+    } on FormatException {
+      return null;
+    }
+  }
 }
 
 DateTime? _date(Object? value) =>
     value is DateTime ? value : DateTime.tryParse(value?.toString() ?? '');
+
+bool _hasValidDurableDraftKey(String module, String id) =>
+    module.trim().isNotEmpty &&
+    id.trim().isNotEmpty &&
+    module == module.trim() &&
+    id == id.trim() &&
+    !module.contains(':') &&
+    !id.contains(':');
 
 int? _int(Object? value) =>
     value is int ? value : int.tryParse(value?.toString() ?? '');
