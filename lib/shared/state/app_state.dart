@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../storage/app_storage_guard.dart';
+
 enum VehicleUsage { businessOnly, personalOnly, businessPersonal }
 
 extension VehicleUsageDetails on VehicleUsage {
@@ -277,22 +279,31 @@ class MaintenanceServiceEvent {
   final String notes;
 }
 
+typedef VehicleProfileStorageCheck = Future<AppStorageCheck> Function();
+
 class AppStateController extends ChangeNotifier {
-  AppStateController() : _vehicleBox = null;
-  AppStateController._(this._vehicleBox);
+  AppStateController() : _vehicleBox = null, _vehicleStorageCheck = null;
+  AppStateController._(
+    this._vehicleBox, {
+    VehicleProfileStorageCheck? storageCheck,
+  }) : _vehicleStorageCheck = storageCheck ?? _defaultVehicleStorageCheck;
 
   static const vehicleBoxName = 'maintainiac_vehicle_profiles';
   static const _vehicleSnapshotKey = 'snapshot';
 
-  static Future<AppStateController> create() async {
+  static Future<AppStateController> create({
+    VehicleProfileStorageCheck? storageCheck,
+  }) async {
     final controller = AppStateController._(
       await Hive.openBox<dynamic>(vehicleBoxName),
+      storageCheck: storageCheck,
     );
     await controller._restoreVehicles();
     return controller;
   }
 
   final Box<dynamic>? _vehicleBox;
+  final VehicleProfileStorageCheck? _vehicleStorageCheck;
   final List<VehicleProfile> _vehicles = <VehicleProfile>[
     VehicleProfile(
       nickname: 'Work Truck 1',
@@ -556,6 +567,13 @@ class AppStateController extends ChangeNotifier {
   ) async {
     final box = _vehicleBox;
     if (box == null) return;
+    final storageCheck = _vehicleStorageCheck;
+    if (storageCheck != null) {
+      final storage = await storageCheck();
+      if (!storage.hasEnoughSpace) {
+        throw StateError(storage.blockingMessage());
+      }
+    }
     await box.put(_vehicleSnapshotKey, {
       'vehicles': [for (final vehicle in vehicles) vehicle.toMap()],
       'activeVehicleId': activeVehicle?.id,
@@ -567,6 +585,9 @@ class AppStateController extends ChangeNotifier {
     _vehicleWriteTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
+
+  static Future<AppStorageCheck> _defaultVehicleStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 }
 
 class AppStateScope extends InheritedNotifier<AppStateController> {

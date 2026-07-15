@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -98,8 +99,10 @@ void main() {
   test(
     'an archived-only vehicle snapshot restores without an active vehicle',
     () async {
-    final box = await Hive.openBox<dynamic>(AppStateController.vehicleBoxName);
-    await box.put('snapshot', {
+      final box = await Hive.openBox<dynamic>(
+        AppStateController.vehicleBoxName,
+      );
+      await box.put('snapshot', {
         'vehicles': [
           VehicleProfile(
             id: 'archived-only',
@@ -134,6 +137,32 @@ void main() {
       hasLength(1),
     );
   });
+
+  test(
+    'does not claim a vehicle profile was saved when storage is full',
+    () async {
+      var canWrite = true;
+      final appState = await AppStateController.create(
+        storageCheck: () async => AppStorageCheck(
+          availableBytes: canWrite
+              ? AppStorageGuard.smallRecordWriteBytes * 2
+              : 0,
+          operationBytes: AppStorageGuard.smallRecordWriteBytes,
+          requiredBytes: AppStorageGuard.smallRecordWriteBytes,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+      canWrite = false;
+
+      await expectLater(
+        () => appState.addVehicle(
+          VehicleProfile(id: 'no-space', nickname: 'No-space van'),
+        ),
+        throwsA(isA<StateError>()),
+      );
+      expect(appState.vehicleById('no-space'), isNull);
+    },
+  );
 
   test(
     'deleting the active vehicle archives its historical identity',
