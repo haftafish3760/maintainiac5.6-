@@ -350,7 +350,7 @@ void main() {
     'expense settings scope can be optional for shared receipt widgets',
     () async {
       final source = await File(
-        'lib/shared/state/expense_settings_store.dart',
+        'lib/shared/state/expense_settings_scope.dart',
       ).readAsString();
 
       expect(source, contains('static ExpenseSettingsController? maybeOf'));
