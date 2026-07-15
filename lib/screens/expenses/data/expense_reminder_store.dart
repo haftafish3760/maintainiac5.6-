@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/records/maintainiac_record_lifecycle.dart';
+
 enum ExpenseReminderCadence {
   once('One time'),
   monthly('Monthly'),
@@ -31,6 +33,7 @@ class ExpenseReminderRecord {
     required this.updatedAt,
     this.details = '',
     this.active = true,
+    this.lifecycle,
   });
 
   factory ExpenseReminderRecord.fromMap(Map<dynamic, dynamic> map) {
@@ -46,6 +49,12 @@ class ExpenseReminderRecord {
       active: map['active'] != false,
       createdAt: DateTime.tryParse('${map['createdAt'] ?? ''}') ?? now,
       updatedAt: DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? now,
+      lifecycle: map['lifecycle'] is Map
+          ? MaintainiacRecordLifecycle.fromMap(
+              map['lifecycle'] as Map,
+              fallbackTime: now,
+            )
+          : null,
     );
   }
 
@@ -59,6 +68,9 @@ class ExpenseReminderRecord {
   final bool active;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final MaintainiacRecordLifecycle? lifecycle;
+
+  bool get isDeleted => lifecycle?.isDeleted ?? false;
 
   Map<String, Object?> toMap() => {
     'id': id,
@@ -71,6 +83,7 @@ class ExpenseReminderRecord {
     'active': active,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'updatedAt': updatedAt.toUtc().toIso8601String(),
+    'lifecycle': lifecycle?.toMap(),
   };
 
   ExpenseReminderRecord copyWith({
@@ -82,6 +95,7 @@ class ExpenseReminderRecord {
     String? details,
     bool? active,
     DateTime? updatedAt,
+    MaintainiacRecordLifecycle? lifecycle,
   }) {
     return ExpenseReminderRecord(
       id: id,
@@ -94,6 +108,7 @@ class ExpenseReminderRecord {
       active: active ?? this.active,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      lifecycle: lifecycle ?? this.lifecycle,
     );
   }
 
@@ -145,6 +160,12 @@ class ExpenseReminderController extends ChangeNotifier {
   }
 
   List<ExpenseReminderRecord> get records {
+    return storedRecords
+        .where((record) => !record.isDeleted)
+        .toList(growable: false);
+  }
+
+  List<ExpenseReminderRecord> get storedRecords {
     final box = _box;
     final source = box == null ? _memory.values : box.values;
     final reminders = <ExpenseReminderRecord>[];
@@ -159,6 +180,13 @@ class ExpenseReminderController extends ChangeNotifier {
     return List.unmodifiable(reminders);
   }
 
+  ExpenseReminderRecord? recordById(String id) {
+    for (final record in storedRecords) {
+      if (record.id == id) return record;
+    }
+    return null;
+  }
+
   Future<ExpenseReminderRecord> save(ExpenseReminderRecord reminder) async {
     final title = reminder.title.trim();
     if (title.isEmpty) throw ArgumentError.value(title, 'title', 'Required');
@@ -166,6 +194,22 @@ class ExpenseReminderController extends ChangeNotifier {
     final id = reminder.id.trim().isEmpty
         ? 'EXP-REM-${now.microsecondsSinceEpoch}'
         : reminder.id;
+    final existing = recordById(id);
+    if (existing?.isDeleted ?? false) {
+      throw StateError('Restore a removed reminder before changing it.');
+    }
+    final lifecycle = existing == null
+        ? MaintainiacRecordLifecycle(
+            createdAt: reminder.createdAt,
+            updatedAt: now,
+            auditEvents: ['${now.toIso8601String()} created reminder'],
+          )
+        : (existing.lifecycle ??
+                  MaintainiacRecordLifecycle(
+                    createdAt: existing.createdAt,
+                    updatedAt: existing.updatedAt,
+                  ))
+              .saved(now, event: 'updated reminder');
     final saved = ExpenseReminderRecord(
       id: id,
       title: title,
@@ -175,8 +219,9 @@ class ExpenseReminderController extends ChangeNotifier {
       cadence: reminder.cadence,
       details: reminder.details.trim(),
       active: reminder.active,
-      createdAt: reminder.createdAt,
+      createdAt: existing?.createdAt ?? reminder.createdAt,
       updatedAt: now,
+      lifecycle: lifecycle,
     );
     if (_box == null) {
       _memory[id] = saved;
@@ -192,10 +237,38 @@ class ExpenseReminderController extends ChangeNotifier {
   }
 
   Future<void> delete(String id) async {
+    final existing = recordById(id);
+    if (existing == null || existing.isDeleted) return;
+    final now = DateTime.now();
+    final lifecycle =
+        (existing.lifecycle ??
+                MaintainiacRecordLifecycle(
+                  createdAt: existing.createdAt,
+                  updatedAt: existing.updatedAt,
+                ))
+            .deleted(now, event: 'deleted reminder');
+    final deleted = existing.copyWith(updatedAt: now, lifecycle: lifecycle);
     if (_box == null) {
-      _memory.remove(id);
+      _memory[id] = deleted;
     } else {
-      await _box.delete(id);
+      await _box.put(id, deleted.toMap());
+    }
+    notifyListeners();
+  }
+
+  Future<void> restore(String id) async {
+    final existing = recordById(id);
+    if (existing == null || !existing.isDeleted) return;
+    final now = DateTime.now();
+    final lifecycle = existing.lifecycle!.restored(
+      now,
+      event: 'restored reminder',
+    );
+    final restored = existing.copyWith(updatedAt: now, lifecycle: lifecycle);
+    if (_box == null) {
+      _memory[id] = restored;
+    } else {
+      await _box.put(id, restored.toMap());
     }
     notifyListeners();
   }

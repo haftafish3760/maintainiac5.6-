@@ -54,6 +54,31 @@ void main() {
 
     expect(next, DateTime(2026, 8, 15));
   });
+
+  test('reminder deletion is recoverable local record history', () async {
+    final store = ExpenseReminderController.memory();
+    final saved = await store.save(_reminder('Recover me', DateTime(2026, 7)));
+
+    await store.delete(saved.id);
+    expect(store.records, isEmpty);
+    expect(store.recordById(saved.id)?.isDeleted, isTrue);
+
+    await store.restore(saved.id);
+    expect(store.records.single.id, saved.id);
+    expect(store.recordById(saved.id)?.lifecycle?.revision, 3);
+  });
+
+  test('reminder screen offers immediate restore after removal', () async {
+    final source = await File(
+      'lib/screens/expenses/reminders/expense_reminder_screen.dart',
+    ).readAsString();
+
+    expect(
+      source,
+      contains("const Text('Reminder removed. It can be restored.')"),
+    );
+    expect(source, contains('controller.restore(reminder.id)'));
+  });
 }
 
 ExpenseReminderRecord _reminder(String title, DateTime dueAt) {

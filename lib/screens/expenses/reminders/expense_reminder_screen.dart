@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/record_form_fields.dart';
 import '../categories/expense_categories.dart';
+import '../data/expense_reminder_draft.dart';
 import '../data/expense_reminder_store.dart';
+import '../../../shared/records/maintainiac_record_lifecycle.dart';
 
 class ExpenseReminderScreen extends StatefulWidget {
   const ExpenseReminderScreen({super.key});
@@ -13,7 +17,8 @@ class ExpenseReminderScreen extends StatefulWidget {
   State<ExpenseReminderScreen> createState() => _ExpenseReminderScreenState();
 }
 
-class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
+class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
+    with WidgetsBindingObserver {
   final _titleController = TextEditingController();
   final _detailsController = TextEditingController();
   late final List<String> _categories;
@@ -22,10 +27,15 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
   var _cadence = ExpenseReminderCadence.once;
   var _dueAt = DateTime.now().add(const Duration(days: 30));
   ExpenseReminderRecord? _editingReminder;
+  MaintainiacRecordDraftStore? _draftStore;
+  Timer? _draftTimer;
+  var _restoringDraft = false;
+  var _draftFailureShown = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _categories = {
       for (final category in [
         ...defaultExpenseCategories,
@@ -34,13 +44,29 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
         category.category,
     }.toList()..sort();
     if (!_categories.contains(_category)) _category = _categories.first;
+    _titleController.addListener(_scheduleDraftSave);
+    _detailsController.addListener(_scheduleDraftSave);
+    unawaited(_openDraftStore());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _draftTimer?.cancel();
+    unawaited(_saveDraftNow());
     _titleController.dispose();
     _detailsController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _draftTimer?.cancel();
+      unawaited(_saveDraftNow());
+    }
   }
 
   @override
@@ -71,8 +97,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
                   onEnabledChanged: (value) => ExpenseReminderScope.of(
                     context,
                   ).setActive(reminder, value),
-                  onDelete: () =>
-                      ExpenseReminderScope.of(context).delete(reminder.id),
+                  onDelete: () => _removeReminder(reminder),
                 ),
             ],
           ],
@@ -91,7 +116,10 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
           value: _category,
           items: _categories,
           itemLabel: (value) => value,
-          onChanged: (value) => setState(() => _category = value),
+          onChanged: (value) => setState(() {
+            _category = value;
+            _scheduleDraftSave();
+          }),
         ),
         const SizedBox(height: 10),
         ListTile(
@@ -107,7 +135,10 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
           value: _cadence,
           items: ExpenseReminderCadence.values,
           itemLabel: (value) => value.label,
-          onChanged: (value) => setState(() => _cadence = value),
+          onChanged: (value) => setState(() {
+            _cadence = value;
+            _scheduleDraftSave();
+          }),
         ),
         const SizedBox(height: 10),
         RecordDropdownField<String>(
@@ -115,7 +146,10 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
           value: _channel,
           items: const ['In-app', 'Push', 'Sound', 'All'],
           itemLabel: (value) => value,
-          onChanged: (value) => setState(() => _channel = value),
+          onChanged: (value) => setState(() {
+            _channel = value;
+            _scheduleDraftSave();
+          }),
         ),
         const SizedBox(height: 10),
         RecordTextField(
@@ -160,7 +194,10 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
       lastDate: DateTime.now().add(const Duration(days: 3650)),
     );
     if (date == null || !mounted) return;
-    setState(() => _dueAt = date);
+    setState(() {
+      _dueAt = date;
+      _scheduleDraftSave();
+    });
   }
 
   Future<void> _saveReminder() async {
@@ -171,7 +208,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
       );
       return;
     }
-    await ExpenseReminderScope.of(context).save(
+    final saved = await ExpenseReminderScope.of(context).save(
       ExpenseReminderRecord(
         id: _editingReminder?.id ?? '',
         title: title,
@@ -184,10 +221,35 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
         updatedAt: DateTime.now(),
       ),
     );
+    final store = _draftStore;
+    if (store != null) {
+      await ExpenseReminderDraft.clear(store, _draftId);
+      if (_editingReminder != null) {
+        await ExpenseReminderDraft.clear(
+          store,
+          ExpenseReminderDraft.idForEditing(saved.id),
+        );
+      }
+    }
     if (!mounted) return;
     _clearForm();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Expense reminder saved on this device.')),
+    );
+  }
+
+  Future<void> _removeReminder(ExpenseReminderRecord reminder) async {
+    final controller = ExpenseReminderScope.of(context);
+    await controller.delete(reminder.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Reminder removed. It can be restored.'),
+        action: SnackBarAction(
+          label: 'Restore',
+          onPressed: () => controller.restore(reminder.id),
+        ),
+      ),
     );
   }
 
@@ -205,9 +267,11 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
       _cadence = reminder.cadence;
       _dueAt = reminder.dueAt;
     });
+    unawaited(_restoreEditingDraft(reminder));
   }
 
   void _clearForm() {
+    final draftId = _draftId;
     setState(() {
       _editingReminder = null;
       _titleController.clear();
@@ -217,6 +281,82 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen> {
       _cadence = ExpenseReminderCadence.once;
       _dueAt = DateTime.now().add(const Duration(days: 30));
     });
+    final store = _draftStore;
+    if (store != null) unawaited(ExpenseReminderDraft.clear(store, draftId));
+  }
+
+  String get _draftId => _editingReminder == null
+      ? ExpenseReminderDraft.newReminderId
+      : ExpenseReminderDraft.idForEditing(_editingReminder!.id);
+
+  Future<void> _openDraftStore() async {
+    final store = await MaintainiacRecordDraftStore.create();
+    if (!mounted) return;
+    _draftStore = store;
+    _applyDraft(
+      ExpenseReminderDraft.load(store, ExpenseReminderDraft.newReminderId),
+    );
+  }
+
+  Future<void> _restoreEditingDraft(ExpenseReminderRecord reminder) async {
+    final store = _draftStore;
+    if (store == null) return;
+    _applyDraft(
+      ExpenseReminderDraft.load(
+        store,
+        ExpenseReminderDraft.idForEditing(reminder.id),
+      ),
+    );
+  }
+
+  void _applyDraft(ExpenseReminderDraft? draft) {
+    if (draft == null || !mounted) return;
+    _restoringDraft = true;
+    setState(() {
+      _titleController.text = draft.title;
+      _detailsController.text = draft.details;
+      _category = _categories.contains(draft.category)
+          ? draft.category
+          : _category;
+      _channel =
+          const ['In-app', 'Push', 'Sound', 'All'].contains(draft.channel)
+          ? draft.channel
+          : _channel;
+      _cadence = draft.cadence;
+      _dueAt = draft.dueAt;
+    });
+    _restoringDraft = false;
+  }
+
+  void _scheduleDraftSave() {
+    if (_restoringDraft) return;
+    _draftTimer?.cancel();
+    _draftTimer = Timer(const Duration(milliseconds: 200), _saveDraftNow);
+  }
+
+  Future<void> _saveDraftNow() async {
+    if (_restoringDraft) return;
+    final store = _draftStore;
+    if (store == null) return;
+    try {
+      await ExpenseReminderDraft(
+        id: _draftId,
+        title: _titleController.text,
+        category: _category,
+        channel: _channel,
+        cadence: _cadence,
+        dueAt: _dueAt,
+        details: _detailsController.text,
+        editingReminderId: _editingReminder?.id,
+      ).save(store);
+      _draftFailureShown = false;
+    } on StateError catch (error) {
+      if (!mounted || _draftFailureShown) return;
+      _draftFailureShown = true;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message.toString())));
+    }
   }
 }
 
