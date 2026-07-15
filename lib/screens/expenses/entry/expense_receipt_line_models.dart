@@ -17,6 +17,9 @@ class _ExpenseReceiptLine {
     this.fillType,
     this.unitPrice,
     this.rawReceiptText = '',
+    this.sourceReceiptText = '',
+    this.normalizedReceiptText = '',
+    this.receiptInterpretation = '',
     this.catalogItemId,
     this.catalogItemName,
     this.catalogItemPath,
@@ -54,7 +57,7 @@ class _ExpenseReceiptLine {
   factory _ExpenseReceiptLine.fromLedgerLine(ExpenseReceiptLineRecord line) {
     return _ExpenseReceiptLine(
       id: line.id,
-      description: line.description,
+      description: line.receiptDisplayText,
       category: line.category,
       use: switch (line.use) {
         ExpenseLineUse.unclassified => _ExpenseLineUse.unclassified,
@@ -73,6 +76,9 @@ class _ExpenseReceiptLine {
       fillType: line.fillType,
       unitPrice: line.unitPrice,
       rawReceiptText: line.rawReceiptText,
+      sourceReceiptText: line.receiptSourceText,
+      normalizedReceiptText: line.normalizedReceiptText,
+      receiptInterpretation: line.receiptInterpretation,
       catalogItemId: line.catalogItemId,
       catalogItemName: line.catalogItemName,
       catalogItemPath: line.catalogItemPath,
@@ -106,6 +112,9 @@ class _ExpenseReceiptLine {
   final String? fillType;
   final double? unitPrice;
   final String rawReceiptText;
+  final String sourceReceiptText;
+  final String normalizedReceiptText;
+  final String receiptInterpretation;
   final String? catalogItemId;
   final String? catalogItemName;
   final String? catalogItemPath;
@@ -130,6 +139,9 @@ class _ExpenseReceiptLine {
     String? fillType,
     String? stockUnit,
     String? rawReceiptText,
+    String? sourceReceiptText,
+    String? normalizedReceiptText,
+    String? receiptInterpretation,
     String? catalogItemId,
     String? catalogItemName,
     String? catalogItemPath,
@@ -168,6 +180,11 @@ class _ExpenseReceiptLine {
       fillType: fillType ?? this.fillType,
       unitPrice: unitPrice,
       rawReceiptText: rawReceiptText ?? this.rawReceiptText,
+      sourceReceiptText: sourceReceiptText ?? this.sourceReceiptText,
+      normalizedReceiptText:
+          normalizedReceiptText ?? this.normalizedReceiptText,
+      receiptInterpretation:
+          receiptInterpretation ?? this.receiptInterpretation,
       catalogItemId: catalogItemId ?? this.catalogItemId,
       catalogItemName: catalogItemName ?? this.catalogItemName,
       catalogItemPath: catalogItemPath ?? this.catalogItemPath,
@@ -235,7 +252,7 @@ class _ExpenseReceiptLine {
 
   bool get hasReceiptLineDetailEvidence =>
       !_hasAllocationOnlyDescription ||
-      rawReceiptText.trim().isNotEmpty ||
+      receiptSourceText.isNotEmpty ||
       (catalogItemName ?? '').trim().isNotEmpty ||
       hasParserClassification;
 
@@ -276,5 +293,10 @@ class _ExpenseReceiptLine {
   bool get hasReceiptEvidence {
     final evidence = receiptEvidenceText;
     return evidence.isNotEmpty && evidence != description.trim();
+  }
+
+  String get receiptSourceText {
+    final source = sourceReceiptText.trim();
+    return source.isNotEmpty ? source : rawReceiptText.trim();
   }
 }

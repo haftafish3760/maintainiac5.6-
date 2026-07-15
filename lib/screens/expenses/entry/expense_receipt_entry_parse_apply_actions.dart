@@ -231,7 +231,7 @@ extension _ExpenseReceiptEntryParseApplyActions
     ExpenseReceiptLineReview? review,
   }) {
     return _ExpenseReceiptLine(
-      description: line.description,
+      description: line.receiptDisplayText,
       category: line.category,
       // Parser ownership signals are compatibility evidence for downstream
       // parsers only. The editable Expense record starts unclassified until
@@ -246,7 +246,10 @@ extension _ExpenseReceiptEntryParseApplyActions
       fuelType: line.fuelType,
       fillType: line.fillType,
       unitPrice: line.unitPrice,
-      rawReceiptText: line.receiptEvidenceText,
+      rawReceiptText: line.rawReceiptText,
+      sourceReceiptText: line.receiptSourceText,
+      normalizedReceiptText: line.normalizedReceiptText,
+      receiptInterpretation: line.receiptInterpretation,
       catalogItemId: line.catalogItemId,
       catalogItemName: line.catalogItemName,
       catalogItemPath: line.catalogItemPath,

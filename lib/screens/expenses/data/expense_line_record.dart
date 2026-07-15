@@ -50,6 +50,10 @@ class ExpenseReceiptLineRecord {
     this.fillType,
     this.unitPrice,
     this.rawReceiptText = '',
+    this.sourceReceiptText = '',
+    this.displayReceiptText = '',
+    this.normalizedReceiptText = '',
+    this.receiptInterpretation = '',
     this.catalogItemId,
     this.catalogItemName,
     this.catalogItemPath,
@@ -86,6 +90,16 @@ class ExpenseReceiptLineRecord {
       fillType: _nullableExpenseString(map['fillType']),
       unitPrice: _expenseDouble(map['unitPrice']),
       rawReceiptText: _expenseString(map['rawReceiptText']),
+      sourceReceiptText: _expenseString(
+        map['sourceReceiptText'],
+        fallback: _expenseString(map['rawReceiptText']),
+      ),
+      displayReceiptText: _expenseString(
+        map['displayReceiptText'],
+        fallback: _expenseString(map['description']),
+      ),
+      normalizedReceiptText: _expenseString(map['normalizedReceiptText']),
+      receiptInterpretation: _expenseString(map['receiptInterpretation']),
       catalogItemId: _nullableExpenseString(map['catalogItemId']),
       catalogItemName: _nullableExpenseString(map['catalogItemName']),
       catalogItemPath: _nullableExpenseString(map['catalogItemPath']),
@@ -128,7 +142,14 @@ class ExpenseReceiptLineRecord {
   final String? fuelType;
   final String? fillType;
   final double? unitPrice;
+  // Evidence fields deliberately remain separate. `description` is retained
+  // for backwards-compatible consumers, while displayReceiptText is the only
+  // text an Expense user may revise.
   final String rawReceiptText;
+  final String sourceReceiptText;
+  final String displayReceiptText;
+  final String normalizedReceiptText;
+  final String receiptInterpretation;
   final String? catalogItemId;
   final String? catalogItemName;
   final String? catalogItemPath;
@@ -356,10 +377,27 @@ class ExpenseReceiptLineRecord {
   }
 
   String get receiptEvidenceText {
-    final raw = rawReceiptText.trim();
+    final raw = receiptSourceText;
     if (raw.isNotEmpty) return raw;
     return description.trim();
   }
+
+  String get receiptSourceText {
+    final source = sourceReceiptText.trim();
+    if (source.isNotEmpty) return source;
+    return rawReceiptText.trim();
+  }
+
+  String get receiptDisplayText {
+    final display = displayReceiptText.trim();
+    if (display.isNotEmpty) return display;
+    return description.trim();
+  }
+
+  bool get hasNormalizedReceiptText => normalizedReceiptText.trim().isNotEmpty;
+
+  bool get hasReceiptInterpretation =>
+      receiptInterpretation.trim().isNotEmpty || hasParserClassification;
 
   String get parserReviewLabelText {
     final label = parserReviewLabel?.trim();
@@ -381,7 +419,7 @@ class ExpenseReceiptLineRecord {
   }
 
   String get displayDescription {
-    final clean = description.trim();
+    final clean = receiptDisplayText;
     if (clean.isNotEmpty && clean.toLowerCase() != 'receipt item') {
       return clean;
     }
@@ -398,7 +436,7 @@ class ExpenseReceiptLineRecord {
 
   bool get hasReceiptLineDetailEvidence =>
       !_hasAllocationOnlyDescription ||
-      rawReceiptText.trim().isNotEmpty ||
+      receiptSourceText.isNotEmpty ||
       (catalogItemName ?? '').trim().isNotEmpty ||
       hasParserClassification;
 

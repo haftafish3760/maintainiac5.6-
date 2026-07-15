@@ -3,6 +3,41 @@ import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 
 void main() {
   test(
+    'receipt evidence preserves source, display, normalization, and interpretation separately',
+    () {
+      const line = ExpenseReceiptLineRecord(
+        id: 'faithful-line',
+        description: 'Edited display label',
+        displayReceiptText: 'Edited display label',
+        sourceReceiptText: 'BLK NTR GLV XL',
+        normalizedReceiptText: 'blk ntr glv xl',
+        receiptInterpretation: 'work gloves candidate',
+        category: 'Uncategorized',
+        use: ExpenseLineUse.unclassified,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: 8.49,
+      );
+
+      expect(line.receiptSourceText, 'BLK NTR GLV XL');
+      expect(line.receiptEvidenceText, 'BLK NTR GLV XL');
+      expect(line.receiptDisplayText, 'Edited display label');
+      expect(line.displayDescription, 'Edited display label');
+      expect(line.normalizedReceiptText, 'blk ntr glv xl');
+      expect(line.receiptInterpretation, 'work gloves candidate');
+      expect(line.use, ExpenseLineUse.unclassified);
+      expect(line.businessAmount, 0);
+
+      final restored = ExpenseReceiptLineRecord.fromMap(line.toMap());
+      expect(restored.receiptSourceText, 'BLK NTR GLV XL');
+      expect(restored.receiptDisplayText, 'Edited display label');
+      expect(restored.normalizedReceiptText, 'blk ntr glv xl');
+      expect(restored.receiptInterpretation, 'work gloves candidate');
+    },
+  );
+
+  test(
     'unknown ownership is preserved as unclassified with no allocated total',
     () {
       final line = ExpenseReceiptLineRecord.fromMap({
