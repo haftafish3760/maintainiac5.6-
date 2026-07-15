@@ -96,6 +96,10 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     });
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
+    final cloudBackup = ExpenseCloudBackupScope.maybeOf(context);
+    if (cloudBackup != null) {
+      unawaited(cloudBackup.mirror.queueReceipt(saved.id));
+    }
     await _syncMaterialsReceipt(saved);
     if (!mounted) return;
     _savedReceipt = true;

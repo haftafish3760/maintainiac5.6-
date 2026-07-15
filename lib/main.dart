@@ -8,12 +8,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app/maintaniac_app.dart';
 import 'screens/dashboard/data/active_workday_store.dart';
 import 'screens/expenses/data/expense_draft_store.dart';
+import 'screens/expenses/data/expense_cloud_backup_service.dart';
 import 'screens/expenses/data/expense_export_store.dart';
 import 'screens/expenses/data/expense_ledger_store.dart';
 import 'screens/invoices/data/invoice_ledger_store.dart';
 import 'shared/state/app_state.dart';
 import 'shared/state/expense_settings_store.dart';
 import 'shared/firebase/maintainiac_firebase.dart';
+import 'shared/firebase/app_installation_identity.dart';
 import 'shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'shared/context/operational_context_store.dart';
 import 'shared/profiles/user_profile_store.dart';
@@ -41,6 +43,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final firebaseSupported = await MaintainiacFirebase.initializeIfSupported();
   await Hive.initFlutter();
+  final installationIdentity = await AppInstallationIdentityStore()
+      .getOrCreate();
   final expenseSettings = await ExpenseSettingsController.create();
   final expenseLedger = await ExpenseLedgerController.create();
   final expenseDrafts = await ExpenseDraftController.create();
@@ -50,6 +54,28 @@ Future<void> main() async {
   final signatureStore = await AppSignatureStore.create();
   final invoiceLedger = await InvoiceLedgerStore.create();
   final userProfiles = await UserProfileController.create();
+  ExpenseCloudBackupMirror expenseCloudBackup =
+      const NoopExpenseCloudBackupMirror();
+  if (firebaseSupported) {
+    final queueStore = await MaintainiacFirestoreUploadQueueStore.create();
+    final uploadCoordinator = MaintainiacFirestoreUploadCoordinator(
+      queue: queueStore,
+      sink: FirebaseFirestoreDocumentSink(),
+      uploadEnabled: true,
+    );
+    expenseCloudBackup = FirebaseExpenseCloudBackupMirror(
+      ledger: expenseLedger,
+      settings: expenseSettings,
+      queueStore: queueStore,
+      uploadCoordinator: uploadCoordinator,
+      deviceId: installationIdentity.installationId,
+      backupEnabled: () => userProfiles.activeProfile.cloudBackupEnabled,
+    );
+    unawaited(expenseCloudBackup.syncLocalSnapshot());
+    userProfiles.addListener(() {
+      unawaited(expenseCloudBackup.syncLocalSnapshot());
+    });
+  }
   final incomingReceiptShare = IncomingReceiptShareController();
   unawaited(incomingReceiptShare.start());
   unawaited(
@@ -140,33 +166,36 @@ Future<void> main() async {
       controller: appState,
       child: ExpenseSettingsScope(
         controller: expenseSettings,
-        child: ExpenseLedgerScope(
-          controller: expenseLedger,
-          child: ExpenseDraftScope(
-            controller: expenseDrafts,
-            child: ExpenseExportScope(
-              controller: expenseExports,
-              child: ReceiptCaptureSettingsScope(
-                controller: receiptCaptureSettings,
-                child: ActiveWorkdayScope(
-                  controller: activeWorkday,
-                  child: GlobalOdometerScope(
-                    controller: globalOdometer,
-                    child: TripTrackingSettingsScope(
-                      controller: tripTrackingSettings,
-                      child: TripTrackingScope(
-                        controller: tripTracking,
-                        child: IncomingReceiptShareScope(
-                          controller: incomingReceiptShare,
-                          child: AppSignatureStoreScope(
-                            store: signatureStore,
-                            child: UserProfileScope(
-                              controller: userProfiles,
-                              child: OperationalContextScope(
-                                controller: operationalContext,
-                                child: InvoiceLedgerScope(
-                                  controller: invoiceLedger,
-                                  child: const MaintaniacApp(),
+        child: ExpenseCloudBackupScope(
+          mirror: expenseCloudBackup,
+          child: ExpenseLedgerScope(
+            controller: expenseLedger,
+            child: ExpenseDraftScope(
+              controller: expenseDrafts,
+              child: ExpenseExportScope(
+                controller: expenseExports,
+                child: ReceiptCaptureSettingsScope(
+                  controller: receiptCaptureSettings,
+                  child: ActiveWorkdayScope(
+                    controller: activeWorkday,
+                    child: GlobalOdometerScope(
+                      controller: globalOdometer,
+                      child: TripTrackingSettingsScope(
+                        controller: tripTrackingSettings,
+                        child: TripTrackingScope(
+                          controller: tripTracking,
+                          child: IncomingReceiptShareScope(
+                            controller: incomingReceiptShare,
+                            child: AppSignatureStoreScope(
+                              store: signatureStore,
+                              child: UserProfileScope(
+                                controller: userProfiles,
+                                child: OperationalContextScope(
+                                  controller: operationalContext,
+                                  child: InvoiceLedgerScope(
+                                    controller: invoiceLedger,
+                                    child: const MaintaniacApp(),
+                                  ),
                                 ),
                               ),
                             ),

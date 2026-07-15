@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'maintainiac_firestore_documents.dart';
@@ -31,6 +32,25 @@ class MaintainiacFirestoreUploadResult {
   final int uploadedCount;
   final int failedCount;
   final String? reason;
+}
+
+/// Shared Firestore sink for module-specific backup coordinators. Keeping the
+/// actual write primitive here prevents Expenses, Trips, and future modules
+/// from inventing competing merge semantics.
+class FirebaseFirestoreDocumentSink
+    implements MaintainiacFirestoreDocumentSink {
+  FirebaseFirestoreDocumentSink({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
+
+  @override
+  Future<void> writeDocument({
+    required String path,
+    required Map<String, Object?> data,
+  }) {
+    return _firestore.doc(path).set(data, SetOptions(merge: true));
+  }
 }
 
 class MaintainiacFirestoreQueuedDocument {

@@ -273,7 +273,22 @@ service cloud.firestore {
 
       match /members/{memberUid} {
         allow read: if isSelf(memberUid) || isOwnerOrAdmin(orgId);
-        allow create: if isOwnerOrAdmin(orgId) &&
+        // A newly authenticated independent user must be able to enroll the
+        // first owner member after creating their private workspace. The owner
+        // may only enroll themself, as an active owner, and cannot use this
+        // narrow bootstrap rule to add another person.
+        allow create: if (
+            isOwnerOrAdmin(orgId) ||
+            (
+              signedIn() &&
+              request.auth.uid == memberUid &&
+              get(/databases/$(database)/documents/orgs/$(orgId)).data.ownerUid == request.auth.uid &&
+              request.resource.data.uid == memberUid &&
+              request.resource.data.orgId == orgId &&
+              request.resource.data.status == 'active' &&
+              request.resource.data.role == 'owner'
+            )
+          ) &&
           request.resource.data.uid == memberUid &&
           request.resource.data.orgId == orgId;
         allow update: if isOwnerOrAdmin(orgId) &&

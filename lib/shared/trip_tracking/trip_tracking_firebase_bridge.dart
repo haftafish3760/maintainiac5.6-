@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../firebase/maintainiac_firestore_documents.dart';
@@ -38,22 +37,6 @@ class NoopTripTrackingCloudMirror implements TripTrackingCloudMirror {
 
   @override
   void dispose() {}
-}
-
-class FirebaseFirestoreDocumentSink
-    implements MaintainiacFirestoreDocumentSink {
-  FirebaseFirestoreDocumentSink({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  final FirebaseFirestore _firestore;
-
-  @override
-  Future<void> writeDocument({
-    required String path,
-    required Map<String, Object?> data,
-  }) async {
-    await _firestore.doc(path).set(data, SetOptions(merge: true));
-  }
 }
 
 /// Queues only reviewed mileage summaries. It never mirrors live coordinates
