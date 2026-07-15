@@ -102,6 +102,11 @@ void main() {
       plan: plan,
       totalRecords: 3,
     );
+    await store.updateProgress(
+      id: 'restore-2',
+      completedDownloadBytes: 100,
+      completedRecords: 3,
+    );
     await store.complete('restore-2');
 
     await expectLater(
@@ -112,6 +117,26 @@ void main() {
       ),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('does not mark an incomplete restore as completed', () async {
+    final store = await ExpenseCloudRestoreSessionStore.create();
+    await store.savePrepared(
+      id: 'restore-incomplete',
+      requestId: 'server-request-incomplete',
+      plan: plan,
+      totalRecords: 3,
+    );
+
+    await expectLater(
+      store.complete('restore-incomplete'),
+      throwsA(isA<StateError>()),
+    );
+
+    final session = store.sessionById('restore-incomplete')!;
+    expect(session.state, ExpenseCloudRestoreSessionState.prepared);
+    expect(session.completedDownloadBytes, 0);
+    expect(session.completedRecords, 0);
   });
 
   test(

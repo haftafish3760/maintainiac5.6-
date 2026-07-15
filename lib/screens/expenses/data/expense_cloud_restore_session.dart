@@ -75,6 +75,9 @@ class ExpenseCloudRestoreSession {
   bool get isTerminal =>
       state == ExpenseCloudRestoreSessionState.cancelled ||
       state == ExpenseCloudRestoreSessionState.completed;
+  bool get hasCompletedTransfer =>
+      completedDownloadBytes >= expectedDownloadBytes &&
+      completedRecords >= totalRecords;
 
   Map<String, Object?> toMap() => {
     'id': id,
@@ -214,6 +217,9 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
 
   Future<void> complete(String id, {DateTime? nowUtc}) => _enqueue(() async {
     final current = _active(id);
+    if (!current.hasCompletedTransfer) {
+      throw StateError('Restore transfer is not complete yet.');
+    }
     await _write(
       ExpenseCloudRestoreSession(
         id: current.id,
@@ -223,9 +229,9 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         createdAt: current.createdAt,
         updatedAt: (nowUtc ?? DateTime.now().toUtc()).toUtc(),
         expectedDownloadBytes: current.expectedDownloadBytes,
-        completedDownloadBytes: current.expectedDownloadBytes,
+        completedDownloadBytes: current.completedDownloadBytes,
         totalRecords: current.totalRecords,
-        completedRecords: current.totalRecords,
+        completedRecords: current.completedRecords,
       ),
     );
   });
