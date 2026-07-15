@@ -226,8 +226,8 @@ class ExpenseFirestoreDocumentBuilder {
   }
 
   /// One replaceable directory document keeps vehicle-profile backup compact.
-  /// A removed vehicle disappears from the next directory snapshot while saved
-  /// Expense records continue to retain their historical vehicle ID.
+  /// Archived vehicles stay in the directory so historical Expense records
+  /// retain their readable vehicle identity after restore.
   static MaintainiacFirestoreDocumentDraft expenseVehicleDirectoryDocument({
     required String orgId,
     required String uid,
@@ -252,7 +252,7 @@ class ExpenseFirestoreDocumentBuilder {
         'settingsScope': 'member',
         'activeVehicleId': _nullableToken(appState.activeVehicle?.id),
         'vehicles': [
-          for (final vehicle in appState.vehicles)
+          for (final vehicle in appState.allVehicles)
             {
               'id': _pathToken(vehicle.id),
               'nickname': _readable(vehicle.nickname, maxLength: 160),
@@ -260,6 +260,7 @@ class ExpenseFirestoreDocumentBuilder {
               'make': _readable(vehicle.make, maxLength: 80),
               'model': _readable(vehicle.model, maxLength: 100),
               'usage': vehicle.usage.name,
+              'archivedAt': vehicle.archivedAt?.toUtc().toIso8601String(),
             },
         ],
         'createdAt': exportedAt.toIso8601String(),

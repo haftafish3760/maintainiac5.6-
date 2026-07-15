@@ -59,6 +59,7 @@ class VehicleProfile {
     this.make = '',
     this.model = '',
     this.usage = VehicleUsage.businessPersonal,
+    this.archivedAt,
   });
 
   final String nickname;
@@ -70,6 +71,9 @@ class VehicleProfile {
   final String make;
   final String model;
   final VehicleUsage usage;
+  final DateTime? archivedAt;
+
+  bool get isArchived => archivedAt != null;
 
   String get displayName {
     final details = [
@@ -91,6 +95,7 @@ class VehicleProfile {
         (usage) => usage.name == map['usage']?.toString(),
         orElse: () => VehicleUsage.businessPersonal,
       ),
+      archivedAt: DateTime.tryParse('${map['archivedAt'] ?? ''}'),
     );
   }
 
@@ -101,7 +106,27 @@ class VehicleProfile {
     'make': make,
     'model': model,
     'usage': usage.name,
+    'archivedAt': archivedAt?.toUtc().toIso8601String(),
   };
+
+  VehicleProfile copyWith({
+    String? nickname,
+    String? id,
+    String? year,
+    String? make,
+    String? model,
+    VehicleUsage? usage,
+    DateTime? archivedAt,
+    bool clearArchivedAt = false,
+  }) => VehicleProfile(
+    id: id ?? this.id,
+    nickname: nickname ?? this.nickname,
+    year: year ?? this.year,
+    make: make ?? this.make,
+    model: model ?? this.model,
+    usage: usage ?? this.usage,
+    archivedAt: clearArchivedAt ? null : archivedAt ?? this.archivedAt,
+  );
 }
 
 class WorkProfile {
@@ -308,7 +333,16 @@ class AppStateController extends ChangeNotifier {
   late VehicleProfile? _activeVehicle = _vehicles.first;
   WorkProfile? _activeWorkProfile = WorkProfile(name: 'Main Work');
 
-  List<VehicleProfile> get vehicles => List.unmodifiable(_vehicles);
+  List<VehicleProfile> get allVehicles => List.unmodifiable(_vehicles);
+  List<VehicleProfile> get vehicles =>
+      List.unmodifiable(_vehicles.where((vehicle) => !vehicle.isArchived));
+  VehicleProfile? vehicleById(String vehicleId) {
+    for (final vehicle in _vehicles) {
+      if (vehicle.id == vehicleId) return vehicle;
+    }
+    return null;
+  }
+
   List<MaintenanceRecord> get maintenance => List.unmodifiable(_maintenance);
   List<MaintenanceServiceEvent> get maintenanceEvents =>
       List.unmodifiable(_maintenanceEvents);
@@ -337,7 +371,7 @@ class AppStateController extends ChangeNotifier {
   }
 
   Future<void> selectVehicle(VehicleProfile vehicle) async {
-    final nextActiveVehicle = _vehicles.firstWhere(
+    final nextActiveVehicle = vehicles.firstWhere(
       (candidate) => candidate.id == vehicle.id,
       orElse: () => vehicle,
     );
@@ -362,18 +396,32 @@ class AppStateController extends ChangeNotifier {
   }
 
   Future<void> deleteVehicle(String vehicleId) async {
-    if (_vehicles.length <= 1) return;
+    if (vehicles.length <= 1) return;
     final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
     if (index < 0) return;
-    final nextVehicles = [..._vehicles]..removeAt(index);
+    if (_vehicles[index].isArchived) return;
+    final nextVehicles = [..._vehicles]
+      ..[index] = _vehicles[index].copyWith(archivedAt: DateTime.now());
     final nextActiveVehicle = _activeVehicle?.id == vehicleId
-        ? nextVehicles.first
+        ? nextVehicles.firstWhere((vehicle) => !vehicle.isArchived)
         : _activeVehicle;
     await _writeVehicleSnapshot(nextVehicles, nextActiveVehicle);
     _vehicles
       ..clear()
       ..addAll(nextVehicles);
     _activeVehicle = nextActiveVehicle;
+    notifyListeners();
+  }
+
+  Future<void> restoreVehicle(String vehicleId) async {
+    final index = _vehicles.indexWhere((vehicle) => vehicle.id == vehicleId);
+    if (index < 0 || !_vehicles[index].isArchived) return;
+    final nextVehicles = [..._vehicles]
+      ..[index] = _vehicles[index].copyWith(clearArchivedAt: true);
+    await _writeVehicleSnapshot(nextVehicles, _activeVehicle);
+    _vehicles
+      ..clear()
+      ..addAll(nextVehicles);
     notifyListeners();
   }
 
@@ -471,9 +519,10 @@ class AppStateController extends ChangeNotifier {
       ..clear()
       ..addAll(restored);
     final activeId = snapshot['activeVehicleId']?.toString();
-    _activeVehicle = _vehicles.firstWhere(
+    final activeVehicles = vehicles;
+    _activeVehicle = activeVehicles.firstWhere(
       (vehicle) => vehicle.id == activeId,
-      orElse: () => _vehicles.first,
+      orElse: () => activeVehicles.first,
     );
     notifyListeners();
   }

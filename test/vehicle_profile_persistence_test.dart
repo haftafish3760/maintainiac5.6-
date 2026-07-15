@@ -46,7 +46,7 @@ void main() {
   );
 
   test(
-    'deleting the active vehicle persists a remaining active vehicle',
+    'deleting the active vehicle archives its historical identity',
     () async {
       final first = await AppStateController.create();
       final vehicle = VehicleProfile(
@@ -62,14 +62,15 @@ void main() {
       await first.deleteVehicle(vehicle.id);
       final remainingId = first.activeVehicle!.id;
       expect(first.vehicles.any((item) => item.id == vehicle.id), isFalse);
+      expect(first.vehicleById(vehicle.id)?.isArchived, isTrue);
 
       await Hive.close();
       Hive.init(hiveDirectory.path);
       final restored = await AppStateController.create();
 
       expect(restored.vehicles.any((item) => item.id == vehicle.id), isFalse);
+      expect(restored.vehicleById(vehicle.id)?.isArchived, isTrue);
       expect(restored.activeVehicle?.id, remainingId);
-
     },
   );
 }

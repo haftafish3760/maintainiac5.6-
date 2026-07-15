@@ -286,26 +286,43 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
-  test('backs up a replaceable vehicle directory without local paths', () {
-    final appState = AppStateController();
-    final doc = ExpenseFirestoreDocumentBuilder.expenseVehicleDirectoryDocument(
-      orgId: 'ORG-1',
-      uid: 'USER-1',
-      deviceId: 'DEVICE-1',
-      appState: appState,
-      nowUtc: DateTime.utc(2026, 7, 15, 12),
-    );
+  test(
+    'backs up active and archived vehicle identities without local paths',
+    () async {
+      final appState = AppStateController();
+      final archived = VehicleProfile(
+        id: 'archived-vehicle',
+        nickname: 'Old van',
+      );
+      await appState.addVehicle(archived);
+      await appState.deleteVehicle(archived.id);
+      final doc =
+          ExpenseFirestoreDocumentBuilder.expenseVehicleDirectoryDocument(
+            orgId: 'ORG-1',
+            uid: 'USER-1',
+            deviceId: 'DEVICE-1',
+            appState: appState,
+            nowUtc: DateTime.utc(2026, 7, 15, 12),
+          );
 
-    expect(
-      doc.path,
-      'orgs/ORG-1/${MaintainiacFirestoreSchema.orgSettings}/expense_vehicles_USER-1',
-    );
-    expect(doc.data['schema'], 'expense_vehicle_directory_backup_v1');
-    expect(doc.data['activeVehicleId'], 'vehicle_work_truck_1');
-    expect((doc.data['vehicles'] as List), isNotEmpty);
-    expect(doc.data.toString(), isNot(contains('localPath')));
-    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
-  });
+      expect(
+        doc.path,
+        'orgs/ORG-1/${MaintainiacFirestoreSchema.orgSettings}/expense_vehicles_USER-1',
+      );
+      expect(doc.data['schema'], 'expense_vehicle_directory_backup_v1');
+      expect(doc.data['activeVehicleId'], 'vehicle_work_truck_1');
+      final vehicles = doc.data['vehicles'] as List;
+    expect(vehicles, isNotEmpty);
+      expect(
+        vehicles.whereType<Map>().singleWhere(
+          (vehicle) => vehicle['id'] == 'archived-vehicle',
+        )['archivedAt'],
+        isNotNull,
+      );
+      expect(doc.data.toString(), isNot(contains('localPath')));
+      MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+    },
+  );
 
   test('backs up active and archived work-profile identities', () async {
     final profiles = ExpenseWorkProfileController.memory();
