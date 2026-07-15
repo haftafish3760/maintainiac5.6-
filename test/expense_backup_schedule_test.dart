@@ -67,4 +67,31 @@ void main() {
       isTrue,
     );
   });
+
+  test('scheduled backup transport never uses an unapproved connection', () {
+    expect(
+      ExpenseBackupNetworkAvailability.wifi.permits(
+        ExpenseBackupTransport.wifiOnly,
+      ),
+      isTrue,
+    );
+    expect(
+      ExpenseBackupNetworkAvailability.cellular.permits(
+        ExpenseBackupTransport.wifiOnly,
+      ),
+      isFalse,
+    );
+    expect(
+      ExpenseBackupNetworkAvailability.cellular.permits(
+        ExpenseBackupTransport.wifiAndCellular,
+      ),
+      isTrue,
+    );
+    expect(
+      ExpenseBackupNetworkAvailability.unknown.permits(
+        ExpenseBackupTransport.wifiAndCellular,
+      ),
+      isFalse,
+    );
+  });
 }

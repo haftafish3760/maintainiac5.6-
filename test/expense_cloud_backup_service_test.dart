@@ -9,6 +9,7 @@ import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
+import 'package:maintaniac/shared/state/expense_backup_schedule.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
 
 void main() {
@@ -283,6 +284,44 @@ void main() {
     expect(result.uploadedCount, 1);
     expect(result.completed, isTrue);
     expect(sink.writeCount, 1);
+  });
+
+  test('scheduled backup honors time and transport authorization', () async {
+    final sink = _RecordingSink();
+    final service = await _service(
+      sink: sink,
+      organizationId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+    );
+    await service.settings.setBackupSchedule(
+      ExpenseBackupSchedule.normalized(
+        timesMinutesAfterMidnight: [8 * 60],
+        transport: ExpenseBackupTransport.wifiOnly,
+      ),
+    );
+    await service.settings.setBackupSyncMode(
+      ExpenseBackupSyncMode.scheduled,
+      nowUtc: DateTime.utc(2026, 7, 15, 11),
+    );
+
+    final cellular = await service.backupScheduledSnapshot(
+      network: ExpenseBackupNetworkAvailability.cellular,
+      now: DateTime(2026, 7, 15, 9),
+    );
+    final wifi = await service.backupScheduledSnapshot(
+      network: ExpenseBackupNetworkAvailability.wifi,
+      now: DateTime(2026, 7, 15, 9),
+    );
+
+    expect(
+      cellular.status,
+      ExpenseScheduledBackupStatus.waitingForApprovedNetwork,
+    );
+    expect(cellular.didAttempt, isFalse);
+    expect(wifi.status, ExpenseScheduledBackupStatus.attempted);
+    expect(wifi.backup?.completed, isTrue);
+    expect(sink.writeCount, 3);
   });
 }
 

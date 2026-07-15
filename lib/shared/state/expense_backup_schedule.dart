@@ -10,6 +10,26 @@ enum ExpenseBackupTransport {
   }
 }
 
+/// Network state supplied by the platform scheduler immediately before a
+/// scheduled backup is allowed to leave the device. Unknown is intentionally
+/// treated as unavailable so a Wi-Fi-only choice never falls through to data.
+enum ExpenseBackupNetworkAvailability {
+  unavailable,
+  wifi,
+  cellular,
+  unknown;
+
+  bool permits(ExpenseBackupTransport transport) {
+    return switch (this) {
+      ExpenseBackupNetworkAvailability.wifi => true,
+      ExpenseBackupNetworkAvailability.cellular =>
+        transport == ExpenseBackupTransport.wifiAndCellular,
+      ExpenseBackupNetworkAvailability.unavailable ||
+      ExpenseBackupNetworkAvailability.unknown => false,
+    };
+  }
+}
+
 /// User-selected local-clock schedule for authorized Expense backup attempts.
 ///
 /// This contains no network behavior. Platform background work must ask the

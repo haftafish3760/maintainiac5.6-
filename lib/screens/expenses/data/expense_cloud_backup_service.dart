@@ -7,6 +7,7 @@ import '../../../shared/firebase/maintainiac_organization_bootstrap.dart';
 import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 import '../../../shared/state/expense_settings_store.dart';
+import '../../../shared/state/expense_backup_schedule.dart';
 import '../../../shared/state/app_state.dart';
 import 'expense_firestore_documents.dart';
 import 'expense_ledger_store.dart';
@@ -245,6 +246,30 @@ class ExpenseCloudBackupService {
     return result;
   }
 
+  /// Performs a snapshot only when a platform scheduler has supplied a
+  /// user-approved connection and the selected local-clock time is due.
+  /// Calling this never changes a manual or immediate-sync preference.
+  Future<ExpenseScheduledBackupResult> backupScheduledSnapshot({
+    required ExpenseBackupNetworkAvailability network,
+    DateTime? now,
+  }) async {
+    final localNow = (now ?? DateTime.now()).toLocal();
+    if (settings.backupSyncMode != ExpenseBackupSyncMode.scheduled) {
+      return const ExpenseScheduledBackupResult.notAuthorized();
+    }
+    if (!network.permits(settings.backupSchedule.transport)) {
+      return ExpenseScheduledBackupResult.waitingForApprovedNetwork(network);
+    }
+    if (!settings.isScheduledBackupDueAt(
+      localNow,
+      lastAttemptAt: settings.lastBackupAttemptAt,
+    )) {
+      return const ExpenseScheduledBackupResult.notDue();
+    }
+    final backup = await backupLocalSnapshot(nowUtc: localNow.toUtc());
+    return ExpenseScheduledBackupResult.attempted(backup);
+  }
+
   /// Flushes only the supplied paths. This prevents a newly signed-in account
   /// from accidentally uploading stale queue entries belonging to another
   /// account or workspace.
@@ -368,6 +393,35 @@ class ExpenseCloudQueueResult {
       reason: reason,
     );
   }
+}
+
+enum ExpenseScheduledBackupStatus {
+  notAuthorized,
+  waitingForApprovedNetwork,
+  notDue,
+  attempted,
+}
+
+class ExpenseScheduledBackupResult {
+  const ExpenseScheduledBackupResult._(this.status, {this.backup});
+
+  const ExpenseScheduledBackupResult.notAuthorized()
+    : this._(ExpenseScheduledBackupStatus.notAuthorized);
+
+  const ExpenseScheduledBackupResult.notDue()
+    : this._(ExpenseScheduledBackupStatus.notDue);
+
+  ExpenseScheduledBackupResult.waitingForApprovedNetwork(
+    ExpenseBackupNetworkAvailability network,
+  ) : this._(ExpenseScheduledBackupStatus.waitingForApprovedNetwork);
+
+  const ExpenseScheduledBackupResult.attempted(ExpenseCloudBackupResult backup)
+    : this._(ExpenseScheduledBackupStatus.attempted, backup: backup);
+
+  final ExpenseScheduledBackupStatus status;
+  final ExpenseCloudBackupResult? backup;
+
+  bool get didAttempt => status == ExpenseScheduledBackupStatus.attempted;
 }
 
 class _ExpenseCloudIdentity {
