@@ -204,12 +204,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
   String _exitContinueLabelFor(
     ReceiptPhotoCoverageDecision coverageDecision, {
     required bool hasMultipleSections,
-  }) {
-    if (coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Add Bottom Section';
-    }
-    return 'Use Receipt';
-  }
+  }) => 'Add Another Photo';
 
   String _receiptReviewExitNextCopy({
     required bool hasMultipleSections,
@@ -220,7 +215,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
         ? 'Save Photos Without Filling keeps these photos recoverable on this phone, but Maintainiac will not fill this expense from them yet.'
         : 'Save Photo Without Filling keeps this photo recoverable on this phone, but Maintainiac will not fill this expense from it yet.';
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Tap $nextLabel to add the bottom receipt section with the top ghost-slice guide, or continue only if this already shows the full receipt. $saveWithoutFilling';
+      return 'Tap $nextLabel only if the receipt continues. Otherwise continue with the photos you already accepted. $saveWithoutFilling';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
       return 'Tap $nextLabel only if this already shows the full receipt; otherwise add the next receipt section before opening receipt details. $saveWithoutFilling';

@@ -295,12 +295,12 @@ void main() {
       controls,
       contains("return 'Use Receipt';"),
     );
-    expect(screen, contains('_ReceiptReviewMode.preview => .22'));
-    expect(screen, contains('_photoPaths.length > 1 ? 188.0 : 166.0'));
+    expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
+    expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
-    expect(previewControls, contains("'Add Another Photo'"));
-    expect(previewControls, contains('minimumSize: const Size(92, 36)'));
+    expect(previewControls, contains("uiConfig.labelFor('addPhoto'"));
+    expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(controls, contains('open receipt details'));
     expect(
       controls,
@@ -391,7 +391,7 @@ void main() {
     expect(controls, contains('onRetake'));
     expect(controls, contains('onContinue'));
     expect(controls, contains('ReceiptPhotoCoverageDecision.fromSignals'));
-    expect(controls, contains('Add Bottom Section'));
+    expect(controls, isNot(contains('Add Bottom Section')));
     expect(controls, contains("'Use Receipt'"));
     expect(screen, contains('Future<void> addAnotherReceiptPhoto()'));
     expect(screen, contains('Future<void> retakeCurrentReceiptPhoto()'));

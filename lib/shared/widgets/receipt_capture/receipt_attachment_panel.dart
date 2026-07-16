@@ -119,7 +119,6 @@ class _SharedReceiptAttachmentPanelState
   final List<ReceiptAttachmentRecord> _documentAttachments = [];
   var _openingPicker = false;
   var _readingForReview = false;
-  var _needsBottomReceiptSection = false;
   var _receiptReadStatus = _ReceiptReadStatusKind.success;
   var _receiptReadStatusMessage = '';
   var _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;

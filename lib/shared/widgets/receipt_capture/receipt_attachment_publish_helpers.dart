@@ -29,7 +29,6 @@ extension _ReceiptAttachmentPublishHelpers
       _photoReadStateByPath.clear();
       _documentAttachments.clear();
       _readingForReview = false;
-      _needsBottomReceiptSection = false;
       _receiptReadStatus = _ReceiptReadStatusKind.success;
       _receiptReadStatusMessage = '';
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
@@ -53,7 +52,6 @@ extension _ReceiptAttachmentPublishHelpers
       _photoQualityByPath.remove(removed);
       _photoCaptureDiagnosticsByPath.remove(removed);
       _photoReadStateByPath.remove(removed);
-      if (_photoPaths.isEmpty) _needsBottomReceiptSection = false;
     });
     publishAttachmentChange();
   }

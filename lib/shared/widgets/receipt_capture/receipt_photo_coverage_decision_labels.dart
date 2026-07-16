@@ -75,19 +75,12 @@ extension ReceiptPhotoCoverageDecisionLabels on ReceiptPhotoCoverageDecision {
     });
   }
 
-  String get completionDialogTitle => isMissingBottomEdgeAndTotals
-      ? 'Add the bottom of this receipt?'
-      : 'Need another receipt section?';
+  String get completionDialogTitle => 'Need another receipt photo?';
 
-  String get completionDialogMessage {
-    if (isMissingBottomEdgeAndTotals) {
-      return '$guidance If this photo already includes the whole receipt, you can continue, but the subtotal/total may need manual review.';
-    }
-    return '$guidance If the receipt continues below this photo, add another photo now. If this photo has the full receipt, use this photo.';
-  }
+  String get completionDialogMessage =>
+      'If the receipt continues below this photo, add another photo now. If this photo has the full receipt, continue.';
 
-  String get addSectionButtonLabel =>
-      isMissingBottomEdgeAndTotals ? 'Add Bottom Section' : 'Add Another Photo';
+  String get addSectionButtonLabel => 'Add Another Photo';
 
   String get continueAnywayButtonLabel => 'Use Receipt';
 

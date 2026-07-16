@@ -85,7 +85,6 @@ extension _ReceiptAttachmentReviewReadActions
           ),
         );
       _dataSaverLevel = result.dataSaverLevel;
-      _needsBottomReceiptSection = false;
     });
     publishAttachmentChange();
     widget.onReceiptPhotoReviewAccepted?.call(result);
@@ -155,7 +154,6 @@ extension _ReceiptAttachmentReviewReadActions
           ),
         );
       _dataSaverLevel = result.dataSaverLevel;
-      _needsBottomReceiptSection = false;
     });
     publishAttachmentChange();
     widget.onReceiptPhotoReviewAccepted?.call(result);
@@ -185,7 +183,6 @@ extension _ReceiptAttachmentReviewReadActions
     final qualitySummary = _reviewedPhotoOcrSourceQualitySummary(result);
     updateAttachmentState(() {
       _readingForReview = true;
-      _needsBottomReceiptSection = false;
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.accepted;
       _receiptReadStatusMessage =
@@ -203,7 +200,6 @@ extension _ReceiptAttachmentReviewReadActions
     final route = result.acceptedPhotoHandoffRoute;
     updateAttachmentState(() {
       _readingForReview = false;
-      _needsBottomReceiptSection = true;
       _receiptReadStatus = _ReceiptReadStatusKind.warning;
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
       _receiptReadStatusMessage =

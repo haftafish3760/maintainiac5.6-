@@ -108,20 +108,10 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
                 child: OutlinedButton.icon(
                   onPressed: _openingPicker || _readingForReview
                       ? null
-                      : _needsBottomReceiptSection
-                      ? () => unawaited(takeReceiptPhoto())
                       : openReceiptImportOptions,
-                  icon: Icon(
-                    _needsBottomReceiptSection
-                        ? Icons.vertical_align_bottom_rounded
-                        : Icons.add_rounded,
-                  ),
+                  icon: const Icon(Icons.add_rounded),
                   label: Text(
-                    _readingForReview
-                        ? 'Reading Receipt'
-                        : _needsBottomReceiptSection
-                        ? 'Add Bottom Section'
-                        : 'Add Receipt Photo',
+                    _readingForReview ? 'Reading Receipt' : 'Add Receipt Photo',
                   ),
                 ),
               ),

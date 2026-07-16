@@ -42,6 +42,14 @@ void main() {
     expect(primary, contains("uiConfig.labelFor('addPhoto'"));
     expect(primary, isNot(contains("'Add Bottom Section'")));
     expect(primary, isNot(contains('Add the bottom section')));
+    final coverageLabels = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_coverage_decision_labels.dart',
+    ).readAsString();
+    expect(
+      coverageLabels,
+      contains("String get addSectionButtonLabel => 'Add Another Photo'"),
+    );
+    expect(coverageLabels, isNot(contains('Add Bottom Section')));
     expect(tray, contains('_ReceiptOrderThumbnail('));
     expect(
       controls,

@@ -59,12 +59,6 @@ class _ReceiptNextReviewLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalized = label.trim();
-    if (normalized == 'Add Bottom Section') {
-      return const _ReceiptStackedButtonLabel(
-        primary: 'Add',
-        secondary: 'Bottom Section',
-      );
-    }
     if (normalized == 'Check Photo Match') {
       return const _ReceiptStackedButtonLabel(
         primary: 'Check',
