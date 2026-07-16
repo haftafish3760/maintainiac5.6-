@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
@@ -1691,6 +1692,13 @@ void main() {
         isTrue,
       );
       await Future<void>.delayed(Duration.zero);
+      expect(odometer.confirmedReading, 1002);
+      expect(odometer.history.last.sourceType, 'gps_trip_review');
+      expect(odometer.history.last.sourceId, 'trip_review');
+      expect(
+        odometer.history.last.mileageReview?.use,
+        OdometerMileageUse.unresolved,
+      );
       expect(mirror.reviews.single.id, 'trip_review');
       expect(mirror.reviews.single.isOdometerConfirmed, isTrue);
       expect(mirror.flushCalls, 1);
@@ -2044,6 +2052,48 @@ void main() {
     expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
     expect(mirror.reviews, isEmpty);
   });
+
+  test(
+    'a trip review cannot confirm without an odometer audit commit',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final review = TripTrackingReviewRecord(
+        id: 'trip_odometer_commit_required',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1001,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        finishedAt: start.add(const Duration(minutes: 1)),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      );
+      await store.saveReview(review);
+      final mirror = _FakeTripTrackingCloudMirror();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 2000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        cloudMirror: mirror,
+      );
+
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: review.id,
+          confirmedEndingOdometer: 1001,
+        ),
+        isFalse,
+      );
+      expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
+      expect(odometer.confirmedReading, 2000);
+      expect(mirror.reviews, isEmpty);
+    },
+  );
 
   test('a malformed local review cannot become confirmed mileage', () async {
     final store = TripTrackingSessionStore.memory();

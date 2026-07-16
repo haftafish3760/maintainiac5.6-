@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_engine.dart';
@@ -90,11 +91,35 @@ class TripTrackingController extends ChangeNotifier {
         confirmedEndingOdometer < review.startingOdometer) {
       return false;
     }
+    final confirmationTime = confirmedAt ?? DateTime.now();
+    final odometerMileageReview = const OdometerMileageReview(
+      use: OdometerMileageUse.unresolved,
+    );
+    final odometerPreflight = _odometer.updateFromText(
+      confirmedEndingOdometer.toString(),
+      enteredAt: confirmationTime,
+      confirmSuspicious: true,
+      commit: false,
+      mileageReview: odometerMileageReview,
+      sourceType: 'gps_trip_review',
+      sourceId: review.id,
+    );
+    if (!odometerPreflight.ok) return false;
+
     final confirmedReview = review.copyWith(
       confirmedEndingOdometer: confirmedEndingOdometer,
-      odometerConfirmedAt: confirmedAt ?? DateTime.now(),
+      odometerConfirmedAt: confirmationTime,
     );
     await _sessionStore.saveReview(confirmedReview);
+    final odometerCommit = _odometer.updateFromText(
+      confirmedEndingOdometer.toString(),
+      enteredAt: confirmationTime,
+      confirmSuspicious: true,
+      mileageReview: odometerPreflight.mileageReview ?? odometerMileageReview,
+      sourceType: 'gps_trip_review',
+      sourceId: review.id,
+    );
+    if (!odometerCommit.ok) return false;
     try {
       await _cloudMirror.queueReview(confirmedReview);
       unawaited(_flushCloudMirror());
