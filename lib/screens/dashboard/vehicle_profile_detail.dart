@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/odometer/odometer_vehicle_snapshot.dart';
+import '../../shared/state/global_odometer.dart';
 import '../../shared/theme/app_action_colors.dart';
 import 'vehicle_profile_widgets.dart';
 
@@ -71,6 +73,15 @@ class _VehicleProfileDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    final odometer = GlobalOdometerScope.of(context);
+    final profileOdometerVehicleId = odometerVehicleIdForVehicleId(
+      widget.vehicle.id,
+      fallbackLabel: widget.vehicle.nickname,
+    );
+    final odometerValue = odometer.vehicleId == profileOdometerVehicleId
+        ? odometer.displayValue
+        : widget.vehicle.odometer;
+
     return PopScope(
       canPop: _leaving,
       onPopInvokedWithResult: (didPop, result) {
@@ -94,10 +105,7 @@ class _VehicleProfileDetailScreenState
                 onChanged: (usage) => setState(() => _usage = usage),
               ),
               const SizedBox(height: 16),
-              _ProfileFactRow(
-                label: 'Odometer',
-                value: widget.vehicle.odometer,
-              ),
+              _ProfileFactRow(label: 'Odometer', value: odometerValue),
               _ProfileFactRow(label: 'Status', value: widget.vehicle.status),
               const SizedBox(height: 20),
               _ProfileActionRow(
