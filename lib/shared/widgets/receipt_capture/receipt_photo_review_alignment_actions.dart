@@ -120,18 +120,18 @@ extension _ReceiptPhotoReviewAlignmentActions
     final guidance = alignmentGuidance?.trim();
     if (guidance != null && guidance.isNotEmpty) return guidance;
     if (reasonCode == 'retake_top_with_next_context') {
-      return 'Use the reference photo below, then open your phone camera and retake the top section. You will return here to review the order.';
+      return 'Use the reference photo below, then open your phone camera and retake the top section. You will return to the numbered receipt review.';
     }
     if (reasonCode == 'retake_middle_with_previous_next_context') {
-      return 'Use the reference photo below, then open your phone camera and retake this middle section. You will return here to review the order.';
+      return 'Use the reference photo below, then open your phone camera and retake this middle section. You will return to the numbered receipt review.';
     }
     if (reasonCode == 'retake_bottom_with_previous_context') {
-      return 'Use the reference photo below, then open your phone camera and retake the bottom section. You will return here to review the order.';
+      return 'Use the reference photo below, then open your phone camera and retake the bottom section. You will return to the numbered receipt review.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
-      return '${coverageDecision.completionDialogMessage} Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return here to review it.';
+      return '${coverageDecision.completionDialogMessage} Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return to the numbered receipt review.';
     }
-    return 'Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return here to review it.';
+    return 'Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return to the numbered receipt review.';
   }
 
   String _alignmentGuideButtonLabel(

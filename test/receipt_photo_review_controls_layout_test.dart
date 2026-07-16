@@ -106,7 +106,12 @@ void main() {
     ).readAsString();
 
     expect(alignmentActions, contains("return 'Open Phone Camera';"));
-    expect(alignmentActions, contains('You will return here to review it.'));
+    expect(
+      alignmentActions,
+      contains('You will return to the numbered receipt review.'),
+    );
+    expect(alignmentActions, isNot(contains('review the order')));
+    expect(alignmentActions, isNot(contains('Match Photos')));
     expect(alignmentActions, isNot(contains('top of the next camera photo')));
     expect(alignmentGuide, contains('This is your reference photo.'));
     expect(alignmentGuide, contains('your phone camera opens'));

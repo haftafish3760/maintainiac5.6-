@@ -27,12 +27,12 @@ class _ReceiptPhotoSectionLabels {
     }
     final selected = sectionNumberLabel(index: selectedIndex, total: total);
     if (selectedIndex <= 0) {
-      return '$selected selected. This should be the top of the receipt. Add another photo if the receipt continues, or use Order if the sections are mixed up.';
+      return '$selected selected. This should be the top of the receipt. Add another photo only if the receipt continues.';
     }
     if (selectedIndex >= total - 1) {
-      return '$selected selected. This should be the bottom of the receipt. Use Match Photos before using these photos so repeated lines are checked.';
+      return '$selected selected. This should be the bottom of the receipt. Retake it if it is not readable, or use the receipt when it is complete.';
     }
-    return '$selected selected. This should continue downward with 3-5 repeated readable lines from the previous photo. Use Order or Match Photos if anything looks out of place.';
+    return '$selected selected. This should continue downward with 3-5 repeated readable lines from the previous photo. Retake only this section if anything looks out of place.';
   }
 
   static String orderHint({required int index, required int total}) {
