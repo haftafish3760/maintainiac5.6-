@@ -132,13 +132,14 @@ class ExpenseDraftController extends ChangeNotifier {
     String id, {
     required DateTime expectedUpdatedAt,
   }) => _enqueue(() async {
+    final attachments = draftById(id)?.attachments ?? const [];
     final deleted = await _drafts.removeIfUnchanged(
       module: _module,
       id: id,
       expectedUpdatedAt: expectedUpdatedAt,
     );
     if (!deleted) return false;
-    await _deleteStagedProofsForDraft(id);
+    await ReceiptProofStorage.instance.deleteStagedAttachments(attachments);
     notifyListeners();
     return true;
   });
@@ -189,14 +190,6 @@ class ExpenseDraftController extends ChangeNotifier {
         // Preserve malformed legacy data rather than discarding it.
       }
     }
-  }
-
-  Future<void> _deleteStagedProofsForDraft(String id) async {
-    final draft = draftById(id);
-    if (draft == null) return;
-    await ReceiptProofStorage.instance.deleteStagedAttachments(
-      draft.attachments,
-    );
   }
 }
 

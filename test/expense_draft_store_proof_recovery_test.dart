@@ -281,6 +281,44 @@ void main() {
     expect(await original.exists(), isTrue);
   });
 
+  test(
+    'confirmed draft cleanup removes its staged proof after the checkpoint',
+    () async {
+      final drafts = await ExpenseDraftController.create();
+      final original = File('${Directory.systemTemp.path}/draft-confirm.pdf');
+      await original.writeAsString('%PDF-1.7\n%%EOF', flush: true);
+      addTearDown(() {
+        if (original.existsSync()) original.deleteSync();
+      });
+      final staged = await ReceiptProofStorage.instance.stageAttachment(
+        ReceiptAttachmentRecord(
+          id: 'draft-confirm-proof',
+          path: original.path,
+          kind: ReceiptAttachmentKind.pdf,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 14),
+        ),
+      );
+      final draft = ExpenseReceiptDraftRecord(
+        id: 'draft-confirm-proof',
+        receiptDate: DateTime(2026, 6, 14),
+        updatedAt: DateTime(2026, 6, 14, 12),
+        attachments: [staged],
+      );
+      await drafts.saveDraft(draft);
+
+      expect(
+        await drafts.deleteDraftIfUnchanged(
+          draft.id,
+          expectedUpdatedAt: draft.updatedAt,
+        ),
+        isTrue,
+      );
+      expect(await File(staged.path).exists(), isFalse);
+      expect(await original.exists(), isTrue);
+    },
+  );
+
   test('clearing drafts removes retained staged proof copies', () async {
     final drafts = await ExpenseDraftController.create();
     final original = File('${Directory.systemTemp.path}/draft-clear.pdf');
