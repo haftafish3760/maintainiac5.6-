@@ -29,7 +29,10 @@ class OdometerEntrySheet extends StatefulWidget {
 class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
   TextEditingController? _controller;
   final _businessMilesController = TextEditingController();
+  GlobalOdometerController? _odometer;
   String? _errorText;
+  String? _lastAutomaticOdometerText;
+  var _odometerManuallyEdited = false;
   var _pendingConfirmation = false;
   int? _pendingDeltaMiles;
   int? _pendingCurrentReading;
@@ -40,16 +43,44 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _controller ??= TextEditingController(
-      text: GlobalOdometerScope.of(context).reading.toString(),
-    );
+    final odometer = GlobalOdometerScope.of(context);
+    if (_odometer != odometer) {
+      _odometer?.removeListener(_syncOdometerTextFromScope);
+      _odometer = odometer..addListener(_syncOdometerTextFromScope);
+    }
+    _controller ??= TextEditingController(text: odometer.reading.toString());
+    _lastAutomaticOdometerText ??= _controller!.text;
+    _syncOdometerTextFromScope();
   }
 
   @override
   void dispose() {
+    _odometer?.removeListener(_syncOdometerTextFromScope);
     _controller?.dispose();
     _businessMilesController.dispose();
     super.dispose();
+  }
+
+  void _syncOdometerTextFromScope() {
+    final controller = _controller;
+    final odometer = _odometer;
+    if (controller == null || odometer == null) return;
+    final nextText = odometer.reading.toString();
+    if (_odometerManuallyEdited &&
+        controller.text != _lastAutomaticOdometerText) {
+      return;
+    }
+    if (controller.text == nextText) {
+      _lastAutomaticOdometerText = nextText;
+      return;
+    }
+    controller.value = controller.value.copyWith(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: nextText.length),
+      composing: TextRange.empty,
+    );
+    _lastAutomaticOdometerText = nextText;
+    if (mounted) setState(() {});
   }
 
   @override
@@ -90,7 +121,10 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 LengthLimitingTextInputFormatter(7),
               ],
               onSubmitted: (_) => _saveReading(),
-              onChanged: (_) {
+              onChanged: (value) {
+                if (value != _lastAutomaticOdometerText) {
+                  _odometerManuallyEdited = true;
+                }
                 setState(() {
                   if (_pendingConfirmation ||
                       _pendingDeltaMiles != null ||

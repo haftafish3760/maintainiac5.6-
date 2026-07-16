@@ -6,6 +6,63 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
+  testWidgets('odometer entry sheet follows live GPS until manually edited', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: const Scaffold(
+            body: OdometerEntrySheet(
+              title: 'Update Odometer',
+              saveLabel: 'Save',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('1000'), findsOneWidget);
+
+    expect(
+      odometer.beginLiveTripProjection(
+        tripId: 'trip_live_sheet',
+        startingOdometer: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      odometer.updateLiveTripProjection(
+        tripId: 'trip_live_sheet',
+        estimatedOdometer: 1002,
+      ),
+      isTrue,
+    );
+    await tester.pump();
+
+    expect(find.text('1002'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, '1005');
+    await tester.pump();
+    expect(
+      odometer.updateLiveTripProjection(
+        tripId: 'trip_live_sheet',
+        estimatedOdometer: 1008,
+      ),
+      isTrue,
+    );
+    await tester.pump();
+
+    expect(find.text('1005'), findsOneWidget);
+    expect(find.text('1008'), findsNothing);
+  });
+
   testWidgets('trip confirmation compares entered odometer with filtered GPS', (
     tester,
   ) async {
