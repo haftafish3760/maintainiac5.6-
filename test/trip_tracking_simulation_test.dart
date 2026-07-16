@@ -99,6 +99,35 @@ void main() {
   });
 
   test(
+    'a stop-and-walk delivery replay excludes walking then resumes driving',
+    () {
+      final result = replayTrip([
+        SimulatedTripPoint(point(-80, 0, speed: 8)),
+        SimulatedTripPoint(point(-79.999, 20, speed: 8)),
+        SimulatedTripPoint(point(-79.998, 40, speed: 8)),
+        SimulatedTripPoint(point(-79.9979, 55), activity: walking(55)),
+        SimulatedTripPoint(point(-79.99785, 70), activity: walking(70)),
+        SimulatedTripPoint(point(-79.9978, 85), activity: walking(85)),
+        SimulatedTripPoint(point(-79.99775, 100), activity: walking(100)),
+        SimulatedTripPoint(point(-79.9968, 130, speed: 8)),
+        SimulatedTripPoint(point(-79.9958, 150, speed: 8)),
+      ]);
+
+      expect(result.needsWalkingReview, isTrue);
+      expect(
+        result.count(TripSampleDisposition.excludedWalking),
+        greaterThanOrEqualTo(2),
+      );
+      expect(
+        result.count(TripSampleDisposition.acceptedDistance),
+        greaterThanOrEqualTo(3),
+      );
+      expect(result.acceptedMeters, greaterThan(250));
+      expect(result.acceptedMeters, lessThan(450));
+    },
+  );
+
+  test(
     'spoof-like jumps, timestamp reversals, and malformed points fail closed',
     () {
       final result = replayTrip([
