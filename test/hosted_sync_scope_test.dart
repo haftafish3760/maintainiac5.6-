@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maintaniac/shared/backup/cloud_backup_quota.dart';
 import 'package:maintaniac/shared/firebase/hosted_sync_scope.dart';
 import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 
@@ -41,16 +40,17 @@ void main() {
       expect(HostedSyncScope.isBackupModule('receiptsOnly'), isFalse);
     });
 
-    test('keeps Firebase hosted limits aligned with local quota labels', () {
-      expect(
-        HostedUsageLimits.freeCloudStorageBytes,
-        CloudBackupTier.freeTrial.quotaBytes,
-      );
-      expect(
-        HostedUsageLimits.freeCloudStorageLabel,
-        CloudBackupTier.freeTrial.quotaLabel,
-      );
-      expect(HostedUsageLimits.freeMonthlyExports, 1);
+    test('requires an explicit server grant for hosted usage limits', () {
+      expect(HostedUsageGrant.tryParse(const {}), isNull);
+      final grant = HostedUsageGrant.tryParse({
+        'storageQuotaBytes': 100,
+        'monthlyExportLimit': 1,
+        'aiInputTokenLimit': 0,
+        'aiOutputTokenLimit': 0,
+        'policyVersion': 1,
+      });
+      expect(grant?.storageQuotaBytes, 100);
+      expect(grant?.monthlyExportLimit, 1);
     });
   });
 }

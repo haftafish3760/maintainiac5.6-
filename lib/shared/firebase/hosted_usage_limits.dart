@@ -1,13 +1,35 @@
-class HostedUsageLimits {
-  const HostedUsageLimits._();
+/// Server-issued hosted usage policy. The client has no built-in storage,
+/// export, or AI allowance; absent or malformed grants authorize nothing.
+class HostedUsageGrant {
+  const HostedUsageGrant({
+    required this.storageQuotaBytes,
+    required this.monthlyExportLimit,
+    required this.aiInputTokenLimit,
+    required this.aiOutputTokenLimit,
+    required this.policyVersion,
+  });
 
-  static const int freeCloudStorageBytes = 25 * 1024 * 1024;
-  static const int freeMonthlyExports = 1;
-  static const int freeAiInputTokens = 0;
-  static const int freeAiOutputTokens = 0;
-  static const int maxAccountsPerInstallInReviewWindow = 2;
-  static const int maxAccountsPerIpInReviewWindow = 2;
+  static HostedUsageGrant? tryParse(Map<Object?, Object?> payload) {
+    final storage = payload['storageQuotaBytes'];
+    final exports = payload['monthlyExportLimit'];
+    final input = payload['aiInputTokenLimit'];
+    final output = payload['aiOutputTokenLimit'];
+    final version = payload['policyVersion'];
+    if (storage is! int || storage < 0 || exports is! int || exports < 0 ||
+        input is! int || input < 0 || output is! int || output < 0 ||
+        version is! int || version <= 0) return null;
+    return HostedUsageGrant(
+      storageQuotaBytes: storage,
+      monthlyExportLimit: exports,
+      aiInputTokenLimit: input,
+      aiOutputTokenLimit: output,
+      policyVersion: version,
+    );
+  }
 
-  static const String freeCloudStorageLabel = '25 MB';
-  static const String freeExportLabel = '1 export per month';
+  final int storageQuotaBytes;
+  final int monthlyExportLimit;
+  final int aiInputTokenLimit;
+  final int aiOutputTokenLimit;
+  final int policyVersion;
 }
