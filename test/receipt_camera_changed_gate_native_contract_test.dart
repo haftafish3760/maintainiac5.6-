@@ -93,6 +93,25 @@ void main() {
     },
   );
 
+  test('camera changed gate covers the iOS capture codec contract', () async {
+    final result = await Process.run(
+      'bash',
+      ['tool/receipt_camera_changed_gate.sh', '--print-tests'],
+      environment: {
+        'RECEIPT_CAMERA_CHANGED_FILES_FOR_TEST':
+            'ios/Runner/ReceiptCameraViewControllerCapture.swift',
+      },
+    );
+
+    expect(result.exitCode, 0);
+    final stdout = result.stdout.toString();
+    expect(stdout, contains('mode=phase3'));
+    expect(
+      stdout,
+      contains('targeted test/receipt_native_ios_capture_format_test.dart'),
+    );
+  });
+
   test(
     'camera changed gate selects core remaining for stitch and OCR handoff files',
     () async {

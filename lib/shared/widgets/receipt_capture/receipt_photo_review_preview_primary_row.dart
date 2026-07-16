@@ -96,7 +96,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                       icon: const Icon(Icons.crop_rounded, size: 19),
                       color: const Color(0xFFE8ECEE),
                       style: IconButton.styleFrom(
-                        minimumSize: const Size(36, 36),
+                        minimumSize: const Size(40, 40),
                         padding: EdgeInsets.zero,
                       ),
                     ),

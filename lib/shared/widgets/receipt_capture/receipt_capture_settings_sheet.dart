@@ -133,7 +133,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               const _ReceiptSettingsNote(
                 icon: Icons.route_rounded,
                 text:
-                    'Recommended flow: add receipt, review photos, use receipt, then review the filled details. Capture settings do not replace your phone camera software.',
+                    'Recommended flow: add receipt, review photos, then Save & Continue to review the filled details. Capture settings do not replace your phone camera software.',
               ),
               const SizedBox(height: 8),
               const _ReceiptBackupStorageSummary(),

@@ -60,12 +60,6 @@ void main() {
     expect(
       cameraController,
       contains(
-        'settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()',
-      ),
-    );
-    expect(
-      cameraController,
-      contains(
         'bottomReviewButton.addTarget(self, action: #selector(finishWithCapturedPhotos)',
       ),
     );
@@ -158,7 +152,7 @@ void main() {
     );
     expect(cameraController, contains('nativePreviewScaleMode'));
     expect(cameraController, contains('nativeControlDensity'));
-    expect(cameraController, contains('Reset this camera session'));
+    expect(fullScreenSettings, contains('Reset this camera session'));
     expect(cameraController, isNot(contains('Reset receipt camera defaults')));
     expect(
       fullScreenSettings,

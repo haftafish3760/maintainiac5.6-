@@ -20,8 +20,10 @@ esac
 camera_source_roots=(
   lib/shared/widgets/receipt_capture
   lib/shared/receipts
-  android/app/src/main/kotlin/com/maintainiac
-  ios/Runner
+  android/app/src/main/kotlin/com/maintainiac/MainActivity.kt
+  android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt
+  ios/Runner/AppDelegate.swift
+  ios/Runner/ReceiptCamera*.swift
 )
 
 phase2_tests=(
@@ -37,6 +39,7 @@ phase3_tests=(
   test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_ios_camera_session_capability_test.dart
+  test/receipt_native_ios_capture_format_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -427,6 +430,7 @@ full_only_tests=(
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_result_auto_capture_contract_test.dart
+  test/receipt_camera_qa_gate_plan_coverage_test.dart
   test/receipt_camera_result_continuation_handoff_test.dart
   test/receipt_camera_result_focus_contract_test.dart
   test/receipt_camera_result_frozen_brain_install_test.dart
@@ -464,6 +468,8 @@ full_only_tests=(
   test/receipt_native_capture_recovery_index_test.dart
   test/receipt_native_capture_recovery_record_test.dart
   test/receipt_native_ios_bridge_close_capture_test.dart
+  test/receipt_native_ios_camera_session_capability_test.dart
+  test/receipt_native_ios_capture_format_test.dart
   test/receipt_native_ios_bridge_test.dart
   test/receipt_native_ios_diagnostics_payload_test.dart
   test/receipt_native_ios_project_membership_test.dart

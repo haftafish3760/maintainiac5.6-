@@ -23,17 +23,19 @@ void main() {
     );
   });
 
-  test('photo review does not treat an upward swipe as dismissing the receipt',
-      () async {
-    final surface = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_photo_surface.dart',
-    ).readAsString();
+  test(
+    'photo review does not treat an upward swipe as dismissing the receipt',
+    () async {
+      final surface = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_photo_surface.dart',
+      ).readAsString();
 
-    expect(surface, contains('InteractiveViewer('));
-    expect(surface, isNot(contains('Dismissible(')));
-    expect(surface, isNot(contains('onVerticalDrag')));
-    expect(surface, isNot(contains('Navigator.of(context).pop')));
-  });
+      expect(surface, contains('InteractiveViewer('));
+      expect(surface, isNot(contains('Dismissible(')));
+      expect(surface, isNot(contains('onVerticalDrag')));
+      expect(surface, isNot(contains('Navigator.of(context).pop')));
+    },
+  );
 
   test('photo review bottom controls stay capped by mode', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
@@ -153,6 +155,7 @@ void main() {
     expect(reviewScreen, contains('if (interactionLocked) {'));
     expect(reviewScreen, contains('_controlsVisible = true;'));
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
+    expect(previewControls, contains('minimumSize: const Size(40, 40)'));
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
@@ -337,7 +340,10 @@ void main() {
       ),
     );
     expect(controls, contains("return 'Use Receipt';"));
-    expect(controls, contains('final displayedContinueLabel = uiConfig.labelFor('));
+    expect(
+      controls,
+      contains('final displayedContinueLabel = uiConfig.labelFor('),
+    );
     expect(controls, contains('label: displayedContinueLabel'));
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains("secondary: 'Bottom Section'"));
@@ -420,5 +426,4 @@ void main() {
       isNot(contains(': () => onModeChanged(_ReceiptReviewMode.dataSaver)')),
     );
   });
-
 }

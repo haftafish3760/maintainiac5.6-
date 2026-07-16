@@ -141,7 +141,9 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         receiptCameraText("Autofocus and capture", "Enfoque automático y captura"),
         receiptCameraText(
             "The phone camera owns autofocus. Pinch to zoom, use brightness or light on the camera screen, and capture anytime. Maintainiac reads the clear full-quality photo before making a smaller saved copy.",
-            "La cámara del teléfono controla el enfoque automático. Pellizque para acercar, use brillo o luz en la pantalla de cámara y capture en cualquier momento. Maintainiac lee la foto clara de calidad completa antes de crear una copia guardada más pequeña.",
+            "La cámara del teléfono controla el enfoque automático. Pellizque para acercar, " +
+                "use brillo o luz en la pantalla de cámara y capture en cualquier momento. " +
+                "Maintainiac lee la foto clara de calidad completa antes de crear una copia guardada más pequeña.",
         ),
     ))
     val scroll = ScrollView(this).apply {

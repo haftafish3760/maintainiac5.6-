@@ -92,7 +92,18 @@ extension ReceiptCameraViewController {
       reportManualCaptureBlocked(trigger: lastCaptureTrigger, reason: "camera_surface_inactive")
       return
     }
-    let settings = AVCapturePhotoSettings()
+    // Capture a JPEG whenever AVFoundation exposes that codec. The staging URL
+    // is intentionally .jpg so the bytes and extension must agree; otherwise
+    // a default HEIC capture can be handed to the cross-platform review/OCR
+    // path under the wrong filename.
+    let settings: AVCapturePhotoSettings
+    if photoOutput.availablePhotoCodecTypes.contains(.jpeg) {
+      settings = AVCapturePhotoSettings(format: [
+        AVVideoCodecKey: AVVideoCodecType.jpeg
+      ])
+    } else {
+      settings = AVCapturePhotoSettings()
+    }
     settings.isHighResolutionPhotoEnabled = true
     if #available(iOS 13.0, *) {
       stillCaptureModeLabel = "receipt_fast_document_shutter"

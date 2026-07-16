@@ -148,13 +148,13 @@ void main() {
       saveActions.indexOf(
         '_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {',
       ),
-      lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
+      lessThan(saveActions.indexOf('if (!beginReceiptReviewClose()) return;')),
     );
     expect(
       saveActions.indexOf(
         'unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));',
       ),
-      lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
+      lessThan(saveActions.indexOf('if (!beginReceiptReviewClose()) return;')),
     );
     expect(
       saveActions,
@@ -364,7 +364,7 @@ void main() {
         removeConfirmationBlock.indexOf('showModalBottomSheet<bool>'),
       ),
     );
-    expect(saveActions, contains('beginReceiptReviewClose();'));
+    expect(saveActions, contains('if (!beginReceiptReviewClose()) return;'));
     expect(saveActions, contains('bool beginReceiptReviewClose()'));
     expect(
       saveActions,

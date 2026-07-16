@@ -134,7 +134,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       });
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       final navigator = Navigator.of(context);
-      beginReceiptReviewClose();
+      if (!beginReceiptReviewClose()) return;
       navigator.pop(
         ReceiptPhotoReviewResult(
           photoPaths: savedPaths,
@@ -175,6 +175,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
 
   Future<void> _openSinglePhotoReceiptDetailsImmediately() async {
     final photoPath = _photoPaths.single;
+    final navigator = Navigator.of(context);
     if (!await File(photoPath).exists()) {
       if (_reviewWorkActive) {
         _showCameraError(
@@ -184,7 +185,6 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       return;
     }
     if (!_reviewWorkActive) return;
-    final navigator = Navigator.of(context);
     if (!beginReceiptReviewClose()) return;
     navigator.pop(
       ReceiptPhotoReviewResult(
