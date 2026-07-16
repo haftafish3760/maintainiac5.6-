@@ -60,7 +60,7 @@ void main() {
       );
       expect(
         primaryRow,
-        contains('Add Another Photo only if the receipt continues'),
+        contains('Add another receipt photo if the receipt continues'),
       );
       expect(primaryRow, isNot(contains('Add Bottom Section')));
       expect(tray, contains('_ReceiptOrderThumbnail('));

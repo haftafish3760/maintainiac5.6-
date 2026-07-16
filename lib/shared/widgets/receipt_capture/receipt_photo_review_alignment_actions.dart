@@ -124,7 +124,10 @@ extension _ReceiptPhotoReviewAlignmentActions
       return 'Use the reference photo below, then open your phone camera and retake the bottom section. You will return to the numbered receipt review.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
-      return '${coverageDecision.completionDialogMessage} Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return to the numbered receipt review.';
+      return '${coverageDecision.completionDialogMessage} '
+          'Use the reference photo below. Open your phone camera, then begin '
+          'the next photo with 3-5 of the same readable lines. You will '
+          'return to the numbered receipt review.';
     }
     return 'Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return to the numbered receipt review.';
   }

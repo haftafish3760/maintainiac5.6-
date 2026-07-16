@@ -34,7 +34,7 @@ void main() {
     );
     expect(
       previewRow,
-      contains('Add Another Photo only if the receipt continues.'),
+      contains('Add another receipt photo if the receipt continues'),
     );
     expect(alignmentActions, contains('Add Another Receipt Photo'));
     expect(alignmentActions, isNot(contains('Add Bottom Receipt Section')));

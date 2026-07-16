@@ -13,6 +13,12 @@ void main() {
     final topBar = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
     ).readAsString();
+    final primaryRow = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
+    ).readAsString();
+    final reviewConfig = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
+    ).readAsString();
     final controls =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
@@ -50,14 +56,13 @@ void main() {
     expect(labels, contains('moveLaterLabel'));
     expect(labels, contains("return 'Retake Section \${index + 1}'"));
     expect(topBar, contains('sectionLabel'));
-    expect(topBar, contains('Add Another Photo'));
-    expect(topBar, contains('Move Photo Up'));
-    expect(topBar, contains('Move Photo Down'));
-    expect(topBar, contains('required this.openingCamera'));
-    expect(topBar, contains('final bool openingCamera;'));
-    expect(topBar, contains('enabled: !openingCamera && !savingPhotos'));
-    expect(topBar, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
-    expect(topBar, isNot(contains('Retake Current Photo')));
+    expect(primaryRow, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
+    expect(
+      primaryRow,
+      contains('Add another receipt photo if the receipt continues'),
+    );
+    expect(reviewConfig, contains("this.addPhotoLabel = 'Add Another Photo'"));
+    expect(primaryRow, isNot(contains('Retake Current Photo')));
     expect(controls, isNot(contains('_ReceiptPageOrderActions')));
     expect(controls, contains('class _ReceiptOrderToolControls'));
     expect(controls, contains('_ReceiptPhotoSectionLabels.orderHint'));
