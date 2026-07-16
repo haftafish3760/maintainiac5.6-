@@ -206,7 +206,9 @@ extension _ReceiptAttachmentReviewReadActions
           'Receipt photo saved. If the receipt continues, choose Add Another Photo before receipt details open. $evidence $nextStep';
     });
     _publishReceiptCaptureDiagnostic({
-      'captureFlow': 'maintainiac_native_receipt_camera',
+      'captureFlow': 'system_phone_camera_receipt_photo',
+      'systemPhoneCameraUsed': true,
+      'systemPhoneCameraRole': 'primary_capture',
       'receiptPhotoReviewPausedBeforeOcr': true,
       'receiptPhotoReviewPauseRoute': route,
       'receiptPhotoReviewPauseNextScreen':

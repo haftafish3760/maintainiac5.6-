@@ -1,81 +1,5 @@
 part of 'receipt_attachment_panel.dart';
 
-class _ReceiptCameraRuntimeSummary extends StatelessWidget {
-  const _ReceiptCameraRuntimeSummary({
-    required this.profile,
-    required this.privacySafeCapabilityLabel,
-  });
-
-  final ReceiptCameraRuntimeProfile profile;
-  final String privacySafeCapabilityLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF161D20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF3D4A50)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(9, 7, 9, 7),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.tune_rounded, color: Color(0xFFFFD166), size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    profile.summaryLabel,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFFE8ECEE),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      height: 1.16,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    profile.notesLabel,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFFC8D0D3),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      height: 1.18,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Detected safely: $privacySafeCapabilityLabel',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF95A3A8),
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      height: 1.18,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _ReceiptBackupStorageSummary extends StatelessWidget {
   const _ReceiptBackupStorageSummary();
 
@@ -240,7 +164,6 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final runtime = settings.effectiveCameraRuntimeProfile;
     return _ReceiptSettingsSection(
       icon: Icons.receipt_long_rounded,
       title: 'Capture Flow',
@@ -251,12 +174,7 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
         const _ReceiptSettingsNote(
           icon: Icons.radio_button_checked_rounded,
           text:
-              'Automatic photo capture stays off unless you turn it on. The shutter button remains the primary capture action.',
-        ),
-        const SizedBox(height: 6),
-        _ReceiptCameraRuntimeSummary(
-          profile: runtime,
-          privacySafeCapabilityLabel: settings.privacySafeCapabilityLabel,
+              'Your phone camera manages focus, light, and exposure. Maintainiac brings each photo back for review.',
         ),
         const SizedBox(height: 6),
         _ReceiptSettingsSwitch(

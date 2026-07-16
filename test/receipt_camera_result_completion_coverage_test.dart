@@ -198,7 +198,7 @@ void main() {
       );
       expect(
         result.nextReviewHandoffLabel,
-        contains('Add the bottom receipt section'),
+        contains('If the receipt continues, add another photo'),
       );
       expect(
         result.acceptedPhotoHandoffRoute,

@@ -141,20 +141,23 @@ void main() {
     expect(settings.receiptCapabilityTier, ReceiptCapabilityTier.light);
   });
 
-  test('invalid saved proof size falls back to device recommendation', () async {
-    final box = await Hive.openBox<dynamic>(
-      ReceiptCaptureSettingsController.boxName,
-    );
-    await box.put('default_data_saver_level', ' stale_proof_size ');
+  test(
+    'invalid saved proof size falls back to device recommendation',
+    () async {
+      final box = await Hive.openBox<dynamic>(
+        ReceiptCaptureSettingsController.boxName,
+      );
+      await box.put('default_data_saver_level', ' stale_proof_size ');
 
-    final settings = await ReceiptCaptureSettingsController.create();
+      final settings = await ReceiptCaptureSettingsController.create();
 
-    expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
-    expect(
-      settings.defaultDataSaverLevel,
-      settings.deviceCapability.recommendedDataSaverLevel,
-    );
-  });
+      expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
+      expect(
+        settings.defaultDataSaverLevel,
+        settings.deviceCapability.recommendedDataSaverLevel,
+      );
+    },
+  );
 
   test('Google Vision receipt limit stays bounded and stale-safe', () async {
     final settings = await ReceiptCaptureSettingsController.create();
@@ -222,49 +225,38 @@ void main() {
     },
   );
 
-  test(
-    'receipt scanner settings include capability summary without raw hardware',
-    () async {
-      final source = await _readReceiptCaptureSettingsSource();
-      final displaySource = await _readReceiptCaptureSettingsDisplaySource();
+  test('receipt settings expose only real receipt workflow choices', () async {
+    final source = await _readReceiptCaptureSettingsSource();
+    final displaySource = await _readReceiptCaptureSettingsDisplaySource();
 
-      expect(source, contains('_ReceiptCameraRuntimeSummary'));
-      expect(source, contains('defaultDataSaverInstallFootprintSummary'));
-      expect(source, contains('defaultDataSaverProofTargetSummary'));
-      expect(source, contains('effectiveCameraRuntimeProfile'));
-      expect(source, contains('profile.summaryLabel'));
-      expect(source, contains('profile.notesLabel'));
-      expect(source, contains('Backup And Storage'));
-      expect(source, contains('Back Up Receipt Photos'));
-      expect(source, contains('receiptPhotoBackupEnabled'));
-      expect(source, contains('Backup account'));
-      expect(source, contains('Storage remaining'));
-      expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
-      expect(source, contains('Ask Every Receipt'));
-      expect(source, contains('askSavedProofSizeEachReceipt'));
-      expect(
-        source,
-        contains('Brightness and light controls stay on the camera viewer'),
-      );
-      expect(source, contains('Help Improve Receipt Camera'));
-      expect(source, contains('cameraDiagnosticsImprovementOptIn'));
-      expect(source, contains('_receiptCaptureDiagnosticsImprovementEnabled'));
-      expect(source, contains('_publishReceiptCaptureDiagnostic'));
-      expect(
-        source,
-        contains("'adminDiagnosticOwnerImagePreviewAllowed': false"),
-      );
-      expect(source, contains('Automatic photo capture stays off'));
-      expect(
-        source,
-        contains('shutter button remains the primary capture action'),
-      );
-      expect(source, contains('Receipt images and receipt text stay out'));
-      expect(displaySource, isNot(contains('deviceModel')));
-      expect(displaySource, isNot(contains('availableRamLabel')));
-      expect(displaySource, isNot(contains('Android SDK')));
-    },
-  );
+    expect(source, contains('defaultDataSaverInstallFootprintSummary'));
+    expect(source, contains('defaultDataSaverProofTargetSummary'));
+    expect(source, contains('Backup And Storage'));
+    expect(source, contains('Back Up Receipt Photos'));
+    expect(source, contains('receiptPhotoBackupEnabled'));
+    expect(source, contains('Backup account'));
+    expect(source, contains('Storage remaining'));
+    expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
+    expect(source, contains('Ask Every Receipt'));
+    expect(source, contains('askSavedProofSizeEachReceipt'));
+    expect(
+      source,
+      contains('Your phone camera manages focus, light, and exposure'),
+    );
+    expect(source, contains('Help Improve Receipt Camera'));
+    expect(source, contains('cameraDiagnosticsImprovementOptIn'));
+    expect(source, contains('_receiptCaptureDiagnosticsImprovementEnabled'));
+    expect(source, contains('_publishReceiptCaptureDiagnostic'));
+    expect(
+      source,
+      contains("'adminDiagnosticOwnerImagePreviewAllowed': false"),
+    );
+    expect(source, isNot(contains('Automatic photo capture stays off')));
+    expect(source, contains('Receipt images and receipt text stay out'));
+    expect(displaySource, isNot(contains('deviceModel')));
+    expect(displaySource, isNot(contains('availableRamLabel')));
+    expect(displaySource, isNot(contains('Android SDK')));
+  });
 
   test('resets receipt photo settings to defaults for one area', () async {
     final settings = await ReceiptCaptureSettingsController.create();

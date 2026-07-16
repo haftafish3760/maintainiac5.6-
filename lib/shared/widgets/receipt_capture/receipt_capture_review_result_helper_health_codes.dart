@@ -297,6 +297,10 @@ Set<String> _nativeCaptureSourcePoliciesFor(Map<String, Object?> diagnostics) {
       diagnostics['phoneCameraBackupUsed'] == true) {
     policies.add('phone_camera_backup');
   }
+  if (captureFlow == 'system_phone_camera_receipt_photo' ||
+      diagnostics['systemPhoneCameraUsed'] == true) {
+    policies.add('system_phone_camera');
+  }
   if (diagnostics.containsKey('nativeRecoveryResumeStatus') ||
       diagnostics.containsKey('nativeRecoveryFreshness') ||
       diagnostics['nativeCaptureRecoveryAttachmentState'] ==

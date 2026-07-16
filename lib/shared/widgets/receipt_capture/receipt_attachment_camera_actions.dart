@@ -30,7 +30,7 @@ extension _ReceiptAttachmentCameraActions
     } on PlatformException catch (error) {
       if (!mounted) return;
       _notifyReceiptCaptureDiagnostic(
-        stage: 'native_camera_platform',
+        stage: 'system_camera_platform',
         reason: _platformCameraFailureReason(error),
         action: 'retry_or_import_existing_photo',
       );
@@ -38,8 +38,8 @@ extension _ReceiptAttachmentCameraActions
     } catch (_) {
       if (!mounted) return;
       _notifyReceiptCaptureDiagnostic(
-        stage: 'native_camera_unknown',
-        reason: 'native_camera_unexpected_failure',
+        stage: 'system_camera_unknown',
+        reason: 'system_camera_unexpected_failure',
         action: 'retry_or_import_existing_photo',
       );
       showPickerError(
@@ -58,7 +58,9 @@ extension _ReceiptAttachmentCameraActions
     Map<String, Object?> extraMetadata = const {},
   }) {
     _publishReceiptCaptureDiagnostic({
-      'captureFlow': 'maintainiac_native_receipt_camera',
+      'captureFlow': 'system_phone_camera_receipt_photo',
+      'systemPhoneCameraUsed': true,
+      'systemPhoneCameraRole': 'primary_capture',
       'nativeCaptureFailureStage': stage,
       'nativeCaptureFailureReason': reason,
       'nativeCaptureRecoveryAction': action,
@@ -154,8 +156,8 @@ extension _ReceiptAttachmentCameraActions
     final combined = '$code $message';
     if (combined.contains('permission')) return 'permission_denied';
     if (combined.contains('cancel')) return 'user_canceled_before_photo';
-    if (combined.contains('camera')) return 'native_camera_platform_error';
-    if (combined.contains('storage')) return 'native_camera_storage_error';
+    if (combined.contains('camera')) return 'system_camera_platform_error';
+    if (combined.contains('storage')) return 'system_camera_storage_error';
     return 'platform_exception';
   }
 }

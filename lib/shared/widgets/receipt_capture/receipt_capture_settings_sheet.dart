@@ -164,7 +164,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               const _ReceiptSettingsNote(
                 icon: Icons.light_mode_rounded,
                 text:
-                    'Brightness and light controls stay on the camera viewer, not in Settings, so you can see the receipt while adjusting them.',
+                    'Your phone camera manages focus, light, and exposure. Maintainiac keeps the receipt review and long-receipt steps here.',
               ),
               if (!hasSavedReceiptProof) ...[
                 const SizedBox(height: 8),
