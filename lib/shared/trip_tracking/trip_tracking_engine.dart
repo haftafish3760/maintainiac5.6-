@@ -55,7 +55,11 @@ class TripTrackingEngine {
     final engine = TripTrackingEngine(policy: policy, profile: profile);
     engine._lastAccepted = snapshot.lastAccepted;
     engine._lastObservedAt = snapshot.lastObservedAt;
-    engine._totalAcceptedMeters = snapshot.totalAcceptedMeters;
+    engine._totalAcceptedMeters =
+        snapshot.totalAcceptedMeters.isFinite &&
+            snapshot.totalAcceptedMeters >= 0
+        ? snapshot.totalAcceptedMeters
+        : 0;
     engine._walkingEvidence.addAll(snapshot.walkingEvidence);
     engine._walkingReviewSuggested = snapshot.walkingReviewSuggested;
     engine._motionState = snapshot.motionState;

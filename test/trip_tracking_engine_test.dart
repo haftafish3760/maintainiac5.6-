@@ -603,4 +603,17 @@ void main() {
       expect(snapshot.totalAcceptedMeters, 17);
     },
   );
+
+  test('non-finite in-memory snapshot distance cannot poison recovery', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: double.nan,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    expect(restored.totalAcceptedMeters, isZero);
+    expect(restored.ingest(sample(-80, 0)).accepted, isTrue);
+    expect(restored.totalAcceptedMeters, isZero);
+  });
 }
