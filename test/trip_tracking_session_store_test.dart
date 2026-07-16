@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   test(
@@ -32,6 +33,35 @@ void main() {
       expect(store.activeSession?.engineSnapshot.algorithmVersion, 'gps-v1');
 
       await store.clear();
+      expect(store.activeSession, isNull);
+    },
+  );
+
+  test(
+    'does not claim an active trip checkpoint when storage is full',
+    () async {
+      final store = TripTrackingSessionStore.memory(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+          requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
+          purpose: AppStoragePurpose.mileageTracking,
+        ),
+      );
+      final session = TripTrackingSessionRecord(
+        id: 'trip_storage_full',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 15),
+        updatedAt: DateTime.utc(2026, 7, 15),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ),
+      );
+
+      await expectLater(store.save(session), throwsStateError);
       expect(store.activeSession, isNull);
     },
   );

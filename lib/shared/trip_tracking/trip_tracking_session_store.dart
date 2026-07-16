@@ -1,6 +1,9 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../storage/app_storage_guard.dart';
 import 'trip_tracking_models.dart';
+
+typedef TripTrackingSessionStorageCheck = Future<AppStorageCheck> Function();
 
 class TripTrackingSessionRecord {
   const TripTrackingSessionRecord({
@@ -320,8 +323,14 @@ class TripTrackingPendingSample {
 }
 
 class TripTrackingSessionStore {
-  TripTrackingSessionStore._(this._box);
-  TripTrackingSessionStore.memory() : _box = null;
+  TripTrackingSessionStore._(
+    this._box, {
+    TripTrackingSessionStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+  TripTrackingSessionStore.memory({
+    TripTrackingSessionStorageCheck? storageCheck,
+  }) : _box = null,
+       _storageCheck = storageCheck;
 
   static const boxName = 'active_gps_trip_tracking_session';
   static const _activeSessionKey = 'activeSession';
@@ -332,10 +341,14 @@ class TripTrackingSessionStore {
   TripTrackingSessionRecord? _memorySession;
   final Map<String, TripTrackingReviewRecord> _memoryReviews = {};
   final Map<String, TripTrackingPendingSample> _memoryPending = {};
+  final TripTrackingSessionStorageCheck? _storageCheck;
+  Future<void> _writeTail = Future<void>.value();
 
-  static Future<TripTrackingSessionStore> create() async {
+  static Future<TripTrackingSessionStore> create({
+    TripTrackingSessionStorageCheck? storageCheck,
+  }) async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return TripTrackingSessionStore._(box);
+    return TripTrackingSessionStore._(box, storageCheck: storageCheck);
   }
 
   TripTrackingSessionRecord? get activeSession {
@@ -369,18 +382,19 @@ class TripTrackingSessionStore {
     return null;
   }
 
-  Future<void> save(TripTrackingSessionRecord session) async {
+  Future<void> save(TripTrackingSessionRecord session) => _enqueue(() async {
+    if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
       _memorySession = session;
     } else {
       await _box.put(_activeSessionKey, session.toMap());
     }
-  }
+  });
 
-  Future<void> clear() async {
+  Future<void> clear() => _enqueue(() async {
     _memorySession = null;
     await _box?.delete(_activeSessionKey);
-  }
+  });
 
   TripTrackingPendingSample? pendingSampleFor(String sessionId) {
     final value = _box == null
@@ -391,26 +405,48 @@ class TripTrackingSessionStore {
     return null;
   }
 
-  Future<void> savePending(TripTrackingPendingSample pending) async {
-    if (_box == null) {
-      _memoryPending[pending.sessionId] = pending;
-    } else {
-      await _box.put('$_pendingPrefix${pending.sessionId}', pending.toMap());
-    }
-  }
+  Future<void> savePending(TripTrackingPendingSample pending) => _enqueue(
+    () async {
+      if (_storageCheck != null) await _ensureStorageForWrite();
+      if (_box == null) {
+        _memoryPending[pending.sessionId] = pending;
+      } else {
+        await _box.put('$_pendingPrefix${pending.sessionId}', pending.toMap());
+      }
+    },
+  );
 
-  Future<void> clearPending(String sessionId) async {
+  Future<void> clearPending(String sessionId) => _enqueue(() async {
     _memoryPending.remove(sessionId);
     await _box?.delete('$_pendingPrefix$sessionId');
-  }
+  });
 
   /// This write must happen before clearing [activeSession]. A duplicate write
   /// is safe because the trip id is the record key.
-  Future<void> saveReview(TripTrackingReviewRecord review) async {
-    if (_box == null) {
-      _memoryReviews[review.id] = review;
-    } else {
-      await _box.put('$_reviewPrefix${review.id}', review.toMap());
-    }
+  Future<void> saveReview(TripTrackingReviewRecord review) =>
+      _enqueue(() async {
+        if (_storageCheck != null) await _ensureStorageForWrite();
+        if (_box == null) {
+          _memoryReviews[review.id] = review;
+        } else {
+          await _box.put('$_reviewPrefix${review.id}', review.toMap());
+        }
+      });
+
+  Future<void> _ensureStorageForWrite() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
   }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    if (_box == null && _storageCheck == null) return operation();
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.mileageTracking);
 }
