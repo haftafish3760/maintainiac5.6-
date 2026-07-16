@@ -173,7 +173,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
 
   Future<void> _openSinglePhotoReceiptDetailsImmediately() async {
     final photoPath = _photoPaths.single;
-    if (!await File(photoPath).isFile()) {
+    if (!await File(photoPath).exists()) {
       if (_reviewWorkActive) {
         _showCameraError(
           'This receipt photo is no longer available. Retake it or add the image again.',

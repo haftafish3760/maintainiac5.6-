@@ -22,7 +22,7 @@ void main() {
         source.indexOf('_updateReviewState(() => _savingPhotos = true);'),
       ),
     );
-    expect(source, contains('if (!await File(photoPath).isFile()) {'));
+    expect(source, contains('if (!await File(photoPath).exists()) {'));
     expect(
       source,
       contains(
