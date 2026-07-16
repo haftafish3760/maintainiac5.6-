@@ -26,7 +26,6 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         : _photoPaths[selectedPhotoIndex];
     final picked = await _pickReceiptPhotos(
       alignmentGuidePhotoPath: guidePhotoPath,
-      showAlignmentGuide: false,
     );
     if (picked.paths.isEmpty || !_reviewWorkActive) return;
     final insertPlan = guidePhotoPath == null

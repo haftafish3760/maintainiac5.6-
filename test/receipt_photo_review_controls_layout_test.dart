@@ -37,11 +37,8 @@ void main() {
     );
     expect(primary, contains('_ReceiptPhotoSectionLabels.retakeLabel'));
     expect(primary, contains('final addPhotoLabel'));
-    expect(primary, contains('onRetake: interactionLocked ? null : onRetake'));
-    expect(
-      primary,
-      contains('onAddPhoto: interactionLocked ? null : onAddPhoto'),
-    );
+    expect(primary, contains('onPressed: savingPhotos ? null : onRetake'));
+    expect(primary, contains('onPressed: savingPhotos ? null : onAddPhoto'));
     expect(tray, contains('_ReceiptOrderThumbnail('));
     expect(
       controls,
@@ -57,5 +54,22 @@ void main() {
     expect(save, contains('if (_needsStitchReviewBeforeSave)'));
     expect(save, contains('_reviewMode = _ReceiptReviewMode.stitch'));
     expect(save, contains('_ensureStitchPreview(force: true)'));
+  });
+
+  test('adding another receipt photo shows the previous-section guide', () async {
+    final captureActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_capture_actions.dart',
+    ).readAsString();
+
+    final addAnotherStart = captureActions.indexOf(
+      'Future<void> addAnotherReceiptPhoto()',
+    );
+    final retakeStart = captureActions.indexOf(
+      'Future<void> retakeCurrentReceiptPhoto()',
+    );
+    final addAnother = captureActions.substring(addAnotherStart, retakeStart);
+
+    expect(addAnother, contains('alignmentGuidePhotoPath: guidePhotoPath'));
+    expect(addAnother, isNot(contains('showAlignmentGuide: false')));
   });
 }
