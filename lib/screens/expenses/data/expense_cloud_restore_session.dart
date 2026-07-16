@@ -60,11 +60,17 @@ class ExpenseCloudRestoreSession {
         completedRecords > totalRecords) {
       throw const FormatException('Restore session progress is corrupt.');
     }
+    final state = _state(map['state']);
+    if (state == ExpenseCloudRestoreSessionState.completed &&
+        (completedDownloadBytes != expectedDownloadBytes ||
+            completedRecords != totalRecords)) {
+      throw const FormatException('Completed restore session is incomplete.');
+    }
     return ExpenseCloudRestoreSession(
       id: id,
       requestId: requestId,
       mode: _mode(map['mode']),
-      state: _state(map['state']),
+      state: state,
       createdAt: createdAt,
       updatedAt: updatedAt,
       expectedDownloadBytes: expectedDownloadBytes,

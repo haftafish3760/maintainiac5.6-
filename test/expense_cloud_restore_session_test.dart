@@ -178,6 +178,22 @@ void main() {
       'completedRecords': 0,
     });
     expect(store.sessionById('missing-request'), isNull);
+
+    await Hive.box<dynamic>(
+      ExpenseCloudRestoreSessionStore.boxName,
+    ).put('incomplete-completed', {
+      'id': 'incomplete-completed',
+      'requestId': 'server-request-incomplete-completed',
+      'mode': 'smart',
+      'state': 'completed',
+      'createdAt': '2026-07-15T00:00:00.000Z',
+      'updatedAt': '2026-07-15T00:00:00.000Z',
+      'expectedDownloadBytes': 10,
+      'completedDownloadBytes': 9,
+      'totalRecords': 1,
+      'completedRecords': 1,
+    });
+    expect(store.sessionById('incomplete-completed'), isNull);
   });
 
   test('does not mark an incomplete restore as completed', () async {
