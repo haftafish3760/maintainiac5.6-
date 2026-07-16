@@ -285,6 +285,7 @@ class ExpenseReminderController extends ChangeNotifier {
       requestedNow,
       createdAt: existing?.createdAt ?? reminder.createdAt,
       updatedAt: existing?.updatedAt,
+      lifecycleUpdatedAt: existing?.lifecycle?.updatedAt,
     );
     final lifecycle = existing == null
         ? MaintainiacRecordLifecycle(
@@ -350,11 +351,19 @@ class ExpenseReminderController extends ChangeNotifier {
     DateTime requested, {
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? lifecycleUpdatedAt,
   }) {
-    var result = requested;
-    if (createdAt != null && result.isBefore(createdAt)) result = createdAt;
-    if (updatedAt != null && result.isBefore(updatedAt)) result = updatedAt;
-    return result;
+    final floors = <DateTime>[?createdAt, ?updatedAt, ?lifecycleUpdatedAt];
+    if (floors.isEmpty) return requested;
+    final floor = floors.reduce((latest, value) {
+      return value.isAfter(latest) ? value : latest;
+    });
+    if (updatedAt == null && lifecycleUpdatedAt == null) {
+      return requested.isBefore(floor) ? floor : requested;
+    }
+    return requested.isAfter(floor)
+        ? requested
+        : floor.add(const Duration(microseconds: 1));
   }
 
   Future<void> ensureStorageForLocalSave() async {
@@ -378,6 +387,7 @@ class ExpenseReminderController extends ChangeNotifier {
       DateTime.now(),
       createdAt: existing.createdAt,
       updatedAt: existing.updatedAt,
+      lifecycleUpdatedAt: existing.lifecycle?.updatedAt,
     );
     final lifecycle =
         (existing.lifecycle ??
@@ -405,6 +415,7 @@ class ExpenseReminderController extends ChangeNotifier {
       DateTime.now(),
       createdAt: existing.createdAt,
       updatedAt: existing.updatedAt,
+      lifecycleUpdatedAt: existing.lifecycle?.updatedAt,
     );
     final lifecycle = existing.lifecycle!.restored(
       now,

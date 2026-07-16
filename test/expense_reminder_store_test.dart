@@ -78,8 +78,21 @@ void main() {
     final saved = await reminders.save(imported.copyWith(title: 'Updated'));
     await reminders.delete(saved.id);
 
-    expect(saved.updatedAt, future);
-    expect(reminders.recordById(saved.id)?.updatedAt, future);
+    expect(saved.updatedAt, future.add(const Duration(microseconds: 1)));
+    final deleted = reminders.recordById(saved.id)!;
+    expect(deleted.updatedAt, future.add(const Duration(microseconds: 2)));
+    expect(deleted.updatedAt, deleted.lifecycle?.updatedAt);
+  });
+
+  test('same-time reminder edits remain strictly ordered', () async {
+    final reminders = ExpenseReminderController.memory();
+    final saved = await reminders.save(
+      _reminder('Strict ordering', DateTime.utc(2026, 7, 16)),
+    );
+    final updated = await reminders.save(saved.copyWith(title: 'Updated'));
+
+    expect(updated.updatedAt.isAfter(saved.updatedAt), isTrue);
+    expect(updated.updatedAt, updated.lifecycle?.updatedAt);
   });
   late Directory hiveDirectory;
 
