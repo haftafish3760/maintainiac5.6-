@@ -404,7 +404,10 @@ void main() {
 
       final restored = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
       );
       expect(await restored.restore(), isTrue);
       expect(restored.advisories.map((event) => event.type), [
@@ -787,7 +790,10 @@ void main() {
 
       final recovered = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
       );
       expect(await recovered.restore(), isTrue);
       final stale = await recovered.ingest(sample(-79.9998, 20));
@@ -819,7 +825,10 @@ void main() {
 
     final recovered = TripTrackingController(
       sessionStore: store,
-      odometer: GlobalOdometerController(initialReading: 1000),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
     );
     expect(await recovered.restore(), isTrue);
     expect(recovered.acceptedMeters, greaterThan(10));
@@ -882,7 +891,10 @@ void main() {
 
       final recovered = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
       );
       expect(await recovered.restore(), isTrue);
       final stale = await recovered.ingest(sample(-79.9998, 1));
@@ -911,7 +923,10 @@ void main() {
 
       final recovered = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
       );
       expect(await recovered.restore(), isTrue);
       final stale = await recovered.ingest(sample(-79.9998, 20));
@@ -1079,7 +1094,10 @@ void main() {
       );
       final restored = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
         platform: native,
       );
 
@@ -1110,7 +1128,10 @@ void main() {
 
       final restored = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
         platform: _FakeTripTrackingPlatform(throwOnIsTracking: true),
       );
 
@@ -1255,7 +1276,10 @@ void main() {
       expect(controller.needsWalkingReview, isFalse);
       final restored = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
       );
       expect(await restored.restore(), isTrue);
       expect(restored.needsWalkingReview, isFalse);
@@ -1552,7 +1576,10 @@ void main() {
       await first.ingest(sample(-80, 0));
       await first.ingest(sample(-79.985, 60));
 
-      final restoredOdometer = GlobalOdometerController(initialReading: 1000);
+      final restoredOdometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
       final restored = TripTrackingController(
         sessionStore: store,
         odometer: restoredOdometer,
@@ -1765,6 +1792,37 @@ void main() {
     expect(await controller.restore(), isFalse);
     expect(store.activeSession, isNull);
     expect(controller.isTracking, isFalse);
+  });
+
+  test('recovery never projects a GPS trip onto another vehicle', () async {
+    final store = TripTrackingSessionStore.memory();
+    await store.save(
+      TripTrackingSessionRecord(
+        id: 'trip_vehicle_mismatch',
+        vehicleId: 'vehicle_a',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_b',
+      initialReading: 2000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(controller.platformStatus, 'vehicle_mismatch');
+    expect(odometer.hasLiveTripProjection, isFalse);
+    expect(store.activeSession?.id, 'trip_vehicle_mismatch');
   });
 }
 

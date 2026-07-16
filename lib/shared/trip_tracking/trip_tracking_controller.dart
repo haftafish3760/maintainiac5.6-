@@ -240,6 +240,16 @@ class TripTrackingController extends ChangeNotifier {
       }
       return false;
     }
+    if (session.vehicleId != _odometer.vehicleId) {
+      // Never project a recovered trip onto whichever vehicle happens to be
+      // active after a restart. Keep the durable session intact until the
+      // driver selects its original vehicle and can review it safely.
+      _platformStatus = 'vehicle_mismatch';
+      _platformError =
+          'This GPS trip belongs to another vehicle. Switch vehicles before recovering it.';
+      notifyListeners();
+      return false;
+    }
     final projection = TripLiveOdometerProjection(
       startingOdometer: session.startingOdometer,
     );
