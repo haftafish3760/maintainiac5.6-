@@ -53,19 +53,24 @@ void main() {
     expect(tray, contains('_ReceiptOrderThumbnail('));
     expect(
       controls,
-      contains("return photoPaths.length > 1 ? 'Continue' : 'Use Receipt'"),
+      contains(
+        "if (reviewMode != _ReceiptReviewMode.stitch) return 'Use Receipt';",
+      ),
     );
   });
 
-  test('continuing a multi-photo receipt opens the match step', () async {
-    final save = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
-    ).readAsString();
+  test(
+    'using a multi-photo receipt prepares the match in the background',
+    () async {
+      final save = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
+      ).readAsString();
 
-    expect(save, contains('if (_needsStitchReviewBeforeSave)'));
-    expect(save, contains('_reviewMode = _ReceiptReviewMode.stitch'));
-    expect(save, contains('_ensureStitchPreview(force: true)'));
-  });
+      expect(save, contains('if (_needsStitchReviewBeforeSave)'));
+      expect(save, contains('await _ensureStitchPreview(force: true);'));
+      expect(save, isNot(contains('_reviewMode = _ReceiptReviewMode.stitch')));
+    },
+  );
 
   test('adding another receipt photo shows the previous-section guide', () async {
     final captureActions = await File(

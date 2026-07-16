@@ -10,8 +10,6 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.savingPhotos,
     required this.continueLabel,
     required this.onClose,
-    required this.onHideControls,
-    required this.onMenuSelected,
     required this.onContinue,
   });
 
@@ -23,8 +21,6 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final bool savingPhotos;
   final String continueLabel;
   final VoidCallback onClose;
-  final VoidCallback? onHideControls;
-  final ValueChanged<_ReceiptReviewMenuAction> onMenuSelected;
   final VoidCallback? onContinue;
 
   @override
@@ -124,63 +120,6 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-          _OverlayIconButton(
-            icon: Icons.fullscreen_rounded,
-            label: 'Hide controls',
-            onPressed: onHideControls,
-          ),
-          const SizedBox(width: 4),
-          PopupMenuButton<_ReceiptReviewMenuAction>(
-            enabled: !openingCamera && !savingPhotos,
-            tooltip: 'Receipt photo menu',
-            color: const Color(0xFF172126),
-            icon: const Icon(Icons.more_vert_rounded),
-            iconColor: Colors.white,
-            onSelected: onMenuSelected,
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: _ReceiptReviewMenuAction.addAdditionalPhotos,
-                child: Text(
-                  'Add Another Photo',
-                  style: TextStyle(color: Color(0xFFE8ECEE)),
-                ),
-              ),
-              if (total > 1 && current > 1)
-                const PopupMenuItem(
-                  value: _ReceiptReviewMenuAction.moveEarlier,
-                  child: Text(
-                    'Move Photo Up',
-                    style: TextStyle(color: Color(0xFFE8ECEE)),
-                  ),
-                ),
-              if (total > 1 && current < total)
-                const PopupMenuItem(
-                  value: _ReceiptReviewMenuAction.moveLater,
-                  child: Text(
-                    'Move Photo Down',
-                    style: TextStyle(color: Color(0xFFE8ECEE)),
-                  ),
-                ),
-              PopupMenuItem(
-                value: _ReceiptReviewMenuAction.retake,
-                child: Text(
-                  _ReceiptPhotoSectionLabels.retakeLabel(
-                    index: current - 1,
-                    total: total,
-                  ),
-                  style: const TextStyle(color: Color(0xFFE8ECEE)),
-                ),
-              ),
-              if (total > 1)
-                const PopupMenuItem(
-                  value: _ReceiptReviewMenuAction.remove,
-                  child: Text(
-                    'Remove Current Photo',
-                    style: TextStyle(color: Color(0xFFE8ECEE)),
-                  ),
-                ),
-            ],
           ),
         ],
       ),

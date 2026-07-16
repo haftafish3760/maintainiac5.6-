@@ -269,9 +269,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     if (bestShotCandidateMode || photoPaths.length == 1) {
       return 'Use Receipt';
     }
-    if (reviewMode != _ReceiptReviewMode.stitch) {
-      return photoPaths.length > 1 ? 'Continue' : 'Use Receipt';
-    }
+    if (reviewMode != _ReceiptReviewMode.stitch) return 'Use Receipt';
     if (stitchPreviewInFlight || stitchPreview == null) {
       return 'Checking Match';
     }

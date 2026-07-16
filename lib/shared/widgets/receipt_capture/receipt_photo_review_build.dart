@@ -36,12 +36,6 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                           onClose: _reviewMode == _ReceiptReviewMode.crop
                               ? _cancelCropReview
                               : leaveReceiptReviewWithoutSaving,
-                          onHideControls: _openingCamera || _savingPhotos
-                              ? null
-                              : () => _updateReviewState(
-                                  () => _controlsVisible = false,
-                                ),
-                          onMenuSelected: handleReviewMenuAction,
                           onContinue: _reviewMode == _ReceiptReviewMode.crop
                               ? null
                               : continueReceiptPhotoReview,

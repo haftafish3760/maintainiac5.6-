@@ -27,8 +27,11 @@ void main() {
         contains('Future<void> continueReceiptPhotoReview()'),
       );
       expect(saveActions, contains('_needsStitchReviewBeforeSave'));
-      expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.stitch;'));
-      expect(saveActions, contains('_ensureStitchPreview(force: true)'));
+      expect(saveActions, contains('await _ensureStitchPreview(force: true);'));
+      expect(
+        saveActions,
+        isNot(contains('_reviewMode = _ReceiptReviewMode.stitch;')),
+      );
       expect(
         saveActions,
         contains('final stitch = await _finalStitchResultForOcr('),

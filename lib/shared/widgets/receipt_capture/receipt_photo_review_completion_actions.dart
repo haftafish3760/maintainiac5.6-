@@ -77,10 +77,6 @@ extension _ReceiptPhotoReviewCompletionActions
           ? _photoPaths.first
           : null;
     }
-    if (_needsStitchReviewBeforeSave &&
-        _reviewMode != _ReceiptReviewMode.stitch) {
-      return null;
-    }
     return _photoPaths.last;
   }
 

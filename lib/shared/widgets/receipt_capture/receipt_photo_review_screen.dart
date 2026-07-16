@@ -60,14 +60,6 @@ part 'receipt_photo_review_stitch_pair_preview.dart';
 
 enum _ReceiptReviewMode { preview, crop, order, stitch, dataSaver }
 
-enum _ReceiptReviewMenuAction {
-  addAdditionalPhotos,
-  moveEarlier,
-  moveLater,
-  retake,
-  remove,
-}
-
 enum _ReceiptReviewExitAction { keepReviewing, saveAndRead, leaveSafely }
 
 enum _ReceiptContinueDecision { keepReviewing, addNextSection, continueAnyway }

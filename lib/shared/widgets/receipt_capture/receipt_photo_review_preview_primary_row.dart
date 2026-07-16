@@ -278,10 +278,10 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
   }
 
   String get _guidance {
-    if (photoCount > 1 && continueLabel == 'Continue') {
-      return 'Continue when these are the receipt sections you want to use.';
+    if (photoCount > 1) {
+      return 'Check each section. Add another photo only if the receipt continues, then use the receipt.';
     }
-    return 'Add Another Photo only if the receipt continues. Otherwise, use this photo.';
+    return 'Add another photo only if the receipt continues. Otherwise, use this photo.';
   }
 }
 

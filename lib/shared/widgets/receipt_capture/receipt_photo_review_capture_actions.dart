@@ -1,21 +1,6 @@
 part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
-  void handleReviewMenuAction(_ReceiptReviewMenuAction action) {
-    switch (action) {
-      case _ReceiptReviewMenuAction.addAdditionalPhotos:
-        addAnotherReceiptPhoto();
-      case _ReceiptReviewMenuAction.moveEarlier:
-        moveCurrentReceiptPhoto(-1);
-      case _ReceiptReviewMenuAction.moveLater:
-        moveCurrentReceiptPhoto(1);
-      case _ReceiptReviewMenuAction.retake:
-        retakeCurrentReceiptPhoto();
-      case _ReceiptReviewMenuAction.remove:
-        unawaited(removeCurrentReceiptPhoto());
-    }
-  }
-
   Future<void> addAnotherReceiptPhoto() async {
     final selectedPhotoIndex = _photoPaths.isEmpty
         ? -1

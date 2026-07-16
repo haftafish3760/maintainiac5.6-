@@ -7,24 +7,10 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     final canProceedFromCoverage = await _confirmReceiptCompleteIfNeeded();
     if (!canProceedFromCoverage) return;
     if (_needsStitchReviewBeforeSave) {
-      if (_reviewMode != _ReceiptReviewMode.stitch) {
-        _updateReviewState(() {
-          _reviewMode = _ReceiptReviewMode.stitch;
-          _controlsVisible = true;
-        });
-        unawaited(_ensureStitchPreview(force: true));
-        return;
-      }
-      if (_stitchPreviewResult == null) {
-        await _ensureStitchPreview(force: true);
-        return;
-      }
-      if (_stitchPreviewInFlight) {
-        _showCameraError(
-          'Wait for the photo match check, then choose how receipt details should be filled.',
-        );
-        return;
-      }
+      // Joining receipt sections is implementation work, not a separate user
+      // task. Keep the review screen focused on the user's actual decision.
+      await _ensureStitchPreview(force: true);
+      if (!_reviewWorkActive || _stitchPreviewInFlight) return;
     }
     _updateReviewState(() => _savingPhotos = true);
     final pathsToSave = widget.bestShotCandidateMode

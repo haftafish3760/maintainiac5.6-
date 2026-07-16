@@ -16,7 +16,9 @@ void main() {
 
     expect(
       controls,
-      contains("return photoPaths.length > 1 ? 'Continue' : 'Use Receipt'"),
+      contains(
+        "if (reviewMode != _ReceiptReviewMode.stitch) return 'Use Receipt';",
+      ),
     );
     expect(
       primaryRow,
@@ -77,7 +79,7 @@ void main() {
     );
   });
 
-  test('multi-photo continuation opens the stitch decision before OCR', () async {
+  test('multi-photo use prepares a stitch without exposing a match step', () async {
     final saveActions = await _read(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
     );
@@ -86,8 +88,11 @@ void main() {
     );
 
     expect(saveActions, contains('if (_needsStitchReviewBeforeSave)'));
-    expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.stitch'));
-    expect(saveActions, contains('_ensureStitchPreview(force: true)'));
+    expect(saveActions, contains('await _ensureStitchPreview(force: true);'));
+    expect(
+      saveActions,
+      isNot(contains('_reviewMode = _ReceiptReviewMode.stitch')),
+    );
     expect(
       stitchPreview,
       contains('ReceiptImageProcessor.stitchReceiptPhotosForOcr'),
