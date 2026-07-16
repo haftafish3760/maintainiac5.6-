@@ -270,9 +270,9 @@ class ExpenseReminderController extends ChangeNotifier {
     final title = reminder.title.trim();
     if (title.isEmpty) throw ArgumentError.value(title, 'title', 'Required');
     await ensureStorageForLocalSave();
-    final now = DateTime.now();
+    final requestedNow = DateTime.now();
     final id = reminder.id.trim().isEmpty
-        ? 'EXP-REM-${now.microsecondsSinceEpoch}'
+        ? 'EXP-REM-${requestedNow.microsecondsSinceEpoch}'
         : reminder.id;
     final existing = recordById(id);
     if (existing?.isDeleted ?? false) {
@@ -281,6 +281,11 @@ class ExpenseReminderController extends ChangeNotifier {
     if (existing != null && reminder.updatedAt.isBefore(existing.updatedAt)) {
       throw StateError('Reload the newer reminder before saving changes.');
     }
+    final now = _nextLifecycleTime(
+      requestedNow,
+      createdAt: existing?.createdAt ?? reminder.createdAt,
+      updatedAt: existing?.updatedAt,
+    );
     final lifecycle = existing == null
         ? MaintainiacRecordLifecycle(
             createdAt: reminder.createdAt,
@@ -341,6 +346,17 @@ class ExpenseReminderController extends ChangeNotifier {
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 
+  static DateTime _nextLifecycleTime(
+    DateTime requested, {
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    var result = requested;
+    if (createdAt != null && result.isBefore(createdAt)) result = createdAt;
+    if (updatedAt != null && result.isBefore(updatedAt)) result = updatedAt;
+    return result;
+  }
+
   Future<void> ensureStorageForLocalSave() async {
     final check = _storageCheck;
     if (check == null) return;
@@ -358,7 +374,11 @@ class ExpenseReminderController extends ChangeNotifier {
     final existing = recordById(id);
     if (existing == null || existing.isDeleted) return;
     await ensureStorageForLocalSave();
-    final now = DateTime.now();
+    final now = _nextLifecycleTime(
+      DateTime.now(),
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt,
+    );
     final lifecycle =
         (existing.lifecycle ??
                 MaintainiacRecordLifecycle(
@@ -381,7 +401,11 @@ class ExpenseReminderController extends ChangeNotifier {
     final existing = recordById(id);
     if (existing == null || !existing.isDeleted) return;
     await ensureStorageForLocalSave();
-    final now = DateTime.now();
+    final now = _nextLifecycleTime(
+      DateTime.now(),
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt,
+    );
     final lifecycle = existing.lifecycle!.restored(
       now,
       event: 'restored reminder',

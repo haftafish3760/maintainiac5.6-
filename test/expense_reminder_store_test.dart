@@ -59,6 +59,28 @@ void main() {
 
     expect(reminders.recordById(original.id)?.category, newer.category);
   });
+
+  test('reminder lifecycle timestamps never move backward', () async {
+    final reminders = ExpenseReminderController.memory();
+    final future = DateTime.utc(2099, 1, 1);
+    final imported = ExpenseReminderRecord(
+      id: 'future-reminder',
+      title: 'Future reminder',
+      category: 'Other',
+      channel: 'In-app',
+      dueAt: future,
+      cadence: ExpenseReminderCadence.once,
+      createdAt: future,
+      updatedAt: future,
+    );
+    await reminders.importIfMissing(imported);
+
+    final saved = await reminders.save(imported.copyWith(title: 'Updated'));
+    await reminders.delete(saved.id);
+
+    expect(saved.updatedAt, future);
+    expect(reminders.recordById(saved.id)?.updatedAt, future);
+  });
   late Directory hiveDirectory;
 
   setUp(() async {
