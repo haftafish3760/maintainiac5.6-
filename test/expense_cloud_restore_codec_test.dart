@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_codec.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
 import 'package:maintaniac/screens/expenses/data/expense_firestore_documents.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
@@ -69,6 +70,52 @@ void main() {
     expect(restored.proofPointers.single.storagePath, isNull);
     expect(restored.proofPointers.single.isCloudBacked, isFalse);
     expect(restored.proofPointers.single.byteSize, 1234);
+  });
+
+  test('exports only a verified cloud proof reference as recoverable', () {
+    final receipt = ExpenseReceiptRecord(
+      id: 'cloud-reference',
+      receiptDate: DateTime.utc(2026, 7, 15),
+      lines: const [],
+      attachments: [
+        ReceiptAttachmentRecord(
+          id: 'proof-1',
+          path: '/private/local/proof.jpg',
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          createdAt: DateTime.utc(2026, 7, 15),
+        ),
+      ],
+    );
+    final cloud = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      receipt: receipt,
+      nowUtc: DateTime.utc(2026, 7, 15, 15),
+      cloudProofReferences: const {
+        'proof-1': ExpenseCloudProofReference(
+          organizationId: 'ORG-1',
+          userId: 'USER-1',
+          receiptId: 'cloud-reference',
+          proofId: 'proof-1',
+          uploadGrantId: 'grant-1',
+          byteCount: 3,
+          contentType: 'image/jpeg',
+          contentHashSha256:
+              '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+        ),
+      },
+    );
+
+    final restored = ExpenseCloudRestoreCodec.decodeReceipt(cloud.data);
+
+    expect(restored.proofPointers.single.isCloudBacked, isTrue);
+    expect(
+      restored.proofPointers.single.storagePath,
+      'orgs/ORG-1/proof-uploads/USER-1/grant-1/proof-1',
+    );
+    expect(restored.proofPointers.single.byteSize, 3);
   });
 
   test('rejects an unsupported receipt backup schema', () {

@@ -3,6 +3,7 @@ import '../../../shared/firebase/maintainiac_firestore_schema.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
+import 'expense_cloud_proof_storage.dart';
 import 'expense_ledger_models.dart';
 import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
@@ -17,6 +18,7 @@ class ExpenseFirestoreDocumentBuilder {
     required ExpenseReceiptRecord receipt,
     DateTime? nowUtc,
     int localRevision = 1,
+    Map<String, ExpenseCloudProofReference> cloudProofReferences = const {},
   }) {
     final exportedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     final createdAt = (receipt.createdAt ?? exportedAt).toUtc();
@@ -67,7 +69,11 @@ class ExpenseFirestoreDocumentBuilder {
         'proofCount': receipt.attachments.length,
         'proofs': [
           for (final attachment in receipt.attachments)
-            _proofPointerFor(attachment),
+            _proofPointerFor(
+              attachment,
+              cloudProofReferences[attachment.id],
+              receiptId: receipt.id,
+            ),
         ],
         'enteredSubtotalCents': _moneyCents(receipt.enteredSubtotal),
         'enteredTaxCents': _moneyCents(receipt.enteredTax),
@@ -296,23 +302,36 @@ Map<String, Object?> _lineFor(ExpenseReceiptLineRecord line) {
   };
 }
 
-Map<String, Object?> _proofPointerFor(ReceiptAttachmentRecord attachment) {
+Map<String, Object?> _proofPointerFor(
+  ReceiptAttachmentRecord attachment,
+  ExpenseCloudProofReference? cloudReference, {
+  required String receiptId,
+}) {
+  final isVerifiedCloudProof =
+      cloudReference != null &&
+      cloudReference.receiptId == receiptId &&
+      cloudReference.proofId == attachment.id;
   return {
     'id': _pathToken(attachment.id),
     'kind': attachment.kind.name,
     'mimeType': _token(attachment.mimeType, fallback: 'unknown'),
     'byteSize': attachment.byteSize,
-    'backupByteSize': attachment.byteSize,
+    'backupByteSize': isVerifiedCloudProof
+        ? cloudReference.byteCount
+        : attachment.byteSize,
     'backupSizeBucket': _byteSizeBucket(attachment.byteSize),
-    'fileHashSha256': _hashToken(attachment.fileHash),
+    'fileHashSha256': _hashToken(
+      isVerifiedCloudProof
+          ? cloudReference.contentHashSha256
+          : attachment.fileHash,
+    ),
     'pageCount': attachment.pageCount,
     'dataSaverLevel': attachment.dataSaverLevel.name,
     'storageState': attachment.storageState.name,
     'readState': attachment.readState.name,
     'photoQualityScore': attachment.photoQualityScore,
-    // Proof-image upload is intentionally separate from metadata backup.
-    // Never advertise a deterministic future object path as an uploaded file.
-    'cloudProofState': 'metadata_only',
+    'cloudProofState': isVerifiedCloudProof ? 'available' : 'metadata_only',
+    if (isVerifiedCloudProof) 'storagePath': cloudReference.storagePath,
     'localPathStored': false,
     'importedTextStored': false,
   };
