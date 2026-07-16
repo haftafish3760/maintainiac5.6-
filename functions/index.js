@@ -3,10 +3,13 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { defineInt } = require('firebase-functions/params');
 
 initializeApp();
 
-const MAX_PROOF_BYTES = 20 * 1024 * 1024;
+const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
+  default: 20 * 1024 * 1024,
+});
 const GRANT_LIFETIME_MS = 5 * 60 * 1000;
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const OWN_RECEIPT_PERMISSIONS = new Set([
@@ -40,7 +43,7 @@ exports.issueExpenseProofUploadGrant = onCall(
       throw new HttpsError('permission-denied', 'Expense proof upload is not allowed.');
     }
     const grantId = randomUUID();
-    const maxBytes = Math.min(requestedBytes, MAX_PROOF_BYTES);
+    const maxBytes = Math.min(requestedBytes, maxProofBytes.value());
     const expiresAt = Timestamp.fromMillis(Date.now() + GRANT_LIFETIME_MS);
     await db.doc(`orgs/${organizationId}/uploadGrants/${grantId}`).create({
       uid,
