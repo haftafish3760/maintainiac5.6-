@@ -10,7 +10,10 @@ initializeApp();
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,
 });
-const GRANT_LIFETIME_MS = 5 * 60 * 1000;
+const proofGrantLifetimeSeconds = defineInt(
+  'EXPENSE_PROOF_GRANT_LIFETIME_SECONDS',
+  { default: 5 * 60 },
+);
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const OWN_RECEIPT_PERMISSIONS = new Set([
   'addOwnReceipts',
@@ -44,7 +47,12 @@ exports.issueExpenseProofUploadGrant = onCall(
     }
     const grantId = randomUUID();
     const maxBytes = Math.min(requestedBytes, maxProofBytes.value());
-    const expiresAt = Timestamp.fromMillis(Date.now() + GRANT_LIFETIME_MS);
+    const lifetimeSeconds = proofGrantLifetimeSeconds.value();
+    if (!Number.isInteger(lifetimeSeconds) || lifetimeSeconds < 60 ||
+        lifetimeSeconds > 60 * 60) {
+      throw new HttpsError('failed-precondition', 'Proof grant lifetime configuration is invalid.');
+    }
+    const expiresAt = Timestamp.fromMillis(Date.now() + lifetimeSeconds * 1000);
     await db.doc(`orgs/${organizationId}/uploadGrants/${grantId}`).create({
       uid,
       proofId,

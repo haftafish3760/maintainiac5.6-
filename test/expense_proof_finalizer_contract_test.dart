@@ -9,6 +9,7 @@ void main() {
     final source = await File('functions/index.js').readAsString();
 
     expect(source, contains("defineInt('EXPENSE_MAX_PROOF_BYTES'"));
+    expect(source, contains("'EXPENSE_PROOF_GRANT_LIFETIME_SECONDS'"));
     expect(source, contains('exports.finalizeExpenseProofUpload = onCall('));
       expect(source, contains("{ enforceAppCheck: true }"));
       expect(source, contains('data.status !== \'open\''));
