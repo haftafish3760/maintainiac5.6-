@@ -262,10 +262,6 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
         coverageDecision.shouldPromptForMorePhotos) {
       return 'Use Receipt';
     }
-    if (reviewMode == _ReceiptReviewMode.preview &&
-        selectedQualityCheck?.hasCriticalIssue == true) {
-      return 'Use Anyway';
-    }
     if (bestShotCandidateMode || photoPaths.length == 1) {
       return 'Use Receipt';
     }

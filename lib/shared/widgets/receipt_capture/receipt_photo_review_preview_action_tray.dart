@@ -58,10 +58,14 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
             // than letting explanatory copy push the primary action offscreen.
             final compactControls =
                 constraints.maxHeight.isFinite && constraints.maxHeight < 220;
+            final showDecisionHeader =
+                uiConfig.showDecisionGuidance &&
+                (!constraints.maxHeight.isFinite ||
+                    constraints.maxHeight >= 178);
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (uiConfig.showDecisionGuidance) ...[
+                if (showDecisionHeader) ...[
                   _ReceiptReviewDecisionHeader(
                     photoCount: photoCount,
                     continueLabel: continueLabel,

@@ -34,7 +34,6 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Review 2 receipt sections'), findsOneWidget);
     expect(find.text('Section 1 of 2'), findsAtLeastNWidgets(1));
     expect(find.text('Add Another Photo'), findsOneWidget);
     expect(find.text('Use Receipt'), findsOneWidget);
@@ -97,6 +96,34 @@ void main() {
       tester.getSize(photoSurface).height,
       greaterThan(tester.getSize(actionTray).height * 5),
     );
+  });
+
+  testWidgets('review keeps a clear Use Receipt action for a weak photo', (
+    tester,
+  ) async {
+    final path = receiptPaths.first;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptPhotoReviewScreen(
+          initialPhotoPaths: [path],
+          initialDataSaverLevel: ReceiptDataSaverLevel.balanced,
+          initialQualityChecksByPath: {
+            path: const ReceiptPhotoQualityCheck(
+              width: 320,
+              height: 480,
+              focusScore: 3,
+              brightness: 36,
+              isLikelyReadable: false,
+            ),
+          },
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Use Receipt'), findsOneWidget);
+    expect(find.text('Use Anyway'), findsNothing);
+    expect(find.text('Review receipt photo'), findsNothing);
   });
 }
 
