@@ -62,7 +62,7 @@ List the lighting or interruption conditions covered:
 - Device coverage:
 - Notes:
 
-### Flow 2: Long Receipt Multi-Photo
+### Flow 2: Multi-Photo Capture Handoff
 
 - Status:
 - Device coverage:
@@ -74,13 +74,13 @@ List the lighting or interruption conditions covered:
 - Device coverage:
 - Notes:
 
-### Flow 4: App-Assisted Filled Receipt Review
+### Flow 4: Receipt-Review Handoff
 
 - Status:
 - Device coverage:
 - Notes:
 
-### Flow 5: Manual Or No-Assist Receipt
+### Flow 5: Manual Or No-Assist Photo Handoff
 
 - Status:
 - Device coverage:
@@ -115,7 +115,7 @@ Repeat this block for each real failure:
 ## Exit Summary
 
 - Single-photo flow ready:
-- Long-receipt flow ready:
+- Multi-photo capture handoff ready:
 - Save-space review ready:
 - Manual/no-assist ready:
 - Recovery ready:

@@ -326,7 +326,7 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'Start at the top, add sections in order, and repeat a few readable lines so Maintainiac can match the receipt pieces.',
+        'Start at the top, add sections in order, and repeat a few readable lines so each section is ready for later receipt reconstruction.',
       ),
     );
     expect(

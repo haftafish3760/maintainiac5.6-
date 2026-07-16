@@ -53,8 +53,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSwitch(
         receiptCameraText("Long receipt mode", "Modo de recibo largo"),
         receiptCameraText(
-            "Start at the top, add sections in order, and repeat a few readable lines so Maintainiac can match the receipt pieces.",
-            "Comience arriba, agregue secciones en orden y repita algunas líneas legibles para que Maintainiac pueda unir las partes del recibo.",
+            "Start at the top, add sections in order, and repeat a few readable lines so each section is ready for later receipt reconstruction.",
+            "Comience arriba, agregue secciones en orden y repita algunas líneas legibles para que cada sección esté lista para la reconstrucción posterior del recibo.",
         ),
         longReceiptMode,
     ) {
@@ -84,6 +84,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
             return@settingSwitch
         }
         autoCaptureEnabled = it
+        if (!it) {
+            autoCaptureStableFrameCount = 0
+            latestAutoCaptureStatus = "off"
+        }
         guidance.text = if (it) {
             receiptCameraText(
                 "Automatic capture is on. Hold steady, or capture anytime.",
@@ -135,8 +139,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSummary(
         receiptCameraText("Long receipts", "Recibos largos"),
         receiptCameraText(
-            "Capture sections from top to bottom and repeat a few readable lines between photos so Maintainiac can match them.",
-            "Capture secciones de arriba a abajo y repita algunas líneas legibles entre fotos para que Maintainiac pueda unirlas.",
+            "Capture sections from top to bottom and repeat a few readable lines between photos so the next receipt step can keep them in order.",
+            "Capture secciones de arriba a abajo y repita algunas líneas legibles entre fotos para que el siguiente paso del recibo pueda mantenerlas en orden.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))

@@ -67,22 +67,80 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
     )))
     content.addArrangedSubview(section(camera.receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
     content.addArrangedSubview(toggle(camera.receiptCameraText("Long receipt mode", "Modo de recibo largo"), value: camera.longReceiptMode) { [weak self] enabled in
-      camera.longReceiptMode = enabled && camera.canUseLongReceiptMode()
+      guard enabled else {
+        camera.longReceiptMode = false
+        camera.updateDoneButton()
+        camera.updateSettingsStatusStrip()
+        self?.reloadContent()
+        return
+      }
+      guard camera.canUseLongReceiptMode() else {
+        camera.longReceiptMode = false
+        camera.guidanceLabel.text = camera.receiptCameraText(
+          "Long receipt mode is unavailable for this device or storage setting.",
+          "El modo de recibo largo no está disponible para este dispositivo o ajuste de almacenamiento."
+        )
+        camera.updateDoneButton()
+        camera.updateSettingsStatusStrip()
+        self?.reloadContent()
+        return
+      }
+      camera.longReceiptMode = true
       camera.updateDoneButton()
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
     content.addArrangedSubview(toggle(camera.receiptCameraText("Automatic capture", "Captura automática"), value: camera.autoCaptureEnabled) { [weak self] enabled in
-      camera.autoCaptureEnabled = enabled && camera.isAutoCaptureCurrentlyAllowed()
+      guard enabled else {
+        camera.autoCaptureEnabled = false
+        camera.autoCaptureStableFrameCount = 0
+        camera.latestAutoCaptureStatus = "off"
+        camera.updateSettingsStatusStrip()
+        self?.reloadContent()
+        return
+      }
+      guard camera.isAutoCaptureCurrentlyAllowed() else {
+        camera.autoCaptureEnabled = false
+        camera.autoCaptureStableFrameCount = 0
+        camera.latestAutoCaptureStatus = "not_allowed"
+        camera.guidanceLabel.text = camera.autoCaptureBlockedMessage()
+        camera.updateSettingsStatusStrip()
+        self?.reloadContent()
+        return
+      }
+      camera.autoCaptureEnabled = true
+      camera.guidanceLabel.text = camera.receiptCameraText(
+        "Automatic capture is on. Hold steady, or capture anytime.",
+        "La captura automática está activada. Mantenga firme el teléfono o capture en cualquier momento."
+      )
+      camera.updateSettingsStatusStrip()
+      self?.reloadContent()
+    })
+    content.addArrangedSubview(toggle(camera.receiptCameraText("Receipt framing checks", "Revisiones de encuadre del recibo"), value: camera.receiptGuidanceWarningsEnabled()) { [weak self] enabled in
+      camera.setReceiptGuidanceWarningsEnabled(enabled)
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
     content.addArrangedSubview(toggle(camera.receiptCameraText("Receipt edge guidance", "Guía de bordes del recibo"), value: camera.edgeDetectionEnabled) { [weak self] enabled in
       camera.edgeDetectionEnabled = enabled
+      if !enabled && camera.autoCaptureEnabled {
+        camera.autoCaptureEnabled = false
+        camera.autoCaptureStableFrameCount = 0
+        camera.latestAutoCaptureStatus = "edge_detection_off"
+        camera.guidanceLabel.text = camera.receiptCameraText(
+          "Automatic capture needs receipt edge guidance. Manual capture is still ready.",
+          "La captura automática necesita la guía de bordes del recibo. La captura manual sigue lista."
+        )
+      }
       camera.receiptFrameGuide.isHidden = !(enabled && camera.edgeOverlayEnabled)
       camera.updateSettingsStatusStrip()
       self?.reloadContent()
     })
+    content.addArrangedSubview(section(camera.receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
+    content.addArrangedSubview(note(camera.receiptCameraText(
+      "Your phone handles autofocus. Pinch to zoom, and use the shutter anytime. Maintainiac does not use tap-to-focus.",
+      "El teléfono controla el enfoque automático. Pellizque para acercar y use el disparador en cualquier momento. Maintainiac no usa tocar para enfocar."
+    )))
     content.addArrangedSubview(action(camera.receiptCameraText("Reset receipt camera defaults", "Restablecer ajustes de cámara de recibos"), selected: false) { [weak self] in
       camera.resetReceiptCameraDefaults()
       self?.reloadContent()

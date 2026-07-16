@@ -17,10 +17,10 @@ const _templateRequirements = <String>[
   '- Xcode devices snapshot log:',
   '## Flow Results',
   '### Flow 1: Single Photo Receipt',
-  '### Flow 2: Long Receipt Multi-Photo',
+  '### Flow 2: Multi-Photo Capture Handoff',
   '### Flow 3: Save-Space Preview',
-  '### Flow 4: App-Assisted Filled Receipt Review',
-  '### Flow 5: Manual Or No-Assist Receipt',
+  '### Flow 4: Receipt-Review Handoff',
+  '### Flow 5: Manual Or No-Assist Photo Handoff',
   '### Flow 6: Interruption And Recovery',
   '## Failure Reports',
   '## Privacy And Diagnostics Check',
@@ -39,14 +39,24 @@ const _runRequirements = <String>[
   '- Xcode devices snapshot log:',
   '## Flow Results',
   '### Flow 1: Single Photo Receipt',
-  '### Flow 2: Long Receipt Multi-Photo',
   '### Flow 3: Save-Space Preview',
-  '### Flow 4: App-Assisted Filled Receipt Review',
-  '### Flow 5: Manual Or No-Assist Receipt',
   '### Flow 6: Interruption And Recovery',
   '## Failure Reports',
   '## Privacy And Diagnostics Check',
   '## Exit Summary',
+];
+
+const _acceptedRunFlowHeadingSets = <List<String>>[
+  [
+    '### Flow 2: Multi-Photo Capture Handoff',
+    '### Flow 4: Receipt-Review Handoff',
+    '### Flow 5: Manual Or No-Assist Photo Handoff',
+  ],
+  [
+    '### Flow 2: Long Receipt Multi-Photo',
+    '### Flow 4: App-Assisted Filled Receipt Review',
+    '### Flow 5: Manual Or No-Assist Receipt',
+  ],
 ];
 
 const _forbiddenRunContent = <String>[
@@ -100,6 +110,14 @@ void main() {
       _fail(
         'Receipt real-device result gate failed.\n'
         'Run note ${runFile.path} missing: ${missing.join(', ')}',
+      );
+    }
+    if (!_acceptedRunFlowHeadingSets.any(
+      (headings) => headings.every(text.contains),
+    )) {
+      _fail(
+        'Receipt real-device result gate failed.\n'
+        'Run note ${runFile.path} is missing a supported receipt-flow heading set.',
       );
     }
 

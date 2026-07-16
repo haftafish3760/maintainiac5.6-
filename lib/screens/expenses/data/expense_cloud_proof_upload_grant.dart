@@ -16,12 +16,22 @@ class ExpenseCloudProofUploadGrant {
 
 /// Client boundary for the server-issued, short-lived upload grant. The app
 /// never writes its own Firestore grant document.
-class FirebaseExpenseCloudProofUploadGrantIssuer {
+abstract interface class ExpenseCloudProofUploadGrantIssuer {
+  Future<ExpenseCloudProofUploadGrant> issue({
+    required String organizationId,
+    required String proofId,
+    required int requestedBytes,
+  });
+}
+
+class FirebaseExpenseCloudProofUploadGrantIssuer
+    implements ExpenseCloudProofUploadGrantIssuer {
   FirebaseExpenseCloudProofUploadGrantIssuer({FirebaseFunctions? functions})
     : _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFunctions _functions;
 
+  @override
   Future<ExpenseCloudProofUploadGrant> issue({
     required String organizationId,
     required String proofId,

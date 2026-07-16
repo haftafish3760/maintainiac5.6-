@@ -412,12 +412,18 @@ void main() {
     expect(sources.productStandard, contains('reviewed separately'));
     expect(sources.productStandard, isNot(contains('read receipt')));
     expect(sources.productStandard, isNot(contains('or read receipt')));
-    expect(sources.realDeviceScript, contains('fill the receipt review'));
     expect(
       sources.realDeviceScript,
-      contains('App-Assisted Filled Receipt Review'),
+      contains('Receipt-Review Handoff'),
     );
-    expect(sources.realDeviceScript, contains('top-to-bottom photo review'));
+    expect(
+      sources.realDeviceScript,
+      contains('Multi-Photo Capture Handoff'),
+    );
+    expect(
+      sources.realDeviceScript,
+      contains('does not attempt to stitch, deduplicate, or reorder'),
+    );
     expect(
       sources.realDeviceScript,
       isNot(contains('read or use the receipt')),

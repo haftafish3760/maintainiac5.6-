@@ -1,15 +1,15 @@
 # Receipt Real-Device Test Script
 
-This script is for controlled phone testing after a meaningful receipt-camera build. It is not a random tap-around checklist. The goal is to prove that a normal user can capture receipt proof, let Maintainiac fill the receipt review, classify the result, and save it without fighting the camera or losing the proof.
+This script is for controlled phone testing after a meaningful receipt-camera build. It is not a random tap-around checklist. The goal is to prove that a normal user can capture receipt proof, review and correct it, and hand it off without fighting the camera or losing the proof.
 
 ## Test Rules
 
 - Test the receipt flow from the expense app first.
 - Avoid maintenance-specific receipt paths during this test batch.
 - Use the same receipt on every device when possible so differences are device-related, not receipt-related.
-- Test at least one short receipt and one long receipt that needs more than one photo.
-- Do not judge OCR from the smaller saved proof. OCR must happen from the best prepared image first.
-- A failed read is acceptable only if the app explains what happened and lets the user continue manually with the proof saved.
+- Test at least one short receipt and one multi-photo capture set when the long-receipt subsystem is available.
+- Do not judge text extraction from the smaller saved proof. Extraction must happen from the best prepared image first.
+- A failed handoff is acceptable only if the app explains what happened and lets the user continue manually with the proof saved.
 - Copy `docs/receipt_real_device_result_template.md` into
   `docs/receipt_real_device_runs/YYYY-MM-DD-device-batch.md` before a serious
   test session so the proof note stays structured and privacy-safe.
@@ -23,7 +23,7 @@ This script is for controlled phone testing after a meaningful receipt-camera bu
 ## Device Targets
 
 - Galaxy S9 Plus class device: proves older-phone limits, memory safety, and simpler camera behavior.
-- Galaxy S24/S25 class device: proves flagship capture, stitching, image cleanup, and app-assisted review.
+- Galaxy S24/S25 class device: proves flagship capture, image cleanup, and receipt-review handoff.
 - Second available Android device: proves the flow is not tuned only to Samsung flagship behavior.
 - iPhone SE class device: proves iOS capture, photo proof, PDF/import behavior, and route parity.
 
@@ -48,7 +48,7 @@ Lighting conditions:
 
 Receipt conditions:
 - Short receipt that fits in one photo.
-- Long receipt that needs multiple sections.
+- Multi-photo receipt set when the separate long-receipt subsystem is enabled.
 - Wrinkled or folded receipt.
 - Faded thermal receipt.
 - Mixed business/personal receipt.
@@ -162,42 +162,39 @@ Report Back:
   capture.
 - Did brightness, glare, and sharpness guidance match the real photo?
 - Did the app move to receipt review after using the photo?
-- What merchant, total, tax, and date did it detect?
+- Did the handoff retain the original photo and the correction history?
 
-## Flow 2: Long Receipt Multi-Photo
+## Flow 2: Multi-Photo Capture Handoff
 
 Purpose:
-- Prove long receipts are treated as a first-class workflow.
+- Prove capture preserves ordered source segments for the separate long-receipt subsystem.
 
 Steps:
 1. Start a new receipt expense.
 2. Take the top section of a long receipt.
 3. Add another photo.
-4. Use the ghost/overlap guide if shown.
-5. Capture the next section with some repeated lines from the first photo.
+4. Capture the next section with enough visual continuity for later reconstruction.
 6. Add a third section if needed.
 7. Review photo order.
 8. Move one photo out of order, then put it back.
-9. Continue to stitch/review.
-10. Accept the stitched image if readable, or use top-to-bottom photo review if stitching is not confident.
+9. Continue to the receipt-review handoff.
+10. Confirm that the ordered photo set remains available to the next subsystem.
 
 Expected:
 - The app makes photo order clear.
-- The app can handle overlap without duplicating every repeated line.
-- If the stitch is unsafe, the app falls back to reviewing ordered photos separately.
+- Every accepted source image remains available with its capture order.
+- The camera lane does not attempt to stitch, deduplicate, or reorder the receipt itself.
 - The user can still continue manually with proof attached.
 
 Must Never Happen:
-- No forced bad stitch.
 - No silent loss of a receipt section.
-- No duplicate overlap lines trusted as separate purchases without review.
 - No memory crash on an older phone.
 
 Report Back:
 - Did the app make it obvious which section was first, second, and third?
 - Did it warn if a middle section might be missing?
-- Did the stitched image remain readable?
-- Did line items duplicate or disappear?
+- Did every accepted photo remain available in the correct order?
+- Did the camera handoff avoid presenting a false stitched receipt?
 
 ## Flow 3: Save-Space Preview
 
@@ -228,69 +225,58 @@ Report Back:
 - Did the language make sense?
 - Did returning from save-space controls keep the receipt state?
 
-## Flow 4: App-Assisted Filled Receipt Review
+## Flow 4: Receipt-Review Handoff
 
 Purpose:
-- Prove app-assisted receipt fill leads to business/personal/mixed classification.
+- Prove the camera lane hands off usable, editable receipt evidence without deciding business meaning.
 
 Steps:
 1. Capture or import a receipt.
 2. Continue with app assistance enabled.
-3. Wait for the filled receipt review.
-4. Review merchant, date, subtotal, tax, total, and line amounts.
-5. Mark the whole receipt as business.
-6. Change it to personal.
-7. Change it to mixed.
-8. For mixed, classify at least one line as business and one as personal.
-9. If available, mark one line as split and set a percentage.
-10. Save or keep as draft.
+3. Wait for the receipt-review handoff.
+4. Confirm the original proof remains visible and editable.
+5. Confirm any quality warning is understandable and does not block a usable image.
+6. Continue to the receipt form, or continue manually if the handoff is unavailable.
 
 Expected:
-- Whole receipt choices are clear: business, personal, mixed.
-- Mixed receipts expose per-line classification.
-- Split lines calculate business and personal amounts.
-- Tax allocation is visible or explainable where relevant.
-- Low-confidence fields are shown as needing review, not as trusted facts.
+- The handoff identifies the accepted source and any quality warning.
+- The original proof remains traceable after any crop, rotation, or correction.
+- The camera lane does not classify the receipt as business, personal, inventory, fuel, or any other business meaning.
 
 Must Never Happen:
-- No automatic inventory update from an expense receipt.
-- No hidden tax math for mixed receipts.
-- No unexplained totals that do not match the receipt.
 - No crash when saving draft or backing out.
 
 Report Back:
-- Did the app make mixed receipt classification obvious?
-- Were totals and tax believable?
-- Did it save the reviewed proof and classifications?
+- Did the review handoff preserve the exact proof and any correction details?
+- Did manual continuation remain available if the handoff could not complete?
 
-## Flow 5: Manual Or No-Assist Receipt
+## Flow 5: Manual Or No-Assist Photo Handoff
 
 Purpose:
-- Prove users can attach proof without app-assisted receipt fill.
+- Prove users can keep receipt proof without automatic text extraction.
 
 Steps:
 1. Open receipt photo settings.
 2. Turn off app assistance for expense receipts.
 3. Capture or import a receipt.
 4. Continue.
-5. Manually enter expense amount and category.
-6. Save.
-7. Reopen the saved expense and view the receipt proof.
+5. Confirm the manual handoff is available.
+6. Back out without discarding the captured proof.
+7. Reopen the photo review and view the receipt proof.
 
 Expected:
 - The app does not force OCR.
 - The proof remains attached.
-- Manual expense save still works.
-- Reopening the expense shows the proof.
+- Returning to the review shows the proof.
 
 Must Never Happen:
 - No forced OCR when assistance is off.
 - No loss of the receipt photo.
-- No app-assisted review screen required before manual save.
+- No app-assisted receipt details required before manual continuation.
 
 Report Back:
-- Did manual mode feel simpler?
-- Could you still view the proof later?
+- Did manual handoff stay available?
+- Could you still view the proof after leaving and returning?
 
 ## Flow 6: Interruption And Recovery
 
@@ -303,24 +289,22 @@ Steps:
 3. Leave the app before saving.
 4. Return to Maintainiac.
 5. Confirm the draft still has the proof.
-6. Save the expense.
-7. Reopen from the calendar/day view.
-8. Edit the expense and confirm proof remains attached.
+6. Reopen the in-progress receipt flow.
+7. Confirm the staged proof remains available.
+8. Retake or add a photo and confirm the ordered proof set remains intact.
 
 Expected:
 - Draft proof is recoverable.
-- Save promotes staged proof into permanent proof storage.
-- Calendar recovery opens the correct saved receipt.
-- Editing does not drop the proof.
+- Staged proof remains available until the receiving receipt flow accepts it.
+- Adding or retaking a photo does not drop another accepted proof image.
 
 Must Never Happen:
 - No orphan proof loss.
 - No duplicate attachment confusion.
-- No wrong-day calendar save when the receipt date is edited.
 
 Report Back:
 - Did the draft survive leaving the app?
-- Did calendar/day recovery open the correct expense?
+- Did the in-progress receipt flow retain every accepted photo?
 
 ## Failure Report Format
 
@@ -341,8 +325,7 @@ The receipt camera flow is ready for broader real receipt testing only when:
 
 - Single-photo receipt flow passes on S24/S25 and iPhone.
 - Manual capture works on every tested phone.
-- Long receipt multi-photo flow either stitches correctly or falls back safely.
-- App-assisted review opens after photo acceptance.
-- Business/personal/mixed classification works.
-- Save-space preview is understandable and does not affect OCR source quality.
+- Multi-photo capture preserves ordered source segments for the long-receipt subsystem.
+- Receipt-review handoff opens after photo acceptance.
+- Save-space preview is understandable and does not affect text-extraction source quality.
 - Draft recovery survives app interruption.

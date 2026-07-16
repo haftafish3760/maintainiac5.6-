@@ -141,6 +141,7 @@ void main() {
         cameraActivity,
         contains('Automatic capture is on. Hold steady, or capture anytime.'),
       );
+      expect(cameraActivity, contains('latestAutoCaptureStatus = "off"'));
       expect(cameraActivity, isNot(contains('Auto brightness assist')));
       expect(cameraActivity, isNot(contains('Manual Brightness still wins.')));
       expect(cameraActivity, isNot(contains('Reset brightness')));
