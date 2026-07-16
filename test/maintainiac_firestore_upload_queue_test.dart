@@ -322,6 +322,35 @@ void main() {
     },
   );
 
+  test('clock rollback cannot shorten a durable cloud retry backoff', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final draft = _safeDraft('catalogHealth/clock_rollback');
+    final firstAttempt = DateTime.utc(2026, 7, 16, 13);
+    final queued = await queue.enqueue(draft, queuedAtUtc: firstAttempt);
+    await queue.markAttempted(
+      queued,
+      error: 'offline',
+      nowUtc: firstAttempt,
+    );
+    final first = queue.pendingRecords.single;
+
+    await queue.markAttempted(
+      first,
+      error: 'offline',
+      nowUtc: firstAttempt.subtract(const Duration(hours: 1)),
+    );
+    final retried = queue.pendingRecords.single;
+
+    expect(
+      retried.lastAttemptAtUtc!.isAfter(first.lastAttemptAtUtc!),
+      isTrue,
+    );
+    expect(
+      retried.nextAttemptAtUtc!.isAfter(first.nextAttemptAtUtc!),
+      isTrue,
+    );
+  });
+
   test('enforces max batch size even when caller asks for more', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();

@@ -121,7 +121,13 @@ class MaintainiacFirestoreUploadQueueStore {
     );
     if (current.isEmpty || !current.isPendingUpload) return;
     await _ensureStorageForQueueWrite();
-    final attemptAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final requestedAttemptAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final attemptAt = current.lastAttemptAtUtc == null
+        ? requestedAttemptAt
+        : _nextQueueTimestamp(
+            current.lastAttemptAtUtc!,
+            requested: requestedAttemptAt,
+          );
     final attemptCount = current.attemptCount + 1;
     final attempted = MaintainiacFirestoreQueuedDocument(
       id: current.id,
@@ -220,6 +226,13 @@ class MaintainiacFirestoreUploadQueueStore {
     final next = _writeTail.then((_) => operation());
     _writeTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
+  }
+
+  DateTime _nextQueueTimestamp(DateTime current, {DateTime? requested}) {
+    final next = (requested ?? DateTime.now().toUtc()).toUtc();
+    return next.isAfter(current)
+        ? next
+        : current.add(const Duration(microseconds: 1));
   }
 }
 
