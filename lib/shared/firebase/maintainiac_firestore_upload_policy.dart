@@ -253,6 +253,28 @@ class MaintainiacFirestoreUploadPolicy {
         'Mileage upload meters, miles, and odometer estimate must agree.',
       );
     }
+    if (!_hasCoherentTripMileageTimeline(draft)) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Mileage upload timestamps must reflect review after trip completion.',
+      );
+    }
+  }
+
+  static bool _hasCoherentTripMileageTimeline(
+    MaintainiacFirestoreDocumentDraft draft,
+  ) {
+    final startedAt = DateTime.tryParse('${draft.data['startedAt'] ?? ''}');
+    final finishedAt = DateTime.tryParse('${draft.data['finishedAt'] ?? ''}');
+    final confirmedAt = DateTime.tryParse(
+      '${draft.data['odometerConfirmedAt'] ?? ''}',
+    );
+    return startedAt != null &&
+        finishedAt != null &&
+        confirmedAt != null &&
+        !finishedAt.isBefore(startedAt) &&
+        !confirmedAt.isBefore(finishedAt);
   }
 
   static bool _hasCoherentTripMileageDistance({

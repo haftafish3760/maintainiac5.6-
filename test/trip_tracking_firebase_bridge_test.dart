@@ -291,6 +291,17 @@ void main() {
       {...doc.data, 'estimatedEndingOdometer': 999},
       {...doc.data, 'confirmedEndingOdometer': 999},
       {...doc.data}..remove('odometerConfirmedAt'),
+      {
+        ...doc.data,
+        'odometerConfirmedAt': DateTime.utc(
+          2026,
+          7,
+          14,
+          12,
+          59,
+        ).toIso8601String(),
+      },
+      {...doc.data, 'finishedAt': 'not-a-date'},
       {...doc.data, 'acceptedSampleCount': 999},
       {...doc.data, 'vehicleId': ''},
     ]) {

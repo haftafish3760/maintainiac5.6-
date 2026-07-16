@@ -92,6 +92,7 @@ class TripTrackingController extends ChangeNotifier {
       return false;
     }
     final confirmationTime = confirmedAt ?? DateTime.now();
+    if (confirmationTime.isBefore(review.finishedAt)) return false;
     final odometerMileageReview = const OdometerMileageReview(
       use: OdometerMileageUse.unresolved,
     );

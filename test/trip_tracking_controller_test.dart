@@ -2135,6 +2135,46 @@ void main() {
     expect(mirror.reviews, isEmpty);
   });
 
+  test('a trip review cannot confirm before the trip has finished', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord(
+      id: 'trip_confirmation_before_finish',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+      finishedAt: start.add(const Duration(minutes: 5)),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+    await store.saveReview(review);
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final mirror = _FakeTripTrackingCloudMirror();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+      cloudMirror: mirror,
+    );
+
+    expect(
+      await controller.confirmOdometerReview(
+        reviewId: review.id,
+        confirmedEndingOdometer: 1001,
+        confirmedAt: start.add(const Duration(minutes: 4)),
+      ),
+      isFalse,
+    );
+    expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
+    expect(odometer.confirmedReading, 1000);
+    expect(mirror.reviews, isEmpty);
+  });
+
   test(
     'a trip review cannot confirm without an odometer audit commit',
     () async {
