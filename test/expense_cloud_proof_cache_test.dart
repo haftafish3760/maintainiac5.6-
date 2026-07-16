@@ -74,6 +74,36 @@ void main() {
     },
   );
 
+  test('reserves space for a corrupt cache proof and its replacement', () async {
+    final root = await Directory.systemTemp.createTemp('proof-cache-test-');
+    addTearDown(() => root.delete(recursive: true));
+    final store = _MemoryObjectStore();
+    final cloud = ExpenseCloudProofStorage(objectStore: store);
+    final reference = (await cloud.uploadProof(
+      organizationId: 'org_1',
+      userId: 'user_1',
+      receiptId: 'receipt_1',
+      proofId: 'proof_1',
+      uploadGrantId: 'grant_1',
+      bytes: Uint8List.fromList([1, 2, 3]),
+      contentType: 'image/jpeg',
+    )).finalized();
+    final cacheFile = File(
+      '${root.path}/org_1--user_1--receipt_1--proof_1--${reference.contentHashSha256}.proof',
+    );
+    await cacheFile.writeAsBytes([9, 9, 9]);
+    var reservedBytes = 0;
+    final cache = ExpenseCloudProofCache(
+      cloudStorage: cloud,
+      rootDirectory: () async => root,
+      ensureSpace: (bytes) async => reservedBytes = bytes,
+    );
+
+    await cache.restore(reference);
+
+    expect(reservedBytes, 6);
+  });
+
   test('does not download when local storage is insufficient', () async {
     final root = await Directory.systemTemp.createTemp('proof-cache-test-');
     addTearDown(() => root.delete(recursive: true));

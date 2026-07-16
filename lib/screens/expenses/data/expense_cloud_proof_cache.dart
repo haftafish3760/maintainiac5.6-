@@ -44,7 +44,10 @@ class ExpenseCloudProofCache {
       return ExpenseCloudCachedProof(file: destination, wasDownloaded: false);
     }
 
-    await _ensureSpace(reference.byteCount);
+    // A corrupt cache entry is preserved for recovery until the verified
+    // replacement is durable, so reserve space for both files during repair.
+    final existingBytes = await _safeFileLength(destination);
+    await _ensureSpace(reference.byteCount + existingBytes);
     final bytes = await _cloudStorage.downloadProof(reference);
     await _writeVerifiedAtomically(destination, bytes, reference);
     return ExpenseCloudCachedProof(file: destination, wasDownloaded: true);
@@ -95,6 +98,14 @@ class ExpenseCloudProofCache {
     final result = _writeTail.then((_) => operation());
     _writeTail = result.then<void>((_) {}, onError: (error, stackTrace) {});
     return result;
+  }
+
+  static Future<int> _safeFileLength(File file) async {
+    try {
+      return await file.exists() ? await file.length() : 0;
+    } catch (_) {
+      return 0;
+    }
   }
 
   static Future<Directory> _defaultRootDirectory() async {
