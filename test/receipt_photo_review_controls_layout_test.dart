@@ -83,4 +83,19 @@ void main() {
     expect(addAnother, contains('alignmentGuidePhotoPath: guidePhotoPath'));
     expect(addAnother, isNot(contains('showAlignmentGuide: false')));
   });
+
+  test('long receipt guide is honest about the system camera handoff', () async {
+    final alignmentActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_alignment_actions.dart',
+    ).readAsString();
+    final alignmentGuide = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_alignment_guide.dart',
+    ).readAsString();
+
+    expect(alignmentActions, contains("return 'Open Phone Camera';"));
+    expect(alignmentActions, contains('You will return here to review it.'));
+    expect(alignmentActions, isNot(contains('top of the next camera photo')));
+    expect(alignmentGuide, contains('This is your reference photo.'));
+    expect(alignmentGuide, contains('your phone camera opens'));
+  });
 }

@@ -38,7 +38,7 @@ void main() {
     );
     expect(alignmentActions, contains('Add Another Receipt Photo'));
     expect(alignmentActions, isNot(contains('Add Bottom Receipt Section')));
-    expect(alignmentActions, contains('Retake Section'));
+    expect(alignmentActions, contains('Open Phone Camera to Retake'));
   });
 
   test('retaking a middle section preserves slot and keeps both contexts', () {

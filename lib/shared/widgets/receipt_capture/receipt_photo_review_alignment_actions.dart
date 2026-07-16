@@ -120,26 +120,26 @@ extension _ReceiptPhotoReviewAlignmentActions
     final guidance = alignmentGuidance?.trim();
     if (guidance != null && guidance.isNotEmpty) return guidance;
     if (reasonCode == 'retake_top_with_next_context') {
-      return 'Use the next receipt section as context, retake the top section, then confirm the join in photo review.';
+      return 'Use the reference photo below, then open your phone camera and retake the top section. You will return here to review the order.';
     }
     if (reasonCode == 'retake_middle_with_previous_next_context') {
-      return 'Use the previous and next receipt sections as context, then retake this middle section without changing its order.';
+      return 'Use the reference photo below, then open your phone camera and retake this middle section. You will return here to review the order.';
     }
     if (reasonCode == 'retake_bottom_with_previous_context') {
-      return 'Use the previous receipt section as the top ghost guide, then retake the bottom section in the same slot.';
+      return 'Use the reference photo below, then open your phone camera and retake the bottom section. You will return here to review the order.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
-      return '${coverageDecision.completionDialogMessage} A faint reference from the last photo will appear at the top of the next camera photo. Overlap 3-5 readable lines.';
+      return '${coverageDecision.completionDialogMessage} Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return here to review it.';
     }
-    return 'A faint reference from the last photo will appear at the top of the next camera photo. Start the next photo with 3-5 of the same readable lines so Maintainiac can line up the sections.';
+    return 'Use the reference photo below. Open your phone camera, then begin the next photo with 3-5 of the same readable lines. You will return here to review it.';
   }
 
   String _alignmentGuideButtonLabel(
     ReceiptPhotoCoverageDecision coverageDecision, {
     required String reasonCode,
   }) {
-    if (reasonCode.startsWith('retake_')) return 'Retake Section';
-    return coverageDecision.addSectionButtonLabel;
+    if (reasonCode.startsWith('retake_')) return 'Open Phone Camera to Retake';
+    return 'Open Phone Camera';
   }
 }
 

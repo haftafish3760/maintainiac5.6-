@@ -114,8 +114,8 @@ class _ReceiptAlignmentGuideNote extends StatelessWidget {
           Expanded(
             child: Text(
               missingBottomAndTotals
-                  ? 'The phone camera opens next. A faint reference from this photo appears at the top. Overlap 3-5 readable lines so Maintainiac can line up the sections.'
-                  : 'The phone camera opens next. A faint reference from this photo appears at the top. Overlap 3-5 readable lines.',
+                  ? 'This is your reference photo. After you tap the green button, your phone camera opens. Begin the next photo with 3-5 of the same readable lines so Maintainiac can line up the sections.'
+                  : 'This is your reference photo. After you tap the green button, your phone camera opens. Begin the next photo with 3-5 of the same readable lines.',
               style: const TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 11.5,
