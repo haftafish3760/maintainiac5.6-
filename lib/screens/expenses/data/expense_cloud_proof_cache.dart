@@ -112,10 +112,16 @@ class ExpenseCloudProofCache {
   }
 
   static String _fileName(ExpenseCloudProofReference reference) =>
-      '${reference.proofId}--${reference.contentHashSha256}.proof';
+      '${reference.organizationId}--${reference.userId}--${reference.receiptId}'
+      '--${reference.proofId}--${reference.contentHashSha256}.proof';
 
   static void _validateReference(ExpenseCloudProofReference reference) {
-    if (!RegExp(r'^[A-Za-z0-9_-]{1,160}$').hasMatch(reference.proofId) ||
+    final token = RegExp(r'^[A-Za-z0-9_-]{1,160}$');
+    if (!reference.isFinalized ||
+        !token.hasMatch(reference.organizationId) ||
+        !token.hasMatch(reference.userId) ||
+        !token.hasMatch(reference.receiptId) ||
+        !token.hasMatch(reference.proofId) ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(reference.contentHashSha256)) {
       throw ArgumentError('Unsafe cloud proof cache reference.');
     }

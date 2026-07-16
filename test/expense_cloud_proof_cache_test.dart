@@ -11,7 +11,7 @@ void main() {
     addTearDown(() => root.delete(recursive: true));
     final store = _MemoryObjectStore();
     final cloud = ExpenseCloudProofStorage(objectStore: store);
-    final reference = await cloud.uploadProof(
+    final reference = (await cloud.uploadProof(
       organizationId: 'org_1',
       userId: 'user_1',
       receiptId: 'receipt_1',
@@ -19,7 +19,7 @@ void main() {
       uploadGrantId: 'grant_1',
       bytes: Uint8List.fromList([1, 2, 3]),
       contentType: 'image/jpeg',
-    );
+    )).finalized();
     final cache = ExpenseCloudProofCache(
       cloudStorage: cloud,
       rootDirectory: () async => root,
@@ -42,7 +42,7 @@ void main() {
       addTearDown(() => root.delete(recursive: true));
       final store = _MemoryObjectStore();
       final cloud = ExpenseCloudProofStorage(objectStore: store);
-      final reference = await cloud.uploadProof(
+      final reference = (await cloud.uploadProof(
         organizationId: 'org_1',
         userId: 'user_1',
         receiptId: 'receipt_1',
@@ -50,9 +50,9 @@ void main() {
         uploadGrantId: 'grant_1',
         bytes: Uint8List.fromList([1, 2, 3]),
         contentType: 'image/jpeg',
-      );
+      )).finalized();
       final cacheFile = File(
-        '${root.path}/proof_1--${reference.contentHashSha256}.proof',
+        '${root.path}/org_1--user_1--receipt_1--proof_1--${reference.contentHashSha256}.proof',
       );
       await cacheFile.writeAsBytes([9, 9, 9]);
       final cache = ExpenseCloudProofCache(
@@ -79,7 +79,7 @@ void main() {
     addTearDown(() => root.delete(recursive: true));
     final store = _MemoryObjectStore();
     final cloud = ExpenseCloudProofStorage(objectStore: store);
-    final reference = await cloud.uploadProof(
+    final reference = (await cloud.uploadProof(
       organizationId: 'org_1',
       userId: 'user_1',
       receiptId: 'receipt_1',
@@ -87,7 +87,7 @@ void main() {
       uploadGrantId: 'grant_1',
       bytes: Uint8List.fromList([1, 2, 3]),
       contentType: 'image/jpeg',
-    );
+    )).finalized();
     final cache = ExpenseCloudProofCache(
       cloudStorage: cloud,
       rootDirectory: () async => root,
@@ -96,6 +96,42 @@ void main() {
 
     await expectLater(() => cache.restore(reference), throwsStateError);
     expect(store.downloadCount, 0);
+  });
+
+  test('never shares a cached proof file across account scopes', () async {
+    final root = await Directory.systemTemp.createTemp('proof-cache-test-');
+    addTearDown(() => root.delete(recursive: true));
+    final store = _MemoryObjectStore();
+    final cloud = ExpenseCloudProofStorage(objectStore: store);
+    final first = (await cloud.uploadProof(
+      organizationId: 'org_1',
+      userId: 'user_1',
+      receiptId: 'receipt_1',
+      proofId: 'proof_1',
+      uploadGrantId: 'grant_1',
+      bytes: Uint8List.fromList([1, 2, 3]),
+      contentType: 'image/jpeg',
+    )).finalized();
+    final second = (await cloud.uploadProof(
+      organizationId: 'org_1',
+      userId: 'user_2',
+      receiptId: 'receipt_1',
+      proofId: 'proof_1',
+      uploadGrantId: 'grant_2',
+      bytes: Uint8List.fromList([1, 2, 3]),
+      contentType: 'image/jpeg',
+    )).finalized();
+    final cache = ExpenseCloudProofCache(
+      cloudStorage: cloud,
+      rootDirectory: () async => root,
+      ensureSpace: (_) async {},
+    );
+
+    final firstCached = await cache.restore(first);
+    final secondCached = await cache.restore(second);
+
+    expect(firstCached.file.path, isNot(secondCached.file.path));
+    expect(store.downloadCount, 2);
   });
 }
 
