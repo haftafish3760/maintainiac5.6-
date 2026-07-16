@@ -7,6 +7,7 @@ class PrivacySafeReceiptEventStore {
   static const maxStoredEvents = 250;
 
   final Box<dynamic> _box;
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<PrivacySafeReceiptEventStore> create() async {
     final box = await Hive.openBox<dynamic>(boxName);
@@ -37,7 +38,7 @@ class PrivacySafeReceiptEventStore {
   Future<PrivacySafeReceiptEventRecord> enqueue(
     PrivacySafeReceiptEvent event, {
     DateTime? queuedAtUtc,
-  }) async {
+  }) => _enqueue(() async {
     final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();
     final record = PrivacySafeReceiptEventRecord(
       id: _eventIdFor(queuedAt),
@@ -47,7 +48,7 @@ class PrivacySafeReceiptEventStore {
     await _box.put(record.id, record.toMap());
     await _trimOldestIfNeeded();
     return record;
-  }
+  });
 
   List<Map<String, Object?>> pendingUploadPayloads({int limit = 50}) {
     final cappedLimit = limit.clamp(0, maxStoredEvents).toInt();
@@ -61,35 +62,35 @@ class PrivacySafeReceiptEventStore {
     ];
   }
 
-  Future<void> markUploaded(
-    Iterable<String> eventIds, {
-    DateTime? nowUtc,
-  }) async {
-    final uploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
-    for (final id in eventIds) {
-      final record = PrivacySafeReceiptEventRecord.fromStored(_box.get(id));
-      if (record.isEmpty) continue;
-      await _box.put(
-        id,
-        PrivacySafeReceiptEventRecord(
-          id: record.id,
-          queuedAtUtc: record.queuedAtUtc,
-          uploadedAtUtc: uploadedAt,
-          payload: record.payload,
-        ).toMap(),
-      );
-    }
-  }
+  Future<void> markUploaded(Iterable<String> eventIds, {DateTime? nowUtc}) =>
+      _enqueue(() async {
+        final uploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+        for (final id in eventIds) {
+          final record = PrivacySafeReceiptEventRecord.fromStored(_box.get(id));
+          if (record.isEmpty) continue;
+          await _box.put(
+            id,
+            PrivacySafeReceiptEventRecord(
+              id: record.id,
+              queuedAtUtc: record.queuedAtUtc,
+              uploadedAtUtc: uploadedAt,
+              payload: record.payload,
+            ).toMap(),
+          );
+        }
+      });
 
-  Future<void> clearUploaded() async {
+  Future<void> clearUploaded() => _enqueue(() async {
     for (final record in records) {
       if (record.uploadedAtUtc != null) {
         await _box.delete(record.id);
       }
     }
-  }
+  });
 
-  Future<void> clearAll() => _box.clear();
+  Future<void> clearAll() => _enqueue(() async {
+    await _box.clear();
+  });
 
   Future<void> _trimOldestIfNeeded() async {
     final extraCount = records.length - maxStoredEvents;
@@ -108,5 +109,11 @@ class PrivacySafeReceiptEventStore {
       suffix += 1;
     }
     return id;
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
   }
 }
