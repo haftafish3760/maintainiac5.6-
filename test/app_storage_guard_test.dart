@@ -17,6 +17,16 @@ void main() {
       );
     });
 
+    test('rejects an invalid negative storage reservation', () async {
+      await expectLater(
+        () => AppStorageGuard.checkForBytes(
+          operationBytes: -1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('blocks writes that would consume the safety reserve', () async {
       final check = await AppStorageGuard.checkForBytes(
         operationBytes: 10 * 1024 * 1024,

@@ -41,6 +41,13 @@ class AppStorageGuard {
     required AppStoragePurpose purpose,
     AppFreeStorageReader? freeStorageReader,
   }) async {
+    if (operationBytes < 0) {
+      throw ArgumentError.value(
+        operationBytes,
+        'operationBytes',
+        'must not be negative',
+      );
+    }
     final protectedBytes = protectedRequiredBytes(operationBytes);
     try {
       final freeMb = freeStorageReader != null
