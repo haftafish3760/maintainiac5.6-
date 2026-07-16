@@ -7,6 +7,9 @@ import 'package:maintaniac/screens/dashboard/vehicle_profile_widgets.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
   late AppStateController appState;
@@ -205,6 +208,108 @@ void main() {
 
       expect(find.text('Odometer: 0001004'), findsOneWidget);
       expect(find.text('Odometer: 0001000'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'active workday trip review confirms the exact sheet odometer value',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1500);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      odometer.dispose();
+      odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final activeWorkday = ActiveWorkdayController.memory();
+      await activeWorkday.startDay(
+        vehicleId: odometer.vehicleId,
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'business',
+        startOdometer: 1000,
+        startedAt: DateTime(2026, 7, 16, 8),
+      );
+      final tripStore = TripTrackingSessionStore.memory();
+      final tripController = TripTrackingController(
+        sessionStore: tripStore,
+        odometer: odometer,
+      );
+      await tripStore.saveReview(
+        TripTrackingReviewRecord(
+          id: 'dashboard_review_exact_saved_reading',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1001,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 16, 12),
+          finishedAt: DateTime.utc(2026, 7, 16, 12, 10),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ActiveWorkdayScope(
+            controller: activeWorkday,
+            child: GlobalOdometerScope(
+              controller: odometer,
+              child: TripTrackingScope(
+                controller: tripController,
+                child: const MaterialApp(
+                  home: ActiveWorkdayScreen(
+                    activeVehicle: VehicleProfilePreview(
+                      id: 'vehicle_1',
+                      nickname: 'Work Truck',
+                      year: '2026',
+                      make: 'Ford',
+                      model: 'Transit',
+                      odometer: '0001000',
+                      status: 'ACTIVE',
+                    ),
+                    workProfileName: 'Business',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.text('REVIEW LATEST GPS TRIP'));
+      await tester.pump();
+      await tester.tap(
+        find
+            .ancestor(
+              of: find.text('REVIEW LATEST GPS TRIP'),
+              matching: find.byType(InkWell),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '1001');
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirm Odometer'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Business'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save Miles'));
+      await tester.pumpAndSettle();
+
+      final stored = tripStore.reviewForTrip(
+        'dashboard_review_exact_saved_reading',
+      );
+      expect(stored?.confirmedEndingOdometer, 1001);
+      expect(stored?.isOdometerConfirmed, isTrue);
+      expect(odometer.confirmedReading, 1001);
+      expect(
+        find.text('GPS trip reviewed and odometer confirmed.'),
+        findsOneWidget,
+      );
     },
   );
 }
