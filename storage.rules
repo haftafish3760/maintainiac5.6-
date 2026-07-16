@@ -41,6 +41,10 @@ service firebase.storage {
         firestore.exists(uploadGrantPath(orgId, grantId)) &&
         uploadGrant(orgId, grantId).uid == uid &&
         uploadGrant(orgId, grantId).status == 'open' &&
+        uploadGrant(orgId, grantId).maxBytes is int &&
+        uploadGrant(orgId, grantId).maxBytes > 0 &&
+        uploadGrant(orgId, grantId).expiresAt is timestamp &&
+        request.time < uploadGrant(orgId, grantId).expiresAt &&
         request.resource.size <= uploadGrant(orgId, grantId).maxBytes;
     }
 
