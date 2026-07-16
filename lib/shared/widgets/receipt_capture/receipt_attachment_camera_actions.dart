@@ -96,16 +96,15 @@ extension _ReceiptAttachmentCameraActions
   Future<bool> _showFirstUseReceiptCameraIntro(
     ReceiptCaptureSettingsController settings,
   ) async {
-    final action = await Navigator.of(context)
-        .push<_ReceiptFirstUseCameraAction>(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (context) => _ReceiptFirstUseCameraIntroSheet(
-              area: widget.area,
-              uiConfig: widget.uiConfig,
-            ),
-          ),
-        );
+    final action = await showModalBottomSheet<_ReceiptFirstUseCameraAction>(
+      context: context,
+      backgroundColor: widget.uiConfig.pageBackgroundColor,
+      showDragHandle: true,
+      builder: (context) => _ReceiptFirstUseCameraIntroSheet(
+        area: widget.area,
+        uiConfig: widget.uiConfig,
+      ),
+    );
     if (!mounted || action == null) return false;
     await _applyFirstUseReceiptAssistChoice(settings, action);
     if (!mounted) return false;

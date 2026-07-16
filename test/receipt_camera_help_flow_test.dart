@@ -17,9 +17,16 @@ void main() {
       );
 
       expect(cameraActions, contains('_showFirstUseReceiptCameraIntro'));
+      expect(
+        cameraActions,
+        contains('showModalBottomSheet<_ReceiptFirstUseCameraAction>'),
+      );
+      expect(cameraActions, isNot(contains('fullscreenDialog: true')));
       expect(uiConfig, contains("this.firstUseTitle = 'Receipt Assist'"));
       expect(firstUseSheet, contains('useReceiptAssist'));
       expect(firstUseSheet, contains('manualEntry'));
+      expect(firstUseSheet, isNot(contains('Scaffold(')));
+      expect(firstUseSheet, isNot(contains('_ReceiptAssistPromiseCard')));
       expect(firstUseSheet, isNot(contains('Storage And Privacy')));
     },
   );
