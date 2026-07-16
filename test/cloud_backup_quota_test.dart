@@ -118,6 +118,63 @@ void main() {
     });
   });
 
+  group('CloudBackupSyncAllowance', () {
+    const entitlement = CloudBackupEntitlement(
+      planId: 'free',
+      displayName: 'Free backup',
+      quotaBytes: 100 * 1024 * 1024,
+      dailySyncLimit: 4,
+      immediateSyncAllowed: false,
+      policyVersion: 1,
+    );
+
+    test('enforces the server-provided rolling 24-hour sync limit', () {
+      final now = DateTime.utc(2026, 7, 16, 12);
+      final allowance = CloudBackupSyncAllowance.evaluate(
+        entitlement: entitlement,
+        now: now,
+        attemptedAt: [
+          now.subtract(const Duration(hours: 23, minutes: 59)),
+          now.subtract(const Duration(hours: 12)),
+          now.subtract(const Duration(hours: 6)),
+          now.subtract(const Duration(hours: 1)),
+        ],
+      );
+
+      expect(allowance.used, 4);
+      expect(allowance.remaining, 0);
+      expect(allowance.allowsAttempt, isFalse);
+      expect(allowance.nextEligibleAtUtc, DateTime.utc(2026, 7, 16, 12, 1));
+    });
+
+    test('ignores stale and future attempt timestamps', () {
+      final now = DateTime.utc(2026, 7, 16, 12);
+      final allowance = CloudBackupSyncAllowance.evaluate(
+        entitlement: entitlement,
+        now: now,
+        attemptedAt: [
+          now.subtract(const Duration(hours: 25)),
+          now.subtract(const Duration(hours: 1)),
+          now.add(const Duration(minutes: 1)),
+        ],
+      );
+
+      expect(allowance.used, 1);
+      expect(allowance.remaining, 3);
+      expect(allowance.allowsAttempt, isTrue);
+    });
+
+    test('never grants cloud sync without a cloud entitlement', () {
+      final allowance = CloudBackupSyncAllowance.evaluate(
+        entitlement: const CloudBackupEntitlement.localOnly(),
+        now: DateTime.utc(2026, 7, 16, 12),
+        attemptedAt: const [],
+      );
+
+      expect(allowance.allowsAttempt, isFalse);
+    });
+  });
+
   group('CloudBackupStatusSnapshot', () {
     test('not connected snapshot is local-only with the trial tier ready', () {
       const status = CloudBackupStatusSnapshot.notConnected();

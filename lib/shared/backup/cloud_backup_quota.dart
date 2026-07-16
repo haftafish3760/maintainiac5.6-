@@ -100,6 +100,57 @@ class CloudBackupQuotaPolicy {
   }
 }
 
+/// Local view of a server-authorized rolling sync allowance. The server must
+/// enforce this same limit; this model prevents the app from knowingly
+/// scheduling an unapproved upload before it reaches the server.
+class CloudBackupSyncAllowance {
+  const CloudBackupSyncAllowance._({
+    required this.entitlement,
+    required this.nowUtc,
+    required this.attemptsInWindowUtc,
+  });
+
+  static const _window = Duration(hours: 24);
+
+  static CloudBackupSyncAllowance evaluate({
+    required CloudBackupEntitlement entitlement,
+    required Iterable<DateTime> attemptedAt,
+    required DateTime now,
+  }) {
+    final nowUtc = now.toUtc();
+    final windowStart = nowUtc.subtract(_window);
+    final attempts =
+        attemptedAt
+            .map((attempt) => attempt.toUtc())
+            .where(
+              (attempt) =>
+                  !attempt.isBefore(windowStart) && !attempt.isAfter(nowUtc),
+            )
+            .toSet()
+            .toList()
+          ..sort();
+    return CloudBackupSyncAllowance._(
+      entitlement: entitlement,
+      nowUtc: nowUtc,
+      attemptsInWindowUtc: List.unmodifiable(attempts),
+    );
+  }
+
+  final CloudBackupEntitlement entitlement;
+  final DateTime nowUtc;
+  final List<DateTime> attemptsInWindowUtc;
+
+  int get limit => entitlement.dailySyncLimit;
+  int get used => attemptsInWindowUtc.length;
+  int get remaining => (limit - used).clamp(0, limit);
+  bool get allowsAttempt => entitlement.hasCloudStorage && used < limit;
+
+  DateTime? get nextEligibleAtUtc {
+    if (allowsAttempt || attemptsInWindowUtc.isEmpty) return null;
+    return attemptsInWindowUtc.first.add(_window);
+  }
+}
+
 class CloudBackupQuotaCheck {
   const CloudBackupQuotaCheck({
     required this.entitlement,
