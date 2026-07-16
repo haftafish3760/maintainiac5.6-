@@ -110,7 +110,6 @@ class TripTrackingController extends ChangeNotifier {
       confirmedEndingOdometer: confirmedEndingOdometer,
       odometerConfirmedAt: confirmationTime,
     );
-    await _sessionStore.saveReview(confirmedReview);
     final odometerCommit = _odometer.updateFromText(
       confirmedEndingOdometer.toString(),
       enteredAt: confirmationTime,
@@ -120,6 +119,7 @@ class TripTrackingController extends ChangeNotifier {
       sourceId: review.id,
     );
     if (!odometerCommit.ok) return false;
+    await _sessionStore.saveReview(confirmedReview);
     try {
       await _cloudMirror.queueReview(confirmedReview);
       unawaited(_flushCloudMirror());

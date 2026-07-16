@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
@@ -1702,6 +1703,87 @@ void main() {
       expect(mirror.reviews.single.id, 'trip_review');
       expect(mirror.reviews.single.isOdometerConfirmed, isTrue);
       expect(mirror.flushCalls, 1);
+    },
+  );
+
+  test(
+    'a failed review confirmation save can retry without duplicating odometer history',
+    () async {
+      var storageChecks = 0;
+      final store = TripTrackingSessionStore.memory(
+        storageCheck: () async {
+          storageChecks += 1;
+          if (storageChecks == 2) {
+            return const AppStorageCheck(
+              availableBytes: 0,
+              operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+              requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
+              purpose: AppStoragePurpose.mileageTracking,
+            );
+          }
+          return const AppStorageCheck(
+            availableBytes: AppStorageGuard.mileageTrackingWriteBytes,
+            operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+            requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
+            purpose: AppStoragePurpose.mileageTracking,
+          );
+        },
+      );
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final mirror = _FakeTripTrackingCloudMirror();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        cloudMirror: mirror,
+      );
+      final review = TripTrackingReviewRecord(
+        id: 'trip_retry_confirmation_save',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1001,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        finishedAt: start.add(const Duration(minutes: 1)),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      );
+      await store.saveReview(review);
+
+      await expectLater(
+        controller.confirmOdometerReview(
+          reviewId: review.id,
+          confirmedEndingOdometer: 1001,
+          confirmedAt: start.add(const Duration(minutes: 2)),
+        ),
+        throwsStateError,
+      );
+      expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
+      expect(odometer.confirmedReading, 1001);
+      expect(
+        odometer.history.where((event) => event.sourceId == review.id),
+        hasLength(1),
+      );
+      expect(mirror.reviews, isEmpty);
+
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: review.id,
+          confirmedEndingOdometer: 1001,
+          confirmedAt: start.add(const Duration(minutes: 2)),
+        ),
+        isTrue,
+      );
+      expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isTrue);
+      expect(
+        odometer.history.where((event) => event.sourceId == review.id),
+        hasLength(1),
+      );
+      expect(mirror.reviews.single.id, review.id);
     },
   );
 
