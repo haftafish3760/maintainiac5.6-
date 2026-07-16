@@ -81,6 +81,43 @@ void main() {
     );
   });
 
+  test('rejects a cloud proof path that could reference device storage', () {
+    final receipt = ExpenseReceiptRecord(
+      id: 'path-guard',
+      receiptDate: DateTime.utc(2026, 7, 15),
+      lines: const [],
+      attachments: [
+        ReceiptAttachmentRecord(
+          id: 'proof-1',
+          path: '/private/local/proof.jpg',
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: ReceiptDataSaverLevel.balanced,
+          createdAt: DateTime.utc(2026, 7, 15),
+        ),
+      ],
+    );
+    final cloud = ExpenseFirestoreDocumentBuilder.expenseReceiptDocument(
+      orgId: 'ORG-1',
+      uid: 'USER-1',
+      deviceId: 'DEVICE-1',
+      receipt: receipt,
+      nowUtc: DateTime.utc(2026, 7, 15, 15),
+    );
+    final data = Map<String, dynamic>.from(cloud.data);
+    data['proofs'] = [
+      {
+        ...Map<String, dynamic>.from((cloud.data['proofs'] as List).single),
+        'cloudProofState': 'available',
+        'storagePath': '/private/local/proof.jpg',
+      },
+    ];
+
+    expect(
+      () => ExpenseCloudRestoreCodec.decodeReceipt(data),
+      throwsFormatException,
+    );
+  });
+
   test('decodes active and archived work-profile restore metadata', () {
     final restored = ExpenseCloudRestoreCodec.decodeWorkProfileDirectory({
       'schema': 'expense_work_profile_directory_backup_v1',

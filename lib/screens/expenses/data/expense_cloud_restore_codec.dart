@@ -251,6 +251,9 @@ class ExpenseCloudRestoreCodec {
           'Cloud receipt proof metadata is missing its storage path.',
         );
       }
+      if (storagePath != null && !_isSafeCloudProofPath(storagePath)) {
+        throw const FormatException('Cloud receipt proof path is unsafe.');
+      }
       pointers.add(
         ExpenseCloudProofPointer(
           id: _text(item['id']),
@@ -269,6 +272,17 @@ class ExpenseCloudRestoreCodec {
       );
     }
     return List.unmodifiable(pointers);
+  }
+
+  static bool _isSafeCloudProofPath(String path) {
+    final segments = path.split('/');
+    return segments.length >= 2 &&
+        segments.every(
+          (segment) =>
+              RegExp(r'^[A-Za-z0-9._-]{1,160}$').hasMatch(segment) &&
+              segment != '.' &&
+              segment != '..',
+        );
   }
 
   static List<String> _auditEvents(Object? value, {required String recordId}) {
