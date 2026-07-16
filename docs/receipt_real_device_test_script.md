@@ -104,8 +104,8 @@ not as proof that the receipt-camera app bundle is still wrong.
 
 Purpose:
 - Prove a normal short receipt can go from photo to app-assisted review.
-- Prove the Phase 2 receipt entry flow and Phase 3 camera viewer feel clean on
-  a real phone, not just in source contracts.
+- Prove the Add Receipt flow hands off cleanly to the phone's camera, then
+  returns to a clear Maintainiac photo review.
 
 Front-door proof before capture:
 - `Add Receipt` opens a simple chooser.
@@ -116,51 +116,48 @@ Front-door proof before capture:
 - Manual entry remains available.
 - No compression, storage, or save-space setup wall appears before the first
   photo.
-- The camera opens immediately after the choice.
+- The phone's system camera opens immediately after the choice.
 
-Live viewer proof:
-- The preview reads as full-screen on the device.
-- Back, settings gear, and torch stay on the screen edges.
-- The shutter is round and centered near the bottom.
-- No large black bars or oversized control sheets block the receipt preview.
-- `Done` or `Next` does not appear until there is at least one captured photo.
-- Preview tap focus stays off limits. The flow uses native autofocus plus the
-  explicit controls only.
-- The viewer does not hide the receipt behind a large control sheet.
+System camera handoff proof:
+- The phone's own camera opens; Maintainiac does not replace it with a custom
+  camera viewer.
+- The phone owns focus, light, zoom, and shutter controls.
+- After capture, Maintainiac returns to full-screen photo review.
+- Photo review shows the captured image first, then clear `Retake`, `Add
+  Another Photo`, and `Use Receipt` actions.
+- Settings gear remains available from the Add Receipt chooser, not over the
+  phone camera.
 
 Steps:
 1. Open Expenses.
 2. Start a new receipt expense.
 3. Attach a receipt photo using the camera.
-4. Wait for continuous focus/readability guidance to settle.
-5. Pinch to zoom and back out.
-6. Toggle flash once, then return it to the desired setting.
-7. Take one photo manually.
+4. Take one photo with the phone's normal camera controls.
+5. Return to Maintainiac photo review.
+6. Check the captured photo is readable.
+7. Retake it once, then return to review.
 8. Review the photo.
-9. Confirm the receipt image is not hidden by a large panel.
+9. Confirm the receipt image is the main thing on screen.
 10. Use the photo and continue.
 
 Expected:
-- Camera controls stay on the screen edges.
-- Manual capture works even if guidance is uncertain.
-- The review screen shows a clear primary `Next` action to fill the receipt review.
+- The phone camera behaves like the user expects on that device.
+- The review screen shows one clear primary `Use Receipt` action to continue.
+- If the app thinks the receipt may continue, it asks whether to add another
+  photo, keep reviewing, or use the receipt.
 - The next app-assisted screen shows what Maintainiac read from the receipt.
 - The user is not dumped back into a plain attachment list.
 
 Must Never Happen:
-- No large control sheet hides the receipt.
+- No custom Maintainiac camera viewer replaces the system camera.
 - No missing continue action.
 - No developer labels such as parser line counts on the user-facing receipt screen.
 - No compressed saved copy is used as the OCR source.
 
 Report Back:
-- Did the preview feel blocked?
-- Did continuous autofocus settle on readable receipt text without extra user
-  work?
-- Confirm preview tap focus is off limits: no screen-tap focus prompt, preview
-  focus setting, or preview tap focus diagnostic should appear during receipt
-  capture.
-- Did brightness, glare, and sharpness guidance match the real photo?
+- Did the phone camera open immediately and return to photo review?
+- Did the photo review make the next action obvious?
+- If the photo might be incomplete, did the app offer the three clear choices?
 - Did the app move to receipt review after using the photo?
 - What merchant, total, tax, and date did it detect?
 
@@ -173,8 +170,8 @@ Steps:
 1. Start a new receipt expense.
 2. Take the top section of a long receipt.
 3. Add another photo.
-4. Use the ghost/overlap guide if shown.
-5. Capture the next section with some repeated lines from the first photo.
+4. Use the reference photo shown by Maintainiac before opening the phone camera.
+5. Capture the next section with 3-5 repeated lines from the first photo.
 6. Add a third section if needed.
 7. Review photo order.
 8. Move one photo out of order, then put it back.
@@ -183,6 +180,8 @@ Steps:
 
 Expected:
 - The app makes photo order clear.
+- The reference photo is shown before each extra capture; the phone camera is
+  not expected to draw a Maintainiac overlay.
 - The app can handle overlap without duplicating every repeated line.
 - If the stitch is unsafe, the app falls back to reviewing ordered photos separately.
 - The user can still continue manually with proof attached.
