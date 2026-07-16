@@ -15,25 +15,34 @@ void main() {
     );
   });
 
-  test('real-device matrix gate stays scoped to receipt camera front-door proof', () {
-    final gate = File(
-      'tool/receipt_real_device_matrix_gate.dart',
-    ).readAsStringSync();
+  test(
+    'real-device matrix gate stays scoped to receipt camera front-door proof',
+    () {
+      final gate = File(
+        'tool/receipt_real_device_matrix_gate.dart',
+      ).readAsStringSync();
 
-    expect(gate, contains("'Add Receipt'"));
-    expect(gate, contains("'Capture Photo'"));
-    expect(gate, contains("'Upload Photos'"));
-    expect(gate, contains("'Upload PDF/File'"));
-    expect(gate, contains("'Paste/Text'"));
-    expect(gate, contains("'Receipt Assist question'"));
-    expect(gate, contains("'camera opens immediately after the choice'"));
-    expect(gate, contains("'preview reads as full-screen'"));
-    expect(gate, contains("'settings gear'"));
-    expect(gate, contains("'shutter is round and centered'"));
-    expect(gate, contains("'preview tap focus stays off limits'"));
-    expect(gate, contains("'## Flow 7: PDF Receipt Import'"));
-    expect(gate, contains("'Purpose:\\n- Prove PDF receipts are handled safely.'"));
-  });
+      expect(gate, contains("'Add Receipt'"));
+      expect(gate, contains("'Capture Photo'"));
+      expect(gate, contains("'Upload Photos'"));
+      expect(gate, contains("'Upload PDF/File'"));
+      expect(gate, contains("'Paste/Text'"));
+      expect(gate, contains("'Receipt Assist question'"));
+      expect(gate, contains("'camera opens immediately after the choice'"));
+      expect(gate, contains("'full-screen photo review'"));
+      expect(gate, contains("'settings gear'"));
+      expect(
+        gate,
+        contains("'phone owns focus, light, zoom, and shutter controls'"),
+      );
+      expect(gate, contains("'tap-to-focus'"));
+      expect(gate, contains("'## Flow 7: PDF Receipt Import'"));
+      expect(
+        gate,
+        contains("'Purpose:\\n- Prove PDF receipts are handled safely.'"),
+      );
+    },
+  );
 
   test('fast guard includes real-device matrix gate', () {
     final fastGate = File('tool/receipt_fast_guard_gate.sh').readAsStringSync();
@@ -42,14 +51,22 @@ void main() {
   });
 
   test('phase9 gate also carries the real-device result gate lane', () {
-    final cameraGate = File('tool/receipt_camera_qa_gate.sh').readAsStringSync();
+    final cameraGate = File(
+      'tool/receipt_camera_qa_gate.sh',
+    ).readAsStringSync();
     final changedGate = File(
       'tool/receipt_camera_changed_gate.sh',
     ).readAsStringSync();
 
     expect(cameraGate, contains('tool/receipt_real_device_result_gate.dart'));
-    expect(cameraGate, contains('test/receipt_real_device_result_gate_test.dart'));
+    expect(
+      cameraGate,
+      contains('test/receipt_real_device_result_gate_test.dart'),
+    );
     expect(changedGate, contains('tool/receipt_real_device_result_gate.dart'));
-    expect(changedGate, contains('test/receipt_real_device_result_gate_test.dart'));
+    expect(
+      changedGate,
+      contains('test/receipt_real_device_result_gate_test.dart'),
+    );
   });
 }

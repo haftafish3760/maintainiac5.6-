@@ -13,6 +13,8 @@ The plan is intentionally numbered. Every receipt-hardening pass should be repor
 ## Current Receipt Camera Roadmap Lock
 
 Active roadmap source: `docs/receipt_camera_roadmap.md`.
+System-managed capture and review contract:
+`docs/receipt_camera_release_one_blueprint.md`.
 
 Work must stay on the receipt camera/capture/review/stitch/OCR-source handoff
 lane unless a documented camera dependency requires otherwise. PDF, inventory,
@@ -69,8 +71,9 @@ Maintainiac must not recreate Samsung, Android, or Apple photography software.
 - Flutter: owns the receipt-specific chooser, first-use Receipt Assist choice,
   numbered review, previous-section alignment guide, stitch decision, and OCR
   handoff.
-- Custom live focus, exposure, torch, blur, glare, shadow, and tap-to-focus
-  UI are out of scope unless separately approved with measured device evidence.
+- Custom live focus, exposure, torch, blur, glare, shadow, and point-specific
+  focus UI are out of scope unless separately approved with measured device
+  evidence.
 
 ## Download Size And Device Storage Rule
 

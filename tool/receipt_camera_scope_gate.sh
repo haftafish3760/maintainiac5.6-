@@ -27,6 +27,7 @@ while IFS= read -r path; do
     docs/receipt_camera_ocr_master_pass_plan.md | \
     docs/receipt_camera_release_one_blueprint.md | \
     docs/receipt_camera_world_class_readiness.md | \
+    docs/receipt_real_device_test_script.md | \
     docs/receipt_native_camera_service_spec.md | \
     docs/receipt_bug_regression_ledger.md | \
     docs/receipt_bug_regression_ledger_archive_*.md | \
@@ -41,6 +42,7 @@ while IFS= read -r path; do
 	    test/receipt_attachment_panel_actions_test.dart | \
 	    test/receipt_import_source_sheet_test.dart | \
     test/receipt_camera_dataset_qa_gate_contract_test.dart | \
+    test/receipt_real_device_matrix_gate_test.dart | \
     test/receipt_camera_* | \
     test/receipt_native_* | \
     test/receipt_ocr_source_* | \
@@ -58,6 +60,7 @@ while IFS= read -r path; do
 	    tool/receipt_bug_regression_ledger_gate.dart | \
 	    tool/receipt_camera_changed_route_coverage_gate.dart | \
 	    tool/receipt_camera_* | \
+	    tool/receipt_real_device_matrix_gate.dart | \
 	    tool/receipt_external_dataset_local_audit.dart | \
 	    tool/receipt_external_dataset_gate.dart | \
 	    tool/receipt_external_fixture_schema_gate.dart | \

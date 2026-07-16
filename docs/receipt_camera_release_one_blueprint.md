@@ -10,10 +10,9 @@ pass forecasts. Do not estimate remaining passes from memory or hunches.
 ## Active Operating Goal
 
 Finish the Maintainiac shared receipt capture workflow, not a standalone camera
-app. The phone's native camera stack does the heavy camera work. Maintainiac
-adds the receipt workflow around it: launch, permissions, manual shutter, torch,
-receipt framing guidance, long-receipt continuation, review, retake, stitch or
-ordered fallback, and OCR-source handoff.
+app. The phone's native camera stack does the camera work. Maintainiac adds the
+receipt workflow around it: launch, permissions, long-receipt continuation,
+numbered review, retake, stitch or ordered fallback, and OCR-source handoff.
 
 The current release-track pass forecast lives in
 `docs/receipt_camera_completion_map.md`: **400-550 focused receipt workflow
@@ -22,11 +21,9 @@ camera-app estimates unless new evidence changes the completion map.
 
 ### Required Controls
 
-- Manual shutter.
-- Torch/flash button when the device supports it.
-- Brightness/readability guidance that helps the user get a usable receipt
-  photo.
-- Settings for camera guidance and capture assistance.
+- The phone's normal shutter, autofocus, light, and exposure behavior.
+- Receipt Assist and saved-proof preferences in Maintainiac receipt settings.
+- A clear post-capture review with Retake, Add Another Photo, and Use Receipt.
 
 ### Optional/Future Controls
 
@@ -38,11 +35,10 @@ camera-app estimates unless new evidence changes the completion map.
 
 ## Release-One Target
 
-The goal is an 80-90% solid release-one receipt camera system that can keep
-improving through real receipt regressions. It does not need perfect scanner-app
-polish before the expense system can move forward, but it must be dependable
-enough that bad captures, ordering mistakes, lost OCR sources, and obvious
-review bugs are not normal user experiences.
+The goal is a dependable receipt workflow with strong automated coverage and
+measured device evidence before any percentage claim. It does not need to
+replace a scanner or camera app, but bad captures, ordering mistakes, lost OCR
+sources, and obvious review bugs must not be normal user experiences.
 
 Release one must prove:
 
@@ -69,9 +65,8 @@ Release one must prove:
 
 - Shared receipt camera entry that can be launched from expenses, maintenance,
   inventory/materials, and future receipt-using flows.
-- Native Android camera path through CameraX.
-- Native iOS camera path through AVFoundation.
-- Flutter orchestration, review, settings, and handoff UI.
+- System-managed Android and iOS camera launch.
+- Flutter receipt chooser, review, settings, and handoff UI.
 - Single-photo receipt capture.
 - Multi-photo long receipt capture.
 - Segment thumbnails, ordering, retake, and review.
@@ -96,25 +91,21 @@ Release one must prove:
 
 ## Architecture Lanes
 
-### Native Camera Engine
+### System Camera Capture
 
-Android owns camera frames through CameraX. iOS owns camera frames through
-AVFoundation. Native code should expose the same high-level contract to Flutter:
-start session, update settings, provide live quality signals, capture segment,
-recover session, and close session.
+Android and iOS use the phone's normal rear-camera route. Maintainiac starts
+that route and receives the selected image evidence back for receipt review.
+Maintainiac does not replace or tune the phone's focus, exposure, shutter, or
+light algorithms.
 
-Native code should not own expense parsing, business/personal classification, or
-record saving. It should only capture image evidence and return camera metadata.
-
-### Flutter Capture Orchestrator
+### Flutter Receipt Workflow
 
 Flutter owns the user-visible receipt flow:
 
 1. Start a `ReceiptCaptureSession`.
-2. Show the capture surface and controls.
-3. Receive live camera signals.
-4. Capture a segment.
-5. Show review actions: Retake, Add Photo, Done/Use Receipt.
+2. Open the phone's system camera.
+3. Receive the captured segment.
+4. Show review actions: Retake, Add Another Photo, Use Receipt.
 6. Keep ordered segment metadata.
 7. Build the final receipt handoff only after the user chooses Done/Use Receipt.
 

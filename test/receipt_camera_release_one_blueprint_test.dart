@@ -19,12 +19,11 @@ void main() {
     expect(projectRules, contains(blueprintPath));
     expect(masterPlan, contains(blueprintPath));
     expect(blueprint, contains('Release-One Target'));
-    expect(blueprint, contains('80-90% solid release-one receipt camera'));
-    expect(blueprint, contains('Native Android camera path through CameraX'));
-    expect(blueprint, contains('Native iOS camera path through AVFoundation'));
-    expect(blueprint, contains('Flutter Capture Orchestrator'));
-    expect(blueprint, contains('Retake, Add Photo, Done/Use Receipt'));
-    expect(blueprint, contains('Ghost And Overlap Guidance'));
+    expect(blueprint, contains('System Camera Capture'));
+    expect(blueprint, contains('System-managed Android and iOS camera launch'));
+    expect(blueprint, contains('Flutter Receipt Workflow'));
+    expect(blueprint, contains('Retake, Add Another Photo, Use Receipt'));
+    expect(blueprint, contains('Long Receipt Guidance'));
     expect(blueprint, contains('temporary full-quality capture sources'));
     expect(blueprint, contains('compressed proof by default'));
     expect(
@@ -35,7 +34,7 @@ void main() {
     expect(blueprint, contains('Optional auto-capture'));
     expect(
       blueprint,
-      contains('Android and iOS native paths share the same contract'),
+      contains('Android and iOS use the phone\'s normal rear-camera route'),
     );
   });
 }

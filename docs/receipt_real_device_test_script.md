@@ -122,6 +122,8 @@ System camera handoff proof:
 - The phone's own camera opens; Maintainiac does not replace it with a custom
   camera viewer.
 - The phone owns focus, light, zoom, and shutter controls.
+- Confirm the phone keeps its normal continuous autofocus behavior.
+- No unsupported quality warning should appear before the user captures a photo.
 - After capture, Maintainiac returns to full-screen photo review.
 - Photo review shows the captured image first, then clear `Retake`, `Add
   Another Photo`, and `Use Receipt` actions.
@@ -171,7 +173,7 @@ Steps:
 2. Take the top section of a long receipt.
 3. Return to Maintainiac review and confirm the first section is readable.
 4. Tap `Add Another Photo`.
-5. Use the reference photo shown by Maintainiac before the phone camera opens.
+5. Use the ghost/overlap guide shown by Maintainiac before the phone camera opens.
 6. Capture the next section with 3-5 repeated lines from the first photo.
 7. Add a third section only if the receipt continues.
 8. Tap each numbered section to inspect it.

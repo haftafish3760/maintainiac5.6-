@@ -28,9 +28,8 @@ Receipt workflow scope includes:
   pro camera replacement
 - guide the user through receipt capture without pretending unproven live
   quality heuristics are truth
-- provide the release-one receipt controls: manual shutter, torch when
-  supported, phone-native autofocus, basic brightness control, receipt framing
-  guidance, and settings
+- let the phone's native camera own shutter, light, exposure, and autofocus
+- provide receipt-specific chooser, review, continuation, and settings flow
 - review, retake, add photo, or use receipt
 - capture long receipts in ordered segments
 - preserve segment order during retakes
@@ -60,10 +59,10 @@ Receipt workflow scope excludes:
 
 | Work package | Target proof | Current evidence | Status |
 | --- | --- | --- | --- |
-| Native camera baseline | CameraX/AVFoundation use device defaults for core camera behavior while Maintainiac owns receipt UI/review/stitching only. | Contract docs/tests exist; production code now has a native-baseline policy. | Strong |
-| Receipt control priority | Manual shutter, torch, brightness guidance, settings, and receipt review are prioritized over pro-camera controls. | Native Android/iOS torch exists; contract now states torch and optional focus policy. | Strong |
+| Native camera baseline | The phone's normal Android or iOS camera handles core photography while Maintainiac owns chooser, review, stitching, and handoff only. | System-camera routing contracts and policy docs exist. | Strong |
+| Receipt control priority | Receipt review and continuation controls are prioritized over pro-camera controls. | The system camera retains its own shutter, light, exposure, and autofocus behavior. | Strong |
 | Shared entry and permissions | User can start receipt capture from shared flow with safe fallback. | Phase 2 source and tests are green for chooser options, assist opt-in/manual path, and camera-launch routing without compression setup. `tool/receipt_camera_qa_gate.sh phase2` passed on 2026-07-08. Real-device launch proof is still required. | Partial |
-| Native camera contract | Android CameraX and iOS AVFoundation expose matching high-level settings and capture metadata. | Flutter contract and native bridge tests are green, including the bundled milestone gate. `tool/receipt_camera_qa_gate.sh phase3` passed on 2026-07-08. Real-device proof still required. | Partial |
+| System camera contract | Android and iOS hand selected photos back to the same Maintainiac review contract. | System-camera capture, fallback, and review contracts are green. Real-device proof still required. | Partial |
 | No preview tap focus | Preview/screen tap focus is banned; phone-native continuous autofocus is primary. Any manual focus control must be explicit, reversible, device-supported, and separately approved. | Active docs and regression tests exist. | Strong |
 | Single photo capture | Manual capture works, review opens, retake/use actions are stable. | Phase 3 and Phase 4 source/tests are green, the milestone gate re-ran those contracts successfully, and `tool/receipt_camera_qa_gate.sh phase3` passed on 2026-07-08. Real-device proof still required. | Partial |
 | Quality guidance | Release-one live guidance stays conservative: neutral receipt framing/readability guidance, small-text/distance, and edge visibility can guide capture; blur, glare, shadow, dirty-lens, low-light, and steadiness claims stay disabled by default unless separately proven. Post-capture review may surface saved-photo quality risks as advisory review prompts. | Quality model/tests exist; unproven live quality claims are default-off and need real receipt calibration before promotion. Experimental live warnings now also wait for a reliable framed receipt target instead of any vague bounds hit. Optional experimental blur/focus scoring stays out of the default flow. | Partial |
@@ -135,7 +134,7 @@ The real-device path should use the user's available phones as the proof set:
 - Galaxy S9 Plus: older Android baseline, memory pressure, lower-camera margin.
 - Galaxy S24 Ultra: current Android flagship baseline.
 - Additional Android phone: brand/device variation when available.
-- iPhone: iOS AVFoundation route parity when available.
+- iPhone: system-camera handoff and review parity when available.
 
 If fewer than four phones are connected during a QA window, test the available
 phones and record the missing device class as a remaining risk instead of
