@@ -15,10 +15,17 @@ void main() {
     expect(reviewScreen, isNot(contains('Back To Receipt Form')));
     expect(saveActions, contains('_confirmReceiptReviewExit'));
     expect(saveActions, contains('final navigator = Navigator.of(context);'));
-    expect(reviewScreen, contains('_coverageDecisionForPhotoPath(photoPath)'));
+    expect(
+      saveActions,
+      contains('_coverageDecisionForPhotoPath(_photoPaths[selected])'),
+    );
     expect(reviewScreen, contains('continueReceiptPhotoReview'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
     expect(saveActions, contains("return 'Add Bottom Section';"));
+    expect(
+      saveActions,
+      contains("widget.uiConfig.labelFor(\n      'continue',\n      widget.uiConfig.useReceiptLabel"),
+    );
     expect(saveActions, contains('decision.shouldPromptForMorePhotos'));
     expect(
       saveActions,

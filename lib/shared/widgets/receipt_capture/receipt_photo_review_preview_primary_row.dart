@@ -46,8 +46,6 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     );
     final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add Bottom Section'
-        : shouldAddNextSection
-        ? uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel)
         : uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel);
     final addPhotoTooltip = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice'

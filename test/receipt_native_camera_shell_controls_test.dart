@@ -116,10 +116,6 @@ void main() {
       final bottomBar = await File(
         'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_bottom_bar.dart',
       ).readAsString();
-      final uiConfig = await File(
-        'lib/shared/widgets/receipt_capture/receipt_native_camera_ui_config.dart',
-      ).readAsString();
-
       expect(bottomBar, isNot(contains('LinearGradient(')));
       expect(bottomBar, isNot(contains('Color(0xB8050607)')));
       expect(bottomBar, contains('child: SafeArea('));

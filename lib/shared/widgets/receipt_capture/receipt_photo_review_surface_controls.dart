@@ -87,30 +87,6 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
     return proportional < absolute ? proportional : absolute;
   }
 
-  String _reviewTopBarContinueLabel(String photoPath) {
-    final strings = MaintaniacLocalizations.of(context);
-    if (_savingPhotos) return strings.openingReceiptReview;
-    final quality = _qualityChecksByPath[photoPath];
-    final coverageDecision = _coverageDecisionForPhotoPath(photoPath);
-    if (_reviewMode == _ReceiptReviewMode.preview &&
-        coverageDecision.shouldPromptForMorePhotos) {
-      return strings.useReceipt;
-    }
-    if (_reviewMode == _ReceiptReviewMode.preview &&
-        quality?.hasCriticalIssue == true) {
-      return strings.useAnyway;
-    }
-    if (_reviewMode == _ReceiptReviewMode.stitch &&
-        _photoPaths.length > 1 &&
-        (_stitchPreviewInFlight || _stitchPreviewResult == null)) {
-      return strings.checkingReceiptPhotos;
-    }
-    if (_reviewMode == _ReceiptReviewMode.preview) {
-      return strings.useReceipt;
-    }
-    return strings.useReceipt;
-  }
-
   ReceiptPhotoCoverageDecision _coverageDecisionForPhotoPath(String photoPath) {
     return ReceiptPhotoCoverageDecision.fromSignals(
       quality: _qualityChecksByPath[photoPath],

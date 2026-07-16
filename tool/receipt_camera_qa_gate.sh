@@ -49,6 +49,7 @@ phase4_tests=(
   test/receipt_photo_review_quality_handoff_test.dart
   test/receipt_photo_review_controls_layout_test.dart
   test/receipt_photo_review_crop_controls_layout_test.dart
+  test/receipt_photo_review_continuation_copy_test.dart
   test/receipt_photo_section_labels_test.dart
 )
 
@@ -154,6 +155,7 @@ phase4_audit_paths=(
   test/receipt_photo_section_labels_test.dart
   test/receipt_photo_review_controls_layout_test.dart
   test/receipt_photo_review_crop_controls_layout_test.dart
+  test/receipt_photo_review_continuation_copy_test.dart
 )
 
 phase5_audit_paths=(
@@ -449,6 +451,7 @@ full_only_tests=(
   test/receipt_camera_user_language_contract_test.dart
   test/receipt_photo_review_controls_layout_test.dart
   test/receipt_photo_review_crop_controls_layout_test.dart
+  test/receipt_photo_review_continuation_copy_test.dart
   test/receipt_image_data_saver_test.dart
   test/receipt_image_source_prep_test.dart
   test/receipt_native_android_bridge_auto_capture_test.dart

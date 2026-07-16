@@ -32,7 +32,6 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                           bestShotCandidateMode: widget.bestShotCandidateMode,
                           openingCamera: _openingCamera,
                           savingPhotos: _savingPhotos,
-                          continueLabel: _reviewTopBarContinueLabel(photoPath),
                           onClose: _reviewMode == _ReceiptReviewMode.crop
                               ? _cancelCropReview
                               : leaveReceiptReviewWithoutSaving,
@@ -42,9 +41,6 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                                   () => _controlsVisible = false,
                                 ),
                           onMenuSelected: handleReviewMenuAction,
-                          onContinue: _reviewMode == _ReceiptReviewMode.crop
-                              ? null
-                              : continueReceiptPhotoReview,
                         ),
                       )
                     : const SizedBox.shrink(),

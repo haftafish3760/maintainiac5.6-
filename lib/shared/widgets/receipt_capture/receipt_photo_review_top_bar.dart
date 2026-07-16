@@ -8,11 +8,9 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.bestShotCandidateMode,
     required this.openingCamera,
     required this.savingPhotos,
-    required this.continueLabel,
     required this.onClose,
     required this.onHideControls,
     required this.onMenuSelected,
-    required this.onContinue,
   });
 
   final int current;
@@ -21,11 +19,9 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final bool bestShotCandidateMode;
   final bool openingCamera;
   final bool savingPhotos;
-  final String continueLabel;
   final VoidCallback onClose;
   final VoidCallback? onHideControls;
   final ValueChanged<_ReceiptReviewMenuAction> onMenuSelected;
-  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {

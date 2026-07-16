@@ -208,7 +208,10 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
       return 'Add Bottom Section';
     }
-    return 'Use Receipt';
+    return widget.uiConfig.labelFor(
+      'continue',
+      widget.uiConfig.useReceiptLabel,
+    );
   }
 
   String _receiptReviewExitNextCopy({

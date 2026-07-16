@@ -84,6 +84,12 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     final hasCapturedPhotos = photoPaths.isNotEmpty;
     final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;
     final continueLabel = _continueLabel;
+    final displayedContinueLabel = uiConfig.labelFor(
+      'continue',
+      continueLabel == 'Use Receipt'
+          ? uiConfig.useReceiptLabel
+          : continueLabel,
+    );
     final waitingForStitch =
         reviewMode == _ReceiptReviewMode.stitch &&
         photoPaths.length > 1 &&
@@ -247,7 +253,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
             _ReceiptPersistentContinueButton(
               enabled: continueEnabled,
               savingPhotos: effectiveSavingPhotos,
-              label: continueLabel,
+              label: displayedContinueLabel,
               onContinue: onContinue,
             ),
           ],
