@@ -133,10 +133,10 @@ class CloudBackupSyncAllowance {
     final attempts =
         attemptedAt
             .map((attempt) => attempt.toUtc())
-            .where(
-              (attempt) =>
-                  !attempt.isBefore(windowStart) && !attempt.isAfter(nowUtc),
-            )
+            // A local clock rollback must not make an already-recorded sync
+            // disappear and grant another user-authorized attempt. Future
+            // entries are conservatively consumed until they age out.
+            .where((attempt) => !attempt.isBefore(windowStart))
             .toSet()
             .toList()
           ..sort();

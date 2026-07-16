@@ -149,7 +149,7 @@ void main() {
       expect(allowance.nextEligibleAtUtc, DateTime.utc(2026, 7, 16, 12, 1));
     });
 
-    test('ignores stale and future attempt timestamps', () {
+    test('ignores stale attempts but conservatively counts future attempts', () {
       final now = DateTime.utc(2026, 7, 16, 12);
       final allowance = CloudBackupSyncAllowance.evaluate(
         entitlement: entitlement,
@@ -161,9 +161,26 @@ void main() {
         ],
       );
 
-      expect(allowance.used, 1);
-      expect(allowance.remaining, 3);
+      expect(allowance.used, 2);
+      expect(allowance.remaining, 2);
       expect(allowance.allowsAttempt, isTrue);
+    });
+
+    test('a clock rollback cannot reclaim an exhausted sync allowance', () {
+      final now = DateTime.utc(2026, 7, 16, 12);
+      final allowance = CloudBackupSyncAllowance.evaluate(
+        entitlement: entitlement,
+        now: now,
+        attemptedAt: [
+          now.subtract(const Duration(hours: 3)),
+          now.subtract(const Duration(hours: 2)),
+          now.subtract(const Duration(hours: 1)),
+          now.add(const Duration(hours: 1)),
+        ],
+      );
+
+      expect(allowance.used, 4);
+      expect(allowance.allowsAttempt, isFalse);
     });
 
     test('never grants cloud sync without a cloud entitlement', () {
