@@ -26,7 +26,6 @@ import 'receipt_pdf_inspector.dart';
 import 'receipt_pdf_viewer_screen.dart';
 import 'receipt_picker_status.dart';
 import 'receipt_proof_storage.dart';
-import 'receipt_scanner_service.dart';
 import 'receipt_storage_guard.dart';
 
 part 'receipt_attachment_list.dart';

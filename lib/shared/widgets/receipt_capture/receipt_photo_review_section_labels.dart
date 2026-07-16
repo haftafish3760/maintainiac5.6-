@@ -3,8 +3,6 @@ part of 'receipt_photo_review_screen.dart';
 class _ReceiptPhotoSectionLabels {
   const _ReceiptPhotoSectionLabels._();
 
-  static const sectionHeader = 'Receipt Sections';
-
   static String label({required int index, required int total}) {
     if (total <= 1) return 'Receipt Photo';
     if (index <= 0) return 'Top Section';
@@ -18,17 +16,6 @@ class _ReceiptPhotoSectionLabels {
 
   static String sectionNumberLabel({required int index, required int total}) {
     return 'Section ${index + 1} of $total';
-  }
-
-  static String orderedStripHint({
-    required int selectedIndex,
-    required int total,
-  }) {
-    if (total <= 1) {
-      return 'If the receipt continues below this photo, add the next section.';
-    }
-    final selected = sectionNumberLabel(index: selectedIndex, total: total);
-    return '$selected selected. Section 1 must be the top; every next section should continue lower with 3-5 repeated readable lines.';
   }
 
   static String selectedReviewGuidance({
@@ -58,10 +45,6 @@ class _ReceiptPhotoSectionLabels {
       return 'Confirm bottom section, then match.';
     }
     return 'Confirm middle section, then match.';
-  }
-
-  static String addNextSectionLabel({required int total}) {
-    return total <= 1 ? 'Add Another Photo' : 'Add Next Receipt Photo';
   }
 
   static String orderHint({required int index, required int total}) {

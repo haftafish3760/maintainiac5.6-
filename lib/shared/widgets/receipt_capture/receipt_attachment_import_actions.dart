@@ -14,8 +14,6 @@ enum _ReceiptTextImportAction { pasteText, textFile }
 
 enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }
 
-enum _MaintainiacNativeCameraPhotoOutcome { added, unavailable, canceled }
-
 extension _ReceiptAttachmentImportActions
     on _SharedReceiptAttachmentPanelState {
   Future<void> uploadReceiptImage() async {

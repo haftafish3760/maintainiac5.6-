@@ -126,7 +126,6 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     _updateReviewState(() => _openingCamera = true);
     ReceiptPhotoCoverageDecision? coverageDecision;
     try {
-      final settings = ReceiptCaptureSettingsScope.maybeOf(context);
       if (alignmentGuidePhotoPath != null && showAlignmentGuide) {
         coverageDecision = _coverageDecisionForPhoto(alignmentGuidePhotoPath);
         final shouldContinue = await _showLongReceiptAlignmentGuide(
@@ -138,42 +137,9 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
         if (!shouldContinue) return const _PickedReceiptPhotos.empty();
       }
-      final nativePicked = await _pickWithMaintainiacNativeCamera(
-        settings,
-        previousSectionGuidePhotoPath: alignmentGuidePhotoPath,
-        nextSectionGuidePhotoPath: nextSectionGuidePhotoPath,
-        previousSectionReasonCode: alignmentReasonCode,
-        previousSectionGuidance: alignmentGuidance,
-        previousSectionCoverageDecision: coverageDecision,
-      );
-      if (nativePicked.wasCanceled) return nativePicked;
-      if (nativePicked.paths.isNotEmpty) return nativePicked;
-      if (NativeReceiptScannerService.documentScannerAllowedOnThisPlatform) {
-        final scanResult = await const NativeReceiptScannerService()
-            .scanReceipt(
-              pageLimit:
-                  settings?.deviceCapability.maxLocalPhotoCount ??
-                  const ReceiptDeviceCapability.standard().maxLocalPhotoCount,
-              allowGalleryImport: false,
-            );
-        if (scanResult.hasScannedPages) {
-          final cameraResult = scanResult.cameraResult!;
-          return _PickedReceiptPhotos.fromCameraResult(
-            cameraResult,
-            cameraResult.photoPaths,
-          );
-        }
-        if (scanResult.status == ReceiptNativeScanStatus.canceled) {
-          return const _PickedReceiptPhotos.empty();
-        }
-        _showScannerFallbackNotice(scanResult);
-      }
-      _showCameraError(
-        'Maintainiac receipt camera is not available. Opening the phone camera as backup capture; the next section still returns to Maintainiac receipt review.',
-      );
-      final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
+      final picked = await ReceiptImagePicker.takeReceiptPhotoSet();
       if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
-      return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
+      return _PickedReceiptPhotos.fromSystemCameraPaths(
         picked.paths,
         hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
         previousSectionReasonCode: alignmentReasonCode,
@@ -182,36 +148,11 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       );
     } on MissingPluginException {
       if (_reviewWorkActive) {
-        _showScannerFallbackNotice(
-          const ReceiptNativeScanResult.unavailable(
-            'Document scanning is not available in this build.',
-          ),
-        );
-      }
-      if (_reviewWorkActive) {
         _showCameraError(
-          'Maintainiac receipt camera is not installed in this build. Opening the phone camera as backup capture; the next section still returns to Maintainiac receipt review.',
+          'The phone camera is not available in this build. Use Upload Photos or reinstall the app and try again.',
         );
       }
-      try {
-        final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
-        if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-        if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
-        return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
-          picked.paths,
-          hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
-          previousSectionReasonCode: alignmentReasonCode,
-          previousSectionGuidance: alignmentGuidance,
-          previousSectionCoverageDecision: coverageDecision,
-        );
-      } on MissingPluginException {
-        if (_reviewWorkActive) {
-          _showCameraError(
-            'The phone camera fallback is not available in this build. Use Add Existing Photo from the receipt form, or reinstall the app and try again.',
-          );
-        }
-        return const _PickedReceiptPhotos.empty();
-      }
+      return const _PickedReceiptPhotos.empty();
     } on PlatformException catch (error) {
       if (_reviewWorkActive) {
         _showCameraError(_nativeCameraOpenErrorMessage(error));
@@ -220,7 +161,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     } catch (_) {
       if (_reviewWorkActive) {
         _showCameraError(
-          'The camera did not open. Try Add Another Photo again, or choose an existing receipt image.',
+          'The phone camera did not open. Try Add Another Photo again, or choose an existing receipt image.',
         );
       }
       return const _PickedReceiptPhotos.empty();
@@ -257,85 +198,6 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       if (_completionDecisionsByPath.containsKey(photoPath))
         ..._completionDecisionsByPath[photoPath]!,
     };
-  }
-
-  Future<_PickedReceiptPhotos> _pickWithMaintainiacNativeCamera(
-    ReceiptCaptureSettingsController? settings, {
-    String? previousSectionGuidePhotoPath,
-    String? nextSectionGuidePhotoPath,
-    String? previousSectionReasonCode,
-    String? previousSectionGuidance,
-    ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
-  }) async {
-    final permission = await const ReceiptCameraPermission().ensureReady();
-    if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-    if (!permission.canUseCamera) {
-      _showCameraError(permission.userMessage);
-      return const _PickedReceiptPhotos.empty();
-    }
-    final service = const ReceiptNativeCameraService();
-    final nativeCapabilities = await service.readCapabilities();
-    if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-    if (!nativeCapabilities.canOpenReceiptCamera) {
-      return const _PickedReceiptPhotos.empty();
-    }
-    final deviceCapability =
-        settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
-    final cameraSettings = ReceiptNativeCameraSettings(
-      assistedReceiptFill: widget.assistedReceiptFill,
-      longReceiptMode: settings?.cameraLongReceiptTips ?? true,
-      autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
-      dataSaverLevel: _dataSaverLevel,
-    );
-    try {
-      final result = await service.captureReceipt(
-        cameraSettings.sessionFor(
-          deviceCapability: deviceCapability,
-          nativeCapabilities: nativeCapabilities,
-          previousSectionGuidePhotoPath: previousSectionGuidePhotoPath,
-          nextSectionGuidePhotoPath: nextSectionGuidePhotoPath,
-          previousSectionReasonCode:
-              previousSectionReasonCode ??
-              previousSectionCoverageDecision?.reasonCode,
-          previousSectionGuidance:
-              previousSectionGuidance ??
-              previousSectionCoverageDecision?.guidance,
-        ),
-      );
-      if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-      if (!result.hasPhotos) return const _PickedReceiptPhotos.empty();
-      final staged = await const ReceiptNativeCaptureStaging().stage(
-        result,
-        dataSaverLevel: _dataSaverLevel,
-      );
-      if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-      if (!staged.hasPhotos) return const _PickedReceiptPhotos.empty();
-      return _PickedReceiptPhotos.fromNativePhotoPaths(
-        staged.photoPaths,
-        captureDiagnosticsByPath: staged.captureDiagnosticsByPhotoPath,
-      );
-    } on ReceiptNativeCameraCanceledException {
-      return const _PickedReceiptPhotos.canceled();
-    } on ReceiptNativeCameraUnavailableException catch (error) {
-      if (_reviewWorkActive && nativeCapabilities.available) {
-        _showCameraError(
-          '${error.message} Opening the phone camera as backup capture; the next section still returns to Maintainiac receipt review.',
-        );
-      }
-      final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
-      if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-      if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
-      return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
-        picked.paths,
-        hadPreviousSectionGuide: previousSectionGuidePhotoPath != null,
-        previousSectionReasonCode: previousSectionReasonCode,
-        previousSectionGuidance: previousSectionGuidance,
-        previousSectionCoverageDecision: previousSectionCoverageDecision,
-      );
-    } on ReceiptProofStorageException catch (error) {
-      if (_reviewWorkActive) _showCameraError(error.message);
-      return const _PickedReceiptPhotos.empty();
-    }
   }
 
   Map<String, Map<String, Object?>> _mergeRetakeCaptureDiagnostics(

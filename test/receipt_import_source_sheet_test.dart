@@ -198,14 +198,14 @@ void main() {
 
     final takeStart = cameraActions.indexOf('Future<void> takeReceiptPhoto');
     final takeEnd = cameraActions.indexOf(
-      'Future<_MaintainiacNativeCameraPhotoOutcome>',
+      'void _notifyReceiptCaptureDiagnostic',
     );
     final takeBlock = cameraActions.substring(takeStart, takeEnd);
     final introIndex = takeBlock.indexOf('_showFirstUseReceiptCameraIntro');
-    final nativeIndex = takeBlock.indexOf('_takeMaintainiacNativeCameraPhoto');
+    final cameraIndex = takeBlock.indexOf('_takeSystemCameraReceiptPhoto');
 
     expect(introIndex, greaterThanOrEqualTo(0));
-    expect(nativeIndex, greaterThan(introIndex));
+    expect(cameraIndex, greaterThan(introIndex));
     expect(takeBlock, isNot(contains('openReceiptCaptureSettings')));
     expect(takeBlock, isNot(contains('Saved Receipt Proof Size')));
     expect(takeBlock, isNot(contains('defaultDataSaverLevel')));

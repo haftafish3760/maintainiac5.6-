@@ -52,9 +52,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         : shouldAddNextSection
         ? 'Add the next receipt section with overlap from this photo'
         : 'Add another receipt photo if the receipt continues';
-    final continueIcon = continueLabel == 'Check Photo Match'
-        ? Icons.join_full_rounded
-        : Icons.check_rounded;
+    final continueIcon = Icons.check_rounded;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: uiConfig.controlsBackgroundColor,
@@ -303,9 +301,42 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
     if (coverageDecision.shouldPromptForMorePhotos) {
       return 'Add another photo if more receipt lines continue below this section.';
     }
-    if (photoCount > 1 && continueLabel == 'Check Photo Match') {
-      return 'Check the overlap match once, then use the receipt.';
+    if (photoCount > 1 && continueLabel == 'Continue') {
+      return 'Continue when these are the receipt sections you want to use.';
     }
     return 'Use Receipt opens the details review. Add Another is only for long receipts.';
+  }
+}
+
+class _ReceiptPhotoCountBadge extends StatelessWidget {
+  const _ReceiptPhotoCountBadge({required this.current, required this.total});
+
+  final int current;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = total <= 1 ? 'Receipt Photo' : 'Section $current of $total';
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF111A1F),
+        border: Border.all(color: const Color(0xFF43515A)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0,
+          ),
+        ),
+      ),
+    );
   }
 }

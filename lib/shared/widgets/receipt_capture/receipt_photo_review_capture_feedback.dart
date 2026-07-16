@@ -8,18 +8,6 @@ extension _ReceiptPhotoReviewCaptureFeedback on _ReceiptPhotoReviewScreenState {
     );
   }
 
-  void _showScannerFallbackNotice(ReceiptNativeScanResult result) {
-    if (!_reviewWorkActive ||
-        result.status == ReceiptNativeScanStatus.scanned) {
-      return;
-    }
-    final detail = result.message.trim();
-    final message = detail.isEmpty
-        ? 'Document scanner was not available. Maintainiac will use your phone camera as a fallback if needed.'
-        : '$detail Maintainiac will use your phone camera as a fallback if needed.';
-    _showCameraError(message);
-  }
-
   String _nativeCameraOpenErrorMessage(PlatformException error) {
     final code = error.code.toLowerCase();
     final message = error.message?.trim();

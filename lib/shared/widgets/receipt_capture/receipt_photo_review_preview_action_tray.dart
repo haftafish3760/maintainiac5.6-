@@ -46,16 +46,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     final statusColor = this.statusColor;
     final photoCount = photoPaths.length;
     final hasMultiplePhotos = photoCount > 1;
-    final nativeWarning = nativeCaptureReviewWarning;
     final coverageDecision = coverageDecisionForSelectedPhoto;
-    final hasCriticalQualityIssue =
-        selectedQualityCheck?.hasCriticalIssue == true ||
-        nativeWarning?.isCritical == true;
-    final hasQualityWarning =
-        selectedQualityCheck?.needsReview == true ||
-        selectedQualityCheck?.hasCriticalIssue == true ||
-        nativeWarning != null ||
-        coverageDecision.shouldPromptForMorePhotos;
     final deviceCapability =
         ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
         const ReceiptDeviceCapability.standard();
@@ -114,24 +105,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                             deviceCapability: deviceCapability,
                           ),
                         ],
-                        if (hasMultiplePhotos &&
-                            uiConfig.showSecondaryTools) ...[
-                          const SizedBox(height: 5),
-                          _ReceiptMultiPhotoActionRail(
-                            selectedIndex: selectedIndex,
-                            total: photoCount,
-                            onAddPhoto: interactionLocked ? null : onAddPhoto,
-                            onOrder: interactionLocked
-                                ? null
-                                : () => onModeChanged(_ReceiptReviewMode.order),
-                            onMatch: interactionLocked
-                                ? null
-                                : () =>
-                                      onModeChanged(_ReceiptReviewMode.stitch),
-                            onCrop: interactionLocked
-                                ? null
-                                : () => onModeChanged(_ReceiptReviewMode.crop),
-                          ),
+                        if (hasMultiplePhotos) ...[
                           const SizedBox(height: 5),
                           SizedBox(
                             height: compactControls
@@ -154,31 +128,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                                 );
                               },
                             ),
-                          ),
-                        ],
-                        if (!hasMultiplePhotos && hasQualityWarning) ...[
-                          const SizedBox(height: 5),
-                          _ReceiptPhotoQualityRecoveryStrip(
-                            quality: selectedQualityCheck,
-                            nativeWarning: nativeWarning,
-                            compact: compactControls,
-                            hasCriticalQualityIssue: hasCriticalQualityIssue,
-                            openingCamera: interactionLocked,
-                            onAddPhoto: onAddPhoto,
-                            onRetake: onRetake,
-                            onCrop: interactionLocked
-                                ? null
-                                : () => onModeChanged(_ReceiptReviewMode.crop),
-                            coverageDecision: coverageDecision,
-                          ),
-                        ],
-                        if (!hasMultiplePhotos && !hasQualityWarning) ...[
-                          const SizedBox(height: 5),
-                          _ReceiptSinglePhotoActionRow(
-                            openingCamera: interactionLocked,
-                            onAddPhoto: onAddPhoto,
-                            onRetake: onRetake,
-                            onModeChanged: onModeChanged,
                           ),
                         ],
                       ],
