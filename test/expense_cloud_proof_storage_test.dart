@@ -45,16 +45,33 @@ void main() {
       contentType: 'image/jpeg',
     );
 
+    final finalized = reference.finalized();
     expect(
-      await storage.downloadProof(reference),
+      await storage.downloadProof(finalized),
       Uint8List.fromList([1, 2, 3]),
     );
 
     objectStore.bytes[reference.storagePath] = Uint8List.fromList([1, 2]);
-    await expectLater(() => storage.downloadProof(reference), throwsStateError);
+    await expectLater(() => storage.downloadProof(finalized), throwsStateError);
 
     objectStore.bytes[reference.storagePath] = Uint8List.fromList([3, 2, 1]);
-    await expectLater(() => storage.downloadProof(reference), throwsStateError);
+    await expectLater(() => storage.downloadProof(finalized), throwsStateError);
+  });
+
+  test('does not recover an unfinalized proof upload', () async {
+    final objectStore = _MemoryObjectStore();
+    final storage = ExpenseCloudProofStorage(objectStore: objectStore);
+    final pending = await storage.uploadProof(
+      organizationId: 'org_1',
+      userId: 'user_1',
+      receiptId: 'receipt_1',
+      proofId: 'proof_1',
+      uploadGrantId: 'grant_1',
+      bytes: Uint8List.fromList([1, 2, 3]),
+      contentType: 'image/jpeg',
+    );
+
+    await expectLater(() => storage.downloadProof(pending), throwsStateError);
   });
 
   test('rejects unsafe identifiers and non-image proof data', () async {

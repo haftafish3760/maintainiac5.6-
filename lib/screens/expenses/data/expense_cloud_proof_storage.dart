@@ -153,6 +153,9 @@ class ExpenseCloudProofStorage {
   }
 
   Future<Uint8List> downloadProof(ExpenseCloudProofReference reference) async {
+    if (!reference.isFinalized) {
+      throw StateError('Cloud proof is not finalized for recovery.');
+    }
     _validateIdentity(reference.organizationId, 'organizationId');
     _validateIdentity(reference.userId, 'userId');
     _validateIdentity(reference.receiptId, 'receiptId');
