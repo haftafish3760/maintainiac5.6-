@@ -1,9 +1,44 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart';
 import 'package:maintaniac/shared/records/maintainiac_record_lifecycle.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
+  test('shared confirmed records survive a local Hive restart', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'maintainiac_durable_record_store_',
+    );
+    addTearDown(() async {
+      await Hive.close();
+      if (await directory.exists()) await directory.delete(recursive: true);
+    });
+    Hive.init(directory.path);
+    final first = await MaintainiacDurableRecordStore.create('shared-records');
+    await first.save(
+      module: 'maintenance',
+      id: 'record-1',
+      payload: {
+        'title': 'Oil change',
+        'line': {'amount': 42.50},
+      },
+      now: DateTime.utc(2026, 7, 15),
+    );
+
+    await Hive.close();
+    Hive.init(directory.path);
+    final reopened = await MaintainiacDurableRecordStore.create(
+      'shared-records',
+    );
+
+    expect(reopened.recordFor('maintenance', 'record-1')?.payload, {
+      'title': 'Oil change',
+      'line': {'amount': 42.50},
+    });
+  });
+
   test('shared confirmed records save, delete, and restore locally', () async {
     final store = MaintainiacDurableRecordStore.memory();
     final created = DateTime.utc(2026, 7, 15, 12);
