@@ -163,6 +163,31 @@ service cloud.firestore {
       ]);
     }
 
+    function hasRequiredMileageSummaryFields() {
+      return request.resource.data.keys().hasAll([
+        'schema',
+        'tripId',
+        'createdByUid',
+        'updatedByUid',
+        'vehicleId',
+        'profile',
+        'startedAt',
+        'finishedAt',
+        'createdAt',
+        'updatedAt',
+        'startingOdometer',
+        'estimatedEndingOdometer',
+        'acceptedMeters',
+        'acceptedMiles',
+        'walkingReviewSuggested',
+        'motionState',
+        'receivedSampleCount',
+        'acceptedSampleCount',
+        'locationDataIncluded',
+        'visibilityScope',
+      ]);
+    }
+
     function noServerManagedFieldsOnCreate() {
       return !request.resource.data.keys().hasAny([
         'plan',
@@ -218,6 +243,7 @@ service cloud.firestore {
           request.resource.data.updatedByUid == uid &&
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
+          hasRequiredMileageSummaryFields() &&
           !request.resource.data.keys().hasAny([
             'orgId',
             'organizationSharingConsent',
@@ -413,6 +439,7 @@ service cloud.firestore {
           writesOwnCreate() &&
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
+          hasRequiredMileageSummaryFields() &&
           request.resource.data.orgId == orgId &&
           request.resource.data.organizationSharingConsent == true;
         // An employer/fleet role can view consented mileage but cannot alter

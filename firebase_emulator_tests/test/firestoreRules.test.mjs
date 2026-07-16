@@ -161,18 +161,13 @@ describe('Firestore rules emulator safety', () => {
 
   test('mileage summaries are allowed but location-bearing mileage is denied', async () => {
     const owner = dbFor('ownerUid');
-    const summary = {
-      schema: 'trip_tracking_review_v1',
+    const summary = mileageSummary({
       tripId: 'trip1',
       orgId: 'orgA',
       organizationSharingConsent: true,
-      vehicleId: 'truck1',
-      acceptedMiles: 12.4,
-      locationDataIncluded: false,
-      visibilityScope: 'mileage_only',
       createdByUid: 'ownerUid',
       updatedByUid: 'ownerUid',
-    };
+    });
 
     await assertSucceeds(
       setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip1'), summary),
@@ -242,18 +237,13 @@ describe('Firestore rules emulator safety', () => {
   test('a mileage recorder can read only their own company summaries', async () => {
     const owner = dbFor('ownerUid');
     const helper = dbFor('helperUid');
-    const ownerSummary = {
-      schema: 'trip_tracking_review_v1',
+    const ownerSummary = mileageSummary({
       tripId: 'ownerTrip',
       orgId: 'orgA',
       organizationSharingConsent: true,
-      vehicleId: 'truck1',
-      acceptedMiles: 12.4,
-      locationDataIncluded: false,
-      visibilityScope: 'mileage_only',
       createdByUid: 'ownerUid',
       updatedByUid: 'ownerUid',
-    };
+    });
     const helperSummary = {
       ...ownerSummary,
       tripId: 'helperTrip',
@@ -278,16 +268,11 @@ describe('Firestore rules emulator safety', () => {
   test('solo users can access only their own mileage summaries', async () => {
     const owner = dbFor('ownerUid');
     const outsider = dbFor('outsiderUid');
-    const summary = {
-      schema: 'trip_tracking_review_v1',
+    const summary = mileageSummary({
       tripId: 'soloTrip1',
-      vehicleId: 'truck1',
-      acceptedMiles: 4.2,
-      locationDataIncluded: false,
-      visibilityScope: 'mileage_only',
       createdByUid: 'ownerUid',
       updatedByUid: 'ownerUid',
-    };
+    });
 
     await assertSucceeds(
       setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip1'), summary),
@@ -449,4 +434,30 @@ async function seedOrg() {
 
 function dbFor(uid, token = {}) {
   return testEnv.authenticatedContext(uid, token).firestore();
+}
+
+function mileageSummary(overrides = {}) {
+  return {
+    schema: 'trip_tracking_review_v1',
+    tripId: 'trip1',
+    createdByUid: 'ownerUid',
+    updatedByUid: 'ownerUid',
+    vehicleId: 'truck1',
+    profile: 'roadVehicle',
+    startedAt: '2026-07-16T12:00:00.000Z',
+    finishedAt: '2026-07-16T12:45:00.000Z',
+    createdAt: '2026-07-16T12:46:00.000Z',
+    updatedAt: '2026-07-16T12:46:00.000Z',
+    startingOdometer: 1000,
+    estimatedEndingOdometer: 1012,
+    acceptedMeters: 19312.128,
+    acceptedMiles: 12.0,
+    walkingReviewSuggested: false,
+    motionState: 'stopped',
+    receivedSampleCount: 24,
+    acceptedSampleCount: 18,
+    locationDataIncluded: false,
+    visibilityScope: 'mileage_only',
+    ...overrides,
+  };
 }

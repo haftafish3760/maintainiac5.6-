@@ -200,6 +200,21 @@ void main() {
       for (final field in TripTrackingFirestoreContract.reviewedSummaryFields) {
         expect(allowlist, contains("'$field'"));
       }
+
+      final requiredStart = rules.indexOf(
+        'function hasRequiredMileageSummaryFields',
+      );
+      final requiredEnd = rules.indexOf(']);', requiredStart);
+      expect(requiredStart, greaterThanOrEqualTo(0));
+      expect(requiredEnd, greaterThan(requiredStart));
+      final requiredFields = rules.substring(requiredStart, requiredEnd);
+
+      for (final field in TripTrackingFirestoreContract.reviewedSummaryFields) {
+        if (field == 'orgId' || field == 'organizationSharingConsent') {
+          continue;
+        }
+        expect(requiredFields, contains("'$field'"));
+      }
     },
   );
 
