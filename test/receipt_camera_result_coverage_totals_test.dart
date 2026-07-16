@@ -48,8 +48,14 @@ void main() {
       contains('bottom of this receipt may be missing'),
     );
     expect(decision.guidance, contains('Add Another Photo'));
-    expect(decision.guidance, contains('faint reference'));
-    expect(decision.guidance, contains('overlap 3-5 readable lines'));
+    expect(
+      decision.guidance,
+      contains('reference before your phone camera opens'),
+    );
+    expect(
+      decision.guidance,
+      contains('Start the next photo with 3-5 of the same readable lines'),
+    );
     expect(
       decision.continuationCaptureContractLabel,
       contains('Add Another Photo'),

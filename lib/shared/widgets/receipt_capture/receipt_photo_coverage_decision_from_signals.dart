@@ -49,9 +49,10 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       title: 'Check Whether The Receipt Continues',
       guidance:
           'The bottom of this receipt may be missing. If there is more below, '
-          'choose Add Another Photo. A faint reference from this photo will '
-          'appear at the top of the next camera photo; overlap 3-5 readable '
-          'lines. If this photo is complete, choose Use Receipt.',
+          'choose Add Another Photo. Maintainiac will show the bottom of this '
+          'photo as a reference before your phone camera opens. Start the next '
+          'photo with 3-5 of the same readable lines. If this photo is complete, '
+          'choose Use Receipt.',
     );
   }
   if (nativeCutOffRisk &&
