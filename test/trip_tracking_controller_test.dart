@@ -1868,6 +1868,55 @@ void main() {
     expect(odometer.hasLiveTripProjection, isFalse);
     expect(store.activeSession?.id, 'trip_invalid_review');
   });
+
+  test(
+    'a mismatched review timeline cannot erase a recoverable GPS trip',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      await store.save(
+        TripTrackingSessionRecord(
+          id: 'trip_mismatched_review_timeline',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+          updatedAt: start,
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+      await store.saveReview(
+        TripTrackingReviewRecord(
+          id: 'trip_mismatched_review_timeline',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1001,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start.add(const Duration(seconds: 1)),
+          finishedAt: start.add(const Duration(minutes: 1)),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+
+      expect(await controller.restore(), isFalse);
+      expect(controller.platformStatus, 'review_invalid');
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(store.activeSession?.id, 'trip_mismatched_review_timeline');
+    },
+  );
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {

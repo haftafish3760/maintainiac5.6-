@@ -329,6 +329,7 @@ class TripTrackingController extends ChangeNotifier {
       review.id == session.id &&
       review.vehicleId == session.vehicleId &&
       review.startingOdometer == session.startingOdometer &&
+      review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;
 
   Future<TripSampleDecision?> ingest(
