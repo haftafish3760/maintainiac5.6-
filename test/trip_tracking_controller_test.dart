@@ -2020,6 +2020,69 @@ void main() {
     },
   );
 
+  test(
+    'confirmation with backup disabled remains local only without dashboard error',
+    () async {
+      final hiveDirectory = await Directory.systemTemp.createTemp(
+        'trip_tracking_confirm_backup_disabled_',
+      );
+      Hive.init(hiveDirectory.path);
+      addTearDown(() async {
+        await Hive.close();
+        if (hiveDirectory.existsSync()) {
+          await hiveDirectory.delete(recursive: true);
+        }
+      });
+      final store = TripTrackingSessionStore.memory();
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        localStore: store,
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _NoopFirestoreSink(),
+          uploadEnabled: true,
+        ),
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+        backupEnabled: () => false,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        cloudMirror: mirror,
+      );
+      await controller.start(
+        tripId: 'trip_confirm_backup_disabled',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 2)),
+      );
+
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: 'trip_confirm_backup_disabled',
+          confirmedEndingOdometer: 1001,
+          confirmedAt: start.add(const Duration(minutes: 3)),
+        ),
+        isTrue,
+      );
+
+      final stored = store.reviewForTrip('trip_confirm_backup_disabled');
+      expect(stored?.isOdometerConfirmed, isTrue);
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.localOnly);
+      expect(stored?.cloudSyncError, isNull);
+      expect(queue.pendingRecords, isEmpty);
+      expect(controller.cloudMirrorError, isNull);
+    },
+  );
+
   test('a missing persisted timeline is cleared instead of restored', () async {
     final store = TripTrackingSessionStore.memory();
     await store.save(

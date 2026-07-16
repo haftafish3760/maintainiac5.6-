@@ -138,6 +138,91 @@ void main() {
     expect(find.text('5'), findsOneWidget);
   });
 
+  testWidgets('active workday odometer redraws from accepted GPS samples', (
+    tester,
+  ) async {
+    odometer.dispose();
+    odometer = GlobalOdometerController(initialReading: 1000);
+    final activeWorkday = ActiveWorkdayController.memory();
+    await activeWorkday.startDay(
+      vehicleId: odometer.vehicleId,
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 16, 8),
+    );
+    final tripController = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+    );
+    addTearDown(tripController.dispose);
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: ActiveWorkdayScope(
+          controller: activeWorkday,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: TripTrackingScope(
+              controller: tripController,
+              child: const MaterialApp(
+                home: ActiveWorkdayScreen(
+                  activeVehicle: VehicleProfilePreview(
+                    id: 'vehicle_1',
+                    nickname: 'Work Truck',
+                    year: '2026',
+                    make: 'Ford',
+                    model: 'Transit',
+                    odometer: '0001000',
+                    status: 'ACTIVE',
+                  ),
+                  workProfileName: 'Business',
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('0001000'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
+
+    expect(
+      await tripController.start(
+        tripId: 'gps-trip-dashboard-live-odometer',
+        vehicleId: odometer.vehicleId,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 16, 12),
+      ),
+      isTrue,
+    );
+    await tripController.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: DateTime.utc(2026, 7, 16, 12),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+    await tripController.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -79.965,
+        recordedAt: DateTime.utc(2026, 7, 16, 12, 1, 30),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('0001000'), findsNothing);
+    expect(find.text(odometer.displayValue), findsOneWidget);
+    expect(odometer.reading, greaterThan(1000));
+    expect(odometer.confirmedReading, 1000);
+    expect(find.text((odometer.reading - 1000).toString()), findsOneWidget);
+  });
+
   testWidgets(
     'active workday stop dialog redraws live GPS odometer projection',
     (tester) async {
