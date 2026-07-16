@@ -198,6 +198,7 @@ void main() {
             (path) =>
                 path != '.gitignore' &&
                 path != 'test/firebase_configuration_test.dart' &&
+                !path.startsWith('test/support/') &&
                 !path.endsWith('package-lock.json'),
           )
           .where((path) => File(path).existsSync());
