@@ -164,6 +164,13 @@ class MaintainiacFirestoreUploadPolicy {
       );
     }
     _validateTripMileageSummaryValues(draft);
+    if (draft.data['createdByUid'] != draft.data['updatedByUid']) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Mileage backups must be owned by one authenticated user.',
+      );
+    }
     if (isOrganizationMileagePath) {
       if (draft.data['orgId'] != parts[1] ||
           draft.data['organizationSharingConsent'] != true) {

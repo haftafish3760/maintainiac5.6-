@@ -347,6 +347,24 @@ void main() {
     );
   });
 
+  test('local upload policy rejects divergent mileage owner UIDs', () {
+    final doc = MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+      orgId: 'orgA',
+      createdByUid: 'firebaseUid-1',
+      review: review(),
+    );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(
+          path: doc.path,
+          data: {...doc.data, 'updatedByUid': 'otherUid'},
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test(
     'queues and uploads a reviewed trip while preserving local retry state',
     () async {
