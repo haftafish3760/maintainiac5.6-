@@ -46,6 +46,9 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final cropControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_controls.dart',
+    ).readAsString();
     final uiConfig = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
     ).readAsString();
@@ -70,6 +73,16 @@ void main() {
       contains('relying on a hidden scroll-only continuation path'),
     );
     expect(reviewScreen, contains('widget.uiConfig.cropControlsHeight'));
+    expect(
+      reviewScreen,
+      contains('if (_reviewMode == _ReceiptReviewMode.crop)'),
+    );
+    expect(
+      reviewScreen,
+      contains(
+        'Crop actions must remain fully reachable even on short screens.',
+      ),
+    );
     expect(reviewScreen, contains('_ReceiptReviewMode.order => .18'));
     expect(reviewScreen, contains('_ReceiptReviewMode.stitch => .20'));
     expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => .20'));
@@ -128,6 +141,12 @@ void main() {
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
+    expect(cropControls, contains('height: 52'));
+    final topBar = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+    ).readAsString();
+    expect(topBar, contains('Crop receipt — drag the yellow edges'));
     expect(
       previewControls,
       contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
@@ -281,12 +300,7 @@ void main() {
     expect(topBar, contains('Review Receipt Photo'));
     expect(previewControls, contains("message: 'Crop receipt photo'"));
     expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
-    expect(
-      controls,
-      contains(
-        'Check the store, date, total, ',
-      ),
-    );
+    expect(controls, contains('Check the store, date, total, '));
     expect(
       controls,
       contains('if (coverageDecision.shouldPromptForMorePhotos)'),
@@ -306,7 +320,9 @@ void main() {
     expect(controls, contains("diagnostics['storageConstrained'] == true"));
     expect(
       controls,
-      contains('Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.'),
+      contains(
+        'Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.',
+      ),
     );
     expect(controls, contains("return 'Use Receipt';"));
     expect(commonControls, contains("primary: 'Add'"));
@@ -431,12 +447,7 @@ void main() {
     expect(models, contains("readIntoForm('Ready for receipt review')"));
     expect(models, isNot(contains("readIntoForm('Read into form')")));
     expect(controls, contains('Check the store, date, total, '));
-    expect(
-      controls,
-      contains(
-        'Check the store, date, total, ',
-      ),
-    );
+    expect(controls, contains('Check the store, date, total, '));
     expect(dataSaverPanel, contains('Receipt Proof Storage'));
     expect(dataSaverPanel, contains('Uses clear photo first'));
     expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));

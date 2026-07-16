@@ -158,7 +158,8 @@ void main() {
     );
     expect(cameraController, contains('nativePreviewScaleMode'));
     expect(cameraController, contains('nativeControlDensity'));
-    expect(cameraController, contains('Reset receipt camera defaults'));
+    expect(cameraController, contains('Reset this camera session'));
+    expect(cameraController, isNot(contains('Reset receipt camera defaults')));
     expect(
       fullScreenSettings,
       contains(

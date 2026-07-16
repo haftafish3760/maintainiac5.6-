@@ -64,6 +64,10 @@ void main() {
       progressPanel,
       contains(r'Step $progressStep of ${progressLabels.length}'),
     );
+    expect(progressPanel, contains('required String stageLabel'));
+    expect(progressPanel, contains("stage.contains('accepted')"));
+    expect(progressPanel, contains("stage.contains('quality')"));
+    expect(progressPanel, contains('opacity: active ? 1 : 0.5'));
     expect(
       progressPanel,
       isNot(contains('Step 1 of 2: extracting receipt text')),

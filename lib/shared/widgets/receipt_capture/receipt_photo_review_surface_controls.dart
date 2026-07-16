@@ -51,6 +51,12 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
   }
 
   double _reviewBottomControlsMaxHeight(BuildContext context) {
+    if (_reviewMode == _ReceiptReviewMode.crop) {
+      // Crop actions must remain fully reachable even on short screens. The
+      // crop toolbar is intentionally compact, so a fractional cap would only
+      // clip controls instead of preserving more useful preview space.
+      return widget.uiConfig.cropControlsHeight;
+    }
     final screenHeight = MediaQuery.sizeOf(context).height;
     final safeHeight =
         screenHeight -

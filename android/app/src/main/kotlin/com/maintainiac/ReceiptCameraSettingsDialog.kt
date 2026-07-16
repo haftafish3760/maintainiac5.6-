@@ -182,7 +182,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         1f,
     ))
     root.addView(android.widget.Button(this).apply {
-        text = receiptCameraText("Reset Receipt Camera Defaults", "Restablecer ajustes de cámara de recibos")
+        text = receiptCameraText("Reset This Camera Session", "Restablecer esta sesión de cámara")
         isAllCaps = false
         setTextColor(Color.rgb(255, 209, 102))
         setBackgroundColor(Color.rgb(31, 37, 40))
@@ -208,81 +208,6 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         )
     }
     dialog.show()
-}
-
-internal fun ReceiptCameraActivity.receiptBackupRemainingLabel(): String {
-    val quotaBytes = receiptBackupQuotaBytes()
-    val usedBytes = receiptBackupUsedBytes()
-    val remainingBytes = (quotaBytes - usedBytes).coerceIn(0, quotaBytes)
-    return "${formatReceiptBytes(remainingBytes)} of ${formatReceiptBytes(quotaBytes)}"
-}
-
-internal fun ReceiptCameraActivity.receiptBackupStorageDetailText(): String {
-    val connection = receiptBackupConnectionLabel()
-    val usedBytes = receiptBackupUsedBytes()
-    return "$connection. ${formatReceiptBytes(usedBytes)} already used for receipt backup."
-}
-
-internal fun ReceiptCameraActivity.receiptBackupEstimatedReceiptCountLabel(): String {
-    val quotaBytes = receiptBackupQuotaBytes()
-    val usedBytes = receiptBackupUsedBytes()
-    val remainingBytes = (quotaBytes - usedBytes).coerceIn(0, quotaBytes)
-    val proofBytes = receiptProofTargetBytesFor(dataSaverLevel)
-    val estimatedReceipts = if (proofBytes > 0) remainingBytes / proofBytes else 0
-    return "~$estimatedReceipts receipts"
-}
-
-internal fun ReceiptCameraActivity.receiptBackupEstimatedReceiptDetailText(): String {
-    return "Based on ${receiptProofSizeLabel(dataSaverLevel)} saved proof copies. Actual count depends on receipt length and image quality."
-}
-
-internal fun ReceiptCameraActivity.receiptBackupConnectionLabel(): String {
-    return intent.getStringExtra("receiptBackupConnectionLabel")
-        ?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?: "Backup account not connected"
-}
-
-internal fun ReceiptCameraActivity.receiptBackupQuotaBytes(): Long {
-    return intent.getLongExtra("receiptBackupQuotaBytes", 100L * 1024L * 1024L)
-        .coerceAtLeast(0L)
-}
-
-internal fun ReceiptCameraActivity.receiptBackupUsedBytes(): Long {
-    return intent.getLongExtra("receiptBackupUsedBytes", 0L)
-        .coerceAtLeast(0L)
-}
-
-internal fun ReceiptCameraActivity.receiptProofTargetBytesFor(level: String): Long {
-    return when (level) {
-        "original" -> 4L * 1024L * 1024L
-        "light" -> 1350L * 1024L
-        "strong" -> 550L * 1024L
-        "maximum" -> 275L * 1024L
-        else -> 900L * 1024L
-    }
-}
-
-internal fun ReceiptCameraActivity.receiptProofSizeLabel(level: String): String {
-    return when (level) {
-        "original" -> "original local"
-        "light" -> "high quality"
-        "strong" -> "save storage"
-        "maximum" -> "maximum savings"
-        else -> "balanced"
-    }
-}
-
-internal fun ReceiptCameraActivity.formatReceiptBytes(bytes: Long): String {
-    val gib = 1024.0 * 1024.0 * 1024.0
-    val mib = 1024.0 * 1024.0
-    val kib = 1024.0
-    return when {
-        bytes >= 1024L * 1024L * 1024L -> String.format("%.1f GB", bytes / gib)
-        bytes >= 1024L * 1024L -> String.format("%.0f MB", bytes / mib)
-        bytes >= 1024L -> String.format("%.0f KB", bytes / kib)
-        else -> "$bytes B"
-    }
 }
 
 internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {

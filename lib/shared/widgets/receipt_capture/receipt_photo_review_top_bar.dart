@@ -50,7 +50,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Text(
-                    'Crop receipt',
+                    'Crop receipt — drag the yellow edges',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

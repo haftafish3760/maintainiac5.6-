@@ -141,7 +141,7 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
       "Your phone handles autofocus. Pinch to zoom, and use the shutter anytime. Maintainiac does not use tap-to-focus.",
       "El teléfono controla el enfoque automático. Pellizque para acercar y use el disparador en cualquier momento. Maintainiac no usa tocar para enfocar."
     )))
-    content.addArrangedSubview(action(camera.receiptCameraText("Reset receipt camera defaults", "Restablecer ajustes de cámara de recibos"), selected: false) { [weak self] in
+    content.addArrangedSubview(action(camera.receiptCameraText("Reset this camera session", "Restablecer esta sesión de cámara"), selected: false) { [weak self] in
       camera.resetReceiptCameraDefaults()
       self?.reloadContent()
     })

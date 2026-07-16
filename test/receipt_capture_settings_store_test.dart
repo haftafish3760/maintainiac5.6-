@@ -259,11 +259,19 @@ void main() {
       expect(source, contains('Backup And Storage'));
       expect(source, contains('Back Up Receipt Photos'));
       expect(source, contains('receiptPhotoBackupEnabled'));
-      expect(source, contains('Backup account'));
-      expect(source, contains('Storage remaining'));
+      expect(source, contains('Local saving works immediately'));
+      expect(source, contains('never shows a made-up storage estimate'));
+      expect(source, isNot(contains('Backup account')));
+      expect(source, isNot(contains('Storage remaining')));
       expect(source, isNot(contains('Automatically Fill Receipts')));
       expect(source, contains('setAppAssistedFor(area, value)'));
-      expect(source, contains('CloudBackupStatusSnapshot.notConnected'));
+      expect(
+        displaySource,
+        isNot(contains('CloudBackupStatusSnapshot.notConnected')),
+      );
+      expect(displaySource, isNot(contains('Current Receipt Flow')));
+      expect(displaySource, isNot(contains('Automatic Filling On')));
+      expect(displaySource, isNot(contains('Photo Backup On')));
       expect(source, contains('Ask Every Receipt'));
       expect(source, contains('askSavedProofSizeEachReceipt'));
       expect(

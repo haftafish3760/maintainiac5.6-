@@ -37,9 +37,10 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
         ).readAsString();
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
-        ).readAsString();
+    final receiptReadActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
+    ).readAsString();
+    final reviewedReadActions = '$importActions$receiptReadActions';
     final captureModels =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_models.dart',
@@ -84,7 +85,10 @@ void main() {
       importActions,
       contains('await _readReviewedPhotosForReceiptForm(result);'),
     );
-    expect(importActions, contains('widget.onReceiptReadStarted?.call();'));
+    expect(
+      reviewedReadActions,
+      contains('widget.onReceiptReadStarted?.call();'),
+    );
     expect(
       importActions.indexOf(
         'widget.onReceiptPhotoReviewAccepted?.call(result);',
@@ -99,11 +103,13 @@ void main() {
         ),
       ),
     );
-    final reviewedPhotoReadStatusBlock = importActions.substring(
-      importActions.indexOf(
+    final reviewedPhotoReadStatusBlock = reviewedReadActions.substring(
+      reviewedReadActions.indexOf(
         'void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result)',
       ),
-      importActions.indexOf('String _reviewedPhotoOcrSourceQualitySummary('),
+      reviewedReadActions.indexOf(
+        'String _reviewedPhotoOcrSourceQualitySummary(',
+      ),
     );
     expect(
       reviewedPhotoReadStatusBlock,

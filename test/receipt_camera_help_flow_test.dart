@@ -136,6 +136,8 @@ void main() {
     expect(settingsSheet, isNot(contains('deviceManufacturer')));
     expect(settingsSheet, isNot(contains('deviceModel')));
     expect(settingsSheet, isNot(contains('deviceName')));
+    expect(settingsSheet, contains('Show Camera Guidance'));
+    expect(settingsSheet, contains('settings.setCameraGuidanceEnabled'));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
     expect(settingsSheet, contains("title: 'Receipt Details And Saved Proof'"));
     expect(settingsSheet, contains('required this.hasSavedReceiptProof'));

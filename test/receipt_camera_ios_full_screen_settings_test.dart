@@ -16,6 +16,8 @@ void main() {
 
     expect(layout, contains('#selector(openReceiptCameraSettingsFullScreen)'));
     expect(settings, contains('settings.modalPresentationStyle = .fullScreen'));
+    expect(settings, isNot(contains('func showReceiptCameraSettings()')));
+    expect(settings, isNot(contains('preferredStyle: .actionSheet')));
     expect(
       route,
       contains('final class ReceiptCameraFullScreenSettingsViewController'),

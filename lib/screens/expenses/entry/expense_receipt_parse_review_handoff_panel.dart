@@ -72,6 +72,7 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
       processingInFlight: processingInFlight,
       extractingText: extractingText,
       reviewReady: reviewReady,
+      stageLabel: stage,
     );
     final needsBottomSection =
         decision.toLowerCase().contains('add bottom receipt section') ||
@@ -216,9 +217,9 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
               : reviewReady
               ? 'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.'
               : 'Do not go back unless you want to keep checking the photo. '
-                'The app uses the clearest original photo first; when receipt '
-                'details are ready, check the store, date, total, tax, and '
-                'item prices before saving.',
+                    'The app uses the clearest original photo first; when receipt '
+                    'details are ready, check the store, date, total, tax, and '
+                    'item prices before saving.',
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 11.5,
@@ -300,9 +301,14 @@ int _receiptProgressStep({
   required bool processingInFlight,
   required bool extractingText,
   required bool reviewReady,
+  required String stageLabel,
 }) {
   if (!processingInFlight || reviewReady) return 5;
+  final stage = stageLabel.toLowerCase();
+  if (stage.contains('accepted')) return 1;
+  if (stage.contains('quality')) return 2;
   if (extractingText) return 3;
+  if (stage.contains('fill') || stage.contains('prepar')) return 4;
   return 4;
 }
 
