@@ -229,6 +229,16 @@ class TripTrackingController extends ChangeNotifier {
       return false;
     }
     if (review != null) {
+      if (!_isAuthoritativeReview(review, session)) {
+        // A malformed review must not make us discard the only recoverable
+        // active-trip checkpoint. Fail closed until the local record can be
+        // repaired instead of risking mileage loss or duplicate tracking.
+        _platformStatus = 'review_invalid';
+        _platformError =
+            'A saved trip review is incomplete. GPS recovery is paused to protect your mileage.';
+        notifyListeners();
+        return false;
+      }
       try {
         await _sessionStore.clear();
       } catch (error) {
@@ -310,6 +320,16 @@ class TripTrackingController extends ChangeNotifier {
       session.vehicleId.trim().isNotEmpty &&
       session.startingOdometer >= 0 &&
       !session.updatedAt.isBefore(session.startedAt);
+
+  bool _isAuthoritativeReview(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) =>
+      review.hasValidTimeline &&
+      review.id == session.id &&
+      review.vehicleId == session.vehicleId &&
+      review.startingOdometer == session.startingOdometer &&
+      review.estimatedEndingOdometer >= review.startingOdometer;
 
   Future<TripSampleDecision?> ingest(
     TripLocationSample sample, {
