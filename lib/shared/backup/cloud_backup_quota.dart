@@ -25,6 +25,7 @@ class CloudBackupEntitlement {
     required this.dailySyncLimit,
     required this.immediateSyncAllowed,
     required this.policyVersion,
+    this.downloadAllowanceBytes = 0,
   });
 
   const CloudBackupEntitlement.localOnly()
@@ -33,7 +34,8 @@ class CloudBackupEntitlement {
       quotaBytes = 0,
       dailySyncLimit = 0,
       immediateSyncAllowed = false,
-      policyVersion = 0;
+      policyVersion = 0,
+      downloadAllowanceBytes = 0;
 
   /// Decodes a policy supplied after authenticated account authorization.
   /// Invalid or incomplete input deliberately grants no cloud capability.
@@ -46,6 +48,7 @@ class CloudBackupEntitlement {
     final dailySyncLimit = payload['dailySyncLimit'];
     final immediateSyncAllowed = payload['immediateSyncAllowed'];
     final policyVersion = payload['policyVersion'];
+    final downloadAllowanceBytes = payload['downloadAllowanceBytes'];
     if (planId is! String ||
         planId.trim().isEmpty ||
         displayName is! String ||
@@ -59,6 +62,10 @@ class CloudBackupEntitlement {
         policyVersion <= 0) {
       return null;
     }
+    if (downloadAllowanceBytes != null &&
+        (downloadAllowanceBytes is! int || downloadAllowanceBytes < 0)) {
+      return null;
+    }
     return CloudBackupEntitlement(
       planId: planId.trim(),
       displayName: displayName.trim(),
@@ -66,6 +73,7 @@ class CloudBackupEntitlement {
       dailySyncLimit: dailySyncLimit,
       immediateSyncAllowed: immediateSyncAllowed,
       policyVersion: policyVersion,
+      downloadAllowanceBytes: downloadAllowanceBytes as int? ?? 0,
     );
   }
 
@@ -75,9 +83,12 @@ class CloudBackupEntitlement {
   final int dailySyncLimit;
   final bool immediateSyncAllowed;
   final int policyVersion;
+  final int downloadAllowanceBytes;
 
   bool get hasCloudStorage => quotaBytes > 0;
   String get quotaLabel => AppStorageGuard.formatBytes(quotaBytes);
+  String get downloadAllowanceLabel =>
+      AppStorageGuard.formatBytes(downloadAllowanceBytes);
 }
 
 class CloudBackupQuotaPolicy {

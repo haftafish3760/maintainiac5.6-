@@ -22,12 +22,14 @@ void main() {
         'dailySyncLimit': 4,
         'immediateSyncAllowed': false,
         'policyVersion': 1,
+        'downloadAllowanceBytes': 100 * 1024 * 1024,
       });
 
       expect(entitlement, isNotNull);
       expect(entitlement!.quotaLabel, '100 MB');
       expect(entitlement.dailySyncLimit, 4);
       expect(entitlement.immediateSyncAllowed, isFalse);
+      expect(entitlement.downloadAllowanceLabel, '100 MB');
     });
 
     test('fails closed for incomplete server entitlement data', () {
