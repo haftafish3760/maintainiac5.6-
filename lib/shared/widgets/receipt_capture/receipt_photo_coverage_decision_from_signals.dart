@@ -46,13 +46,13 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
     return const ReceiptPhotoCoverageDecision(
       status: ReceiptPhotoCoverageStatus.likelyCutOff,
       reasonCode: 'missing_bottom_edge_and_totals',
-      title: 'Add The Next Receipt Section',
+      title: 'Check Whether The Receipt Continues',
       guidance:
           'Two checks agree that the receipt may continue: the bottom edge '
           'was not detected, and subtotal/total words plus the total amount '
-          'were not confirmed. Add the bottom receipt photo with the top '
-          'ghost-slice guide and repeat 3-5 readable lines so subtotal, '
-          'total, and final lines can be matched.',
+          'were not confirmed. If the receipt continues, choose Add Another '
+          'Photo, use the top ghost-slice guide, and repeat 3-5 readable '
+          'lines so subtotal, total, and final lines can be matched.',
     );
   }
   if (nativeCutOffRisk &&
@@ -120,7 +120,8 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       status: ReceiptPhotoCoverageStatus.likelyComplete,
       reasonCode: 'readable_framed_photo',
       title: 'Receipt Looks Complete',
-      guidance: 'Use this photo if the receipt does not continue below this photo.',
+      guidance:
+          'Use this photo if the receipt does not continue below this photo.',
     );
   }
   if (framingSignal == ReceiptNativeCoverageSignalValues.receiptNotFound) {

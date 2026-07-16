@@ -203,7 +203,7 @@ extension _ReceiptAttachmentReviewReadActions
       _receiptReadStatus = _ReceiptReadStatusKind.warning;
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
       _receiptReadStatusMessage =
-          'Receipt photo saved. Add the bottom receipt section before receipt details open. $evidence $nextStep';
+          'Receipt photo saved. If the receipt continues, choose Add Another Photo before receipt details open. $evidence $nextStep';
     });
     _publishReceiptCaptureDiagnostic({
       'captureFlow': 'maintainiac_native_receipt_camera',

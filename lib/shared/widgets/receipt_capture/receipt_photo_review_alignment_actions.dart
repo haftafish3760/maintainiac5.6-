@@ -105,9 +105,9 @@ extension _ReceiptPhotoReviewAlignmentActions
       'retake_bottom_with_previous_context' => 'Retake Bottom Receipt Section',
       _ =>
         coverageDecision.isMissingBottomEdgeAndTotals
-            ? 'Add Bottom Receipt Section'
+            ? 'Add Another Receipt Photo'
             : coverageDecision.shouldPromptForMorePhotos
-            ? 'Add Next Receipt Section'
+            ? 'Add Another Receipt Photo'
             : 'Line Up The Next Receipt Photo',
     };
   }

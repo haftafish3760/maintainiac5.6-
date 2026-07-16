@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
-  test('missing bottom edge and totals recommends next receipt section', () {
+  test('missing bottom edge and totals gives a user-directed continuation choice', () {
     final decision = ReceiptPhotoCoverageDecision.fromSignals(
       quality: const ReceiptPhotoQualityCheck(
         width: 1200,
@@ -24,8 +24,8 @@ void main() {
     expect(decision.reasonCode, 'missing_bottom_edge_and_totals');
     expect(decision.shouldPromptForMorePhotos, isTrue);
     expect(decision.isMissingBottomEdgeAndTotals, isTrue);
-    expect(decision.completionDialogTitle, 'Add the bottom of this receipt?');
-    expect(decision.addSectionButtonLabel, 'Add Bottom Section');
+    expect(decision.completionDialogTitle, 'Need another receipt photo?');
+    expect(decision.addSectionButtonLabel, 'Add Another Photo');
     expect(decision.continueAnywayButtonLabel, 'Use Receipt');
     expect(
       decision.evidenceContractCode,
@@ -52,6 +52,8 @@ void main() {
       decision.guidance,
       contains('subtotal/total words plus the total amount'),
     );
+    expect(decision.guidance, contains('If the receipt continues'));
+    expect(decision.guidance, contains('Add Another Photo'));
     expect(decision.guidance, contains('top ghost-slice guide'));
     expect(
       decision.guidance,
@@ -109,7 +111,7 @@ void main() {
     );
     expect(
       decision.completionDialogMessage,
-      contains('subtotal/total may need manual review'),
+      contains('If the receipt continues below this photo'),
     );
 
     final result = ReceiptPhotoReviewResult(
@@ -136,7 +138,7 @@ void main() {
     expect(
       result.acceptedPhotoHandoffActionLabel,
       contains(
-        'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
+        'If the receipt continues, add another photo and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
     expect(

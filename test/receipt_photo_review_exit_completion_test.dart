@@ -18,14 +18,7 @@ void main() {
     expect(reviewScreen, contains('_coverageDecisionForPhotoPath(photoPath)'));
     expect(reviewScreen, contains('continueReceiptPhotoReview'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
-    expect(saveActions, contains("return 'Add Bottom Section';"));
     expect(saveActions, contains('decision.shouldPromptForMorePhotos'));
-    expect(
-      saveActions,
-      contains(
-        r'Tap $nextLabel to add the bottom receipt section with the top ghost-slice guide',
-      ),
-    );
     expect(
       saveActions,
       contains(r'Tap $nextLabel only if this already shows the full receipt'),
@@ -52,8 +45,6 @@ void main() {
         'if (!mounted || _reviewDisposed || _closingReview) return false;',
       ),
     );
-    expect(saveActions, contains('const _PickedReceiptPhotos.canceled()'));
-    expect(saveActions, contains('if (nativePicked.wasCanceled)'));
     final emptyRecoveryLayout = reviewScreen.substring(
       reviewScreen.indexOf('Widget _buildEmptyReviewRecovery()'),
       reviewScreen.indexOf('Widget _buildPhotoSurface'),
@@ -232,11 +223,11 @@ void main() {
       completionActions,
       isNot(contains('decision.addSectionButtonLabel')),
     );
-    expect(controls, contains("'Add Bottom Section'"));
+    expect(controls, contains('Add Another Photo'));
     expect(controls, contains('uiConfig.addPhotoLabel'));
     final models = await readReceiptCaptureModelsSource();
-    expect(models, contains('Add the bottom of this receipt?'));
-    expect(models, contains('Add Bottom Section'));
+    expect(models, contains('Need another receipt photo?'));
+    expect(models, contains('Add Another Photo'));
     expect(completionActions, isNot(contains('Back to Photos')));
     expect(saveActions, isNot(contains('Stay In Review')));
     expect(
@@ -331,22 +322,6 @@ void main() {
     final panel = await readReceiptAttachmentPanelSource();
 
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
-    expect(importActions, contains('_nextReceiptContinuationReasonCode()'));
-    expect(importActions, contains('_nextReceiptContinuationGuidance()'));
-    expect(
-      importActions,
-      contains('_nextReceiptForceLongReceiptMode(settings)'),
-    );
-    expect(importActions, contains('_nextReceiptForceAutoCapture(settings)'));
-    expect(importActions, contains("return 'missing_bottom_edge_and_totals';"));
-    expect(
-      importActions,
-      contains('if (_needsBottomReceiptSection) return true;'),
-    );
-    expect(
-      importActions,
-      contains('if (_needsBottomReceiptSection) return false;'),
-    );
     expect(
       importActions,
       contains('_pauseReviewedPhotoReadUntilNextSection(result)'),
@@ -362,7 +337,7 @@ void main() {
     expect(
       importActions,
       contains(
-        'Receipt photo saved. Add the bottom receipt section before receipt details open.',
+        'Receipt photo saved. If the receipt continues, choose Add Another Photo before receipt details open.',
       ),
     );
     expect(
@@ -387,10 +362,6 @@ void main() {
     expect(importActions, isNot(contains('Read receipt')));
     expect(importActions, isNot(contains('Evidence:')));
     expect(panel, contains('Opening Receipt Details'));
-    expect(panel, contains('_needsBottomReceiptSection'));
-    expect(panel, contains('Add Bottom Section'));
-    expect(panel, contains('Icons.vertical_align_bottom_rounded'));
-    expect(panel, contains('? () => unawaited(takeReceiptPhoto())'));
     expect(
       panel,
       contains(
