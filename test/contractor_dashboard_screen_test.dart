@@ -132,6 +132,81 @@ void main() {
 
     expect(find.text('5'), findsOneWidget);
   });
+
+  testWidgets(
+    'active workday stop dialog redraws live GPS odometer projection',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1500);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      odometer.dispose();
+      odometer = GlobalOdometerController(initialReading: 1000);
+      final activeWorkday = ActiveWorkdayController.memory();
+      await activeWorkday.startDay(
+        vehicleId: odometer.vehicleId,
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'business',
+        startOdometer: 1000,
+        startedAt: DateTime(2026, 7, 16, 8),
+      );
+
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ActiveWorkdayScope(
+            controller: activeWorkday,
+            child: GlobalOdometerScope(
+              controller: odometer,
+              child: const MaterialApp(
+                home: ActiveWorkdayScreen(
+                  activeVehicle: VehicleProfilePreview(
+                    id: 'vehicle_1',
+                    nickname: 'Work Truck',
+                    year: '2026',
+                    make: 'Ford',
+                    model: 'Transit',
+                    odometer: '0001000',
+                    status: 'ACTIVE',
+                  ),
+                  workProfileName: 'Business',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.text('Add Stop'));
+      await tester.pump();
+      await tester.tap(
+        find
+            .ancestor(of: find.text('Add Stop'), matching: find.byType(InkWell))
+            .first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Odometer: 0001000'), findsOneWidget);
+      expect(
+        odometer.beginLiveTripProjection(
+          tripId: 'gps-trip-stop-dialog',
+          startingOdometer: 1000,
+        ),
+        isTrue,
+      );
+      expect(
+        odometer.updateLiveTripProjection(
+          tripId: 'gps-trip-stop-dialog',
+          estimatedOdometer: 1004,
+        ),
+        isTrue,
+      );
+      await tester.pump();
+
+      expect(find.text('Odometer: 0001004'), findsOneWidget);
+      expect(find.text('Odometer: 0001000'), findsNothing);
+    },
+  );
 }
 
 Future<void> _pumpDashboard(

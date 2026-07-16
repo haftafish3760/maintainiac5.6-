@@ -317,13 +317,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Odometer: ${GlobalOdometerScope.of(context).displayValue}',
-              style: const TextStyle(
-                color: Color(0xFFC8D0D3),
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            const _LiveOdometerDialogLine(),
             const SizedBox(height: 12),
             TextField(
               controller: noteController,
@@ -485,6 +479,25 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _LiveOdometerDialogLine extends StatelessWidget {
+  const _LiveOdometerDialogLine();
+
+  @override
+  Widget build(BuildContext context) {
+    final odometer = GlobalOdometerScope.of(context);
+    return AnimatedBuilder(
+      animation: odometer,
+      builder: (context, _) => Text(
+        'Odometer: ${odometer.displayValue}',
+        style: const TextStyle(
+          color: Color(0xFFC8D0D3),
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
   }
 }
 
