@@ -19,6 +19,9 @@ void main() {
     expect(source, contains("'Proof storage quota is exhausted.'"));
     expect(source, contains('storageUsedBytes'));
     expect(source, contains('function finalizedProofResult'));
+    expect(source, contains('exports.cleanupExpiredExpenseProofUploads'));
+    expect(source, contains("'EXPENSE_EXPIRED_PROOF_CLEANUP_BATCH'"));
+    expect(source, contains("status: 'expired'"));
     expect(source, contains('exports.finalizeExpenseProofUpload = onCall('));
       expect(source, contains("{ enforceAppCheck: true }"));
       expect(source, contains('data.status !== \'open\''));

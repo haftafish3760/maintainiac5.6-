@@ -3,6 +3,7 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineInt } = require('firebase-functions/params');
 
 initializeApp();
@@ -21,6 +22,10 @@ const defaultProofQuotaBytes = defineInt(
 const maxOpenProofGrants = defineInt('EXPENSE_MAX_OPEN_PROOF_GRANTS', {
   default: 3,
 });
+const expiredProofCleanupBatch = defineInt(
+  'EXPENSE_EXPIRED_PROOF_CLEANUP_BATCH',
+  { default: 25 },
+);
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const OWN_RECEIPT_PERMISSIONS = new Set([
   'addOwnReceipts',
@@ -255,5 +260,35 @@ exports.finalizeExpenseProofUpload = onCall(
       });
       return { status: 'finalized', byteCount: size, contentSha256 };
     });
+  },
+);
+
+exports.cleanupExpiredExpenseProofUploads = onSchedule(
+  'every 5 minutes',
+  async () => {
+    const limit = expiredProofCleanupBatch.value();
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      throw new Error('Expired proof cleanup configuration is invalid.');
+    }
+    const db = getFirestore();
+    const expired = await db.collectionGroup('uploadGrants')
+        .where('status', '==', 'open')
+        .where('expiresAt', '<=', Timestamp.now())
+        .limit(limit)
+        .get();
+    await Promise.all(expired.docs.map(async (grant) => {
+      const data = grant.data();
+      const parts = grant.ref.path.split('/');
+      const organizationId = parts.length === 4 ? parts[1] : '';
+      const grantId = parts.length === 4 ? parts[3] : '';
+      if (TOKEN.test(organizationId) && TOKEN.test(grantId) &&
+          TOKEN.test(data.uid) && TOKEN.test(data.proofId)) {
+        const path = `orgs/${organizationId}/proof-uploads/${data.uid}` +
+            `/${grantId}/${data.proofId}`;
+        await getStorage().bucket().file(path).delete({ignoreNotFound: true});
+      }
+      await grant.ref.update({status: 'expired', expiredAt: Timestamp.now()});
+    }));
+    return null;
   },
 );
