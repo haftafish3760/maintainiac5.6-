@@ -228,6 +228,9 @@ void main() {
       expect(valueCheck, contains('estimatedEndingOdometer >='));
       expect(valueCheck, contains('acceptedMeters >= 0'));
       expect(valueCheck, contains('acceptedSampleCount <='));
+      expect(rules, contains('function hasCoherentMileageSummaryDistance'));
+      expect(rules, contains('acceptedMeters >= (acceptedMiles - 0.01)'));
+      expect(rules, contains('acceptedMiles < odometerDelta + 0.5'));
       expect(rules, contains('request.resource.data.tripId == recordId'));
     },
   );

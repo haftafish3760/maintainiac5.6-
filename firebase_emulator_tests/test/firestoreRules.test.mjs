@@ -236,6 +236,18 @@ describe('Firestore rules emulator safety', () => {
       }),
     );
     await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip11'), {
+        ...summary,
+        acceptedMiles: 99.9,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip12'), {
+        ...summary,
+        estimatedEndingOdometer: 1011,
+      }),
+    );
+    await assertFails(
       setDoc(doc(owner, 'orgs/orgA/mileageRecords/otherTrip'), summary),
     );
     await testEnv.withSecurityRulesDisabled(async (context) => {

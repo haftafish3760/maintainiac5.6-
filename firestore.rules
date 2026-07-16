@@ -217,6 +217,18 @@ service cloud.firestore {
           request.resource.data.receivedSampleCount;
     }
 
+    function hasCoherentMileageSummaryDistance() {
+      let acceptedMiles = request.resource.data.acceptedMiles;
+      let acceptedMeters = request.resource.data.acceptedMeters;
+      let odometerDelta =
+        request.resource.data.estimatedEndingOdometer -
+        request.resource.data.startingOdometer;
+      return acceptedMeters >= (acceptedMiles - 0.01) * 1609.344 &&
+        acceptedMeters <= (acceptedMiles + 0.01) * 1609.344 &&
+        acceptedMiles >= odometerDelta - 0.5 &&
+        acceptedMiles < odometerDelta + 0.5;
+    }
+
     function noServerManagedFieldsOnCreate() {
       return !request.resource.data.keys().hasAny([
         'plan',
@@ -274,6 +286,7 @@ service cloud.firestore {
           hasOnlyMileageSummaryFields() &&
           hasRequiredMileageSummaryFields() &&
           hasValidMileageSummaryValues() &&
+          hasCoherentMileageSummaryDistance() &&
           request.resource.data.tripId == recordId &&
           !request.resource.data.keys().hasAny([
             'orgId',
@@ -472,6 +485,7 @@ service cloud.firestore {
           hasOnlyMileageSummaryFields() &&
           hasRequiredMileageSummaryFields() &&
           hasValidMileageSummaryValues() &&
+          hasCoherentMileageSummaryDistance() &&
           request.resource.data.tripId == recordId &&
           request.resource.data.orgId == orgId &&
           request.resource.data.organizationSharingConsent == true;
