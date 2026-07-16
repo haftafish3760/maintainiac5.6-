@@ -246,6 +246,7 @@ class ExpenseCloudRestoreCodec {
         item['cloudProofState'],
       );
       final storagePath = _nullableText(item['storagePath']);
+      final uploadGrantId = _nullableText(item['uploadGrantId']);
       if (availability == ExpenseCloudProofAvailability.available &&
           storagePath == null) {
         throw const FormatException(
@@ -255,6 +256,10 @@ class ExpenseCloudRestoreCodec {
       if (storagePath != null && !_isSafeCloudProofPath(storagePath)) {
         throw const FormatException('Cloud receipt proof path is unsafe.');
       }
+      if (storagePath != null &&
+          !_hasMatchingGrantPath(storagePath, uploadGrantId)) {
+        throw const FormatException('Cloud receipt proof grant is corrupt.');
+      }
       pointers.add(
         ExpenseCloudProofPointer(
           id: _text(item['id']),
@@ -262,7 +267,7 @@ class ExpenseCloudRestoreCodec {
               ? storagePath
               : null,
           uploadGrantId: availability == ExpenseCloudProofAvailability.available
-              ? _nullableText(item['uploadGrantId'])
+              ? uploadGrantId
               : null,
           availability: availability,
           kind: ReceiptAttachmentKind.fromName(_text(item['kind'])),
@@ -287,6 +292,16 @@ class ExpenseCloudRestoreCodec {
               segment != '.' &&
               segment != '..',
         );
+  }
+
+  static bool _hasMatchingGrantPath(String path, String? uploadGrantId) {
+    final segments = path.split('/');
+    final isGrantPath =
+        segments.length == 6 &&
+        segments[0] == 'orgs' &&
+        segments[2] == 'proof-uploads';
+    return !isGrantPath ||
+        (uploadGrantId != null && segments[4] == uploadGrantId);
   }
 
   static List<String> _auditEvents(Object? value, {required String recordId}) {
