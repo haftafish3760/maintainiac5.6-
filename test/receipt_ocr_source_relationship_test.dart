@@ -148,7 +148,7 @@ void main() {
       expect(result.ocrSourceFirstOutcome, 'imported_source_ready');
       expect(
         result.ocrSourceFirstActionLabel,
-        'OCR reads the imported receipt photo source before saved proof',
+        'Receipt details use the imported photo before the saved copy',
       );
       expect(
         result.privacySafeOcrSourceFirstSummary,
@@ -184,7 +184,7 @@ void main() {
       );
       expect(
         result.ocrSourceFirstActionLabel,
-        'OCR reads one combined stitched source before saved proof',
+        'Receipt details use the combined receipt image before the saved copy',
       );
       expect(result.ocrSourceProofRelationship, 'combined_clear_source');
       expect(result.usesSeparateOcrSourceCopies, isTrue);

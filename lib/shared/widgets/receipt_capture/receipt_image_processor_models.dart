@@ -22,8 +22,8 @@ class ReceiptPreparedImage {
       : 'ocr_saved_proof_fallback_review_required';
 
   String get ocrStoragePolicyLabel => usesSeparateBackupCopy
-      ? 'OCR reads the prepared receipt source before the smaller saved proof copy is kept.'
-      : 'OCR is using the saved proof copy; review readability before trusting automatic fill.';
+      ? 'Receipt details use the prepared clear photo before the smaller saved proof copy is kept.'
+      : 'Receipt details are using the saved proof copy; review readability before trusting automatic fill.';
 
   Map<String, Object?> toStorageContractDiagnostics() {
     return {
@@ -74,9 +74,9 @@ class ReceiptImagePreparationReport {
 
   String get ocrSourceLabel {
     if (usedEnhancedOcrSource) {
-      return 'Enhanced OCR source: ${cleanupActions.join(', ')}';
+      return 'Prepared clear receipt photo: ${cleanupActions.join(', ')}';
     }
-    return 'Original-quality OCR source';
+    return 'Original-quality receipt photo';
   }
 
   Map<String, Object?> toDiagnostics() {

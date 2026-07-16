@@ -46,6 +46,14 @@ void main() {
     expect(appDelegate, contains('hasTorch'));
     expect(appDelegate, contains('hasFlash'));
     expect(appDelegate, contains('"engine": "avFoundation"'));
+    expect(
+      appDelegate,
+      contains('"supportsNativeEdgeSignals": true'),
+    );
+    expect(
+      appDelegate,
+      contains('computes framing signals\n      // from live YUV frames'),
+    );
     expect(appDelegate, isNot(contains('UIImagePickerController')));
     expect(appDelegate, isNot(contains('PHPickerViewController')));
   });

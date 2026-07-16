@@ -136,40 +136,12 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         }
         updateSettingsStatusStrip()
     })
-    content.addView(settingSummary(
-        receiptCameraText("Long receipts", "Recibos largos"),
-        receiptCameraText(
-            "Capture sections from top to bottom and repeat a few readable lines between photos so the next receipt step can keep them in order.",
-            "Capture secciones de arriba a abajo y repita algunas líneas legibles entre fotos para que el siguiente paso del recibo pueda mantenerlas en orden.",
-        ),
-    ))
     content.addView(settingSectionHeader(receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
     content.addView(settingSummary(
-        receiptCameraText("Brightness and light", "Brillo y luz"),
+        receiptCameraText("Autofocus and capture", "Enfoque automático y captura"),
         receiptCameraText(
-            "Brightness and the receipt light stay on the live camera screen so you can see the receipt while adjusting them.",
-            "El brillo y la luz del recibo permanecen en la cámara en vivo para que pueda ver el recibo mientras los ajusta.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Focus", "Enfoque"),
-        receiptCameraText(
-            "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
-            "La cámara del teléfono controla el enfoque automático. Maintainiac no usa tocar para enfocar en la vista previa.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Receipt reading source", "Fuente de lectura del recibo"),
-        receiptCameraText(
-            "Maintainiac reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt is read.",
-            "Maintainiac lee primero la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Manual capture", "Captura manual"),
-        receiptCameraText(
-            "The shutter button always works immediately. Guidance can help, but it never blocks a manual receipt photo.",
-            "El disparador siempre funciona de inmediato. La guía ayuda, pero nunca bloquea una foto manual del recibo.",
+            "The phone camera owns autofocus. Pinch to zoom, use brightness or light on the camera screen, and capture anytime. Maintainiac reads the clear full-quality photo before making a smaller saved copy.",
+            "La cámara del teléfono controla el enfoque automático. Pellizque para acercar, use brillo o luz en la pantalla de cámara y capture en cualquier momento. Maintainiac lee la foto clara de calidad completa antes de crear una copia guardada más pequeña.",
         ),
     ))
     val scroll = ScrollView(this).apply {

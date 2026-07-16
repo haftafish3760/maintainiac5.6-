@@ -151,13 +151,15 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       _updateReviewState(() => _savingPhotos = false);
       _showCameraError(
-        'Receipt prep took too long. Try again, or retake the photo.',
+        'Preparing this receipt took too long. Your original photo is still open—try again, retake it, or continue by hand.',
       );
     } catch (_) {
       if (!_reviewWorkActive) return;
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       _updateReviewState(() => _savingPhotos = false);
-      _showCameraError('Could not save these receipt photos.');
+      _showCameraError(
+        'Could not prepare these receipt photos. Your original photo is still open—try again or return to review.',
+      );
     }
   }
 

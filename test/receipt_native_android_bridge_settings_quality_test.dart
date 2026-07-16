@@ -131,6 +131,14 @@ void main() {
       );
       expect(cameraActivity, isNot(contains('Use focus assist only if')));
       expect(cameraActivity, contains('Automatic capture'));
+      expect(cameraActivity, contains('Reset This Camera Session'));
+      expect(
+        cameraActivity,
+        contains('// Expense and account preferences are deliberately not reset here.'),
+      );
+      expect(cameraActivity, contains('autoCaptureEnabled = false'));
+      expect(cameraActivity, contains('edgeDetectionEnabled = true'));
+      expect(cameraActivity, contains('autoCropSuggestionEnabled = true'));
       expect(
         cameraActivity,
         contains(
@@ -146,11 +154,12 @@ void main() {
       expect(cameraActivity, isNot(contains('Manual Brightness still wins.')));
       expect(cameraActivity, isNot(contains('Reset brightness')));
       expect(cameraActivity, contains('Find receipt edges'));
-      expect(cameraActivity, contains('Long receipts'));
-      expect(cameraActivity, contains('Capture sections from top to bottom'));
+      expect(cameraActivity, isNot(contains('Long receipts')));
+      expect(cameraActivity, isNot(contains('Capture sections from top to bottom')));
       expect(cameraActivity, isNot(contains('IMAGE HANDOFF')));
       expect(cameraActivity, contains('CAMERA CONTROLS'));
-      expect(cameraActivity, contains('Brightness and light'));
+      expect(cameraActivity, contains('Autofocus and capture'));
+      expect(cameraActivity, isNot(contains('Brightness and light')));
       expect(cameraActivity, isNot(contains('PRIVACY AND DIAGNOSTICS')));
       expect(cameraActivity, contains('Receipt edge guidance is on.'));
       expect(
@@ -169,7 +178,7 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.',
+          'The phone camera owns autofocus. Pinch to zoom, use brightness or light on the camera screen, and capture anytime.',
         ),
       );
       expect(cameraActivity, isNot(contains('Receipt guidance warnings')));

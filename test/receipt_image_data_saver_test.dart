@@ -304,7 +304,7 @@ void main() {
       );
       expect(
         prepared.ocrStoragePolicyLabel,
-        contains('OCR reads the prepared receipt source'),
+        contains('Receipt details use the prepared clear photo'),
       );
       expect(
         prepared.toStorageContractDiagnostics(),

@@ -36,6 +36,7 @@ phase3_tests=(
   test/receipt_native_camera_shell_test.dart
   test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
+  test/receipt_native_ios_camera_session_capability_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -46,6 +47,8 @@ phase4_tests=(
   test/receipt_camera_phase4_review_contract_test.dart
   test/receipt_photo_review_exit_completion_test.dart
   test/receipt_photo_review_quality_handoff_test.dart
+  test/receipt_photo_review_controls_layout_test.dart
+  test/receipt_photo_review_crop_controls_layout_test.dart
   test/receipt_photo_section_labels_test.dart
 )
 
@@ -76,6 +79,8 @@ phase7_tests=(
   test/receipt_ocr_source_section_order_handoff_test.dart
   test/receipt_camera_result_stitch_handoff_followthrough_test.dart
   test/receipt_camera_result_review_resume_test.dart
+  test/receipt_image_source_prep_test.dart
+  test/receipt_image_data_saver_test.dart
 )
 
 phase8_tests=(
@@ -124,6 +129,7 @@ phase3_audit_paths=(
   test/receipt_camera_phase3_viewer_contract_test.dart
   test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
+  test/receipt_native_ios_camera_session_capability_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -137,10 +143,17 @@ phase4_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_photo_review_completion_actions.dart
   lib/shared/widgets/receipt_capture/receipt_photo_review_section_labels.dart
   lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_crop_controls.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_surface_controls.dart
+  lib/shared/widgets/receipt_capture/receipt_photo_review_surfaces.dart
+  lib/shared/widgets/receipt_capture/receipt_edge_cropper.dart
   test/receipt_camera_phase4_review_contract_test.dart
   test/receipt_photo_review_exit_completion_test.dart
   test/receipt_photo_review_quality_handoff_test.dart
   test/receipt_photo_section_labels_test.dart
+  test/receipt_photo_review_controls_layout_test.dart
+  test/receipt_photo_review_crop_controls_layout_test.dart
 )
 
 phase5_audit_paths=(
@@ -182,6 +195,9 @@ phase7_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_capture_flow_handoff_risks.dart
   lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_continuation_signals.dart
   lib/shared/widgets/receipt_capture/receipt_attachment_ocr_source_continuation_flags.dart
+  lib/shared/widgets/receipt_capture/receipt_image_processor.dart
+  lib/shared/widgets/receipt_capture/receipt_image_processor_models.dart
+  lib/shared/widgets/receipt_capture/receipt_image_processor_scan_helpers.dart
   test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
   test/receipt_camera_attachment_helper_parity_test.dart
@@ -192,6 +208,8 @@ phase7_audit_paths=(
   test/receipt_ocr_source_section_order_handoff_test.dart
   test/receipt_camera_result_stitch_handoff_followthrough_test.dart
   test/receipt_camera_result_review_resume_test.dart
+  test/receipt_image_source_prep_test.dart
+  test/receipt_image_data_saver_test.dart
 )
 
 phase8_audit_paths=(
@@ -426,8 +444,13 @@ full_only_tests=(
   test/receipt_camera_review_actions_contract_test.dart
   test/receipt_camera_saved_photo_warning_diagnostics_test.dart
   test/receipt_camera_settings_handoff_test.dart
+  test/receipt_capture_settings_store_test.dart
   test/receipt_camera_single_photo_handoff_contract_test.dart
   test/receipt_camera_user_language_contract_test.dart
+  test/receipt_photo_review_controls_layout_test.dart
+  test/receipt_photo_review_crop_controls_layout_test.dart
+  test/receipt_image_data_saver_test.dart
+  test/receipt_image_source_prep_test.dart
   test/receipt_native_android_bridge_auto_capture_test.dart
   test/receipt_native_android_bridge_test.dart
   test/receipt_native_android_diagnostics_payload_test.dart
@@ -468,7 +491,7 @@ line_cap_paths=(
 )
 
 run_flutter_tests() {
-  flutter test "$@" -r compact
+  flutter test --no-pub "$@" -r compact
 }
 
 print_test_pack() {

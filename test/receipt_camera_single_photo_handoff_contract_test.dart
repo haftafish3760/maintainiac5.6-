@@ -37,5 +37,6 @@ void main() {
       source,
       contains("'receiptPreparationOwner': 'receipt_reader_after_form_open'"),
     );
+    expect(source, contains('Your original photo is still open'));
   });
 }

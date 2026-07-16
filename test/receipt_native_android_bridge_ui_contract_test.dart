@@ -354,10 +354,10 @@ void main() {
       ),
     );
     expect(cameraActivity, isNot(contains('OCR reads original first')));
-    expect(cameraActivity, contains('Smaller saved proof copies'));
+    expect(cameraActivity, contains('smaller saved copy'));
     expect(cameraActivity, isNot(contains('Capture order')));
     expect(cameraActivity, contains('updateSettingsStatusStrip()'));
-    expect(cameraActivity, contains('Reset Receipt Camera Defaults'));
+    expect(cameraActivity, contains('Reset This Camera Session'));
     expect(
       cameraActivity,
       contains(
