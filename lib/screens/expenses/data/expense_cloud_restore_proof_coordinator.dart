@@ -4,6 +4,7 @@ import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_cloud_proof_cache.dart';
 import 'expense_cloud_proof_storage.dart';
 import 'expense_cloud_restore_session.dart';
+import 'expense_cloud_restore_storage_plan.dart';
 
 /// Downloads full-restore proof files into the app-owned, hash-verified cache.
 /// Each proof is checkpointed before session progress advances, so an
@@ -26,7 +27,7 @@ class ExpenseCloudRestoreProofCoordinator {
   }) async {
     final session = sessions.sessionById(sessionId);
     if (session == null) throw StateError('Restore session was not found.');
-    if (session.mode.name != 'full') {
+    if (session.mode != ExpenseCloudRestoreMode.full) {
       throw StateError('Only a full restore may download receipt proofs.');
     }
 
