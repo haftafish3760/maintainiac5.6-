@@ -249,6 +249,9 @@ void main() {
     () async {
       final source = await _readReceiptCaptureSettingsSource();
       final displaySource = await _readReceiptCaptureSettingsDisplaySource();
+      final dataSaverSource = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
+      ).readAsString();
 
       expect(source, contains('_ReceiptCameraRuntimeSummary'));
       expect(source, contains('defaultDataSaverInstallFootprintSummary'));
@@ -272,6 +275,14 @@ void main() {
       expect(displaySource, isNot(contains('Current Receipt Flow')));
       expect(displaySource, isNot(contains('Automatic Filling On')));
       expect(displaySource, isNot(contains('Photo Backup On')));
+      expect(
+        dataSaverSource,
+        contains('Connect backup in Account settings to see storage and activity.'),
+      );
+      expect(
+        dataSaverSource,
+        isNot(contains('CloudBackupStatusSnapshot.notConnected')),
+      );
       expect(source, contains('Ask Every Receipt'));
       expect(source, contains('askSavedProofSizeEachReceipt'));
       expect(

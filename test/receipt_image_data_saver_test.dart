@@ -276,6 +276,7 @@ void main() {
         prepared.preparation.toDiagnostics().keys,
         containsAll({
           'usedEnhancedOcrSource',
+          'receiptImageProcessingVersion',
           'cleanupActions',
           'originalReviewScore',
           'ocrReviewScore',
@@ -320,6 +321,13 @@ void main() {
       expect(
         prepared.toStorageContractDiagnostics(),
         containsPair('usesSeparateBackupCopy', true),
+      );
+      expect(
+        prepared.toStorageContractDiagnostics(),
+        containsPair(
+          'receiptImageProcessingVersion',
+          ReceiptImagePreparationReport.currentProcessingVersion,
+        ),
       );
       expect(
         prepared.toStorageContractDiagnostics().toString(),

@@ -49,6 +49,9 @@ void main() {
     final cropControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_controls.dart',
     ).readAsString();
+    final topBar = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+    ).readAsString();
     final uiConfig = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
     ).readAsString();
@@ -143,9 +146,6 @@ void main() {
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
     expect(cropControls, contains('height: 52'));
-    final topBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
-    ).readAsString();
     expect(topBar, contains('Crop receipt — drag the yellow edges'));
     expect(
       previewControls,
@@ -452,7 +452,12 @@ void main() {
     expect(dataSaverPanel, contains('Uses clear photo first'));
     expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
     expect(dataSaverPanel, contains('Proof kept after reading'));
-    expect(dataSaverPanel, contains('Backup status'));
+    expect(
+      dataSaverPanel,
+      contains('Connect backup in Account settings to see storage and activity.'),
+    );
+    expect(dataSaverPanel, isNot(contains('CloudBackupStatusSnapshot.notConnected')));
+    expect(dataSaverPanel, isNot(contains('Cloud allowance')));
     final sectionLabels = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_section_labels.dart',
     ).readAsString();
@@ -492,18 +497,30 @@ void main() {
     final cropControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_controls.dart',
     ).readAsString();
+    final topBar = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+    ).readAsString();
+    final editActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
+    ).readAsString();
+    final surfaces = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_surfaces.dart',
+    ).readAsString();
 
     expect(cropper, contains('static const _hitSize = 56.0'));
     expect(cropper, contains('static const _edgeVisibleSize = 8.0'));
     expect(cropper, contains('Semantics('));
     expect(cropper, contains('Move bottom right receipt crop corner'));
-    expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
+    expect(cropper, contains('suggestedNormalizedCrop'));
+    expect(cropper, contains('_suggestedCropRect('));
     expect(
-      cropControls,
-      contains(
-        'Drag the yellow edges until the full receipt is inside the frame.',
-      ),
+      editActions,
+      contains('suggestReceiptCropNormalizedForDecodedImage'),
     );
+    expect(editActions, contains("['autoCropSuggestionEnabled'] !=\n        false"));
+    expect(surfaces, contains('suggestedNormalizedCrop: _suggestedCropNormalized'));
+    expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
+    expect(topBar, contains('Crop receipt — drag the yellow edges'));
     expect(
       cropControls,
       contains('label: Text(cropProcessing ? \'Cropping\' : \'Apply Crop\')'),

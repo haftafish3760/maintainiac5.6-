@@ -13,7 +13,6 @@ extension ReceiptCameraViewController {
   }
 
   func capturePhoto(trigger: String) {
-    lastCaptureTrigger = trigger
     lastCaptureBlockReason = "none"
     if trigger == "manual_shutter" || trigger == "manual_add_photo" {
       manualShutterTapCount += 1
@@ -44,6 +43,10 @@ extension ReceiptCameraViewController {
       reportManualCaptureBlocked(trigger: trigger, reason: "no_camera")
       return
     }
+    // Keep provenance tied to the capture that actually begins. A blocked
+    // double-tap or auto-capture attempt must not overwrite an in-flight
+    // manual capture's trigger.
+    lastCaptureTrigger = trigger
     if trigger == "manual_shutter" || trigger == "manual_add_photo" {
       manualCaptureStartedCount += 1
     } else if trigger == "auto_capture" {

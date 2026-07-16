@@ -152,7 +152,10 @@ void main() {
     expect(edgeDetection.defaultEnabled, isTrue);
     expect(edgeDetection.label, contains('edges'));
     expect(edgeDetection.description, contains('crop'));
-    expect(edgeDetection.description, contains('perspective correction'));
+    expect(
+      edgeDetection.description,
+      contains('crop guidance and safe straightening checks'),
+    );
 
     final longReceipt = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'long_receipt_mode',

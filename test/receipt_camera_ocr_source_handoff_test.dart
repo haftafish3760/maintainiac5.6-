@@ -27,6 +27,9 @@ void main() {
     final imageProcessor = await File(
       'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
     ).readAsString();
+    final imageProcessorModels = await File(
+      'lib/shared/widgets/receipt_capture/receipt_image_processor_models.dart',
+    ).readAsString();
     final imageEnhancementHelpers = await File(
       'lib/shared/widgets/receipt_capture/receipt_image_processor_enhancement_helpers.dart',
     ).readAsString();
@@ -151,6 +154,7 @@ void main() {
     expect(imageProcessor, contains('prepareReceiptSourceWithReport'));
     expect(imageProcessor, contains('ReceiptImagePreparationReport'));
     expect(imageProcessor, contains('usedEnhancedOcrSource'));
+    expect(imageProcessorModels, contains('receiptImageProcessingVersion'));
     expect(imageProcessor, contains('cleanupActions'));
     expect(imageProcessor, contains('previewPreparedBackupFile'));
     expect(imageProcessor, contains('optimizePreparedBackupFile'));

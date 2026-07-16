@@ -13,6 +13,7 @@ extension _ReceiptPhotoReviewImageEditActions
     _cropImageSize = null;
     _cropRect = null;
     _cropDisplayRect = null;
+    _suggestedCropNormalized = null;
     Uint8List bytes;
     try {
       bytes = await File(photoPath).readAsBytes();
@@ -33,12 +34,20 @@ extension _ReceiptPhotoReviewImageEditActions
       });
       return;
     }
+    final autoCropSuggestionEnabled =
+        _captureDiagnosticsByPath[photoPath]?['autoCropSuggestionEnabled'] !=
+        false;
     _updateReviewState(() {
       _cropImageBytes = bytes;
       _cropImageSize = Size(
         decoded.width.toDouble(),
         decoded.height.toDouble(),
       );
+      _suggestedCropNormalized = autoCropSuggestionEnabled
+          ? ReceiptImageProcessor.suggestReceiptCropNormalizedForDecodedImage(
+              decoded,
+            )
+          : null;
     });
   }
 
@@ -182,6 +191,7 @@ extension _ReceiptPhotoReviewImageEditActions
       _cropImageSize = null;
       _cropRect = null;
       _cropDisplayRect = null;
+      _suggestedCropNormalized = null;
     });
     _setReviewMode(_ReceiptReviewMode.preview);
   }
@@ -218,6 +228,7 @@ extension _ReceiptPhotoReviewImageEditActions
     _cropImageSize = null;
     _cropRect = null;
     _cropDisplayRect = null;
+    _suggestedCropNormalized = null;
   }
 
   Set<String> _removePhotoReviewCachesForPath(String photoPath) {

@@ -37,12 +37,15 @@ class ReceiptPreparedImage {
       'ocrReviewScore': preparation.ocrQuality.reviewScore,
       'savedProofReviewScore': quality.reviewScore,
       'usedEnhancedOcrSource': preparation.usedEnhancedOcrSource,
+      'receiptImageProcessingVersion': preparation.processingVersion,
       'scannerDecisionCodes': preparation.scannerDecisionCodes,
     };
   }
 }
 
 class ReceiptImagePreparationReport {
+  static const currentProcessingVersion = 'receipt_image_preparation_v1';
+
   const ReceiptImagePreparationReport({
     required this.sourcePath,
     required this.ocrSourcePath,
@@ -61,6 +64,8 @@ class ReceiptImagePreparationReport {
   final bool usedEnhancedOcrSource;
   final List<String> scannerDecisionCodes;
 
+  String get processingVersion => currentProcessingVersion;
+
   bool get improvedReviewScore =>
       ocrQuality.reviewScore >= originalQuality.reviewScore;
 
@@ -77,6 +82,7 @@ class ReceiptImagePreparationReport {
   Map<String, Object?> toDiagnostics() {
     return {
       'usedEnhancedOcrSource': usedEnhancedOcrSource,
+      'receiptImageProcessingVersion': processingVersion,
       'cleanupActions': cleanupActions,
       'originalReviewScore': originalQuality.reviewScore,
       'ocrReviewScore': ocrQuality.reviewScore,

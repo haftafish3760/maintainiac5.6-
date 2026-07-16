@@ -5,30 +5,16 @@ img.Image _autoCropReceipt(img.Image source) {
 }
 
 _ScannerImageDecision _autoCropReceiptWithDecision(img.Image source) {
-  final bounds = _findReceiptContentBounds(source);
-  if (bounds == null) {
-    return _ScannerImageDecision(source, 'crop_skipped_no_receipt_bounds');
+  final geometry = _autoCropGeometryFor(source);
+  if (!geometry.isUsable) {
+    return _ScannerImageDecision(source, geometry.code);
   }
-  final minUsefulArea = source.width * source.height * .18;
-  if (bounds.width * bounds.height < minUsefulArea) {
-    return _ScannerImageDecision(source, 'crop_skipped_bounds_too_small');
-  }
-  final boundsSafetyCode = _receiptBoundsSafetyCode(source, bounds);
-  if (boundsSafetyCode != 'crop_bounds_safe') {
-    return _ScannerImageDecision(source, boundsSafetyCode);
-  }
-  final padX = (bounds.width * .045).round().clamp(18, 160);
-  final padY = (bounds.height * .035).round().clamp(18, 180);
-  final x = (bounds.left - padX).round().clamp(0, source.width - 1);
-  final y = (bounds.top - padY).round().clamp(0, source.height - 1);
-  final right = (bounds.right + padX).round().clamp(x + 1, source.width);
-  final bottom = (bounds.bottom + padY).round().clamp(y + 1, source.height);
   final cropped = img.copyCrop(
     source,
-    x: x,
-    y: y,
-    width: right - x,
-    height: bottom - y,
+    x: geometry.x,
+    y: geometry.y,
+    width: geometry.width,
+    height: geometry.height,
   );
   final sourceQuality = _qualityCheck(source);
   final cropQuality = _qualityCheck(cropped);
@@ -37,7 +23,7 @@ _ScannerImageDecision _autoCropReceiptWithDecision(img.Image source) {
       cropQuality.contrast >= sourceQuality.contrast * .68;
   final cropImprovesFraming = cropQuality.cropScore >= sourceQuality.cropScore;
   final darkFrameCrop =
-      _sourceHasDarkFrameAroundReceipt(source, bounds) &&
+      _sourceHasDarkFrameAroundReceipt(source, geometry.bounds!) &&
       cropQuality.textBandScore >= sourceQuality.textBandScore * .58 &&
       cropQuality.contrast >= 12 &&
       cropQuality.cropScore >= sourceQuality.cropScore * .82;
@@ -48,6 +34,73 @@ _ScannerImageDecision _autoCropReceiptWithDecision(img.Image source) {
     return _ScannerImageDecision(source, 'crop_skipped_quality_guard');
   }
   return _ScannerImageDecision(cropped, 'crop_applied_safe_bounds');
+}
+
+Rect? _suggestReceiptCropNormalized(img.Image source) {
+  final geometry = _autoCropGeometryFor(source);
+  if (!geometry.isUsable) return null;
+  return Rect.fromLTRB(
+    geometry.x / source.width,
+    geometry.y / source.height,
+    geometry.right / source.width,
+    geometry.bottom / source.height,
+  );
+}
+
+_ReceiptAutoCropGeometry _autoCropGeometryFor(img.Image source) {
+  final bounds = _findReceiptContentBounds(source);
+  if (bounds == null) {
+    return const _ReceiptAutoCropGeometry.skipped('crop_skipped_no_receipt_bounds');
+  }
+  final minUsefulArea = source.width * source.height * .18;
+  if (bounds.width * bounds.height < minUsefulArea) {
+    return const _ReceiptAutoCropGeometry.skipped('crop_skipped_bounds_too_small');
+  }
+  final boundsSafetyCode = _receiptBoundsSafetyCode(source, bounds);
+  if (boundsSafetyCode != 'crop_bounds_safe') {
+    return _ReceiptAutoCropGeometry.skipped(boundsSafetyCode);
+  }
+  final padX = (bounds.width * .045).round().clamp(18, 160);
+  final padY = (bounds.height * .035).round().clamp(18, 180);
+  final x = (bounds.left - padX).round().clamp(0, source.width - 1);
+  final y = (bounds.top - padY).round().clamp(0, source.height - 1);
+  final right = (bounds.right + padX).round().clamp(x + 1, source.width);
+  final bottom = (bounds.bottom + padY).round().clamp(y + 1, source.height);
+  return _ReceiptAutoCropGeometry(
+    x: x,
+    y: y,
+    right: right,
+    bottom: bottom,
+    bounds: bounds,
+  );
+}
+
+class _ReceiptAutoCropGeometry {
+  const _ReceiptAutoCropGeometry({
+    required this.x,
+    required this.y,
+    required this.right,
+    required this.bottom,
+    required this.bounds,
+  }) : code = 'crop_candidate_safe_bounds';
+
+  const _ReceiptAutoCropGeometry.skipped(this.code)
+    : x = 0,
+      y = 0,
+      right = 0,
+      bottom = 0,
+      bounds = null;
+
+  final int x;
+  final int y;
+  final int right;
+  final int bottom;
+  final _ReceiptImageBounds? bounds;
+  final String code;
+
+  bool get isUsable => right > x && bottom > y;
+  int get width => right - x;
+  int get height => bottom - y;
 }
 
 bool _sourceHasDarkFrameAroundReceipt(

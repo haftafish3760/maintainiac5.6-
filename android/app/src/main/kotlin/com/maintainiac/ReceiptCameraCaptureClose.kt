@@ -9,7 +9,6 @@ import java.time.Instant
 
 
 internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutter") {
-    lastCaptureTrigger = trigger
     lastCaptureBlockReason = "none"
     if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
         manualShutterTapCount += 1
@@ -41,6 +40,10 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
         reportManualCaptureBlocked(trigger, "camera_surface_inactive")
         return
     }
+    // Keep provenance tied to the capture that actually begins. A blocked
+    // double-tap or auto-capture attempt must not overwrite an in-flight
+    // manual capture's trigger.
+    lastCaptureTrigger = trigger
     if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
         manualCaptureStartedCount += 1
     } else if (trigger == "auto_capture") {

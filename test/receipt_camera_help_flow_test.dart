@@ -271,7 +271,11 @@ void main() {
     expect(dataSaverPanel, contains('Capture source size'));
     expect(dataSaverPanel, isNot(contains('Original photo')));
     expect(dataSaverPanel, contains('Proof kept after reading'));
-    expect(dataSaverPanel, contains('Backup status'));
+    expect(
+      dataSaverPanel,
+      contains('Connect backup in Account settings to see storage and activity.'),
+    );
+    expect(dataSaverPanel, isNot(contains('CloudBackupStatusSnapshot.notConnected')));
     expect(dataSaverPanel, isNot(contains('Cloud backup copy')));
     expect(dataSaverPanel, isNot(contains('Saved copy')));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));

@@ -44,6 +44,27 @@ void main() {
     );
   });
 
+  test('receipt source prep offers a safe non-destructive crop suggestion', () {
+    final bytes = img.encodeJpg(receiptOnCounterImage(), quality: 96);
+    final suggestion = ReceiptImageProcessor.suggestReceiptCropNormalized(bytes);
+    final decoded = img.decodeImage(bytes);
+
+    expect(suggestion, isNotNull);
+    expect(decoded, isNotNull);
+    expect(
+      ReceiptImageProcessor.suggestReceiptCropNormalizedForDecodedImage(
+        decoded!,
+      ),
+      suggestion,
+    );
+    expect(suggestion!.left, greaterThanOrEqualTo(0));
+    expect(suggestion.top, greaterThanOrEqualTo(0));
+    expect(suggestion.right, lessThanOrEqualTo(1));
+    expect(suggestion.bottom, lessThanOrEqualTo(1));
+    expect(suggestion.width, lessThan(1));
+    expect(suggestion.height, lessThan(1));
+  });
+
   test('receipt source prep avoids unsafe off-center auto crop', () async {
     final dir = await Directory.systemTemp.createTemp('receipt_crop_guard_');
     addTearDown(() async {
@@ -66,6 +87,12 @@ void main() {
     expect(prepared, isNotNull);
     expect(prepared!.width, 1800);
     expect(prepared.height, 2400);
+    expect(
+      ReceiptImageProcessor.suggestReceiptCropNormalized(
+        await source.readAsBytes(),
+      ),
+      isNull,
+    );
     expect(
       report.scannerDecisionCodes,
       contains('crop_skipped_bounds_too_small'),

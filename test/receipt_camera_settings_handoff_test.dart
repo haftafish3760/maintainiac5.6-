@@ -52,6 +52,10 @@ void main() {
     expect(flowSettings, isNot(contains('ReceiptNativeCameraSettings(')));
     expect(flowSettings, contains('options.forceLongReceiptMode ?? false'));
     expect(
+      flowSettings,
+      contains('options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false'),
+    );
+    expect(
       androidSessionArguments,
       contains('getBooleanExtra("longReceiptMode", false)'),
     );
@@ -60,6 +64,7 @@ void main() {
       contains('arguments["longReceiptMode"] as? Bool ?? false'),
     );
     for (final source in [androidSessionArguments, iosSessionArguments]) {
+      expect(source, contains('autoCaptureEnabled'));
       expect(source, contains('receiptPhotoBackupEnabled'));
       expect(source, contains('askSavedProofSizeEachReceipt'));
     }

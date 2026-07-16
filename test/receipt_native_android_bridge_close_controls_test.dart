@@ -3,6 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_native_android_bridge_source_readers.dart';
 
 void main() {
+  test('Android capture provenance is not overwritten by blocked attempts', () async {
+    final sources = await readAndroidReceiptCameraBridgeSources();
+    final capture = sources.cameraActivity;
+    final inFlightGuard = capture.indexOf('if (captureInFlight) {');
+    final triggerRecorded = capture.indexOf('lastCaptureTrigger = trigger');
+
+    expect(inFlightGuard, greaterThanOrEqualTo(0));
+    expect(triggerRecorded, greaterThan(inFlightGuard));
+  });
+
   test('Android native receipt camera protects back close and touch controls', () async {
     final sources = await readAndroidReceiptCameraBridgeSources();
     final cameraActivity = sources.cameraActivity;
