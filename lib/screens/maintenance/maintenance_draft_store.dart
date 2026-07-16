@@ -1,5 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../shared/storage/app_storage_guard.dart';
+
 class MaintenanceDraftSummary {
   const MaintenanceDraftSummary({
     required this.kind,
@@ -20,20 +22,23 @@ class MaintenanceDraftStore {
   static const boxName = 'maintenance_drafts';
   static const setupPrefix = 'setup';
   static const logPrefix = 'log';
+  static Future<void> _writeTail = Future<void>.value();
 
   static Future<void> saveSetupDraft({
     required String vehicleName,
     required String itemName,
     required Map<String, Object?> values,
-  }) async {
+  }) => _enqueue(() async {
+    await _ensureStorageForWrite();
     final box = await _openBox();
-    await box.put(_key(setupPrefix, vehicleName, itemName), {
+    final key = _key(setupPrefix, vehicleName, itemName);
+    await box.put(key, {
       ...values,
       'vehicleName': vehicleName,
       'itemName': itemName,
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': _nextTimestamp(box.get(key)).toIso8601String(),
     });
-  }
+  });
 
   static Future<Map<String, dynamic>?> loadSetupDraft({
     required String vehicleName,
@@ -48,14 +53,16 @@ class MaintenanceDraftStore {
   static Future<void> saveLogDraft({
     required String vehicleName,
     required Map<String, Object?> values,
-  }) async {
+  }) => _enqueue(() async {
+    await _ensureStorageForWrite();
     final box = await _openBox();
-    await box.put(_key(logPrefix, vehicleName, 'active'), {
+    final key = _key(logPrefix, vehicleName, 'active');
+    await box.put(key, {
       ...values,
       'vehicleName': vehicleName,
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': _nextTimestamp(box.get(key)).toIso8601String(),
     });
-  }
+  });
 
   static Future<Map<String, dynamic>?> loadLogDraft({
     required String vehicleName,
@@ -69,17 +76,16 @@ class MaintenanceDraftStore {
   static Future<void> clearSetupDraft({
     required String vehicleName,
     required String itemName,
-  }) async {
-    final box = Hive.isBoxOpen(boxName) ? Hive.box<dynamic>(boxName) : null;
-    if (box == null) return;
+  }) => _enqueue(() async {
+    final box = await _openBox();
     await box.delete(_key(setupPrefix, vehicleName, itemName));
-  }
+  });
 
-  static Future<void> clearLogDraft({required String vehicleName}) async {
-    final box = Hive.isBoxOpen(boxName) ? Hive.box<dynamic>(boxName) : null;
-    if (box == null) return;
-    await box.delete(_key(logPrefix, vehicleName, 'active'));
-  }
+  static Future<void> clearLogDraft({required String vehicleName}) =>
+      _enqueue(() async {
+        final box = await _openBox();
+        await box.delete(_key(logPrefix, vehicleName, 'active'));
+      });
 
   static Future<List<MaintenanceDraftSummary>> loadDrafts({
     String? vehicleName,
@@ -137,5 +143,27 @@ class MaintenanceDraftStore {
   static Future<Box<dynamic>> _openBox() async {
     if (Hive.isBoxOpen(boxName)) return Hive.box<dynamic>(boxName);
     return Hive.openBox<dynamic>(boxName);
+  }
+
+  static Future<void> _ensureStorageForWrite() async {
+    final storage = await AppStorageGuard.check(
+      AppStoragePurpose.smallRecordWrite,
+    );
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
+
+  static Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  static DateTime _nextTimestamp(Object? existing) {
+    final previous = existing is Map
+        ? DateTime.tryParse(existing['updatedAt']?.toString() ?? '')?.toUtc()
+        : null;
+    final now = DateTime.now().toUtc();
+    if (previous == null || !now.isBefore(previous)) return now;
+    return previous;
   }
 }
