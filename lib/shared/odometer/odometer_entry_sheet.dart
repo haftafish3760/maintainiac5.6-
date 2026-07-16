@@ -203,6 +203,8 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
       confirmSuspicious: _pendingConfirmation,
       mileageReview: review,
       correctionReview: correctionReview,
+      sourceType: widget.tripReview == null ? null : 'gps_trip_review',
+      sourceId: widget.tripReview?.id,
     );
 
     if (!result.ok) {
@@ -266,8 +268,10 @@ class _TripGpsReconciliationPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final needsReview =
-        reconciliation.status == TripOdometerReconciliationStatus.reviewRecommended;
-    final invalid = reconciliation.status == TripOdometerReconciliationStatus.invalid;
+        reconciliation.status ==
+        TripOdometerReconciliationStatus.reviewRecommended;
+    final invalid =
+        reconciliation.status == TripOdometerReconciliationStatus.invalid;
     final color = invalid || needsReview
         ? const Color(0xFFFFD27A)
         : const Color(0xFF75D6A5);

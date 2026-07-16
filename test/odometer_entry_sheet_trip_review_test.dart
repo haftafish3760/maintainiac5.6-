@@ -48,5 +48,18 @@ void main() {
     expect(find.text('GPS TRIP COMPARISON'), findsOneWidget);
     expect(find.textContaining('Confirmed: 20 mi'), findsOneWidget);
     expect(find.textContaining('GPS: 12.0 mi'), findsOneWidget);
+
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Confirm Odometer'),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Business'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save Miles'));
+    await tester.pumpAndSettle();
+
+    expect(odometer.history, hasLength(2));
+    expect(odometer.history.last.sourceType, 'gps_trip_review');
+    expect(odometer.history.last.sourceId, review.id);
   });
 }
