@@ -41,6 +41,7 @@ void main() {
     expect(primary, contains('onPressed: savingPhotos ? null : onAddPhoto'));
     expect(primary, contains("uiConfig.labelFor('addPhoto'"));
     expect(primary, isNot(contains("'Add Bottom Section'")));
+    expect(primary, isNot(contains('Add the bottom section')));
     expect(tray, contains('_ReceiptOrderThumbnail('));
     expect(
       controls,

@@ -69,7 +69,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                 if (uiConfig.showDecisionGuidance) ...[
                   _ReceiptReviewDecisionHeader(
                     photoCount: photoCount,
-                    coverageDecision: coverageDecision,
                     continueLabel: continueLabel,
                     compact: compactControls,
                   ),

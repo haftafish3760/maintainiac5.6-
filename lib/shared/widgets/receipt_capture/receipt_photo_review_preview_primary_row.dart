@@ -213,13 +213,11 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
 class _ReceiptReviewDecisionHeader extends StatelessWidget {
   const _ReceiptReviewDecisionHeader({
     required this.photoCount,
-    required this.coverageDecision,
     required this.continueLabel,
     required this.compact,
   });
 
   final int photoCount;
-  final ReceiptPhotoCoverageDecision coverageDecision;
   final String continueLabel;
   final bool compact;
 
@@ -287,16 +285,10 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
   }
 
   String get _guidance {
-    if (coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Add the bottom section if the receipt continues. Use Receipt only when this is complete.';
-    }
-    if (coverageDecision.shouldPromptForMorePhotos) {
-      return 'Add another photo if more receipt lines continue below this section.';
-    }
     if (photoCount > 1 && continueLabel == 'Continue') {
       return 'Continue when these are the receipt sections you want to use.';
     }
-    return 'Use Receipt opens the details review. Add Another is only for long receipts.';
+    return 'Add Another Photo only if the receipt continues. Otherwise, use this photo.';
   }
 }
 
