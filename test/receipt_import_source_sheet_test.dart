@@ -29,7 +29,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
-    expect(find.text('Help'), findsOneWidget);
+    expect(find.byIcon(Icons.help_outline_rounded), findsOneWidget);
     expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload Photos'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
@@ -37,7 +37,7 @@ void main() {
     expect(find.text('Text File'), findsNothing);
     expect(find.text('Share Help'), findsNothing);
 
-    await tester.tap(find.text('Help'));
+    await tester.tap(find.byIcon(Icons.help_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('Receipt Import Help'), findsOneWidget);
@@ -90,7 +90,7 @@ void main() {
     expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
 
-    await tester.tap(find.text('Help'));
+    await tester.tap(find.byIcon(Icons.help_outline_rounded));
     await tester.pumpAndSettle();
 
     expect(find.text('Receipt Import Help'), findsOneWidget);

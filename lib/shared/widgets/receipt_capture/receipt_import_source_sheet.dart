@@ -125,15 +125,17 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                TextButton(
+                IconButton(
+                  tooltip: 'Receipt settings',
                   onPressed: () =>
                       Navigator.of(context).pop(_ReceiptImportAction.settings),
-                  child: const Text('Settings'),
+                  icon: const Icon(Icons.settings_rounded),
                 ),
-                TextButton(
+                IconButton(
+                  tooltip: 'Receipt import help',
                   onPressed: () =>
                       Navigator.of(context).pop(_ReceiptImportAction.shareHelp),
-                  child: const Text('Help'),
+                  icon: const Icon(Icons.help_outline_rounded),
                 ),
               ],
             ),
