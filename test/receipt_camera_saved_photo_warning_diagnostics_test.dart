@@ -87,7 +87,10 @@ void main() {
 
     expect(darkerThanPreview.code, 'saved_photo_darker_than_preview');
     expect(darkerThanPreview.isCritical, isTrue);
-    expect(darkerThanPreview.message, contains('Retake with more light'));
+    expect(
+      darkerThanPreview.message,
+      contains('Turn on your phone light or retake in better light'),
+    );
     expect(darkerThanPreview.primaryActionLabel, 'Retake with more light');
     expect(dimmerThanPreview.code, 'saved_photo_dimmer_than_preview');
     expect(dimmerThanPreview.isCritical, isFalse);
@@ -127,7 +130,7 @@ void main() {
     expect(bottomDark.prefersAddSection, isTrue);
     expect(
       bottomDark.primaryActionLabel,
-      'Add Another Photo or raise Brightness for the bottom lines',
+      'Add Another Photo or retake the bottom lines in better light',
     );
     expect(bottomDarkerThanTop.code, 'saved_photo_bottom_too_dark');
     expect(bottomDarkerThanTop.parserRiskCode, 'ocr_bottom_total_may_fail');

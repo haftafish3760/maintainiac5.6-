@@ -57,12 +57,12 @@ extension ReceiptNativeSavedPhotoReviewWarningDetails
   String get primaryActionLabel {
     return switch (actionCode) {
       'retake_with_more_light' => 'Retake with more light',
-      'reduce_brightness_or_glare' => 'Lower Brightness or reduce glare',
+      'reduce_brightness_or_glare' => 'Reduce glare or retake',
       'turn_on_light_or_retake' => 'Turn on receipt light or retake',
       'check_text_or_add_light' => 'Check text, then add light or retake',
       'retake_hold_steady' => 'Retake while holding steady',
       'check_bottom_or_raise_brightness' =>
-        'Add Another Photo or raise Brightness for the bottom lines',
+        'Add Another Photo or retake the bottom lines in better light',
       'check_bottom_or_retake' =>
         'Add Another Photo or retake the bottom lines',
       'review_or_add_light' => 'Check readability, then add light if needed',

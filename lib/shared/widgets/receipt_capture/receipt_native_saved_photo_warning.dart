@@ -137,7 +137,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Photo saved darker than preview',
         causeCode: 'saved_photo_darker_than_live_preview',
         guidance:
-            'Retake with more light or raise Brightness before using this photo.',
+            'Turn on your phone light or retake in better light before using this photo.',
       );
     }
     if (previewParitySignal ==
@@ -163,7 +163,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Photo saved brighter than preview',
         causeCode: 'saved_photo_brighter_than_live_preview',
         guidance:
-            'Check for washed-out totals or glare. Lower Brightness, tilt the receipt, or retake if the text is hard to read.',
+            'Check for washed-out totals or glare. Tilt the receipt or light, then retake if the text is hard to read.',
       );
     }
     if (qualitySignal == 'retake_blur_risk' ||
@@ -213,7 +213,7 @@ class ReceiptNativeSavedPhotoReviewWarning {
         title: 'Bottom of photo looks darker',
         causeCode: 'bottom_receipt_lines_darker_than_upper',
         guidance:
-            'Zoom into the bottom receipt lines. Retake or raise Brightness if the total or barcode area is hard to read.',
+            'Zoom into the bottom receipt lines. Retake in better light if the total or barcode area is hard to read.',
       );
     }
     if (verticalQualitySignal == 'bottom_soft_blur_risk') {
