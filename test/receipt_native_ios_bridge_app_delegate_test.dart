@@ -14,6 +14,16 @@ void main() {
     expect(appDelegate, contains('captureReceipt'));
     expect(appDelegate, contains('ReceiptCameraViewController'));
     expect(appDelegate, contains('present(controller, animated: true)'));
+    expect(appDelegate, contains('if pendingReceiptCameraResult != nil {'));
+    expect(appDelegate, contains('code: "native_camera_busy"'));
+    expect(
+      appDelegate.indexOf('if pendingReceiptCameraResult != nil {'),
+      lessThan(appDelegate.indexOf('pendingReceiptCameraResult = result')),
+    );
+    expect(
+      appDelegate.indexOf('self.pendingReceiptCameraResult = nil'),
+      greaterThanOrEqualTo(0),
+    );
     expect(appDelegate, contains('originalPhotoPaths'));
     expect(appDelegate, contains('native_camera_cancelled'));
     expect(appDelegate, contains('captureDiagnostics": diagnostics'));
@@ -46,10 +56,7 @@ void main() {
     expect(appDelegate, contains('hasTorch'));
     expect(appDelegate, contains('hasFlash'));
     expect(appDelegate, contains('"engine": "avFoundation"'));
-    expect(
-      appDelegate,
-      contains('"supportsNativeEdgeSignals": true'),
-    );
+    expect(appDelegate, contains('"supportsNativeEdgeSignals": true'));
     expect(
       appDelegate,
       contains('computes framing signals\n      // from live YUV frames'),

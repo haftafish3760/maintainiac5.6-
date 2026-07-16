@@ -121,6 +121,41 @@ void main() {
   });
 
   test(
+    'native service preserves an already-open receipt camera outcome',
+    () async {
+      const channel = MethodChannel('maintainiac/receipt_camera_busy');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            throw PlatformException(code: 'native_camera_busy');
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+      });
+
+      const capabilities = ReceiptNativeCameraCapabilities(
+        engine: ReceiptNativeCameraEngine.cameraX,
+        available: true,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+        supportsYuvLiveFrames: true,
+        supportsNativeEdgeSignals: true,
+      );
+      final config = const ReceiptNativeCameraSettings().sessionFor(
+        deviceCapability: const ReceiptDeviceCapability.standard(),
+        nativeCapabilities: capabilities,
+      );
+
+      expect(
+        ReceiptNativeCameraService(
+          methodChannel: channel,
+        ).captureReceipt(config),
+        throwsA(isA<ReceiptNativeCameraBusyException>()),
+      );
+    },
+  );
+
+  test(
     'native service reads capabilities through Maintainiac channel',
     () async {
       const channel = MethodChannel('maintainiac/receipt_camera_test');

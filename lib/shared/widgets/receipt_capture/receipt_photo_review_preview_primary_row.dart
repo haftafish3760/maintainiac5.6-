@@ -91,13 +91,23 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                   const SizedBox(width: 4),
                   Tooltip(
                     message: 'Crop receipt photo',
-                    child: IconButton(
-                      onPressed: onCrop,
-                      icon: const Icon(Icons.crop_rounded, size: 19),
-                      color: const Color(0xFFE8ECEE),
-                      style: IconButton.styleFrom(
-                        minimumSize: const Size(40, 40),
-                        padding: EdgeInsets.zero,
+                    child: Semantics(
+                      button: true,
+                      label: 'Crop receipt photo',
+                      child: TextButton.icon(
+                        onPressed: savingPhotos ? null : onCrop,
+                        icon: const Icon(Icons.crop_rounded, size: 17),
+                        label: const Text('Crop'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFE8ECEE),
+                          disabledForegroundColor: const Color(0xFF758188),
+                          minimumSize: const Size(40, 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          textStyle: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
                     ),
                   ),

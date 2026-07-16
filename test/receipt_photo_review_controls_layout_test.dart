@@ -156,6 +156,9 @@ void main() {
     expect(reviewScreen, contains('_controlsVisible = true;'));
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
     expect(previewControls, contains('minimumSize: const Size(40, 40)'));
+    expect(previewControls, contains("label: const Text('Crop')"));
+    expect(previewControls, contains("label: 'Crop receipt photo'"));
+    expect(previewControls, contains('onPressed: savingPhotos ? null : onCrop'));
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));

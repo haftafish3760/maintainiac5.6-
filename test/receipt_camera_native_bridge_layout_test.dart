@@ -88,6 +88,16 @@ void main() {
     );
     expect(androidCameraUnit, isNot(contains('ACTION_IMAGE_CAPTURE')));
     expect(androidMain, contains('ReceiptCameraActivity::class.java'));
+    expect(androidMain, contains('if (pendingReceiptCameraResult != null) {'));
+    expect(androidMain, contains('"native_camera_busy"'));
+    final androidResultClear = androidMain.indexOf(
+      'pendingReceiptCameraResult = null',
+    );
+    expect(androidResultClear, greaterThanOrEqualTo(0));
+    expect(
+      androidResultClear,
+      lessThan(androidMain.indexOf('if (resultCode != RESULT_OK || data == null)')),
+    );
     expect(androidMain, isNot(contains('MediaStore.ACTION_IMAGE_CAPTURE')));
 
     expect(iosCameraUnit, contains('AVCaptureSession'));
@@ -113,8 +123,14 @@ void main() {
     expect(iosCameraUnit, contains('Match the next section'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDelta'));
     expect(iosCameraUnit, contains('latestCapturedBottomTopLumaDeltaBucket'));
-    expect(iosCameraUnit, contains('let addPhotoButton = UIButton(type: .system)'));
-    expect(iosCameraUnit, contains('let bottomReviewButton = UIButton(type: .system)'));
+    expect(
+      iosCameraUnit,
+      contains('let addPhotoButton = UIButton(type: .system)'),
+    );
+    expect(
+      iosCameraUnit,
+      contains('let bottomReviewButton = UIButton(type: .system)'),
+    );
     expect(iosCameraUnit, contains('captureAdditionalPhoto'));
     expect(
       iosCameraUnit,
@@ -122,6 +138,10 @@ void main() {
     );
     expect(iosCameraUnit, isNot(contains('UIImagePickerController')));
     expect(iosDelegate, contains('ReceiptCameraViewController'));
+    expect(iosDelegate, contains('if pendingReceiptCameraResult != nil {'));
+    expect(iosDelegate, contains('code: "native_camera_busy"'));
+    expect(iosDelegate, contains('let pending = self.pendingReceiptCameraResult'));
+    expect(iosDelegate, contains('self.pendingReceiptCameraResult = nil'));
     expect(iosDelegate, isNot(contains('UIImagePickerController')));
   });
 
@@ -179,24 +199,27 @@ void main() {
     },
   );
 
-  test('receipt capture declares only the platform permissions it needs', () async {
-    final androidManifest = await File(
-      'android/app/src/main/AndroidManifest.xml',
-    ).readAsString();
-    final iosInfo = await File('ios/Runner/Info.plist').readAsString();
+  test(
+    'receipt capture declares only the platform permissions it needs',
+    () async {
+      final androidManifest = await File(
+        'android/app/src/main/AndroidManifest.xml',
+      ).readAsString();
+      final iosInfo = await File('ios/Runner/Info.plist').readAsString();
 
-    expect(androidManifest, contains('android.permission.CAMERA'));
-    expect(
-      androidManifest,
-      isNot(contains('android.permission.READ_EXTERNAL_STORAGE')),
-    );
-    expect(
-      androidManifest,
-      isNot(contains('android.permission.READ_MEDIA_IMAGES')),
-    );
-    expect(iosInfo, contains('<key>NSCameraUsageDescription</key>'));
-    expect(iosInfo, contains('<key>NSPhotoLibraryUsageDescription</key>'));
-  });
+      expect(androidManifest, contains('android.permission.CAMERA'));
+      expect(
+        androidManifest,
+        isNot(contains('android.permission.READ_EXTERNAL_STORAGE')),
+      );
+      expect(
+        androidManifest,
+        isNot(contains('android.permission.READ_MEDIA_IMAGES')),
+      );
+      expect(iosInfo, contains('<key>NSCameraUsageDescription</key>'));
+      expect(iosInfo, contains('<key>NSPhotoLibraryUsageDescription</key>'));
+    },
+  );
 
   test('photo review can open on a newly added receipt section', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();

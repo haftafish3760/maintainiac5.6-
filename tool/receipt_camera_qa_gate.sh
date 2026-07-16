@@ -414,6 +414,7 @@ stitch_tests=(
 full_only_tests=(
   test/receipt_camera_backup_staging_contract_test.dart
   test/receipt_camera_capture_loss_contract_test.dart
+  test/receipt_camera_capture_busy_handoff_test.dart
   test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
   test/receipt_camera_footprint_audit_test.dart

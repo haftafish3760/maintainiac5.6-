@@ -81,6 +81,23 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
         },
       ),
     );
+  } on ReceiptNativeCameraBusyException catch (error) {
+    return ReceiptCaptureFlowResult.canceled(
+      message: error.message,
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'native_camera_open',
+        reason: 'native_camera_already_open',
+        action: 'return_to_open_receipt_camera',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+        extraMetadata: const {
+          'nativeCaptureOutcome': 'native_camera_already_open',
+          'nativeCaptureFallbackPolicy': 'keep_existing_camera_session',
+          'userNextStep': 'finish_or_cancel_the_open_receipt_camera',
+        },
+      ),
+    );
   } on ReceiptNativeCameraUnavailableException catch (error) {
     return ReceiptCaptureFlowResult.failed(
       status: ReceiptCaptureFlowStatus.nativeUnavailable,
