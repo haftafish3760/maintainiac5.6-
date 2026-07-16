@@ -8,6 +8,7 @@ class MaintainiacFirestoreUploadPolicy {
   static const maxDocumentBytes = 768 * 1024;
   static const retryInitialDelay = Duration(seconds: 30);
   static const retryMaximumDelay = Duration(hours: 6);
+  static const _tripMetersPerMile = 1609.344;
 
   static Duration retryDelayForAttempt(int attemptCount) {
     final exponent = attemptCount.clamp(1, 16).toInt() - 1;
@@ -236,6 +237,36 @@ class MaintainiacFirestoreUploadPolicy {
         'Mileage uploads must contain sane reviewed trip values.',
       );
     }
+    if (!_hasCoherentTripMileageDistance(
+      startingOdometer: startingOdometer,
+      estimatedEndingOdometer: estimatedEndingOdometer,
+      acceptedMeters: acceptedMeters,
+      acceptedMiles: acceptedMiles,
+    )) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Mileage upload meters, miles, and odometer estimate must agree.',
+      );
+    }
+  }
+
+  static bool _hasCoherentTripMileageDistance({
+    required Object? startingOdometer,
+    required Object? estimatedEndingOdometer,
+    required Object? acceptedMeters,
+    required Object? acceptedMiles,
+  }) {
+    if (startingOdometer is! int ||
+        estimatedEndingOdometer is! int ||
+        acceptedMeters is! num ||
+        acceptedMiles is! num) {
+      return false;
+    }
+    final expectedMiles = acceptedMeters / _tripMetersPerMile;
+    final meterMileDrift = (acceptedMiles - expectedMiles).abs();
+    final odometerDelta = estimatedEndingOdometer - startingOdometer;
+    return meterMileDrift <= 0.01 && odometerDelta == expectedMiles.round();
   }
 
   static bool _isNonEmptyString(Object? value) =>
