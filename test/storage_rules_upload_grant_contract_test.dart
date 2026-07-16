@@ -17,5 +17,10 @@ void main() {
       rules,
       contains('request.time < uploadGrant(orgId, grantId).expiresAt'),
     );
+    expect(rules, contains('uploadGrant(orgId, grantId).proofId == fileName'));
+    expect(rules, contains("request.resource.contentType.matches('image/.*')"));
+    expect(rules, contains('request.resource.metadata.orgId == orgId'));
+    expect(rules, contains('request.resource.metadata.uid == uid'));
+    expect(rules, contains('request.resource.metadata.proofId == fileName'));
   });
 }
