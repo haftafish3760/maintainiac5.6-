@@ -243,7 +243,10 @@ void main() {
       completionActions,
       isNot(contains('await addAnotherReceiptPhoto();')),
     );
-    expect(completionActions, contains('return true;'));
+    expect(
+      completionActions,
+      contains('return _ReceiptContinueDecision.continueAnyway;'),
+    );
   });
 
   test('long receipt stitch review shows plain decision evidence', () async {

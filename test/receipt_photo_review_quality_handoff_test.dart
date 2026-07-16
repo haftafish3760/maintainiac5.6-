@@ -164,7 +164,11 @@ void main() {
       saveActions,
       contains(r'Tap $nextLabel to use $target and open receipt details.'),
     );
-    expect(saveActions, contains('result.captureDiagnosticsByPhotoPath('));
+    expect(
+      saveActions,
+      contains('captureDiagnostics[prepared.backupPath] ='),
+    );
+    expect(saveActions, contains('captureDiagnosticsByPhotoPath: captureDiagnostics'));
     expect(saveActions, contains('pickedPaths,'));
     expect(ocrActions, contains('final ReceiptOcrDiagnostics? ocrDiagnostics'));
     expect(ocrActions, contains('ocrDiagnostics: result.diagnostics'));
