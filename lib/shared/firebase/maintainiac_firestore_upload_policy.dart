@@ -140,6 +140,13 @@ class MaintainiacFirestoreUploadPolicy {
         parts[2] == MaintainiacFirestoreSchema.orgMileageRecords;
     if (!isOrganizationMileagePath && !isPersonalMileagePath) return;
 
+    if (draft.data['tripId'] != parts[3]) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Mileage backup path must match its reviewed trip id.',
+      );
+    }
     if (draft.data['schema'] !=
             TripTrackingFirestoreContract.reviewedSummarySchema ||
         draft.data['locationDataIncluded'] != false ||

@@ -228,6 +228,7 @@ void main() {
       expect(valueCheck, contains('estimatedEndingOdometer >='));
       expect(valueCheck, contains('acceptedMeters >= 0'));
       expect(valueCheck, contains('acceptedSampleCount <='));
+      expect(rules, contains('request.resource.data.tripId == recordId'));
     },
   );
 
@@ -321,6 +322,24 @@ void main() {
       () => MaintainiacFirestoreUploadPolicy.validateDraft(
         MaintainiacFirestoreDocumentDraft(
           path: 'users/otherUid/mileageRecords/trip_1',
+          data: doc.data,
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  test('local upload policy rejects mileage path trip id mismatch', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(
+          path: 'users/firebaseUid-1/mileageRecords/other_trip',
           data: doc.data,
         ),
       ),

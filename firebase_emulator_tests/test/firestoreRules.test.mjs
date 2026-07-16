@@ -235,6 +235,9 @@ describe('Firestore rules emulator safety', () => {
         acceptedSampleCount: 25,
       }),
     );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/otherTrip'), summary),
+    );
     await testEnv.withSecurityRulesDisabled(async (context) => {
       await setDoc(
         doc(context.firestore(), 'orgs/orgA/mileageRecords/withheldTrip'),

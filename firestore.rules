@@ -274,6 +274,7 @@ service cloud.firestore {
           hasOnlyMileageSummaryFields() &&
           hasRequiredMileageSummaryFields() &&
           hasValidMileageSummaryValues() &&
+          request.resource.data.tripId == recordId &&
           !request.resource.data.keys().hasAny([
             'orgId',
             'organizationSharingConsent',
@@ -471,6 +472,7 @@ service cloud.firestore {
           hasOnlyMileageSummaryFields() &&
           hasRequiredMileageSummaryFields() &&
           hasValidMileageSummaryValues() &&
+          request.resource.data.tripId == recordId &&
           request.resource.data.orgId == orgId &&
           request.resource.data.organizationSharingConsent == true;
         // An employer/fleet role can view consented mileage but cannot alter
