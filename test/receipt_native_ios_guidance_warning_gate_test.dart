@@ -51,7 +51,7 @@ void main() {
       expect(
         cameraController,
         contains(
-          'readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"',
+          'readabilityGuidancePolicy == "native_camera_receipt_quality_guidance_v1"',
         ),
       );
       expect(

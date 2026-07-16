@@ -228,8 +228,12 @@ extension ReceiptCameraViewController {
     nowMs: Double
   ) {
     guard autoCaptureEnabled && isAutoCaptureCurrentlyAllowed() else {
+      let alreadyBlocked = latestAutoCaptureStatus == "not_allowed"
       autoCaptureStableFrameCount = 0
       latestAutoCaptureStatus = autoCaptureEnabled ? "not_allowed" : "off"
+      if autoCaptureEnabled && !alreadyBlocked {
+        guidanceLabel.text = autoCaptureBlockedMessage()
+      }
       return
     }
     if closingCamera || isBeingDismissed {

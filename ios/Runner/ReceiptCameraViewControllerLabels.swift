@@ -110,7 +110,7 @@ extension ReceiptCameraViewController {
     if storageConstrained {
       return "Keeps long receipts lighter"
     }
-    return "OCR uses clear source first"
+    return "Reads the clearest photo first"
   }
 
   func visibleControlSet() -> String {

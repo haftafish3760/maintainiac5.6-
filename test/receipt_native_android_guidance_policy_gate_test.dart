@@ -4,7 +4,7 @@ import 'helpers/receipt_native_android_bridge_source_readers.dart';
 
 void main() {
   test(
-    'Android native receipt camera keeps experimental live quality warnings behind future opt-in policy',
+    'Android native receipt camera enables standard live quality guidance',
     () async {
       final sources = await readAndroidReceiptCameraBridgeSources();
       final cameraActivity = sources.cameraActivity;
@@ -18,7 +18,7 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'return readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"',
+          'readabilityGuidancePolicy == "native_camera_receipt_quality_guidance_v1"',
         ),
       );
       expect(

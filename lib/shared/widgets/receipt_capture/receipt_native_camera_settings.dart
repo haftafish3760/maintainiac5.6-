@@ -22,11 +22,11 @@ class ReceiptNativeCameraSettings {
     this.edgeDetectionEnabled = true,
     this.edgeOverlayEnabled = true,
     this.perspectiveCorrectionEnabled = true,
-    this.motionBlurWarningEnabled = false,
-    this.glareWarningEnabled = false,
-    this.dirtyLensWarningEnabled = false,
-    this.lowLightWarningEnabled = false,
-    this.shadowWarningEnabled = false,
+    this.motionBlurWarningEnabled = true,
+    this.glareWarningEnabled = true,
+    this.dirtyLensWarningEnabled = true,
+    this.lowLightWarningEnabled = true,
+    this.shadowWarningEnabled = true,
     this.tooFarTooCloseWarningEnabled = true,
     this.receiptFullyVisibleWarningEnabled = true,
     this.textTooSmallWarningEnabled = true,
@@ -107,6 +107,13 @@ class ReceiptNativeCameraSettings {
       tooFarTooCloseWarningEnabled &&
       receiptFullyVisibleWarningEnabled &&
       textTooSmallWarningEnabled;
+
+  bool get hasLiveReceiptQualityWarnings =>
+      motionBlurWarningEnabled ||
+      glareWarningEnabled ||
+      dirtyLensWarningEnabled ||
+      lowLightWarningEnabled ||
+      shadowWarningEnabled;
 
   bool get ocrUsesTemporaryFullQualitySourceFirst => ocrUsesOriginalFirst;
 

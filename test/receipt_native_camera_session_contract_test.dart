@@ -160,7 +160,7 @@ void main() {
     );
     expect(
       config.readabilityGuidancePolicy,
-      'native_camera_baseline_neutral_receipt_guidance',
+      'native_camera_receipt_quality_guidance_v1',
     );
     expect(config.zoomGesturePolicy, 'pinch_zoom_receipt_preview_1.0_to_8.0');
     expect(

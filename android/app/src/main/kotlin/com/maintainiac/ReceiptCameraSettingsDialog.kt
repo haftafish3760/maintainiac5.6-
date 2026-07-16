@@ -319,7 +319,8 @@ internal fun ReceiptCameraActivity.receiptGuidanceWarningsEnabled(): Boolean {
 }
 
 internal fun ReceiptCameraActivity.experimentalLiveReceiptQualityPolicyEnabled(): Boolean {
-    return readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"
+    return readabilityGuidancePolicy == "native_camera_receipt_quality_guidance_v1" ||
+        readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"
 }
 
 internal fun ReceiptCameraActivity.setReceiptGuidanceWarningsEnabled(enabled: Boolean) {

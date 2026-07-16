@@ -425,14 +425,14 @@ void main() {
       expect(
         cameraController,
         contains(
-          'OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.',
+          'Maintainiac reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.',
         ),
       );
       expect(cameraController, contains('func setDataSaverLevel('));
       expect(cameraController, contains('dataSaverLevel = value'));
       expect(
         cameraController,
-        contains('OCR reads the temporary full-quality photo first.'),
+        contains('Maintainiac reads the temporary full-quality photo first.'),
       );
       expect(cameraController, contains('Receipt camera settings'));
       expect(cameraController, contains('showReceiptCameraSettings'));
@@ -446,14 +446,14 @@ void main() {
       expect(
         cameraController,
         contains(
-          'Capture quality: take the clearest receipt photo for OCR first. Save-space proof size is applied only after receipt assistance uses the clearest source.',
+          'Capture quality: take the clearest receipt photo first. Save-space proof size is applied only after Maintainiac reads the clearest source.',
         ),
       );
       expect(cameraController, contains('Assist on'));
       expect(cameraController, contains('Manual fill'));
       expect(
         cameraController,
-        contains('OCR reads the temporary full-quality photo first'),
+        contains('Maintainiac reads the temporary full-quality photo first'),
       );
       expect(cameraController, contains('Close settings'));
       expect(cameraController, contains('proof and cloud backup'));

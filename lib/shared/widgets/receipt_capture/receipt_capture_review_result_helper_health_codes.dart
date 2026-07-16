@@ -113,7 +113,10 @@ List<String> _nativeFocusReadabilityHealthCodes(
     codes.add('native_focus_status_unknown');
   }
 
-  if (readabilityPolicy == 'native_camera_baseline_neutral_receipt_guidance') {
+  if (readabilityPolicy == 'native_camera_receipt_quality_guidance_v1') {
+    codes.add('readability_guidance_live_quality_ready');
+  } else if (readabilityPolicy ==
+      'native_camera_baseline_neutral_receipt_guidance') {
     codes.add('readability_guidance_neutral_workflow_ready');
   } else if (readabilityPolicy != 'unknown') {
     codes.add('readability_guidance_live_missing');

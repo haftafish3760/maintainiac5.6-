@@ -163,7 +163,7 @@ extension ReceiptPhotoReviewResultSectionOrderReview
       'review_long_receipt_order_with_ghost_guide' =>
         'Check each long-receipt section from top to bottom using the ghost overlap guide.',
       'review_numbered_sections_top_to_bottom' =>
-        'Check numbered receipt sections from top to bottom before OCR.',
+        'Check numbered receipt sections from top to bottom before Maintainiac reads them.',
       'review_retaken_section_then_continue' =>
         'Confirm the retaken section stayed in its original receipt position.',
       'review_inserted_section_then_continue' =>
@@ -174,7 +174,7 @@ extension ReceiptPhotoReviewResultSectionOrderReview
         'Confirm the remaining receipt section order after removal before continuing.',
       'review_multi_section_order' =>
         'Check the multi-photo receipt order before Maintainiac reads the receipt.',
-      _ => 'Review the receipt photo before OCR reads the receipt.',
+      _ => 'Review the receipt photo before Maintainiac reads it.',
     };
   }
 }

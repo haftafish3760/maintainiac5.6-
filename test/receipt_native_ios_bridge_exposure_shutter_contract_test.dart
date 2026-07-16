@@ -253,6 +253,8 @@ void main() {
         cameraController,
         contains('autoCaptureEnabled ? "not_allowed" : "off"'),
       );
+      expect(cameraController, contains('autoCaptureBlockedMessage()'));
+      expect(cameraController, contains('let alreadyBlocked'));
       expect(
         cameraController,
         contains(

@@ -55,14 +55,14 @@ void main() {
       ).captureReceipt(config);
 
       expect(sentArguments['longReceiptMode'], isFalse);
-      expect(sentArguments['motionBlurWarningEnabled'], isFalse);
-      expect(sentArguments['glareWarningEnabled'], isFalse);
+      expect(sentArguments['motionBlurWarningEnabled'], isTrue);
+      expect(sentArguments['glareWarningEnabled'], isTrue);
       expect(sentArguments['dirtyLensWarningEnabled'], isFalse);
-      expect(sentArguments['lowLightWarningEnabled'], isFalse);
-      expect(sentArguments['shadowWarningEnabled'], isFalse);
+      expect(sentArguments['lowLightWarningEnabled'], isTrue);
+      expect(sentArguments['shadowWarningEnabled'], isTrue);
       expect(
         sentArguments['readabilityGuidancePolicy'],
-        'native_camera_baseline_neutral_receipt_guidance',
+        'native_camera_receipt_quality_guidance_v1',
       );
       expect(sentArguments['maxSectionCount'], 1);
       expect(

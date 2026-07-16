@@ -52,11 +52,12 @@ void main() {
       expect(settings.pinchZoomEnabled, isTrue);
       expect(settings.autoExposureAssistEnabled, isTrue);
       expect(settings.edgeDetectionEnabled, isTrue);
-      expect(settings.motionBlurWarningEnabled, isFalse);
-      expect(settings.glareWarningEnabled, isFalse);
-      expect(settings.dirtyLensWarningEnabled, isFalse);
-      expect(settings.lowLightWarningEnabled, isFalse);
-      expect(settings.shadowWarningEnabled, isFalse);
+      expect(settings.motionBlurWarningEnabled, isTrue);
+      expect(settings.glareWarningEnabled, isTrue);
+      expect(settings.dirtyLensWarningEnabled, isTrue);
+      expect(settings.lowLightWarningEnabled, isTrue);
+      expect(settings.shadowWarningEnabled, isTrue);
+      expect(settings.hasLiveReceiptQualityWarnings, isTrue);
       expect(settings.previousSectionGhostGuideEnabled, isTrue);
       expect(settings.saveOriginalTemporarily, isTrue);
       expect(settings.queueAcceptedCaptureLocally, isTrue);
@@ -264,7 +265,7 @@ void main() {
     expect(config.tapToFocusPolicy, 'continuous_focus_primary_no_tap_focus');
     expect(
       config.readabilityGuidancePolicy,
-      'native_camera_baseline_neutral_receipt_guidance',
+      'native_camera_receipt_quality_guidance_v1',
     );
   });
 

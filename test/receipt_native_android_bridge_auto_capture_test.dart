@@ -17,6 +17,8 @@ void main() {
       cameraActivity,
       contains('if (autoCaptureEnabled) "not_allowed" else "off"'),
     );
+    expect(cameraActivity, contains('autoCaptureBlockedMessage()'));
+    expect(cameraActivity, contains('val alreadyBlocked'));
     expect(
       cameraActivity,
       contains(

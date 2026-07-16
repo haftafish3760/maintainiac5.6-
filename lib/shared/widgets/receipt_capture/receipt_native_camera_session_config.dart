@@ -285,8 +285,7 @@ class ReceiptNativeCameraSessionConfig {
     if (continuousFocusEnabled) {
       return 'not_needed_native_camera_continuous_focus_primary';
     }
-    if (readabilityGuidancePolicy ==
-        'native_camera_baseline_neutral_receipt_guidance') {
+    if (readabilityGuidancePolicy.startsWith('native_camera_')) {
       return 'continuous_focus_unavailable_native_camera_review_required';
     }
     return 'continuous_focus_unavailable_saved_photo_review_required';
@@ -294,6 +293,9 @@ class ReceiptNativeCameraSessionConfig {
 
   String get readabilityGuidancePolicy {
     if (liveAnalysisEnabled && settings.hasConservativeLiveReceiptGuidance) {
+      if (settings.hasLiveReceiptQualityWarnings) {
+        return 'native_camera_receipt_quality_guidance_v1';
+      }
       return 'native_camera_baseline_neutral_receipt_guidance';
     }
     return 'saved_photo_readability_review_required';

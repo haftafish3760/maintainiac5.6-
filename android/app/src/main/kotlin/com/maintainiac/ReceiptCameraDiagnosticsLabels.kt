@@ -148,6 +148,6 @@ internal fun ReceiptCameraActivity.storageSafetyDetail(): String {
     return if (storageConstrained) {
         "Keeps long receipts lighter"
     } else {
-        "OCR uses clear source first"
+        "Reads the clearest photo first"
     }
 }

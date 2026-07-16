@@ -118,8 +118,12 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
     nowMs: Long,
 ) {
     if (!autoCaptureEnabled || !isAutoCaptureCurrentlyAllowed()) {
+        val alreadyBlocked = latestAutoCaptureStatus == "not_allowed"
         autoCaptureStableFrameCount = 0
         latestAutoCaptureStatus = if (autoCaptureEnabled) "not_allowed" else "off"
+        if (autoCaptureEnabled && !alreadyBlocked) {
+            guidance.text = autoCaptureBlockedMessage()
+        }
         return
     }
     if (closingCamera || isFinishing || isDestroyed) {

@@ -17,7 +17,7 @@ extension ReceiptCameraViewController {
     Auto brightness assist: \(autoExposureAssistEnabled ? "On" : "Off")
     Receipt edge guidance: \(edgeDetectionEnabled ? "On" : "Off")
     Receipt framing checks: \(receiptGuidanceWarningsEnabled() ? "On" : "Off")
-    Capture quality: take the clearest receipt photo for OCR first. Save-space proof size is applied only after receipt assistance uses the clearest source.
+    Capture quality: take the clearest receipt photo first. Save-space proof size is applied only after Maintainiac reads the clearest source.
     Image cleanup: crop, straighten, grayscale, contrast, and shadow cleanup after capture.
     Review style: \(review)
     \(capturedPhotoPaths.isEmpty
@@ -31,12 +31,12 @@ extension ReceiptCameraViewController {
         ))
     \(capturedPhotoPaths.isEmpty
       ? receiptCameraText(
-          "OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.",
-          "El OCR primero lee la foto temporal de calidad completa. El tamaño de la prueba guardada permanece oculto hasta que exista una prueba real para revisar."
+          "Maintainiac reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.",
+          "Maintainiac primero lee la foto temporal de calidad completa. El tamaño de la prueba guardada permanece oculto hasta que exista una prueba real para revisar."
         )
       : receiptCameraText(
-          "OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
-          "El OCR primero lee la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo."
+          "Maintainiac reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.",
+          "Maintainiac primero lee la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo."
         ))
     Manual shutter always works immediately. Automatic capture is optional.
 
@@ -107,7 +107,8 @@ extension ReceiptCameraViewController {
   }
 
   func experimentalLiveReceiptQualityPolicyEnabled() -> Bool {
-    readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"
+    readabilityGuidancePolicy == "native_camera_receipt_quality_guidance_v1" ||
+      readabilityGuidancePolicy == "experimental_live_receipt_quality_opt_in"
   }
 
   func setReceiptGuidanceWarningsEnabled(_ enabled: Bool) {

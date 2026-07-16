@@ -106,13 +106,13 @@ void main() {
     expect(
       iosCopy,
       contains(
-        'OCR reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.',
+        'Maintainiac reads the temporary full-quality photo first. Saved proof size stays hidden until there is real receipt proof to review.',
       ),
     );
     expect(
       iosCopy,
       contains(
-        'OCR reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.',
+        'Maintainiac reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt has been read.',
       ),
     );
   });
