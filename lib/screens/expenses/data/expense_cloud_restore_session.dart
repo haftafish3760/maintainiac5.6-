@@ -138,9 +138,9 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     if (value is! Map) return null;
     try {
       return ExpenseCloudRestoreSession.fromMap(value);
-    } on FormatException {
-      return null;
-    } on StateError {
+    // Local restore state is recovery input. A malformed old value must not
+    // crash the restore entry point or prevent another session from resuming.
+    } catch (_) {
       return null;
     }
   }
@@ -163,6 +163,9 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     }
     if (existing != null && existing.requestId != safeRequestId) {
       throw StateError('This restore session belongs to another request.');
+    }
+    if (existing?.state == ExpenseCloudRestoreSessionState.transferring) {
+      throw StateError('A restore already in progress cannot be replanned.');
     }
     final now = _nextTimestamp(existing?.updatedAt, requested: nowUtc);
     await _write(
@@ -345,8 +348,8 @@ DateTime? _date(Object? value) =>
 
 DateTime _nextTimestamp(DateTime? current, {DateTime? requested}) {
   final next = (requested ?? DateTime.now().toUtc()).toUtc();
-  if (current == null || !next.isBefore(current)) return next;
-  return current;
+  if (current == null || next.isAfter(current)) return next;
+  return current.add(const Duration(microseconds: 1));
 }
 
 ExpenseCloudRestoreMode _mode(Object? value) => switch (_text(value)) {

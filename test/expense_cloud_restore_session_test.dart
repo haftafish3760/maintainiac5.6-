@@ -267,7 +267,62 @@ void main() {
       nowUtc: DateTime.utc(2026, 7, 15),
     );
 
-    expect(store.sessionById('restore-timestamp-order')!.updatedAt, future);
+    expect(
+      store.sessionById('restore-timestamp-order')!.updatedAt,
+      future.add(const Duration(microseconds: 1)),
+    );
+  });
+
+  test('same-time restore updates retain strict lifecycle ordering', () async {
+    final store = await ExpenseCloudRestoreSessionStore.create();
+    final now = DateTime.utc(2026, 7, 16);
+    await store.savePrepared(
+      id: 'restore-same-time',
+      requestId: 'server-request-same-time',
+      plan: plan,
+      totalRecords: 3,
+      nowUtc: now,
+    );
+    await store.updateProgress(
+      id: 'restore-same-time',
+      completedDownloadBytes: 50,
+      completedRecords: 1,
+      nowUtc: now,
+    );
+
+    expect(
+      store.sessionById('restore-same-time')!.updatedAt,
+      now.add(const Duration(microseconds: 1)),
+    );
+  });
+
+  test('cannot replan an active restore while it is transferring', () async {
+    final store = await ExpenseCloudRestoreSessionStore.create();
+    await store.savePrepared(
+      id: 'restore-active-plan',
+      requestId: 'server-request-active-plan',
+      plan: plan,
+      totalRecords: 3,
+    );
+    await store.updateProgress(
+      id: 'restore-active-plan',
+      completedDownloadBytes: 50,
+      completedRecords: 1,
+    );
+
+    await expectLater(
+      store.savePrepared(
+        id: 'restore-active-plan',
+        requestId: 'server-request-active-plan',
+        plan: plan,
+        totalRecords: 3,
+      ),
+      throwsStateError,
+    );
+    expect(
+      store.sessionById('restore-active-plan')!.state,
+      ExpenseCloudRestoreSessionState.transferring,
+    );
   });
 
   test(
@@ -285,6 +340,7 @@ void main() {
         completedDownloadBytes: 100,
         completedRecords: 3,
       );
+      await store.pause('restore-replan');
       await store.savePrepared(
         id: 'restore-replan',
         requestId: 'server-request-replan',
