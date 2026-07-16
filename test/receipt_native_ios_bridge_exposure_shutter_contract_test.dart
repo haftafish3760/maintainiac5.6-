@@ -247,6 +247,14 @@ void main() {
       expect(cameraController, contains('autoCaptureAllowed'));
       expect(
         cameraController,
+        contains('autoCaptureEnabled && isAutoCaptureCurrentlyAllowed()'),
+      );
+      expect(
+        cameraController,
+        contains('autoCaptureEnabled ? "not_allowed" : "off"'),
+      );
+      expect(
+        cameraController,
         contains(
           'arguments["autoCaptureAllowed"] as? Bool ?? autoCaptureEnabled',
         ),

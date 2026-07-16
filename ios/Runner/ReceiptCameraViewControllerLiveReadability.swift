@@ -227,9 +227,9 @@ extension ReceiptCameraViewController {
     motionScore: Double,
     nowMs: Double
   ) {
-    guard autoCaptureEnabled else {
+    guard autoCaptureEnabled && isAutoCaptureCurrentlyAllowed() else {
       autoCaptureStableFrameCount = 0
-      latestAutoCaptureStatus = "off"
+      latestAutoCaptureStatus = autoCaptureEnabled ? "not_allowed" : "off"
       return
     }
     if closingCamera || isBeingDismissed {

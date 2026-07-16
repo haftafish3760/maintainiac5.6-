@@ -117,9 +117,9 @@ internal fun ReceiptCameraActivity.maybeAutoCapture(
     motionScore: Double,
     nowMs: Long,
 ) {
-    if (!autoCaptureEnabled) {
+    if (!autoCaptureEnabled || !isAutoCaptureCurrentlyAllowed()) {
         autoCaptureStableFrameCount = 0
-        latestAutoCaptureStatus = "off"
+        latestAutoCaptureStatus = if (autoCaptureEnabled) "not_allowed" else "off"
         return
     }
     if (closingCamera || isFinishing || isDestroyed) {

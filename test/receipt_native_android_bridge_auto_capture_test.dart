@@ -11,6 +11,14 @@ void main() {
     expect(cameraActivity, contains('autoCaptureAllowed'));
     expect(
       cameraActivity,
+      contains('!autoCaptureEnabled || !isAutoCaptureCurrentlyAllowed()'),
+    );
+    expect(
+      cameraActivity,
+      contains('if (autoCaptureEnabled) "not_allowed" else "off"'),
+    );
+    expect(
+      cameraActivity,
       contains(
         'intent.getBooleanExtra("autoCaptureAllowed", autoCaptureEnabled)',
       ),
