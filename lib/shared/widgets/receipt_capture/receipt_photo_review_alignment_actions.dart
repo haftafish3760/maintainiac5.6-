@@ -52,11 +52,6 @@ extension _ReceiptPhotoReviewAlignmentActions
                 ),
                 const SizedBox(height: 12),
                 _ReceiptAlignmentGuidePreview(photoPath: photoPath),
-                const SizedBox(height: 10),
-                _ReceiptAlignmentGuideNote(
-                  missingBottomAndTotals:
-                      coverageDecision.isMissingBottomEdgeAndTotals,
-                ),
                 const SizedBox(height: 14),
                 Row(
                   children: [

@@ -101,10 +101,6 @@ void main() {
     final alignmentActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_alignment_actions.dart',
     ).readAsString();
-    final alignmentGuide = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_alignment_guide.dart',
-    ).readAsString();
-
     expect(alignmentActions, contains("return 'Open Phone Camera';"));
     expect(
       alignmentActions,
@@ -113,8 +109,9 @@ void main() {
     expect(alignmentActions, isNot(contains('review the order')));
     expect(alignmentActions, isNot(contains('Match Photos')));
     expect(alignmentActions, isNot(contains('top of the next camera photo')));
-    expect(alignmentGuide, contains('This is your reference photo.'));
-    expect(alignmentGuide, contains('your phone camera opens'));
+    expect(alignmentActions, contains('Use the reference photo below.'));
+    expect(alignmentActions, contains('Open your phone camera'));
+    expect(alignmentActions, isNot(contains('_ReceiptAlignmentGuideNote(')));
   });
 
   test('possible continuation asks before using the receipt', () async {
