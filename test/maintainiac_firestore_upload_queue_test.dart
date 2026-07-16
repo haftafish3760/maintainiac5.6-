@@ -151,6 +151,31 @@ void main() {
   });
 
   test(
+    'replacement queues the newer document before removing retry evidence',
+    () async {
+      final implementation = await File(
+        'lib/shared/firebase/maintainiac_firestore_upload_store.dart',
+      ).readAsString();
+      final replacementStart = implementation.indexOf(
+        'Future<MaintainiacFirestoreQueuedDocument> enqueueReplacingPendingForPath',
+      );
+      final replacementEnd = implementation.indexOf(
+        'Future<List<MaintainiacFirestoreQueuedDocument>> enqueueAll',
+        replacementStart,
+      );
+      final replacement = implementation.substring(
+        replacementStart,
+        replacementEnd,
+      );
+
+      expect(
+        replacement.indexOf('await _enqueueDocument'),
+        lessThan(replacement.indexOf('await _box.delete')),
+      );
+    },
+  );
+
+  test(
     'concurrent replacements preserve one newest pending document',
     () async {
       final queue = await MaintainiacFirestoreUploadQueueStore.create();

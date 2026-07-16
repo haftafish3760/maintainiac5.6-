@@ -62,12 +62,18 @@ class MaintainiacFirestoreUploadQueueStore {
   }) => _enqueue(() async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     await _ensureStorageForQueueWrite();
-    for (final record in pendingRecords) {
-      if (record.path == draft.path) {
-        await _box.delete(record.id);
-      }
+    final replaced = [
+      for (final record in pendingRecords)
+        if (record.path == draft.path) record,
+    ];
+    // Write the replacement before removing any retry evidence. If an I/O
+    // failure interrupts this operation, the older pending record remains
+    // recoverable rather than silently losing a user-authorized backup.
+    final queued = await _enqueueDocument(draft, queuedAtUtc: queuedAtUtc);
+    for (final record in replaced) {
+      await _box.delete(record.id);
     }
-    return _enqueueDocument(draft, queuedAtUtc: queuedAtUtc);
+    return queued;
   });
 
   Future<List<MaintainiacFirestoreQueuedDocument>> enqueueAll(
