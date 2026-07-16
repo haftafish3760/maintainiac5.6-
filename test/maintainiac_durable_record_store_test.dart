@@ -110,4 +110,38 @@ void main() {
       expect(drafts.draftFor('expenses', 'receipt-1'), isNull);
     },
   );
+
+  test(
+    'confirmed records retain a newer draft checkpoint for recovery',
+    () async {
+      final records = MaintainiacDurableRecordStore.memory();
+      final drafts = MaintainiacRecordDraftStore.memory();
+      final checkpoint = await drafts.save(
+        module: 'expenses',
+        id: 'receipt-1',
+        payload: const {'merchant': 'Original draft'},
+        now: DateTime.utc(2026, 7, 15),
+      );
+      await drafts.save(
+        module: 'expenses',
+        id: 'receipt-1',
+        payload: const {'merchant': 'Newer edit'},
+        now: DateTime.utc(2026, 7, 15, 1),
+      );
+
+      await records.saveAndAcknowledgeDraft(
+        module: 'expenses',
+        id: 'receipt-1',
+        payload: const {'merchant': 'Confirmed receipt'},
+        draftStore: drafts,
+        expectedDraftUpdatedAt: checkpoint.lifecycle.updatedAt,
+        now: DateTime.utc(2026, 7, 15, 2),
+      );
+
+      expect(
+        drafts.draftFor('expenses', 'receipt-1')?.payload['merchant'],
+        'Newer edit',
+      );
+    },
+  );
 }
