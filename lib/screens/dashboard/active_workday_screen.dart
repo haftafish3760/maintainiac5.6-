@@ -12,6 +12,7 @@ import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
 import '../expenses/entry/expense_receipt_entry_screen.dart';
+import '../expenses/profiles/expense_work_profile_screen.dart';
 import 'active_workday_actions.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_store.dart';
@@ -448,6 +449,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final review = tripTracking?.latestUnconfirmedReview;
     if (review == null) {
       _showGpsMessage('No saved GPS trip review is available.');
+      return;
+    }
+    if (review.vehicleId != GlobalOdometerScope.of(context).vehicleId) {
+      _showGpsMessage(
+        'Switch to the vehicle used for this GPS trip before confirming its odometer.',
+      );
       return;
     }
     final saved = await openOdometerEntry(

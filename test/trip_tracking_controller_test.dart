@@ -260,7 +260,10 @@ void main() {
     () async {
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
       );
       await controller.start(
         tripId: 'trip_latest_review',
@@ -1595,7 +1598,10 @@ void main() {
     'finish keeps a review local until physical odometer confirmation',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final odometer = GlobalOdometerController(initialReading: 1000);
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
       final mirror = _FakeTripTrackingCloudMirror();
       final controller = TripTrackingController(
         sessionStore: store,
@@ -1712,7 +1718,10 @@ void main() {
       final mirror = _FakeTripTrackingCloudMirror()..throwOnFlush = true;
       final controller = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
         cloudMirror: mirror,
       );
       await controller.start(
@@ -1743,7 +1752,10 @@ void main() {
       final mirror = _FakeTripTrackingCloudMirror()..throwOnFlush = true;
       final controller = TripTrackingController(
         sessionStore: store,
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
         cloudMirror: mirror,
       );
       await controller.start(
@@ -1917,6 +1929,43 @@ void main() {
       expect(store.activeSession?.id, 'trip_mismatched_review_timeline');
     },
   );
+
+  test('a trip review cannot confirm an odometer on another vehicle', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord(
+      id: 'trip_confirmation_vehicle_mismatch',
+      vehicleId: 'vehicle_a',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+      finishedAt: start.add(const Duration(minutes: 1)),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 100,
+        walkingReviewSuggested: false,
+      ),
+    );
+    await store.saveReview(review);
+    final mirror = _FakeTripTrackingCloudMirror();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_b',
+        initialReading: 2000,
+      ),
+      cloudMirror: mirror,
+    );
+
+    expect(
+      await controller.confirmOdometerReview(
+        reviewId: review.id,
+        confirmedEndingOdometer: 2001,
+      ),
+      isFalse,
+    );
+    expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
+    expect(mirror.reviews, isEmpty);
+  });
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {

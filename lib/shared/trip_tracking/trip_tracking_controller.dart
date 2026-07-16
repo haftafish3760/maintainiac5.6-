@@ -82,6 +82,7 @@ class TripTrackingController extends ChangeNotifier {
     final review = _sessionStore.reviewForTrip(reviewId);
     if (review == null ||
         review.isOdometerConfirmed ||
+        review.vehicleId != _odometer.vehicleId ||
         confirmedEndingOdometer < review.startingOdometer) {
       return false;
     }
