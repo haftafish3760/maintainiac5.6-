@@ -109,7 +109,7 @@ exports.issueExpenseProofUploadGrant = onCall(
     const grants = db.collection(`orgs/${organizationId}/uploadGrants`);
     const grantRef = grants.doc(grantId);
     const quotaRef = db.doc(`orgs/${organizationId}/storageQuotas/${uid}`);
-    await db.runTransaction(async (transaction) => {
+    const issuedGrant = await db.runTransaction(async (transaction) => {
       const [quota, openGrants] = await Promise.all([
         transaction.get(quotaRef),
         transaction.get(
@@ -118,6 +118,19 @@ exports.issueExpenseProofUploadGrant = onCall(
           ),
         ),
       ]);
+      const existingGrant = openGrants.docs.find((openGrant) => {
+          const data = openGrant.data();
+          return data.proofId === proofId && data.maxBytes === maxBytes &&
+              data.expiresAt?.toMillis() > Date.now();
+        });
+      if (existingGrant != null) {
+        const existing = existingGrant.data();
+        return {
+          grantId: existingGrant.id,
+          maxBytes: existing.maxBytes,
+          expiresAt: existing.expiresAt,
+        };
+      }
       if (openGrants.size > configuredOpenGrantLimit) {
         throw new HttpsError('resource-exhausted', 'Too many proof uploads are pending.');
       }
@@ -147,8 +160,13 @@ exports.issueExpenseProofUploadGrant = onCall(
         expiresAt,
         createdAt: Timestamp.now(),
       });
+      return {grantId, maxBytes, expiresAt};
     });
-    return { grantId, maxBytes, expiresAt: expiresAt.toDate().toISOString() };
+    return {
+      grantId: issuedGrant.grantId,
+      maxBytes: issuedGrant.maxBytes,
+      expiresAt: issuedGrant.expiresAt.toDate().toISOString(),
+    };
   },
 );
 

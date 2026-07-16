@@ -14,6 +14,8 @@ void main() {
     expect(source, contains("'EXPENSE_PROOF_GRANT_LIFETIME_SECONDS'"));
     expect(source, contains("'EXPENSE_DEFAULT_PROOF_QUOTA_BYTES'"));
     expect(source, contains("'EXPENSE_MAX_OPEN_PROOF_GRANTS'"));
+    expect(source, contains('const issuedGrant = await db.runTransaction'));
+    expect(source, contains('const existingGrant = openGrants.docs.find'));
     expect(source, contains("'Proof storage quota is exhausted.'"));
     expect(source, contains('storageUsedBytes'));
     expect(source, contains('function finalizedProofResult'));
