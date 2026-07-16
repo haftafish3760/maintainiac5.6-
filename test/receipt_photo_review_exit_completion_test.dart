@@ -188,6 +188,10 @@ void main() {
       isNot(contains('_showSinglePhotoCompletionDialog')),
     );
     expect(completionActions, contains('showDialog<_ReceiptContinueDecision>'));
+    expect(
+      completionActions,
+      contains('_hasCaptureCoverageEvidence(photoPath)'),
+    );
     expect(completionActions, contains('Keep Reviewing'));
     expect(completionActions, isNot(contains('_completionPromptedPhotoPaths')));
     expect(completionActions, contains('decision: confirmedDecision'));

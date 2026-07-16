@@ -7,7 +7,10 @@ extension _ReceiptPhotoReviewCompletionActions
     final photoPath = _completionCheckPhotoPath;
     if (photoPath == null) return true;
     final decision = _coverageDecisionForPhoto(photoPath);
-    if (!decision.shouldPromptForMorePhotos) return true;
+    if (!decision.shouldPromptForMorePhotos ||
+        !_hasCaptureCoverageEvidence(photoPath)) {
+      return true;
+    }
     final selectedDecision = await showDialog<_ReceiptContinueDecision>(
       context: context,
       builder: (context) => AlertDialog(
@@ -78,6 +81,23 @@ extension _ReceiptPhotoReviewCompletionActions
           : null;
     }
     return _photoPaths.last;
+  }
+
+  bool _hasCaptureCoverageEvidence(String photoPath) {
+    final diagnostics = _captureDiagnosticsByPath[photoPath];
+    if (diagnostics == null) return false;
+    return diagnostics[ReceiptCaptureDiagnosticKeys.latestFramingSignal] !=
+            null ||
+        diagnostics[ReceiptCaptureDiagnosticKeys.latestPerspectiveReadiness] !=
+            null ||
+        diagnostics[ReceiptCaptureDiagnosticKeys.latestEdgeCoverage] != null ||
+        diagnostics[ReceiptCaptureDiagnosticKeys
+                .latestCapturedBottomEdgeScore] !=
+            null ||
+        diagnostics[ReceiptCaptureDiagnosticKeys.latestFramingWidthRatio] !=
+            null ||
+        diagnostics[ReceiptCaptureDiagnosticKeys.latestFramingHeightRatio] !=
+            null;
   }
 
   void _recordReceiptCompletionDecision(
