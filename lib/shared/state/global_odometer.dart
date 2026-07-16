@@ -197,17 +197,18 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     final existingSourceEvent = _eventForSource(sourceType, sourceId);
     if (existingSourceEvent != null) {
+      final sourceLabel = _odometerSourceLabel(sourceType);
       if (existingSourceEvent.reading == parsed) {
         return OdometerUpdateResult.success(
           message:
-              'This odometer reading is already recorded for this receipt.',
+              'This odometer reading is already recorded for this $sourceLabel.',
           mileageReview: existingSourceEvent.mileageReview,
           correctionReview: existingSourceEvent.correctionReview,
           affectsCurrentReading: existingSourceEvent.affectsCurrentReading,
         );
       }
-      return const OdometerUpdateResult.error(
-        'This receipt already has a different odometer history entry. Use the odometer correction flow before changing it.',
+      return OdometerUpdateResult.error(
+        'This $sourceLabel already has a different odometer history entry. Use the odometer correction flow before changing it.',
       );
     }
     if (parsed < _reading) {
@@ -589,3 +590,6 @@ class GlobalOdometerScope extends InheritedNotifier<GlobalOdometerController> {
     return scope!.notifier!;
   }
 }
+
+String _odometerSourceLabel(String? sourceType) =>
+    sourceType == 'gps_trip_review' ? 'GPS trip' : 'receipt';

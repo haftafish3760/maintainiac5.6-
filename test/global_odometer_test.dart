@@ -75,6 +75,36 @@ void main() {
     );
   });
 
+  test('GPS review idempotency uses trip-specific wording', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+    const review = OdometerMileageReview(use: OdometerMileageUse.business);
+
+    controller.updateFromText(
+      '1045',
+      mileageReview: review,
+      sourceType: 'gps_trip_review',
+      sourceId: 'trip-1',
+    );
+
+    final repeated = controller.updateFromText(
+      '1045',
+      mileageReview: review,
+      sourceType: 'gps_trip_review',
+      sourceId: 'trip-1',
+    );
+    final conflict = controller.updateFromText(
+      '1050',
+      mileageReview: review,
+      sourceType: 'gps_trip_review',
+      sourceId: 'trip-1',
+    );
+
+    expect(repeated.ok, isTrue);
+    expect(repeated.message, contains('GPS trip'));
+    expect(conflict.ok, isFalse);
+    expect(conflict.message, contains('GPS trip'));
+  });
+
   test('lower odometer reading requires correction review', () {
     final controller = GlobalOdometerController(initialReading: 1000);
     final result = controller.updateFromText('999');
