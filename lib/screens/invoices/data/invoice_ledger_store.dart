@@ -39,6 +39,7 @@ class InvoiceLedgerStore extends ChangeNotifier {
   final bool encryptedAtRest;
   final _memoryRecords = <String, InvoiceRecord>{};
   InvoiceNumberSettings _memorySettings;
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<InvoiceLedgerStore> create() async {
     try {
@@ -110,14 +111,16 @@ class InvoiceLedgerStore extends ChangeNotifier {
         .toList(growable: false);
   }
 
-  Future<void> saveNumberSettings(InvoiceNumberSettings settings) async {
-    if (!canPersist) {
-      throw StateError('Invoice ledger persistence is not available.');
-    }
-    _memorySettings = settings;
-    if (_box != null) await _box.put(_settingsKey, settings.toMap());
-    notifyListeners();
-  }
+  Future<void> saveNumberSettings(InvoiceNumberSettings settings) =>
+      _enqueue(() async {
+        if (!canPersist) {
+          throw StateError('Invoice ledger persistence is not available.');
+        }
+        await _ensureStorageForWrite();
+        _memorySettings = settings;
+        if (_box != null) await _box.put(_settingsKey, settings.toMap());
+        notifyListeners();
+      });
 
   Future<InvoiceRecord> createDraft({
     required InvoiceDocumentType type,
@@ -163,12 +166,16 @@ class InvoiceLedgerStore extends ChangeNotifier {
   Future<InvoiceRecord> saveRecord(
     InvoiceRecord record, {
     DateTime? now,
-  }) async {
+  }) => _enqueue(() async {
     if (!canPersist) {
       throw StateError('Invoice ledger persistence is not available.');
     }
-    final savedAt = now ?? DateTime.now();
     final existing = recordById(record.id);
+    final savedAt = _nextTimestamp(
+      existing?.meta.updatedAt ?? record.meta.updatedAt,
+      requested: now,
+    );
+    await _ensureStorageForWrite();
     final meta = existing == null
         ? record.meta.copyWith(
             updatedAt: savedAt,
@@ -189,15 +196,19 @@ class InvoiceLedgerStore extends ChangeNotifier {
     }
     notifyListeners();
     return saved;
-  }
+  });
 
   Future<void> markSynced({
     required String id,
     required DateTime syncedAt,
     String firebasePath = '',
-  }) async {
+  }) => _enqueue(() async {
     final record = recordById(id);
     if (record == null) return;
+    if (!canPersist) {
+      throw StateError('Invoice ledger persistence is not available.');
+    }
+    await _ensureStorageForWrite();
     final saved = record.copyWith(
       meta: record.meta.markSynced(syncedAt, firebasePath: firebasePath),
     );
@@ -207,12 +218,16 @@ class InvoiceLedgerStore extends ChangeNotifier {
       await _box.put(_recordKey(id), saved.toMap());
     }
     notifyListeners();
-  }
+  });
 
-  Future<void> deleteRecord(String id, {DateTime? now}) async {
+  Future<void> deleteRecord(String id, {DateTime? now}) => _enqueue(() async {
     final record = recordById(id);
     if (record == null) return;
-    final deletedAt = now ?? DateTime.now();
+    if (!canPersist) {
+      throw StateError('Invoice ledger persistence is not available.');
+    }
+    final deletedAt = _nextTimestamp(record.meta.updatedAt, requested: now);
+    await _ensureStorageForWrite();
     final pendingDelete = record.copyWith(
       status: InvoiceRecordStatus.voided,
       meta: record.meta.copyWith(
@@ -229,7 +244,7 @@ class InvoiceLedgerStore extends ChangeNotifier {
       await _box.put(_recordKey(id), pendingDelete.toMap());
     }
     notifyListeners();
-  }
+  });
 
   List<InvoiceDailyBackupBatch> dirtyDailyBatches() {
     final grouped = <String, List<InvoiceRecord>>{};
@@ -243,12 +258,30 @@ class InvoiceLedgerStore extends ChangeNotifier {
     ]..sort((a, b) => a.dayKey.compareTo(b.dayKey));
   }
 
-  Future<void> clear() async {
+  Future<void> clear() => _enqueue(() async {
     _memoryRecords.clear();
     if (_box != null) {
       await _box.clear();
     }
     notifyListeners();
+  });
+
+  Future<void> _ensureStorageForWrite() async {
+    final storage = await AppStorageGuard.check(
+      AppStoragePurpose.smallRecordWrite,
+    );
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  static DateTime _nextTimestamp(DateTime current, {DateTime? requested}) {
+    final next = requested ?? DateTime.now();
+    return next.isBefore(current) ? current : next;
   }
 
   static String _recordKey(String id) => '$_recordPrefix$id';

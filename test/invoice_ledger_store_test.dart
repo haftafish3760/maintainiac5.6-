@@ -320,6 +320,22 @@ void main() {
       expect(encodedBatch, isNot(contains('/Users/')));
     },
   );
+
+  test('invoice lifecycle timestamps never move backward', () async {
+    final store = InvoiceLedgerStore.memory();
+    final future = DateTime(2026, 6, 16, 12);
+    final draft = await store.createDraft(
+      type: InvoiceDocumentType.invoice,
+      now: future,
+    );
+
+    final saved = await store.saveRecord(
+      draft.copyWith(title: 'Corrected title'),
+      now: DateTime(2026, 6, 15),
+    );
+
+    expect(saved.meta.updatedAt, future);
+  });
 }
 
 InvoiceRecord _record() {
