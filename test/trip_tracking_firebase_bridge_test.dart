@@ -69,6 +69,36 @@ void main() {
     },
   );
 
+  test('a malformed review cannot enter the Firebase backup queue', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _RecordingSink(),
+        uploadEnabled: true,
+      ),
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+    final malformed = TripTrackingReviewRecord.fromMap({
+      'id': 'malformed-trip',
+      'vehicleId': 'truck-1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1012,
+      'profile': 'roadVehicle',
+      'engineSnapshot': {
+        'totalAcceptedMeters': 100,
+        'walkingReviewSuggested': false,
+      },
+      'confirmedEndingOdometer': 1013,
+      'odometerConfirmedAt': DateTime.utc(2026, 7, 14, 13, 1).toIso8601String(),
+    });
+
+    await expectLater(mirror.queueReview(malformed), throwsStateError);
+    expect(queue.pendingRecords, isEmpty);
+  });
+
   test('flush removes a legacy unconfirmed mileage queue entry', () async {
     final localStore = TripTrackingSessionStore.memory();
     final unconfirmed = review(

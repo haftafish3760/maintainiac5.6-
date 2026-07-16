@@ -82,9 +82,16 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
 
   @override
   Future<void> queueReview(TripTrackingReviewRecord review) async {
-    if (!review.isOdometerConfirmed) {
+    if (!_isReviewEligibleForBackup(review)) {
+      await _discardQueuedBackupFor(review);
+      await _saveReviewState(
+        review.copyWith(
+          cloudSyncState: TripTrackingCloudSyncState.localOnly,
+          clearCloudSyncError: true,
+        ),
+      );
       throw StateError(
-        'Physical odometer confirmation is required before mileage backup.',
+        'A valid, physically confirmed trip review is required before mileage backup.',
       );
     }
     if (!_isBackupEnabled) {
@@ -243,7 +250,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
           await withdrawBackupConsent();
           return;
         }
-        if (!review.isOdometerConfirmed) {
+        if (!_isReviewEligibleForBackup(review)) {
           await _discardQueuedBackupFor(review);
           await _saveReviewState(
             review.copyWith(
@@ -344,6 +351,13 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       return false;
     }
   }
+
+  bool _isReviewEligibleForBackup(TripTrackingReviewRecord review) =>
+      review.hasValidTimeline &&
+      review.id.trim().isNotEmpty &&
+      review.vehicleId.trim().isNotEmpty &&
+      review.estimatedEndingOdometer >= review.startingOdometer &&
+      review.isOdometerConfirmed;
 
   static const _missingOrganizationMessage =
       'An organization is required before company mileage backup can be queued.';
