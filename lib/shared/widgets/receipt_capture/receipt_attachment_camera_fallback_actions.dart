@@ -8,6 +8,27 @@ extension _ReceiptAttachmentCameraFallbackActions
       await returnToReceiptImportOptions();
       return;
     }
+    final staged = await _stageFallbackReceiptPhotos(
+      picked.paths,
+      captureFlow: 'phone_camera_backup_receipt_photo',
+      temporaryIdPrefix: 'phone-camera-backup',
+    );
+    if (staged == null || !mounted) return;
+    final diagnostics = receiptBrainDiagnosticsByPath(
+      staged.photoPaths,
+      captureRoute: 'phone_camera_backup_receipt_photo',
+      extra: const {
+        'captureFlow': 'phone_camera_backup_receipt_photo',
+        'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
+        'phoneCameraBackupRole': 'fallback_only',
+        'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable',
+        'stockCameraUiAllowedAsPrimary': false,
+        'phoneCameraBackupUserFacingLabel':
+            'Phone camera backup; returns to Maintainiac review',
+        'phoneCameraBackupUsed': true,
+        'importedPhotoStagedBeforeReview': true,
+      },
+    );
     _notifyReceiptCaptureDiagnostic(
       stage: 'phone_camera_backup',
       reason: 'maintainiac_native_camera_unavailable',
@@ -25,20 +46,10 @@ extension _ReceiptAttachmentCameraFallbackActions
       },
     );
     await reviewPickedPhotoPaths(
-      picked.paths,
-      initialCaptureDiagnosticsByPath: receiptBrainDiagnosticsByPath(
-        picked.paths,
-        captureRoute: 'phone_camera_backup_receipt_photo',
-        extra: const {
-          'captureFlow': 'phone_camera_backup_receipt_photo',
-          'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
-          'phoneCameraBackupRole': 'fallback_only',
-          'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable',
-          'stockCameraUiAllowedAsPrimary': false,
-          'phoneCameraBackupUserFacingLabel':
-              'Phone camera backup; returns to Maintainiac review',
-          'phoneCameraBackupUsed': true,
-        },
+      staged.photoPaths,
+      initialCaptureDiagnosticsByPath: _mergeStagedFallbackDiagnostics(
+        staged,
+        diagnostics,
       ),
     );
   }
@@ -81,6 +92,26 @@ extension _ReceiptAttachmentCameraFallbackActions
   Future<void> _reviewDocumentScannerBackup(
     ReceiptCameraResult cameraResult,
   ) async {
+    final staged = await _stageFallbackReceiptPhotos(
+      cameraResult.photoPaths,
+      captureFlow: 'document_scanner_backup_receipt_photo',
+      temporaryIdPrefix: 'document-scanner-backup',
+    );
+    if (staged == null || !mounted) return;
+    final diagnostics = receiptBrainDiagnosticsByPath(
+      staged.photoPaths,
+      captureRoute: 'document_scanner_backup_receipt_photo',
+      extra: const {
+        'captureFlow': 'document_scanner_backup_receipt_photo',
+        'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
+        'documentScannerBackupRole': 'fallback_only',
+        'phoneCameraBackupRole': 'fallback_only',
+        'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable',
+        'stockCameraUiAllowedAsPrimary': false,
+        'documentScannerBackupUsed': true,
+        'importedPhotoStagedBeforeReview': true,
+      },
+    );
     _notifyReceiptCaptureDiagnostic(
       stage: 'document_scanner_backup',
       reason: 'maintainiac_native_camera_unavailable',
@@ -97,24 +128,53 @@ extension _ReceiptAttachmentCameraFallbackActions
       },
     );
     await reviewPickedPhotoPaths(
-      cameraResult.photoPaths,
-      initialQualityChecksByPath: qualityChecksByPathForCameraResult(
-        cameraResult,
+      staged.photoPaths,
+      initialQualityChecksByPath: await qualityChecksForPhotoPaths(
+        staged.photoPaths,
       ),
-      initialCaptureDiagnosticsByPath: receiptBrainDiagnosticsByPath(
-        cameraResult.photoPaths,
-        captureRoute: 'document_scanner_backup_receipt_photo',
-        extra: const {
-          'captureFlow': 'document_scanner_backup_receipt_photo',
-          'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
-          'documentScannerBackupRole': 'fallback_only',
-          'phoneCameraBackupRole': 'fallback_only',
-          'backupCaptureAuthorizedBy': 'maintainiac_native_unavailable',
-          'stockCameraUiAllowedAsPrimary': false,
-          'documentScannerBackupUsed': true,
-        },
+      initialCaptureDiagnosticsByPath: _mergeStagedFallbackDiagnostics(
+        staged,
+        diagnostics,
       ),
     );
+  }
+
+  Future<ReceiptNativeCaptureStagingResult?> _stageFallbackReceiptPhotos(
+    List<String> photoPaths, {
+    required String captureFlow,
+    required String temporaryIdPrefix,
+  }) async {
+    try {
+      return await const ReceiptAcquiredPhotoStaging().stage(
+        sourcePaths: photoPaths,
+        dataSaverLevel: _dataSaverLevel,
+        captureFlow: captureFlow,
+        temporaryIdPrefix: temporaryIdPrefix,
+        diagnostics: const {'fallbackOnly': true},
+      );
+    } on ReceiptProofStorageException catch (error) {
+      if (mounted) showPickerError(error.message);
+    } catch (_) {
+      if (mounted) {
+        showPickerError(
+          'That receipt photo could not be kept safely. Capture it again before continuing.',
+        );
+      }
+    }
+    return null;
+  }
+
+  Map<String, Map<String, Object?>> _mergeStagedFallbackDiagnostics(
+    ReceiptNativeCaptureStagingResult staged,
+    Map<String, Map<String, Object?>> diagnostics,
+  ) {
+    return {
+      for (final photoPath in staged.photoPaths)
+        photoPath: {
+          ...?staged.captureDiagnosticsByPhotoPath[photoPath],
+          ...?diagnostics[photoPath],
+        },
+    };
   }
 
   void _showScannerFallbackNotice(ReceiptNativeScanResult result) {

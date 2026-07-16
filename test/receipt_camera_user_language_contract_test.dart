@@ -13,5 +13,16 @@ void main() {
     ]) {
       expect(File(path).readAsStringSync(), isNot(contains('OCR')));
     }
+    final localizedReviewCopy = File(
+      'lib/shared/localization/maintaniac_localizations.dart',
+    ).readAsStringSync();
+    expect(
+      localizedReviewCopy,
+      contains('Maintainiac reads the clearest available receipt photo first.'),
+    );
+    expect(
+      localizedReviewCopy,
+      isNot(contains('Receipt assistance uses the clear OCR source first.')),
+    );
   });
 }

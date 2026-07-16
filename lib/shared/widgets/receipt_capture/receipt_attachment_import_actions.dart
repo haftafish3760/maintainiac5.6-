@@ -39,20 +39,30 @@ extension _ReceiptAttachmentImportActions
         await returnToReceiptImportOptions();
         return;
       }
+      final staged = await _stageImportedReceiptPhotos(picked);
+      if (staged == null || !mounted) return;
+      final importedDiagnostics = receiptBrainDiagnosticsByPath(
+        staged.photoPaths,
+        captureRoute: 'existing_receipt_photo_import',
+        extra: const {
+          'captureFlow': 'existing_receipt_photo_import',
+          'existingPhotoImportUsed': true,
+          'existingPhotoImportRole': 'user_selected_receipt_photo',
+          'importedPhotoStagedBeforeReview': true,
+        },
+      );
       await reviewPickedPhotoPaths(
-        picked.paths,
+        staged.photoPaths,
         initialQualityChecksByPath: await qualityChecksForPhotoPaths(
-          picked.paths,
+          staged.photoPaths,
         ),
-        initialCaptureDiagnosticsByPath: receiptBrainDiagnosticsByPath(
-          picked.paths,
-          captureRoute: 'existing_receipt_photo_import',
-          extra: const {
-            'captureFlow': 'existing_receipt_photo_import',
-            'existingPhotoImportUsed': true,
-            'existingPhotoImportRole': 'user_selected_receipt_photo',
-          },
-        ),
+        initialCaptureDiagnosticsByPath: {
+          for (final photoPath in staged.photoPaths)
+            photoPath: {
+              ...?staged.captureDiagnosticsByPhotoPath[photoPath],
+              ...?importedDiagnostics[photoPath],
+            },
+        },
       );
     } on MissingPluginException {
       if (!mounted) return;
@@ -71,5 +81,31 @@ extension _ReceiptAttachmentImportActions
     } finally {
       if (mounted) updateAttachmentState(() => _openingPicker = false);
     }
+  }
+
+  Future<ReceiptNativeCaptureStagingResult?> _stageImportedReceiptPhotos(
+    ReceiptPickedPhotoSet picked,
+  ) async {
+    try {
+      return await const ReceiptAcquiredPhotoStaging().stage(
+        sourcePaths: picked.paths,
+        dataSaverLevel: _dataSaverLevel,
+        captureFlow: 'existing_receipt_photo_import',
+        temporaryIdPrefix: 'existing-receipt-import',
+        diagnostics: const {
+          'existingPhotoImportUsed': true,
+          'existingPhotoImportRole': 'user_selected_receipt_photo',
+        },
+      );
+    } on ReceiptProofStorageException catch (error) {
+      if (mounted) showPickerError(error.message);
+    } catch (_) {
+      if (mounted) {
+        showPickerError(
+          'That receipt photo could not be kept safely. Choose it again before continuing.',
+        );
+      }
+    }
+    return null;
   }
 }

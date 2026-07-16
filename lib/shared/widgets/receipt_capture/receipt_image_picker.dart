@@ -23,7 +23,6 @@ class ReceiptPickedPhotoSet {
 class ReceiptImagePicker {
   ReceiptImagePicker._();
 
-  static const receiptCameraImageQuality = 100;
   static final ImagePicker _picker = ImagePicker();
 
   /// Backup receipt capture uses the phone camera/gallery surfaces.
@@ -36,10 +35,11 @@ class ReceiptImagePicker {
   }
 
   static Future<ReceiptPickedPhotoSet> takeBackupReceiptPhotoSet() async {
+    // Do not ask the picker to recompress the only high-quality source. Saved
+    // proof size is chosen later, after review, without replacing this source.
     final photo = await _picker.pickImage(
       source: ImageSource.camera,
       preferredCameraDevice: CameraDevice.rear,
-      imageQuality: receiptCameraImageQuality,
       requestFullMetadata: false,
     );
     return ReceiptPickedPhotoSet.fromFiles([photo]);
@@ -47,7 +47,6 @@ class ReceiptImagePicker {
 
   static Future<ReceiptPickedPhotoSet> chooseReceiptImageSet() async {
     final images = await _picker.pickMultiImage(
-      imageQuality: receiptCameraImageQuality,
       requestFullMetadata: false,
     );
     return ReceiptPickedPhotoSet.fromFiles(images);

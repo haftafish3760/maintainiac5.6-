@@ -126,14 +126,14 @@ class MaintaniacLocalizations {
     '$estimated de preuve enregistrée, $mode. Vérifiez que le texte est lisible avant de l’utiliser.',
   );
   String savedProofOcrSourceFirst(String original) => _text(
-    'The image behind this panel is the saved proof preview. Receipt assistance uses the clear OCR source first. Capture source $original.',
-    'La imagen detrás de este panel es la vista previa del comprobante guardado. La asistencia de recibos usa primero la fuente OCR clara. Fuente capturada $original.',
-    'L’image derrière ce panneau est l’aperçu de la preuve enregistrée. L’assistance des reçus utilise d’abord la source OCR claire. Source capturée : $original.',
+    'The image behind this panel is the saved proof preview. Maintainiac reads the clearest available receipt photo first. Capture source $original.',
+    'La imagen detrás de este panel es la vista previa del comprobante guardado. Maintainiac lee primero la foto del recibo más clara disponible. Fuente capturada $original.',
+    'L’image derrière ce panneau est l’aperçu de la preuve enregistrée. Maintainiac lit d’abord la photo de reçu la plus claire disponible. Source capturée : $original.',
   );
   String get savedProofSettingOnly => _text(
-    'Receipt assistance uses the clear OCR source first. This setting only controls the smaller saved proof.',
-    'La asistencia de recibos usa primero la fuente OCR clara. Este ajuste solo controla el comprobante guardado más pequeño.',
-    'L’assistance des reçus utilise d’abord la source OCR claire. Ce réglage ne contrôle que la plus petite preuve enregistrée.',
+    'Maintainiac reads the clearest available receipt photo first. This setting only controls the smaller saved proof.',
+    'Maintainiac lee primero la foto del recibo más clara disponible. Este ajuste solo controla el comprobante guardado más pequeño.',
+    'Maintainiac lit d’abord la photo de reçu la plus claire disponible. Ce réglage ne contrôle que la plus petite preuve enregistrée.',
   );
   String get deviceStorage => _text(
     'Device Storage',

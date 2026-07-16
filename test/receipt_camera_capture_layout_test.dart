@@ -229,7 +229,8 @@ void main() {
       actions,
       contains(
         'if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();\n'
-        '      if (!staged.hasPhotos) return const _PickedReceiptPhotos.empty();',
+        '      if (!staged.hasPhotos) {\n'
+        '        throw const ReceiptProofStorageException(',
       ),
     );
     expect(

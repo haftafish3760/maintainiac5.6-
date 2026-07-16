@@ -26,34 +26,6 @@ class _PickedReceiptPhotos {
       captureDiagnosticsByPath = const {},
       wasCanceled = true;
 
-  factory _PickedReceiptPhotos.fromCameraResult(
-    ReceiptCameraResult result,
-    List<String> paths,
-  ) {
-    final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
-    final checks = <String, ReceiptPhotoQualityCheck>{};
-    if (_pickedReceiptPhotoPathsAreUnique(result.photoPaths) &&
-        _pickedReceiptPhotoPathsAreUnique(pickedPaths) &&
-        _pickedReceiptPhotoPathsAreCameraResultMembers(
-          result.photoPaths,
-          pickedPaths,
-        )) {
-      for (final path in pickedPaths) {
-        final index = result.photoPaths.indexOf(path);
-        final quality = result.qualityForIndex(index);
-        if (quality != null) checks[path] = quality;
-      }
-    }
-    return _PickedReceiptPhotos(
-      paths: pickedPaths,
-      qualityChecksByPath: checks,
-      captureDiagnosticsByPath: result.captureDiagnosticsByPhotoPath(
-        pickedPaths,
-      ),
-      wasCanceled: false,
-    );
-  }
-
   static _PickedReceiptPhotos fromNativePhotoPaths(
     List<String> paths, {
     Map<String, Map<String, Object?>> captureDiagnosticsByPath = const {},
@@ -76,6 +48,7 @@ class _PickedReceiptPhotos {
     String? previousSectionReasonCode,
     String? previousSectionGuidance,
     ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
+    Map<String, Map<String, Object?>> stagingDiagnosticsByPath = const {},
   }) {
     final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);
     final normalizedReasonCode = _normalizedBackupPreviousSectionReason(
@@ -100,6 +73,7 @@ class _PickedReceiptPhotos {
       captureDiagnosticsByPath: _freezePickedReceiptDiagnostics({
         for (final path in pickedPaths)
           path: {
+            ...?stagingDiagnosticsByPath[path],
             'captureFlow': 'phone_camera_backup_receipt_photo',
             'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
             'phoneCameraBackupRole': 'fallback_only',
@@ -178,20 +152,6 @@ Map<String, Map<String, Object?>> _pickedReceiptDiagnosticsForPaths(
       if (diagnosticsByPath[path] != null)
         path: Map<String, Object?>.unmodifiable(diagnosticsByPath[path]!),
   });
-}
-
-bool _pickedReceiptPhotoPathsAreUnique(List<String> paths) {
-  return receiptPhotoPathsAreUniqueAndNormalized(paths);
-}
-
-bool _pickedReceiptPhotoPathsAreCameraResultMembers(
-  List<String> resultPaths,
-  List<String> pickedPaths,
-) {
-  for (final pickedPath in pickedPaths) {
-    if (!receiptPhotoPathSetContains(resultPaths, pickedPath)) return false;
-  }
-  return true;
 }
 
 String? _trimmedBackupPreviousSectionValue(String? value) {

@@ -388,7 +388,11 @@ void main() {
     expect(sources.productStandard, contains('## Hardening Pass Map'));
     expect(sources.productStandard, contains('App-Assisted Handoff'));
     expect(sources.imagePicker, contains('ReceiptPickedPhotoSet'));
-    expect(sources.imagePicker, contains('receiptCameraImageQuality = 100'));
+    expect(
+      sources.imagePicker,
+      contains('Do not ask the picker to recompress the only high-quality source'),
+    );
+    expect(sources.imagePicker, isNot(contains('imageQuality:')));
     expect(
       sources.imagePicker,
       contains('preferredCameraDevice: CameraDevice.rear'),

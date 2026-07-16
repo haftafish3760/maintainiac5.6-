@@ -158,10 +158,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
             );
         if (scanResult.hasScannedPages) {
           final cameraResult = scanResult.cameraResult!;
-          return _PickedReceiptPhotos.fromCameraResult(
-            cameraResult,
-            cameraResult.photoPaths,
-          );
+          return _stageDocumentScannerBackupPhotos(cameraResult);
         }
         if (scanResult.status == ReceiptNativeScanStatus.canceled) {
           return const _PickedReceiptPhotos.empty();
@@ -173,8 +170,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       );
       final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
       if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
-      return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
-        picked.paths,
+      return _stagePhoneCameraBackupPhotos(
+        picked,
         hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
         previousSectionReasonCode: alignmentReasonCode,
         previousSectionGuidance: alignmentGuidance,
@@ -197,8 +194,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
         if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
         if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
-        return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
-          picked.paths,
+        return _stagePhoneCameraBackupPhotos(
+          picked,
           hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
           previousSectionReasonCode: alignmentReasonCode,
           previousSectionGuidance: alignmentGuidance,
@@ -309,7 +306,19 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         dataSaverLevel: _dataSaverLevel,
       );
       if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
-      if (!staged.hasPhotos) return const _PickedReceiptPhotos.empty();
+      if (!staged.hasPhotos) {
+        throw const ReceiptProofStorageException(
+          'That receipt photo was no longer available. Retake it before continuing.',
+        );
+      }
+      final capturedPhotoCount = result.originalPhotoPaths
+          .where((path) => path.trim().isNotEmpty)
+          .length;
+      if (staged.photoPaths.length < capturedPhotoCount) {
+        _showCameraError(
+          'One or more receipt photos could not be kept. Review the photos shown, then retake or add another photo if needed.',
+        );
+      }
       return _PickedReceiptPhotos.fromNativePhotoPaths(
         staged.photoPaths,
         captureDiagnosticsByPath: staged.captureDiagnosticsByPhotoPath,
@@ -325,8 +334,8 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
       if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
       if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
-      return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
-        picked.paths,
+      return _stagePhoneCameraBackupPhotos(
+        picked,
         hadPreviousSectionGuide: previousSectionGuidePhotoPath != null,
         previousSectionReasonCode: previousSectionReasonCode,
         previousSectionGuidance: previousSectionGuidance,
@@ -334,6 +343,76 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       );
     } on ReceiptProofStorageException catch (error) {
       if (_reviewWorkActive) _showCameraError(error.message);
+      return const _PickedReceiptPhotos.empty();
+    } catch (_) {
+      if (_reviewWorkActive) {
+        _showCameraError(
+          'That backup receipt photo could not be kept safely. Retake it before continuing.',
+        );
+      }
+      return const _PickedReceiptPhotos.empty();
+    }
+  }
+
+  Future<_PickedReceiptPhotos> _stagePhoneCameraBackupPhotos(
+    ReceiptPickedPhotoSet picked, {
+    required bool hadPreviousSectionGuide,
+    String? previousSectionReasonCode,
+    String? previousSectionGuidance,
+    ReceiptPhotoCoverageDecision? previousSectionCoverageDecision,
+  }) async {
+    try {
+      final staged = await const ReceiptAcquiredPhotoStaging().stage(
+        sourcePaths: picked.paths,
+        dataSaverLevel: _dataSaverLevel,
+        captureFlow: 'phone_camera_backup_receipt_photo',
+        temporaryIdPrefix: 'phone-camera-backup',
+        diagnostics: const {
+          'phoneCameraBackupRole': 'fallback_only',
+          'phoneCameraBackupUsed': true,
+        },
+      );
+      return _PickedReceiptPhotos.fromPhoneCameraBackupPaths(
+        staged.photoPaths,
+        hadPreviousSectionGuide: hadPreviousSectionGuide,
+        previousSectionReasonCode: previousSectionReasonCode,
+        previousSectionGuidance: previousSectionGuidance,
+        previousSectionCoverageDecision: previousSectionCoverageDecision,
+        stagingDiagnosticsByPath: staged.captureDiagnosticsByPhotoPath,
+      );
+    } on ReceiptProofStorageException catch (error) {
+      if (_reviewWorkActive) _showCameraError(error.message);
+      return const _PickedReceiptPhotos.empty();
+    }
+  }
+
+  Future<_PickedReceiptPhotos> _stageDocumentScannerBackupPhotos(
+    ReceiptCameraResult cameraResult,
+  ) async {
+    try {
+      final staged = await const ReceiptAcquiredPhotoStaging().stage(
+        sourcePaths: cameraResult.photoPaths,
+        dataSaverLevel: _dataSaverLevel,
+        captureFlow: 'document_scanner_backup_receipt_photo',
+        temporaryIdPrefix: 'document-scanner-backup',
+        diagnostics: const {
+          'documentScannerBackupRole': 'fallback_only',
+          'documentScannerBackupUsed': true,
+        },
+      );
+      return _PickedReceiptPhotos.fromNativePhotoPaths(
+        staged.photoPaths,
+        captureDiagnosticsByPath: staged.captureDiagnosticsByPhotoPath,
+      );
+    } on ReceiptProofStorageException catch (error) {
+      if (_reviewWorkActive) _showCameraError(error.message);
+      return const _PickedReceiptPhotos.empty();
+    } catch (_) {
+      if (_reviewWorkActive) {
+        _showCameraError(
+          'That scanned receipt photo could not be kept safely. Scan it again before continuing.',
+        );
+      }
       return const _PickedReceiptPhotos.empty();
     }
   }
