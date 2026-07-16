@@ -117,6 +117,16 @@ void main() {
     );
     expect(restored.proofPointers.single.byteSize, 3);
     expect(restored.proofPointers.single.uploadGrantId, 'grant-1');
+    expect(
+      restored.proofPointers.single
+          .cloudReferenceFor(
+            organizationId: 'ORG-1',
+            userId: 'USER-1',
+            receiptId: 'cloud-reference',
+          )
+          ?.storagePath,
+      'orgs/ORG-1/proof-uploads/USER-1/grant-1/proof-1',
+    );
   });
 
   test('rejects an unsupported receipt backup schema', () {

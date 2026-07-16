@@ -2,6 +2,7 @@ import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import '../../../shared/state/app_state.dart';
 import 'expense_ledger_models.dart';
+import 'expense_cloud_proof_storage.dart';
 import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
 
@@ -547,4 +548,38 @@ class ExpenseCloudProofPointer {
 
   bool get isCloudBacked =>
       availability == ExpenseCloudProofAvailability.available;
+
+  /// Recreates a verified transfer reference only when restore metadata agrees
+  /// with the grant-scoped object path. Legacy metadata remains metadata-only.
+  ExpenseCloudProofReference? cloudReferenceFor({
+    required String organizationId,
+    required String userId,
+    required String receiptId,
+  }) {
+    final path = storagePath;
+    final grantId = uploadGrantId;
+    final bytes = byteSize;
+    if (!isCloudBacked ||
+        path == null ||
+        grantId == null ||
+        bytes == null ||
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(fileHashSha256)) {
+      return null;
+    }
+    try {
+      final reference = ExpenseCloudProofReference(
+        organizationId: organizationId,
+        userId: userId,
+        receiptId: receiptId,
+        proofId: id,
+        uploadGrantId: grantId,
+        byteCount: bytes,
+        contentType: mimeType,
+        contentHashSha256: fileHashSha256,
+      );
+      return reference.storagePath == path ? reference : null;
+    } on ArgumentError {
+      return null;
+    }
+  }
 }
