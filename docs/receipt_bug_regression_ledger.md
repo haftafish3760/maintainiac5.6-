@@ -19,6 +19,7 @@ Required fields for each entry:
 Allowed categories:
 - `camera_capture_contract`
 - `camera_capture_quality`
+- `receipt_capture_ux`
 - `multi_photo_ordering`
 - `ghost_overlap_stitching`
 - `source_preservation`

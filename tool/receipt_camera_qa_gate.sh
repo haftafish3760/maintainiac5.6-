@@ -279,7 +279,6 @@ milestone_only_tests=(
   test/receipt_camera_phase7_ocr_source_handoff_contract_test.dart
   test/receipt_camera_attachment_helper_parity_test.dart
   test/receipt_camera_phase8_storage_proof_timing_contract_test.dart
-  test/receipt_camera_native_bridge_layout_test.dart
   test/receipt_camera_ocr_source_handoff_test.dart
   test/receipt_camera_quality_guidance_test.dart
   test/receipt_camera_result_best_shot_ocr_test.dart
@@ -318,19 +317,21 @@ milestone_only_tests=(
   test/receipt_native_camera_storage_contract_test.dart
   test/receipt_native_capture_staging_cleanup_test.dart
   test/receipt_native_capture_staging_test.dart
-  test/receipt_native_ghost_warning_contract_test.dart
+  test/receipt_native_ghost_orientation_contract_test.dart
   test/receipt_native_ios_bridge_app_delegate_test.dart
   test/receipt_native_ios_bridge_exposure_shutter_contract_test.dart
   test/receipt_native_ios_bridge_false_positive_guard_test.dart
   test/receipt_native_ios_bridge_long_receipt_quality_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
-  test/receipt_native_ios_bridge_settings_close_test.dart
   test/receipt_native_ios_bridge_storage_contract_test.dart
   test/receipt_native_ios_bridge_ui_session_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_photo_review_retake_order_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
+  test/receipt_stitching_high_overlap_test.dart
+  test/receipt_stitch_real_probe_integrity_contract_test.dart
+  test/receipt_stitch_real_window_script_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_test.dart
   test/receipt_stitching_variants_test.dart
@@ -368,6 +369,7 @@ stitch_tests=(
   test/receipt_stitching_extreme_aspect_ratio_test.dart
   test/receipt_stitching_horizontal_drift_test.dart
   test/receipt_stitching_horizontal_placement_test.dart
+  test/receipt_stitching_high_overlap_test.dart
   test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_ocr_source_contract_test.dart
@@ -375,6 +377,8 @@ stitch_tests=(
   test/receipt_stitching_phone_window_edge_crop_test.dart
   test/receipt_stitching_phone_window_safety_test.dart
   test/receipt_stitching_real_fixture_probe_test.dart
+  test/receipt_stitch_real_probe_integrity_contract_test.dart
+  test/receipt_stitch_real_window_script_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_scale_rotation_test.dart
   test/receipt_stitching_size_cap_test.dart

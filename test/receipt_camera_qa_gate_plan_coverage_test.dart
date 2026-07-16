@@ -2,6 +2,12 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+const _retiredCustomViewerTests = {
+  'test/receipt_camera_native_bridge_layout_test.dart',
+  'test/receipt_native_ghost_warning_contract_test.dart',
+  'test/receipt_native_ios_bridge_settings_close_test.dart',
+};
+
 void main() {
   test('camera QA printed plans only reference existing tests', () async {
     final missingPaths = <String>[];
@@ -52,44 +58,48 @@ void main() {
     expect(missingPaths, isEmpty);
   });
 
-  test('full camera QA plan covers every camera native stitch and OCR test', () async {
-    final result = await Process.run('bash', [
-      'tool/receipt_camera_qa_gate.sh',
-      '--print-plan',
-      'full',
-    ]);
-    expect(result.exitCode, 0, reason: result.stderr.toString());
-    final planned = result.stdout
-        .toString()
-        .split('\n')
-        .where(
-          (line) =>
-              line.startsWith('quick ') ||
-              line.startsWith('stitch ') ||
-              line.startsWith('milestone ') ||
-              line.startsWith('full '),
-        )
-        .map((line) => line.split(' ').last)
-        .toSet();
+  test(
+    'full camera QA plan covers every camera native stitch and OCR test',
+    () async {
+      final result = await Process.run('bash', [
+        'tool/receipt_camera_qa_gate.sh',
+        '--print-plan',
+        'full',
+      ]);
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      final planned = result.stdout
+          .toString()
+          .split('\n')
+          .where(
+            (line) =>
+                line.startsWith('quick ') ||
+                line.startsWith('stitch ') ||
+                line.startsWith('milestone ') ||
+                line.startsWith('full '),
+          )
+          .map((line) => line.split(' ').last)
+          .toSet();
 
-    final diskTests = Directory('test')
-        .listSync()
-        .whereType<File>()
-        .map((file) => file.path)
-        .where(
-          (path) =>
-              path.contains('/receipt_camera_') ||
-              path.contains('/receipt_native_') ||
-              path.contains('/receipt_stitch') ||
-              path.contains('/receipt_photo_review_retake_order') ||
-              path.contains('/receipt_ocr_source'),
-        )
-        .where((path) => path.endsWith('.dart'))
-        .map((path) => path.replaceFirst('${Directory.current.path}/', ''))
-        .toSet();
+      final diskTests = Directory('test')
+          .listSync()
+          .whereType<File>()
+          .map((file) => file.path)
+          .where(
+            (path) =>
+                path.contains('/receipt_camera_') ||
+                path.contains('/receipt_native_') ||
+                path.contains('/receipt_stitch') ||
+                path.contains('/receipt_photo_review_retake_order') ||
+                path.contains('/receipt_ocr_source'),
+          )
+          .where((path) => path.endsWith('.dart'))
+          .where((path) => !_retiredCustomViewerTests.contains(path))
+          .map((path) => path.replaceFirst('${Directory.current.path}/', ''))
+          .toSet();
 
-    expect(planned, containsAll(diskTests));
-  });
+      expect(planned, containsAll(diskTests));
+    },
+  );
 
   test('full camera QA plan includes every focused stitch test', () async {
     Future<Set<String>> plannedTestsFor(String mode) async {

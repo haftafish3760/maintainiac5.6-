@@ -216,11 +216,7 @@ void main() {
     expect(actions, contains('Add Another Receipt Photo'));
     expect(actions, isNot(contains('Add Bottom Receipt Section')));
     expect(actions, contains('coverageDecision.completionDialogMessage'));
-    expect(actions, contains('coverageDecision.addSectionButtonLabel'));
-    expect(actions, contains('repeat 3-5 readable lines in the next photo'));
-    expect(
-      actions,
-      contains('subtotal, total, and final lines can be matched'),
-    );
+    expect(actions, contains('next photo with 3-5 of the same readable lines'));
+    expect(actions, contains('return to the numbered receipt review'));
   });
 }
