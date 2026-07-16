@@ -315,6 +315,12 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      match /storageQuotas/{uid} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          (isActiveMember(orgId) && isSelf(uid));
+        allow write: if false;
+      }
+
       match /exports/{exportId} {
         allow read: if isOwnerOrAdmin(orgId) ||
           resource.data.uid == request.auth.uid;

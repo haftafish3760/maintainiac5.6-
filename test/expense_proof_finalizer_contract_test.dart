@@ -12,6 +12,9 @@ void main() {
     expect(source, contains("'Proof size configuration is invalid.'"));
     expect(source, contains("'Proof exceeds the configured upload limit.'"));
     expect(source, contains("'EXPENSE_PROOF_GRANT_LIFETIME_SECONDS'"));
+    expect(source, contains("'EXPENSE_DEFAULT_PROOF_QUOTA_BYTES'"));
+    expect(source, contains("'Proof storage quota is exhausted.'"));
+    expect(source, contains('storageUsedBytes'));
     expect(source, contains('exports.finalizeExpenseProofUpload = onCall('));
       expect(source, contains("{ enforceAppCheck: true }"));
       expect(source, contains('data.status !== \'open\''));

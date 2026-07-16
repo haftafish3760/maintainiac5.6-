@@ -9,6 +9,7 @@ void main() {
       final rules = await File('firestore.rules').readAsString();
 
       expect(rules, contains('match /uploadGrants/{grantId}'));
+      expect(rules, contains('match /storageQuotas/{uid}'));
       expect(
         rules,
         contains(

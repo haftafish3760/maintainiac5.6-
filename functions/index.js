@@ -14,6 +14,10 @@ const proofGrantLifetimeSeconds = defineInt(
   'EXPENSE_PROOF_GRANT_LIFETIME_SECONDS',
   { default: 5 * 60 },
 );
+const defaultProofQuotaBytes = defineInt(
+  'EXPENSE_DEFAULT_PROOF_QUOTA_BYTES',
+  { default: 25 * 1024 * 1024 },
+);
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const OWN_RECEIPT_PERMISSIONS = new Set([
   'addOwnReceipts',
@@ -22,6 +26,21 @@ const OWN_RECEIPT_PERMISSIONS = new Set([
   'useMaterials',
   'logMaintenance',
 ]);
+
+function validQuotaBytes(value) {
+  return Number.isInteger(value) && value >= 1024 &&
+      value <= 1024 * 1024 * 1024 * 1024;
+}
+
+function quotaValues(data, defaultLimitBytes) {
+  const limitBytes = data?.storageLimitBytes ?? defaultLimitBytes;
+  const usedBytes = data?.storageUsedBytes ?? 0;
+  if (!validQuotaBytes(limitBytes) || !Number.isInteger(usedBytes) ||
+      usedBytes < 0 || usedBytes > limitBytes) {
+    throw new HttpsError('failed-precondition', 'Proof storage quota is invalid.');
+  }
+  return {limitBytes, usedBytes};
+}
 
 exports.issueExpenseProofUploadGrant = onCall(
   { enforceAppCheck: true },
@@ -53,6 +72,10 @@ exports.issueExpenseProofUploadGrant = onCall(
     if (requestedBytes > configuredMaxBytes) {
       throw new HttpsError('resource-exhausted', 'Proof exceeds the configured upload limit.');
     }
+    const configuredQuotaBytes = defaultProofQuotaBytes.value();
+    if (!validQuotaBytes(configuredQuotaBytes)) {
+      throw new HttpsError('failed-precondition', 'Default proof storage quota is invalid.');
+    }
     const grantId = randomUUID();
     const maxBytes = requestedBytes;
     const lifetimeSeconds = proofGrantLifetimeSeconds.value();
@@ -61,13 +84,40 @@ exports.issueExpenseProofUploadGrant = onCall(
       throw new HttpsError('failed-precondition', 'Proof grant lifetime configuration is invalid.');
     }
     const expiresAt = Timestamp.fromMillis(Date.now() + lifetimeSeconds * 1000);
-    await db.doc(`orgs/${organizationId}/uploadGrants/${grantId}`).create({
-      uid,
-      proofId,
-      status: 'open',
-      maxBytes,
-      expiresAt,
-      createdAt: Timestamp.now(),
+    const grants = db.collection(`orgs/${organizationId}/uploadGrants`);
+    const grantRef = grants.doc(grantId);
+    const quotaRef = db.doc(`orgs/${organizationId}/storageQuotas/${uid}`);
+    await db.runTransaction(async (transaction) => {
+      const [quota, openGrants] = await Promise.all([
+        transaction.get(quotaRef),
+        transaction.get(grants.where('uid', '==', uid).where('status', '==', 'open')),
+      ]);
+      const quotaData = quotaValues(quota.data(), configuredQuotaBytes);
+      const reservedBytes = openGrants.docs.fold(0, (total, openGrant) => {
+        const data = openGrant.data();
+        return data.expiresAt?.toMillis() > Date.now() &&
+            Number.isInteger(data.maxBytes) && data.maxBytes > 0
+          ? total + data.maxBytes
+          : total;
+      });
+      if (quotaData.usedBytes + reservedBytes + maxBytes > quotaData.limitBytes) {
+        throw new HttpsError('resource-exhausted', 'Proof storage quota is exhausted.');
+      }
+      if (!quota.exists) {
+        transaction.create(quotaRef, {
+          storageLimitBytes: quotaData.limitBytes,
+          storageUsedBytes: 0,
+          createdAt: Timestamp.now(),
+        });
+      }
+      transaction.create(grantRef, {
+        uid,
+        proofId,
+        status: 'open',
+        maxBytes,
+        expiresAt,
+        createdAt: Timestamp.now(),
+      });
     });
     return { grantId, maxBytes, expiresAt: expiresAt.toDate().toISOString() };
   },
@@ -114,13 +164,34 @@ exports.finalizeExpenseProofUpload = onCall(
         custom.contentSha256 !== contentSha256) {
       throw new HttpsError('failed-precondition', 'The uploaded proof does not match its grant.');
     }
-    await grantRef.update({
-      status: 'finalized',
-      finalizedAt: Timestamp.now(),
-      receiptId,
-      byteCount: size,
-      contentType: metadata.contentType,
-      contentSha256,
+    const quotaRef = db.doc(`orgs/${organizationId}/storageQuotas/${uid}`);
+    await db.runTransaction(async (transaction) => {
+      const [currentGrant, quota] = await Promise.all([
+        transaction.get(grantRef),
+        transaction.get(quotaRef),
+      ]);
+      const current = currentGrant.data();
+      if (!currentGrant.exists || current?.uid !== uid ||
+          current.proofId !== proofId || current.status !== 'open' ||
+          current.expiresAt?.toMillis() <= Date.now()) {
+        throw new HttpsError('failed-precondition', 'The proof upload grant is no longer usable.');
+      }
+      const quotaData = quotaValues(quota.data(), 0);
+      if (quotaData.usedBytes + size > quotaData.limitBytes) {
+        throw new HttpsError('resource-exhausted', 'Proof storage quota is exhausted.');
+      }
+      transaction.update(grantRef, {
+        status: 'finalized',
+        finalizedAt: Timestamp.now(),
+        receiptId,
+        byteCount: size,
+        contentType: metadata.contentType,
+        contentSha256,
+      });
+      transaction.update(quotaRef, {
+        storageUsedBytes: quotaData.usedBytes + size,
+        updatedAt: Timestamp.now(),
+      });
     });
     return { status: 'finalized', byteCount: size, contentSha256 };
   },
