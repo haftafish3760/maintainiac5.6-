@@ -128,6 +128,35 @@ void main() {
     expect(store.downloadCount, 0);
   });
 
+  test(
+    'rejects an invalid cloud proof reference before any download',
+    () async {
+      final root = await Directory.systemTemp.createTemp('proof-cache-test-');
+      addTearDown(() => root.delete(recursive: true));
+      final store = _MemoryObjectStore();
+      final cache = ExpenseCloudProofCache(
+        cloudStorage: ExpenseCloudProofStorage(objectStore: store),
+        rootDirectory: () async => root,
+        ensureSpace: (_) async {},
+      );
+      const invalid = ExpenseCloudProofReference(
+        organizationId: 'org_1',
+        userId: 'user_1',
+        receiptId: 'receipt_1',
+        proofId: 'proof_1',
+        uploadGrantId: 'grant_1',
+        byteCount: 0,
+        contentType: 'image/jpeg',
+        contentHashSha256:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        isFinalized: true,
+      );
+
+      await expectLater(() => cache.restore(invalid), throwsArgumentError);
+      expect(store.downloadCount, 0);
+    },
+  );
+
   test('never shares a cached proof file across account scopes', () async {
     final root = await Directory.systemTemp.createTemp('proof-cache-test-');
     addTearDown(() => root.delete(recursive: true));

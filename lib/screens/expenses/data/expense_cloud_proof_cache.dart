@@ -129,6 +129,8 @@ class ExpenseCloudProofCache {
   static void _validateReference(ExpenseCloudProofReference reference) {
     final token = RegExp(r'^[A-Za-z0-9_-]{1,160}$');
     if (!reference.isFinalized ||
+        reference.byteCount <= 0 ||
+        !reference.contentType.startsWith('image/') ||
         !token.hasMatch(reference.organizationId) ||
         !token.hasMatch(reference.userId) ||
         !token.hasMatch(reference.receiptId) ||
