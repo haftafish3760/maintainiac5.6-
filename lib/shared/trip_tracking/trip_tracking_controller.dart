@@ -262,7 +262,18 @@ class TripTrackingController extends ChangeNotifier {
       profile: session.profile,
     );
     _projection = projection;
-    final pending = _sessionStore.pendingSampleFor(session.id);
+    TripTrackingPendingSample? pending;
+    try {
+      pending = _sessionStore.pendingSampleFor(session.id);
+    } catch (error) {
+      // The active checkpoint is already recoverable. Keep it and its live
+      // odometer projection rather than crashing or discarding mileage just
+      // because the optional final in-flight sample cannot be read.
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not read pending GPS recovery data: $error';
+      notifyListeners();
+      return true;
+    }
     if (pending != null && pending.sessionId == session.id) {
       await ingest(pending.sample, activity: pending.activity);
     }
