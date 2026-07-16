@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_codec.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_session.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_restore_storage_plan.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -67,6 +68,31 @@ void main() {
     expect(session.toMap().containsKey('authorizationToken'), isFalse);
     expect(session.toMap().containsKey('proofPath'), isFalse);
   });
+
+  test(
+    'does not create restore state when storage cannot preserve it',
+    () async {
+      final store = await ExpenseCloudRestoreSessionStore.create(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: 1,
+          requiredBytes: 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+
+      await expectLater(
+        () => store.savePrepared(
+          id: 'restore-no-space',
+          requestId: 'request-no-space',
+          plan: plan,
+          totalRecords: 1,
+        ),
+        throwsStateError,
+      );
+      expect(store.sessionById('restore-no-space'), isNull);
+    },
+  );
 
   test('prevents a restore from beginning without safe storage', () async {
     final store = await ExpenseCloudRestoreSessionStore.create();

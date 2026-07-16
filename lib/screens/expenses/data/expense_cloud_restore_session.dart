@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_cloud_restore_storage_plan.dart';
 
 enum ExpenseCloudRestoreSessionState {
@@ -115,17 +116,21 @@ class ExpenseCloudRestoreSession {
 /// server authorization and all network work; this store only records safe
 /// local progress and never overwrites a terminal session.
 class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
-  ExpenseCloudRestoreSessionStore._(this._box);
+  ExpenseCloudRestoreSessionStore._(this._box, {this.storageCheck});
 
   static const boxName = 'expense_cloud_restore_sessions_v1';
 
-  static Future<ExpenseCloudRestoreSessionStore> create() async {
+  static Future<ExpenseCloudRestoreSessionStore> create({
+    ExpenseCloudRestoreSessionStorageCheck? storageCheck,
+  }) async {
     return ExpenseCloudRestoreSessionStore._(
       await Hive.openBox<dynamic>(boxName),
+      storageCheck: storageCheck ?? _defaultStorageCheck,
     );
   }
 
   final Box<dynamic> _box;
+  final ExpenseCloudRestoreSessionStorageCheck? storageCheck;
   Future<void> _writeTail = Future<void>.value();
 
   ExpenseCloudRestoreSession? sessionById(String id) {
@@ -296,6 +301,11 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
   }
 
   Future<void> _write(ExpenseCloudRestoreSession session) async {
+    final check = storageCheck;
+    if (check != null) {
+      final storage = await check();
+      if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+    }
     await _box.put(session.id, session.toMap());
     notifyListeners();
   }
@@ -306,6 +316,12 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     return next;
   }
 }
+
+typedef ExpenseCloudRestoreSessionStorageCheck =
+    Future<AppStorageCheck> Function();
+
+Future<AppStorageCheck> _defaultStorageCheck() =>
+    AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 
 String _required(String value, String name) {
   final clean = value.trim();
