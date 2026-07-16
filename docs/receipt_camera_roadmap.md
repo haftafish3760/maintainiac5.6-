@@ -6,14 +6,14 @@ Do not touch PDF, inventory, admin, maintenance, maps, invoices, cloud sync, or
 unrelated modules unless a documented receipt-camera dependency requires it.
 
 Current phase:
-- Active roadmap focus: Phase 2 receipt entry flow.
-- Current next work: finish the clean Add Receipt entry path first, then move
-  straight into Phase 3 camera viewer hardening.
-- Keep the existing targeted camera gates green while rebuilding confidence in
-  the shared entry flow and the first live viewer path.
-- Do not skip ahead to milestone closeout claims while Phase 2 or Phase 3
-  still need product-lane cleanup.
-- Current branch: `codex/expense-camera`
+- Active roadmap focus: the system-managed capture through long-receipt review
+  flow in Phases 2-6.
+- Capture uses the phone's normal rear-camera experience; Maintainiac owns the
+  receipt-specific chooser, review, overlap guidance, stitch decision, and
+  OCR handoff.
+- Do not skip ahead to milestone closeout claims while the live flow still
+  needs real-device proof.
+- Current branch: `codex/long-receipt-hardening-20260714`
 
 Operating rules:
 - Stick to this roadmap in order.
@@ -76,48 +76,39 @@ Status:
   current working lane, and this phase stays open until the Add Receipt path is
   clean enough to hand off directly into Phase 3 viewer work.
 
-## Phase 3: Camera viewer
+## Phase 3: System-managed camera capture
 
 Goal:
-Make the live camera view usable and familiar.
+Use the camera experience the person already knows without trying to replace
+the phone's photography software.
 
 Requirements:
-- Full-screen preview.
-- Round shutter button centered near bottom.
-- Gear icon for settings.
-- Torch or light button.
-- Back button.
-- Respect Android and iOS safe areas.
-- Done/Next appears only after at least one photo.
-- No fake or random guidance cycling.
-- No oversized black bars or blocking panels over the preview.
-- No screen-tap focus behavior.
-- Manual focus controls only if supported and only through explicit controls,
-  never blind screen tapping.
+- Launch the system rear-camera route for Capture, Add Another, and Retake.
+- Return every accepted image to the same numbered Maintainiac review screen.
+- Do not show invented live blur, glare, shadow, or focus claims.
+- Do not build custom shutter, focus, exposure, torch, or tap-to-focus UI.
+- Respect Android and iOS system camera permissions and cancellation behavior.
 
 QA:
-- Layout and source tests for shutter, gear, torch, back, and safe area
-  behavior.
-- Regression for no fake cycling guidance.
-- Regression for no tap-to-focus screen behavior.
+- Test the initial capture, Add Another, and Retake routes use the same system
+  camera boundary.
+- Test cancellation returns safely without freezing the receipt flow.
+- Regression for no custom live-quality ticker or screen-tap focus behavior.
 
 Status:
-- Next after Phase 2. Existing viewer contracts stay useful, but this phase is
-  still open until the live camera view is cleaned up against the roadmap
-  requirements on real app flow, not just source-level contracts.
-
-## Phase 4: Post-photo review
-
-Goal:
-After capture, the user sees what they captured and decides what to do.
+- Implemented in code. It remains open until real-device capture, cancel, and
+  return-to-review behavior is proven on Android and iOS.
 
 Flow:
 - Show captured photo immediately.
 - Show photo number.
-- Actions: Retake, Add Photo, Use Receipt.
-- Add Photo returns to camera continuation mode.
+- Actions: Retake, Add Another Photo, Continue.
+- Add Another Photo opens a short previous-section overlap guide, then returns
+  to the system camera.
 - Retake replaces the current photo.
-- Use Receipt proceeds to processing and handoff.
+- Continue opens stitch review for multi-photo receipts and receipt details for
+  a single accepted photo.
+- The primary action labels must not claim the app knows which section is next.
 - No "preparing receipt details" screen unless real processing is running.
 - If processing is running, show a clear spinner or progress state.
 

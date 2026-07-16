@@ -12,8 +12,7 @@ The plan is intentionally numbered. Every receipt-hardening pass should be repor
 
 ## Current Receipt Camera Roadmap Lock
 
-Active roadmap source:
-`/Users/rbbie/.codex/attachments/9f1b3106-a148-4132-981e-4f2e16404c97/goal-objective.md`.
+Active roadmap source: `docs/receipt_camera_roadmap.md`.
 
 Work must stay on the receipt camera/capture/review/stitch/OCR-source handoff
 lane unless a documented camera dependency requires otherwise. PDF, inventory,
@@ -24,7 +23,7 @@ Current phase order:
 
 1. Roadmap and scope lock.
 2. Receipt entry flow.
-3. Camera viewer.
+3. System-managed camera capture.
 4. Post-photo review.
 5. Long receipt capture.
 6. Stitching handoff.
@@ -32,11 +31,12 @@ Current phase order:
 8. Storage proof decision.
 9. Milestone validation.
 
-Current active phase: Phase 2, Receipt entry flow. Phase 2 is the live roadmap
-lane until Add Receipt opens cleanly with the compact source chooser and the
-single Receipt Assist question, and Phase 3 camera viewer work follows
-immediately after that. Existing targeted gates remain guardrails, but they do
-not override the current roadmap order.
+Current active phases: 2 through 6, the system-managed capture and
+long-receipt review path. The compact Add Receipt chooser and single Receipt
+Assist question lead directly to the phone's normal camera. Maintainiac then
+owns the numbered review, overlap guide, stitch decision, and OCR handoff.
+Existing targeted gates remain guardrails, but they do not override the current
+roadmap order or real-device proof requirement.
 
 Phase 2 acceptance rules:
 
@@ -60,19 +60,17 @@ QA cadence:
 - Bundle related edits inside the current phase; use surgical passes only for
   blockers or narrow regressions.
 
-## Native Camera Architecture Reset
+## System-managed Capture Architecture
 
-The old phone-camera production path is no longer the target. Maintainiac must
-own the receipt camera UI and talk to native camera frameworks underneath:
+Maintainiac must not recreate Samsung, Android, or Apple photography software.
 
-- Android: CameraX.
-- iOS: AVFoundation.
-- Flutter: bridge/UI/review layer only, not the production camera engine.
-- Samsung/Apple camera apps: fallback/import path only.
-
-The active native rebuild spec is `docs/receipt_native_camera_service_spec.md`.
-The release-one camera architecture map is
-`docs/receipt_camera_release_one_blueprint.md`.
+- Android and iOS: use the normal system rear-camera route for initial capture,
+  Add Another Photo, and Retake.
+- Flutter: owns the receipt-specific chooser, first-use Receipt Assist choice,
+  numbered review, previous-section alignment guide, stitch decision, and OCR
+  handoff.
+- Custom live focus, exposure, torch, blur, glare, shadow, and tap-to-focus
+  UI are out of scope unless separately approved with measured device evidence.
 
 ## Download Size And Device Storage Rule
 

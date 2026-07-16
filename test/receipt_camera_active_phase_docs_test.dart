@@ -11,10 +11,13 @@ void main() {
       'docs/receipt_camera_roadmap.md',
     ).readAsStringSync();
 
-    expect(masterPlan, contains('Current active phase: Phase 2, Receipt entry flow.'));
     expect(
       masterPlan,
-      contains('Phase 3 camera viewer work follows'),
+      contains('Current active phases: 2 through 6, the system-managed capture'),
+    );
+    expect(
+      masterPlan,
+      contains("phone's normal camera"),
     );
     expect(
       masterPlan,
@@ -26,11 +29,11 @@ void main() {
     );
     expect(
       masterPlan,
-      contains('single Receipt Assist question'),
+      contains('first-use Receipt Assist question'),
     );
     expect(
       masterPlan,
-      contains('not override the current roadmap order'),
+      contains('roadmap order or real-device proof requirement'),
     );
     expect(
       masterPlan,
@@ -39,15 +42,15 @@ void main() {
 
     expect(
       roadmap,
-      contains('Active roadmap focus: Phase 2 receipt entry flow.'),
+      contains('Active roadmap focus: the system-managed capture through long-receipt review'),
     );
     expect(
       roadmap,
-      contains('Current next work: finish the clean Add Receipt entry path first'),
+      contains("Capture uses the phone's normal rear-camera experience"),
     );
     expect(
       roadmap,
-      contains('Active pass lane. Phase 2 receipt entry flow is the current bundle'),
+      contains('System-managed camera capture'),
     );
     expect(
       roadmap,
