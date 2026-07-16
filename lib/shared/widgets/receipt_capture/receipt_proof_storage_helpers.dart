@@ -113,6 +113,12 @@ Future<void> _validatePdfSourceForStorage(
   ReceiptAttachmentRecord attachment,
   File source,
 ) async {
+  final byteLength = await _safeLength(source);
+  if (byteLength == null || byteLength <= 0) {
+    throw const ReceiptProofStorageException(
+      'That receipt proof is empty or unreadable.',
+    );
+  }
   if (!attachment.isPdf) return;
   final inspection = await ReceiptPdfInspector.inspect(source.path);
   final blocker = inspection.importBlocker;

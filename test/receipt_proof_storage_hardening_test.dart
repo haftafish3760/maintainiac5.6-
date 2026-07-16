@@ -317,4 +317,25 @@ void main() {
       throwsA(isA<ReceiptProofStorageException>()),
     );
   });
+
+  test('storage refuses zero-byte photo proof files', () async {
+    final source = File('${Directory.systemTemp.path}/empty_storage.jpg');
+    await source.writeAsBytes(const [], flush: true);
+    addTearDown(() {
+      if (source.existsSync()) source.deleteSync();
+    });
+
+    await expectLater(
+      ReceiptProofStorage.instance.stageAttachment(
+        ReceiptAttachmentRecord(
+          id: 'empty-photo',
+          path: source.path,
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: ReceiptDataSaverLevel.original,
+          createdAt: DateTime(2026, 6, 13),
+        ),
+      ),
+      throwsA(isA<ReceiptProofStorageException>()),
+    );
+  });
 }
