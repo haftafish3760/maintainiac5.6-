@@ -73,7 +73,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                   ? 'Best photo $current/$total'
                   : 'Review Receipt Photo'
             : total > 1
-            ? '$sectionLabel $current/$total'
+            ? 'Receipt $sectionLabel ($current of $total)'
             : 'Review Receipt Photo',
       _ReceiptReviewMode.order => 'Check photo order',
       _ReceiptReviewMode.stitch => 'Match receipt photos',

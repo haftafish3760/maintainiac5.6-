@@ -56,10 +56,7 @@ void main() {
     expect(nativeSettings, contains('this.assistedReceiptFill = false'));
     expect(nativeDescriptors, contains('defaultEnabled: false'));
     expect(photoReviewScreen, contains('this.assistedReceiptFill = false'));
-    expect(
-      photoReviewScreen,
-      contains('assistedReceiptFill: widget.assistedReceiptFill'),
-    );
+    expect(photoReviewScreen, contains('this.assistedReceiptFill = false'));
     expect(photoReviewScreen, isNot(contains('assistedReceiptFill: true')));
     expect(
       readBoundarySource,
@@ -207,7 +204,7 @@ void main() {
       'Future<void> takeReceiptPhoto',
     );
     final takePhotoEnd = cameraActions.indexOf(
-      'Future<_MaintainiacNativeCameraPhotoOutcome>',
+      'void _notifyReceiptCaptureDiagnostic',
       takePhotoStart,
     );
     final takePhotoBlock = cameraActions.substring(
@@ -220,7 +217,7 @@ void main() {
       ),
       lessThan(
         takePhotoBlock.indexOf(
-          'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',
+          'await _takeSystemCameraReceiptPhoto();',
         ),
       ),
     );
@@ -234,7 +231,7 @@ void main() {
       takePhotoBlock.indexOf('await returnToReceiptImportOptions();'),
       lessThan(
         takePhotoBlock.indexOf(
-          'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',
+          'await _takeSystemCameraReceiptPhoto();',
         ),
       ),
     );

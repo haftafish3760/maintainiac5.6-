@@ -38,6 +38,10 @@ void main() {
     expect(find.text('Section 1 of 2'), findsAtLeastNWidgets(1));
     expect(find.text('Add Another Photo'), findsOneWidget);
     expect(find.text('Use Receipt'), findsOneWidget);
+    expect(
+      find.textContaining('retake only a bad section', findRichText: true),
+      findsOneWidget,
+    );
     expect(find.text('Match receipt photos'), findsNothing);
     expect(find.text('Check photo order'), findsNothing);
     expect(find.text('Save space preview'), findsNothing);
@@ -65,6 +69,34 @@ void main() {
     expect(find.text('Retake Section 1'), findsOneWidget);
     expect(find.text('Add Another Photo'), findsOneWidget);
     expect(find.text('Use Receipt'), findsOneWidget);
+  });
+
+  testWidgets('review keeps the receipt image as the dominant surface', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptPhotoReviewScreen(
+          initialPhotoPaths: receiptPaths,
+          initialDataSaverLevel: ReceiptDataSaverLevel.balanced,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final photoSurface = find.byType(InteractiveViewer);
+    final actionTray = find.text('Use Receipt');
+    expect(photoSurface, findsOneWidget);
+    expect(actionTray, findsOneWidget);
+    expect(
+      tester.getSize(photoSurface).height,
+      greaterThan(tester.getSize(actionTray).height * 5),
+    );
   });
 }
 

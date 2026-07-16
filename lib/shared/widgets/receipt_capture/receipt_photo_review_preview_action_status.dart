@@ -11,19 +11,17 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
     if (photoPaths.length <= 1) {
       return 'Check that the receipt text is readable. Retake this photo, add another only if the receipt continues, or use it.';
     }
-    return '${photoPaths.length} receipt photos selected. Check each photo, then continue to match them.$multiPhotoMatchStatusCopy';
+    return '${photoPaths.length} receipt sections are ready. Check each one, retake only a bad section, add another only if the receipt continues, then use the receipt.$multiPhotoMatchStatusCopy';
   }
 
   String get multiPhotoMatchStatusCopy {
     if (stitchPreviewInFlight) return ' The photo match check is running.';
     final preview = stitchPreview;
     if (preview == null) return '';
-    if (preview.didStitch) {
-      return ' A combined receipt preview is ready.';
-    }
+    if (preview.didStitch) return ' A combined receipt preview is ready.';
     if (preview.usedFallback) {
-      return ' The photos will remain in top-to-bottom order.';
+      return ' Maintainiac will keep the sections in their captured order.';
     }
-    return ' Review the photo match before using a combined image.';
+    return '';
   }
 }
