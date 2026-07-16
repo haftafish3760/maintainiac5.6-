@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_reference_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_upload_coordinator.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_upload_grant.dart';
 
 void main() {
   test(
@@ -16,7 +17,7 @@ void main() {
           objectStore: _MemoryObjectStore(),
         ),
         references: references,
-      queueReceiptMetadata: (receiptId) async => queued.add(receiptId),
+        queueReceiptMetadata: (receiptId) async => queued.add(receiptId),
       );
 
       await coordinator.uploadAndQueue(
@@ -52,7 +53,7 @@ void main() {
         references: ExpenseCloudProofReferenceStore.memory(
           storageCheck: () => throw StateError('No local storage'),
         ),
-      queueReceiptMetadata: (receiptId) async => queued.add(receiptId),
+        queueReceiptMetadata: (receiptId) async => queued.add(receiptId),
       );
 
       await expectLater(
@@ -70,6 +71,31 @@ void main() {
       expect(queued, isEmpty);
     },
   );
+
+  test('rejects expired grants before proof transfer', () async {
+    final coordinator = ExpenseCloudProofUploadCoordinator(
+      cloudStorage: ExpenseCloudProofStorage(objectStore: _MemoryObjectStore()),
+      references: ExpenseCloudProofReferenceStore.memory(),
+      queueReceiptMetadata: (_) async {},
+    );
+
+    await expectLater(
+      () => coordinator.uploadWithGrant(
+        organizationId: 'org_1',
+        userId: 'user_1',
+        receiptId: 'receipt_1',
+        proofId: 'proof_1',
+        grant: ExpenseCloudProofUploadGrant(
+          id: 'grant_1',
+          maximumBytes: 1,
+          expiresAt: DateTime.utc(2020),
+        ),
+        bytes: Uint8List.fromList([1, 2, 3]),
+        contentType: 'image/jpeg',
+      ),
+      throwsStateError,
+    );
+  });
 }
 
 class _MemoryObjectStore implements ExpenseCloudProofObjectStore {
