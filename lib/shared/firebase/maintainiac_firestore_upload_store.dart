@@ -1,16 +1,22 @@
 part of 'maintainiac_firestore_upload_queue.dart';
 
 class MaintainiacFirestoreUploadQueueStore {
-  MaintainiacFirestoreUploadQueueStore._(this._box);
+  MaintainiacFirestoreUploadQueueStore._(this._box, {this.storageCheck});
 
   static const boxName = 'maintainiac_firestore_upload_queue';
 
   final Box<dynamic> _box;
+  final MaintainiacFirestoreQueueStorageCheck? storageCheck;
   Future<void> _writeTail = Future<void>.value();
 
-  static Future<MaintainiacFirestoreUploadQueueStore> create() async {
+  static Future<MaintainiacFirestoreUploadQueueStore> create({
+    MaintainiacFirestoreQueueStorageCheck? storageCheck,
+  }) async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return MaintainiacFirestoreUploadQueueStore._(box);
+    return MaintainiacFirestoreUploadQueueStore._(
+      box,
+      storageCheck: storageCheck ?? _defaultStorageCheck,
+    );
   }
 
   List<MaintainiacFirestoreQueuedDocument> get records {
@@ -37,6 +43,7 @@ class MaintainiacFirestoreUploadQueueStore {
     DateTime? queuedAtUtc,
   }) async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
+    await _ensureStorageForQueueWrite();
     final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();
     final record = MaintainiacFirestoreQueuedDocument(
       id: _recordIdFor(draft.path, queuedAt),
@@ -54,6 +61,7 @@ class MaintainiacFirestoreUploadQueueStore {
     DateTime? queuedAtUtc,
   }) => _enqueue(() async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
+    await _ensureStorageForQueueWrite();
     for (final record in pendingRecords) {
       if (record.path == draft.path) {
         await _box.delete(record.id);
@@ -66,6 +74,7 @@ class MaintainiacFirestoreUploadQueueStore {
     Iterable<MaintainiacFirestoreDocumentDraft> drafts, {
     DateTime? queuedAtUtc,
   }) => _enqueue(() async {
+    await _ensureStorageForQueueWrite();
     final queued = <MaintainiacFirestoreQueuedDocument>[];
     for (final draft in drafts) {
       queued.add(await _enqueueDocument(draft, queuedAtUtc: queuedAtUtc));
@@ -92,6 +101,7 @@ class MaintainiacFirestoreUploadQueueStore {
     DateTime? nowUtc,
   }) => _enqueue(() async {
     if (record.isEmpty) return;
+    await _ensureStorageForQueueWrite();
     final attempted = MaintainiacFirestoreQueuedDocument(
       id: record.id,
       path: record.path,
@@ -107,6 +117,7 @@ class MaintainiacFirestoreUploadQueueStore {
 
   Future<void> markUploaded(Iterable<String> recordIds, {DateTime? nowUtc}) =>
       _enqueue(() async {
+        await _ensureStorageForQueueWrite();
         final uploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
         for (final id in recordIds) {
           final record = MaintainiacFirestoreQueuedDocument.fromStored(
@@ -142,6 +153,16 @@ class MaintainiacFirestoreUploadQueueStore {
   });
 
   Future<void> clearAll() => _enqueue(() => _box.clear());
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  Future<void> _ensureStorageForQueueWrite() async {
+    final check = storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
 
   Future<void> _trimOldestIfNeeded() async {
     final extraCount =

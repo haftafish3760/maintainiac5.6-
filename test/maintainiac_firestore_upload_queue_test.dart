@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -40,6 +41,51 @@ void main() {
     expect(sink.writes, isEmpty);
     expect(queue.pendingRecords, hasLength(2));
   });
+
+  test(
+    'refuses a retry-ledger write when device storage is critical',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: 1,
+          requiredBytes: 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+
+      await expectLater(
+        () => queue.enqueue(_safeDraft('parserHealth/storage_guard')),
+        throwsStateError,
+      );
+      expect(queue.pendingRecords, isEmpty);
+    },
+  );
+
+  test(
+    'does not replace an existing retry entry when storage is critical',
+    () async {
+      var allowWrites = true;
+      final queue = await MaintainiacFirestoreUploadQueueStore.create(
+        storageCheck: () async => AppStorageCheck(
+          availableBytes: allowWrites ? 100 : 0,
+          operationBytes: 1,
+          requiredBytes: 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+      final first = _safeDraft('parserHealth/replace_storage_guard');
+      await queue.enqueueReplacingPendingForPath(first);
+      allowWrites = false;
+
+      await expectLater(
+        () => queue.enqueueReplacingPendingForPath(first),
+        throwsStateError,
+      );
+      expect(queue.pendingRecords, hasLength(1));
+      expect(queue.pendingRecords.single.path, first.path);
+    },
+  );
 
   test('uploads enabled batches and marks records uploaded', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();

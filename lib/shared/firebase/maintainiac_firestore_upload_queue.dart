@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'maintainiac_firestore_documents.dart';
 import 'maintainiac_firestore_schema.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
+import '../storage/app_storage_guard.dart';
 
 part 'maintainiac_firestore_upload_policy.dart';
 part 'maintainiac_firestore_upload_store.dart';
@@ -33,6 +34,9 @@ class MaintainiacFirestoreUploadResult {
   final int failedCount;
   final String? reason;
 }
+
+typedef MaintainiacFirestoreQueueStorageCheck =
+    Future<AppStorageCheck> Function();
 
 /// Shared Firestore sink for module-specific backup coordinators. Keeping the
 /// actual write primitive here prevents Expenses, Trips, and future modules
