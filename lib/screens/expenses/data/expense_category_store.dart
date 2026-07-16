@@ -1,14 +1,17 @@
-import '../../../shared/records/maintainiac_record_lifecycle.dart';
+import '../../../shared/records/maintainiac_durable_record_store.dart';
 
 class ExpenseCategoryStore {
-  ExpenseCategoryStore._(this._drafts);
+  ExpenseCategoryStore._(this._records);
 
   static const _module = 'expense_categories';
-  final MaintainiacRecordDraftStore _drafts;
+  final MaintainiacDurableRecordStore _records;
 
   static Future<ExpenseCategoryStore> create() async =>
-      ExpenseCategoryStore._(await MaintainiacRecordDraftStore.create());
-  ExpenseCategoryStore.memory() : _drafts = MaintainiacRecordDraftStore.memory();
+      ExpenseCategoryStore._(
+        await MaintainiacDurableRecordStore.create('expense_category_settings'),
+      );
+  ExpenseCategoryStore.memory()
+    : _records = MaintainiacDurableRecordStore.memory();
 
   Future<void> rename({required String id, required String name, DateTime? now}) async {
     final cleanId = id.trim();
@@ -16,7 +19,7 @@ class ExpenseCategoryStore {
     if (cleanId.isEmpty || cleanName.isEmpty || cleanId.contains(':')) {
       throw ArgumentError('A category needs a stable ID and a name.');
     }
-    await _drafts.save(
+    await _records.save(
       module: _module,
       id: cleanId,
       payload: {'id': cleanId, 'displayName': cleanName},
@@ -25,7 +28,7 @@ class ExpenseCategoryStore {
   }
 
   String displayNameFor(String id, {required String fallback}) {
-    final value = _drafts.draftFor(_module, id)?.payload['displayName'];
+    final value = _records.recordFor(_module, id)?.payload['displayName'];
     return value is String && value.trim().isNotEmpty ? value : fallback;
   }
 
