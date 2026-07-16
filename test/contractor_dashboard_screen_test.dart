@@ -5,9 +5,11 @@ import 'package:maintaniac/screens/dashboard/dashboard.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/vehicle_profile_widgets.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
+import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
@@ -232,9 +234,11 @@ void main() {
         startedAt: DateTime(2026, 7, 16, 8),
       );
       final tripStore = TripTrackingSessionStore.memory();
+      final cloudMirror = _RecordingTripCloudMirror();
       final tripController = TripTrackingController(
         sessionStore: tripStore,
         odometer: odometer,
+        cloudMirror: cloudMirror,
       );
       await tripStore.saveReview(
         TripTrackingReviewRecord(
@@ -306,12 +310,45 @@ void main() {
       expect(stored?.confirmedEndingOdometer, 1001);
       expect(stored?.isOdometerConfirmed, isTrue);
       expect(odometer.confirmedReading, 1001);
+      expect(cloudMirror.documents, hasLength(1));
+      expect(cloudMirror.documents.single['locationDataIncluded'], isFalse);
+      expect(cloudMirror.documents.single['visibilityScope'], 'mileage_only');
+      expect(
+        cloudMirror.documents.single.keys,
+        isNot(contains(anyOf('latitude', 'longitude', 'samples', 'timeline'))),
+      );
       expect(
         find.text('GPS trip reviewed and odometer confirmed.'),
         findsOneWidget,
       );
     },
   );
+}
+
+class _RecordingTripCloudMirror implements TripTrackingCloudMirror {
+  final documents = <Map<String, Object?>>[];
+
+  @override
+  Future<void> queueReview(TripTrackingReviewRecord review) async {
+    documents.add(
+      MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+        uid: 'firebaseUid-1',
+        review: review,
+      ).data,
+    );
+  }
+
+  @override
+  Future<void> flushPending() async {}
+
+  @override
+  Future<void> withdrawBackupConsent() async {}
+
+  @override
+  Future<void> withdrawOrganizationSharingConsent() async {}
+
+  @override
+  void dispose() {}
 }
 
 Future<void> _pumpDashboard(
