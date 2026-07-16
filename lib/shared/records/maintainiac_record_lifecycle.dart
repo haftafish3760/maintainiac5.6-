@@ -56,36 +56,45 @@ class MaintainiacRecordLifecycle {
   bool get isDeleted => state == MaintainiacRecordState.deleted;
 
   MaintainiacRecordLifecycle saved(DateTime now, {required String event}) {
+    final time = _nextLifecycleTime(now);
     return MaintainiacRecordLifecycle(
       createdAt: createdAt,
-      updatedAt: now,
+      updatedAt: time,
       revision: revision + 1,
       state: state,
       deletedAt: deletedAt,
-      auditEvents: [...auditEvents, _event(now, event)],
+      auditEvents: [...auditEvents, _event(time, event)],
     );
   }
 
   MaintainiacRecordLifecycle deleted(DateTime now, {required String event}) {
+    final time = _nextLifecycleTime(now);
     return MaintainiacRecordLifecycle(
       createdAt: createdAt,
-      updatedAt: now,
+      updatedAt: time,
       revision: revision + 1,
       state: MaintainiacRecordState.deleted,
-      deletedAt: now,
-      auditEvents: [...auditEvents, _event(now, event)],
+      deletedAt: time,
+      auditEvents: [...auditEvents, _event(time, event)],
     );
   }
 
   MaintainiacRecordLifecycle restored(DateTime now, {required String event}) {
+    final time = _nextLifecycleTime(now);
     return MaintainiacRecordLifecycle(
       createdAt: createdAt,
-      updatedAt: now,
+      updatedAt: time,
       revision: revision + 1,
       state: MaintainiacRecordState.active,
-      auditEvents: [...auditEvents, _event(now, event)],
+      auditEvents: [...auditEvents, _event(time, event)],
     );
   }
+
+  // A device clock can move backward after a manual change or time sync. Keep
+  // lifecycle ordering monotonic so a later write cannot look stale or erase
+  // a newer checkpoint during recovery.
+  DateTime _nextLifecycleTime(DateTime requested) =>
+      requested.isBefore(updatedAt) ? updatedAt : requested;
 
   Map<String, dynamic> toMap() => {
     'createdAt': createdAt.toIso8601String(),

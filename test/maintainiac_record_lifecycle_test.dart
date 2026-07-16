@@ -18,6 +18,19 @@ void main() {
     expect(lifecycle.auditEvents, hasLength(2));
   });
 
+  test('shared lifecycle never moves backward when the device clock changes', () {
+    final created = DateTime.utc(2026, 7, 15, 12);
+    final saved = MaintainiacRecordLifecycle(
+      createdAt: created,
+      updatedAt: created,
+    ).saved(created.add(const Duration(minutes: 1)), event: 'saved record');
+    final deleted = saved.deleted(created, event: 'removed record');
+
+    expect(deleted.updatedAt, saved.updatedAt);
+    expect(deleted.deletedAt, saved.updatedAt);
+    expect(deleted.auditEvents.last, startsWith(saved.updatedAt.toIso8601String()));
+  });
+
   test('corrupt shared draft maps are rejected instead of recreated', () {
     expect(
       () => MaintainiacRecordDraft.fromMap({
