@@ -1,8 +1,41 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/records/maintainiac_record_lifecycle.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
+  test('shared draft checkpoints survive a local Hive restart', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'maintainiac_record_draft_store_',
+    );
+    addTearDown(() async {
+      await Hive.close();
+      if (await directory.exists()) await directory.delete(recursive: true);
+    });
+    Hive.init(directory.path);
+    final first = await MaintainiacRecordDraftStore.create();
+    await first.save(
+      module: 'expenses',
+      id: 'receipt-1',
+      payload: {
+        'merchant': 'Local draft',
+        'line': {'amount': 42.50},
+      },
+      now: DateTime.utc(2026, 7, 15),
+    );
+
+    await Hive.close();
+    Hive.init(directory.path);
+    final reopened = await MaintainiacRecordDraftStore.create();
+
+    expect(reopened.draftFor('expenses', 'receipt-1')?.payload, {
+      'merchant': 'Local draft',
+      'line': {'amount': 42.50},
+    });
+  });
+
   test('shared lifecycle preserves delete and restore history', () {
     final created = DateTime.utc(2026, 7, 15, 12);
     final deleted = created.add(const Duration(minutes: 1));
@@ -18,18 +51,24 @@ void main() {
     expect(lifecycle.auditEvents, hasLength(2));
   });
 
-  test('shared lifecycle never moves backward when the device clock changes', () {
-    final created = DateTime.utc(2026, 7, 15, 12);
-    final saved = MaintainiacRecordLifecycle(
-      createdAt: created,
-      updatedAt: created,
-    ).saved(created.add(const Duration(minutes: 1)), event: 'saved record');
-    final deleted = saved.deleted(created, event: 'removed record');
+  test(
+    'shared lifecycle never moves backward when the device clock changes',
+    () {
+      final created = DateTime.utc(2026, 7, 15, 12);
+      final saved = MaintainiacRecordLifecycle(
+        createdAt: created,
+        updatedAt: created,
+      ).saved(created.add(const Duration(minutes: 1)), event: 'saved record');
+      final deleted = saved.deleted(created, event: 'removed record');
 
-    expect(deleted.updatedAt, saved.updatedAt);
-    expect(deleted.deletedAt, saved.updatedAt);
-    expect(deleted.auditEvents.last, startsWith(saved.updatedAt.toIso8601String()));
-  });
+      expect(deleted.updatedAt, saved.updatedAt);
+      expect(deleted.deletedAt, saved.updatedAt);
+      expect(
+        deleted.auditEvents.last,
+        startsWith(saved.updatedAt.toIso8601String()),
+      );
+    },
+  );
 
   test('corrupt shared draft maps are rejected instead of recreated', () {
     expect(
