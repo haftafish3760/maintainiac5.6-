@@ -35,18 +35,6 @@ class _ReceiptPhotoSectionLabels {
     return '$selected selected. This should continue downward with 3-5 repeated readable lines from the previous photo. Use Order or Match Photos if anything looks out of place.';
   }
 
-  static String selectedReviewAction({
-    required int selectedIndex,
-    required int total,
-  }) {
-    if (total <= 1) return 'Add another photo only if the receipt continues.';
-    if (selectedIndex <= 0) return 'Confirm top section, then add or order.';
-    if (selectedIndex >= total - 1) {
-      return 'Confirm bottom section, then match.';
-    }
-    return 'Confirm middle section, then match.';
-  }
-
   static String orderHint({required int index, required int total}) {
     if (total <= 1) return 'One receipt photo';
     if (index <= 0) {

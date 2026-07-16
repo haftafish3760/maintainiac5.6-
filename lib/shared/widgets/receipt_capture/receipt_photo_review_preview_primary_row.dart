@@ -9,7 +9,6 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.statusColor,
     required this.statusText,
     required this.compact,
-    required this.coverageDecision,
     required this.savingPhotos,
     required this.continueLabel,
     required this.onRetake,
@@ -24,7 +23,6 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   final Color statusColor;
   final String statusText;
   final bool compact;
-  final ReceiptPhotoCoverageDecision coverageDecision;
   final bool savingPhotos;
   final String continueLabel;
   final VoidCallback? onRetake;

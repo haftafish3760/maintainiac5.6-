@@ -5,15 +5,12 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     required this.uiConfig,
     required this.photoPaths,
     required this.selectedIndex,
-    required this.selectedQualityCheck,
-    required this.selectedCaptureDiagnostics,
     required this.stitchPreview,
     required this.stitchPreviewInFlight,
     required this.openingCamera,
     required this.savingPhotos,
     required this.continueLabel,
     required this.onPhotoSelected,
-    required this.onModeChanged,
     required this.onAddPhoto,
     required this.onRetake,
     required this.onContinue,
@@ -22,15 +19,12 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
   final ReceiptPhotoReviewUiConfig uiConfig;
   final List<String> photoPaths;
   final int selectedIndex;
-  final ReceiptPhotoQualityCheck? selectedQualityCheck;
-  final Map<String, Object?>? selectedCaptureDiagnostics;
   final ReceiptStitchResult? stitchPreview;
   final bool stitchPreviewInFlight;
   final bool openingCamera;
   final bool savingPhotos;
   final String continueLabel;
   final ValueChanged<int> onPhotoSelected;
-  final ValueChanged<_ReceiptReviewMode> onModeChanged;
   final VoidCallback onAddPhoto;
   final VoidCallback onRetake;
   final VoidCallback? onContinue;
@@ -46,7 +40,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     final statusColor = this.statusColor;
     final photoCount = photoPaths.length;
     final hasMultiplePhotos = photoCount > 1;
-    final coverageDecision = coverageDecisionForSelectedPhoto;
     final deviceCapability =
         ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
         const ReceiptDeviceCapability.standard();
@@ -82,7 +75,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   statusColor: statusColor,
                   statusText: statusText,
                   compact: compactControls,
-                  coverageDecision: coverageDecision,
                   savingPhotos: savingPhotos,
                   continueLabel: continueLabel,
                   onRetake: interactionLocked ? null : onRetake,

@@ -20,7 +20,6 @@ import 'receipt_photo_review_ui_config.dart';
 import 'receipt_storage_guard.dart';
 
 part 'receipt_photo_review_controls.dart';
-part 'receipt_photo_review_quality_recovery.dart';
 part 'receipt_photo_review_preview_action_tray.dart';
 part 'receipt_photo_review_preview_action_status.dart';
 part 'receipt_photo_review_top_bar.dart';
