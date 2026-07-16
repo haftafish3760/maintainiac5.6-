@@ -156,6 +156,7 @@ void main() {
       expect(source, contains('error is StateError'));
       expect(source, contains('storage_guard_blocked_local_record_save'));
       expect(source, contains('storageMessage ??'));
+      expect(source, contains('await ledger.ensureStorageForLocalSave()'));
     },
   );
 
@@ -423,7 +424,7 @@ void main() {
   );
 
   test(
-    'empty drafts are removed instead of cluttering the home screen',
+    'empty drafts remain recoverable instead of being deleted automatically',
     () async {
       final drafts = await ExpenseDraftController.create();
 
@@ -435,7 +436,26 @@ void main() {
         ),
       );
 
-      expect(drafts.drafts, isEmpty);
+      expect(drafts.draftById('empty'), isNotNull);
+    },
+  );
+
+  test(
+    'receipt proof promotion checkpoints the draft before ledger save',
+    () async {
+      final source = await File(
+        'lib/screens/expenses/entry/expense_receipt_save_actions.dart',
+      ).readAsString();
+
+      final proofPromotion = source.indexOf('_persistReceiptProofs(receipt)');
+      final checkpoint = source.indexOf('if (!await _saveDraftNow()) return;');
+      final ledgerSave = source.indexOf(
+        '_saveReceiptToLedger(ledger, receipt)',
+      );
+
+      expect(proofPromotion, greaterThanOrEqualTo(0));
+      expect(checkpoint, greaterThan(proofPromotion));
+      expect(ledgerSave, greaterThan(checkpoint));
     },
   );
 }

@@ -109,11 +109,9 @@ class ExpenseDraftController extends ChangeNotifier {
     if (existing != null && existing.updatedAt.isAfter(draft.updatedAt)) {
       return;
     }
-    if (!draft.hasUserContent) {
-      await _deleteDraft(draft.id, notify: false);
-      notifyListeners();
-      return;
-    }
+    // Keep even a newly opened form checkpoint. A blank-looking draft can
+    // still represent user intent or the only recovery point after an app
+    // interruption; the app must never silently delete it to tidy the UI.
     await _drafts.save(
       module: _module,
       id: draft.id,
