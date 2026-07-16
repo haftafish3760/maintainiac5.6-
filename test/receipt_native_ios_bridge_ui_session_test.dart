@@ -138,6 +138,7 @@ void main() {
     expect(cameraController, contains('Reset receipt camera defaults'));
     expect(cameraController, contains('func resetReceiptCameraDefaults()'));
     expect(cameraController, contains('settingsResetCount += 1'));
+    expect(cameraController, contains('longReceiptMode = false'));
     expect(
       cameraController,
       contains('Receipt camera defaults restored. Manual shutter is ready.'),

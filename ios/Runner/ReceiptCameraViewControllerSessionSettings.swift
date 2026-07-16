@@ -319,7 +319,7 @@ extension ReceiptCameraViewController {
     settingsResetCount += 1
     // Receipt Assist remains opt-in, even after restoring camera defaults.
     assistedReceiptFill = false
-    longReceiptMode = canUseLongReceiptMode()
+    longReceiptMode = false
     autoCaptureEnabled = false
     reviewDepth = "pricesOnly"
     dataSaverLevel = "balanced"
