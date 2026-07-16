@@ -107,10 +107,7 @@ void main() {
     expect(result.failedCount, 0);
     expect(sink.writes, hasLength(2));
     expect(queue.pendingRecords, isEmpty);
-    expect(
-      queue.records.where((record) => record.uploadedAtUtc != null),
-      hasLength(2),
-    );
+    expect(queue.records, isEmpty);
   });
 
   test('concurrent flushes upload a queued document only once', () async {

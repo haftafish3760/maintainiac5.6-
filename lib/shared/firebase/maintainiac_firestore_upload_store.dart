@@ -288,6 +288,10 @@ class MaintainiacFirestoreUploadCoordinator {
       }
     }
     await _queue.markUploaded(uploadedIds, nowUtc: nowUtc);
+    // The original local record remains the source of truth. Once the cloud
+    // acknowledgement itself is durable, retaining this queue copy only
+    // consumes device space and exposes stale account metadata.
+    if (uploadedIds.isNotEmpty) await _queue.clearUploaded();
 
     final status = failedCount == 0
         ? MaintainiacFirestoreUploadStatus.uploaded
