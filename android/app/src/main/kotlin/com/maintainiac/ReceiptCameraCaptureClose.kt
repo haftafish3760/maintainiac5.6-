@@ -20,21 +20,25 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
     if (capture == null) {
         captureBlockedNoCameraCount += 1
         lastCaptureBlockReason = "no_camera"
+        reportManualCaptureBlocked(trigger, "no_camera")
         return
     }
     if (captureInFlight) {
         captureBlockedBusyCount += 1
         lastCaptureBlockReason = "capture_in_flight"
+        reportManualCaptureBlocked(trigger, "capture_in_flight")
         return
     }
     if (closingCamera) {
         captureBlockedClosingCount += 1
         lastCaptureBlockReason = "closing_camera"
+        reportManualCaptureBlocked(trigger, "closing_camera")
         return
     }
     if (!isCameraSurfaceActive()) {
         captureBlockedSurfaceInactiveCount += 1
         lastCaptureBlockReason = "camera_surface_inactive"
+        reportManualCaptureBlocked(trigger, "camera_surface_inactive")
         return
     }
     if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
@@ -56,6 +60,19 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
     }
 }
 
+internal fun ReceiptCameraActivity.reportManualCaptureBlocked(trigger: String, reason: String) {
+    // Live analysis may encounter the same condition repeatedly. Only surface
+    // a message for an intentional manual action so the guidance stays stable.
+    if (trigger != "manual_shutter" && trigger != "manual_add_photo") return
+    if (!hasInitializedReceiptCameraField { guidance }) return
+    guidance.text = when (reason) {
+        "capture_in_flight" -> "Saving the last receipt photo. Please wait."
+        "closing_camera" -> "Opening receipt photo review. Your photo is being kept."
+        "camera_surface_inactive" -> "Receipt camera is still getting ready. Try again in a moment."
+        else -> "Receipt camera is unavailable. Check camera permission, then try again."
+    }
+}
+
 internal fun ReceiptCameraActivity.performReceiptCapture(
     capture: ImageCapture,
     outputFile: File,
@@ -65,7 +82,10 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
     if (!isCameraSurfaceActive()) {
         captureInFlight = false
         pendingCloseAfterCapture = false
+        captureBlockedSurfaceInactiveCount += 1
+        lastCaptureBlockReason = "camera_surface_inactive_after_prepare"
         if (hasInitializedReceiptCameraField { shutterButton }) shutterButton.isEnabled = true
+        reportManualCaptureBlocked(lastCaptureTrigger, "camera_surface_inactive")
         return
     }
     capture.takePicture(
