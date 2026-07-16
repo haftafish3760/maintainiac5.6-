@@ -4,12 +4,24 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/state/global_odometer.dart'
+    as global_odometer;
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+
+/// Keeps controller tests aligned with production: GPS sessions are started
+/// for the currently selected odometer vehicle unless a test explicitly
+/// exercises a mismatch.
+class GlobalOdometerController
+    extends global_odometer.GlobalOdometerController {
+  GlobalOdometerController({
+    super.vehicleId = 'vehicle_1',
+    super.initialReading = 298150,
+  });
+}
 
 void main() {
   final start = DateTime.utc(2026, 7, 12, 12);
@@ -66,6 +78,29 @@ void main() {
       );
     },
   );
+
+  test('GPS tracking cannot start against another active vehicle', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_b',
+        initialReading: 2000,
+      ),
+    );
+
+    expect(
+      await controller.start(
+        tripId: 'trip_start_vehicle_mismatch',
+        vehicleId: 'vehicle_a',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'vehicle_mismatch');
+    expect(store.activeSession, isNull);
+  });
 
   test('restore fails safely when local trip storage is unavailable', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(

@@ -142,6 +142,15 @@ class TripTrackingController extends ChangeNotifier {
         vehicleId.trim().isEmpty) {
       return false;
     }
+    if (vehicleId != _odometer.vehicleId) {
+      // The live odometer is vehicle-scoped. Never create a session whose
+      // later GPS miles could be projected onto a different active vehicle.
+      _platformStatus = 'vehicle_mismatch';
+      _platformError =
+          'Select the vehicle used for this GPS trip before starting tracking.';
+      notifyListeners();
+      return false;
+    }
     try {
       // Reviews are stored by trip id. Reusing an id would otherwise replace
       // an existing locally durable audit record when the new trip finishes.
