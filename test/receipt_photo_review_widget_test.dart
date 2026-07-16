@@ -16,6 +16,7 @@ void main() {
     receiptPaths = await Future.wait([
       _writeReceiptImage(receiptDirectory, 'receipt-top.png', seed: 18),
       _writeReceiptImage(receiptDirectory, 'receipt-bottom.png', seed: 42),
+      _writeReceiptImage(receiptDirectory, 'receipt-tail.png', seed: 77),
     ]);
   });
 
@@ -27,7 +28,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: ReceiptPhotoReviewScreen(
-          initialPhotoPaths: receiptPaths,
+          initialPhotoPaths: receiptPaths.take(2).toList(),
           initialDataSaverLevel: ReceiptDataSaverLevel.balanced,
         ),
       ),
@@ -58,6 +59,29 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: ReceiptPhotoReviewScreen(
+          initialPhotoPaths: receiptPaths.take(2).toList(),
+          initialDataSaverLevel: ReceiptDataSaverLevel.balanced,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Retake Section 1'), findsOneWidget);
+    expect(find.text('Add Another Photo'), findsOneWidget);
+    expect(find.text('Use Receipt'), findsOneWidget);
+  });
+
+  testWidgets('three-section review stays usable on a narrow phone', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptPhotoReviewScreen(
           initialPhotoPaths: receiptPaths,
           initialDataSaverLevel: ReceiptDataSaverLevel.balanced,
         ),
@@ -65,6 +89,9 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 400));
 
+    expect(find.text('Section 1 of 3'), findsAtLeastNWidgets(1));
+    expect(find.text('Section 2 of 3'), findsOneWidget);
+    expect(find.text('Section 3 of 3'), findsOneWidget);
     expect(find.text('Retake Section 1'), findsOneWidget);
     expect(find.text('Add Another Photo'), findsOneWidget);
     expect(find.text('Use Receipt'), findsOneWidget);
