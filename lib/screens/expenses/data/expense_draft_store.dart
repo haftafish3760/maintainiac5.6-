@@ -177,7 +177,9 @@ class ExpenseDraftController extends ChangeNotifier {
             now: draft.updatedAt,
           );
         }
-        await box.delete(key);
+        // Keep the legacy checkpoint intact. A successful migration creates a
+        // new shared copy, but must never silently erase the user's original
+        // local record.
       } catch (_) {
         // Preserve malformed legacy data rather than discarding it.
       }

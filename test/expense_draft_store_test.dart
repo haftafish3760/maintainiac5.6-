@@ -111,7 +111,7 @@ void main() {
 
       expect(drafts.draftById(draft.id)?.merchantName, 'Legacy Store');
       expect(drafts.draftById(draft.id)?.total, 16.25);
-      expect(legacy.containsKey(draft.id), isFalse);
+      expect(legacy.containsKey(draft.id), isTrue);
     },
   );
 
