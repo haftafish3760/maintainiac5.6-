@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -43,6 +44,28 @@ void main() {
     final restored = await ActiveWorkdayController.create();
     expect(restored.activeSession?.vehicleLabel, 'Work Truck 1');
     expect(restored.activeSession?.startedAt, startedAt);
+  });
+
+  test('does not claim a workday started when storage is full', () async {
+    final store = ActiveWorkdayController.memory(
+      storageCheck: () async => const AppStorageCheck(
+        availableBytes: 0,
+        operationBytes: AppStorageGuard.smallRecordWriteBytes,
+        requiredBytes: AppStorageGuard.smallRecordWriteBytes,
+        purpose: AppStoragePurpose.smallRecordWrite,
+      ),
+    );
+
+    await expectLater(
+      store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 125000,
+      ),
+      throwsStateError,
+    );
+    expect(store.activeSession, isNull);
   });
 
   test(
@@ -93,69 +116,74 @@ void main() {
     },
   );
 
-  test('resuming a paused day restores the active local session state', () async {
-    final store = ActiveWorkdayController.memory();
-    final startedAt = DateTime(2026, 6, 12, 7);
+  test(
+    'resuming a paused day restores the active local session state',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      final startedAt = DateTime(2026, 6, 12, 7);
 
-    await store.startDay(
-      vehicleId: 'truck-1',
-      vehicleLabel: 'Work Truck 1',
-      workProfileId: 'Business',
-      startOdometer: 1000,
-      startedAt: startedAt,
-    );
-    await store.addEvent(
-      type: ActiveWorkdayEventType.paused,
-      odometerReading: 1015,
-      occurredAt: DateTime(2026, 6, 12, 10),
-    );
-    final resumed = await store.addEvent(
-      type: ActiveWorkdayEventType.resumed,
-      odometerReading: 1015,
-      occurredAt: DateTime(2026, 6, 12, 11),
-    );
+      await store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 1000,
+        startedAt: startedAt,
+      );
+      await store.addEvent(
+        type: ActiveWorkdayEventType.paused,
+        odometerReading: 1015,
+        occurredAt: DateTime(2026, 6, 12, 10),
+      );
+      final resumed = await store.addEvent(
+        type: ActiveWorkdayEventType.resumed,
+        odometerReading: 1015,
+        occurredAt: DateTime(2026, 6, 12, 11),
+      );
 
-    expect(resumed?.status, ActiveWorkdayStatus.active);
-    expect(store.activeSession?.status, ActiveWorkdayStatus.active);
-    expect(store.activeSession?.isPaused, isFalse);
-    expect(
-      store.activeSession?.elapsedWorkTimeAt(DateTime(2026, 6, 12, 12)),
-      const Duration(hours: 4),
-    );
-    expect(store.activeSession?.events.map((event) => event.type), [
-      ActiveWorkdayEventType.started,
-      ActiveWorkdayEventType.paused,
-      ActiveWorkdayEventType.resumed,
-    ]);
-  });
+      expect(resumed?.status, ActiveWorkdayStatus.active);
+      expect(store.activeSession?.status, ActiveWorkdayStatus.active);
+      expect(store.activeSession?.isPaused, isFalse);
+      expect(
+        store.activeSession?.elapsedWorkTimeAt(DateTime(2026, 6, 12, 12)),
+        const Duration(hours: 4),
+      );
+      expect(store.activeSession?.events.map((event) => event.type), [
+        ActiveWorkdayEventType.started,
+        ActiveWorkdayEventType.paused,
+        ActiveWorkdayEventType.resumed,
+      ]);
+    },
+  );
 
-  test('a currently paused workday does not advance its elapsed work timer',
-      () {
-    final record = ActiveWorkdaySessionRecord(
-      id: 'workday-paused',
-      vehicleId: 'truck-1',
-      vehicleLabel: 'Work Truck 1',
-      workProfileId: 'Business',
-      startedAt: DateTime(2026, 6, 12, 7),
-      startOdometer: 1000,
-      status: ActiveWorkdayStatus.paused,
-      events: [
-        ActiveWorkdayEvent(
-          id: 'paused',
-          type: ActiveWorkdayEventType.paused,
-          occurredAt: DateTime(2026, 6, 12, 10),
-          odometerReading: 1015,
-          label: 'Day paused',
-        ),
-      ],
-    );
+  test(
+    'a currently paused workday does not advance its elapsed work timer',
+    () {
+      final record = ActiveWorkdaySessionRecord(
+        id: 'workday-paused',
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startedAt: DateTime(2026, 6, 12, 7),
+        startOdometer: 1000,
+        status: ActiveWorkdayStatus.paused,
+        events: [
+          ActiveWorkdayEvent(
+            id: 'paused',
+            type: ActiveWorkdayEventType.paused,
+            occurredAt: DateTime(2026, 6, 12, 10),
+            odometerReading: 1015,
+            label: 'Day paused',
+          ),
+        ],
+      );
 
-    expect(
-      record.elapsedWorkTimeAt(DateTime(2026, 6, 12, 12)),
-      const Duration(hours: 3),
-    );
-    expect(record.isPaused, isTrue);
-  });
+      expect(
+        record.elapsedWorkTimeAt(DateTime(2026, 6, 12, 12)),
+        const Duration(hours: 3),
+      );
+      expect(record.isPaused, isTrue);
+    },
+  );
 
   test(
     'serializes and reloads a session record without losing event details',

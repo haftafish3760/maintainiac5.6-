@@ -1,6 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/storage/app_storage_guard.dart';
+
+typedef ActiveWorkdayStorageCheck = Future<AppStorageCheck> Function();
+
 enum ActiveWorkdayStatus { active, paused, ended }
 
 enum ActiveWorkdayEventType {
@@ -222,19 +226,28 @@ class ActiveWorkdaySessionRecord {
 }
 
 class ActiveWorkdayController extends ChangeNotifier {
-  ActiveWorkdayController._(this._box);
-  ActiveWorkdayController.memory() : _box = null;
+  ActiveWorkdayController._(
+    this._box, {
+    ActiveWorkdayStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+  ActiveWorkdayController.memory({ActiveWorkdayStorageCheck? storageCheck})
+    : _box = null,
+      _storageCheck = storageCheck;
 
   static const boxName = 'active_workday_sessions';
   static const activeSessionKey = '__active_session_id__';
 
   final Box<dynamic>? _box;
+  final ActiveWorkdayStorageCheck? _storageCheck;
   final _memoryRecords = <String, ActiveWorkdaySessionRecord>{};
   String? _memoryActiveSessionId;
+  Future<void> _writeTail = Future<void>.value();
 
-  static Future<ActiveWorkdayController> create() async {
+  static Future<ActiveWorkdayController> create({
+    ActiveWorkdayStorageCheck? storageCheck,
+  }) async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return ActiveWorkdayController._(box);
+    return ActiveWorkdayController._(box, storageCheck: storageCheck);
   }
 
   ActiveWorkdaySessionRecord? get activeSession {
@@ -272,7 +285,8 @@ class ActiveWorkdayController extends ChangeNotifier {
     required String workProfileId,
     required int startOdometer,
     DateTime? startedAt,
-  }) async {
+  }) => _enqueue(() async {
+    await _ensureStorageForWrite();
     final now = startedAt ?? DateTime.now();
     final sessionId = _newId('workday');
     final startedEvent = ActiveWorkdayEvent(
@@ -296,7 +310,7 @@ class ActiveWorkdayController extends ChangeNotifier {
     await _setActiveSessionId(sessionId);
     notifyListeners();
     return session;
-  }
+  });
 
   Future<ActiveWorkdaySessionRecord?> addEvent({
     required ActiveWorkdayEventType type,
@@ -305,9 +319,10 @@ class ActiveWorkdayController extends ChangeNotifier {
     String? sourceType,
     String? sourceId,
     DateTime? occurredAt,
-  }) async {
+  }) => _enqueue(() async {
     final session = activeSession;
     if (session == null) return null;
+    await _ensureStorageForWrite();
     final now = occurredAt ?? DateTime.now();
     final event = ActiveWorkdayEvent(
       id: _newId('event'),
@@ -339,14 +354,14 @@ class ActiveWorkdayController extends ChangeNotifier {
     }
     notifyListeners();
     return updated;
-  }
+  });
 
-  Future<void> clear() async {
+  Future<void> clear() => _enqueue(() async {
     _memoryRecords.clear();
     _memoryActiveSessionId = null;
     await _box?.clear();
     notifyListeners();
-  }
+  });
 
   String? get _activeSessionId {
     if (_box == null) return _memoryActiveSessionId;
@@ -370,6 +385,22 @@ class ActiveWorkdayController extends ChangeNotifier {
       await _box.put(session.id, session.toMap());
     }
   }
+
+  Future<void> _ensureStorageForWrite() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 }
 
 class ActiveWorkdayScope extends InheritedNotifier<ActiveWorkdayController> {
