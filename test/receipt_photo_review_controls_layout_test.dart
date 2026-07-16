@@ -98,4 +98,24 @@ void main() {
     expect(alignmentGuide, contains('This is your reference photo.'));
     expect(alignmentGuide, contains('your phone camera opens'));
   });
+
+  test('possible continuation asks before using the receipt', () async {
+    final completionActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_completion_actions.dart',
+    ).readAsString();
+
+    expect(completionActions, contains('showDialog<_ReceiptContinueDecision>'));
+    expect(completionActions, contains('Keep Reviewing'));
+    expect(completionActions, contains('decision.addSectionButtonLabel'));
+    expect(completionActions, contains('decision.continueAnywayButtonLabel'));
+    expect(completionActions, contains('await addAnotherReceiptPhoto()'));
+    expect(
+      completionActions,
+      isNot(
+        contains(
+          'decision: _ReceiptContinueDecision.continueAnyway,\n      coverageDecision',
+        ),
+      ),
+    );
+  });
 }

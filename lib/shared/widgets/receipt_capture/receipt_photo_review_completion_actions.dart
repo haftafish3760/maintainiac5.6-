@@ -9,13 +9,67 @@ extension _ReceiptPhotoReviewCompletionActions
     if (_completionPromptedPhotoPaths.contains(photoPath)) return true;
     final decision = _coverageDecisionForPhoto(photoPath);
     if (!decision.shouldPromptForMorePhotos) return true;
+    final selectedDecision = await showDialog<_ReceiptContinueDecision>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF161D20),
+        title: Text(
+          decision.completionDialogTitle,
+          style: const TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: Text(
+          decision.completionDialogMessage,
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontWeight: FontWeight.w700,
+            height: 1.25,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(_ReceiptContinueDecision.keepReviewing),
+            child: const Text('Keep Reviewing'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(_ReceiptContinueDecision.addNextSection),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFFFD166),
+            ),
+            child: Text(decision.addSectionButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(_ReceiptContinueDecision.continueAnyway),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF28A745),
+              foregroundColor: Colors.white,
+            ),
+            child: Text(decision.continueAnywayButtonLabel),
+          ),
+        ],
+      ),
+    );
+    if (!_reviewWorkActive) return false;
+    final confirmedDecision =
+        selectedDecision ?? _ReceiptContinueDecision.keepReviewing;
     _completionPromptedPhotoPaths.add(photoPath);
     _recordReceiptCompletionDecision(
       photoPath,
-      decision: _ReceiptContinueDecision.continueAnyway,
+      decision: confirmedDecision,
       coverageDecision: decision,
     );
-    return true;
+    if (confirmedDecision == _ReceiptContinueDecision.addNextSection) {
+      await addAnotherReceiptPhoto();
+    }
+    return confirmedDecision == _ReceiptContinueDecision.continueAnyway;
   }
 
   String? get _completionCheckPhotoPath {
