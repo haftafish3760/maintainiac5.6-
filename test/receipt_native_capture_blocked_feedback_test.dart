@@ -22,6 +22,10 @@ void main() {
   final ios = File(
     '$root/ios/Runner/ReceiptCameraViewControllerCapture.swift',
   ).readAsStringSync();
+  final reviewCaptureActions = File(
+    '$root/lib/shared/widgets/receipt_capture/'
+    'receipt_photo_review_capture_actions.dart',
+  ).readAsStringSync();
 
   for (final source in [android, ios]) {
     test(
@@ -99,5 +103,15 @@ void main() {
         ),
       );
     }
+  });
+
+  test('unavailable native camera returns an actionable recovery choice', () {
+    expect(reviewCaptureActions, contains('!nativeCapabilities.canOpenReceiptCamera'));
+    expect(
+      reviewCaptureActions,
+      contains(
+        'Receipt camera is unavailable right now. Check permission, then try again or add a photo from your device.',
+      ),
+    );
   });
 }

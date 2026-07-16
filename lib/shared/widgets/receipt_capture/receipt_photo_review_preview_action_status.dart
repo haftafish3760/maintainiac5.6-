@@ -78,31 +78,26 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
     }
     final nativeWarning = nativeCaptureReviewWarning;
     if (nativeWarning != null) {
-      return '$recoveryPrefix${nativeWarning.message} Recommended: '
-          '${nativeWarning.primaryActionLabel}. If the store, date, total, '
-          'and item prices are readable, you can still use the photo.'
-          '$editedPhotoCopy$memoryPolicyCopy';
+      return '${nativeWarning.message} ${nativeWarning.primaryActionLabel} '
+          'is recommended before continuing.$editedPhotoCopy';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
-      final addPhotoAction = coverageDecision.isMissingBottomEdgeAndTotals
-          ? 'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
-          : 'add the next receipt section now';
-      return '$recoveryPrefix${coverageDecision.title}: $addPhotoAction, or use this photo only if it already shows the full receipt.$editedPhotoCopy$memoryPolicyCopy';
+      return '${coverageDecision.title} Add another photo if any part of the '
+          'receipt is missing.$editedPhotoCopy';
     }
     final readinessCopy = _ReceiptCaptureReadinessReviewCopy.fromDiagnostics(
       selectedCaptureDiagnostics,
     );
     if (readinessCopy != null) {
-      return '$recoveryPrefix${readinessCopy.previewStatus}$editedPhotoCopy$memoryPolicyCopy';
+      return '${readinessCopy.previewStatus}$editedPhotoCopy';
     }
     final quality = selectedQualityCheck;
     if (quality != null) {
-      return '${recoveryPrefix}Photo captured locally. '
-          '${quality.userFacingStatusLabel} ${quality.reviewScoreMeaningLabel} '
-          'Use this photo, retake it, or add another photo if the '
-          'receipt continues.$editedPhotoCopy$memoryPolicyCopy';
+      return '${quality.userFacingStatusLabel} Check the store, date, total, '
+          'and line details before continuing.$editedPhotoCopy';
     }
-    return '${recoveryPrefix}Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.$editedPhotoCopy$memoryPolicyCopy';
+    return 'Check the store, date, total, and line details before '
+        'continuing.$editedPhotoCopy';
   }
 
   String get captureSourcePrefix {

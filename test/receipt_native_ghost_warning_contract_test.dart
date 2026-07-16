@@ -180,11 +180,9 @@ void main() {
     );
     expect(
       controls,
-      contains(
-        r"'${nativeWarning.primaryActionLabel}. If the store, date, total, '",
-      ),
+      contains('nativeWarning.primaryActionLabel}'),
     );
-    expect(controls, contains('you can still use the photo'));
+    expect(controls, contains('is recommended before continuing.'));
     expect(qualityRecovery, contains('required this.primaryActionLabel'));
     expect(
       qualityRecovery,
@@ -217,7 +215,7 @@ void main() {
     expect(models, contains('_isBorderlineDimButReadable'));
     expect(models, contains('_isBrightReadablePaper'));
     expect(controls, isNot(contains("sharpnessBucket == 'captured_soft'")));
-    expect(previewControls, contains('label: strings.addAnotherReceiptPhoto'));
+    expect(previewActionTray, contains('onAddPhoto: interactionLocked ? null : onAddPhoto'));
     expect(previewControls, isNot(contains("label: 'Add Section'")));
   });
 }

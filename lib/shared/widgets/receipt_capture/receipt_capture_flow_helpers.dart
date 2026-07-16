@@ -5,16 +5,16 @@ ReceiptNativeCameraSettings _cameraSettingsFor(
   ReceiptCaptureFlowOptions options,
 ) {
   final area = options.module.settingsArea;
-  return ReceiptNativeCameraSettings(
+  return receiptNativeCameraSettingsForCapture(
+    settings: settings,
     assistedReceiptFill:
         options.forceAssistedReceiptFill ??
         (area == null ? false : settings?.appAssistedEnabledFor(area) ?? false),
     longReceiptMode:
-        options.forceLongReceiptMode ?? settings?.cameraLongReceiptTips ?? true,
+        options.forceLongReceiptMode ?? false,
     autoCaptureEnabled:
         options.forceAutoCapture ?? settings?.cameraAutoCapture ?? false,
     reviewDepth: options.effectiveReviewDepth,
-    receiptPhotoBackupEnabled: settings?.receiptPhotoBackupEnabled ?? false,
     dataSaverLevel:
         options.initialDataSaverLevel ??
         settings?.defaultDataSaverLevel ??

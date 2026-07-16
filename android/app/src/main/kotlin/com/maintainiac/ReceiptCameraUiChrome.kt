@@ -53,7 +53,7 @@ internal fun ReceiptCameraActivity.buildReceiptFrameGuide(): View {
         ).apply {
             leftMargin = dp(22)
             rightMargin = dp(22)
-            topMargin = dp(86)
+            topMargin = dp(76)
             bottomMargin = dp(118)
         }
         alpha = 0.36f
@@ -68,21 +68,15 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
         setPadding(dp(12), dp(8), dp(12), dp(4))
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(62),
+            dp(56),
             Gravity.TOP,
         )
     }
     topBar.addView(iconButton(receiptCameraText("Back", "Atrás"), R.drawable.ic_receipt_camera_back) {
         requestCloseCamera(backDispatchPath = "top_bar_back_button")
     })
-    topBar.addView(TextView(this).apply {
-        text = receiptCameraText("Receipt Camera", "Cámara de recibos")
-        setTextColor(Color.WHITE)
-        textSize = 16f
-        gravity = Gravity.CENTER
-        setTypeface(typeface, Typeface.BOLD)
-        maxLines = 1
-        layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+    topBar.addView(View(this).apply {
+        layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
     })
     topBar.addView(iconButton(receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), R.drawable.ic_receipt_camera_settings) {
         showReceiptCameraSettings()

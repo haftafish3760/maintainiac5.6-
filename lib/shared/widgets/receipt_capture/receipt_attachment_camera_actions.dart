@@ -84,7 +84,7 @@ extension _ReceiptAttachmentCameraActions
           forceAssistedReceiptFill: settings?.appAssistedEnabledFor(
             widget.area,
           ),
-          forceLongReceiptMode: _nextReceiptForceLongReceiptMode(settings),
+          forceLongReceiptMode: _nextReceiptForceLongReceiptMode(),
           forceAutoCapture: _nextReceiptForceAutoCapture(settings),
           forceReviewDepth: _receiptNativeReviewDepthForCurrentCapture(),
         ),
@@ -181,11 +181,9 @@ extension _ReceiptAttachmentCameraActions
     return widget.receiptContinuationGuidance;
   }
 
-  bool? _nextReceiptForceLongReceiptMode(
-    ReceiptCaptureSettingsController? settings,
-  ) {
+  bool? _nextReceiptForceLongReceiptMode() {
     if (_needsBottomReceiptSection) return true;
-    return settings?.cameraLongReceiptTips;
+    return null;
   }
 
   bool? _nextReceiptForceAutoCapture(

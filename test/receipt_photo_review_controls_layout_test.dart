@@ -284,7 +284,7 @@ void main() {
     expect(
       controls,
       contains(
-        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
+        'Check the store, date, total, ',
       ),
     );
     expect(
@@ -297,9 +297,8 @@ void main() {
         'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(controls, contains('or use this photo only if '));
-    expect(controls, contains('it already shows the full receipt.'));
-    expect(controls, contains('Saved locally for recovery.'));
+    expect(controls, contains('Add another photo if any part of the '));
+    expect(controls, contains('receipt is missing.'));
     expect(controls, contains('captureSurface.startsWith'));
     expect(controls, contains('maintainiac_native_receipt_camera'));
     expect(controls, contains('String get captureMemoryPolicyCopy'));
@@ -307,9 +306,7 @@ void main() {
     expect(controls, contains("diagnostics['storageConstrained'] == true"));
     expect(
       controls,
-      contains(
-        'Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.',
-      ),
+      contains('Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.'),
     );
     expect(controls, contains("return 'Use Receipt';"));
     expect(commonControls, contains("primary: 'Add'"));
@@ -433,11 +430,11 @@ void main() {
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
     expect(models, isNot(contains("readIntoForm('Read into form')")));
-    expect(controls, contains('Use this photo'));
+    expect(controls, contains('Check the store, date, total, '));
     expect(
       controls,
       contains(
-        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
+        'Check the store, date, total, ',
       ),
     );
     expect(dataSaverPanel, contains('Receipt Proof Storage'));
