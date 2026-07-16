@@ -201,7 +201,13 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
   }
 
   Future<void> _flushPending() async {
-    if (!_isBackupEnabled) return;
+    if (!_isBackupEnabled) {
+      // A settings change may race a scheduled/auth-triggered flush. Treat
+      // the live consent read as authoritative and remove unsent summaries
+      // rather than leaving them eligible for a later upload.
+      await withdrawBackupConsent();
+      return;
+    }
     final createdByUid = _currentUid;
     if (createdByUid == null || createdByUid.trim().isEmpty) return;
     final localStore = _localStore;
@@ -233,6 +239,10 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     );
     for (final review in reviews) {
       try {
+        if (!_isBackupEnabled) {
+          await withdrawBackupConsent();
+          return;
+        }
         if (!review.isOdometerConfirmed) {
           await _discardQueuedBackupFor(review);
           await _saveReviewState(
@@ -265,6 +275,10 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
             clearCloudSyncError: true,
           ),
         );
+        if (!_isBackupEnabled) {
+          await withdrawBackupConsent();
+          return;
+        }
         final result = await _uploadCoordinator.uploadPending(
           limit: 1,
           path: document.path,

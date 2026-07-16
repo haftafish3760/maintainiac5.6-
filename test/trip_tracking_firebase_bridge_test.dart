@@ -615,6 +615,41 @@ void main() {
   });
 
   test(
+    'a later flush fails closed when backup consent is now disabled',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final sink = _RecordingSink();
+      var backupEnabled = true;
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: sink,
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+        backupEnabled: () => backupEnabled,
+      );
+
+      await mirror.queueReview(review());
+      expect(queue.pendingRecords, hasLength(1));
+
+      backupEnabled = false;
+      await mirror.flushPending();
+
+      expect(sink.writes, isEmpty);
+      expect(queue.pendingRecords, isEmpty);
+      expect(
+        localStore.reviewForTrip('trip 1')?.cloudSyncState,
+        TripTrackingCloudSyncState.localOnly,
+      );
+    },
+  );
+
+  test(
     'withdrawal clears every unsent backup while retaining local reviews',
     () async {
       final localStore = TripTrackingSessionStore.memory();
