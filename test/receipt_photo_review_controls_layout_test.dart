@@ -65,10 +65,18 @@ void main() {
       final save = await File(
         'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
       ).readAsString();
+      final primary = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
+      ).readAsString();
 
       expect(save, contains('if (_needsStitchReviewBeforeSave)'));
       expect(save, contains('await _ensureStitchPreview(force: true);'));
       expect(save, isNot(contains('_reviewMode = _ReceiptReviewMode.stitch')));
+      expect(
+        save.indexOf('_updateReviewState(() => _savingPhotos = true);'),
+        lessThan(save.indexOf('await _ensureStitchPreview(force: true);')),
+      );
+      expect(primary, contains("? const Text('Preparing')"));
     },
   );
 

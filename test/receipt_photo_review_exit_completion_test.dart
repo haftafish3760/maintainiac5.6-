@@ -200,7 +200,7 @@ void main() {
     expect(completionActions, contains('decision.continueAnywayButtonLabel'));
     expect(saveActions, isNot(contains('Next: Review Details')));
     expect(completionActions, contains('decision.addSectionButtonLabel'));
-    expect(controls, contains('Add Another Photo'));
+    expect(controls, contains('onPressed: savingPhotos ? null : onAddPhoto'));
     expect(controls, contains('uiConfig.addPhotoLabel'));
     final models = await readReceiptCaptureModelsSource();
     expect(models, contains('Need another receipt photo?'));

@@ -154,12 +154,12 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
               width: double.infinity,
               child: Tooltip(
                 message: savingPhotos
-                    ? 'Opening receipt details'
+                    ? 'Preparing receipt details'
                     : continueLabel,
                 child: Semantics(
                   button: true,
                   label: savingPhotos
-                      ? 'Opening receipt details'
+                      ? 'Preparing receipt details'
                       : continueLabel,
                   child: FilledButton.icon(
                     onPressed: savingPhotos ? null : onContinue,
@@ -174,7 +174,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                           )
                         : Icon(continueIcon),
                     label: savingPhotos
-                        ? const Text('Opening')
+                        ? const Text('Preparing')
                         : _ReceiptNextReviewLabel(
                             label: uiConfig.labelFor(
                               'continue',
