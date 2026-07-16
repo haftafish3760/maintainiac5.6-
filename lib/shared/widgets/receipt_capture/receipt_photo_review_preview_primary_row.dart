@@ -206,12 +206,10 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
 class _ReceiptReviewDecisionHeader extends StatelessWidget {
   const _ReceiptReviewDecisionHeader({
     required this.photoCount,
-    required this.continueLabel,
     required this.compact,
   });
 
   final int photoCount;
-  final String continueLabel;
   final bool compact;
 
   @override
@@ -219,7 +217,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
     final title = photoCount > 1
         ? 'Review $photoCount receipt sections'
         : 'Review receipt photo';
-    final guidance = _guidance;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xDD101719),
@@ -253,21 +250,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
                       letterSpacing: 0,
                     ),
                   ),
-                  if (!compact) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      guidance,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFC8D0D3),
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -275,13 +257,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String get _guidance {
-    if (photoCount > 1) {
-      return 'Check each section. Add another photo only if the receipt continues, then use the receipt.';
-    }
-    return 'Add another photo only if the receipt continues. Otherwise, use this photo.';
   }
 }
 

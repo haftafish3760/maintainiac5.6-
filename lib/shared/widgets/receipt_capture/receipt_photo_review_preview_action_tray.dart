@@ -68,7 +68,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                 if (showDecisionHeader) ...[
                   _ReceiptReviewDecisionHeader(
                     photoCount: photoCount,
-                    continueLabel: continueLabel,
                     compact: compactControls,
                   ),
                   SizedBox(height: compactControls ? 5 : 7),
