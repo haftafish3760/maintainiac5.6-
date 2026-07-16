@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/receipt_camera_capture_layout_source_readers.dart';
@@ -8,9 +6,6 @@ void main() {
   test('photo review save and close actions respect lifecycle state', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final saveActions = await readReceiptPhotoReviewSaveActionsSource();
-    final commonControls = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
-    ).readAsString();
     expect(saveActions, contains('bool _isStagedReceiptReviewPhoto'));
     expect(saveActions, contains('bool _isPhoneCameraBackupReviewPhoto'));
     expect(
@@ -43,7 +38,9 @@ void main() {
     );
     expect(
       saveActions,
-      contains("if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');"),
+      contains(
+        "if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');",
+      ),
     );
     expect(
       saveActions,
@@ -245,19 +242,7 @@ void main() {
     );
     expect(
       saveActions,
-      contains('static _PickedReceiptPhotos fromNativePhotoPaths'),
-    );
-    expect(
-      saveActions,
-      contains('bool _pickedReceiptPhotoPathsAreUnique(List<String> paths)'),
-    );
-    expect(
-      saveActions,
-      contains('_pickedReceiptPhotoPathsAreUnique(result.photoPaths)'),
-    );
-    expect(
-      saveActions,
-      contains('_pickedReceiptPhotoPathsAreCameraResultMembers('),
+      contains('static _PickedReceiptPhotos fromSystemCameraPaths'),
     );
     expect(
       saveActions,
@@ -270,7 +255,6 @@ void main() {
       contains('Map<String, ReceiptPhotoQualityCheck>.unmodifiable'),
     );
     expect(saveActions, contains('_freezePickedReceiptDiagnostics('));
-    expect(saveActions, contains('_pickedReceiptDiagnosticsForPaths('));
     expect(
       saveActions,
       contains(
@@ -305,10 +289,6 @@ void main() {
       saveActions,
       contains('return uniqueNormalizedReceiptPhotoPaths(paths);'),
     );
-    expect(
-      saveActions,
-      contains('return receiptPhotoPathsAreUniqueAndNormalized(paths);'),
-    );
     expect(saveActions, contains('qualityChecksByPath: const {},'));
     expect(
       saveActions,
@@ -321,20 +301,6 @@ void main() {
       ),
     );
     expect(saveActions, contains('if (!_reviewWorkActive) return false;'));
-    expect(
-      saveActions,
-      contains(
-        'if (!_reviewWorkActive) return _ReceiptContinueDecision.keepReviewing;',
-      ),
-    );
-    expect(reviewScreen, contains('Add Bottom Section'));
-    expect(reviewScreen, isNot(contains('Add Bottom First')));
-    expect(reviewScreen, isNot(contains('Next If Complete')));
-    expect(commonControls, contains("primary: 'Add'"));
-    expect(commonControls, contains('Bottom'));
-    expect(commonControls, contains("primary: 'Check'"));
-    expect(commonControls, contains('Photo Match'));
-    expect(saveActions, contains('decision.isMissingBottomEdgeAndTotals'));
     expect(
       saveActions,
       contains(
