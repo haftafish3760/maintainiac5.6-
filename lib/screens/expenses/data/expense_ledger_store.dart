@@ -224,7 +224,11 @@ class ExpenseLedgerController extends ChangeNotifier {
       );
     }
     await ensureStorageForLocalSave();
-    final now = DateTime.now();
+    final now = _nextLifecycleTime(
+      DateTime.now(),
+      createdAt: existing?.createdAt ?? receipt.createdAt,
+      updatedAt: existing?.updatedAt,
+    );
     final audit = [
       ...receipt.auditEvents,
       '${now.toIso8601String()} ${existing == null ? 'created' : 'updated'} receipt ${receipt.id}',
@@ -287,6 +291,17 @@ class ExpenseLedgerController extends ChangeNotifier {
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 
+  static DateTime _nextLifecycleTime(
+    DateTime requested, {
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    var result = requested;
+    if (createdAt != null && result.isBefore(createdAt)) result = createdAt;
+    if (updatedAt != null && result.isBefore(updatedAt)) result = updatedAt;
+    return result;
+  }
+
   /// Lets an entry screen reject an unsafe save before promoting proof files.
   Future<void> ensureStorageForLocalSave() async {
     final check = _storageCheck;
@@ -334,7 +349,11 @@ class ExpenseLedgerController extends ChangeNotifier {
     final existing = receiptById(id);
     if (existing == null || existing.isDeleted) return existing;
     await ensureStorageForLocalSave();
-    final now = DateTime.now();
+    final now = _nextLifecycleTime(
+      DateTime.now(),
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt,
+    );
     final deleted = existing.copyWith(
       updatedAt: now,
       localRevision: existing.localRevision + 1,
@@ -358,7 +377,11 @@ class ExpenseLedgerController extends ChangeNotifier {
     final existing = receiptById(id);
     if (existing == null || existing.isActive) return existing;
     await ensureStorageForLocalSave();
-    final now = DateTime.now();
+    final now = _nextLifecycleTime(
+      DateTime.now(),
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt,
+    );
     final restored = existing.copyWith(
       updatedAt: now,
       localRevision: existing.localRevision + 1,

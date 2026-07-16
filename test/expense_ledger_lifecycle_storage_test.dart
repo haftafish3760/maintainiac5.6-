@@ -45,4 +45,22 @@ void main() {
       expect(ledger.receiptById(saved.id)?.isDeleted, isTrue);
     },
   );
+
+  test('receipt lifecycle timestamps never move backward', () async {
+    final ledger = ExpenseLedgerController.memory();
+    final futureCreatedAt = DateTime.utc(2099, 1, 1);
+    final saved = await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'lifecycle-monotonic',
+        receiptDate: DateTime(2026, 7, 15),
+        createdAt: futureCreatedAt,
+        lines: const [],
+      ),
+    );
+
+    expect(saved.updatedAt, futureCreatedAt);
+    final deleted = await ledger.deleteReceipt(saved.id);
+    expect(deleted?.updatedAt, futureCreatedAt);
+    expect(deleted?.deletedAt, futureCreatedAt);
+  });
 }
