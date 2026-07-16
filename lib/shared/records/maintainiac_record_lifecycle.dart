@@ -351,7 +351,9 @@ class MaintainiacRecordDraftStore {
     if (value is! Map) return null;
     try {
       return MaintainiacRecordDraft.fromMap(value);
-    } on FormatException {
+    // A malformed checkpoint cannot be allowed to prevent recovery of every
+    // other draft in the same local store.
+    } catch (_) {
       return null;
     }
   }

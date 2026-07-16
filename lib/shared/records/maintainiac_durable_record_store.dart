@@ -203,7 +203,10 @@ class MaintainiacDurableRecordStore {
   static MaintainiacDurableRecord? _decode(Map<dynamic, dynamic> map) {
     try {
       return MaintainiacDurableRecord.fromMap(map);
-    } on FormatException {
+    // Device storage is untrusted at recovery time. A partially written or
+    // legacy-corrupt value must be skipped rather than crashing the module
+    // that is attempting to recover its other valid records.
+    } catch (_) {
       return null;
     }
   }

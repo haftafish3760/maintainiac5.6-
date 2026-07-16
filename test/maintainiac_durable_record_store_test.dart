@@ -120,6 +120,42 @@ void main() {
     );
   });
 
+  test('malformed recovered records are ignored without crashing recovery', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'maintainiac_corrupt_record_recovery_',
+    );
+    addTearDown(() async {
+      await Hive.close();
+      if (await directory.exists()) await directory.delete(recursive: true);
+    });
+    Hive.init(directory.path);
+    final recordsBox = await Hive.openBox<dynamic>('corrupt-records');
+    final draftsBox = await Hive.openBox<dynamic>(
+      MaintainiacRecordDraftStore.boxName,
+    );
+    const malformed = {
+      'module': 'expenses',
+      'id': 'record-1',
+      'payload': <String, dynamic>{},
+      'lifecycle': {
+        'createdAt': '2026-07-15T00:00:00.000Z',
+        'updatedAt': '2026-07-15T00:00:00.000Z',
+        'revision': 1,
+        'state': 99,
+      },
+    };
+    await recordsBox.put('expenses:record-1', malformed);
+    await draftsBox.put('expenses:record-1', malformed);
+
+    final records = await MaintainiacDurableRecordStore.create(
+      'corrupt-records',
+    );
+    final drafts = await MaintainiacRecordDraftStore.create();
+
+    expect(records.recordFor('expenses', 'record-1'), isNull);
+    expect(drafts.draftFor('expenses', 'record-1'), isNull);
+  });
+
   test(
     'confirmed records acknowledge only the matching draft checkpoint',
     () async {
