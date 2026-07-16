@@ -312,9 +312,9 @@ void main() {
           draft.id,
           expectedUpdatedAt: draft.updatedAt,
         ),
-        isTrue,
+        isFalse,
       );
-      expect(await File(staged.path).exists(), isFalse);
+      expect(await File(staged.path).exists(), isTrue);
       expect(await original.exists(), isTrue);
     },
   );

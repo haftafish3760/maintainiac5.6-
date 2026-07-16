@@ -130,16 +130,10 @@ class ExpenseDraftController extends ChangeNotifier {
     String id, {
     required DateTime expectedUpdatedAt,
   }) => _enqueue(() async {
-    final attachments = draftById(id)?.attachments ?? const [];
-    final deleted = await _drafts.removeIfUnchanged(
-      module: _module,
-      id: id,
-      expectedUpdatedAt: expectedUpdatedAt,
-    );
-    if (!deleted) return false;
-    await ReceiptProofStorage.instance.deleteStagedAttachments(attachments);
-    notifyListeners();
-    return true;
+    // A confirmed record is not permission to delete the user's recoverable
+    // draft or app-owned proof copy. Retention/cleanup must be an explicit
+    // user action; this safeguard keeps save completion non-destructive.
+    return false;
   });
 
   Future<void> _deleteDraft(String id, {bool notify = true}) async {
