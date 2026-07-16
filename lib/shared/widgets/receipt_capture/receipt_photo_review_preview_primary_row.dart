@@ -14,6 +14,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.continueLabel,
     required this.onRetake,
     required this.onAddPhoto,
+    required this.onCrop,
     required this.onContinue,
   });
 
@@ -29,6 +30,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   final String continueLabel;
   final VoidCallback? onRetake;
   final VoidCallback? onAddPhoto;
+  final VoidCallback? onCrop;
   final VoidCallback? onContinue;
 
   @override
@@ -87,6 +89,21 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onCrop != null) ...[
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: 'Crop receipt photo',
+                    child: IconButton(
+                      onPressed: onCrop,
+                      icon: const Icon(Icons.crop_rounded, size: 19),
+                      color: const Color(0xFFE8ECEE),
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(36, 36),
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
             SizedBox(height: compact ? 5 : 7),

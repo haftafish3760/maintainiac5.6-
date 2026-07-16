@@ -23,7 +23,13 @@ extension ReceiptCameraViewController {
         self.session.canAddOutput(self.photoOutput)
       else {
         DispatchQueue.main.async {
-          self.guidanceLabel.text = "The receipt camera could not open."
+          self.cameraDevice = nil
+          self.lastCaptureBlockReason = "camera_start_failed"
+          self.latestAutoCaptureStatus = "camera_unavailable"
+          self.torchButton.isEnabled = false
+          self.shutterButton.isEnabled = true
+          self.guidanceLabel.text =
+            "Receipt camera could not open. Check permission, then go back and try again."
         }
         self.session.commitConfiguration()
         return

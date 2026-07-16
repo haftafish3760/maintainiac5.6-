@@ -68,8 +68,23 @@ internal fun ReceiptCameraActivity.startCamera() {
                 configureExposureControls()
                 guidance.text = guidanceText()
             } catch (error: Throwable) {
-                guidance.text = "The receipt camera could not open."
-                Toast.makeText(this, "Receipt camera could not open.", Toast.LENGTH_LONG).show()
+                camera = null
+                imageCapture = null
+                lastCaptureBlockReason = "camera_start_failed"
+                latestAutoCaptureStatus = "camera_unavailable"
+                if (hasInitializedReceiptCameraField { torchButton }) {
+                    torchButton.isEnabled = false
+                }
+                if (hasInitializedReceiptCameraField { shutterButton }) {
+                    shutterButton.isEnabled = true
+                }
+                guidance.text =
+                    "Receipt camera could not open. Check permission, then go back and try again."
+                Toast.makeText(
+                    this,
+                    "Receipt camera could not open. Check permission, then try again.",
+                    Toast.LENGTH_LONG,
+                ).show()
             }
         },
         mainExecutor(),

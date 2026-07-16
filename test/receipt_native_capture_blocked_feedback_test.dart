@@ -12,6 +12,13 @@ void main() {
     '$root/android/app/src/main/kotlin/com/maintainiac/'
     'ReceiptCameraPreCaptureExposure.kt',
   ).readAsStringSync();
+  final androidAnalysis = File(
+    '$root/android/app/src/main/kotlin/com/maintainiac/'
+    'ReceiptCameraAnalysis.kt',
+  ).readAsStringSync();
+  final iosSession = File(
+    '$root/ios/Runner/ReceiptCameraViewControllerSessionSettings.swift',
+  ).readAsStringSync();
   final ios = File(
     '$root/ios/Runner/ReceiptCameraViewControllerCapture.swift',
   ).readAsStringSync();
@@ -71,6 +78,26 @@ void main() {
       expect(source, contains('lastCaptureTrigger'));
       expect(source, contains('reportManualCaptureBlocked'));
       expect(source, contains('shutterButton.isEnabled = true'));
+    }
+  });
+
+  test('camera startup failure leaves an actionable recovery state', () {
+    for (final source in [androidAnalysis, iosSession]) {
+      expect(
+        source,
+        contains('lastCaptureBlockReason = "camera_start_failed"'),
+      );
+      expect(
+        source,
+        contains('latestAutoCaptureStatus = "camera_unavailable"'),
+      );
+      expect(source, contains('shutterButton.isEnabled = true'));
+      expect(
+        source,
+        contains(
+          'Receipt camera could not open. Check permission, then go back and try again.',
+        ),
+      );
     }
   });
 }

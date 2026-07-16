@@ -273,7 +273,7 @@ void main() {
     expect(dataSaverPanel, isNot(contains('Cloud backup copy')));
     expect(dataSaverPanel, isNot(contains('Saved copy')));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
-    expect(reviewPreviewControls, contains('_ReceiptSinglePhotoActionRow'));
+    expect(reviewPreviewControls, contains("message: 'Crop receipt photo'"));
     expect(reviewControls, contains('Scrollbar('));
     expect(reviewControls, contains('SingleChildScrollView('));
     expect(reviewControls, isNot(contains('_ReceiptPreviewStatusPill')));

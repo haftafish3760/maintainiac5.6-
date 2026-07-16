@@ -251,8 +251,7 @@ void main() {
     expect(commonControls, contains("'Proof' => 'Preview saved proof size'"));
     expect(previewControls, contains('class _ReceiptMultiPhotoActionRail'));
     expect(previewControls, contains('onAddPhoto'));
-    expect(previewControls, contains('class _ReceiptSinglePhotoActionRow'));
-    expect(previewControls, contains('label: Text(strings.cropReceiptPhoto)'));
+    expect(previewControls, contains("message: 'Crop receipt photo'"));
     expect(previewControls, isNot(contains('label: strings.savedProof')));
     expect(previewControls, contains("? 'Add Bottom Section'"));
     expect(
@@ -280,7 +279,7 @@ void main() {
     );
     expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt Photo'));
-    expect(previewControls, contains('strings.cropReceiptPhoto'));
+    expect(previewControls, contains("message: 'Crop receipt photo'"));
     expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
     expect(
       controls,
@@ -381,9 +380,12 @@ void main() {
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
-    expect(previewControls, contains('onPressed: openingCamera'));
     expect(
-      previewControls,
+      controls,
+      contains('onCrop: hasMultiplePhotos || interactionLocked'),
+    );
+    expect(
+      controls,
       contains(': () => onModeChanged(_ReceiptReviewMode.crop)'),
     );
     expect(
