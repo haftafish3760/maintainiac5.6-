@@ -295,7 +295,7 @@ void main() {
     expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
     expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
     expect(uiConfig, contains('this.previewControlsHeightFraction = .22'));
-    expect(uiConfig, contains('this.previewControlsSinglePhotoHeight = 116'));
+    expect(uiConfig, contains('this.previewControlsSinglePhotoHeight = 132'));
     expect(uiConfig, contains('this.previewControlsMultiPhotoHeight = 178'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));

@@ -153,13 +153,13 @@ extension ReceiptPhotoReviewResultSectionOrderReview
   String get receiptSectionOrderReviewActionLabel {
     return switch (receiptSectionOrderReviewActionCode) {
       'review_retaken_section_order_before_ocr' =>
-        'Review the retaken receipt section order before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
+        'Review the retaken receipt section order before Maintainiac reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
       'review_inserted_section_order_before_ocr' =>
-        'Review the inserted receipt section order before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
+        'Review the inserted receipt section order before Maintainiac reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
       'review_manual_section_order_before_ocr' =>
-        'Review the manually reordered receipt sections before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
+        'Review the manually reordered receipt sections before Maintainiac reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
       'review_removed_section_order_before_ocr' =>
-        'Review the remaining receipt section order after removal before OCR reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
+        'Review the remaining receipt section order after removal before Maintainiac reads the receipt.$_stitchFallbackFailedPairReviewSuffix',
       'review_long_receipt_order_with_ghost_guide' =>
         'Check each long-receipt section from top to bottom using the ghost overlap guide.',
       'review_numbered_sections_top_to_bottom' =>
@@ -173,7 +173,7 @@ extension ReceiptPhotoReviewResultSectionOrderReview
       'review_removed_section_then_continue' =>
         'Confirm the remaining receipt section order after removal before continuing.',
       'review_multi_section_order' =>
-        'Check the multi-photo receipt order before OCR reads the receipt.',
+        'Check the multi-photo receipt order before Maintainiac reads the receipt.',
       _ => 'Review the receipt photo before OCR reads the receipt.',
     };
   }

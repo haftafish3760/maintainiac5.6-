@@ -32,7 +32,7 @@ void main() {
     expect(result.receiptSectionOrderNeedsReview, true);
     expect(
       result.acceptedPhotoHandoffActionLabel,
-      'Review the inserted receipt section order before OCR reads the receipt.',
+      'Review the inserted receipt section order before Maintainiac reads the receipt.',
     );
   });
 
@@ -106,7 +106,7 @@ void main() {
     expect(result.receiptSectionOrderOutcome, 'insert_order_invalid');
     expect(
       result.acceptedPhotoHandoffActionLabel,
-      'Review the inserted receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
+      'Review the inserted receipt section order before Maintainiac reads the receipt. Photo 2 to 3 still needs review.',
     );
     expect(
       result
@@ -151,7 +151,7 @@ void main() {
     expect(result.receiptSectionOrderOutcome, 'manual_reorder_invalid');
     expect(
       result.acceptedPhotoHandoffActionLabel,
-      'Review the manually reordered receipt sections before OCR reads the receipt. Photo 2 to 3 still needs review.',
+      'Review the manually reordered receipt sections before Maintainiac reads the receipt. Photo 2 to 3 still needs review.',
     );
     expect(
       result

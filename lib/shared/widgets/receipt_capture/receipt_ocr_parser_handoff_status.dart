@@ -46,7 +46,7 @@ extension ReceiptOcrParserHandoffStatus on ReceiptOcrParserHandoff {
 
   String get downstreamReadinessLabel {
     return switch (downstreamReadinessStatus) {
-      'no_text' => 'No OCR text ready for downstream review.',
+      'no_text' => 'No readable receipt text is ready for review.',
       'proof_needs_review' =>
         'Receipt proof needs review before expenses or inventory use it.',
       'receipt_header_needs_review' =>

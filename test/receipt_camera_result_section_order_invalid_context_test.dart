@@ -51,7 +51,7 @@ void main() {
     expect(result.acceptedPhotoHandoffMustOpenFilledReview, false);
     expect(
       result.acceptedPhotoHandoffActionLabel,
-      'Review the retaken receipt section order before OCR reads the receipt.',
+      'Review the retaken receipt section order before Maintainiac reads the receipt.',
     );
     final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(
       result,
@@ -393,12 +393,12 @@ void main() {
     expect(result.receiptSectionOrderOutcome, 'retake_order_invalid');
     expect(
       result.acceptedPhotoHandoffActionLabel,
-      'Review the retaken receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
+      'Review the retaken receipt section order before Maintainiac reads the receipt. Photo 2 to 3 still needs review.',
     );
     expect(
       result
           .privacySafeReceiptReaderHandoffMetadata['receiptSectionOrderReviewActionLabel'],
-      'Review the retaken receipt section order before OCR reads the receipt. Photo 2 to 3 still needs review.',
+      'Review the retaken receipt section order before Maintainiac reads the receipt. Photo 2 to 3 still needs review.',
     );
     expect(
       result

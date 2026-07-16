@@ -63,7 +63,7 @@ void main() {
       );
       expect(
         result.acceptedPhotoHandoffActionLabel,
-        'Check the multi-photo receipt order before OCR reads the receipt.',
+        'Check the multi-photo receipt order before Maintainiac reads the receipt.',
       );
       expect(
         result.acceptedPhotoHandoffNextStepLabel,
