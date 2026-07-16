@@ -16,6 +16,7 @@ void main() {
     expect(source, contains("'EXPENSE_MAX_OPEN_PROOF_GRANTS'"));
     expect(source, contains("'Proof storage quota is exhausted.'"));
     expect(source, contains('storageUsedBytes'));
+    expect(source, contains('function finalizedProofResult'));
     expect(source, contains('exports.finalizeExpenseProofUpload = onCall('));
       expect(source, contains("{ enforceAppCheck: true }"));
       expect(source, contains('data.status !== \'open\''));

@@ -45,6 +45,20 @@ function quotaValues(data, defaultLimitBytes) {
   return {limitBytes, usedBytes};
 }
 
+function finalizedProofResult(data, {uid, proofId, receiptId, contentSha256}) {
+  if (data?.status !== 'finalized' || data.uid !== uid ||
+      data.proofId !== proofId || data.receiptId !== receiptId ||
+      data.contentSha256 !== contentSha256 ||
+      !Number.isInteger(data.byteCount) || data.byteCount <= 0) {
+    return null;
+  }
+  return {
+    status: 'finalized',
+    byteCount: data.byteCount,
+    contentSha256: data.contentSha256,
+  };
+}
+
 exports.issueExpenseProofUploadGrant = onCall(
   { enforceAppCheck: true },
   async (request) => {
@@ -163,6 +177,13 @@ exports.finalizeExpenseProofUpload = onCall(
     const grantRef = db.doc(`orgs/${organizationId}/uploadGrants/${grantId}`);
     const grant = await grantRef.get();
     const data = grant.data();
+    const completed = finalizedProofResult(data, {
+      uid,
+      proofId,
+      receiptId,
+      contentSha256,
+    });
+    if (completed != null) return completed;
     if (!grant.exists || data?.uid !== uid || data.proofId !== proofId ||
         data.status !== 'open' || !Number.isInteger(data.maxBytes) || data.maxBytes <= 0 ||
         !data.expiresAt || data.expiresAt.toMillis() <= Date.now()) {
@@ -180,12 +201,19 @@ exports.finalizeExpenseProofUpload = onCall(
       throw new HttpsError('failed-precondition', 'The uploaded proof does not match its grant.');
     }
     const quotaRef = db.doc(`orgs/${organizationId}/storageQuotas/${uid}`);
-    await db.runTransaction(async (transaction) => {
+    return db.runTransaction(async (transaction) => {
       const [currentGrant, quota] = await Promise.all([
         transaction.get(grantRef),
         transaction.get(quotaRef),
       ]);
       const current = currentGrant.data();
+      const alreadyFinalized = finalizedProofResult(current, {
+        uid,
+        proofId,
+        receiptId,
+        contentSha256,
+      });
+      if (alreadyFinalized != null) return alreadyFinalized;
       if (!currentGrant.exists || current?.uid !== uid ||
           current.proofId !== proofId || current.status !== 'open' ||
           current.expiresAt?.toMillis() <= Date.now()) {
@@ -207,7 +235,7 @@ exports.finalizeExpenseProofUpload = onCall(
         storageUsedBytes: quotaData.usedBytes + size,
         updatedAt: Timestamp.now(),
       });
+      return { status: 'finalized', byteCount: size, contentSha256 };
     });
-    return { status: 'finalized', byteCount: size, contentSha256 };
   },
 );
