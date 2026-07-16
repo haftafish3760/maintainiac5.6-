@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_reference_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_upload_grant.dart';
 
 typedef ExpenseCloudProofMetadataQueue =
     Future<void> Function(String receiptId);
@@ -41,5 +42,28 @@ class ExpenseCloudProofUploadCoordinator {
     await references.save(reference);
     await queueReceiptMetadata(receiptId);
     return reference;
+  }
+
+  Future<ExpenseCloudProofReference> uploadWithGrant({
+    required String organizationId,
+    required String userId,
+    required String receiptId,
+    required String proofId,
+    required ExpenseCloudProofUploadGrant grant,
+    required Uint8List bytes,
+    required String contentType,
+  }) {
+    if (!grant.isUsable || bytes.length > grant.maximumBytes) {
+      throw StateError('The proof upload grant cannot authorize these bytes.');
+    }
+    return uploadAndQueue(
+      organizationId: organizationId,
+      userId: userId,
+      receiptId: receiptId,
+      proofId: proofId,
+      uploadGrantId: grant.id,
+      bytes: bytes,
+      contentType: contentType,
+    );
   }
 }
