@@ -258,9 +258,6 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_surface_controls.dart',
         ).readAsString();
-    final topBar = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
-    ).readAsString();
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
@@ -299,7 +296,10 @@ void main() {
     expect(previewControls, contains("uiConfig.labelFor('addPhoto'"));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(controls, contains('open receipt details'));
-    expect(controls, contains('Check that the receipt text is readable.'));
+    expect(
+      controls,
+      contains('Check this photo, then choose what to do next.'),
+    );
     expect(
       models,
       contains('Review receipt details and mark Business, Personal, or Mixed.'),
@@ -309,10 +309,6 @@ void main() {
       contains(r'Receipt details open from $nextReviewSourceLabel'),
     );
     expect(controls, isNot(contains('Read receipt')));
-    expect(
-      controls,
-      contains('Retake this photo, add another only if the receipt continues'),
-    );
     expect(controls, isNot(contains('Saved copy')));
   });
 

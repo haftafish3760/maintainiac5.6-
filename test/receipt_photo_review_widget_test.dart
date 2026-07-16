@@ -39,7 +39,7 @@ void main() {
     expect(find.text('Add Another Photo'), findsOneWidget);
     expect(find.text('Use Receipt'), findsOneWidget);
     expect(
-      find.textContaining('retake only a bad section', findRichText: true),
+      find.textContaining('Check each section.', findRichText: true),
       findsOneWidget,
     );
     expect(find.text('Match receipt photos'), findsNothing);

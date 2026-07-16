@@ -9,18 +9,19 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
 
   String get statusText {
     if (photoPaths.length <= 1) {
-      return 'Check that the receipt text is readable. Retake this photo, add another only if the receipt continues, or use it.';
+      return 'Check this photo, then choose what to do next.';
     }
-    return '${photoPaths.length} receipt sections are ready. Check each one, retake only a bad section, add another only if the receipt continues, then use the receipt.$multiPhotoMatchStatusCopy';
+    return 'Check each section. Retake a bad one, add another if the receipt '
+        'continues, then use the receipt.$multiPhotoMatchStatusCopy';
   }
 
   String get multiPhotoMatchStatusCopy {
-    if (stitchPreviewInFlight) return ' The photo match check is running.';
+    if (stitchPreviewInFlight) return ' Preparing the receipt.';
     final preview = stitchPreview;
     if (preview == null) return '';
-    if (preview.didStitch) return ' A combined receipt preview is ready.';
+    if (preview.didStitch) return ' A combined receipt is ready.';
     if (preview.usedFallback) {
-      return ' Maintainiac will keep the sections in their captured order.';
+      return ' The sections will stay in their captured order.';
     }
     return '';
   }
