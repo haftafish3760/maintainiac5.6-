@@ -169,21 +169,24 @@ Purpose:
 Steps:
 1. Start a new receipt expense.
 2. Take the top section of a long receipt.
-3. Add another photo.
-4. Use the reference photo shown by Maintainiac before opening the phone camera.
-5. Capture the next section with 3-5 repeated lines from the first photo.
-6. Add a third section if needed.
-7. Review photo order.
-8. Move one photo out of order, then put it back.
-9. Continue to stitch/review.
-10. Accept the stitched image if readable, or use top-to-bottom photo review if stitching is not confident.
+3. Return to Maintainiac review and confirm the first section is readable.
+4. Tap `Add Another Photo`.
+5. Use the reference photo shown by Maintainiac before the phone camera opens.
+6. Capture the next section with 3-5 repeated lines from the first photo.
+7. Add a third section only if the receipt continues.
+8. Tap each numbered section to inspect it.
+9. Retake only a bad section, then return to the numbered review.
+10. Tap `Use Receipt`; Maintainiac prepares a combined preview when it is safe and preserves the ordered sections when it is not.
 
 Expected:
-- The app makes photo order clear.
+- The app makes section number and current selection clear.
 - The reference photo is shown before each extra capture; the phone camera is
   not expected to draw a Maintainiac overlay.
+- The normal path uses only `Retake`, `Add Another Photo`, and `Use Receipt`;
+  it does not ask the user to operate a technical photo-matching tool.
 - The app can handle overlap without duplicating every repeated line.
-- If the stitch is unsafe, the app falls back to reviewing ordered photos separately.
+- If the stitch is unsafe, the app preserves the ordered photo sections instead
+  of forcing a bad combined image.
 - The user can still continue manually with proof attached.
 
 Must Never Happen:
@@ -194,6 +197,7 @@ Must Never Happen:
 
 Report Back:
 - Did the app make it obvious which section was first, second, and third?
+- Could you retake only the bad section without losing the others?
 - Did it warn if a middle section might be missing?
 - Did the stitched image remain readable?
 - Did line items duplicate or disappear?

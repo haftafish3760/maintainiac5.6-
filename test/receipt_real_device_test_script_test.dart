@@ -29,6 +29,9 @@ void main() {
     expect(script, contains('phone owns focus, light, zoom, and shutter controls'));
     expect(script, contains('no custom maintainiac camera viewer replaces the system camera'));
     expect(script, contains('reference photo is shown before each extra capture'));
+    expect(script, contains('tap each numbered section to inspect it'));
+    expect(script, contains('retake only a bad section'));
+    expect(script, contains('it does not ask the user to operate a technical photo-matching tool'));
     expect(script, isNot(contains('prove pdf receipts are handled safely')));
     expect(script, isNot(contains('pdf import is bounded and proof-safe')));
   });
