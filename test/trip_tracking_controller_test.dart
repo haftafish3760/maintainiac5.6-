@@ -1345,6 +1345,45 @@ void main() {
   );
 
   test(
+    'a native stop fault during finish still saves review and releases odometer',
+    () async {
+      final native = _FakeTripTrackingPlatform(throwOnStop: true);
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_finish_stop_fault',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.965, 90, speed: 8));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      final review = await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 2)),
+      );
+
+      expect(review, isNotNull);
+      expect(store.reviewForTrip('trip_finish_stop_fault'), isNotNull);
+      expect(store.activeSession, isNull);
+      expect(controller.isTracking, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(odometer.confirmedReading, 1000);
+      expect(native.stopCalls, 1);
+      expect(controller.platformError, contains('could not cleanly stop GPS'));
+    },
+  );
+
+  test(
     'permission startup failure can discard an empty trip without locking odometer',
     () async {
       final odometer = GlobalOdometerController(initialReading: 1000);
