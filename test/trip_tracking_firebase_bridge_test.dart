@@ -209,10 +209,8 @@ void main() {
       expect(requiredEnd, greaterThan(requiredStart));
       final requiredFields = rules.substring(requiredStart, requiredEnd);
 
-      for (final field in TripTrackingFirestoreContract.reviewedSummaryFields) {
-        if (field == 'orgId' || field == 'organizationSharingConsent') {
-          continue;
-        }
+      for (final field
+          in TripTrackingFirestoreContract.requiredReviewedSummaryFields) {
         expect(requiredFields, contains("'$field'"));
       }
     },
@@ -239,6 +237,23 @@ void main() {
       );
     },
   );
+
+  test('local upload policy rejects partial mileage summaries', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+    final partial = Map<String, Object?>.from(doc.data)
+      ..remove('startingOdometer');
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(path: doc.path, data: partial),
+      ),
+      throwsArgumentError,
+    );
+  });
 
   test('local upload policy rejects organization fields on private mileage', () {
     final doc =

@@ -146,6 +146,9 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['visibilityScope'] != 'mileage_only' ||
         !draft.data.keys.every(
           TripTrackingFirestoreContract.reviewedSummaryFields.contains,
+        ) ||
+        !TripTrackingFirestoreContract.requiredReviewedSummaryFields.every(
+          draft.data.containsKey,
         )) {
       throw ArgumentError.value(
         draft.path,

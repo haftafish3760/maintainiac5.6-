@@ -28,4 +28,27 @@ abstract final class TripTrackingFirestoreContract {
     'locationDataIncluded',
     'visibilityScope',
   };
+
+  static const requiredReviewedSummaryFields = <String>{
+    'schema',
+    'tripId',
+    'createdByUid',
+    'updatedByUid',
+    'vehicleId',
+    'profile',
+    'startedAt',
+    'finishedAt',
+    'createdAt',
+    'updatedAt',
+    'startingOdometer',
+    'estimatedEndingOdometer',
+    'acceptedMeters',
+    'acceptedMiles',
+    'walkingReviewSuggested',
+    'motionState',
+    'receivedSampleCount',
+    'acceptedSampleCount',
+    'locationDataIncluded',
+    'visibilityScope',
+  };
 }
