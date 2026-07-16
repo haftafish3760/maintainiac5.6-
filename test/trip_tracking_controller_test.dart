@@ -1754,16 +1754,18 @@ void main() {
       );
       await store.saveReview(review);
 
-      await expectLater(
-        controller.confirmOdometerReview(
+      expect(
+        await controller.confirmOdometerReview(
           reviewId: review.id,
           confirmedEndingOdometer: 1001,
           confirmedAt: start.add(const Duration(minutes: 2)),
         ),
-        throwsStateError,
+        isFalse,
       );
       expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
       expect(odometer.confirmedReading, 1001);
+      expect(controller.platformStatus, 'review_confirmation_save_failed');
+      expect(controller.platformError, contains('Retry review confirmation'));
       expect(
         odometer.history.where((event) => event.sourceId == review.id),
         hasLength(1),
@@ -1783,6 +1785,8 @@ void main() {
         odometer.history.where((event) => event.sourceId == review.id),
         hasLength(1),
       );
+      expect(controller.platformStatus, isNull);
+      expect(controller.platformError, isNull);
       expect(mirror.reviews.single.id, review.id);
     },
   );

@@ -120,7 +120,21 @@ class TripTrackingController extends ChangeNotifier {
       sourceId: review.id,
     );
     if (!odometerCommit.ok) return false;
-    await _sessionStore.saveReview(confirmedReview);
+    try {
+      await _sessionStore.saveReview(confirmedReview);
+    } catch (error) {
+      // The odometer event is already source-idempotent, so a later retry can
+      // safely mark the review confirmed without duplicating mileage history.
+      _platformStatus = 'review_confirmation_save_failed';
+      _platformError =
+          'Could not save the confirmed trip review locally. Retry review confirmation: $error';
+      notifyListeners();
+      return false;
+    }
+    if (_platformStatus == 'review_confirmation_save_failed') {
+      _platformStatus = null;
+      _platformError = null;
+    }
     try {
       await _cloudMirror.queueReview(confirmedReview);
       unawaited(_flushCloudMirror());
