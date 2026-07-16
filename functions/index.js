@@ -70,7 +70,10 @@ exports.finalizeExpenseProofUpload = onCall(
     }
     const db = getFirestore();
     const member = await db.doc(`orgs/${organizationId}/members/${uid}`).get();
-    if (member.data()?.status !== 'active') {
+    const storedPermissions = member.data()?.permissions;
+    const permissions = Array.isArray(storedPermissions) ? storedPermissions : [];
+    if (member.data()?.status !== 'active' ||
+        !permissions.some((permission) => OWN_RECEIPT_PERMISSIONS.has(permission))) {
       throw new HttpsError('permission-denied', 'Expense proof upload is not allowed.');
     }
     const grantRef = db.doc(`orgs/${organizationId}/uploadGrants/${grantId}`);
