@@ -17,7 +17,9 @@ class HostedUsageGrant {
     final version = payload['policyVersion'];
     if (storage is! int || storage < 0 || exports is! int || exports < 0 ||
         input is! int || input < 0 || output is! int || output < 0 ||
-        version is! int || version <= 0) return null;
+        version is! int || version <= 0) {
+      return null;
+    }
     return HostedUsageGrant(
       storageQuotaBytes: storage,
       monthlyExportLimit: exports,
