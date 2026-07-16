@@ -217,6 +217,24 @@ describe('Firestore rules emulator safety', () => {
         organizationSharingConsent: false,
       }),
     );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip8'), {
+        ...summary,
+        startingOdometer: -1,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip9'), {
+        ...summary,
+        estimatedEndingOdometer: 999,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip10'), {
+        ...summary,
+        acceptedSampleCount: 25,
+      }),
+    );
     await testEnv.withSecurityRulesDisabled(async (context) => {
       await setDoc(
         doc(context.firestore(), 'orgs/orgA/mileageRecords/withheldTrip'),

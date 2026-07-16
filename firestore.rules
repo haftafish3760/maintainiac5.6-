@@ -188,6 +188,35 @@ service cloud.firestore {
       ]);
     }
 
+    function hasValidMileageSummaryValues() {
+      return request.resource.data.tripId is string &&
+        request.resource.data.createdByUid is string &&
+        request.resource.data.updatedByUid is string &&
+        request.resource.data.vehicleId is string &&
+        request.resource.data.profile is string &&
+        request.resource.data.startedAt is string &&
+        request.resource.data.finishedAt is string &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.updatedAt is string &&
+        request.resource.data.startingOdometer is int &&
+        request.resource.data.startingOdometer >= 0 &&
+        request.resource.data.estimatedEndingOdometer is int &&
+        request.resource.data.estimatedEndingOdometer >=
+          request.resource.data.startingOdometer &&
+        request.resource.data.acceptedMeters is number &&
+        request.resource.data.acceptedMeters >= 0 &&
+        request.resource.data.acceptedMiles is number &&
+        request.resource.data.acceptedMiles >= 0 &&
+        request.resource.data.walkingReviewSuggested is bool &&
+        request.resource.data.motionState is string &&
+        request.resource.data.receivedSampleCount is int &&
+        request.resource.data.receivedSampleCount >= 0 &&
+        request.resource.data.acceptedSampleCount is int &&
+        request.resource.data.acceptedSampleCount >= 0 &&
+        request.resource.data.acceptedSampleCount <=
+          request.resource.data.receivedSampleCount;
+    }
+
     function noServerManagedFieldsOnCreate() {
       return !request.resource.data.keys().hasAny([
         'plan',
@@ -244,6 +273,7 @@ service cloud.firestore {
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
           hasRequiredMileageSummaryFields() &&
+          hasValidMileageSummaryValues() &&
           !request.resource.data.keys().hasAny([
             'orgId',
             'organizationSharingConsent',
@@ -440,6 +470,7 @@ service cloud.firestore {
           isMileageOnlySummary() &&
           hasOnlyMileageSummaryFields() &&
           hasRequiredMileageSummaryFields() &&
+          hasValidMileageSummaryValues() &&
           request.resource.data.orgId == orgId &&
           request.resource.data.organizationSharingConsent == true;
         // An employer/fleet role can view consented mileage but cannot alter

@@ -213,6 +213,21 @@ void main() {
           in TripTrackingFirestoreContract.requiredReviewedSummaryFields) {
         expect(requiredFields, contains("'$field'"));
       }
+
+      final valueCheckStart = rules.indexOf(
+        'function hasValidMileageSummaryValues',
+      );
+      final valueCheckEnd = rules.indexOf(
+        'function noServerManagedFieldsOnCreate',
+        valueCheckStart,
+      );
+      expect(valueCheckStart, greaterThanOrEqualTo(0));
+      expect(valueCheckEnd, greaterThan(valueCheckStart));
+      final valueCheck = rules.substring(valueCheckStart, valueCheckEnd);
+      expect(valueCheck, contains('startingOdometer >= 0'));
+      expect(valueCheck, contains('estimatedEndingOdometer >='));
+      expect(valueCheck, contains('acceptedMeters >= 0'));
+      expect(valueCheck, contains('acceptedSampleCount <='));
     },
   );
 
