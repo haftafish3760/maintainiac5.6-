@@ -45,8 +45,16 @@ exports.issueExpenseProofUploadGrant = onCall(
         !permissions.some((permission) => OWN_RECEIPT_PERMISSIONS.has(permission))) {
       throw new HttpsError('permission-denied', 'Expense proof upload is not allowed.');
     }
+    const configuredMaxBytes = maxProofBytes.value();
+    if (!Number.isInteger(configuredMaxBytes) || configuredMaxBytes < 1024 ||
+        configuredMaxBytes > 100 * 1024 * 1024) {
+      throw new HttpsError('failed-precondition', 'Proof size configuration is invalid.');
+    }
+    if (requestedBytes > configuredMaxBytes) {
+      throw new HttpsError('resource-exhausted', 'Proof exceeds the configured upload limit.');
+    }
     const grantId = randomUUID();
-    const maxBytes = Math.min(requestedBytes, maxProofBytes.value());
+    const maxBytes = requestedBytes;
     const lifetimeSeconds = proofGrantLifetimeSeconds.value();
     if (!Number.isInteger(lifetimeSeconds) || lifetimeSeconds < 60 ||
         lifetimeSeconds > 60 * 60) {
