@@ -160,7 +160,7 @@ void main() {
     );
   });
 
-  test('possible partial receipt records decision without a second prompt', () async {
+  test('possible partial receipt records each explicit user decision', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final saveActions = await readReceiptPhotoReviewSaveActionsSource();
     final completionActions = await File(
@@ -176,7 +176,7 @@ void main() {
         'enum _ReceiptContinueDecision { keepReviewing, addNextSection, continueAnyway }',
       ),
     );
-    expect(reviewScreen, contains('_completionPromptedPhotoPaths'));
+    expect(reviewScreen, isNot(contains('_completionPromptedPhotoPaths')));
     expect(completionActions, contains('_confirmReceiptCompleteIfNeeded'));
     expect(
       completionActions,
@@ -187,42 +187,19 @@ void main() {
       completionActions,
       isNot(contains('_showSinglePhotoCompletionDialog')),
     );
-    expect(
-      completionActions,
-      isNot(
-        contains(
-          '_completionPromptedPhotoPaths.add(photoPath);\n    final userDecision',
-        ),
-      ),
-    );
-    expect(
-      completionActions,
-      contains(
-        '_completionPromptedPhotoPaths.add(photoPath);\n    _recordReceiptCompletionDecision(',
-      ),
-    );
-    expect(
-      completionActions,
-      contains('decision: _ReceiptContinueDecision.continueAnyway'),
-    );
+    expect(completionActions, contains('showDialog<_ReceiptContinueDecision>'));
+    expect(completionActions, contains('Keep Reviewing'));
+    expect(completionActions, isNot(contains('_completionPromptedPhotoPaths')));
+    expect(completionActions, contains('decision: confirmedDecision'));
     expect(
       saveActions.indexOf('await _confirmReceiptCompleteIfNeeded()'),
       lessThan(saveActions.indexOf('if (_needsStitchReviewBeforeSave)')),
     );
     expect(completionActions, contains('decision.shouldPromptForMorePhotos'));
-    expect(
-      completionActions,
-      isNot(contains('decision.completionDialogTitle')),
-    );
-    expect(
-      completionActions,
-      isNot(contains('decision.continueAnywayButtonLabel')),
-    );
+    expect(completionActions, contains('decision.completionDialogTitle'));
+    expect(completionActions, contains('decision.continueAnywayButtonLabel'));
     expect(saveActions, isNot(contains('Next: Review Details')));
-    expect(
-      completionActions,
-      isNot(contains('decision.addSectionButtonLabel')),
-    );
+    expect(completionActions, contains('decision.addSectionButtonLabel'));
     expect(controls, contains('Add Another Photo'));
     expect(controls, contains('uiConfig.addPhotoLabel'));
     final models = await readReceiptCaptureModelsSource();
@@ -230,9 +207,12 @@ void main() {
     expect(models, contains('Add Another Photo'));
     expect(completionActions, isNot(contains('Back to Photos')));
     expect(saveActions, isNot(contains('Stay In Review')));
+    expect(completionActions, contains('await addAnotherReceiptPhoto();'));
     expect(
       completionActions,
-      isNot(contains('await addAnotherReceiptPhoto();')),
+      contains(
+        'return confirmedDecision == _ReceiptContinueDecision.continueAnyway;',
+      ),
     );
     expect(completionActions, contains('return true;'));
   });

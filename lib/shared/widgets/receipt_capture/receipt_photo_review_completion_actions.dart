@@ -6,7 +6,6 @@ extension _ReceiptPhotoReviewCompletionActions
     if (widget.bestShotCandidateMode) return true;
     final photoPath = _completionCheckPhotoPath;
     if (photoPath == null) return true;
-    if (_completionPromptedPhotoPaths.contains(photoPath)) return true;
     final decision = _coverageDecisionForPhoto(photoPath);
     if (!decision.shouldPromptForMorePhotos) return true;
     final selectedDecision = await showDialog<_ReceiptContinueDecision>(
@@ -60,7 +59,6 @@ extension _ReceiptPhotoReviewCompletionActions
     if (!_reviewWorkActive) return false;
     final confirmedDecision =
         selectedDecision ?? _ReceiptContinueDecision.keepReviewing;
-    _completionPromptedPhotoPaths.add(photoPath);
     _recordReceiptCompletionDecision(
       photoPath,
       decision: confirmedDecision,

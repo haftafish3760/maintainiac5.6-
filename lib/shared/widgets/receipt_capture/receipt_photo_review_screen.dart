@@ -121,7 +121,6 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _previewKeysInFlight = <String>{};
   final _qualityCheckKeysInFlight = <String>{};
   final _postFrameReviewWorkKeys = <String>{};
-  final _completionPromptedPhotoPaths = <String>{};
   final _completionDecisionsByPath = <String, Map<String, Object?>>{};
   final _dataSaverPreviewPaths = <String, String>{};
   final _dataSaverPreviewKeysInFlight = <String>{};
