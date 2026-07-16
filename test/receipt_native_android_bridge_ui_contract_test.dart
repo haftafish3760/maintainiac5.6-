@@ -61,6 +61,10 @@ void main() {
     expect(cameraActivity, contains('"detailedlines" -> "detailedLines"'));
     expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
     expect(cameraActivity, contains('Receipt Camera Settings'));
+    expect(
+      cameraActivity,
+      contains('These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.'),
+    );
     expect(cameraActivity, contains('Camera only'));
     expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
     expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));

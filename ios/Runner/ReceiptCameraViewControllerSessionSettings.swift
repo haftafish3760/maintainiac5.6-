@@ -317,12 +317,8 @@ extension ReceiptCameraViewController {
 
   func resetReceiptCameraDefaults() {
     settingsResetCount += 1
-    // Receipt Assist remains opt-in, even after restoring camera defaults.
-    assistedReceiptFill = false
     longReceiptMode = false
     autoCaptureEnabled = false
-    reviewDepth = "pricesOnly"
-    dataSaverLevel = "balanced"
     autoExposureAssistEnabled = true
     liveAnalysisEnabled = true
     edgeDetectionEnabled = true

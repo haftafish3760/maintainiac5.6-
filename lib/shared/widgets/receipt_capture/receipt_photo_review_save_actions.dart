@@ -33,7 +33,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     // form open immediately; its reader owns preparation and shows progress
     // there. This keeps the user from waiting behind backup or stitch work.
     if (_canOpenSinglePhotoReceiptDetailsImmediately) {
-      _openSinglePhotoReceiptDetailsImmediately();
+      await _openSinglePhotoReceiptDetailsImmediately();
       return;
     }
     _updateReviewState(() => _savingPhotos = true);
@@ -171,8 +171,17 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       _photoPaths.length == 1 &&
       _generatedEditPaths.isEmpty;
 
-  void _openSinglePhotoReceiptDetailsImmediately() {
+  Future<void> _openSinglePhotoReceiptDetailsImmediately() async {
     final photoPath = _photoPaths.single;
+    if (!await File(photoPath).isFile()) {
+      if (_reviewWorkActive) {
+        _showCameraError(
+          'This receipt photo is no longer available. Retake it or add the image again.',
+        );
+      }
+      return;
+    }
+    if (!_reviewWorkActive) return;
     final navigator = Navigator.of(context);
     if (!beginReceiptReviewClose()) return;
     navigator.pop(

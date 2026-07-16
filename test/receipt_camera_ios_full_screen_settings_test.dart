@@ -24,7 +24,7 @@ void main() {
     expect(
       route,
       contains(
-        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
       ),
     );
     expect(route, contains('Automatic capture'));

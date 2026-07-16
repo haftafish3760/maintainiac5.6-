@@ -37,7 +37,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   let nextSectionGuideImageView = UIImageView()
   var lastZoomFactor: CGFloat = 1
   var assistedReceiptFill = true
-  var longReceiptMode = true
+  var longReceiptMode = false
   var autoCaptureEnabled = false
   var autoCaptureAllowed = false
   var deviceTier = "medium"
@@ -50,6 +50,8 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var whiteBalanceMode = "auto"
   var whiteBalanceLockEnabled = false
   var dataSaverLevel = "balanced"
+  var receiptPhotoBackupEnabled = false
+  var askSavedProofSizeEachReceipt = false
   var storageSafetyLevel = "balanced"
   var storageConstrained = false
   var storageSafetyReason = "normal"

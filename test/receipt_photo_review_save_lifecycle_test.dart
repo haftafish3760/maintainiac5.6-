@@ -11,6 +11,9 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final exitActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
+    ).readAsString();
     expect(saveActions, contains('bool _isStagedReceiptReviewPhoto'));
     expect(saveActions, contains('bool _isPhoneCameraBackupReviewPhoto'));
     expect(
@@ -43,7 +46,9 @@ void main() {
     );
     expect(
       saveActions,
-      contains("if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');"),
+      contains(
+        "if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');",
+      ),
     );
     expect(
       saveActions,
@@ -249,16 +254,15 @@ void main() {
     );
     expect(
       saveActions,
-      contains('bool _pickedReceiptPhotoPathsAreUnique(List<String> paths)'),
+      contains(
+        'List<String> _pickedReceiptPhotoUniquePaths(List<String> paths)',
+      ),
     );
     expect(
       saveActions,
-      contains('_pickedReceiptPhotoPathsAreUnique(result.photoPaths)'),
+      contains('return uniqueNormalizedReceiptPhotoPaths(paths);'),
     );
-    expect(
-      saveActions,
-      contains('_pickedReceiptPhotoPathsAreCameraResultMembers('),
-    );
+    expect(saveActions, contains('_pickedReceiptDiagnosticsForPaths('));
     expect(
       saveActions,
       contains('final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);'),
@@ -305,10 +309,6 @@ void main() {
       saveActions,
       contains('return uniqueNormalizedReceiptPhotoPaths(paths);'),
     );
-    expect(
-      saveActions,
-      contains('return receiptPhotoPathsAreUniqueAndNormalized(paths);'),
-    );
     expect(saveActions, contains('qualityChecksByPath: const {},'));
     expect(
       saveActions,
@@ -327,14 +327,17 @@ void main() {
         'if (!_reviewWorkActive) return _ReceiptContinueDecision.keepReviewing;',
       ),
     );
-    expect(reviewScreen, contains('Add Bottom Section'));
-    expect(reviewScreen, isNot(contains('Add Bottom First')));
-    expect(reviewScreen, isNot(contains('Next If Complete')));
+    expect(exitActions, contains('Add Bottom Section'));
+    expect(exitActions, isNot(contains('Add Bottom First')));
+    expect(exitActions, isNot(contains('Next If Complete')));
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains('Bottom'));
     expect(commonControls, contains("primary: 'Check'"));
     expect(commonControls, contains('Photo Match'));
-    expect(saveActions, contains('decision.isMissingBottomEdgeAndTotals'));
+    expect(
+      exitActions,
+      contains('coverageDecision.isMissingBottomEdgeAndTotals'),
+    );
     expect(
       saveActions,
       contains(

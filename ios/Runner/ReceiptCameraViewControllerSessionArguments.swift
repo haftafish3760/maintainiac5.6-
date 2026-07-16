@@ -3,7 +3,7 @@ import UIKit
 extension ReceiptCameraViewController {
   func readSessionArguments() {
     assistedReceiptFill = arguments["assistedReceiptFill"] as? Bool ?? false
-    longReceiptMode = arguments["longReceiptMode"] as? Bool ?? true
+    longReceiptMode = arguments["longReceiptMode"] as? Bool ?? false
     autoCaptureEnabled = arguments["autoCaptureEnabled"] as? Bool ?? false
     autoCaptureAllowed = arguments["autoCaptureAllowed"] as? Bool ?? autoCaptureEnabled
     if !autoCaptureAllowed {
@@ -19,6 +19,9 @@ extension ReceiptCameraViewController {
     whiteBalanceMode = arguments["whiteBalanceMode"] as? String ?? "auto"
     whiteBalanceLockEnabled = false
     dataSaverLevel = arguments["dataSaverLevel"] as? String ?? "balanced"
+    receiptPhotoBackupEnabled = arguments["receiptPhotoBackupEnabled"] as? Bool ?? false
+    askSavedProofSizeEachReceipt =
+      arguments["askSavedProofSizeEachReceipt"] as? Bool ?? false
     storageSafetyLevel = arguments["storageSafetyLevel"] as? String ?? dataSaverLevel
     storageConstrained = arguments["storageConstrained"] as? Bool ?? false
     storageSafetyReason = arguments["storageSafetyReason"] as? String ?? "normal"

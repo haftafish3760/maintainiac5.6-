@@ -93,13 +93,13 @@ void main() {
     expect(
       androidSettings,
       contains(
-        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
       ),
     );
     expect(
       iosCameraSettings,
       contains(
-        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
       ),
     );
     expect(iosCameraSettings, isNot(contains('SAVED PROOF SIZE')));

@@ -242,6 +242,8 @@ extension ReceiptCameraViewController {
       "manualCaptureBlockPolicy": "only_busy_closing_no_camera_or_inactive_surface",
       "reviewDepth": reviewDepth,
       "dataSaverLevel": dataSaverLevel,
+      "receiptPhotoBackupEnabled": receiptPhotoBackupEnabled,
+      "askSavedProofSizeEachReceipt": askSavedProofSizeEachReceipt,
       "storageSafetyLevel": storageSafetyLevel,
       "storageConstrained": storageConstrained,
       "storageSafetyReason": storageSafetyReason,

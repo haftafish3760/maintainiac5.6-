@@ -12,10 +12,22 @@ void main() {
       source,
       contains('if (_canOpenSinglePhotoReceiptDetailsImmediately) {'),
     );
-    expect(source, contains('_openSinglePhotoReceiptDetailsImmediately();'));
     expect(
-      source.indexOf('_openSinglePhotoReceiptDetailsImmediately();'),
-      lessThan(source.indexOf('_updateReviewState(() => _savingPhotos = true);')),
+      source,
+      contains('await _openSinglePhotoReceiptDetailsImmediately();'),
+    );
+    expect(
+      source.indexOf('await _openSinglePhotoReceiptDetailsImmediately();'),
+      lessThan(
+        source.indexOf('_updateReviewState(() => _savingPhotos = true);'),
+      ),
+    );
+    expect(source, contains('if (!await File(photoPath).isFile()) {'));
+    expect(
+      source,
+      contains(
+        'This receipt photo is no longer available. Retake it or add the image again.',
+      ),
     );
     expect(
       source,

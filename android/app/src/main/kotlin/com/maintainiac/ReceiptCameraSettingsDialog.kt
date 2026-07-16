@@ -45,8 +45,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSummary(
         receiptCameraText("Camera only", "Solo cámara"),
         receiptCameraText(
-            "These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
-            "Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos.",
+            "These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.",
+            "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))

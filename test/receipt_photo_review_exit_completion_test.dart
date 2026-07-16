@@ -336,10 +336,7 @@ void main() {
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(importActions, contains('_nextReceiptContinuationReasonCode()'));
     expect(importActions, contains('_nextReceiptContinuationGuidance()'));
-    expect(
-      importActions,
-      contains('_nextReceiptForceLongReceiptMode(settings)'),
-    );
+    expect(importActions, contains('_nextReceiptForceLongReceiptMode()'));
     expect(importActions, contains('_nextReceiptForceAutoCapture(settings)'));
     expect(importActions, contains("return 'missing_bottom_edge_and_totals';"));
     expect(
