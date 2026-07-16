@@ -156,6 +156,7 @@ class MaintainiacFirestoreUploadPolicy {
         'Mileage uploads must be coordinate-free reviewed trip summaries.',
       );
     }
+    _validateTripMileageSummaryValues(draft);
     if (isOrganizationMileagePath) {
       if (draft.data['orgId'] != parts[1] ||
           draft.data['organizationSharingConsent'] != true) {
@@ -176,6 +177,52 @@ class MaintainiacFirestoreUploadPolicy {
       );
     }
   }
+
+  static void _validateTripMileageSummaryValues(
+    MaintainiacFirestoreDocumentDraft draft,
+  ) {
+    final startingOdometer = draft.data['startingOdometer'];
+    final estimatedEndingOdometer = draft.data['estimatedEndingOdometer'];
+    final acceptedMeters = draft.data['acceptedMeters'];
+    final acceptedMiles = draft.data['acceptedMiles'];
+    final receivedSampleCount = draft.data['receivedSampleCount'];
+    final acceptedSampleCount = draft.data['acceptedSampleCount'];
+    final valid =
+        _isNonEmptyString(draft.data['tripId']) &&
+        _isNonEmptyString(draft.data['createdByUid']) &&
+        _isNonEmptyString(draft.data['updatedByUid']) &&
+        _isNonEmptyString(draft.data['vehicleId']) &&
+        _isNonEmptyString(draft.data['profile']) &&
+        _isNonEmptyString(draft.data['startedAt']) &&
+        _isNonEmptyString(draft.data['finishedAt']) &&
+        _isNonEmptyString(draft.data['createdAt']) &&
+        _isNonEmptyString(draft.data['updatedAt']) &&
+        _isNonNegativeInt(startingOdometer) &&
+        _isNonNegativeInt(estimatedEndingOdometer) &&
+        (estimatedEndingOdometer as int) >= (startingOdometer as int) &&
+        _isNonNegativeFiniteNumber(acceptedMeters) &&
+        _isNonNegativeFiniteNumber(acceptedMiles) &&
+        draft.data['walkingReviewSuggested'] is bool &&
+        _isNonEmptyString(draft.data['motionState']) &&
+        _isNonNegativeInt(receivedSampleCount) &&
+        _isNonNegativeInt(acceptedSampleCount) &&
+        (acceptedSampleCount as int) <= (receivedSampleCount as int);
+    if (!valid) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Mileage uploads must contain sane reviewed trip values.',
+      );
+    }
+  }
+
+  static bool _isNonEmptyString(Object? value) =>
+      value is String && value.trim().isNotEmpty;
+
+  static bool _isNonNegativeInt(Object? value) => value is int && value >= 0;
+
+  static bool _isNonNegativeFiniteNumber(Object? value) =>
+      value is num && value.isFinite && value >= 0;
 
   static void _validateNoSensitiveKeys(
     Object? value, {

@@ -270,6 +270,28 @@ void main() {
     );
   });
 
+  test('local upload policy rejects impossible mileage summary values', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+
+    for (final badData in [
+      {...doc.data, 'acceptedMeters': -1},
+      {...doc.data, 'estimatedEndingOdometer': 999},
+      {...doc.data, 'acceptedSampleCount': 999},
+      {...doc.data, 'vehicleId': ''},
+    ]) {
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(
+          MaintainiacFirestoreDocumentDraft(path: doc.path, data: badData),
+        ),
+        throwsArgumentError,
+      );
+    }
+  });
+
   test('local upload policy rejects organization fields on private mileage', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
