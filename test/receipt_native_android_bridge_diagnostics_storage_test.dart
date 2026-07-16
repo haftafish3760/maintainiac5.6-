@@ -83,14 +83,16 @@ void main() {
       );
       expect(
         cameraActivity,
-        contains(
-          'if (previousSectionReasonCode == "missing_bottom_edge_and_totals")',
+        isNot(
+          contains(
+            'if (previousSectionReasonCode == "missing_bottom_edge_and_totals")',
+          ),
         ),
       );
-      expect(cameraActivity, contains('"Add Bottom"'));
+      expect(cameraActivity, contains('"Add Another Photo"'));
       expect(
         cameraActivity,
-        contains('Add bottom receipt section with overlap from this photo'),
+        contains('Add another receipt photo if this receipt continues'),
       );
       expect(
         cameraActivity,

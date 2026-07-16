@@ -257,17 +257,9 @@ internal fun ReceiptCameraActivity.previousSectionGhostGuideMatchTarget(): Strin
 }
 
 internal fun ReceiptCameraActivity.addSectionButtonTitle(): String {
-    return if (previousSectionReasonCode == "missing_bottom_edge_and_totals") {
-        "Add Bottom"
-    } else {
-        "Add Photo"
-    }
+    return "Add Another Photo"
 }
 
 internal fun ReceiptCameraActivity.addSectionButtonAccessibilityLabel(): String {
-    return if (previousSectionReasonCode == "missing_bottom_edge_and_totals") {
-        "Add bottom receipt section with overlap from this photo"
-    } else {
-        "Add another receipt photo if this receipt continues"
-    }
+    return "Add another receipt photo if this receipt continues"
 }

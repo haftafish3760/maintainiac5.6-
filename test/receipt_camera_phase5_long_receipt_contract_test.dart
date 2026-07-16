@@ -22,24 +22,22 @@ void main() {
     expect(
       labels,
       contains(
-        "return total <= 1 ? 'Add Another Photo' : 'Add Next Receipt Photo';",
+        "return index >= total - 1 ? 'Add Next Receipt Photo' : 'Add Missing Photo';",
       ),
     );
     expect(labels, contains("return 'Retake Section \${index + 1}';"));
     expect(
       labels,
       contains(
-        "Section 1 must be the top; every next section should continue lower with 3-5 repeated readable lines.",
+        'This should continue downward with 3-5 repeated readable lines',
       ),
     );
     expect(
       previewRow,
-      contains(
-        'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
-      ),
+      contains('Add Another Photo only if the receipt continues.'),
     );
-    expect(alignmentActions, contains('Add Bottom Receipt Section'));
-    expect(alignmentActions, contains('Add Next Receipt Section'));
+    expect(alignmentActions, contains('Add Another Receipt Photo'));
+    expect(alignmentActions, isNot(contains('Add Bottom Receipt Section')));
     expect(alignmentActions, contains('Retake Section'));
   });
 
@@ -197,7 +195,9 @@ void main() {
     );
 
     final options = guide.applyTo(
-      const ReceiptCaptureFlowOptions(module: ReceiptCaptureFlowModule.expenses),
+      const ReceiptCaptureFlowOptions(
+        module: ReceiptCaptureFlowModule.expenses,
+      ),
     );
 
     expect(options.previousSectionGhostSourceStartFraction, 1);

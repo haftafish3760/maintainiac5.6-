@@ -8,7 +8,7 @@ void main() {
     final cameraController = sources.cameraController;
 
     expect(cameraController, contains('Take receipt photo'));
-    expect(cameraController, contains('doneButton'));
+    expect(cameraController, contains('bottomReviewButton'));
     expect(
       cameraController,
       contains('Done: review captured receipt photos in Maintainiac'),
@@ -95,10 +95,10 @@ void main() {
       cameraController,
       contains('func addSectionButtonAccessibilityLabel() -> String'),
     );
-    expect(cameraController, contains('return "Add Bottom"'));
+    expect(cameraController, contains('return "Add Another Photo"'));
     expect(
       cameraController,
-      contains('Add bottom receipt section with overlap from this photo'),
+      contains('Add another receipt photo if this receipt continues'),
     );
     expect(
       cameraController,
@@ -112,7 +112,7 @@ void main() {
         'addPhotoButton.accessibilityLabel = addSectionButtonAccessibilityLabel()',
       ),
     );
-    expect(cameraController, contains('return "Add Photo"'));
+    expect(cameraController, isNot(contains('return "Add Photo"')));
     expect(
       cameraController,
       contains('bottomBar.addArrangedSubview(addPhotoButton)'),

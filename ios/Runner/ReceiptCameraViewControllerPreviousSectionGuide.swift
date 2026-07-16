@@ -206,16 +206,10 @@ extension ReceiptCameraViewController {
   }
 
   func addSectionButtonTitle() -> String {
-    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
-      return "Add Bottom"
-    }
-    return "Add Photo"
+    return "Add Another Photo"
   }
 
   func addSectionButtonAccessibilityLabel() -> String {
-    if previousSectionReasonCode == "missing_bottom_edge_and_totals" {
-      return "Add bottom receipt section with overlap from this photo"
-    }
     return "Add another receipt photo if this receipt continues"
   }
 }

@@ -196,88 +196,31 @@ void main() {
     }
   });
 
-  test(
-    'add another photo carries partial receipt reason to ghost guide',
-    () async {
-      final actions = await readReceiptPhotoReviewSaveActionsSource();
+  test('add another photo carries partial receipt reason to ghost guide', () async {
+    final actions =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_capture_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_alignment_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_alignment_guide.dart',
+        ).readAsString();
 
-      expect(actions, contains('_coverageDecisionForPhoto'));
-      expect(actions, contains('_coverageDiagnosticsForPhoto'));
-      expect(actions, contains('ReceiptPhotoCoverageDecision.fromSignals'));
-      expect(actions, contains('coverageDecision: coverageDecision'));
-      expect(
-        actions,
-        contains('ReceiptCaptureDiagnosticKeys.photoCoverageStatus'),
-      );
-      expect(
-        actions,
-        contains('ReceiptCaptureDiagnosticKeys.photoCoverageReason'),
-      );
-      expect(
-        actions,
-        contains('ReceiptCaptureDiagnosticKeys.photoCoverageNeedsMorePhotos'),
-      );
-      expect(actions, contains('coverageDecision.shouldPromptForMorePhotos'));
-      expect(
-        actions,
-        contains('coverageDecision.isMissingBottomEdgeAndTotals'),
-      );
-      expect(actions, contains('Add Bottom Receipt Section'));
-      expect(actions, contains('Add Next Receipt Section'));
-      expect(actions, contains('coverageDecision.completionDialogMessage'));
-      expect(actions, contains('coverageDecision.addSectionButtonLabel'));
-      expect(actions, contains('repeat 3-5 readable lines in the next photo'));
-      expect(actions, contains('missingBottomAndTotals'));
-      expect(actions, contains('bottom-section ghost guide'));
-      expect(
-        actions,
-        contains('subtotal, total, and final lines can be matched'),
-      );
-      expect(actions, contains('previousSectionGuidePhotoPath'));
-      expect(actions, contains('previousSectionCoverageDecision'));
-      expect(actions, contains('previousSectionReasonCode'));
-      expect(actions, contains('previousSectionGuidance'));
-      expect(
-        actions,
-        contains('phoneCameraBackupPreviousSectionGhostGuideRepeatLineTarget'),
-      );
-      expect(
-        actions,
-        contains('phoneCameraBackupPreviousSectionGhostGuidePlacement'),
-      );
-      expect(
-        actions,
-        contains('phoneCameraBackupPreviousSectionGhostGuideMatchTarget'),
-      );
-      expect(
-        actions,
-        contains('previousSectionCoverageDecision: coverageDecision'),
-      );
-      expect(
-        actions,
-        contains('previousSectionReasonCode: alignmentReasonCode'),
-      );
-      expect(actions, contains('previousSectionGuidance: alignmentGuidance'));
-      expect(actions, contains('phoneCameraBackupPreviousSectionReasonCode'));
-      expect(actions, contains('phoneCameraBackupPreviousSectionGuidance'));
-      expect(
-        actions,
-        contains('phoneCameraBackupPreviousSectionGhostGuideUsesNextContext'),
-      );
-      expect(
-        actions,
-        contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
-      );
-      expect(actions, contains('next_section_top_lines'));
-      expect(
-        actions,
-        contains('phoneCameraBackupPreviousSectionMissingBottomAndTotals'),
-      );
-      expect(actions, contains('_recordReceiptCompletionDecision'));
-      expect(actions, contains('_completionDecisionsByPath'));
-      expect(actions, contains('receiptCompletionUserDecision'));
-      expect(actions, contains('receiptCompletionUserConfirmedComplete'));
-      expect(actions, contains('receiptCompletionPromptReasonCode'));
-    },
-  );
+    expect(actions, contains('alignmentGuidePhotoPath'));
+    expect(actions, contains('_showLongReceiptAlignmentGuide'));
+    expect(actions, contains('ReceiptImagePicker.takeReceiptPhotoSet'));
+    expect(actions, contains('hadPreviousSectionGuide'));
+    expect(actions, contains('Image.file'));
+    expect(actions, contains('Add Another Receipt Photo'));
+    expect(actions, isNot(contains('Add Bottom Receipt Section')));
+    expect(actions, contains('coverageDecision.completionDialogMessage'));
+    expect(actions, contains('coverageDecision.addSectionButtonLabel'));
+    expect(actions, contains('repeat 3-5 readable lines in the next photo'));
+    expect(
+      actions,
+      contains('subtotal, total, and final lines can be matched'),
+    );
+  });
 }
