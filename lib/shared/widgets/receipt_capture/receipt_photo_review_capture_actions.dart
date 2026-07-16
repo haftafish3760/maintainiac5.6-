@@ -11,6 +11,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         : _photoPaths[selectedPhotoIndex];
     final picked = await _pickReceiptPhotos(
       alignmentGuidePhotoPath: guidePhotoPath,
+      showAlignmentGuide: _shouldShowLongReceiptGuidance,
     );
     if (picked.paths.isEmpty || !_reviewWorkActive) return;
     final insertPlan = guidePhotoPath == null
@@ -59,6 +60,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       nextSectionGuidePhotoPath: retakeContext?.nextSectionGuidePhotoPath,
       alignmentReasonCode: retakeContext?.guidanceCode,
       alignmentGuidance: retakeContext?.guidanceText,
+      showAlignmentGuide: _shouldShowLongReceiptGuidance,
     );
     if (picked.paths.isEmpty || !_reviewWorkActive) return;
     final retakePlan = ReceiptPhotoRetakeOrderPlan.build(
@@ -160,6 +162,10 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       diagnostics: _captureDiagnosticsByPath[photoPath],
     );
   }
+
+  bool get _shouldShowLongReceiptGuidance =>
+      ReceiptCaptureSettingsScope.maybeOf(context)?.cameraLongReceiptTips ??
+      true;
 
   Map<String, Object?> _coverageDiagnosticsForPhoto(
     String photoPath, {

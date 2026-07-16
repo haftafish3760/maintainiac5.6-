@@ -180,7 +180,7 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
         _ReceiptSettingsSwitch(
           title: 'Show Long Receipt Tips',
           detail:
-              'Show top-to-bottom section guidance, overlap reminders, and photo-order review for long receipts.',
+              'Show the previous-section reference before you add or retake a long-receipt section.',
           value: settings.cameraLongReceiptTips,
           onChanged: settings.setCameraLongReceiptTips,
         ),

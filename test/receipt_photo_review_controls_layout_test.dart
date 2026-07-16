@@ -95,6 +95,11 @@ void main() {
 
     expect(addAnother, contains('alignmentGuidePhotoPath: guidePhotoPath'));
     expect(addAnother, isNot(contains('showAlignmentGuide: false')));
+    expect(
+      captureActions,
+      contains('showAlignmentGuide: _shouldShowLongReceiptGuidance'),
+    );
+    expect(captureActions, contains('?.cameraLongReceiptTips ??\n      true'));
   });
 
   test('long receipt guide is honest about the system camera handoff', () async {
