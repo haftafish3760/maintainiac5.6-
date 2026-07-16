@@ -87,7 +87,7 @@ extension _ReceiptAttachmentImportActions
     ReceiptPickedPhotoSet picked,
   ) async {
     try {
-      return await const ReceiptAcquiredPhotoStaging().stage(
+      return await ReceiptAcquiredPhotoStaging().stage(
         sourcePaths: picked.paths,
         dataSaverLevel: _dataSaverLevel,
         captureFlow: 'existing_receipt_photo_import',

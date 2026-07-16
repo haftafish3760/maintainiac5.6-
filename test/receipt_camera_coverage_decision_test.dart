@@ -134,6 +134,9 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_native_camera_settings_policy.dart',
         ).readAsString();
+    final preferenceMapper = await File(
+      'lib/shared/widgets/receipt_capture/receipt_native_camera_preference_mapper.dart',
+    ).readAsString();
     final androidActivity = await readAndroidReceiptCameraUnit();
     final iosController = await readIosReceiptCameraUnit();
 
@@ -142,9 +145,12 @@ void main() {
     expect(contract, contains('tapFocusEnabled = false'));
     expect(contract, contains('pinchZoomEnabled = true'));
     expect(contract, contains('exposureSliderEnabled = true'));
-    expect(contract, contains('motionBlurWarningEnabled = false'));
-    expect(contract, contains('glareWarningEnabled = false'));
-    expect(contract, contains('shadowWarningEnabled = false'));
+    expect(contract, contains('motionBlurWarningEnabled = true'));
+    expect(contract, contains('glareWarningEnabled = true'));
+    expect(contract, contains('shadowWarningEnabled = true'));
+    expect(preferenceMapper, contains('motionBlurWarningEnabled: guidanceEnabled'));
+    expect(preferenceMapper, contains('glareWarningEnabled: guidanceEnabled'));
+    expect(preferenceMapper, contains('shadowWarningEnabled: guidanceEnabled'));
     expect(contract, contains('edgeDetectionEnabled = true'));
     expect(contract, contains('previousSectionGhostGuideEnabled = true'));
     expect(contract, contains('ocrUsesOriginalFirst = true'));

@@ -389,16 +389,21 @@ stitch_tests=(
 )
 
 full_only_tests=(
+  test/receipt_camera_backup_staging_contract_test.dart
+  test/receipt_camera_capture_loss_contract_test.dart
   test/receipt_camera_active_phase_docs_test.dart
   test/receipt_camera_completion_map_test.dart
   test/receipt_camera_footprint_audit_test.dart
   test/receipt_camera_help_flow_test.dart
+  test/receipt_camera_import_staging_contract_test.dart
   test/receipt_camera_native_baseline_policy_test.dart
   test/receipt_camera_pipeline_handoff_status_test.dart
   test/receipt_real_device_matrix_gate_test.dart
   test/receipt_real_device_test_script_test.dart
   test/receipt_camera_world_class_readiness_test.dart
   test/receipt_camera_ocr_source_attachment_read_test.dart
+  test/receipt_camera_permission_contract_test.dart
+  test/receipt_camera_preference_mapper_test.dart
   test/receipt_camera_release_control_priority_test.dart
   test/receipt_camera_release_one_blueprint_test.dart
   test/receipt_camera_result_auto_capture_contract_test.dart
@@ -418,11 +423,16 @@ full_only_tests=(
   test/receipt_camera_result_section_order_invalid_context_test.dart
   test/receipt_camera_result_section_order_test.dart
   test/receipt_camera_result_test.dart
+  test/receipt_camera_review_actions_contract_test.dart
   test/receipt_camera_saved_photo_warning_diagnostics_test.dart
+  test/receipt_camera_settings_handoff_test.dart
+  test/receipt_camera_single_photo_handoff_contract_test.dart
+  test/receipt_camera_user_language_contract_test.dart
   test/receipt_native_android_bridge_auto_capture_test.dart
   test/receipt_native_android_bridge_test.dart
   test/receipt_native_android_diagnostics_payload_test.dart
   test/receipt_native_camera_result_path_validation_test.dart
+  test/receipt_native_capture_blocked_feedback_test.dart
   test/receipt_native_camera_session_contract_test.dart
   test/receipt_native_capture_old_cleanup_test.dart
   test/receipt_native_capture_recovery_index_test.dart
@@ -431,17 +441,22 @@ full_only_tests=(
   test/receipt_native_ios_bridge_test.dart
   test/receipt_native_ios_diagnostics_payload_test.dart
   test/receipt_native_ios_project_membership_test.dart
+  test/receipt_native_pinch_zoom_contract_test.dart
+  test/receipt_native_quality_guidance_contract_test.dart
   test/receipt_native_android_bridge_analysis_exposure_test.dart
   test/receipt_native_ios_bridge_analysis_exposure_test.dart
   test/receipt_ocr_source_completion_test.dart
   test/receipt_ocr_source_review_risks_test.dart
   test/receipt_ocr_source_section_order_handoff_test.dart
+  test/receipt_ocr_source_text_fidelity_test.dart
+  test/receipt_stitching_high_overlap_test.dart
   test/receipt_camera_ios_full_screen_settings_test.dart
   test/receipt_camera_reset_opt_in_contract_test.dart
   test/receipt_stitching_mixed_encoding_test.dart
   test/receipt_stitching_orientation_mismatch_test.dart
   test/receipt_stitching_stained_overlap_test.dart
   test/receipt_stitching_torn_edge_test.dart
+  test/receipt_stitching_weak_overlap_safety_test.dart
 )
 
 line_cap_paths=(

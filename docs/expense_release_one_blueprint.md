@@ -45,6 +45,7 @@ Responsibilities:
 - retake by segment index
 - ghost/overlap guidance
 - blur, glare, low-light, crop, edge, and bottom-coverage warnings
+- manual shutter and user override at every capture decision
 - conservative stitching and ordered fallback
 - source preservation and derived-artifact lineage
 - camera handoff to OCR/parser review

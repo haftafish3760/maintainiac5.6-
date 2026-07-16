@@ -247,6 +247,9 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_status.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
         ).readAsString();
     final screen =
         await File(

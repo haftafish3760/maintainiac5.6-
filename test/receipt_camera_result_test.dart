@@ -50,7 +50,7 @@ void main() {
       );
       expect(
         result.ocrSourceFirstActionLabel,
-        'OCR fell back to saved proof; review the filled receipt carefully',
+        'Receipt details used the saved copy; review the filled receipt carefully',
       );
       expect(
         result.receiptReaderHandoffCounts,

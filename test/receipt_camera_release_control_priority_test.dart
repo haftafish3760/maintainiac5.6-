@@ -69,20 +69,10 @@ void main() {
     ).readAsStringSync().toLowerCase();
     expect(
       expenseBlueprint,
-      contains('neutral receipt framing, crop, edge, bottom-coverage'),
+      contains('blur, glare, low-light, crop, edge, and bottom-coverage warnings'),
     );
-    expect(
-      expenseBlueprint,
-      contains('experimental blur, glare, low-light, shadow, dirty-lens'),
-    );
-    expect(
-      expenseBlueprint,
-      isNot(
-        contains(
-          'blur, glare, low-light, crop, edge, and bottom-coverage warnings',
-        ),
-      ),
-    );
+    expect(expenseBlueprint, contains('manual shutter'));
+    expect(expenseBlueprint, contains('user override'));
     expect(
       nativeSpec,
       isNot(

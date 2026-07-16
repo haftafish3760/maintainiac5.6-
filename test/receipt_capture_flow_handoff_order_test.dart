@@ -37,6 +37,9 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
         ).readAsString();
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
+        ).readAsString();
     final captureModels =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_models.dart',
