@@ -21,14 +21,14 @@ void main() {
 
       await store.save(reference);
 
-    final saved = store.referencesForReceipt(
-      organizationId: 'org_1',
-      userId: 'user_1',
-      receiptId: 'receipt_1',
-    );
-    expect(saved, hasLength(1));
-    expect(saved.single.storagePath, reference.storagePath);
-    expect(saved.single.contentHashSha256, reference.contentHashSha256);
+      final saved = store.referencesForReceipt(
+        organizationId: 'org_1',
+        userId: 'user_1',
+        receiptId: 'receipt_1',
+      );
+      expect(saved, hasLength(1));
+      expect(saved.single.storagePath, reference.storagePath);
+      expect(saved.single.contentHashSha256, reference.contentHashSha256);
       expect(
         store.referencesForReceipt(
           organizationId: 'org_1',
@@ -69,4 +69,40 @@ void main() {
       );
     },
   );
+
+  test('keeps the newest verified grant after queued saves', () async {
+    final store = ExpenseCloudProofReferenceStore.memory();
+    const first = ExpenseCloudProofReference(
+      organizationId: 'org_1',
+      userId: 'user_1',
+      receiptId: 'receipt_1',
+      proofId: 'proof_1',
+      uploadGrantId: 'grant_1',
+      byteCount: 3,
+      contentType: 'image/jpeg',
+      contentHashSha256:
+          '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+    );
+    const latest = ExpenseCloudProofReference(
+      organizationId: 'org_1',
+      userId: 'user_1',
+      receiptId: 'receipt_1',
+      proofId: 'proof_1',
+      uploadGrantId: 'grant_2',
+      byteCount: 3,
+      contentType: 'image/jpeg',
+      contentHashSha256:
+          '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+    );
+
+    await Future.wait([store.save(first), store.save(latest)]);
+
+    final saved = store.referencesForReceipt(
+      organizationId: 'org_1',
+      userId: 'user_1',
+      receiptId: 'receipt_1',
+    );
+    expect(saved, hasLength(1));
+    expect(saved.single.uploadGrantId, 'grant_2');
+  });
 }
