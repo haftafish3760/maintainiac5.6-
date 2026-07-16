@@ -163,6 +163,56 @@ void main() {
     },
   );
 
+  test('never advertises a proof reference from another account', () async {
+    final sink = _RecordingSink();
+    final references = ExpenseCloudProofReferenceStore.memory();
+    final service = await _service(
+      sink: sink,
+      proofReferences: references,
+      organizationId: 'org-1',
+      uid: 'user-1',
+      deviceId: 'device-1',
+    );
+    await references.save(
+      const ExpenseCloudProofReference(
+        organizationId: 'org-1',
+        userId: 'other-user',
+        receiptId: 'receipt-1',
+        proofId: 'proof-1',
+        uploadGrantId: 'grant-1',
+        byteCount: 3,
+        contentType: 'image/jpeg',
+        contentHashSha256:
+            '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+      ),
+    );
+    await service.ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'receipt-1',
+        receiptDate: DateTime.utc(2026, 7, 15),
+        lines: const [],
+        attachments: [
+          ReceiptAttachmentRecord(
+            id: 'proof-1',
+            path: '/private/local/proof.jpg',
+            kind: ReceiptAttachmentKind.photo,
+            dataSaverLevel: ReceiptDataSaverLevel.balanced,
+            createdAt: DateTime.utc(2026, 7, 15),
+          ),
+        ],
+      ),
+    );
+
+    await service.backupReceipt('receipt-1');
+
+    final proof =
+        (sink.documents['orgs/org-1/expenses/receipt-1']!['proofs'] as List)
+                .single
+            as Map<String, Object?>;
+    expect(proof['cloudProofState'], 'metadata_only');
+    expect(proof.containsKey('storagePath'), isFalse);
+  });
+
   test(
     'does not upload a receipt absent from the durable local ledger',
     () async {
