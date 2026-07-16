@@ -85,6 +85,7 @@ class MaintainiacFirestoreUploadQueueStore {
   List<MaintainiacFirestoreQueuedDocument> nextBatch({
     int? limit,
     String? path,
+    DateTime? nowUtc,
   }) {
     final cappedLimit = (limit ?? MaintainiacFirestoreUploadPolicy.maxBatchSize)
         .clamp(0, MaintainiacFirestoreUploadPolicy.maxBatchSize)
@@ -92,7 +93,12 @@ class MaintainiacFirestoreUploadQueueStore {
     final candidates = path == null
         ? pendingRecords
         : pendingRecords.where((record) => record.path == path);
-    return List.unmodifiable(candidates.take(cappedLimit));
+    final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    return List.unmodifiable(
+      candidates
+          .where((record) => record.isReadyForAttemptAt(now))
+          .take(cappedLimit),
+    );
   }
 
   Future<void> markAttempted(
@@ -102,13 +108,18 @@ class MaintainiacFirestoreUploadQueueStore {
   }) => _enqueue(() async {
     if (record.isEmpty) return;
     await _ensureStorageForQueueWrite();
+    final attemptAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final attemptCount = record.attemptCount + 1;
     final attempted = MaintainiacFirestoreQueuedDocument(
       id: record.id,
       path: record.path,
       data: record.data,
       queuedAtUtc: record.queuedAtUtc,
-      attemptCount: record.attemptCount + 1,
-      lastAttemptAtUtc: (nowUtc ?? DateTime.now().toUtc()).toUtc(),
+      attemptCount: attemptCount,
+      lastAttemptAtUtc: attemptAt,
+      nextAttemptAtUtc: attemptAt.add(
+        MaintainiacFirestoreUploadPolicy.retryDelayForAttempt(attemptCount),
+      ),
       lastError: error,
       uploadedAtUtc: record.uploadedAtUtc,
     );
@@ -131,6 +142,7 @@ class MaintainiacFirestoreUploadQueueStore {
             queuedAtUtc: record.queuedAtUtc,
             attemptCount: record.attemptCount,
             lastAttemptAtUtc: record.lastAttemptAtUtc,
+            nextAttemptAtUtc: null,
             lastError: record.lastError,
             uploadedAtUtc: uploadedAt,
           );
@@ -242,7 +254,7 @@ class MaintainiacFirestoreUploadCoordinator {
       );
     }
 
-    final batch = _queue.nextBatch(limit: limit, path: path);
+    final batch = _queue.nextBatch(limit: limit, path: path, nowUtc: nowUtc);
     if (batch.isEmpty) {
       return const MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.empty,

@@ -239,7 +239,37 @@ void main() {
     expect(queue.pendingRecords, hasLength(1));
     expect(queue.pendingRecords.single.attemptCount, 1);
     expect(queue.pendingRecords.single.lastError, isNotEmpty);
+    expect(
+      queue.pendingRecords.single.nextAttemptAtUtc,
+      DateTime.utc(2026, 6, 23, 14, 0, 30),
+    );
   });
+
+  test(
+    'does not retry a failed cloud write before its durable backoff is due',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final draft = _safeDraft('catalogHealth/backoff_due');
+      final startedAt = DateTime.utc(2026, 7, 15, 12);
+      await queue.enqueue(draft, queuedAtUtc: startedAt);
+      await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _RecordingFirestoreSink(failPathsContaining: 'catalogHealth'),
+        uploadEnabled: true,
+      ).uploadPending(nowUtc: startedAt);
+
+      final recoverySink = _RecordingFirestoreSink();
+      final early = await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: recoverySink,
+        uploadEnabled: true,
+      ).uploadPending(nowUtc: startedAt.add(const Duration(seconds: 29)));
+
+      expect(early.attemptedCount, 0);
+      expect(recoverySink.writes, isEmpty);
+      expect(queue.pendingRecords, hasLength(1));
+    },
+  );
 
   test('enforces max batch size even when caller asks for more', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
@@ -286,7 +316,7 @@ void main() {
         queue: queue,
         sink: _RecordingFirestoreSink(failPathsContaining: 'catalogHealth'),
         uploadEnabled: true,
-      ).uploadPending();
+      ).uploadPending(nowUtc: DateTime.utc(2026, 7, 14, 12));
       expect(failed.failedCount, 1);
       expect(queue.pendingRecords.single.attemptCount, 1);
 
@@ -298,7 +328,7 @@ void main() {
         queue: reopened,
         sink: sink,
         uploadEnabled: true,
-      ).uploadPending();
+      ).uploadPending(nowUtc: DateTime.utc(2026, 7, 14, 12, 0, 30));
 
       expect(retried.uploadedCount, 1);
       expect(reopened.pendingRecords, isEmpty);

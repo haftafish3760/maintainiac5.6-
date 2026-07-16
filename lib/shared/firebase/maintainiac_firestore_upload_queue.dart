@@ -65,6 +65,7 @@ class MaintainiacFirestoreQueuedDocument {
     required this.queuedAtUtc,
     this.attemptCount = 0,
     this.lastAttemptAtUtc,
+    this.nextAttemptAtUtc,
     this.lastError,
     this.uploadedAtUtc,
   });
@@ -82,6 +83,9 @@ class MaintainiacFirestoreQueuedDocument {
       attemptCount: _intValue(value['attemptCount']),
       lastAttemptAtUtc: DateTime.tryParse(
         value['lastAttemptAtUtc']?.toString() ?? '',
+      ),
+      nextAttemptAtUtc: DateTime.tryParse(
+        value['nextAttemptAtUtc']?.toString() ?? '',
       ),
       lastError: value['lastError']?.toString(),
       uploadedAtUtc: DateTime.tryParse(
@@ -103,11 +107,14 @@ class MaintainiacFirestoreQueuedDocument {
   final DateTime queuedAtUtc;
   final int attemptCount;
   final DateTime? lastAttemptAtUtc;
+  final DateTime? nextAttemptAtUtc;
   final String? lastError;
   final DateTime? uploadedAtUtc;
 
   bool get isEmpty => id.isEmpty || path.isEmpty;
   bool get isPendingUpload => !isEmpty && uploadedAtUtc == null;
+  bool isReadyForAttemptAt(DateTime nowUtc) =>
+      nextAttemptAtUtc == null || !nowUtc.isBefore(nextAttemptAtUtc!);
 
   Map<String, Object?> toMap() {
     return {
@@ -118,6 +125,8 @@ class MaintainiacFirestoreQueuedDocument {
       'attemptCount': attemptCount,
       if (lastAttemptAtUtc != null)
         'lastAttemptAtUtc': lastAttemptAtUtc!.toUtc().toIso8601String(),
+      if (nextAttemptAtUtc != null)
+        'nextAttemptAtUtc': nextAttemptAtUtc!.toUtc().toIso8601String(),
       if (lastError != null && lastError!.trim().isNotEmpty)
         'lastError': _safeError(lastError!),
       if (uploadedAtUtc != null)

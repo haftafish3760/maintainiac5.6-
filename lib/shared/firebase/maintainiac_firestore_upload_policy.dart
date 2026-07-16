@@ -6,6 +6,18 @@ class MaintainiacFirestoreUploadPolicy {
   static const maxBatchSize = 20;
   static const maxQueuedRecords = 500;
   static const maxDocumentBytes = 768 * 1024;
+  static const retryInitialDelay = Duration(seconds: 30);
+  static const retryMaximumDelay = Duration(hours: 6);
+
+  static Duration retryDelayForAttempt(int attemptCount) {
+    final exponent = attemptCount.clamp(1, 16).toInt() - 1;
+    final seconds = retryInitialDelay.inSeconds * (1 << exponent);
+    return Duration(
+      seconds: seconds > retryMaximumDelay.inSeconds
+          ? retryMaximumDelay.inSeconds
+          : seconds,
+    );
+  }
 
   static const allowedTopLevelCollections = <String>{
     'users',
