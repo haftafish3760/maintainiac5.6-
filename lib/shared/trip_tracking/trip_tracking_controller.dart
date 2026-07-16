@@ -81,8 +81,12 @@ class TripTrackingController extends ChangeNotifier {
   }) async {
     final review = _sessionStore.reviewForTrip(reviewId);
     if (review == null ||
+        !review.hasValidTimeline ||
+        review.id.trim().isEmpty ||
+        review.vehicleId.trim().isEmpty ||
         review.isOdometerConfirmed ||
         review.vehicleId != _odometer.vehicleId ||
+        review.estimatedEndingOdometer < review.startingOdometer ||
         confirmedEndingOdometer < review.startingOdometer) {
       return false;
     }

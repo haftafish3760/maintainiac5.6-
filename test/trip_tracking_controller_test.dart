@@ -1966,6 +1966,41 @@ void main() {
     expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
     expect(mirror.reviews, isEmpty);
   });
+
+  test('a malformed local review cannot become confirmed mileage', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_invalid_confirmation',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1001,
+      'profile': 'roadVehicle',
+      'engineSnapshot': {
+        'totalAcceptedMeters': 100,
+        'walkingReviewSuggested': false,
+      },
+    });
+    await store.saveReview(review);
+    final mirror = _FakeTripTrackingCloudMirror();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      cloudMirror: mirror,
+    );
+
+    expect(
+      await controller.confirmOdometerReview(
+        reviewId: review.id,
+        confirmedEndingOdometer: 1001,
+      ),
+      isFalse,
+    );
+    expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
+    expect(mirror.reviews, isEmpty);
+  });
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
