@@ -164,7 +164,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     if (existing != null && existing.requestId != safeRequestId) {
       throw StateError('This restore session belongs to another request.');
     }
-    final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final now = _nextTimestamp(existing?.updatedAt, requested: nowUtc);
     await _write(
       ExpenseCloudRestoreSession(
         id: sessionId,
@@ -194,7 +194,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     DateTime? nowUtc,
   }) => _enqueue(() async {
     final current = _active(id);
-    final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final now = _nextTimestamp(current.updatedAt, requested: nowUtc);
     await _write(
       ExpenseCloudRestoreSession(
         id: current.id,
@@ -256,7 +256,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         mode: current.mode,
         state: ExpenseCloudRestoreSessionState.completed,
         createdAt: current.createdAt,
-        updatedAt: (nowUtc ?? DateTime.now().toUtc()).toUtc(),
+        updatedAt: _nextTimestamp(current.updatedAt, requested: nowUtc),
         expectedDownloadBytes: current.expectedDownloadBytes,
         completedDownloadBytes: current.completedDownloadBytes,
         totalRecords: current.totalRecords,
@@ -279,7 +279,7 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
         mode: current.mode,
         state: state,
         createdAt: current.createdAt,
-        updatedAt: (nowUtc ?? DateTime.now().toUtc()).toUtc(),
+        updatedAt: _nextTimestamp(current.updatedAt, requested: nowUtc),
         expectedDownloadBytes: current.expectedDownloadBytes,
         completedDownloadBytes: current.completedDownloadBytes,
         totalRecords: current.totalRecords,
@@ -342,6 +342,13 @@ String? _nullableText(Object? value) {
 
 DateTime? _date(Object? value) =>
     value is String ? DateTime.tryParse(value)?.toUtc() : null;
+
+DateTime _nextTimestamp(DateTime? current, {DateTime? requested}) {
+  final next = (requested ?? DateTime.now().toUtc()).toUtc();
+  if (current == null || !next.isBefore(current)) return next;
+  return current;
+}
+
 ExpenseCloudRestoreMode _mode(Object? value) => switch (_text(value)) {
   'full' => ExpenseCloudRestoreMode.full,
   'smart' => ExpenseCloudRestoreMode.smart,

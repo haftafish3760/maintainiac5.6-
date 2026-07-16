@@ -250,6 +250,26 @@ void main() {
     expect(session.completedRecords, 2);
   });
 
+  test('restore lifecycle timestamps never move backward', () async {
+    final store = await ExpenseCloudRestoreSessionStore.create();
+    final future = DateTime.utc(2026, 7, 16);
+    await store.savePrepared(
+      id: 'restore-timestamp-order',
+      requestId: 'server-request-timestamp-order',
+      plan: plan,
+      totalRecords: 3,
+      nowUtc: future,
+    );
+    await store.updateProgress(
+      id: 'restore-timestamp-order',
+      completedDownloadBytes: 50,
+      completedRecords: 1,
+      nowUtc: DateTime.utc(2026, 7, 15),
+    );
+
+    expect(store.sessionById('restore-timestamp-order')!.updatedAt, future);
+  });
+
   test(
     'a resumed plan bounds retained progress to its verified size',
     () async {
