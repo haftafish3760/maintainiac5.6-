@@ -54,8 +54,10 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
         child: LayoutBuilder(
           builder: (context, constraints) {
+            // On shorter screens, preserve the three decision controls rather
+            // than letting explanatory copy push the primary action offscreen.
             final compactControls =
-                constraints.maxHeight.isFinite && constraints.maxHeight < 104;
+                constraints.maxHeight.isFinite && constraints.maxHeight < 220;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
