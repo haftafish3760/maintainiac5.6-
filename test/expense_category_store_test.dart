@@ -7,5 +7,10 @@ void main() {
     await store.rename(id: 'fuel', name: 'Vehicle fuel');
     expect(store.displayNameFor('fuel', fallback: 'Fuel'), 'Vehicle fuel');
     expect(store.displayNameFor('repair', fallback: 'Repair'), 'Repair');
+    expect(store.backupPayloadFor('fuel', fallback: 'Fuel'), {
+      'schema': 'expense_category_backup_v1',
+      'categoryId': 'fuel',
+      'displayName': 'Vehicle fuel',
+    });
   });
 }

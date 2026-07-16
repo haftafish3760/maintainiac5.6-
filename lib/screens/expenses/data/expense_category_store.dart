@@ -28,4 +28,16 @@ class ExpenseCategoryStore {
     final value = _drafts.draftFor(_module, id)?.payload['displayName'];
     return value is String && value.trim().isNotEmpty ? value : fallback;
   }
+
+  Map<String, Object?> backupPayloadFor(String id, {required String fallback}) {
+    final cleanId = id.trim();
+    if (cleanId.isEmpty || cleanId.contains(':')) {
+      throw ArgumentError.value(id, 'id', 'requires a stable category ID');
+    }
+    return {
+      'schema': 'expense_category_backup_v1',
+      'categoryId': cleanId,
+      'displayName': displayNameFor(cleanId, fallback: fallback),
+    };
+  }
 }
