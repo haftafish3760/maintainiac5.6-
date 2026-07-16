@@ -392,7 +392,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         profile: settings.defaultProfile,
       );
       if (!startedNewTrip) {
-        _showGpsMessage('A GPS trip could not be created.');
+        _showGpsMessage(
+          tripTracking.platformError ?? 'A GPS trip could not be created.',
+        );
         return;
       }
     }
