@@ -17,6 +17,14 @@ enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }
 extension _ReceiptAttachmentImportActions
     on _SharedReceiptAttachmentPanelState {
   Future<void> uploadReceiptImage() async {
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    if (settings != null && !settings.hasReceiptAssistChoiceFor(widget.area)) {
+      final ready = await _showFirstUseReceiptCameraIntro(settings);
+      if (!mounted || !ready) {
+        if (mounted) await returnToReceiptImportOptions();
+        return;
+      }
+    }
     await _pickAndReviewMultiple(
       ReceiptImagePicker.chooseReceiptImageSet,
       fallbackMessage: 'The receipt photo picker did not open correctly.',

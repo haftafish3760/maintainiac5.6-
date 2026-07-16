@@ -9,6 +9,9 @@ void main() {
       final cameraActions = await _read(
         'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
       );
+      final importActions = await _read(
+        'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
+      );
       final firstUseSheet = await _read(
         'lib/shared/widgets/receipt_capture/receipt_camera_first_use_intro_sheet.dart',
       );
@@ -17,6 +20,11 @@ void main() {
       );
 
       expect(cameraActions, contains('_showFirstUseReceiptCameraIntro'));
+      expect(importActions, contains('Future<void> uploadReceiptImage()'));
+      expect(
+        importActions,
+        contains('_showFirstUseReceiptCameraIntro(settings)'),
+      );
       expect(
         cameraActions,
         contains('showModalBottomSheet<_ReceiptFirstUseCameraAction>'),
