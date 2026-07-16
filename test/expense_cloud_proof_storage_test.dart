@@ -27,6 +27,8 @@ void main() {
       'uid': 'user_1',
       'receiptId': 'receipt_1',
       'proofId': 'proof_1',
+      'contentSha256':
+          '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
     });
   });
 
@@ -49,6 +51,9 @@ void main() {
     );
 
     objectStore.bytes[reference.storagePath] = Uint8List.fromList([1, 2]);
+    await expectLater(() => storage.downloadProof(reference), throwsStateError);
+
+    objectStore.bytes[reference.storagePath] = Uint8List.fromList([3, 2, 1]);
     await expectLater(() => storage.downloadProof(reference), throwsStateError);
   });
 

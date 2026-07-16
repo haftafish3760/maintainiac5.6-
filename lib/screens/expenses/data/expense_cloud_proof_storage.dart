@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 /// Immutable, tenant-scoped reference to a receipt proof stored in Firebase
@@ -13,6 +14,7 @@ class ExpenseCloudProofReference {
     required this.uploadGrantId,
     required this.byteCount,
     required this.contentType,
+    required this.contentHashSha256,
   });
 
   final String organizationId;
@@ -22,6 +24,7 @@ class ExpenseCloudProofReference {
   final String uploadGrantId;
   final int byteCount;
   final String contentType;
+  final String contentHashSha256;
 
   String get storagePath => ExpenseCloudProofStorage.storagePathFor(
     organizationId: organizationId,
@@ -118,6 +121,7 @@ class ExpenseCloudProofStorage {
       uploadGrantId: uploadGrantId,
       byteCount: bytes.length,
       contentType: normalizedContentType,
+      contentHashSha256: sha256.convert(bytes).toString(),
     );
     await _objectStore.upload(
       path: reference.storagePath,
@@ -128,6 +132,7 @@ class ExpenseCloudProofStorage {
         'uid': userId,
         'receiptId': receiptId,
         'proofId': proofId,
+        'contentSha256': reference.contentHashSha256,
       },
     );
     return reference;
@@ -146,6 +151,9 @@ class ExpenseCloudProofStorage {
     );
     if (bytes.length != reference.byteCount) {
       throw StateError('Cloud proof size does not match its durable record.');
+    }
+    if (sha256.convert(bytes).toString() != reference.contentHashSha256) {
+      throw StateError('Cloud proof contents do not match its durable record.');
     }
     return bytes;
   }
