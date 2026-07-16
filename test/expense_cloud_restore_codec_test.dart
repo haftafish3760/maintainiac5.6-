@@ -104,6 +104,7 @@ void main() {
           contentType: 'image/jpeg',
           contentHashSha256:
               '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+          isFinalized: true,
         ),
       },
     );

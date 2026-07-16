@@ -43,9 +43,10 @@ class ExpenseCloudProofUploadCoordinator {
       contentType: contentType,
     );
     await finalizer.finalize(reference);
-    await references.save(reference);
+    final finalized = reference.finalized();
+    await references.save(finalized);
     await queueReceiptMetadata(receiptId);
-    return reference;
+    return finalized;
   }
 
   Future<ExpenseCloudProofReference> uploadWithGrant({

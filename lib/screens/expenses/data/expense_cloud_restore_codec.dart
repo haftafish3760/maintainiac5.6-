@@ -591,6 +591,7 @@ class ExpenseCloudProofPointer {
         byteCount: bytes,
         contentType: mimeType,
         contentHashSha256: fileHashSha256,
+        isFinalized: true,
       );
       return reference.storagePath == path ? reference : null;
     } on ArgumentError {

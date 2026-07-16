@@ -309,6 +309,7 @@ Map<String, Object?> _proofPointerFor(
 }) {
   final isVerifiedCloudProof =
       cloudReference != null &&
+      cloudReference.isFinalized &&
       cloudReference.receiptId == receiptId &&
       cloudReference.proofId == attachment.id;
   return {

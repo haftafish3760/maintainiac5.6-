@@ -42,6 +42,7 @@ class ExpenseCloudProofReferenceStore {
       'byteCount': reference.byteCount,
       'contentType': reference.contentType,
       'contentHashSha256': reference.contentHashSha256,
+      'isFinalized': reference.isFinalized,
       'savedAt': DateTime.now().toUtc().toIso8601String(),
     };
     final box = _box;
@@ -104,6 +105,7 @@ class ExpenseCloudProofReferenceStore {
         byteCount: value['byteCount'] is int ? value['byteCount'] as int : 0,
         contentType: '${value['contentType'] ?? ''}',
         contentHashSha256: '${value['contentHashSha256'] ?? ''}',
+        isFinalized: value['isFinalized'] == true,
       );
       _validate(reference);
       return reference;
@@ -121,7 +123,8 @@ class ExpenseCloudProofReferenceStore {
     _validateToken(reference.receiptId, 'receiptId');
     _validateToken(reference.proofId, 'proofId');
     _validateToken(reference.uploadGrantId, 'uploadGrantId');
-    if (reference.byteCount <= 0 ||
+    if (!reference.isFinalized ||
+        reference.byteCount <= 0 ||
         !reference.contentType.startsWith('image/') ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(reference.contentHashSha256)) {
       throw ArgumentError('Invalid cloud proof reference.');

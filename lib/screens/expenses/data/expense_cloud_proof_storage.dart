@@ -15,6 +15,7 @@ class ExpenseCloudProofReference {
     required this.byteCount,
     required this.contentType,
     required this.contentHashSha256,
+    this.isFinalized = false,
   });
 
   final String organizationId;
@@ -25,6 +26,19 @@ class ExpenseCloudProofReference {
   final int byteCount;
   final String contentType;
   final String contentHashSha256;
+  final bool isFinalized;
+
+  ExpenseCloudProofReference finalized() => ExpenseCloudProofReference(
+    organizationId: organizationId,
+    userId: userId,
+    receiptId: receiptId,
+    proofId: proofId,
+    uploadGrantId: uploadGrantId,
+    byteCount: byteCount,
+    contentType: contentType,
+    contentHashSha256: contentHashSha256,
+    isFinalized: true,
+  );
 
   String get storagePath => ExpenseCloudProofStorage.storagePathFor(
     organizationId: organizationId,
