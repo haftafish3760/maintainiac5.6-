@@ -168,14 +168,19 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     await _ensureStorageForWrite();
     final name = profile.name.trim();
     if (name.isEmpty) throw ArgumentError.value(name, 'name', 'Required');
-    final now = DateTime.now();
+    final requestedNow = DateTime.now();
     final id = profile.id.trim().isEmpty
-        ? 'expense_work_${now.microsecondsSinceEpoch}'
+        ? 'expense_work_${requestedNow.microsecondsSinceEpoch}'
         : profile.id.trim();
     final existing = profileById(id);
     if (existing != null && profile.updatedAt.isBefore(existing.updatedAt)) {
       throw StateError('Reload the newer work profile before saving changes.');
     }
+    final now = _nextTimestamp(
+      requestedNow,
+      createdAt: existing?.createdAt ?? profile.createdAt,
+      updatedAt: existing?.updatedAt,
+    );
     final saved = ExpenseWorkProfile(
       id: id,
       name: name,
@@ -213,7 +218,11 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     final profile = profileById(profileId);
     if (profile == null || profile.isArchived) return;
     await _ensureStorageForWrite();
-    final now = DateTime.now();
+    final now = _nextTimestamp(
+      DateTime.now(),
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt,
+    );
     await _writeProfile(profile.copyWith(updatedAt: now, archivedAt: now));
     if (_activeProfileId == profileId) await _select(defaultProfileId);
     notifyListeners();
@@ -226,7 +235,14 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     if (profile == null || !profile.isArchived) return;
     await _ensureStorageForWrite();
     await _writeProfile(
-      profile.copyWith(updatedAt: DateTime.now(), clearArchivedAt: true),
+      profile.copyWith(
+        updatedAt: _nextTimestamp(
+          DateTime.now(),
+          createdAt: profile.createdAt,
+          updatedAt: profile.updatedAt,
+        ),
+        clearArchivedAt: true,
+      ),
     );
     notifyListeners();
   }
@@ -237,7 +253,11 @@ class ExpenseWorkProfileController extends ChangeNotifier {
       if (defaultProfile.isArchived) {
         await _writeProfile(
           defaultProfile.copyWith(
-            updatedAt: DateTime.now(),
+            updatedAt: _nextTimestamp(
+              DateTime.now(),
+              createdAt: defaultProfile.createdAt,
+              updatedAt: defaultProfile.updatedAt,
+            ),
             clearArchivedAt: true,
           ),
         );
@@ -266,6 +286,17 @@ class ExpenseWorkProfileController extends ChangeNotifier {
 
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  static DateTime _nextTimestamp(
+    DateTime requested, {
+    required DateTime createdAt,
+    DateTime? updatedAt,
+  }) {
+    var result = requested;
+    if (result.isBefore(createdAt)) result = createdAt;
+    if (updatedAt != null && result.isBefore(updatedAt)) result = updatedAt;
+    return result;
+  }
 
   Future<void> _ensureStorageForWrite() async {
     final check = _storageCheck;

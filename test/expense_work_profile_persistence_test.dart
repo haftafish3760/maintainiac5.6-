@@ -7,6 +7,24 @@ import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 
 void main() {
+  test('work-profile timestamps never move backward', () async {
+    final profiles = ExpenseWorkProfileController.memory();
+    final future = DateTime.utc(2099, 1, 1);
+    final saved = await profiles.save(
+      ExpenseWorkProfile(
+        id: 'future-profile',
+        name: 'Future profile',
+        createdAt: future,
+        updatedAt: future,
+      ),
+    );
+    await profiles.delete(saved.id);
+
+    expect(saved.updatedAt, future);
+    expect(profiles.profileById(saved.id)?.updatedAt, future);
+    expect(profiles.profileById(saved.id)?.archivedAt, future);
+  });
+
   late Directory hiveDirectory;
 
   setUp(() async {
