@@ -33,7 +33,6 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shouldAddNextSection = coverageDecision.shouldPromptForMorePhotos;
     final retakeLabel = uiConfig.labelFor(
       'retake',
       _ReceiptPhotoSectionLabels.retakeLabel(index: current - 1, total: total),
@@ -42,16 +41,9 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
       index: current - 1,
       total: total,
     );
-    final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals
-        ? 'Add Bottom Section'
-        : shouldAddNextSection
-        ? uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel)
-        : uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel);
-    final addPhotoTooltip = coverageDecision.isMissingBottomEdgeAndTotals
-        ? 'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
-        : shouldAddNextSection
-        ? 'Add the next receipt section with overlap from this photo'
-        : 'Add another receipt photo if the receipt continues';
+    final addPhotoLabel = uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel);
+    const addPhotoTooltip =
+        'Add another receipt photo if the receipt continues';
     final continueIcon = Icons.check_rounded;
     return DecoratedBox(
       decoration: BoxDecoration(
