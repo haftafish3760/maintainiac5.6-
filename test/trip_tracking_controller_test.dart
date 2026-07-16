@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
@@ -1954,6 +1955,67 @@ void main() {
     },
   );
 
+  test(
+    'confirmation cloud queue failure durably marks the review pending',
+    () async {
+      final hiveDirectory = await Directory.systemTemp.createTemp(
+        'trip_tracking_confirm_pending_cloud_',
+      );
+      Hive.init(hiveDirectory.path);
+      addTearDown(() async {
+        await Hive.close();
+        if (hiveDirectory.existsSync()) {
+          await hiveDirectory.delete(recursive: true);
+        }
+      });
+      final store = TripTrackingSessionStore.memory();
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        localStore: store,
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _NoopFirestoreSink(),
+          uploadEnabled: true,
+        ),
+        createdByUid: 'firebaseUid-1',
+        authenticatedUid: () => null,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        cloudMirror: mirror,
+      );
+      await controller.start(
+        tripId: 'trip_confirm_pending_cloud',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 2)),
+      );
+
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: 'trip_confirm_pending_cloud',
+          confirmedEndingOdometer: 1001,
+          confirmedAt: start.add(const Duration(minutes: 3)),
+        ),
+        isTrue,
+      );
+      final stored = store.reviewForTrip('trip_confirm_pending_cloud');
+      expect(stored?.isOdometerConfirmed, isTrue);
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+      expect(stored?.cloudSyncError, contains('Firebase sign-in'));
+      expect(queue.pendingRecords, isEmpty);
+      expect(controller.cloudMirrorError, contains('pending'));
+    },
+  );
+
   test('a missing persisted timeline is cleared instead of restored', () async {
     final store = TripTrackingSessionStore.memory();
     await store.save(
@@ -2393,4 +2455,12 @@ class _FakeTripTrackingCloudMirror implements TripTrackingCloudMirror {
 
   @override
   void dispose() {}
+}
+
+class _NoopFirestoreSink implements MaintainiacFirestoreDocumentSink {
+  @override
+  Future<void> writeDocument({
+    required String path,
+    required Map<String, Object?> data,
+  }) async {}
 }
