@@ -292,10 +292,15 @@ class ExpenseWorkProfileController extends ChangeNotifier {
     required DateTime createdAt,
     DateTime? updatedAt,
   }) {
-    var result = requested;
-    if (result.isBefore(createdAt)) result = createdAt;
-    if (updatedAt != null && result.isBefore(updatedAt)) result = updatedAt;
-    return result;
+    final floor = updatedAt != null && updatedAt.isAfter(createdAt)
+        ? updatedAt
+        : createdAt;
+    if (updatedAt == null) {
+      return requested.isBefore(floor) ? floor : requested;
+    }
+    return requested.isAfter(floor)
+        ? requested
+        : floor.add(const Duration(microseconds: 1));
   }
 
   Future<void> _ensureStorageForWrite() async {

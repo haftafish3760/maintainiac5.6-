@@ -85,6 +85,22 @@ void main() {
     expect(profiles.profileById(original.id)?.name, newer.name);
   });
 
+  test('same-time work-profile edits retain strict local ordering', () async {
+    final profiles = ExpenseWorkProfileController.memory();
+    final first = await profiles.save(
+      ExpenseWorkProfile(
+        id: 'profile-same-time',
+        name: 'First',
+        createdAt: DateTime.utc(2026, 7, 16),
+        updatedAt: DateTime.utc(2026, 7, 16),
+      ),
+    );
+    final second = await profiles.save(first.copyWith(name: 'Second'));
+
+    expect(second.updatedAt.isAfter(first.updatedAt), isTrue);
+    expect(profiles.profileById(first.id)?.name, 'Second');
+  });
+
   test(
     'the default profile cannot be archived through a saved update',
     () async {
