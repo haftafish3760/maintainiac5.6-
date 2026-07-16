@@ -111,6 +111,9 @@ class InvoiceLedgerStore extends ChangeNotifier {
   }
 
   Future<void> saveNumberSettings(InvoiceNumberSettings settings) async {
+    if (!canPersist) {
+      throw StateError('Invoice ledger persistence is not available.');
+    }
     _memorySettings = settings;
     if (_box != null) await _box.put(_settingsKey, settings.toMap());
     notifyListeners();
@@ -161,7 +164,7 @@ class InvoiceLedgerStore extends ChangeNotifier {
     InvoiceRecord record, {
     DateTime? now,
   }) async {
-    if (!canPersist && _box != null) {
+    if (!canPersist) {
       throw StateError('Invoice ledger persistence is not available.');
     }
     final savedAt = now ?? DateTime.now();

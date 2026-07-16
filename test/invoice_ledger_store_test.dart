@@ -10,6 +10,20 @@ import 'package:maintaniac/shared/pdf/app_generated_pdf_models.dart';
 
 void main() {
   test(
+    'never claims invoice persistence when local storage is unavailable',
+    () async {
+      final store = InvoiceLedgerStore.memory(canPersist: false);
+
+      await expectLater(
+        () => store.createDraft(type: InvoiceDocumentType.invoice),
+        throwsStateError,
+      );
+      expect(store.records, isEmpty);
+      expect(store.numberSettings.nextInvoiceNumber, 1);
+    },
+  );
+
+  test(
     'automatic numbering uses internal id separate from invoice number',
     () async {
       final store = InvoiceLedgerStore.memory(
