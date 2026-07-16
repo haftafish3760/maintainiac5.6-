@@ -10,7 +10,10 @@ import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/state/expense_backup_schedule.dart';
 import '../../../shared/state/app_state.dart';
 import 'expense_backup_draft_guard.dart';
+import 'expense_cloud_proof_reference_store.dart';
+import 'expense_cloud_proof_storage.dart';
 import 'expense_firestore_documents.dart';
+import 'expense_ledger_models.dart';
 import 'expense_ledger_store.dart';
 import 'expense_reminder_store.dart';
 import 'expense_work_profile_store.dart';
@@ -29,6 +32,7 @@ class ExpenseCloudBackupService {
     required this.appState,
     required this.queueStore,
     required this.uploadCoordinator,
+    required this.proofReferences,
     required this.organizationId,
     required this.authenticatedUid,
     required this.deviceId,
@@ -41,6 +45,7 @@ class ExpenseCloudBackupService {
   final AppStateController appState;
   final MaintainiacFirestoreUploadQueueStore queueStore;
   final MaintainiacFirestoreUploadCoordinator uploadCoordinator;
+  final ExpenseCloudProofReferenceStore proofReferences;
   final String? organizationId;
   final String? authenticatedUid;
   final String? deviceId;
@@ -97,6 +102,7 @@ class ExpenseCloudBackupService {
       deviceId: identity.deviceId,
       receipt: receipt,
       nowUtc: nowUtc,
+      cloudProofReferences: _cloudProofReferencesFor(receipt, identity),
     );
     final rejection = ExpenseBackupDraftGuard.rejectionFor([draft]);
     if (rejection != null) {
@@ -234,6 +240,7 @@ class ExpenseCloudBackupService {
           deviceId: identity.deviceId,
           receipt: receipt,
           nowUtc: timestamp,
+          cloudProofReferences: _cloudProofReferencesFor(receipt, identity),
         ),
     ];
     final rejection = ExpenseBackupDraftGuard.rejectionFor(drafts);
@@ -360,6 +367,18 @@ class ExpenseCloudBackupService {
     if (orgId.isEmpty || uid.isEmpty || id.isEmpty) return null;
     return _ExpenseCloudIdentity(orgId, uid, id);
   }
+
+  Map<String, ExpenseCloudProofReference> _cloudProofReferencesFor(
+    ExpenseReceiptRecord receipt,
+    _ExpenseCloudIdentity identity,
+  ) => {
+    for (final reference in proofReferences.referencesForReceipt(
+      organizationId: identity.organizationId,
+      userId: identity.uid,
+      receiptId: receipt.id,
+    ))
+      reference.proofId: reference,
+  };
 
   static String _clean(String? value) => value?.trim() ?? '';
 
@@ -538,6 +557,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     required this.appState,
     required this.queueStore,
     required this.uploadCoordinator,
+    required this.proofReferences,
     required this.deviceId,
     required bool Function() backupEnabled,
     FirebaseAuth? firebaseAuth,
@@ -562,6 +582,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   final AppStateController appState;
   final MaintainiacFirestoreUploadQueueStore queueStore;
   final MaintainiacFirestoreUploadCoordinator uploadCoordinator;
+  final ExpenseCloudProofReferenceStore proofReferences;
   final String deviceId;
   final bool Function() _backupEnabled;
   final FirebaseAuth _firebaseAuth;
@@ -802,6 +823,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
       appState: appState,
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
+      proofReferences: proofReferences,
       organizationId:
           MaintainiacOrganizationBootstrapper.personalOrganizationIdFor(uid),
       authenticatedUid: uid,

@@ -9,6 +9,7 @@ import 'app/maintaniac_app.dart';
 import 'screens/dashboard/data/active_workday_store.dart';
 import 'screens/expenses/data/expense_draft_store.dart';
 import 'screens/expenses/data/expense_cloud_backup_service.dart';
+import 'screens/expenses/data/expense_cloud_proof_reference_store.dart';
 import 'screens/expenses/data/expense_export_store.dart';
 import 'screens/expenses/data/expense_ledger_store.dart';
 import 'screens/expenses/data/expense_reminder_store.dart';
@@ -63,6 +64,7 @@ Future<void> main() async {
       const NoopExpenseCloudBackupMirror();
   if (firebaseSupported) {
     final queueStore = await MaintainiacFirestoreUploadQueueStore.create();
+    final proofReferences = await ExpenseCloudProofReferenceStore.create();
     final uploadCoordinator = MaintainiacFirestoreUploadCoordinator(
       queue: queueStore,
       sink: FirebaseFirestoreDocumentSink(),
@@ -76,6 +78,7 @@ Future<void> main() async {
       appState: appState,
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
+      proofReferences: proofReferences,
       deviceId: installationIdentity.installationId,
       backupEnabled: () => userProfiles.activeProfile.cloudBackupEnabled,
     );

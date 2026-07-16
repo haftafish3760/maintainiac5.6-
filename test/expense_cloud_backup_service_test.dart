@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_backup_service.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_reference_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_reminder_store.dart';
@@ -11,6 +13,7 @@ import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.da
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/expense_backup_schedule.dart';
 import 'package:maintaniac/shared/state/expense_settings_store.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -102,6 +105,63 @@ void main() {
     expect(service.settings.backupRetryPending, isFalse);
     expect(sink.documents.values.join(), isNot(contains('rawOcrText')));
   });
+
+  test(
+    'advertises a proof only after its verified reference is durable',
+    () async {
+      final sink = _RecordingSink();
+      final references = ExpenseCloudProofReferenceStore.memory();
+      final service = await _service(
+        sink: sink,
+        proofReferences: references,
+        organizationId: 'org-1',
+        uid: 'user-1',
+        deviceId: 'device-1',
+      );
+      await references.save(
+        const ExpenseCloudProofReference(
+          organizationId: 'org-1',
+          userId: 'user-1',
+          receiptId: 'receipt-1',
+          proofId: 'proof-1',
+          uploadGrantId: 'grant-1',
+          byteCount: 3,
+          contentType: 'image/jpeg',
+          contentHashSha256:
+              '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+        ),
+      );
+      await service.ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'receipt-1',
+          receiptDate: DateTime.utc(2026, 7, 15),
+          lines: const [],
+          attachments: [
+            ReceiptAttachmentRecord(
+              id: 'proof-1',
+              path: '/private/local/proof.jpg',
+              kind: ReceiptAttachmentKind.photo,
+              dataSaverLevel: ReceiptDataSaverLevel.balanced,
+              createdAt: DateTime.utc(2026, 7, 15),
+            ),
+          ],
+        ),
+      );
+
+      final result = await service.backupReceipt('receipt-1');
+
+      expect(result.completed, isTrue);
+      final proof =
+          (sink.documents['orgs/org-1/expenses/receipt-1']!['proofs'] as List)
+                  .single
+              as Map<String, Object?>;
+      expect(proof['cloudProofState'], 'available');
+      expect(
+        proof['storagePath'],
+        'orgs/org-1/proof-uploads/user-1/grant-1/proof-1',
+      );
+    },
+  );
 
   test(
     'does not upload a receipt absent from the durable local ledger',
@@ -453,6 +513,7 @@ void main() {
 Future<ExpenseCloudBackupService> _service({
   _RecordingSink? sink,
   ExpenseReminderController? reminders,
+  ExpenseCloudProofReferenceStore? proofReferences,
   String? organizationId,
   String? uid,
   String? deviceId,
@@ -470,6 +531,8 @@ Future<ExpenseCloudBackupService> _service({
       sink: sink ?? _RecordingSink(),
       uploadEnabled: true,
     ),
+    proofReferences:
+        proofReferences ?? ExpenseCloudProofReferenceStore.memory(),
     organizationId: organizationId,
     authenticatedUid: uid,
     deviceId: deviceId,
