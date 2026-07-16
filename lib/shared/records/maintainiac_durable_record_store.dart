@@ -189,7 +189,7 @@ class MaintainiacDurableRecord {
     required this.id,
     required Map<String, dynamic> payload,
     required this.lifecycle,
-  }) : payload = Map.unmodifiable(Map<String, dynamic>.from(payload));
+  }) : payload = _freezePayload(payload);
 
   factory MaintainiacDurableRecord.fromMap(Map<dynamic, dynamic> map) {
     final module = map['module'];
@@ -200,6 +200,7 @@ class MaintainiacDurableRecord {
         id is! String ||
         payload is! Map ||
         lifecycle is! Map ||
+        !_hasValidLifecycleDates(lifecycle) ||
         !MaintainiacDurableRecordStore._validKey(module, id)) {
       throw const FormatException('Durable record is corrupt.');
     }
@@ -239,4 +240,30 @@ class MaintainiacDurableRecord {
     'payload': payload,
     'lifecycle': lifecycle.toMap(),
   };
+
+  static bool _hasValidLifecycleDates(Map<dynamic, dynamic> lifecycle) =>
+      _isValidDate(lifecycle['createdAt']) &&
+      _isValidDate(lifecycle['updatedAt']);
+
+  static bool _isValidDate(Object? value) =>
+      value is DateTime ||
+      (value is String && DateTime.tryParse(value) != null);
+
+  static Map<String, dynamic> _freezePayload(Map<String, dynamic> value) =>
+      Map.unmodifiable({
+        for (final entry in value.entries) entry.key: _freezeValue(entry.value),
+      });
+
+  static Object? _freezeValue(Object? value) {
+    if (value is Map) {
+      return Map.unmodifiable({
+        for (final entry in value.entries)
+          entry.key.toString(): _freezeValue(entry.value),
+      });
+    }
+    if (value is List) {
+      return List.unmodifiable(value.map(_freezeValue));
+    }
+    return value;
+  }
 }
