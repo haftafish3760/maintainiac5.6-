@@ -113,21 +113,28 @@ class MaintainiacFirestoreUploadQueueStore {
     DateTime? nowUtc,
   }) => _enqueue(() async {
     if (record.isEmpty) return;
+    // A newer replacement may have removed this exact queue entry while an
+    // upload was in flight. Never resurrect that stale payload after a failed
+    // network attempt.
+    final current = MaintainiacFirestoreQueuedDocument.fromStored(
+      _box.get(record.id),
+    );
+    if (current.isEmpty || !current.isPendingUpload) return;
     await _ensureStorageForQueueWrite();
     final attemptAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
-    final attemptCount = record.attemptCount + 1;
+    final attemptCount = current.attemptCount + 1;
     final attempted = MaintainiacFirestoreQueuedDocument(
-      id: record.id,
-      path: record.path,
-      data: record.data,
-      queuedAtUtc: record.queuedAtUtc,
+      id: current.id,
+      path: current.path,
+      data: current.data,
+      queuedAtUtc: current.queuedAtUtc,
       attemptCount: attemptCount,
       lastAttemptAtUtc: attemptAt,
       nextAttemptAtUtc: attemptAt.add(
         MaintainiacFirestoreUploadPolicy.retryDelayForAttempt(attemptCount),
       ),
       lastError: error,
-      uploadedAtUtc: record.uploadedAtUtc,
+      uploadedAtUtc: current.uploadedAtUtc,
     );
     await _box.put(attempted.id, attempted.toMap());
   });

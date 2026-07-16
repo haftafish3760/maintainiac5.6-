@@ -201,6 +201,35 @@ void main() {
   );
 
   test(
+    'a stale failed upload cannot resurrect a replaced queue entry',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final first = _safeDraft('parserHealth/replaced_during_upload');
+      final original = await queue.enqueueReplacingPendingForPath(
+        first,
+        queuedAtUtc: DateTime.utc(2026, 7, 16, 12),
+      );
+      await queue.enqueueReplacingPendingForPath(
+        first,
+        queuedAtUtc: DateTime.utc(2026, 7, 16, 12, 1),
+      );
+
+      await queue.markAttempted(
+        original,
+        error: 'network unavailable',
+        nowUtc: DateTime.utc(2026, 7, 16, 12, 2),
+      );
+
+      expect(queue.pendingRecords, hasLength(1));
+      expect(
+        queue.pendingRecords.single.queuedAtUtc,
+        DateTime.utc(2026, 7, 16, 12, 1),
+      );
+      expect(queue.pendingRecords.single.attemptCount, 0);
+    },
+  );
+
+  test(
     'never discards pending uploads when the queue exceeds its soft cap',
     () async {
       final queue = await MaintainiacFirestoreUploadQueueStore.create();
