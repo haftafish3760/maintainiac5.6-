@@ -81,12 +81,13 @@ void main() {
 
   test('GPS tracking cannot start against another active vehicle', () async {
     final store = TripTrackingSessionStore.memory();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_b',
+      initialReading: 2000,
+    );
     final controller = TripTrackingController(
       sessionStore: store,
-      odometer: GlobalOdometerController(
-        vehicleId: 'vehicle_b',
-        initialReading: 2000,
-      ),
+      odometer: odometer,
     );
 
     expect(
@@ -100,6 +101,22 @@ void main() {
     );
     expect(controller.platformStatus, 'vehicle_mismatch');
     expect(store.activeSession, isNull);
+
+    expect(
+      await odometer.switchVehicleById('vehicle_a', fallbackReading: 2000),
+      isTrue,
+    );
+    expect(
+      await controller.start(
+        tripId: 'trip_start_after_vehicle_switch',
+        vehicleId: 'vehicle_a',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    expect(controller.platformStatus, isNull);
+    expect(controller.platformError, isNull);
   });
 
   test('restore fails safely when local trip storage is unavailable', () async {

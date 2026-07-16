@@ -205,6 +205,8 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    _platformStatus = null;
+    _platformError = null;
     notifyListeners();
     return true;
   }
