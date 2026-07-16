@@ -255,15 +255,30 @@ void main() {
             review: review(),
           );
 
-      expect(
-        () => MaintainiacFirestoreUploadPolicy.validateDraft(
-          MaintainiacFirestoreDocumentDraft(
-            path: doc.path,
-            data: {...doc.data, 'latitude': 35.0},
+      for (final entry in <String, Object?>{
+        'latitude': 35.0,
+        'longitude': -80.0,
+        'coordinates': [35.0, -80.0],
+        'route': 'raw-route-json',
+        'routePoints': const [
+          {'latitude': 35.0, 'longitude': -80.0},
+        ],
+        'polyline': 'encoded_polyline',
+        'stopAddress': '123 Private Stop',
+        'rawSamples': const [],
+        'walkingEvidence': const [],
+      }.entries) {
+        expect(
+          () => MaintainiacFirestoreUploadPolicy.validateDraft(
+            MaintainiacFirestoreDocumentDraft(
+              path: doc.path,
+              data: {...doc.data, entry.key: entry.value},
+            ),
           ),
-        ),
-        throwsArgumentError,
-      );
+          throwsArgumentError,
+          reason: 'raw trip field ${entry.key} must not upload',
+        );
+      }
     },
   );
 
