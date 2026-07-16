@@ -116,6 +116,7 @@ void main() {
       'orgs/ORG-1/proof-uploads/USER-1/grant-1/proof-1',
     );
     expect(restored.proofPointers.single.byteSize, 3);
+    expect(restored.proofPointers.single.uploadGrantId, 'grant-1');
   });
 
   test('rejects an unsupported receipt backup schema', () {

@@ -332,6 +332,7 @@ Map<String, Object?> _proofPointerFor(
     'photoQualityScore': attachment.photoQualityScore,
     'cloudProofState': isVerifiedCloudProof ? 'available' : 'metadata_only',
     if (isVerifiedCloudProof) 'storagePath': cloudReference.storagePath,
+    if (isVerifiedCloudProof) 'uploadGrantId': cloudReference.uploadGrantId,
     'localPathStored': false,
     'importedTextStored': false,
   };

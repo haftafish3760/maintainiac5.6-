@@ -260,6 +260,9 @@ class ExpenseCloudRestoreCodec {
           storagePath: availability == ExpenseCloudProofAvailability.available
               ? storagePath
               : null,
+          uploadGrantId: availability == ExpenseCloudProofAvailability.available
+              ? _nullableText(item['uploadGrantId'])
+              : null,
           availability: availability,
           kind: ReceiptAttachmentKind.fromName(_text(item['kind'])),
           mimeType: _text(item['mimeType']),
@@ -523,6 +526,7 @@ class ExpenseCloudProofPointer {
   const ExpenseCloudProofPointer({
     required this.id,
     required this.storagePath,
+    this.uploadGrantId,
     required this.availability,
     required this.kind,
     required this.mimeType,
@@ -533,6 +537,7 @@ class ExpenseCloudProofPointer {
 
   final String id;
   final String? storagePath;
+  final String? uploadGrantId;
   final ExpenseCloudProofAvailability availability;
   final ReceiptAttachmentKind kind;
   final String mimeType;
