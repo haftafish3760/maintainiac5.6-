@@ -10,6 +10,7 @@ class ExpenseCloudProofReference {
     required this.userId,
     required this.receiptId,
     required this.proofId,
+    required this.uploadGrantId,
     required this.byteCount,
     required this.contentType,
   });
@@ -18,13 +19,14 @@ class ExpenseCloudProofReference {
   final String userId;
   final String receiptId;
   final String proofId;
+  final String uploadGrantId;
   final int byteCount;
   final String contentType;
 
   String get storagePath => ExpenseCloudProofStorage.storagePathFor(
     organizationId: organizationId,
     userId: userId,
-    receiptId: receiptId,
+    uploadGrantId: uploadGrantId,
     proofId: proofId,
   );
 }
@@ -90,6 +92,7 @@ class ExpenseCloudProofStorage {
     required String userId,
     required String receiptId,
     required String proofId,
+    required String uploadGrantId,
     required Uint8List bytes,
     required String contentType,
   }) async {
@@ -97,6 +100,7 @@ class ExpenseCloudProofStorage {
     _validateIdentity(userId, 'userId');
     _validateIdentity(receiptId, 'receiptId');
     _validateIdentity(proofId, 'proofId');
+    _validateIdentity(uploadGrantId, 'uploadGrantId');
     final normalizedContentType = contentType.trim().toLowerCase();
     if (!normalizedContentType.startsWith('image/')) {
       throw ArgumentError.value(
@@ -111,6 +115,7 @@ class ExpenseCloudProofStorage {
       userId: userId,
       receiptId: receiptId,
       proofId: proofId,
+      uploadGrantId: uploadGrantId,
       byteCount: bytes.length,
       contentType: normalizedContentType,
     );
@@ -133,6 +138,7 @@ class ExpenseCloudProofStorage {
     _validateIdentity(reference.userId, 'userId');
     _validateIdentity(reference.receiptId, 'receiptId');
     _validateIdentity(reference.proofId, 'proofId');
+    _validateIdentity(reference.uploadGrantId, 'uploadGrantId');
     _validateBytes(reference.byteCount);
     final bytes = await _objectStore.download(
       path: reference.storagePath,
@@ -147,10 +153,9 @@ class ExpenseCloudProofStorage {
   static String storagePathFor({
     required String organizationId,
     required String userId,
-    required String receiptId,
+    required String uploadGrantId,
     required String proofId,
-  }) =>
-      'orgs/$organizationId/members/$userId/expenseProofs/$receiptId/$proofId';
+  }) => 'orgs/$organizationId/proof-uploads/$userId/$uploadGrantId/$proofId';
 
   void _validateBytes(int byteCount) {
     if (byteCount <= 0 || byteCount > maximumProofBytes) {

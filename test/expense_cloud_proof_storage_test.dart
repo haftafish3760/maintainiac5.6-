@@ -13,13 +13,14 @@ void main() {
       userId: 'user_1',
       receiptId: 'receipt_1',
       proofId: 'proof_1',
+      uploadGrantId: 'grant_1',
       bytes: Uint8List.fromList([1, 2, 3]),
       contentType: 'image/jpeg',
     );
 
     expect(
       reference.storagePath,
-      'orgs/org_1/members/user_1/expenseProofs/receipt_1/proof_1',
+      'orgs/org_1/proof-uploads/user_1/grant_1/proof_1',
     );
     expect(objectStore.metadata.values.single, {
       'orgId': 'org_1',
@@ -37,6 +38,7 @@ void main() {
       userId: 'user_1',
       receiptId: 'receipt_1',
       proofId: 'proof_1',
+      uploadGrantId: 'grant_1',
       bytes: Uint8List.fromList([1, 2, 3]),
       contentType: 'image/jpeg',
     );
@@ -59,6 +61,7 @@ void main() {
         userId: 'user_1',
         receiptId: 'receipt_1',
         proofId: 'proof_1',
+        uploadGrantId: 'grant_1',
         bytes: Uint8List.fromList([1]),
         contentType: 'image/jpeg',
       ),
@@ -70,6 +73,7 @@ void main() {
         userId: 'user_1',
         receiptId: 'receipt_1',
         proofId: 'proof_1',
+        uploadGrantId: 'grant_1',
         bytes: Uint8List.fromList([1]),
         contentType: 'application/pdf',
       ),
