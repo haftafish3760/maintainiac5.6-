@@ -24,11 +24,17 @@ extension ReceiptProofStorageCopy on ReceiptProofStorage {
           sourceHash != copiedHash) {
         throw const FileSystemException('Receipt proof copy did not verify.');
       }
-      await _deleteIfExists(destination);
+      // `_availableDestinationFile` reserved this name before the copy began.
+      // Never replace a proof that appeared there afterwards: an existing file
+      // may belong to another receipt or concurrent save.
+      if (await destination.exists()) {
+        throw const FileSystemException(
+          'Receipt proof destination is occupied.',
+        );
+      }
       await temp.rename(destination.path);
     } catch (_) {
       await _deleteIfExists(temp);
-      await _deleteIfExists(destination);
       throw ReceiptProofStorageException(message);
     }
   }

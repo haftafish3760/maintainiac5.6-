@@ -228,6 +228,18 @@ void main() {
     expect(await source.exists(), isTrue);
   });
 
+  test('proof copy failure never deletes an occupied destination', () async {
+    final copyImplementation = await File(
+      'lib/shared/widgets/receipt_capture/receipt_proof_storage_copy.dart',
+    ).readAsString();
+
+    expect(copyImplementation, contains("if (await destination.exists())"));
+    expect(
+      copyImplementation,
+      isNot(contains('await _deleteIfExists(destination);')),
+    );
+  });
+
   test(
     'changed permanent proof bytes never replace the saved fingerprint',
     () async {
