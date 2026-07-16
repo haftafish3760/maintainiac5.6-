@@ -200,6 +200,7 @@ service cloud.firestore {
         request.resource.data.profile is string &&
         request.resource.data.startedAt is string &&
         request.resource.data.finishedAt is string &&
+        request.resource.data.finishedAt >= request.resource.data.startedAt &&
         request.resource.data.createdAt is string &&
         request.resource.data.updatedAt is string &&
         request.resource.data.startingOdometer is int &&
@@ -211,6 +212,8 @@ service cloud.firestore {
         request.resource.data.confirmedEndingOdometer >=
           request.resource.data.startingOdometer &&
         request.resource.data.odometerConfirmedAt is string &&
+        request.resource.data.odometerConfirmedAt >=
+          request.resource.data.finishedAt &&
         request.resource.data.acceptedMeters is number &&
         request.resource.data.acceptedMeters >= 0 &&
         request.resource.data.acceptedMiles is number &&

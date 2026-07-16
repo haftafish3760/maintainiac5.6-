@@ -231,6 +231,11 @@ void main() {
       final valueCheck = rules.substring(valueCheckStart, valueCheckEnd);
       expect(valueCheck, contains('startingOdometer >= 0'));
       expect(valueCheck, contains('estimatedEndingOdometer >='));
+      expect(
+        valueCheck,
+        contains('finishedAt >= request.resource.data.startedAt'),
+      );
+      expect(valueCheck, contains('odometerConfirmedAt >='));
       expect(valueCheck, contains('acceptedMeters >= 0'));
       expect(valueCheck, contains('acceptedSampleCount <='));
       expect(rules, contains('function hasCoherentMileageSummaryDistance'));
