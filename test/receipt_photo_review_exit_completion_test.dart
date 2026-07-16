@@ -280,8 +280,8 @@ void main() {
     );
     expect(stitchControls, contains('Repeated receipt lines matched safely'));
     expect(stitchControls, contains('preview.userFallbackReasonLabel'));
-    expect(stitchControls, contains('preview.ocrHandoffChecklistLabel'));
-    expect(stitchControls, contains('preview.overlapExpectationLabel'));
+    expect(stitchControls, isNot(contains('preview.ocrHandoffChecklistLabel')));
+    expect(stitchControls, isNot(contains('preview.overlapExpectationLabel')));
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     expect(
       reviewScreen,
@@ -290,7 +290,12 @@ void main() {
     expect(reviewScreen, contains('match guide'));
     expect(stitchControls, contains('Previous Pair'));
     expect(stitchControls, contains('Next Pair'));
-    expect(stitchControls, contains('selectedPair.matchEvidenceLabel'));
+    expect(
+      stitchControls,
+      contains('Optional: adjust only if the repeated lines do not line up.'),
+    );
+    expect(stitchControls, contains('Use Automatic Match'));
+    expect(stitchControls, isNot(contains('selectedPair.matchEvidenceLabel')));
     expect(
       stitchControls,
       contains("final fallbackRecoveryLabel = failedPairLabel.isEmpty"),
@@ -307,6 +312,11 @@ void main() {
       stitchControls,
       contains('You can still use each section in top-to-bottom order.'),
     );
+    expect(
+      stitchControls,
+      contains('These photos will stay in top-to-bottom order.'),
+    );
+    expect(stitchControls, isNot(contains("label: 'Use Top To Bottom'")));
   });
 
   test('reviewed receipt photos announce app fill handoff safely', () async {

@@ -4,13 +4,11 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
   const _ReceiptStitchReadinessCard({
     required this.stitchPreview,
     required this.rebuilding,
-    required this.selectedPairIndex,
     required this.onOpenOrder,
   });
 
   final ReceiptStitchResult? stitchPreview;
   final bool rebuilding;
-  final int selectedPairIndex;
   final VoidCallback? onOpenOrder;
 
   @override
@@ -25,23 +23,10 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
     final detail = rebuilding
         ? 'Maintainiac is testing whether one readable receipt image can be made.'
         : _stitchReadinessDetail(preview);
-    ReceiptStitchPairResult? selectedPair;
-    final pairs = preview?.pairs ?? const <ReceiptStitchPairResult>[];
-    for (final pair in pairs) {
-      if (pair.pairIndex == selectedPairIndex) {
-        selectedPair = pair;
-        break;
-      }
-    }
     final failedPairLabel = preview?.failedPairLabel ?? '';
     final fallbackRecoveryLabel = failedPairLabel.isEmpty
         ? 'Fix Photo Order'
         : 'Fix $failedPairLabel';
-    final selectedPairLabel = selectedPair == null
-        ? failedPairLabel.isEmpty
-              ? ''
-              : '$failedPairLabel needs adjustment.'
-        : selectedPair.summaryLabel;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF172126),
@@ -89,20 +74,6 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      if (selectedPairLabel.isNotEmpty) ...[
-                        Text(
-                          selectedPairLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFFFFD166),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                      ],
                       Text(
                         detail,
                         maxLines: 3,
@@ -114,63 +85,6 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
                           letterSpacing: 0,
                         ),
                       ),
-                      if (preview != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          'Decision: ${preview.reviewDecisionLabel}. ${preview.nextStepLabel}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF8FD3FF),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          preview.ocrHandoffChecklistLabel,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFFE7D7A4),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 5,
-                          children: [
-                            _ReceiptStitchEvidenceChip(
-                              label: preview.stitchSafetyLabel,
-                              icon: preview.didStitch
-                                  ? Icons.verified_rounded
-                                  : Icons.report_problem_rounded,
-                            ),
-                            _ReceiptStitchEvidenceChip(
-                              label: preview.reviewPathLabel,
-                              icon: Icons.receipt_long_rounded,
-                            ),
-                            _ReceiptStitchEvidenceChip(
-                              label: preview.overlapExpectationLabel,
-                              icon: Icons.rule_rounded,
-                            ),
-                            if (preview.usedFallback)
-                              _ReceiptStitchEvidenceChip(
-                                label: preview.userFallbackReasonLabel,
-                                icon: Icons.info_outline_rounded,
-                              ),
-                            if (selectedPair != null)
-                              _ReceiptStitchEvidenceChip(
-                                label: selectedPair.matchEvidenceLabel,
-                                icon: Icons.analytics_rounded,
-                              ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -178,23 +92,20 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
             ),
             if (preview?.usedFallback == true) ...[
               const SizedBox(height: 7),
-              Row(
-                children: [
-                  Expanded(
-                    child: _ReceiptMatchRecoveryPill(
-                      icon: Icons.swap_vert_rounded,
-                      label: fallbackRecoveryLabel,
-                      onTap: onOpenOrder,
-                    ),
-                  ),
-                  const SizedBox(width: 7),
-                  const Expanded(
-                    child: _ReceiptMatchRecoveryPill(
-                      icon: Icons.keyboard_double_arrow_down_rounded,
-                      label: 'Use Top To Bottom',
-                    ),
-                  ),
-                ],
+              const Text(
+                'These photos will stay in top-to-bottom order.',
+                style: TextStyle(
+                  color: Color(0xFFC7D0D4),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 6),
+              _ReceiptMatchRecoveryPill(
+                icon: Icons.swap_vert_rounded,
+                label: fallbackRecoveryLabel,
+                onTap: onOpenOrder,
               ),
             ],
           ],

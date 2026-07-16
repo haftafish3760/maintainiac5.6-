@@ -31,6 +31,8 @@ class _ReceiptManualStitchControls extends StatelessWidget {
     final percent = (overlap * 100).round();
     final pairCountLabel =
         'Sections ${pairIndex + 1}-${pairIndex + 2} of ${totalPairs + 1}';
+    final showManualControls =
+        stitchPreview != null && stitchPreview?.didStitch != true;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF11181B),
@@ -43,124 +45,74 @@ class _ReceiptManualStitchControls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: disabled || pairIndex == 0
-                        ? null
-                        : () => onPairSelected(pairIndex - 1),
-                    icon: const Icon(Icons.arrow_back_rounded, size: 17),
-                    label: const Text('Previous Pair'),
-                    style: _smallStitchButtonStyle(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  pairCountLabel,
-                  style: const TextStyle(
-                    color: Color(0xFFE8ECEE),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: disabled || pairIndex >= totalPairs - 1
-                        ? null
-                        : () => onPairSelected(pairIndex + 1),
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 17),
-                    label: const Text('Next Pair'),
-                    style: _smallStitchButtonStyle(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.join_full_rounded,
-                  color: Color(0xFFFFD166),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    manualOverlapFraction == null
-                        ? 'Automatic match. If repeated receipt text does not line up, adjust this pair.'
-                        : 'Manual match: $percent%. Line up the repeated receipt text.',
-                    style: const TextStyle(
-                      color: Color(0xFFE8ECEE),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: disabled || manualOverlapFraction == null
-                      ? null
-                      : onClear,
-                  child: const Text('Use Auto'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Slide until the bottom of the first section matches the top of the next section.',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Color(0xFFC7D0D4),
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-                letterSpacing: 0,
-              ),
-            ),
-            const SizedBox(height: 7),
-            Row(
-              children: [
-                Expanded(
-                  child: _ReceiptStitchGuideChip(
-                    label: 'Bottom of section ${pairIndex + 1}',
-                    icon: Icons.vertical_align_bottom_rounded,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: _ReceiptStitchGuideChip(
-                    label: 'Top of section ${pairIndex + 2}',
-                    icon: Icons.vertical_align_top_rounded,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                _ReceiptStitchGuideChip(
-                  label: '$percent%',
-                  icon: Icons.compare_arrows_rounded,
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Slider(
-              value: overlap,
-              min: .08,
-              max: .48,
-              divisions: 20,
-              activeColor: const Color(0xFFFFD166),
-              inactiveColor: const Color(0xFF526168),
-              label: '$percent%',
-              onChanged: disabled ? null : onOverlapChanged,
-            ),
             _ReceiptStitchReadinessCard(
               stitchPreview: stitchPreview,
               rebuilding: stitchPreviewInFlight,
-              selectedPairIndex: pairIndex,
               onOpenOrder: disabled ? null : onOpenOrder,
             ),
+            if (showManualControls) ...[
+              const SizedBox(height: 9),
+              if (totalPairs > 1) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: disabled || pairIndex == 0
+                            ? null
+                            : () => onPairSelected(pairIndex - 1),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 17),
+                        label: const Text('Previous Pair'),
+                        style: _smallStitchButtonStyle(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(pairCountLabel),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: disabled || pairIndex >= totalPairs - 1
+                            ? null
+                            : () => onPairSelected(pairIndex + 1),
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 17),
+                        label: const Text('Next Pair'),
+                        style: _smallStitchButtonStyle(),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+              Text(
+                manualOverlapFraction == null
+                    ? 'Optional: adjust only if the repeated lines do not line up.'
+                    : 'Adjusting overlap: $percent%',
+                style: const TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0,
+                ),
+              ),
+              Slider(
+                value: overlap,
+                min: .08,
+                max: .48,
+                divisions: 20,
+                activeColor: const Color(0xFFFFD166),
+                inactiveColor: const Color(0xFF526168),
+                label: '$percent%',
+                onChanged: disabled ? null : onOverlapChanged,
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: disabled || manualOverlapFraction == null
+                      ? null
+                      : onClear,
+                  child: const Text('Use Automatic Match'),
+                ),
+              ),
+            ],
           ],
         ),
       ),
