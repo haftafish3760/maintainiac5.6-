@@ -18,6 +18,9 @@ const defaultProofQuotaBytes = defineInt(
   'EXPENSE_DEFAULT_PROOF_QUOTA_BYTES',
   { default: 25 * 1024 * 1024 },
 );
+const maxOpenProofGrants = defineInt('EXPENSE_MAX_OPEN_PROOF_GRANTS', {
+  default: 3,
+});
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const OWN_RECEIPT_PERMISSIONS = new Set([
   'addOwnReceipts',
@@ -76,6 +79,11 @@ exports.issueExpenseProofUploadGrant = onCall(
     if (!validQuotaBytes(configuredQuotaBytes)) {
       throw new HttpsError('failed-precondition', 'Default proof storage quota is invalid.');
     }
+    const configuredOpenGrantLimit = maxOpenProofGrants.value();
+    if (!Number.isInteger(configuredOpenGrantLimit) ||
+        configuredOpenGrantLimit < 1 || configuredOpenGrantLimit > 10) {
+      throw new HttpsError('failed-precondition', 'Open proof grant configuration is invalid.');
+    }
     const grantId = randomUUID();
     const maxBytes = requestedBytes;
     const lifetimeSeconds = proofGrantLifetimeSeconds.value();
@@ -90,8 +98,15 @@ exports.issueExpenseProofUploadGrant = onCall(
     await db.runTransaction(async (transaction) => {
       const [quota, openGrants] = await Promise.all([
         transaction.get(quotaRef),
-        transaction.get(grants.where('uid', '==', uid).where('status', '==', 'open')),
+        transaction.get(
+          grants.where('uid', '==', uid).where('status', '==', 'open').limit(
+            configuredOpenGrantLimit + 1,
+          ),
+        ),
       ]);
+      if (openGrants.size > configuredOpenGrantLimit) {
+        throw new HttpsError('resource-exhausted', 'Too many proof uploads are pending.');
+      }
       const quotaData = quotaValues(quota.data(), configuredQuotaBytes);
       const reservedBytes = openGrants.docs.fold(0, (total, openGrant) => {
         const data = openGrant.data();
