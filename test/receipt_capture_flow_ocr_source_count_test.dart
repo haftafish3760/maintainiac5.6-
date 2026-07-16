@@ -147,6 +147,9 @@ void main() {
     final cameraActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
     ).readAsString();
+    final cameraFallbackActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_camera_fallback_actions.dart',
+    ).readAsString();
     final saveActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
     ).readAsString();
@@ -156,9 +159,11 @@ void main() {
 
     expect(importActions, contains('reviewPickedPhotoPaths('));
     expect(importActions, contains('existing_receipt_photo_import'));
-    expect(cameraActions, contains('captureAndReview('));
-    expect(cameraActions, contains('_acceptReviewedPhotoResult(result)'));
-    expect(cameraActions, contains('native_receipt_camera'));
+    expect(cameraActions, contains('_takeSystemCameraReceiptPhoto()'));
+    expect(cameraActions, contains("stage: 'system_camera_platform'"));
+    expect(cameraFallbackActions, contains('reviewPickedPhotoPaths('));
+    expect(cameraFallbackActions, contains('initialCaptureDiagnosticsByPath'));
+    expect(cameraFallbackActions, contains('system_phone_camera_receipt_photo'));
     expect(saveActions, contains('ocrSourcePaths.add(prepared.ocrSourcePath)'));
     expect(
       saveActions,

@@ -101,7 +101,7 @@ void main() {
     ).readAsString();
     expect(reviewActions, contains('prepareForOcrAndBackup'));
     expect(reviewActions, contains('captureDiagnosticsByPath'));
-    expect(reviewActions, contains('staged.captureDiagnosticsByPhotoPath'));
+    expect(reviewActions, contains('_captureDiagnosticsByPath[path]'));
     expect(reviewActions, contains('preparationDiagnostics'));
     expect(reviewActions, contains('prepared.preparation'));
     expect(reviewActions, contains('.toDiagnostics()'));
