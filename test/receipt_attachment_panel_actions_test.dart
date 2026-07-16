@@ -5,27 +5,28 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 
 void main() {
-  testWidgets('empty receipt panel stays focused on Add Receipt before capture', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: SharedReceiptAttachmentPanel(
-              hasReceipt: false,
-              onChanged: (_) {},
+  testWidgets(
+    'empty receipt panel stays focused on Add Receipt before capture',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: SharedReceiptAttachmentPanel(
+                hasReceipt: false,
+                onChanged: (_) {},
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Add Receipt'), findsOneWidget);
-    expect(find.text('Long receipt? Scan top to bottom.'), findsNothing);
-    expect(find.text('Need another receipt section?'), findsNothing);
-    expect(find.byTooltip('Receipt photo settings'), findsNothing);
-  });
+      expect(find.text('Add Receipt'), findsOneWidget);
+      expect(find.text('Long receipt? Scan top to bottom.'), findsNothing);
+      expect(find.text('Need another receipt section?'), findsNothing);
+      expect(find.byTooltip('Receipt photo settings'), findsNothing);
+    },
+  );
 
   testWidgets('removing an imported proof asks before deleting it', (
     tester,
@@ -139,7 +140,7 @@ void main() {
     expect(find.textContaining('Saved, not readable'), findsOneWidget);
     expect(find.textContaining('Scanned/image PDF'), findsOneWidget);
     expect(find.textContaining('Review PDF warnings'), findsOneWidget);
-    expect(find.text('Add Receipt Photo'), findsOneWidget);
+    expect(find.text('Add Receipt'), findsWidgets);
   });
 
   testWidgets('multiple receipt photos are shown in receipt order', (

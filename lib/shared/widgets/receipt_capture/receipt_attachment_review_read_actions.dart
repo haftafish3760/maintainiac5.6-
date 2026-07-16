@@ -175,18 +175,12 @@ extension _ReceiptAttachmentReviewReadActions
     if (widget.onImportedText == null) return;
     if (!_appAssistedReceiptFillEnabled) return;
     widget.onReceiptReadStarted?.call();
-    final reviewDecision = result.nextReviewHandoffLabel;
-    final action = result.acceptedPhotoHandoffActionLabel;
-    final processing = result.acceptedPhotoHandoffProcessingLabel;
-    final proofCount = result.savedProofCountLabel;
-    final ocrSourceCount = result.ocrSourceCountLabel;
-    final qualitySummary = _reviewedPhotoOcrSourceQualitySummary(result);
     updateAttachmentState(() {
       _readingForReview = true;
       _receiptReadStatus = _ReceiptReadStatusKind.reading;
       _receiptReadProgressPhase = _ReceiptReadProgressPhase.accepted;
       _receiptReadStatusMessage =
-          'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action';
+          'Photo review accepted. Checking the receipt details now. You can review every suggested field before saving.';
     });
   }
 
@@ -220,34 +214,6 @@ extension _ReceiptAttachmentReviewReadActions
       ...result.privacySafeReceiptReaderHandoffMetadata,
     });
     return true;
-  }
-
-  String _reviewedPhotoOcrSourceQualitySummary(
-    ReceiptPhotoReviewResult result,
-  ) {
-    final qualities = <ReceiptPhotoQualityCheck>[
-      for (var index = 0; index < result.ocrSourcePhotoPaths.length; index++)
-        if (qualityForOcrSourceIndex(result, index) != null)
-          qualityForOcrSourceIndex(result, index)!,
-    ];
-    if (qualities.isEmpty) return 'Photo quality was not measured.';
-    var needsReview = 0;
-    ReceiptPhotoQualityCheck? weakest;
-    for (final quality in qualities) {
-      if (quality.needsReview) needsReview += 1;
-      if (weakest == null || quality.reviewScore < weakest.reviewScore) {
-        weakest = quality;
-      }
-    }
-    final weakestQuality = weakest;
-    if (weakestQuality == null) return 'Photo quality was not measured.';
-    if (needsReview <= 0) {
-      return 'OCR source quality ${weakestQuality.reviewScoreLabel}: looks readable.';
-    }
-    final sourceLabel = qualities.length == 1
-        ? 'OCR source'
-        : '$needsReview of ${qualities.length} OCR sources';
-    return '$sourceLabel may need review: ${weakestQuality.primaryIssueLabel} (${weakestQuality.reviewScoreLabel}).';
   }
 
   Future<_ReceiptAttachmentReadResult> _readReviewedPhotosForReceiptForm(

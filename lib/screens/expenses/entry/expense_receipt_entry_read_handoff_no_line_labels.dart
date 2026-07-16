@@ -22,7 +22,7 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
 
   String get _receiptNoLineSubtitleLabel {
     if (_scanningReceiptPhotos && !_receiptReadAttemptedWithoutText) {
-      return 'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when OCR and parsing finish.';
+      return 'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when they are ready.';
     }
     final warning = _primaryNoLineOcrWarning;
     if (warning != null && !_receiptNoLineHasOcrText) {

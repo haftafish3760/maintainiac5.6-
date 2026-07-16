@@ -358,15 +358,18 @@ void main() {
     expect(models, contains('String get ocrSourceCountLabel'));
     expect(models, contains('String get nextReviewHandoffLabel'));
     expect(models, contains('String get nextReviewDiagnosticLabel'));
-    expect(importActions, contains('result.nextReviewHandoffLabel'));
-    expect(importActions, contains('result.acceptedPhotoHandoffActionLabel'));
+    expect(importActions, isNot(contains('result.nextReviewHandoffLabel')));
+    expect(
+      importActions,
+      isNot(contains('result.acceptedPhotoHandoffActionLabel')),
+    );
     expect(models, contains('String get privacySafeOcrHandoffEvidenceLabel'));
     expect(models, contains('1 saved proof photo'));
     expect(models, contains('combined OCR image'));
     expect(
       importActions,
       contains(
-        r'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount. $qualitySummary $reviewDecision $action',
+        'Photo review accepted. Checking the receipt details now. You can review every suggested field before saving.',
       ),
     );
     expect(importActions, isNot(contains('Read receipt')));
@@ -375,7 +378,7 @@ void main() {
     expect(
       panel,
       contains(
-        'The filled receipt details appear here as soon as OCR and parsing finish.',
+        'Your receipt details will appear here as soon as they are ready.',
       ),
     );
     expect(
@@ -388,10 +391,9 @@ void main() {
     );
     expect(
       importActions,
-      contains('String _reviewedPhotoOcrSourceQualitySummary('),
+      isNot(contains('String _reviewedPhotoOcrSourceQualitySummary(')),
     );
-    expect(importActions, contains('OCR source quality'));
-    expect(importActions, contains('may need review'));
+    expect(importActions, isNot(contains('OCR source quality')));
     expect(
       importActions,
       contains(

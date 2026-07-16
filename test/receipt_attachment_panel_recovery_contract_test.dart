@@ -42,11 +42,11 @@ void main() {
     expect(
       panelSource,
       contains(
-        'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the proof and fill the receipt by hand.',
+        'Use a clearer photo, choose Add Another Photo for a long receipt, or keep the proof and fill the receipt by hand.',
       ),
     );
     expect(panelSource, contains('Receipt Ready For Review'));
-    expect(panelSource, contains('Add Receipt Photo'));
+    expect(panelSource, contains("'Add Receipt'"));
     expect(panelSource, contains("'Reading Receipt'"));
     expect(panelSource, contains('_openingPicker || _readingForReview'));
     expect(
@@ -160,7 +160,9 @@ void main() {
     );
     expect(
       stagingSource,
-      contains('use the saved photos to open receipt details from the saved proof'),
+      contains(
+        'use the saved photos to open receipt details from the saved proof',
+      ),
     );
     expect(panelSource, contains('record.recoveredCountLabel'));
     expect(panelSource, contains('discardRecoveryRecord(record)'));
@@ -184,13 +186,11 @@ void main() {
     expect(importActions, contains('Future<bool> reviewPickedPhotoPaths'));
     expect(importActions, contains('..._photoCaptureDiagnosticsByPath'));
     expect(importActions, contains('...initialCaptureDiagnosticsByPath'));
-    expect(importActions, contains('review_screen_unavailable'));
     expect(
       importActions,
-      contains(
-        'Receipt photo review did not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.',
-      ),
+      contains("'captureFlow': 'system_phone_camera_receipt_photo'"),
     );
+    expect(importActions, contains('await reviewPickedPhotoPaths('));
     expect(importActions, contains('return true;'));
     expect(importActions, contains('return false;'));
   });

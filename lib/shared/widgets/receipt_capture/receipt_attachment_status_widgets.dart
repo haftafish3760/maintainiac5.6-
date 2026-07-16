@@ -28,7 +28,7 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
     final text = message.trim().isEmpty
         ? uiConfig.readStatusLabel(
             'defaultMessage',
-            'Preparing receipt for app-assisted review...',
+            'Preparing receipt details...',
           )
         : message;
     final effectiveStatus = reading ? _ReceiptReadStatusKind.reading : status;
@@ -42,13 +42,13 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
     final title = uiConfig.readStatusLabel('${statusKey}Title', defaultTitle);
     final defaultRecoveryHint = switch (effectiveStatus) {
       _ReceiptReadStatusKind.reading =>
-        'Keep this screen open. The filled receipt details appear here as soon as OCR and parsing finish.',
+        'Keep this screen open. Your receipt details will appear here as soon as they are ready.',
       _ReceiptReadStatusKind.success =>
         'Check the store, date, totals, Business/Personal choice, and receipt lines.',
       _ReceiptReadStatusKind.warning =>
         'Check the highlighted fields and line items before saving.',
       _ReceiptReadStatusKind.failed =>
-        'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the proof and fill the receipt by hand.',
+        'Use a clearer photo, choose Add Another Photo for a long receipt, or keep the proof and fill the receipt by hand.',
     };
     final recoveryHint = uiConfig.readStatusLabel(
       '${statusKey}RecoveryHint',

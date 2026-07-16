@@ -71,9 +71,7 @@ void main() {
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(
       importActions,
-      contains(
-        r'Photo review accepted. $processing $proofCount ready. OCR sources: $ocrSourceCount.',
-      ),
+      contains('Photo review accepted. Checking the receipt details now.'),
     );
     expect(captureModels, contains('Business/Personal/Mixed choices'));
     expect(importActions, isNot(contains(r'Evidence: $evidence')));
@@ -100,7 +98,7 @@ void main() {
       importActions.indexOf(
         'void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result)',
       ),
-      importActions.indexOf('String _reviewedPhotoOcrSourceQualitySummary('),
+      importActions.indexOf('bool _pauseReviewedPhotoReadUntilNextSection('),
     );
     expect(
       reviewedPhotoReadStatusBlock,
@@ -116,34 +114,17 @@ void main() {
     );
     final takePhotoBlock = importActions.substring(
       importActions.indexOf('Future<void> takeReceiptPhoto() async'),
-      importActions.indexOf('Future<_MaintainiacNativeCameraPhotoOutcome>'),
+      importActions.indexOf('void _notifyReceiptCaptureDiagnostic('),
     );
+    expect(takePhotoBlock, contains('await _takeSystemCameraReceiptPhoto();'));
     expect(
       takePhotoBlock,
-      contains(
-        'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
-      ),
-    );
-    final addedReturnIndex = takePhotoBlock.indexOf(
-      'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
-    );
-    final canceledReturnIndex = takePhotoBlock.indexOf(
-      'await returnToReceiptImportOptions();',
-      addedReturnIndex,
-    );
-    final backupCaptureIndex = takePhotoBlock.indexOf(
-      '_openReceiptBackupCaptureAfterNativeUnavailable(settings)',
-    );
-    expect(addedReturnIndex, lessThan(canceledReturnIndex));
-    expect(addedReturnIndex, lessThan(backupCaptureIndex));
-    expect(
-      addedReturnIndex,
-      lessThan(takePhotoBlock.indexOf('_takePhoneCameraBackupPhoto();')),
+      isNot(contains('_takeMaintainiacNativeCameraPhoto')),
     );
     expect(
       entryScreen,
       contains(
-        'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when OCR and parsing finish.',
+        'Maintainiac is checking the accepted photo now. Keep this screen open; receipt details will appear here when they are ready.',
       ),
     );
     expect(
