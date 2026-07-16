@@ -147,59 +147,54 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Tooltip(
-                    message: savingPhotos
-                        ? 'Opening receipt details'
-                        : continueLabel,
-                    child: Semantics(
-                      button: true,
-                      label: savingPhotos
-                          ? 'Opening receipt details'
-                          : continueLabel,
-                      child: FilledButton.icon(
-                        onPressed: savingPhotos ? null : onContinue,
-                        icon: savingPhotos
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Icon(continueIcon),
-                        label: savingPhotos
-                            ? const Text(
-                                'Opening',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            : _ReceiptNextReviewLabel(
-                                label: uiConfig.labelFor(
-                                  'continue',
-                                  continueLabel == 'Use Receipt'
-                                      ? uiConfig.useReceiptLabel
-                                      : continueLabel,
-                                ),
-                              ),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 38),
-                          backgroundColor: uiConfig.primaryActionColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
+              ],
+            ),
+            SizedBox(height: compact ? 5 : 7),
+            SizedBox(
+              width: double.infinity,
+              child: Tooltip(
+                message: savingPhotos
+                    ? 'Opening receipt details'
+                    : continueLabel,
+                child: Semantics(
+                  button: true,
+                  label: savingPhotos
+                      ? 'Opening receipt details'
+                      : continueLabel,
+                  child: FilledButton.icon(
+                    onPressed: savingPhotos ? null : onContinue,
+                    icon: savingPhotos
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Icon(continueIcon),
+                    label: savingPhotos
+                        ? const Text('Opening')
+                        : _ReceiptNextReviewLabel(
+                            label: uiConfig.labelFor(
+                              'continue',
+                              continueLabel == 'Use Receipt'
+                                  ? uiConfig.useReceiptLabel
+                                  : continueLabel,
+                            ),
                           ),
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(42),
+                      backgroundColor: uiConfig.primaryActionColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
                       ),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ],
         ),
