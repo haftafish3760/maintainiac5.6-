@@ -70,6 +70,20 @@ void main() {
       expect(check.warningMessage(), contains('getting low on storage'));
     });
 
+    test('classifies shared storage health at the approved thresholds', () async {
+      Future<AppStorageLevel> levelFor(double freeMb) async =>
+          (await AppStorageGuard.checkForBytes(
+            operationBytes: 1,
+            purpose: AppStoragePurpose.smallRecordWrite,
+            freeStorageReader: () async => freeMb,
+          )).level;
+
+      expect(await levelFor(1024), AppStorageLevel.green);
+      expect(await levelFor(500), AppStorageLevel.yellow);
+      expect(await levelFor(499), AppStorageLevel.orange);
+      expect(await levelFor(250), AppStorageLevel.red);
+    });
+
     test('allows safe action when the device has enough space', () async {
       final check = await AppStorageGuard.checkForBytes(
         operationBytes: 10 * 1024 * 1024,
@@ -78,7 +92,7 @@ void main() {
       );
 
       expect(check.hasEnoughSpace, isTrue);
-      expect(check.shouldWarnLowStorage, isFalse);
+      expect(check.shouldWarnLowStorage, isTrue);
     });
 
     test(

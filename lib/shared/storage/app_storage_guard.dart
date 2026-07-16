@@ -13,11 +13,18 @@ enum AppStoragePurpose {
 
 typedef AppFreeStorageReader = Future<double?> Function();
 
+/// Shared semantic storage state. UI layers choose their own accessible color
+/// tokens from this stable state; storage policy never deletes files.
+enum AppStorageLevel { green, yellow, orange, red, unknown }
+
 class AppStorageGuard {
   AppStorageGuard._();
 
   static const int minimumDeviceReserveBytes = 50 * 1024 * 1024;
-  static const int lowStorageWarningBytes = 250 * 1024 * 1024;
+  static const int greenStorageBytes = 1024 * 1024 * 1024;
+  static const int yellowStorageBytes = 500 * 1024 * 1024;
+  static const int orangeStorageBytes = 250 * 1024 * 1024;
+  static const int lowStorageWarningBytes = greenStorageBytes;
   static const int smallRecordWriteBytes = 1 * 1024 * 1024;
   static const int mileageTrackingWriteBytes = 2 * 1024 * 1024;
   static const int receiptPhotoCaptureBytes = 25 * 1024 * 1024;
@@ -148,6 +155,21 @@ class AppStorageCheck {
     final available = availableBytes;
     return available != null &&
         available < AppStorageGuard.lowStorageWarningBytes;
+  }
+
+  AppStorageLevel get level {
+    final available = availableBytes;
+    if (available == null) return AppStorageLevel.unknown;
+    if (available >= AppStorageGuard.greenStorageBytes) {
+      return AppStorageLevel.green;
+    }
+    if (available >= AppStorageGuard.yellowStorageBytes) {
+      return AppStorageLevel.yellow;
+    }
+    if (available > AppStorageGuard.orangeStorageBytes) {
+      return AppStorageLevel.orange;
+    }
+    return AppStorageLevel.red;
   }
 
   String get minimumLabel => AppStorageGuard.formatBytes(requiredBytes);
