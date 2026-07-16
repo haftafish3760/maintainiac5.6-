@@ -176,6 +176,14 @@ class MaintainiacFirestoreUploadPolicy {
         'Personal mileage cannot carry organization sharing fields.',
       );
     }
+    if (draft.data['createdByUid'] != parts[1] ||
+        draft.data['updatedByUid'] != parts[1]) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Personal mileage must match the authenticated user backup path.',
+      );
+    }
   }
 
   static void _validateTripMileageSummaryValues(

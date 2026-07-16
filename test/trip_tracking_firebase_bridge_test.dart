@@ -310,6 +310,24 @@ void main() {
     );
   });
 
+  test('local upload policy rejects personal mileage UID mismatch', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(
+          path: 'users/otherUid/mileageRecords/trip_1',
+          data: doc.data,
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test(
     'queues and uploads a reviewed trip while preserving local retry state',
     () async {
