@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_category_store.dart';
 
 void main() {
@@ -12,5 +15,20 @@ void main() {
       'categoryId': 'fuel',
       'displayName': 'Vehicle fuel',
     });
+  });
+
+  test('category rename survives a local restart', () async {
+    final directory = await Directory.systemTemp.createTemp('category_store_');
+    addTearDown(() async {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    });
+    Hive.init(directory.path);
+    final first = await ExpenseCategoryStore.create();
+    await first.rename(id: 'fuel', name: 'Vehicle fuel');
+    await Hive.close();
+    Hive.init(directory.path);
+    final reopened = await ExpenseCategoryStore.create();
+    expect(reopened.displayNameFor('fuel', fallback: 'Fuel'), 'Vehicle fuel');
   });
 }
