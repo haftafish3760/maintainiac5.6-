@@ -43,6 +43,29 @@ void main() {
     expect(find.text('Save space preview'), findsNothing);
     expect(find.text('Continue'), findsNothing);
   });
+
+  testWidgets('narrow phone review keeps primary actions visible', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReceiptPhotoReviewScreen(
+          initialPhotoPaths: receiptPaths,
+          initialDataSaverLevel: ReceiptDataSaverLevel.balanced,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Retake Section 1'), findsOneWidget);
+    expect(find.text('Add Another Photo'), findsOneWidget);
+    expect(find.text('Use Receipt'), findsOneWidget);
+  });
 }
 
 Future<String> _writeReceiptImage(
