@@ -247,6 +247,7 @@ Map<String, Object?> _nativeControlContract(
 
 String _expectedCaptureSurface(ReceiptNativeCameraSessionConfig config) {
   return switch (config.nativeCapabilities.engine) {
+    ReceiptNativeCameraEngine.systemCamera => 'system_phone_camera',
     ReceiptNativeCameraEngine.cameraX => 'maintainiac_native_android',
     ReceiptNativeCameraEngine.avFoundation => 'maintainiac_native_ios',
     ReceiptNativeCameraEngine.unavailable => 'maintainiac_native_unavailable',

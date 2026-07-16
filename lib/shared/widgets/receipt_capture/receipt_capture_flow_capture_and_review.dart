@@ -21,82 +21,56 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     );
   }
 
-  final nativeCapabilities = await flow._nativeCameraService.readCapabilities();
-  if (!context.mounted) return ReceiptCaptureFlowResult.canceled();
-  if (!nativeCapabilities.canOpenReceiptCamera) {
-    return ReceiptCaptureFlowResult.failed(
-      status: ReceiptCaptureFlowStatus.nativeUnavailable,
-      message: nativeCapabilities.userSafeSummary,
-      nativeCapabilities: nativeCapabilities,
-      diagnostics: _diagnostics(
-        stage: 'native_camera_capabilities',
-        reason: _nativeCapabilityFailureReason(nativeCapabilities),
-        action: 'open_backup_receipt_photo_option',
-        nativeCapabilities: nativeCapabilities,
-        options: options,
-      ),
-    );
-  }
-
-  final deviceCapability =
-      settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
+  const nativeCapabilities = ReceiptNativeCameraCapabilities(
+    engine: ReceiptNativeCameraEngine.systemCamera,
+    available: true,
+    cameraPermissionGranted: true,
+    cameraCount: 1,
+    hasRearCamera: true,
+  );
   final cameraSettings = _cameraSettingsFor(settings, options);
   ReceiptNativeCaptureResult capture;
   try {
-    capture = await flow._nativeCameraService.captureReceipt(
-      cameraSettings.sessionFor(
-        deviceCapability: deviceCapability,
+    final picked = await ReceiptImagePicker.takeReceiptPhotoSet();
+    if (picked.isEmpty) {
+      return ReceiptCaptureFlowResult.canceled(
+        message:
+            'No receipt photo was added. Open Phone Camera again, or choose an existing receipt image.',
         nativeCapabilities: nativeCapabilities,
-        previousSectionGuidePhotoPath: options.previousSectionGuidePhotoPath,
-        previousSectionReasonCode: options.previousSectionReasonCode,
-        previousSectionGuidance: options.previousSectionGuidance,
-        previousSectionGhostSourceStartFraction:
-            options.previousSectionGhostSourceStartFraction,
-        previousSectionGhostSourceHeightFraction:
-            options.previousSectionGhostSourceHeightFraction,
-        previousSectionGhostOverlayTopFraction:
-            options.previousSectionGhostOverlayTopFraction,
-        previousSectionGhostOverlayHeightFraction:
-            options.previousSectionGhostOverlayHeightFraction,
-        previousSectionGhostOpacity: options.previousSectionGhostOpacity,
-      ),
+        diagnostics: _diagnostics(
+          stage: 'system_camera_close',
+          reason: 'user_canceled_before_photo',
+          action: 'retry_or_import_existing_photo',
+          nativeCapabilities: nativeCapabilities,
+          options: options,
+        ),
+      );
+    }
+    capture = ReceiptNativeCaptureResult(
+      engine: ReceiptNativeCameraEngine.systemCamera,
+      originalPhotoPaths: picked.paths,
+      temporaryCaptureIds: _systemCameraCaptureIds(picked.paths.length),
+      capturedAt: DateTime.now(),
+      captureDiagnostics: {
+        'captureFlow': 'system_phone_camera_receipt_photo',
+        'systemPhoneCameraUsed': true,
+        'systemPhoneCameraRole': 'primary_capture',
+        'systemPhoneCameraReturnsToReceiptReview': true,
+        ..._previousSectionGuideDiagnostics(options),
+      },
     );
-  } on ReceiptNativeCameraCanceledException catch (error) {
-    return ReceiptCaptureFlowResult.canceled(
+  } catch (_) {
+    return ReceiptCaptureFlowResult.failed(
+      status: ReceiptCaptureFlowStatus.nativeUnavailable,
       message:
-          'No receipt photo was added. Tap Capture Receipt Photo again, or choose an existing receipt image.',
+          'Phone Camera did not open. Try Capture Receipt Photo again, or choose an existing receipt image.',
       nativeCapabilities: nativeCapabilities,
       diagnostics: _diagnostics(
-        stage: 'native_camera_close',
-        reason: 'user_canceled_before_photo',
+        stage: 'system_camera_open',
+        reason: 'system_camera_unavailable',
         action: 'retry_or_import_existing_photo',
         nativeCapabilities: nativeCapabilities,
         options: options,
-        extraMetadata: {
-          'closeAction': error.closeAction,
-          'nativeCaptureOutcome': 'user_canceled_without_photo',
-          'nativeCaptureFallbackPolicy': 'offer_retry_or_import',
-          'userNextStep':
-              'retry_receipt_photo_or_import_existing_receipt_image',
-        },
-      ),
-    );
-  } on ReceiptNativeCameraUnavailableException catch (error) {
-    return ReceiptCaptureFlowResult.failed(
-      status: ReceiptCaptureFlowStatus.nativeUnavailable,
-      message: error.message,
-      nativeCapabilities: nativeCapabilities,
-      diagnostics: _diagnostics(
-        stage: 'native_camera_open',
-        reason: 'native_camera_unavailable',
-        action: 'open_backup_receipt_photo_option',
-        nativeCapabilities: nativeCapabilities,
-        options: options,
-        extraMetadata: const {
-          'nativeCaptureOutcome': 'native_camera_open_failed',
-          'nativeCaptureFallbackPolicy': 'open_backup_or_import',
-          'userNextStep': 'use_phone_camera_backup_or_import_existing_photo',
-        },
       ),
     );
   }
@@ -106,20 +80,14 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     return ReceiptCaptureFlowResult.failed(
       status: ReceiptCaptureFlowStatus.nativeUnavailable,
       message:
-          'Maintainiac receipt camera did not return a photo. Try Capture Receipt Photo again, or choose an existing receipt image.',
+          'Phone Camera did not return a photo. Try Capture Receipt Photo again, or choose an existing receipt image.',
       nativeCapabilities: nativeCapabilities,
       diagnostics: _diagnostics(
-        stage: 'native_camera_result',
-        reason: 'native_camera_returned_no_photos',
+        stage: 'system_camera_result',
+        reason: 'system_camera_returned_no_photos',
         action: 'retry_or_import_existing_photo',
         nativeCapabilities: nativeCapabilities,
         options: options,
-        extraMetadata: {
-          'nativeCaptureOutcome': 'native_camera_returned_no_photo',
-          'nativeCaptureFallbackPolicy': 'offer_retry_or_import',
-          'userNextStep':
-              'retry_receipt_photo_or_import_existing_receipt_image',
-        },
       ),
     );
   }
@@ -198,8 +166,8 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
   if (!context.mounted) return ReceiptCaptureFlowResult.canceled();
   final reviewOpeningDiagnostics = _withReviewOpeningDiagnostics(
     staged.captureDiagnosticsByPhotoPath,
-    route: 'native_capture_to_photo_review',
-    source: 'fresh_native_capture',
+    route: 'system_camera_to_photo_review',
+    source: 'fresh_system_phone_camera',
     photoCount: staged.photoPaths.length,
     options: options,
   );
@@ -236,6 +204,15 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     reviewResult: reviewResult,
     nativeCapabilities: nativeCapabilities,
     options: options,
+  );
+}
+
+List<String> _systemCameraCaptureIds(int count) {
+  final timestamp = DateTime.now().microsecondsSinceEpoch;
+  return List<String>.generate(
+    count,
+    (index) => 'system-camera-$timestamp-$index',
+    growable: false,
   );
 }
 

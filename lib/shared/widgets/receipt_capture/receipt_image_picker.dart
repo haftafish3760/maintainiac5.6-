@@ -28,12 +28,18 @@ class ReceiptImagePicker {
 
   /// Production receipt capture opens the phone's system camera first, then
   /// returns to Maintainiac for numbered review and long-receipt stitching.
-  /// The compatibility method name remains because older callers use it.
   static Future<ReceiptPickedPhotoSet> takeReceiptPhotoSet() async {
-    return takeBackupReceiptPhotoSet();
+    return _takeSystemCameraReceiptPhotoSet();
   }
 
+  /// Compatibility entry point for legacy callers. It uses the same phone
+  /// camera path as the primary receipt flow.
   static Future<ReceiptPickedPhotoSet> takeBackupReceiptPhotoSet() async {
+    return _takeSystemCameraReceiptPhotoSet();
+  }
+
+  static Future<ReceiptPickedPhotoSet>
+  _takeSystemCameraReceiptPhotoSet() async {
     final photo = await _picker.pickImage(
       source: ImageSource.camera,
       preferredCameraDevice: CameraDevice.rear,

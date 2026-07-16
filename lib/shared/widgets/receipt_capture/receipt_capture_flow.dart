@@ -9,9 +9,9 @@ import 'receipt_camera_permission.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_capture_settings_store.dart';
 import 'receipt_capture_ui_config.dart';
+import 'receipt_image_picker.dart';
 import 'receipt_native_capture_staging.dart';
 import 'receipt_native_camera_contract.dart';
-import 'receipt_native_camera_service.dart';
 import 'receipt_ocr_service.dart';
 import 'receipt_photo_path_identity.dart';
 import 'receipt_photo_review_screen.dart';
@@ -33,13 +33,9 @@ part 'receipt_capture_flow_review_result.dart';
 
 class ReceiptCaptureFlow {
   const ReceiptCaptureFlow({
-    ReceiptNativeCameraService nativeCameraService =
-        const ReceiptNativeCameraService(),
     ReceiptNativeCaptureStaging staging = const ReceiptNativeCaptureStaging(),
-  }) : _nativeCameraService = nativeCameraService,
-       _staging = staging;
+  }) : _staging = staging;
 
-  final ReceiptNativeCameraService _nativeCameraService;
   final ReceiptNativeCaptureStaging _staging;
 
   Future<ReceiptCaptureFlowResult> captureAndReview(

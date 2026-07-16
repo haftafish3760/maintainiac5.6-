@@ -35,6 +35,7 @@ extension _ReceiptNativeCaptureStagingManifestHelpers
 
   String _sourceLabel(ReceiptNativeCameraEngine engine) {
     return switch (engine) {
+      ReceiptNativeCameraEngine.systemCamera => 'Phone camera receipt photo',
       ReceiptNativeCameraEngine.cameraX => 'Maintainiac CameraX receipt camera',
       ReceiptNativeCameraEngine.avFoundation =>
         'Maintainiac AVFoundation receipt camera',

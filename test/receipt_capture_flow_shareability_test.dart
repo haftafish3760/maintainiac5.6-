@@ -290,7 +290,8 @@ void main() {
   test('shared camera OCR flow stays module neutral', () async {
     final source = await readReceiptCaptureFlowSource();
 
-    expect(source, contains('ReceiptNativeCameraService'));
+    expect(source, contains('ReceiptImagePicker.takeReceiptPhotoSet()'));
+    expect(source, isNot(contains('ReceiptNativeCameraService')));
     expect(source, contains('ReceiptOcrService'));
     expect(source, contains('ReceiptPhotoReviewScreen'));
     expect(source, contains('reviewDepth:'));
@@ -440,15 +441,8 @@ void main() {
         'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
       ).readAsString();
 
-      expect(
-        actions,
-        contains(
-          'forceReviewDepth: _receiptNativeReviewDepthForCurrentCapture()',
-        ),
-      );
-      expect(actions, contains('ExpenseReceiptReviewStyle.fullItemDetails'));
-      expect(actions, contains('ReceiptNativeReviewDepth.detailedLines'));
-      expect(actions, contains('ReceiptNativeReviewDepth.pricesOnly'));
+      expect(actions, contains('await _takeSystemCameraReceiptPhoto();'));
+      expect(actions, isNot(contains('_takeMaintainiacNativeCameraPhoto')));
     },
   );
 

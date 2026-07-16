@@ -9,6 +9,7 @@ part 'receipt_native_camera_session_config.dart';
 part 'receipt_native_camera_session_ghost_guide.dart';
 
 enum ReceiptNativeCameraEngine {
+  systemCamera('Phone camera'),
   cameraX('CameraX'),
   avFoundation('AVFoundation'),
   unavailable('Native camera unavailable');

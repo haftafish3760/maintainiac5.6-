@@ -51,10 +51,9 @@ Map<String, Map<String, Object?>> _withReviewOpeningDiagnostics(
         ...entry.value,
         'receiptReviewOpeningRoute': route,
         'receiptReviewOpeningSource': source,
-        'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
-        'maintainiacCustomCameraPrimary': true,
-        'stockCameraUiAllowedAsPrimary': false,
-        'phoneCameraBackupRole': 'fallback_only',
+        'primaryCaptureFlow': 'system_phone_camera_receipt_photo',
+        'systemPhoneCameraUsed': true,
+        'systemPhoneCameraRole': 'primary_capture',
         'receiptReviewOpeningPolicy':
             'open_photo_review_before_ocr_or_receipt_form',
         'receiptReviewOpeningExpectedFirstAction':
@@ -76,13 +75,11 @@ Map<String, Object?> _diagnostics({
   Map<String, Object?> extraMetadata = const {},
 }) {
   return Map<String, Object?>.unmodifiable({
-    'captureFlow': 'maintainiac_shared_receipt_camera',
-    'primaryCaptureFlow': 'maintainiac_native_receipt_camera',
-    'maintainiacCustomCameraPrimary': true,
-    'stockCameraUiAllowedAsPrimary': false,
-    'phoneCameraBackupAllowed': true,
-    'phoneCameraBackupRole': 'fallback_only',
-    'fallbackCaptureRequiresUserAction': true,
+    'captureFlow': 'system_phone_camera_receipt_photo',
+    'primaryCaptureFlow': 'system_phone_camera_receipt_photo',
+    'systemPhoneCameraUsed': true,
+    'systemPhoneCameraRole': 'primary_capture',
+    'systemPhoneCameraReturnsToReceiptReview': true,
     'receiptCaptureModule': options.module.storageName,
     'nativeCaptureFailureStage': stage,
     'nativeCaptureFailureReason': reason,
@@ -200,13 +197,4 @@ String? _trimmedOrNull(String? value) {
   final trimmed = value?.trim();
   if (trimmed == null || trimmed.isEmpty) return null;
   return trimmed;
-}
-
-String _nativeCapabilityFailureReason(
-  ReceiptNativeCameraCapabilities capabilities,
-) {
-  if (!capabilities.available) return 'native_camera_not_available';
-  if (!capabilities.cameraPermissionGranted) return 'permission_denied';
-  if (!capabilities.hasRearCamera) return 'rear_camera_missing';
-  return 'native_camera_not_ready';
 }
