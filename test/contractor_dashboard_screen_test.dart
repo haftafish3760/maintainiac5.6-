@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/dashboard/active_workday_screen.dart';
 import 'package:maintaniac/screens/dashboard/dashboard.dart';
+import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
+import 'package:maintaniac/screens/dashboard/vehicle_profile_widgets.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
@@ -66,6 +69,68 @@ void main() {
     expect(find.text('Create Invoice'), findsOneWidget);
     expect(find.text('Record Payment'), findsOneWidget);
     expect(find.text('Proof Photo'), findsOneWidget);
+  });
+
+  testWidgets('active workday miles redraw from live GPS odometer projection', (
+    tester,
+  ) async {
+    odometer.dispose();
+    odometer = GlobalOdometerController(initialReading: 1000);
+    final activeWorkday = ActiveWorkdayController.memory();
+    await activeWorkday.startDay(
+      vehicleId: odometer.vehicleId,
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 16, 8),
+    );
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: ActiveWorkdayScope(
+          controller: activeWorkday,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: const MaterialApp(
+              home: ActiveWorkdayScreen(
+                activeVehicle: VehicleProfilePreview(
+                  id: 'vehicle_1',
+                  nickname: 'Work Truck',
+                  year: '2026',
+                  make: 'Ford',
+                  model: 'Transit',
+                  odometer: '0001000',
+                  status: 'ACTIVE',
+                ),
+                workProfileName: 'Business',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Miles Today'), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
+
+    expect(
+      odometer.beginLiveTripProjection(
+        tripId: 'gps-trip-active-day',
+        startingOdometer: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      odometer.updateLiveTripProjection(
+        tripId: 'gps-trip-active-day',
+        estimatedOdometer: 1005,
+      ),
+      isTrue,
+    );
+    await tester.pump();
+
+    expect(find.text('5'), findsOneWidget);
   });
 }
 
