@@ -148,6 +148,11 @@ void main() {
     expect(doc.path, 'orgs/orgA/mileageRecords/trip_1');
     expect(doc.data['schema'], 'trip_tracking_review_v1');
     expect(doc.data['createdByUid'], 'firebaseUid-1');
+    expect(doc.data['confirmedEndingOdometer'], 1013);
+    expect(
+      doc.data['odometerConfirmedAt'],
+      DateTime.utc(2026, 7, 14, 13, 1).toIso8601String(),
+    );
     expect(doc.data['acceptedMeters'], 19312.128);
     expect(doc.data['locationDataIncluded'], isFalse);
     expect(doc.data['visibilityScope'], 'mileage_only');
@@ -284,6 +289,8 @@ void main() {
     for (final badData in [
       {...doc.data, 'acceptedMeters': -1},
       {...doc.data, 'estimatedEndingOdometer': 999},
+      {...doc.data, 'confirmedEndingOdometer': 999},
+      {...doc.data}..remove('odometerConfirmedAt'),
       {...doc.data, 'acceptedSampleCount': 999},
       {...doc.data, 'vehicleId': ''},
     ]) {

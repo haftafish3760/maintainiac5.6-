@@ -248,6 +248,18 @@ describe('Firestore rules emulator safety', () => {
       }),
     );
     await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip13'), {
+        ...summary,
+        confirmedEndingOdometer: 999,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip14'), {
+        ...summary,
+        odometerConfirmedAt: null,
+      }),
+    );
+    await assertFails(
       setDoc(doc(owner, 'orgs/orgA/mileageRecords/otherTrip'), summary),
     );
     await testEnv.withSecurityRulesDisabled(async (context) => {
@@ -483,6 +495,8 @@ function mileageSummary(overrides = {}) {
     updatedAt: '2026-07-16T12:46:00.000Z',
     startingOdometer: 1000,
     estimatedEndingOdometer: 1012,
+    confirmedEndingOdometer: 1013,
+    odometerConfirmedAt: '2026-07-16T12:47:00.000Z',
     acceptedMeters: 19312.128,
     acceptedMiles: 12.0,
     walkingReviewSuggested: false,

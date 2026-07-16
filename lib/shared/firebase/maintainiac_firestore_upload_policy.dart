@@ -206,6 +206,7 @@ class MaintainiacFirestoreUploadPolicy {
   ) {
     final startingOdometer = draft.data['startingOdometer'];
     final estimatedEndingOdometer = draft.data['estimatedEndingOdometer'];
+    final confirmedEndingOdometer = draft.data['confirmedEndingOdometer'];
     final acceptedMeters = draft.data['acceptedMeters'];
     final acceptedMiles = draft.data['acceptedMiles'];
     final receivedSampleCount = draft.data['receivedSampleCount'];
@@ -223,6 +224,9 @@ class MaintainiacFirestoreUploadPolicy {
         _isNonNegativeInt(startingOdometer) &&
         _isNonNegativeInt(estimatedEndingOdometer) &&
         (estimatedEndingOdometer as int) >= (startingOdometer as int) &&
+        _isNonNegativeInt(confirmedEndingOdometer) &&
+        (confirmedEndingOdometer as int) >= startingOdometer &&
+        _isNonEmptyString(draft.data['odometerConfirmedAt']) &&
         _isNonNegativeFiniteNumber(acceptedMeters) &&
         _isNonNegativeFiniteNumber(acceptedMiles) &&
         draft.data['walkingReviewSuggested'] is bool &&

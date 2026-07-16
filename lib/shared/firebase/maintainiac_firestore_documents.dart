@@ -296,6 +296,10 @@ class MaintainiacFirestoreDocumentBuilder {
         'updatedAt': review.finishedAt.toUtc().toIso8601String(),
         'startingOdometer': review.startingOdometer,
         'estimatedEndingOdometer': review.estimatedEndingOdometer,
+        'confirmedEndingOdometer': review.confirmedEndingOdometer,
+        'odometerConfirmedAt': review.odometerConfirmedAt
+            ?.toUtc()
+            .toIso8601String(),
         'acceptedMeters': acceptedMeters,
         'acceptedMiles': acceptedMeters / 1609.344,
         'walkingReviewSuggested': review.needsWalkingReview,

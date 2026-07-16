@@ -152,6 +152,8 @@ service cloud.firestore {
         'updatedAt',
         'startingOdometer',
         'estimatedEndingOdometer',
+        'confirmedEndingOdometer',
+        'odometerConfirmedAt',
         'acceptedMeters',
         'acceptedMiles',
         'walkingReviewSuggested',
@@ -177,6 +179,8 @@ service cloud.firestore {
         'updatedAt',
         'startingOdometer',
         'estimatedEndingOdometer',
+        'confirmedEndingOdometer',
+        'odometerConfirmedAt',
         'acceptedMeters',
         'acceptedMiles',
         'walkingReviewSuggested',
@@ -203,6 +207,10 @@ service cloud.firestore {
         request.resource.data.estimatedEndingOdometer is int &&
         request.resource.data.estimatedEndingOdometer >=
           request.resource.data.startingOdometer &&
+        request.resource.data.confirmedEndingOdometer is int &&
+        request.resource.data.confirmedEndingOdometer >=
+          request.resource.data.startingOdometer &&
+        request.resource.data.odometerConfirmedAt is string &&
         request.resource.data.acceptedMeters is number &&
         request.resource.data.acceptedMeters >= 0 &&
         request.resource.data.acceptedMiles is number &&
