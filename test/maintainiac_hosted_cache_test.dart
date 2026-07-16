@@ -199,6 +199,28 @@ void main() {
 
     expect(first.sha256, second.sha256);
   });
+
+  test('treats a tampered persisted cache value as a cache miss', () async {
+    final store = await MaintainiacHostedCacheStore.create();
+    const path = 'vendorRegistry/tampered_vendor';
+    await Hive.box<dynamic>(MaintainiacHostedCacheStore.boxName).put(
+      'vendorRegistry_tampered_vendor',
+      {
+        'path': path,
+        'data': const {'schema': 'vendor_profile_v1', 'vendorId': 'tampered'},
+        'cachedAtUtc': '2026-07-16T12:00:00.000Z',
+        'expiresAtUtc': '2026-08-16T12:00:00.000Z',
+        'sha256':
+            '0000000000000000000000000000000000000000000000000000000000000000',
+      },
+    );
+
+    expect(
+      store.lookup(path: path, nowUtc: DateTime.utc(2026, 7, 17)).status,
+      MaintainiacHostedCacheStatus.miss,
+    );
+    expect(store.records, isEmpty);
+  });
 }
 
 Map<String, Object?> _safeCatalogPackData() {

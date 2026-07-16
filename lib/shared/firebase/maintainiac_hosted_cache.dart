@@ -167,6 +167,19 @@ class MaintainiacHostedCacheRecord {
 
   bool get isEmpty => path.isEmpty || data.isEmpty || sha256.isEmpty;
 
+  /// Cached hosted metadata is only usable after its persisted bytes still
+  /// match the fingerprint written with it. Cache corruption must cause a
+  /// refetch, never a trusted offline result.
+  bool get isTrusted {
+    if (isEmpty || expiresAtUtc.isBefore(cachedAtUtc)) return false;
+    try {
+      MaintainiacHostedCachePolicy.validateCacheable(path: path, data: data);
+      return sha256 == _sha256For(data);
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool isFreshAt(DateTime nowUtc) => !isEmpty && nowUtc.isBefore(expiresAtUtc);
 
   bool matchesVersion(String? requestedVersion) {
@@ -214,7 +227,7 @@ class MaintainiacHostedCacheStore {
     final loaded = <MaintainiacHostedCacheRecord>[];
     for (final value in _box.values) {
       final record = MaintainiacHostedCacheRecord.fromStored(value);
-      if (!record.isEmpty) loaded.add(record);
+      if (!record.isEmpty && record.isTrusted) loaded.add(record);
     }
     loaded.sort((a, b) => a.cachedAtUtc.compareTo(b.cachedAtUtc));
     return List.unmodifiable(loaded);
@@ -256,7 +269,7 @@ class MaintainiacHostedCacheStore {
     final record = MaintainiacHostedCacheRecord.fromStored(
       _box.get(_keyFor(path)),
     );
-    if (record.isEmpty || !record.matchesVersion(version)) {
+    if (record.isEmpty || !record.isTrusted || !record.matchesVersion(version)) {
       return const MaintainiacHostedCacheLookup(
         status: MaintainiacHostedCacheStatus.miss,
       );
