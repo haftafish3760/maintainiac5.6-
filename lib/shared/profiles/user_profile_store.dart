@@ -1,25 +1,35 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../storage/app_storage_guard.dart';
 import 'user_profile_models.dart';
+
+typedef UserProfileStorageCheck = Future<AppStorageCheck> Function();
 
 class UserProfileController extends ChangeNotifier {
   UserProfileController._({
     required Box<dynamic>? box,
     required UserProfileRecord activeProfile,
+    UserProfileStorageCheck? storageCheck,
   }) : _box = box,
-       _activeProfile = activeProfile;
+       _activeProfile = activeProfile,
+       _storageCheck = storageCheck ?? _defaultStorageCheck;
 
-  UserProfileController.memory({UserProfileRecord? activeProfile})
-    : _box = null,
-      _activeProfile = activeProfile ?? UserProfileRecord.starterContractor();
+  UserProfileController.memory({
+    UserProfileRecord? activeProfile,
+    UserProfileStorageCheck? storageCheck,
+  }) : _box = null,
+       _activeProfile = activeProfile ?? UserProfileRecord.starterContractor(),
+       _storageCheck = storageCheck;
 
   static const boxName = 'user_profile_settings_v1';
   static const _activeProfileKey = 'activeProfile';
 
   final Box<dynamic>? _box;
+  final UserProfileStorageCheck? _storageCheck;
   UserProfileRecord _activeProfile;
   bool _recoveredFromStorageError = false;
+  Future<void> _writeTail = Future<void>.value();
 
   UserProfileRecord get activeProfile => _activeProfile;
   bool get recoveredFromStorageError => _recoveredFromStorageError;
@@ -28,7 +38,9 @@ class UserProfileController extends ChangeNotifier {
   bool get isDriverMode => _activeProfile.type == UserProfileType.driver;
   bool get isCustomerMode => _activeProfile.type == UserProfileType.customer;
 
-  static Future<UserProfileController> create() async {
+  static Future<UserProfileController> create({
+    UserProfileStorageCheck? storageCheck,
+  }) async {
     try {
       final box = await Hive.openBox<dynamic>(boxName);
       final stored = box.get(_activeProfileKey);
@@ -36,6 +48,7 @@ class UserProfileController extends ChangeNotifier {
       final controller = UserProfileController._(
         box: box,
         activeProfile: profile,
+        storageCheck: storageCheck,
       );
       if (stored is! Map || profile.wasRepairedFrom(stored)) {
         controller._recoveredFromStorageError = true;
@@ -49,12 +62,14 @@ class UserProfileController extends ChangeNotifier {
     }
   }
 
-  Future<void> saveActiveProfile(UserProfileRecord profile) async {
-    final sanitized = profile.sanitized();
-    await _box?.put(_activeProfileKey, sanitized.toMap());
-    _activeProfile = sanitized;
-    notifyListeners();
-  }
+  Future<void> saveActiveProfile(UserProfileRecord profile) =>
+      _enqueue(() async {
+        final sanitized = profile.sanitized();
+        await _ensureStorageForWrite();
+        await _box?.put(_activeProfileKey, sanitized.toMap());
+        _activeProfile = sanitized;
+        notifyListeners();
+      });
 
   Future<void> setProfileType(UserProfileType type) async {
     if (type == _activeProfile.type) return;
@@ -97,6 +112,22 @@ class UserProfileController extends ChangeNotifier {
     } catch (_) {
       _recoveredFromStorageError = true;
     }
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  Future<void> _ensureStorageForWrite() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final storage = await check();
+    if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (_) {});
+    return next;
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/profiles/user_profile_models.dart';
 import 'package:maintaniac/shared/profiles/user_profile_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -30,6 +31,28 @@ void main() {
     expect(controller.can(UserPermission.createInvoices), isTrue);
     expect(controller.can(UserPermission.manageProfiles), isTrue);
   });
+
+  test(
+    'does not claim a cloud-backup preference saved when storage is full',
+    () async {
+      final controller = UserProfileController.memory(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: 1,
+          requiredBytes: 2,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+
+      await expectLater(
+        () => controller.saveActiveProfile(
+          controller.activeProfile.copyWith(cloudBackupEnabled: true),
+        ),
+        throwsStateError,
+      );
+      expect(controller.activeProfile.cloudBackupEnabled, isFalse);
+    },
+  );
 
   test('profile mode changes persist locally', () async {
     final controller = await UserProfileController.create();
