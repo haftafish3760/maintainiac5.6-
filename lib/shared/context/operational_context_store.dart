@@ -3,20 +3,27 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../profiles/user_profile_models.dart';
 import '../state/app_state.dart';
+import '../storage/app_storage_guard.dart';
 import 'operational_context_models.dart';
+
+typedef OperationalContextStorageCheck = Future<AppStorageCheck> Function();
 
 class OperationalContextController extends ChangeNotifier {
   OperationalContextController._({
     required Box<dynamic>? box,
     required ActiveOperationalContext context,
+    OperationalContextStorageCheck? storageCheck,
   }) : _box = box,
-       _context = context;
+       _context = context,
+       _storageCheck = storageCheck;
 
   static const boxName = 'operational_context_v1';
   static const _activeContextKey = 'activeContext';
 
   final Box<dynamic>? _box;
+  final OperationalContextStorageCheck? _storageCheck;
   ActiveOperationalContext _context;
+  Future<void> _writeTail = Future<void>.value();
 
   ActiveOperationalContext get context => _context;
 
@@ -30,6 +37,7 @@ class OperationalContextController extends ChangeNotifier {
     required String activeVehicleId,
     required String activeVehicleLabel,
     required VehicleUsage activeVehicleUsage,
+    OperationalContextStorageCheck? storageCheck,
   }) async {
     final box = await Hive.openBox<dynamic>(boxName);
     final stored = box.get(_activeContextKey);
@@ -41,7 +49,11 @@ class OperationalContextController extends ChangeNotifier {
             activeVehicleLabel: activeVehicleLabel,
             activeVehicleUsage: activeVehicleUsage,
           );
-    return OperationalContextController._(box: box, context: context);
+    return OperationalContextController._(
+      box: box,
+      context: context,
+      storageCheck: storageCheck ?? _defaultStorageCheck,
+    );
   }
 
   factory OperationalContextController.memory({
@@ -58,6 +70,7 @@ class OperationalContextController extends ChangeNotifier {
         activeVehicleLabel: activeVehicleLabel,
         activeVehicleUsage: activeVehicleUsage,
       ),
+      storageCheck: null,
     );
   }
 
@@ -67,23 +80,23 @@ class OperationalContextController extends ChangeNotifier {
     required String activeVehicleLabel,
     required VehicleUsage activeVehicleUsage,
   }) async {
-    final next =
-        ActiveOperationalContext.fromProfile(
-          profile: profile,
-          activeVehicleId: activeVehicleId,
-          activeVehicleLabel: activeVehicleLabel,
-          activeVehicleUsage: activeVehicleUsage,
-        ).copyWith(
-          companyMode: _context.companyMode,
-          dashboardMode: _context.dashboardMode,
-          mileageMode: _context.mileageMode,
-          syncMode: _context.syncMode,
-          companyId: _context.companyId,
-          companyName: _context.companyName.isEmpty
-              ? profile.businessName
-              : _context.companyName,
-        );
-    await save(next);
+    return _update((current) {
+      return ActiveOperationalContext.fromProfile(
+        profile: profile,
+        activeVehicleId: activeVehicleId,
+        activeVehicleLabel: activeVehicleLabel,
+        activeVehicleUsage: activeVehicleUsage,
+      ).copyWith(
+        companyMode: current.companyMode,
+        dashboardMode: current.dashboardMode,
+        mileageMode: current.mileageMode,
+        syncMode: current.syncMode,
+        companyId: current.companyId,
+        companyName: current.companyName.isEmpty
+            ? profile.businessName
+            : current.companyName,
+      );
+    });
   }
 
   Future<void> setActiveVehicle({
@@ -91,8 +104,8 @@ class OperationalContextController extends ChangeNotifier {
     required String vehicleLabel,
     required VehicleUsage usage,
   }) async {
-    await save(
-      _context.copyWith(
+    return _update(
+      (current) => current.copyWith(
         activeVehicleId: vehicleId,
         activeVehicleLabel: vehicleLabel,
         activeVehicleUsage: usage,
@@ -102,8 +115,8 @@ class OperationalContextController extends ChangeNotifier {
   }
 
   Future<void> setDashboardMode(OperationalDashboardMode mode) async {
-    await save(
-      _context.copyWith(
+    return _update(
+      (current) => current.copyWith(
         dashboardMode: mode,
         mileageMode: _mileageModeForDashboard(mode),
         updatedAt: DateTime.now(),
@@ -112,13 +125,47 @@ class OperationalContextController extends ChangeNotifier {
   }
 
   Future<void> setSyncMode(OperationalSyncMode mode) async {
-    await save(_context.copyWith(syncMode: mode, updatedAt: DateTime.now()));
+    return _update(
+      (current) => current.copyWith(syncMode: mode, updatedAt: DateTime.now()),
+    );
   }
 
-  Future<void> save(ActiveOperationalContext context) async {
-    _context = context;
-    await _box?.put(_activeContextKey, context.toMap());
-    notifyListeners();
+  Future<void> save(ActiveOperationalContext context) {
+    return _update((_) => context);
+  }
+
+  Future<void> _update(
+    ActiveOperationalContext Function(ActiveOperationalContext current) update,
+  ) {
+    return _enqueue(() async {
+      final next = update(_context);
+      final box = _box;
+      if (box != null) {
+        await _ensureStorageForWrite();
+        await box.put(_activeContextKey, next.toMap());
+      }
+      _context = next;
+      notifyListeners();
+    });
+  }
+
+  Future<void> _ensureStorageForWrite() async {
+    final storageCheck = _storageCheck;
+    if (storageCheck == null) return;
+    final result = await storageCheck();
+    if (!result.hasEnoughSpace) {
+      throw StateError(result.blockingMessage());
+    }
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final result = _writeTail.then((_) => operation());
+    _writeTail = result.then<void>((_) {}, onError: (error, _) {});
+    return result;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() {
+    return AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
   }
 }
 

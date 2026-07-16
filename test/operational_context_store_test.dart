@@ -6,6 +6,7 @@ import 'package:maintaniac/shared/context/operational_context_models.dart';
 import 'package:maintaniac/shared/context/operational_context_store.dart';
 import 'package:maintaniac/shared/profiles/user_profile_models.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -107,4 +108,63 @@ void main() {
     expect(controller.context.can(UserPermission.viewFinancials), isFalse);
     expect(controller.context.showsMileage, isTrue);
   });
+
+  test('does not replace local context when storage is full', () async {
+    final controller = await OperationalContextController.create(
+      profile: UserProfileRecord.starterContractor(),
+      activeVehicleId: 'truck-1',
+      activeVehicleLabel: 'Work Truck 1',
+      activeVehicleUsage: VehicleUsage.businessPersonal,
+      storageCheck: _fullStorageCheck,
+    );
+
+    await expectLater(
+      controller.setSyncMode(OperationalSyncMode.firebaseBackup),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(controller.context.syncMode, OperationalSyncMode.localOnly);
+  });
+
+  test(
+    'serializes concurrent context updates without losing either update',
+    () async {
+      final controller = await OperationalContextController.create(
+        profile: UserProfileRecord.starterContractor(),
+        activeVehicleId: 'truck-1',
+        activeVehicleLabel: 'Work Truck 1',
+        activeVehicleUsage: VehicleUsage.businessPersonal,
+        storageCheck: _availableStorageCheck,
+      );
+
+      await Future.wait([
+        controller.setDashboardMode(OperationalDashboardMode.gigDriver),
+        controller.setSyncMode(OperationalSyncMode.firebaseBackup),
+      ]);
+
+      expect(
+        controller.context.dashboardMode,
+        OperationalDashboardMode.gigDriver,
+      );
+      expect(controller.context.syncMode, OperationalSyncMode.firebaseBackup);
+    },
+  );
 }
+
+Future<AppStorageCheck> _fullStorageCheck() async => const AppStorageCheck(
+  availableBytes: 0,
+  operationBytes: AppStorageGuard.smallRecordWriteBytes,
+  requiredBytes:
+      AppStorageGuard.minimumDeviceReserveBytes +
+      AppStorageGuard.smallRecordWriteBytes,
+  purpose: AppStoragePurpose.smallRecordWrite,
+);
+
+Future<AppStorageCheck> _availableStorageCheck() async => const AppStorageCheck(
+  availableBytes: 1024 * 1024 * 1024,
+  operationBytes: AppStorageGuard.smallRecordWriteBytes,
+  requiredBytes:
+      AppStorageGuard.minimumDeviceReserveBytes +
+      AppStorageGuard.smallRecordWriteBytes,
+  purpose: AppStoragePurpose.smallRecordWrite,
+);
