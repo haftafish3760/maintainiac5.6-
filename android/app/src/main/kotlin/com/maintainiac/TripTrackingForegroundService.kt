@@ -23,6 +23,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
         const val intervalMillisExtra = "intervalMillis"
         const val minimumDisplacementExtra = "minimumDisplacementMeters"
         const val activityRecognitionEnabledExtra = "activityRecognitionEnabled"
+        private const val stopAction = "com.maintainiac.trip_tracking.STOP"
         private const val notificationChannelId = "maintainiac_trip_tracking"
         private const val notificationId = 7313
         var isRunning = false
@@ -40,6 +41,12 @@ class TripTrackingForegroundService : Service(), LocationListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == stopAction) {
+            // The persistent notification must give the driver an immediate,
+            // visible way to end tracking without reopening the app.
+            stopSelf()
+            return START_NOT_STICKY
+        }
         try {
             startForeground(notificationId, notification())
         } catch (error: SecurityException) {
@@ -128,12 +135,21 @@ class TripTrackingForegroundService : Service(), LocationListener {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun notification() = NotificationCompat.Builder(this, notificationChannelId)
-        .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-        .setContentTitle("Maintainiac trip tracking")
-        .setContentText("GPS-assisted trip tracking is active")
-        .setOngoing(true)
-        .build()
+    private fun notification(): android.app.Notification {
+        val stopIntent = PendingIntent.getService(
+            this,
+            7315,
+            Intent(this, TripTrackingForegroundService::class.java).setAction(stopAction),
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        return NotificationCompat.Builder(this, notificationChannelId)
+            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setContentTitle("Maintainiac trip tracking")
+            .setContentText("GPS-assisted trip tracking is active")
+            .setOngoing(true)
+            .addAction(0, "Stop trip tracking", stopIntent)
+            .build()
+    }
 
     override fun onCreate() {
         super.onCreate()

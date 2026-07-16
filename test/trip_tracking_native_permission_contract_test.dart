@@ -130,4 +130,15 @@ void main() {
     expect(ios, contains('locationError.code == .denied'));
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
   });
+
+  test('Android tracking notification gives the driver a direct stop control', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+
+    expect(android, contains('private const val stopAction'));
+    expect(android, contains('intent?.action == stopAction'));
+    expect(android, contains('"Stop trip tracking"'));
+    expect(android, contains('PendingIntent.getService'));
+  });
 }
