@@ -255,7 +255,7 @@ void main() {
     expect(
       stitchControls,
       contains(
-        'For bottom-section photos, keep 3-5 repeated readable lines in the top ghost slice',
+        'If you add another section, start it with 3-5 of the same readable lines',
       ),
     );
     expect(stitchControls, contains('Repeated receipt lines matched safely'));
@@ -377,7 +377,7 @@ void main() {
     expect(
       importActions,
       contains(
-        r'Receipt proof saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.',
+        r'Receipt proof saved: ${result.savedProofCountLabel}. Maintainiac could not use a clear receipt photo to help fill the details. You can continue manually.',
       ),
     );
     expect(

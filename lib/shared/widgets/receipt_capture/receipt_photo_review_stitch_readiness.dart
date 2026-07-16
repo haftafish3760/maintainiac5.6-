@@ -123,7 +123,7 @@ class _ReceiptStitchReadinessCard extends StatelessWidget {
 
   String _stitchReadinessDetail(ReceiptStitchResult? preview) {
     if (preview == null) {
-      return 'The app will use one stitched image only when repeated receipt lines match safely. For bottom-section photos, keep 3-5 repeated readable lines in the top ghost slice.';
+      return 'The app will combine photos only when repeated receipt lines match safely. If you add another section, start it with 3-5 of the same readable lines from the bottom of the last photo.';
     }
     if (preview.didStitch) {
       final pairDiagnostics = preview.pairDiagnosticsLabel;

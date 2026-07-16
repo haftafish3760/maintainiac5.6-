@@ -238,7 +238,7 @@ extension _ReceiptAttachmentReviewReadActions
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt proof saved: ${result.savedProofCountLabel}. No clear OCR source was available for app-assisted receipt filling.';
+            'Receipt proof saved: ${result.savedProofCountLabel}. Maintainiac could not use a clear receipt photo to help fill the details. You can continue manually.';
       });
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.skipped,
