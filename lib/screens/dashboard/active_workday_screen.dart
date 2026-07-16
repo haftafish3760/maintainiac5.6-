@@ -413,9 +413,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final review = await tripTracking.finishForReview();
     if (!mounted) return;
     final cloudMirrorError = tripTracking.cloudMirrorError;
-    final odometerSaved = review == null
-        ? false
-        : await openOdometerEntry(
+    final confirmedEndingOdometer = review == null
+        ? null
+        : await openOdometerEntryResult(
             context,
             title: 'Review GPS Trip Odometer',
             saveLabel: 'Confirm Odometer',
@@ -423,10 +423,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           );
     if (!mounted) return;
     final reviewConfirmed =
-        odometerSaved &&
+        confirmedEndingOdometer != null &&
         await tripTracking.confirmOdometerReview(
-          reviewId: review.id,
-          confirmedEndingOdometer: GlobalOdometerScope.of(context).reading,
+          reviewId: review!.id,
+          confirmedEndingOdometer: confirmedEndingOdometer,
         );
     if (!mounted) return;
     _showGpsMessage(
@@ -453,7 +453,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       );
       return;
     }
-    final saved = await openOdometerEntry(
+    final confirmedEndingOdometer = await openOdometerEntryResult(
       context,
       title: 'Review GPS Trip Odometer',
       saveLabel: 'Confirm Odometer',
@@ -461,10 +461,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
     if (!mounted) return;
     final reviewConfirmed =
-        saved &&
+        confirmedEndingOdometer != null &&
         await tripTracking!.confirmOdometerReview(
           reviewId: review.id,
-          confirmedEndingOdometer: GlobalOdometerScope.of(context).reading,
+          confirmedEndingOdometer: confirmedEndingOdometer,
         );
     if (!mounted) return;
     _showGpsMessage(

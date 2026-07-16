@@ -1,11 +1,56 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/odometer/open_odometer_entry.dart';
 import 'package:maintaniac/shared/odometer/odometer_entry_sheet.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
+  testWidgets('odometer entry wrapper returns the exact saved reading', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final savedReading = Completer<int?>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () async {
+                  savedReading.complete(
+                    await openOdometerEntryResult(
+                      context,
+                      title: 'Update Odometer',
+                      saveLabel: 'Save',
+                    ),
+                  );
+                },
+                child: const Text('Open odometer'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Open odometer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(await savedReading.future.timeout(const Duration(seconds: 1)), 1000);
+    expect(odometer.confirmedReading, 1000);
+  });
+
   testWidgets('odometer entry sheet follows live GPS until manually edited', (
     tester,
   ) async {

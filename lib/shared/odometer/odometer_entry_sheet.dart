@@ -241,6 +241,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     }
     final review = _buildMileageReview();
     final correctionReview = _buildCorrectionReview();
+    final savedReading = int.tryParse(_controller?.text ?? '');
     final result = GlobalOdometerScope.of(context).updateFromText(
       _controller?.text ?? '',
       confirmSuspicious: _pendingConfirmation,
@@ -266,7 +267,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     }
 
     widget.onSaved?.call();
-    Navigator.of(context).pop(true);
+    Navigator.of(context).pop(savedReading);
   }
 
   TripOdometerReconciliation? get _tripReconciliation {
