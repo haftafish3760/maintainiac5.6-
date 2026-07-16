@@ -53,6 +53,16 @@ service firebase.storage {
         request.resource.metadata.proofId == fileName;
     }
 
+    function hasFinalizedProofGrant(orgId, uid, grantId, fileName) {
+      return signedIn() &&
+        request.auth.uid == uid &&
+        isActiveMember(orgId) &&
+        firestore.exists(uploadGrantPath(orgId, grantId)) &&
+        uploadGrant(orgId, grantId).uid == uid &&
+        uploadGrant(orgId, grantId).proofId == fileName &&
+        uploadGrant(orgId, grantId).status == 'finalized';
+    }
+
     match /orgs/{orgId}/proofs/{module}/{recordId}/{fileName} {
       allow read: if isOwnerOrAdmin(orgId) ||
         hasPermission(orgId, 'viewAllExpenses') ||
@@ -64,7 +74,8 @@ service firebase.storage {
     }
 
     match /orgs/{orgId}/proof-uploads/{uid}/{grantId}/{fileName} {
-      allow read: if isOwnerOrAdmin(orgId) || request.auth.uid == uid;
+      allow read: if isOwnerOrAdmin(orgId) ||
+        hasFinalizedProofGrant(orgId, uid, grantId, fileName);
       allow create: if hasValidUploadGrant(orgId, uid, grantId) &&
         (
           hasPermission(orgId, 'addOwnReceipts') ||

@@ -22,5 +22,8 @@ void main() {
     expect(rules, contains('request.resource.metadata.orgId == orgId'));
     expect(rules, contains('request.resource.metadata.uid == uid'));
     expect(rules, contains('request.resource.metadata.proofId == fileName'));
+    expect(rules, contains('function hasFinalizedProofGrant('));
+    expect(rules, contains("uploadGrant(orgId, grantId).status == 'finalized'"));
+    expect(rules, contains('hasFinalizedProofGrant(orgId, uid, grantId, fileName)'));
   });
 }
