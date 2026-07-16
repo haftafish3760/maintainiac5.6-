@@ -84,4 +84,30 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test(
+    'confirmed records acknowledge only the matching draft checkpoint',
+    () async {
+      final records = MaintainiacDurableRecordStore.memory();
+      final drafts = MaintainiacRecordDraftStore.memory();
+      final checkpoint = await drafts.save(
+        module: 'expenses',
+        id: 'receipt-1',
+        payload: const {'merchant': 'Local draft'},
+        now: DateTime.utc(2026, 7, 15),
+      );
+
+      final saved = await records.saveAndAcknowledgeDraft(
+        module: 'expenses',
+        id: 'receipt-1',
+        payload: const {'merchant': 'Confirmed receipt'},
+        draftStore: drafts,
+        expectedDraftUpdatedAt: checkpoint.lifecycle.updatedAt,
+        now: DateTime.utc(2026, 7, 15, 1),
+      );
+
+      expect(saved.payload['merchant'], 'Confirmed receipt');
+      expect(drafts.draftFor('expenses', 'receipt-1'), isNull);
+    },
+  );
 }

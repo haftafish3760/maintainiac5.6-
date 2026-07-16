@@ -99,6 +99,32 @@ class MaintainiacDurableRecordStore {
     return record;
   });
 
+  /// Confirms a record locally before acknowledging its draft checkpoint.
+  /// A newer draft is intentionally retained for recovery rather than lost.
+  Future<MaintainiacDurableRecord> saveAndAcknowledgeDraft({
+    required String module,
+    required String id,
+    required Map<String, dynamic> payload,
+    required MaintainiacRecordDraftStore draftStore,
+    required DateTime expectedDraftUpdatedAt,
+    int? expectedRevision,
+    DateTime? now,
+  }) async {
+    final record = await save(
+      module: module,
+      id: id,
+      payload: payload,
+      expectedRevision: expectedRevision,
+      now: now,
+    );
+    await draftStore.removeIfUnchanged(
+      module: module,
+      id: id,
+      expectedUpdatedAt: expectedDraftUpdatedAt,
+    );
+    return record;
+  }
+
   Future<MaintainiacDurableRecord?> delete(
     String module,
     String id, {
