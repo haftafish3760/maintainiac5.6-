@@ -311,7 +311,7 @@ service cloud.firestore {
 
       match /uploadGrants/{grantId} {
         allow read: if isOwnerOrAdmin(orgId) ||
-          resource.data.uid == request.auth.uid;
+          (isActiveMember(orgId) && resource.data.uid == request.auth.uid);
         allow write: if false;
       }
 
