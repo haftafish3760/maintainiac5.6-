@@ -17,6 +17,7 @@ class TripTrackingSessionRecord {
     this.advisories = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.ready,
     this.healthState = TripTrackingHealthState.healthy,
+    this.hasValidTimeline = true,
     this.schemaVersion = 1,
   });
 
@@ -30,6 +31,7 @@ class TripTrackingSessionRecord {
   final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
+  final bool hasValidTimeline;
   final int schemaVersion;
 
   TripTrackingSessionRecord copyWith({
@@ -38,6 +40,7 @@ class TripTrackingSessionRecord {
     List<TripTrackingAdvisoryEvent>? advisories,
     TripTrackingSessionLifecycleState? lifecycleState,
     TripTrackingHealthState? healthState,
+    bool? hasValidTimeline,
     int? schemaVersion,
   }) => TripTrackingSessionRecord(
     id: id,
@@ -50,6 +53,7 @@ class TripTrackingSessionRecord {
     advisories: advisories ?? this.advisories,
     lifecycleState: lifecycleState ?? this.lifecycleState,
     healthState: healthState ?? this.healthState,
+    hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
     schemaVersion: schemaVersion ?? this.schemaVersion,
   );
 
@@ -67,40 +71,45 @@ class TripTrackingSessionRecord {
     'schemaVersion': schemaVersion,
   };
 
-  factory TripTrackingSessionRecord.fromMap(
-    Map<dynamic, dynamic> map,
-  ) => TripTrackingSessionRecord(
-    id: '${map['id'] ?? ''}',
-    vehicleId: '${map['vehicleId'] ?? ''}',
-    startingOdometer: _persistedOdometerValue(map['startingOdometer']),
-    profile: TripTrackingProfile.values.firstWhere(
-      (value) => value.name == map['profile'],
-      orElse: () => TripTrackingProfile.roadVehicle,
-    ),
-    startedAt: DateTime.tryParse('${map['startedAt'] ?? ''}') ?? DateTime.now(),
-    updatedAt: DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? DateTime.now(),
-    engineSnapshot: map['engineSnapshot'] is Map
-        ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
-        : const TripTrackingEngineSnapshot(
-            totalAcceptedMeters: 0,
-            walkingReviewSuggested: false,
-          ),
-    advisories:
-        (map['advisories'] as Iterable?)
-            ?.whereType<Map>()
-            .map(TripTrackingAdvisoryEvent.fromMap)
-            .toList(growable: false) ??
-        const [],
-    lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
-      (value) => value.name == map['lifecycleState'],
-      orElse: () => TripTrackingSessionLifecycleState.ready,
-    ),
-    healthState: TripTrackingHealthState.values.firstWhere(
-      (value) => value.name == map['healthState'],
-      orElse: () => TripTrackingHealthState.healthy,
-    ),
-    schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
-  );
+  factory TripTrackingSessionRecord.fromMap(Map<dynamic, dynamic> map) {
+    final startedAt = DateTime.tryParse('${map['startedAt'] ?? ''}');
+    final updatedAt = DateTime.tryParse('${map['updatedAt'] ?? ''}');
+    return TripTrackingSessionRecord(
+      id: '${map['id'] ?? ''}',
+      vehicleId: '${map['vehicleId'] ?? ''}',
+      startingOdometer: _persistedOdometerValue(map['startingOdometer']),
+      profile: TripTrackingProfile.values.firstWhere(
+        (value) => value.name == map['profile'],
+        orElse: () => TripTrackingProfile.roadVehicle,
+      ),
+      startedAt:
+          startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      updatedAt:
+          updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      engineSnapshot: map['engineSnapshot'] is Map
+          ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
+          : const TripTrackingEngineSnapshot(
+              totalAcceptedMeters: 0,
+              walkingReviewSuggested: false,
+            ),
+      advisories:
+          (map['advisories'] as Iterable?)
+              ?.whereType<Map>()
+              .map(TripTrackingAdvisoryEvent.fromMap)
+              .toList(growable: false) ??
+          const [],
+      lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
+        (value) => value.name == map['lifecycleState'],
+        orElse: () => TripTrackingSessionLifecycleState.ready,
+      ),
+      healthState: TripTrackingHealthState.values.firstWhere(
+        (value) => value.name == map['healthState'],
+        orElse: () => TripTrackingHealthState.healthy,
+      ),
+      hasValidTimeline: startedAt != null && updatedAt != null,
+      schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
+    );
+  }
 }
 
 /// A locally durable handoff from active tracking into review. It intentionally

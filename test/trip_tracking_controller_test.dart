@@ -1742,6 +1742,30 @@ void main() {
       expect(mirror.flushCalls, 2);
     },
   );
+
+  test('a missing persisted timeline is cleared instead of restored', () async {
+    final store = TripTrackingSessionStore.memory();
+    await store.save(
+      TripTrackingSessionRecord.fromMap({
+        'id': 'trip_missing_timeline',
+        'vehicleId': 'vehicle_1',
+        'startingOdometer': 1000,
+        'profile': 'roadVehicle',
+        'engineSnapshot': {
+          'totalAcceptedMeters': 0,
+          'walkingReviewSuggested': false,
+        },
+      }),
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(store.activeSession, isNull);
+    expect(controller.isTracking, isFalse);
+  });
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {

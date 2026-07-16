@@ -134,6 +134,7 @@ void main() {
     });
 
     expect(session.schemaVersion, 1);
+    expect(session.hasValidTimeline, isFalse);
     expect(session.engineSnapshot.schemaVersion, 1);
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
   });

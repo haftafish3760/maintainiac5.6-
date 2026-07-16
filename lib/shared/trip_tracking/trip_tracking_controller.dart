@@ -295,6 +295,7 @@ class TripTrackingController extends ChangeNotifier {
   }
 
   bool _isRecoverableSession(TripTrackingSessionRecord session) =>
+      session.hasValidTimeline &&
       session.id.trim().isNotEmpty &&
       session.vehicleId.trim().isNotEmpty &&
       session.startingOdometer >= 0 &&
