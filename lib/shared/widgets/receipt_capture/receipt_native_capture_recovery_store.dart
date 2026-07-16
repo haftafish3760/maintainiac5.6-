@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../storage/app_storage_guard.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_native_capture_diagnostics_sanitizer.dart';
+
+typedef ReceiptCaptureRecoveryStorageCheck = Future<AppStorageCheck> Function();
 
 class ReceiptNativeCaptureRecoveryIndexEntry {
   ReceiptNativeCaptureRecoveryIndexEntry({
@@ -102,17 +105,24 @@ class ReceiptNativeCaptureRecoveryIndexEntry {
 }
 
 class ReceiptNativeCaptureRecoveryStore {
-  const ReceiptNativeCaptureRecoveryStore._(this._box);
+  ReceiptNativeCaptureRecoveryStore._(this._box, this._storageCheck);
 
   static const boxName = 'receipt_native_capture_recovery_index';
   static const entrySchema = 'receipt_native_capture_recovery_index_v1';
 
-  static Future<ReceiptNativeCaptureRecoveryStore> create() async {
+  static Future<ReceiptNativeCaptureRecoveryStore> create({
+    ReceiptCaptureRecoveryStorageCheck? storageCheck,
+  }) async {
     final box = await Hive.openBox<dynamic>(boxName);
-    return ReceiptNativeCaptureRecoveryStore._(box);
+    return ReceiptNativeCaptureRecoveryStore._(
+      box,
+      storageCheck ?? _defaultStorageCheck,
+    );
   }
 
   final Box<dynamic> _box;
+  final ReceiptCaptureRecoveryStorageCheck _storageCheck;
+  Future<void> _writeTail = Future<void>.value();
 
   List<ReceiptNativeCaptureRecoveryIndexEntry> get entries {
     final result = <ReceiptNativeCaptureRecoveryIndexEntry>[];
@@ -125,115 +135,147 @@ class ReceiptNativeCaptureRecoveryStore {
   }
 
   Future<void> save(ReceiptNativeCaptureRecoveryIndexEntry entry) {
-    return _box.put(
-      _keyFor(entry.sessionId, entry.manifestPath),
-      entry.toMap(),
-    );
+    return _enqueue(() async {
+      await _ensureStorageForWrite();
+      await _box.put(
+        _keyFor(entry.sessionId, entry.manifestPath),
+        entry.toMap(),
+      );
+    });
   }
 
   Future<void> updateDiagnosticsByManifestPath(
     String manifestPath,
     Map<String, Object?> diagnostics,
-  ) async {
-    final normalized = manifestPath.trim();
-    if (normalized.isEmpty) return;
-    for (final key in _box.keys) {
-      final value = _box.get(key);
-      if (value is! Map || value['schema'] != entrySchema) continue;
-      if ((value['manifestPath'] as String? ?? '').trim() != normalized) {
-        continue;
+  ) {
+    return _enqueue(() async {
+      final normalized = manifestPath.trim();
+      if (normalized.isEmpty) return;
+      for (final key in _box.keys) {
+        final value = _box.get(key);
+        if (value is! Map || value['schema'] != entrySchema) continue;
+        if ((value['manifestPath'] as String? ?? '').trim() != normalized) {
+          continue;
+        }
+        await _ensureStorageForWrite();
+        final updated = Map<dynamic, dynamic>.from(value);
+        final existingDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
+          updated['captureDiagnostics'],
+        );
+        updated['captureDiagnostics'] =
+            receiptNativeCaptureSanitizedDiagnostics({
+              ...existingDiagnostics,
+              ...diagnostics,
+            });
+        await _box.put(key, updated);
+        return;
       }
-      final updated = Map<dynamic, dynamic>.from(value);
-      final existingDiagnostics = receiptNativeCaptureSanitizedDiagnostics(
-        updated['captureDiagnostics'],
-      );
-      updated['captureDiagnostics'] = receiptNativeCaptureSanitizedDiagnostics({
-        ...existingDiagnostics,
-        ...diagnostics,
-      });
-      await _box.put(key, updated);
-      return;
-    }
+    });
   }
 
-  Future<void> deleteByManifestPath(String manifestPath) async {
-    final normalized = manifestPath.trim();
-    if (normalized.isEmpty) return;
-    final keysToDelete = <dynamic>[];
-    for (final key in _box.keys) {
-      final value = _box.get(key);
-      if (value is! Map) continue;
-      if ((value['manifestPath'] as String? ?? '').trim() == normalized) {
-        keysToDelete.add(key);
+  Future<void> deleteByManifestPath(String manifestPath) {
+    return _enqueue(() async {
+      final normalized = manifestPath.trim();
+      if (normalized.isEmpty) return;
+      final keysToDelete = <dynamic>[];
+      for (final key in _box.keys) {
+        final value = _box.get(key);
+        if (value is! Map) continue;
+        if ((value['manifestPath'] as String? ?? '').trim() == normalized) {
+          keysToDelete.add(key);
+        }
       }
-    }
-    for (final key in keysToDelete) {
-      await _box.delete(key);
-    }
+      for (final key in keysToDelete) {
+        await _box.delete(key);
+      }
+    });
   }
 
-  Future<void> deleteMissingManifestEntries() async {
-    final keysToDelete = <dynamic>[];
-    for (final key in _box.keys) {
-      final value = _box.get(key);
-      if (value is! Map || value['schema'] != entrySchema) continue;
-      final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
-      if (!entry.hasExistingManifest && !entry.hasExistingPhotos) {
-        keysToDelete.add(key);
+  Future<void> deleteMissingManifestEntries() {
+    return _enqueue(() async {
+      final keysToDelete = <dynamic>[];
+      for (final key in _box.keys) {
+        final value = _box.get(key);
+        if (value is! Map || value['schema'] != entrySchema) continue;
+        final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
+        if (!entry.hasExistingManifest && !entry.hasExistingPhotos) {
+          keysToDelete.add(key);
+        }
       }
-    }
-    for (final key in keysToDelete) {
-      await _box.delete(key);
-    }
+      for (final key in keysToDelete) {
+        await _box.delete(key);
+      }
+    });
   }
 
   Future<void> deleteUnrecoverableEntries({
     Iterable<String> retainedPaths = const [],
-  }) async {
-    final retained = retainedPaths
-        .map((item) => item.trim())
-        .where((item) => item.isNotEmpty)
-        .toSet();
-    final keysToDelete = <dynamic>[];
-    for (final key in _box.keys) {
-      final value = _box.get(key);
-      if (value is! Map || value['schema'] != entrySchema) continue;
-      final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
-      final hasRetainedPhoto = entry.stagedPhotoPaths.any(retained.contains);
-      if (hasRetainedPhoto) continue;
-      if (!entry.hasExistingManifest && !entry.hasExistingPhotos) {
-        keysToDelete.add(key);
+  }) {
+    return _enqueue(() async {
+      final retained = retainedPaths
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toSet();
+      final keysToDelete = <dynamic>[];
+      for (final key in _box.keys) {
+        final value = _box.get(key);
+        if (value is! Map || value['schema'] != entrySchema) continue;
+        final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
+        final hasRetainedPhoto = entry.stagedPhotoPaths.any(retained.contains);
+        if (hasRetainedPhoto) continue;
+        if (!entry.hasExistingManifest && !entry.hasExistingPhotos) {
+          keysToDelete.add(key);
+        }
       }
-    }
-    for (final key in keysToDelete) {
-      await _box.delete(key);
-    }
+      for (final key in keysToDelete) {
+        await _box.delete(key);
+      }
+    });
   }
 
   Future<void> deleteOldEntries({
     Iterable<String> retainedPaths = const [],
     Duration olderThan = const Duration(days: 7),
     DateTime? now,
-  }) async {
-    final retained = retainedPaths
-        .map((item) => item.trim())
-        .where((item) => item.isNotEmpty)
-        .toSet();
-    final reference = now ?? DateTime.now();
-    final cutoff = reference.subtract(olderThan);
-    final keysToDelete = <dynamic>[];
-    for (final key in _box.keys) {
-      final value = _box.get(key);
-      if (value is! Map || value['schema'] != entrySchema) continue;
-      final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
-      final hasRetainedPhoto = entry.stagedPhotoPaths.any(retained.contains);
-      if (hasRetainedPhoto) continue;
-      if (entry.capturedAt.isAfter(cutoff)) continue;
-      keysToDelete.add(key);
+  }) {
+    return _enqueue(() async {
+      final retained = retainedPaths
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toSet();
+      final reference = now ?? DateTime.now();
+      final cutoff = reference.subtract(olderThan);
+      final keysToDelete = <dynamic>[];
+      for (final key in _box.keys) {
+        final value = _box.get(key);
+        if (value is! Map || value['schema'] != entrySchema) continue;
+        final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
+        final hasRetainedPhoto = entry.stagedPhotoPaths.any(retained.contains);
+        if (hasRetainedPhoto) continue;
+        if (entry.capturedAt.isAfter(cutoff)) continue;
+        keysToDelete.add(key);
+      }
+      for (final key in keysToDelete) {
+        await _box.delete(key);
+      }
+    });
+  }
+
+  Future<void> _ensureStorageForWrite() async {
+    final result = await _storageCheck();
+    if (!result.hasEnoughSpace) {
+      throw StateError(result.blockingMessage());
     }
-    for (final key in keysToDelete) {
-      await _box.delete(key);
-    }
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final result = _writeTail.then((_) => operation());
+    _writeTail = result.then<void>((_) {}, onError: (error, _) {});
+    return result;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() {
+    return AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
   }
 
   static String _keyFor(String sessionId, String manifestPath) {
