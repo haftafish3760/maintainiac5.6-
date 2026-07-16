@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_reference_store.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_finalizer.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_upload_grant.dart';
 
@@ -13,11 +14,13 @@ typedef ExpenseCloudProofMetadataQueue =
 class ExpenseCloudProofUploadCoordinator {
   const ExpenseCloudProofUploadCoordinator({
     required this.cloudStorage,
+    required this.finalizer,
     required this.references,
     required this.queueReceiptMetadata,
   });
 
   final ExpenseCloudProofStorage cloudStorage;
+  final ExpenseCloudProofFinalizer finalizer;
   final ExpenseCloudProofReferenceStore references;
   final ExpenseCloudProofMetadataQueue queueReceiptMetadata;
 
@@ -39,6 +42,7 @@ class ExpenseCloudProofUploadCoordinator {
       bytes: bytes,
       contentType: contentType,
     );
+    await finalizer.finalize(reference);
     await references.save(reference);
     await queueReceiptMetadata(receiptId);
     return reference;

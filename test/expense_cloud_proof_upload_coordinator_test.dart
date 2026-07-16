@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_finalizer.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_reference_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_upload_coordinator.dart';
@@ -12,10 +13,12 @@ void main() {
     () async {
       final queued = <String>[];
       final references = ExpenseCloudProofReferenceStore.memory();
+      final finalizer = _RecordingFinalizer();
       final coordinator = ExpenseCloudProofUploadCoordinator(
         cloudStorage: ExpenseCloudProofStorage(
           objectStore: _MemoryObjectStore(),
         ),
+        finalizer: finalizer,
         references: references,
         queueReceiptMetadata: (receiptId) async => queued.add(receiptId),
       );
@@ -31,6 +34,7 @@ void main() {
       );
 
       expect(queued, ['receipt_1']);
+      expect(finalizer.finalized, hasLength(1));
       expect(
         references.referencesForReceipt(
           organizationId: 'org_1',
@@ -50,6 +54,7 @@ void main() {
         cloudStorage: ExpenseCloudProofStorage(
           objectStore: _MemoryObjectStore(),
         ),
+        finalizer: _RecordingFinalizer(),
         references: ExpenseCloudProofReferenceStore.memory(
           storageCheck: () => throw StateError('No local storage'),
         ),
@@ -75,6 +80,7 @@ void main() {
   test('rejects expired grants before proof transfer', () async {
     final coordinator = ExpenseCloudProofUploadCoordinator(
       cloudStorage: ExpenseCloudProofStorage(objectStore: _MemoryObjectStore()),
+      finalizer: _RecordingFinalizer(),
       references: ExpenseCloudProofReferenceStore.memory(),
       queueReceiptMetadata: (_) async {},
     );
@@ -96,6 +102,53 @@ void main() {
       throwsStateError,
     );
   });
+
+  test('does not save a reference when cloud finalization fails', () async {
+    final references = ExpenseCloudProofReferenceStore.memory();
+    final coordinator = ExpenseCloudProofUploadCoordinator(
+      cloudStorage: ExpenseCloudProofStorage(objectStore: _MemoryObjectStore()),
+      finalizer: _FailingFinalizer(),
+      references: references,
+      queueReceiptMetadata: (_) async {},
+    );
+
+    await expectLater(
+      () => coordinator.uploadAndQueue(
+        organizationId: 'org_1',
+        userId: 'user_1',
+        receiptId: 'receipt_1',
+        proofId: 'proof_1',
+        uploadGrantId: 'grant_1',
+        bytes: Uint8List.fromList([1, 2, 3]),
+        contentType: 'image/jpeg',
+      ),
+      throwsStateError,
+    );
+    expect(
+      references.referencesForReceipt(
+        organizationId: 'org_1',
+        userId: 'user_1',
+        receiptId: 'receipt_1',
+      ),
+      isEmpty,
+    );
+  });
+}
+
+class _RecordingFinalizer implements ExpenseCloudProofFinalizer {
+  final finalized = <ExpenseCloudProofReference>[];
+
+  @override
+  Future<void> finalize(ExpenseCloudProofReference reference) async {
+    finalized.add(reference);
+  }
+}
+
+class _FailingFinalizer implements ExpenseCloudProofFinalizer {
+  @override
+  Future<void> finalize(ExpenseCloudProofReference reference) {
+    throw StateError('Cloud finalization failed.');
+  }
 }
 
 class _MemoryObjectStore implements ExpenseCloudProofObjectStore {
