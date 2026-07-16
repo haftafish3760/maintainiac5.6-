@@ -26,7 +26,7 @@ extension ReceiptPhotoCoverageDecisionLabels on ReceiptPhotoCoverageDecision {
   }
 
   String get continuationCaptureContractLabel => isMissingBottomEdgeAndTotals
-      ? 'Bottom edge and totals missing: reopen the camera with the top ghost-slice guide and repeat 3-5 readable lines so subtotal, total, and final lines can be matched.'
+      ? 'The bottom of the receipt may be missing. Choose Add Another Photo, then overlap a few readable lines with the faint guide so the sections can line up.'
       : 'Ask whether the receipt continues before moving to receipt details.';
 
   String get evidenceContractCode => isMissingBottomEdgeAndTotals
@@ -47,7 +47,7 @@ extension ReceiptPhotoCoverageDecisionLabels on ReceiptPhotoCoverageDecision {
 
   String get completionEvidenceSummaryLabel {
     if (isMissingBottomEdgeAndTotals) {
-      return 'Bottom edge missing plus subtotal/total words and total amount missing. Add the bottom section with the top ghost-slice guide, or continue only if this photo already shows the full receipt.';
+      return 'The bottom of the receipt and its totals may be missing. Choose Add Another Photo to capture the rest, or continue only if this photo already shows the full receipt.';
     }
     if (shouldPromptForMorePhotos) {
       return 'Receipt may continue. Add another section if anything is missing, or continue if this photo shows the full receipt.';

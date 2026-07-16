@@ -129,9 +129,9 @@ extension _ReceiptPhotoReviewAlignmentActions
       return 'Use the previous receipt section as the top ghost guide, then retake the bottom section in the same slot.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
-      return '${coverageDecision.completionDialogMessage} Use the bottom of the last photo as the top ghost-slice guide and repeat 3-5 readable lines in the next photo.';
+      return '${coverageDecision.completionDialogMessage} A faint reference from the last photo will appear at the top of the next camera photo. Overlap 3-5 readable lines.';
     }
-    return 'Use the bottom of the last photo as the top ghost-slice guide. Start the next photo by repeating 3-5 readable receipt lines so Maintainiac can match the sections.';
+    return 'A faint reference from the last photo will appear at the top of the next camera photo. Start the next photo with 3-5 of the same readable lines so Maintainiac can line up the sections.';
   }
 
   String _alignmentGuideButtonLabel(

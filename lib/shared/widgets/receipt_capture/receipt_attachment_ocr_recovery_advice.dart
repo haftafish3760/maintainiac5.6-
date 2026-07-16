@@ -49,9 +49,9 @@ _ReceiptReadRecoveryAdvice _receiptReadRecoveryAdvice(
       return const _ReceiptReadRecoveryAdvice(
         failureLead: 'Receipt bottom section still needs capture.',
         primaryAction:
-            'Keep the proof attached, add the bottom receipt section with the top ghost-slice guide, or continue by hand.',
+            'Keep the proof attached. Choose Add Another Photo to capture the bottom of the receipt, then overlap a few lines with the faint guide, or continue by hand.',
         shortAction:
-            'Add the bottom section with the ghost guide, or continue by hand.',
+            'Choose Add Another Photo for the bottom, or continue by hand.',
       );
     }
     if (sourceQualityAction == 'check_bottom_or_add_photo') {
@@ -67,9 +67,8 @@ _ReceiptReadRecoveryAdvice _receiptReadRecoveryAdvice(
       return const _ReceiptReadRecoveryAdvice(
         failureLead: 'Receipt photo saved too dark for reliable reading.',
         primaryAction:
-            'Keep the proof attached, raise Brightness or add light, retake the receipt, or continue by hand.',
-        shortAction:
-            'Raise Brightness, retake with more light, or continue by hand.',
+            'Keep the proof attached. Turn on your phone light or use better lighting, then retake the receipt or continue by hand.',
+        shortAction: 'Use better light, retake, or continue by hand.',
       );
     }
     if (sourceQualityAction == 'retake_hold_steady') {

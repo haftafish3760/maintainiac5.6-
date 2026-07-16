@@ -114,8 +114,8 @@ class _ReceiptAlignmentGuideNote extends StatelessWidget {
           Expanded(
             child: Text(
               missingBottomAndTotals
-                  ? 'The receipt camera opens next with a bottom-section ghost guide. Put 3-5 repeated readable lines in the top ghost slice so subtotal, total, and final lines can be matched.'
-                  : 'The receipt camera opens next. Put 3-5 repeated readable lines in the top ghost slice so sections can be matched.',
+                  ? 'The phone camera opens next. A faint reference from this photo appears at the top. Overlap 3-5 readable lines so Maintainiac can line up the sections.'
+                  : 'The phone camera opens next. A faint reference from this photo appears at the top. Overlap 3-5 readable lines.',
               style: const TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 11.5,

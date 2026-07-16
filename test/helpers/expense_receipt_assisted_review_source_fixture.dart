@@ -224,7 +224,7 @@ Future<String> _readReceiptPhotoPreviewUnit() async {
   final paths = [
     'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart',
     'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
-    'lib/shared/widgets/receipt_capture/receipt_photo_review_quality_recovery.dart',
+    'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_status.dart',
   ];
   final contents = <String>[];
   for (final path in paths) {

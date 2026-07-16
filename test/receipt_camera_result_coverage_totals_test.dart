@@ -45,33 +45,22 @@ void main() {
     );
     expect(
       decision.guidance,
-      contains('Two checks agree that the receipt may continue'),
+      contains('bottom of this receipt may be missing'),
     );
-    expect(decision.guidance, contains('the bottom edge was not detected'));
-    expect(
-      decision.guidance,
-      contains('subtotal/total words plus the total amount'),
-    );
-    expect(decision.guidance, contains('If the receipt continues'));
     expect(decision.guidance, contains('Add Another Photo'));
-    expect(decision.guidance, contains('top ghost-slice guide'));
+    expect(decision.guidance, contains('faint reference'));
+    expect(decision.guidance, contains('overlap 3-5 readable lines'));
     expect(
-      decision.guidance,
-      contains('subtotal, total, and final lines can be matched'),
+      decision.continuationCaptureContractLabel,
+      contains('Add Another Photo'),
     );
     expect(
       decision.continuationCaptureContractLabel,
-      contains('top ghost-slice guide'),
-    );
-    expect(
-      decision.continuationCaptureContractLabel,
-      contains('subtotal, total, and final lines can be matched'),
+      contains('overlap a few readable lines'),
     );
     expect(
       decision.completionEvidenceSummaryLabel,
-      contains(
-        'Bottom edge missing plus subtotal/total words and total amount missing',
-      ),
+      contains('The bottom of the receipt and its totals may be missing'),
     );
     expect(
       decision.privacySafeEvidenceContract,
@@ -362,9 +351,6 @@ void main() {
       decision.ghostGuideMatchTargetCode,
       'subtotal_total_and_final_lines',
     );
-    expect(
-      decision.guidance,
-      contains('subtotal/total words plus the total amount'),
-    );
+    expect(decision.guidance, contains('Add Another Photo'));
   });
 }

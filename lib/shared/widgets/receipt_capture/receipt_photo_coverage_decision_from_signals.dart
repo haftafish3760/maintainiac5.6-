@@ -48,11 +48,10 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       reasonCode: 'missing_bottom_edge_and_totals',
       title: 'Check Whether The Receipt Continues',
       guidance:
-          'Two checks agree that the receipt may continue: the bottom edge '
-          'was not detected, and subtotal/total words plus the total amount '
-          'were not confirmed. If the receipt continues, choose Add Another '
-          'Photo, use the top ghost-slice guide, and repeat 3-5 readable '
-          'lines so subtotal, total, and final lines can be matched.',
+          'The bottom of this receipt may be missing. If there is more below, '
+          'choose Add Another Photo. A faint reference from this photo will '
+          'appear at the top of the next camera photo; overlap 3-5 readable '
+          'lines. If this photo is complete, choose Use Receipt.',
     );
   }
   if (nativeCutOffRisk &&
