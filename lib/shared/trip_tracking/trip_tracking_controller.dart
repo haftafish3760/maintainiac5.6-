@@ -953,6 +953,12 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    try {
+      await _sessionStore.clearPending(session.id);
+    } catch (error) {
+      _platformStatus = 'pending_cleanup_failed';
+      _platformError = 'Could not clear transient GPS recovery data: $error';
+    }
     _odometer.clearLiveTripProjection(tripId: session.id);
     _session = null;
     _engine = null;
@@ -1010,6 +1016,17 @@ class TripTrackingController extends ChangeNotifier {
       _platformStatus = 'review_cleanup_failed';
       _platformError =
           'Trip review was saved, but stale recovery cleanup is pending: $error';
+    }
+    try {
+      // A review contains only the completed-trip summary. Its transient
+      // pending sample can contain a raw location, so it must not linger once
+      // the review itself is durable.
+      await _sessionStore.clearPending(session.id);
+    } catch (error) {
+      if (_platformStatus == null) {
+        _platformStatus = 'pending_cleanup_failed';
+        _platformError = 'Could not clear transient GPS recovery data: $error';
+      }
     }
     _odometer.clearLiveTripProjection(tripId: session.id);
     _session = null;

@@ -1645,6 +1645,32 @@ void main() {
     },
   );
 
+  test('finishing a trip clears its transient pending GPS sample', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+    await controller.start(
+      tripId: 'trip_pending_cleanup',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await store.savePending(
+      TripTrackingPendingSample(
+        sessionId: 'trip_pending_cleanup',
+        sample: sample(-80, 0),
+      ),
+    );
+
+    expect(await controller.finishForReview(), isNotNull);
+    expect(store.pendingSampleFor('trip_pending_cleanup'), isNull);
+  });
+
   test('recovery does not resume a trip already queued for review', () async {
     final store = TripTrackingSessionStore.memory();
     final first = TripTrackingController(
