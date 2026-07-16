@@ -1,0 +1,242 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
+import '../storage/app_storage_guard.dart';
+import 'maintainiac_record_lifecycle.dart';
+
+typedef MaintainiacDurableStorageCheck = Future<AppStorageCheck> Function();
+
+/// Shared local-first store for confirmed records owned by a Maintainiac
+/// module. Modules keep their own payload schema while lifecycle, ordering,
+/// storage safety, and conflict behavior remain identical across the app.
+class MaintainiacDurableRecordStore {
+  MaintainiacDurableRecordStore._(
+    this._box, {
+    MaintainiacDurableStorageCheck? storageCheck,
+  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+
+  MaintainiacDurableRecordStore.memory({
+    MaintainiacDurableStorageCheck? storageCheck,
+  }) : _box = null,
+       _storageCheck = storageCheck;
+
+  final Box<dynamic>? _box;
+  final MaintainiacDurableStorageCheck? _storageCheck;
+  final _memory = <String, Map<String, dynamic>>{};
+  Future<void> _writeTail = Future<void>.value();
+
+  static Future<MaintainiacDurableRecordStore> create(
+    String boxName, {
+    MaintainiacDurableStorageCheck? storageCheck,
+  }) async => MaintainiacDurableRecordStore._(
+    await Hive.openBox<dynamic>(boxName),
+    storageCheck: storageCheck,
+  );
+
+  MaintainiacDurableRecord? recordFor(String module, String id) {
+    if (!_validKey(module, id)) return null;
+    final value = _box?.get(_key(module, id)) ?? _memory[_key(module, id)];
+    return value is Map ? _decode(value) : null;
+  }
+
+  List<MaintainiacDurableRecord> recordsFor(
+    String module, {
+    bool includeDeleted = false,
+  }) {
+    if (module.trim().isEmpty || module.contains(':')) return const [];
+    final values = _box?.values ?? _memory.values;
+    final records = <MaintainiacDurableRecord>[];
+    for (final value in values) {
+      if (value is! Map) {
+        continue;
+      }
+      final record = _decode(value);
+      if (record != null &&
+          record.module == module &&
+          (includeDeleted || record.lifecycle.isActive)) {
+        records.add(record);
+      }
+    }
+    records.sort(
+      (a, b) => b.lifecycle.updatedAt.compareTo(a.lifecycle.updatedAt),
+    );
+    return List.unmodifiable(records);
+  }
+
+  Future<MaintainiacDurableRecord> save({
+    required String module,
+    required String id,
+    required Map<String, dynamic> payload,
+    int? expectedRevision,
+    DateTime? now,
+  }) => _enqueue(() async {
+    _validateKey(module, id);
+    await _ensureSpace();
+    final existing = recordFor(module, id);
+    if (existing?.lifecycle.isDeleted ?? false) {
+      throw StateError('Restore a removed record before changing it.');
+    }
+    if (expectedRevision != null &&
+        existing?.lifecycle.revision != expectedRevision) {
+      throw StateError(
+        'This record changed locally. Review the latest saved version.',
+      );
+    }
+    final requested = now ?? DateTime.now();
+    final lifecycle = existing == null
+        ? MaintainiacRecordLifecycle(
+            createdAt: requested,
+            updatedAt: requested,
+            auditEvents: ['${requested.toIso8601String()} created record'],
+          )
+        : existing.lifecycle.saved(requested, event: 'saved record');
+    final record = MaintainiacDurableRecord(
+      module: module,
+      id: id,
+      payload: payload,
+      lifecycle: lifecycle,
+    );
+    await _put(record);
+    return record;
+  });
+
+  Future<MaintainiacDurableRecord?> delete(
+    String module,
+    String id, {
+    DateTime? now,
+  }) => _enqueue(() async {
+    final existing = recordFor(module, id);
+    if (existing == null || existing.lifecycle.isDeleted) return existing;
+    await _ensureSpace();
+    final record = existing.withLifecycle(
+      existing.lifecycle.deleted(
+        now ?? DateTime.now(),
+        event: 'deleted record',
+      ),
+    );
+    await _put(record);
+    return record;
+  });
+
+  Future<MaintainiacDurableRecord?> restore(
+    String module,
+    String id, {
+    DateTime? now,
+  }) => _enqueue(() async {
+    final existing = recordFor(module, id);
+    if (existing == null || existing.lifecycle.isActive) return existing;
+    await _ensureSpace();
+    final record = existing.withLifecycle(
+      existing.lifecycle.restored(
+        now ?? DateTime.now(),
+        event: 'restored record',
+      ),
+    );
+    await _put(record);
+    return record;
+  });
+
+  Future<void> _put(MaintainiacDurableRecord record) async {
+    final map = record.toMap();
+    if (_box == null) {
+      _memory[record.storageKey] = map;
+    } else {
+      await _box.put(record.storageKey, map);
+    }
+  }
+
+  Future<void> _ensureSpace() async {
+    final check = _storageCheck;
+    if (check == null) return;
+    final result = await check();
+    if (!result.hasEnoughSpace) throw StateError(result.blockingMessage());
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (_) {});
+    return next;
+  }
+
+  static Future<AppStorageCheck> _defaultStorageCheck() =>
+      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+
+  static String _key(String module, String id) => '$module:$id';
+  static bool _validKey(String module, String id) =>
+      module.trim().isNotEmpty &&
+      id.trim().isNotEmpty &&
+      module == module.trim() &&
+      id == id.trim() &&
+      !module.contains(':') &&
+      !id.contains(':');
+  static void _validateKey(String module, String id) {
+    if (!_validKey(module, id)) {
+      throw ArgumentError('A record needs a safe module and stable ID.');
+    }
+  }
+
+  static MaintainiacDurableRecord? _decode(Map<dynamic, dynamic> map) {
+    try {
+      return MaintainiacDurableRecord.fromMap(map);
+    } on FormatException {
+      return null;
+    }
+  }
+}
+
+class MaintainiacDurableRecord {
+  MaintainiacDurableRecord({
+    required this.module,
+    required this.id,
+    required Map<String, dynamic> payload,
+    required this.lifecycle,
+  }) : payload = Map.unmodifiable(Map<String, dynamic>.from(payload));
+
+  factory MaintainiacDurableRecord.fromMap(Map<dynamic, dynamic> map) {
+    final module = map['module'];
+    final id = map['id'];
+    final payload = map['payload'];
+    final lifecycle = map['lifecycle'];
+    if (module is! String ||
+        id is! String ||
+        payload is! Map ||
+        lifecycle is! Map ||
+        !MaintainiacDurableRecordStore._validKey(module, id)) {
+      throw const FormatException('Durable record is corrupt.');
+    }
+    final metadata = MaintainiacRecordLifecycle.fromMap(
+      lifecycle,
+      fallbackTime: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+    if (metadata.updatedAt.isBefore(metadata.createdAt) ||
+        metadata.revision < 1 ||
+        (metadata.isDeleted && metadata.deletedAt == null) ||
+        (metadata.isActive && metadata.deletedAt != null)) {
+      throw const FormatException('Durable record lifecycle is corrupt.');
+    }
+    return MaintainiacDurableRecord(
+      module: module,
+      id: id,
+      payload: Map<String, dynamic>.from(payload),
+      lifecycle: metadata,
+    );
+  }
+
+  final String module;
+  final String id;
+  final Map<String, dynamic> payload;
+  final MaintainiacRecordLifecycle lifecycle;
+  String get storageKey => '$module:$id';
+  MaintainiacDurableRecord withLifecycle(MaintainiacRecordLifecycle value) =>
+      MaintainiacDurableRecord(
+        module: module,
+        id: id,
+        payload: payload,
+        lifecycle: value,
+      );
+  Map<String, dynamic> toMap() => {
+    'module': module,
+    'id': id,
+    'payload': payload,
+    'lifecycle': lifecycle.toMap(),
+  };
+}
