@@ -61,11 +61,14 @@ void main() {
       ).saved(created.add(const Duration(minutes: 1)), event: 'saved record');
       final deleted = saved.deleted(created, event: 'removed record');
 
-      expect(deleted.updatedAt, saved.updatedAt);
-      expect(deleted.deletedAt, saved.updatedAt);
+      expect(
+        deleted.updatedAt,
+        saved.updatedAt.add(const Duration(microseconds: 1)),
+      );
+      expect(deleted.deletedAt, deleted.updatedAt);
       expect(
         deleted.auditEvents.last,
-        startsWith(saved.updatedAt.toIso8601String()),
+        startsWith(deleted.updatedAt.toIso8601String()),
       );
     },
   );
@@ -230,6 +233,40 @@ void main() {
     expect(
       store.draftFor('expenses', 'draft-confirmed-save')?.payload['merchant'],
       'Newer local edit',
+    );
+  });
+
+  test('same-timestamp edits retain the newer draft checkpoint', () async {
+    final store = MaintainiacRecordDraftStore.memory();
+    final time = DateTime.utc(2026, 7, 16, 12);
+    final first = await store.save(
+      module: 'invoices',
+      id: 'draft-same-timestamp',
+      payload: const {'title': 'First'},
+      now: time,
+    );
+    final second = await store.save(
+      module: 'invoices',
+      id: 'draft-same-timestamp',
+      payload: const {'title': 'Second'},
+      now: time,
+    );
+
+    expect(
+      second.lifecycle.updatedAt.isAfter(first.lifecycle.updatedAt),
+      isTrue,
+    );
+    expect(
+      await store.removeIfUnchanged(
+        module: 'invoices',
+        id: 'draft-same-timestamp',
+        expectedUpdatedAt: first.lifecycle.updatedAt,
+      ),
+      isFalse,
+    );
+    expect(
+      store.draftFor('invoices', 'draft-same-timestamp')?.payload['title'],
+      'Second',
     );
   });
 

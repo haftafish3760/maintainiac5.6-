@@ -90,11 +90,13 @@ class MaintainiacRecordLifecycle {
     );
   }
 
-  // A device clock can move backward after a manual change or time sync. Keep
-  // lifecycle ordering monotonic so a later write cannot look stale or erase
-  // a newer checkpoint during recovery.
+  // A device clock can move backward or emit the same timestamp for separate
+  // edits. Keep every lifecycle mutation strictly ordered so a newer draft
+  // cannot be mistaken for the checkpoint that a confirmed record may remove.
   DateTime _nextLifecycleTime(DateTime requested) =>
-      requested.isBefore(updatedAt) ? updatedAt : requested;
+      requested.isAfter(updatedAt)
+      ? requested
+      : updatedAt.add(const Duration(microseconds: 1));
 
   Map<String, dynamic> toMap() => {
     'createdAt': createdAt.toIso8601String(),
