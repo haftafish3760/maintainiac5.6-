@@ -196,6 +196,15 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
   }
 
   void _saveReading() {
+    final tripReview = widget.tripReview;
+    if (tripReview != null &&
+        tripReview.vehicleId != GlobalOdometerScope.of(context).vehicleId) {
+      setState(() {
+        _errorText =
+            'Switch to the vehicle used for this GPS trip before confirming its odometer.';
+      });
+      return;
+    }
     final review = _buildMileageReview();
     final correctionReview = _buildCorrectionReview();
     final result = GlobalOdometerScope.of(context).updateFromText(
@@ -203,8 +212,8 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
       confirmSuspicious: _pendingConfirmation,
       mileageReview: review,
       correctionReview: correctionReview,
-      sourceType: widget.tripReview == null ? null : 'gps_trip_review',
-      sourceId: widget.tripReview?.id,
+      sourceType: tripReview == null ? null : 'gps_trip_review',
+      sourceId: tripReview?.id,
     );
 
     if (!result.ok) {
