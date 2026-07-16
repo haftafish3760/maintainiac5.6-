@@ -33,20 +33,13 @@ class CloudBackupSyncAttemptStore {
   List<DateTime> attemptsFor(String scope, {required DateTime now}) {
     final key = _validatedScope(scope);
     final cutoff = now.toUtc().subtract(const Duration(hours: 24));
-    final values = _box?.get(key) ?? _memory[key] ?? const <DateTime>[];
-    final attempts = values is List
-        ? values
-              .map((value) => DateTime.tryParse(value.toString())?.toUtc())
-              .whereType<DateTime>()
-        : values is Iterable<DateTime>
-        ? values
-        : const Iterable<DateTime>.empty();
+    final attempts = _storedAttempts(key);
     return List.unmodifiable(
       attempts
-          .where(
-            (attempt) =>
-                !attempt.isBefore(cutoff) && !attempt.isAfter(now.toUtc()),
-          )
+          // A clock that moves backward must not make a recorded attempt
+          // disappear and accidentally grant an extra local sync. Future
+          // timestamps remain consumed until they age out naturally.
+          .where((attempt) => !attempt.isBefore(cutoff))
           .toSet()
           .toList()
         ..sort(),
@@ -57,7 +50,20 @@ class CloudBackupSyncAttemptStore {
     return _enqueue(() async {
       final key = _validatedScope(scope);
       await _ensureStorage();
-      final next = [...attemptsFor(key, now: at), at.toUtc()]..sort();
+      final existing = _storedAttempts(key);
+      final latest = existing.isEmpty
+          ? null
+          : existing.reduce((current, value) =>
+              value.isAfter(current) ? value : current);
+      final requested = at.toUtc();
+      final effective = latest != null && !requested.isAfter(latest)
+          ? latest.add(const Duration(microseconds: 1))
+          : requested;
+      final cutoff = effective.subtract(const Duration(hours: 24));
+      final next = [
+        ...existing.where((value) => !value.isBefore(cutoff)),
+        effective,
+      ]..sort();
       final stored = next
           .map((value) => value.toIso8601String())
           .toSet()
@@ -76,6 +82,18 @@ class CloudBackupSyncAttemptStore {
       throw ArgumentError.value(scope, 'scope', 'requires a stable safe scope');
     }
     return clean;
+  }
+
+  List<DateTime> _storedAttempts(String key) {
+    final values = _box?.get(key) ?? _memory[key] ?? const <DateTime>[];
+    if (values is! Iterable) return const <DateTime>[];
+    return values
+        .map((value) {
+          if (value is DateTime) return value.toUtc();
+          return DateTime.tryParse(value.toString())?.toUtc();
+        })
+        .whereType<DateTime>()
+        .toList();
   }
 
   Future<void> _ensureStorage() async {

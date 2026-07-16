@@ -40,4 +40,28 @@ void main() {
       isEmpty,
     );
   });
+
+  test('clock rollback cannot erase a consumed local sync allowance', () async {
+    final store = CloudBackupSyncAttemptStore.memory();
+    final original = DateTime.utc(2026, 7, 16, 12);
+    final rolledBack = original.subtract(const Duration(hours: 2));
+
+    await store.recordAttempt('org-user-device', at: original);
+    await store.recordAttempt('org-user-device', at: rolledBack);
+
+    final attempts = store.attemptsFor('org-user-device', now: rolledBack);
+    expect(attempts, hasLength(2));
+    expect(attempts.first, original);
+    expect(attempts.last, original.add(const Duration(microseconds: 1)));
+  });
+
+  test('keeps local attempt ledgers isolated by durable scope', () async {
+    final store = CloudBackupSyncAttemptStore.memory();
+    final now = DateTime.utc(2026, 7, 16, 12);
+
+    await store.recordAttempt('org-a-user-device', at: now);
+
+    expect(store.attemptsFor('org-a-user-device', now: now), hasLength(1));
+    expect(store.attemptsFor('org-b-user-device', now: now), isEmpty);
+  });
 }
