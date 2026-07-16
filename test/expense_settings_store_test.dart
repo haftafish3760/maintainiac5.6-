@@ -331,6 +331,20 @@ void main() {
     },
   );
 
+  test('backup activity timestamps never move backward', () async {
+    final settings = await ExpenseSettingsController.create();
+    final latest = DateTime.utc(2026, 7, 15, 12, 5);
+    final earlier = latest.subtract(const Duration(minutes: 1));
+
+    await settings.recordBackupAttempt(latest);
+    await settings.recordBackupAttempt(earlier);
+    await settings.recordSuccessfulBackup(latest);
+    await settings.recordSuccessfulBackup(earlier);
+
+    expect(settings.lastBackupAttemptAt, latest);
+    expect(settings.lastSuccessfulBackupAt, latest);
+  });
+
   test(
     'receipt review style ignores corrupted non-string storage values',
     () async {

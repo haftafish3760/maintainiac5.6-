@@ -238,7 +238,7 @@ class ExpenseSettingsController extends ChangeNotifier {
       });
 
   Future<void> recordBackupAttempt(DateTime atUtc) =>
-      _writeUtcDateTime(_Keys.lastBackupAttemptAt, atUtc);
+      _writeMonotonicUtcDateTime(_Keys.lastBackupAttemptAt, atUtc);
 
   Future<void> recordSuccessfulBackup(DateTime atUtc) =>
       _recordSuccessfulBackup(atUtc);
@@ -427,19 +427,26 @@ class ExpenseSettingsController extends ChangeNotifier {
     return DateTime.tryParse(value)?.toUtc();
   }
 
-  Future<void> _writeUtcDateTime(String key, DateTime value) async {
+  Future<void> _writeMonotonicUtcDateTime(String key, DateTime value) async {
     await _writes.enqueue(() async {
-      await _box.put(key, value.toUtc().toIso8601String());
+      final requested = value.toUtc();
+      final existing = _readUtcDateTime(key);
+      final effective = existing != null && requested.isBefore(existing)
+          ? existing
+          : requested;
+      await _box.put(key, effective.toIso8601String());
       notifyListeners();
     });
   }
 
   Future<void> _recordSuccessfulBackup(DateTime atUtc) async {
     await _writes.enqueue(() async {
-      await _box.put(
-        _Keys.lastSuccessfulBackupAt,
-        atUtc.toUtc().toIso8601String(),
-      );
+      final requested = atUtc.toUtc();
+      final existing = lastSuccessfulBackupAt;
+      final effective = existing != null && requested.isBefore(existing)
+          ? existing
+          : requested;
+      await _box.put(_Keys.lastSuccessfulBackupAt, effective.toIso8601String());
       await _box.delete(_Keys.lastBackupFailureReason);
       notifyListeners();
     });
