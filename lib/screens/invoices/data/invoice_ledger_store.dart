@@ -113,12 +113,7 @@ class InvoiceLedgerStore extends ChangeNotifier {
 
   Future<void> saveNumberSettings(InvoiceNumberSettings settings) =>
       _enqueue(() async {
-        if (!canPersist) {
-          throw StateError('Invoice ledger persistence is not available.');
-        }
-        await _ensureStorageForWrite();
-        _memorySettings = settings;
-        if (_box != null) await _box.put(_settingsKey, settings.toMap());
+        await _saveNumberSettings(settings);
         notifyListeners();
       });
 
@@ -129,7 +124,10 @@ class InvoiceLedgerStore extends ChangeNotifier {
     String title = '',
     String vehicleId = '',
     String profileId = '',
-  }) async {
+  }) => _enqueue(() async {
+    if (!canPersist) {
+      throw StateError('Invoice ledger persistence is not available.');
+    }
     final createdAt = now ?? DateTime.now();
     var settings = numberSettings;
     final numberMode = manualNumber == null || manualNumber.trim().isEmpty
@@ -140,7 +138,7 @@ class InvoiceLedgerStore extends ChangeNotifier {
         : manualNumber!.trim();
     if (numberMode == InvoiceNumberMode.automatic) {
       settings = settings.advanceFor(type);
-      await saveNumberSettings(settings);
+      await _saveNumberSettings(settings);
     }
     final record = InvoiceRecord(
       id: _newInvoiceId(type, createdAt),
@@ -160,13 +158,22 @@ class InvoiceLedgerStore extends ChangeNotifier {
         '${createdAt.toIso8601String()} created ${type.name} draft $number',
       ],
     );
-    return saveRecord(record, now: createdAt);
-  }
+    final saved = await _saveRecord(record, now: createdAt);
+    notifyListeners();
+    return saved;
+  });
 
-  Future<InvoiceRecord> saveRecord(
+  Future<InvoiceRecord> saveRecord(InvoiceRecord record, {DateTime? now}) =>
+      _enqueue(() async {
+        final saved = await _saveRecord(record, now: now);
+        notifyListeners();
+        return saved;
+      });
+
+  Future<InvoiceRecord> _saveRecord(
     InvoiceRecord record, {
     DateTime? now,
-  }) => _enqueue(() async {
+  }) async {
     if (!canPersist) {
       throw StateError('Invoice ledger persistence is not available.');
     }
@@ -194,9 +201,8 @@ class InvoiceLedgerStore extends ChangeNotifier {
     } else {
       await _box.put(_recordKey(saved.id), saved.toMap());
     }
-    notifyListeners();
     return saved;
-  });
+  }
 
   Future<void> markSynced({
     required String id,
@@ -271,6 +277,15 @@ class InvoiceLedgerStore extends ChangeNotifier {
       AppStoragePurpose.smallRecordWrite,
     );
     if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
+  }
+
+  Future<void> _saveNumberSettings(InvoiceNumberSettings settings) async {
+    if (!canPersist) {
+      throw StateError('Invoice ledger persistence is not available.');
+    }
+    await _ensureStorageForWrite();
+    _memorySettings = settings;
+    if (_box != null) await _box.put(_settingsKey, settings.toMap());
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {

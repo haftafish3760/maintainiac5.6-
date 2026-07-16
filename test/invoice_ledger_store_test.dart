@@ -50,6 +50,32 @@ void main() {
   );
 
   test(
+    'concurrent automatic drafts reserve distinct durable numbers',
+    () async {
+      final store = InvoiceLedgerStore.memory(
+        settings: const InvoiceNumberSettings(
+          invoicePrefix: 'INV',
+          nextInvoiceNumber: 42,
+          padding: 5,
+        ),
+      );
+      final now = DateTime(2026, 7, 16, 9);
+
+      final drafts = await Future.wait([
+        store.createDraft(type: InvoiceDocumentType.invoice, now: now),
+        store.createDraft(type: InvoiceDocumentType.invoice, now: now),
+      ]);
+
+      expect(drafts.map((draft) => draft.invoiceNumber).toSet(), {
+        'INV-00042',
+        'INV-00043',
+      });
+      expect(store.numberSettings.nextInvoiceNumber, 44);
+      expect(store.records, hasLength(2));
+    },
+  );
+
+  test(
     'manual invoice number is saved without advancing automatic counter',
     () async {
       final store = InvoiceLedgerStore.memory(
