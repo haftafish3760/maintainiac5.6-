@@ -26,11 +26,9 @@ class ReceiptImagePicker {
   static const receiptCameraImageQuality = 100;
   static final ImagePicker _picker = ImagePicker();
 
-  /// Backup receipt capture uses the phone camera/gallery surfaces.
-  ///
-  /// Production receipt capture should try the Maintainiac native receipt
-  /// camera service first. This picker remains as a fallback/import surface so
-  /// users can still capture a receipt if the native bridge is unavailable.
+  /// Production receipt capture opens the phone's system camera first, then
+  /// returns to Maintainiac for numbered review and long-receipt stitching.
+  /// The compatibility method name remains because older callers use it.
   static Future<ReceiptPickedPhotoSet> takeReceiptPhotoSet() async {
     return takeBackupReceiptPhotoSet();
   }

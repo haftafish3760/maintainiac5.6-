@@ -291,10 +291,7 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_review_result_next_review.dart',
         ).readAsString();
 
-    expect(
-      controls,
-      contains("return 'Use Receipt';"),
-    );
+    expect(controls, contains("return 'Use Receipt';"));
     expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
     expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
@@ -302,17 +299,20 @@ void main() {
     expect(previewControls, contains("uiConfig.labelFor('addPhoto'"));
     expect(previewControls, contains('minimumSize: const Size(0, 38)'));
     expect(controls, contains('open receipt details'));
-    expect(
-      controls,
-      contains('Use this photo, retake it, or add another photo if the '),
-    );
+    expect(controls, contains('Check that the receipt text is readable.'));
     expect(
       models,
       contains('Review receipt details and mark Business, Personal, or Mixed.'),
     );
-    expect(models, contains(r'Receipt details open from $nextReviewSourceLabel'));
+    expect(
+      models,
+      contains(r'Receipt details open from $nextReviewSourceLabel'),
+    );
     expect(controls, isNot(contains('Read receipt')));
-    expect(controls, contains('Use this photo, retake it'));
+    expect(
+      controls,
+      contains('Retake this photo, add another only if the receipt continues'),
+    );
     expect(controls, isNot(contains('Saved copy')));
   });
 
