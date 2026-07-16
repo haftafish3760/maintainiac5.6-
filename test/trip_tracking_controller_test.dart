@@ -1831,6 +1831,9 @@ void main() {
       startedAt: start,
     );
     final active = store.activeSession!;
+    await store.savePending(
+      TripTrackingPendingSample(sessionId: active.id, sample: sample(-80, 0)),
+    );
     await store.saveReview(
       TripTrackingReviewRecord(
         id: active.id,
@@ -1852,6 +1855,7 @@ void main() {
 
     expect(await recovered.restore(), isFalse);
     expect(store.activeSession, isNull);
+    expect(store.pendingSampleFor(active.id), isNull);
     expect(recovered.isTracking, isFalse);
     expect(recoveredOdometer.hasLiveTripProjection, isFalse);
   });

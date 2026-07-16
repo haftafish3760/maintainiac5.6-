@@ -297,11 +297,13 @@ class TripTrackingController extends ChangeNotifier {
       }
       try {
         await _sessionStore.clear();
+        await _sessionStore.clearPending(session.id);
       } catch (error) {
         // The durable review remains authoritative even if a stale recovery
         // checkpoint cannot be removed right now. Never resume it as a trip.
         _platformStatus = 'review_cleanup_failed';
-        _platformError = 'Could not clear stale trip recovery data: $error';
+        _platformError =
+            'Could not clear stale trip recovery data or transient GPS sample: $error';
         notifyListeners();
       }
       return false;
