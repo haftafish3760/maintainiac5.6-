@@ -41,6 +41,7 @@ class MaintainiacFirestoreUploadQueueStore {
   Future<MaintainiacFirestoreQueuedDocument> _enqueueDocument(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
+    MaintainiacFirestoreQueuedDocument? retrySource,
   }) async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     await _ensureStorageForQueueWrite();
@@ -50,6 +51,10 @@ class MaintainiacFirestoreUploadQueueStore {
       path: draft.path,
       data: Map<String, Object?>.unmodifiable(draft.data),
       queuedAtUtc: queuedAt,
+      attemptCount: retrySource?.attemptCount ?? 0,
+      lastAttemptAtUtc: retrySource?.lastAttemptAtUtc,
+      nextAttemptAtUtc: retrySource?.nextAttemptAtUtc,
+      lastError: retrySource?.lastError,
     );
     await _box.put(record.id, record.toMap());
     await _trimOldestIfNeeded();
@@ -59,6 +64,7 @@ class MaintainiacFirestoreUploadQueueStore {
   Future<MaintainiacFirestoreQueuedDocument> enqueueReplacingPendingForPath(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
+    bool preserveAttemptMetadata = false,
   }) => _enqueue(() async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     await _ensureStorageForQueueWrite();
@@ -69,7 +75,11 @@ class MaintainiacFirestoreUploadQueueStore {
     // Write the replacement before removing any retry evidence. If an I/O
     // failure interrupts this operation, the older pending record remains
     // recoverable rather than silently losing a user-authorized backup.
-    final queued = await _enqueueDocument(draft, queuedAtUtc: queuedAtUtc);
+    final queued = await _enqueueDocument(
+      draft,
+      queuedAtUtc: queuedAtUtc,
+      retrySource: preserveAttemptMetadata ? _latestAttempt(replaced) : null,
+    );
     for (final record in replaced) {
       await _box.delete(record.id);
     }
@@ -206,6 +216,19 @@ class MaintainiacFirestoreUploadQueueStore {
     for (final record in uploaded.take(extraCount)) {
       await _box.delete(record.id);
     }
+  }
+
+  MaintainiacFirestoreQueuedDocument? _latestAttempt(
+    List<MaintainiacFirestoreQueuedDocument> records,
+  ) {
+    if (records.isEmpty) return null;
+    final sorted = [...records]
+      ..sort((a, b) {
+        final left = a.lastAttemptAtUtc ?? a.queuedAtUtc;
+        final right = b.lastAttemptAtUtc ?? b.queuedAtUtc;
+        return right.compareTo(left);
+      });
+    return sorted.first;
   }
 
   String _recordIdFor(String path, DateTime queuedAtUtc) {

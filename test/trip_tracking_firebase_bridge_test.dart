@@ -877,6 +877,49 @@ void main() {
     );
   });
 
+  test('automatic trip backup retry preserves queue backoff', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final failingMirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _RecordingSink(throwOnWrite: true),
+        uploadEnabled: true,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await failingMirror.queueReview(review());
+    await failingMirror.flushPending();
+    expect(queue.pendingRecords.single.attemptCount, 1);
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncState,
+      TripTrackingCloudSyncState.failed,
+    );
+
+    final sink = _RecordingSink();
+    final retryMirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await retryMirror.flushPending();
+
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords.single.attemptCount, 1);
+    expect(queue.pendingRecords.single.nextAttemptAtUtc, isNotNull);
+  });
+
   test(
     'consent withdrawal clears a Firebase write that previously failed',
     () async {
