@@ -89,6 +89,43 @@ void main() {
     expect(find.text('Proof Photo'), findsNothing);
   });
 
+  testWidgets('contractor day controls persist pause resume and end events', (
+    tester,
+  ) async {
+    final activeWorkday = ActiveWorkdayController.memory();
+    await _pumpDashboard(
+      tester,
+      appState,
+      odometer,
+      workProfiles,
+      activeWorkday: activeWorkday,
+    );
+
+    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Start Day'),
+      220,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Start Day'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pause Day'));
+    await tester.pumpAndSettle();
+    expect(activeWorkday.activeSession?.status, ActiveWorkdayStatus.paused);
+    expect(find.text('Resume Day'), findsOneWidget);
+
+    await tester.tap(find.text('Resume Day'));
+    await tester.pumpAndSettle();
+    expect(activeWorkday.activeSession?.status, ActiveWorkdayStatus.active);
+
+    await tester.tap(find.text('End Day'));
+    await tester.pumpAndSettle();
+    expect(activeWorkday.activeSession, isNull);
+    expect(find.text('Start Contractor Day'), findsOneWidget);
+  });
+
   testWidgets('active workday miles redraw from live GPS odometer projection', (
     tester,
   ) async {

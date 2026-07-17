@@ -75,11 +75,17 @@ class ContractorDayControlPanel extends StatelessWidget {
   const ContractorDayControlPanel({
     required this.dayStarted,
     required this.onStartDay,
+    this.dayPaused = false,
+    this.onPauseDay,
+    this.onEndDay,
     super.key,
   });
 
   final bool dayStarted;
+  final bool dayPaused;
   final VoidCallback onStartDay;
+  final VoidCallback? onPauseDay;
+  final VoidCallback? onEndDay;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +126,9 @@ class ContractorDayControlPanel extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       dayStarted
-                          ? 'Pause the shift, end the day, or keep adding job records above.'
+                          ? dayPaused
+                                ? 'Resume the shift, end the day, or keep reviewing job records above.'
+                                : 'Pause the shift, end the day, or keep adding job records above.'
                           : 'Begin mileage, jobs, receipts, materials, and invoices for this vehicle.',
                       style: const TextStyle(
                         color: Color(0xFFF1F7F3),
@@ -138,13 +146,13 @@ class ContractorDayControlPanel extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppButton(
-                      label: 'Pause Day',
+                      label: dayPaused ? 'Resume Day' : 'Pause Day',
                       compact: true,
                       icon: const Icon(
                         Icons.pause_rounded,
                         color: Colors.white,
                       ),
-                      onPressed: () {},
+                      onPressed: onPauseDay,
                     ),
                     const SizedBox(height: 7),
                     AppButton(
@@ -152,7 +160,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                       compact: true,
                       tone: AppButtonTone.destructive,
                       icon: const Icon(Icons.stop_rounded, color: Colors.white),
-                      onPressed: () {},
+                      onPressed: onEndDay,
                     ),
                   ],
                 )

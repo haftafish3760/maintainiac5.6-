@@ -31,8 +31,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final activeWorkday = ActiveWorkdayScope.maybeOf(context);
-    final dayStarted =
-        activeWorkday?.activeSession?.isActive == true || _dayStarted;
+    final activeSession = activeWorkday?.activeSession;
+    final dayStarted = activeSession?.isActive == true || _dayStarted;
+    final dayPaused = activeSession?.isPaused == true;
     return AppScreenShell(
       section: AppSection.dashboard,
       body: ListView(
@@ -61,7 +62,10 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
             const SizedBox(height: 10),
             ContractorDayControlPanel(
               dayStarted: true,
+              dayPaused: dayPaused,
               onStartDay: _startContractorDay,
+              onPauseDay: _toggleContractorDayPause,
+              onEndDay: _endContractorDay,
             ),
           ] else ...[
             ContractorDayControlPanel(
@@ -118,6 +122,56 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  Future<void> _toggleContractorDayPause() async {
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
+    final session = activeWorkday?.activeSession;
+    if (activeWorkday == null || session == null) return;
+    await _recordContractorDayEvent(
+      activeWorkday,
+      session.isPaused
+          ? ActiveWorkdayEventType.resumed
+          : ActiveWorkdayEventType.paused,
+    );
+  }
+
+  Future<void> _endContractorDay() async {
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
+    if (activeWorkday == null || activeWorkday.activeSession == null) {
+      setState(() => _dayStarted = false);
+      return;
+    }
+    final ended = await _recordContractorDayEvent(
+      activeWorkday,
+      ActiveWorkdayEventType.ended,
+    );
+    if (ended && mounted) setState(() => _dayStarted = false);
+  }
+
+  Future<bool> _recordContractorDayEvent(
+    ActiveWorkdayController activeWorkday,
+    ActiveWorkdayEventType type,
+  ) async {
+    try {
+      final odometer = GlobalOdometerScope.of(context);
+      final updated = await activeWorkday.addEvent(
+        type: type,
+        odometerReading: odometer.reading,
+      );
+      if (!mounted) return updated != null;
+      setState(() {});
+      return updated != null;
+    } catch (error) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not update contractor day: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return false;
     }
   }
 
