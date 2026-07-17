@@ -317,6 +317,8 @@ service cloud.firestore {
         'sensorAssistState',
         'odometerCalibrationState',
         'odometerCalibrationSamples',
+        'odometerUsageState',
+        'odometerUsageReviewedDays',
         'freeSyncsRemaining',
         'syncsUsedInWindow',
         'batteryGpsLimited',
@@ -341,6 +343,7 @@ service cloud.firestore {
         'deviceCapabilityState',
         'sensorAssistState',
         'odometerCalibrationState',
+        'odometerUsageState',
         'batteryGpsLimited',
         'reviewRequired',
         'locationDataIncluded',
@@ -489,6 +492,17 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function isAllowedOdometerUsageState(value) {
+      return [
+        'unknown',
+        'disabled',
+        'insufficient_history',
+        'normal',
+        'review_recommended',
+        'invalid'
+      ].hasAny([value]);
+    }
+
     function isDashboardCommandCenterSummary() {
       return request.resource.data.schema ==
           'dashboard_command_center_summary_v1' &&
@@ -518,6 +532,13 @@ service cloud.firestore {
           (request.resource.data.odometerCalibrationSamples is int &&
             request.resource.data.odometerCalibrationSamples >= 0 &&
             request.resource.data.odometerCalibrationSamples <= 999)) &&
+        isAllowedOdometerUsageState(
+          request.resource.data.odometerUsageState
+        ) &&
+        (!request.resource.data.keys().hasAny(['odometerUsageReviewedDays']) ||
+          (request.resource.data.odometerUsageReviewedDays is int &&
+            request.resource.data.odometerUsageReviewedDays >= 0 &&
+            request.resource.data.odometerUsageReviewedDays <= 999)) &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool;
     }

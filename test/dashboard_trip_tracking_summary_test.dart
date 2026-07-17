@@ -25,6 +25,8 @@ void main() {
     expect(summary.sensorAssistState, 'unknown');
     expect(summary.odometerCalibrationState, 'disabled');
     expect(summary.odometerCalibrationSamples, isNull);
+    expect(summary.odometerUsageState, 'disabled');
+    expect(summary.odometerUsageReviewedDays, isNull);
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.batteryGpsLimited, isFalse);
@@ -72,6 +74,8 @@ void main() {
       sensorAssistState: 'motion_battery_available',
       odometerCalibrationState: 'review_recommended',
       odometerCalibrationSamples: 7,
+      odometerUsageState: 'review_recommended',
+      odometerUsageReviewedDays: 7,
       wifiAvailable: false,
       mobileDataAvailable: true,
       syncsUsedInWindow: 5,
@@ -85,6 +89,8 @@ void main() {
     expect(summary.sensorAssistState, 'motion_battery_available');
     expect(summary.odometerCalibrationState, 'review_recommended');
     expect(summary.odometerCalibrationSamples, 7);
+    expect(summary.odometerUsageState, 'review_recommended');
+    expect(summary.odometerUsageReviewedDays, 7);
     expect(summary.freeSyncsRemaining, 1);
     expect(summary.batteryGpsLimited, isTrue);
     expect(summary.reviewRequired, isTrue);
@@ -109,6 +115,8 @@ void main() {
       sensorAssistState: 'raw_motion_payload',
       odometerCalibrationState: 'raw_drift_payload',
       odometerCalibrationSamples: -1,
+      odometerUsageState: 'raw_average_payload',
+      odometerUsageReviewedDays: -1,
       wifiAvailable: true,
       mobileDataAvailable: true,
       syncsUsedInWindow: -1,
@@ -119,6 +127,8 @@ void main() {
     expect(summary.sensorAssistState, 'unknown');
     expect(summary.odometerCalibrationState, 'unknown');
     expect(summary.odometerCalibrationSamples, isNull);
+    expect(summary.odometerUsageState, 'unknown');
+    expect(summary.odometerUsageReviewedDays, isNull);
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.hasVerifiedSyncCounters, isFalse);
@@ -266,6 +276,64 @@ void main() {
       expect(summary.odometerCalibrationSamples, 7);
       expect(
         controller.odometerCalibrationSignal().canOverwriteConfirmedOdometer,
+        isFalse,
+      );
+    },
+  );
+
+  test(
+    'runtime summary recommends usage review without changing odometer truth',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1300,
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      final activeWorkday = ActiveWorkdaySessionRecord(
+        id: 'workday_usage',
+        vehicleId: 'vehicle_1',
+        vehicleLabel: 'Truck',
+        workProfileId: 'delivery',
+        startedAt: DateTime.utc(2026, 7, 17, 8),
+        startOdometer: 1000,
+        status: ActiveWorkdayStatus.active,
+        events: const [],
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      for (var index = 0; index < 7; index += 1) {
+        await store.saveReview(
+          _confirmedReview(
+            id: 'usage_$index',
+            startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+            filteredGpsMiles: 40,
+            odometerMiles: 40,
+          ),
+        );
+      }
+
+      final summary = DashboardTripTrackingSummary.fromRuntime(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          odometerAnomalyAlertsEnabled: true,
+        ),
+        tripTracking: controller,
+        activeWorkday: activeWorkday,
+      );
+
+      expect(summary.odometerUsageState, 'review_recommended');
+      expect(summary.odometerUsageReviewedDays, 7);
+      expect(summary.reviewRequired, isTrue);
+      expect(
+        controller
+            .odometerUsageAnomalySignalForCurrentDay(
+              startingOdometer: activeWorkday.startOdometer,
+            )
+            .canAutoCorrectOdometer,
         isFalse,
       );
     },

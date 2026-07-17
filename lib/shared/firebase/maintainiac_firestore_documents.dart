@@ -356,6 +356,8 @@ class MaintainiacFirestoreDocumentBuilder {
     String sensorAssistState = 'unknown',
     String odometerCalibrationState = 'unknown',
     int? odometerCalibrationSamples,
+    String odometerUsageState = 'unknown',
+    int? odometerUsageReviewedDays,
     int? freeSyncsRemaining,
     int? syncsUsedInWindow,
     bool batteryGpsLimited = false,
@@ -440,6 +442,17 @@ class MaintainiacFirestoreDocumentBuilder {
           'odometerCalibrationSamples': _optionalDashboardSyncCounter(
             odometerCalibrationSamples,
             fieldName: 'odometerCalibrationSamples',
+            max: 999,
+          ),
+        'odometerUsageState': _requiredDashboardSummaryToken(
+          odometerUsageState,
+          'odometerUsageState',
+          _allowedOdometerUsageStates,
+        ),
+        if (odometerUsageReviewedDays != null)
+          'odometerUsageReviewedDays': _optionalDashboardSyncCounter(
+            odometerUsageReviewedDays,
+            fieldName: 'odometerUsageReviewedDays',
             max: 999,
           ),
         if (freeSyncsRemaining != null)
@@ -535,6 +548,15 @@ const _allowedOdometerCalibrationStates = <String>{
   'disabled',
   'insufficient_history',
   'stable',
+  'review_recommended',
+  'invalid',
+};
+
+const _allowedOdometerUsageStates = <String>{
+  'unknown',
+  'disabled',
+  'insufficient_history',
+  'normal',
   'review_recommended',
   'invalid',
 };

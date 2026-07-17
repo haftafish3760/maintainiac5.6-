@@ -3,6 +3,7 @@ import '../../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
+import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
 import 'active_workday_store.dart';
@@ -18,6 +19,8 @@ class DashboardTripTrackingSummary {
     required this.sensorAssistState,
     required this.odometerCalibrationState,
     required this.odometerCalibrationSamples,
+    required this.odometerUsageState,
+    required this.odometerUsageReviewedDays,
     required this.freeSyncsRemaining,
     required this.syncsUsedInWindow,
     required this.batteryGpsLimited,
@@ -33,6 +36,8 @@ class DashboardTripTrackingSummary {
   final String sensorAssistState;
   final String odometerCalibrationState;
   final int? odometerCalibrationSamples;
+  final String odometerUsageState;
+  final int? odometerUsageReviewedDays;
   final int? freeSyncsRemaining;
   final int? syncsUsedInWindow;
   final bool batteryGpsLimited;
@@ -52,6 +57,8 @@ class DashboardTripTrackingSummary {
     String sensorAssistState = 'unknown',
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
+    String odometerUsageState = 'disabled',
+    int? odometerUsageReviewedDays,
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -92,6 +99,10 @@ class DashboardTripTrackingSummary {
       odometerCalibrationSamples: _safeCalibrationSamples(
         odometerCalibrationSamples,
       ),
+      odometerUsageState: _safeOdometerUsageState(odometerUsageState),
+      odometerUsageReviewedDays: _safeCalibrationSamples(
+        odometerUsageReviewedDays,
+      ),
       freeSyncsRemaining: safeSyncsUsed == null
           ? null
           : syncDecision.freeSyncsRemaining,
@@ -125,6 +136,14 @@ class DashboardTripTrackingSummary {
             settings.odometerAnomalyAlertsEnabled
         ? tripTracking?.odometerCalibrationSignal()
         : null;
+    final usageSignal =
+        settings.gpsAssistedTrackingEnabled &&
+            settings.odometerAnomalyAlertsEnabled &&
+            activeWorkday != null
+        ? tripTracking?.odometerUsageAnomalySignalForCurrentDay(
+            startingOdometer: activeWorkday.startOdometer,
+          )
+        : null;
     return fromSettings(
       settings: settings,
       nativeTracking: nativeTracking,
@@ -133,12 +152,15 @@ class DashboardTripTrackingSummary {
       reviewRequired:
           tripTracking?.latestUnconfirmedReview != null ||
           tripTracking?.needsWalkingReview == true ||
-          activeWorkday?.isPaused == true,
+          activeWorkday?.isPaused == true ||
+          usageSignal?.shouldPromptUser == true,
       storageState: _storageStateFor(storageCheck),
       deviceCapabilityState: _deviceCapabilityStateFor(capabilityGuidance),
       sensorAssistState: _sensorAssistStateFor(capabilityGuidance),
       odometerCalibrationState: _calibrationStateFor(calibrationSignal),
       odometerCalibrationSamples: calibrationSignal?.eligibleSampleCount,
+      odometerUsageState: _usageStateFor(usageSignal),
+      odometerUsageReviewedDays: usageSignal?.reviewedDayCount,
       wifiAvailable: wifiAvailable,
       mobileDataAvailable: mobileDataAvailable,
       syncsUsedInWindow: syncsUsedInWindow,
@@ -213,6 +235,18 @@ String _safeOdometerCalibrationState(String value) {
   };
 }
 
+String _safeOdometerUsageState(String value) {
+  return switch (value.trim()) {
+    'unknown' => 'unknown',
+    'disabled' => 'disabled',
+    'insufficient_history' => 'insufficient_history',
+    'normal' => 'normal',
+    'review_recommended' => 'review_recommended',
+    'invalid' => 'invalid',
+    _ => 'unknown',
+  };
+}
+
 int? _safeCalibrationSamples(int? value) {
   if (value == null || value < 0) return null;
   return value > 999 ? 999 : value;
@@ -253,6 +287,17 @@ String _calibrationStateFor(TripOdometerCalibrationSignal? signal) {
     TripOdometerCalibrationStatus.insufficientHistory => 'insufficient_history',
     TripOdometerCalibrationStatus.stable => 'stable',
     TripOdometerCalibrationStatus.reviewRecommended => 'review_recommended',
+  };
+}
+
+String _usageStateFor(TripOdometerUsageAnomalySignal? signal) {
+  if (signal == null) return 'disabled';
+  return switch (signal.status) {
+    TripOdometerUsageAnomalyStatus.invalid => 'invalid',
+    TripOdometerUsageAnomalyStatus.insufficientHistory =>
+      'insufficient_history',
+    TripOdometerUsageAnomalyStatus.normal => 'normal',
+    TripOdometerUsageAnomalyStatus.reviewRecommended => 'review_recommended',
   };
 }
 

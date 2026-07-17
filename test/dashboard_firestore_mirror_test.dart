@@ -156,6 +156,8 @@ void main() {
     expect(data['sensorAssistState'], 'unknown');
     expect(data['odometerCalibrationState'], 'disabled');
     expect(data.keys, isNot(contains('odometerCalibrationSamples')));
+    expect(data['odometerUsageState'], 'disabled');
+    expect(data.keys, isNot(contains('odometerUsageReviewedDays')));
     expect(data['freeSyncsRemaining'], 4);
     expect(data['syncsUsedInWindow'], 2);
     expect(data['locationDataIncluded'], isFalse);

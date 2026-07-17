@@ -100,6 +100,21 @@ class TripTrackingController extends ChangeNotifier {
     nowUtc: nowUtc,
   );
 
+  TripOdometerUsageAnomalySignal odometerUsageAnomalySignalForCurrentDay({
+    int? startingOdometer,
+    DateTime? nowUtc,
+  }) {
+    final baseline =
+        startingOdometer ??
+        _session?.startingOdometer ??
+        _odometer.confirmedReading;
+    final miles = (_odometer.reading - baseline).clamp(0, 999999).toDouble();
+    return odometerUsageAnomalySignal(
+      currentOdometerMiles: miles,
+      nowUtc: nowUtc,
+    );
+  }
+
   Future<bool> confirmOdometerReview({
     required String reviewId,
     required int confirmedEndingOdometer,

@@ -25,6 +25,8 @@ void main() {
           sensorAssistState: 'motion_battery_available',
           odometerCalibrationState: 'review_recommended',
           odometerCalibrationSamples: 7,
+          odometerUsageState: 'review_recommended',
+          odometerUsageReviewedDays: 7,
           freeSyncsRemaining: HostedUsageLimits.freeUserSyncsPer24HourWindow,
           syncsUsedInWindow: 0,
           batteryGpsLimited: true,
@@ -48,6 +50,8 @@ void main() {
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
     expect(doc.data['odometerCalibrationSamples'], 7);
+    expect(doc.data['odometerUsageState'], 'review_recommended');
+    expect(doc.data['odometerUsageReviewedDays'], 7);
     expect(doc.data.keys, isNot(contains('latitude')));
     expect(doc.data.keys, isNot(contains('route')));
     expect(doc.data.keys, isNot(contains('rawSamples')));
@@ -235,6 +239,7 @@ void main() {
       'deviceCapabilityState': 'precise_location_history',
       'sensorAssistState': 'raw_motion_payload',
       'odometerCalibrationState': 'raw_drift_payload',
+      'odometerUsageState': 'raw_average_payload',
     }.entries) {
       final poisoned = MaintainiacFirestoreDocumentDraft(
         path: doc.path,
@@ -266,6 +271,7 @@ void main() {
       'deviceCapabilityState': ' unknown ',
       'sensorAssistState': ' unknown ',
       'odometerCalibrationState': ' unknown ',
+      'odometerUsageState': ' unknown ',
     }.entries) {
       final poisoned = MaintainiacFirestoreDocumentDraft(
         path: doc.path,
@@ -290,6 +296,7 @@ void main() {
       'deviceCapabilityState': 'precise_location_history',
       'sensorAssistState': 'raw_motion_payload',
       'odometerCalibrationState': 'raw_drift_payload',
+      'odometerUsageState': 'raw_average_payload',
     }.entries) {
       expect(
         () =>
@@ -317,6 +324,9 @@ void main() {
                   ? entry.value
                   : 'unknown',
               odometerCalibrationState: entry.key == 'odometerCalibrationState'
+                  ? entry.value
+                  : 'unknown',
+              odometerUsageState: entry.key == 'odometerUsageState'
                   ? entry.value
                   : 'unknown',
             ),

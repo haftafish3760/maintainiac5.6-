@@ -151,6 +151,15 @@ class MaintainiacFirestoreUploadPolicy {
     'invalid',
   };
 
+  static const _allowedOdometerUsageStates = <String>{
+    'unknown',
+    'disabled',
+    'insufficient_history',
+    'normal',
+    'review_recommended',
+    'invalid',
+  };
+
   static const _allowedTripProfiles = <String>{
     'roadVehicle',
     'rideshareVehicle',
@@ -269,6 +278,8 @@ class MaintainiacFirestoreUploadPolicy {
       'sensorAssistState',
       'odometerCalibrationState',
       'odometerCalibrationSamples',
+      'odometerUsageState',
+      'odometerUsageReviewedDays',
       'freeSyncsRemaining',
       'syncsUsedInWindow',
       'batteryGpsLimited',
@@ -311,6 +322,11 @@ class MaintainiacFirestoreUploadPolicy {
           _allowedOdometerCalibrationStates,
         ) &&
         _isValidSyncsUsedInWindow(draft.data['odometerCalibrationSamples']) &&
+        _isAllowedString(
+          draft.data['odometerUsageState'],
+          _allowedOdometerUsageStates,
+        ) &&
+        _isValidSyncsUsedInWindow(draft.data['odometerUsageReviewedDays']) &&
         _isValidFreeSyncsRemaining(draft.data['freeSyncsRemaining']) &&
         _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
         _hasConsistentDashboardSyncCounters(draft.data) &&
