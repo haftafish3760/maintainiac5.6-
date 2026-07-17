@@ -318,6 +318,159 @@ void main() {
     },
   );
 
+  test(
+    'low battery GPS protection asks before requesting permission',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        batterySnapshot: const TripTrackingBatterySnapshot(
+          batteryPercent: 19,
+          isCharging: false,
+          lowPowerModeEnabled: false,
+        ),
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_low_battery_prompt',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isFalse,
+      );
+
+      expect(native.requestAuthorizationCalls, 0);
+      expect(native.startCalls, 0);
+      expect(controller.platformStatus, 'low_battery_requires_user_choice');
+      expect(controller.platformError, contains('below 20% battery'));
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+      expect(controller.healthState, TripTrackingHealthState.unavailable);
+    },
+  );
+
+  test(
+    'saved low battery cancellation blocks GPS before permission request',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        batterySnapshot: const TripTrackingBatterySnapshot(
+          batteryPercent: 5,
+          isCharging: false,
+          lowPowerModeEnabled: true,
+        ),
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_low_battery_saved_block',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          lowBatteryWarningDismissed: true,
+        ),
+        isFalse,
+      );
+
+      expect(native.requestAuthorizationCalls, 0);
+      expect(native.startCalls, 0);
+      expect(
+        controller.platformStatus,
+        'low_battery_gps_blocked_by_saved_choice',
+      );
+      expect(controller.platformError, contains('blocked below 20% battery'));
+    },
+  );
+
+  test('low battery override allows GPS startup', () async {
+    final native = _FakeTripTrackingPlatform(
+      batterySnapshot: const TripTrackingBatterySnapshot(
+        batteryPercent: 5,
+        isCharging: false,
+        lowPowerModeEnabled: true,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_low_battery_override',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(
+        allowBackground: false,
+        lowBatteryOverrideEnabled: true,
+      ),
+      isTrue,
+    );
+
+    expect(native.requestAuthorizationCalls, 1);
+    expect(native.startCalls, 1);
+    expect(controller.platformError, isNull);
+  });
+
+  test(
+    'battery snapshot read failures do not fabricate low battery blocks',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        throwOnReadBatterySnapshot: true,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_battery_snapshot_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      expect(native.requestAuthorizationCalls, 1);
+      expect(native.startCalls, 1);
+      expect(controller.platformError, isNull);
+    },
+  );
+
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
     final odometer = GlobalOdometerController(initialReading: 1000);
@@ -2479,6 +2632,12 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.throwOnStop = false,
     this.throwOnIsTracking = false,
     this.throwOnReadCapabilities = false,
+    this.throwOnReadBatterySnapshot = false,
+    this.batterySnapshot = const TripTrackingBatterySnapshot(
+      batteryPercent: 100,
+      isCharging: false,
+      lowPowerModeEnabled: false,
+    ),
     this.startDelay,
   });
 
@@ -2488,6 +2647,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool throwOnStop;
   final bool throwOnIsTracking;
   final bool throwOnReadCapabilities;
+  final bool throwOnReadBatterySnapshot;
+  final TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
   var _running = false;
   TripTrackingNativeRequest? startedRequest;
@@ -2548,16 +2709,16 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
       locationAvailable: true,
       backgroundTrackingAvailable: true,
       activityRecognitionAvailable: false,
+      batteryStateAvailable: true,
+      lowPowerModeAvailable: true,
     );
   }
 
   @override
   Future<TripTrackingBatterySnapshot> readBatterySnapshot() async =>
-      const TripTrackingBatterySnapshot(
-        batteryPercent: 100,
-        isCharging: false,
-        lowPowerModeEnabled: false,
-      );
+      throwOnReadBatterySnapshot
+      ? throw StateError('battery snapshot failed')
+      : batterySnapshot;
 
   @override
   Future<TripTrackingAuthorization> requestAuthorization({

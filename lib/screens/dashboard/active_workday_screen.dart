@@ -397,6 +397,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       samplingOverride: _samplingForPreset(settings),
       adaptiveSamplingEnabled: settings.adaptiveSamplingEnabled,
       activityRecognitionEnabled: settings.activityRecognitionEnabled,
+      lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+      lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
+      lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
     );
     if (!started && startedNewTrip) await tripTracking.discardEmptyTrip();
     if (!mounted) return;

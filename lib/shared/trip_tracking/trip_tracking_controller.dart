@@ -484,6 +484,9 @@ class TripTrackingController extends ChangeNotifier {
     TripSamplingRecommendation? samplingOverride,
     bool activityRecognitionEnabled = false,
     bool adaptiveSamplingEnabled = true,
+    bool lowBatteryProtectionEnabled = true,
+    bool lowBatteryOverrideEnabled = false,
+    bool lowBatteryWarningDismissed = false,
   }) => _enqueueNativeLifecycle(
     () => _startNativeTracking(
       allowBackground: allowBackground,
@@ -492,6 +495,9 @@ class TripTrackingController extends ChangeNotifier {
       samplingOverride: samplingOverride,
       activityRecognitionEnabled: activityRecognitionEnabled,
       adaptiveSamplingEnabled: adaptiveSamplingEnabled,
+      lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
+      lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
+      lowBatteryWarningDismissed: lowBatteryWarningDismissed,
     ),
   );
 
@@ -502,6 +508,9 @@ class TripTrackingController extends ChangeNotifier {
     TripSamplingRecommendation? samplingOverride,
     bool activityRecognitionEnabled = false,
     bool adaptiveSamplingEnabled = true,
+    bool lowBatteryProtectionEnabled = true,
+    bool lowBatteryOverrideEnabled = false,
+    bool lowBatteryWarningDismissed = false,
   }) async {
     final platform = _platform;
     var session = _session;
@@ -530,6 +539,40 @@ class TripTrackingController extends ChangeNotifier {
     }
     if (!capabilities.locationAvailable) {
       _platformError = 'Device location is unavailable.';
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    var batterySnapshot = const TripTrackingBatterySnapshot(
+      batteryPercent: null,
+      isCharging: false,
+      lowPowerModeEnabled: false,
+    );
+    try {
+      if (capabilities.batteryStateAvailable) {
+        batterySnapshot = await platform.readBatterySnapshot();
+      }
+    } catch (_) {
+      // Battery state is advisory for safety. If the platform cannot provide a
+      // trustworthy reading, continue as "unknown" instead of fabricating data.
+    }
+    final batteryDecision = _policy.gpsBatteryDecision(
+      batteryPercent: batterySnapshot.batteryPercent,
+      isCharging: batterySnapshot.isCharging,
+      lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
+      lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
+      lowBatteryWarningDismissed: lowBatteryWarningDismissed,
+    );
+    if (!batteryDecision.allowsGps) {
+      _platformStatus = batteryDecision.reasonCode;
+      _platformError =
+          batteryDecision.status ==
+              TripGpsBatteryDecisionStatus.userPromptRequired
+          ? 'Battery is below the GPS safety threshold. Choose whether to continue GPS below 20% battery.'
+          : 'GPS tracking is blocked below 20% battery by your saved battery setting.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
