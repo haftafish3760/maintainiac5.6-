@@ -231,7 +231,7 @@ class MaintainiacFirestoreDocumentBuilder {
       creatorUid: safeCreator,
       review: review,
       scopeFields: {
-        'orgId': _safePathToken(orgId),
+        'orgId': _requiredSafePathToken(orgId, 'orgId'),
         'organizationSharingConsent': true,
       },
     );
@@ -254,13 +254,13 @@ class MaintainiacFirestoreDocumentBuilder {
     required String orgId,
     required String tripId,
   }) =>
-      '${MaintainiacFirestoreSchema.orgCollectionPath(_safePathToken(orgId), MaintainiacFirestoreSchema.orgMileageRecords)}/${_safePathToken(tripId)}';
+      '${MaintainiacFirestoreSchema.orgCollectionPath(_requiredSafePathToken(orgId, 'orgId'), MaintainiacFirestoreSchema.orgMileageRecords)}/${_requiredSafePathToken(tripId, 'tripId')}';
 
   static String personalTripTrackingReviewPath({
     required String uid,
     required String tripId,
   }) =>
-      '${MaintainiacFirestoreSchema.userCollectionPath(_safeFirestoreUid(uid), MaintainiacFirestoreSchema.orgMileageRecords)}/${_safePathToken(tripId)}';
+      '${MaintainiacFirestoreSchema.userCollectionPath(_safeFirestoreUid(uid), MaintainiacFirestoreSchema.orgMileageRecords)}/${_requiredSafePathToken(tripId, 'tripId')}';
 
   static MaintainiacFirestoreDocumentDraft _tripTrackingReviewDocument({
     required String path,
@@ -273,8 +273,8 @@ class MaintainiacFirestoreDocumentBuilder {
         'Physical odometer confirmation is required before mileage backup.',
       );
     }
-    final safeTripId = _safePathToken(review.id);
-    final safeVehicleId = _safePathToken(review.vehicleId);
+    final safeTripId = _requiredSafePathToken(review.id, 'tripId');
+    final safeVehicleId = _requiredSafePathToken(review.vehicleId, 'vehicleId');
     final acceptedMeters = review.engineSnapshot.totalAcceptedMeters;
     final diagnostics = review.engineSnapshot.diagnostics.toMap();
     if (!acceptedMeters.isFinite || acceptedMeters < 0) {
@@ -418,6 +418,14 @@ String _safePathToken(String value) {
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_|_$'), '');
   if (safe.isEmpty) return 'unknown';
+  return safe;
+}
+
+String _requiredSafePathToken(String value, String fieldName) {
+  final safe = _safePathToken(value);
+  if (safe == 'unknown') {
+    throw ArgumentError.value(value, fieldName, 'Unsafe Firestore path token.');
+  }
   return safe;
 }
 

@@ -209,6 +209,39 @@ void main() {
     );
   });
 
+  test('document builders reject unsafe mileage path identifiers', () {
+    expect(
+      () => MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+        orgId: ' /// ',
+        createdByUid: 'firebaseUid-1',
+        review: review(),
+      ),
+      throwsArgumentError,
+    );
+    expect(
+      () =>
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: TripTrackingReviewRecord(
+              id: ' /// ',
+              vehicleId: 'vehicle_1',
+              startingOdometer: 1000,
+              estimatedEndingOdometer: 1013,
+              profile: TripTrackingProfile.roadVehicle,
+              startedAt: DateTime.utc(2026, 7, 14, 12),
+              finishedAt: DateTime.utc(2026, 7, 14, 13),
+              engineSnapshot: const TripTrackingEngineSnapshot(
+                totalAcceptedMeters: 19312.128,
+                walkingReviewSuggested: false,
+              ),
+              confirmedEndingOdometer: 1013,
+              odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+            ),
+          ),
+      throwsArgumentError,
+    );
+  });
+
   test('builds solo-user mileage backup under the authenticated user', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
