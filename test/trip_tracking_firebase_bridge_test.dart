@@ -1573,7 +1573,8 @@ void main() {
         queue: queue,
         sink: _RecordingSink(
           throwOnWrite: true,
-          failureMessage: 'token=sk.secret lat=35.123 lon=-80.456',
+          failureMessage:
+              'token=sk.secret lat=35.123 lon=-80.456 near 35.12345,-80.45678',
         ),
         uploadEnabled: true,
       ),
@@ -1598,9 +1599,21 @@ void main() {
       localStore.reviewForTrip('trip 1')?.cloudSyncError,
       isNot(contains('35.123')),
     );
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      isNot(contains('-80.45678')),
+    );
     expect(queue.pendingRecords.single.lastError, isNot(contains('sk.secret')));
     expect(queue.pendingRecords.single.lastError, isNot(contains('35.123')));
+    expect(
+      queue.pendingRecords.single.lastError,
+      isNot(contains('-80.45678')),
+    );
     expect(queue.pendingRecords.single.lastError, contains('token redacted'));
+    expect(
+      queue.pendingRecords.single.lastError,
+      contains('coordinates redacted'),
+    );
 
     final sink = _RecordingSink();
     final retryMirror = TripTrackingFirebaseMirror(

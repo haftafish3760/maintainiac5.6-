@@ -174,6 +174,10 @@ String _safeError(String value) {
           caseSensitive: false,
         ),
         (match) => '${match.group(1)} redacted',
+      )
+      .replaceAll(
+        RegExp(r'\b-?\d{1,2}\.\d{3,}\s*,\s*-?\d{1,3}\.\d{3,}\b'),
+        'coordinates=[redacted]',
       );
   return redacted
       .replaceAll(RegExp(r'[^A-Za-z0-9_ .:/-]+'), ' ')
