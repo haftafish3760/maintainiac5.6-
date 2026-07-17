@@ -456,6 +456,7 @@ class TripTrackingSessionStore {
   }
 
   TripTrackingReviewRecord? reviewForTrip(String tripId) {
+    if (!_isSafeStoreIdentifier(tripId)) return null;
     final value = _box == null
         ? _memoryReviews[tripId]
         : _box.get('$_reviewPrefix$tripId');
@@ -506,6 +507,7 @@ class TripTrackingSessionStore {
   );
 
   Future<void> clearPending(String sessionId) => _enqueue(() async {
+    if (!_isSafePendingSessionId(sessionId)) return;
     _memoryPending.remove(sessionId);
     await _box?.delete('$_pendingPrefix$sessionId');
   });
@@ -514,6 +516,13 @@ class TripTrackingSessionStore {
   /// is safe because the trip id is the record key.
   Future<void> saveReview(TripTrackingReviewRecord review) =>
       _enqueue(() async {
+        if (!_isSafeStoreIdentifier(review.id)) {
+          throw ArgumentError.value(
+            review.id,
+            'review.id',
+            'Trip reviews require a non-empty safe trip id.',
+          );
+        }
         if (_storageCheck != null) await _ensureStorageForWrite();
         if (_box == null) {
           _memoryReviews[review.id] = review;
@@ -541,7 +550,10 @@ class TripTrackingSessionStore {
 }
 
 bool _isSafePendingSessionId(Object? value) =>
-    value is String &&
+    value is String && _isSafeStoreIdentifier(value);
+
+bool _isSafeStoreIdentifier(String value) =>
     value.trim() == value &&
     value.isNotEmpty &&
-    value.length <= 160;
+    value.length <= 160 &&
+    _safeIdentifier(value) == value;

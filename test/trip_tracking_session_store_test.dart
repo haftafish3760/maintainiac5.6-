@@ -149,6 +149,24 @@ void main() {
     expect(store.pendingSampleFor(' trip_with_spaces '), isNull);
   });
 
+  test('unsafe pending GPS sample keys are ignored on clear', () async {
+    final store = TripTrackingSessionStore.memory();
+    final pending = TripTrackingPendingSample(
+      sessionId: 'trip_unsafe_clear',
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: DateTime.utc(2026, 7, 12, 12),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+
+    await store.savePending(pending);
+    await store.clearPending(' trip_unsafe_clear ');
+
+    expect(store.pendingSampleFor('trip_unsafe_clear'), isNotNull);
+  });
+
   test('pending recovery preserves the native mock-location flag', () {
     final sample = TripLocationSample(
       latitude: 35,
@@ -333,6 +351,26 @@ void main() {
       'confirmedEndingOdometer': 999,
     });
     expect(invalidConfirmation.isOdometerConfirmed, isFalse);
+  });
+
+  test('review writes require safe durable trip ids', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord(
+      id: ' trip_bad_key ',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    await expectLater(store.saveReview(review), throwsArgumentError);
+    expect(store.reviewForTrip(' trip_bad_key '), isNull);
   });
 
   test('review cloud sync metadata is trimmed and bounded', () {
