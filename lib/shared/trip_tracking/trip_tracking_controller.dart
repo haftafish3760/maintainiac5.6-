@@ -144,6 +144,19 @@ class TripTrackingController extends ChangeNotifier {
       _platformStatus = null;
       _platformError = null;
     }
+    final reconciliation = TripOdometerReconciliation.compare(
+      review: review,
+      confirmedEndingOdometer: confirmedEndingOdometer,
+    );
+    if (reconciliation.status ==
+        TripOdometerReconciliationStatus.reviewRecommended) {
+      _platformStatus = 'odometer_reconciliation_review';
+      _platformError =
+          'GPS and odometer mileage differ enough to review. The physical odometer remains the official mileage.';
+    } else if (_platformStatus == 'odometer_reconciliation_review') {
+      _platformStatus = null;
+      _platformError = null;
+    }
     try {
       await _cloudMirror.queueReview(confirmedReview);
       unawaited(_flushCloudMirror());

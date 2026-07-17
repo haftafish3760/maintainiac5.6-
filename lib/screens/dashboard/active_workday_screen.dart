@@ -607,9 +607,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       review == null
           ? (tripTracking.platformError ?? 'No active GPS trip to stop.')
           : reviewConfirmed
-          ? cloudMirrorError == null
-                ? 'GPS trip reviewed and odometer confirmed.'
-                : 'GPS trip reviewed and saved locally; cloud backup will retry.'
+          ? _gpsReviewConfirmedMessage(
+              tripTracking: tripTracking,
+              cloudMirrorError: cloudMirrorError,
+            )
           : confirmationError ??
                 (cloudMirrorError == null
                     ? 'GPS trip ended and is ready for review.'
@@ -650,11 +651,25 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final cloudMirrorError = tripTracking?.cloudMirrorError;
     _showGpsMessage(
       reviewConfirmed
-          ? cloudMirrorError == null
-                ? 'GPS trip reviewed and odometer confirmed.'
-                : 'GPS trip reviewed and saved locally; cloud backup will retry.'
+          ? _gpsReviewConfirmedMessage(
+              tripTracking: tripTracking,
+              cloudMirrorError: cloudMirrorError,
+            )
           : confirmationError ?? 'GPS trip review remains available locally.',
     );
+  }
+
+  String _gpsReviewConfirmedMessage({
+    required TripTrackingController tripTracking,
+    required String? cloudMirrorError,
+  }) {
+    final backupMessage = cloudMirrorError == null
+        ? 'GPS trip reviewed and odometer confirmed.'
+        : 'GPS trip reviewed and saved locally; cloud backup will retry.';
+    if (tripTracking.platformStatus != 'odometer_reconciliation_review') {
+      return backupMessage;
+    }
+    return '$backupMessage ${tripTracking.platformError ?? 'Review the GPS and odometer mileage difference.'}';
   }
 
   void _showGpsMessage(String message) {

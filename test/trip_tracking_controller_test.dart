@@ -2870,50 +2870,47 @@ void main() {
     expect(mirror.reviews, isEmpty);
   });
 
-  test(
-    'a trip review can confirm below the GPS estimated odometer',
-    () async {
-      final store = TripTrackingSessionStore.memory();
-      final review = TripTrackingReviewRecord(
-        id: 'trip_confirmation_below_estimate',
-        vehicleId: 'vehicle_1',
-        startingOdometer: 1000,
-        estimatedEndingOdometer: 1005,
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-        finishedAt: start.add(const Duration(minutes: 1)),
-        engineSnapshot: const TripTrackingEngineSnapshot(
-          totalAcceptedMeters: 8046.72,
-          walkingReviewSuggested: false,
-        ),
-      );
-      await store.saveReview(review);
-      final odometer = GlobalOdometerController(
-        vehicleId: 'vehicle_1',
-        initialReading: 1000,
-      );
-      final mirror = _FakeTripTrackingCloudMirror();
-      final controller = TripTrackingController(
-        sessionStore: store,
-        odometer: odometer,
-        cloudMirror: mirror,
-      );
+  test('a trip review can confirm below the GPS estimated odometer', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord(
+      id: 'trip_confirmation_below_estimate',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1005,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+      finishedAt: start.add(const Duration(minutes: 1)),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 8046.72,
+        walkingReviewSuggested: false,
+      ),
+    );
+    await store.saveReview(review);
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final mirror = _FakeTripTrackingCloudMirror();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+      cloudMirror: mirror,
+    );
 
-      expect(
-        await controller.confirmOdometerReview(
-          reviewId: review.id,
-          confirmedEndingOdometer: 1004,
-          confirmedAt: start.add(const Duration(minutes: 2)),
-        ),
-        isTrue,
-      );
-      final confirmed = store.reviewForTrip(review.id);
-      expect(confirmed?.isOdometerConfirmed, isTrue);
-      expect(confirmed?.confirmedEndingOdometer, 1004);
-      expect(odometer.confirmedReading, 1004);
-      expect(mirror.reviews.single.confirmedEndingOdometer, 1004);
-    },
-  );
+    expect(
+      await controller.confirmOdometerReview(
+        reviewId: review.id,
+        confirmedEndingOdometer: 1004,
+        confirmedAt: start.add(const Duration(minutes: 2)),
+      ),
+      isTrue,
+    );
+    final confirmed = store.reviewForTrip(review.id);
+    expect(confirmed?.isOdometerConfirmed, isTrue);
+    expect(confirmed?.confirmedEndingOdometer, 1004);
+    expect(odometer.confirmedReading, 1004);
+    expect(mirror.reviews.single.confirmedEndingOdometer, 1004);
+  });
 
   test(
     'a trip review cannot confirm without an odometer audit commit',
@@ -2954,6 +2951,51 @@ void main() {
       expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
       expect(odometer.confirmedReading, 2000);
       expect(mirror.reviews, isEmpty);
+    },
+  );
+
+  test(
+    'material GPS odometer discrepancy confirms with advisory only',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final review = TripTrackingReviewRecord(
+        id: 'trip_reconciliation_advisory',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1012,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        finishedAt: start.add(const Duration(minutes: 10)),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 19312.128,
+          walkingReviewSuggested: false,
+        ),
+      );
+      await store.saveReview(review);
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final mirror = _FakeTripTrackingCloudMirror();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        cloudMirror: mirror,
+      );
+
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: review.id,
+          confirmedEndingOdometer: 1005,
+          confirmedAt: start.add(const Duration(minutes: 11)),
+        ),
+        isTrue,
+      );
+      expect(store.reviewForTrip(review.id)?.confirmedEndingOdometer, 1005);
+      expect(odometer.confirmedReading, 1005);
+      expect(mirror.reviews.single.confirmedEndingOdometer, 1005);
+      expect(controller.platformStatus, 'odometer_reconciliation_review');
+      expect(controller.platformError, contains('physical odometer'));
     },
   );
 
