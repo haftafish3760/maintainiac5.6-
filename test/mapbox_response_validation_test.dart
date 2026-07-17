@@ -61,6 +61,35 @@ void main() {
       expect(result.failures.single.safeReason, 'mapbox_service_code_not_ok');
     });
 
+    test('rejects missing Mapbox service status bodies', () {
+      final result =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'routes': [
+                {
+                  'distance': 1609.344,
+                  'duration': 480,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80.0, 35.0],
+                      [-80.01, 35.01],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+
+      expect(result.isAccepted, isFalse);
+      expect(
+        result.failures.single.code,
+        MapboxExternalFailureCode.malformedResponse,
+      );
+      expect(result.failures.single.safeReason, 'mapbox_service_code_not_ok');
+    });
+
     test('rejects non-success and rate-limited responses safely', () {
       final serverFailure =
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
@@ -94,7 +123,7 @@ void main() {
       final emptyRoutes =
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
-            decodedBody: const {'routes': []},
+            decodedBody: const {'code': 'Ok', 'routes': []},
           );
 
       expect(
@@ -112,6 +141,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': [
                 {
                   'distance': 10,
@@ -131,6 +161,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': [
                 {
                   'distance': double.nan,
@@ -164,6 +195,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': [
                 {
                   'distance': 10,
@@ -182,6 +214,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': [
                 {
                   'distance': 10,
@@ -207,6 +240,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': List.generate(
                 5,
                 (index) => {
@@ -227,6 +261,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': [
                 {
                   'distance': 1000,

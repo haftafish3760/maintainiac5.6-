@@ -118,7 +118,7 @@ class MapboxExternalRouteValidator {
       );
     }
     final serviceCode = decodedBody['code'];
-    if (serviceCode != null && serviceCode != 'Ok') {
+    if (serviceCode != 'Ok') {
       return MapboxRouteValidationResult.rejected(
         const MapboxExternalValidationFailure(
           MapboxExternalFailureCode.malformedResponse,
