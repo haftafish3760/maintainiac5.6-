@@ -798,12 +798,15 @@ class _GpsTripPanel extends StatelessWidget {
                 ),
                 if (tracking) ...[
                   const SizedBox(height: 3),
-                  Text(
-                    'Live odometer: ${odometer.displayValue}',
-                    style: const TextStyle(
-                      color: Color(0xFF20F060),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
+                  AnimatedBuilder(
+                    animation: odometer,
+                    builder: (context, _) => Text(
+                      'Live odometer: ${odometer.displayValue}',
+                      style: const TextStyle(
+                        color: Color(0xFF20F060),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ],

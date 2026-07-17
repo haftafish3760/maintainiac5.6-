@@ -345,6 +345,23 @@ void main() {
       find.text('Live odometer: ${odometer.displayValue}'),
       findsOneWidget,
     );
+
+    final priorLiveDisplay = odometer.displayValue;
+    final liveReading = odometer.reading;
+    expect(
+      odometer.updateLiveTripProjection(
+        tripId: 'gps-trip-dashboard-live-odometer',
+        estimatedOdometer: liveReading + 2,
+      ),
+      isTrue,
+    );
+    await tester.pump();
+
+    expect(find.text('Live odometer: $priorLiveDisplay'), findsNothing);
+    expect(
+      find.text('Live odometer: ${odometer.displayValue}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('active day asks before starting GPS below 20 percent battery', (
