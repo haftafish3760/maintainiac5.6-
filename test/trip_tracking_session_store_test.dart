@@ -183,6 +183,18 @@ void main() {
     expect(TripLocationSample.tryFromMap(map)?.speedMetersPerSecond, isNull);
   });
 
+  test('persisted engine snapshots do not write invalid accepted distance', () {
+    const snapshot = TripTrackingEngineSnapshot(
+      totalAcceptedMeters: double.negativeInfinity,
+      walkingReviewSuggested: false,
+    );
+
+    final map = snapshot.toMap();
+
+    expect(map['totalAcceptedMeters'], 0);
+    expect(TripTrackingEngineSnapshot.fromMap(map).totalAcceptedMeters, 0);
+  });
+
   test('legacy GPS records receive safe persistence defaults', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'legacy',

@@ -322,7 +322,7 @@ class TripTrackingEngineSnapshot {
   Map<String, Object?> toMap() => {
     'lastAccepted': lastAccepted?.toMap(),
     'lastObservedAt': lastObservedAt?.toIso8601String(),
-    'totalAcceptedMeters': totalAcceptedMeters,
+    'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
     'walkingEvidence': walkingEvidence.map((item) => item.toMap()).toList(),
     'walkingReviewSuggested': walkingReviewSuggested,
     'motionState': motionState.name,
