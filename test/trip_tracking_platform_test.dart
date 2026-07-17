@@ -33,6 +33,54 @@ void main() {
     );
   });
 
+  test('native capability payloads resolve to conservative device tiers', () {
+    final gpsOnly = TripTrackingPlatformCapabilities.fromMap({
+      'locationAvailable': true,
+      'backgroundTrackingAvailable': true,
+      'activityRecognitionAvailable': false,
+      'batteryStateAvailable': false,
+    });
+    final motion = TripTrackingPlatformCapabilities.fromMap({
+      'locationAvailable': true,
+      'activityRecognitionAvailable': true,
+      'batteryStateAvailable': false,
+    });
+    final richer = TripTrackingPlatformCapabilities.fromMap({
+      'locationAvailable': true,
+      'activityRecognitionAvailable': true,
+      'batteryStateAvailable': true,
+      'lowPowerModeAvailable': true,
+    });
+
+    expect(gpsOnly.deviceTier, TripTrackingDeviceCapabilityTier.locationOnly);
+    expect(motion.deviceTier, TripTrackingDeviceCapabilityTier.motionAssist);
+    expect(
+      richer.deviceTier,
+      TripTrackingDeviceCapabilityTier.motionAndBatteryAssist,
+    );
+    expect(richer.lowPowerModeAvailable, isTrue);
+  });
+
+  test('malformed native capability values are not trusted', () {
+    final capabilities = TripTrackingPlatformCapabilities.fromMap({
+      'locationAvailable': 'true',
+      'backgroundTrackingAvailable': 1,
+      'activityRecognitionAvailable': 'yes',
+      'batteryStateAvailable': Object(),
+      'lowPowerModeAvailable': null,
+    });
+
+    expect(capabilities.locationAvailable, isFalse);
+    expect(capabilities.backgroundTrackingAvailable, isFalse);
+    expect(capabilities.activityRecognitionAvailable, isFalse);
+    expect(capabilities.batteryStateAvailable, isFalse);
+    expect(capabilities.lowPowerModeAvailable, isFalse);
+    expect(
+      capabilities.deviceTier,
+      TripTrackingDeviceCapabilityTier.unavailable,
+    );
+  });
+
   test(
     'platform event maps only a declared location payload into a sample',
     () {

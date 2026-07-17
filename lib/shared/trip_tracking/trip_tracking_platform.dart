@@ -88,7 +88,7 @@ class TripTrackingNativeRequest {
   const TripTrackingNativeRequest({
     required this.profile,
     required this.sampling,
-    this.activityRecognitionEnabled = true,
+    this.activityRecognitionEnabled = false,
   });
 
   final TripTrackingProfile profile;
@@ -108,11 +108,26 @@ class TripTrackingPlatformCapabilities {
     required this.locationAvailable,
     required this.backgroundTrackingAvailable,
     required this.activityRecognitionAvailable,
+    this.batteryStateAvailable = false,
+    this.lowPowerModeAvailable = false,
   });
 
   final bool locationAvailable;
   final bool backgroundTrackingAvailable;
   final bool activityRecognitionAvailable;
+  final bool batteryStateAvailable;
+  final bool lowPowerModeAvailable;
+
+  TripTrackingDeviceCapabilityTier get deviceTier {
+    if (!locationAvailable) return TripTrackingDeviceCapabilityTier.unavailable;
+    if (activityRecognitionAvailable && batteryStateAvailable) {
+      return TripTrackingDeviceCapabilityTier.motionAndBatteryAssist;
+    }
+    if (activityRecognitionAvailable) {
+      return TripTrackingDeviceCapabilityTier.motionAssist;
+    }
+    return TripTrackingDeviceCapabilityTier.locationOnly;
+  }
 
   factory TripTrackingPlatformCapabilities.fromMap(Map<dynamic, dynamic> map) =>
       TripTrackingPlatformCapabilities(
@@ -120,7 +135,16 @@ class TripTrackingPlatformCapabilities {
         backgroundTrackingAvailable: map['backgroundTrackingAvailable'] == true,
         activityRecognitionAvailable:
             map['activityRecognitionAvailable'] == true,
+        batteryStateAvailable: map['batteryStateAvailable'] == true,
+        lowPowerModeAvailable: map['lowPowerModeAvailable'] == true,
       );
+}
+
+enum TripTrackingDeviceCapabilityTier {
+  unavailable,
+  locationOnly,
+  motionAssist,
+  motionAndBatteryAssist,
 }
 
 enum TripTrackingAuthorizationState {
