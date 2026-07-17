@@ -232,7 +232,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       case WorkdayQuickActionKind.endDay:
         final tripTracking = TripTrackingScope.maybeOf(context);
         if (tripTracking?.isTracking == true) {
-          await tripTracking!.finishForReview();
+          await _finishAndReviewGpsTrip(
+            tripTracking!,
+            missingTripMessage: 'GPS trip could not be reviewed before ending.',
+          );
+          if (!mounted) return;
         }
         final saved = await _recordOdometerEvent(
           title: 'Ending Odometer',
@@ -586,6 +590,16 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   Future<void> _stopGpsTripImpl() async {
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (tripTracking == null || !tripTracking.isTracking) return;
+    await _finishAndReviewGpsTrip(
+      tripTracking,
+      missingTripMessage: 'No active GPS trip to stop.',
+    );
+  }
+
+  Future<void> _finishAndReviewGpsTrip(
+    TripTrackingController tripTracking, {
+    required String missingTripMessage,
+  }) async {
     final review = await tripTracking.finishForReview();
     if (!mounted) return;
     final confirmedEndingOdometer = review == null
@@ -610,7 +624,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final cloudMirrorError = tripTracking.cloudMirrorError;
     _showGpsMessage(
       review == null
-          ? (tripTracking.platformError ?? 'No active GPS trip to stop.')
+          ? (tripTracking.platformError ?? missingTripMessage)
           : reviewConfirmed
           ? _gpsReviewConfirmedMessage(
               tripTracking: tripTracking,
