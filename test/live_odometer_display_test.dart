@@ -1,0 +1,114 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/odometer/live_odometer_display.dart';
+import 'package:maintaniac/shared/state/global_odometer.dart';
+
+void main() {
+  test('confirmed odometer display is padded and not marked live', () {
+    const snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1000,
+      isLive: false,
+    );
+
+    expect(snapshot.label, 'Odometer');
+    expect(snapshot.displayValue, '0001000');
+    expect(snapshot.deltaMiles, isZero);
+    expect(snapshot.deltaLabel, isNull);
+    expect(snapshot.statusLabelAt(DateTime.utc(2026)), isNull);
+    expect(snapshot.toSafeDashboardMap(DateTime.utc(2026)), {
+      'label': 'Odometer',
+      'displayValue': '0001000',
+      'isLive': false,
+      'deltaMiles': 0,
+      'statusLabel': null,
+      'freshness': 'fresh',
+    });
+  });
+
+  test('live odometer display exposes only advisory delta text', () {
+    final updatedAt = DateTime.utc(2026, 7, 17, 12);
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1003,
+      isLive: true,
+      liveUpdatedAt: updatedAt,
+    );
+
+    expect(snapshot.label, 'Live GPS odometer');
+    expect(snapshot.displayValue, '0001003');
+    expect(snapshot.deltaMiles, 3);
+    expect(snapshot.deltaLabel, '+3 mi live');
+    expect(
+      snapshot.isStaleAt(updatedAt.add(const Duration(minutes: 1))),
+      false,
+    );
+    expect(
+      snapshot.statusLabelAt(updatedAt.add(const Duration(minutes: 1))),
+      '+3 mi live',
+    );
+  });
+
+  test('live odometer display shows paused state when updates go stale', () {
+    final updatedAt = DateTime.utc(2026, 7, 17, 12);
+    final now = updatedAt.add(const Duration(minutes: 6));
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1004,
+      isLive: true,
+      liveUpdatedAt: updatedAt,
+    );
+
+    expect(snapshot.isStaleAt(now), isTrue);
+    expect(snapshot.statusLabelAt(now), 'Live GPS paused');
+    expect(snapshot.toSafeDashboardMap(now), {
+      'label': 'Live GPS odometer',
+      'displayValue': '0001004',
+      'isLive': true,
+      'deltaMiles': 4,
+      'statusLabel': 'Live GPS paused',
+      'freshness': 'stale',
+    });
+  });
+
+  test('live odometer display never reports negative advisory mileage', () {
+    const snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 999,
+      isLive: true,
+    );
+
+    expect(snapshot.deltaMiles, isZero);
+    expect(snapshot.deltaLabel, '+0 mi live');
+    expect(snapshot.displayValue, '0000999');
+  });
+
+  test('global odometer publishes a reusable live display snapshot', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+
+    expect(controller.liveDisplaySnapshot.displayValue, '0001000');
+    expect(controller.liveDisplaySnapshot.label, 'Odometer');
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_live_display',
+        startingOdometer: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_live_display',
+        estimatedOdometer: 1002,
+      ),
+      isTrue,
+    );
+
+    final live = controller.liveDisplaySnapshot;
+
+    expect(live.label, 'Live GPS odometer');
+    expect(live.displayValue, '0001002');
+    expect(live.deltaMiles, 2);
+    expect(live.deltaLabel, '+2 mi live');
+    expect(live.liveUpdatedAt, isNotNull);
+    expect(controller.confirmedReading, 1000);
+  });
+}

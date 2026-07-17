@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import '../odometer/odometer_correction_review.dart';
+import '../odometer/live_odometer_display.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../odometer/odometer_validation.dart';
 import '../odometer/odometer_vehicle_snapshot.dart';
@@ -65,6 +66,13 @@ class GlobalOdometerController extends ChangeNotifier {
   int get liveTripDeltaMiles => hasLiveTripProjection ? reading - _reading : 0;
   String get liveTripDisplayLabel =>
       hasLiveTripProjection ? 'Live GPS odometer' : 'Odometer';
+  LiveOdometerDisplaySnapshot get liveDisplaySnapshot =>
+      LiveOdometerDisplaySnapshot(
+        confirmedReading: _reading,
+        displayReading: reading,
+        isLive: hasLiveTripProjection,
+        liveUpdatedAt: _liveTripUpdatedAt,
+      );
   List<OdometerReadingEvent> get history => List.unmodifiable(_history);
   List<OdometerReadingEvent> get unresolvedMileageEvents => _history
       .where(

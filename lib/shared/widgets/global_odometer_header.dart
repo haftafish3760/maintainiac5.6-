@@ -297,6 +297,7 @@ class _CompactOdometerText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = GlobalOdometerScope.of(context);
+    final odometerDisplay = controller.liveDisplaySnapshot;
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) => InkWell(
@@ -314,7 +315,7 @@ class _CompactOdometerText extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      controller.displayValue,
+                      odometerDisplay.displayValue,
                       maxLines: 1,
                       textAlign: TextAlign.right,
                       style: const TextStyle(
@@ -333,10 +334,10 @@ class _CompactOdometerText extends StatelessWidget {
                   ),
                 ],
               ),
-              if (controller.hasLiveTripProjection) ...[
+              if (odometerDisplay.deltaLabel != null) ...[
                 const SizedBox(height: 2),
                 Text(
-                  '+${controller.liveTripDeltaMiles} mi live',
+                  odometerDisplay.deltaLabel!,
                   maxLines: 1,
                   textAlign: TextAlign.right,
                   style: const TextStyle(
