@@ -81,6 +81,26 @@ void main() {
     );
   });
 
+  test('malformed native battery snapshots are not trusted', () {
+    final valid = TripTrackingBatterySnapshot.fromMap({
+      'batteryPercent': 19.4,
+      'isCharging': true,
+      'lowPowerModeEnabled': true,
+    });
+    final invalid = TripTrackingBatterySnapshot.fromMap({
+      'batteryPercent': 500,
+      'isCharging': 'true',
+      'lowPowerModeEnabled': 1,
+    });
+
+    expect(valid.batteryPercent, 19);
+    expect(valid.isCharging, isTrue);
+    expect(valid.lowPowerModeEnabled, isTrue);
+    expect(invalid.batteryPercent, isNull);
+    expect(invalid.isCharging, isFalse);
+    expect(invalid.lowPowerModeEnabled, isFalse);
+  });
+
   test(
     'platform event maps only a declared location payload into a sample',
     () {

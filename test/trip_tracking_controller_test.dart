@@ -2552,6 +2552,14 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   }
 
   @override
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot() async =>
+      const TripTrackingBatterySnapshot(
+        batteryPercent: 100,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+
+  @override
   Future<TripTrackingAuthorization> requestAuthorization({
     required bool allowBackground,
     required bool activityRecognitionEnabled,

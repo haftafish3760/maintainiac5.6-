@@ -116,6 +116,28 @@ void main() {
     expect(ios, contains('"lowPowerModeAvailable"'));
   });
 
+  test('native bridges expose validated battery snapshots for GPS safety', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(android, contains('"readBatterySnapshot"'));
+    expect(android, contains('BATTERY_PROPERTY_CAPACITY'));
+    expect(android, contains('Intent.ACTION_BATTERY_CHANGED'));
+    expect(android, contains('"batteryPercent"'));
+    expect(android, contains('"isCharging"'));
+    expect(android, contains('"lowPowerModeEnabled"'));
+    expect(ios, contains('case "readBatterySnapshot"'));
+    expect(ios, contains('UIDevice.current.batteryLevel'));
+    expect(ios, contains('ProcessInfo.processInfo.isLowPowerModeEnabled'));
+    expect(ios, contains('"batteryPercent"'));
+    expect(ios, contains('"isCharging"'));
+    expect(ios, contains('"lowPowerModeEnabled"'));
+  });
+
   test(
     'iOS applies the requested sampling tier instead of hardcoding GPS best',
     () {

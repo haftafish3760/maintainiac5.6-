@@ -122,6 +122,8 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     switch call.method {
     case "readCapabilities":
       result(capabilities())
+    case "readBatterySnapshot":
+      result(batterySnapshot())
     case "requestAuthorization":
       requestAuthorization(call, result: result)
     case "start":
@@ -244,6 +246,17 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       "activityRecognitionAvailable": CMMotionActivityManager.isActivityAvailable(),
       "batteryStateAvailable": UIDevice.current.batteryState != .unknown,
       "lowPowerModeAvailable": true,
+    ]
+  }
+
+  private func batterySnapshot() -> [String: Any?] {
+    UIDevice.current.isBatteryMonitoringEnabled = true
+    let batteryLevel = UIDevice.current.batteryLevel
+    let percent: Int? = batteryLevel >= 0 ? Int(round(batteryLevel * 100)) : nil
+    return [
+      "batteryPercent": percent,
+      "isCharging": UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full,
+      "lowPowerModeEnabled": ProcessInfo.processInfo.isLowPowerModeEnabled,
     ]
   }
 

@@ -11,6 +11,7 @@ abstract interface class TripTrackingNativeGateway {
   Stream<TripTrackingPlatformEvent> get events;
 
   Future<TripTrackingPlatformCapabilities> readCapabilities();
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot();
   Future<TripTrackingAuthorization> requestAuthorization({
     required bool allowBackground,
     required bool activityRecognitionEnabled,
@@ -44,6 +45,12 @@ class TripTrackingPlatform implements TripTrackingNativeGateway {
     return TripTrackingPlatformCapabilities.fromMap(
       raw is Map ? raw : const {},
     );
+  }
+
+  @override
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot() async {
+    final raw = await _commands.invokeMethod<Object?>('readBatterySnapshot');
+    return TripTrackingBatterySnapshot.fromMap(raw is Map ? raw : const {});
   }
 
   @override
@@ -145,6 +152,32 @@ enum TripTrackingDeviceCapabilityTier {
   locationOnly,
   motionAssist,
   motionAndBatteryAssist,
+}
+
+class TripTrackingBatterySnapshot {
+  const TripTrackingBatterySnapshot({
+    required this.batteryPercent,
+    required this.isCharging,
+    required this.lowPowerModeEnabled,
+  });
+
+  final int? batteryPercent;
+  final bool isCharging;
+  final bool lowPowerModeEnabled;
+
+  factory TripTrackingBatterySnapshot.fromMap(Map<dynamic, dynamic> map) {
+    final rawPercent = map['batteryPercent'];
+    final percent = rawPercent is num && rawPercent.isFinite
+        ? rawPercent.round()
+        : null;
+    return TripTrackingBatterySnapshot(
+      batteryPercent: percent != null && percent >= 0 && percent <= 100
+          ? percent
+          : null,
+      isCharging: map['isCharging'] == true,
+      lowPowerModeEnabled: map['lowPowerModeEnabled'] == true,
+    );
+  }
 }
 
 enum TripTrackingAuthorizationState {

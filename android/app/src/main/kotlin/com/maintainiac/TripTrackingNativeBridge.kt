@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.BatteryManager
@@ -65,6 +66,7 @@ class TripTrackingNativeBridge(
     private fun handle(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "readCapabilities" -> result.success(capabilities())
+            "readBatterySnapshot" -> result.success(batterySnapshot())
             "requestAuthorization" -> requestAuthorization(call, result)
             "start" -> start(call, result)
             "update" -> update(call, result)
@@ -204,6 +206,21 @@ class TripTrackingNativeBridge(
             "activityRecognitionAvailable" to (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED),
             "batteryStateAvailable" to (batteryManager != null),
             "lowPowerModeAvailable" to (powerManager != null),
+        )
+    }
+
+    private fun batterySnapshot(): Map<String, Any?> {
+        val batteryManager = activity.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val powerManager = activity.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        val percent = batteryManager
+            ?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            ?.takeIf { it in 0..100 }
+        val batteryStatus = activity.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+        return mapOf(
+            "batteryPercent" to percent,
+            "isCharging" to (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL),
+            "lowPowerModeEnabled" to (powerManager?.isPowerSaveMode == true),
         )
     }
 
