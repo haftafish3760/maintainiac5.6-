@@ -44,7 +44,7 @@ class TripTrackingController extends ChangeNotifier {
   bool _nativeTracking = false;
   bool _nativeInterruptionPending = false;
   TripSamplingRecommendation? _nativeSampling;
-  bool _activityRecognitionEnabled = true;
+  bool _activityRecognitionEnabled = false;
   bool _adaptiveSamplingEnabled = true;
   String? _platformStatus;
   String? _platformError;
@@ -482,7 +482,7 @@ class TripTrackingController extends ChangeNotifier {
     double? observedSpeedMetersPerSecond,
     bool vehicleMovementConfirmed = false,
     TripSamplingRecommendation? samplingOverride,
-    bool activityRecognitionEnabled = true,
+    bool activityRecognitionEnabled = false,
     bool adaptiveSamplingEnabled = true,
   }) => _enqueueNativeLifecycle(
     () => _startNativeTracking(
@@ -500,7 +500,7 @@ class TripTrackingController extends ChangeNotifier {
     double? observedSpeedMetersPerSecond,
     bool vehicleMovementConfirmed = false,
     TripSamplingRecommendation? samplingOverride,
-    bool activityRecognitionEnabled = true,
+    bool activityRecognitionEnabled = false,
     bool adaptiveSamplingEnabled = true,
   }) async {
     final platform = _platform;

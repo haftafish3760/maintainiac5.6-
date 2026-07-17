@@ -274,6 +274,50 @@ void main() {
     },
   );
 
+  test(
+    'native GPS capability read failures fail closed before permission request',
+    () async {
+      final native = _FakeTripTrackingPlatform(throwOnReadCapabilities: true);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      expect(
+        await controller.start(
+          tripId: 'trip_capability_fault',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isFalse,
+      );
+
+      expect(native.requestAuthorizationCalls, 0);
+      expect(native.startCalls, 0);
+      expect(native.hasEventListener, isFalse);
+      expect(controller.isTracking, isTrue);
+      expect(controller.platformStatus, isNull);
+      expect(
+        controller.platformError,
+        contains('Could not read GPS capabilities'),
+      );
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+      expect(controller.healthState, TripTrackingHealthState.unavailable);
+    },
+  );
+
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
     final odometer = GlobalOdometerController(initialReading: 1000);
@@ -2434,6 +2478,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.throwOnStart = false,
     this.throwOnStop = false,
     this.throwOnIsTracking = false,
+    this.throwOnReadCapabilities = false,
     this.startDelay,
   });
 
@@ -2442,10 +2487,12 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool throwOnStart;
   final bool throwOnStop;
   final bool throwOnIsTracking;
+  final bool throwOnReadCapabilities;
   final Future<void>? startDelay;
   var _running = false;
   TripTrackingNativeRequest? startedRequest;
   TripTrackingNativeRequest? updatedRequest;
+  var requestAuthorizationCalls = 0;
   var startCalls = 0;
   var updateCalls = 0;
   var stopCalls = 0;
@@ -2493,18 +2540,25 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   Future<void> closeEvents() => _events.close();
 
   @override
-  Future<TripTrackingPlatformCapabilities> readCapabilities() async =>
-      const TripTrackingPlatformCapabilities(
-        locationAvailable: true,
-        backgroundTrackingAvailable: true,
-        activityRecognitionAvailable: false,
-      );
+  Future<TripTrackingPlatformCapabilities> readCapabilities() async {
+    if (throwOnReadCapabilities) {
+      throw StateError('capability probe failed');
+    }
+    return const TripTrackingPlatformCapabilities(
+      locationAvailable: true,
+      backgroundTrackingAvailable: true,
+      activityRecognitionAvailable: false,
+    );
+  }
 
   @override
   Future<TripTrackingAuthorization> requestAuthorization({
     required bool allowBackground,
     required bool activityRecognitionEnabled,
-  }) async => authorization;
+  }) async {
+    requestAuthorizationCalls += 1;
+    return authorization;
+  }
 
   @override
   Future<bool> start(TripTrackingNativeRequest request) async {
