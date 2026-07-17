@@ -2388,6 +2388,36 @@ void main() {
     expect(controller.platformStatus, 'odometer_projection_invalid');
   });
 
+  test('restore rejects terminal lifecycle checkpoints safely', () async {
+    final store = TripTrackingSessionStore.memory();
+    await store.save(
+      TripTrackingSessionRecord(
+        id: 'trip_terminal_restore',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start.add(const Duration(minutes: 1)),
+        lifecycleState: TripTrackingSessionLifecycleState.completed,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(store.activeSession, isNull);
+    expect(controller.isTracking, isFalse);
+  });
+
   test(
     'cloud flush failures remain visible without losing the local review',
     () async {

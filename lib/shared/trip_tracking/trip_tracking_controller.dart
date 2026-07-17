@@ -419,7 +419,26 @@ class TripTrackingController extends ChangeNotifier {
       _isSafeTripTrackingIdentity(session.id) &&
       _isSafeTripTrackingIdentity(session.vehicleId) &&
       session.startingOdometer >= 0 &&
-      !session.updatedAt.isBefore(session.startedAt);
+      !session.updatedAt.isBefore(session.startedAt) &&
+      _isRecoverableLifecycleState(session.lifecycleState);
+
+  bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
+      switch (state) {
+        TripTrackingSessionLifecycleState.ready ||
+        TripTrackingSessionLifecycleState.starting ||
+        TripTrackingSessionLifecycleState.active ||
+        TripTrackingSessionLifecycleState.paused ||
+        TripTrackingSessionLifecycleState.degraded ||
+        TripTrackingSessionLifecycleState.interrupted ||
+        TripTrackingSessionLifecycleState.recovering ||
+        TripTrackingSessionLifecycleState.stopping ||
+        TripTrackingSessionLifecycleState.failedRecoverable => true,
+        TripTrackingSessionLifecycleState.disabled ||
+        TripTrackingSessionLifecycleState.permissionRequired ||
+        TripTrackingSessionLifecycleState.awaitingReview ||
+        TripTrackingSessionLifecycleState.completed ||
+        TripTrackingSessionLifecycleState.failedTerminal => false,
+      };
 
   bool _isAuthoritativeReview(
     TripTrackingReviewRecord review,
