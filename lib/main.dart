@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/maintaniac_app.dart';
+import 'screens/dashboard/active_workday_actions.dart';
 import 'screens/dashboard/data/active_workday_store.dart';
 import 'screens/expenses/data/expense_draft_store.dart';
 import 'screens/expenses/data/expense_cloud_backup_service.dart';
@@ -94,6 +95,7 @@ Future<void> main() async {
     ),
   );
   final activeWorkday = await ActiveWorkdayController.create();
+  final quickActionLayout = await WorkdayQuickActionLayoutController.create();
   final tripTrackingSettings = await TripTrackingSettingsController.create();
   final odometerStore = await OdometerStore.create();
   final activeVehicleId = odometerVehicleIdForVehicleId(
@@ -188,23 +190,26 @@ Future<void> main() async {
                       controller: receiptCaptureSettings,
                       child: ActiveWorkdayScope(
                         controller: activeWorkday,
-                        child: GlobalOdometerScope(
-                          controller: globalOdometer,
-                          child: TripTrackingSettingsScope(
-                            controller: tripTrackingSettings,
-                            child: TripTrackingScope(
-                              controller: tripTracking,
-                              child: IncomingReceiptShareScope(
-                                controller: incomingReceiptShare,
-                                child: AppSignatureStoreScope(
-                                  store: signatureStore,
-                                  child: UserProfileScope(
-                                    controller: userProfiles,
-                                    child: OperationalContextScope(
-                                      controller: operationalContext,
-                                      child: InvoiceLedgerScope(
-                                        controller: invoiceLedger,
-                                        child: const MaintaniacApp(),
+                        child: WorkdayQuickActionLayoutScope(
+                          controller: quickActionLayout,
+                          child: GlobalOdometerScope(
+                            controller: globalOdometer,
+                            child: TripTrackingSettingsScope(
+                              controller: tripTrackingSettings,
+                              child: TripTrackingScope(
+                                controller: tripTracking,
+                                child: IncomingReceiptShareScope(
+                                  controller: incomingReceiptShare,
+                                  child: AppSignatureStoreScope(
+                                    store: signatureStore,
+                                    child: UserProfileScope(
+                                      controller: userProfiles,
+                                      child: OperationalContextScope(
+                                        controller: operationalContext,
+                                        child: InvoiceLedgerScope(
+                                          controller: invoiceLedger,
+                                          child: const MaintaniacApp(),
+                                        ),
                                       ),
                                     ),
                                   ),

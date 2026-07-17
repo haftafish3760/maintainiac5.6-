@@ -307,6 +307,20 @@ class WorkdayQuickActionLayoutController extends ChangeNotifier {
   }
 }
 
+class WorkdayQuickActionLayoutScope
+    extends InheritedNotifier<WorkdayQuickActionLayoutController> {
+  const WorkdayQuickActionLayoutScope({
+    super.key,
+    required WorkdayQuickActionLayoutController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  static WorkdayQuickActionLayoutController? maybeOf(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<WorkdayQuickActionLayoutScope>()
+          ?.notifier;
+}
+
 bool _sameActionKinds(
   List<WorkdayQuickActionKind> left,
   List<WorkdayQuickActionKind> right,

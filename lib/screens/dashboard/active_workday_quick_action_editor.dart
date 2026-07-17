@@ -8,7 +8,9 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeLayout = WorkdayQuickActionLayout.defaults();
+    final layoutController = WorkdayQuickActionLayoutScope.maybeOf(context);
+    final activeLayout =
+        layoutController?.layout ?? WorkdayQuickActionLayout.defaults();
     final availableActions = availableWorkdayQuickActions
         .where((action) => !activeLayout.activeKinds.contains(action.kind))
         .toList();

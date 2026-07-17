@@ -65,7 +65,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   Widget build(BuildContext context) {
     final activeWorkday = ActiveWorkdayScope.of(context);
     final session = activeWorkday.activeSession;
-    final quickActions = _quickActionsFor(session);
+    final actionLayout =
+        WorkdayQuickActionLayoutScope.maybeOf(context)?.layout ??
+        WorkdayQuickActionLayout.defaults();
+    final quickActions = _quickActionsFor(session, actionLayout);
     final odometer = GlobalOdometerScope.of(context);
     final elapsed = session == null
         ? _elapsed
@@ -186,9 +189,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
 
   List<WorkdayQuickActionSpec> _quickActionsFor(
     ActiveWorkdaySessionRecord? session,
+    WorkdayQuickActionLayout actionLayout,
   ) {
     if (session?.status != ActiveWorkdayStatus.paused) {
-      return WorkdayQuickActionLayout.defaults().activeActions;
+      return actionLayout.activeActions;
     }
 
     return [
@@ -201,7 +205,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         flowTitle: 'Resume Workday',
         flowSummary: 'Resume the current workday without creating a new day.',
       ),
-      ...WorkdayQuickActionLayout.defaults().activeActions.skip(1),
+      ...actionLayout.activeActions.where(
+        (action) => action.kind != WorkdayQuickActionKind.pauseDay,
+      ),
     ];
   }
 
