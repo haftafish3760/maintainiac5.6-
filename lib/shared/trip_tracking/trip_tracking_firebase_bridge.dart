@@ -104,8 +104,9 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       );
       return;
     }
-    final createdByUid = _currentUid;
-    if (createdByUid == null || createdByUid.trim().isEmpty) {
+    final rawCreatedByUid = _currentUid;
+    final createdByUid = rawCreatedByUid?.trim();
+    if (createdByUid == null || createdByUid.isEmpty) {
       await _saveReviewState(
         review.copyWith(
           cloudSyncState: TripTrackingCloudSyncState.pending,
@@ -235,8 +236,9 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       await withdrawBackupConsent();
       return;
     }
-    final createdByUid = _currentUid;
-    if (createdByUid == null || createdByUid.trim().isEmpty) return;
+    final rawCreatedByUid = _currentUid;
+    final createdByUid = rawCreatedByUid?.trim();
+    if (createdByUid == null || createdByUid.isEmpty) return;
     final localStore = _localStore;
     if (!_isSafeFirestoreUid(createdByUid)) {
       if (localStore != null) {
