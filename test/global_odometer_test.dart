@@ -693,6 +693,25 @@ void main() {
     expect(restored.businessMilesForDelta(100), isZero);
   });
 
+  test('odometer review notes are sanitized on restore and persistence', () {
+    final mileage = OdometerMileageReview.fromMap({
+      'use': 'split',
+      'businessMiles': 10,
+      'note': ' first line\n${'m' * 300} ',
+    });
+    final correction = OdometerCorrectionReview.fromMap({
+      'reason': 'backdatedEntry',
+      'note': ' second\tline\n${'c' * 300} ',
+    });
+
+    expect(mileage.note, hasLength(240));
+    expect(mileage.note, isNot(contains('\n')));
+    expect(mileage.toMap()['note'], mileage.note);
+    expect(correction.note, hasLength(240));
+    expect(correction.note, isNot(contains('\t')));
+    expect(correction.toMap()['note'], correction.note);
+  });
+
   test('vehicle labels normalize into stable temporary odometer keys', () {
     expect(odometerVehicleIdForLabel('Work Truck 1'), 'work_truck_1');
     expect(odometerVehicleIdForLabel('  Ram 2500 / Crew  '), 'ram_2500_crew');

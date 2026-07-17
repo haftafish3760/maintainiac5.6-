@@ -23,12 +23,12 @@ class OdometerCorrectionReview {
         (value) => value.name == map['reason'],
         orElse: () => OdometerCorrectionReason.unresolved,
       ),
-      note: map['note'] as String?,
+      note: _optionalSafeNote(map['note']),
     );
   }
 
   Map<String, Object?> toMap() {
-    return {'reason': reason.name, 'note': note};
+    return {'reason': reason.name, 'note': _optionalSafeNote(note)};
   }
 
   bool get canSaveHistoricalReading =>
@@ -61,6 +61,16 @@ String? validateOdometerCorrectionReview({
     return 'This needs the odometer correction flow so the app can keep the audit trail clean.';
   }
   return null;
+}
+
+String? _optionalSafeNote(Object? value) {
+  if (value == null) return null;
+  final clean = '$value'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  if (clean.isEmpty) return null;
+  return clean.length > 240 ? clean.substring(0, 240) : clean;
 }
 
 String odometerCorrectionReviewPrompt({

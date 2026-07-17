@@ -28,7 +28,7 @@ class OdometerMileageReview {
         orElse: () => OdometerMileageUse.unresolved,
       ),
       businessMiles: _optionalSafeMiles(map['businessMiles']),
-      note: map['note'] as String?,
+      note: _optionalSafeNote(map['note']),
     );
   }
 
@@ -36,7 +36,7 @@ class OdometerMileageReview {
     return {
       'use': use.name,
       'businessMiles': _optionalSafeMiles(businessMiles),
-      'note': note,
+      'note': _optionalSafeNote(note),
     };
   }
 
@@ -70,6 +70,16 @@ class OdometerMileageReview {
         return deltaMiles - businessMilesForDelta(deltaMiles);
     }
   }
+}
+
+String? _optionalSafeNote(Object? value) {
+  if (value == null) return null;
+  final clean = '$value'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  if (clean.isEmpty) return null;
+  return clean.length > 240 ? clean.substring(0, 240) : clean;
 }
 
 int? _optionalSafeMiles(Object? value) {
