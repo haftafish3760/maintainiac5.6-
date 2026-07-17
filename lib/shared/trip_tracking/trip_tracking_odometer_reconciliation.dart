@@ -103,7 +103,15 @@ class TripOdometerContinuityCheck {
         reasonCode: 'missing_same_vehicle_confirmed_history',
       );
     }
-    if (previousEnding < previous.startingOdometer ||
+    if (previous.id.trim().isEmpty ||
+        next.id.trim().isEmpty ||
+        previous.vehicleId.trim().isEmpty ||
+        next.vehicleId.trim().isEmpty ||
+        !previous.hasValidTimeline ||
+        !next.hasValidTimeline ||
+        previous.estimatedEndingOdometer < previous.startingOdometer ||
+        next.estimatedEndingOdometer < next.startingOdometer ||
+        previousEnding < previous.startingOdometer ||
         next.startingOdometer < 0 ||
         next.startedAt.isBefore(previous.finishedAt) ||
         materialUntrackedGapMiles < 0) {

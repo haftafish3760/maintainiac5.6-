@@ -248,6 +248,46 @@ void main() {
     expect(check.reasonCode, 'invalid_odometer_continuity_input');
   });
 
+  test('odometer continuity rejects malformed same-vehicle records', () {
+    final previous = TripTrackingReviewRecord(
+      id: '   ',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1020,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 13, 12),
+      finishedAt: DateTime.utc(2026, 7, 13, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 32186.88,
+        walkingReviewSuggested: false,
+      ),
+      confirmedEndingOdometer: 1020,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 13, 14, 5),
+    );
+    final next = TripTrackingReviewRecord(
+      id: 'trip_after_malformed',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1020,
+      estimatedEndingOdometer: 1030,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 13, 14, 10),
+      finishedAt: DateTime.utc(2026, 7, 13, 15),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 16093.44,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final check = TripOdometerContinuityCheck.betweenReviews(
+      previous: previous,
+      next: next,
+    );
+
+    expect(check.status, TripOdometerContinuityStatus.invalid);
+    expect(check.shouldBlockConfirmation, isTrue);
+    expect(check.reasonCode, 'invalid_odometer_continuity_input');
+  });
+
   test(
     'persistent seven-day GPS odometer drift recommends calibration review',
     () {
