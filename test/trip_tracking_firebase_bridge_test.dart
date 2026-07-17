@@ -27,9 +27,9 @@ void main() {
     }
   });
 
-  TripTrackingReviewRecord review({bool confirmed = true}) =>
+  TripTrackingReviewRecord review({bool confirmed = true, String? id}) =>
       TripTrackingReviewRecord(
-        id: 'trip 1',
+        id: id ?? 'trip 1',
         vehicleId: 'truck-1',
         startingOdometer: 1000,
         estimatedEndingOdometer: 1012,
@@ -743,6 +743,17 @@ void main() {
           data: doc.data,
         ),
       ),
+      throwsArgumentError,
+    );
+  });
+
+  test('mileage backup builder rejects oversized path identities', () {
+    expect(
+      () =>
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: review(id: 'trip_${'x' * 160}'),
+          ),
       throwsArgumentError,
     );
   });

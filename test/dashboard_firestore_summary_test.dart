@@ -422,6 +422,14 @@ void main() {
       ),
       throwsArgumentError,
     );
+    expect(
+      () => MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+        uid: 'firebaseUid-1',
+        dashboardId: 'dashboard_${'x' * 160}',
+        updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+      ),
+      throwsArgumentError,
+    );
   });
 
   test(

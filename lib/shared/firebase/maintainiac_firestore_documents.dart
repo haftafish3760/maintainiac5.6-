@@ -570,6 +570,13 @@ String _requiredSafePathToken(String value, String fieldName) {
   if (safe == 'unknown') {
     throw ArgumentError.value(value, fieldName, 'Unsafe Firestore path token.');
   }
+  if (safe.length > 128) {
+    throw ArgumentError.value(
+      value,
+      fieldName,
+      'Firestore path token is too long.',
+    );
+  }
   return safe;
 }
 
