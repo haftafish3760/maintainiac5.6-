@@ -600,6 +600,28 @@ void main() {
     expect(store.reviewForTrip(' trip_bad_key '), isNull);
   });
 
+  test('invalid restored reviews cannot be saved back into the store', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_invalid_restored_review',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1010,
+      'profile': 'silentTracker',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'finishedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      'engineSnapshot': {
+        'totalAcceptedMeters': 1609.344,
+        'walkingReviewSuggested': false,
+      },
+    });
+
+    expect(review.hasValidTimeline, isFalse);
+    await expectLater(store.saveReview(review), throwsArgumentError);
+    expect(store.reviewForTrip('trip_invalid_restored_review'), isNull);
+    expect(store.pendingReviews, isEmpty);
+  });
+
   test('review writes require sane timeline and vehicle identity', () async {
     final store = TripTrackingSessionStore.memory();
     final base = TripTrackingReviewRecord(

@@ -515,7 +515,9 @@ class TripTrackingSessionStore {
 
   List<TripTrackingReviewRecord> get pendingReviews {
     if (_box == null) {
-      return _memoryReviews.values.toList(growable: false)
+      return _memoryReviews.values
+          .where((review) => review.hasValidTimeline)
+          .toList(growable: false)
         ..sort((a, b) => b.finishedAt.compareTo(a.finishedAt));
     }
     return _box.keys
@@ -524,6 +526,7 @@ class TripTrackingSessionStore {
         .map((key) => _box.get(key))
         .whereType<Map>()
         .map(TripTrackingReviewRecord.fromMap)
+        .where((review) => review.hasValidTimeline)
         .toList(growable: false)
       ..sort((a, b) => b.finishedAt.compareTo(a.finishedAt));
   }
@@ -533,8 +536,13 @@ class TripTrackingSessionStore {
     final value = _box == null
         ? _memoryReviews[tripId]
         : _box.get('$_reviewPrefix$tripId');
-    if (value is TripTrackingReviewRecord) return value;
-    if (value is Map) return TripTrackingReviewRecord.fromMap(value);
+    if (value is TripTrackingReviewRecord) {
+      return value.hasValidTimeline ? value : null;
+    }
+    if (value is Map) {
+      final review = TripTrackingReviewRecord.fromMap(value);
+      return review.hasValidTimeline ? review : null;
+    }
     return null;
   }
 
@@ -626,7 +634,8 @@ class TripTrackingSessionStore {
             'Trip reviews require a non-empty safe vehicle id.',
           );
         }
-        if (review.finishedAt.isBefore(review.startedAt) ||
+        if (!review.hasValidTimeline ||
+            review.finishedAt.isBefore(review.startedAt) ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             ((review.confirmedEndingOdometer != null ||
                     review.odometerConfirmedAt != null) &&
