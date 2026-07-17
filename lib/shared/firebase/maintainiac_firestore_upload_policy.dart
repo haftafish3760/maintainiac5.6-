@@ -484,7 +484,10 @@ class MaintainiacFirestoreUploadPolicy {
       value is String && value.trim().isNotEmpty;
 
   static bool _isBoundedDashboardReference(Object? value) =>
-      value is String && value.trim().isNotEmpty && value.length <= 128;
+      value is String &&
+      value.trim().isNotEmpty &&
+      value.length <= 128 &&
+      RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(value);
 
   static bool _hasValidOptionalStringField(
     Map<String, Object?> data,

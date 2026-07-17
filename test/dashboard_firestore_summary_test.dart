@@ -324,6 +324,38 @@ void main() {
     }
   });
 
+  test('dashboard upload policy rejects unsafe reference characters', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+          activeVehicleId: 'truck_1',
+          activeWorkdayId: 'workday_1',
+          activeWorkProfileId: 'profile_1',
+        );
+
+    for (final entry in const <String, String>{
+      'dashboardId': 'today/../../other',
+      'createdByUid': 'firebaseUid 1',
+      'updatedByUid': 'firebaseUid/1',
+      'activeVehicleId': 'truck 1',
+      'activeWorkdayId': 'workday/1',
+      'activeWorkProfileId': 'profile\n1',
+    }.entries) {
+      final poisoned = MaintainiacFirestoreDocumentDraft(
+        path: doc.path,
+        data: {...doc.data, entry.key: entry.value},
+      );
+
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+        throwsArgumentError,
+        reason: '${entry.key} must stay a safe reference token',
+      );
+    }
+  });
+
   test('dashboard upload policy rejects oversized reference strings', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
