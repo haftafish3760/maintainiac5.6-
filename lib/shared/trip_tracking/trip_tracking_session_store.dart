@@ -65,7 +65,9 @@ class TripTrackingSessionRecord {
     'startedAt': startedAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     'engineSnapshot': engineSnapshot.toMap(),
-    'advisories': advisories.map((item) => item.toMap()).toList(),
+    'advisories': _boundedAdvisories(
+      advisories,
+    ).map((item) => item.toMap()).toList(),
     'lifecycleState': lifecycleState.name,
     'healthState': healthState.name,
     'schemaVersion': schemaVersion,
@@ -96,6 +98,8 @@ class TripTrackingSessionRecord {
           (map['advisories'] as Iterable?)
               ?.whereType<Map>()
               .map(TripTrackingAdvisoryEvent.fromMap)
+              .toList(growable: false)
+              .takeLast(_maxPersistedAdvisories)
               .toList(growable: false) ??
           const [],
       lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
@@ -109,6 +113,22 @@ class TripTrackingSessionRecord {
       hasValidTimeline: startedAt != null && updatedAt != null,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
     );
+  }
+}
+
+const _maxPersistedAdvisories = 24;
+
+Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
+  Iterable<TripTrackingAdvisoryEvent> advisories,
+) {
+  final items = advisories.toList(growable: false);
+  return items.takeLast(_maxPersistedAdvisories);
+}
+
+extension _TakeLastExtension<T> on List<T> {
+  Iterable<T> takeLast(int maxLength) {
+    if (length <= maxLength) return this;
+    return skip(length - maxLength);
   }
 }
 

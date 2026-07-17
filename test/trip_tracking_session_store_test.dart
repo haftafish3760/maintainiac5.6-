@@ -488,6 +488,43 @@ void main() {
     expect(map['tripLogReference'], hasLength(160));
   });
 
+  test('persisted GPS advisories keep only a bounded recent window', () {
+    final session = TripTrackingSessionRecord(
+      id: 'trip_many_advisories',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      updatedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+      advisories: [
+        for (var i = 0; i < 40; i++)
+          TripTrackingAdvisoryEvent(
+            id: 'advisory_$i',
+            type: TripTrackingAdvisoryType.probableStop,
+            sessionId: 'trip_many_advisories',
+            vehicleId: 'vehicle_1',
+            profile: TripTrackingProfile.roadVehicle,
+            detectedAt: DateTime.utc(2026, 7, 14, 12, i),
+            evidenceStartedAt: DateTime.utc(2026, 7, 14, 12, i),
+            evidenceEndedAt: DateTime.utc(2026, 7, 14, 12, i, 30),
+            confidence: TripTrackingConfidence.medium,
+            suggestedAction: 'review',
+          ),
+      ],
+    );
+
+    final map = session.toMap();
+    final restored = TripTrackingSessionRecord.fromMap(map);
+
+    expect(map['advisories'], hasLength(24));
+    expect(restored.advisories, hasLength(24));
+    expect(restored.advisories.first.id, 'advisory_16');
+  });
+
   test('persisted review identity and odometer ranges are validated', () {
     final base = TripTrackingReviewRecord(
       id: 'trip_review_identity',
