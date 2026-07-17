@@ -197,7 +197,7 @@ service cloud.firestore {
         request.resource.data.createdByUid is string &&
         request.resource.data.updatedByUid is string &&
         request.resource.data.vehicleId is string &&
-        request.resource.data.profile is string &&
+        isAllowedTripProfile(request.resource.data.profile) &&
         request.resource.data.startedAt is string &&
         request.resource.data.finishedAt is string &&
         request.resource.data.finishedAt >= request.resource.data.startedAt &&
@@ -219,13 +219,32 @@ service cloud.firestore {
         request.resource.data.acceptedMiles is number &&
         request.resource.data.acceptedMiles >= 0 &&
         request.resource.data.walkingReviewSuggested is bool &&
-        request.resource.data.motionState is string &&
+        isAllowedTripMotionState(request.resource.data.motionState) &&
         request.resource.data.receivedSampleCount is int &&
         request.resource.data.receivedSampleCount >= 0 &&
         request.resource.data.acceptedSampleCount is int &&
         request.resource.data.acceptedSampleCount >= 0 &&
         request.resource.data.acceptedSampleCount <=
           request.resource.data.receivedSampleCount;
+    }
+
+    function isAllowedTripProfile(value) {
+      return [
+        'roadVehicle',
+        'rideshareVehicle',
+        'deliveryVehicle',
+        'contractorVehicle',
+        'lowSpeedEquipment'
+      ].hasAny([value]);
+    }
+
+    function isAllowedTripMotionState(value) {
+      return [
+        'unknown',
+        'moving',
+        'stopCandidate',
+        'stopped'
+      ].hasAny([value]);
     }
 
     function hasCoherentMileageSummaryDistance() {

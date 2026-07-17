@@ -190,6 +190,30 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('local upload policy rejects unknown trip profile and motion states', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+
+    for (final entry in const <String, String>{
+      'profile': 'silentTracker',
+      'motionState': 'rawLocationStreaming',
+    }.entries) {
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(
+          MaintainiacFirestoreDocumentDraft(
+            path: doc.path,
+            data: {...doc.data, entry.key: entry.value},
+          ),
+        ),
+        throwsArgumentError,
+        reason: '${entry.key} must be an allowed trip summary value',
+      );
+    }
+  });
+
   test(
     'Firestore rules allowlist stays aligned with the trip summary contract',
     () {
@@ -229,6 +253,10 @@ void main() {
       expect(valueCheckStart, greaterThanOrEqualTo(0));
       expect(valueCheckEnd, greaterThan(valueCheckStart));
       final valueCheck = rules.substring(valueCheckStart, valueCheckEnd);
+      expect(rules, contains('function isAllowedTripProfile'));
+      expect(rules, contains('function isAllowedTripMotionState'));
+      expect(valueCheck, contains('isAllowedTripProfile'));
+      expect(valueCheck, contains('isAllowedTripMotionState'));
       expect(valueCheck, contains('startingOdometer >= 0'));
       expect(valueCheck, contains('estimatedEndingOdometer >='));
       expect(

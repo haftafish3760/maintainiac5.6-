@@ -133,6 +133,21 @@ class MaintainiacFirestoreUploadPolicy {
     'cloud_pending',
   };
 
+  static const _allowedTripProfiles = <String>{
+    'roadVehicle',
+    'rideshareVehicle',
+    'deliveryVehicle',
+    'contractorVehicle',
+    'lowSpeedEquipment',
+  };
+
+  static const _allowedTripMotionStates = <String>{
+    'unknown',
+    'moving',
+    'stopCandidate',
+    'stopped',
+  };
+
   static void validateDraft(MaintainiacFirestoreDocumentDraft draft) {
     _validatePath(draft.path);
     _validateDocumentSize(draft);
@@ -360,7 +375,7 @@ class MaintainiacFirestoreUploadPolicy {
         _isNonEmptyString(draft.data['createdByUid']) &&
         _isNonEmptyString(draft.data['updatedByUid']) &&
         _isNonEmptyString(draft.data['vehicleId']) &&
-        _isNonEmptyString(draft.data['profile']) &&
+        _isAllowedString(draft.data['profile'], _allowedTripProfiles) &&
         _isNonEmptyString(draft.data['startedAt']) &&
         _isNonEmptyString(draft.data['finishedAt']) &&
         _isNonEmptyString(draft.data['createdAt']) &&
@@ -374,7 +389,7 @@ class MaintainiacFirestoreUploadPolicy {
         _isNonNegativeFiniteNumber(acceptedMeters) &&
         _isNonNegativeFiniteNumber(acceptedMiles) &&
         draft.data['walkingReviewSuggested'] is bool &&
-        _isNonEmptyString(draft.data['motionState']) &&
+        _isAllowedString(draft.data['motionState'], _allowedTripMotionStates) &&
         _isNonNegativeInt(receivedSampleCount) &&
         _isNonNegativeInt(acceptedSampleCount) &&
         (acceptedSampleCount as int) <= (receivedSampleCount as int);
