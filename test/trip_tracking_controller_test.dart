@@ -2877,10 +2877,7 @@ void main() {
       );
       final active = store.activeSession!;
       await store.savePending(
-        TripTrackingPendingSample(
-          sessionId: active.id,
-          sample: sample(-80, 0),
-        ),
+        TripTrackingPendingSample(sessionId: active.id, sample: sample(-80, 0)),
       );
       await store.saveReview(
         TripTrackingReviewRecord(
@@ -2932,6 +2929,44 @@ void main() {
         totalAcceptedMeters: 0,
         walkingReviewSuggested: false,
       ).toMap(),
+    });
+    final store = await TripTrackingSessionStore.create();
+    addTearDown(() async {
+      await Hive.close();
+      if (hiveDirectory.existsSync()) {
+        await hiveDirectory.delete(recursive: true);
+      }
+    });
+    final odometer = GlobalOdometerController(initialReading: 1000);
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(store.activeSession, isNull);
+    expect(controller.isTracking, isFalse);
+    expect(odometer.hasLiveTripProjection, isFalse);
+  });
+
+  test('future-schema local trip is cleared instead of restored', () async {
+    final hiveDirectory = await Directory.systemTemp.createTemp(
+      'trip_tracking_future_schema_',
+    );
+    Hive.init(hiveDirectory.path);
+    final box = await Hive.openBox<dynamic>(TripTrackingSessionStore.boxName);
+    await box.put('activeSession', {
+      'id': 'trip_future_schema_restore',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': TripTrackingProfile.roadVehicle.name,
+      'startedAt': start.toIso8601String(),
+      'updatedAt': start.toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'schemaVersion': 99,
     });
     final store = await TripTrackingSessionStore.create();
     addTearDown(() async {
