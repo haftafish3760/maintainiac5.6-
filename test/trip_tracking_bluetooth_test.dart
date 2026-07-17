@@ -36,6 +36,30 @@ void main() {
     },
   );
 
+  test('recognized device can auto-switch only after explicit consent', () {
+    expect(
+      resolveBluetoothVehicleMatch(
+        settings: const TripTrackingSettings(
+          bluetoothVehicleRecognitionEnabled: true,
+          automaticVehicleSwitchEnabled: true,
+        ),
+        link: link,
+        hasActiveGpsTrip: false,
+      ),
+      BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+    );
+    expect(
+      resolveBluetoothVehicleMatch(
+        settings: const TripTrackingSettings(
+          automaticVehicleSwitchEnabled: true,
+        ),
+        link: link,
+        hasActiveGpsTrip: false,
+      ),
+      BluetoothVehicleMatchDisposition.recognitionDisabled,
+    );
+  });
+
   test('an active GPS trip always blocks Bluetooth vehicle reassignment', () {
     expect(
       resolveBluetoothVehicleMatch(
