@@ -401,12 +401,119 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
       lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
     );
+    if (!started &&
+        tripTracking.platformStatus == 'low_battery_requires_user_choice') {
+      final choice = await _openLowBatteryGpsDialog();
+      if (!mounted) return;
+      if (choice != null) {
+        if (choice.rememberChoice) {
+          await settingsController.update(
+            settings.copyWith(
+              lowBatteryGpsOverrideEnabled: choice.continueGps,
+              lowBatteryGpsWarningDismissed: true,
+            ),
+          );
+        }
+        if (choice.continueGps) {
+          final retryStarted = await tripTracking.startNativeTracking(
+            allowBackground: settings.backgroundTrackingEnabled,
+            samplingOverride: _samplingForPreset(settings),
+            adaptiveSamplingEnabled: settings.adaptiveSamplingEnabled,
+            activityRecognitionEnabled: settings.activityRecognitionEnabled,
+            lowBatteryProtectionEnabled:
+                settings.lowBatteryGpsProtectionEnabled,
+            lowBatteryOverrideEnabled: true,
+            lowBatteryWarningDismissed: choice.rememberChoice,
+          );
+          if (!retryStarted && startedNewTrip) {
+            await tripTracking.discardEmptyTrip();
+          }
+          if (!mounted) return;
+          _showGpsMessage(
+            retryStarted
+                ? 'GPS-assisted trip tracking started.'
+                : (tripTracking.platformError ??
+                      'GPS tracking could not start.'),
+          );
+          return;
+        }
+      }
+    }
     if (!started && startedNewTrip) await tripTracking.discardEmptyTrip();
     if (!mounted) return;
     _showGpsMessage(
       started
           ? 'GPS-assisted trip tracking started.'
           : (tripTracking.platformError ?? 'GPS tracking could not start.'),
+    );
+  }
+
+  Future<_LowBatteryGpsChoice?> _openLowBatteryGpsDialog() {
+    var rememberChoice = false;
+    return showDialog<_LowBatteryGpsChoice>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF101719),
+          title: const Text(
+            'Battery below 20%',
+            style: TextStyle(
+              color: Color(0xFFF0F4F2),
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'GPS can use more battery while you drive. By default, Maintainiac pauses before starting GPS below 20% so your phone keeps enough power.',
+                style: TextStyle(
+                  color: Color(0xFFC8D0D3),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              CheckboxListTile(
+                value: rememberChoice,
+                onChanged: (value) =>
+                    setDialogState(() => rememberChoice = value == true),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: const Text(
+                  'Do not show again',
+                  style: TextStyle(
+                    color: Color(0xFFE2E8EA),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(
+                _LowBatteryGpsChoice(
+                  continueGps: false,
+                  rememberChoice: rememberChoice,
+                ),
+              ),
+              child: const Text('Cancel GPS'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(
+                _LowBatteryGpsChoice(
+                  continueGps: true,
+                  rememberChoice: rememberChoice,
+                ),
+              ),
+              child: const Text('Continue with GPS'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -640,6 +747,16 @@ class _GpsTripPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LowBatteryGpsChoice {
+  const _LowBatteryGpsChoice({
+    required this.continueGps,
+    required this.rememberChoice,
+  });
+
+  final bool continueGps;
+  final bool rememberChoice;
 }
 
 TripSamplingRecommendation _samplingForPreset(
