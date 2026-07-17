@@ -64,10 +64,10 @@ class ActiveWorkdayEvent {
       'type': type.name,
       'occurredAt': occurredAt.toIso8601String(),
       'odometerReading': _safeOdometer(odometerReading) ?? 0,
-      'label': label,
-      'note': note,
-      'sourceType': sourceType,
-      'sourceId': sourceId,
+      'label': _safeText(label, fallback: 'Workday event', maxLength: 80),
+      'note': _optionalSafeText(note, maxLength: 240),
+      'sourceType': _optionalSafeText(sourceType, maxLength: 80),
+      'sourceId': _optionalSafeText(sourceId, maxLength: 160),
     };
   }
 
@@ -79,10 +79,10 @@ class ActiveWorkdayEvent {
           DateTime.tryParse((map['occurredAt'] as String?) ?? '') ??
           DateTime.now(),
       odometerReading: _safeOdometer(map['odometerReading']) ?? 0,
-      label: (map['label'] as String?) ?? 'Workday event',
-      note: map['note'] as String?,
-      sourceType: map['sourceType'] as String?,
-      sourceId: map['sourceId'] as String?,
+      label: _safeText(map['label'], fallback: 'Workday event', maxLength: 80),
+      note: _optionalSafeText(map['note'], maxLength: 240),
+      sourceType: _optionalSafeText(map['sourceType'], maxLength: 80),
+      sourceId: _optionalSafeText(map['sourceId'], maxLength: 160),
     );
   }
 }
@@ -167,10 +167,22 @@ class ActiveWorkdaySessionRecord {
     bool clearEndOdometer = false,
   }) {
     return ActiveWorkdaySessionRecord(
-      id: id ?? this.id,
-      vehicleId: vehicleId ?? this.vehicleId,
-      vehicleLabel: vehicleLabel ?? this.vehicleLabel,
-      workProfileId: workProfileId ?? this.workProfileId,
+      id: _safeText(id ?? this.id, fallback: _newId('workday'), maxLength: 160),
+      vehicleId: _safeText(
+        vehicleId ?? this.vehicleId,
+        fallback: 'default_vehicle',
+        maxLength: 160,
+      ),
+      vehicleLabel: _safeText(
+        vehicleLabel ?? this.vehicleLabel,
+        fallback: 'Active vehicle',
+        maxLength: 120,
+      ),
+      workProfileId: _safeText(
+        workProfileId ?? this.workProfileId,
+        fallback: 'default_work',
+        maxLength: 160,
+      ),
       startedAt: startedAt ?? this.startedAt,
       startOdometer: startOdometer ?? this.startOdometer,
       status: status ?? this.status,
@@ -182,10 +194,22 @@ class ActiveWorkdaySessionRecord {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'vehicleId': vehicleId,
-      'vehicleLabel': vehicleLabel,
-      'workProfileId': workProfileId,
+      'id': _safeText(id, fallback: _newId('workday'), maxLength: 160),
+      'vehicleId': _safeText(
+        vehicleId,
+        fallback: 'default_vehicle',
+        maxLength: 160,
+      ),
+      'vehicleLabel': _safeText(
+        vehicleLabel,
+        fallback: 'Active vehicle',
+        maxLength: 120,
+      ),
+      'workProfileId': _safeText(
+        workProfileId,
+        fallback: 'default_work',
+        maxLength: 160,
+      ),
       'startedAt': startedAt.toIso8601String(),
       'startOdometer': _safeOdometer(startOdometer) ?? 0,
       'status': status.name,
@@ -209,10 +233,22 @@ class ActiveWorkdaySessionRecord {
     }
 
     return ActiveWorkdaySessionRecord(
-      id: (map['id'] as String?) ?? _newId('workday'),
-      vehicleId: (map['vehicleId'] as String?) ?? 'default_vehicle',
-      vehicleLabel: (map['vehicleLabel'] as String?) ?? 'Active vehicle',
-      workProfileId: (map['workProfileId'] as String?) ?? 'default_work',
+      id: _safeText(map['id'], fallback: _newId('workday'), maxLength: 160),
+      vehicleId: _safeText(
+        map['vehicleId'],
+        fallback: 'default_vehicle',
+        maxLength: 160,
+      ),
+      vehicleLabel: _safeText(
+        map['vehicleLabel'],
+        fallback: 'Active vehicle',
+        maxLength: 120,
+      ),
+      workProfileId: _safeText(
+        map['workProfileId'],
+        fallback: 'default_work',
+        maxLength: 160,
+      ),
       startedAt:
           DateTime.tryParse((map['startedAt'] as String?) ?? '') ??
           DateTime.now(),
@@ -461,4 +497,21 @@ int? _safeOdometer(Object? value) {
   if (value is! num || !value.isFinite) return null;
   final rounded = value.round();
   return rounded < 0 ? 0 : rounded;
+}
+
+String _safeText(
+  Object? value, {
+  required String fallback,
+  required int maxLength,
+}) {
+  final clean = '${value ?? ''}'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
+  if (clean.isEmpty) return fallback;
+  return clean.length > maxLength ? clean.substring(0, maxLength) : clean;
+}
+
+String? _optionalSafeText(Object? value, {required int maxLength}) {
+  final clean = _safeText(value, fallback: '', maxLength: maxLength);
+  return clean.isEmpty ? null : clean;
 }

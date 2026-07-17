@@ -273,4 +273,42 @@ void main() {
     expect(map['endOdometer'], 0);
     expect(event['odometerReading'], 0);
   });
+
+  test('active workday serialization bounds display text fields', () {
+    final record = ActiveWorkdaySessionRecord(
+      id: ' ${'w' * 240} ',
+      vehicleId: ' ${'v' * 240} ',
+      vehicleLabel: ' ${'Truck' * 40} ',
+      workProfileId: ' ${'p' * 240} ',
+      startedAt: DateTime(2026, 6, 12, 8),
+      startOdometer: 1200,
+      status: ActiveWorkdayStatus.active,
+      events: [
+        ActiveWorkdayEvent(
+          id: 'event-text',
+          type: ActiveWorkdayEventType.note,
+          occurredAt: DateTime(2026, 6, 12, 9),
+          odometerReading: 1201,
+          label: ' ${'Label' * 40} ',
+          note: 'first line\n${'n' * 300}',
+          sourceType: ' ${'s' * 120} ',
+          sourceId: ' ${'id' * 120} ',
+        ),
+      ],
+    );
+
+    final map = record.toMap();
+    final event =
+        (map['events'] as List<Object?>).single as Map<String, Object?>;
+
+    expect((map['id'] as String), hasLength(160));
+    expect((map['vehicleId'] as String), hasLength(160));
+    expect((map['vehicleLabel'] as String), hasLength(120));
+    expect((map['workProfileId'] as String), hasLength(160));
+    expect((event['label'] as String), hasLength(80));
+    expect((event['note'] as String), hasLength(240));
+    expect(event['note'], isNot(contains('\n')));
+    expect((event['sourceType'] as String), hasLength(80));
+    expect((event['sourceId'] as String), hasLength(160));
+  });
 }
