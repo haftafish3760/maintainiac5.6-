@@ -316,6 +316,19 @@ class TripTrackingReviewRecord {
       orElse: () => TripTrackingCloudSyncState.localOnly,
     );
     final cloudSyncedAt = DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}');
+    final confirmedEndingOdometer = _optionalPersistedOdometerValue(
+      map['confirmedEndingOdometer'],
+    );
+    final odometerConfirmedAt = DateTime.tryParse(
+      '${map['odometerConfirmedAt'] ?? ''}',
+    );
+    final hasValidConfirmation =
+        (confirmedEndingOdometer == null && odometerConfirmedAt == null) ||
+        (confirmedEndingOdometer != null &&
+            confirmedEndingOdometer >= startingOdometer &&
+            odometerConfirmedAt != null &&
+            finishedAt != null &&
+            !odometerConfirmedAt.isBefore(finishedAt));
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
@@ -337,12 +350,8 @@ class TripTrackingReviewRecord {
             ),
       cloudSyncState: cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
-      confirmedEndingOdometer: _optionalPersistedOdometerValue(
-        map['confirmedEndingOdometer'],
-      ),
-      odometerConfirmedAt: DateTime.tryParse(
-        '${map['odometerConfirmedAt'] ?? ''}',
-      ),
+      confirmedEndingOdometer: confirmedEndingOdometer,
+      odometerConfirmedAt: odometerConfirmedAt,
       cloudBackupScope: cloudBackupScope,
       cloudOrganizationId:
           cloudBackupScope != null && map['cloudOrganizationId'] is String
@@ -359,6 +368,7 @@ class TripTrackingReviewRecord {
           hasValidProfile &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(cloudSyncState, cloudSyncedAt) &&
+          hasValidConfirmation &&
           estimatedEndingOdometer >= startingOdometer,
     );
   }

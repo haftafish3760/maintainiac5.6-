@@ -1024,6 +1024,34 @@ void main() {
       }).hasValidTimeline,
       isFalse,
     );
+    expect(
+      TripTrackingReviewRecord.fromMap({
+        ...base,
+        'confirmedEndingOdometer': 999,
+        'odometerConfirmedAt': DateTime.utc(
+          2026,
+          7,
+          14,
+          13,
+          1,
+        ).toIso8601String(),
+      }).hasValidTimeline,
+      isFalse,
+    );
+    expect(
+      TripTrackingReviewRecord.fromMap({
+        ...base,
+        'confirmedEndingOdometer': 1010,
+        'odometerConfirmedAt': DateTime.utc(
+          2026,
+          7,
+          14,
+          11,
+          59,
+        ).toIso8601String(),
+      }).hasValidTimeline,
+      isFalse,
+    );
   });
 
   test('malformed active-trip odometer cannot crash session recovery', () {
