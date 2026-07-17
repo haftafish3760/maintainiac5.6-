@@ -491,6 +491,51 @@ void main() {
     expect(restored.events.single.occurredAt, fallback);
   });
 
+  test('restored active workday events cannot predate start or odometer', () {
+    final startedAt = DateTime(2026, 6, 12, 8);
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'filtered-workday-events',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': startedAt.toIso8601String(),
+      'startOdometer': 1200,
+      'status': 'active',
+      'events': [
+        {
+          'id': 'pre-start-event',
+          'type': 'stop',
+          'occurredAt': startedAt
+              .subtract(const Duration(minutes: 1))
+              .toIso8601String(),
+          'odometerReading': 1200,
+          'label': 'Stop logged',
+        },
+        {
+          'id': 'below-start-odometer',
+          'type': 'stop',
+          'occurredAt': startedAt
+              .add(const Duration(minutes: 1))
+              .toIso8601String(),
+          'odometerReading': 1199,
+          'label': 'Stop logged',
+        },
+        {
+          'id': 'valid-event',
+          'type': 'stop',
+          'occurredAt': startedAt
+              .add(const Duration(minutes: 2))
+              .toIso8601String(),
+          'odometerReading': 1201,
+          'label': 'Stop logged',
+        },
+      ],
+    });
+
+    expect(restored.events, hasLength(1));
+    expect(restored.events.single.id, 'valid-event');
+  });
+
   test('non-string active workday restore fields fail closed', () {
     final restored = ActiveWorkdaySessionRecord.fromMap({
       'id': 'malformed-workday-shape',

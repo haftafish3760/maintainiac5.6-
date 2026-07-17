@@ -231,19 +231,27 @@ class ActiveWorkdaySessionRecord {
     final rawVehicleId = map['vehicleId'];
     final rawWorkProfileId = map['workProfileId'];
     final rawEvents = map['events'];
-    final events = <ActiveWorkdayEvent>[];
+    final parsedEvents = <ActiveWorkdayEvent>[];
     if (rawEvents is Iterable) {
       for (final event in rawEvents) {
         if (event is ActiveWorkdayEvent) {
-          events.add(event);
+          parsedEvents.add(event);
         } else if (event is Map) {
-          events.add(ActiveWorkdayEvent.fromMap(event));
+          parsedEvents.add(ActiveWorkdayEvent.fromMap(event));
         }
       }
     }
     final startedAt =
         DateTime.tryParse(_stringValue(map['startedAt']) ?? '') ??
         _fallbackWorkdayTimestamp();
+    final startOdometer = _safeOdometer(map['startOdometer']) ?? 0;
+    final events = parsedEvents
+        .where(
+          (event) =>
+              !event.occurredAt.isBefore(startedAt) &&
+              event.odometerReading >= startOdometer,
+        )
+        .toList(growable: false);
     final endOdometer = _safeOdometer(map['endOdometer']);
     final endedAt = DateTime.tryParse(_stringValue(map['endedAt']) ?? '');
     final status = _statusFromName(_stringValue(map['status']));
@@ -281,7 +289,7 @@ class ActiveWorkdaySessionRecord {
         maxLength: 160,
       ),
       startedAt: startedAt,
-      startOdometer: _safeOdometer(map['startOdometer']) ?? 0,
+      startOdometer: startOdometer,
       status: recoveredStatus,
       events: events,
       endedAt: hasCoherentEndedState ? endedAt : null,
