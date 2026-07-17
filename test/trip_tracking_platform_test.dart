@@ -149,7 +149,7 @@ void main() {
 
   test('malformed native battery snapshots are not trusted', () {
     final valid = TripTrackingBatterySnapshot.fromMap({
-      'batteryPercent': 19.4,
+      'batteryPercent': 19.9,
       'isCharging': true,
       'lowPowerModeEnabled': true,
     });

@@ -186,7 +186,7 @@ class TripTrackingBatterySnapshot {
   factory TripTrackingBatterySnapshot.fromMap(Map<dynamic, dynamic> map) {
     final rawPercent = map['batteryPercent'];
     final percent = rawPercent is num && rawPercent.isFinite
-        ? rawPercent.round()
+        ? rawPercent.floor()
         : null;
     return TripTrackingBatterySnapshot(
       batteryPercent: percent != null && percent >= 0 && percent <= 100
