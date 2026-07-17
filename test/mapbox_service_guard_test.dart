@@ -33,8 +33,12 @@ void main() {
       expect(summary['schemaVersion'], 1);
       expect(summary['featureOptional'], isTrue);
       expect(summary['fallbackMode'], 'map_assist');
+      expect(summary['externalServiceCanonical'], isFalse);
+      expect(summary['canModifyTripLog'], isFalse);
+      expect(summary['canModifyOdometer'], isFalse);
       expect(summary['sensitiveWriteAllowed'], isFalse);
       expect(summary['rawResponseIncluded'], isFalse);
+      expect(summary['rawGeometryIncluded'], isFalse);
       expect(summary['tokensIncluded'], isFalse);
       expect(summary['publicTokenIncluded'], isFalse);
       expect(summary['secretTokenIncluded'], isFalse);
@@ -114,6 +118,47 @@ void main() {
       expect(decision.canUseFeature, isFalse);
       expect(decision.shouldFallbackToGpsOnly, isTrue);
     }
+  });
+
+  test('service guards reject impossible route and matrix payloads', () {
+    final badDirections = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.directions,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'routes': [
+          {'distance': -1, 'duration': 60, 'geometry': 'private'},
+        ],
+      },
+    );
+    final badMatrix = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.matrix,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'durations': [
+          [0, double.infinity],
+        ],
+      },
+    );
+    final oversizedSearch = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.search,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: {
+        'code': 'Ok',
+        'features': List<Object?>.filled(101, const {'private': true}),
+      },
+    );
+
+    expect(badDirections.status, MapboxServiceGuardStatus.malformedResponse);
+    expect(badDirections.safeReason, 'mapbox_directions_unexpected_shape');
+    expect(badMatrix.status, MapboxServiceGuardStatus.malformedResponse);
+    expect(badMatrix.safeReason, 'mapbox_matrix_unexpected_shape');
+    expect(oversizedSearch.status, MapboxServiceGuardStatus.malformedResponse);
+    expect(oversizedSearch.safeReason, 'mapbox_search_unexpected_shape');
   });
 
   test('retry-after values are type checked and bounded', () {

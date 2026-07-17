@@ -41,8 +41,12 @@ class MapboxServiceGuardDecision {
     if (retryAfterSeconds != null) 'retryAfterSeconds': retryAfterSeconds,
     'featureOptional': true,
     'fallbackMode': shouldFallbackToGpsOnly ? 'gps_only' : 'map_assist',
+    'externalServiceCanonical': false,
+    'canModifyTripLog': false,
+    'canModifyOdometer': false,
     'sensitiveWriteAllowed': false,
     'rawResponseIncluded': false,
+    'rawGeometryIncluded': false,
     'tokensIncluded': false,
     'publicTokenIncluded': false,
     'secretTokenIncluded': false,
@@ -122,34 +126,77 @@ class MapboxServiceGuard {
 bool _hasExpectedShape(MapboxOptionalServiceKind kind, Map body) {
   return switch (kind) {
     MapboxOptionalServiceKind.maps => true,
-    MapboxOptionalServiceKind.directions => _hasNonEmptyList(body['routes']),
+    MapboxOptionalServiceKind.directions => _hasUsableRouteList(body['routes']),
     MapboxOptionalServiceKind.matrix =>
-      _hasNonEmptyList(body['durations']) ||
-          _hasNonEmptyList(body['distances']),
+      _hasUsableMatrix(body['durations']) ||
+          _hasUsableMatrix(body['distances']),
     MapboxOptionalServiceKind.mapMatching =>
-      _hasNonEmptyList(body['matchings']) || _hasNonEmptyList(body['routes']),
+      _hasUsableRouteList(body['matchings']) ||
+          _hasUsableRouteList(body['routes']),
     MapboxOptionalServiceKind.isochrone =>
-      _hasFeatureCollection(body) || _hasNonEmptyList(body['features']),
+      _hasFeatureCollection(body) || _hasUsableFeatureList(body['features']),
     MapboxOptionalServiceKind.optimization =>
-      _hasNonEmptyList(body['trips']) || _hasNonEmptyList(body['routes']),
+      _hasUsableRouteList(body['trips']) || _hasUsableRouteList(body['routes']),
     MapboxOptionalServiceKind.search =>
-      _hasNonEmptyList(body['features']) ||
-          _hasNonEmptyList(body['suggestions']),
+      _hasUsableFeatureList(body['features']) ||
+          _hasUsableFeatureList(body['suggestions']),
     MapboxOptionalServiceKind.evChargeFinder =>
-      _hasFeatureCollection(body) || _hasNonEmptyList(body['features']),
+      _hasFeatureCollection(body) || _hasUsableFeatureList(body['features']),
   };
 }
 
 bool _hasFeatureCollection(Map body) {
   return body['type'] == 'FeatureCollection' &&
-      _hasNonEmptyList(body['features']);
+      _hasUsableFeatureList(body['features']);
 }
 
-bool _hasNonEmptyList(Object? value) => value is List && value.isNotEmpty;
+bool _hasUsableRouteList(Object? value) {
+  if (value is! List || value.isEmpty || value.length > 25) return false;
+  return value.any(_hasUsableRouteShape);
+}
+
+bool _hasUsableRouteShape(Object? value) {
+  if (value is! Map) return false;
+  final distance = _safeFiniteNumber(value['distance']);
+  final duration = _safeFiniteNumber(value['duration']);
+  final hasBoundedDistance =
+      distance == null || (distance > 0 && distance <= 20000000);
+  final hasBoundedDuration =
+      duration == null || (duration > 0 && duration <= 60 * 60 * 24 * 14);
+  if (!hasBoundedDistance || !hasBoundedDuration) return false;
+  return value.containsKey('geometry') ||
+      value.containsKey('legs') ||
+      distance != null ||
+      duration != null;
+}
+
+bool _hasUsableMatrix(Object? value) {
+  if (value is! List || value.isEmpty || value.length > 50) return false;
+  for (final row in value) {
+    if (row is! List || row.isEmpty || row.length > 50) return false;
+    for (final cell in row) {
+      if (cell == null) continue;
+      final number = _safeFiniteNumber(cell);
+      if (number == null || number < 0 || number > 20000000) return false;
+    }
+  }
+  return true;
+}
+
+bool _hasUsableFeatureList(Object? value) {
+  if (value is! List || value.isEmpty || value.length > 100) return false;
+  return value.any((feature) => feature is Map && feature.isNotEmpty);
+}
 
 int? _safeRetryAfterSeconds(Object? value) {
   if (value is! num || !value.isFinite) return null;
   final seconds = value.round();
   if (seconds < 0) return null;
   return seconds > 86400 ? 86400 : seconds;
+}
+
+double? _safeFiniteNumber(Object? value) {
+  if (value == null) return null;
+  if (value is! num || !value.isFinite) return null;
+  return value.toDouble();
 }
