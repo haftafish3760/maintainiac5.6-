@@ -513,6 +513,36 @@ void main() {
     expect(signal.reasonCode, 'calibration_stable');
   });
 
+  test('calibration weights longer reviewed trips over short noisy errands', () {
+    final history = [
+      ...List.generate(
+        6,
+        (_) => const TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 10,
+          filteredGpsMiles: 8,
+          absoluteDifferenceMiles: 2,
+          differencePercent: 20,
+        ),
+      ),
+      const TripOdometerReconciliation(
+        status: TripOdometerReconciliationStatus.aligned,
+        confirmedOdometerDeltaMiles: 500,
+        filteredGpsMiles: 495,
+        absoluteDifferenceMiles: 5,
+        differencePercent: 1,
+      ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+
+    expect(signal.status, TripOdometerCalibrationStatus.stable);
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.averageGpsToOdometerRatio, closeTo(543 / 560, .001));
+    expect(signal.averageDifferencePercent, closeTo(17 / 560 * 100, .001));
+    expect(signal.reasonCode, 'calibration_stable');
+  });
+
   test('calibration ignores non-finite reviewed history values', () {
     final signal = TripOdometerCalibrationSignal.evaluate(
       history: const [

@@ -229,16 +229,18 @@ class TripOdometerCalibrationSignal {
       );
     }
 
-    var ratioTotal = 0.0;
-    var percentTotal = 0.0;
+    var odometerMilesTotal = 0.0;
+    var gpsMilesTotal = 0.0;
+    var differenceMilesTotal = 0.0;
     for (final entry in eligible) {
       final sample = entry.key;
-      ratioTotal +=
-          sample.filteredGpsMiles / sample.confirmedOdometerDeltaMiles;
-      percentTotal += entry.value;
+      odometerMilesTotal += sample.confirmedOdometerDeltaMiles;
+      gpsMilesTotal += sample.filteredGpsMiles;
+      differenceMilesTotal +=
+          (sample.confirmedOdometerDeltaMiles - sample.filteredGpsMiles).abs();
     }
-    final averageRatio = ratioTotal / eligible.length;
-    final averagePercent = percentTotal / eligible.length;
+    final averageRatio = gpsMilesTotal / odometerMilesTotal;
+    final averagePercent = (differenceMilesTotal / odometerMilesTotal) * 100;
     final persistentSameDirection =
         eligible.every(
           (entry) =>
