@@ -1,3 +1,4 @@
+import '../../../shared/context/operational_context_models.dart';
 import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
 
@@ -70,6 +71,41 @@ class DashboardFirestoreMirror {
       document,
       queuedAtUtc: updatedAt,
       preserveAttemptMetadata: true,
+    );
+  }
+
+  Future<void> queueOperationalContextSummary({
+    required String uid,
+    required String dashboardId,
+    required ActiveOperationalContext operationalContext,
+    required DateTime updatedAtUtc,
+    String? activeWorkdayId,
+    String gpsAssistState = 'off',
+    String storageState = 'unknown',
+    int? freeSyncsRemaining,
+    int? syncsUsedInWindow,
+    bool batteryGpsLimited = false,
+    bool reviewRequired = false,
+  }) {
+    return queueSummary(
+      uid: uid,
+      dashboardId: dashboardId,
+      updatedAtUtc: updatedAtUtc,
+      orgId: operationalContext.companyId.trim().isEmpty
+          ? null
+          : operationalContext.companyId,
+      activeVehicleId: operationalContext.activeVehicleId,
+      activeWorkdayId: activeWorkdayId,
+      activeWorkProfileId: operationalContext.workProfileId,
+      dashboardMode: operationalContext.dashboardSummaryModeToken,
+      mileageMode: operationalContext.dashboardSummaryMileageToken,
+      syncMode: operationalContext.dashboardSummarySyncToken,
+      gpsAssistState: gpsAssistState,
+      storageState: storageState,
+      freeSyncsRemaining: freeSyncsRemaining,
+      syncsUsedInWindow: syncsUsedInWindow,
+      batteryGpsLimited: batteryGpsLimited,
+      reviewRequired: reviewRequired,
     );
   }
 
