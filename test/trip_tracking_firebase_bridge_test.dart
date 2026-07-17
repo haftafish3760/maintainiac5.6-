@@ -1219,7 +1219,8 @@ void main() {
       final stored = localStore.reviewForTrip('trip 1');
       expect(stored?.cloudAccountUid, 'firebaseUid-1');
       expect(stored?.cloudBackupScope, TripTrackingCloudBackupScope.personal);
-      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.queued);
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+      expect(stored?.cloudSyncError, contains('Firestore uploads are disabled'));
     },
   );
 
@@ -1650,6 +1651,36 @@ void main() {
     expect(
       localStore.reviewForTrip('trip 1')?.cloudSyncError,
       contains('selected network'),
+    );
+  });
+
+  test('disabled hosted trip backup remains pending for retry', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingSink();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await mirror.queueReview(review());
+    await mirror.flushPending();
+
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncState,
+      TripTrackingCloudSyncState.pending,
+    );
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      contains('Firestore uploads are disabled'),
     );
   });
 

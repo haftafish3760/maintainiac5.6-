@@ -353,7 +353,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
         } else if (result.status ==
                 MaintainiacFirestoreUploadStatus.quotaExceeded ||
             result.status ==
-                MaintainiacFirestoreUploadStatus.networkUnavailable) {
+                MaintainiacFirestoreUploadStatus.networkUnavailable ||
+            result.status == MaintainiacFirestoreUploadStatus.disabled) {
           await _saveReviewState(
             boundReview.copyWith(
               cloudSyncState: TripTrackingCloudSyncState.pending,
