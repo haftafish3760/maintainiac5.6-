@@ -361,44 +361,57 @@ class TripTrackingEngineSnapshot {
   final int schemaVersion;
   final String algorithmVersion;
 
-  Map<String, Object?> toMap() => {
-    'lastAccepted': lastAccepted?.toMap(),
-    'lastObservedAt': lastObservedAt?.toIso8601String(),
-    'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
-    'walkingEvidence': _boundedWalkingEvidence(
+  Map<String, Object?> toMap() {
+    final evidence = _boundedWalkingEvidence(
       walkingEvidence,
-    ).map((item) => item.toMap()).toList(),
-    'walkingReviewSuggested': walkingReviewSuggested,
-    'motionState': motionState.name,
-    'vehicleMovementObserved': vehicleMovementObserved,
-    'diagnostics': diagnostics.toMap(),
-    'schemaVersion': schemaVersion,
-    'algorithmVersion': algorithmVersion,
-  };
+    ).toList(growable: false);
+    return {
+      'lastAccepted': lastAccepted?.toMap(),
+      'lastObservedAt': lastObservedAt?.toIso8601String(),
+      'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
+      'walkingEvidence': evidence.map((item) => item.toMap()).toList(),
+      'walkingReviewSuggested': _safeWalkingReviewSuggested(
+        walkingReviewSuggested,
+        vehicleMovementObserved: vehicleMovementObserved,
+        walkingEvidence: evidence,
+      ),
+      'motionState': motionState.name,
+      'vehicleMovementObserved': vehicleMovementObserved,
+      'diagnostics': diagnostics.toMap(),
+      'schemaVersion': schemaVersion,
+      'algorithmVersion': algorithmVersion,
+    };
+  }
 
   factory TripTrackingEngineSnapshot.fromMap(Map<dynamic, dynamic> map) {
     final rawEvidence = map['walkingEvidence'];
+    final walkingEvidence = rawEvidence is Iterable
+        ? rawEvidence
+              .whereType<Map>()
+              .map(TripActivityObservation.tryFromMap)
+              .whereType<TripActivityObservation>()
+              .toList(growable: false)
+              .takeLast(_maxPersistedWalkingEvidence)
+              .toList(growable: false)
+        : const <TripActivityObservation>[];
+    final vehicleMovementObserved = map['vehicleMovementObserved'] == true;
     return TripTrackingEngineSnapshot(
       lastAccepted: map['lastAccepted'] is Map
           ? TripLocationSample.tryFromMap(map['lastAccepted'] as Map)
           : null,
       lastObservedAt: DateTime.tryParse('${map['lastObservedAt'] ?? ''}'),
       totalAcceptedMeters: _safeAcceptedMeters(map['totalAcceptedMeters']),
-      walkingEvidence: rawEvidence is Iterable
-          ? rawEvidence
-                .whereType<Map>()
-                .map(TripActivityObservation.tryFromMap)
-                .whereType<TripActivityObservation>()
-                .toList(growable: false)
-                .takeLast(_maxPersistedWalkingEvidence)
-                .toList(growable: false)
-          : const [],
-      walkingReviewSuggested: map['walkingReviewSuggested'] == true,
+      walkingEvidence: walkingEvidence,
+      walkingReviewSuggested: _safeWalkingReviewSuggested(
+        map['walkingReviewSuggested'] == true,
+        vehicleMovementObserved: vehicleMovementObserved,
+        walkingEvidence: walkingEvidence,
+      ),
       motionState: TripMotionState.values.firstWhere(
         (value) => value.name == map['motionState'],
         orElse: () => TripMotionState.unknown,
       ),
-      vehicleMovementObserved: map['vehicleMovementObserved'] == true,
+      vehicleMovementObserved: vehicleMovementObserved,
       diagnostics: map['diagnostics'] is Map
           ? TripTrackingDiagnostics.fromMap(map['diagnostics'] as Map)
           : const TripTrackingDiagnostics(),
@@ -416,6 +429,15 @@ Iterable<TripActivityObservation> _boundedWalkingEvidence(
   final items = evidence.toList(growable: false);
   return items.takeLast(_maxPersistedWalkingEvidence);
 }
+
+bool _safeWalkingReviewSuggested(
+  bool requested, {
+  required bool vehicleMovementObserved,
+  required Iterable<TripActivityObservation> walkingEvidence,
+}) =>
+    requested &&
+    vehicleMovementObserved &&
+    walkingEvidence.any((item) => item.isHighConfidenceWalking);
 
 extension _TakeLastExtension<T> on List<T> {
   Iterable<T> takeLast(int maxLength) {

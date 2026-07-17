@@ -382,6 +382,37 @@ void main() {
     });
   });
 
+  test('persisted walking review cues require valid movement evidence', () {
+    final unsafe = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 0,
+      'walkingReviewSuggested': true,
+      'vehicleMovementObserved': true,
+      'walkingEvidence': const [],
+    });
+    expect(unsafe.walkingReviewSuggested, isFalse);
+
+    final credible = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 10,
+      'walkingReviewSuggested': true,
+      'vehicleMovementObserved': true,
+      'walkingEvidence': [
+        {
+          'activity': 'walking',
+          'confidence': 90,
+          'recordedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+        },
+      ],
+    });
+    expect(credible.walkingReviewSuggested, isTrue);
+
+    final serialized = const TripTrackingEngineSnapshot(
+      totalAcceptedMeters: 0,
+      walkingReviewSuggested: true,
+      vehicleMovementObserved: true,
+    ).toMap();
+    expect(serialized['walkingReviewSuggested'], isFalse);
+  });
+
   test('legacy GPS records receive safe persistence defaults', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'legacy',
