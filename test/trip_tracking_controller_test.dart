@@ -1271,6 +1271,39 @@ void main() {
     expect(store.pendingSampleFor('trip_pending_replay'), isNull);
   });
 
+  test('recovery clears stale pending samples that cannot replay', () async {
+    final store = TripTrackingSessionStore.memory();
+    final original = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await original.start(
+      tripId: 'trip_stale_pending_replay',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await store.savePending(
+      TripTrackingPendingSample(
+        sessionId: 'trip_stale_pending_replay',
+        sample: sample(-80, -10),
+      ),
+    );
+
+    final recovered = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+
+    expect(await recovered.restore(), isTrue);
+    expect(store.pendingSampleFor('trip_stale_pending_replay'), isNull);
+    expect(recovered.acceptedMeters, 0);
+    expect(recovered.isTracking, isTrue);
+  });
+
   test(
     'GPS health degrades on poor fixes and recovers only on credible data',
     () async {

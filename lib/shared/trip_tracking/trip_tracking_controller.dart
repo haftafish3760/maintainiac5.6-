@@ -419,6 +419,7 @@ class TripTrackingController extends ChangeNotifier {
     }
     if (pending != null && pending.sessionId == session.id) {
       await ingest(pending.sample, activity: pending.activity);
+      await _sessionStore.clearPending(session.id);
     }
     final platform = _platform;
     if (platform != null) {
