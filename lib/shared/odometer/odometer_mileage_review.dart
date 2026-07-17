@@ -27,15 +27,17 @@ class OdometerMileageReview {
         (value) => value.name == map['use'],
         orElse: () => OdometerMileageUse.unresolved,
       ),
-      businessMiles: map['businessMiles'] is int
-          ? map['businessMiles'] as int
-          : int.tryParse('${map['businessMiles'] ?? ''}'),
+      businessMiles: _optionalSafeMiles(map['businessMiles']),
       note: map['note'] as String?,
     );
   }
 
   Map<String, Object?> toMap() {
-    return {'use': use.name, 'businessMiles': businessMiles, 'note': note};
+    return {
+      'use': use.name,
+      'businessMiles': _optionalSafeMiles(businessMiles),
+      'note': note,
+    };
   }
 
   bool get isResolvedForReports =>
@@ -68,6 +70,13 @@ class OdometerMileageReview {
         return deltaMiles - businessMilesForDelta(deltaMiles);
     }
   }
+}
+
+int? _optionalSafeMiles(Object? value) {
+  if (value == null) return null;
+  final parsed = value is int ? value : int.tryParse('$value');
+  if (parsed == null || parsed < 0) return null;
+  return parsed;
 }
 
 String? validateOdometerMileageReview({

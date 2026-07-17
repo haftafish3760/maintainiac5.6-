@@ -649,6 +649,21 @@ void main() {
     expect(restored.previousReading, isNull);
   });
 
+  test('odometer mileage review never persists negative business miles', () {
+    const review = OdometerMileageReview(
+      use: OdometerMileageUse.split,
+      businessMiles: -5,
+    );
+    final restored = OdometerMileageReview.fromMap({
+      'use': 'split',
+      'businessMiles': -10,
+    });
+
+    expect(review.toMap()['businessMiles'], isNull);
+    expect(restored.businessMiles, isNull);
+    expect(restored.businessMilesForDelta(100), isZero);
+  });
+
   test('vehicle labels normalize into stable temporary odometer keys', () {
     expect(odometerVehicleIdForLabel('Work Truck 1'), 'work_truck_1');
     expect(odometerVehicleIdForLabel('  Ram 2500 / Crew  '), 'ram_2500_crew');
