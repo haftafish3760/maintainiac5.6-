@@ -1854,6 +1854,8 @@ void main() {
 
   test('accepted GPS distance updates the global live odometer only', () async {
     final odometer = GlobalOdometerController(initialReading: 1000);
+    var odometerNotifications = 0;
+    odometer.addListener(() => odometerNotifications++);
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
@@ -1873,6 +1875,7 @@ void main() {
 
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
+    expect(odometerNotifications, greaterThan(0));
     expect(controller.acceptedMeters, greaterThan(0));
   });
 
