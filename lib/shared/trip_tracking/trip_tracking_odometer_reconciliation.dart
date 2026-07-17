@@ -263,6 +263,30 @@ class TripOdometerCalibrationSignal {
           : 'calibration_stable',
     );
   }
+
+  static TripOdometerCalibrationSignal evaluateConfirmedReviews({
+    required Iterable<TripTrackingReviewRecord> reviews,
+    int minimumSamples = 7,
+    double minimumOdometerMiles = 5,
+    double reviewDifferencePercent = 4,
+    double maximumEligibleDifferencePercent = 25,
+  }) {
+    final reconciliations = reviews
+        .where((review) => review.isOdometerConfirmed)
+        .map(
+          (review) => TripOdometerReconciliation.compare(
+            review: review,
+            confirmedEndingOdometer: review.confirmedEndingOdometer!,
+          ),
+        );
+    return evaluate(
+      history: reconciliations,
+      minimumSamples: minimumSamples,
+      minimumOdometerMiles: minimumOdometerMiles,
+      reviewDifferencePercent: reviewDifferencePercent,
+      maximumEligibleDifferencePercent: maximumEligibleDifferencePercent,
+    );
+  }
 }
 
 double? _recomputedCalibrationDifferencePercent(

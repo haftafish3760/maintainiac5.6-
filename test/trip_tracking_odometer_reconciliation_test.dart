@@ -359,6 +359,56 @@ void main() {
     expect(signal.reasonCode, 'needs_more_reviewed_days');
   });
 
+  test('calibration history is built only from confirmed odometer reviews', () {
+    final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+    final reviews = [
+      ...List.generate(
+        7,
+        (index) => TripTrackingReviewRecord(
+          id: 'trip_confirmed_$index',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000 + (index * 100),
+          estimatedEndingOdometer: 1100 + (index * 100),
+          confirmedEndingOdometer: 1100 + (index * 100),
+          odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+          finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 94 * 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      ),
+      review.copyWith(
+        confirmedEndingOdometer: 1020,
+        odometerConfirmedAt: review.startedAt,
+      ),
+      TripTrackingReviewRecord(
+        id: 'trip_unconfirmed',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 5000,
+        estimatedEndingOdometer: 5100,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 20, 8),
+        finishedAt: DateTime.utc(2026, 7, 20, 10),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 200 * 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
+    expect(signal.canOverwriteConfirmedOdometer, isFalse);
+  });
+
   test('mixed drift directions do not trigger a tire-size style warning', () {
     final history = List.generate(7, (index) {
       final gpsMiles = index.isEven ? 94.0 : 106.0;
