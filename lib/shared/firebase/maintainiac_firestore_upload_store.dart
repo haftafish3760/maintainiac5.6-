@@ -275,9 +275,11 @@ class MaintainiacFirestoreUploadCoordinator {
     bool uploadEnabled = false,
     int? freeSyncsUsedInWindow,
     int Function()? freeSyncsUsedInWindowReader,
+    bool Function()? uploadNetworkAllowed,
   }) : _queue = queue,
        _sink = sink,
        _uploadEnabled = uploadEnabled,
+       _uploadNetworkAllowed = uploadNetworkAllowed,
        _freeSyncsUsedInWindowReader =
            freeSyncsUsedInWindowReader ??
            (freeSyncsUsedInWindow == null
@@ -287,6 +289,7 @@ class MaintainiacFirestoreUploadCoordinator {
   final MaintainiacFirestoreUploadQueueStore _queue;
   final MaintainiacFirestoreDocumentSink _sink;
   final bool _uploadEnabled;
+  final bool Function()? _uploadNetworkAllowed;
   final int Function()? _freeSyncsUsedInWindowReader;
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
@@ -308,6 +311,15 @@ class MaintainiacFirestoreUploadCoordinator {
         uploadedCount: 0,
         failedCount: 0,
         reason: 'Firestore uploads are disabled until hosted sync is enabled.',
+      );
+    }
+    if (_uploadNetworkAllowed?.call() == false) {
+      return const MaintainiacFirestoreUploadResult(
+        status: MaintainiacFirestoreUploadStatus.networkUnavailable,
+        attemptedCount: 0,
+        uploadedCount: 0,
+        failedCount: 0,
+        reason: 'Backup sync is waiting for the selected network.',
       );
     }
     final freeSyncsUsed = _freeSyncsUsedInWindowReader?.call();

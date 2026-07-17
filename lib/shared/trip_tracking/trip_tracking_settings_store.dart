@@ -18,6 +18,21 @@ enum TripTrackingBackupNetworkPolicy {
   mobileDataOnly,
 }
 
+extension TripTrackingBackupNetworkPolicyDecision
+    on TripTrackingBackupNetworkPolicy {
+  bool allows({
+    required bool wifiAvailable,
+    required bool mobileDataAvailable,
+  }) {
+    return switch (this) {
+      TripTrackingBackupNetworkPolicy.wifiOnly => wifiAvailable,
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData =>
+        wifiAvailable || mobileDataAvailable,
+      TripTrackingBackupNetworkPolicy.mobileDataOnly => mobileDataAvailable,
+    };
+  }
+}
+
 class TripTrackingSettings {
   const TripTrackingSettings({
     this.gpsAssistedTrackingEnabled = false,

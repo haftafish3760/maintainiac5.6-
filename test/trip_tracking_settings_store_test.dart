@@ -118,6 +118,37 @@ void main() {
     );
   });
 
+  test('trip backup network policy evaluates wifi and mobile availability', () {
+    expect(
+      TripTrackingBackupNetworkPolicy.wifiOnly.allows(
+        wifiAvailable: true,
+        mobileDataAvailable: false,
+      ),
+      isTrue,
+    );
+    expect(
+      TripTrackingBackupNetworkPolicy.wifiOnly.allows(
+        wifiAvailable: false,
+        mobileDataAvailable: true,
+      ),
+      isFalse,
+    );
+    expect(
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData.allows(
+        wifiAvailable: false,
+        mobileDataAvailable: true,
+      ),
+      isTrue,
+    );
+    expect(
+      TripTrackingBackupNetworkPolicy.mobileDataOnly.allows(
+        wifiAvailable: true,
+        mobileDataAvailable: false,
+      ),
+      isFalse,
+    );
+  });
+
   test('sampling presets persist and bound a custom interval', () {
     const custom = TripTrackingSettings(
       samplingPreset: TripTrackingSamplingPreset.custom,

@@ -155,6 +155,25 @@ void main() {
     expect(sink.writes, hasLength(1));
   });
 
+  test('network policy block preserves pending uploads', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/wifi_only_block'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      uploadNetworkAllowed: () => false,
+    ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.networkUnavailable);
+    expect(result.attemptedCount, 0);
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(result.reason, contains('selected network'));
+  });
+
   test('concurrent flushes upload a queued document only once', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
