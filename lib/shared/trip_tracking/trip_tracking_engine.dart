@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'trip_tracking_models.dart';
 import 'trip_tracking_policy.dart';
+import 'trip_tracking_profile_strategy.dart';
 
 /// Deterministic, platform-neutral evidence filter. Native adapters provide
 /// samples; this engine decides what is safe to count and what needs review.
@@ -60,7 +61,10 @@ class TripTrackingEngine {
             snapshot.totalAcceptedMeters >= 0
         ? snapshot.totalAcceptedMeters
         : 0;
-    if (_usesRoadVehicleStopRules(profile)) {
+    if (TripTrackingProfileStrategy.forProfile(
+      profile,
+      policy: policy,
+    ).usesWalkingStopEvidence) {
       engine._walkingEvidence.addAll(snapshot.walkingEvidence);
       engine._walkingReviewSuggested = snapshot.walkingReviewSuggested;
       engine._motionState = snapshot.motionState;
@@ -199,7 +203,7 @@ class TripTrackingEngine {
     // stop-and-walk delivery evidence out of odometer mileage.
     // We retain it as advisory evidence, but exclude it immediately instead
     // of allowing the first few on-foot points to inflate the live estimate.
-    if (_usesRoadVehicleStopRules(profile) && strongWalking) {
+    if (_strategy.walkingMayExcludeRoadMileage && strongWalking) {
       _lastAccepted = sample;
       if (!walkingLooksLikeVehicleMisclassification) {
         return _finish(
@@ -267,7 +271,7 @@ class TripTrackingEngine {
       _walkingEvidence.clear();
       return;
     }
-    if (!_usesRoadVehicleStopRules(profile) || !_isStrongWalking(activity)) {
+    if (!_strategy.usesWalkingStopEvidence || !_isStrongWalking(activity)) {
       return;
     }
     if (!_walkingEvidence.any(
@@ -321,7 +325,7 @@ class TripTrackingEngine {
     // Walking is a corroborating clue only. A traffic light has no walking
     // evidence, and walking before any observed vehicle movement cannot become
     // a vehicle-stop suggestion.
-    if (!_usesRoadVehicleStopRules(profile) ||
+    if (!_strategy.usesWalkingStopEvidence ||
         !_vehicleMovementObserved ||
         !walking) {
       return;
@@ -334,17 +338,13 @@ class TripTrackingEngine {
   }
 
   bool _hasWalkingStopEvidence(DateTime observedAt) {
-    if (_walkingEvidence.length >=
-        _safePositiveInt(policy.walkingConfirmationCount, fallback: 3)) {
-      return true;
-    }
-    final latest = _walkingEvidence.isEmpty ? null : _walkingEvidence.last;
-    if (latest == null || observedAt.isBefore(latest.recordedAt)) return false;
-    return observedAt.difference(latest.recordedAt) >=
-        _safePositiveDuration(
-          policy.walkingStopConfirmationDuration,
-          _defaultWalkingStopConfirmationDuration,
-        );
+    return _strategy.hasWalkingStopEvidence(
+      walkingEvidenceCount: _walkingEvidence.length,
+      observedAt: observedAt,
+      latestWalkingEvidenceAt: _walkingEvidence.isEmpty
+          ? null
+          : _walkingEvidence.last.recordedAt,
+    );
   }
 
   TripSampleDecision _decision(
@@ -362,15 +362,16 @@ class TripTrackingEngine {
   }
 }
 
+extension on TripTrackingEngine {
+  TripTrackingProfileStrategy get _strategy =>
+      TripTrackingProfileStrategy.forProfile(profile, policy: policy);
+}
+
 const _defaultGap = Duration(minutes: 2);
 const _defaultWalkingConfirmationWindow = Duration(seconds: 45);
-const _defaultWalkingStopConfirmationDuration = Duration(seconds: 20);
 
 double _safePositiveDouble(double value, {required double fallback}) =>
     value.isFinite && value > 0 ? value : fallback;
-
-int _safePositiveInt(int value, {required int fallback}) =>
-    value > 0 ? value : fallback;
 
 Duration _safePositiveDuration(Duration value, Duration fallback) =>
     value > Duration.zero ? value : fallback;
@@ -391,12 +392,3 @@ double _distanceMeters(TripLocationSample left, TripLocationSample right) {
 }
 
 double _radians(double degrees) => degrees * math.pi / 180;
-
-bool _usesRoadVehicleStopRules(TripTrackingProfile profile) =>
-    switch (profile) {
-      TripTrackingProfile.roadVehicle ||
-      TripTrackingProfile.rideshareVehicle ||
-      TripTrackingProfile.deliveryVehicle ||
-      TripTrackingProfile.contractorVehicle => true,
-      TripTrackingProfile.lowSpeedEquipment => false,
-    };

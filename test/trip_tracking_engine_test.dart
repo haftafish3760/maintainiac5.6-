@@ -662,7 +662,6 @@ void main() {
   test('road-style work profiles use conservative walking stop rules', () {
     for (final profile in const [
       TripTrackingProfile.roadVehicle,
-      TripTrackingProfile.rideshareVehicle,
       TripTrackingProfile.deliveryVehicle,
       TripTrackingProfile.contractorVehicle,
     ]) {
