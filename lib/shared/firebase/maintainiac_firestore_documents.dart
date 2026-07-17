@@ -379,6 +379,9 @@ class MaintainiacFirestoreDocumentBuilder {
     double? odometerCalibrationMultiplier,
     String odometerUsageState = 'disabled',
     int? odometerUsageReviewedDays,
+    double? odometerUsageCurrentMiles,
+    double? odometerUsageAverageDailyMiles,
+    double? odometerUsageReviewThresholdMiles,
     List<String> dashboardWidgetTokens = const [],
     List<String> quickActionTokens = const [],
     int? freeSyncsRemaining,
@@ -562,6 +565,21 @@ class MaintainiacFirestoreDocumentBuilder {
             odometerUsageReviewedDays,
             fieldName: 'odometerUsageReviewedDays',
             max: 999,
+          ),
+        if (odometerUsageCurrentMiles != null)
+          'odometerUsageCurrentMiles': _optionalDashboardMapboxMiles(
+            odometerUsageCurrentMiles,
+            'odometerUsageCurrentMiles',
+          ),
+        if (odometerUsageAverageDailyMiles != null)
+          'odometerUsageAverageDailyMiles': _optionalDashboardMapboxMiles(
+            odometerUsageAverageDailyMiles,
+            'odometerUsageAverageDailyMiles',
+          ),
+        if (odometerUsageReviewThresholdMiles != null)
+          'odometerUsageReviewThresholdMiles': _optionalDashboardMapboxMiles(
+            odometerUsageReviewThresholdMiles,
+            'odometerUsageReviewThresholdMiles',
           ),
         if (dashboardWidgetTokens.isNotEmpty)
           'dashboardWidgetTokens': _dashboardSummaryTokenList(

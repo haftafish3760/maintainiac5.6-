@@ -455,6 +455,9 @@ class MaintainiacFirestoreUploadPolicy {
       'odometerCalibrationMultiplier',
       'odometerUsageState',
       'odometerUsageReviewedDays',
+      'odometerUsageCurrentMiles',
+      'odometerUsageAverageDailyMiles',
+      'odometerUsageReviewThresholdMiles',
       'dashboardWidgetTokens',
       'quickActionTokens',
       'freeSyncsRemaining',
@@ -574,6 +577,13 @@ class MaintainiacFirestoreUploadPolicy {
           _allowedOdometerUsageStates,
         ) &&
         _isValidSyncsUsedInWindow(draft.data['odometerUsageReviewedDays']) &&
+        _isValidDashboardMapboxMiles(draft.data['odometerUsageCurrentMiles']) &&
+        _isValidDashboardMapboxMiles(
+          draft.data['odometerUsageAverageDailyMiles'],
+        ) &&
+        _isValidDashboardMapboxMiles(
+          draft.data['odometerUsageReviewThresholdMiles'],
+        ) &&
         _hasValidDashboardTokenList(
           draft.data['dashboardWidgetTokens'],
           _allowedDashboardWidgetTokens,

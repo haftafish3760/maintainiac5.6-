@@ -35,6 +35,9 @@ void main() {
           odometerCalibrationMultiplier: .9090909,
           odometerUsageState: 'review_recommended',
           odometerUsageReviewedDays: 7,
+          odometerUsageCurrentMiles: 180.04,
+          odometerUsageAverageDailyMiles: 40.04,
+          odometerUsageReviewThresholdMiles: 100.04,
           freeSyncsRemaining: HostedUsageLimits.freeUserSyncsPer24HourWindow,
           syncsUsedInWindow: 0,
           batteryGpsLimited: true,
@@ -77,6 +80,9 @@ void main() {
     expect(doc.data['odometerCalibrationMultiplier'], .9091);
     expect(doc.data['odometerUsageState'], 'review_recommended');
     expect(doc.data['odometerUsageReviewedDays'], 7);
+    expect(doc.data['odometerUsageCurrentMiles'], 180.04);
+    expect(doc.data['odometerUsageAverageDailyMiles'], 40.04);
+    expect(doc.data['odometerUsageReviewThresholdMiles'], 100.04);
     expect(doc.data.keys, isNot(contains('latitude')));
     expect(doc.data.keys, isNot(contains('route')));
     expect(doc.data.keys, isNot(contains('rawSamples')));
@@ -121,6 +127,9 @@ void main() {
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));
     expect(doc.data.keys, isNot(contains('odometerUsageReviewedDays')));
+    expect(doc.data.keys, isNot(contains('odometerUsageCurrentMiles')));
+    expect(doc.data.keys, isNot(contains('odometerUsageAverageDailyMiles')));
+    expect(doc.data.keys, isNot(contains('odometerUsageReviewThresholdMiles')));
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 

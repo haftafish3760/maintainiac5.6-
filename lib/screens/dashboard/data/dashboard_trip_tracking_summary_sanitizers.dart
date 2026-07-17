@@ -254,6 +254,13 @@ double? _safeCalibrationMultiplier(double? value) {
   return double.parse(value.toStringAsFixed(4));
 }
 
+double? _safeUsageMiles(double? value) {
+  if (value == null || !value.isFinite || value < 0 || value > 12500) {
+    return null;
+  }
+  return double.parse(value.toStringAsFixed(1));
+}
+
 List<String> _safeDashboardWidgetTokens(Iterable<String> tokens) {
   const allowed = {
     'start_day',

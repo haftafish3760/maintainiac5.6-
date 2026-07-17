@@ -340,6 +340,9 @@ service cloud.firestore {
         'odometerCalibrationMultiplier',
         'odometerUsageState',
         'odometerUsageReviewedDays',
+        'odometerUsageCurrentMiles',
+        'odometerUsageAverageDailyMiles',
+        'odometerUsageReviewThresholdMiles',
         'dashboardWidgetTokens',
         'quickActionTokens',
         'freeSyncsRemaining',
@@ -829,6 +832,18 @@ service cloud.firestore {
           (request.resource.data.odometerUsageReviewedDays is int &&
             request.resource.data.odometerUsageReviewedDays >= 0 &&
             request.resource.data.odometerUsageReviewedDays <= 999)) &&
+        (!request.resource.data.keys().hasAny(['odometerUsageCurrentMiles']) ||
+          (request.resource.data.odometerUsageCurrentMiles is number &&
+            request.resource.data.odometerUsageCurrentMiles >= 0 &&
+            request.resource.data.odometerUsageCurrentMiles <= 12500)) &&
+        (!request.resource.data.keys().hasAny(['odometerUsageAverageDailyMiles']) ||
+          (request.resource.data.odometerUsageAverageDailyMiles is number &&
+            request.resource.data.odometerUsageAverageDailyMiles >= 0 &&
+            request.resource.data.odometerUsageAverageDailyMiles <= 12500)) &&
+        (!request.resource.data.keys().hasAny(['odometerUsageReviewThresholdMiles']) ||
+          (request.resource.data.odometerUsageReviewThresholdMiles is number &&
+            request.resource.data.odometerUsageReviewThresholdMiles >= 0 &&
+            request.resource.data.odometerUsageReviewThresholdMiles <= 12500)) &&
         hasValidDashboardTokenLists() &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool &&

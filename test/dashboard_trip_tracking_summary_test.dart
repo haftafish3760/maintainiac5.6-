@@ -107,6 +107,9 @@ void main() {
       odometerCalibrationMultiplier: 1.063829787,
       odometerUsageState: 'review_recommended',
       odometerUsageReviewedDays: 7,
+      odometerUsageCurrentMiles: 180.04,
+      odometerUsageAverageDailyMiles: 40.04,
+      odometerUsageReviewThresholdMiles: 100.04,
       wifiAvailable: false,
       mobileDataAvailable: true,
       syncsUsedInWindow: 5,
@@ -126,6 +129,9 @@ void main() {
     expect(summary.odometerCalibrationMultiplier, 1.0638);
     expect(summary.odometerUsageState, 'review_recommended');
     expect(summary.odometerUsageReviewedDays, 7);
+    expect(summary.odometerUsageCurrentMiles, 180.0);
+    expect(summary.odometerUsageAverageDailyMiles, 40.0);
+    expect(summary.odometerUsageReviewThresholdMiles, 100.0);
     expect(summary.freeSyncsRemaining, 1);
     expect(summary.batteryGpsLimited, isTrue);
     expect(summary.reviewRequired, isTrue);
@@ -153,6 +159,9 @@ void main() {
       odometerCalibrationMultiplier: double.nan,
       odometerUsageState: 'raw_average_payload',
       odometerUsageReviewedDays: -1,
+      odometerUsageCurrentMiles: double.infinity,
+      odometerUsageAverageDailyMiles: -1,
+      odometerUsageReviewThresholdMiles: 20000,
       wifiAvailable: true,
       mobileDataAvailable: true,
       syncsUsedInWindow: -1,
@@ -166,6 +175,9 @@ void main() {
     expect(summary.odometerCalibrationMultiplier, isNull);
     expect(summary.odometerUsageState, 'unknown');
     expect(summary.odometerUsageReviewedDays, isNull);
+    expect(summary.odometerUsageCurrentMiles, isNull);
+    expect(summary.odometerUsageAverageDailyMiles, isNull);
+    expect(summary.odometerUsageReviewThresholdMiles, isNull);
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.hasVerifiedSyncCounters, isFalse);
@@ -445,6 +457,9 @@ void main() {
 
       expect(summary.odometerUsageState, 'review_recommended');
       expect(summary.odometerUsageReviewedDays, 7);
+      expect(summary.odometerUsageCurrentMiles, 300.0);
+      expect(summary.odometerUsageAverageDailyMiles, 40.0);
+      expect(summary.odometerUsageReviewThresholdMiles, 100.0);
       expect(summary.reviewRequired, isTrue);
       expect(
         controller

@@ -52,6 +52,9 @@ class DashboardTripTrackingSummary {
     required this.odometerCalibrationMultiplier,
     required this.odometerUsageState,
     required this.odometerUsageReviewedDays,
+    required this.odometerUsageCurrentMiles,
+    required this.odometerUsageAverageDailyMiles,
+    required this.odometerUsageReviewThresholdMiles,
     required this.dashboardWidgetTokens,
     required this.quickActionTokens,
     required this.freeSyncsRemaining,
@@ -92,6 +95,9 @@ class DashboardTripTrackingSummary {
   final double? odometerCalibrationMultiplier;
   final String odometerUsageState;
   final int? odometerUsageReviewedDays;
+  final double? odometerUsageCurrentMiles;
+  final double? odometerUsageAverageDailyMiles;
+  final double? odometerUsageReviewThresholdMiles;
   final List<String> dashboardWidgetTokens;
   final List<String> quickActionTokens;
   final int? freeSyncsRemaining;
@@ -116,6 +122,9 @@ class DashboardTripTrackingSummary {
     double? odometerCalibrationMultiplier,
     String odometerUsageState = 'disabled',
     int? odometerUsageReviewedDays,
+    double? odometerUsageCurrentMiles,
+    double? odometerUsageAverageDailyMiles,
+    double? odometerUsageReviewThresholdMiles,
     String recoveryState = 'none',
     String recoveryReason = 'trip_recovery_none',
     bool recoveryUserActionRequired = false,
@@ -217,6 +226,13 @@ class DashboardTripTrackingSummary {
       odometerUsageReviewedDays: _safeCalibrationSamples(
         odometerUsageReviewedDays,
       ),
+      odometerUsageCurrentMiles: _safeUsageMiles(odometerUsageCurrentMiles),
+      odometerUsageAverageDailyMiles: _safeUsageMiles(
+        odometerUsageAverageDailyMiles,
+      ),
+      odometerUsageReviewThresholdMiles: _safeUsageMiles(
+        odometerUsageReviewThresholdMiles,
+      ),
       dashboardWidgetTokens: _safeDashboardWidgetTokens(
         strategy.dashboardWidgetTokens,
       ),
@@ -293,6 +309,9 @@ class DashboardTripTrackingSummary {
           calibrationSignal?.gpsAssistanceCalibrationMultiplier,
       odometerUsageState: _usageStateFor(usageSignal),
       odometerUsageReviewedDays: usageSignal?.reviewedDayCount,
+      odometerUsageCurrentMiles: usageSignal?.currentOdometerMiles,
+      odometerUsageAverageDailyMiles: usageSignal?.averageDailyMiles,
+      odometerUsageReviewThresholdMiles: usageSignal?.reviewThresholdMiles,
       recoveryState: _recoveryStateFor(recoveryDecision),
       recoveryReason: _recoveryReasonFor(recoveryDecision),
       recoveryUserActionRequired: recoveryDecision?.requiresUserAction == true,
