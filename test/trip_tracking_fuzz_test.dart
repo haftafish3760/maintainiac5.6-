@@ -14,10 +14,11 @@ void main() {
       var longitude = -80.0;
       var seconds = 0;
       var previousTotal = 0.0;
+      var mockedRejections = 0;
 
       for (var index = 0; index < 240; index++) {
         seconds += 1 + random.nextInt(20);
-        final kind = random.nextInt(8);
+        final kind = random.nextInt(9);
         final timestampSeconds = kind == 0
             ? seconds - (1 + random.nextInt(30))
             : seconds;
@@ -35,9 +36,14 @@ void main() {
           speedMetersPerSecond: kind == 4
               ? double.infinity
               : random.nextDouble() * 12,
+          mockedLocation: kind == 5,
         );
 
         final decision = engine.ingest(sample);
+        if (decision.disposition ==
+            TripSampleDisposition.rejectedMockLocation) {
+          mockedRejections += 1;
+        }
         expect(
           decision.totalAcceptedMeters.isFinite,
           isTrue,
@@ -54,6 +60,7 @@ void main() {
         }
         previousTotal = decision.totalAcceptedMeters;
       }
+      expect(mockedRejections, greaterThan(0), reason: 'seed $seed');
     }
   });
 
