@@ -117,6 +117,15 @@ class MapboxExternalRouteValidator {
         ),
       );
     }
+    final serviceCode = decodedBody['code'];
+    if (serviceCode != null && serviceCode != 'Ok') {
+      return MapboxRouteValidationResult.rejected(
+        const MapboxExternalValidationFailure(
+          MapboxExternalFailureCode.malformedResponse,
+          'mapbox_service_code_not_ok',
+        ),
+      );
+    }
     final routes = decodedBody['routes'];
     if (routes is! List || routes.isEmpty) {
       return MapboxRouteValidationResult.rejected(

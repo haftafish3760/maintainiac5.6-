@@ -8,6 +8,7 @@ void main() {
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
             httpStatus: 200,
             decodedBody: {
+              'code': 'Ok',
               'routes': [
                 {
                   'distance': 1609.344,
@@ -28,6 +29,36 @@ void main() {
       expect(result.candidates.single.distanceMiles, closeTo(1, .001));
       expect(result.candidates.single.odometerAuthoritative, isFalse);
       expect(result.failures, isEmpty);
+    });
+
+    test('rejects non-Ok Mapbox service status bodies', () {
+      final result =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'code': 'NoRoute',
+              'routes': [
+                {
+                  'distance': 1609.344,
+                  'duration': 480,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80.0, 35.0],
+                      [-80.01, 35.01],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+
+      expect(result.isAccepted, isFalse);
+      expect(
+        result.failures.single.code,
+        MapboxExternalFailureCode.malformedResponse,
+      );
+      expect(result.failures.single.safeReason, 'mapbox_service_code_not_ok');
     });
 
     test('rejects non-success and rate-limited responses safely', () {
