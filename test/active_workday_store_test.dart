@@ -273,6 +273,35 @@ void main() {
   );
 
   test(
+    'active workday events cannot persist before the day start time',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      final startedAt = DateTime(2026, 6, 12, 8);
+      await store.startDay(
+        vehicleId: 'vehicle_1',
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'business',
+        startOdometer: 1000,
+        startedAt: startedAt,
+      );
+
+      await expectLater(
+        store.addEvent(
+          type: ActiveWorkdayEventType.stop,
+          odometerReading: 1001,
+          occurredAt: startedAt.subtract(const Duration(minutes: 1)),
+        ),
+        throwsArgumentError,
+      );
+
+      expect(store.activeSession?.status, ActiveWorkdayStatus.active);
+      expect(store.activeSession?.events.map((event) => event.type), [
+        ActiveWorkdayEventType.started,
+      ]);
+    },
+  );
+
+  test(
     'resuming a paused day restores the active local session state',
     () async {
       final store = ActiveWorkdayController.memory();

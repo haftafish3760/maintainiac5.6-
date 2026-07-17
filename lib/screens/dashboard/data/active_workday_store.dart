@@ -393,6 +393,13 @@ class ActiveWorkdayController extends ChangeNotifier {
     }
     await _ensureStorageForWrite();
     final now = occurredAt ?? DateTime.now();
+    if (now.isBefore(session.startedAt)) {
+      throw ArgumentError.value(
+        now,
+        'occurredAt',
+        'Event time cannot be before the active day start time.',
+      );
+    }
     final event = ActiveWorkdayEvent(
       id: _newId('event'),
       type: type,
