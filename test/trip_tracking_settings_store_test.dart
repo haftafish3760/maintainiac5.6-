@@ -104,6 +104,16 @@ void main() {
     },
   );
 
+  test('corrupted default profile disables GPS assisted tracking', () {
+    final restored = TripTrackingSettings.fromMap(const {
+      'gpsAssistedTrackingEnabled': true,
+      'defaultProfile': 'silentTracker',
+    });
+
+    expect(restored.defaultProfile, TripTrackingProfile.roadVehicle);
+    expect(restored.gpsAssistedTrackingEnabled, isFalse);
+  });
+
   test('organization mileage sharing is a separately persisted opt-in', () {
     const settings = TripTrackingSettings();
     final enabled = settings.copyWith(organizationMileageSharingEnabled: true);

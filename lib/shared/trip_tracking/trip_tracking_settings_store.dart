@@ -142,8 +142,13 @@ class TripTrackingSettings {
 
   factory TripTrackingSettings.fromMap(Map<dynamic, dynamic> map) {
     final bluetoothEnabled = map['bluetoothVehicleRecognitionEnabled'] == true;
+    final defaultProfile = _profileFromMap(map);
+    final hasInvalidDefaultProfile =
+        map.containsKey('defaultProfile') && defaultProfile == null;
     return TripTrackingSettings(
-      gpsAssistedTrackingEnabled: map['gpsAssistedTrackingEnabled'] == true,
+      gpsAssistedTrackingEnabled:
+          !hasInvalidDefaultProfile &&
+          map['gpsAssistedTrackingEnabled'] == true,
       samplingPreset: _presetFromMap(map),
       customIntervalSeconds: _validCustomInterval(
         _safeNumber(map['customIntervalSeconds'])?.round() ?? 15,
@@ -155,10 +160,7 @@ class TripTrackingSettings {
       backgroundTrackingEnabled: map['backgroundTrackingEnabled'] == true,
       organizationMileageSharingEnabled:
           map['organizationMileageSharingEnabled'] == true,
-      defaultProfile: TripTrackingProfile.values.firstWhere(
-        (value) => value.name == map['defaultProfile'],
-        orElse: () => TripTrackingProfile.roadVehicle,
-      ),
+      defaultProfile: defaultProfile ?? TripTrackingProfile.roadVehicle,
       bluetoothVehicleRecognitionEnabled: bluetoothEnabled,
       automaticVehicleSwitchEnabled:
           bluetoothEnabled && map['automaticVehicleSwitchEnabled'] == true,
@@ -179,6 +181,15 @@ int _validCustomInterval(int seconds) => seconds.clamp(3, 600);
 
 num? _safeNumber(Object? value) =>
     value is num && value.isFinite ? value : null;
+
+TripTrackingProfile? _profileFromMap(Map<dynamic, dynamic> map) {
+  final rawProfile = map['defaultProfile'];
+  if (rawProfile is! String) return null;
+  for (final profile in TripTrackingProfile.values) {
+    if (profile.name == rawProfile) return profile;
+  }
+  return null;
+}
 
 TripTrackingSamplingPreset _presetFromMap(Map<dynamic, dynamic> map) {
   final rawPreset = map['samplingPreset'];
