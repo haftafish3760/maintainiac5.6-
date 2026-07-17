@@ -595,6 +595,24 @@ class TripTrackingSessionStore {
             'Trip reviews require a non-empty safe trip id.',
           );
         }
+        if (!_isSafeStoreIdentifier(review.vehicleId)) {
+          throw ArgumentError.value(
+            review.vehicleId,
+            'review.vehicleId',
+            'Trip reviews require a non-empty safe vehicle id.',
+          );
+        }
+        if (review.finishedAt.isBefore(review.startedAt) ||
+            review.estimatedEndingOdometer < review.startingOdometer ||
+            ((review.confirmedEndingOdometer != null ||
+                    review.odometerConfirmedAt != null) &&
+                !review.isOdometerConfirmed)) {
+          throw ArgumentError.value(
+            review.id,
+            'review',
+            'Trip reviews require a sane timeline and odometer range.',
+          );
+        }
         if (_storageCheck != null) await _ensureStorageForWrite();
         if (_box == null) {
           _memoryReviews[review.id] = review;

@@ -573,6 +573,69 @@ void main() {
     expect(store.reviewForTrip(' trip_bad_key '), isNull);
   });
 
+  test('review writes require sane timeline and vehicle identity', () async {
+    final store = TripTrackingSessionStore.memory();
+    final base = TripTrackingReviewRecord(
+      id: 'trip_bad_review_shape',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 13),
+      finishedAt: DateTime.utc(2026, 7, 14, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    await expectLater(
+      store.saveReview(
+        base.copyWith(
+          confirmedEndingOdometer: 1001,
+          odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 59),
+        ),
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.saveReview(
+        TripTrackingReviewRecord(
+          id: 'trip_bad_vehicle_id',
+          vehicleId: ' vehicle_1 ',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1001,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 14, 13),
+          finishedAt: DateTime.utc(2026, 7, 14, 14),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.saveReview(
+        TripTrackingReviewRecord(
+          id: 'trip_inverted_review_time',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1001,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 14, 14),
+          finishedAt: DateTime.utc(2026, 7, 14, 13),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('review cloud sync metadata is bounded and token-safe', () {
     final review = TripTrackingReviewRecord(
       id: 'trip_sync_metadata_bounds',

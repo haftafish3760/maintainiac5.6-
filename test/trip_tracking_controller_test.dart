@@ -2469,6 +2469,7 @@ void main() {
         tripId: 'trip_manual_retry',
         vehicleId: 'vehicle_1',
         profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
       );
 
       await controller.finishForReview(
