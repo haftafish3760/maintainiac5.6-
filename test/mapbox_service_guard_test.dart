@@ -24,12 +24,7 @@ void main() {
         kind: kind,
         featureEnabled: true,
         httpStatus: 200,
-        decodedBody: const {
-          'code': 'Ok',
-          'routes': [
-            {'geometry': 'private'},
-          ],
-        },
+        decodedBody: _validBodyFor(kind),
       );
       final summary = decision.toSafeSummary();
 
@@ -39,6 +34,7 @@ void main() {
       expect(summary['tokensIncluded'], isFalse);
       expect(summary['coordinatesIncluded'], isFalse);
       expect(summary.toString(), isNot(contains('private')));
+      expect(summary.toString(), isNot(contains('35.1')));
     }
   });
 
@@ -95,6 +91,23 @@ void main() {
     expect(nonOk.safeReason, 'mapbox_mapMatching_service_code_not_ok');
   });
 
+  test('enabled optional services require service-specific response shape', () {
+    for (final kind in MapboxOptionalServiceKind.values) {
+      if (kind == MapboxOptionalServiceKind.maps) continue;
+      final decision = MapboxServiceGuard.evaluate(
+        kind: kind,
+        featureEnabled: true,
+        httpStatus: 200,
+        decodedBody: const {'code': 'Ok', 'message': 'not enough shape'},
+      );
+
+      expect(decision.status, MapboxServiceGuardStatus.malformedResponse);
+      expect(decision.safeReason, 'mapbox_${kind.name}_unexpected_shape');
+      expect(decision.canUseFeature, isFalse);
+      expect(decision.shouldFallbackToGpsOnly, isTrue);
+    }
+  });
+
   test('retry-after values are type checked and bounded', () {
     int? retry(Object? raw) => MapboxServiceGuard.evaluate(
       kind: MapboxOptionalServiceKind.search,
@@ -110,4 +123,59 @@ void main() {
     expect(retry(30.4), 30);
     expect(retry(999999), 86400);
   });
+}
+
+Map<String, Object?> _validBodyFor(MapboxOptionalServiceKind kind) {
+  return switch (kind) {
+    MapboxOptionalServiceKind.maps => const {
+      'code': 'Ok',
+      'tilejson': 'private-style',
+    },
+    MapboxOptionalServiceKind.directions => const {
+      'code': 'Ok',
+      'routes': [
+        {'geometry': 'private', 'distance': 1000},
+      ],
+    },
+    MapboxOptionalServiceKind.matrix => const {
+      'code': 'Ok',
+      'durations': [
+        [0, 60],
+      ],
+    },
+    MapboxOptionalServiceKind.mapMatching => const {
+      'code': 'Ok',
+      'matchings': [
+        {'geometry': 'private'},
+      ],
+    },
+    MapboxOptionalServiceKind.isochrone => const {
+      'code': 'Ok',
+      'type': 'FeatureCollection',
+      'features': [
+        {'geometry': 'private'},
+      ],
+    },
+    MapboxOptionalServiceKind.optimization => const {
+      'code': 'Ok',
+      'trips': [
+        {'geometry': 'private'},
+      ],
+    },
+    MapboxOptionalServiceKind.search => const {
+      'code': 'Ok',
+      'features': [
+        {
+          'center': [35.1, -80.1],
+        },
+      ],
+    },
+    MapboxOptionalServiceKind.evChargeFinder => const {
+      'code': 'Ok',
+      'type': 'FeatureCollection',
+      'features': [
+        {'geometry': 'private'},
+      ],
+    },
+  };
 }

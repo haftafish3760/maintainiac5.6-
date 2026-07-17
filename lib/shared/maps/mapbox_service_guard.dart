@@ -96,6 +96,14 @@ class MapboxServiceGuard {
         retryAfterSeconds: null,
       );
     }
+    if (!_hasExpectedShape(kind, decodedBody)) {
+      return MapboxServiceGuardDecision(
+        kind: kind,
+        status: MapboxServiceGuardStatus.malformedResponse,
+        safeReason: 'mapbox_${kind.name}_unexpected_shape',
+        retryAfterSeconds: null,
+      );
+    }
     return MapboxServiceGuardDecision(
       kind: kind,
       status: MapboxServiceGuardStatus.ready,
@@ -104,6 +112,34 @@ class MapboxServiceGuard {
     );
   }
 }
+
+bool _hasExpectedShape(MapboxOptionalServiceKind kind, Map body) {
+  return switch (kind) {
+    MapboxOptionalServiceKind.maps => true,
+    MapboxOptionalServiceKind.directions => _hasNonEmptyList(body['routes']),
+    MapboxOptionalServiceKind.matrix =>
+      _hasNonEmptyList(body['durations']) ||
+          _hasNonEmptyList(body['distances']),
+    MapboxOptionalServiceKind.mapMatching =>
+      _hasNonEmptyList(body['matchings']) || _hasNonEmptyList(body['routes']),
+    MapboxOptionalServiceKind.isochrone =>
+      _hasFeatureCollection(body) || _hasNonEmptyList(body['features']),
+    MapboxOptionalServiceKind.optimization =>
+      _hasNonEmptyList(body['trips']) || _hasNonEmptyList(body['routes']),
+    MapboxOptionalServiceKind.search =>
+      _hasNonEmptyList(body['features']) ||
+          _hasNonEmptyList(body['suggestions']),
+    MapboxOptionalServiceKind.evChargeFinder =>
+      _hasFeatureCollection(body) || _hasNonEmptyList(body['features']),
+  };
+}
+
+bool _hasFeatureCollection(Map body) {
+  return body['type'] == 'FeatureCollection' &&
+      _hasNonEmptyList(body['features']);
+}
+
+bool _hasNonEmptyList(Object? value) => value is List && value.isNotEmpty;
 
 int? _safeRetryAfterSeconds(Object? value) {
   if (value is! num || !value.isFinite) return null;
