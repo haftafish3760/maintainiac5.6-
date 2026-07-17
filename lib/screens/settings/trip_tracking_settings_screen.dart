@@ -75,8 +75,8 @@ class _FirebaseBackupAccountPanelState
     });
     try {
       await action();
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+    } catch (_) {
+      if (mounted) setState(() => _error = _safeAccountError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -90,8 +90,8 @@ class _FirebaseBackupAccountPanelState
     });
     try {
       await _authService.signOut();
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+    } catch (_) {
+      if (mounted) setState(() => _error = _safeAccountError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -183,6 +183,9 @@ class _FirebaseBackupAccountPanelState
     );
   }
 }
+
+const _safeAccountError =
+    'Backup account request failed. Check your connection and try again.';
 
 class _TripTrackingSettingsPanel extends StatelessWidget {
   const _TripTrackingSettingsPanel({
