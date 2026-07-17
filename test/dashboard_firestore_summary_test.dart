@@ -408,6 +408,13 @@ void main() {
       expect(rules, contains('request.resource.data.syncsUsedInWindow <= 999'));
       expect(
         rules,
+        contains(
+          "request.resource.data.keys().hasAll([\n          'freeSyncsRemaining',\n          'syncsUsedInWindow'",
+        ),
+      );
+      expect(rules, contains('6 - request.resource.data.syncsUsedInWindow'));
+      expect(
+        rules,
         contains('request.resource.data.locationDataIncluded == false'),
       );
       expect(
