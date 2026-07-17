@@ -225,6 +225,10 @@ void main() {
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
     expect(find.text((odometer.reading - 1000).toString()), findsOneWidget);
+    expect(
+      find.text('Live odometer: ${odometer.displayValue}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('active day asks before starting GPS below 20 percent battery', (

@@ -633,6 +633,7 @@ class _GpsTripPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context)?.settings;
+    final odometer = GlobalOdometerScope.of(context);
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
     return Container(
@@ -684,6 +685,17 @@ class _GpsTripPanel extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (tracking) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Live odometer: ${odometer.displayValue}',
+                    style: const TextStyle(
+                      color: Color(0xFF20F060),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
                 if (controller?.needsWalkingReview == true) ...[
                   const SizedBox(height: 3),
                   const Text(
