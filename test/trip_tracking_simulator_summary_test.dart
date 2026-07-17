@@ -39,4 +39,40 @@ void main() {
       expect(summary.toString(), isNot(contains('35.')));
     },
   );
+
+  test('dashboard replay summary exposes safe stop-review tokens', () {
+    final scenarios = TripTrackingScenarioLibrary();
+    final result = replayTrip(
+      scenarios.deliveryDriverLeavesVehicle(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(summary['profile'], 'deliveryVehicle');
+    expect(summary['stopSignal'], 'review_only_stop');
+    expect(summary['stopActionToken'], 'review_delivery_stop');
+    expect(summary['stopClassificationReason'], 'delivery_stop_walk_review');
+    expect(summary['stopRequiresUserReview'], isTrue);
+    expect(summary['coordinatesIncluded'], isFalse);
+    expect(summary['routeGeometryIncluded'], isFalse);
+  });
+
+  test('dashboard replay summary keeps traffic delays out of stops', () {
+    final scenarios = TripTrackingScenarioLibrary();
+    final result = replayTrip(
+      scenarios.longTrafficLightWithUrbanJitter(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(summary['stopSignal'], 'likely_traffic_control');
+    expect(summary['stopActionToken'], 'keep_tracking');
+    expect(summary['stopCanSuggestReview'], isFalse);
+  });
 }
