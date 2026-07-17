@@ -18,10 +18,11 @@ class OdometerVehicleSnapshot {
   factory OdometerVehicleSnapshot.fromMap(Map<dynamic, dynamic> map) {
     final rawHistory = map['history'];
     return OdometerVehicleSnapshot(
-      vehicleId: '${map['vehicleId'] ?? defaultVehicleId}',
+      vehicleId: _safeVehicleSnapshotId(map['vehicleId']),
       currentReading: _safeOdometerReading(map['currentReading']),
       updatedAt:
-          DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? DateTime.now(),
+          DateTime.tryParse('${map['updatedAt'] ?? ''}') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       history: rawHistory is Iterable
           ? rawHistory
                 .whereType<Map>()
@@ -50,6 +51,14 @@ int _safeOdometerReading(Object? value) {
 }
 
 const defaultVehicleId = 'active_vehicle';
+
+String _safeVehicleSnapshotId(Object? value) {
+  final normalized = '${value ?? ''}'
+      .trim()
+      .replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized.isEmpty) return defaultVehicleId;
+  return normalized.length > 160 ? normalized.substring(0, 160) : normalized;
+}
 
 String odometerVehicleIdForLabel(String? label) {
   final trimmed = label?.trim();

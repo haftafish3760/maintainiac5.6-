@@ -51,6 +51,23 @@ void main() {
     },
   );
 
+  test('malformed vehicle snapshot fields fail closed on restore', () {
+    final restored = OdometerVehicleSnapshot.fromMap({
+      'vehicleId': ' ${'truck' * 80}\n',
+      'currentReading': 'not-a-reading',
+      'updatedAt': 'not-a-date',
+      'history': const [],
+    });
+
+    expect(restored.vehicleId, hasLength(160));
+    expect(restored.vehicleId, isNot(contains('\n')));
+    expect(restored.currentReading, isZero);
+    expect(
+      restored.updatedAt,
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+  });
+
   test('switching vehicles keeps odometer histories separate', () async {
     final store = OdometerStore.memory();
     await store.saveSnapshot(
