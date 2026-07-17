@@ -1142,7 +1142,10 @@ void main() {
       queueStore: queue,
       uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
         queue: queue,
-        sink: _RecordingSink(throwOnWrite: true),
+        sink: _RecordingSink(
+          throwOnWrite: true,
+          failureMessage: 'token=sk.secret lat=35.123 lon=-80.456',
+        ),
         uploadEnabled: true,
       ),
       localStore: localStore,
@@ -1157,6 +1160,18 @@ void main() {
       localStore.reviewForTrip('trip 1')?.cloudSyncState,
       TripTrackingCloudSyncState.failed,
     );
+    expect(localStore.reviewForTrip('trip 1')?.cloudSyncError, 'failed');
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      isNot(contains('sk.secret')),
+    );
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      isNot(contains('35.123')),
+    );
+    expect(queue.pendingRecords.single.lastError, isNot(contains('sk.secret')));
+    expect(queue.pendingRecords.single.lastError, isNot(contains('35.123')));
+    expect(queue.pendingRecords.single.lastError, contains('token redacted'));
 
     final sink = _RecordingSink();
     final retryMirror = TripTrackingFirebaseMirror(
@@ -1279,9 +1294,13 @@ void main() {
 }
 
 class _RecordingSink implements MaintainiacFirestoreDocumentSink {
-  _RecordingSink({this.throwOnWrite = false});
+  _RecordingSink({
+    this.throwOnWrite = false,
+    this.failureMessage = 'simulated Firestore outage',
+  });
 
   final bool throwOnWrite;
+  final String failureMessage;
   final writes = <Map<String, Object?>>[];
   final paths = <String>[];
 
@@ -1290,7 +1309,7 @@ class _RecordingSink implements MaintainiacFirestoreDocumentSink {
     required String path,
     required Map<String, Object?> data,
   }) async {
-    if (throwOnWrite) throw StateError('simulated Firestore outage');
+    if (throwOnWrite) throw StateError(failureMessage);
     paths.add(path);
     writes.add(Map<String, Object?>.from(data));
   }

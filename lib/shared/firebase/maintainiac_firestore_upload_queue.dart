@@ -145,7 +145,20 @@ int _intValue(Object? value) {
 }
 
 String _safeError(String value) {
-  return value
+  final redacted = value
+      .replaceAll(RegExp(r'\b[ps]k\.[A-Za-z0-9._-]+'), '[redacted_token]')
+      .replaceAll(
+        RegExp(r'\btoken\s*=\s*[^,\s;]+', caseSensitive: false),
+        'token=[redacted]',
+      )
+      .replaceAll(
+        RegExp(
+          r'\b(lat|latitude|lon|lng|longitude)\s*=\s*-?\d+(\.\d+)?',
+          caseSensitive: false,
+        ),
+        r'$1=[redacted]',
+      );
+  return redacted
       .replaceAll(RegExp(r'[^A-Za-z0-9_ .:/-]+'), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();

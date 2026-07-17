@@ -343,11 +343,11 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
             ),
           );
         }
-      } catch (error) {
+      } catch (_) {
         await _saveReviewState(
           review.copyWith(
             cloudSyncState: TripTrackingCloudSyncState.failed,
-            cloudSyncError: error.toString(),
+            cloudSyncError: _backupFlushFailedMessage,
           ),
         );
       }
@@ -402,6 +402,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       'Mileage backup is waiting for a valid authenticated account.';
   static const _backupScopeMismatchMessage =
       'Mileage backup is waiting for its original account and organization.';
+  static const _backupFlushFailedMessage =
+      'Mileage backup could not finish. Retry backup when the connection is stable.';
 
   TripTrackingReviewRecord? _bindReview(
     TripTrackingReviewRecord review,
