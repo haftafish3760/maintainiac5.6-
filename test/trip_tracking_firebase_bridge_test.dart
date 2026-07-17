@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
@@ -1149,6 +1150,38 @@ void main() {
     expect(
       localStore.reviewForTrip('trip 1')?.cloudSyncError,
       contains('selected network'),
+    );
+  });
+
+  test('quota-blocked trip backup remains pending for retry', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingSink();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+        freeSyncsUsedInWindow: HostedUsageLimits.freeUserSyncsPer24HourWindow,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await mirror.queueReview(review());
+    await mirror.flushPending();
+
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncState,
+      TripTrackingCloudSyncState.pending,
+    );
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      contains('Free backup sync limit reached'),
     );
   });
 
