@@ -264,6 +264,9 @@ class TripLocationSample {
         recordedAt == null) {
       return null;
     }
+    if (map.containsKey('mockedLocation') && map['mockedLocation'] is! bool) {
+      return null;
+    }
     final sample = TripLocationSample(
       latitude: latitude,
       longitude: longitude,

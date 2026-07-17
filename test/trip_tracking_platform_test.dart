@@ -405,6 +405,21 @@ void main() {
     }
   });
 
+  test('malformed mocked-location flags fail closed at the native boundary', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'horizontalAccuracyMeters': 4.5,
+      'mockedLocation': 'false',
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.location, isNull);
+    expect(event.errorCode, 'invalidLocationPayload');
+  });
+
   test('malformed activity payloads cannot invent walking evidence', () {
     final event = TripTrackingPlatformEvent.fromMap({
       'type': 'activity',
