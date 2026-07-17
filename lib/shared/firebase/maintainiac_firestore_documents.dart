@@ -291,11 +291,11 @@ class MaintainiacFirestoreDocumentBuilder {
         'Estimated ending odometer cannot be below starting odometer.',
       );
     }
-    if (review.confirmedEndingOdometer! < review.estimatedEndingOdometer) {
+    if (review.confirmedEndingOdometer! < review.startingOdometer) {
       throw ArgumentError.value(
         review.confirmedEndingOdometer,
         'confirmedEndingOdometer',
-        'Confirmed ending odometer cannot be below estimated ending odometer.',
+        'Confirmed ending odometer cannot be below starting odometer.',
       );
     }
     return MaintainiacFirestoreDocumentDraft(

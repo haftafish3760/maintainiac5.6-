@@ -229,25 +229,56 @@ void main() {
       odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
     );
 
-    for (final badReview in [
-      impossibleReview(
-        estimatedEndingOdometer: 999,
-        confirmedEndingOdometer: 1013,
-      ),
-      impossibleReview(
-        estimatedEndingOdometer: 1012,
-        confirmedEndingOdometer: 1011,
-      ),
-    ]) {
-      expect(
-        () =>
-            MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
-              uid: 'firebaseUid-1',
-              review: badReview,
+    expect(
+      () =>
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: impossibleReview(
+              estimatedEndingOdometer: 999,
+              confirmedEndingOdometer: 1013,
             ),
-        throwsArgumentError,
-      );
-    }
+          ),
+      throwsArgumentError,
+    );
+    expect(
+      () =>
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: impossibleReview(
+              estimatedEndingOdometer: 1012,
+              confirmedEndingOdometer: 999,
+            ),
+          ),
+      throwsStateError,
+    );
+  });
+
+  test('document builders allow odometer truth below GPS estimate', () {
+    final odometerReview = TripTrackingReviewRecord(
+      id: 'trip_odometer_lower_than_gps',
+      vehicleId: 'truck-1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1012,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 19312.128,
+        walkingReviewSuggested: true,
+        motionState: TripMotionState.stopped,
+      ),
+      confirmedEndingOdometer: 1011,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+    );
+
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: odometerReview,
+        );
+
+    expect(doc.data['estimatedEndingOdometer'], 1012);
+    expect(doc.data['confirmedEndingOdometer'], 1011);
   });
 
   test('document builders reject unsafe mileage path identifiers', () {
