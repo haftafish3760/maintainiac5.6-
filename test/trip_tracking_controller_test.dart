@@ -2561,6 +2561,60 @@ void main() {
     expect(recoveredOdometer.hasLiveTripProjection, isFalse);
   });
 
+  test(
+    'recovery refuses to resume a reviewed trip when stale cleanup fails',
+    () async {
+      final store = _FailingReviewCleanupStore();
+      final first = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await first.start(
+        tripId: 'trip_review_cleanup_fault',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      final active = store.activeSession!;
+      await store.savePending(
+        TripTrackingPendingSample(
+          sessionId: active.id,
+          sample: sample(-80, 0),
+        ),
+      );
+      await store.saveReview(
+        TripTrackingReviewRecord(
+          id: active.id,
+          vehicleId: active.vehicleId,
+          startingOdometer: active.startingOdometer,
+          estimatedEndingOdometer: active.startingOdometer,
+          profile: active.profile,
+          startedAt: active.startedAt,
+          finishedAt: start.add(const Duration(minutes: 1)),
+          engineSnapshot: active.engineSnapshot,
+        ),
+      );
+
+      final recoveredOdometer = GlobalOdometerController(initialReading: 1000);
+      final recovered = TripTrackingController(
+        sessionStore: store,
+        odometer: recoveredOdometer,
+      );
+
+      expect(await recovered.restore(), isFalse);
+      expect(recovered.isTracking, isFalse);
+      expect(recoveredOdometer.hasLiveTripProjection, isFalse);
+      expect(store.activeSession?.id, active.id);
+      expect(store.pendingSampleFor(active.id), isNotNull);
+      expect(store.reviewForTrip(active.id), isNotNull);
+      expect(recovered.platformStatus, 'review_cleanup_failed');
+      expect(
+        recovered.platformError,
+        contains('Could not clear stale trip recovery data'),
+      );
+    },
+  );
+
   test('corrupt local trip identity is cleared instead of restored', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_corrupt_identity_',
@@ -3530,6 +3584,15 @@ class _FailingAfterInitialSessionSaveStore extends TripTrackingSessionStore {
       throw StateError('local session checkpoint failed');
     }
     return super.save(session);
+  }
+}
+
+class _FailingReviewCleanupStore extends TripTrackingSessionStore {
+  _FailingReviewCleanupStore() : super.memory();
+
+  @override
+  Future<void> clear() async {
+    throw StateError('stale recovery cleanup failed');
   }
 }
 
