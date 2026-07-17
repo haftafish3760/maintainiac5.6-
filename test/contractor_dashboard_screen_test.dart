@@ -172,6 +172,30 @@ void main() {
     expect(find.text('Payment Amount'), findsOneWidget);
   });
 
+  testWidgets('contractor quick stop requires a persisted active day', (
+    tester,
+  ) async {
+    await _pumpDashboard(tester, appState, odometer, workProfiles);
+
+    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Start Day'),
+      220,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Start Day'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Add Stop'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Start your contractor day before using Add Stop.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('active workday miles redraw from live GPS odometer projection', (
     tester,
   ) async {

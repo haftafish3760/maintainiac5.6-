@@ -240,7 +240,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     final activeWorkday = ActiveWorkdayScope.maybeOf(context);
     final session = activeWorkday?.activeSession;
     if (activeWorkday == null || session == null) {
-      _showPending(command.label);
+      _showActiveDayRequired(command.label);
       return;
     }
     final type = command.target == ContractorCommandTarget.addStop
@@ -260,10 +260,10 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     Navigator.of(context).push(appNativeRoute<void>(context, screen));
   }
 
-  void _showPending(String label) {
+  void _showActiveDayRequired(String label) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label flow will connect to the job record next.'),
+        content: Text('Start your contractor day before using $label.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
