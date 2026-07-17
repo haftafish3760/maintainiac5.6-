@@ -75,7 +75,7 @@ class MaintainiacFirestoreQueuedDocument {
 
   factory MaintainiacFirestoreQueuedDocument.fromStored(Object? value) {
     if (value is! Map) return MaintainiacFirestoreQueuedDocument.empty;
-    final data = value['data'];
+    final data = _safeQueuedDocumentData(value['data']);
     final queuedAt =
         DateTime.tryParse(value['queuedAtUtc']?.toString() ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
@@ -95,7 +95,7 @@ class MaintainiacFirestoreQueuedDocument {
     return MaintainiacFirestoreQueuedDocument(
       id: value['id']?.toString() ?? '',
       path: value['path']?.toString() ?? '',
-      data: data is Map ? Map<String, Object?>.from(data) : const {},
+      data: data,
       queuedAtUtc: queuedAt,
       attemptCount: attemptCount,
       lastAttemptAtUtc: lastAttemptAt,
@@ -188,4 +188,16 @@ String _safeError(String value) {
       .replaceAll(RegExp(r'[^A-Za-z0-9_ .:/-]+'), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
+}
+
+Map<String, Object?> _safeQueuedDocumentData(Object? value) {
+  if (value is! Map) return const {};
+  final safe = <String, Object?>{};
+  for (final entry in value.entries) {
+    final key = entry.key;
+    if (key is String && key.trim() == key && key.isNotEmpty) {
+      safe[key] = entry.value;
+    }
+  }
+  return Map.unmodifiable(safe);
 }

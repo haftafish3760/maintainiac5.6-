@@ -397,6 +397,22 @@ void main() {
     expect(restored.isPendingUpload, isTrue);
   });
 
+  test('malformed queued document data is sanitized on restore', () {
+    final restored = MaintainiacFirestoreQueuedDocument.fromStored({
+      'id': 'queued_bad_data',
+      'path': 'parserHealth/bad_data',
+      'data': {
+        'schema': 'parser_health_v1',
+        7: 'non-string-key',
+        ' padded ': 'unsafe-key',
+        '': 'blank-key',
+      },
+      'queuedAtUtc': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+    });
+
+    expect(restored.data, {'schema': 'parser_health_v1'});
+  });
+
   test('retains failed writes with retry metadata', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink(
