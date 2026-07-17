@@ -149,6 +149,14 @@ void main() {
     expect(store.pendingSampleFor(' trip_with_spaces '), isNull);
   });
 
+  test('unsafe pending GPS sample lookup keys are ignored', () {
+    final store = TripTrackingSessionStore.memory();
+
+    expect(store.pendingSampleFor(' trip_unsafe '), isNull);
+    expect(store.pendingSampleFor('trip_\nunsafe'), isNull);
+    expect(store.pendingSampleFor('trip_${'x' * 200}'), isNull);
+  });
+
   test('unsafe pending GPS sample keys are ignored on clear', () async {
     final store = TripTrackingSessionStore.memory();
     final pending = TripTrackingPendingSample(

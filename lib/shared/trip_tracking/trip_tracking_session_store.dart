@@ -480,6 +480,7 @@ class TripTrackingSessionStore {
   });
 
   TripTrackingPendingSample? pendingSampleFor(String sessionId) {
+    if (!_isSafePendingSessionId(sessionId)) return null;
     final value = _box == null
         ? _memoryPending[sessionId]
         : _box.get('$_pendingPrefix$sessionId');
