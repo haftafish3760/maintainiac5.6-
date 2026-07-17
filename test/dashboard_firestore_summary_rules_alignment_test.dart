@@ -65,6 +65,12 @@ void main() {
       'recoveryState',
       'recoveryReason',
       'recoveryUserActionRequired',
+      'authorizationRequired',
+      'authenticationImpliesAuthorization',
+      'employeeTrackingRequiresMutualConsent',
+      'preciseLocationIncluded',
+      'externalRoutesCanonical',
+      'odometerRemainsCanonical',
     ]) {
       expect(
         rules,
@@ -75,6 +81,21 @@ void main() {
         rules,
         contains('request.resource.data.$field'),
         reason: '$field must be validated at the Firestore boundary',
+      );
+    }
+
+    for (final invariant in const [
+      'request.resource.data.authorizationRequired == true',
+      'request.resource.data.authenticationImpliesAuthorization == false',
+      'request.resource.data.employeeTrackingRequiresMutualConsent == true',
+      'request.resource.data.preciseLocationIncluded == false',
+      'request.resource.data.externalRoutesCanonical == false',
+      'request.resource.data.odometerRemainsCanonical == true',
+    ]) {
+      expect(
+        rules,
+        contains(invariant),
+        reason: '$invariant must be enforced by backend rules',
       );
     }
 

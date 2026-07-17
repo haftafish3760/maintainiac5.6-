@@ -346,6 +346,12 @@ service cloud.firestore {
         'syncsUsedInWindow',
         'batteryGpsLimited',
         'reviewRequired',
+        'authorizationRequired',
+        'authenticationImpliesAuthorization',
+        'employeeTrackingRequiresMutualConsent',
+        'preciseLocationIncluded',
+        'externalRoutesCanonical',
+        'odometerRemainsCanonical',
         'locationDataIncluded',
         'mapboxRouteGeometryIncluded',
         'rawModuleDataIncluded',
@@ -388,6 +394,12 @@ service cloud.firestore {
         'odometerUsageState',
         'batteryGpsLimited',
         'reviewRequired',
+        'authorizationRequired',
+        'authenticationImpliesAuthorization',
+        'employeeTrackingRequiresMutualConsent',
+        'preciseLocationIncluded',
+        'externalRoutesCanonical',
+        'odometerRemainsCanonical',
         'locationDataIncluded',
         'mapboxRouteGeometryIncluded',
         'rawModuleDataIncluded',
@@ -820,6 +832,12 @@ service cloud.firestore {
         hasValidDashboardTokenLists() &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool &&
+        request.resource.data.authorizationRequired == true &&
+        request.resource.data.authenticationImpliesAuthorization == false &&
+        request.resource.data.employeeTrackingRequiresMutualConsent == true &&
+        request.resource.data.preciseLocationIncluded == false &&
+        request.resource.data.externalRoutesCanonical == false &&
+        request.resource.data.odometerRemainsCanonical == true &&
         request.resource.data.mapboxRouteGeometryIncluded == false;
     }
 

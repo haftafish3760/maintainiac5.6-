@@ -64,6 +64,12 @@ void main() {
     expect(doc.data['mapboxRouteDistanceMiles'], 12.346);
     expect(doc.data['mapboxRouteDeltaMiles'], 2.346);
     expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
+    expect(doc.data['authorizationRequired'], isTrue);
+    expect(doc.data['authenticationImpliesAuthorization'], isFalse);
+    expect(doc.data['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(doc.data['preciseLocationIncluded'], isFalse);
+    expect(doc.data['externalRoutesCanonical'], isFalse);
+    expect(doc.data['odometerRemainsCanonical'], isTrue);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
@@ -105,6 +111,12 @@ void main() {
     expect(doc.data.keys, isNot(contains('mapboxRouteDistanceMiles')));
     expect(doc.data.keys, isNot(contains('mapboxRouteDeltaMiles')));
     expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
+    expect(doc.data['authorizationRequired'], isTrue);
+    expect(doc.data['authenticationImpliesAuthorization'], isFalse);
+    expect(doc.data['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(doc.data['preciseLocationIncluded'], isFalse);
+    expect(doc.data['externalRoutesCanonical'], isFalse);
+    expect(doc.data['odometerRemainsCanonical'], isTrue);
     expect(doc.data['odometerUsageState'], 'disabled');
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));

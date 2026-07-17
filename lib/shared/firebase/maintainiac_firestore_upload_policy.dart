@@ -461,6 +461,12 @@ class MaintainiacFirestoreUploadPolicy {
       'syncsUsedInWindow',
       'batteryGpsLimited',
       'reviewRequired',
+      'authorizationRequired',
+      'authenticationImpliesAuthorization',
+      'employeeTrackingRequiresMutualConsent',
+      'preciseLocationIncluded',
+      'externalRoutesCanonical',
+      'odometerRemainsCanonical',
       'locationDataIncluded',
       'mapboxRouteGeometryIncluded',
       'rawModuleDataIncluded',
@@ -580,7 +586,13 @@ class MaintainiacFirestoreUploadPolicy {
         _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
         _hasConsistentDashboardSyncCounters(draft.data) &&
         draft.data['batteryGpsLimited'] is bool &&
-        draft.data['reviewRequired'] is bool;
+        draft.data['reviewRequired'] is bool &&
+        draft.data['authorizationRequired'] == true &&
+        draft.data['authenticationImpliesAuthorization'] == false &&
+        draft.data['employeeTrackingRequiresMutualConsent'] == true &&
+        draft.data['preciseLocationIncluded'] == false &&
+        draft.data['externalRoutesCanonical'] == false &&
+        draft.data['odometerRemainsCanonical'] == true;
     if (!validShape) {
       throw ArgumentError.value(
         draft.path,
