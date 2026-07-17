@@ -225,7 +225,9 @@ class ActiveOperationalContext {
       activeVehicleUsage:
           _enumByName(VehicleUsage.values, map['activeVehicleUsage']) ??
           VehicleUsage.businessPersonal,
-      updatedAt: DateTime.tryParse(_string(map['updatedAt'])) ?? DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(_string(map['updatedAt'])) ??
+          _fallbackOperationalContextTimestamp(),
       companyId: _string(map['companyId']),
       companyName: _string(map['companyName']),
     );
@@ -362,3 +364,6 @@ String _string(Object? value, {String fallback = ''}) {
   final text = value is String ? value.trim() : '';
   return text.isEmpty ? fallback : text;
 }
+
+DateTime _fallbackOperationalContextTimestamp() =>
+    DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);

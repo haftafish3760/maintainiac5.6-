@@ -44,6 +44,18 @@ void main() {
     expect(employee.dashboardSummaryMileageToken, 'employee_shift');
     expect(employee.dashboardSummarySyncToken, 'local_only');
   });
+
+  test('malformed operational context timestamps do not become current time', () {
+    final restored = ActiveOperationalContext.fromMap({
+      'role': 'owner',
+      'updatedAt': 'not-a-date',
+    });
+
+    expect(
+      restored.updatedAt,
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+  });
 }
 
 ActiveOperationalContext _context({
