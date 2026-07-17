@@ -244,7 +244,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     } else {
       locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
     }
-    locationManager.distanceFilter = max(1, displacement)
+    locationManager.distanceFilter = min(max(1, displacement), 100)
   }
 
   private func capabilities() -> [String: Any] {

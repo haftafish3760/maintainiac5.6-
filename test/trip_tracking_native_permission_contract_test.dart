@@ -220,7 +220,9 @@ void main() {
 
     expect(
       ios,
-      contains('locationManager.distanceFilter = max(1, displacement)'),
+      contains(
+        'locationManager.distanceFilter = min(max(1, displacement), 100)',
+      ),
     );
     expect(
       ios,
