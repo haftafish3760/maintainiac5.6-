@@ -745,4 +745,26 @@ void main() {
     expect(restored.ingest(sample(-80, 0)).accepted, isTrue);
     expect(restored.totalAcceptedMeters, isZero);
   });
+
+  test('low-speed equipment restore ignores road walking-stop state', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot.fromMap({
+        'totalAcceptedMeters': 17,
+        'walkingReviewSuggested': true,
+        'motionState': 'stopped',
+        'walkingEvidence': [
+          {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+          },
+        ],
+      }),
+      profile: TripTrackingProfile.lowSpeedEquipment,
+    );
+
+    expect(restored.needsWalkingReview, isFalse);
+    expect(restored.motionState, TripMotionState.unknown);
+    expect(restored.snapshot.walkingEvidence, isEmpty);
+  });
 }

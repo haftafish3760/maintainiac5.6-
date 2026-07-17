@@ -60,9 +60,18 @@ class TripTrackingEngine {
             snapshot.totalAcceptedMeters >= 0
         ? snapshot.totalAcceptedMeters
         : 0;
-    engine._walkingEvidence.addAll(snapshot.walkingEvidence);
-    engine._walkingReviewSuggested = snapshot.walkingReviewSuggested;
-    engine._motionState = snapshot.motionState;
+    if (_usesRoadVehicleStopRules(profile)) {
+      engine._walkingEvidence.addAll(snapshot.walkingEvidence);
+      engine._walkingReviewSuggested = snapshot.walkingReviewSuggested;
+      engine._motionState = snapshot.motionState;
+    } else {
+      engine._walkingReviewSuggested = false;
+      engine._motionState =
+          snapshot.motionState == TripMotionState.stopCandidate ||
+              snapshot.motionState == TripMotionState.stopped
+          ? TripMotionState.unknown
+          : snapshot.motionState;
+    }
     engine._vehicleMovementObserved = snapshot.vehicleMovementObserved;
     engine._diagnostics = snapshot.diagnostics;
     return engine;
