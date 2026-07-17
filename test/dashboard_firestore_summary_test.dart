@@ -186,6 +186,30 @@ void main() {
     }
   });
 
+  test('dashboard upload policy rejects malformed optional references', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+          activeVehicleId: 'truck_1',
+        );
+
+    for (final poisoned in [
+      {...doc.data, 'dashboardId': ''},
+      {...doc.data, 'activeVehicleId': ''},
+      {...doc.data, 'activeWorkdayId': '   '},
+      {...doc.data, 'activeWorkProfileId': 42},
+    ]) {
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(
+          MaintainiacFirestoreDocumentDraft(path: doc.path, data: poisoned),
+        ),
+        throwsArgumentError,
+      );
+    }
+  });
+
   test('dashboard upload policy rejects malformed timestamps', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(

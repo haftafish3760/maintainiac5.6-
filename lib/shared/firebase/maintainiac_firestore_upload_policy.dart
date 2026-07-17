@@ -251,9 +251,13 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['locationDataIncluded'] == false &&
         draft.data['rawModuleDataIncluded'] == false &&
         draft.data.keys.every(allowed.contains) &&
+        _isNonEmptyString(draft.data['dashboardId']) &&
         _isNonEmptyString(draft.data['createdByUid']) &&
         _isNonEmptyString(draft.data['updatedByUid']) &&
         _isNonEmptyString(draft.data['updatedAt']) &&
+        _hasValidOptionalStringField(draft.data, 'activeVehicleId') &&
+        _hasValidOptionalStringField(draft.data, 'activeWorkdayId') &&
+        _hasValidOptionalStringField(draft.data, 'activeWorkProfileId') &&
         _isAllowedString(draft.data['dashboardMode'], _allowedDashboardModes) &&
         _isAllowedString(draft.data['mileageMode'], _allowedMileageModes) &&
         _isAllowedString(draft.data['syncMode'], _allowedSyncModes) &&
@@ -465,6 +469,11 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isNonEmptyString(Object? value) =>
       value is String && value.trim().isNotEmpty;
+
+  static bool _hasValidOptionalStringField(
+    Map<String, Object?> data,
+    String field,
+  ) => !data.containsKey(field) || _isNonEmptyString(data[field]);
 
   static bool _isAllowedString(Object? value, Set<String> allowed) =>
       value is String && allowed.contains(value.trim());
