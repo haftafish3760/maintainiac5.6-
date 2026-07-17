@@ -472,8 +472,9 @@ service cloud.firestore {
         // Permit an exact replay by its creator so an interrupted upload can
         // be retried idempotently, but reject every material change.
         allow update: if isSelf(uid) &&
+          exists(/databases/$(database)/documents/users/$(uid)/mileageRecords/$(recordId)) &&
           resource.data.createdByUid == uid &&
-          request.resource.data.diff(resource.data).affectedKeys().size() == 0;
+          request.resource.data == resource.data;
         allow delete: if false;
       }
 
@@ -686,8 +687,9 @@ service cloud.firestore {
         // An employer/fleet role can view consented mileage but cannot alter
         // a driver's reviewed record. The creator may only replay an exact
         // document after a client-side retry ambiguity.
-        allow update: if resource.data.createdByUid == request.auth.uid &&
-          request.resource.data.diff(resource.data).affectedKeys().size() == 0;
+        allow update: if exists(/databases/$(database)/documents/orgs/$(orgId)/mileageRecords/$(recordId)) &&
+          resource.data.createdByUid == request.auth.uid &&
+          request.resource.data == resource.data;
         allow delete: if false;
       }
 
