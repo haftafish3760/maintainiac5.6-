@@ -92,6 +92,7 @@ class MapboxExternalRouteValidator {
   static const double maximumReasonableRouteMetersPerSecond = 90;
   static const int maximumRouteCoordinates = 25000;
   static const int maximumAcceptedRouteCandidates = 3;
+  static const int maximumRouteCandidatesScanned = 25;
 
   static MapboxRouteValidationResult validateDirectionsLikeResponse({
     required int httpStatus,
@@ -141,7 +142,7 @@ class MapboxExternalRouteValidator {
     }
 
     final accepted = <MapboxValidatedRouteCandidate>[];
-    for (final route in routes) {
+    for (final route in routes.take(maximumRouteCandidatesScanned)) {
       final candidate = _candidateFromRoute(route);
       if (candidate != null) accepted.add(candidate);
       if (accepted.length == maximumAcceptedRouteCandidates) break;
