@@ -194,6 +194,24 @@ describe('Firestore rules emulator safety', () => {
       }),
     );
     await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/tripMapbox'), {
+        ...summary,
+        mapboxPolyline: 'encoded-route',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/tripMatrix'), {
+        ...summary,
+        matrix: { durations: [0, 120] },
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/mileageRecords/tripEvCharge'), {
+        ...summary,
+        chargingStations: [{ longitude: -80, latitude: 35 }],
+      }),
+    );
+    await assertFails(
       setDoc(doc(owner, 'orgs/orgA/mileageRecords/trip4'), {
         ...summary,
         visibilityScope: 'location_tracking',
@@ -349,6 +367,18 @@ describe('Firestore rules emulator safety', () => {
       setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTrip2'), {
         ...summary,
         routeSummary: 'hidden route details',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTripMapbox'), {
+        ...summary,
+        geometry: { type: 'LineString', encoded: 'hidden-route' },
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/mileageRecords/soloTripMatching'), {
+        ...summary,
+        mapMatchedTrace: 'hidden trace',
       }),
     );
     await assertFails(
