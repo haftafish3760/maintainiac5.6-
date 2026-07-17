@@ -4,11 +4,15 @@ import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../expenses/home/expenses_home_screen.dart';
+import '../../expenses/data/expense_work_profile_store.dart';
 import '../../invoices/home/invoice_workspace_screen.dart';
 import '../../invoices/home/invoice_home_models.dart';
 import '../../work_supplies/jobs/work_supply_jobs_screen.dart';
 import '../../work_supplies/work_supply_screen.dart';
 import '../../../shared/calendar/calendar.dart';
+import '../../../shared/state/app_state.dart';
+import '../../../shared/state/global_odometer.dart';
+import '../data/active_workday_store.dart';
 import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_pulse.dart';
 import 'contractor_dashboard_sections.dart';
@@ -26,6 +30,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
+    final dayStarted =
+        activeWorkday?.activeSession?.isActive == true || _dayStarted;
     return AppScreenShell(
       section: AppSection.dashboard,
       body: ListView(
@@ -44,7 +51,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const SizedBox(height: 10),
           const ContractorAttentionPanel(),
           const SizedBox(height: 10),
-          if (_dayStarted) ...[
+          if (dayStarted) ...[
             const ContractorActiveShiftPanel(),
             const SizedBox(height: 10),
             ContractorCommandGrid(
@@ -79,8 +86,39 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     );
   }
 
-  void _startContractorDay() {
-    setState(() => _dayStarted = true);
+  Future<void> _startContractorDay() async {
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
+    if (activeWorkday == null) {
+      setState(() => _dayStarted = true);
+      return;
+    }
+    if (activeWorkday.activeSession?.isActive == true) {
+      setState(() => _dayStarted = true);
+      return;
+    }
+    try {
+      final odometer = GlobalOdometerScope.of(context);
+      final activeVehicle = AppStateScope.of(context).activeVehicle;
+      final activeWorkProfile = ExpenseWorkProfileScope.of(
+        context,
+      ).activeWorkProfile;
+      await activeWorkday.startDay(
+        vehicleId: odometer.vehicleId,
+        vehicleLabel: activeVehicle?.nickname ?? 'Active vehicle',
+        workProfileId: activeWorkProfile.id,
+        startOdometer: odometer.reading,
+      );
+      if (!mounted) return;
+      setState(() => _dayStarted = true);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not start contractor day: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _handleCommand(ContractorCommand command) {

@@ -58,7 +58,14 @@ void main() {
   });
 
   testWidgets('contractor dashboard exposes active day tools', (tester) async {
-    await _pumpDashboard(tester, appState, odometer, workProfiles);
+    final activeWorkday = ActiveWorkdayController.memory();
+    await _pumpDashboard(
+      tester,
+      appState,
+      odometer,
+      workProfiles,
+      activeWorkday: activeWorkday,
+    );
 
     await tester.tap(find.text('Contractor Dashboard'));
     await tester.pumpAndSettle();
@@ -71,6 +78,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Active Contractor Day'), findsOneWidget);
+    expect(activeWorkday.activeSession, isNotNull);
+    expect(activeWorkday.activeSession?.vehicleId, odometer.vehicleId);
     expect(find.text('Add Stop'), findsOneWidget);
     expect(find.text('Job Note'), findsOneWidget);
     expect(find.text('Use Materials'), findsOneWidget);
@@ -788,23 +797,28 @@ Future<void> _pumpDashboard(
   WidgetTester tester,
   AppStateController appState,
   GlobalOdometerController odometer,
-  ExpenseWorkProfileController workProfiles,
-) async {
+  ExpenseWorkProfileController workProfiles, {
+  ActiveWorkdayController? activeWorkday,
+}) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(900, 1500);
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  await tester.pumpWidget(
-    AppStateScope(
-      controller: appState,
-      child: ExpenseWorkProfileScope(
-        controller: workProfiles,
-        child: GlobalOdometerScope(
-          controller: odometer,
-          child: const MaterialApp(home: DashboardScreen()),
-        ),
+  final dashboard = AppStateScope(
+    controller: appState,
+    child: ExpenseWorkProfileScope(
+      controller: workProfiles,
+      child: GlobalOdometerScope(
+        controller: odometer,
+        child: const MaterialApp(home: DashboardScreen()),
       ),
     ),
+  );
+
+  await tester.pumpWidget(
+    activeWorkday == null
+        ? dashboard
+        : ActiveWorkdayScope(controller: activeWorkday, child: dashboard),
   );
 }
