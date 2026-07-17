@@ -353,6 +353,7 @@ void main() {
       dispositionCounts: {
         TripSampleDisposition.acceptedAnchor: 1,
         TripSampleDisposition.rejectedAccuracy: -4,
+        TripSampleDisposition.rejectedGap: 5,
       },
     );
 
@@ -363,6 +364,22 @@ void main() {
     expect(map['acceptedSamples'], 0);
     expect(counts, containsPair('acceptedAnchor', 1));
     expect(counts, isNot(contains('rejectedAccuracy')));
+    expect(counts, isNot(contains('rejectedGap')));
+
+    final restored = TripTrackingDiagnostics.fromMap({
+      'receivedSamples': 2,
+      'acceptedSamples': 1,
+      'dispositionCounts': {
+        'acceptedAnchor': 1,
+        'rejectedGap': 5,
+        'rejectedAccuracy': 1,
+      },
+    });
+
+    expect(restored.dispositionCounts, {
+      TripSampleDisposition.acceptedAnchor: 1,
+      TripSampleDisposition.rejectedAccuracy: 1,
+    });
   });
 
   test('legacy GPS records receive safe persistence defaults', () {

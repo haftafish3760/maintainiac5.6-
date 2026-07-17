@@ -456,22 +456,24 @@ class TripTrackingDiagnostics {
     );
   }
 
-  Map<String, Object?> toMap() => {
-    'receivedSamples': _safeNonNegativeInt(receivedSamples),
-    'acceptedSamples': _safeAcceptedDiagnosticsCount(
-      acceptedSamples,
-      receivedSamples,
-    ),
-    'dispositionCounts': {
-      for (final entry in dispositionCounts.entries)
-        if (_safeNonNegativeInt(entry.value) > 0)
-          entry.key.name: _safeNonNegativeInt(entry.value),
-    },
-  };
+  Map<String, Object?> toMap() {
+    final received = _safeNonNegativeInt(receivedSamples);
+    return {
+      'receivedSamples': received,
+      'acceptedSamples': _safeAcceptedDiagnosticsCount(
+        acceptedSamples,
+        received,
+      ),
+      'dispositionCounts': _safeSerializedDispositionCounts(
+        dispositionCounts,
+        received,
+      ),
+    };
+  }
 
   factory TripTrackingDiagnostics.fromMap(Map<dynamic, dynamic> map) {
     final rawCounts = map['dispositionCounts'];
-    final counts = <TripSampleDisposition, int>{};
+    final rawDispositionCounts = <TripSampleDisposition, int>{};
     if (rawCounts is Map) {
       for (final entry in rawCounts.entries) {
         final key = entry.key;
@@ -481,7 +483,7 @@ class TripTrackingDiagnostics {
         );
         if (disposition.isEmpty) continue;
         final count = _safeNonNegativeInt(entry.value);
-        if (count > 0) counts[disposition.single] = count;
+        if (count > 0) rawDispositionCounts[disposition.single] = count;
       }
     }
     final received = _safeNonNegativeInt(map['receivedSamples']);
@@ -489,9 +491,36 @@ class TripTrackingDiagnostics {
     return TripTrackingDiagnostics(
       receivedSamples: received,
       acceptedSamples: accepted > received ? 0 : accepted,
-      dispositionCounts: Map.unmodifiable(counts),
+      dispositionCounts: Map.unmodifiable(
+        _safeDispositionCounts(rawDispositionCounts, received),
+      ),
     );
   }
+}
+
+Map<String, Object?> _safeSerializedDispositionCounts(
+  Map<TripSampleDisposition, int> counts,
+  int receivedSamples,
+) => {
+  for (final entry in _safeDispositionCounts(counts, receivedSamples).entries)
+    entry.key.name: entry.value,
+};
+
+Map<TripSampleDisposition, int> _safeDispositionCounts(
+  Map<TripSampleDisposition, int> counts,
+  int receivedSamples,
+) {
+  final received = _safeNonNegativeInt(receivedSamples);
+  if (received == 0) return const {};
+  var total = 0;
+  final safe = <TripSampleDisposition, int>{};
+  for (final entry in counts.entries) {
+    final count = _safeNonNegativeInt(entry.value);
+    if (count == 0 || total + count > received) continue;
+    total += count;
+    safe[entry.key] = count;
+  }
+  return Map.unmodifiable(safe);
 }
 
 int _safeAcceptedDiagnosticsCount(int acceptedSamples, int receivedSamples) {
