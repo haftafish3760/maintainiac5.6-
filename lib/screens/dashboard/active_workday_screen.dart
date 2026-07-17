@@ -425,9 +425,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
       lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
     );
-    if (!started &&
-        tripTracking.platformStatus == 'low_battery_requires_user_choice') {
-      final choice = await _openLowBatteryGpsDialog();
+    if (!started && _gpsBatteryChoiceRequired(tripTracking.platformStatus)) {
+      final choice = await _openLowBatteryGpsDialog(
+        lowPowerMode:
+            tripTracking.platformStatus?.startsWith('low_power_mode') == true,
+      );
       if (!mounted) return;
       if (choice != null) {
         if (choice.rememberChoice) {
@@ -472,7 +474,14 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
-  Future<_LowBatteryGpsChoice?> _openLowBatteryGpsDialog() {
+  bool _gpsBatteryChoiceRequired(String? status) {
+    return status == 'low_battery_requires_user_choice' ||
+        status == 'low_power_mode_requires_user_choice';
+  }
+
+  Future<_LowBatteryGpsChoice?> _openLowBatteryGpsDialog({
+    required bool lowPowerMode,
+  }) {
     var rememberChoice = false;
     return showDialog<_LowBatteryGpsChoice>(
       context: context,
@@ -480,9 +489,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: const Color(0xFF101719),
-          title: const Text(
-            'Battery below 20%',
-            style: TextStyle(
+          title: Text(
+            lowPowerMode ? 'Battery saver is active' : 'Battery below 20%',
+            style: const TextStyle(
               color: Color(0xFFF0F4F2),
               fontWeight: FontWeight.w900,
             ),
@@ -492,7 +501,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'GPS can use more battery while you drive. By default, Maintainiac pauses before starting GPS below 20% so your phone keeps enough power.',
+                'GPS can use more battery while you drive. By default, Maintainiac pauses before starting GPS when battery safety protection is active so your phone keeps enough power.',
                 style: TextStyle(
                   color: Color(0xFFC8D0D3),
                   fontWeight: FontWeight.w700,
