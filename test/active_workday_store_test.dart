@@ -106,6 +106,23 @@ void main() {
     expect(store.activeSession, isNull);
   });
 
+  test('starting a workday rejects future start timestamps', () async {
+    final store = ActiveWorkdayController.memory();
+
+    await expectLater(
+      store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 1000,
+        startedAt: DateTime.now().add(const Duration(days: 1)),
+      ),
+      throwsArgumentError,
+    );
+
+    expect(store.activeSession, isNull);
+  });
+
   test('unsafe active workday ids are not used as durable lookup keys', () {
     final store = ActiveWorkdayController.memory();
 
@@ -325,6 +342,29 @@ void main() {
       ]);
     },
   );
+
+  test('active workday events cannot persist future timestamps', () async {
+    final store = ActiveWorkdayController.memory();
+    await store.startDay(
+      vehicleId: 'vehicle_1',
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+    );
+
+    await expectLater(
+      store.addEvent(
+        type: ActiveWorkdayEventType.stop,
+        odometerReading: 1001,
+        occurredAt: DateTime.now().add(const Duration(days: 1)),
+      ),
+      throwsArgumentError,
+    );
+
+    expect(store.activeSession?.events.map((event) => event.type), [
+      ActiveWorkdayEventType.started,
+    ]);
+  });
 
   test(
     'resuming a paused day restores the active local session state',

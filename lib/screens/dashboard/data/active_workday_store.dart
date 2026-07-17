@@ -394,6 +394,13 @@ class ActiveWorkdayController extends ChangeNotifier {
     }
     await _ensureStorageForWrite();
     final now = startedAt ?? DateTime.now();
+    if (_isUnreasonablyFutureWorkdayTime(now)) {
+      throw ArgumentError.value(
+        now,
+        'startedAt',
+        'Active day start time cannot be in the future.',
+      );
+    }
     final sessionId = _newId('workday');
     final startedEvent = ActiveWorkdayEvent(
       id: _newId('event'),
@@ -442,6 +449,13 @@ class ActiveWorkdayController extends ChangeNotifier {
         now,
         'occurredAt',
         'Event time cannot be before the active day start time.',
+      );
+    }
+    if (_isUnreasonablyFutureWorkdayTime(now)) {
+      throw ArgumentError.value(
+        now,
+        'occurredAt',
+        'Event time cannot be in the future.',
       );
     }
     final event = ActiveWorkdayEvent(
@@ -635,6 +649,12 @@ int? _safeOdometer(Object? value) {
   if (value is! num || !value.isFinite) return null;
   final rounded = value.round();
   return rounded < 0 ? 0 : rounded;
+}
+
+bool _isUnreasonablyFutureWorkdayTime(DateTime value) {
+  return value.toUtc().isAfter(
+    DateTime.now().toUtc().add(const Duration(minutes: 5)),
+  );
 }
 
 String _safeText(
