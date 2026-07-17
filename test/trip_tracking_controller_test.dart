@@ -544,6 +544,50 @@ void main() {
     expect(controller.platformError, isNull);
   });
 
+  test('low battery override retry clears the previous GPS block', () async {
+    final native = _FakeTripTrackingPlatform(
+      batterySnapshot: const TripTrackingBatterySnapshot(
+        batteryPercent: 5,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_low_battery_retry',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'low_battery_requires_user_choice');
+    expect(controller.platformError, contains('below 20% battery'));
+
+    expect(
+      await controller.startNativeTracking(
+        allowBackground: false,
+        lowBatteryOverrideEnabled: true,
+      ),
+      isTrue,
+    );
+
+    expect(native.requestAuthorizationCalls, 1);
+    expect(native.startCalls, 1);
+    expect(controller.platformStatus, 'tracking');
+    expect(controller.platformError, isNull);
+  });
+
   test('low power mode asks before requesting GPS permission', () async {
     final native = _FakeTripTrackingPlatform(
       batterySnapshot: const TripTrackingBatterySnapshot(
