@@ -12,6 +12,12 @@ enum TripTrackingSamplingPreset {
   custom,
 }
 
+enum TripTrackingBackupNetworkPolicy {
+  wifiOnly,
+  wifiAndMobileData,
+  mobileDataOnly,
+}
+
 class TripTrackingSettings {
   const TripTrackingSettings({
     this.gpsAssistedTrackingEnabled = false,
@@ -28,6 +34,8 @@ class TripTrackingSettings {
     this.lowBatteryGpsProtectionEnabled = true,
     this.lowBatteryGpsOverrideEnabled = false,
     this.lowBatteryGpsWarningDismissed = false,
+    this.backupNetworkPolicy =
+        TripTrackingBackupNetworkPolicy.wifiAndMobileData,
   });
 
   final bool gpsAssistedTrackingEnabled;
@@ -44,6 +52,7 @@ class TripTrackingSettings {
   final bool lowBatteryGpsProtectionEnabled;
   final bool lowBatteryGpsOverrideEnabled;
   final bool lowBatteryGpsWarningDismissed;
+  final TripTrackingBackupNetworkPolicy backupNetworkPolicy;
 
   TripTrackingSettings copyWith({
     bool? gpsAssistedTrackingEnabled,
@@ -60,6 +69,7 @@ class TripTrackingSettings {
     bool? lowBatteryGpsProtectionEnabled,
     bool? lowBatteryGpsOverrideEnabled,
     bool? lowBatteryGpsWarningDismissed,
+    TripTrackingBackupNetworkPolicy? backupNetworkPolicy,
   }) {
     final bluetoothEnabled =
         bluetoothVehicleRecognitionEnabled ??
@@ -93,6 +103,7 @@ class TripTrackingSettings {
           lowBatteryGpsOverrideEnabled ?? this.lowBatteryGpsOverrideEnabled,
       lowBatteryGpsWarningDismissed:
           lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed,
+      backupNetworkPolicy: backupNetworkPolicy ?? this.backupNetworkPolicy,
     );
   }
 
@@ -111,6 +122,7 @@ class TripTrackingSettings {
     'lowBatteryGpsProtectionEnabled': lowBatteryGpsProtectionEnabled,
     'lowBatteryGpsOverrideEnabled': lowBatteryGpsOverrideEnabled,
     'lowBatteryGpsWarningDismissed': lowBatteryGpsWarningDismissed,
+    'backupNetworkPolicy': backupNetworkPolicy.name,
   };
 
   factory TripTrackingSettings.fromMap(Map<dynamic, dynamic> map) {
@@ -140,6 +152,10 @@ class TripTrackingSettings {
       lowBatteryGpsOverrideEnabled: map['lowBatteryGpsOverrideEnabled'] == true,
       lowBatteryGpsWarningDismissed:
           map['lowBatteryGpsWarningDismissed'] == true,
+      backupNetworkPolicy: TripTrackingBackupNetworkPolicy.values.firstWhere(
+        (value) => value.name == map['backupNetworkPolicy'],
+        orElse: () => TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+      ),
     );
   }
 }

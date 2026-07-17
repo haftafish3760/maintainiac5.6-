@@ -24,6 +24,10 @@ void main() {
       expect(settings.lowBatteryGpsProtectionEnabled, isTrue);
       expect(settings.lowBatteryGpsOverrideEnabled, isFalse);
       expect(settings.lowBatteryGpsWarningDismissed, isFalse);
+      expect(
+        settings.backupNetworkPolicy,
+        TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+      );
     },
   );
 
@@ -90,6 +94,27 @@ void main() {
         enabled.toMap(),
       ).organizationMileageSharingEnabled,
       isTrue,
+    );
+  });
+
+  test('trip backup network preference is persisted separately', () {
+    for (final policy in TripTrackingBackupNetworkPolicy.values) {
+      final settings = const TripTrackingSettings().copyWith(
+        backupNetworkPolicy: policy,
+      );
+
+      expect(
+        TripTrackingSettings.fromMap(settings.toMap()).backupNetworkPolicy,
+        policy,
+        reason: policy.name,
+      );
+    }
+
+    expect(
+      TripTrackingSettings.fromMap(const {
+        'backupNetworkPolicy': 'satelliteOnly',
+      }).backupNetworkPolicy,
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData,
     );
   });
 
