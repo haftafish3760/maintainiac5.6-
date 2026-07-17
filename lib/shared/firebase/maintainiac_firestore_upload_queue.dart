@@ -81,7 +81,7 @@ class MaintainiacFirestoreQueuedDocument {
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     final lastAttemptAt = _safeQueueTimestamp(
       value['lastAttemptAtUtc'],
-      notBefore: queuedAt,
+      notBefore: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
     final nextAttemptAt = _safeQueueTimestamp(
       value['nextAttemptAtUtc'],

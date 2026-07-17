@@ -56,6 +56,7 @@ class DashboardFirestoreMirror {
     await _queueStore.enqueueReplacingPendingForPath(
       document,
       queuedAtUtc: updatedAtUtc.toUtc(),
+      preserveAttemptMetadata: true,
     );
   }
 

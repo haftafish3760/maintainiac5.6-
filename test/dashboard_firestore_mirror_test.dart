@@ -110,6 +110,44 @@ void main() {
     expect(queue.pendingRecords.single.data['gpsAssistState'], 'on');
   });
 
+  test('dashboard summary refresh preserves pending retry backoff', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final mirror = DashboardFirestoreMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _RecordingSink(),
+        uploadEnabled: true,
+      ),
+    );
+
+    await mirror.queueSummary(
+      uid: 'firebaseUid-1',
+      dashboardId: 'today',
+      updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+      gpsAssistState: 'off',
+    );
+    await queue.markAttempted(
+      queue.pendingRecords.single,
+      error: 'temporary network outage near 35.12345,-80.45678',
+      nowUtc: DateTime.utc(2026, 7, 16, 12, 1),
+    );
+    final attempted = queue.pendingRecords.single;
+
+    await mirror.queueSummary(
+      uid: 'firebaseUid-1',
+      dashboardId: 'today',
+      updatedAtUtc: DateTime.utc(2026, 7, 16, 12, 5),
+      gpsAssistState: 'on',
+    );
+
+    final refreshed = queue.pendingRecords.single;
+    expect(refreshed.data['gpsAssistState'], 'on');
+    expect(refreshed.attemptCount, attempted.attemptCount);
+    expect(refreshed.nextAttemptAtUtc, attempted.nextAttemptAtUtc);
+    expect(refreshed.lastError, contains('coordinates redacted'));
+  });
+
   test(
     'rejects unsafe dashboard summaries before they reach the queue',
     () async {
