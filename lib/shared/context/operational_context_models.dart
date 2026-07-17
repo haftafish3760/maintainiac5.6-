@@ -106,6 +106,28 @@ class ActiveOperationalContext {
       companyMode == OperationalCompanyMode.companyMember ||
       dashboardMode == OperationalDashboardMode.employee;
 
+  String get dashboardSummaryModeToken => switch (dashboardMode) {
+    OperationalDashboardMode.gigDriver => 'gig_driver',
+    OperationalDashboardMode.soloContractor => 'solo_contractor',
+    OperationalDashboardMode.fleetOwner => 'fleet_owner',
+    OperationalDashboardMode.employee => 'employee',
+    OperationalDashboardMode.customer => 'customer',
+  };
+
+  String get dashboardSummaryMileageToken => switch (mileageMode) {
+    OperationalMileageMode.manual => 'manual',
+    OperationalMileageMode.workday => 'workday',
+    OperationalMileageMode.employeeShift => 'employee_shift',
+    OperationalMileageMode.fleetReview => 'fleet_review',
+    OperationalMileageMode.customerHidden => 'customer_hidden',
+  };
+
+  String get dashboardSummarySyncToken => switch (syncMode) {
+    OperationalSyncMode.localOnly => 'local_only',
+    OperationalSyncMode.firebaseBackup => 'firebase_backup',
+    OperationalSyncMode.companySync => 'company_sync',
+  };
+
   ActiveOperationalContext copyWith({
     String? userProfileId,
     String? userName,
