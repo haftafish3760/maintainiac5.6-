@@ -10,11 +10,13 @@ void main() {
     double longitude,
     int seconds, {
     double accuracy = 5,
+    double? speedMetersPerSecond,
   }) => TripLocationSample(
     latitude: 35,
     longitude: longitude,
     recordedAt: start.add(Duration(seconds: seconds)),
     horizontalAccuracyMeters: accuracy,
+    speedMetersPerSecond: speedMetersPerSecond,
   );
 
   TripActivityObservation walking(int seconds, {int confidence = 90}) =>
@@ -482,6 +484,24 @@ void main() {
 
       expect(decision.disposition, TripSampleDisposition.excludedWalking);
       expect(engine.totalAcceptedMeters, distanceBeforeWalking);
+    },
+  );
+
+  test(
+    'vehicle-speed evidence overrides a walking sensor misclassification',
+    () {
+      final engine = TripTrackingEngine();
+
+      engine.ingest(sample(-80, 0, speedMetersPerSecond: 8));
+      final decision = engine.ingest(
+        sample(-79.999, 20, speedMetersPerSecond: 8),
+        activity: walking(20),
+      );
+
+      expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+      expect(decision.accepted, isTrue);
+      expect(decision.walkingReviewSuggested, isFalse);
+      expect(engine.motionState, TripMotionState.moving);
     },
   );
 

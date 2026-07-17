@@ -162,17 +162,37 @@ class TripTrackingEngine {
       );
     }
 
-    // A strong fitness-motion walking signal is never road-vehicle mileage.
+    final strongWalking = _isStrongWalking(verifiedActivity);
+    final vehicleSpeedEvidence =
+        impliedSpeed >= policy.precisionExitSpeedMetersPerSecond ||
+        (reportedSpeed != null &&
+            reportedSpeed.isFinite &&
+            reportedSpeed >= policy.precisionExitSpeedMetersPerSecond);
+    final walkingLooksLikeVehicleMisclassification =
+        strongWalking && vehicleSpeedEvidence;
+    if (walkingLooksLikeVehicleMisclassification) {
+      _walkingEvidence.clear();
+      _walkingReviewSuggested = false;
+    }
+    final activityForMileage = walkingLooksLikeVehicleMisclassification
+        ? null
+        : verifiedActivity;
+
+    // A strong fitness-motion walking signal is never road-vehicle mileage
+    // unless the same sample also has credible vehicle-speed evidence. That
+    // protects drivers from phone sensor misclassification while keeping true
+    // stop-and-walk delivery evidence out of odometer mileage.
     // We retain it as advisory evidence, but exclude it immediately instead
     // of allowing the first few on-foot points to inflate the live estimate.
-    if (_usesRoadVehicleStopRules(profile) &&
-        _isStrongWalking(verifiedActivity)) {
+    if (_usesRoadVehicleStopRules(profile) && strongWalking) {
       _lastAccepted = sample;
-      return _finish(
-        sample,
-        verifiedActivity,
-        TripSampleDisposition.excludedWalking,
-      );
+      if (!walkingLooksLikeVehicleMisclassification) {
+        return _finish(
+          sample,
+          verifiedActivity,
+          TripSampleDisposition.excludedWalking,
+        );
+      }
     }
 
     final accuracyEnvelope = math.max(
@@ -185,7 +205,7 @@ class TripTrackingEngine {
     if (distance <= accuracyEnvelope) {
       return _finish(
         sample,
-        verifiedActivity,
+        activityForMileage,
         TripSampleDisposition.rejectedDrift,
       );
     }
@@ -194,7 +214,7 @@ class TripTrackingEngine {
     _totalAcceptedMeters += distance;
     return _finish(
       sample,
-      verifiedActivity,
+      activityForMileage,
       TripSampleDisposition.acceptedDistance,
       addedMeters: distance,
     );
