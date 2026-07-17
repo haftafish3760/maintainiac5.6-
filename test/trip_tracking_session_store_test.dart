@@ -178,6 +178,40 @@ void main() {
     expect(store.pendingSampleFor(' trip_with_spaces '), isNull);
   });
 
+  test(
+    'pending GPS sample writes require valid coordinates and accuracy',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      TripTrackingPendingSample pending({
+        double latitude = 35,
+        double longitude = -80,
+        double accuracy = 5,
+      }) => TripTrackingPendingSample(
+        sessionId: 'trip_bad_sample',
+        sample: TripLocationSample(
+          latitude: latitude,
+          longitude: longitude,
+          recordedAt: DateTime.utc(2026, 7, 12, 12),
+          horizontalAccuracyMeters: accuracy,
+        ),
+      );
+
+      await expectLater(
+        store.savePending(pending(latitude: 91)),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.savePending(pending(longitude: -181)),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.savePending(pending(accuracy: 0)),
+        throwsArgumentError,
+      );
+      expect(store.pendingSampleFor('trip_bad_sample'), isNull);
+    },
+  );
+
   test('unsafe pending GPS sample lookup keys are ignored', () {
     final store = TripTrackingSessionStore.memory();
 

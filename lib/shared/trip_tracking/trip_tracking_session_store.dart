@@ -518,6 +518,14 @@ class TripTrackingSessionStore {
           'Pending GPS samples require a non-empty safe trip id.',
         );
       }
+      if (!pending.sample.hasValidCoordinate ||
+          !pending.sample.hasValidAccuracy) {
+        throw ArgumentError.value(
+          pending.sample,
+          'sample',
+          'Pending GPS samples require valid coordinates and accuracy.',
+        );
+      }
       if (_storageCheck != null) await _ensureStorageForWrite();
       if (_box == null) {
         _memoryPending[pending.sessionId] = pending;
