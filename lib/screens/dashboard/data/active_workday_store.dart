@@ -318,7 +318,9 @@ List<ActiveWorkdayEvent> _coherentWorkdayEvents(
 }) {
   final events = <ActiveWorkdayEvent>[];
   var latestOdometer = startOdometer;
-  for (final event in source) {
+  final ordered = source.toList(growable: false)
+    ..sort((left, right) => left.occurredAt.compareTo(right.occurredAt));
+  for (final event in ordered) {
     if (event.occurredAt.isBefore(startedAt) ||
         event.odometerReading < latestOdometer) {
       continue;

@@ -675,6 +675,44 @@ void main() {
     expect(restored.events.single.id, 'valid-event');
   });
 
+  test('restored active workday events are sorted before odometer checks', () {
+    final startedAt = DateTime(2026, 6, 12, 8);
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'out-of-order-workday-events',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': startedAt.toIso8601String(),
+      'startOdometer': 1200,
+      'status': 'active',
+      'events': [
+        {
+          'id': 'later-event',
+          'type': 'dropOff',
+          'occurredAt': startedAt
+              .add(const Duration(minutes: 10))
+              .toIso8601String(),
+          'odometerReading': 1205,
+          'label': 'Drop-off logged',
+        },
+        {
+          'id': 'earlier-event',
+          'type': 'pickup',
+          'occurredAt': startedAt
+              .add(const Duration(minutes: 5))
+              .toIso8601String(),
+          'odometerReading': 1202,
+          'label': 'Pickup logged',
+        },
+      ],
+    });
+
+    expect(restored.events.map((event) => event.id), [
+      'earlier-event',
+      'later-event',
+    ]);
+  });
+
   test('non-string active workday restore fields fail closed', () {
     final restored = ActiveWorkdaySessionRecord.fromMap({
       'id': 'malformed-workday-shape',
