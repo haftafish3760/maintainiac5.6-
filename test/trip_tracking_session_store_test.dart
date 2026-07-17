@@ -288,7 +288,7 @@ void main() {
     expect(recovered?.sample.mockedLocation, isTrue);
   });
 
-  test('persisted GPS samples do not write non-finite speed values', () {
+  test('persisted GPS samples do not write unusable speed values', () {
     final sample = TripLocationSample(
       latitude: 35,
       longitude: -80,
@@ -301,6 +301,12 @@ void main() {
 
     expect(map['speedMetersPerSecond'], isNull);
     expect(TripLocationSample.tryFromMap(map)?.speedMetersPerSecond, isNull);
+
+    final overrange = sample.toMap()..['speedMetersPerSecond'] = 76.0;
+    expect(
+      TripLocationSample.tryFromMap(overrange)?.speedMetersPerSecond,
+      isNull,
+    );
   });
 
   test('malformed GPS and activity numeric fields are isolated', () {
