@@ -46,6 +46,28 @@ void main() {
     expect(restored.activeSession?.startedAt, startedAt);
   });
 
+  test('starting an active workday twice keeps the original session', () async {
+    final store = ActiveWorkdayController.memory();
+    final first = await store.startDay(
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck 1',
+      workProfileId: 'Business',
+      startOdometer: 125000,
+      startedAt: DateTime(2026, 6, 12, 8, 30),
+    );
+    final second = await store.startDay(
+      vehicleId: 'truck-2',
+      vehicleLabel: 'Work Truck 2',
+      workProfileId: 'Side Work',
+      startOdometer: 500,
+      startedAt: DateTime(2026, 6, 12, 9),
+    );
+
+    expect(second.id, first.id);
+    expect(store.sessions, hasLength(1));
+    expect(store.activeSession?.vehicleId, 'truck-1');
+  });
+
   test('does not claim a workday started when storage is full', () async {
     final store = ActiveWorkdayController.memory(
       storageCheck: () async => const AppStorageCheck(
