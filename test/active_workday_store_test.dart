@@ -68,6 +68,14 @@ void main() {
     expect(store.activeSession, isNull);
   });
 
+  test('unsafe active workday ids are not used as durable lookup keys', () {
+    final store = ActiveWorkdayController.memory();
+
+    expect(store.sessionById(' workday_bad '), isNull);
+    expect(store.sessionById('workday_\nbad'), isNull);
+    expect(store.sessionById('workday_${'x' * 200}'), isNull);
+  });
+
   test(
     'records pause, stop, fuel, and end events with odometer readings',
     () async {

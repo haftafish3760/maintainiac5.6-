@@ -309,6 +309,7 @@ class ActiveWorkdayController extends ChangeNotifier {
   }
 
   ActiveWorkdaySessionRecord? sessionById(String id) {
+    if (!_isSafeActiveWorkdayId(id)) return null;
     final value = _box == null ? _memoryRecords[id] : _box.get(id);
     if (value is ActiveWorkdaySessionRecord) return value;
     if (value is Map) return ActiveWorkdaySessionRecord.fromMap(value);
@@ -405,16 +406,24 @@ class ActiveWorkdayController extends ChangeNotifier {
   }
 
   Future<void> _setActiveSessionId(String? id) async {
+    final safeId = id == null || _isSafeActiveWorkdayId(id) ? id : null;
     if (_box == null) {
-      _memoryActiveSessionId = id;
-    } else if (id == null) {
+      _memoryActiveSessionId = safeId;
+    } else if (safeId == null) {
       await _box.delete(activeSessionKey);
     } else {
-      await _box.put(activeSessionKey, id);
+      await _box.put(activeSessionKey, safeId);
     }
   }
 
   Future<void> _saveSession(ActiveWorkdaySessionRecord session) async {
+    if (!_isSafeActiveWorkdayId(session.id)) {
+      throw ArgumentError.value(
+        session.id,
+        'session.id',
+        'Active workday sessions require a non-empty safe id.',
+      );
+    }
     if (_box == null) {
       _memoryRecords[session.id] = session;
     } else {
@@ -491,6 +500,11 @@ String _labelForEvent(ActiveWorkdayEventType type) {
 
 String _newId(String prefix) {
   return '${prefix}_${DateTime.now().microsecondsSinceEpoch}';
+}
+
+bool _isSafeActiveWorkdayId(String value) {
+  final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
+  return clean == value && clean.isNotEmpty && clean.length <= 160;
 }
 
 int? _safeOdometer(Object? value) {
