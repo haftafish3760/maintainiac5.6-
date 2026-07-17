@@ -254,6 +254,41 @@ void main() {
     expect(restored.isOdometerConfirmed, isFalse);
   });
 
+  test('persisted review identity and odometer ranges are validated', () {
+    final base = TripTrackingReviewRecord(
+      id: 'trip_review_identity',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1010,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 100,
+        walkingReviewSuggested: false,
+      ),
+    ).toMap();
+
+    expect(
+      TripTrackingReviewRecord.fromMap({...base, 'id': '   '}).hasValidTimeline,
+      isFalse,
+    );
+    expect(
+      TripTrackingReviewRecord.fromMap({
+        ...base,
+        'vehicleId': '   ',
+      }).hasValidTimeline,
+      isFalse,
+    );
+    expect(
+      TripTrackingReviewRecord.fromMap({
+        ...base,
+        'estimatedEndingOdometer': 999,
+      }).hasValidTimeline,
+      isFalse,
+    );
+  });
+
   test('malformed active-trip odometer cannot crash session recovery', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'trip_corrupt_active_odometer',

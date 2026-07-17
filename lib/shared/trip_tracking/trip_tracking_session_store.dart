@@ -232,13 +232,17 @@ class TripTrackingReviewRecord {
   factory TripTrackingReviewRecord.fromMap(Map<dynamic, dynamic> map) {
     final startedAt = DateTime.tryParse('${map['startedAt'] ?? ''}');
     final finishedAt = DateTime.tryParse('${map['finishedAt'] ?? ''}');
+    final id = '${map['id'] ?? ''}';
+    final vehicleId = '${map['vehicleId'] ?? ''}';
+    final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
+    final estimatedEndingOdometer = _persistedOdometerValue(
+      map['estimatedEndingOdometer'],
+    );
     return TripTrackingReviewRecord(
-      id: '${map['id'] ?? ''}',
-      vehicleId: '${map['vehicleId'] ?? ''}',
-      startingOdometer: _persistedOdometerValue(map['startingOdometer']),
-      estimatedEndingOdometer: _persistedOdometerValue(
-        map['estimatedEndingOdometer'],
-      ),
+      id: id,
+      vehicleId: vehicleId,
+      startingOdometer: startingOdometer,
+      estimatedEndingOdometer: estimatedEndingOdometer,
       profile: TripTrackingProfile.values.firstWhere(
         (value) => value.name == map['profile'],
         orElse: () => TripTrackingProfile.roadVehicle,
@@ -285,7 +289,10 @@ class TripTrackingReviewRecord {
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
-          !finishedAt.isBefore(startedAt),
+          !finishedAt.isBefore(startedAt) &&
+          id.trim().isNotEmpty &&
+          vehicleId.trim().isNotEmpty &&
+          estimatedEndingOdometer >= startingOdometer,
     );
   }
 }
