@@ -39,4 +39,14 @@ void main() {
     expect(projection.updateAcceptedMeters(3218.688), 2000);
     expect(projection.projectedReading, 2000);
   });
+
+  test('over-range starting baseline is bounded before display', () {
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: 5000,
+      maxSupportedReading: 4000,
+    );
+
+    expect(projection.projectedReading, 4000);
+    expect(projection.updateAcceptedMeters(1609.344), 4000);
+  });
 }

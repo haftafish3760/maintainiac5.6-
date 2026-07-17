@@ -5,8 +5,12 @@ const metersPerMile = 1609.344;
 class TripLiveOdometerProjection {
   TripLiveOdometerProjection({
     required this.startingOdometer,
-    this.maxSupportedReading = 9999999,
-  }) : _lastProjectedReading = _safeStartingOdometer(startingOdometer);
+    int maxSupportedReading = 9999999,
+  }) : maxSupportedReading = _safeMaxSupportedReading(maxSupportedReading),
+       _lastProjectedReading = _safeInitialProjection(
+         startingOdometer: startingOdometer,
+         maxSupportedReading: maxSupportedReading,
+       );
 
   final int startingOdometer;
   final int maxSupportedReading;
@@ -32,3 +36,14 @@ class TripLiveOdometerProjection {
 }
 
 int _safeStartingOdometer(int value) => value < 0 ? 0 : value;
+
+int _safeMaxSupportedReading(int value) => value < 0 ? 0 : value;
+
+int _safeInitialProjection({
+  required int startingOdometer,
+  required int maxSupportedReading,
+}) {
+  final safeStart = _safeStartingOdometer(startingOdometer);
+  final safeMax = _safeMaxSupportedReading(maxSupportedReading);
+  return safeStart > safeMax ? safeMax : safeStart;
+}
