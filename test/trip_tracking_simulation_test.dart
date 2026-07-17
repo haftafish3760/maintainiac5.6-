@@ -111,7 +111,7 @@ void main() {
         SimulatedTripPoint(point(-79.99775, 100), activity: walking(100)),
         SimulatedTripPoint(point(-79.9968, 130, speed: 8)),
         SimulatedTripPoint(point(-79.9958, 150, speed: 8)),
-      ]);
+      ], profile: TripTrackingProfile.deliveryVehicle);
 
       expect(result.needsWalkingReview, isTrue);
       expect(
