@@ -9,6 +9,7 @@ import '../../expenses/home/expenses_home_screen.dart';
 import '../../expenses/data/expense_work_profile_store.dart';
 import '../../invoices/home/invoice_workspace_screen.dart';
 import '../../invoices/home/invoice_home_models.dart';
+import '../../invoices/home/invoice_info_screens.dart';
 import '../../work_supplies/jobs/work_supply_jobs_screen.dart';
 import '../../work_supplies/work_supply_screen.dart';
 import '../../../shared/calendar/calendar.dart';
@@ -228,7 +229,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const InvoiceWorkspaceScreen(mode: InvoiceWorkspaceMode.estimates),
         );
       case ContractorCommandTarget.recordPayment:
-        _showPending(command.label);
+        _open(const InvoicePaymentScreen());
       case ContractorCommandTarget.addStop:
       case ContractorCommandTarget.note:
         await _recordQuickActiveDayEvent(command);

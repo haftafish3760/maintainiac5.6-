@@ -143,6 +143,35 @@ void main() {
     expect(find.text('Start Contractor Day'), findsOneWidget);
   });
 
+  testWidgets('contractor record payment opens the payment workflow', (
+    tester,
+  ) async {
+    final activeWorkday = ActiveWorkdayController.memory();
+    await _pumpDashboard(
+      tester,
+      appState,
+      odometer,
+      workProfiles,
+      activeWorkday: activeWorkday,
+    );
+
+    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Start Day'),
+      220,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Start Day'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Record Payment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Payments'), findsWidgets);
+    expect(find.text('Payment Amount'), findsOneWidget);
+  });
+
   testWidgets('active workday miles redraw from live GPS odometer projection', (
     tester,
   ) async {
