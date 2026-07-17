@@ -149,6 +149,27 @@ void main() {
       expect(controller.context.syncMode, OperationalSyncMode.firebaseBackup);
     },
   );
+
+  test('rejects unsafe dashboard context reference ids before persistence', () async {
+    final controller = await OperationalContextController.create(
+      profile: UserProfileRecord.starterContractor(),
+      activeVehicleId: 'truck-1',
+      activeVehicleLabel: 'Work Truck 1',
+      activeVehicleUsage: VehicleUsage.businessPersonal,
+      storageCheck: _availableStorageCheck,
+    );
+
+    await expectLater(
+      controller.setActiveVehicle(
+        vehicleId: 'truck/../other',
+        vehicleLabel: 'Bad Truck',
+        usage: VehicleUsage.businessOnly,
+      ),
+      throwsArgumentError,
+    );
+
+    expect(controller.context.activeVehicleId, 'truck-1');
+  });
 }
 
 Future<AppStorageCheck> _fullStorageCheck() async => const AppStorageCheck(

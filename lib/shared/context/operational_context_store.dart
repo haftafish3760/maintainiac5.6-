@@ -139,6 +139,7 @@ class OperationalContextController extends ChangeNotifier {
   ) {
     return _enqueue(() async {
       final next = update(_context);
+      _validateContext(next);
       final box = _box;
       if (box != null) {
         await _ensureStorageForWrite();
@@ -166,6 +167,23 @@ class OperationalContextController extends ChangeNotifier {
 
   static Future<AppStorageCheck> _defaultStorageCheck() {
     return AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+  }
+
+  void _validateContext(ActiveOperationalContext context) {
+    for (final entry in <String, String>{
+      'userProfileId': context.userProfileId,
+      'workProfileId': context.workProfileId,
+      'activeVehicleId': context.activeVehicleId,
+      if (context.companyId.trim().isNotEmpty) 'companyId': context.companyId,
+    }.entries) {
+      if (!_isSafeOperationalContextId(entry.value)) {
+        throw ArgumentError.value(
+          entry.value,
+          entry.key,
+          'Operational dashboard context ids must be safe reference tokens.',
+        );
+      }
+    }
   }
 }
 
@@ -199,4 +217,12 @@ OperationalMileageMode _mileageModeForDashboard(OperationalDashboardMode mode) {
     OperationalDashboardMode.employee => OperationalMileageMode.employeeShift,
     OperationalDashboardMode.customer => OperationalMileageMode.customerHidden,
   };
+}
+
+bool _isSafeOperationalContextId(String value) {
+  final clean = value.trim();
+  return clean == value &&
+      clean.isNotEmpty &&
+      clean.length <= 160 &&
+      RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean);
 }
