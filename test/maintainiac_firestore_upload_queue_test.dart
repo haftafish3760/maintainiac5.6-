@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
+import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
@@ -108,6 +109,25 @@ void main() {
     expect(sink.writes, hasLength(2));
     expect(queue.pendingRecords, isEmpty);
     expect(queue.records, isEmpty);
+  });
+
+  test('free sync quota exhaustion preserves pending uploads', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/free_sync_quota'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      freeSyncsUsedInWindow: HostedUsageLimits.freeUserSyncsPer24HourWindow,
+    ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+    expect(result.attemptedCount, 0);
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(result.reason, contains('Free backup sync limit reached'));
   });
 
   test('concurrent flushes upload a queued document only once', () async {
@@ -327,11 +347,7 @@ void main() {
     final draft = _safeDraft('catalogHealth/clock_rollback');
     final firstAttempt = DateTime.utc(2026, 7, 16, 13);
     final queued = await queue.enqueue(draft, queuedAtUtc: firstAttempt);
-    await queue.markAttempted(
-      queued,
-      error: 'offline',
-      nowUtc: firstAttempt,
-    );
+    await queue.markAttempted(queued, error: 'offline', nowUtc: firstAttempt);
     final first = queue.pendingRecords.single;
 
     await queue.markAttempted(
@@ -341,14 +357,8 @@ void main() {
     );
     final retried = queue.pendingRecords.single;
 
-    expect(
-      retried.lastAttemptAtUtc!.isAfter(first.lastAttemptAtUtc!),
-      isTrue,
-    );
-    expect(
-      retried.nextAttemptAtUtc!.isAfter(first.nextAttemptAtUtc!),
-      isTrue,
-    );
+    expect(retried.lastAttemptAtUtc!.isAfter(first.lastAttemptAtUtc!), isTrue);
+    expect(retried.nextAttemptAtUtc!.isAfter(first.nextAttemptAtUtc!), isTrue);
   });
 
   test('enforces max batch size even when caller asks for more', () async {

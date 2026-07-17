@@ -273,13 +273,16 @@ class MaintainiacFirestoreUploadCoordinator {
     required MaintainiacFirestoreUploadQueueStore queue,
     required MaintainiacFirestoreDocumentSink sink,
     bool uploadEnabled = false,
+    int? freeSyncsUsedInWindow,
   }) : _queue = queue,
        _sink = sink,
-       _uploadEnabled = uploadEnabled;
+       _uploadEnabled = uploadEnabled,
+       _freeSyncsUsedInWindow = freeSyncsUsedInWindow;
 
   final MaintainiacFirestoreUploadQueueStore _queue;
   final MaintainiacFirestoreDocumentSink _sink;
   final bool _uploadEnabled;
+  final int? _freeSyncsUsedInWindow;
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
     int? limit,
@@ -300,6 +303,17 @@ class MaintainiacFirestoreUploadCoordinator {
         uploadedCount: 0,
         failedCount: 0,
         reason: 'Firestore uploads are disabled until hosted sync is enabled.',
+      );
+    }
+    final freeSyncsUsed = _freeSyncsUsedInWindow;
+    if (freeSyncsUsed != null &&
+        !HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: freeSyncsUsed)) {
+      return const MaintainiacFirestoreUploadResult(
+        status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+        attemptedCount: 0,
+        uploadedCount: 0,
+        failedCount: 0,
+        reason: 'Free backup sync limit reached for this 24-hour window.',
       );
     }
 

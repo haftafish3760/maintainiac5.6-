@@ -14,6 +14,7 @@ part 'maintainiac_firestore_upload_store.dart';
 
 enum MaintainiacFirestoreUploadStatus {
   disabled,
+  quotaExceeded,
   empty,
   uploaded,
   partial,
