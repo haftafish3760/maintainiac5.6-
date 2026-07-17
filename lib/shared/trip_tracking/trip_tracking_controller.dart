@@ -678,6 +678,18 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (allowBackground && !capabilities.backgroundTrackingAvailable) {
+      _platformError =
+          'Background GPS tracking is unavailable on this device.';
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    final requestedActivityRecognition =
+        activityRecognitionEnabled && capabilities.activityRecognitionAvailable;
     var batterySnapshot = const TripTrackingBatterySnapshot(
       batteryPercent: null,
       isCharging: false,
@@ -715,7 +727,7 @@ class TripTrackingController extends ChangeNotifier {
     try {
       authorization = await platform.requestAuthorization(
         allowBackground: allowBackground,
-        activityRecognitionEnabled: activityRecognitionEnabled,
+        activityRecognitionEnabled: requestedActivityRecognition,
       );
     } catch (error) {
       _platformError = 'Could not request GPS permission.';
@@ -750,7 +762,7 @@ class TripTrackingController extends ChangeNotifier {
             profile: session.profile,
             activeTrip: true,
           ),
-      activityRecognitionEnabled: activityRecognitionEnabled,
+      activityRecognitionEnabled: requestedActivityRecognition,
     );
     bool started;
     try {
