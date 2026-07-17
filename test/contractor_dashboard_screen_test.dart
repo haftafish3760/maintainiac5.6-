@@ -503,6 +503,91 @@ void main() {
     expect(native.startCalls, 0);
   });
 
+  testWidgets('active day GPS start requires the active workday vehicle', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 1500);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    odometer.dispose();
+    odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final activeWorkday = ActiveWorkdayController.memory();
+    await activeWorkday.startDay(
+      vehicleId: 'vehicle_2',
+      vehicleLabel: 'Other Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 16, 8),
+    );
+    final native = _DashboardTripNativeGateway(
+      batterySnapshot: const TripTrackingBatterySnapshot(
+        batteryPercent: 90,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      ),
+    );
+    final tripController = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+      platform: native,
+    );
+    final settingsController = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+    );
+    addTearDown(tripController.dispose);
+    addTearDown(settingsController.dispose);
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: ActiveWorkdayScope(
+          controller: activeWorkday,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: TripTrackingSettingsScope(
+              controller: settingsController,
+              child: TripTrackingScope(
+                controller: tripController,
+                child: const MaterialApp(
+                  home: ActiveWorkdayScreen(
+                    activeVehicle: VehicleProfilePreview(
+                      id: 'vehicle_1',
+                      nickname: 'Work Truck',
+                      year: '2026',
+                      make: 'Ford',
+                      model: 'Transit',
+                      odometer: '0001000',
+                      status: 'ACTIVE',
+                    ),
+                    workProfileName: 'Business',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Switch to the active workday vehicle before starting GPS-assisted tracking.',
+      ),
+      findsOneWidget,
+    );
+    expect(tripController.isTracking, isFalse);
+    expect(native.requestAuthorizationCalls, 0);
+    expect(native.startCalls, 0);
+  });
+
   testWidgets('active day asks before starting GPS in low power mode', (
     tester,
   ) async {
