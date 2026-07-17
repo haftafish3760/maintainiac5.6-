@@ -185,7 +185,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
     let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
     applySampling(intervalMillis: intervalMillis, displacement: displacement)
-    locationManager.activityType = profile == "roadVehicle" ? .automotiveNavigation : .otherNavigation
+    locationManager.activityType = isRoadStyleProfile(profile) ? .automotiveNavigation : .otherNavigation
     locationManager.pausesLocationUpdatesAutomatically = false
     if #available(iOS 9.0, *) {
       locationManager.allowsBackgroundLocationUpdates = state == "always"
@@ -220,6 +220,15 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
     applySampling(intervalMillis: intervalMillis, displacement: displacement)
     result(true)
+  }
+
+  private func isRoadStyleProfile(_ profile: String?) -> Bool {
+    switch profile {
+    case "roadVehicle", "rideshareVehicle", "deliveryVehicle", "contractorVehicle":
+      return true
+    default:
+      return false
+    }
   }
 
   /// Core Location has no fixed polling interval. The requested interval is

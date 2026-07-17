@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
@@ -16,6 +18,26 @@ void main() {
 
     expect(request.toMap()['intervalMillis'], 2000);
     expect(request.toMap()['minimumDisplacementMeters'], 3.0);
+  });
+
+  test('iOS bridge maps every road-style profile to automotive navigation', () {
+    final source = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(source, contains('private func isRoadStyleProfile'));
+    for (final profile in const [
+      'roadVehicle',
+      'rideshareVehicle',
+      'deliveryVehicle',
+      'contractorVehicle',
+    ]) {
+      expect(source, contains('"$profile"'), reason: profile);
+    }
+    expect(
+      source,
+      contains('isRoadStyleProfile(profile) ? .automotiveNavigation'),
+    );
   });
 
   test('an explicitly started trip has a responsive adaptive baseline', () {
