@@ -404,7 +404,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final settingsController = TripTrackingSettingsScope.maybeOf(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (settingsController == null || tripTracking == null) return;
-    if (ActiveWorkdayScope.of(context).activeSession?.isPaused == true) {
+    final activeSession = ActiveWorkdayScope.of(context).activeSession;
+    if (activeSession == null) {
+      _showGpsMessage('Start Day before starting GPS-assisted tracking.');
+      return;
+    }
+    if (activeSession.isPaused) {
       _showGpsMessage('Resume Day before restarting GPS-assisted tracking.');
       return;
     }
