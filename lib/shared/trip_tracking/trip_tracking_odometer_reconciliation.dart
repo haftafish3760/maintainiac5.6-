@@ -335,6 +335,7 @@ class TripOdometerCalibrationSignal {
   }
 }
 
+
 class _DailyCalibrationTotals {
   var odometerMiles = 0.0;
   var gpsMiles = 0.0;

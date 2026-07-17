@@ -49,6 +49,7 @@ class TripTrackingSettings {
     this.lowBatteryGpsProtectionEnabled = true,
     this.lowBatteryGpsOverrideEnabled = false,
     this.lowBatteryGpsWarningDismissed = false,
+    this.odometerAnomalyAlertsEnabled = false,
     this.backupNetworkPolicy =
         TripTrackingBackupNetworkPolicy.wifiAndMobileData,
   });
@@ -69,6 +70,7 @@ class TripTrackingSettings {
   final bool lowBatteryGpsProtectionEnabled;
   final bool lowBatteryGpsOverrideEnabled;
   final bool lowBatteryGpsWarningDismissed;
+  final bool odometerAnomalyAlertsEnabled;
   final TripTrackingBackupNetworkPolicy backupNetworkPolicy;
 
   TripTrackingSettings copyWith({
@@ -86,6 +88,7 @@ class TripTrackingSettings {
     bool? lowBatteryGpsProtectionEnabled,
     bool? lowBatteryGpsOverrideEnabled,
     bool? lowBatteryGpsWarningDismissed,
+    bool? odometerAnomalyAlertsEnabled,
     TripTrackingBackupNetworkPolicy? backupNetworkPolicy,
   }) {
     final gpsEnabled =
@@ -125,6 +128,10 @@ class TripTrackingSettings {
       lowBatteryGpsWarningDismissed:
           gpsEnabled &&
           (lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed),
+      odometerAnomalyAlertsEnabled:
+          gpsEnabled &&
+          (odometerAnomalyAlertsEnabled ??
+              this.odometerAnomalyAlertsEnabled),
       backupNetworkPolicy: backupNetworkPolicy ?? this.backupNetworkPolicy,
     );
   }
@@ -145,6 +152,7 @@ class TripTrackingSettings {
     'lowBatteryGpsProtectionEnabled': lowBatteryGpsProtectionEnabled,
     'lowBatteryGpsOverrideEnabled': lowBatteryGpsOverrideEnabled,
     'lowBatteryGpsWarningDismissed': lowBatteryGpsWarningDismissed,
+    'odometerAnomalyAlertsEnabled': odometerAnomalyAlertsEnabled,
     'backupNetworkPolicy': backupNetworkPolicy.name,
   };
 
@@ -181,6 +189,8 @@ class TripTrackingSettings {
           gpsEnabled && map['lowBatteryGpsOverrideEnabled'] == true,
       lowBatteryGpsWarningDismissed:
           gpsEnabled && map['lowBatteryGpsWarningDismissed'] == true,
+      odometerAnomalyAlertsEnabled:
+          gpsEnabled && map['odometerAnomalyAlertsEnabled'] == true,
       backupNetworkPolicy: TripTrackingBackupNetworkPolicy.values.firstWhere(
         (value) => value.name == map['backupNetworkPolicy'],
         orElse: () => TripTrackingBackupNetworkPolicy.wifiAndMobileData,

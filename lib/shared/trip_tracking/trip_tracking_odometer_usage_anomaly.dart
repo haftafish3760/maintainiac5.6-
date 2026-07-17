@@ -1,0 +1,126 @@
+import 'dart:math' as math;
+
+import 'trip_tracking_session_store.dart';
+
+enum TripOdometerUsageAnomalyStatus {
+  invalid,
+  insufficientHistory,
+  normal,
+  reviewRecommended,
+}
+
+class TripOdometerUsageAnomalySignal {
+  const TripOdometerUsageAnomalySignal({
+    required this.status,
+    required this.reviewedDayCount,
+    required this.currentOdometerMiles,
+    required this.averageDailyMiles,
+    required this.reviewThresholdMiles,
+    required this.reasonCode,
+  });
+
+  final TripOdometerUsageAnomalyStatus status;
+  final int reviewedDayCount;
+  final double currentOdometerMiles;
+  final double averageDailyMiles;
+  final double reviewThresholdMiles;
+  final String reasonCode;
+
+  /// This signal can prompt a driver to review a surprising mileage entry, but
+  /// it must never rewrite the confirmed odometer or TripLog on its own.
+  bool get canAutoCorrectOdometer => false;
+
+  bool get shouldPromptUser =>
+      status == TripOdometerUsageAnomalyStatus.reviewRecommended;
+
+  static TripOdometerUsageAnomalySignal evaluate({
+    required double currentOdometerMiles,
+    required Iterable<TripTrackingReviewRecord> history,
+    String? vehicleId,
+    DateTime? nowUtc,
+    int minimumReviewedDays = 7,
+    double reviewMultiplier = 2.5,
+    double minimumReviewBufferMiles = 50,
+  }) {
+    if (!currentOdometerMiles.isFinite ||
+        currentOdometerMiles < 0 ||
+        minimumReviewedDays <= 0 ||
+        !reviewMultiplier.isFinite ||
+        reviewMultiplier < 1 ||
+        !minimumReviewBufferMiles.isFinite ||
+        minimumReviewBufferMiles < 0) {
+      return const TripOdometerUsageAnomalySignal(
+        status: TripOdometerUsageAnomalyStatus.invalid,
+        reviewedDayCount: 0,
+        currentOdometerMiles: 0,
+        averageDailyMiles: 0,
+        reviewThresholdMiles: 0,
+        reasonCode: 'invalid_usage_anomaly_input',
+      );
+    }
+
+    final requestedVehicleId = vehicleId?.trim();
+    final trustedNowUtc = nowUtc?.toUtc();
+    final dailyMiles = <String, double>{};
+    for (final review in history) {
+      if (!review.isOdometerConfirmed ||
+          !review.hasValidTimeline ||
+          (trustedNowUtc != null &&
+              review.odometerConfirmedAt!.toUtc().isAfter(trustedNowUtc))) {
+        continue;
+      }
+      final reviewVehicleId = review.vehicleId.trim();
+      if (reviewVehicleId.isEmpty ||
+          (requestedVehicleId != null &&
+              requestedVehicleId.isNotEmpty &&
+              reviewVehicleId != requestedVehicleId)) {
+        continue;
+      }
+      final miles =
+          (review.confirmedEndingOdometer! - review.startingOdometer)
+              .toDouble();
+      if (!miles.isFinite || miles < 0) continue;
+      final dayKey = _usageDayKey(review.startedAt.toUtc());
+      dailyMiles.update(dayKey, (value) => value + miles, ifAbsent: () => miles);
+    }
+
+    if (dailyMiles.length < minimumReviewedDays) {
+      return TripOdometerUsageAnomalySignal(
+        status: TripOdometerUsageAnomalyStatus.insufficientHistory,
+        reviewedDayCount: dailyMiles.length,
+        currentOdometerMiles: currentOdometerMiles,
+        averageDailyMiles: 0,
+        reviewThresholdMiles: 0,
+        reasonCode: 'needs_more_reviewed_days_for_usage_anomaly',
+      );
+    }
+
+    final totalMiles = dailyMiles.values.fold<double>(
+      0,
+      (sum, miles) => sum + miles,
+    );
+    final average = totalMiles / dailyMiles.length;
+    final threshold = math.max(
+      average * reviewMultiplier,
+      average + minimumReviewBufferMiles,
+    );
+    final shouldReview = currentOdometerMiles > threshold;
+    return TripOdometerUsageAnomalySignal(
+      status: shouldReview
+          ? TripOdometerUsageAnomalyStatus.reviewRecommended
+          : TripOdometerUsageAnomalyStatus.normal,
+      reviewedDayCount: dailyMiles.length,
+      currentOdometerMiles: currentOdometerMiles,
+      averageDailyMiles: average,
+      reviewThresholdMiles: threshold,
+      reasonCode: shouldReview
+          ? 'unusually_high_odometer_delta'
+          : 'odometer_usage_within_review_threshold',
+    );
+  }
+}
+
+String _usageDayKey(DateTime utc) =>
+    '${utc.year.toString().padLeft(4, '0')}-'
+    '${utc.month.toString().padLeft(2, '0')}-'
+    '${utc.day.toString().padLeft(2, '0')}';
