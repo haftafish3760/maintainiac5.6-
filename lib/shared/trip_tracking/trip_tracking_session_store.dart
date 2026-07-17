@@ -298,7 +298,8 @@ class TripTrackingReviewRecord {
 }
 
 int _sessionSchemaVersion(Object? value) {
-  final version = (value as num?)?.toInt() ?? 1;
+  if (value is! num || !value.isFinite) return 1;
+  final version = value.toInt();
   return version < 1 ? 1 : version;
 }
 

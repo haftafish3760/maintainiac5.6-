@@ -181,6 +181,39 @@ void main() {
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
   });
 
+  test('non-finite persisted schema versions use safe defaults', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_schema_nan',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'schemaVersion': double.nan,
+    });
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_review_schema_nan',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1001,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'finishedAt': DateTime.utc(2026, 7, 14, 12, 10).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'schemaVersion': double.infinity,
+    });
+
+    expect(session.schemaVersion, 1);
+    expect(review.schemaVersion, 1);
+  });
+
   test('review cloud sync state survives local serialization', () {
     final syncedAt = DateTime.utc(2026, 7, 14, 13, 5);
     final review = TripTrackingReviewRecord(
