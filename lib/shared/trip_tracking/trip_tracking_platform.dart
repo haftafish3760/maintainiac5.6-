@@ -311,7 +311,21 @@ String? _safePlatformToken(Object? value) {
 
 String? _safePlatformMessage(Object? value) {
   if (value is! String) return null;
-  final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
+  final clean = value
+      .replaceAll(RegExp(r'\b[ps]k\.[A-Za-z0-9._-]+'), '[redacted_token]')
+      .replaceAll(
+        RegExp(r'\btoken\s*=\s*[^,\s;]+', caseSensitive: false),
+        'token=[redacted]',
+      )
+      .replaceAll(
+        RegExp(
+          r'\b(lat|latitude|lon|lng|longitude)\s*=\s*-?\d+(\.\d+)?',
+          caseSensitive: false,
+        ),
+        r'$1=[redacted]',
+      )
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
   if (clean.isEmpty) return null;
   return clean.length <= 160 ? clean : clean.substring(0, 160);
 }

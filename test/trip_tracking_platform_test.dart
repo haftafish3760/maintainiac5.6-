@@ -188,6 +188,11 @@ void main() {
       'errorCode': 'trip_tracking_gps_disabled',
       'errorMessage': 'm' * 240,
     });
+    final sensitiveMessage = TripTrackingPlatformEvent.fromMap({
+      'type': 'error',
+      'errorCode': 'trip_tracking_gps_disabled',
+      'errorMessage': 'token=pk.secret lat=35.123 lon=-80.456',
+    });
 
     expect(status.status, 'stopped');
     expect(status.errorCode, isNull);
@@ -195,6 +200,9 @@ void main() {
     expect(unsafeError.errorMessage, 'first line second line');
     expect(longMessage.errorCode, 'trip_tracking_gps_disabled');
     expect(longMessage.errorMessage, hasLength(160));
+    expect(sensitiveMessage.errorMessage, isNot(contains('pk.secret')));
+    expect(sensitiveMessage.errorMessage, isNot(contains('35.123')));
+    expect(sensitiveMessage.errorMessage, contains('token=[redacted]'));
   });
 
   test('malformed location payloads fail closed without fabricated values', () {
