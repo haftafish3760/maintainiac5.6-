@@ -154,6 +154,26 @@ void main() {
     );
   });
 
+  test('dashboard summary builder rejects unsafe required path ids', () {
+    expect(
+      () => MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+        uid: 'firebaseUid-1',
+        dashboardId: ' /// ',
+        updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+      ),
+      throwsArgumentError,
+    );
+    expect(
+      () => MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+        uid: 'firebaseUid-1',
+        orgId: ' /// ',
+        dashboardId: 'today',
+        updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test(
     'dashboard upload policy rejects raw location and module data aliases',
     () {

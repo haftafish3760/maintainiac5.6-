@@ -339,8 +339,10 @@ class MaintainiacFirestoreDocumentBuilder {
     bool reviewRequired = false,
   }) {
     final safeUid = _safeFirestoreUid(uid);
-    final safeDashboardId = _safePathToken(dashboardId);
-    final safeOrgId = orgId == null ? null : _safePathToken(orgId);
+    final safeDashboardId = _requiredSafePathToken(dashboardId, 'dashboardId');
+    final safeOrgId = orgId == null
+        ? null
+        : _requiredSafePathToken(orgId, 'orgId');
     return MaintainiacFirestoreDocumentDraft(
       path: safeOrgId == null
           ? '${MaintainiacFirestoreSchema.userCollectionPath(safeUid, MaintainiacFirestoreSchema.orgDashboardSummaries)}/$safeDashboardId'
