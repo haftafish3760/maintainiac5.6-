@@ -23,6 +23,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal val lifecycleRegistry = LifecycleRegistry(this)
@@ -49,6 +51,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal lateinit var nextSectionGuideImage: ImageView
     internal var imageCapture: ImageCapture? = null
     internal var camera: Camera? = null
+    internal val receiptPhotoQualityExecutor: ExecutorService =
+        Executors.newSingleThreadExecutor()
     internal var scaleGestureDetector: ScaleGestureDetector? = null
     internal var lastSinglePointerUpAt = 0L
     internal var assistedReceiptFill = true
@@ -117,7 +121,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var bestShotCandidateCount = 3
     internal var cameraResolutionTier = "high"
     internal var cameraWorkloadTier = "balanced"
-    internal val nativePreviewScaleMode = "fill_center_full_receipt"
+    internal val nativePreviewScaleMode = "fit_center_capture_parity"
     internal val nativeControlDensity = "compact_receipt_controls"
     internal var previewExposurePolicy = "receipt_paper_metering_safe_auto_lift_manual_slider"
     internal var previewBrightnessGuardPolicy = "avoid_dark_preview_full_receipt_sampling"
@@ -298,6 +302,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     override fun onDestroy() {
         closingCamera = true
         unregisterSystemBackHandler()
+        receiptPhotoQualityExecutor.shutdownNow()
         runCatching {
             ProcessCameraProvider.getInstance(this).get().unbindAll()
         }

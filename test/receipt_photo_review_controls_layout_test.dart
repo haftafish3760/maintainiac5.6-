@@ -116,7 +116,12 @@ void main() {
       reviewScreen,
       contains('backgroundColor: widget.uiConfig.previewBackgroundColor'),
     );
-    expect(reviewScreen, contains('body: SafeArea(\n          child: Column('));
+    expect(
+      reviewScreen,
+      contains(
+        'body: SafeArea(\n          top: true,\n          bottom: true,\n          maintainBottomViewPadding: true,\n          child: Column(',
+      ),
+    );
     expect(reviewScreen, contains('Expanded(\n                child: Stack('));
     expect(reviewScreen, isNot(contains('_reviewSurfaceBottomPadding')));
     expect(uiConfig, contains('class ReceiptPhotoReviewUiConfig'));

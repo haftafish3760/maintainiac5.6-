@@ -167,17 +167,11 @@ internal fun ReceiptCameraActivity.buildImageAnalysis(targetRotation: Int): Imag
                 shadowWarningEnabled ||
                 dirtyLensWarningEnabled
             )
-    if (
-        !liveAnalysisEnabled ||
-        (
-                !experimentalQualityWarningsEnabled &&
-                !edgeDetectionEnabled &&
-                !tooFarTooCloseWarningEnabled &&
-                !receiptFullyVisibleWarningEnabled &&
-                !textTooSmallWarningEnabled &&
-                !autoExposureAssistEnabled
-            )
-    ) {
+    // Keep the default manual camera responsive. The phone already handles
+    // autofocus and exposure; expensive frame analysis is reserved for the
+    // user-enabled automatic capture or experimental warning modes.
+    val needsLiveAnalysis = autoCaptureEnabled || experimentalQualityWarningsEnabled
+    if (!liveAnalysisEnabled || !needsLiveAnalysis) {
         return null
     }
     return ImageAnalysis.Builder()

@@ -33,7 +33,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('scaleType = PreviewView.ScaleType.FILL_CENTER'),
+      contains('scaleType = PreviewView.ScaleType.FIT_CENTER'),
     );
     expect(
       cameraActivity,
@@ -91,8 +91,8 @@ void main() {
       contains('text = receiptCameraText("Add Photo", "Agregar foto")'),
     );
     expect(cameraActivity, contains('visibility = View.GONE'));
-    expect(cameraActivity, contains('maxLines = 1'));
-    expect(cameraActivity, contains('ellipsize = TextUtils.TruncateAt.END'));
+    expect(cameraActivity, contains('maxLines = 2'));
+    expect(cameraActivity, contains('ellipsize = null'));
     expect(cameraActivity, contains('bottomReviewButton = Button(this).apply {'));
     expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
     expect(cameraActivity, isNot(contains('doneButton = Button(this).apply {')));
@@ -117,7 +117,7 @@ void main() {
     final ios = await readIosReceiptCameraBridgeSources();
     final cameraController = ios.cameraController;
 
-    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
+    expect(cameraController, contains('preview.videoGravity = .resizeAspect'));
     expect(cameraController, contains('previewLayer?.frame = view.bounds'));
     expect(
       cameraController,
@@ -128,10 +128,9 @@ void main() {
       contains('torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)'),
     );
     expect(cameraController, contains('bottomBar.backgroundColor = .clear'));
-    expect(cameraController, contains('guidanceLabel.numberOfLines = 1'));
-    expect(cameraController, contains('guidanceLabel.lineBreakMode = .byTruncatingTail'));
-    expect(cameraController, contains('guidanceLabel.adjustsFontSizeToFitWidth = true'));
-    expect(cameraController, contains('guidanceLabel.minimumScaleFactor = 0.82'));
+    expect(cameraController, contains('guidanceLabel.numberOfLines = 2'));
+    expect(cameraController, contains('guidanceLabel.lineBreakMode = .byWordWrapping'));
+    expect(cameraController, contains('guidanceLabel.adjustsFontSizeToFitWidth = false'));
     expect(cameraController, contains('let viewerInfoStack = UIStackView()'));
     expect(cameraController, contains('viewerInfoStack.axis = .vertical'));
     expect(cameraController, contains('viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())'));

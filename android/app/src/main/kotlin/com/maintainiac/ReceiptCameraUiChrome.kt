@@ -3,7 +3,6 @@ package com.maintainiac
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -29,7 +28,9 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
-        scaleType = PreviewView.ScaleType.FILL_CENTER
+        // Keep the full captured 4:3 frame visible. A cropped live preview
+        // makes the review image look like a different photo.
+        scaleType = PreviewView.ScaleType.FIT_CENTER
     }
     cameraRootView.addView(previewView)
     cameraRootView.addView(buildReceiptFrameGuide())
@@ -109,12 +110,12 @@ internal fun ReceiptCameraActivity.buildGuidance(): View {
         textSize = 14f
         gravity = Gravity.CENTER
         setTypeface(typeface, Typeface.BOLD)
-        maxLines = 1
-        ellipsize = TextUtils.TruncateAt.END
+        maxLines = 2
+        ellipsize = null
         background = pillDrawable(Color.argb(168, 5, 6, 7))
         setPadding(dp(12), dp(8), dp(12), dp(8))
         layoutParams = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
         ).apply {

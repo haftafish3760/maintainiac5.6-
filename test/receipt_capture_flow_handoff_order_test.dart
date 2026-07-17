@@ -113,15 +113,11 @@ void main() {
     );
     expect(
       reviewedPhotoReadStatusBlock,
-      contains('widget.onReceiptReadStarted?.call();'),
+      isNot(contains('widget.onReceiptReadStarted?.call();')),
     );
     expect(
-      reviewedPhotoReadStatusBlock.indexOf(
-        'widget.onReceiptReadStarted?.call();',
-      ),
-      lessThan(
-        reviewedPhotoReadStatusBlock.indexOf('_readingForReview = true'),
-      ),
+      reviewedPhotoReadStatusBlock,
+      contains('not receive two competing "reading" transitions'),
     );
     final takePhotoBlock = importActions.substring(
       importActions.indexOf('Future<void> takeReceiptPhoto() async'),

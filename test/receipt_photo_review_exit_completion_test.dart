@@ -72,23 +72,22 @@ void main() {
       contains('if (!didPop) leaveReceiptReviewWithoutSaving();'),
     );
     expect(emptyRecoveryLayout, contains('Return To Receipt Entry'));
-    expect(saveActions, contains('Review receipt details from this photo?'));
-    expect(saveActions, contains('Review receipt details from these photos?'));
-    expect(saveActions, contains('saved locally for recovery'));
-    expect(saveActions, contains('Receipt details have not been filled yet.'));
+    expect(saveActions, contains('Keep this receipt photo?'));
+    expect(saveActions, contains('Keep these receipt photos?'));
+    expect(saveActions, isNot(contains('saved locally for recovery')));
+    expect(saveActions, isNot(contains('Receipt details have not been filled yet.')));
     expect(
       saveActions,
       contains(
-        'This receipt photo is saved locally for recovery and will not be deleted, but receipt details have not been opened from it yet.',
+        'You can return to this photo later.',
       ),
     );
     expect(
       saveActions,
       contains(
-        'These receipt photos are saved locally for recovery and will not be deleted, but receipt details have not been opened from them yet.',
+        'You can return to these photos later.',
       ),
     );
-    expect(saveActions, contains('_isRecoverableReviewPhoto'));
     expect(
       saveActions,
       contains(

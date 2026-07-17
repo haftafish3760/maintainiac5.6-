@@ -240,13 +240,13 @@ void main() {
     expect(cameraActivity, contains('Color.argb(104, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(92, 255, 209, 102)'));
     expect(cameraActivity, contains('alpha = 0.36f'));
-    expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
-    expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FIT_CENTER')));
+    expect(cameraActivity, contains('PreviewView.ScaleType.FIT_CENTER'));
+    expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FILL_CENTER')));
     expect(cameraActivity, contains('nativePreviewScaleMode'));
     expect(
       cameraActivity,
       contains(
-        'internal val nativePreviewScaleMode = "fill_center_full_receipt"',
+        'internal val nativePreviewScaleMode = "fit_center_capture_parity"',
       ),
     );
     expect(cameraActivity, contains('nativeControlDensity'));

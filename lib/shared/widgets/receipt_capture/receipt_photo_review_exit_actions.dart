@@ -88,7 +88,6 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     if (!_reviewWorkActive) return _ReceiptReviewExitAction.keepReviewing;
     if (_photoPaths.isEmpty) return _ReceiptReviewExitAction.leaveSafely;
     final hasMultipleSections = _photoPaths.length > 1;
-    final hasLocallyStagedPhotos = _photoPaths.any(_isRecoverableReviewPhoto);
     final hasEditedReviewPhotos = _photoPaths.any(_generatedEditPaths.contains);
     final coverageDecision = _selectedExitCoverageDecision();
     final nextLabel = _exitContinueLabelFor(
@@ -96,11 +95,10 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
       hasMultipleSections: hasMultipleSections,
     );
     final title = hasMultipleSections
-        ? 'Review receipt details from these photos?'
-        : 'Review receipt details from this photo?';
+        ? 'Keep these receipt photos?'
+        : 'Keep this receipt photo?';
     final content = _receiptReviewExitContent(
       hasMultipleSections: hasMultipleSections,
-      hasLocallyStagedPhotos: hasLocallyStagedPhotos,
       hasEditedReviewPhotos: hasEditedReviewPhotos,
       coverageDecision: coverageDecision,
       nextLabel: nextLabel,
@@ -160,18 +158,13 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
 
   String _receiptReviewExitContent({
     required bool hasMultipleSections,
-    required bool hasLocallyStagedPhotos,
     required bool hasEditedReviewPhotos,
     required ReceiptPhotoCoverageDecision coverageDecision,
     required String nextLabel,
   }) {
     final savedCopy = hasMultipleSections
-        ? hasLocallyStagedPhotos
-              ? 'These receipt photos are saved locally for recovery and will not be deleted, but receipt details have not been opened from them yet.'
-              : 'Receipt details have not been opened from these photos yet.'
-        : hasLocallyStagedPhotos
-        ? 'This receipt photo is saved locally for recovery and will not be deleted, but receipt details have not been opened from it yet.'
-        : 'Receipt details have not been opened from this photo yet.';
+        ? 'You can return to these photos later.'
+        : 'You can return to this photo later.';
     final editCopy = hasEditedReviewPhotos
         ? 'Edited crop/rotation copies currently shown here will also be kept for this review.'
         : '';
@@ -183,7 +176,6 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     return [
       savedCopy,
       if (editCopy.isNotEmpty) editCopy,
-      'Receipt details have not been filled yet.',
       nextCopy,
     ].join(' ');
   }
@@ -230,25 +222,6 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     }
     final target = hasMultipleSections ? 'the ordered photos' : 'this photo';
     return 'Tap $nextLabel to use $target and open receipt details. $saveWithoutFilling';
-  }
-
-  bool _isRecoverableReviewPhoto(String photoPath) {
-    return receiptPhotoPathSetContains(_initialPhotoPaths, photoPath) ||
-        _isStagedReceiptReviewPhoto(photoPath) ||
-        _isPhoneCameraBackupReviewPhoto(photoPath);
-  }
-
-  bool _isStagedReceiptReviewPhoto(String photoPath) {
-    final diagnostics = _captureDiagnosticsByPath[photoPath];
-    return diagnostics?['nativeCaptureAttachmentStorageState'] == 'staged' ||
-        diagnostics?['nativeCaptureRecoveryAttachmentState'] ==
-            'staged_not_attached';
-  }
-
-  bool _isPhoneCameraBackupReviewPhoto(String photoPath) {
-    final diagnostics = _captureDiagnosticsByPath[photoPath];
-    return diagnostics?['captureFlow'] == 'phone_camera_backup_receipt_photo' ||
-        diagnostics?['phoneCameraBackupUsed'] == true;
   }
 
   Map<String, Map<String, Object?>> _captureDiagnosticsWithReceiptBrainDefaults(

@@ -15,6 +15,9 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
       child: Scaffold(
         backgroundColor: widget.uiConfig.previewBackgroundColor,
         body: SafeArea(
+          top: true,
+          bottom: true,
+          maintainBottomViewPadding: true,
           child: Column(
             children: [
               AnimatedSize(

@@ -96,7 +96,6 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
         mainExecutor(),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                captureInFlight = false
                 if (!isCameraSurfaceActive() || closeResultDelivered) return
                 val capturedAt = Instant.now().toString()
                 latestCaptureToSavedMs = captureElapsedSinceStart()
@@ -127,15 +126,25 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                 if (firstCapturedAt == null) firstCapturedAt = capturedAt
                 capturedPhotoPaths.add(outputFile.absolutePath)
                 totalCapturedByteSize += savedByteSize
-                recordCapturedPhotoQuality(outputFile)
-                autoCaptureCooldownUntilMs =
-                    System.currentTimeMillis() + autoCaptureCooldownMs
-                if (pendingCloseAfterCapture) {
-                    pendingCloseAfterCapture = false
-                    finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
-                    return
+                // Decoding and sampling a high-resolution JPEG can take long
+                // enough to trigger an Android ANR when it runs on the UI
+                // callback. Keep the shutter locked until this lightweight
+                // evidence pass has finished, then return to the main thread.
+                receiptPhotoQualityExecutor.execute {
+                    recordCapturedPhotoQuality(outputFile)
+                    runOnUiThread {
+                        captureInFlight = false
+                        if (!isCameraSurfaceActive() || closeResultDelivered) return@runOnUiThread
+                        autoCaptureCooldownUntilMs =
+                            System.currentTimeMillis() + autoCaptureCooldownMs
+                        if (pendingCloseAfterCapture) {
+                            pendingCloseAfterCapture = false
+                            finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
+                            return@runOnUiThread
+                        }
+                        finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
+                    }
                 }
-                finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
             }
 
             override fun onError(exception: ImageCaptureException) {

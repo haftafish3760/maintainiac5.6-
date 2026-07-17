@@ -144,13 +144,16 @@ void main() {
     expect(cameraController, contains('bottom_brighter_than_top'));
     expect(
       cameraController,
-      contains('preview.videoGravity = .resizeAspectFill'),
+      contains('preview.videoGravity = .resizeAspect'),
     );
     expect(
       cameraController,
-      isNot(contains('preview.videoGravity = .resizeAspect\n')),
+      isNot(contains('preview.videoGravity = .resizeAspectFill')),
     );
-    expect(cameraController, contains('nativePreviewScaleMode'));
+    expect(
+      cameraController,
+      contains('nativePreviewScaleMode = "resize_aspect_capture_parity"'),
+    );
     expect(cameraController, contains('nativeControlDensity'));
     expect(fullScreenSettings, contains('Reset this camera session'));
     expect(cameraController, isNot(contains('Reset receipt camera defaults')));
