@@ -51,9 +51,18 @@ void main() {
     expect(decision.status, TripTrackingRecoveryStatus.ready);
     expect(decision.canRestore, isTrue);
     expect(decision.estimatedOdometer, 1001);
+    expect(summary['schemaVersion'], 1);
+    expect(summary['localRecoveryAuthoritative'], isTrue);
+    expect(summary['firestoreCanOverrideLocalRecovery'], isFalse);
+    expect(summary['odometerRemainsCanonical'], isTrue);
+    expect(summary['mapboxCanRestoreTrip'], isFalse);
+    expect(summary['requiresSameVehicle'], isTrue);
+    expect(summary['requiresSameConfirmedOdometer'], isTrue);
     expect(summary['rawLocationIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
     expect(summary['pendingSampleIncluded'], isFalse);
+    expect(summary['rawSessionIncluded'], isFalse);
+    expect(summary['rawReviewIncluded'], isFalse);
   });
 
   test('pending sample can be replayed but is never included in summary', () {
@@ -78,6 +87,7 @@ void main() {
     expect(decision.canRestore, isTrue);
     expect(decision.pendingSampleQueued, isTrue);
     expect(decision.toSafeSummary().toString(), isNot(contains('-80')));
+    expect(decision.toSafeSummary()['pendingSampleIncluded'], isFalse);
   });
 
   test('invalid or already-reviewed recovery records fail closed', () {
@@ -103,6 +113,7 @@ void main() {
     expect(invalidSession.requiresUserAction, isTrue);
     expect(completed.status, TripTrackingRecoveryStatus.completedReviewPresent);
     expect(completed.canRestore, isFalse);
+    expect(completed.toSafeSummary()['rawReviewIncluded'], isFalse);
     expect(
       invalidReview.status,
       TripTrackingRecoveryStatus.invalidReviewPresent,
@@ -124,10 +135,16 @@ void main() {
 
     expect(vehicleMismatch.status, TripTrackingRecoveryStatus.vehicleMismatch);
     expect(vehicleMismatch.requiresUserAction, isTrue);
+    expect(vehicleMismatch.toSafeSummary()['canRestore'], isFalse);
     expect(
       odometerMismatch.status,
       TripTrackingRecoveryStatus.odometerMismatch,
     );
     expect(odometerMismatch.requiresUserAction, isTrue);
+    expect(odometerMismatch.toSafeSummary()['canRestore'], isFalse);
+    expect(
+      odometerMismatch.toSafeSummary()['odometerRemainsCanonical'],
+      isTrue,
+    );
   });
 }

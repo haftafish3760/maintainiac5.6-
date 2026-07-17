@@ -31,15 +31,24 @@ class TripTrackingRecoveryDecision {
   final bool pendingSampleQueued;
 
   Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
     'status': status.name,
     'safeReason': safeReason,
     'canRestore': canRestore,
     'requiresUserAction': requiresUserAction,
     'pendingSampleQueued': pendingSampleQueued,
     if (estimatedOdometer != null) 'estimatedOdometer': estimatedOdometer,
+    'localRecoveryAuthoritative': true,
+    'firestoreCanOverrideLocalRecovery': false,
+    'odometerRemainsCanonical': true,
+    'mapboxCanRestoreTrip': false,
+    'requiresSameVehicle': true,
+    'requiresSameConfirmedOdometer': true,
     'rawLocationIncluded': false,
     'routeGeometryIncluded': false,
     'pendingSampleIncluded': false,
+    'rawSessionIncluded': false,
+    'rawReviewIncluded': false,
   };
 }
 
