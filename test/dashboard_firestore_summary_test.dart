@@ -78,7 +78,7 @@ void main() {
           uid: 'firebaseUid-1',
           dashboardId: 'today',
           updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
-          freeSyncsRemaining: 6,
+          freeSyncsRemaining: 0,
           syncsUsedInWindow: 999,
         );
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
@@ -101,6 +101,38 @@ void main() {
       path: doc.path,
       data: {...doc.data, 'syncsUsedInWindow': 1000},
     );
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+      throwsArgumentError,
+    );
+  });
+
+  test('dashboard summaries reject inconsistent free sync counters', () {
+    expect(
+      () => MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+        uid: 'firebaseUid-1',
+        dashboardId: 'today',
+        updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        freeSyncsRemaining: 6,
+        syncsUsedInWindow: 2,
+      ),
+      throwsArgumentError,
+    );
+
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+          freeSyncsRemaining: 4,
+          syncsUsedInWindow: 2,
+        );
+    final poisoned = MaintainiacFirestoreDocumentDraft(
+      path: doc.path,
+      data: {...doc.data, 'freeSyncsRemaining': 6},
+    );
+
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
     expect(
       () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
       throwsArgumentError,

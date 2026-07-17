@@ -357,6 +357,10 @@ class MaintainiacFirestoreDocumentBuilder {
     final safeOrgId = orgId == null
         ? null
         : _requiredSafePathToken(orgId, 'orgId');
+    _validateDashboardSyncCounterPair(
+      freeSyncsRemaining: freeSyncsRemaining,
+      syncsUsedInWindow: syncsUsedInWindow,
+    );
     return MaintainiacFirestoreDocumentDraft(
       path: safeOrgId == null
           ? '${MaintainiacFirestoreSchema.userCollectionPath(safeUid, MaintainiacFirestoreSchema.orgDashboardSummaries)}/$safeDashboardId'
@@ -418,6 +422,23 @@ int _optionalDashboardSyncCounter(
     throw ArgumentError.value(value, fieldName, 'Must be between 0 and $max.');
   }
   return value;
+}
+
+void _validateDashboardSyncCounterPair({
+  required int? freeSyncsRemaining,
+  required int? syncsUsedInWindow,
+}) {
+  if (freeSyncsRemaining == null || syncsUsedInWindow == null) return;
+  final expectedRemaining = HostedUsageLimits.freeSyncsRemaining(
+    syncsUsedInWindow: syncsUsedInWindow,
+  );
+  if (freeSyncsRemaining != expectedRemaining) {
+    throw ArgumentError.value(
+      freeSyncsRemaining,
+      'freeSyncsRemaining',
+      'Must match syncsUsedInWindow for the free 24-hour sync window.',
+    );
+  }
 }
 
 Map<String, Object?> _sanitizeCatalogHealth(Map<String, Object?> source) {

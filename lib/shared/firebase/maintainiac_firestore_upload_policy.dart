@@ -269,6 +269,7 @@ class MaintainiacFirestoreUploadPolicy {
         _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
         _isValidFreeSyncsRemaining(draft.data['freeSyncsRemaining']) &&
         _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
+        _hasConsistentDashboardSyncCounters(draft.data) &&
         draft.data['batteryGpsLimited'] is bool &&
         draft.data['reviewRequired'] is bool;
     if (!validShape) {
@@ -504,6 +505,15 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isValidSyncsUsedInWindow(Object? value) =>
       value == null || (value is int && value >= 0 && value <= 999);
+
+  static bool _hasConsistentDashboardSyncCounters(Map<String, Object?> data) {
+    final remaining = data['freeSyncsRemaining'];
+    final used = data['syncsUsedInWindow'];
+    if (remaining == null || used == null) return true;
+    if (remaining is! int || used is! int) return false;
+    return remaining ==
+        HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: used);
+  }
 
   static bool _isNonNegativeInt(Object? value) => value is int && value >= 0;
 
