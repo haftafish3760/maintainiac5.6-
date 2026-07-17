@@ -34,11 +34,24 @@ class DashboardFirestoreMirror {
     bool batteryGpsLimited = false,
     bool reviewRequired = false,
   }) async {
+    final updatedAt = updatedAtUtc.toUtc();
+    final existing = _pendingSummaryFor(
+      uid: uid,
+      dashboardId: dashboardId,
+      orgId: orgId,
+      nowUtc: updatedAt,
+    );
+    final existingUpdatedAt = existing == null
+        ? null
+        : DateTime.tryParse('${existing.data['updatedAt'] ?? ''}');
+    if (existingUpdatedAt != null && updatedAt.isBefore(existingUpdatedAt)) {
+      return;
+    }
     final document =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
           uid: uid,
           dashboardId: dashboardId,
-          updatedAtUtc: updatedAtUtc,
+          updatedAtUtc: updatedAt,
           orgId: orgId,
           activeVehicleId: activeVehicleId,
           activeWorkdayId: activeWorkdayId,
@@ -55,7 +68,7 @@ class DashboardFirestoreMirror {
         );
     await _queueStore.enqueueReplacingPendingForPath(
       document,
-      queuedAtUtc: updatedAtUtc.toUtc(),
+      queuedAtUtc: updatedAt,
       preserveAttemptMetadata: true,
     );
   }
@@ -79,5 +92,29 @@ class DashboardFirestoreMirror {
             updatedAtUtc: nowUtc ?? DateTime.now().toUtc(),
           ).path;
     return _uploadCoordinator.uploadPending(path: path, nowUtc: nowUtc);
+  }
+
+  MaintainiacFirestoreQueuedDocument? _pendingSummaryFor({
+    required String uid,
+    required String dashboardId,
+    required String? orgId,
+    required DateTime nowUtc,
+  }) {
+    final path = orgId == null
+        ? MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+            uid: uid,
+            dashboardId: dashboardId,
+            updatedAtUtc: nowUtc,
+          ).path
+        : MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+            uid: uid,
+            orgId: orgId,
+            dashboardId: dashboardId,
+            updatedAtUtc: nowUtc,
+          ).path;
+    for (final record in _queueStore.pendingRecords) {
+      if (record.path == path) return record;
+    }
+    return null;
   }
 }

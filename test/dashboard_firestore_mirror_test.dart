@@ -110,6 +110,44 @@ void main() {
     expect(queue.pendingRecords.single.data['gpsAssistState'], 'on');
   });
 
+  test(
+    'older dashboard summary writes cannot overwrite fresher state',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      );
+
+      await mirror.queueSummary(
+        uid: 'firebaseUid-1',
+        dashboardId: 'today',
+        updatedAtUtc: DateTime.utc(2026, 7, 16, 12, 5),
+        gpsAssistState: 'on',
+        batteryGpsLimited: true,
+      );
+      await mirror.queueSummary(
+        uid: 'firebaseUid-1',
+        dashboardId: 'today',
+        updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        gpsAssistState: 'off',
+        batteryGpsLimited: false,
+      );
+
+      expect(queue.pendingRecords, hasLength(1));
+      expect(queue.pendingRecords.single.data['gpsAssistState'], 'on');
+      expect(queue.pendingRecords.single.data['batteryGpsLimited'], isTrue);
+      expect(
+        queue.pendingRecords.single.data['updatedAt'],
+        DateTime.utc(2026, 7, 16, 12, 5).toIso8601String(),
+      );
+    },
+  );
+
   test('dashboard summary refresh preserves pending retry backoff', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final mirror = DashboardFirestoreMirror(
