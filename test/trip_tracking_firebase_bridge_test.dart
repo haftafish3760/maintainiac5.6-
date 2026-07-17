@@ -273,6 +273,31 @@ void main() {
     },
   );
 
+  test('Firestore mileage reads require consent for fleet visibility', () {
+    final rules = File('firestore.rules').readAsStringSync();
+    final orgStart = rules.indexOf('match /orgs/{orgId}');
+    expect(orgStart, greaterThanOrEqualTo(0));
+    final mileageStart = rules.indexOf(
+      'match /mileageRecords/{recordId}',
+      orgStart,
+    );
+    final mileageEnd = rules.indexOf('match /dashboardSummaries', mileageStart);
+    expect(mileageStart, greaterThanOrEqualTo(0));
+    expect(mileageEnd, greaterThan(mileageStart));
+    final mileageRules = rules.substring(mileageStart, mileageEnd);
+
+    expect(
+      mileageRules,
+      contains('resource.data.organizationSharingConsent == true'),
+    );
+    expect(mileageRules, contains('viewFleetMileageReports'));
+    expect(
+      mileageRules,
+      contains('resource.data.createdByUid == request.auth.uid'),
+    );
+    expect(mileageRules, contains('allow delete: if false'));
+  });
+
   test(
     'local upload policy rejects location data before it reaches the queue',
     () {
