@@ -281,6 +281,35 @@ void main() {
     expect(doc.data['confirmedEndingOdometer'], 1011);
   });
 
+  test('local upload policy allows odometer truth below GPS estimate', () {
+    final odometerReview = TripTrackingReviewRecord(
+      id: 'trip_upload_odometer_lower_than_gps',
+      vehicleId: 'truck-1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1012,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 19312.128,
+        walkingReviewSuggested: true,
+        motionState: TripMotionState.stopped,
+      ),
+      confirmedEndingOdometer: 1011,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+    );
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: odometerReview,
+        );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(doc),
+      returnsNormally,
+    );
+  });
+
   test('document builders reject unsafe mileage path identifiers', () {
     expect(
       () => MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
