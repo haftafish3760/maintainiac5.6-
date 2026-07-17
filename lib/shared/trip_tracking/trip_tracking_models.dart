@@ -336,11 +336,11 @@ class TripActivityObservation {
   static TripActivityObservation? tryFromMap(Map<dynamic, dynamic> map) {
     final rawConfidence = _tripNumberFrom(map['confidence']);
     if (rawConfidence == null) return null;
-    final confidence = rawConfidence.round();
     final recordedAt = _tripTimestampFrom(map['recordedAt']);
-    if (confidence < 0 || confidence > 100 || recordedAt == null) {
+    if (rawConfidence < 0 || rawConfidence > 100 || recordedAt == null) {
       return null;
     }
+    final confidence = rawConfidence.floor();
     return TripActivityObservation(
       activity: TripActivity.values.firstWhere(
         (value) => value.name == map['activity'],

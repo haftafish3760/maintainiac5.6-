@@ -338,6 +338,27 @@ void main() {
       }),
       isNull,
     );
+
+    expect(
+      TripActivityObservation.tryFromMap({
+        'activity': 'walking',
+        'confidence': 100.4,
+        'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+      }),
+      isNull,
+    );
+  });
+
+  test('fractional activity confidence cannot promote walking evidence', () {
+    final parsed = TripActivityObservation.tryFromMap({
+      'activity': 'walking',
+      'confidence': 69.9,
+      'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+    });
+
+    expect(parsed, isNotNull);
+    expect(parsed!.confidence, 69);
+    expect(parsed.isHighConfidenceWalking, isFalse);
   });
 
   test('persisted engine snapshots do not write invalid accepted distance', () {
