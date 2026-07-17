@@ -770,6 +770,42 @@ void main() {
   });
 
   test(
+    'stale GPS trip projection updates cannot move a restarted odometer',
+    () {
+      final controller = GlobalOdometerController(initialReading: 1000);
+
+      expect(
+        controller.beginLiveTripProjection(
+          tripId: 'trip_original',
+          startingOdometer: 1000,
+        ),
+        isTrue,
+      );
+      expect(
+        controller.clearLiveTripProjection(tripId: 'trip_original'),
+        isTrue,
+      );
+      expect(
+        controller.beginLiveTripProjection(
+          tripId: 'trip_restarted',
+          startingOdometer: 1000,
+        ),
+        isTrue,
+      );
+
+      expect(
+        controller.updateLiveTripProjection(
+          tripId: 'trip_original',
+          estimatedOdometer: 1005,
+        ),
+        isFalse,
+      );
+      expect(controller.reading, 1000);
+      expect(controller.confirmedReading, 1000);
+    },
+  );
+
+  test(
     'an active GPS trip prevents switching the active odometer vehicle',
     () async {
       final controller = GlobalOdometerController(initialReading: 1000);
