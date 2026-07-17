@@ -170,6 +170,9 @@ class MaintainiacFirestoreUploadPolicy {
       throw ArgumentError.value(path, 'path', 'Unsafe Firestore path.');
     }
     final parts = clean.split('/');
+    if (parts.any(_isUnsafePathSegment)) {
+      throw ArgumentError.value(path, 'path', 'Unsafe Firestore path segment.');
+    }
     if (parts.length.isOdd) {
       throw ArgumentError.value(path, 'path', 'Path must target a document.');
     }
@@ -181,6 +184,11 @@ class MaintainiacFirestoreUploadPolicy {
       );
     }
   }
+
+  static bool _isUnsafePathSegment(String segment) =>
+      segment.isEmpty ||
+      segment.length > 200 ||
+      RegExp(r'[\x00-\x1F\x7F]').hasMatch(segment);
 
   static void _validateDocumentSize(MaintainiacFirestoreDocumentDraft draft) {
     final bytes = utf8.encode(jsonEncode(draft.data)).length;

@@ -484,6 +484,20 @@ void main() {
         ),
         throwsArgumentError,
       );
+      for (final path in [
+        'parserHealth/${'x' * 201}',
+        'parserHealth/bad\nsegment',
+      ]) {
+        expect(
+          () => MaintainiacFirestoreUploadPolicy.validateDraft(
+            MaintainiacFirestoreDocumentDraft(
+              path: path,
+              data: const {'schema': 'bad'},
+            ),
+          ),
+          throwsArgumentError,
+        );
+      }
       expect(
         () => MaintainiacFirestoreUploadPolicy.validateDraft(
           const MaintainiacFirestoreDocumentDraft(
