@@ -512,6 +512,16 @@ void main() {
         'mapMatching',
         'optimizationRoute',
         'directionsRoute',
+        'geometry',
+        'waypoints',
+        'navigationRoute',
+        'directions',
+        'matrix',
+        'isochrone',
+        'optimization',
+        'mapMatchedTrace',
+        'evChargeFinder',
+        'chargingStations',
       ]) {
         expect(rules, contains("'$forbiddenRouteField'"));
       }
@@ -568,6 +578,20 @@ void main() {
         'mapMatching': 'raw-map-match-json',
         'optimizationRoute': 'raw-optimization-json',
         'directionsRoute': 'raw-directions-json',
+        'geometry': {'encoded': 'hidden-route'},
+        'waypoints': const ['private-stop'],
+        'navigationRoute': 'raw-navigation-route',
+        'directions': {'legs': 1},
+        'matrix': {
+          'durations': const [0, 120],
+        },
+        'isochrone': {
+          'contours': const [5, 10],
+        },
+        'optimization': 'raw-optimization-response',
+        'mapMatchedTrace': 'raw-map-matched-trace',
+        'evChargeFinder': 'raw-ev-charge-finder-response',
+        'chargingStations': const ['station-near-stop'],
         'routePoints': const [
           {'latitude': 35.0, 'longitude': -80.0},
         ],
