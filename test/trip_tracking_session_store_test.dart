@@ -433,6 +433,30 @@ void main() {
     expect(review.vehicleId, hasLength(160));
   });
 
+  test('persisted GPS advisory text fields are trimmed and bounded', () {
+    final advisory = TripTrackingAdvisoryEvent.fromMap({
+      'id': ' ${'a' * 220} ',
+      'type': 'probableStop',
+      'sessionId': ' ${'s' * 220} ',
+      'vehicleId': ' ${'v' * 220} ',
+      'profile': 'roadVehicle',
+      'detectedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'evidenceStartedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'evidenceEndedAt': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+      'confidence': 'high',
+      'suggestedAction': 'review\n${'x' * 180}',
+      'tripLogReference': ' ${'t' * 220} ',
+    });
+    final map = advisory.toMap();
+
+    expect(map['id'], hasLength(160));
+    expect(map['sessionId'], hasLength(160));
+    expect(map['vehicleId'], hasLength(160));
+    expect(map['suggestedAction'], hasLength(120));
+    expect(map['suggestedAction'], isNot(contains('\n')));
+    expect(map['tripLogReference'], hasLength(160));
+  });
+
   test('persisted review identity and odometer ranges are validated', () {
     final base = TripTrackingReviewRecord(
       id: 'trip_review_identity',

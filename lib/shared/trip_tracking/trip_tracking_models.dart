@@ -103,29 +103,29 @@ class TripTrackingAdvisoryEvent {
   );
 
   Map<String, Object?> toMap() => {
-    'id': id,
+    'id': _safeText(id, maxLength: 160),
     'type': type.name,
-    'sessionId': sessionId,
-    'vehicleId': vehicleId,
+    'sessionId': _safeText(sessionId, maxLength: 160),
+    'vehicleId': _safeText(vehicleId, maxLength: 160),
     'profile': profile.name,
     'detectedAt': detectedAt.toIso8601String(),
     'evidenceStartedAt': evidenceStartedAt.toIso8601String(),
     'evidenceEndedAt': evidenceEndedAt.toIso8601String(),
     'confidence': confidence.name,
-    'suggestedAction': suggestedAction,
+    'suggestedAction': _safeText(suggestedAction, maxLength: 120),
     'disposition': disposition.name,
-    'tripLogReference': tripLogReference,
+    'tripLogReference': _optionalSafeText(tripLogReference, maxLength: 160),
   };
 
   factory TripTrackingAdvisoryEvent.fromMap(Map<dynamic, dynamic> map) =>
       TripTrackingAdvisoryEvent(
-        id: '${map['id'] ?? ''}',
+        id: _safeText(map['id'], maxLength: 160),
         type: TripTrackingAdvisoryType.values.firstWhere(
           (value) => value.name == map['type'],
           orElse: () => TripTrackingAdvisoryType.probableStop,
         ),
-        sessionId: '${map['sessionId'] ?? ''}',
-        vehicleId: '${map['vehicleId'] ?? ''}',
+        sessionId: _safeText(map['sessionId'], maxLength: 160),
+        vehicleId: _safeText(map['vehicleId'], maxLength: 160),
         profile: TripTrackingProfile.values.firstWhere(
           (value) => value.name == map['profile'],
           orElse: () => TripTrackingProfile.roadVehicle,
@@ -144,13 +144,38 @@ class TripTrackingAdvisoryEvent {
           (value) => value.name == map['confidence'],
           orElse: () => TripTrackingConfidence.unknown,
         ),
-        suggestedAction: '${map['suggestedAction'] ?? 'review'}',
+        suggestedAction: _safeText(
+          map['suggestedAction'],
+          maxLength: 120,
+          fallback: 'review',
+        ),
         disposition: TripTrackingAdvisoryDisposition.values.firstWhere(
           (value) => value.name == map['disposition'],
           orElse: () => TripTrackingAdvisoryDisposition.pending,
         ),
-        tripLogReference: map['tripLogReference'] as String?,
+        tripLogReference: _optionalSafeText(
+          map['tripLogReference'],
+          maxLength: 160,
+        ),
       );
+}
+
+String _safeText(
+  Object? value, {
+  required int maxLength,
+  String fallback = '',
+}) {
+  final clean = '${value ?? ''}'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
+  if (clean.isEmpty) return fallback;
+  return clean.length > maxLength ? clean.substring(0, maxLength) : clean;
+}
+
+String? _optionalSafeText(Object? value, {required int maxLength}) {
+  if (value == null) return null;
+  final clean = _safeText(value, maxLength: maxLength);
+  return clean.isEmpty ? null : clean;
 }
 
 enum TripSampleDisposition {
