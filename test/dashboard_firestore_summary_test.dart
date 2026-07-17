@@ -345,6 +345,12 @@ void main() {
         'longitude',
         'coordinates',
         'route',
+        'mapboxRoute',
+        'mapboxGeometry',
+        'mapboxPolyline',
+        'mapMatching',
+        'optimizationRoute',
+        'directionsRoute',
         'routePoints',
         'polyline',
         'address',
@@ -417,6 +423,16 @@ void main() {
         rules,
         contains('request.resource.data.locationDataIncluded == false'),
       );
+      for (final forbiddenRouteField in const [
+        'mapboxRoute',
+        'mapboxGeometry',
+        'mapboxPolyline',
+        'mapMatching',
+        'optimizationRoute',
+        'directionsRoute',
+      ]) {
+        expect(rules, contains("'$forbiddenRouteField'"));
+      }
       expect(
         rules,
         contains('request.resource.data.rawModuleDataIncluded == false'),

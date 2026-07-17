@@ -505,6 +505,16 @@ void main() {
       expect(valueCheck, contains('odometerConfirmedAt >='));
       expect(valueCheck, contains('acceptedMeters >= 0'));
       expect(valueCheck, contains('acceptedSampleCount <='));
+      for (final forbiddenRouteField in const [
+        'mapboxRoute',
+        'mapboxGeometry',
+        'mapboxPolyline',
+        'mapMatching',
+        'optimizationRoute',
+        'directionsRoute',
+      ]) {
+        expect(rules, contains("'$forbiddenRouteField'"));
+      }
       expect(rules, contains('function hasCoherentMileageSummaryDistance'));
       expect(rules, contains('acceptedMeters >= (acceptedMiles - 0.01)'));
       expect(rules, contains('acceptedMiles < odometerDelta + 0.5'));
@@ -552,6 +562,12 @@ void main() {
         'longitude': -80.0,
         'coordinates': [35.0, -80.0],
         'route': 'raw-route-json',
+        'mapboxRoute': 'raw-mapbox-route-json',
+        'mapboxGeometry': 'raw-mapbox-geometry',
+        'mapboxPolyline': 'encoded_mapbox_polyline',
+        'mapMatching': 'raw-map-match-json',
+        'optimizationRoute': 'raw-optimization-json',
+        'directionsRoute': 'raw-directions-json',
         'routePoints': const [
           {'latitude': 35.0, 'longitude': -80.0},
         ],
