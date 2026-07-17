@@ -270,7 +270,7 @@ void main() {
   });
 
   test('low battery GPS protection is persisted and reversible', () {
-    const settings = TripTrackingSettings();
+    const settings = TripTrackingSettings(gpsAssistedTrackingEnabled: true);
     final bypassed = settings.copyWith(
       lowBatteryGpsOverrideEnabled: true,
       lowBatteryGpsWarningDismissed: true,
@@ -294,6 +294,25 @@ void main() {
     );
     expect(reset.lowBatteryGpsOverrideEnabled, isFalse);
     expect(reset.lowBatteryGpsWarningDismissed, isFalse);
+  });
+
+  test('GPS opt-out clears saved low battery bypass state', () {
+    final disabled = const TripTrackingSettings(
+      gpsAssistedTrackingEnabled: true,
+      lowBatteryGpsOverrideEnabled: true,
+      lowBatteryGpsWarningDismissed: true,
+    ).copyWith(gpsAssistedTrackingEnabled: false);
+    final restored = TripTrackingSettings.fromMap(const {
+      'gpsAssistedTrackingEnabled': false,
+      'lowBatteryGpsOverrideEnabled': true,
+      'lowBatteryGpsWarningDismissed': true,
+    });
+
+    expect(disabled.gpsAssistedTrackingEnabled, isFalse);
+    expect(disabled.lowBatteryGpsOverrideEnabled, isFalse);
+    expect(disabled.lowBatteryGpsWarningDismissed, isFalse);
+    expect(restored.lowBatteryGpsOverrideEnabled, isFalse);
+    expect(restored.lowBatteryGpsWarningDismissed, isFalse);
   });
 
   test('low battery GPS decision requires explicit user choice by default', () {
@@ -331,6 +350,7 @@ void main() {
   test('low battery override allows GPS only after user opt-in', () {
     const policy = TripTrackingPolicy();
     final settings = const TripTrackingSettings().copyWith(
+      gpsAssistedTrackingEnabled: true,
       lowBatteryGpsOverrideEnabled: true,
       lowBatteryGpsWarningDismissed: true,
     );
@@ -377,6 +397,7 @@ void main() {
   test('cancel and do-not-show-again keeps low battery GPS blocked', () {
     const policy = TripTrackingPolicy();
     final settings = const TripTrackingSettings().copyWith(
+      gpsAssistedTrackingEnabled: true,
       lowBatteryGpsOverrideEnabled: false,
       lowBatteryGpsWarningDismissed: true,
     );

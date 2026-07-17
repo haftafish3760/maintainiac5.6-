@@ -118,9 +118,11 @@ class TripTrackingSettings {
       lowBatteryGpsProtectionEnabled:
           lowBatteryGpsProtectionEnabled ?? this.lowBatteryGpsProtectionEnabled,
       lowBatteryGpsOverrideEnabled:
-          lowBatteryGpsOverrideEnabled ?? this.lowBatteryGpsOverrideEnabled,
+          gpsEnabled &&
+          (lowBatteryGpsOverrideEnabled ?? this.lowBatteryGpsOverrideEnabled),
       lowBatteryGpsWarningDismissed:
-          lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed,
+          gpsEnabled &&
+          (lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed),
       backupNetworkPolicy: backupNetworkPolicy ?? this.backupNetworkPolicy,
     );
   }
@@ -171,9 +173,10 @@ class TripTrackingSettings {
           bluetoothEnabled && map['automaticVehicleSwitchEnabled'] == true,
       lowBatteryGpsProtectionEnabled:
           map['lowBatteryGpsProtectionEnabled'] != false,
-      lowBatteryGpsOverrideEnabled: map['lowBatteryGpsOverrideEnabled'] == true,
+      lowBatteryGpsOverrideEnabled:
+          gpsEnabled && map['lowBatteryGpsOverrideEnabled'] == true,
       lowBatteryGpsWarningDismissed:
-          map['lowBatteryGpsWarningDismissed'] == true,
+          gpsEnabled && map['lowBatteryGpsWarningDismissed'] == true,
       backupNetworkPolicy: TripTrackingBackupNetworkPolicy.values.firstWhere(
         (value) => value.name == map['backupNetworkPolicy'],
         orElse: () => TripTrackingBackupNetworkPolicy.wifiAndMobileData,
