@@ -128,6 +128,43 @@ void main() {
   );
 
   test(
+    'a rideshare-style long traffic light does not become a delivery stop',
+    () {
+      final points = <SimulatedTripPoint>[
+        SimulatedTripPoint(point(-80, 0, speed: 9)),
+        SimulatedTripPoint(point(-79.999, 20, speed: 9)),
+        SimulatedTripPoint(point(-79.998, 40, speed: 9)),
+      ];
+      for (var index = 0; index < 10; index++) {
+        points.add(
+          SimulatedTripPoint(
+            point(
+              -79.998 + ((index.isEven ? 1 : -1) * .00001),
+              55 + (index * 10),
+              speed: 0,
+            ),
+          ),
+        );
+      }
+      points.addAll([
+        SimulatedTripPoint(point(-79.997, 170, speed: 9)),
+        SimulatedTripPoint(point(-79.996, 190, speed: 9)),
+      ]);
+
+      final result = replayTrip(points);
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.count(TripSampleDisposition.excludedWalking), isZero);
+      expect(
+        result.count(TripSampleDisposition.rejectedDrift),
+        greaterThanOrEqualTo(8),
+      );
+      expect(result.acceptedMeters, greaterThan(250));
+      expect(result.acceptedMeters, lessThan(450));
+    },
+  );
+
+  test(
     'spoof-like jumps, timestamp reversals, and malformed points fail closed',
     () {
       final result = replayTrip([
