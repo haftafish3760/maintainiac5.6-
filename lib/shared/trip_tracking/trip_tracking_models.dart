@@ -391,11 +391,15 @@ class TripTrackingDiagnostics {
   }
 
   Map<String, Object?> toMap() => {
-    'receivedSamples': receivedSamples,
-    'acceptedSamples': acceptedSamples,
+    'receivedSamples': _safeNonNegativeInt(receivedSamples),
+    'acceptedSamples': _safeAcceptedDiagnosticsCount(
+      acceptedSamples,
+      receivedSamples,
+    ),
     'dispositionCounts': {
       for (final entry in dispositionCounts.entries)
-        entry.key.name: entry.value,
+        if (_safeNonNegativeInt(entry.value) > 0)
+          entry.key.name: _safeNonNegativeInt(entry.value),
     },
   };
 
@@ -422,6 +426,12 @@ class TripTrackingDiagnostics {
       dispositionCounts: Map.unmodifiable(counts),
     );
   }
+}
+
+int _safeAcceptedDiagnosticsCount(int acceptedSamples, int receivedSamples) {
+  final received = _safeNonNegativeInt(receivedSamples);
+  final accepted = _safeNonNegativeInt(acceptedSamples);
+  return accepted > received ? 0 : accepted;
 }
 
 int _safeNonNegativeInt(Object? value) {

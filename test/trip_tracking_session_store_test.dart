@@ -195,6 +195,25 @@ void main() {
     expect(TripTrackingEngineSnapshot.fromMap(map).totalAcceptedMeters, 0);
   });
 
+  test('persisted trip diagnostics sanitize impossible counters', () {
+    const diagnostics = TripTrackingDiagnostics(
+      receivedSamples: 2,
+      acceptedSamples: 5,
+      dispositionCounts: {
+        TripSampleDisposition.acceptedAnchor: 1,
+        TripSampleDisposition.rejectedAccuracy: -4,
+      },
+    );
+
+    final map = diagnostics.toMap();
+    final counts = map['dispositionCounts'] as Map<String, Object?>;
+
+    expect(map['receivedSamples'], 2);
+    expect(map['acceptedSamples'], 0);
+    expect(counts, containsPair('acceptedAnchor', 1));
+    expect(counts, isNot(contains('rejectedAccuracy')));
+  });
+
   test('legacy GPS records receive safe persistence defaults', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'legacy',
