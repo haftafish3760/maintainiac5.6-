@@ -18,13 +18,16 @@ class TripTrackingSettings {
     this.samplingPreset = TripTrackingSamplingPreset.enhancedAccuracy,
     this.customIntervalSeconds = 15,
     this.adaptiveSamplingEnabled = false,
-    this.activityRecognitionEnabled = true,
+    this.activityRecognitionEnabled = false,
     this.walkingTransitionReviewEnabled = true,
     this.backgroundTrackingEnabled = false,
     this.organizationMileageSharingEnabled = false,
     this.defaultProfile = TripTrackingProfile.roadVehicle,
     this.bluetoothVehicleRecognitionEnabled = false,
     this.automaticVehicleSwitchEnabled = false,
+    this.lowBatteryGpsProtectionEnabled = true,
+    this.lowBatteryGpsOverrideEnabled = false,
+    this.lowBatteryGpsWarningDismissed = false,
   });
 
   final bool gpsAssistedTrackingEnabled;
@@ -38,6 +41,9 @@ class TripTrackingSettings {
   final TripTrackingProfile defaultProfile;
   final bool bluetoothVehicleRecognitionEnabled;
   final bool automaticVehicleSwitchEnabled;
+  final bool lowBatteryGpsProtectionEnabled;
+  final bool lowBatteryGpsOverrideEnabled;
+  final bool lowBatteryGpsWarningDismissed;
 
   TripTrackingSettings copyWith({
     bool? gpsAssistedTrackingEnabled,
@@ -51,6 +57,9 @@ class TripTrackingSettings {
     TripTrackingProfile? defaultProfile,
     bool? bluetoothVehicleRecognitionEnabled,
     bool? automaticVehicleSwitchEnabled,
+    bool? lowBatteryGpsProtectionEnabled,
+    bool? lowBatteryGpsOverrideEnabled,
+    bool? lowBatteryGpsWarningDismissed,
   }) {
     final bluetoothEnabled =
         bluetoothVehicleRecognitionEnabled ??
@@ -78,6 +87,12 @@ class TripTrackingSettings {
       defaultProfile: defaultProfile ?? this.defaultProfile,
       bluetoothVehicleRecognitionEnabled: bluetoothEnabled,
       automaticVehicleSwitchEnabled: bluetoothEnabled && automaticSwitch,
+      lowBatteryGpsProtectionEnabled:
+          lowBatteryGpsProtectionEnabled ?? this.lowBatteryGpsProtectionEnabled,
+      lowBatteryGpsOverrideEnabled:
+          lowBatteryGpsOverrideEnabled ?? this.lowBatteryGpsOverrideEnabled,
+      lowBatteryGpsWarningDismissed:
+          lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed,
     );
   }
 
@@ -93,6 +108,9 @@ class TripTrackingSettings {
     'defaultProfile': defaultProfile.name,
     'bluetoothVehicleRecognitionEnabled': bluetoothVehicleRecognitionEnabled,
     'automaticVehicleSwitchEnabled': automaticVehicleSwitchEnabled,
+    'lowBatteryGpsProtectionEnabled': lowBatteryGpsProtectionEnabled,
+    'lowBatteryGpsOverrideEnabled': lowBatteryGpsOverrideEnabled,
+    'lowBatteryGpsWarningDismissed': lowBatteryGpsWarningDismissed,
   };
 
   factory TripTrackingSettings.fromMap(Map<dynamic, dynamic> map) {
@@ -104,7 +122,7 @@ class TripTrackingSettings {
         (map['customIntervalSeconds'] as num?)?.round() ?? 15,
       ),
       adaptiveSamplingEnabled: map['adaptiveSamplingEnabled'] == true,
-      activityRecognitionEnabled: map['activityRecognitionEnabled'] != false,
+      activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
       walkingTransitionReviewEnabled:
           map['walkingTransitionReviewEnabled'] != false,
       backgroundTrackingEnabled: map['backgroundTrackingEnabled'] == true,
@@ -117,6 +135,11 @@ class TripTrackingSettings {
       bluetoothVehicleRecognitionEnabled: bluetoothEnabled,
       automaticVehicleSwitchEnabled:
           bluetoothEnabled && map['automaticVehicleSwitchEnabled'] == true,
+      lowBatteryGpsProtectionEnabled:
+          map['lowBatteryGpsProtectionEnabled'] != false,
+      lowBatteryGpsOverrideEnabled: map['lowBatteryGpsOverrideEnabled'] == true,
+      lowBatteryGpsWarningDismissed:
+          map['lowBatteryGpsWarningDismissed'] == true,
     );
   }
 }

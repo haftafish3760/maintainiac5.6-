@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
@@ -19,6 +20,10 @@ void main() {
       expect(settings.bluetoothVehicleRecognitionEnabled, isFalse);
       expect(settings.automaticVehicleSwitchEnabled, isFalse);
       expect(settings.adaptiveSamplingEnabled, isFalse);
+      expect(settings.activityRecognitionEnabled, isFalse);
+      expect(settings.lowBatteryGpsProtectionEnabled, isTrue);
+      expect(settings.lowBatteryGpsOverrideEnabled, isFalse);
+      expect(settings.lowBatteryGpsWarningDismissed, isFalse);
     },
   );
 
@@ -90,5 +95,126 @@ void main() {
       TripTrackingSettings.fromMap({'batteryMode': 'saver'}).samplingPreset,
       TripTrackingSamplingPreset.batterySaver,
     );
+  });
+
+  test('motion activity recognition is a separately persisted opt-in', () {
+    const settings = TripTrackingSettings();
+    final enabled = settings.copyWith(activityRecognitionEnabled: true);
+
+    expect(enabled.activityRecognitionEnabled, isTrue);
+    expect(
+      TripTrackingSettings.fromMap(enabled.toMap()).activityRecognitionEnabled,
+      isTrue,
+    );
+    expect(
+      TripTrackingSettings.fromMap(const {}).activityRecognitionEnabled,
+      isFalse,
+    );
+  });
+
+  test('low battery GPS protection is persisted and reversible', () {
+    const settings = TripTrackingSettings();
+    final bypassed = settings.copyWith(
+      lowBatteryGpsOverrideEnabled: true,
+      lowBatteryGpsWarningDismissed: true,
+    );
+    final reset = bypassed.copyWith(
+      lowBatteryGpsOverrideEnabled: false,
+      lowBatteryGpsWarningDismissed: false,
+    );
+
+    expect(
+      TripTrackingSettings.fromMap(
+        bypassed.toMap(),
+      ).lowBatteryGpsOverrideEnabled,
+      isTrue,
+    );
+    expect(
+      TripTrackingSettings.fromMap(
+        bypassed.toMap(),
+      ).lowBatteryGpsWarningDismissed,
+      isTrue,
+    );
+    expect(reset.lowBatteryGpsOverrideEnabled, isFalse);
+    expect(reset.lowBatteryGpsWarningDismissed, isFalse);
+  });
+
+  test('low battery GPS decision requires explicit user choice by default', () {
+    const policy = TripTrackingPolicy();
+    const settings = TripTrackingSettings();
+
+    final decision = policy.gpsBatteryDecision(
+      batteryPercent: 19,
+      isCharging: false,
+      lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+      lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
+      lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
+    );
+
+    expect(decision.status, TripGpsBatteryDecisionStatus.userPromptRequired);
+    expect(decision.allowsGps, isFalse);
+    expect(decision.reasonCode, 'low_battery_requires_user_choice');
+  });
+
+  test('low battery override allows GPS only after user opt-in', () {
+    const policy = TripTrackingPolicy();
+    final settings = const TripTrackingSettings().copyWith(
+      lowBatteryGpsOverrideEnabled: true,
+      lowBatteryGpsWarningDismissed: true,
+    );
+
+    final decision = policy.gpsBatteryDecision(
+      batteryPercent: 5,
+      isCharging: false,
+      lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+      lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
+      lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
+    );
+
+    expect(decision.status, TripGpsBatteryDecisionStatus.allowed);
+    expect(decision.reasonCode, 'user_override_low_battery');
+  });
+
+  test('cancel and do-not-show-again keeps low battery GPS blocked', () {
+    const policy = TripTrackingPolicy();
+    final settings = const TripTrackingSettings().copyWith(
+      lowBatteryGpsOverrideEnabled: false,
+      lowBatteryGpsWarningDismissed: true,
+    );
+
+    final decision = policy.gpsBatteryDecision(
+      batteryPercent: 19,
+      isCharging: false,
+      lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+      lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
+      lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
+    );
+
+    expect(decision.status, TripGpsBatteryDecisionStatus.blocked);
+    expect(decision.reasonCode, 'low_battery_gps_blocked_by_saved_choice');
+  });
+
+  test('charging device or unknown battery reading does not block GPS', () {
+    const policy = TripTrackingPolicy();
+
+    final charging = policy.gpsBatteryDecision(
+      batteryPercent: 1,
+      isCharging: true,
+      lowBatteryProtectionEnabled: true,
+      lowBatteryOverrideEnabled: false,
+      lowBatteryWarningDismissed: false,
+    );
+    final unknown = policy.gpsBatteryDecision(
+      batteryPercent: null,
+      isCharging: false,
+      lowBatteryProtectionEnabled: true,
+      lowBatteryOverrideEnabled: false,
+      lowBatteryWarningDismissed: false,
+    );
+
+    expect(charging.status, TripGpsBatteryDecisionStatus.allowed);
+    expect(charging.reasonCode, 'device_charging');
+    expect(unknown.status, TripGpsBatteryDecisionStatus.allowed);
+    expect(unknown.reasonCode, 'battery_unknown');
   });
 }

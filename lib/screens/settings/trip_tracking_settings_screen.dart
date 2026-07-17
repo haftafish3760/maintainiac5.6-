@@ -229,7 +229,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _switch(
-            title: 'Back up reviewed mileage to Firebase',
+            title: 'Back up reviewed mileage',
             detail:
                 'Off by default. Turning it off cancels unsent backup. Only reviewed mileage summaries are backed up; GPS coordinates, routes, raw samples, and live location never leave this device.',
             value: cloudBackupEnabled,
@@ -260,6 +260,33 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             onChanged: (value) =>
                 onChanged(settings.copyWith(backgroundTrackingEnabled: value)),
           ),
+          _switch(
+            title: 'Protect GPS below 20% battery',
+            detail:
+                'On by default. Below 20%, GPS asks before continuing so the phone keeps enough battery for the driver.',
+            value: settings.lowBatteryGpsProtectionEnabled,
+            onChanged: (value) => onChanged(
+              settings.copyWith(lowBatteryGpsProtectionEnabled: value),
+            ),
+          ),
+          _switch(
+            title: 'Allow GPS below 20% battery',
+            detail:
+                'Off by default. Turn on only if you accept the battery drain risk and want GPS to continue below the safety threshold.',
+            value: settings.lowBatteryGpsOverrideEnabled,
+            onChanged: (value) => onChanged(
+              settings.copyWith(lowBatteryGpsOverrideEnabled: value),
+            ),
+          ),
+          _switch(
+            title: 'Remember low-battery GPS choice',
+            detail:
+                'Controls the do-not-show-again state for the low-battery GPS warning. Turn this off to show the warning again.',
+            value: settings.lowBatteryGpsWarningDismissed,
+            onChanged: (value) => onChanged(
+              settings.copyWith(lowBatteryGpsWarningDismissed: value),
+            ),
+          ),
           _choice<TripTrackingSamplingPreset>(
             title: 'GPS update preset',
             value: settings.samplingPreset,
@@ -277,6 +304,14 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             value: settings.adaptiveSamplingEnabled,
             onChanged: (value) =>
                 onChanged(settings.copyWith(adaptiveSamplingEnabled: value)),
+          ),
+          _switch(
+            title: 'Use motion activity for walking review',
+            detail:
+                'Off by default. When enabled, the app asks for motion/activity permission at trip start and uses it only during an active GPS trip to help separate driving from walking.',
+            value: settings.activityRecognitionEnabled,
+            onChanged: (value) =>
+                onChanged(settings.copyWith(activityRecognitionEnabled: value)),
           ),
           _choice<TripTrackingProfile>(
             title: 'Default tracking profile',

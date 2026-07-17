@@ -1,5 +1,19 @@
 import 'trip_tracking_models.dart';
 
+enum TripGpsBatteryDecisionStatus { allowed, userPromptRequired, blocked }
+
+class TripGpsBatteryDecision {
+  const TripGpsBatteryDecision({
+    required this.status,
+    required this.reasonCode,
+  });
+
+  final TripGpsBatteryDecisionStatus status;
+  final String reasonCode;
+
+  bool get allowsGps => status == TripGpsBatteryDecisionStatus.allowed;
+}
+
 class TripTrackingPolicy {
   const TripTrackingPolicy({
     this.precisionSpeedMetersPerSecond = 6.7056,
@@ -15,6 +29,7 @@ class TripTrackingPolicy {
     this.walkingConfirmationCount = 3,
     this.walkingConfirmationWindow = const Duration(seconds: 45),
     this.walkingStopConfirmationDuration = const Duration(seconds: 20),
+    this.lowBatteryGpsCutoffPercent = 20,
   });
 
   /// Fifteen mph. At or above this speed the requested two-second precision
@@ -41,6 +56,57 @@ class TripTrackingPolicy {
   /// A fitness-motion classification is only an advisory stop clue after this
   /// much corroborating time; one classification must not become a stop.
   final Duration walkingStopConfirmationDuration;
+  final int lowBatteryGpsCutoffPercent;
+
+  TripGpsBatteryDecision gpsBatteryDecision({
+    required int? batteryPercent,
+    required bool isCharging,
+    required bool lowBatteryProtectionEnabled,
+    required bool lowBatteryOverrideEnabled,
+    required bool lowBatteryWarningDismissed,
+  }) {
+    if (!lowBatteryProtectionEnabled) {
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'battery_protection_disabled',
+      );
+    }
+    if (isCharging) {
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'device_charging',
+      );
+    }
+    final percent = batteryPercent;
+    if (percent == null || percent < 0 || percent > 100) {
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'battery_unknown',
+      );
+    }
+    if (percent >= lowBatteryGpsCutoffPercent) {
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'battery_above_cutoff',
+      );
+    }
+    if (lowBatteryOverrideEnabled) {
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'user_override_low_battery',
+      );
+    }
+    if (lowBatteryWarningDismissed) {
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.blocked,
+        reasonCode: 'low_battery_gps_blocked_by_saved_choice',
+      );
+    }
+    return const TripGpsBatteryDecision(
+      status: TripGpsBatteryDecisionStatus.userPromptRequired,
+      reasonCode: 'low_battery_requires_user_choice',
+    );
+  }
 
   TripSamplingRecommendation samplingFor({
     required double? speedMetersPerSecond,
