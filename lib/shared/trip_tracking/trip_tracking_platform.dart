@@ -276,6 +276,10 @@ class TripTrackingPlatformEvent {
     final activity = declaredType == TripTrackingPlatformEventType.activity
         ? TripActivityObservation.tryFromMap(map)
         : null;
+    final authorization =
+        declaredType == TripTrackingPlatformEventType.authorization
+        ? _tryAuthorizationEvent(map)
+        : null;
     final status = declaredType == TripTrackingPlatformEventType.status
         ? _safePlatformStatus(map['status'])
         : null;
@@ -286,6 +290,9 @@ class TripTrackingPlatformEvent {
         : declaredType == TripTrackingPlatformEventType.activity &&
               activity == null
         ? TripTrackingPlatformEventType.error
+        : declaredType == TripTrackingPlatformEventType.authorization &&
+              authorization == null
+        ? TripTrackingPlatformEventType.error
         : declaredType == TripTrackingPlatformEventType.status && status == null
         ? TripTrackingPlatformEventType.error
         : declaredType;
@@ -294,7 +301,7 @@ class TripTrackingPlatformEvent {
       location: location,
       activity: activity,
       authorization: type == TripTrackingPlatformEventType.authorization
-          ? TripTrackingAuthorization.fromMap(map)
+          ? authorization
           : null,
       status: type == TripTrackingPlatformEventType.status ? status : null,
       errorCode:
@@ -304,6 +311,9 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'invalidActivityPayload'
+          : type == TripTrackingPlatformEventType.error &&
+                declaredType == TripTrackingPlatformEventType.authorization
+          ? 'invalidAuthorizationPayload'
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.status
           ? 'invalidStatusPayload'
@@ -318,6 +328,9 @@ class TripTrackingPlatformEvent {
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'Ignored malformed activity payload.'
           : type == TripTrackingPlatformEventType.error &&
+                declaredType == TripTrackingPlatformEventType.authorization
+          ? 'Ignored malformed authorization payload.'
+          : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.status
           ? 'Ignored malformed status payload.'
           : type == TripTrackingPlatformEventType.error
@@ -325,6 +338,27 @@ class TripTrackingPlatformEvent {
           : null,
     );
   }
+}
+
+TripTrackingAuthorization? _tryAuthorizationEvent(Map<dynamic, dynamic> map) {
+  final rawState = map['state'];
+  if (rawState is! String) return null;
+  final state = TripTrackingAuthorizationState.values.firstWhere(
+    (value) => value.name == rawState,
+    orElse: () => TripTrackingAuthorizationState.notDetermined,
+  );
+  if (state == TripTrackingAuthorizationState.notDetermined &&
+      rawState != TripTrackingAuthorizationState.notDetermined.name) {
+    return null;
+  }
+  final rawPreciseLocation = map['preciseLocation'];
+  if (rawPreciseLocation is! bool) return null;
+  return TripTrackingAuthorization(
+    state: state,
+    preciseLocation:
+        state != TripTrackingAuthorizationState.notDetermined &&
+        rawPreciseLocation,
+  );
 }
 
 String? _safePlatformToken(Object? value) {

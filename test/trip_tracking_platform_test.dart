@@ -183,6 +183,21 @@ void main() {
     expect(valid.canTrackPrecisely, isTrue);
   });
 
+  test('malformed authorization events fail closed at the boundary', () {
+    for (final payload in const [
+      {'type': 'authorization', 'preciseLocation': true},
+      {'type': 'authorization', 'state': 'alwaysPlus', 'preciseLocation': true},
+      {'type': 'authorization', 'state': 'always', 'preciseLocation': 'true'},
+    ]) {
+      final event = TripTrackingPlatformEvent.fromMap(payload);
+
+      expect(event.type, TripTrackingPlatformEventType.error);
+      expect(event.authorization, isNull);
+      expect(event.errorCode, 'invalidAuthorizationPayload');
+      expect(event.errorMessage, 'Ignored malformed authorization payload.');
+    }
+  });
+
   test(
     'platform event maps only a declared location payload into a sample',
     () {
