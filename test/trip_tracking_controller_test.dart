@@ -1074,19 +1074,22 @@ void main() {
     await store.savePending(
       TripTrackingPendingSample(
         sessionId: 'trip_pending_replay',
-        sample: sample(-79.9998, 20),
+        sample: sample(-79.98, 90),
       ),
     );
 
+    final recoveredOdometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
     final recovered = TripTrackingController(
       sessionStore: store,
-      odometer: GlobalOdometerController(
-        vehicleId: 'vehicle_1',
-        initialReading: 1000,
-      ),
+      odometer: recoveredOdometer,
     );
     expect(await recovered.restore(), isTrue);
     expect(recovered.acceptedMeters, greaterThan(10));
+    expect(recoveredOdometer.reading, greaterThan(1000));
+    expect(recoveredOdometer.confirmedReading, 1000);
     expect(store.pendingSampleFor('trip_pending_replay'), isNull);
   });
 
