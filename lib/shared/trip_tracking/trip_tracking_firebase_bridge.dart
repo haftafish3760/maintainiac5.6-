@@ -308,7 +308,19 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
           );
           continue;
         }
-        final document = _documentFor(createdByUid, boundReview);
+        late final MaintainiacFirestoreDocumentDraft document;
+        try {
+          document = _documentFor(createdByUid, boundReview);
+        } catch (_) {
+          await _discardQueuedBackupFor(review);
+          await _saveReviewState(
+            review.copyWith(
+              cloudSyncState: TripTrackingCloudSyncState.pending,
+              cloudSyncError: _unsafeMileageIdentityMessage,
+            ),
+          );
+          continue;
+        }
         await _queueStore.enqueueReplacingPendingForPath(
           document,
           queuedAtUtc: boundReview.finishedAt.toUtc(),

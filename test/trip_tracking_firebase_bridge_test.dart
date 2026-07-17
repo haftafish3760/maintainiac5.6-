@@ -904,6 +904,55 @@ void main() {
   );
 
   test(
+    'flush rejects unsafe legacy mileage identity without generic failure',
+    () async {
+      final legacyStore = TripTrackingSessionStore.memory();
+      final unsafeReview = TripTrackingReviewRecord(
+        id: '///',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1013,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 14, 12),
+        finishedAt: DateTime.utc(2026, 7, 14, 13),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 19312.128,
+          walkingReviewSuggested: false,
+        ),
+        confirmedEndingOdometer: 1013,
+        odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+        cloudSyncState: TripTrackingCloudSyncState.pending,
+      );
+      await legacyStore.saveReview(unsafeReview);
+      final legacyQueue = await MaintainiacFirestoreUploadQueueStore.create();
+      final legacySink = _RecordingSink();
+      final legacyMirror = TripTrackingFirebaseMirror(
+        queueStore: legacyQueue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: legacyQueue,
+          sink: legacySink,
+          uploadEnabled: true,
+        ),
+        localStore: legacyStore,
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+      );
+
+      await legacyMirror.flushPending();
+
+      expect(legacySink.writes, isEmpty);
+      expect(legacyQueue.pendingRecords, isEmpty);
+      final legacyStored = legacyStore.reviewForTrip('///');
+      expect(legacyStored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+      expect(
+        legacyStored?.cloudSyncError,
+        contains('valid trip and vehicle identity'),
+      );
+      expect(legacyStored?.cloudSyncError, isNot(contains('///')));
+    },
+  );
+
+  test(
     'an account switch cannot adopt an already-bound mileage review',
     () async {
       final localStore = TripTrackingSessionStore.memory();
