@@ -66,6 +66,35 @@ void main() {
     },
   );
 
+  test('active GPS session writes require safe trip and vehicle ids', () async {
+    final store = TripTrackingSessionStore.memory();
+    TripTrackingSessionRecord session({
+      String id = 'trip_safe_identity',
+      String vehicleId = 'vehicle_1',
+    }) => TripTrackingSessionRecord(
+      id: id,
+      vehicleId: vehicleId,
+      startingOdometer: 1,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 15),
+      updatedAt: DateTime.utc(2026, 7, 15),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    await expectLater(
+      store.save(session(id: ' trip_bad_key ')),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.save(session(vehicleId: 'vehicle_\nunsafe')),
+      throwsArgumentError,
+    );
+    expect(store.activeSession, isNull);
+  });
+
   test('a pending GPS sample is local, bounded, and removable', () async {
     final store = TripTrackingSessionStore.memory();
     final pending = TripTrackingPendingSample(

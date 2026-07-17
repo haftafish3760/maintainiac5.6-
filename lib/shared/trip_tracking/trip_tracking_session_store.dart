@@ -76,6 +76,9 @@ class TripTrackingSessionRecord {
   factory TripTrackingSessionRecord.fromMap(Map<dynamic, dynamic> map) {
     final startedAt = DateTime.tryParse('${map['startedAt'] ?? ''}');
     final updatedAt = DateTime.tryParse('${map['updatedAt'] ?? ''}');
+    final hasSafeIdentity =
+        _isSafeStoreIdentifierValue(map['id']) &&
+        _isSafeStoreIdentifierValue(map['vehicleId']);
     return TripTrackingSessionRecord(
       id: _safeIdentifier(map['id']),
       vehicleId: _safeIdentifier(map['vehicleId']),
@@ -110,7 +113,8 @@ class TripTrackingSessionRecord {
         (value) => value.name == map['healthState'],
         orElse: () => TripTrackingHealthState.healthy,
       ),
-      hasValidTimeline: startedAt != null && updatedAt != null,
+      hasValidTimeline:
+          startedAt != null && updatedAt != null && hasSafeIdentity,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
     );
   }
@@ -271,6 +275,9 @@ class TripTrackingReviewRecord {
     final finishedAt = DateTime.tryParse('${map['finishedAt'] ?? ''}');
     final id = _safeIdentifier(map['id']);
     final vehicleId = _safeIdentifier(map['vehicleId']);
+    final hasSafeIdentity =
+        _isSafeStoreIdentifierValue(map['id']) &&
+        _isSafeStoreIdentifierValue(map['vehicleId']);
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
@@ -326,8 +333,7 @@ class TripTrackingReviewRecord {
           startedAt != null &&
           finishedAt != null &&
           !finishedAt.isBefore(startedAt) &&
-          id.trim().isNotEmpty &&
-          vehicleId.trim().isNotEmpty &&
+          hasSafeIdentity &&
           estimatedEndingOdometer >= startingOdometer,
     );
   }
@@ -466,6 +472,20 @@ class TripTrackingSessionStore {
   }
 
   Future<void> save(TripTrackingSessionRecord session) => _enqueue(() async {
+    if (!_isSafeStoreIdentifier(session.id)) {
+      throw ArgumentError.value(
+        session.id,
+        'session.id',
+        'Active GPS sessions require a non-empty safe trip id.',
+      );
+    }
+    if (!_isSafeStoreIdentifier(session.vehicleId)) {
+      throw ArgumentError.value(
+        session.vehicleId,
+        'session.vehicleId',
+        'Active GPS sessions require a non-empty safe vehicle id.',
+      );
+    }
     if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
       _memorySession = session;
@@ -551,9 +571,12 @@ class TripTrackingSessionStore {
 }
 
 bool _isSafePendingSessionId(Object? value) =>
-    value is String && _isSafeStoreIdentifier(value);
+    _isSafeStoreIdentifierValue(value);
 
-bool _isSafeStoreIdentifier(String value) =>
+bool _isSafeStoreIdentifier(String value) => _isSafeStoreIdentifierValue(value);
+
+bool _isSafeStoreIdentifierValue(Object? value) =>
+    value is String &&
     value.trim() == value &&
     value.isNotEmpty &&
     value.length <= 160 &&

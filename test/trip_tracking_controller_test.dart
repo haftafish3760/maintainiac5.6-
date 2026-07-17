@@ -2223,21 +2223,30 @@ void main() {
   });
 
   test('corrupt local trip identity is cleared instead of restored', () async {
-    final store = TripTrackingSessionStore.memory();
-    await store.save(
-      TripTrackingSessionRecord(
-        id: 'trip_\ncorrupt',
-        vehicleId: 'vehicle_1',
-        startingOdometer: 1000,
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-        updatedAt: start,
-        engineSnapshot: const TripTrackingEngineSnapshot(
-          totalAcceptedMeters: 0,
-          walkingReviewSuggested: false,
-        ),
-      ),
+    final hiveDirectory = await Directory.systemTemp.createTemp(
+      'trip_tracking_corrupt_identity_',
     );
+    Hive.init(hiveDirectory.path);
+    final box = await Hive.openBox<dynamic>(TripTrackingSessionStore.boxName);
+    await box.put('activeSession', {
+      'id': 'trip_\ncorrupt',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': TripTrackingProfile.roadVehicle.name,
+      'startedAt': start.toIso8601String(),
+      'updatedAt': start.toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+    final store = await TripTrackingSessionStore.create();
+    addTearDown(() async {
+      await Hive.close();
+      if (hiveDirectory.existsSync()) {
+        await hiveDirectory.delete(recursive: true);
+      }
+    });
     final odometer = GlobalOdometerController(initialReading: 1000);
     final controller = TripTrackingController(
       sessionStore: store,
