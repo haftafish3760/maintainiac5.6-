@@ -794,7 +794,7 @@ class TripTrackingController extends ChangeNotifier {
         })
         .catchError((Object error, StackTrace _) {
           if (_isDisposed) return;
-          _platformError = error.toString();
+          _platformError = 'GPS event could not be processed safely.';
           notifyListeners();
         });
   }

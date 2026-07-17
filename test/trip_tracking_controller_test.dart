@@ -848,6 +848,47 @@ void main() {
     },
   );
 
+  test(
+    'native GPS event processing failures do not expose raw errors',
+    () async {
+      var storageAvailable = true;
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(
+          storageCheck: () async => AppStorageCheck(
+            purpose: AppStoragePurpose.mileageTracking,
+            availableBytes: storageAvailable ? 1024 * 1024 * 1024 : 1,
+            operationBytes: 1024,
+            requiredBytes: 1024,
+          ),
+        ),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_processing_error',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      storageAvailable = false;
+      native.addLocation(sample(-79.999, 20, speed: 8));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        controller.platformError,
+        'GPS event could not be processed safely.',
+      );
+      expect(controller.platformError, isNot(contains('available')));
+    },
+  );
+
   test('a fatal native platform error interrupts and stops tracking', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(
@@ -2258,7 +2299,7 @@ void main() {
       final stored = store.reviewForTrip('trip_confirm_pending_cloud');
       expect(stored?.isOdometerConfirmed, isTrue);
       expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
-      expect(stored?.cloudSyncError, contains('Firebase sign-in'));
+      expect(stored?.cloudSyncError, contains('Backup sign-in'));
       expect(queue.pendingRecords, isEmpty);
       expect(controller.cloudMirrorError, contains('pending'));
     },
