@@ -265,11 +265,15 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           _switch(
             title: 'Continue during an active background trip',
-            detail:
-                'Off by default. Without it, GPS stops when the app is backgrounded. Requests the extra location permission only when you start a trip with this enabled.',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'Off by default. Without it, GPS stops when the app is backgrounded. Requests the extra location permission only when you start a trip with this enabled.'
+                : 'Enable GPS-assisted tracking before allowing a trip to continue in the background.',
             value: settings.backgroundTrackingEnabled,
-            onChanged: (value) =>
-                onChanged(settings.copyWith(backgroundTrackingEnabled: value)),
+            onChanged: settings.gpsAssistedTrackingEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(backgroundTrackingEnabled: value),
+                  )
+                : null,
           ),
           _switch(
             title: 'Protect GPS below 20% battery',
@@ -318,11 +322,15 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           _switch(
             title: 'Use motion activity for walking review',
-            detail:
-                'Off by default. When enabled, the app asks for motion/activity permission at trip start and uses it only during an active GPS trip to help separate driving from walking.',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'Off by default. When enabled, the app asks for motion/activity permission at trip start and uses it only during an active GPS trip to help separate driving from walking.'
+                : 'Enable GPS-assisted tracking before using motion activity during trips.',
             value: settings.activityRecognitionEnabled,
-            onChanged: (value) =>
-                onChanged(settings.copyWith(activityRecognitionEnabled: value)),
+            onChanged: settings.gpsAssistedTrackingEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(activityRecognitionEnabled: value),
+                  )
+                : null,
           ),
           _choice<TripTrackingProfile>(
             title: 'Default tracking profile',
@@ -370,7 +378,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
     required String title,
     required String detail,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required ValueChanged<bool>? onChanged,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Container(

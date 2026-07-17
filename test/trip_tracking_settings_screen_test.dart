@@ -40,7 +40,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.textContaining('GPS stops when the app is backgrounded'),
+      find.textContaining('Enable GPS-assisted tracking before allowing'),
       findsOneWidget,
     );
     expect(find.text('Use motion activity for walking review'), findsOneWidget);
@@ -50,6 +50,7 @@ void main() {
     expect(find.text('Mileage backup network'), findsOneWidget);
     expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
+    expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
     await tester.ensureVisible(
       find.text('Use motion activity for walking review'),
     );
@@ -64,8 +65,37 @@ void main() {
       find.descendant(of: motionRow, matching: find.byType(Switch)),
     );
     await tester.pumpAndSettle();
-    expect(settings.settings.activityRecognitionEnabled, isTrue);
+    expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
+
+    await tester.ensureVisible(find.text('Enable GPS-assisted tracking'));
+    await tester.pump();
+    final gpsRow = find
+        .ancestor(
+          of: find.text('Enable GPS-assisted tracking'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: gpsRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.text('Use motion activity for walking review'),
+    );
+    await tester.pump();
+    final enabledMotionRow = find
+        .ancestor(
+          of: find.text('Use motion activity for walking review'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: enabledMotionRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.activityRecognitionEnabled, isTrue);
+    expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
     expect(find.text('Back up reviewed mileage'), findsOneWidget);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
     expect(find.text('Firebase backup account'), findsNothing);
