@@ -121,7 +121,7 @@ class GlobalOdometerController extends ChangeNotifier {
     required String tripId,
     required int startingOdometer,
   }) {
-    if (tripId.trim().isEmpty || hasLiveTripProjection) return false;
+    if (!_isSafeLiveTripId(tripId) || hasLiveTripProjection) return false;
     if (startingOdometer < _reading) return false;
     _liveTripId = tripId;
     _liveTripEstimatedReading = startingOdometer;
@@ -479,6 +479,11 @@ class GlobalOdometerController extends ChangeNotifier {
     _eventSequence += 1;
     return '${_vehicleId}_${DateTime.now().microsecondsSinceEpoch}_$_eventSequence';
   }
+}
+
+bool _isSafeLiveTripId(String value) {
+  final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
+  return clean == value && clean.isNotEmpty && clean.length <= 160;
 }
 
 class OdometerUpdateResult {

@@ -710,6 +710,33 @@ void main() {
     },
   );
 
+  test('live GPS trip projection rejects unsafe trip ids', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: ' trip_1 ',
+        startingOdometer: 1000,
+      ),
+      isFalse,
+    );
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_\n1',
+        startingOdometer: 1000,
+      ),
+      isFalse,
+    );
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_${'x' * 200}',
+        startingOdometer: 1000,
+      ),
+      isFalse,
+    );
+    expect(controller.hasLiveTripProjection, isFalse);
+  });
+
   test(
     'an active GPS trip prevents switching the active odometer vehicle',
     () async {
