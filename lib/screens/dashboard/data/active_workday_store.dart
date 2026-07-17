@@ -264,7 +264,12 @@ class ActiveWorkdaySessionRecord {
         !endedAt.isBefore(startedAt) &&
         endOdometer != null &&
         endOdometer >= (_safeOdometer(map['startOdometer']) ?? 0) &&
-        hasEndedEvent;
+        hasEndedEvent &&
+        events.every(
+          (event) =>
+              !event.occurredAt.isAfter(endedAt) &&
+              event.odometerReading <= endOdometer,
+        );
     final recoveredStatus = status == ActiveWorkdayStatus.ended
         ? hasCoherentEndedState
               ? ActiveWorkdayStatus.ended

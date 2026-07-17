@@ -466,6 +466,53 @@ void main() {
     expect(restored.endOdometer, isNull);
   });
 
+  test('ended active workdays reject events after end state', () {
+    final startedAt = DateTime(2026, 6, 12, 8);
+    final endedAt = DateTime(2026, 6, 12, 17);
+    for (final poisonedEvent in [
+      {
+        'id': 'after-ended-time',
+        'type': 'note',
+        'occurredAt': endedAt.add(const Duration(minutes: 1)).toIso8601String(),
+        'odometerReading': 1040,
+        'label': 'Late note',
+      },
+      {
+        'id': 'after-ended-odometer',
+        'type': 'note',
+        'occurredAt': endedAt.toIso8601String(),
+        'odometerReading': 1041,
+        'label': 'Late odometer',
+      },
+    ]) {
+      final restored = ActiveWorkdaySessionRecord.fromMap({
+        'id': 'poisoned-ended-workday',
+        'vehicleId': 'truck-1',
+        'vehicleLabel': 'Work Truck 1',
+        'workProfileId': 'Business',
+        'startedAt': startedAt.toIso8601String(),
+        'startOdometer': 1000,
+        'status': 'ended',
+        'endedAt': endedAt.toIso8601String(),
+        'endOdometer': 1040,
+        'events': [
+          {
+            'id': 'ended-event',
+            'type': 'ended',
+            'occurredAt': endedAt.toIso8601String(),
+            'odometerReading': 1040,
+            'label': 'Day ended',
+          },
+          poisonedEvent,
+        ],
+      });
+
+      expect(restored.status, ActiveWorkdayStatus.active);
+      expect(restored.endedAt, isNull);
+      expect(restored.endOdometer, isNull);
+    }
+  });
+
   test('malformed active workday timestamps do not become current time', () {
     final restored = ActiveWorkdaySessionRecord.fromMap({
       'id': 'malformed-workday-time',
