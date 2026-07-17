@@ -147,6 +147,16 @@ class TripTrackingPlatformCapabilities {
     return TripTrackingDeviceCapabilityTier.locationOnly;
   }
 
+  /// Safe for diagnostics: no device model, identity, or raw sensor payloads.
+  Map<String, Object> toSafeLogMap() => {
+    'locationAvailable': locationAvailable,
+    'backgroundTrackingAvailable': backgroundTrackingAvailable,
+    'activityRecognitionAvailable': activityRecognitionAvailable,
+    'batteryStateAvailable': batteryStateAvailable,
+    'lowPowerModeAvailable': lowPowerModeAvailable,
+    'deviceTier': deviceTier.name,
+  };
+
   factory TripTrackingPlatformCapabilities.fromMap(Map<dynamic, dynamic> map) {
     final locationAvailable = map['locationAvailable'] == true;
     final batteryStateAvailable =
@@ -181,6 +191,13 @@ class TripTrackingBatterySnapshot {
   final int? batteryPercent;
   final bool isCharging;
   final bool lowPowerModeEnabled;
+
+  /// Buckets battery state without creating a precise telemetry trail.
+  Map<String, Object?> toSafeLogMap() => {
+    'batteryPercentBucket': _batteryBucket(batteryPercent),
+    'isCharging': isCharging,
+    'lowPowerModeEnabled': lowPowerModeEnabled,
+  };
 
   factory TripTrackingBatterySnapshot.fromMap(Map<dynamic, dynamic> map) {
     final rawPercent = map['batteryPercent'];
@@ -223,6 +240,13 @@ class TripTrackingAuthorization {
   bool get canTrackInBackground =>
       state == TripTrackingAuthorizationState.always;
 
+  Map<String, Object> toSafeLogMap() => {
+    'state': state.name,
+    'preciseLocation': preciseLocation,
+    'canTrack': canTrack,
+    'canTrackInBackground': canTrackInBackground,
+  };
+
   factory TripTrackingAuthorization.fromMap(Map<dynamic, dynamic> map) {
     final state = TripTrackingAuthorizationState.values.firstWhere(
       (value) => value.name == map['state'],
@@ -263,6 +287,40 @@ class TripTrackingPlatformEvent {
   final String? status;
   final String? errorCode;
   final String? errorMessage;
+
+  /// Boundary-safe diagnostics for native/Mapbox/GPS event handling.
+  Map<String, Object?> toSafeLogMap() {
+    final result = <String, Object?>{
+      'type': type.name,
+      'hasLocation': location != null,
+      'hasActivity': activity != null,
+      'hasAuthorization': authorization != null,
+    };
+    final sample = location;
+    if (sample != null) {
+      result.addAll({
+        'locationAccuracyBucket': _accuracyBucket(
+          sample.horizontalAccuracyMeters,
+        ),
+        'hasSpeed': sample.speedMetersPerSecond != null,
+      });
+    }
+    final observation = activity;
+    if (observation != null) {
+      result.addAll({
+        'activity': observation.activity.name,
+        'activityConfidenceBucket': _confidenceBucket(observation.confidence),
+      });
+    }
+    final permission = authorization;
+    if (permission != null) {
+      result['authorization'] = permission.toSafeLogMap();
+    }
+    if (status != null) result['status'] = status;
+    if (errorCode != null) result['errorCode'] = errorCode;
+    if (errorMessage != null) result['errorMessage'] = errorMessage;
+    return result;
+  }
 
   factory TripTrackingPlatformEvent.fromNativePayload(Object? payload) {
     if (payload is Map) return TripTrackingPlatformEvent.fromMap(payload);
@@ -397,12 +455,12 @@ String? _safePlatformMessage(Object? value) {
         RegExp(r'\btoken\s*=\s*[^,\s;]+', caseSensitive: false),
         'token=[redacted]',
       )
-      .replaceAll(
+      .replaceAllMapped(
         RegExp(
           r'\b(lat|latitude|lon|lng|longitude)\s*[:=]\s*-?\d+(\.\d+)?',
           caseSensitive: false,
         ),
-        r'$1=[redacted]',
+        (match) => '${match.group(1)}=[redacted]',
       )
       .replaceAll(
         RegExp(r'\b-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}\b'),
@@ -412,4 +470,29 @@ String? _safePlatformMessage(Object? value) {
       .trim();
   if (clean.isEmpty) return null;
   return clean.length <= 160 ? clean : clean.substring(0, 160);
+}
+
+String _batteryBucket(int? percent) {
+  if (percent == null) return 'unknown';
+  if (percent < 0 || percent > 100) return 'unknown';
+  if (percent < 20) return 'critical';
+  if (percent < 40) return 'low';
+  if (percent < 80) return 'normal';
+  return 'high';
+}
+
+String _accuracyBucket(double? meters) {
+  if (meters == null || !meters.isFinite || meters < 0) return 'unknown';
+  if (meters <= 10) return 'high';
+  if (meters <= 50) return 'medium';
+  if (meters <= 200) return 'low';
+  return 'unusable';
+}
+
+String _confidenceBucket(int confidence) {
+  if (confidence < 0 || confidence > 100) return 'unknown';
+  if (confidence >= 85) return 'high';
+  if (confidence >= 60) return 'medium';
+  if (confidence >= 30) return 'low';
+  return 'veryLow';
 }
