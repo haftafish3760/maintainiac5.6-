@@ -99,6 +99,23 @@ void main() {
     expect(ios, contains('isSimulatedBySoftware'));
   });
 
+  test('native capabilities expose battery and low-power availability', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(android, contains('Context.BATTERY_SERVICE'));
+    expect(android, contains('Context.POWER_SERVICE'));
+    expect(android, contains('"batteryStateAvailable"'));
+    expect(android, contains('"lowPowerModeAvailable"'));
+    expect(ios, contains('UIDevice.current.isBatteryMonitoringEnabled = true'));
+    expect(ios, contains('"batteryStateAvailable"'));
+    expect(ios, contains('"lowPowerModeAvailable"'));
+  });
+
   test(
     'iOS applies the requested sampling tier instead of hardcoding GPS best',
     () {

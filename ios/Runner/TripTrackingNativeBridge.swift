@@ -181,7 +181,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let profile = arguments?["profile"] as? String
     let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
-    let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? true
+    let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
     applySampling(intervalMillis: intervalMillis, displacement: displacement)
     locationManager.activityType = profile == "roadVehicle" ? .automotiveNavigation : .otherNavigation
     locationManager.pausesLocationUpdatesAutomatically = false
@@ -237,10 +237,13 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   private func capabilities() -> [String: Any] {
+    UIDevice.current.isBatteryMonitoringEnabled = true
     [
       "locationAvailable": CLLocationManager.locationServicesEnabled(),
       "backgroundTrackingAvailable": true,
       "activityRecognitionAvailable": CMMotionActivityManager.isActivityAvailable(),
+      "batteryStateAvailable": UIDevice.current.batteryState != .unknown,
+      "lowPowerModeAvailable": true,
     ]
   }
 

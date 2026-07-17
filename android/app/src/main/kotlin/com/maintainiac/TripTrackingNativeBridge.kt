@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.BatteryManager
 import android.os.Build
+import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
@@ -194,10 +196,14 @@ class TripTrackingNativeBridge(
 
     private fun capabilities(): Map<String, Any> {
         val manager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val batteryManager = activity.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val powerManager = activity.getSystemService(Context.POWER_SERVICE) as? PowerManager
         return mapOf(
             "locationAvailable" to manager.isProviderEnabled(LocationManager.GPS_PROVIDER),
             "backgroundTrackingAvailable" to true,
             "activityRecognitionAvailable" to (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED),
+            "batteryStateAvailable" to (batteryManager != null),
+            "lowPowerModeAvailable" to (powerManager != null),
         )
     }
 
