@@ -146,6 +146,15 @@ void main() {
     expect(store.sessions, isEmpty);
   });
 
+  test('malformed active workday pointer is ignored', () async {
+    final box = await Hive.openBox<dynamic>(ActiveWorkdayController.boxName);
+    await box.put(ActiveWorkdayController.activeSessionKey, {'bad': 'shape'});
+
+    final store = await ActiveWorkdayController.create();
+
+    expect(store.activeSession, isNull);
+  });
+
   test(
     'records pause, stop, fuel, and end events with odometer readings',
     () async {

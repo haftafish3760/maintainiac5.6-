@@ -460,7 +460,8 @@ class ActiveWorkdayController extends ChangeNotifier {
 
   String? get _activeSessionId {
     if (_box == null) return _memoryActiveSessionId;
-    return _box.get(activeSessionKey) as String?;
+    final value = _box.get(activeSessionKey);
+    return _isSafeActiveWorkdayIdValue(value) ? value as String : null;
   }
 
   Future<void> _setActiveSessionId(String? id) async {
