@@ -366,6 +366,10 @@ String? _safePlatformToken(Object? value) {
   if (value is! String) return null;
   final clean = value.trim();
   if (clean.isEmpty || clean.length > 80) return null;
+  if (RegExp(r'\b[ps]k\.', caseSensitive: false).hasMatch(clean) ||
+      RegExp(r'-?\d+\.\d+').hasMatch(clean)) {
+    return null;
+  }
   return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : null;
 }
 

@@ -261,6 +261,11 @@ void main() {
       'errorMessage':
           'token=pk.secret lat=35.123 lon=-80.456 latitude: 35.99 longitude: -80.99 last fix 35.12345,-80.98765',
     });
+    final sensitiveCode = TripTrackingPlatformEvent.fromMap({
+      'type': 'error',
+      'errorCode': 'pk.secret.35.12345',
+      'errorMessage': 'native failure',
+    });
 
     expect(status.status, 'stopped');
     expect(status.errorCode, isNull);
@@ -275,6 +280,9 @@ void main() {
     expect(sensitiveMessage.errorMessage, isNot(contains('-80.98765')));
     expect(sensitiveMessage.errorMessage, contains('token=[redacted]'));
     expect(sensitiveMessage.errorMessage, contains('[redacted_coordinates]'));
+    expect(sensitiveCode.errorCode, 'unknownNativeEvent');
+    expect(sensitiveCode.errorCode, isNot(contains('pk.secret')));
+    expect(sensitiveCode.errorCode, isNot(contains('35.12345')));
   });
 
   test('non-error native events cannot carry error fields', () {
