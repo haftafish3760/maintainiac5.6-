@@ -58,31 +58,54 @@ void main() {
   test(
     'dashboard summaries cannot claim more than the free sync allowance',
     () {
-      final doc =
-          MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
-            uid: 'firebaseUid-1',
-            dashboardId: 'today',
-            updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
-            freeSyncsRemaining: 99,
-            syncsUsedInWindow: 0,
-          );
-
       expect(
-        doc.data['freeSyncsRemaining'],
-        HostedUsageLimits.freeUserSyncsPer24HourWindow,
-      );
-      MaintainiacFirestoreUploadPolicy.validateDraft(doc);
-
-      final poisoned = MaintainiacFirestoreDocumentDraft(
-        path: doc.path,
-        data: {...doc.data, 'freeSyncsRemaining': 99},
-      );
-      expect(
-        () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+        () =>
+            MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+              uid: 'firebaseUid-1',
+              dashboardId: 'today',
+              updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+              freeSyncsRemaining: 99,
+              syncsUsedInWindow: 0,
+            ),
         throwsArgumentError,
       );
     },
   );
+
+  test('dashboard summaries reject malformed sync usage counters', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+          freeSyncsRemaining: 6,
+          syncsUsedInWindow: 999,
+        );
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+
+    for (final value in [-1, 1000]) {
+      expect(
+        () =>
+            MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+              uid: 'firebaseUid-1',
+              dashboardId: 'today',
+              updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+              freeSyncsRemaining: 0,
+              syncsUsedInWindow: value,
+            ),
+        throwsArgumentError,
+      );
+    }
+
+    final poisoned = MaintainiacFirestoreDocumentDraft(
+      path: doc.path,
+      data: {...doc.data, 'syncsUsedInWindow': 1000},
+    );
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+      throwsArgumentError,
+    );
+  });
 
   test('builds an organization dashboard summary scoped to the member org', () {
     final doc =

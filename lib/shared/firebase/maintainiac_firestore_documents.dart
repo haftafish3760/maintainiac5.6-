@@ -375,11 +375,17 @@ class MaintainiacFirestoreDocumentBuilder {
         'gpsAssistState': _safeToken(gpsAssistState),
         'storageState': _safeToken(storageState),
         if (freeSyncsRemaining != null)
-          'freeSyncsRemaining': freeSyncsRemaining
-              .clamp(0, HostedUsageLimits.freeUserSyncsPer24HourWindow)
-              .toInt(),
+          'freeSyncsRemaining': _optionalDashboardSyncCounter(
+            freeSyncsRemaining,
+            fieldName: 'freeSyncsRemaining',
+            max: HostedUsageLimits.freeUserSyncsPer24HourWindow,
+          ),
         if (syncsUsedInWindow != null)
-          'syncsUsedInWindow': syncsUsedInWindow.clamp(0, 999).toInt(),
+          'syncsUsedInWindow': _optionalDashboardSyncCounter(
+            syncsUsedInWindow,
+            fieldName: 'syncsUsedInWindow',
+            max: 999,
+          ),
         'batteryGpsLimited': batteryGpsLimited,
         'reviewRequired': reviewRequired,
         'locationDataIncluded': false,
@@ -387,6 +393,17 @@ class MaintainiacFirestoreDocumentBuilder {
       }),
     );
   }
+}
+
+int _optionalDashboardSyncCounter(
+  int value, {
+  required String fieldName,
+  required int max,
+}) {
+  if (value < 0 || value > max) {
+    throw ArgumentError.value(value, fieldName, 'Must be between 0 and $max.');
+  }
+  return value;
 }
 
 Map<String, Object?> _sanitizeCatalogHealth(Map<String, Object?> source) {
