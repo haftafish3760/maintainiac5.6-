@@ -3715,26 +3715,8 @@ void main() {
         'walkingReviewSuggested': false,
       },
     });
-    await store.saveReview(review);
-    final mirror = _FakeTripTrackingCloudMirror();
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: GlobalOdometerController(
-        vehicleId: 'vehicle_1',
-        initialReading: 1000,
-      ),
-      cloudMirror: mirror,
-    );
-
-    expect(
-      await controller.confirmOdometerReview(
-        reviewId: review.id,
-        confirmedEndingOdometer: 1001,
-      ),
-      isFalse,
-    );
-    expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
-    expect(mirror.reviews, isEmpty);
+    await expectLater(store.saveReview(review), throwsArgumentError);
+    expect(store.reviewForTrip(review.id), isNull);
   });
 
   test(
