@@ -818,6 +818,9 @@ class TripTrackingController extends ChangeNotifier {
             }
             notifyListeners();
           } else if (event.type == TripTrackingPlatformEventType.error) {
+            if (_isIgnorableMalformedPlatformPayload(event.errorCode)) {
+              return;
+            }
             final message =
                 event.errorMessage ?? event.errorCode ?? 'GPS error';
             _platformError = message;
@@ -902,6 +905,14 @@ class TripTrackingController extends ChangeNotifier {
     'trip_tracking_gps_disabled' => true,
     _ => false,
   };
+
+  bool _isIgnorableMalformedPlatformPayload(String? errorCode) =>
+      switch (errorCode) {
+        'invalidLocationPayload' ||
+        'invalidActivityPayload' ||
+        'invalidStatusPayload' => true,
+        _ => false,
+      };
 
   Future<void> stopNativeTracking() =>
       _enqueueNativeLifecycle(_stopNativeTracking);

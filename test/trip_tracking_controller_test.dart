@@ -1372,6 +1372,35 @@ void main() {
   );
 
   test(
+    'malformed native status payload is ignored without stopping a valid trip',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_malformed_native_status',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+
+      native.addRawEvent({'type': 'status', 'status': '../stopped'});
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.platformError, isNull);
+      expect(native.hasEventListener, isTrue);
+      expect(native.stopCalls, 0);
+    },
+  );
+
+  test(
     'disposing the controller detaches its native GPS event listener',
     () async {
       final native = _FakeTripTrackingPlatform();
@@ -2970,6 +2999,10 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     _events.add(
       TripTrackingPlatformEvent.fromMap({'type': 'status', 'status': status}),
     );
+  }
+
+  void addRawEvent(Map<String, Object?> event) {
+    _events.add(TripTrackingPlatformEvent.fromMap(event));
   }
 
   Future<void> closeEvents() => _events.close();
