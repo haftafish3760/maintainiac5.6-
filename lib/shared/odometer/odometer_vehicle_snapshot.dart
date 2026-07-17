@@ -18,7 +18,7 @@ class OdometerVehicleSnapshot {
   factory OdometerVehicleSnapshot.fromMap(Map<dynamic, dynamic> map) {
     final rawHistory = map['history'];
     return OdometerVehicleSnapshot(
-      vehicleId: _safeVehicleSnapshotId(map['vehicleId']),
+      vehicleId: safeOdometerVehicleId(map['vehicleId']),
       currentReading: _safeOdometerReading(map['currentReading']),
       updatedAt:
           DateTime.tryParse('${map['updatedAt'] ?? ''}') ??
@@ -52,7 +52,7 @@ int _safeOdometerReading(Object? value) {
 
 const defaultVehicleId = 'active_vehicle';
 
-String _safeVehicleSnapshotId(Object? value) {
+String safeOdometerVehicleId(Object? value) {
   final normalized = '${value ?? ''}'
       .trim()
       .replaceAll(RegExp(r'\s+'), ' ');
@@ -77,7 +77,7 @@ String odometerVehicleIdForVehicleId(
   String? vehicleId, {
   String? fallbackLabel,
 }) {
-  final stableId = vehicleId?.trim();
-  if (stableId != null && stableId.isNotEmpty) return stableId;
+  final stableId = safeOdometerVehicleId(vehicleId);
+  if (stableId != defaultVehicleId) return stableId;
   return odometerVehicleIdForLabel(fallbackLabel);
 }

@@ -68,6 +68,24 @@ void main() {
     );
   });
 
+  test('odometer store normalizes unsafe vehicle keys before save and load', () async {
+    final store = OdometerStore.memory();
+    await store.saveSnapshot(
+      OdometerVehicleSnapshot(
+        vehicleId: ' ${'truck' * 80}\n',
+        currentReading: 1200,
+        updatedAt: DateTime.utc(2026, 7, 17, 12),
+        history: const [],
+      ),
+    );
+
+    final restored = store.snapshotForVehicle(' ${'truck' * 80}\n');
+
+    expect(restored.vehicleId, hasLength(160));
+    expect(restored.vehicleId, isNot(contains('\n')));
+    expect(restored.currentReading, 1200);
+  });
+
   test('switching vehicles keeps odometer histories separate', () async {
     final store = OdometerStore.memory();
     await store.saveSnapshot(

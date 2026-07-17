@@ -30,14 +30,15 @@ class OdometerStore {
     String vehicleId, {
     int fallbackReading = 298150,
   }) {
+    final safeVehicleId = safeOdometerVehicleId(vehicleId);
     final value = _box == null
-        ? _memorySnapshots[vehicleId]
-        : _box.get(vehicleId);
+        ? _memorySnapshots[safeVehicleId]
+        : _box.get(safeVehicleId);
     if (value is OdometerVehicleSnapshot) return value;
     if (value is Map) return OdometerVehicleSnapshot.fromMap(value);
     final now = DateTime.now();
     return OdometerVehicleSnapshot(
-      vehicleId: vehicleId,
+      vehicleId: safeVehicleId,
       currentReading: fallbackReading,
       updatedAt: now,
       history: const [],
@@ -54,10 +55,18 @@ class OdometerStore {
   Future<void> saveSnapshot(OdometerVehicleSnapshot snapshot) =>
       _enqueue(() async {
         await _ensureStorageForWrite();
+        final safeVehicleId = safeOdometerVehicleId(snapshot.vehicleId);
+        final safeSnapshot = OdometerVehicleSnapshot(
+          vehicleId: safeVehicleId,
+          currentReading: snapshot.currentReading,
+          updatedAt: snapshot.updatedAt,
+          history: snapshot.history,
+          drivingPatternReviewEnabled: snapshot.drivingPatternReviewEnabled,
+        );
         if (_box == null) {
-          _memorySnapshots[snapshot.vehicleId] = snapshot;
+          _memorySnapshots[safeVehicleId] = safeSnapshot;
         } else {
-          await _box.put(snapshot.vehicleId, snapshot.toMap());
+          await _box.put(safeVehicleId, safeSnapshot.toMap());
         }
       });
 

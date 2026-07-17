@@ -21,7 +21,7 @@ class GlobalOdometerController extends ChangeNotifier {
     })?
     snapshotReader,
     Future<void> Function(OdometerVehicleSnapshot snapshot)? snapshotWriter,
-  }) : _vehicleId = vehicleId,
+  }) : _vehicleId = safeOdometerVehicleId(vehicleId),
        _reading = _safeOdometerReading(initialReading),
        _validationPolicy = validationPolicy,
        _drivingPatternReviewEnabled =
