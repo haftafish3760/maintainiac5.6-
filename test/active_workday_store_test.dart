@@ -223,6 +223,33 @@ void main() {
   );
 
   test(
+    'ending an active workday cannot persist a decreasing odometer',
+    () async {
+      final decreasingStore = ActiveWorkdayController.memory();
+      await decreasingStore.startDay(
+        vehicleId: 'vehicle_1',
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'business',
+        startOdometer: 1000,
+      );
+
+      await expectLater(
+        decreasingStore.addEvent(
+          type: ActiveWorkdayEventType.ended,
+          odometerReading: 999,
+        ),
+        throwsArgumentError,
+      );
+
+      expect(decreasingStore.activeSession?.status, ActiveWorkdayStatus.active);
+      expect(decreasingStore.activeSession?.endOdometer, isNull);
+      expect(decreasingStore.activeSession?.events.map((event) => event.type), [
+        ActiveWorkdayEventType.started,
+      ]);
+    },
+  );
+
+  test(
     'resuming a paused day restores the active local session state',
     () async {
       final store = ActiveWorkdayController.memory();
