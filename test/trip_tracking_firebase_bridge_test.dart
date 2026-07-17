@@ -486,6 +486,20 @@ void main() {
       expect(valueCheck, contains('estimatedEndingOdometer >='));
       expect(
         valueCheck,
+        contains(
+          'confirmedEndingOdometer >=\n          request.resource.data.startingOdometer',
+        ),
+      );
+      expect(
+        valueCheck,
+        isNot(
+          contains(
+            'confirmedEndingOdometer >=\n          request.resource.data.estimatedEndingOdometer',
+          ),
+        ),
+      );
+      expect(
+        valueCheck,
         contains('finishedAt >= request.resource.data.startedAt'),
       );
       expect(valueCheck, contains('odometerConfirmedAt >='));
