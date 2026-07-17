@@ -163,6 +163,20 @@ void main() {
     expect(restored.samplingPreset, TripTrackingSamplingPreset.custom);
     expect(restored.customIntervalSeconds, 3);
     expect(
+      const TripTrackingSettings(
+        samplingPreset: TripTrackingSamplingPreset.custom,
+        customIntervalSeconds: -10,
+      ).toMap()['customIntervalSeconds'],
+      3,
+    );
+    expect(
+      TripTrackingSettings.fromMap({
+        ...custom.toMap(),
+        'customIntervalSeconds': 'fast',
+      }).customIntervalSeconds,
+      15,
+    );
+    expect(
       TripTrackingSettings.fromMap({'batteryMode': 'saver'}).samplingPreset,
       TripTrackingSamplingPreset.batterySaver,
     );

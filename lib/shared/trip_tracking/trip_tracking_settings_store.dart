@@ -125,7 +125,7 @@ class TripTrackingSettings {
   Map<String, Object?> toMap() => {
     'gpsAssistedTrackingEnabled': gpsAssistedTrackingEnabled,
     'samplingPreset': samplingPreset.name,
-    'customIntervalSeconds': customIntervalSeconds,
+    'customIntervalSeconds': _validCustomInterval(customIntervalSeconds),
     'adaptiveSamplingEnabled': adaptiveSamplingEnabled,
     'activityRecognitionEnabled': activityRecognitionEnabled,
     'walkingTransitionReviewEnabled': walkingTransitionReviewEnabled,
@@ -146,7 +146,7 @@ class TripTrackingSettings {
       gpsAssistedTrackingEnabled: map['gpsAssistedTrackingEnabled'] == true,
       samplingPreset: _presetFromMap(map),
       customIntervalSeconds: _validCustomInterval(
-        (map['customIntervalSeconds'] as num?)?.round() ?? 15,
+        _safeNumber(map['customIntervalSeconds'])?.round() ?? 15,
       ),
       adaptiveSamplingEnabled: map['adaptiveSamplingEnabled'] == true,
       activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
@@ -176,6 +176,9 @@ class TripTrackingSettings {
 }
 
 int _validCustomInterval(int seconds) => seconds.clamp(3, 600);
+
+num? _safeNumber(Object? value) =>
+    value is num && value.isFinite ? value : null;
 
 TripTrackingSamplingPreset _presetFromMap(Map<dynamic, dynamic> map) {
   final savedPreset = TripTrackingSamplingPreset.values.firstWhere(
