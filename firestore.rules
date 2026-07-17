@@ -313,6 +313,8 @@ service cloud.firestore {
         'syncMode',
         'gpsAssistState',
         'storageState',
+        'deviceCapabilityState',
+        'sensorAssistState',
         'freeSyncsRemaining',
         'syncsUsedInWindow',
         'batteryGpsLimited',
@@ -334,6 +336,8 @@ service cloud.firestore {
         'syncMode',
         'gpsAssistState',
         'storageState',
+        'deviceCapabilityState',
+        'sensorAssistState',
         'batteryGpsLimited',
         'reviewRequired',
         'locationDataIncluded',
@@ -449,6 +453,28 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function isAllowedDashboardDeviceCapabilityState(value) {
+      return [
+        'unknown',
+        'unavailable',
+        'location_only',
+        'foreground_ready',
+        'background_ready',
+        'motion_ready',
+        'full_safety_assist'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardSensorAssistState(value) {
+      return [
+        'unknown',
+        'no_assist',
+        'battery_available',
+        'motion_available',
+        'motion_battery_available'
+      ].hasAny([value]);
+    }
+
     function isDashboardCommandCenterSummary() {
       return request.resource.data.schema ==
           'dashboard_command_center_summary_v1' &&
@@ -465,6 +491,12 @@ service cloud.firestore {
         isAllowedDashboardSyncMode(request.resource.data.syncMode) &&
         isAllowedGpsAssistState(request.resource.data.gpsAssistState) &&
         isAllowedDashboardStorageState(request.resource.data.storageState) &&
+        isAllowedDashboardDeviceCapabilityState(
+          request.resource.data.deviceCapabilityState
+        ) &&
+        isAllowedDashboardSensorAssistState(
+          request.resource.data.sensorAssistState
+        ) &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool;
     }

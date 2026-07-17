@@ -152,6 +152,8 @@ void main() {
     expect(data['syncMode'], 'wifi_only');
     expect(data['gpsAssistState'], 'on');
     expect(data['storageState'], 'text_record_safe');
+    expect(data['deviceCapabilityState'], 'unknown');
+    expect(data['sensorAssistState'], 'unknown');
     expect(data['freeSyncsRemaining'], 4);
     expect(data['syncsUsedInWindow'], 2);
     expect(data['locationDataIncluded'], isFalse);

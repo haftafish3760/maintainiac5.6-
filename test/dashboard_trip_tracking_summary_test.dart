@@ -6,6 +6,7 @@ import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
@@ -20,6 +21,8 @@ void main() {
     expect(summary.syncMode, 'wifi_and_mobile');
     expect(summary.gpsAssistState, 'off');
     expect(summary.storageState, 'unknown');
+    expect(summary.deviceCapabilityState, 'unknown');
+    expect(summary.sensorAssistState, 'unknown');
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.batteryGpsLimited, isFalse);
@@ -46,6 +49,8 @@ void main() {
     expect(summary.syncMode, 'wifi_only');
     expect(summary.gpsAssistState, 'on');
     expect(summary.storageState, 'text_record_safe');
+    expect(summary.deviceCapabilityState, 'unknown');
+    expect(summary.sensorAssistState, 'unknown');
     expect(summary.freeSyncsRemaining, 4);
     expect(summary.syncsUsedInWindow, 2);
     expect(summary.hasVerifiedSyncCounters, isTrue);
@@ -61,6 +66,8 @@ void main() {
       lowBatteryLimited: true,
       reviewRequired: true,
       storageState: 'low_storage',
+      deviceCapabilityState: 'full_safety_assist',
+      sensorAssistState: 'motion_battery_available',
       wifiAvailable: false,
       mobileDataAvailable: true,
       syncsUsedInWindow: 5,
@@ -70,6 +77,8 @@ void main() {
     expect(summary.syncMode, 'mobile_only');
     expect(summary.gpsAssistState, 'battery_limited');
     expect(summary.storageState, 'low_storage');
+    expect(summary.deviceCapabilityState, 'full_safety_assist');
+    expect(summary.sensorAssistState, 'motion_battery_available');
     expect(summary.freeSyncsRemaining, 1);
     expect(summary.batteryGpsLimited, isTrue);
     expect(summary.reviewRequired, isTrue);
@@ -90,12 +99,16 @@ void main() {
     final summary = DashboardTripTrackingSummary.fromSettings(
       settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
       storageState: 'raw_coordinates_enabled',
+      deviceCapabilityState: 'precise_location_history',
+      sensorAssistState: 'raw_motion_payload',
       wifiAvailable: true,
       mobileDataAvailable: true,
       syncsUsedInWindow: -1,
     );
 
     expect(summary.storageState, 'unknown');
+    expect(summary.deviceCapabilityState, 'unknown');
+    expect(summary.sensorAssistState, 'unknown');
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.hasVerifiedSyncCounters, isFalse);
@@ -156,6 +169,42 @@ void main() {
     expect(summary.storageState, 'text_record_safe');
     expect(summary.freeSyncsRemaining, 5);
     expect(summary.reviewRequired, isFalse);
+  });
+
+  test('runtime summary mirrors device capability without raw sensor payloads', () async {
+    final odometer = GlobalOdometerController(initialReading: 1000);
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+      platform: _SummaryNativeGateway(),
+    );
+    addTearDown(controller.dispose);
+    addTearDown(odometer.dispose);
+
+    expect(
+      await controller.start(
+        tripId: 'runtime_summary_capability',
+        vehicleId: odometer.vehicleId,
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: DateTime.utc(2026, 7, 17, 9),
+      ),
+      isTrue,
+    );
+    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
+
+    final summary = DashboardTripTrackingSummary.fromRuntime(
+      settings: const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        backgroundTrackingEnabled: true,
+        activityRecognitionEnabled: true,
+        defaultProfile: TripTrackingProfile.deliveryVehicle,
+      ),
+      tripTracking: controller,
+    );
+
+    expect(summary.gpsAssistState, 'on');
+    expect(summary.deviceCapabilityState, 'full_safety_assist');
+    expect(summary.sensorAssistState, 'motion_battery_available');
   });
 
   test('runtime summary marks paused workday as requiring review', () {
@@ -224,4 +273,50 @@ void main() {
     expect(blocked.storageState, 'blocked');
     expect(unknown.storageState, 'unknown');
   });
+}
+
+class _SummaryNativeGateway implements TripTrackingNativeGateway {
+  @override
+  Stream<TripTrackingPlatformEvent> get events =>
+      const Stream<TripTrackingPlatformEvent>.empty();
+
+  @override
+  Future<TripTrackingPlatformCapabilities> readCapabilities() async =>
+      const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: true,
+        batteryStateAvailable: true,
+        lowPowerModeAvailable: true,
+      );
+
+  @override
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot() async =>
+      const TripTrackingBatterySnapshot(
+        batteryPercent: 80,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+
+  @override
+  Future<TripTrackingAuthorization> requestAuthorization({
+    required bool allowBackground,
+    required bool activityRecognitionEnabled,
+  }) async =>
+      const TripTrackingAuthorization(
+        state: TripTrackingAuthorizationState.always,
+        preciseLocation: true,
+      );
+
+  @override
+  Future<bool> start(TripTrackingNativeRequest request) async => true;
+
+  @override
+  Future<bool> update(TripTrackingNativeRequest request) async => true;
+
+  @override
+  Future<bool> stop() async => true;
+
+  @override
+  Future<bool> get isTracking async => false;
 }

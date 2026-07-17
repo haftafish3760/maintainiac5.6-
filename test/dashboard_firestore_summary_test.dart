@@ -21,6 +21,8 @@ void main() {
           syncMode: 'wifi_only',
           gpsAssistState: 'battery_limited',
           storageState: 'text_record_safe',
+          deviceCapabilityState: 'full_safety_assist',
+          sensorAssistState: 'motion_battery_available',
           freeSyncsRemaining: HostedUsageLimits.freeUserSyncsPer24HourWindow,
           syncsUsedInWindow: 0,
           batteryGpsLimited: true,
@@ -40,6 +42,8 @@ void main() {
       HostedUsageLimits.freeUserSyncsPer24HourWindow,
     );
     expect(doc.data['batteryGpsLimited'], isTrue);
+    expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
+    expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data.keys, isNot(contains('latitude')));
     expect(doc.data.keys, isNot(contains('route')));
     expect(doc.data.keys, isNot(contains('rawSamples')));
@@ -224,6 +228,8 @@ void main() {
       'syncMode': 'always_spy',
       'gpsAssistState': 'raw_coordinates_enabled',
       'storageState': 'remote_authoritative',
+      'deviceCapabilityState': 'precise_location_history',
+      'sensorAssistState': 'raw_motion_payload',
     }.entries) {
       final poisoned = MaintainiacFirestoreDocumentDraft(
         path: doc.path,
@@ -252,6 +258,8 @@ void main() {
       'syncMode': ' wifi_only ',
       'gpsAssistState': ' off ',
       'storageState': ' unknown ',
+      'deviceCapabilityState': ' unknown ',
+      'sensorAssistState': ' unknown ',
     }.entries) {
       final poisoned = MaintainiacFirestoreDocumentDraft(
         path: doc.path,
@@ -273,6 +281,8 @@ void main() {
       'syncMode': 'always_spy',
       'gpsAssistState': 'raw_coordinates_enabled',
       'storageState': 'remote_authoritative',
+      'deviceCapabilityState': 'precise_location_history',
+      'sensorAssistState': 'raw_motion_payload',
     }.entries) {
       expect(
         () =>
@@ -291,6 +301,12 @@ void main() {
                   ? entry.value
                   : 'off',
               storageState: entry.key == 'storageState'
+                  ? entry.value
+                  : 'unknown',
+              deviceCapabilityState: entry.key == 'deviceCapabilityState'
+                  ? entry.value
+                  : 'unknown',
+              sensorAssistState: entry.key == 'sensorAssistState'
                   ? entry.value
                   : 'unknown',
             ),

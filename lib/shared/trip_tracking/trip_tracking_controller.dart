@@ -51,6 +51,7 @@ class TripTrackingController extends ChangeNotifier {
   String? _platformError;
   String? _cloudMirrorError;
   TripActivityObservation? _latestActivity;
+  TripTrackingPlatformCapabilities? _lastKnownCapabilities;
 
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking => _session != null;
@@ -67,6 +68,8 @@ class TripTrackingController extends ChangeNotifier {
   String? get platformStatus => _platformStatus;
   String? get platformError => _platformError;
   String? get cloudMirrorError => _cloudMirrorError;
+  TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
+      _lastKnownCapabilities;
   TripTrackingReviewRecord? get latestReview =>
       _sessionStore.pendingReviews.isEmpty
       ? null
@@ -658,8 +661,10 @@ class TripTrackingController extends ChangeNotifier {
     session = _session;
     if (session == null) return false;
     TripTrackingPlatformCapabilities capabilities;
+    _lastKnownCapabilities = null;
     try {
       capabilities = await platform.readCapabilities();
+      _lastKnownCapabilities = capabilities;
     } catch (error) {
       _platformError = 'Could not read GPS capabilities.';
       await _tryTransitionSession(

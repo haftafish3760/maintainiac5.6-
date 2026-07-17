@@ -352,6 +352,8 @@ class MaintainiacFirestoreDocumentBuilder {
     String syncMode = 'device_retained',
     String gpsAssistState = 'off',
     String storageState = 'unknown',
+    String deviceCapabilityState = 'unknown',
+    String sensorAssistState = 'unknown',
     int? freeSyncsRemaining,
     int? syncsUsedInWindow,
     bool batteryGpsLimited = false,
@@ -416,6 +418,16 @@ class MaintainiacFirestoreDocumentBuilder {
           storageState,
           'storageState',
           _allowedDashboardStorageStates,
+        ),
+        'deviceCapabilityState': _requiredDashboardSummaryToken(
+          deviceCapabilityState,
+          'deviceCapabilityState',
+          _allowedDashboardDeviceCapabilityStates,
+        ),
+        'sensorAssistState': _requiredDashboardSummaryToken(
+          sensorAssistState,
+          'sensorAssistState',
+          _allowedDashboardSensorAssistStates,
         ),
         if (freeSyncsRemaining != null)
           'freeSyncsRemaining': _optionalDashboardSyncCounter(
@@ -485,6 +497,24 @@ const _allowedDashboardStorageStates = <String>{
   'full',
   'local_only',
   'cloud_pending',
+};
+
+const _allowedDashboardDeviceCapabilityStates = <String>{
+  'unknown',
+  'unavailable',
+  'location_only',
+  'foreground_ready',
+  'background_ready',
+  'motion_ready',
+  'full_safety_assist',
+};
+
+const _allowedDashboardSensorAssistStates = <String>{
+  'unknown',
+  'no_assist',
+  'battery_available',
+  'motion_available',
+  'motion_battery_available',
 };
 
 String _requiredDashboardSummaryToken(

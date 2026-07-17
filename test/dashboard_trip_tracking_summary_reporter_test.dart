@@ -101,6 +101,8 @@ void main() {
       expect(data['mileageMode'], 'gps_assisted');
       expect(data['syncMode'], 'wifi_only');
       expect(data['freeSyncsRemaining'], 4);
+      expect(data['deviceCapabilityState'], 'unknown');
+      expect(data['sensorAssistState'], 'unknown');
       expect(data['activeVehicleId'], odometer.vehicleId);
       expect(data['locationDataIncluded'], isFalse);
       expect(data['rawModuleDataIncluded'], isFalse);

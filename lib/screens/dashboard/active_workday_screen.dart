@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
 import '../../shared/state/global_odometer.dart';
+import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
@@ -748,6 +749,13 @@ class _GpsTripPanel extends StatelessWidget {
     final guidance = settings == null
         ? null
         : TripTrackingDashboardGuidance.fromSettings(settings);
+    final capabilityGuidance =
+        settings != null && controller?.lastKnownCapabilities != null
+        ? TripTrackingCapabilityGuidance.fromCapabilities(
+            capabilities: controller!.lastKnownCapabilities!,
+            settings: settings,
+          )
+        : null;
     final odometer = GlobalOdometerScope.of(context);
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
@@ -812,6 +820,27 @@ class _GpsTripPanel extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
+                  ),
+                ],
+                if (capabilityGuidance != null) ...[
+                  const SizedBox(height: 3),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      _GpsTripBadge(
+                        label: capabilityGuidance.dashboardBadge,
+                        active:
+                            capabilityGuidance.readiness !=
+                            TripTrackingCapabilityReadiness.unavailable,
+                      ),
+                      _GpsTripBadge(
+                        label: capabilityGuidance.safeStatus,
+                        active:
+                            capabilityGuidance.readiness ==
+                            TripTrackingCapabilityReadiness.fullSafetyAssist,
+                      ),
+                    ],
                   ),
                 ],
                 if (guidance != null && !tracking) ...[

@@ -525,6 +525,8 @@ void main() {
     expect(native.requestAuthorizationCalls, 1);
     expect(native.startCalls, 1);
     expect(find.text('GPS-assisted trip tracking started.'), findsOneWidget);
+    expect(find.text('Foreground GPS'), findsOneWidget);
+    expect(find.text('Foreground GPS assist is available.'), findsOneWidget);
   });
 
   testWidgets('active day can remember low battery GPS cancellation', (

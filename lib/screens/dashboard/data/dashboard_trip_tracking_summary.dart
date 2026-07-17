@@ -1,4 +1,5 @@
 import '../../../shared/storage/app_storage_guard.dart';
+import '../../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -12,6 +13,8 @@ class DashboardTripTrackingSummary {
     required this.syncMode,
     required this.gpsAssistState,
     required this.storageState,
+    required this.deviceCapabilityState,
+    required this.sensorAssistState,
     required this.freeSyncsRemaining,
     required this.syncsUsedInWindow,
     required this.batteryGpsLimited,
@@ -23,6 +26,8 @@ class DashboardTripTrackingSummary {
   final String syncMode;
   final String gpsAssistState;
   final String storageState;
+  final String deviceCapabilityState;
+  final String sensorAssistState;
   final int? freeSyncsRemaining;
   final int? syncsUsedInWindow;
   final bool batteryGpsLimited;
@@ -38,6 +43,8 @@ class DashboardTripTrackingSummary {
     bool lowBatteryLimited = false,
     bool reviewRequired = false,
     String storageState = 'unknown',
+    String deviceCapabilityState = 'unknown',
+    String sensorAssistState = 'unknown',
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -70,6 +77,10 @@ class DashboardTripTrackingSummary {
         lowBatteryLimited: lowBatteryLimited,
       ),
       storageState: _safeStorageState(storageState),
+      deviceCapabilityState: _safeDeviceCapabilityState(
+        deviceCapabilityState,
+      ),
+      sensorAssistState: _safeSensorAssistState(sensorAssistState),
       freeSyncsRemaining: safeSyncsUsed == null
           ? null
           : syncDecision.freeSyncsRemaining,
@@ -92,6 +103,12 @@ class DashboardTripTrackingSummary {
     final status = platformStatus ?? tripTracking?.platformStatus;
     final activeTrip = tripTracking?.isTracking == true;
     final nativeTracking = tripTracking?.nativeTracking == true;
+    final capabilityGuidance = tripTracking?.lastKnownCapabilities == null
+        ? null
+        : TripTrackingCapabilityGuidance.fromCapabilities(
+            capabilities: tripTracking!.lastKnownCapabilities!,
+            settings: settings,
+          );
     return fromSettings(
       settings: settings,
       nativeTracking: nativeTracking,
@@ -102,6 +119,8 @@ class DashboardTripTrackingSummary {
           tripTracking?.needsWalkingReview == true ||
           activeWorkday?.isPaused == true,
       storageState: _storageStateFor(storageCheck),
+      deviceCapabilityState: _deviceCapabilityStateFor(capabilityGuidance),
+      sensorAssistState: _sensorAssistStateFor(capabilityGuidance),
       wifiAvailable: wifiAvailable,
       mobileDataAvailable: mobileDataAvailable,
       syncsUsedInWindow: syncsUsedInWindow,
@@ -138,6 +157,58 @@ String _safeStorageState(String value) {
     'blocked' => 'blocked',
     _ => 'unknown',
   };
+}
+
+String _safeDeviceCapabilityState(String value) {
+  return switch (value.trim()) {
+    'unknown' => 'unknown',
+    'unavailable' => 'unavailable',
+    'location_only' => 'location_only',
+    'foreground_ready' => 'foreground_ready',
+    'background_ready' => 'background_ready',
+    'motion_ready' => 'motion_ready',
+    'full_safety_assist' => 'full_safety_assist',
+    _ => 'unknown',
+  };
+}
+
+String _safeSensorAssistState(String value) {
+  return switch (value.trim()) {
+    'unknown' => 'unknown',
+    'no_assist' => 'no_assist',
+    'battery_available' => 'battery_available',
+    'motion_available' => 'motion_available',
+    'motion_battery_available' => 'motion_battery_available',
+    _ => 'unknown',
+  };
+}
+
+String _deviceCapabilityStateFor(
+  TripTrackingCapabilityGuidance? capabilityGuidance,
+) {
+  if (capabilityGuidance == null) return 'unknown';
+  return switch (capabilityGuidance.readiness) {
+    TripTrackingCapabilityReadiness.unavailable => 'unavailable',
+    TripTrackingCapabilityReadiness.locationOnly => 'location_only',
+    TripTrackingCapabilityReadiness.foregroundReady => 'foreground_ready',
+    TripTrackingCapabilityReadiness.backgroundReady => 'background_ready',
+    TripTrackingCapabilityReadiness.motionReady => 'motion_ready',
+    TripTrackingCapabilityReadiness.fullSafetyAssist => 'full_safety_assist',
+  };
+}
+
+String _sensorAssistStateFor(
+  TripTrackingCapabilityGuidance? capabilityGuidance,
+) {
+  if (capabilityGuidance == null) return 'unknown';
+  final motion = capabilityGuidance.canUseActivityRecognition;
+  final battery =
+      capabilityGuidance.canUseBatteryGuard ||
+      capabilityGuidance.canUseLowPowerGuard;
+  if (motion && battery) return 'motion_battery_available';
+  if (motion) return 'motion_available';
+  if (battery) return 'battery_available';
+  return 'no_assist';
 }
 
 String _storageStateFor(AppStorageCheck? storageCheck) {

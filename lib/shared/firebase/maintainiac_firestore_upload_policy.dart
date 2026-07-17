@@ -124,6 +124,24 @@ class MaintainiacFirestoreUploadPolicy {
     'cloud_pending',
   };
 
+  static const _allowedDeviceCapabilityStates = <String>{
+    'unknown',
+    'unavailable',
+    'location_only',
+    'foreground_ready',
+    'background_ready',
+    'motion_ready',
+    'full_safety_assist',
+  };
+
+  static const _allowedSensorAssistStates = <String>{
+    'unknown',
+    'no_assist',
+    'battery_available',
+    'motion_available',
+    'motion_battery_available',
+  };
+
   static const _allowedTripProfiles = <String>{
     'roadVehicle',
     'rideshareVehicle',
@@ -238,6 +256,8 @@ class MaintainiacFirestoreUploadPolicy {
       'syncMode',
       'gpsAssistState',
       'storageState',
+      'deviceCapabilityState',
+      'sensorAssistState',
       'freeSyncsRemaining',
       'syncsUsedInWindow',
       'batteryGpsLimited',
@@ -267,6 +287,14 @@ class MaintainiacFirestoreUploadPolicy {
           _allowedGpsAssistStates,
         ) &&
         _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
+        _isAllowedString(
+          draft.data['deviceCapabilityState'],
+          _allowedDeviceCapabilityStates,
+        ) &&
+        _isAllowedString(
+          draft.data['sensorAssistState'],
+          _allowedSensorAssistStates,
+        ) &&
         _isValidFreeSyncsRemaining(draft.data['freeSyncsRemaining']) &&
         _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
         _hasConsistentDashboardSyncCounters(draft.data) &&

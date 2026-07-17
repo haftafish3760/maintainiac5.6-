@@ -409,6 +409,7 @@ void main() {
       expect(native.requestAuthorizationCalls, 0);
       expect(native.startCalls, 0);
       expect(native.hasEventListener, isFalse);
+      expect(controller.lastKnownCapabilities, isNull);
       expect(controller.isTracking, isTrue);
       expect(controller.platformStatus, isNull);
       expect(
@@ -658,6 +659,8 @@ void main() {
 
     expect(native.requestAuthorizationCalls, 1);
     expect(native.startCalls, 1);
+    expect(controller.lastKnownCapabilities, isNotNull);
+    expect(controller.lastKnownCapabilities!.lowPowerModeAvailable, isFalse);
     expect(controller.platformStatus, 'tracking');
     expect(controller.platformError, isNull);
   });
