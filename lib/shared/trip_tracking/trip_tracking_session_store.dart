@@ -327,15 +327,14 @@ class TripTrackingPendingSample {
 
   static TripTrackingPendingSample? tryFromMap(Map<dynamic, dynamic> map) {
     final sampleMap = map['sample'];
-    if (map['sessionId'] is! String ||
-        (map['sessionId'] as String).isEmpty ||
-        sampleMap is! Map) {
+    final sessionId = map['sessionId'];
+    if (!_isSafePendingSessionId(sessionId) || sampleMap is! Map) {
       return null;
     }
     final sample = TripLocationSample.tryFromMap(sampleMap);
     if (sample == null) return null;
     return TripTrackingPendingSample(
-      sessionId: map['sessionId'] as String,
+      sessionId: sessionId as String,
       sample: sample,
       activity: map['activity'] is Map
           ? TripActivityObservation.tryFromMap(map['activity'] as Map)
@@ -429,6 +428,13 @@ class TripTrackingSessionStore {
 
   Future<void> savePending(TripTrackingPendingSample pending) => _enqueue(
     () async {
+      if (!_isSafePendingSessionId(pending.sessionId)) {
+        throw ArgumentError.value(
+          pending.sessionId,
+          'sessionId',
+          'Pending GPS samples require a non-empty safe trip id.',
+        );
+      }
       if (_storageCheck != null) await _ensureStorageForWrite();
       if (_box == null) {
         _memoryPending[pending.sessionId] = pending;
@@ -472,3 +478,9 @@ class TripTrackingSessionStore {
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.mileageTracking);
 }
+
+bool _isSafePendingSessionId(Object? value) =>
+    value is String &&
+    value.trim() == value &&
+    value.isNotEmpty &&
+    value.length <= 160;

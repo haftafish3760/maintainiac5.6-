@@ -95,6 +95,32 @@ void main() {
 
     expect(
       TripTrackingPendingSample.tryFromMap({
+        'sessionId': '  ',
+        'sample': {
+          'latitude': 35,
+          'longitude': -80,
+          'recordedAt': DateTime.utc(2026, 7, 14).toIso8601String(),
+          'horizontalAccuracyMeters': 5,
+        },
+      }),
+      isNull,
+    );
+
+    expect(
+      TripTrackingPendingSample.tryFromMap({
+        'sessionId': 'trip_${'x' * 200}',
+        'sample': {
+          'latitude': 35,
+          'longitude': -80,
+          'recordedAt': DateTime.utc(2026, 7, 14).toIso8601String(),
+          'horizontalAccuracyMeters': 5,
+        },
+      }),
+      isNull,
+    );
+
+    expect(
+      TripTrackingPendingSample.tryFromMap({
         'sessionId': 'trip_out_of_range',
         'sample': {
           'latitude': 91,
@@ -105,6 +131,22 @@ void main() {
       }),
       isNull,
     );
+  });
+
+  test('pending GPS sample writes require a safe trip id', () async {
+    final store = TripTrackingSessionStore.memory();
+    final pending = TripTrackingPendingSample(
+      sessionId: ' trip_with_spaces ',
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: DateTime.utc(2026, 7, 12, 12),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+
+    await expectLater(store.savePending(pending), throwsArgumentError);
+    expect(store.pendingSampleFor(' trip_with_spaces '), isNull);
   });
 
   test('pending recovery preserves the native mock-location flag', () {
