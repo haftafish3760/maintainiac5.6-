@@ -531,12 +531,15 @@ class TripTrackingDiagnostics {
     }
     final received = _safeNonNegativeInt(map['receivedSamples']);
     final accepted = _safeNonNegativeInt(map['acceptedSamples']);
+    final safeCounts = _safeDispositionCounts(rawDispositionCounts, received);
     return TripTrackingDiagnostics(
       receivedSamples: received,
-      acceptedSamples: accepted > received ? 0 : accepted,
-      dispositionCounts: Map.unmodifiable(
-        _safeDispositionCounts(rawDispositionCounts, received),
+      acceptedSamples: _safeRestoredAcceptedDiagnosticsCount(
+        accepted,
+        received,
+        safeCounts,
       ),
+      dispositionCounts: Map.unmodifiable(safeCounts),
     );
   }
 }
@@ -570,6 +573,22 @@ int _safeAcceptedDiagnosticsCount(int acceptedSamples, int receivedSamples) {
   final received = _safeNonNegativeInt(receivedSamples);
   final accepted = _safeNonNegativeInt(acceptedSamples);
   return accepted > received ? 0 : accepted;
+}
+
+int _safeRestoredAcceptedDiagnosticsCount(
+  int acceptedSamples,
+  int receivedSamples,
+  Map<TripSampleDisposition, int> counts,
+) {
+  final safeAccepted = _safeAcceptedDiagnosticsCount(
+    acceptedSamples,
+    receivedSamples,
+  );
+  final countedAccepted =
+      (counts[TripSampleDisposition.acceptedAnchor] ?? 0) +
+      (counts[TripSampleDisposition.acceptedDistance] ?? 0);
+  if (countedAccepted > safeAccepted) return 0;
+  return safeAccepted;
 }
 
 int _safeNonNegativeInt(Object? value) {

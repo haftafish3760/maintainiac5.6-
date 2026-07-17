@@ -194,10 +194,7 @@ void main() {
 
     engine.ingest(sample(-80, 0));
     engine.ingest(sample(-79.999, 30, speedMetersPerSecond: 10));
-    final decision = engine.ingest(
-      sample(-79.9988, 45),
-      activity: walking(45),
-    );
+    final decision = engine.ingest(sample(-79.9988, 45), activity: walking(45));
 
     expect(decision.disposition, TripSampleDisposition.excludedWalking);
     expect(engine.needsWalkingReview, isFalse);
@@ -832,6 +829,36 @@ void main() {
     expect(snapshot.diagnostics.acceptedSamples, isZero);
     expect(snapshot.diagnostics.rejectedSamples, 2);
     expect(inMemoryDiagnostics.rejectedSamples, 2);
+  });
+
+  test('restored diagnostics reject accepted count contradictions', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 0,
+      'walkingReviewSuggested': false,
+      'diagnostics': {
+        'receivedSamples': 3,
+        'acceptedSamples': 1,
+        'dispositionCounts': {
+          'acceptedAnchor': 1,
+          'acceptedDistance': 1,
+          'rejectedAccuracy': 1,
+        },
+      },
+    });
+
+    expect(snapshot.diagnostics.receivedSamples, 3);
+    expect(snapshot.diagnostics.acceptedSamples, isZero);
+    expect(snapshot.diagnostics.rejectedSamples, 3);
+    expect(
+      snapshot.diagnostics.dispositionCounts[TripSampleDisposition
+          .acceptedAnchor],
+      1,
+    );
+    expect(
+      snapshot.diagnostics.dispositionCounts[TripSampleDisposition
+          .acceptedDistance],
+      1,
+    );
   });
 
   test(
