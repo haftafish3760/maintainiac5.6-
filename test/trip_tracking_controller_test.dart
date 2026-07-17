@@ -475,6 +475,44 @@ void main() {
     expect(controller.platformError, isNull);
   });
 
+  test('low power mode asks before requesting GPS permission', () async {
+    final native = _FakeTripTrackingPlatform(
+      batterySnapshot: const TripTrackingBatterySnapshot(
+        batteryPercent: 80,
+        isCharging: false,
+        lowPowerModeEnabled: true,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_low_power_prompt',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isFalse,
+    );
+
+    expect(native.requestAuthorizationCalls, 0);
+    expect(native.startCalls, 0);
+    expect(controller.platformStatus, 'low_power_mode_requires_user_choice');
+    expect(controller.platformError, contains('Battery saver is active'));
+    expect(
+      controller.lifecycleState,
+      TripTrackingSessionLifecycleState.failedRecoverable,
+    );
+  });
+
   test(
     'battery snapshot read failures do not fabricate low battery blocks',
     () async {

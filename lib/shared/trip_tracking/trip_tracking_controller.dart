@@ -621,17 +621,14 @@ class TripTrackingController extends ChangeNotifier {
     final batteryDecision = _policy.gpsBatteryDecision(
       batteryPercent: batterySnapshot.batteryPercent,
       isCharging: batterySnapshot.isCharging,
+      lowPowerModeEnabled: batterySnapshot.lowPowerModeEnabled,
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
     );
     if (!batteryDecision.allowsGps) {
       _platformStatus = batteryDecision.reasonCode;
-      _platformError =
-          batteryDecision.status ==
-              TripGpsBatteryDecisionStatus.userPromptRequired
-          ? 'Battery is below the GPS safety threshold. Choose whether to continue GPS below 20% battery.'
-          : 'GPS tracking is blocked below 20% battery by your saved battery setting.';
+      _platformError = _gpsBatteryMessageFor(batteryDecision);
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
@@ -728,6 +725,20 @@ class TripTrackingController extends ChangeNotifier {
     }
     notifyListeners();
     return true;
+  }
+
+  String _gpsBatteryMessageFor(TripGpsBatteryDecision decision) {
+    final lowPowerMode = decision.reasonCode.startsWith('low_power_mode');
+    final prompt =
+        decision.status == TripGpsBatteryDecisionStatus.userPromptRequired;
+    if (lowPowerMode) {
+      return prompt
+          ? 'Battery saver is active. Choose whether to continue GPS while the device is conserving power.'
+          : 'GPS tracking is blocked while battery saver is active by your saved battery setting.';
+    }
+    return prompt
+        ? 'Battery is below the GPS safety threshold. Choose whether to continue GPS below 20% battery.'
+        : 'GPS tracking is blocked below 20% battery by your saved battery setting.';
   }
 
   StreamSubscription<TripTrackingPlatformEvent> _listenToPlatformEvents(

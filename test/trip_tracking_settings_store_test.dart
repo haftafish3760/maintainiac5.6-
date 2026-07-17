@@ -296,6 +296,33 @@ void main() {
     expect(decision.reasonCode, 'user_override_low_battery');
   });
 
+  test('low power mode asks before GPS unless the user overrides it', () {
+    const policy = TripTrackingPolicy();
+    const settings = TripTrackingSettings();
+
+    final prompt = policy.gpsBatteryDecision(
+      batteryPercent: 80,
+      isCharging: false,
+      lowPowerModeEnabled: true,
+      lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+      lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
+      lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
+    );
+    final override = policy.gpsBatteryDecision(
+      batteryPercent: 80,
+      isCharging: false,
+      lowPowerModeEnabled: true,
+      lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+      lowBatteryOverrideEnabled: true,
+      lowBatteryWarningDismissed: false,
+    );
+
+    expect(prompt.status, TripGpsBatteryDecisionStatus.userPromptRequired);
+    expect(prompt.reasonCode, 'low_power_mode_requires_user_choice');
+    expect(override.status, TripGpsBatteryDecisionStatus.allowed);
+    expect(override.reasonCode, 'user_override_low_power_mode');
+  });
+
   test('cancel and do-not-show-again keeps low battery GPS blocked', () {
     const policy = TripTrackingPolicy();
     final settings = const TripTrackingSettings().copyWith(

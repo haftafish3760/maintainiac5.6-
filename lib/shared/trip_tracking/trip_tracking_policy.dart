@@ -61,6 +61,7 @@ class TripTrackingPolicy {
   TripGpsBatteryDecision gpsBatteryDecision({
     required int? batteryPercent,
     required bool isCharging,
+    bool lowPowerModeEnabled = false,
     required bool lowBatteryProtectionEnabled,
     required bool lowBatteryOverrideEnabled,
     required bool lowBatteryWarningDismissed,
@@ -78,37 +79,61 @@ class TripTrackingPolicy {
       );
     }
     final percent = batteryPercent;
+    final cutoff =
+        lowBatteryGpsCutoffPercent >= 0 && lowBatteryGpsCutoffPercent <= 100
+        ? lowBatteryGpsCutoffPercent
+        : 20;
+    if (percent != null && percent >= 0 && percent < cutoff) {
+      if (lowBatteryOverrideEnabled) {
+        return const TripGpsBatteryDecision(
+          status: TripGpsBatteryDecisionStatus.allowed,
+          reasonCode: 'user_override_low_battery',
+        );
+      }
+      if (lowBatteryWarningDismissed) {
+        return const TripGpsBatteryDecision(
+          status: TripGpsBatteryDecisionStatus.blocked,
+          reasonCode: 'low_battery_gps_blocked_by_saved_choice',
+        );
+      }
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.userPromptRequired,
+        reasonCode: 'low_battery_requires_user_choice',
+      );
+    }
+    if (lowPowerModeEnabled) {
+      if (lowBatteryOverrideEnabled) {
+        return const TripGpsBatteryDecision(
+          status: TripGpsBatteryDecisionStatus.allowed,
+          reasonCode: 'user_override_low_power_mode',
+        );
+      }
+      if (lowBatteryWarningDismissed) {
+        return const TripGpsBatteryDecision(
+          status: TripGpsBatteryDecisionStatus.blocked,
+          reasonCode: 'low_power_mode_gps_blocked_by_saved_choice',
+        );
+      }
+      return const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.userPromptRequired,
+        reasonCode: 'low_power_mode_requires_user_choice',
+      );
+    }
     if (percent == null || percent < 0 || percent > 100) {
       return const TripGpsBatteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_unknown',
       );
     }
-    final cutoff =
-        lowBatteryGpsCutoffPercent >= 0 && lowBatteryGpsCutoffPercent <= 100
-        ? lowBatteryGpsCutoffPercent
-        : 20;
     if (percent >= cutoff) {
       return const TripGpsBatteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_above_cutoff',
       );
     }
-    if (lowBatteryOverrideEnabled) {
-      return const TripGpsBatteryDecision(
-        status: TripGpsBatteryDecisionStatus.allowed,
-        reasonCode: 'user_override_low_battery',
-      );
-    }
-    if (lowBatteryWarningDismissed) {
-      return const TripGpsBatteryDecision(
-        status: TripGpsBatteryDecisionStatus.blocked,
-        reasonCode: 'low_battery_gps_blocked_by_saved_choice',
-      );
-    }
     return const TripGpsBatteryDecision(
-      status: TripGpsBatteryDecisionStatus.userPromptRequired,
-      reasonCode: 'low_battery_requires_user_choice',
+      status: TripGpsBatteryDecisionStatus.allowed,
+      reasonCode: 'battery_unknown',
     );
   }
 
