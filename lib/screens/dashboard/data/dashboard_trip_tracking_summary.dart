@@ -6,6 +6,7 @@ import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart
 import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart';
 import '../../../shared/trip_tracking/trip_tracking_profile_strategy.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import '../../../shared/trip_tracking/trip_tracking_storage_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
 import 'active_workday_store.dart';
 
@@ -350,9 +351,7 @@ String _usageStateFor(TripOdometerUsageAnomalySignal? signal) {
 
 String _storageStateFor(AppStorageCheck? storageCheck) {
   if (storageCheck == null || !storageCheck.canVerify) return 'unknown';
-  if (!storageCheck.hasEnoughSpace) return 'blocked';
-  if (storageCheck.shouldWarnLowStorage) return 'low_storage';
-  return 'text_record_safe';
+  return TripTrackingStoragePolicy.evaluate(storageCheck).storageState;
 }
 
 bool _isBatteryLimitedStatus(String? status) {

@@ -1,0 +1,95 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_storage_policy.dart';
+
+void main() {
+  const operationBytes = AppStorageGuard.mileageTrackingWriteBytes;
+  const requiredBytes =
+      AppStorageGuard.mileageTrackingWriteBytes +
+      AppStorageGuard.textRecordDeviceReserveBytes;
+
+  AppStorageCheck check(int? availableBytes, {bool canVerify = true}) {
+    if (!canVerify) {
+      return const AppStorageCheck.unknown(
+        operationBytes: operationBytes,
+        requiredBytes: requiredBytes,
+        purpose: AppStoragePurpose.mileageTracking,
+      );
+    }
+    return AppStorageCheck(
+      availableBytes: availableBytes,
+      operationBytes: operationBytes,
+      requiredBytes: requiredBytes,
+      purpose: AppStoragePurpose.mileageTracking,
+    );
+  }
+
+  test('unknown storage continues text GPS records without deleting data', () {
+    final decision = TripTrackingStoragePolicy.evaluate(
+      check(null, canVerify: false),
+    );
+
+    expect(decision.action, TripTrackingStorageAction.unknown);
+    expect(decision.storageState, 'unknown');
+    expect(decision.canWriteTextRecord, isTrue);
+    expect(decision.shouldBlockTextRecord, isFalse);
+    expect(decision.message, contains('could not verify'));
+    expect(decision.toSafeSummary(), containsPair('deletesLocalData', false));
+    expect(decision.toSafeSummary(), containsPair('purgesLocalData', false));
+  });
+
+  test(
+    'below text reserve blocks writes but never claims cleanup happened',
+    () {
+      final decision = TripTrackingStoragePolicy.evaluate(check(1));
+
+      expect(decision.action, TripTrackingStorageAction.block);
+      expect(decision.storageState, 'blocked');
+      expect(decision.canWriteTextRecord, isFalse);
+      expect(decision.shouldBlockTextRecord, isTrue);
+      expect(decision.safeReason, 'storage_below_text_record_reserve');
+      expect(decision.message, contains('will not delete anything'));
+      expect(
+        decision.toSafeSummary(),
+        containsPair('availableBucket', 'below_text_reserve'),
+      );
+    },
+  );
+
+  test('low storage warns while allowing text mileage writes', () {
+    final decision = TripTrackingStoragePolicy.evaluate(
+      check(AppStorageGuard.orangeStorageBytes),
+    );
+
+    expect(decision.action, TripTrackingStorageAction.warn);
+    expect(decision.storageState, 'low_storage');
+    expect(decision.canWriteTextRecord, isTrue);
+    expect(decision.shouldWarnUser, isTrue);
+    expect(decision.safeReason, 'storage_low_text_records_allowed');
+    expect(decision.toSafeSummary(), containsPair('availableBucket', 'orange'));
+  });
+
+  test('green storage allows text mileage writes without warning', () {
+    final decision = TripTrackingStoragePolicy.evaluate(
+      check(AppStorageGuard.greenStorageBytes),
+    );
+
+    expect(decision.action, TripTrackingStorageAction.allow);
+    expect(decision.storageState, 'text_record_safe');
+    expect(decision.canWriteTextRecord, isTrue);
+    expect(decision.shouldWarnUser, isFalse);
+    expect(decision.message, isEmpty);
+    expect(decision.toSafeSummary(), containsPair('availableBucket', 'green'));
+  });
+
+  test('safe summaries bucket storage without exact byte values', () {
+    final decision = TripTrackingStoragePolicy.evaluate(
+      check(123 * 1024 * 1024),
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary.keys, isNot(contains('availableBytes')));
+    expect(summary.keys, isNot(contains('requiredBytes')));
+    expect(summary['requiredBucket'], 'red');
+  });
+}
