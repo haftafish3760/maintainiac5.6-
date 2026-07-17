@@ -746,6 +746,7 @@ class _GpsTripPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context)?.settings;
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context)?.activeSession;
     final guidance = settings == null
         ? null
         : TripTrackingDashboardGuidance.fromSettings(settings);
@@ -755,6 +756,18 @@ class _GpsTripPanel extends StatelessWidget {
             capabilities: controller!.lastKnownCapabilities!,
             settings: settings,
           )
+        : null;
+    final odometerAlertEnabled =
+        settings?.gpsAssistedTrackingEnabled == true &&
+        settings?.odometerAnomalyAlertsEnabled == true;
+    final usageSignal =
+        odometerAlertEnabled && controller != null && activeWorkday != null
+        ? controller.odometerUsageAnomalySignalForCurrentDay(
+            startingOdometer: activeWorkday.startOdometer,
+          )
+        : null;
+    final calibrationSignal = odometerAlertEnabled && controller != null
+        ? controller.odometerCalibrationSignal()
         : null;
     final odometer = GlobalOdometerScope.of(context);
     final tracking = controller?.isTracking == true;
@@ -887,6 +900,28 @@ class _GpsTripPanel extends StatelessWidget {
                       color: Color(0xFFCAD2D5),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+                if (usageSignal?.shouldPromptUser == true) ...[
+                  const SizedBox(height: 3),
+                  const Text(
+                    'Odometer mileage is unusually high for reviewed history. Review before confirming; GPS stays advisory.',
+                    style: TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+                if (calibrationSignal?.shouldPromptUser == true) ...[
+                  const SizedBox(height: 3),
+                  const Text(
+                    'Repeated GPS/odometer drift detected. Check tire size or calibration; odometer stays official.',
+                    style: TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],

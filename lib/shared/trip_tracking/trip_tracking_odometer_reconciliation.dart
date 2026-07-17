@@ -166,6 +166,9 @@ class TripOdometerCalibrationSignal {
   /// assistance, but it must never overwrite confirmed odometer truth.
   bool get canOverwriteConfirmedOdometer => false;
 
+  bool get shouldPromptUser =>
+      status == TripOdometerCalibrationStatus.reviewRecommended;
+
   /// Multiplier future GPS assistance may apply to its estimated distance when
   /// a user accepts calibration guidance. It is intentionally advisory and
   /// never changes confirmed odometer records by itself.
@@ -334,7 +337,6 @@ class TripOdometerCalibrationSignal {
     );
   }
 }
-
 
 class _DailyCalibrationTotals {
   var odometerMiles = 0.0;
