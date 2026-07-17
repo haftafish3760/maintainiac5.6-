@@ -245,7 +245,7 @@ class TripTrackingController extends ChangeNotifier {
       return false;
     }
     final now = startedAt ?? DateTime.now();
-    _engine = TripTrackingEngine(profile: profile);
+    _engine = TripTrackingEngine(policy: _policy, profile: profile);
     _projection = TripLiveOdometerProjection(
       startingOdometer: startingOdometer,
     );
@@ -378,6 +378,7 @@ class TripTrackingController extends ChangeNotifier {
     _session = session;
     _engine = TripTrackingEngine.fromSnapshot(
       session.engineSnapshot,
+      policy: _policy,
       profile: session.profile,
     );
     _projection = projection;
@@ -485,28 +486,45 @@ class TripTrackingController extends ChangeNotifier {
         decision.disposition == TripSampleDisposition.rejectedSpeedConflict ||
         decision.disposition == TripSampleDisposition.excludedWalking;
     if (persistsRecoveryState) {
-      final nextLifecycleState = _lifecycleAfterDecision(
+      final estimatedOdometer = projection.updateAcceptedMeters(
+        decision.totalAcceptedMeters,
+      );
+      final liveProjectionUpdated = _odometer.updateLiveTripProjection(
+        tripId: session.id,
+        estimatedOdometer: estimatedOdometer,
+      );
+      final liveProjectionFailed = decision.accepted && !liveProjectionUpdated;
+      if (liveProjectionFailed) {
+        _platformStatus = 'odometer_projection_invalid';
+        _platformError =
+            'GPS distance exceeded the supported live odometer range. Review the trip before continuing.';
+      }
+      final naturalLifecycleState = _lifecycleAfterDecision(
         session.lifecycleState,
         decision,
       );
+      final nextLifecycleState =
+          liveProjectionFailed &&
+              TripTrackingSessionStateMachine.canTransition(
+                session.lifecycleState,
+                TripTrackingSessionLifecycleState.failedRecoverable,
+              )
+          ? TripTrackingSessionLifecycleState.failedRecoverable
+          : naturalLifecycleState;
       if (nextLifecycleState != session.lifecycleState) {
         TripTrackingSessionStateMachine.requireTransition(
           session.lifecycleState,
           nextLifecycleState,
         );
       }
-      _odometer.updateLiveTripProjection(
-        tripId: session.id,
-        estimatedOdometer: projection.updateAcceptedMeters(
-          decision.totalAcceptedMeters,
-        ),
-      );
       _session = session.copyWith(
         updatedAt: sample.recordedAt,
         engineSnapshot: engine.snapshot,
         advisories: advisories,
         lifecycleState: nextLifecycleState,
-        healthState: _healthAfterDecision(session.healthState, decision),
+        healthState: liveProjectionFailed
+            ? TripTrackingHealthState.unavailable
+            : _healthAfterDecision(session.healthState, decision),
       );
       await _sessionStore.save(_session!);
       notifyListeners();
