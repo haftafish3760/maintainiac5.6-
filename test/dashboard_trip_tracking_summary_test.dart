@@ -266,6 +266,80 @@ void main() {
   );
 
   test(
+    'runtime summary mirrors stop-review tokens without raw GPS history',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+      );
+      final startedAt = DateTime.utc(2026, 7, 17, 10);
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'runtime_summary_stop_review',
+          vehicleId: odometer.vehicleId,
+          profile: TripTrackingProfile.deliveryVehicle,
+          startedAt: startedAt,
+        ),
+        isTrue,
+      );
+      await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: startedAt,
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: 9,
+        ),
+      );
+      await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -79.999,
+          recordedAt: startedAt.add(const Duration(seconds: 20)),
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: 9,
+        ),
+      );
+      for (final seconds in const [40, 60, 80, 100]) {
+        await controller.ingest(
+          TripLocationSample(
+            latitude: 35,
+            longitude: -79.999,
+            recordedAt: startedAt.add(Duration(seconds: seconds)),
+            horizontalAccuracyMeters: 5,
+            speedMetersPerSecond: 0,
+          ),
+          activity: TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 95,
+            recordedAt: startedAt.add(Duration(seconds: seconds)),
+          ),
+        );
+      }
+
+      final summary = DashboardTripTrackingSummary.fromRuntime(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          defaultProfile: TripTrackingProfile.deliveryVehicle,
+        ),
+        tripTracking: controller,
+      );
+
+      expect(summary.stopSignal, 'review_only_stop');
+      expect(summary.stopActionToken, 'review_delivery_stop');
+      expect(summary.stopClassificationReason, 'delivery_stop_walk_review');
+      expect(summary.reviewRequired, isTrue);
+    },
+  );
+
+  test(
     'runtime summary mirrors odometer calibration as review-only state',
     () async {
       final odometer = GlobalOdometerController(
