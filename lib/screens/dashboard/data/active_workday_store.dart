@@ -77,9 +77,9 @@ class ActiveWorkdayEvent {
     final rawId = map['id'];
     return ActiveWorkdayEvent(
       id: _safeText(rawId, fallback: _newId('event'), maxLength: 160),
-      type: _eventTypeFromName(map['type'] as String?),
+      type: _eventTypeFromName(_stringValue(map['type'])),
       occurredAt:
-          DateTime.tryParse((map['occurredAt'] as String?) ?? '') ??
+          DateTime.tryParse(_stringValue(map['occurredAt']) ?? '') ??
           _fallbackWorkdayTimestamp(),
       odometerReading: _safeOdometer(map['odometerReading']) ?? 0,
       label: _safeText(map['label'], fallback: 'Workday event', maxLength: 80),
@@ -242,11 +242,11 @@ class ActiveWorkdaySessionRecord {
       }
     }
     final startedAt =
-        DateTime.tryParse((map['startedAt'] as String?) ?? '') ??
+        DateTime.tryParse(_stringValue(map['startedAt']) ?? '') ??
         _fallbackWorkdayTimestamp();
     final endOdometer = _safeOdometer(map['endOdometer']);
-    final endedAt = DateTime.tryParse((map['endedAt'] as String?) ?? '');
-    final status = _statusFromName(map['status'] as String?);
+    final endedAt = DateTime.tryParse(_stringValue(map['endedAt']) ?? '');
+    final status = _statusFromName(_stringValue(map['status']));
     final hasEndedEvent = events.any(
       (event) => event.type == ActiveWorkdayEventType.ended,
     );
@@ -586,6 +586,8 @@ String _newId(String prefix) {
 
 DateTime _fallbackWorkdayTimestamp() =>
     DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
+String? _stringValue(Object? value) => value is String ? value : null;
 
 bool _isSafeActiveWorkdayId(String value) {
   return _isSafeActiveWorkdayIdValue(value);

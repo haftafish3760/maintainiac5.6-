@@ -482,6 +482,35 @@ void main() {
     expect(restored.events.single.occurredAt, fallback);
   });
 
+  test('non-string active workday restore fields fail closed', () {
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'malformed-workday-shape',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': 12345,
+      'startOdometer': 1200,
+      'status': {'bad': 'shape'},
+      'endedAt': 67890,
+      'events': [
+        {
+          'id': 'bad-shape-event',
+          'type': 42,
+          'occurredAt': ['not', 'a', 'date'],
+          'odometerReading': 1201,
+          'label': 'Stop logged',
+        },
+      ],
+    });
+
+    final fallback = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    expect(restored.startedAt, fallback);
+    expect(restored.status, ActiveWorkdayStatus.active);
+    expect(restored.endedAt, isNull);
+    expect(restored.events.single.type, ActiveWorkdayEventType.note);
+    expect(restored.events.single.occurredAt, fallback);
+  });
+
   test('active workday serialization never writes negative odometers', () {
     final record = ActiveWorkdaySessionRecord(
       id: 'negative-workday-odometer',
