@@ -3,10 +3,13 @@ const metersPerMile = 1609.344;
 /// Produces a display-only odometer estimate during an active GPS trip. The
 /// confirmed odometer is intentionally not overwritten until trip review.
 class TripLiveOdometerProjection {
-  TripLiveOdometerProjection({required this.startingOdometer})
-    : _lastProjectedReading = _safeStartingOdometer(startingOdometer);
+  TripLiveOdometerProjection({
+    required this.startingOdometer,
+    this.maxSupportedReading = 9999999,
+  }) : _lastProjectedReading = _safeStartingOdometer(startingOdometer);
 
   final int startingOdometer;
+  final int maxSupportedReading;
   int _lastProjectedReading;
 
   int get projectedReading => _lastProjectedReading;
@@ -18,6 +21,9 @@ class TripLiveOdometerProjection {
     final estimated =
         _safeStartingOdometer(startingOdometer) +
         (acceptedMeters / metersPerMile).round();
+    if (estimated > maxSupportedReading) {
+      return _lastProjectedReading;
+    }
     if (estimated > _lastProjectedReading) {
       _lastProjectedReading = estimated;
     }

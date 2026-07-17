@@ -28,4 +28,15 @@ void main() {
     expect(projection.projectedReading, isZero);
     expect(projection.updateAcceptedMeters(1609.344), 1);
   });
+
+  test('over-range live projection stays at last safe reading', () {
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: 1999,
+      maxSupportedReading: 2000,
+    );
+
+    expect(projection.updateAcceptedMeters(1609.344), 2000);
+    expect(projection.updateAcceptedMeters(3218.688), 2000);
+    expect(projection.projectedReading, 2000);
+  });
 }
