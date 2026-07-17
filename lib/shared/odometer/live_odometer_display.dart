@@ -26,6 +26,14 @@ class LiveOdometerDisplaySnapshot {
 
   bool get hasAdvisoryDelta => isLive && deltaMiles > 0;
 
+  bool get confirmedReadingIsCanonical => true;
+
+  bool get rawGpsIncluded => false;
+
+  bool get routeGeometryIncluded => false;
+
+  bool get mapboxMayOverrideOdometer => false;
+
   String get displayValue =>
       _safeReading(displayReading).toString().padLeft(7, '0');
 
@@ -55,6 +63,19 @@ class LiveOdometerDisplaySnapshot {
     return now.toUtc().difference(updatedAt.toUtc()) > staleAfter;
   }
 
+  int? ageSecondsAt(DateTime now) {
+    final updatedAt = liveUpdatedAt;
+    if (!isLive || updatedAt == null) return null;
+    final age = now.toUtc().difference(updatedAt.toUtc()).inSeconds;
+    if (age < 0) return 0;
+    return age > 86400 ? 86400 : age;
+  }
+
+  String freshnessAt(DateTime now) {
+    if (!isLive) return 'inactive';
+    return isStaleAt(now) ? 'stale' : 'fresh';
+  }
+
   String? statusLabelAt(DateTime now) {
     if (!isLive) return null;
     if (isStaleAt(now)) return 'Live GPS paused';
@@ -73,6 +94,7 @@ class LiveOdometerDisplaySnapshot {
   }
 
   Map<String, Object?> toSafeDashboardMap(DateTime now) => {
+    'schemaVersion': 1,
     'label': label,
     'displayValue': displayValue,
     'confirmedDisplayValue': confirmedDisplayValue,
@@ -80,9 +102,15 @@ class LiveOdometerDisplaySnapshot {
     'deltaMiles': deltaMiles,
     'statusLabel': statusLabelAt(now),
     'advisoryLabel': advisoryLabel,
-    'freshness': isStaleAt(now) ? 'stale' : 'fresh',
+    'freshness': freshnessAt(now),
+    'ageSeconds': ageSecondsAt(now),
+    'reviewRequired': isStaleAt(now),
     'manualEntryBlocked': manualEntryBlocked,
     'truthLabel': truthLabel,
+    'confirmedReadingIsCanonical': confirmedReadingIsCanonical,
+    'rawGpsIncluded': rawGpsIncluded,
+    'routeGeometryIncluded': routeGeometryIncluded,
+    'mapboxMayOverrideOdometer': mapboxMayOverrideOdometer,
   };
 }
 

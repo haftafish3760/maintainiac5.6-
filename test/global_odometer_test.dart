@@ -755,6 +755,15 @@ void main() {
       expect(controller.liveTripDeltaMiles, 2);
       expect(controller.liveTripDisplayLabel, 'Live GPS odometer');
       expect(controller.liveTripUpdatedAt, isNotNull);
+      final dashboardMap = controller.liveDisplaySnapshot.toSafeDashboardMap(
+        DateTime.now(),
+      );
+      expect(dashboardMap['displayValue'], '0001002');
+      expect(dashboardMap['confirmedDisplayValue'], '0001000');
+      expect(dashboardMap['confirmedReadingIsCanonical'], isTrue);
+      expect(dashboardMap['rawGpsIncluded'], isFalse);
+      expect(dashboardMap['routeGeometryIncluded'], isFalse);
+      expect(dashboardMap['mapboxMayOverrideOdometer'], isFalse);
       expect(controller.updateFromText('1003').ok, isFalse);
       expect(controller.clearLiveTripProjection(tripId: 'trip_1'), isTrue);
       expect(controller.reading, 1000);

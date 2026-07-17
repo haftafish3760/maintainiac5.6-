@@ -3399,9 +3399,9 @@ void main() {
   );
 
   test('a missing persisted timeline is cleared instead of restored', () async {
-    final store = TripTrackingSessionStore.memory();
-    await store.save(
-      TripTrackingSessionRecord.fromMap({
+    final store = await _storeWithRawTripTrackingData(
+      tempPrefix: 'trip_tracking_missing_timeline_',
+      activeSession: {
         'id': 'trip_missing_timeline',
         'vehicleId': 'vehicle_1',
         'startingOdometer': 1000,
@@ -3410,7 +3410,7 @@ void main() {
           'totalAcceptedMeters': 0,
           'walkingReviewSuggested': false,
         },
-      }),
+      },
     );
     final controller = TripTrackingController(
       sessionStore: store,
@@ -3423,9 +3423,9 @@ void main() {
   });
 
   test('an unknown persisted profile is cleared instead of restored', () async {
-    final store = TripTrackingSessionStore.memory();
-    await store.save(
-      TripTrackingSessionRecord.fromMap({
+    final store = await _storeWithRawTripTrackingData(
+      tempPrefix: 'trip_tracking_unknown_profile_',
+      activeSession: {
         'id': 'trip_unknown_profile',
         'vehicleId': 'vehicle_1',
         'startingOdometer': 1000,
@@ -3436,7 +3436,7 @@ void main() {
           totalAcceptedMeters: 0,
           walkingReviewSuggested: false,
         ).toMap(),
-      }),
+      },
     );
     final odometer = GlobalOdometerController(initialReading: 1000);
     final controller = TripTrackingController(
@@ -3482,23 +3482,21 @@ void main() {
   });
 
   test('an invalid local review cannot erase a recoverable GPS trip', () async {
-    final store = TripTrackingSessionStore.memory();
-    await store.save(
-      TripTrackingSessionRecord(
-        id: 'trip_invalid_review',
-        vehicleId: 'vehicle_1',
-        startingOdometer: 1000,
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: start,
-        updatedAt: start,
-        engineSnapshot: const TripTrackingEngineSnapshot(
+    final store = await _storeWithRawTripTrackingData(
+      tempPrefix: 'trip_tracking_invalid_review_',
+      activeSession: {
+        'id': 'trip_invalid_review',
+        'vehicleId': 'vehicle_1',
+        'startingOdometer': 1000,
+        'profile': 'roadVehicle',
+        'startedAt': start.toIso8601String(),
+        'updatedAt': start.toIso8601String(),
+        'engineSnapshot': const TripTrackingEngineSnapshot(
           totalAcceptedMeters: 0,
           walkingReviewSuggested: false,
-        ),
-      ),
-    );
-    await store.saveReview(
-      TripTrackingReviewRecord.fromMap({
+        ).toMap(),
+      },
+      review: {
         'id': 'trip_invalid_review',
         'vehicleId': 'vehicle_1',
         'startingOdometer': 1000,
@@ -3508,7 +3506,7 @@ void main() {
           'totalAcceptedMeters': 0,
           'walkingReviewSuggested': false,
         },
-      }),
+      },
     );
     final odometer = GlobalOdometerController(
       vehicleId: 'vehicle_1',
@@ -4087,6 +4085,29 @@ class _FakeTripTrackingCloudMirror implements TripTrackingCloudMirror {
 
   @override
   void dispose() {}
+}
+
+Future<TripTrackingSessionStore> _storeWithRawTripTrackingData({
+  required String tempPrefix,
+  required Map<String, Object?> activeSession,
+  Map<String, Object?>? review,
+}) async {
+  final hiveDirectory = await Directory.systemTemp.createTemp(tempPrefix);
+  Hive.init(hiveDirectory.path);
+  final box = await Hive.openBox<dynamic>(TripTrackingSessionStore.boxName);
+  await box.put('activeSession', activeSession);
+  final reviewId = review?['id'];
+  if (reviewId is String) {
+    await box.put('review:$reviewId', review);
+  }
+  final store = await TripTrackingSessionStore.create();
+  addTearDown(() async {
+    await Hive.close();
+    if (hiveDirectory.existsSync()) {
+      await hiveDirectory.delete(recursive: true);
+    }
+  });
+  return store;
 }
 
 class _FailingAfterInitialSessionSaveStore extends TripTrackingSessionStore {

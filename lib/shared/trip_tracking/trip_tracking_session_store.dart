@@ -601,6 +601,16 @@ class TripTrackingSessionStore {
     return null;
   }
 
+  TripTrackingReviewRecord? recoveryReviewForTrip(String tripId) {
+    if (!_isSafeStoreIdentifier(tripId)) return null;
+    final value = _box == null
+        ? _memoryReviews[tripId]
+        : _box.get('$_reviewPrefix$tripId');
+    if (value is TripTrackingReviewRecord) return value;
+    if (value is Map) return TripTrackingReviewRecord.fromMap(value);
+    return null;
+  }
+
   Future<void> save(TripTrackingSessionRecord session) => _enqueue(() async {
     if (!_isSafeStoreIdentifier(session.id)) {
       throw ArgumentError.value(

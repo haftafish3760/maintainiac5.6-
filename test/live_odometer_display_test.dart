@@ -16,6 +16,7 @@ void main() {
     expect(snapshot.deltaLabel, isNull);
     expect(snapshot.statusLabelAt(DateTime.utc(2026)), isNull);
     expect(snapshot.toSafeDashboardMap(DateTime.utc(2026)), {
+      'schemaVersion': 1,
       'label': 'Odometer',
       'displayValue': '0001000',
       'confirmedDisplayValue': '0001000',
@@ -23,9 +24,15 @@ void main() {
       'deltaMiles': 0,
       'statusLabel': null,
       'advisoryLabel': null,
-      'freshness': 'fresh',
+      'freshness': 'inactive',
+      'ageSeconds': null,
+      'reviewRequired': false,
       'manualEntryBlocked': false,
       'truthLabel': 'Confirmed odometer',
+      'confirmedReadingIsCanonical': true,
+      'rawGpsIncluded': false,
+      'routeGeometryIncluded': false,
+      'mapboxMayOverrideOdometer': false,
     });
     expect(snapshot.semanticsLabelAt(DateTime.utc(2026)), 'Odometer 0001000');
   });
@@ -54,6 +61,14 @@ void main() {
       false,
     );
     expect(
+      snapshot.ageSecondsAt(updatedAt.add(const Duration(minutes: 1))),
+      60,
+    );
+    expect(
+      snapshot.freshnessAt(updatedAt.add(const Duration(minutes: 1))),
+      'fresh',
+    );
+    expect(
       snapshot.statusLabelAt(updatedAt.add(const Duration(minutes: 1))),
       '+3 mi live',
     );
@@ -74,8 +89,11 @@ void main() {
     );
 
     expect(snapshot.isStaleAt(now), isTrue);
+    expect(snapshot.ageSecondsAt(now), 360);
+    expect(snapshot.freshnessAt(now), 'stale');
     expect(snapshot.statusLabelAt(now), 'Live GPS paused');
     expect(snapshot.toSafeDashboardMap(now), {
+      'schemaVersion': 1,
       'label': 'Live GPS odometer',
       'displayValue': '0001004',
       'confirmedDisplayValue': '0001000',
@@ -85,9 +103,15 @@ void main() {
       'advisoryLabel':
           'GPS-assisted estimate is 4 mi ahead of confirmed odometer.',
       'freshness': 'stale',
+      'ageSeconds': 360,
+      'reviewRequired': true,
       'manualEntryBlocked': true,
       'truthLabel':
           'Confirmed odometer remains the mileage truth until trip review.',
+      'confirmedReadingIsCanonical': true,
+      'rawGpsIncluded': false,
+      'routeGeometryIncluded': false,
+      'mapboxMayOverrideOdometer': false,
     });
   });
 
@@ -100,11 +124,34 @@ void main() {
 
     expect(snapshot.deltaMiles, isZero);
     expect(snapshot.deltaLabel, 'GPS live');
+    expect(snapshot.confirmedReadingIsCanonical, isTrue);
+    expect(snapshot.rawGpsIncluded, isFalse);
+    expect(snapshot.routeGeometryIncluded, isFalse);
+    expect(snapshot.mapboxMayOverrideOdometer, isFalse);
     expect(
       snapshot.advisoryLabel,
       'GPS-assisted odometer is live; confirmed mileage has not changed.',
     );
     expect(snapshot.displayValue, '0000999');
+  });
+
+  test('live odometer dashboard map bounds clock skew and long gaps', () {
+    final updatedAt = DateTime.utc(2026, 7, 17, 12);
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1001,
+      isLive: true,
+      liveUpdatedAt: updatedAt,
+    );
+
+    expect(
+      snapshot.ageSecondsAt(updatedAt.subtract(const Duration(minutes: 1))),
+      0,
+    );
+    expect(
+      snapshot.ageSecondsAt(updatedAt.add(const Duration(days: 3))),
+      86400,
+    );
   });
 
   test('global odometer publishes a reusable live display snapshot', () {

@@ -298,7 +298,7 @@ class TripTrackingController extends ChangeNotifier {
     try {
       // Reviews are stored by trip id. Reusing an id would otherwise replace
       // an existing locally durable audit record when the new trip finishes.
-      if (_sessionStore.reviewForTrip(tripId) != null) return false;
+      if (_sessionStore.recoveryReviewForTrip(tripId) != null) return false;
     } catch (error) {
       // Do not start GPS or alter the live odometer when we cannot establish
       // that the immutable local review history is available.
@@ -391,7 +391,7 @@ class TripTrackingController extends ChangeNotifier {
     // resume tracking or risk adding distance to a trip the user ended.
     TripTrackingReviewRecord? review;
     try {
-      review = _sessionStore.reviewForTrip(session.id);
+      review = _sessionStore.recoveryReviewForTrip(session.id);
     } catch (error) {
       _platformStatus = 'storage_failed';
       _platformError = 'Could not read local trip review data.';
