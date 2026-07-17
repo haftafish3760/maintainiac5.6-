@@ -84,8 +84,8 @@ void main() {
 
   test('Bluetooth vehicle links are trimmed and bounded locally', () {
     final link = TripTrackingBluetoothVehicleLink.fromMap({
-      'deviceId': '  ${'d' * 200}  ',
-      'vehicleId': '  ${'v' * 200}  ',
+      'deviceId': '  ${'d' * 80}\n${'d' * 120}  ',
+      'vehicleId': '  ${'v' * 80}\t${'v' * 120}  ',
       'displayName': 'Truck\n${'x' * 120}',
       'createdAt': DateTime.utc(2026, 7, 13, 8).toIso8601String(),
     });
@@ -94,8 +94,27 @@ void main() {
     expect((map['deviceId'] as String), hasLength(160));
     expect((map['vehicleId'] as String), hasLength(160));
     expect((map['displayName'] as String), hasLength(80));
+    expect(map['deviceId'], isNot(contains('\n')));
+    expect(map['vehicleId'], isNot(contains('\t')));
     expect(map['displayName'], isNot(contains('\n')));
     expect(link.isValid, isTrue);
+  });
+
+  test('Bluetooth lookups and removals use normalized local ids', () async {
+    final store = TripTrackingBluetoothVehicleLinkStore.memory();
+    final createdAt = DateTime.utc(2026, 7, 13, 8);
+    await store.save(
+      TripTrackingBluetoothVehicleLink(
+        deviceId: ' head-unit\none ',
+        vehicleId: ' vehicle\t1 ',
+        createdAt: createdAt,
+      ),
+    );
+
+    expect(store.linkForDevice('head-unit one')?.vehicleId, 'vehicle 1');
+    expect(store.linksForVehicle('vehicle 1'), hasLength(1));
+    await store.removeDevice('head-unit one');
+    expect(store.linkForDevice('head-unit one'), isNull);
   });
 
   test(

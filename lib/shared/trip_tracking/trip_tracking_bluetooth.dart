@@ -63,7 +63,7 @@ class TripTrackingBluetoothVehicleLinkStore {
   }
 
   TripTrackingBluetoothVehicleLink? linkForDevice(String deviceId) {
-    final key = deviceId.trim();
+    final key = _safeId(deviceId);
     if (key.isEmpty) return null;
     final value = _box == null ? _memoryLinks[key] : _box.get(key);
     if (value is TripTrackingBluetoothVehicleLink) return value;
@@ -75,7 +75,7 @@ class TripTrackingBluetoothVehicleLinkStore {
   }
 
   List<TripTrackingBluetoothVehicleLink> linksForVehicle(String vehicleId) {
-    final id = vehicleId.trim();
+    final id = _safeId(vehicleId);
     if (id.isEmpty) return const [];
     final links = _box == null
         ? _memoryLinks.values
@@ -83,7 +83,7 @@ class TripTrackingBluetoothVehicleLinkStore {
             TripTrackingBluetoothVehicleLink.fromMap,
           );
     return links
-        .where((link) => link.isValid && link.vehicleId.trim() == id)
+        .where((link) => link.isValid && link.vehicleId == id)
         .toList(growable: false)
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
@@ -110,7 +110,7 @@ class TripTrackingBluetoothVehicleLinkStore {
   }
 
   Future<void> removeDevice(String deviceId) async {
-    final key = deviceId.trim();
+    final key = _safeId(deviceId);
     if (key.isEmpty) return;
     _memoryLinks.remove(key);
     await _box?.delete(key);
@@ -118,7 +118,9 @@ class TripTrackingBluetoothVehicleLinkStore {
 }
 
 String _safeId(Object? value) {
-  final clean = '${value ?? ''}'.trim();
+  final clean = '${value ?? ''}'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
   if (clean.isEmpty) return '';
   return clean.length > 160 ? clean.substring(0, 160) : clean;
 }
