@@ -74,6 +74,64 @@ void main() {
     );
   });
 
+  test('Bluetooth match decisions never expose opaque device ids', () {
+    final decision = resolveBluetoothVehicleMatchDecision(
+      settings: const TripTrackingSettings(
+        bluetoothVehicleRecognitionEnabled: true,
+        automaticVehicleSwitchEnabled: true,
+      ),
+      link: link,
+      hasActiveGpsTrip: false,
+    );
+
+    expect(
+      decision.disposition,
+      BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+    );
+    expect(decision.vehicleId, 'vehicle_1');
+    expect(decision.canSwitchVehicle, isTrue);
+    expect(decision.requiresUserConfirmation, isFalse);
+    expect(decision.safeReason, 'bluetooth_vehicle_auto_switch_allowed');
+    expect(decision.toSafeSummary(), {
+      'disposition': 'automaticSwitchAllowed',
+      'vehicleId': 'vehicle_1',
+      'safeReason': 'bluetooth_vehicle_auto_switch_allowed',
+      'canSwitchVehicle': true,
+      'requiresUserConfirmation': false,
+      'deviceIdIncluded': false,
+      'rawBluetoothPayloadIncluded': false,
+    });
+    expect(
+      decision.toSafeSummary().toString(),
+      isNot(contains('opaque-device-id')),
+    );
+  });
+
+  test(
+    'active GPS trip decision is review-only and preserves vehicle lock',
+    () {
+      final decision = resolveBluetoothVehicleMatchDecision(
+        settings: const TripTrackingSettings(
+          bluetoothVehicleRecognitionEnabled: true,
+          automaticVehicleSwitchEnabled: true,
+        ),
+        link: link,
+        hasActiveGpsTrip: true,
+      );
+
+      expect(
+        decision.disposition,
+        BluetoothVehicleMatchDisposition.blockedByActiveTrip,
+      );
+      expect(decision.canSwitchVehicle, isFalse);
+      expect(
+        decision.safeReason,
+        'bluetooth_switch_blocked_by_active_gps_trip',
+      );
+      expect(decision.toSafeSummary()['deviceIdIncluded'], isFalse);
+    },
+  );
+
   test(
     'local vehicle links are keyed by device and can be safely relinked',
     () async {
@@ -122,6 +180,14 @@ void main() {
     expect(map['vehicleId'], isNot(contains('\t')));
     expect(map['displayName'], isNot(contains('\n')));
     expect(link.isValid, isTrue);
+    expect(link.toSafeSummary(), {
+      'hasDeviceLink': true,
+      'vehicleId': map['vehicleId'],
+      'hasDisplayName': true,
+      'deviceIdIncluded': false,
+      'rawBluetoothPayloadIncluded': false,
+    });
+    expect(link.toSafeSummary().toString(), isNot(contains(map['deviceId'])));
   });
 
   test('malformed Bluetooth link timestamps do not become current time', () {
