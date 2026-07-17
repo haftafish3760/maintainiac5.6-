@@ -212,8 +212,8 @@ class TripTrackingController extends ChangeNotifier {
   }) async {
     if (_isDisposed ||
         isTracking ||
-        tripId.trim().isEmpty ||
-        vehicleId.trim().isEmpty) {
+        !_isSafeTripTrackingIdentity(tripId) ||
+        !_isSafeTripTrackingIdentity(vehicleId)) {
       return false;
     }
     if (vehicleId != _odometer.vehicleId) {
@@ -408,8 +408,8 @@ class TripTrackingController extends ChangeNotifier {
 
   bool _isRecoverableSession(TripTrackingSessionRecord session) =>
       session.hasValidTimeline &&
-      session.id.trim().isNotEmpty &&
-      session.vehicleId.trim().isNotEmpty &&
+      _isSafeTripTrackingIdentity(session.id) &&
+      _isSafeTripTrackingIdentity(session.vehicleId) &&
       session.startingOdometer >= 0 &&
       !session.updatedAt.isBefore(session.startedAt);
 
@@ -1175,6 +1175,11 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
     }
   }
+}
+
+bool _isSafeTripTrackingIdentity(String value) {
+  final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
+  return clean == value && clean.isNotEmpty && clean.length <= 160;
 }
 
 class TripTrackingScope extends InheritedNotifier<TripTrackingController> {

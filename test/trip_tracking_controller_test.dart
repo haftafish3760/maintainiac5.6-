@@ -122,6 +122,39 @@ void main() {
     expect(controller.platformError, isNull);
   });
 
+  test('GPS tracking cannot start with unsafe trip or vehicle ids', () async {
+    final store = TripTrackingSessionStore.memory();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+
+    expect(
+      await controller.start(
+        tripId: ' trip_bad ',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isFalse,
+    );
+    expect(
+      await controller.start(
+        tripId: 'trip_bad_vehicle',
+        vehicleId: 'vehicle_\n1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isFalse,
+    );
+    expect(store.activeSession, isNull);
+    expect(odometer.hasLiveTripProjection, isFalse);
+  });
+
   test('restore fails safely when local trip storage is unavailable', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_restore_closed_store_',
@@ -2149,7 +2182,7 @@ void main() {
     final store = TripTrackingSessionStore.memory();
     await store.save(
       TripTrackingSessionRecord(
-        id: '',
+        id: 'trip_\ncorrupt',
         vehicleId: 'vehicle_1',
         startingOdometer: 1000,
         profile: TripTrackingProfile.roadVehicle,
