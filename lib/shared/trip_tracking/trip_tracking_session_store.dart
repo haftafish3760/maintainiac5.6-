@@ -235,14 +235,12 @@ class TripTrackingReviewRecord {
     finishedAt: finishedAt,
     engineSnapshot: engineSnapshot,
     cloudSyncState: cloudSyncState ?? this.cloudSyncState,
-    cloudAccountUid: _optionalSafeText(
+    cloudAccountUid: _optionalSafeCloudToken(
       cloudAccountUid ?? this.cloudAccountUid,
-      maxLength: 160,
     ),
     cloudBackupScope: cloudBackupScope ?? this.cloudBackupScope,
-    cloudOrganizationId: _optionalSafeText(
+    cloudOrganizationId: _optionalSafeCloudToken(
       cloudOrganizationId ?? this.cloudOrganizationId,
-      maxLength: 160,
     ),
     cloudSyncError: clearCloudSyncError
         ? null
@@ -268,14 +266,11 @@ class TripTrackingReviewRecord {
     'finishedAt': finishedAt.toIso8601String(),
     'engineSnapshot': engineSnapshot.toMap(),
     'cloudSyncState': cloudSyncState.name,
-    if (_optionalSafeText(cloudAccountUid, maxLength: 160) != null)
-      'cloudAccountUid': _optionalSafeText(cloudAccountUid, maxLength: 160),
+    if (_optionalSafeCloudToken(cloudAccountUid) != null)
+      'cloudAccountUid': _optionalSafeCloudToken(cloudAccountUid),
     if (cloudBackupScope != null) 'cloudBackupScope': cloudBackupScope!.name,
-    if (_optionalSafeText(cloudOrganizationId, maxLength: 160) != null)
-      'cloudOrganizationId': _optionalSafeText(
-        cloudOrganizationId,
-        maxLength: 160,
-      ),
+    if (_optionalSafeCloudToken(cloudOrganizationId) != null)
+      'cloudOrganizationId': _optionalSafeCloudToken(cloudOrganizationId),
     if (_optionalSafeText(cloudSyncError, maxLength: 240) != null)
       'cloudSyncError': _optionalSafeText(cloudSyncError, maxLength: 240),
     if (cloudSyncedAt != null)
@@ -329,10 +324,7 @@ class TripTrackingReviewRecord {
         (value) => value.name == map['cloudSyncState'],
         orElse: () => TripTrackingCloudSyncState.localOnly,
       ),
-      cloudAccountUid: _optionalSafeText(
-        map['cloudAccountUid'],
-        maxLength: 160,
-      ),
+      cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
       confirmedEndingOdometer: _optionalPersistedOdometerValue(
         map['confirmedEndingOdometer'],
       ),
@@ -342,7 +334,7 @@ class TripTrackingReviewRecord {
       cloudBackupScope: cloudBackupScope,
       cloudOrganizationId:
           cloudBackupScope != null && map['cloudOrganizationId'] is String
-          ? _optionalSafeText(map['cloudOrganizationId'], maxLength: 160)
+          ? _optionalSafeCloudToken(map['cloudOrganizationId'])
           : null,
       cloudSyncError: _optionalSafeText(map['cloudSyncError'], maxLength: 240),
       cloudSyncedAt: DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}'),
@@ -410,6 +402,12 @@ String? _optionalSafeText(Object? value, {required int maxLength}) {
   final clean = '$value'.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   if (clean.isEmpty) return null;
   return clean.length > maxLength ? clean.substring(0, maxLength) : clean;
+}
+
+String? _optionalSafeCloudToken(Object? value) {
+  final clean = _optionalSafeText(value, maxLength: 160);
+  if (clean == null) return null;
+  return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : null;
 }
 
 /// One durable, bounded checkpoint for a sample currently entering the shared

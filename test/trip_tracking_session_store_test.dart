@@ -495,7 +495,7 @@ void main() {
     expect(store.reviewForTrip(' trip_bad_key '), isNull);
   });
 
-  test('review cloud sync metadata is trimmed and bounded', () {
+  test('review cloud sync metadata is bounded and token-safe', () {
     final review = TripTrackingReviewRecord(
       id: 'trip_sync_metadata_bounds',
       vehicleId: 'vehicle_1',
@@ -508,18 +508,25 @@ void main() {
         totalAcceptedMeters: 1609.344,
         walkingReviewSuggested: false,
       ),
-      cloudAccountUid: ' ${'u' * 220} ',
+      cloudAccountUid: 'firebaseUid_1',
       cloudBackupScope: TripTrackingCloudBackupScope.organization,
-      cloudOrganizationId: ' ${'o' * 220} ',
+      cloudOrganizationId: 'org-1',
       cloudSyncError: 'line one\n${'e' * 260}',
     );
 
     final restored = TripTrackingReviewRecord.fromMap(review.toMap());
+    final unsafe = TripTrackingReviewRecord.fromMap({
+      ...review.toMap(),
+      'cloudAccountUid': 'firebase uid/../unsafe',
+      'cloudOrganizationId': 'org id/../unsafe',
+    });
 
-    expect(restored.cloudAccountUid, hasLength(160));
-    expect(restored.cloudOrganizationId, hasLength(160));
+    expect(restored.cloudAccountUid, 'firebaseUid_1');
+    expect(restored.cloudOrganizationId, 'org-1');
     expect(restored.cloudSyncError, hasLength(240));
     expect(restored.cloudSyncError, isNot(contains('\n')));
+    expect(unsafe.cloudAccountUid, isNull);
+    expect(unsafe.cloudOrganizationId, isNull);
   });
 
   test('unknown persisted cloud backup scope is not trusted', () {
