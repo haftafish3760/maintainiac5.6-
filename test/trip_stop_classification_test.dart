@@ -63,6 +63,25 @@ void main() {
     expect(classification.canSuggestStop, isFalse);
   });
 
+  test('rideshare creeping pickup traffic stays out of stop review', () {
+    final result = replayTrip(
+      scenarios.ridesharePickupQueueCreepingTraffic(),
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.ridesharePickupQueueCreepingTraffic(),
+      TripTrackingProfile.rideshareVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(classification.requiresUserReview, isFalse);
+    expect(classification.canSuggestStop, isFalse);
+    expect(
+      classification.signal,
+      isNot(anyOf(TripStopSignal.reviewOnlyStop, TripStopSignal.stopCandidate)),
+    );
+  });
+
   test('sustained rideshare walking becomes a shift-stop review', () {
     final classification = classifyScenario(
       scenarios.rideshareDriverWalksAfterShiftStop(),
@@ -72,6 +91,47 @@ void main() {
     expect(classification.signal, TripStopSignal.reviewOnlyStop);
     expect(classification.actionToken, 'review_shift_stop');
     expect(classification.reasonCode, contains('rideshare'));
+  });
+
+  test('delivery multi-stop walking proof stays review-only and bounded', () {
+    final result = replayTrip(
+      scenarios.deliveryMultiStopRouteWithWalkingProof(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.deliveryMultiStopRouteWithWalkingProof(),
+      TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isTrue);
+    expect(result.count(TripSampleDisposition.excludedWalking), greaterThan(0));
+    expect(result.acceptedMiles, greaterThan(0));
+    expect(result.acceptedMiles, lessThan(1.0));
+    expect(classification.signal, TripStopSignal.reviewOnlyStop);
+    expect(classification.actionToken, 'review_delivery_stop');
+    expect(summary['stopSignal'], 'review_only_stop');
+    expect(summary['coordinatesIncluded'], isFalse);
+    expect(summary['routeGeometryIncluded'], isFalse);
+  });
+
+  test('weak walking false positives while driving do not create stops', () {
+    final result = replayTrip(
+      scenarios.weakWalkingFalsePositiveWhileDriving(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.weakWalkingFalsePositiveWhileDriving(),
+      TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.count(TripSampleDisposition.excludedWalking), 0);
+    expect(result.acceptedDistanceCount, greaterThan(1));
+    expect(classification.signal, TripStopSignal.noStop);
+    expect(classification.canSuggestStop, isFalse);
   });
 
   test('long traffic light jitter stays out of stop review workflow', () {

@@ -80,6 +80,31 @@ class TripTrackingScenarioLibrary {
     SimulatedTripPoint(roadPoint(-79.996, 200, speed: 10)),
   ];
 
+  List<SimulatedTripPoint> ridesharePickupQueueCreepingTraffic() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9993, 18, speed: 8)),
+      SimulatedTripPoint(roadPoint(-79.9988, 36, speed: 5)),
+    ];
+    for (var index = 0; index < 10; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9988 + (index * .000018),
+            52 + (index * 14),
+            speed: index.isEven ? .6 : 1.1,
+          ),
+          activity: activity(TripActivity.automotive, 52 + (index * 14)),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9978, 210, speed: 8)),
+      SimulatedTripPoint(roadPoint(-79.9969, 232, speed: 9)),
+    ]);
+    return points;
+  }
+
   List<SimulatedTripPoint> rideshareDriverWalksAfterShiftStop() => [
     SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
     SimulatedTripPoint(roadPoint(-79.999, 20, speed: 10)),
@@ -124,6 +149,54 @@ class TripTrackingScenarioLibrary {
     ),
     SimulatedTripPoint(roadPoint(-79.9968, 170, speed: 8)),
     SimulatedTripPoint(roadPoint(-79.9958, 190, speed: 8)),
+  ];
+
+  List<SimulatedTripPoint> deliveryMultiStopRouteWithWalkingProof() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9992, 22, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9985, 44, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99845, 62),
+      activity: activity(TripActivity.walking, 62),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99838, 78),
+      activity: activity(TripActivity.walking, 78),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99832, 94),
+      activity: activity(TripActivity.walking, 94),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9974, 128, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9967, 150, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99665, 172),
+      activity: activity(TripActivity.walking, 172),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99658, 188),
+      activity: activity(TripActivity.walking, 188),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99651, 204),
+      activity: activity(TripActivity.walking, 204),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9957, 240, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9948, 264, speed: 9)),
+  ];
+
+  List<SimulatedTripPoint> weakWalkingFalsePositiveWhileDriving() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 10)),
+    SimulatedTripPoint(
+      roadPoint(-79.998, 40, speed: 10),
+      activity: activity(TripActivity.walking, 40, confidence: 35),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.997, 60, speed: 10),
+      activity: activity(TripActivity.walking, 60, confidence: 45),
+    ),
+    SimulatedTripPoint(roadPoint(-79.996, 80, speed: 10)),
   ];
 
   List<SimulatedTripPoint> longTrafficLightWithUrbanJitter() {
