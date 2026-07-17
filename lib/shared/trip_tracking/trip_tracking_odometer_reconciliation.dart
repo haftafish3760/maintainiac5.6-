@@ -40,7 +40,11 @@ class TripOdometerReconciliation {
   }) {
     final odometerDelta = confirmedEndingOdometer - review.startingOdometer;
     final gpsMiles = review.engineSnapshot.totalAcceptedMeters / 1609.344;
-    if (odometerDelta < 0 ||
+    if (!review.hasValidTimeline ||
+        review.id.trim().isEmpty ||
+        review.vehicleId.trim().isEmpty ||
+        review.estimatedEndingOdometer < review.startingOdometer ||
+        odometerDelta < 0 ||
         !gpsMiles.isFinite ||
         gpsMiles < 0 ||
         !materialDifferenceMiles.isFinite ||

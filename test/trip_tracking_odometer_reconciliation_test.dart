@@ -84,6 +84,29 @@ void main() {
     expect(result.filteredGpsMiles, 0);
   });
 
+  test('invalid local review records cannot produce mileage advice', () {
+    final malformed = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_invalid_reconcile',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1020,
+      'profile': 'roadVehicle',
+      'engineSnapshot': {
+        'totalAcceptedMeters': 32186.88,
+        'walkingReviewSuggested': false,
+      },
+    });
+
+    final result = TripOdometerReconciliation.compare(
+      review: malformed,
+      confirmedEndingOdometer: 1020,
+    );
+
+    expect(result.status, TripOdometerReconciliationStatus.invalid);
+    expect(result.confirmedOdometerDeltaMiles, 0);
+    expect(result.filteredGpsMiles, 0);
+  });
+
   test('a next trip cannot start below the previous confirmed ending', () {
     final previous = review.copyWith(
       confirmedEndingOdometer: 1020,
