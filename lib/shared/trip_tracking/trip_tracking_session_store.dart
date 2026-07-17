@@ -275,6 +275,7 @@ class TripTrackingReviewRecord {
     final finishedAt = DateTime.tryParse('${map['finishedAt'] ?? ''}');
     final id = _safeIdentifier(map['id']);
     final vehicleId = _safeIdentifier(map['vehicleId']);
+    final cloudBackupScope = _cloudBackupScopeFromMap(map['cloudBackupScope']);
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
         _isSafeStoreIdentifierValue(map['vehicleId']);
@@ -315,15 +316,9 @@ class TripTrackingReviewRecord {
       odometerConfirmedAt: DateTime.tryParse(
         '${map['odometerConfirmedAt'] ?? ''}',
       ),
-      cloudBackupScope: map['cloudBackupScope'] is String
-          ? TripTrackingCloudBackupScope.values.firstWhere(
-              (value) => value.name == map['cloudBackupScope'],
-              orElse: () => TripTrackingCloudBackupScope.personal,
-            )
-          : null,
+      cloudBackupScope: cloudBackupScope,
       cloudOrganizationId:
-          map['cloudBackupScope'] is String &&
-              map['cloudOrganizationId'] is String
+          cloudBackupScope != null && map['cloudOrganizationId'] is String
           ? _optionalSafeText(map['cloudOrganizationId'], maxLength: 160)
           : null,
       cloudSyncError: _optionalSafeText(map['cloudSyncError'], maxLength: 240),
@@ -343,6 +338,14 @@ int _sessionSchemaVersion(Object? value) {
   if (value is! num || !value.isFinite) return 1;
   final version = value.toInt();
   return version < 1 ? 1 : version;
+}
+
+TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
+  if (value is! String) return null;
+  for (final scope in TripTrackingCloudBackupScope.values) {
+    if (scope.name == value) return scope;
+  }
+  return null;
 }
 
 int _persistedOdometerValue(Object? value) {

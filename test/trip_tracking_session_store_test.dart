@@ -471,6 +471,31 @@ void main() {
     expect(restored.cloudSyncError, isNot(contains('\n')));
   });
 
+  test('unknown persisted cloud backup scope is not trusted', () {
+    final review = TripTrackingReviewRecord(
+      id: 'trip_unknown_scope',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final restored = TripTrackingReviewRecord.fromMap({
+      ...review.toMap(),
+      'cloudBackupScope': 'fleetGodMode',
+      'cloudOrganizationId': 'org-1',
+    });
+
+    expect(restored.cloudBackupScope, isNull);
+    expect(restored.cloudOrganizationId, isNull);
+  });
+
   test('malformed persisted odometer values cannot crash review recovery', () {
     final review = TripTrackingReviewRecord(
       id: 'trip_corrupt_odometer',
