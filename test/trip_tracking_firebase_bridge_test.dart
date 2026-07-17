@@ -797,6 +797,37 @@ void main() {
     },
   );
 
+  test(
+    'broken backup consent read keeps reviewed mileage local only',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final sink = _RecordingSink();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: sink,
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+        backupEnabled: () => throw StateError('settings unavailable'),
+      );
+
+      await mirror.queueReview(review());
+      await mirror.flushPending();
+
+      expect(sink.writes, isEmpty);
+      expect(queue.pendingRecords, isEmpty);
+      expect(
+        localStore.reviewForTrip('trip 1')?.cloudSyncState,
+        TripTrackingCloudSyncState.localOnly,
+      );
+    },
+  );
+
   test('revoking backup consent removes an unsent mileage summary', () async {
     final localStore = TripTrackingSessionStore.memory();
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
