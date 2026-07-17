@@ -238,6 +238,40 @@ void main() {
     }
   });
 
+  test('dashboard summary builder rejects unknown mode and state values', () {
+    for (final entry in const <String, String>{
+      'dashboardMode': 'god_mode',
+      'mileageMode': 'silent_tracking',
+      'syncMode': 'always_spy',
+      'gpsAssistState': 'raw_coordinates_enabled',
+      'storageState': 'remote_authoritative',
+    }.entries) {
+      expect(
+        () =>
+            MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+              uid: 'firebaseUid-1',
+              dashboardId: 'today',
+              updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+              dashboardMode: entry.key == 'dashboardMode'
+                  ? entry.value
+                  : 'default',
+              mileageMode: entry.key == 'mileageMode' ? entry.value : 'manual',
+              syncMode: entry.key == 'syncMode'
+                  ? entry.value
+                  : 'device_retained',
+              gpsAssistState: entry.key == 'gpsAssistState'
+                  ? entry.value
+                  : 'off',
+              storageState: entry.key == 'storageState'
+                  ? entry.value
+                  : 'unknown',
+            ),
+        throwsArgumentError,
+        reason: '${entry.key} must fail before a dashboard draft is queued',
+      );
+    }
+  });
+
   test('dashboard upload policy rejects malformed optional references', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(

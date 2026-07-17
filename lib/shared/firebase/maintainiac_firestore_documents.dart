@@ -387,11 +387,31 @@ class MaintainiacFirestoreDocumentBuilder {
             activeWorkProfileId,
             'activeWorkProfileId',
           ),
-        'dashboardMode': _safeToken(dashboardMode),
-        'mileageMode': _safeToken(mileageMode),
-        'syncMode': _safeToken(syncMode),
-        'gpsAssistState': _safeToken(gpsAssistState),
-        'storageState': _safeToken(storageState),
+        'dashboardMode': _requiredDashboardSummaryToken(
+          dashboardMode,
+          'dashboardMode',
+          _allowedDashboardModes,
+        ),
+        'mileageMode': _requiredDashboardSummaryToken(
+          mileageMode,
+          'mileageMode',
+          _allowedMileageModes,
+        ),
+        'syncMode': _requiredDashboardSummaryToken(
+          syncMode,
+          'syncMode',
+          _allowedDashboardSyncModes,
+        ),
+        'gpsAssistState': _requiredDashboardSummaryToken(
+          gpsAssistState,
+          'gpsAssistState',
+          _allowedGpsAssistStates,
+        ),
+        'storageState': _requiredDashboardSummaryToken(
+          storageState,
+          'storageState',
+          _allowedDashboardStorageStates,
+        ),
         if (freeSyncsRemaining != null)
           'freeSyncsRemaining': _optionalDashboardSyncCounter(
             freeSyncsRemaining,
@@ -411,6 +431,67 @@ class MaintainiacFirestoreDocumentBuilder {
       }),
     );
   }
+}
+
+const _allowedDashboardModes = <String>{
+  'default',
+  'gig_driver',
+  'contractor',
+  'solo_contractor',
+  'fleet_owner',
+  'employee',
+  'customer',
+  'personal',
+};
+
+const _allowedMileageModes = <String>{
+  'manual',
+  'gps_assisted',
+  'workday',
+  'employee_shift',
+  'fleet_review',
+  'customer_hidden',
+};
+
+const _allowedDashboardSyncModes = <String>{
+  'device_retained',
+  'local_only',
+  'wifi_only',
+  'wifi_and_mobile',
+  'mobile_only',
+  'firebase_backup',
+  'company_sync',
+};
+
+const _allowedGpsAssistStates = <String>{
+  'off',
+  'on',
+  'gps_assisted',
+  'battery_limited',
+  'permission_denied',
+  'unavailable',
+};
+
+const _allowedDashboardStorageStates = <String>{
+  'unknown',
+  'green',
+  'text_record_safe',
+  'low_storage',
+  'full',
+  'local_only',
+  'cloud_pending',
+};
+
+String _requiredDashboardSummaryToken(
+  String value,
+  String fieldName,
+  Set<String> allowed,
+) {
+  final safe = _safeToken(value);
+  if (!allowed.contains(safe)) {
+    throw ArgumentError.value(value, fieldName, 'Unsupported dashboard value.');
+  }
+  return safe;
 }
 
 int _optionalDashboardSyncCounter(
