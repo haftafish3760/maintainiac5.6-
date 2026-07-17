@@ -126,6 +126,26 @@ void main() {
     expect(store.activeSession, isNull);
   });
 
+  test('active GPS session writes reject invalid restored timelines', () async {
+    final store = TripTrackingSessionStore.memory();
+    final restored = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_invalid_restored_session',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'silentTracker',
+      'startedAt': DateTime.utc(2026, 7, 15, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 15, 12, 5).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    expect(restored.hasValidTimeline, isFalse);
+    await expectLater(store.save(restored), throwsArgumentError);
+    expect(store.activeSession, isNull);
+  });
+
   test('a pending GPS sample is local, bounded, and removable', () async {
     final store = TripTrackingSessionStore.memory();
     final pending = TripTrackingPendingSample(

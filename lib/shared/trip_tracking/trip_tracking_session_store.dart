@@ -561,6 +561,14 @@ class TripTrackingSessionStore {
         'Active GPS sessions require a non-empty safe vehicle id.',
       );
     }
+    if (!session.hasValidTimeline ||
+        session.updatedAt.isBefore(session.startedAt)) {
+      throw ArgumentError.value(
+        session.id,
+        'session',
+        'Active GPS sessions require a sane timeline and known profile.',
+      );
+    }
     if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
       _memorySession = session;
