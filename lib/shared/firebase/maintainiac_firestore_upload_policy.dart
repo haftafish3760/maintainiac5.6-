@@ -249,6 +249,7 @@ class MaintainiacFirestoreUploadPolicy {
         _isAllowedString(draft.data['dashboardMode'], _allowedDashboardModes) &&
         _isAllowedString(draft.data['mileageMode'], _allowedMileageModes) &&
         _isAllowedString(draft.data['syncMode'], _allowedSyncModes) &&
+        _isIsoTimestamp(draft.data['updatedAt']) &&
         _isAllowedString(
           draft.data['gpsAssistState'],
           _allowedGpsAssistStates,
@@ -459,6 +460,9 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isAllowedString(Object? value, Set<String> allowed) =>
       value is String && allowed.contains(value.trim());
+
+  static bool _isIsoTimestamp(Object? value) =>
+      value is String && DateTime.tryParse(value) != null;
 
   static bool _isValidFreeSyncsRemaining(Object? value) =>
       value == null ||

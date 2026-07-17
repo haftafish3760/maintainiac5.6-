@@ -135,6 +135,25 @@ void main() {
     }
   });
 
+  test('dashboard upload policy rejects malformed timestamps', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        );
+
+    final poisoned = MaintainiacFirestoreDocumentDraft(
+      path: doc.path,
+      data: {...doc.data, 'updatedAt': 'not-a-timestamp'},
+    );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+      throwsArgumentError,
+    );
+  });
+
   test(
     'dashboard upload policy rejects raw location and module data aliases',
     () {
