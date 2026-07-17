@@ -2018,6 +2018,41 @@ void main() {
   );
 
   test(
+    'mocked GPS fixes are rejected without durable pending recovery',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_mocked_pending',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final decision = await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: start,
+          horizontalAccuracyMeters: 5,
+          mockedLocation: true,
+        ),
+      );
+
+      expect(decision?.disposition, TripSampleDisposition.rejectedMockLocation);
+      expect(controller.acceptedMeters, 0);
+      expect(store.pendingSampleFor('trip_mocked_pending'), isNull);
+      expect(
+        store.activeSession?.engineSnapshot.diagnostics.receivedSamples,
+        1,
+      );
+    },
+  );
+
+  test(
     'cached native fixes before trip start cannot anchor live mileage',
     () async {
       final store = TripTrackingSessionStore.memory();

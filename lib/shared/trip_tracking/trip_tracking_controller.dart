@@ -504,13 +504,15 @@ class TripTrackingController extends ChangeNotifier {
       return engine.reject(TripSampleDisposition.rejectedFutureTimestamp);
     }
 
-    await _sessionStore.savePending(
-      TripTrackingPendingSample(
-        sessionId: session.id,
-        sample: sample,
-        activity: activity,
-      ),
-    );
+    if (sample.mockedLocation != true) {
+      await _sessionStore.savePending(
+        TripTrackingPendingSample(
+          sessionId: session.id,
+          sample: sample,
+          activity: activity,
+        ),
+      );
+    }
 
     final previousMotionState = engine.motionState;
     final decision = engine.ingest(sample, activity: activity);
