@@ -304,6 +304,33 @@ void main() {
     expect(invalidConfirmation.isOdometerConfirmed, isFalse);
   });
 
+  test('review cloud sync metadata is trimmed and bounded', () {
+    final review = TripTrackingReviewRecord(
+      id: 'trip_sync_metadata_bounds',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+      cloudAccountUid: ' ${'u' * 220} ',
+      cloudBackupScope: TripTrackingCloudBackupScope.organization,
+      cloudOrganizationId: ' ${'o' * 220} ',
+      cloudSyncError: 'line one\n${'e' * 260}',
+    );
+
+    final restored = TripTrackingReviewRecord.fromMap(review.toMap());
+
+    expect(restored.cloudAccountUid, hasLength(160));
+    expect(restored.cloudOrganizationId, hasLength(160));
+    expect(restored.cloudSyncError, hasLength(240));
+    expect(restored.cloudSyncError, isNot(contains('\n')));
+  });
+
   test('malformed persisted odometer values cannot crash review recovery', () {
     final review = TripTrackingReviewRecord(
       id: 'trip_corrupt_odometer',
