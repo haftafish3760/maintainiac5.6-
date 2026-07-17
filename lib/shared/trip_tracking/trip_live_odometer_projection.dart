@@ -22,9 +22,13 @@ class TripLiveOdometerProjection {
     if (!acceptedMeters.isFinite || acceptedMeters < 0) {
       return _lastProjectedReading;
     }
-    final estimated =
-        _safeStartingOdometer(startingOdometer) +
-        (acceptedMeters / metersPerMile).round();
+    final safeStart = _safeStartingOdometer(startingOdometer);
+    final acceptedMiles = acceptedMeters / metersPerMile;
+    if (!acceptedMiles.isFinite ||
+        acceptedMiles > maxSupportedReading - safeStart) {
+      return _lastProjectedReading;
+    }
+    final estimated = safeStart + acceptedMiles.round();
     if (estimated > maxSupportedReading) {
       return _lastProjectedReading;
     }

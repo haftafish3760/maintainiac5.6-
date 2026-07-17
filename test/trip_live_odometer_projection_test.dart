@@ -49,4 +49,15 @@ void main() {
     expect(projection.projectedReading, 4000);
     expect(projection.updateAcceptedMeters(1609.344), 4000);
   });
+
+  test('huge finite accepted distance is rejected before projection math', () {
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: 9999990,
+      maxSupportedReading: 9999999,
+    );
+
+    expect(projection.updateAcceptedMeters(9 * metersPerMile), 9999999);
+    expect(projection.updateAcceptedMeters(double.maxFinite), 9999999);
+    expect(projection.projectedReading, 9999999);
+  });
 }
