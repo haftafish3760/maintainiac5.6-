@@ -346,7 +346,7 @@ void main() {
   });
 
   test('untrusted native speed is sanitized without dropping a valid fix', () {
-    for (final speed in [double.nan, double.infinity, -1.0]) {
+    for (final speed in [double.nan, double.infinity, -1.0, 76.0]) {
       final event = TripTrackingPlatformEvent.fromMap({
         'type': 'location',
         'latitude': 35.2,

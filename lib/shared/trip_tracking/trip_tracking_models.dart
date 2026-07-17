@@ -280,10 +280,16 @@ class TripLocationSample {
 
 double? _tripSpeedFrom(Object? rawSpeed) {
   final speed = _tripNumberFrom(rawSpeed);
-  return speed != null && speed.isFinite && speed >= 0 ? speed : null;
+  return speed != null &&
+          speed.isFinite &&
+          speed >= 0 &&
+          speed <= _maximumNativeReportedSpeedMetersPerSecond
+      ? speed
+      : null;
 }
 
 const _maximumNativeHorizontalAccuracyMeters = 10000.0;
+const _maximumNativeReportedSpeedMetersPerSecond = 75.0;
 
 double? _tripNumberFrom(Object? value) {
   if (value is! num || !value.isFinite) return null;
