@@ -405,26 +405,42 @@ void main() {
     }
   });
 
-  test('malformed mocked-location flags fail closed at the native boundary', () {
-    final event = TripTrackingPlatformEvent.fromMap({
-      'type': 'location',
-      'latitude': 35.2,
-      'longitude': -80.8,
-      'recordedAt': '2026-07-13T12:00:00.000Z',
-      'horizontalAccuracyMeters': 4.5,
-      'mockedLocation': 'false',
-    });
+  test(
+    'malformed mocked-location flags fail closed at the native boundary',
+    () {
+      final event = TripTrackingPlatformEvent.fromMap({
+        'type': 'location',
+        'latitude': 35.2,
+        'longitude': -80.8,
+        'recordedAt': '2026-07-13T12:00:00.000Z',
+        'horizontalAccuracyMeters': 4.5,
+        'mockedLocation': 'false',
+      });
 
-    expect(event.type, TripTrackingPlatformEventType.error);
-    expect(event.location, isNull);
-    expect(event.errorCode, 'invalidLocationPayload');
-  });
+      expect(event.type, TripTrackingPlatformEventType.error);
+      expect(event.location, isNull);
+      expect(event.errorCode, 'invalidLocationPayload');
+    },
+  );
 
   test('malformed activity payloads cannot invent walking evidence', () {
     final event = TripTrackingPlatformEvent.fromMap({
       'type': 'activity',
       'activity': 'walking',
       'confidence': 100,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.activity, isNull);
+    expect(event.errorCode, 'invalidActivityPayload');
+  });
+
+  test('unknown native activity labels fail closed', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'activity',
+      'activity': 'hoverboard',
+      'confidence': 100,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
     });
 
     expect(event.type, TripTrackingPlatformEventType.error);
@@ -456,5 +472,24 @@ void main() {
     expect(event.type, TripTrackingPlatformEventType.activity);
     expect(event.activity?.activity, TripActivity.walking);
     expect(event.activity?.recordedAt, recordedAt);
+  });
+
+  test('activity safe summaries omit precise timestamps and raw payloads', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'activity',
+      'activity': 'walking',
+      'confidence': 90,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'providerPayload': {'private': true},
+    });
+    final summary = event.toSafeLogMap();
+
+    expect(summary['activity'], 'walking');
+    expect(summary['confidenceBucket'], 'high');
+    expect(summary['canSupportStopReview'], isTrue);
+    expect(summary['rawSensorPayloadIncluded'], isFalse);
+    expect(summary['preciseTimestampIncluded'], isFalse);
+    expect(summary.toString(), isNot(contains('2026-07-13T12:00:00')));
+    expect(summary.toString(), isNot(contains('providerPayload')));
   });
 }

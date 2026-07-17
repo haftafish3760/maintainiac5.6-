@@ -307,10 +307,7 @@ class TripTrackingPlatformEvent {
     }
     final observation = activity;
     if (observation != null) {
-      result.addAll({
-        'activity': observation.activity.name,
-        'activityConfidenceBucket': _confidenceBucket(observation.confidence),
-      });
+      result.addAll({...observation.toSafeSummary()});
     }
     final permission = authorization;
     if (permission != null) {
@@ -487,12 +484,4 @@ String _accuracyBucket(double? meters) {
   if (meters <= 50) return 'medium';
   if (meters <= 200) return 'low';
   return 'unusable';
-}
-
-String _confidenceBucket(int confidence) {
-  if (confidence < 0 || confidence > 100) return 'unknown';
-  if (confidence >= 85) return 'high';
-  if (confidence >= 60) return 'medium';
-  if (confidence >= 30) return 'low';
-  return 'veryLow';
 }

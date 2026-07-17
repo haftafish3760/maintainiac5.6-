@@ -328,6 +328,17 @@ class TripActivityObservation {
   bool get isHighConfidenceWalking =>
       activity == TripActivity.walking && confidence >= 70;
 
+  bool get canSupportStopReview =>
+      isHighConfidenceWalking && recordedAt.isAfter(_minimumTrustedSensorTime);
+
+  Map<String, Object?> toSafeSummary() => {
+    'activity': activity.name,
+    'confidenceBucket': _activityConfidenceBucket(confidence),
+    'canSupportStopReview': canSupportStopReview,
+    'rawSensorPayloadIncluded': false,
+    'preciseTimestampIncluded': false,
+  };
+
   Map<String, Object?> toMap() => {
     'activity': activity.name,
     'confidence': confidence,
@@ -344,15 +355,27 @@ class TripActivityObservation {
       return null;
     }
     final confidence = rawConfidence.floor();
+    final activity = TripActivity.values.firstWhere(
+      (value) => value.name == map['activity'],
+      orElse: () => TripActivity.unknown,
+    );
+    if (activity == TripActivity.unknown) return null;
     return TripActivityObservation(
-      activity: TripActivity.values.firstWhere(
-        (value) => value.name == map['activity'],
-        orElse: () => TripActivity.unknown,
-      ),
+      activity: activity,
       confidence: confidence,
       recordedAt: recordedAt,
     );
   }
+}
+
+final DateTime _minimumTrustedSensorTime = DateTime.utc(2020);
+
+String _activityConfidenceBucket(int confidence) {
+  if (confidence < 0 || confidence > 100) return 'unknown';
+  if (confidence >= 85) return 'high';
+  if (confidence >= 70) return 'walkingReview';
+  if (confidence >= 40) return 'medium';
+  return 'low';
 }
 
 class TripTrackingEngineSnapshot {
