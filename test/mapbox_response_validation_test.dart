@@ -190,6 +190,56 @@ void main() {
       );
     });
 
+    test('rejects zero distance or duration route candidates', () {
+      final zeroDistance =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'code': 'Ok',
+              'routes': [
+                {
+                  'distance': 0,
+                  'duration': 60,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35],
+                      [-80.0001, 35.0001],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+      final zeroDuration =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'code': 'Ok',
+              'routes': [
+                {
+                  'distance': 10,
+                  'duration': 0,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35],
+                      [-80.0001, 35.0001],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+
+      expect(zeroDistance.isAccepted, isFalse);
+      expect(zeroDuration.isAccepted, isFalse);
+      expect(
+        zeroDistance.failures.single.code,
+        MapboxExternalFailureCode.invalidRouteShape,
+      );
+    });
+
     test('rejects partial or overwide route geometry coordinates', () {
       final onePoint =
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(

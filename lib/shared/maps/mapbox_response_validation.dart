@@ -159,12 +159,12 @@ class MapboxExternalRouteValidator {
     final distance = _finiteNumber(route['distance']);
     final duration = _finiteNumber(route['duration']);
     if (distance == null ||
-        distance < 0 ||
+        distance <= 0 ||
         distance > maximumReasonableRouteMeters) {
       return null;
     }
     if (duration == null ||
-        duration < 0 ||
+        duration <= 0 ||
         duration > maximumReasonableRouteSeconds) {
       return null;
     }
