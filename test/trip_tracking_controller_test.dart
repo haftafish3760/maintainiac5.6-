@@ -158,6 +158,33 @@ void main() {
     expect(odometer.hasLiveTripProjection, isFalse);
   });
 
+  test('GPS tracking cannot start with a future start timestamp', () async {
+    final store = TripTrackingSessionStore.memory();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+
+    expect(
+      await controller.start(
+        tripId: 'trip_future_start',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+      ),
+      isFalse,
+    );
+
+    expect(controller.isTracking, isFalse);
+    expect(store.activeSession, isNull);
+    expect(odometer.hasLiveTripProjection, isFalse);
+    expect(controller.platformStatus, 'trip_start_time_invalid');
+  });
+
   test('restore fails safely when local trip storage is unavailable', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_restore_closed_store_',

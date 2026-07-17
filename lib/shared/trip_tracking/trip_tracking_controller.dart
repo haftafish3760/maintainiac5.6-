@@ -250,6 +250,17 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    final now = DateTime.now();
+    final started = startedAt ?? now;
+    if (started.toUtc().isAfter(
+      now.toUtc().add(_policy.maximumFutureSampleSkew),
+    )) {
+      _platformStatus = 'trip_start_time_invalid';
+      _platformError =
+          'GPS trip tracking could not start because the start time is in the future.';
+      notifyListeners();
+      return false;
+    }
     final startingOdometer = _odometer.confirmedReading;
     if (!_odometer.beginLiveTripProjection(
       tripId: tripId,
@@ -257,7 +268,6 @@ class TripTrackingController extends ChangeNotifier {
     )) {
       return false;
     }
-    final now = startedAt ?? DateTime.now();
     _engine = TripTrackingEngine(policy: _policy, profile: profile);
     _projection = TripLiveOdometerProjection(
       startingOdometer: startingOdometer,
@@ -267,8 +277,8 @@ class TripTrackingController extends ChangeNotifier {
       vehicleId: vehicleId,
       startingOdometer: startingOdometer,
       profile: profile,
-      startedAt: now,
-      updatedAt: now,
+      startedAt: started,
+      updatedAt: started,
       engineSnapshot: _engine!.snapshot,
     );
     try {
