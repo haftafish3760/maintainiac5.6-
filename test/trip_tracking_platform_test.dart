@@ -176,7 +176,8 @@ void main() {
     final status = TripTrackingPlatformEvent.fromMap({
       'type': 'status',
       'status': ' stopped ',
-      'errorCode': 'ignored/because/status',
+      'errorCode': 'trip_tracking_gps_disabled',
+      'errorMessage': 'must not attach to status events',
     });
     final unsafeError = TripTrackingPlatformEvent.fromMap({
       'type': 'error',
@@ -197,6 +198,7 @@ void main() {
 
     expect(status.status, 'stopped');
     expect(status.errorCode, isNull);
+    expect(status.errorMessage, isNull);
     expect(unsafeError.errorCode, isNull);
     expect(unsafeError.errorMessage, 'first line second line');
     expect(longMessage.errorCode, 'trip_tracking_gps_disabled');
@@ -205,6 +207,24 @@ void main() {
     expect(sensitiveMessage.errorMessage, isNot(contains('35.123')));
     expect(sensitiveMessage.errorMessage, isNot(contains('35.99')));
     expect(sensitiveMessage.errorMessage, contains('token=[redacted]'));
+  });
+
+  test('non-error native events cannot carry error fields', () {
+    final location = TripTrackingPlatformEvent.fromMap({
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'horizontalAccuracyMeters': 4.5,
+      'status': 'stopped',
+      'errorCode': 'trip_tracking_gps_disabled',
+      'errorMessage': 'lat=35.123',
+    });
+
+    expect(location.type, TripTrackingPlatformEventType.location);
+    expect(location.status, isNull);
+    expect(location.errorCode, isNull);
+    expect(location.errorMessage, isNull);
   });
 
   test('malformed location payloads fail closed without fabricated values', () {

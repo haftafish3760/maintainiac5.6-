@@ -281,7 +281,9 @@ class TripTrackingPlatformEvent {
       authorization: type == TripTrackingPlatformEventType.authorization
           ? TripTrackingAuthorization.fromMap(map)
           : null,
-      status: _safePlatformToken(map['status']),
+      status: type == TripTrackingPlatformEventType.status
+          ? _safePlatformToken(map['status'])
+          : null,
       errorCode:
           type == TripTrackingPlatformEventType.error &&
               declaredType == TripTrackingPlatformEventType.location
@@ -289,7 +291,9 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'invalidActivityPayload'
-          : _safePlatformToken(map['errorCode']),
+          : type == TripTrackingPlatformEventType.error
+          ? _safePlatformToken(map['errorCode'])
+          : null,
       errorMessage:
           type == TripTrackingPlatformEventType.error &&
               declaredType == TripTrackingPlatformEventType.location
@@ -297,7 +301,9 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'Ignored malformed activity payload.'
-          : _safePlatformMessage(map['errorMessage']),
+          : type == TripTrackingPlatformEventType.error
+          ? _safePlatformMessage(map['errorMessage'])
+          : null,
     );
   }
 }
