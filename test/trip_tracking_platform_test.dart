@@ -20,6 +20,30 @@ void main() {
     expect(request.toMap()['minimumDisplacementMeters'], 3.0);
   });
 
+  test('native request bounds malformed sampling recommendations', () {
+    const tooFast = TripTrackingNativeRequest(
+      profile: TripTrackingProfile.roadVehicle,
+      sampling: TripSamplingRecommendation(
+        mode: TripSamplingMode.precision,
+        interval: Duration(milliseconds: -500),
+        minimumDisplacementMeters: double.nan,
+      ),
+    );
+    const tooSparse = TripTrackingNativeRequest(
+      profile: TripTrackingProfile.roadVehicle,
+      sampling: TripSamplingRecommendation(
+        mode: TripSamplingMode.economy,
+        interval: Duration(minutes: 30),
+        minimumDisplacementMeters: 2000,
+      ),
+    );
+
+    expect(tooFast.toMap()['intervalMillis'], 1000);
+    expect(tooFast.toMap()['minimumDisplacementMeters'], 0);
+    expect(tooSparse.toMap()['intervalMillis'], 120000);
+    expect(tooSparse.toMap()['minimumDisplacementMeters'], 1000);
+  });
+
   test('iOS bridge maps every road-style profile to automotive navigation', () {
     final source = File(
       'ios/Runner/TripTrackingNativeBridge.swift',

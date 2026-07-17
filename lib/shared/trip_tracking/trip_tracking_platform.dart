@@ -104,10 +104,22 @@ class TripTrackingNativeRequest {
 
   Map<String, Object> toMap() => {
     'profile': profile.name,
-    'intervalMillis': sampling.interval.inMilliseconds,
-    'minimumDisplacementMeters': sampling.minimumDisplacementMeters,
+    'intervalMillis': _safeSamplingIntervalMillis(sampling.interval),
+    'minimumDisplacementMeters': _safeMinimumDisplacementMeters(
+      sampling.minimumDisplacementMeters,
+    ),
     'activityRecognitionEnabled': activityRecognitionEnabled,
   };
+}
+
+int _safeSamplingIntervalMillis(Duration interval) {
+  final millis = interval.inMilliseconds;
+  return millis.clamp(1000, 120000).toInt();
+}
+
+double _safeMinimumDisplacementMeters(double meters) {
+  if (!meters.isFinite || meters < 0) return 0;
+  return meters > 1000 ? 1000 : meters;
 }
 
 class TripTrackingPlatformCapabilities {
