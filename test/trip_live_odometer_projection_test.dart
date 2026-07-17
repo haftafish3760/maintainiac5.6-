@@ -18,6 +18,7 @@ void main() {
     final projection = TripLiveOdometerProjection(startingOdometer: 120000);
 
     expect(projection.updateAcceptedMeters(double.nan), 120000);
+    expect(projection.updateAcceptedMeters(double.infinity), 120000);
     expect(projection.updateAcceptedMeters(-1), 120000);
   });
 }
