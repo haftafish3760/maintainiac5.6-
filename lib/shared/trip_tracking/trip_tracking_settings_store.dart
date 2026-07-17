@@ -130,8 +130,7 @@ class TripTrackingSettings {
           (lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed),
       odometerAnomalyAlertsEnabled:
           gpsEnabled &&
-          (odometerAnomalyAlertsEnabled ??
-              this.odometerAnomalyAlertsEnabled),
+          (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled),
       backupNetworkPolicy: backupNetworkPolicy ?? this.backupNetworkPolicy,
     );
   }
@@ -155,6 +154,43 @@ class TripTrackingSettings {
     'odometerAnomalyAlertsEnabled': odometerAnomalyAlertsEnabled,
     'backupNetworkPolicy': backupNetworkPolicy.name,
   };
+
+  Map<String, Object?> toSafeDashboardMap() {
+    final safe = TripTrackingSettings.fromMap(toMap());
+    return {
+      'schemaVersion': schemaVersion,
+      'gpsAssistedTrackingEnabled': safe.gpsAssistedTrackingEnabled,
+      'samplingPreset': safe.samplingPreset.name,
+      'customIntervalSeconds': _validCustomInterval(safe.customIntervalSeconds),
+      'adaptiveSamplingEnabled': safe.adaptiveSamplingEnabled,
+      'activityRecognitionEnabled': safe.activityRecognitionEnabled,
+      'walkingTransitionReviewEnabled': safe.walkingTransitionReviewEnabled,
+      'backgroundTrackingEnabled': safe.backgroundTrackingEnabled,
+      'organizationMileageSharingEnabled':
+          safe.organizationMileageSharingEnabled,
+      'defaultProfile': safe.defaultProfile.name,
+      'bluetoothVehicleRecognitionEnabled':
+          safe.bluetoothVehicleRecognitionEnabled,
+      'automaticVehicleSwitchEnabled': safe.automaticVehicleSwitchEnabled,
+      'lowBatteryGpsProtectionEnabled': safe.lowBatteryGpsProtectionEnabled,
+      'lowBatteryGpsOverrideEnabled': safe.lowBatteryGpsOverrideEnabled,
+      'lowBatteryGpsWarningDismissed': safe.lowBatteryGpsWarningDismissed,
+      'odometerAnomalyAlertsEnabled': safe.odometerAnomalyAlertsEnabled,
+      'backupNetworkPolicy': safe.backupNetworkPolicy.name,
+      'requiresGpsConsent': safe.gpsAssistedTrackingEnabled,
+      'requiresBackgroundConsent':
+          safe.gpsAssistedTrackingEnabled && safe.backgroundTrackingEnabled,
+      'requiresMotionConsent':
+          safe.gpsAssistedTrackingEnabled && safe.activityRecognitionEnabled,
+      'requiresOrganizationSharingConsent':
+          safe.organizationMileageSharingEnabled,
+      'mapsRequiredForTracking': false,
+      'odometerRemainsCanonical': true,
+      'rawLocationIncluded': false,
+      'rawSensorPayloadIncluded': false,
+      'tokensIncluded': false,
+    };
+  }
 
   factory TripTrackingSettings.fromMap(Map<dynamic, dynamic> map) {
     if (_hasUnsupportedSchemaVersion(map)) return const TripTrackingSettings();

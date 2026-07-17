@@ -48,6 +48,61 @@ void main() {
     },
   );
 
+  test('settings safe dashboard map exposes consent state without secrets', () {
+    final settings = const TripTrackingSettings().copyWith(
+      gpsAssistedTrackingEnabled: true,
+      activityRecognitionEnabled: true,
+      backgroundTrackingEnabled: true,
+      organizationMileageSharingEnabled: true,
+      bluetoothVehicleRecognitionEnabled: true,
+      automaticVehicleSwitchEnabled: true,
+      lowBatteryGpsOverrideEnabled: true,
+      lowBatteryGpsWarningDismissed: true,
+      odometerAnomalyAlertsEnabled: true,
+      defaultProfile: TripTrackingProfile.deliveryVehicle,
+      backupNetworkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
+    );
+
+    final summary = settings.toSafeDashboardMap();
+
+    expect(summary['schemaVersion'], TripTrackingSettings.schemaVersion);
+    expect(summary['gpsAssistedTrackingEnabled'], isTrue);
+    expect(summary['activityRecognitionEnabled'], isTrue);
+    expect(summary['backgroundTrackingEnabled'], isTrue);
+    expect(summary['organizationMileageSharingEnabled'], isTrue);
+    expect(summary['defaultProfile'], 'deliveryVehicle');
+    expect(summary['backupNetworkPolicy'], 'wifiOnly');
+    expect(summary['requiresGpsConsent'], isTrue);
+    expect(summary['requiresBackgroundConsent'], isTrue);
+    expect(summary['requiresMotionConsent'], isTrue);
+    expect(summary['requiresOrganizationSharingConsent'], isTrue);
+    expect(summary['mapsRequiredForTracking'], isFalse);
+    expect(summary['odometerRemainsCanonical'], isTrue);
+    expect(summary['rawLocationIncluded'], isFalse);
+    expect(summary['rawSensorPayloadIncluded'], isFalse);
+    expect(summary['tokensIncluded'], isFalse);
+  });
+
+  test('disabled GPS settings do not claim dependent sensor consent', () {
+    final settings = const TripTrackingSettings(
+      activityRecognitionEnabled: true,
+      backgroundTrackingEnabled: true,
+      lowBatteryGpsOverrideEnabled: true,
+      lowBatteryGpsWarningDismissed: true,
+    );
+
+    final summary = settings.toSafeDashboardMap();
+
+    expect(summary['gpsAssistedTrackingEnabled'], isFalse);
+    expect(summary['activityRecognitionEnabled'], isFalse);
+    expect(summary['backgroundTrackingEnabled'], isFalse);
+    expect(summary['requiresGpsConsent'], isFalse);
+    expect(summary['requiresBackgroundConsent'], isFalse);
+    expect(summary['requiresMotionConsent'], isFalse);
+    expect(summary['lowBatteryGpsOverrideEnabled'], isFalse);
+    expect(summary['lowBatteryGpsWarningDismissed'], isFalse);
+  });
+
   test(
     'local settings controller updates preferences without a cloud dependency',
     () async {
