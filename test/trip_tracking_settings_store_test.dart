@@ -262,6 +262,21 @@ void main() {
     expect(decision.reasonCode, 'low_battery_requires_user_choice');
   });
 
+  test('malformed low battery GPS cutoff uses the safe default', () {
+    const policy = TripTrackingPolicy(lowBatteryGpsCutoffPercent: -1);
+
+    final decision = policy.gpsBatteryDecision(
+      batteryPercent: 19,
+      isCharging: false,
+      lowBatteryProtectionEnabled: true,
+      lowBatteryOverrideEnabled: false,
+      lowBatteryWarningDismissed: false,
+    );
+
+    expect(decision.status, TripGpsBatteryDecisionStatus.userPromptRequired);
+    expect(decision.reasonCode, 'low_battery_requires_user_choice');
+  });
+
   test('low battery override allows GPS only after user opt-in', () {
     const policy = TripTrackingPolicy();
     final settings = const TripTrackingSettings().copyWith(

@@ -84,7 +84,11 @@ class TripTrackingPolicy {
         reasonCode: 'battery_unknown',
       );
     }
-    if (percent >= lowBatteryGpsCutoffPercent) {
+    final cutoff =
+        lowBatteryGpsCutoffPercent >= 0 && lowBatteryGpsCutoffPercent <= 100
+        ? lowBatteryGpsCutoffPercent
+        : 20;
+    if (percent >= cutoff) {
       return const TripGpsBatteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_above_cutoff',
