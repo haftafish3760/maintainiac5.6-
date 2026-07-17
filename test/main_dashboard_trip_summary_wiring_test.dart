@@ -67,6 +67,12 @@ void main() {
     expect(
       mainSource,
       contains(
+        'globalOdometer.addListener(() {\n      unawaited(queueDashboardTripSummary());',
+      ),
+    );
+    expect(
+      mainSource,
+      contains(
         'tripTrackingSettings.addListener(() {\n      unawaited(queueDashboardTripSummary());',
       ),
     );

@@ -199,6 +199,9 @@ Future<void> main() async {
     tripTracking.addListener(() {
       unawaited(queueDashboardTripSummary());
     });
+    globalOdometer.addListener(() {
+      unawaited(queueDashboardTripSummary());
+    });
     tripTrackingSettings.addListener(() {
       unawaited(queueDashboardTripSummary());
     });
