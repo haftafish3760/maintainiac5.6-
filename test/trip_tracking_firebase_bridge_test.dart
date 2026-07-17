@@ -368,6 +368,19 @@ void main() {
       expect(rules, contains('function isAllowedTripMotionState'));
       expect(valueCheck, contains('isAllowedTripProfile'));
       expect(valueCheck, contains('isAllowedTripMotionState'));
+      for (final field in const <String>[
+        'tripId',
+        'createdByUid',
+        'updatedByUid',
+        'vehicleId',
+        'startedAt',
+        'finishedAt',
+        'createdAt',
+        'updatedAt',
+        'odometerConfirmedAt',
+      ]) {
+        expect(valueCheck, contains('request.resource.data.$field.size() > 0'));
+      }
       expect(valueCheck, contains('startingOdometer >= 0'));
       expect(valueCheck, contains('estimatedEndingOdometer >='));
       expect(

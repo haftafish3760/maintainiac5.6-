@@ -194,15 +194,23 @@ service cloud.firestore {
 
     function hasValidMileageSummaryValues() {
       return request.resource.data.tripId is string &&
+        request.resource.data.tripId.size() > 0 &&
         request.resource.data.createdByUid is string &&
+        request.resource.data.createdByUid.size() > 0 &&
         request.resource.data.updatedByUid is string &&
+        request.resource.data.updatedByUid.size() > 0 &&
         request.resource.data.vehicleId is string &&
+        request.resource.data.vehicleId.size() > 0 &&
         isAllowedTripProfile(request.resource.data.profile) &&
         request.resource.data.startedAt is string &&
+        request.resource.data.startedAt.size() > 0 &&
         request.resource.data.finishedAt is string &&
+        request.resource.data.finishedAt.size() > 0 &&
         request.resource.data.finishedAt >= request.resource.data.startedAt &&
         request.resource.data.createdAt is string &&
+        request.resource.data.createdAt.size() > 0 &&
         request.resource.data.updatedAt is string &&
+        request.resource.data.updatedAt.size() > 0 &&
         request.resource.data.startingOdometer is int &&
         request.resource.data.startingOdometer >= 0 &&
         request.resource.data.estimatedEndingOdometer is int &&
@@ -212,6 +220,7 @@ service cloud.firestore {
         request.resource.data.confirmedEndingOdometer >=
           request.resource.data.startingOdometer &&
         request.resource.data.odometerConfirmedAt is string &&
+        request.resource.data.odometerConfirmedAt.size() > 0 &&
         request.resource.data.odometerConfirmedAt >=
           request.resource.data.finishedAt &&
         request.resource.data.acceptedMeters is number &&
