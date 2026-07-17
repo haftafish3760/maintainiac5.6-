@@ -195,6 +195,34 @@ void main() {
   );
 
   test(
+    'active workday writes require safe vehicle and work profile ids',
+    () async {
+      final store = ActiveWorkdayController.memory();
+
+      await expectLater(
+        store.startDay(
+          vehicleId: 'vehicle\nunsafe',
+          vehicleLabel: 'Work Truck',
+          workProfileId: 'business',
+          startOdometer: 1000,
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.startDay(
+          vehicleId: 'vehicle_1',
+          vehicleLabel: 'Work Truck',
+          workProfileId: ' business ',
+          startOdometer: 1000,
+        ),
+        throwsArgumentError,
+      );
+
+      expect(store.activeSession, isNull);
+    },
+  );
+
+  test(
     'resuming a paused day restores the active local session state',
     () async {
       final store = ActiveWorkdayController.memory();

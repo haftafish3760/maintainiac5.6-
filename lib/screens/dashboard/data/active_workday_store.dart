@@ -449,6 +449,30 @@ class ActiveWorkdayController extends ChangeNotifier {
         'Active workday sessions require a non-empty safe id.',
       );
     }
+    if (!_isSafeActiveWorkdayId(session.vehicleId)) {
+      throw ArgumentError.value(
+        session.vehicleId,
+        'session.vehicleId',
+        'Active workday sessions require a non-empty safe vehicle id.',
+      );
+    }
+    if (!_isSafeActiveWorkdayId(session.workProfileId)) {
+      throw ArgumentError.value(
+        session.workProfileId,
+        'session.workProfileId',
+        'Active workday sessions require a non-empty safe work profile id.',
+      );
+    }
+    final unsafeEventIndex = session.events.indexWhere(
+      (event) => !_isSafeActiveWorkdayId(event.id),
+    );
+    if (unsafeEventIndex >= 0) {
+      throw ArgumentError.value(
+        session.events[unsafeEventIndex].id,
+        'session.events[$unsafeEventIndex].id',
+        'Active workday events require non-empty safe ids.',
+      );
+    }
     if (_box == null) {
       _memoryRecords[session.id] = session;
     } else {
