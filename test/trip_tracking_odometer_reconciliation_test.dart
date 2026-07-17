@@ -52,6 +52,118 @@ void main() {
     expect(result.status, TripOdometerReconciliationStatus.invalid);
   });
 
+  test('a next trip cannot start below the previous confirmed ending', () {
+    final previous = review.copyWith(
+      confirmedEndingOdometer: 1020,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 13, 14, 5),
+    );
+    final next = TripTrackingReviewRecord(
+      id: 'trip_next_overlap',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1019,
+      estimatedEndingOdometer: 1030,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 16093.44,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final check = TripOdometerContinuityCheck.betweenReviews(
+      previous: previous,
+      next: next,
+    );
+
+    expect(check.status, TripOdometerContinuityStatus.invalid);
+    expect(check.shouldBlockConfirmation, isTrue);
+    expect(check.odometerGapMiles, -1);
+    expect(
+      check.reasonCode,
+      'starting_odometer_below_previous_confirmed_ending',
+    );
+  });
+
+  test('a large untracked same-vehicle odometer gap recommends review', () {
+    final previous = review.copyWith(
+      confirmedEndingOdometer: 1020,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 13, 14, 5),
+    );
+    final next = TripTrackingReviewRecord(
+      id: 'trip_next_gap',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1100,
+      estimatedEndingOdometer: 1110,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 16093.44,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final check = TripOdometerContinuityCheck.betweenReviews(
+      previous: previous,
+      next: next,
+      materialUntrackedGapMiles: 50,
+    );
+
+    expect(check.status, TripOdometerContinuityStatus.reviewRecommended);
+    expect(check.shouldBlockConfirmation, isFalse);
+    expect(check.odometerGapMiles, 80);
+    expect(check.reasonCode, 'large_untracked_odometer_gap');
+  });
+
+  test('odometer continuity ignores other vehicles and normal gaps', () {
+    final previous = review.copyWith(
+      confirmedEndingOdometer: 1020,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 13, 14, 5),
+    );
+    final otherVehicle = TripTrackingReviewRecord(
+      id: 'trip_other_vehicle',
+      vehicleId: 'vehicle_2',
+      startingOdometer: 1,
+      estimatedEndingOdometer: 20,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 16093.44,
+        walkingReviewSuggested: false,
+      ),
+    );
+    final aligned = TripTrackingReviewRecord(
+      id: 'trip_aligned_vehicle',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1025,
+      estimatedEndingOdometer: 1035,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 16093.44,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    expect(
+      TripOdometerContinuityCheck.betweenReviews(
+        previous: previous,
+        next: otherVehicle,
+      ).status,
+      TripOdometerContinuityStatus.insufficientData,
+    );
+    expect(
+      TripOdometerContinuityCheck.betweenReviews(
+        previous: previous,
+        next: aligned,
+      ).status,
+      TripOdometerContinuityStatus.aligned,
+    );
+  });
+
   test(
     'persistent seven-day GPS odometer drift recommends calibration review',
     () {

@@ -8,6 +8,13 @@ enum TripOdometerCalibrationStatus {
   reviewRecommended,
 }
 
+enum TripOdometerContinuityStatus {
+  insufficientData,
+  aligned,
+  reviewRecommended,
+  invalid,
+}
+
 /// Explicit comparison only: confirmed odometer mileage remains authoritative.
 /// This object never writes an odometer, TripLog, or recap record.
 class TripOdometerReconciliation {
@@ -58,6 +65,65 @@ class TripOdometerReconciliation {
       filteredGpsMiles: gpsMiles,
       absoluteDifferenceMiles: difference,
       differencePercent: percent,
+    );
+  }
+}
+
+class TripOdometerContinuityCheck {
+  const TripOdometerContinuityCheck({
+    required this.status,
+    required this.odometerGapMiles,
+    required this.reasonCode,
+  });
+
+  final TripOdometerContinuityStatus status;
+  final int odometerGapMiles;
+  final String reasonCode;
+
+  bool get shouldBlockConfirmation =>
+      status == TripOdometerContinuityStatus.invalid;
+
+  static TripOdometerContinuityCheck betweenReviews({
+    required TripTrackingReviewRecord previous,
+    required TripTrackingReviewRecord next,
+    int materialUntrackedGapMiles = 50,
+  }) {
+    final previousEnding = previous.confirmedEndingOdometer;
+    if (previous.vehicleId != next.vehicleId || previousEnding == null) {
+      return const TripOdometerContinuityCheck(
+        status: TripOdometerContinuityStatus.insufficientData,
+        odometerGapMiles: 0,
+        reasonCode: 'missing_same_vehicle_confirmed_history',
+      );
+    }
+    if (previousEnding < previous.startingOdometer ||
+        next.startingOdometer < 0 ||
+        materialUntrackedGapMiles < 0) {
+      return const TripOdometerContinuityCheck(
+        status: TripOdometerContinuityStatus.invalid,
+        odometerGapMiles: 0,
+        reasonCode: 'invalid_odometer_continuity_input',
+      );
+    }
+    final gap = next.startingOdometer - previousEnding;
+    if (gap < 0) {
+      return TripOdometerContinuityCheck(
+        status: TripOdometerContinuityStatus.invalid,
+        odometerGapMiles: gap,
+        reasonCode: 'starting_odometer_below_previous_confirmed_ending',
+      );
+    }
+    if (gap > materialUntrackedGapMiles) {
+      return TripOdometerContinuityCheck(
+        status: TripOdometerContinuityStatus.reviewRecommended,
+        odometerGapMiles: gap,
+        reasonCode: 'large_untracked_odometer_gap',
+      );
+    }
+    return TripOdometerContinuityCheck(
+      status: TripOdometerContinuityStatus.aligned,
+      odometerGapMiles: gap,
+      reasonCode: 'odometer_continuity_aligned',
     );
   }
 }
