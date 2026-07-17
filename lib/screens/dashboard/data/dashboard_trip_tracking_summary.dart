@@ -1,6 +1,9 @@
+import '../../../shared/storage/app_storage_guard.dart';
+import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
+import 'active_workday_store.dart';
 
 class DashboardTripTrackingSummary {
   const DashboardTripTrackingSummary({
@@ -75,6 +78,35 @@ class DashboardTripTrackingSummary {
       reviewRequired: reviewRequired,
     );
   }
+
+  static DashboardTripTrackingSummary fromRuntime({
+    required TripTrackingSettings settings,
+    TripTrackingController? tripTracking,
+    ActiveWorkdaySessionRecord? activeWorkday,
+    AppStorageCheck? storageCheck,
+    bool? wifiAvailable,
+    bool? mobileDataAvailable,
+    int? syncsUsedInWindow,
+    String? platformStatus,
+  }) {
+    final status = platformStatus ?? tripTracking?.platformStatus;
+    final activeTrip = tripTracking?.isTracking == true;
+    final nativeTracking = tripTracking?.nativeTracking == true;
+    return fromSettings(
+      settings: settings,
+      nativeTracking: nativeTracking,
+      recoverableTrip: activeTrip && !nativeTracking,
+      lowBatteryLimited: _isBatteryLimitedStatus(status),
+      reviewRequired:
+          tripTracking?.latestUnconfirmedReview != null ||
+          tripTracking?.needsWalkingReview == true ||
+          activeWorkday?.isPaused == true,
+      storageState: _storageStateFor(storageCheck),
+      wifiAvailable: wifiAvailable,
+      mobileDataAvailable: mobileDataAvailable,
+      syncsUsedInWindow: syncsUsedInWindow,
+    );
+  }
 }
 
 String _syncMode(TripTrackingBackupNetworkPolicy policy) {
@@ -105,5 +137,22 @@ String _safeStorageState(String value) {
     'low_storage' => 'low_storage',
     'blocked' => 'blocked',
     _ => 'unknown',
+  };
+}
+
+String _storageStateFor(AppStorageCheck? storageCheck) {
+  if (storageCheck == null || !storageCheck.canVerify) return 'unknown';
+  if (!storageCheck.hasEnoughSpace) return 'blocked';
+  if (storageCheck.shouldWarnLowStorage) return 'low_storage';
+  return 'text_record_safe';
+}
+
+bool _isBatteryLimitedStatus(String? status) {
+  return switch (status) {
+    'low_battery_requires_user_choice' ||
+    'low_power_mode_requires_user_choice' ||
+    'low_battery_gps_blocked_by_saved_choice' ||
+    'low_power_mode_gps_blocked_by_saved_choice' => true,
+    _ => false,
   };
 }
