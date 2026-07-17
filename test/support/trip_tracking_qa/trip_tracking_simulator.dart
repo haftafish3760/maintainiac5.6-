@@ -21,8 +21,32 @@ class SimulatedTripResult {
   final bool needsWalkingReview;
   final TripMotionState motionState;
 
+  double get acceptedMiles => acceptedMeters / 1609.344;
+
+  int get acceptedDistanceCount =>
+      count(TripSampleDisposition.acceptedDistance);
+
+  int get rejectedCount => dispositions
+      .where(
+        (value) =>
+            value != TripSampleDisposition.acceptedAnchor &&
+            value != TripSampleDisposition.acceptedDistance,
+      )
+      .length;
+
   int count(TripSampleDisposition disposition) =>
       dispositions.where((value) => value == disposition).length;
+
+  Map<String, Object?> toSafeSummary() => {
+    'acceptedMiles': double.parse(acceptedMiles.toStringAsFixed(3)),
+    'acceptedDistanceCount': acceptedDistanceCount,
+    'rejectedCount': rejectedCount,
+    'needsWalkingReview': needsWalkingReview,
+    'motionState': motionState.name,
+    'rawSamplesIncluded': false,
+    'coordinatesIncluded': false,
+    'routeGeometryIncluded': false,
+  };
 }
 
 /// Deterministic replay harness for GPS QA. Scenario tests use this instead of
