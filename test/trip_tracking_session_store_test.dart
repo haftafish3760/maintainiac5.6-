@@ -746,6 +746,31 @@ void main() {
     expect(restored.hasValidTimeline, isFalse);
   });
 
+  test('synced persisted review state requires a sync timestamp', () {
+    final review = TripTrackingReviewRecord(
+      id: 'trip_synced_without_timestamp',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final restored = TripTrackingReviewRecord.fromMap({
+      ...review.toMap(),
+      'cloudSyncState': 'synced',
+    });
+
+    expect(restored.cloudSyncState, TripTrackingCloudSyncState.synced);
+    expect(restored.cloudSyncedAt, isNull);
+    expect(restored.hasValidTimeline, isFalse);
+  });
+
   test('malformed persisted odometer values cannot crash review recovery', () {
     final review = TripTrackingReviewRecord(
       id: 'trip_corrupt_odometer',

@@ -311,6 +311,11 @@ class TripTrackingReviewRecord {
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
     );
+    final cloudSyncState = TripTrackingCloudSyncState.values.firstWhere(
+      (value) => value.name == map['cloudSyncState'],
+      orElse: () => TripTrackingCloudSyncState.localOnly,
+    );
+    final cloudSyncedAt = DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}');
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
@@ -330,10 +335,7 @@ class TripTrackingReviewRecord {
               totalAcceptedMeters: 0,
               walkingReviewSuggested: false,
             ),
-      cloudSyncState: TripTrackingCloudSyncState.values.firstWhere(
-        (value) => value.name == map['cloudSyncState'],
-        orElse: () => TripTrackingCloudSyncState.localOnly,
-      ),
+      cloudSyncState: cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
       confirmedEndingOdometer: _optionalPersistedOdometerValue(
         map['confirmedEndingOdometer'],
@@ -347,7 +349,7 @@ class TripTrackingReviewRecord {
           ? _optionalSafeCloudToken(map['cloudOrganizationId'])
           : null,
       cloudSyncError: _optionalSafeText(map['cloudSyncError'], maxLength: 240),
-      cloudSyncedAt: DateTime.tryParse('${map['cloudSyncedAt'] ?? ''}'),
+      cloudSyncedAt: cloudSyncedAt,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
       hasValidTimeline:
           startedAt != null &&
@@ -356,10 +358,16 @@ class TripTrackingReviewRecord {
           hasSafeIdentity &&
           hasValidProfile &&
           hasValidCloudSyncState &&
+          _hasValidCloudSyncTimeline(cloudSyncState, cloudSyncedAt) &&
           estimatedEndingOdometer >= startingOdometer,
     );
   }
 }
+
+bool _hasValidCloudSyncTimeline(
+  TripTrackingCloudSyncState state,
+  DateTime? syncedAt,
+) => state != TripTrackingCloudSyncState.synced || syncedAt != null;
 
 int _sessionSchemaVersion(Object? value) {
   if (value is! num || !value.isFinite) return 1;
