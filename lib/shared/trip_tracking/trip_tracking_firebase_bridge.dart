@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../firebase/maintainiac_firestore_documents.dart';
 import '../firebase/maintainiac_firestore_upload_queue.dart';
+import 'trip_tracking_backup_scope_policy.dart';
 import 'trip_tracking_session_store.dart';
 
 abstract interface class TripTrackingCloudMirror {
@@ -127,7 +128,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       throw StateError(_unsafeAccountMessage);
     }
     if (_usesOrganizationBackup && !_hasUsableOrganizationId) {
-      const message = _missingOrganizationMessage;
+      const message = TripTrackingBackupScopePolicy.missingOrganizationMessage;
       await _saveReviewState(
         review.copyWith(
           cloudSyncState: TripTrackingCloudSyncState.pending,
@@ -136,15 +137,22 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       );
       throw StateError(message);
     }
-    final boundReview = _bindReview(review, createdByUid);
-    if (boundReview == null) {
+    final scopeDecision = TripTrackingBackupScopePolicy.bindForQueue(
+      review: review,
+      createdByUid: createdByUid,
+      personalBackup: personal,
+      organizationSharingEnabled: _usesOrganizationBackup,
+      orgId: _orgId,
+    );
+    final boundReview = scopeDecision.boundReview;
+    if (!scopeDecision.canQueue || boundReview == null) {
       await _saveReviewState(
         review.copyWith(
           cloudSyncState: TripTrackingCloudSyncState.pending,
-          cloudSyncError: _backupScopeMismatchMessage,
+          cloudSyncError: scopeDecision.safeErrorMessage,
         ),
       );
-      throw StateError(_backupScopeMismatchMessage);
+      throw StateError(scopeDecision.safeErrorMessage);
     }
     late final MaintainiacFirestoreDocumentDraft document;
     try {
@@ -268,7 +276,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
           await _saveReviewState(
             review.copyWith(
               cloudSyncState: TripTrackingCloudSyncState.pending,
-              cloudSyncError: _missingOrganizationMessage,
+              cloudSyncError:
+                  TripTrackingBackupScopePolicy.missingOrganizationMessage,
             ),
           );
         }
@@ -300,13 +309,20 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
           );
           continue;
         }
-        final boundReview = _bindReview(review, createdByUid);
-        if (boundReview == null) {
+        final scopeDecision = TripTrackingBackupScopePolicy.bindForQueue(
+          review: review,
+          createdByUid: createdByUid,
+          personalBackup: personal,
+          organizationSharingEnabled: _usesOrganizationBackup,
+          orgId: _orgId,
+        );
+        final boundReview = scopeDecision.boundReview;
+        if (!scopeDecision.canQueue || boundReview == null) {
           await _discardQueuedBackupFor(review);
           await _saveReviewState(
             review.copyWith(
               cloudSyncState: TripTrackingCloudSyncState.pending,
-              cloudSyncError: _backupScopeMismatchMessage,
+              cloudSyncError: scopeDecision.safeErrorMessage,
             ),
           );
           continue;
@@ -417,8 +433,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
   }
 
   bool get _hasUsableOrganizationId {
-    final orgId = _orgId?.trim();
-    return orgId != null && orgId.isNotEmpty && _isSafeFirestoreUid(orgId);
+    return TripTrackingBackupScopePolicy.hasUsableOrganizationId(_orgId);
   }
 
   bool _isReviewEligibleForBackup(TripTrackingReviewRecord review) =>
@@ -428,67 +443,14 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       review.estimatedEndingOdometer >= review.startingOdometer &&
       review.isOdometerConfirmed;
 
-  static const _missingOrganizationMessage =
-      'An organization is required before company mileage backup can be queued.';
   static const _unsafeAccountMessage =
       'Mileage backup is waiting for a valid authenticated account.';
-  static const _backupScopeMismatchMessage =
-      'Mileage backup is waiting for its original account and organization.';
   static const _unsafeMileageIdentityMessage =
       'Mileage backup is waiting for a valid trip and vehicle identity.';
   static const _backupFlushFailedMessage =
       'Mileage backup could not finish. Retry backup when the connection is stable.';
   static const _backupWriteFailedMessage =
       'Mileage backup could not upload. It remains saved locally and will retry.';
-
-  TripTrackingReviewRecord? _bindReview(
-    TripTrackingReviewRecord review,
-    String createdByUid,
-  ) {
-    final accountUid = review.cloudAccountUid?.trim();
-    if (accountUid != null &&
-        accountUid.isNotEmpty &&
-        !_isSafeFirestoreUid(accountUid)) {
-      return null;
-    }
-    if (accountUid != null &&
-        accountUid.isNotEmpty &&
-        accountUid != createdByUid) {
-      return null;
-    }
-    final scope = review.cloudBackupScope;
-    final orgId = _orgId?.trim();
-    final usesOrganizationBackup = _usesOrganizationBackup;
-    if (scope == TripTrackingCloudBackupScope.personal &&
-        usesOrganizationBackup) {
-      return null;
-    }
-    if (scope == TripTrackingCloudBackupScope.personal) {
-      return accountUid == null || accountUid.isEmpty
-          ? review.copyWith(cloudAccountUid: createdByUid)
-          : review;
-    }
-    if (scope == TripTrackingCloudBackupScope.organization &&
-        (!usesOrganizationBackup ||
-            review.cloudOrganizationId?.trim() != orgId)) {
-      return null;
-    }
-    if (scope == TripTrackingCloudBackupScope.organization) {
-      return accountUid == null || accountUid.isEmpty
-          ? review.copyWith(cloudAccountUid: createdByUid)
-          : review;
-    }
-    if (scope == null) {
-      return review.copyWith(
-        cloudAccountUid: createdByUid,
-        cloudBackupScope: usesOrganizationBackup
-            ? TripTrackingCloudBackupScope.organization
-            : TripTrackingCloudBackupScope.personal,
-        cloudOrganizationId: usesOrganizationBackup ? orgId : null,
-      );
-    }
-    return review;
-  }
 
   Future<void> _discardQueuedBackupFor(TripTrackingReviewRecord review) async {
     final accountUid = review.cloudAccountUid?.trim() ?? _currentUid?.trim();
