@@ -854,6 +854,7 @@ class TripTrackingController extends ChangeNotifier {
           if (_isDisposed) return;
           if (event.type == TripTrackingPlatformEventType.location &&
               event.location != null) {
+            if (!_nativeTracking) return;
             final activity = _latestActivity;
             final decision = await ingest(
               event.location!,
@@ -872,6 +873,7 @@ class TripTrackingController extends ChangeNotifier {
             );
             await _maybeUpdateNativeSampling(event.location!, decision);
           } else if (event.activity != null) {
+            if (!_nativeTracking) return;
             _latestActivity = event.activity;
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
@@ -879,7 +881,7 @@ class TripTrackingController extends ChangeNotifier {
               _platformStatus = status;
               _nativeTracking = false;
               _nativeSampling = null;
-              unawaited(_platformSubscription?.cancel());
+              await _cancelPlatformSubscriptionAfterNativeStop();
               _platformSubscription = null;
               if (_session?.lifecycleState ==
                   TripTrackingSessionLifecycleState.active) {
@@ -913,6 +915,16 @@ class TripTrackingController extends ChangeNotifier {
           _platformError = 'GPS event could not be processed safely.';
           notifyListeners();
       });
+  }
+
+  Future<void> _cancelPlatformSubscriptionAfterNativeStop() async {
+    final subscription = _platformSubscription;
+    if (subscription == null) return;
+    try {
+      await subscription.cancel();
+    } catch (error) {
+      _platformError ??= 'Could not detach GPS event listener cleanly.';
+    }
   }
 
   String _safeNativePlatformErrorMessage(String? errorCode) =>

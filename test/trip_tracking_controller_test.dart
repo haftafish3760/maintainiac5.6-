@@ -1669,6 +1669,45 @@ void main() {
   );
 
   test(
+    'an externally stopped native collector tolerates listener cancel failure',
+    () async {
+      final native = _FakeTripTrackingPlatform(throwOnCancel: true);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_external_stop_cancel_fault',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+
+      native.addStatus('stopped');
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.nativeTracking, isFalse);
+      expect(native.stopCalls, 0);
+      expect(controller.platformStatus, 'stopped');
+      expect(
+        controller.platformError,
+        'Could not detach GPS event listener cleanly.',
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.99, 60, speed: 8));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.acceptedMeters, 0);
+      expect(controller.nativeTracking, isFalse);
+    },
+  );
+
+  test(
     'malformed native status payload is ignored without stopping a valid trip',
     () async {
       final native = _FakeTripTrackingPlatform();
