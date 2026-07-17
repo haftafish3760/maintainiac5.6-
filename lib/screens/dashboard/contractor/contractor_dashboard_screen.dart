@@ -51,6 +51,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   Widget build(BuildContext context) {
     final activeWorkday = ActiveWorkdayScope.maybeOf(context);
     final activeSession = activeWorkday?.activeSession;
+    final odometer = GlobalOdometerScope.of(context);
     final dayStarted = activeSession?.isActive == true || _dayStarted;
     final dayPaused = activeSession?.isPaused == true;
     return AppScreenShell(
@@ -72,9 +73,15 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const ContractorAttentionPanel(),
           const SizedBox(height: 10),
           if (dayStarted) ...[
-            ContractorActiveShiftPanel(
-              shiftTime: _shiftTimeLabel(activeSession),
-              milesToday: _milesTodayLabel(activeSession),
+            AnimatedBuilder(
+              animation: odometer,
+              builder: (context, _) => ContractorActiveShiftPanel(
+                shiftTime: _shiftTimeLabel(activeSession),
+                milesToday: _milesTodayLabel(
+                  activeSession,
+                  odometerReading: odometer.reading,
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             ContractorCommandGrid(
@@ -204,10 +211,12 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     return '$hours:$minutes';
   }
 
-  String _milesTodayLabel(ActiveWorkdaySessionRecord? session) {
+  String _milesTodayLabel(
+    ActiveWorkdaySessionRecord? session, {
+    required int odometerReading,
+  }) {
     if (session == null) return '0';
-    final odometer = GlobalOdometerScope.of(context);
-    return session.milesSoFar(odometer.reading).toString();
+    return session.milesSoFar(odometerReading).toString();
   }
 
   Future<void> _handleCommand(ContractorCommand command) async {
