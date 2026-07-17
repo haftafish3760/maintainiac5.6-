@@ -86,14 +86,15 @@ class TripTrackingSettings {
     bool? lowBatteryGpsWarningDismissed,
     TripTrackingBackupNetworkPolicy? backupNetworkPolicy,
   }) {
+    final gpsEnabled =
+        gpsAssistedTrackingEnabled ?? this.gpsAssistedTrackingEnabled;
     final bluetoothEnabled =
         bluetoothVehicleRecognitionEnabled ??
         this.bluetoothVehicleRecognitionEnabled;
     final automaticSwitch =
         automaticVehicleSwitchEnabled ?? this.automaticVehicleSwitchEnabled;
     return TripTrackingSettings(
-      gpsAssistedTrackingEnabled:
-          gpsAssistedTrackingEnabled ?? this.gpsAssistedTrackingEnabled,
+      gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: samplingPreset ?? this.samplingPreset,
       customIntervalSeconds: _validCustomInterval(
         customIntervalSeconds ?? this.customIntervalSeconds,
@@ -101,11 +102,13 @@ class TripTrackingSettings {
       adaptiveSamplingEnabled:
           adaptiveSamplingEnabled ?? this.adaptiveSamplingEnabled,
       activityRecognitionEnabled:
-          activityRecognitionEnabled ?? this.activityRecognitionEnabled,
+          gpsEnabled &&
+          (activityRecognitionEnabled ?? this.activityRecognitionEnabled),
       walkingTransitionReviewEnabled:
           walkingTransitionReviewEnabled ?? this.walkingTransitionReviewEnabled,
       backgroundTrackingEnabled:
-          backgroundTrackingEnabled ?? this.backgroundTrackingEnabled,
+          gpsEnabled &&
+          (backgroundTrackingEnabled ?? this.backgroundTrackingEnabled),
       organizationMileageSharingEnabled:
           organizationMileageSharingEnabled ??
           this.organizationMileageSharingEnabled,
@@ -145,19 +148,21 @@ class TripTrackingSettings {
     final defaultProfile = _profileFromMap(map);
     final hasInvalidDefaultProfile =
         map.containsKey('defaultProfile') && defaultProfile == null;
+    final gpsEnabled =
+        !hasInvalidDefaultProfile && map['gpsAssistedTrackingEnabled'] == true;
     return TripTrackingSettings(
-      gpsAssistedTrackingEnabled:
-          !hasInvalidDefaultProfile &&
-          map['gpsAssistedTrackingEnabled'] == true,
+      gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: _presetFromMap(map),
       customIntervalSeconds: _validCustomInterval(
         _safeNumber(map['customIntervalSeconds'])?.round() ?? 15,
       ),
       adaptiveSamplingEnabled: map['adaptiveSamplingEnabled'] == true,
-      activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
+      activityRecognitionEnabled:
+          gpsEnabled && map['activityRecognitionEnabled'] == true,
       walkingTransitionReviewEnabled:
           map['walkingTransitionReviewEnabled'] != false,
-      backgroundTrackingEnabled: map['backgroundTrackingEnabled'] == true,
+      backgroundTrackingEnabled:
+          gpsEnabled && map['backgroundTrackingEnabled'] == true,
       organizationMileageSharingEnabled:
           map['organizationMileageSharingEnabled'] == true,
       defaultProfile: defaultProfile ?? TripTrackingProfile.roadVehicle,

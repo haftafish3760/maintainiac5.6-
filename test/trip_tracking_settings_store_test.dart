@@ -235,7 +235,10 @@ void main() {
 
   test('motion activity recognition is a separately persisted opt-in', () {
     const settings = TripTrackingSettings();
-    final enabled = settings.copyWith(activityRecognitionEnabled: true);
+    final enabled = settings.copyWith(
+      gpsAssistedTrackingEnabled: true,
+      activityRecognitionEnabled: true,
+    );
 
     expect(enabled.activityRecognitionEnabled, isTrue);
     expect(
@@ -246,6 +249,24 @@ void main() {
       TripTrackingSettings.fromMap(const {}).activityRecognitionEnabled,
       isFalse,
     );
+  });
+
+  test('motion and background helpers require GPS tracking opt-in', () {
+    final restored = TripTrackingSettings.fromMap(const {
+      'gpsAssistedTrackingEnabled': false,
+      'activityRecognitionEnabled': true,
+      'backgroundTrackingEnabled': true,
+    });
+    final disabled = const TripTrackingSettings(
+      gpsAssistedTrackingEnabled: true,
+      activityRecognitionEnabled: true,
+      backgroundTrackingEnabled: true,
+    ).copyWith(gpsAssistedTrackingEnabled: false);
+
+    expect(restored.activityRecognitionEnabled, isFalse);
+    expect(restored.backgroundTrackingEnabled, isFalse);
+    expect(disabled.activityRecognitionEnabled, isFalse);
+    expect(disabled.backgroundTrackingEnabled, isFalse);
   });
 
   test('low battery GPS protection is persisted and reversible', () {
