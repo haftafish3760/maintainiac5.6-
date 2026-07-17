@@ -402,7 +402,8 @@ void main() {
     final sink = _RecordingFirestoreSink(
       failPathsContaining: 'catalogHealth',
       failureMessage:
-          'token=pk.secret lat:35.123 longitude=-80.456\nsecond line',
+          'token=pk.secret lat:35.123 longitude=-80.456 '
+          'near -122.12345,37.12345\nsecond line',
     );
     await queue.enqueueAll([
       _safeDraft('parserHealth/receipt_parser_v1'),
@@ -424,11 +425,17 @@ void main() {
     expect(queue.pendingRecords.single.lastError, isNot(contains('pk.secret')));
     expect(queue.pendingRecords.single.lastError, isNot(contains('35.123')));
     expect(queue.pendingRecords.single.lastError, isNot(contains('-80.456')));
+    expect(queue.pendingRecords.single.lastError, isNot(contains('-122.12345')));
+    expect(queue.pendingRecords.single.lastError, isNot(contains('37.12345')));
     expect(queue.pendingRecords.single.lastError, contains('token redacted'));
     expect(queue.pendingRecords.single.lastError, contains('lat redacted'));
     expect(
       queue.pendingRecords.single.lastError,
       contains('longitude redacted'),
+    );
+    expect(
+      queue.pendingRecords.single.lastError,
+      contains('coordinates redacted'),
     );
     expect(
       queue.pendingRecords.single.nextAttemptAtUtc,

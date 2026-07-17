@@ -79,20 +79,25 @@ class MaintainiacFirestoreQueuedDocument {
     final queuedAt =
         DateTime.tryParse(value['queuedAtUtc']?.toString() ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-    final lastAttemptAt = _safeQueueTimestamp(
-      value['lastAttemptAtUtc'],
-      notBefore: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-    );
-    final nextAttemptAt = _safeQueueTimestamp(
-      value['nextAttemptAtUtc'],
-      notBefore: lastAttemptAt ?? queuedAt,
-    );
+    final attemptCount = _nonNegativeIntValue(value['attemptCount']);
+    final lastAttemptAt = attemptCount == 0
+        ? null
+        : _safeQueueTimestamp(
+            value['lastAttemptAtUtc'],
+            notBefore: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+          );
+    final nextAttemptAt = lastAttemptAt == null
+        ? null
+        : _safeQueueTimestamp(
+            value['nextAttemptAtUtc'],
+            notBefore: lastAttemptAt,
+          );
     return MaintainiacFirestoreQueuedDocument(
       id: value['id']?.toString() ?? '',
       path: value['path']?.toString() ?? '',
       data: data is Map ? Map<String, Object?>.from(data) : const {},
       queuedAtUtc: queuedAt,
-      attemptCount: _nonNegativeIntValue(value['attemptCount']),
+      attemptCount: attemptCount,
       lastAttemptAtUtc: lastAttemptAt,
       nextAttemptAtUtc: nextAttemptAt,
       lastError: value['lastError'] == null
@@ -176,7 +181,7 @@ String _safeError(String value) {
         (match) => '${match.group(1)} redacted',
       )
       .replaceAll(
-        RegExp(r'\b-?\d{1,2}\.\d{3,}\s*,\s*-?\d{1,3}\.\d{3,}\b'),
+        RegExp(r'\b-?\d{1,3}\.\d{3,}\s*,\s*-?\d{1,3}\.\d{3,}\b'),
         'coordinates=[redacted]',
       );
   return redacted
