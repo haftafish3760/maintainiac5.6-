@@ -109,6 +109,7 @@ class TripOdometerContinuityCheck {
         next.vehicleId.trim().isEmpty ||
         !previous.hasValidTimeline ||
         !next.hasValidTimeline ||
+        !previous.isOdometerConfirmed ||
         previous.estimatedEndingOdometer < previous.startingOdometer ||
         next.estimatedEndingOdometer < next.startingOdometer ||
         previousEnding < previous.startingOdometer ||
