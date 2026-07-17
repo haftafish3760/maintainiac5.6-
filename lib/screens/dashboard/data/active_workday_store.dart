@@ -248,13 +248,11 @@ class ActiveWorkdaySessionRecord {
         DateTime.tryParse(_stringValue(map['startedAt']) ?? '') ??
         _fallbackWorkdayTimestamp();
     final startOdometer = _safeOdometer(map['startOdometer']) ?? 0;
-    final events = parsedEvents
-        .where(
-          (event) =>
-              !event.occurredAt.isBefore(startedAt) &&
-              event.odometerReading >= startOdometer,
-        )
-        .toList(growable: false);
+    final events = _coherentWorkdayEvents(
+      parsedEvents,
+      startedAt: startedAt,
+      startOdometer: startOdometer,
+    );
     final endOdometer = _safeOdometer(map['endOdometer']);
     final endedAt = DateTime.tryParse(_stringValue(map['endedAt']) ?? '');
     final rawStatus = _stringValue(map['status']);
@@ -311,6 +309,24 @@ class ActiveWorkdaySessionRecord {
           events.every((event) => event.hasValidIdentity),
     );
   }
+}
+
+List<ActiveWorkdayEvent> _coherentWorkdayEvents(
+  Iterable<ActiveWorkdayEvent> source, {
+  required DateTime startedAt,
+  required int startOdometer,
+}) {
+  final events = <ActiveWorkdayEvent>[];
+  var latestOdometer = startOdometer;
+  for (final event in source) {
+    if (event.occurredAt.isBefore(startedAt) ||
+        event.odometerReading < latestOdometer) {
+      continue;
+    }
+    events.add(event);
+    latestOdometer = event.odometerReading;
+  }
+  return List.unmodifiable(events);
 }
 
 class ActiveWorkdayController extends ChangeNotifier {
@@ -440,6 +456,18 @@ class ActiveWorkdayController extends ChangeNotifier {
         odometerReading,
         'odometerReading',
         'Event odometer cannot be below the active day starting odometer.',
+      );
+    }
+    final latestOdometer = session.events.fold<int>(
+      session.startOdometer,
+      (latest, event) =>
+          event.odometerReading > latest ? event.odometerReading : latest,
+    );
+    if (odometerReading < latestOdometer) {
+      throw ArgumentError.value(
+        odometerReading,
+        'odometerReading',
+        'Event odometer cannot be below an earlier active day event.',
       );
     }
     await _ensureStorageForWrite();

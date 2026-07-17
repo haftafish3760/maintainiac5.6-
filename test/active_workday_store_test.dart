@@ -314,6 +314,33 @@ void main() {
     },
   );
 
+  test('active workday events cannot move the odometer backward', () async {
+    final store = ActiveWorkdayController.memory();
+    await store.startDay(
+      vehicleId: 'vehicle_1',
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+    );
+    await store.addEvent(
+      type: ActiveWorkdayEventType.stop,
+      odometerReading: 1050,
+    );
+
+    await expectLater(
+      store.addEvent(
+        type: ActiveWorkdayEventType.dropOff,
+        odometerReading: 1049,
+      ),
+      throwsArgumentError,
+    );
+
+    expect(store.activeSession?.events.map((event) => event.type), [
+      ActiveWorkdayEventType.started,
+      ActiveWorkdayEventType.stop,
+    ]);
+  });
+
   test(
     'active workday events cannot persist before the day start time',
     () async {
@@ -631,6 +658,15 @@ void main() {
               .toIso8601String(),
           'odometerReading': 1201,
           'label': 'Stop logged',
+        },
+        {
+          'id': 'decreasing-event',
+          'type': 'dropOff',
+          'occurredAt': startedAt
+              .add(const Duration(minutes: 3))
+              .toIso8601String(),
+          'odometerReading': 1200,
+          'label': 'Drop-off logged',
         },
       ],
     });
