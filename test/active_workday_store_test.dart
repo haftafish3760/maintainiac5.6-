@@ -98,6 +98,54 @@ void main() {
     expect(store.sessionById('workday_${'x' * 200}'), isNull);
   });
 
+  test('unsafe persisted active workday identities are not restored', () async {
+    final box = await Hive.openBox<dynamic>(ActiveWorkdayController.boxName);
+    await box.put(ActiveWorkdayController.activeSessionKey, 'workday_bad');
+    await box.put('workday_bad', {
+      'id': 'workday_bad',
+      'vehicleId': 'truck_\n1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+      'startOdometer': 125000,
+      'status': 'active',
+      'events': [
+        {
+          'id': 'event_1',
+          'type': 'started',
+          'occurredAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+          'odometerReading': 125000,
+          'label': 'Workday started',
+        },
+      ],
+    });
+    await box.put('workday_bad_event', {
+      'id': 'workday_bad_event',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+      'startOdometer': 125010,
+      'status': 'active',
+      'events': [
+        {
+          'id': 'event_\nbad',
+          'type': 'started',
+          'occurredAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+          'odometerReading': 125010,
+          'label': 'Workday started',
+        },
+      ],
+    });
+
+    final store = await ActiveWorkdayController.create();
+
+    expect(store.activeSession, isNull);
+    expect(store.sessionById('workday_bad'), isNull);
+    expect(store.sessionById('workday_bad_event'), isNull);
+    expect(store.sessions, isEmpty);
+  });
+
   test(
     'records pause, stop, fuel, and end events with odometer readings',
     () async {

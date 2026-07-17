@@ -30,6 +30,7 @@ class ActiveWorkdayEvent {
     this.note,
     this.sourceType,
     this.sourceId,
+    this.hasValidIdentity = true,
   });
 
   final String id;
@@ -40,6 +41,7 @@ class ActiveWorkdayEvent {
   final String? note;
   final String? sourceType;
   final String? sourceId;
+  final bool hasValidIdentity;
 
   String get timeLabel {
     final hour = occurredAt.hour == 0
@@ -72,8 +74,9 @@ class ActiveWorkdayEvent {
   }
 
   factory ActiveWorkdayEvent.fromMap(Map<dynamic, dynamic> map) {
+    final rawId = map['id'];
     return ActiveWorkdayEvent(
-      id: (map['id'] as String?) ?? _newId('event'),
+      id: _safeText(rawId, fallback: _newId('event'), maxLength: 160),
       type: _eventTypeFromName(map['type'] as String?),
       occurredAt:
           DateTime.tryParse((map['occurredAt'] as String?) ?? '') ??
@@ -83,6 +86,7 @@ class ActiveWorkdayEvent {
       note: _optionalSafeText(map['note'], maxLength: 240),
       sourceType: _optionalSafeText(map['sourceType'], maxLength: 80),
       sourceId: _optionalSafeText(map['sourceId'], maxLength: 160),
+      hasValidIdentity: rawId == null || _isSafeActiveWorkdayIdValue(rawId),
     );
   }
 }
@@ -99,6 +103,7 @@ class ActiveWorkdaySessionRecord {
     required this.events,
     this.endedAt,
     this.endOdometer,
+    this.hasValidIdentity = true,
   });
 
   final String id;
@@ -111,6 +116,7 @@ class ActiveWorkdaySessionRecord {
   final List<ActiveWorkdayEvent> events;
   final DateTime? endedAt;
   final int? endOdometer;
+  final bool hasValidIdentity;
 
   bool get isActive => status != ActiveWorkdayStatus.ended;
   bool get isPaused => status == ActiveWorkdayStatus.paused;
@@ -189,6 +195,7 @@ class ActiveWorkdaySessionRecord {
       events: events ?? this.events,
       endedAt: clearEndedAt ? null : endedAt ?? this.endedAt,
       endOdometer: clearEndOdometer ? null : endOdometer ?? this.endOdometer,
+      hasValidIdentity: hasValidIdentity,
     );
   }
 
@@ -220,6 +227,9 @@ class ActiveWorkdaySessionRecord {
   }
 
   factory ActiveWorkdaySessionRecord.fromMap(Map<dynamic, dynamic> map) {
+    final rawId = map['id'];
+    final rawVehicleId = map['vehicleId'];
+    final rawWorkProfileId = map['workProfileId'];
     final rawEvents = map['events'];
     final events = <ActiveWorkdayEvent>[];
     if (rawEvents is Iterable) {
@@ -257,6 +267,11 @@ class ActiveWorkdaySessionRecord {
       events: events,
       endedAt: DateTime.tryParse((map['endedAt'] as String?) ?? ''),
       endOdometer: _safeOdometer(map['endOdometer']),
+      hasValidIdentity:
+          _isSafeActiveWorkdayIdValue(rawId) &&
+          _isSafeActiveWorkdayIdValue(rawVehicleId) &&
+          _isSafeActiveWorkdayIdValue(rawWorkProfileId) &&
+          events.every((event) => event.hasValidIdentity),
     );
   }
 }
@@ -290,7 +305,9 @@ class ActiveWorkdayController extends ChangeNotifier {
     final id = _activeSessionId;
     if (id == null) return null;
     final session = sessionById(id);
-    if (session == null || !session.isActive) return null;
+    if (session == null || !session.isActive || !session.hasValidIdentity) {
+      return null;
+    }
     return session;
   }
 
@@ -298,10 +315,11 @@ class ActiveWorkdayController extends ChangeNotifier {
     final source = _box == null ? _memoryRecords.values : _box.values;
     final records = <ActiveWorkdaySessionRecord>[];
     for (final value in source) {
-      if (value is ActiveWorkdaySessionRecord) {
+      if (value is ActiveWorkdaySessionRecord && value.hasValidIdentity) {
         records.add(value);
       } else if (value is Map && value['startedAt'] != null) {
-        records.add(ActiveWorkdaySessionRecord.fromMap(value));
+        final parsed = ActiveWorkdaySessionRecord.fromMap(value);
+        if (parsed.hasValidIdentity) records.add(parsed);
       }
     }
     records.sort((a, b) => b.startedAt.compareTo(a.startedAt));
@@ -311,8 +329,13 @@ class ActiveWorkdayController extends ChangeNotifier {
   ActiveWorkdaySessionRecord? sessionById(String id) {
     if (!_isSafeActiveWorkdayId(id)) return null;
     final value = _box == null ? _memoryRecords[id] : _box.get(id);
-    if (value is ActiveWorkdaySessionRecord) return value;
-    if (value is Map) return ActiveWorkdaySessionRecord.fromMap(value);
+    if (value is ActiveWorkdaySessionRecord) {
+      return value.hasValidIdentity ? value : null;
+    }
+    if (value is Map) {
+      final parsed = ActiveWorkdaySessionRecord.fromMap(value);
+      return parsed.hasValidIdentity ? parsed : null;
+    }
     return null;
   }
 
@@ -508,6 +531,11 @@ DateTime _fallbackWorkdayTimestamp() =>
     DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
 bool _isSafeActiveWorkdayId(String value) {
+  return _isSafeActiveWorkdayIdValue(value);
+}
+
+bool _isSafeActiveWorkdayIdValue(Object? value) {
+  if (value is! String) return false;
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   return clean == value && clean.isNotEmpty && clean.length <= 160;
 }
