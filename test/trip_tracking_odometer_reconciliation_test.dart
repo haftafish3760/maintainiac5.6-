@@ -196,6 +196,35 @@ void main() {
     );
   });
 
+  test('odometer continuity rejects out-of-order same-vehicle timelines', () {
+    final previous = review.copyWith(
+      confirmedEndingOdometer: 1020,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 13, 14, 5),
+    );
+    final overlapping = TripTrackingReviewRecord(
+      id: 'trip_overlap_timeline',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1021,
+      estimatedEndingOdometer: 1030,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 13, 13, 30),
+      finishedAt: DateTime.utc(2026, 7, 13, 15),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 14484.096,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final check = TripOdometerContinuityCheck.betweenReviews(
+      previous: previous,
+      next: overlapping,
+    );
+
+    expect(check.status, TripOdometerContinuityStatus.invalid);
+    expect(check.shouldBlockConfirmation, isTrue);
+    expect(check.reasonCode, 'invalid_odometer_continuity_input');
+  });
+
   test(
     'persistent seven-day GPS odometer drift recommends calibration review',
     () {
@@ -278,6 +307,25 @@ void main() {
 
     expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
     expect(signal.eligibleSampleCount, 0);
+  });
+
+  test('calibration rejects non-finite thresholds', () {
+    final signal = TripOdometerCalibrationSignal.evaluate(
+      history: const [],
+      minimumOdometerMiles: double.infinity,
+    );
+    final percentSignal = TripOdometerCalibrationSignal.evaluate(
+      history: const [],
+      reviewDifferencePercent: double.nan,
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.reasonCode, 'invalid_calibration_threshold');
+    expect(
+      percentSignal.status,
+      TripOdometerCalibrationStatus.insufficientHistory,
+    );
+    expect(percentSignal.reasonCode, 'invalid_calibration_threshold');
   });
 
   test('calibration multiplier falls back safely for malformed signals', () {

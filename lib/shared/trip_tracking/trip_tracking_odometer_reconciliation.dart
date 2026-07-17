@@ -101,6 +101,7 @@ class TripOdometerContinuityCheck {
     }
     if (previousEnding < previous.startingOdometer ||
         next.startingOdometer < 0 ||
+        next.startedAt.isBefore(previous.finishedAt) ||
         materialUntrackedGapMiles < 0) {
       return const TripOdometerContinuityCheck(
         status: TripOdometerContinuityStatus.invalid,
@@ -168,6 +169,8 @@ class TripOdometerCalibrationSignal {
   }) {
     if (minimumSamples <= 0 ||
         minimumOdometerMiles <= 0 ||
+        !minimumOdometerMiles.isFinite ||
+        !reviewDifferencePercent.isFinite ||
         reviewDifferencePercent < 0) {
       return const TripOdometerCalibrationSignal(
         status: TripOdometerCalibrationStatus.insufficientHistory,
