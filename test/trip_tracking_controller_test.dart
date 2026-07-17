@@ -1945,6 +1945,49 @@ void main() {
   );
 
   test(
+    'stale walking activity is cleared across native stop and restart',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_restart_clears_activity',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(
+        allowBackground: false,
+        activityRecognitionEnabled: true,
+      );
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.stopNativeTracking();
+      await controller.startNativeTracking(
+        allowBackground: false,
+        activityRecognitionEnabled: true,
+      );
+      native.addLocation(sample(-80, 30, speed: 8));
+      native.addLocation(sample(-79.999, 50, speed: 8));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.acceptedMeters, greaterThan(0));
+      expect(controller.needsWalkingReview, isFalse);
+    },
+  );
+
+  test(
     'a long paused GPS gap is not converted into live odometer miles',
     () async {
       final native = _FakeTripTrackingPlatform();

@@ -734,6 +734,7 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    _latestActivity = null;
     _platformSubscription = _listenToPlatformEvents(platform);
     final request = TripTrackingNativeRequest(
       profile: session.profile,
@@ -881,6 +882,7 @@ class TripTrackingController extends ChangeNotifier {
               _platformStatus = status;
               _nativeTracking = false;
               _nativeSampling = null;
+              _latestActivity = null;
               await _cancelPlatformSubscriptionAfterNativeStop();
               _platformSubscription = null;
               if (_session?.lifecycleState ==
@@ -1059,6 +1061,7 @@ class TripTrackingController extends ChangeNotifier {
     await _platformEventQueue;
     _nativeTracking = false;
     _nativeSampling = null;
+    _latestActivity = null;
     _platformStatus = 'stopped';
     if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
         _session?.lifecycleState ==
