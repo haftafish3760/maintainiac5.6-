@@ -164,6 +164,46 @@ void main() {
     expect(parked.interval, const Duration(seconds: 5));
   });
 
+  test('malformed distance thresholds cannot turn GPS jitter into miles', () {
+    final engine = TripTrackingEngine(
+      policy: const TripTrackingPolicy(
+        maximumHorizontalAccuracyMeters: double.nan,
+        minimumMovementMeters: -1,
+        accuracyEnvelopeMultiplier: -4,
+        maximumGap: Duration.zero,
+        maximumPlausibleSpeedMetersPerSecond: double.infinity,
+        maximumReportedSpeedDisagreementMetersPerSecond: double.nan,
+      ),
+    );
+
+    expect(engine.ingest(sample(-80, 0)).accepted, isTrue);
+    final jitter = engine.ingest(sample(-80.00003, 5));
+
+    expect(jitter.disposition, TripSampleDisposition.rejectedDrift);
+    expect(engine.totalAcceptedMeters, 0);
+  });
+
+  test('malformed walking thresholds cannot invent an instant stop', () {
+    final engine = TripTrackingEngine(
+      policy: const TripTrackingPolicy(
+        walkingConfirmationCount: 0,
+        walkingConfirmationWindow: Duration.zero,
+        walkingStopConfirmationDuration: Duration(days: -1),
+      ),
+    );
+
+    engine.ingest(sample(-80, 0));
+    engine.ingest(sample(-79.999, 30, speedMetersPerSecond: 10));
+    final decision = engine.ingest(
+      sample(-79.9988, 45),
+      activity: walking(45),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.excludedWalking);
+    expect(engine.needsWalkingReview, isFalse);
+    expect(engine.motionState, TripMotionState.stopCandidate);
+  });
+
   test('malformed low battery GPS cutoffs fall back to twenty percent', () {
     for (final cutoff in const [-1, 101]) {
       final decision = TripTrackingPolicy(lowBatteryGpsCutoffPercent: cutoff)

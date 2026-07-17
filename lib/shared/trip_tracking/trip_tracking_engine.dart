@@ -107,7 +107,10 @@ class TripTrackingEngine {
     }
     _lastObservedAt = sample.recordedAt;
     if (sample.horizontalAccuracyMeters >
-        policy.maximumHorizontalAccuracyMeters) {
+        _safePositiveDouble(
+          policy.maximumHorizontalAccuracyMeters,
+          fallback: 65,
+        )) {
       return _decision(TripSampleDisposition.rejectedAccuracy);
     }
 
@@ -122,7 +125,7 @@ class TripTrackingEngine {
     }
 
     final elapsed = sample.recordedAt.difference(lastAccepted.recordedAt);
-    if (elapsed > policy.maximumGap) {
+    if (elapsed > _safePositiveDuration(policy.maximumGap, _defaultGap)) {
       _lastAccepted = sample;
       return _finish(
         sample,
@@ -134,7 +137,11 @@ class TripTrackingEngine {
     final distance = _distanceMeters(lastAccepted, sample);
     final seconds = elapsed.inMilliseconds / Duration.millisecondsPerSecond;
     final impliedSpeed = seconds <= 0 ? double.infinity : distance / seconds;
-    if (impliedSpeed > policy.maximumPlausibleSpeedMetersPerSecond) {
+    if (impliedSpeed >
+        _safePositiveDouble(
+          policy.maximumPlausibleSpeedMetersPerSecond,
+          fallback: 75,
+        )) {
       // Re-anchor without awarding distance. This prevents a rejected stale
       // point from becoming a delayed, large false odometer bridge.
       _lastAccepted = sample;
@@ -150,7 +157,10 @@ class TripTrackingEngine {
         reportedSpeed.isFinite &&
         reportedSpeed >= 0 &&
         (reportedSpeed - impliedSpeed).abs() >
-            policy.maximumReportedSpeedDisagreementMetersPerSecond) {
+            _safePositiveDouble(
+              policy.maximumReportedSpeedDisagreementMetersPerSecond,
+              fallback: 25,
+            )) {
       // Preserve the newer anchor but refuse to bridge two mutually
       // contradictory provider measurements into mileage.
       _lastAccepted = sample;
@@ -164,11 +174,15 @@ class TripTrackingEngine {
     _recordActivity(verifiedActivity, observedAt: sample.recordedAt);
 
     final strongWalking = _isStrongWalking(verifiedActivity);
+    final precisionExitSpeed = _safePositiveDouble(
+      policy.precisionExitSpeedMetersPerSecond,
+      fallback: 5.6,
+    );
     final vehicleSpeedEvidence =
-        impliedSpeed >= policy.precisionExitSpeedMetersPerSecond ||
+        impliedSpeed >= precisionExitSpeed ||
         (reportedSpeed != null &&
             reportedSpeed.isFinite &&
-            reportedSpeed >= policy.precisionExitSpeedMetersPerSecond);
+            reportedSpeed >= precisionExitSpeed);
     final walkingLooksLikeVehicleMisclassification =
         strongWalking && vehicleSpeedEvidence;
     if (walkingLooksLikeVehicleMisclassification) {
@@ -197,11 +211,11 @@ class TripTrackingEngine {
     }
 
     final accuracyEnvelope = math.max(
-      policy.minimumMovementMeters,
+      _safePositiveDouble(policy.minimumMovementMeters, fallback: 5),
       ((lastAccepted.horizontalAccuracyMeters +
                   sample.horizontalAccuracyMeters) /
               2) *
-          policy.accuracyEnvelopeMultiplier,
+          _safePositiveDouble(policy.accuracyEnvelopeMultiplier, fallback: 1.25),
     );
     if (distance <= accuracyEnvelope) {
       return _finish(
@@ -236,7 +250,10 @@ class TripTrackingEngine {
       return null;
     }
     return sample.recordedAt.difference(activity.recordedAt) <=
-            policy.walkingConfirmationWindow
+            _safePositiveDuration(
+              policy.walkingConfirmationWindow,
+              _defaultWalkingConfirmationWindow,
+            )
         ? activity
         : null;
   }
@@ -258,7 +275,12 @@ class TripTrackingEngine {
     )) {
       _walkingEvidence.add(activity);
     }
-    final cutoff = observedAt.subtract(policy.walkingConfirmationWindow);
+    final cutoff = observedAt.subtract(
+      _safePositiveDuration(
+        policy.walkingConfirmationWindow,
+        _defaultWalkingConfirmationWindow,
+      ),
+    );
     _walkingEvidence.removeWhere((item) => item.recordedAt.isBefore(cutoff));
     if (_hasWalkingStopEvidence(observedAt)) {
       _walkingReviewSuggested = true;
@@ -312,11 +334,17 @@ class TripTrackingEngine {
   }
 
   bool _hasWalkingStopEvidence(DateTime observedAt) {
-    if (_walkingEvidence.length >= policy.walkingConfirmationCount) return true;
+    if (_walkingEvidence.length >=
+        _safePositiveInt(policy.walkingConfirmationCount, fallback: 3)) {
+      return true;
+    }
     final latest = _walkingEvidence.isEmpty ? null : _walkingEvidence.last;
     if (latest == null || observedAt.isBefore(latest.recordedAt)) return false;
     return observedAt.difference(latest.recordedAt) >=
-        policy.walkingStopConfirmationDuration;
+        _safePositiveDuration(
+          policy.walkingStopConfirmationDuration,
+          _defaultWalkingStopConfirmationDuration,
+        );
   }
 
   TripSampleDecision _decision(
@@ -333,6 +361,19 @@ class TripTrackingEngine {
     );
   }
 }
+
+const _defaultGap = Duration(minutes: 2);
+const _defaultWalkingConfirmationWindow = Duration(seconds: 45);
+const _defaultWalkingStopConfirmationDuration = Duration(seconds: 20);
+
+double _safePositiveDouble(double value, {required double fallback}) =>
+    value.isFinite && value > 0 ? value : fallback;
+
+int _safePositiveInt(int value, {required int fallback}) =>
+    value > 0 ? value : fallback;
+
+Duration _safePositiveDuration(Duration value, Duration fallback) =>
+    value > Duration.zero ? value : fallback;
 
 double _distanceMeters(TripLocationSample left, TripLocationSample right) {
   const earthRadiusMeters = 6371008.8;
