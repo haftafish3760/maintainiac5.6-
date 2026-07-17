@@ -149,6 +149,16 @@ class TripOdometerCalibrationSignal {
   /// assistance, but it must never overwrite confirmed odometer truth.
   bool get canOverwriteConfirmedOdometer => false;
 
+  /// Multiplier future GPS assistance may apply to its estimated distance when
+  /// a user accepts calibration guidance. It is intentionally advisory and
+  /// never changes confirmed odometer records by itself.
+  double get gpsAssistanceCalibrationMultiplier {
+    if (!averageGpsToOdometerRatio.isFinite || averageGpsToOdometerRatio <= 0) {
+      return 1;
+    }
+    return 1 / averageGpsToOdometerRatio;
+  }
+
   static TripOdometerCalibrationSignal evaluate({
     required Iterable<TripOdometerReconciliation> history,
     int minimumSamples = 7,

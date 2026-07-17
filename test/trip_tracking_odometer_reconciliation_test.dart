@@ -193,6 +193,7 @@ void main() {
       expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
       expect(signal.eligibleSampleCount, 7);
       expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
+      expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(1.0638, .001));
       expect(signal.reasonCode, 'persistent_gps_odometer_drift');
       expect(signal.canOverwriteConfirmedOdometer, isFalse);
     },
@@ -255,5 +256,18 @@ void main() {
 
     expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
     expect(signal.eligibleSampleCount, 0);
+  });
+
+  test('calibration multiplier falls back safely for malformed signals', () {
+    const signal = TripOdometerCalibrationSignal(
+      status: TripOdometerCalibrationStatus.reviewRecommended,
+      eligibleSampleCount: 7,
+      averageGpsToOdometerRatio: double.nan,
+      averageDifferencePercent: 6,
+      reasonCode: 'malformed_external_signal',
+    );
+
+    expect(signal.gpsAssistanceCalibrationMultiplier, 1);
+    expect(signal.canOverwriteConfirmedOdometer, isFalse);
   });
 }
