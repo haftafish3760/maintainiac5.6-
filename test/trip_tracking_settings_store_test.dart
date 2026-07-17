@@ -70,6 +70,26 @@ void main() {
   );
 
   test(
+    'settings controller normalizes unsafe local values before use',
+    () async {
+      final controller = TripTrackingSettingsController.memory();
+
+      await controller.update(
+        const TripTrackingSettings(
+          samplingPreset: TripTrackingSamplingPreset.custom,
+          customIntervalSeconds: -10,
+        ),
+      );
+
+      expect(
+        controller.settings.samplingPreset,
+        TripTrackingSamplingPreset.custom,
+      );
+      expect(controller.settings.customIntervalSeconds, 3);
+    },
+  );
+
+  test(
     'driver profile choices persist for onboarding and dashboard defaults',
     () {
       for (final profile in TripTrackingProfile.values) {

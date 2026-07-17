@@ -224,9 +224,10 @@ class TripTrackingSettingsController extends ChangeNotifier {
   }
 
   Future<void> update(TripTrackingSettings settings) async {
-    if (_settings.toMap().toString() == settings.toMap().toString()) return;
-    _settings = settings;
-    await _box?.put(_settingsKey, settings.toMap());
+    final normalized = TripTrackingSettings.fromMap(settings.toMap());
+    if (_settings.toMap().toString() == normalized.toMap().toString()) return;
+    _settings = normalized;
+    await _box?.put(_settingsKey, normalized.toMap());
     notifyListeners();
   }
 }
