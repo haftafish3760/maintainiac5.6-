@@ -151,6 +151,9 @@ void main() {
       expect(rules, contains('match /dashboardSummaries/{dashboardId}'));
       expect(rules, contains('function isDashboardCommandCenterSummary'));
       expect(rules, contains('hasOnlyDashboardSummaryFields'));
+      expect(rules, contains('hasValidDashboardSyncCounters'));
+      expect(rules, contains('request.resource.data.freeSyncsRemaining <= 6'));
+      expect(rules, contains('request.resource.data.syncsUsedInWindow <= 999'));
       expect(
         rules,
         contains('request.resource.data.locationDataIncluded == false'),

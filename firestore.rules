@@ -284,6 +284,17 @@ service cloud.firestore {
       ]);
     }
 
+    function hasValidDashboardSyncCounters() {
+      return (!request.resource.data.keys().hasAny(['freeSyncsRemaining']) ||
+          (request.resource.data.freeSyncsRemaining is int &&
+            request.resource.data.freeSyncsRemaining >= 0 &&
+            request.resource.data.freeSyncsRemaining <= 6)) &&
+        (!request.resource.data.keys().hasAny(['syncsUsedInWindow']) ||
+          (request.resource.data.syncsUsedInWindow is int &&
+            request.resource.data.syncsUsedInWindow >= 0 &&
+            request.resource.data.syncsUsedInWindow <= 999));
+    }
+
     function isDashboardCommandCenterSummary() {
       return request.resource.data.schema ==
           'dashboard_command_center_summary_v1' &&
@@ -293,6 +304,7 @@ service cloud.firestore {
         hasRequiredDashboardSummaryFields() &&
         noLocationTrackingFields() &&
         noForbiddenSensitiveFields() &&
+        hasValidDashboardSyncCounters() &&
         request.resource.data.dashboardId is string &&
         request.resource.data.createdByUid is string &&
         request.resource.data.updatedByUid is string &&
