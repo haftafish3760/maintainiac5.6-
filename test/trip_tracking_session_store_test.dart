@@ -539,7 +539,18 @@ void main() {
       ...review.toMap(),
       'confirmedEndingOdometer': 999,
     });
+    final prematureConfirmation = TripTrackingReviewRecord.fromMap({
+      ...review.toMap(),
+      'odometerConfirmedAt': DateTime.utc(
+        2026,
+        7,
+        14,
+        12,
+        59,
+      ).toIso8601String(),
+    });
     expect(invalidConfirmation.isOdometerConfirmed, isFalse);
+    expect(prematureConfirmation.isOdometerConfirmed, isFalse);
   });
 
   test('review writes require safe durable trip ids', () async {

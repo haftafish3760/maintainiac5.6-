@@ -217,7 +217,8 @@ class TripTrackingReviewRecord {
   bool get isOdometerConfirmed =>
       confirmedEndingOdometer != null &&
       confirmedEndingOdometer! >= startingOdometer &&
-      odometerConfirmedAt != null;
+      odometerConfirmedAt != null &&
+      !odometerConfirmedAt!.isBefore(finishedAt);
 
   TripTrackingReviewRecord copyWith({
     TripTrackingCloudSyncState? cloudSyncState,
