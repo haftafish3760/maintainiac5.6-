@@ -34,8 +34,19 @@ void main() {
     expect(decision.canWriteTextRecord, isTrue);
     expect(decision.shouldBlockTextRecord, isFalse);
     expect(decision.message, contains('could not verify'));
+    expect(decision.toSafeSummary(), containsPair('schemaVersion', 1));
+    expect(
+      decision.toSafeSummary(),
+      containsPair('recordType', 'trip_text_record'),
+    );
+    expect(decision.toSafeSummary(), containsPair('canWriteTextRecord', true));
+    expect(
+      decision.toSafeSummary(),
+      containsPair('localWriteMode', 'append_only'),
+    );
     expect(decision.toSafeSummary(), containsPair('deletesLocalData', false));
     expect(decision.toSafeSummary(), containsPair('purgesLocalData', false));
+    expect(decision.toSafeSummary(), containsPair('cleanupSuggested', false));
   });
 
   test(
@@ -53,6 +64,14 @@ void main() {
         decision.toSafeSummary(),
         containsPair('availableBucket', 'below_text_reserve'),
       );
+      expect(
+        decision.toSafeSummary(),
+        containsPair('shouldBlockTextRecord', true),
+      );
+      expect(
+        decision.toSafeSummary(),
+        containsPair('localWriteMode', 'blocked'),
+      );
     },
   );
 
@@ -67,6 +86,11 @@ void main() {
     expect(decision.shouldWarnUser, isTrue);
     expect(decision.safeReason, 'storage_low_text_records_allowed');
     expect(decision.toSafeSummary(), containsPair('availableBucket', 'orange'));
+    expect(decision.toSafeSummary(), containsPair('shouldWarnUser', true));
+    expect(
+      decision.toSafeSummary(),
+      containsPair('minimumReserveBucket', 'red'),
+    );
   });
 
   test('green storage allows text mileage writes without warning', () {
@@ -91,5 +115,7 @@ void main() {
     expect(summary.keys, isNot(contains('availableBytes')));
     expect(summary.keys, isNot(contains('requiredBytes')));
     expect(summary['requiredBucket'], 'red');
+    expect(summary['rawLocationIncluded'], isFalse);
+    expect(summary['rawModuleDataIncluded'], isFalse);
   });
 }

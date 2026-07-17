@@ -27,13 +27,25 @@ class TripTrackingStorageDecision {
   bool get shouldBlockTextRecord => action == TripTrackingStorageAction.block;
 
   Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
     'action': action.name,
     'storageState': storageState,
     'safeReason': safeReason,
+    'recordType': 'trip_text_record',
+    'canWriteTextRecord': canWriteTextRecord,
+    'shouldWarnUser': shouldWarnUser,
+    'shouldBlockTextRecord': shouldBlockTextRecord,
     'availableBucket': _bucketBytes(availableBytes),
     'requiredBucket': _bucketBytes(requiredBytes),
+    'minimumReserveBucket': _bucketBytes(
+      AppStorageGuard.textRecordDeviceReserveBytes,
+    ),
+    'localWriteMode': shouldBlockTextRecord ? 'blocked' : 'append_only',
     'deletesLocalData': false,
     'purgesLocalData': false,
+    'cleanupSuggested': false,
+    'rawLocationIncluded': false,
+    'rawModuleDataIncluded': false,
   };
 }
 
