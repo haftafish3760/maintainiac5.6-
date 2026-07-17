@@ -277,6 +277,20 @@ void main() {
     expect(result.acceptedMeters, lessThan(40));
   });
 
+  test('provider speed conflicts re-anchor without inflating mileage', () {
+    final result = replayTrip([
+      SimulatedTripPoint(point(-80, 0, speed: 8)),
+      SimulatedTripPoint(point(-79.999, 20, speed: 8)),
+      SimulatedTripPoint(point(-79.99, 40, speed: 0)),
+      SimulatedTripPoint(point(-79.9898, 60, speed: 8)),
+      SimulatedTripPoint(point(-79.9888, 80, speed: 8)),
+    ]);
+
+    expect(result.count(TripSampleDisposition.rejectedSpeedConflict), 1);
+    expect(result.acceptedMeters, greaterThan(150));
+    expect(result.acceptedMeters, lessThan(300));
+  });
+
   test(
     'a mixed hostile sensor replay never turns stale or degraded fixes into miles',
     () {
