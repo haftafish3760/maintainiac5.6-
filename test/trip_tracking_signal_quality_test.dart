@@ -11,6 +11,10 @@ void main() {
     expect(summary.quality, TripTrackingSignalQuality.noSamples);
     expect(summary.healthState, TripTrackingHealthState.reduced);
     expect(summary.requiresUserReview, isFalse);
+    expect(summary.toSafeDashboardMap()['schemaVersion'], 1);
+    expect(summary.toSafeDashboardMap()['advisoryOnly'], isTrue);
+    expect(summary.toSafeDashboardMap()['officialMileageSource'], 'odometer');
+    expect(summary.toSafeDashboardMap()['canReplaceOdometer'], isFalse);
     expect(summary.toSafeDashboardMap()['coordinatesIncluded'], isFalse);
   });
 
@@ -108,6 +112,8 @@ void main() {
     expect(summary.requiresUserReview, isTrue);
     expect(safe['rawSamplesIncluded'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
+    expect(safe['canUploadRawGps'], isFalse);
+    expect(safe['mapboxGeometryIncluded'], isFalse);
     expect(safe.toString(), isNot(contains('-79.')));
   });
 

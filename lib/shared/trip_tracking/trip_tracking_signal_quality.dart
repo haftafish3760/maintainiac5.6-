@@ -41,6 +41,7 @@ class TripTrackingSignalQualitySummary {
   }
 
   Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
     'quality': quality.name,
     'reasonCode': reasonCode,
     'receivedSamples': receivedSamples,
@@ -48,9 +49,14 @@ class TripTrackingSignalQualitySummary {
     'rejectedSamples': rejectedSamples,
     'acceptanceRate': double.parse(acceptanceRate.toStringAsFixed(3)),
     'requiresUserReview': requiresUserReview,
+    'advisoryOnly': true,
+    'officialMileageSource': 'odometer',
+    'canReplaceOdometer': false,
+    'canUploadRawGps': false,
     'rawSamplesIncluded': false,
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
+    'mapboxGeometryIncluded': false,
   };
 
   static TripTrackingSignalQualitySummary evaluate(
