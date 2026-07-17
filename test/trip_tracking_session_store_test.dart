@@ -347,6 +347,26 @@ void main() {
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
   });
 
+  test('unknown persisted active trip lifecycle fields are not trusted', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_bad_lifecycle',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'lifecycleState': 'ghostTracking',
+      'healthState': 'healthy',
+    });
+
+    expect(session.lifecycleState, TripTrackingSessionLifecycleState.ready);
+    expect(session.hasValidTimeline, isFalse);
+  });
+
   test('non-finite persisted schema versions use safe defaults', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'trip_schema_nan',

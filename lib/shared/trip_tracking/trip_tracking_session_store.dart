@@ -79,6 +79,16 @@ class TripTrackingSessionRecord {
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
         _isSafeStoreIdentifierValue(map['vehicleId']);
+    final hasValidLifecycleState = _hasMissingOrKnownEnumName(
+      map,
+      'lifecycleState',
+      TripTrackingSessionLifecycleState.values.map((value) => value.name),
+    );
+    final hasValidHealthState = _hasMissingOrKnownEnumName(
+      map,
+      'healthState',
+      TripTrackingHealthState.values.map((value) => value.name),
+    );
     return TripTrackingSessionRecord(
       id: _safeIdentifier(map['id']),
       vehicleId: _safeIdentifier(map['vehicleId']),
@@ -114,7 +124,11 @@ class TripTrackingSessionRecord {
         orElse: () => TripTrackingHealthState.healthy,
       ),
       hasValidTimeline:
-          startedAt != null && updatedAt != null && hasSafeIdentity,
+          startedAt != null &&
+          updatedAt != null &&
+          hasSafeIdentity &&
+          hasValidLifecycleState &&
+          hasValidHealthState,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
     );
   }
@@ -346,6 +360,16 @@ TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
     if (scope.name == value) return scope;
   }
   return null;
+}
+
+bool _hasMissingOrKnownEnumName(
+  Map<dynamic, dynamic> map,
+  String key,
+  Iterable<String> allowedNames,
+) {
+  if (!map.containsKey(key)) return true;
+  final value = map[key];
+  return value is String && allowedNames.contains(value);
 }
 
 int _persistedOdometerValue(Object? value) {
