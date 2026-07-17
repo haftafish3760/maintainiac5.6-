@@ -50,6 +50,30 @@ void main() {
         'mai_install_abcdefghijklmnopqrstuvwxyzABCDEF',
       );
     });
+
+    test('malformed stored install timestamps do not become current time', () async {
+      final vault = _MemoryInstallationVault({
+        AppInstallationIdentityStore.installIdKey:
+            'mai_install_12345678901234567890123456789012',
+        AppInstallationIdentityStore.installCreatedAtKey: 'not-a-date',
+      });
+      final store = AppInstallationIdentityStore(
+        vault: vault,
+        now: () => DateTime.utc(2026, 6, 20, 10),
+        idFactory: () => 'mai_install_new45678901234567890123456789012',
+      );
+
+      final identity = await store.getOrCreate();
+
+      expect(
+        identity.installationId,
+        'mai_install_12345678901234567890123456789012',
+      );
+      expect(
+        identity.createdAt,
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      );
+    });
   });
 
   group('AccountCreationGateContract', () {

@@ -64,11 +64,13 @@ class AppInstallationIdentityStore {
     if (_isValidInstallId(storedId) && storedCreatedAt != null) {
       return AppInstallationIdentity(
         installationId: storedId!,
-        createdAt: DateTime.tryParse(storedCreatedAt) ?? _now(),
+        createdAt:
+            DateTime.tryParse(storedCreatedAt)?.toUtc() ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       );
     }
 
-    final createdAt = _now();
+    final createdAt = _now().toUtc();
     final id = _idFactory();
     await _vault.write(installIdKey, id);
     await _vault.write(installCreatedAtKey, createdAt.toIso8601String());
