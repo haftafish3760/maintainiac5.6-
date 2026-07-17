@@ -136,7 +136,7 @@ class TripTrackingController extends ChangeNotifier {
       // safely mark the review confirmed without duplicating mileage history.
       _platformStatus = 'review_confirmation_save_failed';
       _platformError =
-          'Could not save the confirmed trip review locally. Retry review confirmation: $error';
+          'Could not save the confirmed trip review locally. Retry review confirmation.';
       notifyListeners();
       return false;
     }
@@ -151,7 +151,7 @@ class TripTrackingController extends ChangeNotifier {
     } catch (error) {
       // Physical confirmation is durable locally even when a cloud queue is
       // unavailable. The user can retry backup without reopening the trip.
-      _cloudMirrorError = 'Cloud mileage backup is pending: $error';
+      _cloudMirrorError = 'Cloud mileage backup is pending.';
     }
     notifyListeners();
     return true;
@@ -233,7 +233,7 @@ class TripTrackingController extends ChangeNotifier {
       // Do not start GPS or alter the live odometer when we cannot establish
       // that the immutable local review history is available.
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not save the trip locally: $error';
+      _platformError = 'Could not save the trip locally.';
       notifyListeners();
       return false;
     }
@@ -275,7 +275,7 @@ class TripTrackingController extends ChangeNotifier {
       _engine = null;
       _projection = null;
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not save the trip locally: $error';
+      _platformError = 'Could not save the trip locally.';
       notifyListeners();
       return false;
     }
@@ -292,7 +292,7 @@ class TripTrackingController extends ChangeNotifier {
       session = _sessionStore.activeSession;
     } catch (error) {
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not read local trip recovery data: $error';
+      _platformError = 'Could not read local trip recovery data.';
       notifyListeners();
       return false;
     }
@@ -302,7 +302,7 @@ class TripTrackingController extends ChangeNotifier {
         await _sessionStore.clear();
       } catch (error) {
         _platformStatus = 'storage_failed';
-        _platformError = 'Could not remove invalid local trip data: $error';
+        _platformError = 'Could not remove invalid local trip data.';
         notifyListeners();
       }
       return false;
@@ -314,7 +314,7 @@ class TripTrackingController extends ChangeNotifier {
       review = _sessionStore.reviewForTrip(session.id);
     } catch (error) {
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not read local trip review data: $error';
+      _platformError = 'Could not read local trip review data.';
       notifyListeners();
       return false;
     }
@@ -337,7 +337,7 @@ class TripTrackingController extends ChangeNotifier {
         // checkpoint cannot be removed right now. Never resume it as a trip.
         _platformStatus = 'review_cleanup_failed';
         _platformError =
-            'Could not clear stale trip recovery data or transient GPS sample: $error';
+            'Could not clear stale trip recovery data or transient GPS sample.';
         notifyListeners();
       }
       return false;
@@ -382,7 +382,7 @@ class TripTrackingController extends ChangeNotifier {
       // odometer projection rather than crashing or discarding mileage just
       // because the optional final in-flight sample cannot be read.
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not read pending GPS recovery data: $error';
+      _platformError = 'Could not read pending GPS recovery data.';
       notifyListeners();
       return true;
     }
@@ -398,7 +398,7 @@ class TripTrackingController extends ChangeNotifier {
           _platformSubscription = _listenToPlatformEvents(platform);
         }
       } catch (error) {
-        _platformError = 'Could not restore the GPS connection: $error';
+        _platformError = 'Could not restore the GPS connection.';
         _platformStatus = 'recoverable';
       }
     }
@@ -563,7 +563,7 @@ class TripTrackingController extends ChangeNotifier {
     try {
       capabilities = await platform.readCapabilities();
     } catch (error) {
-      _platformError = 'Could not read GPS capabilities: $error';
+      _platformError = 'Could not read GPS capabilities.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
@@ -621,7 +621,7 @@ class TripTrackingController extends ChangeNotifier {
         activityRecognitionEnabled: activityRecognitionEnabled,
       );
     } catch (error) {
-      _platformError = 'Could not request GPS permission: $error';
+      _platformError = 'Could not request GPS permission.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.permissionBlocked,
@@ -660,7 +660,7 @@ class TripTrackingController extends ChangeNotifier {
     } catch (error) {
       await _platformSubscription?.cancel();
       _platformSubscription = null;
-      _platformError = 'The device could not start GPS trip tracking: $error';
+      _platformError = 'The device could not start GPS trip tracking.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
@@ -711,9 +711,7 @@ class TripTrackingController extends ChangeNotifier {
     _enqueuePlatformEvent,
     onError: (Object error) {
       if (!_nativeTracking) return;
-      unawaited(
-        _handleNativeInterruption('GPS updates stopped unexpectedly: $error'),
-      );
+      unawaited(_handleNativeInterruption('GPS updates stopped unexpectedly.'));
     },
     onDone: () {
       if (!_nativeTracking) return;
@@ -847,7 +845,7 @@ class TripTrackingController extends ChangeNotifier {
         ),
       );
     } catch (error) {
-      _platformError = 'Could not update GPS sampling: $error';
+      _platformError = 'Could not update GPS sampling.';
       notifyListeners();
       return;
     }
@@ -895,8 +893,7 @@ class TripTrackingController extends ChangeNotifier {
       try {
         await platform.stop();
       } catch (error) {
-        _platformError =
-            'The device could not cleanly stop GPS tracking: $error';
+        _platformError = 'The device could not cleanly stop GPS tracking.';
       }
     }
     await _platformSubscription?.cancel();
@@ -955,7 +952,7 @@ class TripTrackingController extends ChangeNotifier {
       return true;
     } catch (error) {
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not save trip recovery state locally: $error';
+      _platformError = 'Could not save trip recovery state locally.';
       notifyListeners();
       return false;
     }
@@ -1079,7 +1076,7 @@ class TripTrackingController extends ChangeNotifier {
       // cannot be confirmed. A later retry is safer than inventing a clean
       // state while stale trip data may still exist on disk.
       _platformStatus = 'discard_failed';
-      _platformError = 'Could not discard the empty trip locally: $error';
+      _platformError = 'Could not discard the empty trip locally.';
       notifyListeners();
       return false;
     }
@@ -1087,7 +1084,7 @@ class TripTrackingController extends ChangeNotifier {
       await _sessionStore.clearPending(session.id);
     } catch (error) {
       _platformStatus = 'pending_cleanup_failed';
-      _platformError = 'Could not clear transient GPS recovery data: $error';
+      _platformError = 'Could not clear transient GPS recovery data.';
     }
     _odometer.clearLiveTripProjection(tripId: session.id);
     _session = null;
@@ -1133,7 +1130,7 @@ class TripTrackingController extends ChangeNotifier {
       // a transient disk failure into lost mileage.
       _platformStatus = 'review_save_failed';
       _platformError =
-          'Could not save the completed trip locally. It remains recoverable: $error';
+          'Could not save the completed trip locally. It remains recoverable.';
       notifyListeners();
       return null;
     }
@@ -1145,7 +1142,7 @@ class TripTrackingController extends ChangeNotifier {
       // authoritative and retry cleanup on a future launch.
       _platformStatus = 'review_cleanup_failed';
       _platformError =
-          'Trip review was saved, but stale recovery cleanup is pending: $error';
+          'Trip review was saved, but stale recovery cleanup is pending.';
     }
     try {
       // A review contains only the completed-trip summary. Its transient
@@ -1155,7 +1152,7 @@ class TripTrackingController extends ChangeNotifier {
     } catch (error) {
       if (_platformStatus == null) {
         _platformStatus = 'pending_cleanup_failed';
-        _platformError = 'Could not clear transient GPS recovery data: $error';
+        _platformError = 'Could not clear transient GPS recovery data.';
       }
     }
     _odometer.clearLiveTripProjection(tripId: session.id);
@@ -1174,7 +1171,7 @@ class TripTrackingController extends ChangeNotifier {
         notifyListeners();
       }
     } catch (error) {
-      _cloudMirrorError = 'Cloud mileage backup is pending: $error';
+      _cloudMirrorError = 'Cloud mileage backup is pending.';
       notifyListeners();
     }
   }

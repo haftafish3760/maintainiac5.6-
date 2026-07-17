@@ -1647,7 +1647,10 @@ void main() {
   test(
     'native startup exceptions fail safely without leaving a subscription',
     () async {
-      final native = _FakeTripTrackingPlatform(throwOnStart: true);
+      final native = _FakeTripTrackingPlatform(
+        throwOnStart: true,
+        startFailureMessage: 'token=pk.secret lat=35.123 lon=-80.456',
+      );
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
@@ -1666,6 +1669,8 @@ void main() {
       );
       expect(controller.nativeTracking, isFalse);
       expect(controller.platformError, contains('could not start GPS'));
+      expect(controller.platformError, isNot(contains('pk.secret')));
+      expect(controller.platformError, isNot(contains('35.123')));
       expect(await controller.discardEmptyTrip(), isTrue);
     },
   );
@@ -2700,6 +2705,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.throwOnIsTracking = false,
     this.throwOnReadCapabilities = false,
     this.throwOnReadBatterySnapshot = false,
+    this.startFailureMessage = 'native start fault',
     this.batterySnapshot = const TripTrackingBatterySnapshot(
       batteryPercent: 100,
       isCharging: false,
@@ -2715,6 +2721,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool throwOnIsTracking;
   final bool throwOnReadCapabilities;
   final bool throwOnReadBatterySnapshot;
+  final String startFailureMessage;
   final TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
   var _running = false;
@@ -2798,7 +2805,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
 
   @override
   Future<bool> start(TripTrackingNativeRequest request) async {
-    if (throwOnStart) throw StateError('native start fault');
+    if (throwOnStart) throw StateError(startFailureMessage);
     await startDelay;
     startCalls += 1;
     startedRequest = request;
