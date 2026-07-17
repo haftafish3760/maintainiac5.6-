@@ -34,6 +34,13 @@ void main() {
         ),
         isFalse,
       );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.completed,
+          TripTrackingSessionLifecycleState.disabled,
+        ),
+        isFalse,
+      );
     },
   );
 

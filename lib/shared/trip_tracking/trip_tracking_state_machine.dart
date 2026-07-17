@@ -82,9 +82,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.completed,
           TripTrackingSessionLifecycleState.failedRecoverable,
         },
-        TripTrackingSessionLifecycleState.completed: {
-          TripTrackingSessionLifecycleState.disabled,
-        },
+        TripTrackingSessionLifecycleState.completed: {},
         TripTrackingSessionLifecycleState.failedRecoverable: {
           TripTrackingSessionLifecycleState.recovering,
           TripTrackingSessionLifecycleState.starting,
