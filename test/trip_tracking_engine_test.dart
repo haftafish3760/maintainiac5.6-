@@ -655,6 +655,24 @@ void main() {
     expect(diagnostics.dispositionCounts, isEmpty);
   });
 
+  test('malformed accepted distance and diagnostic math recover safely', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 'one mile',
+      'walkingReviewSuggested': false,
+      'diagnostics': {'receivedSamples': 2, 'acceptedSamples': 5},
+    });
+    const inMemoryDiagnostics = TripTrackingDiagnostics(
+      receivedSamples: 2,
+      acceptedSamples: 5,
+    );
+
+    expect(snapshot.totalAcceptedMeters, isZero);
+    expect(snapshot.diagnostics.receivedSamples, 2);
+    expect(snapshot.diagnostics.acceptedSamples, isZero);
+    expect(snapshot.diagnostics.rejectedSamples, 2);
+    expect(inMemoryDiagnostics.rejectedSamples, 2);
+  });
+
   test(
     'malformed recovery data never fabricates a GPS anchor or walk event',
     () {

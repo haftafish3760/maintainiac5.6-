@@ -375,7 +375,11 @@ class TripTrackingDiagnostics {
   final int acceptedSamples;
   final Map<TripSampleDisposition, int> dispositionCounts;
 
-  int get rejectedSamples => receivedSamples - acceptedSamples;
+  int get rejectedSamples {
+    final received = _safeNonNegativeInt(receivedSamples);
+    final accepted = _safeAcceptedDiagnosticsCount(acceptedSamples, received);
+    return received - accepted;
+  }
 
   TripTrackingDiagnostics record(TripSampleDisposition disposition) {
     final counts = Map<TripSampleDisposition, int>.from(dispositionCounts);
@@ -441,7 +445,8 @@ int _safeNonNegativeInt(Object? value) {
 }
 
 double _safeAcceptedMeters(Object? value) {
-  final meters = (value as num?)?.toDouble() ?? 0;
+  if (value is! num) return 0;
+  final meters = value.toDouble();
   return meters.isFinite && meters >= 0 ? meters : 0;
 }
 
