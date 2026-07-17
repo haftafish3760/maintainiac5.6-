@@ -750,6 +750,41 @@ void main() {
     expect(advisory.evidenceEndedAt, advisory.detectedAt);
   });
 
+  test('persisted GPS advisory evidence windows cannot be inverted', () {
+    final advisory = TripTrackingAdvisoryEvent.fromMap({
+      'id': 'advisory_inverted_time',
+      'type': 'probableStop',
+      'sessionId': 'trip_inverted_time',
+      'vehicleId': 'vehicle_1',
+      'profile': 'roadVehicle',
+      'detectedAt': DateTime.utc(2026, 7, 14, 12, 5).toIso8601String(),
+      'evidenceStartedAt': DateTime.utc(2026, 7, 14, 12, 4).toIso8601String(),
+      'evidenceEndedAt': DateTime.utc(2026, 7, 14, 12, 3).toIso8601String(),
+      'confidence': 'medium',
+      'suggestedAction': 'review',
+    });
+
+    expect(advisory.evidenceEndedAt, advisory.evidenceStartedAt);
+
+    final serialized = TripTrackingAdvisoryEvent(
+      id: 'advisory_inverted_write',
+      type: TripTrackingAdvisoryType.probableStop,
+      sessionId: 'trip_inverted_write',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      detectedAt: DateTime.utc(2026, 7, 14, 12, 5),
+      evidenceStartedAt: DateTime.utc(2026, 7, 14, 12, 4),
+      evidenceEndedAt: DateTime.utc(2026, 7, 14, 12, 3),
+      confidence: TripTrackingConfidence.medium,
+      suggestedAction: 'review',
+    ).toMap();
+
+    expect(
+      serialized['evidenceEndedAt'],
+      DateTime.utc(2026, 7, 14, 12, 4).toIso8601String(),
+    );
+  });
+
   test('persisted GPS advisories keep only a bounded recent window', () {
     final session = TripTrackingSessionRecord(
       id: 'trip_many_advisories',

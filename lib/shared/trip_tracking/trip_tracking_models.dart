@@ -102,25 +102,37 @@ class TripTrackingAdvisoryEvent {
     tripLogReference: tripLogReference ?? this.tripLogReference,
   );
 
-  Map<String, Object?> toMap() => {
-    'id': _safeText(id, maxLength: 160),
-    'type': type.name,
-    'sessionId': _safeText(sessionId, maxLength: 160),
-    'vehicleId': _safeText(vehicleId, maxLength: 160),
-    'profile': profile.name,
-    'detectedAt': detectedAt.toIso8601String(),
-    'evidenceStartedAt': evidenceStartedAt.toIso8601String(),
-    'evidenceEndedAt': evidenceEndedAt.toIso8601String(),
-    'confidence': confidence.name,
-    'suggestedAction': _safeText(suggestedAction, maxLength: 120),
-    'disposition': disposition.name,
-    'tripLogReference': _optionalSafeText(tripLogReference, maxLength: 160),
-  };
+  Map<String, Object?> toMap() {
+    final safeEvidenceEndedAt = evidenceEndedAt.isBefore(evidenceStartedAt)
+        ? evidenceStartedAt
+        : evidenceEndedAt;
+    return {
+      'id': _safeText(id, maxLength: 160),
+      'type': type.name,
+      'sessionId': _safeText(sessionId, maxLength: 160),
+      'vehicleId': _safeText(vehicleId, maxLength: 160),
+      'profile': profile.name,
+      'detectedAt': detectedAt.toIso8601String(),
+      'evidenceStartedAt': evidenceStartedAt.toIso8601String(),
+      'evidenceEndedAt': safeEvidenceEndedAt.toIso8601String(),
+      'confidence': confidence.name,
+      'suggestedAction': _safeText(suggestedAction, maxLength: 120),
+      'disposition': disposition.name,
+      'tripLogReference': _optionalSafeText(tripLogReference, maxLength: 160),
+    };
+  }
 
   factory TripTrackingAdvisoryEvent.fromMap(Map<dynamic, dynamic> map) {
     final detectedAt =
         _safeAdvisoryTimestamp(map['detectedAt']) ??
         _safeAdvisoryFallbackTimestamp();
+    final evidenceStartedAt =
+        _safeAdvisoryTimestamp(map['evidenceStartedAt']) ?? detectedAt;
+    final parsedEvidenceEndedAt =
+        _safeAdvisoryTimestamp(map['evidenceEndedAt']) ?? detectedAt;
+    final evidenceEndedAt = parsedEvidenceEndedAt.isBefore(evidenceStartedAt)
+        ? evidenceStartedAt
+        : parsedEvidenceEndedAt;
     return TripTrackingAdvisoryEvent(
       id: _safeText(map['id'], maxLength: 160),
       type: TripTrackingAdvisoryType.values.firstWhere(
@@ -134,10 +146,8 @@ class TripTrackingAdvisoryEvent {
         orElse: () => TripTrackingProfile.roadVehicle,
       ),
       detectedAt: detectedAt,
-      evidenceStartedAt:
-          _safeAdvisoryTimestamp(map['evidenceStartedAt']) ?? detectedAt,
-      evidenceEndedAt:
-          _safeAdvisoryTimestamp(map['evidenceEndedAt']) ?? detectedAt,
+      evidenceStartedAt: evidenceStartedAt,
+      evidenceEndedAt: evidenceEndedAt,
       confidence: TripTrackingConfidence.values.firstWhere(
         (value) => value.name == map['confidence'],
         orElse: () => TripTrackingConfidence.unknown,
