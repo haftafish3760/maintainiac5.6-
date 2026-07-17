@@ -41,11 +41,15 @@ void main() {
     );
 
     test('rejects secret or malformed runtime tokens', () {
-      const values = [
+      final values = [
         'sk.secret-download-token',
         'test-token-redacted',
+        'pk.',
+        'pk.short',
+        'pk.runtime/token',
         'pk.runtime-token-redacted extra',
         'pk.runtime-token\tredacted',
+        'pk.${'x' * 600}',
       ];
 
       for (final value in values) {

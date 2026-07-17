@@ -56,5 +56,7 @@ bool _isPublicMapboxToken(String value) {
   final token = value.trim();
   return token.startsWith('pk.') &&
       !token.startsWith('sk.') &&
-      !token.contains(RegExp(r'\s'));
+      token.length >= 12 &&
+      token.length <= 512 &&
+      RegExp(r'^pk\.[A-Za-z0-9._-]+$').hasMatch(token);
 }
