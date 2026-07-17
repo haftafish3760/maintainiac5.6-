@@ -243,4 +243,34 @@ void main() {
     expect(restored.events.single.odometerReading, 0);
     expect(restored.milesSoFar(12), 12);
   });
+
+  test('active workday serialization never writes negative odometers', () {
+    final record = ActiveWorkdaySessionRecord(
+      id: 'negative-workday-odometer',
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck 1',
+      workProfileId: 'Business',
+      startedAt: DateTime(2026, 6, 12, 8),
+      startOdometer: -120,
+      status: ActiveWorkdayStatus.ended,
+      events: [
+        ActiveWorkdayEvent(
+          id: 'negative-event-odometer',
+          type: ActiveWorkdayEventType.stop,
+          occurredAt: DateTime(2026, 6, 12, 9),
+          odometerReading: -3,
+          label: 'Stop logged',
+        ),
+      ],
+      endOdometer: -10,
+    );
+
+    final map = record.toMap();
+    final events = map['events'] as List<Object?>;
+    final event = events.single as Map<String, Object?>;
+
+    expect(map['startOdometer'], 0);
+    expect(map['endOdometer'], 0);
+    expect(event['odometerReading'], 0);
+  });
 }

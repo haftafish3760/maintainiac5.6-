@@ -63,7 +63,7 @@ class ActiveWorkdayEvent {
       'id': id,
       'type': type.name,
       'occurredAt': occurredAt.toIso8601String(),
-      'odometerReading': odometerReading,
+      'odometerReading': _safeOdometer(odometerReading) ?? 0,
       'label': label,
       'note': note,
       'sourceType': sourceType,
@@ -187,11 +187,11 @@ class ActiveWorkdaySessionRecord {
       'vehicleLabel': vehicleLabel,
       'workProfileId': workProfileId,
       'startedAt': startedAt.toIso8601String(),
-      'startOdometer': startOdometer,
+      'startOdometer': _safeOdometer(startOdometer) ?? 0,
       'status': status.name,
       'events': events.map((event) => event.toMap()).toList(),
       'endedAt': endedAt?.toIso8601String(),
-      'endOdometer': endOdometer,
+      'endOdometer': _safeOdometer(endOdometer),
     };
   }
 
