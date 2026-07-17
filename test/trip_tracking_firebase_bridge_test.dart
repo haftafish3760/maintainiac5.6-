@@ -167,6 +167,37 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('mileage backup clamps impossible diagnostic counters', () {
+    final source = review();
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: TripTrackingReviewRecord(
+            id: source.id,
+            vehicleId: source.vehicleId,
+            startingOdometer: source.startingOdometer,
+            estimatedEndingOdometer: source.estimatedEndingOdometer,
+            profile: source.profile,
+            startedAt: source.startedAt,
+            finishedAt: source.finishedAt,
+            engineSnapshot: const TripTrackingEngineSnapshot(
+              totalAcceptedMeters: 19312.128,
+              walkingReviewSuggested: false,
+              diagnostics: TripTrackingDiagnostics(
+                receivedSamples: 2,
+                acceptedSamples: 5,
+              ),
+            ),
+            confirmedEndingOdometer: source.confirmedEndingOdometer,
+            odometerConfirmedAt: source.odometerConfirmedAt,
+          ),
+        );
+
+    expect(doc.data['receivedSampleCount'], 2);
+    expect(doc.data['acceptedSampleCount'], 0);
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
   test('document builders reject an unconfirmed mileage review', () {
     expect(
       () =>

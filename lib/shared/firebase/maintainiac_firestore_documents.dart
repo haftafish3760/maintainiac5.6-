@@ -276,6 +276,7 @@ class MaintainiacFirestoreDocumentBuilder {
     final safeTripId = _safePathToken(review.id);
     final safeVehicleId = _safePathToken(review.vehicleId);
     final acceptedMeters = review.engineSnapshot.totalAcceptedMeters;
+    final diagnostics = review.engineSnapshot.diagnostics.toMap();
     if (!acceptedMeters.isFinite || acceptedMeters < 0) {
       throw ArgumentError.value(
         acceptedMeters,
@@ -307,10 +308,8 @@ class MaintainiacFirestoreDocumentBuilder {
         'acceptedMiles': acceptedMeters / 1609.344,
         'walkingReviewSuggested': review.needsWalkingReview,
         'motionState': review.engineSnapshot.motionState.name,
-        'receivedSampleCount':
-            review.engineSnapshot.diagnostics.receivedSamples,
-        'acceptedSampleCount':
-            review.engineSnapshot.diagnostics.acceptedSamples,
+        'receivedSampleCount': diagnostics['receivedSamples'],
+        'acceptedSampleCount': diagnostics['acceptedSamples'],
         'locationDataIncluded': false,
         'visibilityScope': 'mileage_only',
       }),
