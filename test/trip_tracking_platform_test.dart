@@ -151,6 +151,22 @@ void main() {
     expect(event.errorCode, 'invalidLocationPayload');
   });
 
+  test('untrusted native speed is sanitized without dropping a valid fix', () {
+    for (final speed in [double.nan, double.infinity, -1.0]) {
+      final event = TripTrackingPlatformEvent.fromMap({
+        'type': 'location',
+        'latitude': 35.2,
+        'longitude': -80.8,
+        'recordedAt': '2026-07-13T12:00:00.000Z',
+        'horizontalAccuracyMeters': 4.5,
+        'speedMetersPerSecond': speed,
+      });
+
+      expect(event.type, TripTrackingPlatformEventType.location);
+      expect(event.location?.speedMetersPerSecond, isNull);
+    }
+  });
+
   test('malformed activity payloads cannot invent walking evidence', () {
     final event = TripTrackingPlatformEvent.fromMap({
       'type': 'activity',

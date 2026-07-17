@@ -218,13 +218,18 @@ class TripLocationSample {
       longitude: longitude,
       recordedAt: recordedAt,
       horizontalAccuracyMeters: accuracy,
-      speedMetersPerSecond: (map['speedMetersPerSecond'] as num?)?.toDouble(),
+      speedMetersPerSecond: _tripSpeedFrom(map['speedMetersPerSecond']),
       mockedLocation: map['mockedLocation'] is bool
           ? map['mockedLocation'] as bool
           : null,
     );
     return sample.hasValidCoordinate && sample.hasValidAccuracy ? sample : null;
   }
+}
+
+double? _tripSpeedFrom(Object? rawSpeed) {
+  final speed = (rawSpeed as num?)?.toDouble();
+  return speed != null && speed.isFinite && speed >= 0 ? speed : null;
 }
 
 DateTime? _tripTimestampFrom(Object? rawTimestamp) {
