@@ -244,6 +244,14 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
               settings.copyWith(organizationMileageSharingEnabled: value),
             ),
           ),
+          _choice<TripTrackingBackupNetworkPolicy>(
+            title: 'Mileage backup network',
+            value: settings.backupNetworkPolicy,
+            items: TripTrackingBackupNetworkPolicy.values,
+            label: _backupNetworkPolicyLabel,
+            onChanged: (value) =>
+                onChanged(settings.copyWith(backupNetworkPolicy: value)),
+          ),
           _switch(
             title: 'Enable GPS-assisted tracking',
             detail:
@@ -496,6 +504,13 @@ String _samplingPresetLabel(TripTrackingSamplingPreset preset) =>
       TripTrackingSamplingPreset.extremeOptimized =>
         'Extreme optimized (60 sec)',
       TripTrackingSamplingPreset.custom => 'Custom',
+    };
+
+String _backupNetworkPolicyLabel(TripTrackingBackupNetworkPolicy policy) =>
+    switch (policy) {
+      TripTrackingBackupNetworkPolicy.wifiOnly => 'Wi‑Fi only',
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData => 'Wi‑Fi + mobile',
+      TripTrackingBackupNetworkPolicy.mobileDataOnly => 'Mobile data only',
     };
 
 String _profileLabel(TripTrackingProfile profile) => switch (profile) {

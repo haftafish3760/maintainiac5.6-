@@ -47,6 +47,8 @@ void main() {
     expect(find.text('Protect GPS below 20% battery'), findsOneWidget);
     expect(find.text('Allow GPS below 20% battery'), findsOneWidget);
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
+    expect(find.text('Mileage backup network'), findsOneWidget);
+    expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     await tester.ensureVisible(
       find.text('Use motion activity for walking review'),
@@ -67,6 +69,46 @@ void main() {
     expect(find.text('Back up reviewed mileage'), findsOneWidget);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
     expect(profiles.activeProfile.cloudBackupEnabled, isFalse);
+  });
+
+  testWidgets('backup network policy can be changed from GPS settings', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 1500);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final settings = TripTrackingSettingsController.memory();
+    final profiles = UserProfileController.memory();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: GlobalOdometerScope(
+            controller: GlobalOdometerController(),
+            child: TripTrackingSettingsScope(
+              controller: settings,
+              child: UserProfileScope(
+                controller: profiles,
+                child: const TripTrackingSettingsScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Mileage backup network'));
+    await tester.tap(find.text('Wi‑Fi + mobile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Wi‑Fi only').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      settings.settings.backupNetworkPolicy,
+      TripTrackingBackupNetworkPolicy.wifiOnly,
+    );
   });
 
   testWidgets('low battery GPS settings are reversible', (tester) async {
