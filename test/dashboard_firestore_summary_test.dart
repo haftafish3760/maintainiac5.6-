@@ -65,6 +65,21 @@ void main() {
     expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 99), 0);
   });
 
+  test('default dashboard summaries keep odometer alerts disabled', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        );
+
+    expect(doc.data['odometerCalibrationState'], 'disabled');
+    expect(doc.data['odometerUsageState'], 'disabled');
+    expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
+    expect(doc.data.keys, isNot(contains('odometerUsageReviewedDays')));
+    MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
   test(
     'dashboard summaries cannot claim more than the free sync allowance',
     () {
