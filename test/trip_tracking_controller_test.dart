@@ -2023,6 +2023,37 @@ void main() {
   });
 
   test(
+    'accepted GPS distance does not update live odometer before local save',
+    () async {
+      final store = _FailingAfterInitialSessionSaveStore();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+
+      expect(
+        await controller.start(
+          tripId: 'trip_live_save_order',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      expect(await controller.ingest(sample(-80, 0)), isNotNull);
+
+      await expectLater(
+        controller.ingest(sample(-79.985, 60)),
+        throwsStateError,
+      );
+
+      expect(odometer.reading, 1000);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test(
     'overrange accepted GPS distance cannot silently skip live odometer UI',
     () async {
       final odometer = GlobalOdometerController(
@@ -3482,6 +3513,24 @@ class _FakeTripTrackingCloudMirror implements TripTrackingCloudMirror {
 
   @override
   void dispose() {}
+}
+
+class _FailingAfterInitialSessionSaveStore extends TripTrackingSessionStore {
+  _FailingAfterInitialSessionSaveStore({int failAfterSaves = 2})
+    : _failAfterSaves = failAfterSaves,
+      super.memory();
+
+  final int _failAfterSaves;
+  var _sessionSaves = 0;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) async {
+    _sessionSaves += 1;
+    if (_sessionSaves > _failAfterSaves) {
+      throw StateError('local session checkpoint failed');
+    }
+    return super.save(session);
+  }
 }
 
 class _NoopFirestoreSink implements MaintainiacFirestoreDocumentSink {
