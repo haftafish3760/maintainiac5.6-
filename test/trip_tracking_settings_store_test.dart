@@ -72,6 +72,12 @@ void main() {
     expect(summary['organizationMileageSharingEnabled'], isTrue);
     expect(summary['defaultProfile'], 'deliveryVehicle');
     expect(summary['backupNetworkPolicy'], 'wifiOnly');
+    expect(summary['lowBatteryGpsSafetyCutoffPercent'], 20);
+    expect(summary['lowBatteryGpsChoiceCanBeChanged'], isTrue);
+    expect(
+      summary['lowBatteryGpsDefaultAction'],
+      'prompt_or_pause_below_cutoff',
+    );
     expect(summary['requiresGpsConsent'], isTrue);
     expect(summary['requiresBackgroundConsent'], isTrue);
     expect(summary['requiresMotionConsent'], isTrue);
@@ -101,6 +107,7 @@ void main() {
     expect(summary['requiresMotionConsent'], isFalse);
     expect(summary['lowBatteryGpsOverrideEnabled'], isFalse);
     expect(summary['lowBatteryGpsWarningDismissed'], isFalse);
+    expect(summary['lowBatteryGpsChoiceCanBeChanged'], isTrue);
   });
 
   test(
