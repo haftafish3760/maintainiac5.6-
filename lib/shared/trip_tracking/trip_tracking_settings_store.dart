@@ -181,11 +181,14 @@ num? _safeNumber(Object? value) =>
     value is num && value.isFinite ? value : null;
 
 TripTrackingSamplingPreset _presetFromMap(Map<dynamic, dynamic> map) {
-  final savedPreset = TripTrackingSamplingPreset.values.firstWhere(
-    (value) => value.name == map['samplingPreset'],
-    orElse: () => TripTrackingSamplingPreset.custom,
-  );
-  if (map['samplingPreset'] != null) return savedPreset;
+  final rawPreset = map['samplingPreset'];
+  if (rawPreset is String) {
+    return TripTrackingSamplingPreset.values.firstWhere(
+      (value) => value.name == rawPreset,
+      orElse: () => TripTrackingSamplingPreset.enhancedAccuracy,
+    );
+  }
+  if (rawPreset != null) return TripTrackingSamplingPreset.enhancedAccuracy;
   // Migration from the earlier, less-specific selector.
   return switch (map['batteryMode']) {
     'precision' => TripTrackingSamplingPreset.highAccuracy,

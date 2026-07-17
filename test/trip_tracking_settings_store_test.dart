@@ -182,6 +182,27 @@ void main() {
     );
   });
 
+  test('malformed sampling preset falls back to enhanced accuracy', () {
+    expect(
+      TripTrackingSettings.fromMap(const {
+        'samplingPreset': 'rocket',
+        'customIntervalSeconds': 30,
+      }).samplingPreset,
+      TripTrackingSamplingPreset.enhancedAccuracy,
+    );
+    expect(
+      TripTrackingSettings.fromMap(const {'samplingPreset': 1}).samplingPreset,
+      TripTrackingSamplingPreset.enhancedAccuracy,
+    );
+    expect(
+      TripTrackingSettings.fromMap(const {
+        'samplingPreset': 'custom',
+        'customIntervalSeconds': 30,
+      }).samplingPreset,
+      TripTrackingSamplingPreset.custom,
+    );
+  });
+
   test('motion activity recognition is a separately persisted opt-in', () {
     const settings = TripTrackingSettings();
     final enabled = settings.copyWith(activityRecognitionEnabled: true);
