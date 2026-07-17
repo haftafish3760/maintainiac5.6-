@@ -361,16 +361,16 @@ void main() {
         TripOdometerReconciliation(
           status: TripOdometerReconciliationStatus.reviewRecommended,
           confirmedOdometerDeltaMiles: 100,
-          filteredGpsMiles: 94,
+          filteredGpsMiles: double.nan,
           absoluteDifferenceMiles: 6,
-          differencePercent: double.nan,
+          differencePercent: 6,
         ),
         TripOdometerReconciliation(
           status: TripOdometerReconciliationStatus.reviewRecommended,
-          confirmedOdometerDeltaMiles: 100,
+          confirmedOdometerDeltaMiles: -100,
           filteredGpsMiles: 94,
           absoluteDifferenceMiles: 6,
-          differencePercent: -6,
+          differencePercent: 6,
         ),
       ],
     );
@@ -378,6 +378,28 @@ void main() {
     expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
     expect(signal.eligibleSampleCount, 0);
   });
+
+  test(
+    'calibration recomputes drift instead of trusting stored percentages',
+    () {
+      final history = List.generate(
+        7,
+        (_) => const TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 100,
+          filteredGpsMiles: 50,
+          absoluteDifferenceMiles: 50,
+          differencePercent: 1,
+        ),
+      );
+
+      final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+
+      expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+      expect(signal.eligibleSampleCount, 0);
+      expect(signal.reasonCode, 'needs_more_reviewed_days');
+    },
+  );
 
   test('calibration ignores extreme reviewed outliers', () {
     final history = [

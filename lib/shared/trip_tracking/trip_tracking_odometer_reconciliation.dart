@@ -201,19 +201,21 @@ class TripOdometerCalibrationSignal {
       );
     }
 
-    final eligible = history
-        .where(
-          (sample) =>
-              sample.status != TripOdometerReconciliationStatus.invalid &&
-              sample.confirmedOdometerDeltaMiles.isFinite &&
-              sample.confirmedOdometerDeltaMiles >= minimumOdometerMiles &&
-              sample.filteredGpsMiles.isFinite &&
-              sample.filteredGpsMiles > 0 &&
-              sample.differencePercent.isFinite &&
-              sample.differencePercent >= 0 &&
-              sample.differencePercent <= maximumEligibleDifferencePercent,
-        )
-        .toList(growable: false);
+    final eligible = <MapEntry<TripOdometerReconciliation, double>>[];
+    for (final sample in history) {
+      final recomputedDifferencePercent =
+          _recomputedCalibrationDifferencePercent(sample);
+      if (sample.status == TripOdometerReconciliationStatus.invalid ||
+          !sample.confirmedOdometerDeltaMiles.isFinite ||
+          sample.confirmedOdometerDeltaMiles < minimumOdometerMiles ||
+          !sample.filteredGpsMiles.isFinite ||
+          sample.filteredGpsMiles <= 0 ||
+          recomputedDifferencePercent == null ||
+          recomputedDifferencePercent > maximumEligibleDifferencePercent) {
+        continue;
+      }
+      eligible.add(MapEntry(sample, recomputedDifferencePercent));
+    }
     if (eligible.length < minimumSamples) {
       return TripOdometerCalibrationSignal(
         status: TripOdometerCalibrationStatus.insufficientHistory,
@@ -226,21 +228,24 @@ class TripOdometerCalibrationSignal {
 
     var ratioTotal = 0.0;
     var percentTotal = 0.0;
-    for (final sample in eligible) {
+    for (final entry in eligible) {
+      final sample = entry.key;
       ratioTotal +=
           sample.filteredGpsMiles / sample.confirmedOdometerDeltaMiles;
-      percentTotal += sample.differencePercent.abs();
+      percentTotal += entry.value;
     }
     final averageRatio = ratioTotal / eligible.length;
     final averagePercent = percentTotal / eligible.length;
     final persistentSameDirection =
         eligible.every(
-          (sample) =>
-              sample.filteredGpsMiles > sample.confirmedOdometerDeltaMiles,
+          (entry) =>
+              entry.key.filteredGpsMiles >
+              entry.key.confirmedOdometerDeltaMiles,
         ) ||
         eligible.every(
-          (sample) =>
-              sample.filteredGpsMiles < sample.confirmedOdometerDeltaMiles,
+          (entry) =>
+              entry.key.filteredGpsMiles <
+              entry.key.confirmedOdometerDeltaMiles,
         );
 
     final shouldReview =
@@ -257,6 +262,22 @@ class TripOdometerCalibrationSignal {
           : 'calibration_stable',
     );
   }
+}
+
+double? _recomputedCalibrationDifferencePercent(
+  TripOdometerReconciliation sample,
+) {
+  if (!sample.confirmedOdometerDeltaMiles.isFinite ||
+      sample.confirmedOdometerDeltaMiles <= 0 ||
+      !sample.filteredGpsMiles.isFinite ||
+      sample.filteredGpsMiles < 0) {
+    return null;
+  }
+  final difference =
+      (sample.confirmedOdometerDeltaMiles - sample.filteredGpsMiles).abs();
+  if (!difference.isFinite) return null;
+  final percent = (difference / sample.confirmedOdometerDeltaMiles) * 100;
+  return percent.isFinite && percent >= 0 ? percent : null;
 }
 
 const _minimumGpsAssistanceCalibrationMultiplier = 0.8;
