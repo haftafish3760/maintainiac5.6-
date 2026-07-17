@@ -221,6 +221,8 @@ void main() {
 
     expect(event.type, TripTrackingPlatformEventType.error);
     expect(event.location, isNull);
+    expect(event.errorCode, 'unknownNativeEvent');
+    expect(event.errorMessage, 'Ignored unknown native trip tracking event.');
   });
 
   test('native status and error strings are bounded before use', () {
@@ -250,7 +252,7 @@ void main() {
     expect(status.status, 'stopped');
     expect(status.errorCode, isNull);
     expect(status.errorMessage, isNull);
-    expect(unsafeError.errorCode, isNull);
+    expect(unsafeError.errorCode, 'unknownNativeEvent');
     expect(unsafeError.errorMessage, 'first line second line');
     expect(longMessage.errorCode, 'trip_tracking_gps_disabled');
     expect(longMessage.errorMessage, hasLength(160));

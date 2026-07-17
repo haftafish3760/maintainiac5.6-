@@ -318,7 +318,7 @@ class TripTrackingPlatformEvent {
                 declaredType == TripTrackingPlatformEventType.status
           ? 'invalidStatusPayload'
           : type == TripTrackingPlatformEventType.error
-          ? _safePlatformToken(map['errorCode'])
+          ? _safePlatformToken(map['errorCode']) ?? 'unknownNativeEvent'
           : null,
       errorMessage:
           type == TripTrackingPlatformEventType.error &&
@@ -334,7 +334,8 @@ class TripTrackingPlatformEvent {
                 declaredType == TripTrackingPlatformEventType.status
           ? 'Ignored malformed status payload.'
           : type == TripTrackingPlatformEventType.error
-          ? _safePlatformMessage(map['errorMessage'])
+          ? _safePlatformMessage(map['errorMessage']) ??
+                'Ignored unknown native trip tracking event.'
           : null,
     );
   }
