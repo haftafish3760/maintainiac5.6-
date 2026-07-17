@@ -376,7 +376,11 @@ class TripTrackingReviewRecord {
           hasSafeIdentity &&
           hasValidProfile &&
           hasValidCloudSyncState &&
-          _hasValidCloudSyncTimeline(cloudSyncState, cloudSyncedAt) &&
+          _hasValidCloudSyncTimeline(
+            cloudSyncState,
+            syncedAt: cloudSyncedAt,
+            finishedAt: finishedAt,
+          ) &&
           hasValidConfirmation &&
           estimatedEndingOdometer >= startingOdometer &&
           hasSupportedSchemaVersion,
@@ -385,9 +389,12 @@ class TripTrackingReviewRecord {
 }
 
 bool _hasValidCloudSyncTimeline(
-  TripTrackingCloudSyncState state,
-  DateTime? syncedAt,
-) => state != TripTrackingCloudSyncState.synced || syncedAt != null;
+  TripTrackingCloudSyncState state, {
+  required DateTime? syncedAt,
+  required DateTime? finishedAt,
+}) =>
+    state != TripTrackingCloudSyncState.synced ||
+    (syncedAt != null && finishedAt != null && !syncedAt.isBefore(finishedAt));
 
 int _sessionSchemaVersion(Object? value) {
   if (value is! num || !value.isFinite) return 1;

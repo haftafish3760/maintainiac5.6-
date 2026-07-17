@@ -670,6 +670,29 @@ void main() {
     expect(prematureConfirmation.isOdometerConfirmed, isFalse);
   });
 
+  test('synced review restore requires sync time after trip finish', () {
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_premature_sync',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1012,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'finishedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 19312,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'confirmedEndingOdometer': 1013,
+      'odometerConfirmedAt': DateTime.utc(2026, 7, 14, 13, 6).toIso8601String(),
+      'cloudSyncState': 'synced',
+      'cloudSyncedAt': DateTime.utc(2026, 7, 14, 12, 59).toIso8601String(),
+    });
+
+    expect(review.cloudSyncState, TripTrackingCloudSyncState.synced);
+    expect(review.hasValidTimeline, isFalse);
+  });
+
   test('review writes require safe durable trip ids', () async {
     final store = TripTrackingSessionStore.memory();
     final review = TripTrackingReviewRecord(
