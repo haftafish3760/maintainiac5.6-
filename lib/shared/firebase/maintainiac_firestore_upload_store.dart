@@ -322,7 +322,18 @@ class MaintainiacFirestoreUploadCoordinator {
         reason: 'Backup sync is waiting for the selected network.',
       );
     }
-    final freeSyncsUsed = _freeSyncsUsedInWindowReader?.call();
+    int? freeSyncsUsed;
+    try {
+      freeSyncsUsed = _freeSyncsUsedInWindowReader?.call();
+    } catch (_) {
+      return const MaintainiacFirestoreUploadResult(
+        status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+        attemptedCount: 0,
+        uploadedCount: 0,
+        failedCount: 0,
+        reason: 'Free backup sync limit could not be verified.',
+      );
+    }
     if (freeSyncsUsed != null &&
         !HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: freeSyncsUsed)) {
       return const MaintainiacFirestoreUploadResult(

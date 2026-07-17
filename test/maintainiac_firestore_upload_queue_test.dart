@@ -155,6 +155,25 @@ void main() {
     expect(sink.writes, hasLength(1));
   });
 
+  test('broken free sync quota reads fail closed without uploading', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/broken_free_sync_quota'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      freeSyncsUsedInWindowReader: () => throw StateError('quota read failed'),
+    ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+    expect(result.attemptedCount, 0);
+    expect(result.reason, contains('could not be verified'));
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+  });
+
   test('network policy block preserves pending uploads', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
