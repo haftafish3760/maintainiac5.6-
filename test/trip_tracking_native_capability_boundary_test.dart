@@ -70,7 +70,54 @@ void main() {
     expect(native.authorizationActivityRecognitionEnabled, isFalse);
     expect(native.startedRequest?.activityRecognitionEnabled, isFalse);
   });
+
+  test('unavailable activity recognition stays stripped during sampling updates', () async {
+    final native = _NativeCapabilityProbeFake(
+      capabilities: const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: false,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(vehicleId: "vehicle_1", initialReading: 1000),
+      platform: native,
+    );
+    addTearDown(controller.dispose);
+
+    await controller.start(
+      tripId: 'trip_motion_unavailable_update',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: startedAt,
+    );
+    await controller.startNativeTracking(
+      allowBackground: false,
+      activityRecognitionEnabled: true,
+    );
+
+    native.addLocation(_sample(-80, startedAt, 0, speed: 8));
+    native.addLocation(_sample(-79.999, startedAt, 20, speed: 8));
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(native.updatedRequest?.activityRecognitionEnabled, isFalse);
+  });
 }
+
+TripLocationSample _sample(
+  double longitude,
+  DateTime start,
+  int seconds, {
+  double? speed,
+}) => TripLocationSample(
+  latitude: 35,
+  longitude: longitude,
+  recordedAt: start.add(Duration(seconds: seconds)),
+  horizontalAccuracyMeters: 5,
+  speedMetersPerSecond: speed,
+);
 
 class _NativeCapabilityProbeFake implements TripTrackingNativeGateway {
   _NativeCapabilityProbeFake({required this.capabilities});
@@ -81,6 +128,7 @@ class _NativeCapabilityProbeFake implements TripTrackingNativeGateway {
   var startCalls = 0;
   bool? authorizationActivityRecognitionEnabled;
   TripTrackingNativeRequest? startedRequest;
+  TripTrackingNativeRequest? updatedRequest;
 
   @override
   Stream<TripTrackingPlatformEvent> get events => _events.stream;
@@ -117,11 +165,23 @@ class _NativeCapabilityProbeFake implements TripTrackingNativeGateway {
   }
 
   @override
-  Future<bool> update(TripTrackingNativeRequest request) async => true;
+  Future<bool> update(TripTrackingNativeRequest request) async {
+    updatedRequest = request;
+    return true;
+  }
 
   @override
   Future<void> stop() async {}
 
   @override
   Future<bool> get isTracking async => startCalls > 0;
+
+  void addLocation(TripLocationSample sample) {
+    _events.add(
+      TripTrackingPlatformEvent.fromMap({
+        'type': 'location',
+        ...sample.toMap(),
+      }),
+    );
+  }
 }

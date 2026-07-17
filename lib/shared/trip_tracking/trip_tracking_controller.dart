@@ -791,7 +791,7 @@ class TripTrackingController extends ChangeNotifier {
     }
     _nativeTracking = true;
     _nativeSampling = request.sampling;
-    _activityRecognitionEnabled = activityRecognitionEnabled;
+    _activityRecognitionEnabled = requestedActivityRecognition;
     _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
     _platformError = null;
     _platformStatus = 'tracking';
