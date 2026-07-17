@@ -341,7 +341,10 @@ class MaintainiacFirestoreUploadCoordinator {
       );
     }
     if (freeSyncsUsed != null &&
-        !HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: freeSyncsUsed)) {
+        (freeSyncsUsed < 0 ||
+            !HostedUsageLimits.canUseFreeSync(
+              syncsUsedInWindow: freeSyncsUsed,
+            ))) {
       return const MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.quotaExceeded,
         attemptedCount: 0,

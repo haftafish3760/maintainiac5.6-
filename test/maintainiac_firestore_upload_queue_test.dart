@@ -174,6 +174,24 @@ void main() {
     expect(queue.pendingRecords, hasLength(1));
   });
 
+  test('malformed free sync quota counts fail closed without uploading', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/malformed_free_sync_quota'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      freeSyncsUsedInWindow: -1,
+    ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+    expect(result.attemptedCount, 0);
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+  });
+
   test('network policy block preserves pending uploads', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
