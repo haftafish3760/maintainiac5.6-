@@ -227,7 +227,9 @@ class TripLocationSample {
       longitude <= 180;
 
   bool get hasValidAccuracy =>
-      horizontalAccuracyMeters.isFinite && horizontalAccuracyMeters > 0;
+      horizontalAccuracyMeters.isFinite &&
+      horizontalAccuracyMeters > 0 &&
+      horizontalAccuracyMeters <= _maximumNativeHorizontalAccuracyMeters;
 
   Map<String, Object?> toMap() => {
     'latitude': latitude,
@@ -270,6 +272,8 @@ double? _tripSpeedFrom(Object? rawSpeed) {
   final speed = _tripNumberFrom(rawSpeed);
   return speed != null && speed.isFinite && speed >= 0 ? speed : null;
 }
+
+const _maximumNativeHorizontalAccuracyMeters = 10000.0;
 
 double? _tripNumberFrom(Object? value) {
   if (value is! num || !value.isFinite) return null;
