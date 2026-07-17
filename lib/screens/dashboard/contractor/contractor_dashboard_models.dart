@@ -10,7 +10,6 @@ enum ContractorCommandTarget {
   recordPayment,
   estimate,
   note,
-  proofPhoto,
 }
 
 class ContractorMetric {
@@ -207,11 +206,5 @@ const contractorActiveCommands = [
     icon: Icons.attach_money_rounded,
     color: Color(0xFF19C15F),
     target: ContractorCommandTarget.recordPayment,
-  ),
-  ContractorCommand(
-    label: 'Proof Photo',
-    icon: Icons.camera_alt_rounded,
-    color: Color(0xFF4DA3FF),
-    target: ContractorCommandTarget.proofPhoto,
   ),
 ];

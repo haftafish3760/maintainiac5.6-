@@ -77,7 +77,7 @@ void main() {
     expect(find.text('Add Expense'), findsOneWidget);
     expect(find.text('Create Invoice'), findsOneWidget);
     expect(find.text('Record Payment'), findsOneWidget);
-    expect(find.text('Proof Photo'), findsOneWidget);
+    expect(find.text('Proof Photo'), findsNothing);
   });
 
   testWidgets('active workday miles redraw from live GPS odometer projection', (

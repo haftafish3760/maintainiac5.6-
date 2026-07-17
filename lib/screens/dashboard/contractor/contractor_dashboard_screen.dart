@@ -103,7 +103,6 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         );
       case ContractorCommandTarget.recordPayment:
       case ContractorCommandTarget.note:
-      case ContractorCommandTarget.proofPhoto:
         _showPending(command.label);
     }
   }
