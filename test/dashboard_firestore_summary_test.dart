@@ -107,6 +107,34 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('dashboard upload policy rejects unknown mode and state values', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        );
+
+    for (final entry in const <String, String>{
+      'dashboardMode': 'god_mode',
+      'mileageMode': 'silent_tracking',
+      'syncMode': 'always_spy',
+      'gpsAssistState': 'raw_coordinates_enabled',
+      'storageState': 'remote_authoritative',
+    }.entries) {
+      final poisoned = MaintainiacFirestoreDocumentDraft(
+        path: doc.path,
+        data: {...doc.data, entry.key: entry.value},
+      );
+
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+        throwsArgumentError,
+        reason: '${entry.key} must be an allowed dashboard summary value',
+      );
+    }
+  });
+
   test(
     'dashboard upload policy rejects raw location and module data aliases',
     () {
@@ -152,6 +180,9 @@ void main() {
       expect(rules, contains('function isDashboardCommandCenterSummary'));
       expect(rules, contains('hasOnlyDashboardSummaryFields'));
       expect(rules, contains('hasValidDashboardSyncCounters'));
+      expect(rules, contains('function isAllowedDashboardMode'));
+      expect(rules, contains('function isAllowedDashboardSyncMode'));
+      expect(rules, contains('function isAllowedGpsAssistState'));
       expect(rules, contains('request.resource.data.freeSyncsRemaining <= 6'));
       expect(rules, contains('request.resource.data.syncsUsedInWindow <= 999'));
       expect(

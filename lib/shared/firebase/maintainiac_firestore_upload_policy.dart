@@ -75,6 +75,64 @@ class MaintainiacFirestoreUploadPolicy {
     'dob',
   };
 
+  static const _allowedDashboardModes = <String>{
+    'default',
+    'gig_driver',
+    'contractor',
+    'solo_contractor',
+    'fleet_owner',
+    'employee',
+    'customer',
+    'personal',
+    'gigDriver',
+    'soloContractor',
+    'fleetOwner',
+  };
+
+  static const _allowedMileageModes = <String>{
+    'manual',
+    'gps_assisted',
+    'workday',
+    'employee_shift',
+    'fleet_review',
+    'customer_hidden',
+    'employeeShift',
+    'fleetReview',
+    'customerHidden',
+  };
+
+  static const _allowedSyncModes = <String>{
+    'device_retained',
+    'local_only',
+    'wifi_only',
+    'wifi_and_mobile',
+    'mobile_only',
+    'firebase_backup',
+    'company_sync',
+    'localOnly',
+    'firebaseBackup',
+    'companySync',
+  };
+
+  static const _allowedGpsAssistStates = <String>{
+    'off',
+    'on',
+    'gps_assisted',
+    'battery_limited',
+    'permission_denied',
+    'unavailable',
+  };
+
+  static const _allowedStorageStates = <String>{
+    'unknown',
+    'green',
+    'text_record_safe',
+    'low_storage',
+    'full',
+    'local_only',
+    'cloud_pending',
+  };
+
   static void validateDraft(MaintainiacFirestoreDocumentDraft draft) {
     _validatePath(draft.path);
     _validateDocumentSize(draft);
@@ -173,11 +231,14 @@ class MaintainiacFirestoreUploadPolicy {
         _isNonEmptyString(draft.data['createdByUid']) &&
         _isNonEmptyString(draft.data['updatedByUid']) &&
         _isNonEmptyString(draft.data['updatedAt']) &&
-        _isNonEmptyString(draft.data['dashboardMode']) &&
-        _isNonEmptyString(draft.data['mileageMode']) &&
-        _isNonEmptyString(draft.data['syncMode']) &&
-        _isNonEmptyString(draft.data['gpsAssistState']) &&
-        _isNonEmptyString(draft.data['storageState']) &&
+        _isAllowedString(draft.data['dashboardMode'], _allowedDashboardModes) &&
+        _isAllowedString(draft.data['mileageMode'], _allowedMileageModes) &&
+        _isAllowedString(draft.data['syncMode'], _allowedSyncModes) &&
+        _isAllowedString(
+          draft.data['gpsAssistState'],
+          _allowedGpsAssistStates,
+        ) &&
+        _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
         _isValidFreeSyncsRemaining(draft.data['freeSyncsRemaining']) &&
         _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
         draft.data['batteryGpsLimited'] is bool &&
@@ -380,6 +441,9 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isNonEmptyString(Object? value) =>
       value is String && value.trim().isNotEmpty;
+
+  static bool _isAllowedString(Object? value, Set<String> allowed) =>
+      value is String && allowed.contains(value.trim());
 
   static bool _isValidFreeSyncsRemaining(Object? value) =>
       value == null ||

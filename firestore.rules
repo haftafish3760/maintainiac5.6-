@@ -295,6 +295,74 @@ service cloud.firestore {
             request.resource.data.syncsUsedInWindow <= 999));
     }
 
+    function isAllowedDashboardMode(value) {
+      return [
+        'default',
+        'gig_driver',
+        'contractor',
+        'solo_contractor',
+        'fleet_owner',
+        'employee',
+        'customer',
+        'personal',
+        'gigDriver',
+        'soloContractor',
+        'fleetOwner'
+      ].hasAny([value]);
+    }
+
+    function isAllowedMileageMode(value) {
+      return [
+        'manual',
+        'gps_assisted',
+        'workday',
+        'employee_shift',
+        'fleet_review',
+        'customer_hidden',
+        'employeeShift',
+        'fleetReview',
+        'customerHidden'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardSyncMode(value) {
+      return [
+        'device_retained',
+        'local_only',
+        'wifi_only',
+        'wifi_and_mobile',
+        'mobile_only',
+        'firebase_backup',
+        'company_sync',
+        'localOnly',
+        'firebaseBackup',
+        'companySync'
+      ].hasAny([value]);
+    }
+
+    function isAllowedGpsAssistState(value) {
+      return [
+        'off',
+        'on',
+        'gps_assisted',
+        'battery_limited',
+        'permission_denied',
+        'unavailable'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardStorageState(value) {
+      return [
+        'unknown',
+        'green',
+        'text_record_safe',
+        'low_storage',
+        'full',
+        'local_only',
+        'cloud_pending'
+      ].hasAny([value]);
+    }
+
     function isDashboardCommandCenterSummary() {
       return request.resource.data.schema ==
           'dashboard_command_center_summary_v1' &&
@@ -309,11 +377,11 @@ service cloud.firestore {
         request.resource.data.createdByUid is string &&
         request.resource.data.updatedByUid is string &&
         request.resource.data.updatedAt is string &&
-        request.resource.data.dashboardMode is string &&
-        request.resource.data.mileageMode is string &&
-        request.resource.data.syncMode is string &&
-        request.resource.data.gpsAssistState is string &&
-        request.resource.data.storageState is string &&
+        isAllowedDashboardMode(request.resource.data.dashboardMode) &&
+        isAllowedMileageMode(request.resource.data.mileageMode) &&
+        isAllowedDashboardSyncMode(request.resource.data.syncMode) &&
+        isAllowedGpsAssistState(request.resource.data.gpsAssistState) &&
+        isAllowedDashboardStorageState(request.resource.data.storageState) &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool;
     }
