@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_schema.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
@@ -20,7 +21,7 @@ void main() {
           syncMode: 'wifi_only',
           gpsAssistState: 'battery_limited',
           storageState: 'text_record_safe',
-          freeSyncsRemaining: 6,
+          freeSyncsRemaining: HostedUsageLimits.freeUserSyncsPer24HourWindow,
           syncsUsedInWindow: 0,
           batteryGpsLimited: true,
           reviewRequired: false,
@@ -34,12 +35,24 @@ void main() {
     expect(doc.data['locationDataIncluded'], isFalse);
     expect(doc.data['rawModuleDataIncluded'], isFalse);
     expect(doc.data['activeVehicleId'], 'truck_1');
-    expect(doc.data['freeSyncsRemaining'], 6);
+    expect(
+      doc.data['freeSyncsRemaining'],
+      HostedUsageLimits.freeUserSyncsPer24HourWindow,
+    );
     expect(doc.data['batteryGpsLimited'], isTrue);
     expect(doc.data.keys, isNot(contains('latitude')));
     expect(doc.data.keys, isNot(contains('route')));
     expect(doc.data.keys, isNot(contains('rawSamples')));
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+  });
+
+  test('free dashboard sync window is capped at six per 24 hours', () {
+    expect(HostedUsageLimits.freeUserSyncsPer24HourWindow, 6);
+    expect(HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: 5), isTrue);
+    expect(HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: 6), isFalse);
+    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 0), 6);
+    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 6), 0);
+    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 99), 0);
   });
 
   test('builds an organization dashboard summary scoped to the member org', () {

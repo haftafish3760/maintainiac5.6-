@@ -48,4 +48,15 @@ class HostedUsageLimits {
 
   static const int maxAccountsPerInstallInReviewWindow = 2;
   static const int maxAccountsPerIpInReviewWindow = 2;
+  static const int freeUserSyncsPer24HourWindow = 6;
+
+  static bool canUseFreeSync({required int syncsUsedInWindow}) =>
+      syncsUsedInWindow >= 0 &&
+      syncsUsedInWindow < freeUserSyncsPer24HourWindow;
+
+  static int freeSyncsRemaining({required int syncsUsedInWindow}) {
+    if (syncsUsedInWindow < 0) return freeUserSyncsPer24HourWindow;
+    final remaining = freeUserSyncsPer24HourWindow - syncsUsedInWindow;
+    return remaining <= 0 ? 0 : remaining;
+  }
 }
