@@ -326,6 +326,12 @@ service cloud.firestore {
         'gpsSignalQuality',
         'gpsSignalReason',
         'gpsSignalReviewRequired',
+        'mapboxAssistState',
+        'mapboxAssistReason',
+        'mapboxAssistReviewRequired',
+        'mapboxTrustedMileageSource',
+        'mapboxRouteDistanceMiles',
+        'mapboxRouteDeltaMiles',
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
@@ -341,6 +347,7 @@ service cloud.firestore {
         'batteryGpsLimited',
         'reviewRequired',
         'locationDataIncluded',
+        'mapboxRouteGeometryIncluded',
         'rawModuleDataIncluded',
       ]);
     }
@@ -370,6 +377,10 @@ service cloud.firestore {
         'gpsSignalQuality',
         'gpsSignalReason',
         'gpsSignalReviewRequired',
+        'mapboxAssistState',
+        'mapboxAssistReason',
+        'mapboxAssistReviewRequired',
+        'mapboxTrustedMileageSource',
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
@@ -378,6 +389,7 @@ service cloud.firestore {
         'batteryGpsLimited',
         'reviewRequired',
         'locationDataIncluded',
+        'mapboxRouteGeometryIncluded',
         'rawModuleDataIncluded',
       ]);
     }
@@ -593,6 +605,42 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function isAllowedDashboardMapboxAssistState(value) {
+      return [
+        'disabled',
+        'unavailable',
+        'rate_limited',
+        'rejected',
+        'visual_only',
+        'distance_review'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardMapboxAssistReason(value) {
+      return [
+        'mapbox_assist_disabled',
+        'mapbox_route_unavailable',
+        'mapbox_rate_limited',
+        'mapbox_http_failure',
+        'mapbox_response_not_object',
+        'mapbox_service_code_not_ok',
+        'mapbox_routes_missing',
+        'mapbox_routes_invalid',
+        'invalid_map_assist_threshold',
+        'mapbox_visual_only_no_trusted_mileage',
+        'mapbox_visual_assist_only',
+        'mapbox_distance_review_only'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardMapboxTrustedMileageSource(value) {
+      return [
+        'none',
+        'odometer',
+        'gps_accepted'
+      ].hasAny([value]);
+    }
+
     function isAllowedDashboardStorageState(value) {
       return [
         'unknown',
@@ -726,6 +774,24 @@ service cloud.firestore {
           request.resource.data.gpsSignalReason
         ) &&
         request.resource.data.gpsSignalReviewRequired is bool &&
+        isAllowedDashboardMapboxAssistState(
+          request.resource.data.mapboxAssistState
+        ) &&
+        isAllowedDashboardMapboxAssistReason(
+          request.resource.data.mapboxAssistReason
+        ) &&
+        request.resource.data.mapboxAssistReviewRequired is bool &&
+        isAllowedDashboardMapboxTrustedMileageSource(
+          request.resource.data.mapboxTrustedMileageSource
+        ) &&
+        (!request.resource.data.keys().hasAny(['mapboxRouteDistanceMiles']) ||
+          (request.resource.data.mapboxRouteDistanceMiles is number &&
+            request.resource.data.mapboxRouteDistanceMiles >= 0 &&
+            request.resource.data.mapboxRouteDistanceMiles <= 12500)) &&
+        (!request.resource.data.keys().hasAny(['mapboxRouteDeltaMiles']) ||
+          (request.resource.data.mapboxRouteDeltaMiles is number &&
+            request.resource.data.mapboxRouteDeltaMiles >= 0 &&
+            request.resource.data.mapboxRouteDeltaMiles <= 12500)) &&
         isAllowedDashboardStorageState(request.resource.data.storageState) &&
         isAllowedDashboardDeviceCapabilityState(
           request.resource.data.deviceCapabilityState
@@ -753,7 +819,8 @@ service cloud.firestore {
             request.resource.data.odometerUsageReviewedDays <= 999)) &&
         hasValidDashboardTokenLists() &&
         request.resource.data.batteryGpsLimited is bool &&
-        request.resource.data.reviewRequired is bool;
+        request.resource.data.reviewRequired is bool &&
+        request.resource.data.mapboxRouteGeometryIncluded == false;
     }
 
     function noServerManagedFieldsOnCreate() {

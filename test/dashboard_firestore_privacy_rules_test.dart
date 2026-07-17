@@ -115,6 +115,24 @@ void main() {
       expect(rules, contains('request.resource.data.gpsSignalQuality'));
       expect(rules, contains('request.resource.data.gpsSignalReason'));
       expect(rules, contains('request.resource.data.gpsSignalReviewRequired'));
+      expect(rules, contains('request.resource.data.mapboxAssistState'));
+      expect(rules, contains('request.resource.data.mapboxAssistReason'));
+      expect(
+        rules,
+        contains('request.resource.data.mapboxAssistReviewRequired'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.mapboxTrustedMileageSource'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.mapboxRouteDistanceMiles <= 12500'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.mapboxRouteGeometryIncluded == false'),
+      );
       expect(
         rules,
         contains('request.resource.data.odometerCalibrationMultiplier <= 1.25'),

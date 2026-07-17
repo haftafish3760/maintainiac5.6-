@@ -34,6 +34,12 @@ void main() {
     expect(summary.gpsSignalQuality, 'no_samples');
     expect(summary.gpsSignalReason, 'gps_signal_waiting_for_samples');
     expect(summary.gpsSignalReviewRequired, isFalse);
+    expect(summary.mapboxAssistState, 'disabled');
+    expect(summary.mapboxAssistReason, 'mapbox_assist_disabled');
+    expect(summary.mapboxAssistReviewRequired, isFalse);
+    expect(summary.mapboxTrustedMileageSource, 'none');
+    expect(summary.mapboxRouteDistanceMiles, isNull);
+    expect(summary.mapboxRouteDeltaMiles, isNull);
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');

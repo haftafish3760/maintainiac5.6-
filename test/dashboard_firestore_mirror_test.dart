@@ -165,6 +165,13 @@ void main() {
     expect(data['gpsSignalQuality'], 'no_samples');
     expect(data['gpsSignalReason'], 'gps_signal_waiting_for_samples');
     expect(data['gpsSignalReviewRequired'], isFalse);
+    expect(data['mapboxAssistState'], 'disabled');
+    expect(data['mapboxAssistReason'], 'mapbox_assist_disabled');
+    expect(data['mapboxAssistReviewRequired'], isFalse);
+    expect(data['mapboxTrustedMileageSource'], 'none');
+    expect(data.keys, isNot(contains('mapboxRouteDistanceMiles')));
+    expect(data.keys, isNot(contains('mapboxRouteDeltaMiles')));
+    expect(data['mapboxRouteGeometryIncluded'], isFalse);
     expect(data['storageState'], 'text_record_safe');
     expect(data['deviceCapabilityState'], 'unknown');
     expect(data['sensorAssistState'], 'unknown');

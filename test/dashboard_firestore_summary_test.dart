@@ -21,6 +21,12 @@ void main() {
           gpsSignalQuality: 'poor',
           gpsSignalReason: 'gps_signal_poor_measurement_quality',
           gpsSignalReviewRequired: true,
+          mapboxAssistState: 'distance_review',
+          mapboxAssistReason: 'mapbox_distance_review_only',
+          mapboxAssistReviewRequired: true,
+          mapboxTrustedMileageSource: 'odometer',
+          mapboxRouteDistanceMiles: 12.34567,
+          mapboxRouteDeltaMiles: 2.34567,
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
@@ -51,6 +57,13 @@ void main() {
     expect(doc.data['gpsSignalQuality'], 'poor');
     expect(doc.data['gpsSignalReason'], 'gps_signal_poor_measurement_quality');
     expect(doc.data['gpsSignalReviewRequired'], isTrue);
+    expect(doc.data['mapboxAssistState'], 'distance_review');
+    expect(doc.data['mapboxAssistReason'], 'mapbox_distance_review_only');
+    expect(doc.data['mapboxAssistReviewRequired'], isTrue);
+    expect(doc.data['mapboxTrustedMileageSource'], 'odometer');
+    expect(doc.data['mapboxRouteDistanceMiles'], 12.346);
+    expect(doc.data['mapboxRouteDeltaMiles'], 2.346);
+    expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
@@ -85,6 +98,13 @@ void main() {
     expect(doc.data['gpsSignalQuality'], 'no_samples');
     expect(doc.data['gpsSignalReason'], 'gps_signal_waiting_for_samples');
     expect(doc.data['gpsSignalReviewRequired'], isFalse);
+    expect(doc.data['mapboxAssistState'], 'disabled');
+    expect(doc.data['mapboxAssistReason'], 'mapbox_assist_disabled');
+    expect(doc.data['mapboxAssistReviewRequired'], isFalse);
+    expect(doc.data['mapboxTrustedMileageSource'], 'none');
+    expect(doc.data.keys, isNot(contains('mapboxRouteDistanceMiles')));
+    expect(doc.data.keys, isNot(contains('mapboxRouteDeltaMiles')));
+    expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
     expect(doc.data['odometerUsageState'], 'disabled');
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));

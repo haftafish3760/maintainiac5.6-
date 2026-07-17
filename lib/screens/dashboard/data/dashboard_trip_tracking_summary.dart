@@ -1,4 +1,5 @@
 import '../../../shared/storage/app_storage_guard.dart';
+import '../../../shared/maps/mapbox_trip_assist_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
@@ -15,6 +16,7 @@ import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
 import 'active_workday_store.dart';
 
 part 'dashboard_trip_tracking_summary_sanitizers.dart';
+part 'dashboard_trip_tracking_summary_mapbox.dart';
 
 class DashboardTripTrackingSummary {
   const DashboardTripTrackingSummary({
@@ -36,6 +38,12 @@ class DashboardTripTrackingSummary {
     required this.gpsSignalQuality,
     required this.gpsSignalReason,
     required this.gpsSignalReviewRequired,
+    required this.mapboxAssistState,
+    required this.mapboxAssistReason,
+    required this.mapboxAssistReviewRequired,
+    required this.mapboxTrustedMileageSource,
+    required this.mapboxRouteDistanceMiles,
+    required this.mapboxRouteDeltaMiles,
     required this.storageState,
     required this.deviceCapabilityState,
     required this.sensorAssistState,
@@ -70,6 +78,12 @@ class DashboardTripTrackingSummary {
   final String gpsSignalQuality;
   final String gpsSignalReason;
   final bool gpsSignalReviewRequired;
+  final String mapboxAssistState;
+  final String mapboxAssistReason;
+  final bool mapboxAssistReviewRequired;
+  final String mapboxTrustedMileageSource;
+  final double? mapboxRouteDistanceMiles;
+  final double? mapboxRouteDeltaMiles;
   final String storageState;
   final String deviceCapabilityState;
   final String sensorAssistState;
@@ -111,6 +125,13 @@ class DashboardTripTrackingSummary {
     String gpsSignalQuality = 'no_samples',
     String gpsSignalReason = 'gps_signal_waiting_for_samples',
     bool gpsSignalReviewRequired = false,
+    MapboxTripAssistDecision? mapboxRouteAssist,
+    String mapboxAssistState = 'disabled',
+    String mapboxAssistReason = 'mapbox_assist_disabled',
+    bool mapboxAssistReviewRequired = false,
+    String mapboxTrustedMileageSource = 'none',
+    double? mapboxRouteDistanceMiles,
+    double? mapboxRouteDeltaMiles,
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -132,6 +153,15 @@ class DashboardTripTrackingSummary {
         : syncsUsedInWindow;
     final strategy = TripTrackingProfileStrategy.forProfile(
       settings.defaultProfile,
+    );
+    final mapboxSummary = _dashboardMapboxAssistFor(
+      decision: mapboxRouteAssist,
+      fallbackState: mapboxAssistState,
+      fallbackReason: mapboxAssistReason,
+      fallbackReviewRequired: mapboxAssistReviewRequired,
+      fallbackTrustedMileageSource: mapboxTrustedMileageSource,
+      fallbackRouteDistanceMiles: mapboxRouteDistanceMiles,
+      fallbackRouteDeltaMiles: mapboxRouteDeltaMiles,
     );
     return DashboardTripTrackingSummary(
       dashboardMode: guidance.modeToken,
@@ -165,6 +195,12 @@ class DashboardTripTrackingSummary {
       gpsSignalQuality: _safeGpsSignalQuality(gpsSignalQuality),
       gpsSignalReason: _safeGpsSignalReason(gpsSignalReason),
       gpsSignalReviewRequired: gpsSignalReviewRequired,
+      mapboxAssistState: mapboxSummary.state,
+      mapboxAssistReason: mapboxSummary.reason,
+      mapboxAssistReviewRequired: mapboxSummary.reviewRequired,
+      mapboxTrustedMileageSource: mapboxSummary.trustedMileageSource,
+      mapboxRouteDistanceMiles: mapboxSummary.routeDistanceMiles,
+      mapboxRouteDeltaMiles: mapboxSummary.routeDeltaMiles,
       storageState: _safeStorageState(storageState),
       deviceCapabilityState: _safeDeviceCapabilityState(deviceCapabilityState),
       sensorAssistState: _safeSensorAssistState(sensorAssistState),
@@ -190,7 +226,10 @@ class DashboardTripTrackingSummary {
           : syncDecision.freeSyncsRemaining,
       syncsUsedInWindow: safeSyncsUsed,
       batteryGpsLimited: lowBatteryLimited,
-      reviewRequired: reviewRequired,
+      reviewRequired:
+          reviewRequired ||
+          gpsSignalReviewRequired ||
+          mapboxSummary.reviewRequired,
     );
   }
 

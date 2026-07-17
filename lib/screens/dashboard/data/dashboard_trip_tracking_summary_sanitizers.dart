@@ -104,6 +104,53 @@ String _safeGpsSignalReason(String value) {
   };
 }
 
+String _safeMapboxAssistState(String value) {
+  return switch (value.trim()) {
+    'disabled' => 'disabled',
+    'unavailable' => 'unavailable',
+    'rate_limited' => 'rate_limited',
+    'rejected' => 'rejected',
+    'visual_only' => 'visual_only',
+    'distance_review' => 'distance_review',
+    _ => 'disabled',
+  };
+}
+
+String _safeMapboxAssistReason(String value) {
+  return switch (value.trim()) {
+    'mapbox_assist_disabled' => 'mapbox_assist_disabled',
+    'mapbox_route_unavailable' => 'mapbox_route_unavailable',
+    'mapbox_rate_limited' => 'mapbox_rate_limited',
+    'mapbox_http_failure' => 'mapbox_http_failure',
+    'mapbox_response_not_object' => 'mapbox_response_not_object',
+    'mapbox_service_code_not_ok' => 'mapbox_service_code_not_ok',
+    'mapbox_routes_missing' => 'mapbox_routes_missing',
+    'mapbox_routes_invalid' => 'mapbox_routes_invalid',
+    'invalid_map_assist_threshold' => 'invalid_map_assist_threshold',
+    'mapbox_visual_only_no_trusted_mileage' =>
+      'mapbox_visual_only_no_trusted_mileage',
+    'mapbox_visual_assist_only' => 'mapbox_visual_assist_only',
+    'mapbox_distance_review_only' => 'mapbox_distance_review_only',
+    _ => 'mapbox_route_unavailable',
+  };
+}
+
+String _safeMapboxTrustedMileageSource(String value) {
+  return switch (value.trim()) {
+    'none' => 'none',
+    'odometer' => 'odometer',
+    'gps_accepted' => 'gps_accepted',
+    _ => 'none',
+  };
+}
+
+double? _safeMapboxMiles(double? value) {
+  if (value == null || !value.isFinite || value < 0 || value > 12500) {
+    return null;
+  }
+  return double.parse(value.toStringAsFixed(3));
+}
+
 String _safeRecoveryState(String value) {
   return switch (value.trim()) {
     'none' => 'none',

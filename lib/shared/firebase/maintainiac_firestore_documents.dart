@@ -365,6 +365,12 @@ class MaintainiacFirestoreDocumentBuilder {
     String gpsSignalQuality = 'no_samples',
     String gpsSignalReason = 'gps_signal_waiting_for_samples',
     bool gpsSignalReviewRequired = false,
+    String mapboxAssistState = 'disabled',
+    String mapboxAssistReason = 'mapbox_assist_disabled',
+    bool mapboxAssistReviewRequired = false,
+    String mapboxTrustedMileageSource = 'none',
+    double? mapboxRouteDistanceMiles,
+    double? mapboxRouteDeltaMiles,
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
@@ -489,6 +495,32 @@ class MaintainiacFirestoreDocumentBuilder {
           _allowedDashboardGpsSignalReasons,
         ),
         'gpsSignalReviewRequired': gpsSignalReviewRequired,
+        'mapboxAssistState': _requiredDashboardSummaryToken(
+          mapboxAssistState,
+          'mapboxAssistState',
+          _allowedDashboardMapboxAssistStates,
+        ),
+        'mapboxAssistReason': _requiredDashboardSummaryToken(
+          mapboxAssistReason,
+          'mapboxAssistReason',
+          _allowedDashboardMapboxAssistReasons,
+        ),
+        'mapboxAssistReviewRequired': mapboxAssistReviewRequired,
+        'mapboxTrustedMileageSource': _requiredDashboardSummaryToken(
+          mapboxTrustedMileageSource,
+          'mapboxTrustedMileageSource',
+          _allowedDashboardMapboxTrustedMileageSources,
+        ),
+        if (mapboxRouteDistanceMiles != null)
+          'mapboxRouteDistanceMiles': _optionalDashboardMapboxMiles(
+            mapboxRouteDistanceMiles,
+            'mapboxRouteDistanceMiles',
+          ),
+        if (mapboxRouteDeltaMiles != null)
+          'mapboxRouteDeltaMiles': _optionalDashboardMapboxMiles(
+            mapboxRouteDeltaMiles,
+            'mapboxRouteDeltaMiles',
+          ),
         'storageState': _requiredDashboardSummaryToken(
           storageState,
           'storageState',
@@ -558,6 +590,7 @@ class MaintainiacFirestoreDocumentBuilder {
         'batteryGpsLimited': batteryGpsLimited,
         'reviewRequired': reviewRequired,
         'locationDataIncluded': false,
+        'mapboxRouteGeometryIncluded': false,
         'rawModuleDataIncluded': false,
       }),
     );
@@ -698,6 +731,36 @@ const _allowedDashboardGpsSignalReasons = <String>{
   'gps_signal_unsafe_provider_evidence',
 };
 
+const _allowedDashboardMapboxAssistStates = <String>{
+  'disabled',
+  'unavailable',
+  'rate_limited',
+  'rejected',
+  'visual_only',
+  'distance_review',
+};
+
+const _allowedDashboardMapboxAssistReasons = <String>{
+  'mapbox_assist_disabled',
+  'mapbox_route_unavailable',
+  'mapbox_rate_limited',
+  'mapbox_http_failure',
+  'mapbox_response_not_object',
+  'mapbox_service_code_not_ok',
+  'mapbox_routes_missing',
+  'mapbox_routes_invalid',
+  'invalid_map_assist_threshold',
+  'mapbox_visual_only_no_trusted_mileage',
+  'mapbox_visual_assist_only',
+  'mapbox_distance_review_only',
+};
+
+const _allowedDashboardMapboxTrustedMileageSources = <String>{
+  'none',
+  'odometer',
+  'gps_accepted',
+};
+
 const _allowedDashboardStorageStates = <String>{
   'unknown',
   'green',
@@ -753,6 +816,17 @@ double _optionalDashboardCalibrationMultiplier(double value) {
     );
   }
   return double.parse(value.toStringAsFixed(4));
+}
+
+double _optionalDashboardMapboxMiles(double value, String fieldName) {
+  if (!value.isFinite || value < 0 || value > 12500) {
+    throw ArgumentError.value(
+      value,
+      fieldName,
+      'Dashboard Mapbox route mileage must stay advisory and bounded.',
+    );
+  }
+  return double.parse(value.toStringAsFixed(3));
 }
 
 const _allowedDashboardWidgetTokens = <String>{

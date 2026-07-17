@@ -209,6 +209,36 @@ class MaintainiacFirestoreUploadPolicy {
     'gps_signal_unsafe_provider_evidence',
   };
 
+  static const _allowedDashboardMapboxAssistStates = <String>{
+    'disabled',
+    'unavailable',
+    'rate_limited',
+    'rejected',
+    'visual_only',
+    'distance_review',
+  };
+
+  static const _allowedDashboardMapboxAssistReasons = <String>{
+    'mapbox_assist_disabled',
+    'mapbox_route_unavailable',
+    'mapbox_rate_limited',
+    'mapbox_http_failure',
+    'mapbox_response_not_object',
+    'mapbox_service_code_not_ok',
+    'mapbox_routes_missing',
+    'mapbox_routes_invalid',
+    'invalid_map_assist_threshold',
+    'mapbox_visual_only_no_trusted_mileage',
+    'mapbox_visual_assist_only',
+    'mapbox_distance_review_only',
+  };
+
+  static const _allowedDashboardMapboxTrustedMileageSources = <String>{
+    'none',
+    'odometer',
+    'gps_accepted',
+  };
+
   static const _allowedStorageStates = <String>{
     'unknown',
     'green',
@@ -411,6 +441,12 @@ class MaintainiacFirestoreUploadPolicy {
       'gpsSignalQuality',
       'gpsSignalReason',
       'gpsSignalReviewRequired',
+      'mapboxAssistState',
+      'mapboxAssistReason',
+      'mapboxAssistReviewRequired',
+      'mapboxTrustedMileageSource',
+      'mapboxRouteDistanceMiles',
+      'mapboxRouteDeltaMiles',
       'storageState',
       'deviceCapabilityState',
       'sensorAssistState',
@@ -426,12 +462,14 @@ class MaintainiacFirestoreUploadPolicy {
       'batteryGpsLimited',
       'reviewRequired',
       'locationDataIncluded',
+      'mapboxRouteGeometryIncluded',
       'rawModuleDataIncluded',
     };
     final validShape =
         draft.data['schema'] == 'dashboard_command_center_summary_v1' &&
         draft.data['dashboardId'] == parts[3] &&
         draft.data['locationDataIncluded'] == false &&
+        draft.data['mapboxRouteGeometryIncluded'] == false &&
         draft.data['rawModuleDataIncluded'] == false &&
         draft.data.keys.every(allowed.contains) &&
         _isBoundedDashboardReference(draft.data['dashboardId']) &&
@@ -493,6 +531,21 @@ class MaintainiacFirestoreUploadPolicy {
           _allowedDashboardGpsSignalReasons,
         ) &&
         draft.data['gpsSignalReviewRequired'] is bool &&
+        _isAllowedString(
+          draft.data['mapboxAssistState'],
+          _allowedDashboardMapboxAssistStates,
+        ) &&
+        _isAllowedString(
+          draft.data['mapboxAssistReason'],
+          _allowedDashboardMapboxAssistReasons,
+        ) &&
+        draft.data['mapboxAssistReviewRequired'] is bool &&
+        _isAllowedString(
+          draft.data['mapboxTrustedMileageSource'],
+          _allowedDashboardMapboxTrustedMileageSources,
+        ) &&
+        _isValidDashboardMapboxMiles(draft.data['mapboxRouteDistanceMiles']) &&
+        _isValidDashboardMapboxMiles(draft.data['mapboxRouteDeltaMiles']) &&
         _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
         _isAllowedString(
           draft.data['deviceCapabilityState'],
@@ -767,6 +820,9 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isValidDashboardCalibrationMultiplier(Object? value) =>
       value == null || (value is num && value >= .8 && value <= 1.25);
+
+  static bool _isValidDashboardMapboxMiles(Object? value) =>
+      value == null || (value is num && value >= 0 && value <= 12500);
 
   static bool _hasValidDashboardTokenList(Object? value, Set<String> allowed) {
     if (value == null) return true;
