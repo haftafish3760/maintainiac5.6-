@@ -149,7 +149,7 @@ class TripTrackingNativeBridge(
             return
         }
         val interval = (call.argument<Number>("intervalMillis")?.toLong() ?: 5000L).coerceIn(1000L, 60000L)
-        val displacement = (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(0f, 100f)
+        val displacement = (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(1f, 100f)
         val intent = Intent(activity, TripTrackingForegroundService::class.java).apply {
             putExtra(TripTrackingForegroundService.intervalMillisExtra, interval)
             putExtra(TripTrackingForegroundService.minimumDisplacementExtra, displacement)
@@ -189,7 +189,7 @@ class TripTrackingNativeBridge(
         }
         val intent = Intent(activity, TripTrackingForegroundService::class.java).apply {
             putExtra(TripTrackingForegroundService.intervalMillisExtra, (call.argument<Number>("intervalMillis")?.toLong() ?: 5000L).coerceIn(1000L, 60000L))
-            putExtra(TripTrackingForegroundService.minimumDisplacementExtra, (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(0f, 100f))
+            putExtra(TripTrackingForegroundService.minimumDisplacementExtra, (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(1f, 100f))
             putExtra(TripTrackingForegroundService.activityRecognitionEnabledExtra, call.argument<Boolean>("activityRecognitionEnabled") == true)
         }
         activity.startService(intent)

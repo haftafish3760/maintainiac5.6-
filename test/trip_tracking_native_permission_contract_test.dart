@@ -203,4 +203,13 @@ void main() {
       expect(android, contains('PendingIntent.getService'));
     },
   );
+
+  test('Android native sampling updates never request zero displacement', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+
+    expect(android, contains('coerceIn(1f, 100f)'));
+    expect(android, isNot(contains('coerceIn(0f, 100f)')));
+  });
 }
