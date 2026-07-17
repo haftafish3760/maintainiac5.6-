@@ -2620,6 +2620,70 @@ void main() {
     expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isFalse);
     expect(mirror.reviews, isEmpty);
   });
+
+  test(
+    'confirmation blocks a trip starting below the previous confirmed ending',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final previous =
+          TripTrackingReviewRecord(
+            id: 'trip_previous_confirmed',
+            vehicleId: 'vehicle_1',
+            startingOdometer: 1000,
+            estimatedEndingOdometer: 1200,
+            profile: TripTrackingProfile.roadVehicle,
+            startedAt: DateTime.utc(2026, 7, 13, 8),
+            finishedAt: DateTime.utc(2026, 7, 13, 10),
+            engineSnapshot: const TripTrackingEngineSnapshot(
+              totalAcceptedMeters: 32186.88,
+              walkingReviewSuggested: false,
+            ),
+          ).copyWith(
+            confirmedEndingOdometer: 1200,
+            odometerConfirmedAt: DateTime.utc(2026, 7, 13, 10, 5),
+          );
+      final current = TripTrackingReviewRecord(
+        id: 'trip_overlap_confirmation',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1199,
+        estimatedEndingOdometer: 1210,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 14, 8),
+        finishedAt: DateTime.utc(2026, 7, 14, 10),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 16093.44,
+          walkingReviewSuggested: false,
+        ),
+      );
+      await store.saveReview(previous);
+      await store.saveReview(current);
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1199,
+      );
+      final mirror = _FakeTripTrackingCloudMirror();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        cloudMirror: mirror,
+      );
+
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: current.id,
+          confirmedEndingOdometer: 1210,
+          confirmedAt: DateTime.utc(2026, 7, 14, 10, 5),
+        ),
+        isFalse,
+      );
+
+      expect(controller.platformStatus, 'odometer_continuity_invalid');
+      expect(controller.platformError, contains('previous confirmed odometer'));
+      expect(store.reviewForTrip(current.id)?.isOdometerConfirmed, isFalse);
+      expect(odometer.confirmedReading, 1199);
+      expect(mirror.reviews, isEmpty);
+    },
+  );
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {

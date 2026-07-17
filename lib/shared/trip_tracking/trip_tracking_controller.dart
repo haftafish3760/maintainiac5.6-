@@ -8,6 +8,7 @@ import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
+import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_platform.dart';
 import 'trip_tracking_policy.dart';
 import 'trip_tracking_session_store.dart';
@@ -93,6 +94,14 @@ class TripTrackingController extends ChangeNotifier {
     }
     final confirmationTime = confirmedAt ?? DateTime.now();
     if (confirmationTime.isBefore(review.finishedAt)) return false;
+    final continuity = _continuityAgainstPreviousConfirmedReview(review);
+    if (continuity.shouldBlockConfirmation) {
+      _platformStatus = 'odometer_continuity_invalid';
+      _platformError =
+          'This trip starts below the previous confirmed odometer for this vehicle. Review the starting and ending odometer readings before confirming.';
+      notifyListeners();
+      return false;
+    }
     final odometerMileageReview = const OdometerMileageReview(
       use: OdometerMileageUse.unresolved,
     );
@@ -146,6 +155,31 @@ class TripTrackingController extends ChangeNotifier {
     }
     notifyListeners();
     return true;
+  }
+
+  TripOdometerContinuityCheck _continuityAgainstPreviousConfirmedReview(
+    TripTrackingReviewRecord review,
+  ) {
+    final previous = _sessionStore.pendingReviews
+        .where(
+          (candidate) =>
+              candidate.id != review.id &&
+              candidate.vehicleId == review.vehicleId &&
+              candidate.isOdometerConfirmed &&
+              candidate.finishedAt.isBefore(review.startedAt),
+        )
+        .firstOrNull;
+    if (previous == null) {
+      return const TripOdometerContinuityCheck(
+        status: TripOdometerContinuityStatus.insufficientData,
+        odometerGapMiles: 0,
+        reasonCode: 'missing_same_vehicle_confirmed_history',
+      );
+    }
+    return TripOdometerContinuityCheck.betweenReviews(
+      previous: previous,
+      next: review,
+    );
   }
 
   /// Retries locally durable mileage backups without touching the active trip
