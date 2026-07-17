@@ -77,6 +77,31 @@ void main() {
     },
   );
 
+  test('long tunnel-style GPS outage reanchors before resuming mileage', () {
+    final result = replayTrip([
+      SimulatedTripPoint(point(-80, 0, speed: 9)),
+      SimulatedTripPoint(point(-79.999, 20, speed: 9)),
+      SimulatedTripPoint(point(-79.95, 600, speed: 9)),
+      SimulatedTripPoint(point(-79.949, 620, speed: 9)),
+    ]);
+
+    expect(result.count(TripSampleDisposition.rejectedGap), 1);
+    expect(result.acceptedMeters, greaterThan(80));
+    expect(result.acceptedMeters, lessThan(250));
+  });
+
+  test('single walking blip at a light does not become a stop review', () {
+    final result = replayTrip([
+      SimulatedTripPoint(point(-80, 0, speed: 9)),
+      SimulatedTripPoint(point(-79.999, 20, speed: 9)),
+      SimulatedTripPoint(point(-79.999, 45, speed: 0), activity: walking(45)),
+      SimulatedTripPoint(point(-79.998, 70, speed: 9)),
+    ], profile: TripTrackingProfile.deliveryVehicle);
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.acceptedMeters, greaterThan(150));
+  });
+
   test('leaving a vehicle and walking excludes confirmed on-foot movement', () {
     final points = <SimulatedTripPoint>[SimulatedTripPoint(point(-80, 0))];
     for (var index = 1; index <= 7; index++) {
@@ -217,31 +242,28 @@ void main() {
     },
   );
 
-  test(
-    'stale walking sensor state does not strip later vehicle mileage',
-    () {
-      final staleWalking = TripActivityObservation(
-        activity: TripActivity.walking,
-        confidence: 95,
-        recordedAt: start.add(const Duration(seconds: 10)),
-      );
-      final result = replayTrip([
-        SimulatedTripPoint(point(-80, 0, speed: 8)),
-        SimulatedTripPoint(point(-79.999, 20, speed: 8)),
-        SimulatedTripPoint(point(-79.998, 95, speed: 8), activity: staleWalking),
-        SimulatedTripPoint(point(-79.997, 115, speed: 8)),
-      ], profile: TripTrackingProfile.deliveryVehicle);
+  test('stale walking sensor state does not strip later vehicle mileage', () {
+    final staleWalking = TripActivityObservation(
+      activity: TripActivity.walking,
+      confidence: 95,
+      recordedAt: start.add(const Duration(seconds: 10)),
+    );
+    final result = replayTrip([
+      SimulatedTripPoint(point(-80, 0, speed: 8)),
+      SimulatedTripPoint(point(-79.999, 20, speed: 8)),
+      SimulatedTripPoint(point(-79.998, 95, speed: 8), activity: staleWalking),
+      SimulatedTripPoint(point(-79.997, 115, speed: 8)),
+    ], profile: TripTrackingProfile.deliveryVehicle);
 
-      expect(result.needsWalkingReview, isFalse);
-      expect(result.motionState, TripMotionState.moving);
-      expect(result.count(TripSampleDisposition.excludedWalking), isZero);
-      expect(
-        result.count(TripSampleDisposition.acceptedDistance),
-        greaterThanOrEqualTo(3),
-      );
-      expect(result.acceptedMeters, greaterThan(250));
-    },
-  );
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.motionState, TripMotionState.moving);
+    expect(result.count(TripSampleDisposition.excludedWalking), isZero);
+    expect(
+      result.count(TripSampleDisposition.acceptedDistance),
+      greaterThanOrEqualTo(3),
+    );
+    expect(result.acceptedMeters, greaterThan(250));
+  });
 
   test(
     'a passenger delivery with the tracked phone parked stays vehicle-only',
