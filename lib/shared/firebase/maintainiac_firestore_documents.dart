@@ -355,11 +355,20 @@ class MaintainiacFirestoreDocumentBuilder {
         'updatedByUid': safeUid,
         'updatedAt': updatedAtUtc.toUtc().toIso8601String(),
         if (activeVehicleId != null)
-          'activeVehicleId': _safePathToken(activeVehicleId),
+          'activeVehicleId': _requiredSafePathToken(
+            activeVehicleId,
+            'activeVehicleId',
+          ),
         if (activeWorkdayId != null)
-          'activeWorkdayId': _safePathToken(activeWorkdayId),
+          'activeWorkdayId': _requiredSafePathToken(
+            activeWorkdayId,
+            'activeWorkdayId',
+          ),
         if (activeWorkProfileId != null)
-          'activeWorkProfileId': _safePathToken(activeWorkProfileId),
+          'activeWorkProfileId': _requiredSafePathToken(
+            activeWorkProfileId,
+            'activeWorkProfileId',
+          ),
         'dashboardMode': _safeToken(dashboardMode),
         'mileageMode': _safeToken(mileageMode),
         'syncMode': _safeToken(syncMode),

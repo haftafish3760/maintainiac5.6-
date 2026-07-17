@@ -107,6 +107,34 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('dashboard summaries reject blank optional reference ids', () {
+    for (final entry in const <String, String>{
+      'activeVehicleId': ' /// ',
+      'activeWorkdayId': ' /// ',
+      'activeWorkProfileId': ' /// ',
+    }.entries) {
+      expect(
+        () =>
+            MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+              uid: 'firebaseUid-1',
+              dashboardId: 'today',
+              updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+              activeVehicleId: entry.key == 'activeVehicleId'
+                  ? entry.value
+                  : null,
+              activeWorkdayId: entry.key == 'activeWorkdayId'
+                  ? entry.value
+                  : null,
+              activeWorkProfileId: entry.key == 'activeWorkProfileId'
+                  ? entry.value
+                  : null,
+            ),
+        throwsArgumentError,
+        reason: '${entry.key} must fail closed when provided but blank',
+      );
+    }
+  });
+
   test('dashboard upload policy rejects unknown mode and state values', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
