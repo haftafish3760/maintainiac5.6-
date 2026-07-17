@@ -1635,6 +1635,37 @@ void main() {
     expect(queue.pendingRecords.single.nextAttemptAtUtc, isNotNull);
   });
 
+  test('manual trip backup requeue preserves queue backoff', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _RecordingSink(),
+        uploadEnabled: true,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await mirror.queueReview(review());
+    await queue.markAttempted(
+      queue.pendingRecords.single,
+      error: 'temporary outage near 35.12345,-80.45678',
+      nowUtc: DateTime.utc(2026, 7, 14, 13, 5),
+    );
+    final attempted = queue.pendingRecords.single;
+
+    await mirror.queueReview(review());
+
+    final refreshed = queue.pendingRecords.single;
+    expect(refreshed.attemptCount, attempted.attemptCount);
+    expect(refreshed.nextAttemptAtUtc, attempted.nextAttemptAtUtc);
+    expect(refreshed.lastError, contains('coordinates redacted'));
+  });
+
   test('network-blocked trip backup remains pending for retry', () async {
     final localStore = TripTrackingSessionStore.memory();
     final queue = await MaintainiacFirestoreUploadQueueStore.create();

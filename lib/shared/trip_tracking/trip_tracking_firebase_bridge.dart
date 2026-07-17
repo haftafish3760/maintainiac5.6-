@@ -161,6 +161,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     await _queueStore.enqueueReplacingPendingForPath(
       document,
       queuedAtUtc: boundReview.finishedAt.toUtc(),
+      preserveAttemptMetadata: true,
     );
     await _saveReviewState(
       boundReview.copyWith(
