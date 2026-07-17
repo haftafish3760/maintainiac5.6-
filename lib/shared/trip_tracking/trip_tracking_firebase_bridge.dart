@@ -126,7 +126,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       );
       throw StateError(_unsafeAccountMessage);
     }
-    if (_usesOrganizationBackup && !(_orgId?.trim().isNotEmpty ?? false)) {
+    if (_usesOrganizationBackup && !_hasUsableOrganizationId) {
       const message = _missingOrganizationMessage;
       await _saveReviewState(
         review.copyWith(
@@ -258,7 +258,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       }
       return;
     }
-    if (_usesOrganizationBackup && !(_orgId?.trim().isNotEmpty ?? false)) {
+    if (_usesOrganizationBackup && !_hasUsableOrganizationId) {
       if (localStore != null) {
         for (final review in localStore.pendingReviews) {
           if (review.cloudSyncState == TripTrackingCloudSyncState.synced ||
@@ -414,6 +414,11 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       // A broken consent/settings read must fail closed to private backup.
       return false;
     }
+  }
+
+  bool get _hasUsableOrganizationId {
+    final orgId = _orgId?.trim();
+    return orgId != null && orgId.isNotEmpty && _isSafeFirestoreUid(orgId);
   }
 
   bool _isReviewEligibleForBackup(TripTrackingReviewRecord review) =>
