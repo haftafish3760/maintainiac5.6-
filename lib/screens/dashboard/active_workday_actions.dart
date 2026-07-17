@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../shared/theme/app_action_colors.dart';
 
@@ -271,3 +272,48 @@ WorkdayQuickActionKind? _actionKindFromName(String rawKind) {
 final Map<WorkdayQuickActionKind, WorkdayQuickActionSpec> _actionByKind = {
   for (final action in availableWorkdayQuickActions) action.kind: action,
 };
+
+class WorkdayQuickActionLayoutController extends ChangeNotifier {
+  WorkdayQuickActionLayoutController._(this._box, this._layout);
+  WorkdayQuickActionLayoutController.memory([WorkdayQuickActionLayout? layout])
+    : _box = null,
+      _layout = layout ?? WorkdayQuickActionLayout.defaults();
+
+  static const boxName = 'dashboard_quick_action_layout';
+  static const _layoutKey = 'activeWorkday';
+
+  final Box<dynamic>? _box;
+  WorkdayQuickActionLayout _layout;
+
+  WorkdayQuickActionLayout get layout => _layout;
+
+  static Future<WorkdayQuickActionLayoutController> create() async {
+    final box = await Hive.openBox<dynamic>(boxName);
+    final stored = box.get(_layoutKey);
+    return WorkdayQuickActionLayoutController._(
+      box,
+      stored is Map
+          ? WorkdayQuickActionLayout.fromMap(stored)
+          : WorkdayQuickActionLayout.defaults(),
+    );
+  }
+
+  Future<void> update(WorkdayQuickActionLayout layout) async {
+    final normalized = WorkdayQuickActionLayout.fromMap(layout.toMap());
+    if (_sameActionKinds(_layout.activeKinds, normalized.activeKinds)) return;
+    _layout = normalized;
+    await _box?.put(_layoutKey, normalized.toMap());
+    notifyListeners();
+  }
+}
+
+bool _sameActionKinds(
+  List<WorkdayQuickActionKind> left,
+  List<WorkdayQuickActionKind> right,
+) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index += 1) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
+}

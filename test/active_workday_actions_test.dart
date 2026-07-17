@@ -58,4 +58,30 @@ void main() {
       defaultWorkdayQuickActionKinds,
     );
   });
+
+  test(
+    'quick action layout controller normalizes updates and notifies once',
+    () async {
+      final controller = WorkdayQuickActionLayoutController.memory();
+      var notifications = 0;
+      controller.addListener(() => notifications++);
+
+      await controller.update(
+        WorkdayQuickActionLayout.fromMap(const {
+          'activeKinds': ['addStop', 'addStop', 'expense', 'unknownKind'],
+        }),
+      );
+      await controller.update(
+        WorkdayQuickActionLayout.fromMap(const {
+          'activeKinds': ['addStop', 'expense'],
+        }),
+      );
+
+      expect(controller.layout.activeKinds, [
+        WorkdayQuickActionKind.addStop,
+        WorkdayQuickActionKind.expense,
+      ]);
+      expect(notifications, 1);
+    },
+  );
 }
