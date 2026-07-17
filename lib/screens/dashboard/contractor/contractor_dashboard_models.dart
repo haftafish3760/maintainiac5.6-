@@ -9,6 +9,7 @@ enum ContractorCommandTarget {
   createInvoice,
   recordPayment,
   estimate,
+  addStop,
   note,
 }
 
@@ -169,7 +170,7 @@ const contractorActiveCommands = [
     label: 'Add Stop',
     icon: Icons.place_rounded,
     color: Color(0xFF2E6FA8),
-    target: ContractorCommandTarget.note,
+    target: ContractorCommandTarget.addStop,
   ),
   ContractorCommand(
     label: 'Job Note',

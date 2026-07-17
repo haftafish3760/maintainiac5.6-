@@ -97,6 +97,13 @@ void main() {
       activeWorkday.activeSession?.events.last.type,
       ActiveWorkdayEventType.stop,
     );
+
+    await tester.tap(find.text('Job Note'));
+    await tester.pumpAndSettle();
+    expect(
+      activeWorkday.activeSession?.events.last.type,
+      ActiveWorkdayEventType.note,
+    );
   });
 
   testWidgets('contractor day controls persist pause resume and end events', (

@@ -229,6 +229,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         );
       case ContractorCommandTarget.recordPayment:
         _showPending(command.label);
+      case ContractorCommandTarget.addStop:
       case ContractorCommandTarget.note:
         await _recordQuickActiveDayEvent(command);
     }
@@ -241,7 +242,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
       _showPending(command.label);
       return;
     }
-    final type = command.label == 'Add Stop'
+    final type = command.target == ContractorCommandTarget.addStop
         ? ActiveWorkdayEventType.stop
         : ActiveWorkdayEventType.note;
     final updated = await _recordContractorDayEvent(activeWorkday, type);
