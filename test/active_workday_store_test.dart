@@ -341,6 +341,39 @@ void main() {
     ]);
   });
 
+  test('active workday import references must be safe tokens', () async {
+    final store = ActiveWorkdayController.memory();
+    await store.startDay(
+      vehicleId: 'vehicle_1',
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+    );
+
+    await expectLater(
+      store.addEvent(
+        type: ActiveWorkdayEventType.expense,
+        odometerReading: 1001,
+        sourceType: 'expense\nentry',
+        sourceId: 'expense_1',
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.addEvent(
+        type: ActiveWorkdayEventType.expense,
+        odometerReading: 1001,
+        sourceType: 'expense',
+        sourceId: ' receipt/path ',
+      ),
+      throwsArgumentError,
+    );
+
+    expect(store.activeSession?.events.map((event) => event.type), [
+      ActiveWorkdayEventType.started,
+    ]);
+  });
+
   test(
     'active workday events cannot persist before the day start time',
     () async {
@@ -791,6 +824,43 @@ void main() {
 
     expect(restored.hasValidIdentity, isFalse);
     expect(restored.events.single.hasValidIdentity, isFalse);
+  });
+
+  test('restored active workday import references must be safe tokens', () {
+    for (final event in [
+      {
+        'id': 'unsafe-source-type',
+        'type': 'expense',
+        'occurredAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+        'odometerReading': 1201,
+        'label': 'Expense opened',
+        'sourceType': 'expense\nentry',
+        'sourceId': 'expense_1',
+      },
+      {
+        'id': 'unsafe-source-id',
+        'type': 'expense',
+        'occurredAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+        'odometerReading': 1201,
+        'label': 'Expense opened',
+        'sourceType': 'expense',
+        'sourceId': 'expense/../other',
+      },
+    ]) {
+      final restored = ActiveWorkdaySessionRecord.fromMap({
+        'id': 'unsafe-import-reference-workday',
+        'vehicleId': 'truck-1',
+        'vehicleLabel': 'Work Truck 1',
+        'workProfileId': 'Business',
+        'startedAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+        'startOdometer': 1200,
+        'status': 'active',
+        'events': [event],
+      });
+
+      expect(restored.hasValidIdentity, isFalse);
+      expect(restored.events.single.hasValidIdentity, isFalse);
+    }
   });
 
   test('active workday serialization never writes negative odometers', () {

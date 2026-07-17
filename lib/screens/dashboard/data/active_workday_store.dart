@@ -89,7 +89,9 @@ class ActiveWorkdayEvent {
       sourceId: _optionalSafeText(map['sourceId'], maxLength: 160),
       hasValidIdentity:
           _isSafeActiveWorkdayIdValue(rawId) &&
-          _hasKnownEventTypeName(rawType),
+          _hasKnownEventTypeName(rawType) &&
+          _isSafeOptionalActiveWorkdayReference(map['sourceType']) &&
+          _isSafeOptionalActiveWorkdayReference(map['sourceId']),
     );
   }
 }
@@ -488,6 +490,20 @@ class ActiveWorkdayController extends ChangeNotifier {
         'Event time cannot be in the future.',
       );
     }
+    if (!_isSafeOptionalActiveWorkdayReference(sourceType)) {
+      throw ArgumentError.value(
+        sourceType,
+        'sourceType',
+        'Dashboard event source types must be safe reference tokens.',
+      );
+    }
+    if (!_isSafeOptionalActiveWorkdayReference(sourceId)) {
+      throw ArgumentError.value(
+        sourceId,
+        'sourceId',
+        'Dashboard event source ids must be safe reference tokens.',
+      );
+    }
     final event = ActiveWorkdayEvent(
       id: _newId('event'),
       type: type,
@@ -674,6 +690,11 @@ bool _isSafeActiveWorkdayIdValue(Object? value) {
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   return clean == value && clean.isNotEmpty && clean.length <= 160;
 }
+
+bool _isSafeOptionalActiveWorkdayReference(Object? value) =>
+    value == null ||
+    (_isSafeActiveWorkdayIdValue(value) &&
+        RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(value as String));
 
 int? _safeOdometer(Object? value) {
   if (value is! num || !value.isFinite) return null;
