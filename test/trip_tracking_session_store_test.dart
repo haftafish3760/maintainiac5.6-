@@ -333,6 +333,44 @@ void main() {
     expect(restored.isOdometerConfirmed, isFalse);
   });
 
+  test('persisted GPS trip records never write negative odometers', () {
+    final session = TripTrackingSessionRecord(
+      id: 'trip_negative_session_odometer',
+      vehicleId: 'vehicle_1',
+      startingOdometer: -50,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      updatedAt: DateTime.utc(2026, 7, 14, 12, 1),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    );
+    final review = TripTrackingReviewRecord(
+      id: 'trip_negative_review_odometer',
+      vehicleId: 'vehicle_1',
+      startingOdometer: -100,
+      estimatedEndingOdometer: -90,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+      confirmedEndingOdometer: -80,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 5),
+    );
+
+    final sessionMap = session.toMap();
+    final reviewMap = review.toMap();
+
+    expect(sessionMap['startingOdometer'], isZero);
+    expect(reviewMap['startingOdometer'], isZero);
+    expect(reviewMap['estimatedEndingOdometer'], isZero);
+    expect(reviewMap, isNot(contains('confirmedEndingOdometer')));
+  });
+
   test('persisted review identity and odometer ranges are validated', () {
     final base = TripTrackingReviewRecord(
       id: 'trip_review_identity',
@@ -383,5 +421,39 @@ void main() {
     });
 
     expect(session.startingOdometer, isZero);
+  });
+
+  test('negative persisted active-trip odometers recover safely', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_negative_active_odometer',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': -120,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_negative_review_recovery',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': -10,
+      'estimatedEndingOdometer': -5,
+      'confirmedEndingOdometer': -1,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'finishedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    expect(session.startingOdometer, isZero);
+    expect(review.startingOdometer, isZero);
+    expect(review.estimatedEndingOdometer, isZero);
+    expect(review.confirmedEndingOdometer, isNull);
   });
 }

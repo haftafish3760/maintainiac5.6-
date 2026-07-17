@@ -60,7 +60,7 @@ class TripTrackingSessionRecord {
   Map<String, Object?> toMap() => {
     'id': id,
     'vehicleId': vehicleId,
-    'startingOdometer': startingOdometer,
+    'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
     'startedAt': startedAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
@@ -209,8 +209,8 @@ class TripTrackingReviewRecord {
   Map<String, Object?> toMap() => {
     'id': id,
     'vehicleId': vehicleId,
-    'startingOdometer': startingOdometer,
-    'estimatedEndingOdometer': estimatedEndingOdometer,
+    'startingOdometer': _persistedOdometerValue(startingOdometer),
+    'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
     'startedAt': startedAt.toIso8601String(),
     'finishedAt': finishedAt.toIso8601String(),
@@ -222,8 +222,10 @@ class TripTrackingReviewRecord {
     if (cloudSyncError != null) 'cloudSyncError': cloudSyncError,
     if (cloudSyncedAt != null)
       'cloudSyncedAt': cloudSyncedAt!.toUtc().toIso8601String(),
-    if (confirmedEndingOdometer != null)
-      'confirmedEndingOdometer': confirmedEndingOdometer,
+    if (_optionalPersistedOdometerValue(confirmedEndingOdometer) != null)
+      'confirmedEndingOdometer': _optionalPersistedOdometerValue(
+        confirmedEndingOdometer,
+      ),
     if (odometerConfirmedAt != null)
       'odometerConfirmedAt': odometerConfirmedAt!.toUtc().toIso8601String(),
     'schemaVersion': schemaVersion,
@@ -305,12 +307,14 @@ int _sessionSchemaVersion(Object? value) {
 
 int _persistedOdometerValue(Object? value) {
   if (value is! num || !value.isFinite) return 0;
-  return value.round();
+  final odometer = value.round();
+  return odometer < 0 ? 0 : odometer;
 }
 
 int? _optionalPersistedOdometerValue(Object? value) {
   if (value is! num || !value.isFinite) return null;
-  return value.round();
+  final odometer = value.round();
+  return odometer < 0 ? null : odometer;
 }
 
 /// One durable, bounded checkpoint for a sample currently entering the shared
