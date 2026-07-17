@@ -169,6 +169,29 @@ class TripOdometerCalibrationSignal {
   bool get shouldPromptUser =>
       status == TripOdometerCalibrationStatus.reviewRecommended;
 
+  bool get maySuggestTireOrSpeedometerReview =>
+      shouldPromptUser &&
+      averageDifferencePercent.isFinite &&
+      averageDifferencePercent >= 4;
+
+  String get userReviewPrompt {
+    if (!maySuggestTireOrSpeedometerReview) return '';
+    final direction = averageGpsToOdometerRatio > 1
+        ? 'higher than'
+        : 'lower than';
+    return 'GPS-assisted mileage has been consistently $direction your confirmed odometer mileage across $eligibleSampleCount reviewed driving days. Review tire size, speedometer calibration, or GPS settings before applying any advisory calibration.';
+  }
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'status': status.name,
+    'eligibleSampleCount': eligibleSampleCount < 0 ? 0 : eligibleSampleCount,
+    'averageDifferencePercent': _safeRoundedPercent(averageDifferencePercent),
+    'reasonCode': _safeCalibrationReason(reasonCode),
+    'shouldPromptUser': shouldPromptUser,
+    'maySuggestTireOrSpeedometerReview': maySuggestTireOrSpeedometerReview,
+    'canOverwriteConfirmedOdometer': false,
+  };
+
   /// Multiplier future GPS assistance may apply to its estimated distance when
   /// a user accepts calibration guidance. It is intentionally advisory and
   /// never changes confirmed odometer records by itself.
@@ -336,6 +359,23 @@ class TripOdometerCalibrationSignal {
       maximumEligibleDifferencePercent: maximumEligibleDifferencePercent,
     );
   }
+}
+
+double _safeRoundedPercent(double value) {
+  if (!value.isFinite || value < 0) return 0;
+  return (value * 10).round() / 10;
+}
+
+String _safeCalibrationReason(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'invalid_calibration_threshold' => clean,
+    'needs_more_reviewed_days' => clean,
+    'mixed_vehicle_calibration_history' => clean,
+    'persistent_gps_odometer_drift' => clean,
+    'calibration_stable' => clean,
+    _ => 'unknown_calibration_state',
+  };
 }
 
 class _DailyCalibrationTotals {

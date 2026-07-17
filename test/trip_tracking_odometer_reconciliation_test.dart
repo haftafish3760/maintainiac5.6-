@@ -889,4 +889,48 @@ void main() {
     expect(signal.eligibleSampleCount, 7);
     expect(signal.reasonCode, 'persistent_gps_odometer_drift');
   });
+
+  test('calibration signal provides safe tire-size review guidance', () {
+    const signal = TripOdometerCalibrationSignal(
+      status: TripOdometerCalibrationStatus.reviewRecommended,
+      eligibleSampleCount: 7,
+      averageGpsToOdometerRatio: 1.06,
+      averageDifferencePercent: 6.234,
+      reasonCode: 'persistent_gps_odometer_drift',
+    );
+
+    expect(signal.maySuggestTireOrSpeedometerReview, isTrue);
+    expect(signal.userReviewPrompt, contains('tire size'));
+    expect(signal.userReviewPrompt, contains('speedometer calibration'));
+    expect(signal.userReviewPrompt, contains('advisory calibration'));
+    expect(signal.toSafeDashboardMap(), {
+      'status': 'reviewRecommended',
+      'eligibleSampleCount': 7,
+      'averageDifferencePercent': 6.2,
+      'reasonCode': 'persistent_gps_odometer_drift',
+      'shouldPromptUser': true,
+      'maySuggestTireOrSpeedometerReview': true,
+      'canOverwriteConfirmedOdometer': false,
+    });
+  });
+
+  test('safe calibration summaries reject unknown reason text', () {
+    const signal = TripOdometerCalibrationSignal(
+      status: TripOdometerCalibrationStatus.reviewRecommended,
+      eligibleSampleCount: -3,
+      averageGpsToOdometerRatio: .98,
+      averageDifferencePercent: double.nan,
+      reasonCode: 'token=pk.secret latitude=35.1',
+    );
+
+    final summary = signal.toSafeDashboardMap();
+
+    expect(signal.maySuggestTireOrSpeedometerReview, isFalse);
+    expect(signal.userReviewPrompt, isEmpty);
+    expect(summary['eligibleSampleCount'], 0);
+    expect(summary['averageDifferencePercent'], 0);
+    expect(summary['reasonCode'], 'unknown_calibration_state');
+    expect(summary.toString(), isNot(contains('pk.secret')));
+    expect(summary.toString(), isNot(contains('35.1')));
+  });
 }
