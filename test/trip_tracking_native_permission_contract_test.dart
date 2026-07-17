@@ -212,4 +212,19 @@ void main() {
     expect(android, contains('coerceIn(1f, 100f)'));
     expect(android, isNot(contains('coerceIn(0f, 100f)')));
   });
+
+  test('iOS native sampling never requests zero displacement', () {
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(
+      ios,
+      contains('locationManager.distanceFilter = max(1, displacement)'),
+    );
+    expect(
+      ios,
+      isNot(contains('locationManager.distanceFilter = max(0, displacement)')),
+    );
+  });
 }
