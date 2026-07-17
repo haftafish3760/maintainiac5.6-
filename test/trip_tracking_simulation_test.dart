@@ -165,6 +165,43 @@ void main() {
   );
 
   test(
+    'a passenger delivery with the tracked phone parked stays vehicle-only',
+    () {
+      final points = <SimulatedTripPoint>[
+        SimulatedTripPoint(point(-80, 0, speed: 8)),
+        SimulatedTripPoint(point(-79.999, 20, speed: 8)),
+        SimulatedTripPoint(point(-79.998, 40, speed: 8)),
+      ];
+      for (var index = 0; index < 8; index++) {
+        points.add(
+          SimulatedTripPoint(
+            point(
+              -79.998 + ((index.isEven ? 1 : -1) * .000008),
+              60 + (index * 20),
+              speed: 0,
+            ),
+          ),
+        );
+      }
+      points.addAll([
+        SimulatedTripPoint(point(-79.9972, 235, speed: 8)),
+        SimulatedTripPoint(point(-79.9962, 255, speed: 8)),
+      ]);
+
+      final result = replayTrip(points);
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.count(TripSampleDisposition.excludedWalking), isZero);
+      expect(
+        result.count(TripSampleDisposition.rejectedDrift),
+        greaterThanOrEqualTo(6),
+      );
+      expect(result.acceptedMeters, greaterThan(250));
+      expect(result.acceptedMeters, lessThan(500));
+    },
+  );
+
+  test(
     'spoof-like jumps, timestamp reversals, and malformed points fail closed',
     () {
       final result = replayTrip([
