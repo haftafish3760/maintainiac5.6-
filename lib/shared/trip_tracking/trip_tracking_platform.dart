@@ -267,7 +267,7 @@ class TripTrackingPlatformEvent {
         ? TripActivityObservation.tryFromMap(map)
         : null;
     final status = declaredType == TripTrackingPlatformEventType.status
-        ? _safePlatformToken(map['status'])
+        ? _safePlatformStatus(map['status'])
         : null;
     final type =
         declaredType == TripTrackingPlatformEventType.location &&
@@ -322,6 +322,14 @@ String? _safePlatformToken(Object? value) {
   final clean = value.trim();
   if (clean.isEmpty || clean.length > 80) return null;
   return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : null;
+}
+
+String? _safePlatformStatus(Object? value) {
+  final clean = _safePlatformToken(value);
+  return switch (clean) {
+    'idle' || 'tracking' || 'stopped' => clean,
+    _ => null,
+  };
 }
 
 String? _safePlatformMessage(Object? value) {
