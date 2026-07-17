@@ -266,19 +266,43 @@ class TripOdometerCalibrationSignal {
 
   static TripOdometerCalibrationSignal evaluateConfirmedReviews({
     required Iterable<TripTrackingReviewRecord> reviews,
+    String? vehicleId,
     int minimumSamples = 7,
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
   }) {
-    final reconciliations = reviews
-        .where((review) => review.isOdometerConfirmed)
-        .map(
-          (review) => TripOdometerReconciliation.compare(
-            review: review,
-            confirmedEndingOdometer: review.confirmedEndingOdometer!,
-          ),
-        );
+    final requestedVehicleId = vehicleId?.trim();
+    final confirmedReviews = reviews
+        .where(
+          (review) =>
+              review.isOdometerConfirmed &&
+              review.vehicleId.trim().isNotEmpty &&
+              (requestedVehicleId == null ||
+                  requestedVehicleId.isEmpty ||
+                  review.vehicleId.trim() == requestedVehicleId),
+        )
+        .toList(growable: false);
+    final vehicleIds = confirmedReviews
+        .map((review) => review.vehicleId)
+        .toSet();
+    if ((requestedVehicleId == null || requestedVehicleId.isEmpty) &&
+        vehicleIds.length > 1) {
+      return const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: 0,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'mixed_vehicle_calibration_history',
+      );
+    }
+
+    final reconciliations = confirmedReviews.map(
+      (review) => TripOdometerReconciliation.compare(
+        review: review,
+        confirmedEndingOdometer: review.confirmedEndingOdometer!,
+      ),
+    );
     return evaluate(
       history: reconciliations,
       minimumSamples: minimumSamples,

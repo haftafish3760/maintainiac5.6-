@@ -409,6 +409,53 @@ void main() {
     expect(signal.canOverwriteConfirmedOdometer, isFalse);
   });
 
+  test(
+    'calibration history fails closed when confirmed reviews mix vehicles',
+    () {
+      final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+      final reviews = List.generate(
+        7,
+        (index) => TripTrackingReviewRecord(
+          id: 'trip_mixed_vehicle_$index',
+          vehicleId: index == 0 ? 'vehicle_2' : 'vehicle_1',
+          startingOdometer: 1000 + (index * 100),
+          estimatedEndingOdometer: 1100 + (index * 100),
+          confirmedEndingOdometer: 1100 + (index * 100),
+          odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+          finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 94 * 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+
+      final mixedSignal =
+          TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+            reviews: reviews,
+          );
+      final scopedSignal =
+          TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+            reviews: reviews,
+            vehicleId: 'vehicle_1',
+            minimumSamples: 6,
+          );
+
+      expect(
+        mixedSignal.status,
+        TripOdometerCalibrationStatus.insufficientHistory,
+      );
+      expect(mixedSignal.reasonCode, 'mixed_vehicle_calibration_history');
+      expect(
+        scopedSignal.status,
+        TripOdometerCalibrationStatus.reviewRecommended,
+      );
+      expect(scopedSignal.eligibleSampleCount, 6);
+    },
+  );
+
   test('mixed drift directions do not trigger a tire-size style warning', () {
     final history = List.generate(7, (index) {
       final gpsMiles = index.isEven ? 94.0 : 106.0;
