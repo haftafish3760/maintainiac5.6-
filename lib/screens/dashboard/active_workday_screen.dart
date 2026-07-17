@@ -193,6 +193,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
 
     return [
       const WorkdayQuickActionSpec(
+        kind: WorkdayQuickActionKind.resumeDay,
         icon: Icons.play_arrow_rounded,
         emoji: '▶️',
         label: 'Resume Day',
@@ -205,8 +206,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   }
 
   Future<void> _handleQuickAction(WorkdayQuickActionSpec action) async {
-    switch (action.label) {
-      case 'Pause Day':
+    switch (action.kind) {
+      case WorkdayQuickActionKind.pauseDay:
         final paused = await _recordOdometerEvent(
           title: 'Pause Odometer',
           saveLabel: 'Pause Day',
@@ -217,12 +218,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           await TripTrackingScope.maybeOf(context)?.stopNativeTracking();
         }
         return;
-      case 'Resume Day':
+      case WorkdayQuickActionKind.resumeDay:
         await _recordStoredEvent(ActiveWorkdayEventType.resumed);
         if (!mounted) return;
         await _startGpsTrip();
         return;
-      case 'End Day':
+      case WorkdayQuickActionKind.endDay:
         final tripTracking = TripTrackingScope.maybeOf(context);
         if (tripTracking?.isTracking == true) {
           await tripTracking!.finishForReview();
@@ -233,7 +234,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           type: ActiveWorkdayEventType.ended,
         );
         if (saved && mounted) Navigator.of(context).pop();
-      case 'Add Fuel':
+      case WorkdayQuickActionKind.addFuel:
         await Navigator.of(context).push(
           appNativeRoute<void>(
             context,
@@ -241,18 +242,25 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           ),
         );
         await _recordStoredEvent(ActiveWorkdayEventType.fuel);
-      case 'Expense':
+      case WorkdayQuickActionKind.expense:
         await Navigator.of(context).push(
           appNativeRoute<void>(context, const ExpenseReceiptEntryScreen()),
         );
         await _recordStoredEvent(ActiveWorkdayEventType.expense);
-      case 'Add Stop':
+      case WorkdayQuickActionKind.addStop:
         await _openStopDialog('Stop', ActiveWorkdayEventType.stop);
-      case 'Add Pickup':
+      case WorkdayQuickActionKind.addPickup:
         await _openStopDialog('Pickup', ActiveWorkdayEventType.pickup);
-      case 'Add Drop-Off':
+      case WorkdayQuickActionKind.addDropOff:
         await _openStopDialog('Drop-off', ActiveWorkdayEventType.dropOff);
-      default:
+      case WorkdayQuickActionKind.payment:
+      case WorkdayQuickActionKind.invoice:
+      case WorkdayQuickActionKind.maintenance:
+      case WorkdayQuickActionKind.materials:
+      case WorkdayQuickActionKind.receipt:
+      case WorkdayQuickActionKind.reminder:
+      case WorkdayQuickActionKind.estimate:
+      case WorkdayQuickActionKind.note:
         _openFlow(
           context,
           title: action.flowTitle,
