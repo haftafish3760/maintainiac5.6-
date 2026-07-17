@@ -271,17 +271,23 @@ class TripOdometerCalibrationSignal {
   static TripOdometerCalibrationSignal evaluateConfirmedReviews({
     required Iterable<TripTrackingReviewRecord> reviews,
     String? vehicleId,
+    DateTime? nowUtc,
     int minimumSamples = 7,
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
   }) {
     final requestedVehicleId = vehicleId?.trim();
+    final trustedNowUtc = nowUtc?.toUtc();
     final confirmedReviews = reviews
         .where(
           (review) =>
               review.isOdometerConfirmed &&
               review.hasValidTimeline &&
+              (trustedNowUtc == null ||
+                  !review.odometerConfirmedAt!.toUtc().isAfter(
+                    trustedNowUtc,
+                  )) &&
               review.vehicleId.trim().isNotEmpty &&
               (requestedVehicleId == null ||
                   requestedVehicleId.isEmpty ||

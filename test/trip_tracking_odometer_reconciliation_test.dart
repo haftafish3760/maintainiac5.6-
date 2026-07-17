@@ -448,6 +448,58 @@ void main() {
     expect(signal.canOverwriteConfirmedOdometer, isFalse);
   });
 
+  test(
+    'calibration ignores future-dated odometer confirmations when now is provided',
+    () {
+      final now = DateTime.utc(2026, 7, 14, 12);
+      final reviews = [
+        ...List.generate(
+          6,
+          (index) => TripTrackingReviewRecord(
+            id: 'trip_confirmed_now_$index',
+            vehicleId: 'vehicle_1',
+            startingOdometer: 1000 + (index * 100),
+            estimatedEndingOdometer: 1100 + (index * 100),
+            confirmedEndingOdometer: 1100 + (index * 100),
+            odometerConfirmedAt: now.subtract(Duration(days: index)),
+            profile: TripTrackingProfile.roadVehicle,
+            startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+            finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+            engineSnapshot: const TripTrackingEngineSnapshot(
+              totalAcceptedMeters: 94 * 1609.344,
+              walkingReviewSuggested: false,
+            ),
+          ),
+        ),
+        TripTrackingReviewRecord(
+          id: 'trip_future_confirmation',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 2000,
+          estimatedEndingOdometer: 2100,
+          confirmedEndingOdometer: 2100,
+          odometerConfirmedAt: now.add(const Duration(days: 30)),
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 7, 8),
+          finishedAt: DateTime.utc(2026, 7, 7, 10),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 94 * 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      ];
+
+      final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+        reviews: reviews,
+        nowUtc: now,
+      );
+
+      expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+      expect(signal.eligibleSampleCount, 6);
+      expect(signal.reasonCode, 'needs_more_reviewed_days');
+      expect(signal.canOverwriteConfirmedOdometer, isFalse);
+    },
+  );
+
   test('calibration requires distinct reviewed driving days', () {
     final confirmedAt = DateTime.utc(2026, 7, 14, 12);
     final reviews = List.generate(
