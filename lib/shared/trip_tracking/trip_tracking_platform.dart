@@ -269,7 +269,7 @@ class TripTrackingPlatformEvent {
       authorization: type == TripTrackingPlatformEventType.authorization
           ? TripTrackingAuthorization.fromMap(map)
           : null,
-      status: map['status'] as String?,
+      status: _safePlatformToken(map['status']),
       errorCode:
           type == TripTrackingPlatformEventType.error &&
               declaredType == TripTrackingPlatformEventType.location
@@ -277,7 +277,7 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'invalidActivityPayload'
-          : map['errorCode'] as String?,
+          : _safePlatformToken(map['errorCode']),
       errorMessage:
           type == TripTrackingPlatformEventType.error &&
               declaredType == TripTrackingPlatformEventType.location
@@ -285,7 +285,21 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'Ignored malformed activity payload.'
-          : map['errorMessage'] as String?,
+          : _safePlatformMessage(map['errorMessage']),
     );
   }
+}
+
+String? _safePlatformToken(Object? value) {
+  if (value is! String) return null;
+  final clean = value.trim();
+  if (clean.isEmpty || clean.length > 80) return null;
+  return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : null;
+}
+
+String? _safePlatformMessage(Object? value) {
+  if (value is! String) return null;
+  final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
+  if (clean.isEmpty) return null;
+  return clean.length <= 160 ? clean : clean.substring(0, 160);
 }

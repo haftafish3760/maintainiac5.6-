@@ -148,6 +148,31 @@ void main() {
     expect(event.location, isNull);
   });
 
+  test('native status and error strings are bounded before use', () {
+    final status = TripTrackingPlatformEvent.fromMap({
+      'type': 'status',
+      'status': ' stopped ',
+      'errorCode': 'ignored/because/status',
+    });
+    final unsafeError = TripTrackingPlatformEvent.fromMap({
+      'type': 'error',
+      'errorCode': 'trip_tracking_${'x' * 100}',
+      'errorMessage': 'first line\nsecond line',
+    });
+    final longMessage = TripTrackingPlatformEvent.fromMap({
+      'type': 'error',
+      'errorCode': 'trip_tracking_gps_disabled',
+      'errorMessage': 'm' * 240,
+    });
+
+    expect(status.status, 'stopped');
+    expect(status.errorCode, isNull);
+    expect(unsafeError.errorCode, isNull);
+    expect(unsafeError.errorMessage, 'first line second line');
+    expect(longMessage.errorCode, 'trip_tracking_gps_disabled');
+    expect(longMessage.errorMessage, hasLength(160));
+  });
+
   test('malformed location payloads fail closed without fabricated values', () {
     final event = TripTrackingPlatformEvent.fromMap({
       'type': 'location',
