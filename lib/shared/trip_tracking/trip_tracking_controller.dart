@@ -1256,6 +1256,15 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return null;
     }
+    if (completedAt.toUtc().isAfter(
+      DateTime.now().toUtc().add(_policy.maximumFutureSampleSkew),
+    )) {
+      _platformStatus = 'review_finish_time_invalid';
+      _platformError =
+          'Trip review could not be saved because the finish time is too far in the future.';
+      notifyListeners();
+      return null;
+    }
     if (session.lifecycleState == TripTrackingSessionLifecycleState.active ||
         session.lifecycleState == TripTrackingSessionLifecycleState.paused ||
         session.lifecycleState == TripTrackingSessionLifecycleState.degraded) {

@@ -2593,6 +2593,40 @@ void main() {
   );
 
   test(
+    'finish refuses far future timelines without dropping the active trip',
+    () async {
+      final start = DateTime.now().toUtc().subtract(const Duration(minutes: 5));
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      await controller.start(
+        tripId: 'trip_future_finish',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.ingest(sample(-80, 0));
+
+      final review = await controller.finishForReview(
+        finishedAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+      );
+
+      expect(review, isNull);
+      expect(controller.isTracking, isTrue);
+      expect(store.activeSession?.id, 'trip_future_finish');
+      expect(store.reviewForTrip('trip_future_finish'), isNull);
+      expect(odometer.hasLiveTripProjection, isTrue);
+      expect(controller.platformStatus, 'review_finish_time_invalid');
+    },
+  );
+
+  test(
     'a failed review confirmation save can retry without duplicating odometer history',
     () async {
       var storageChecks = 0;
