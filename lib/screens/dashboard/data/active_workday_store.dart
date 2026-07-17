@@ -241,6 +241,27 @@ class ActiveWorkdaySessionRecord {
         }
       }
     }
+    final startedAt =
+        DateTime.tryParse((map['startedAt'] as String?) ?? '') ??
+        _fallbackWorkdayTimestamp();
+    final endOdometer = _safeOdometer(map['endOdometer']);
+    final endedAt = DateTime.tryParse((map['endedAt'] as String?) ?? '');
+    final status = _statusFromName(map['status'] as String?);
+    final hasEndedEvent = events.any(
+      (event) => event.type == ActiveWorkdayEventType.ended,
+    );
+    final hasCoherentEndedState =
+        status == ActiveWorkdayStatus.ended &&
+        endedAt != null &&
+        !endedAt.isBefore(startedAt) &&
+        endOdometer != null &&
+        endOdometer >= (_safeOdometer(map['startOdometer']) ?? 0) &&
+        hasEndedEvent;
+    final recoveredStatus = status == ActiveWorkdayStatus.ended
+        ? hasCoherentEndedState
+              ? ActiveWorkdayStatus.ended
+              : ActiveWorkdayStatus.active
+        : status;
 
     return ActiveWorkdaySessionRecord(
       id: _safeText(map['id'], fallback: _newId('workday'), maxLength: 160),
@@ -259,14 +280,12 @@ class ActiveWorkdaySessionRecord {
         fallback: 'default_work',
         maxLength: 160,
       ),
-      startedAt:
-          DateTime.tryParse((map['startedAt'] as String?) ?? '') ??
-          _fallbackWorkdayTimestamp(),
+      startedAt: startedAt,
       startOdometer: _safeOdometer(map['startOdometer']) ?? 0,
-      status: _statusFromName(map['status'] as String?),
+      status: recoveredStatus,
       events: events,
-      endedAt: DateTime.tryParse((map['endedAt'] as String?) ?? ''),
-      endOdometer: _safeOdometer(map['endOdometer']),
+      endedAt: hasCoherentEndedState ? endedAt : null,
+      endOdometer: hasCoherentEndedState ? endOdometer : null,
       hasValidIdentity:
           _isSafeActiveWorkdayIdValue(rawId) &&
           _isSafeActiveWorkdayIdValue(rawVehicleId) &&

@@ -424,9 +424,37 @@ void main() {
     });
 
     expect(restored.startOdometer, 0);
+    expect(restored.status, ActiveWorkdayStatus.active);
     expect(restored.endOdometer, isNull);
     expect(restored.events.single.odometerReading, 0);
     expect(restored.milesSoFar(12), 12);
+  });
+
+  test('ended active workdays require coherent persisted end state', () {
+    final startedAt = DateTime(2026, 6, 12, 8);
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'incomplete-ended-workday',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': startedAt.toIso8601String(),
+      'startOdometer': 1000,
+      'status': 'ended',
+      'endOdometer': 1040,
+      'events': [
+        {
+          'id': 'started-event',
+          'type': 'started',
+          'occurredAt': startedAt.toIso8601String(),
+          'odometerReading': 1000,
+          'label': 'Day started',
+        },
+      ],
+    });
+
+    expect(restored.status, ActiveWorkdayStatus.active);
+    expect(restored.endedAt, isNull);
+    expect(restored.endOdometer, isNull);
   });
 
   test('malformed active workday timestamps do not become current time', () {
