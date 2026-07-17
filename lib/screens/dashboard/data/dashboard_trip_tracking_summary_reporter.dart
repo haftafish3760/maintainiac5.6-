@@ -77,15 +77,31 @@ class DashboardTripTrackingSummaryReporter {
   final DashboardSummaryIntReader? _syncsUsedInWindow;
   final DashboardSummaryClock _clock;
   var _queueInFlight = false;
+  var _queueAgainRequested = false;
 
   Future<DashboardTripTrackingSummaryReport> queueNow() async {
     if (_queueInFlight) {
+      _queueAgainRequested = true;
       return const DashboardTripTrackingSummaryReport(
         queued: false,
         reasonCode: 'dashboard_summary_queue_in_flight',
         summary: null,
       );
     }
+    _queueInFlight = true;
+    try {
+      var report = await _queueOnce();
+      while (_queueAgainRequested) {
+        _queueAgainRequested = false;
+        report = await _queueOnce();
+      }
+      return report;
+    } finally {
+      _queueInFlight = false;
+    }
+  }
+
+  Future<DashboardTripTrackingSummaryReport> _queueOnce() async {
     final uid = _safeRequiredId(_uid());
     final dashboardId = _safeRequiredId(_dashboardId());
     if (uid == null || dashboardId == null) {
@@ -95,7 +111,6 @@ class DashboardTripTrackingSummaryReporter {
         summary: null,
       );
     }
-    _queueInFlight = true;
     try {
       final storage = await _readStorage();
       final summary = DashboardTripTrackingSummary.fromRuntime(
@@ -128,8 +143,6 @@ class DashboardTripTrackingSummaryReporter {
         reasonCode: 'dashboard_summary_queue_failed',
         summary: null,
       );
-    } finally {
-      _queueInFlight = false;
     }
   }
 

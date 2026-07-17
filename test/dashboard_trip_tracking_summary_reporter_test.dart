@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -219,6 +220,83 @@ void main() {
       expect(queue.pendingRecords.single.data['reviewRequired'], isTrue);
     },
   );
+
+  test('coalesces in-flight refreshes without losing latest state', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final settings = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        defaultProfile: TripTrackingProfile.deliveryVehicle,
+      ),
+    );
+    addTearDown(settings.dispose);
+    final storageCompleter = Completer<AppStorageCheck?>();
+    var storageReadCount = 0;
+    var syncsUsed = 1;
+    var minute = 0;
+    final reporter = DashboardTripTrackingSummaryReporter(
+      mirror: DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      ),
+      settingsController: settings,
+      uid: () => 'firebaseUid-1',
+      dashboardId: () => 'today',
+      storageReader: () {
+        storageReadCount += 1;
+        if (storageReadCount == 1) return storageCompleter.future;
+        return Future.value(
+          const AppStorageCheck(
+            availableBytes: AppStorageGuard.yellowStorageBytes,
+            operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+            requiredBytes:
+                AppStorageGuard.mileageTrackingWriteBytes +
+                AppStorageGuard.textRecordDeviceReserveBytes,
+            purpose: AppStoragePurpose.mileageTracking,
+          ),
+        );
+      },
+      wifiAvailable: () => true,
+      mobileDataAvailable: () => false,
+      syncsUsedInWindow: () => syncsUsed,
+      clock: () => DateTime.utc(2026, 7, 17, 9, minute++),
+    );
+
+    final first = reporter.queueNow();
+    final second = await reporter.queueNow();
+    expect(second.queued, isFalse);
+    expect(second.reasonCode, 'dashboard_summary_queue_in_flight');
+    syncsUsed = 3;
+    await settings.update(
+      settings.settings.copyWith(
+        defaultProfile: TripTrackingProfile.contractorVehicle,
+      ),
+    );
+    storageCompleter.complete(
+      const AppStorageCheck(
+        availableBytes: AppStorageGuard.greenStorageBytes,
+        operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        requiredBytes:
+            AppStorageGuard.mileageTrackingWriteBytes +
+            AppStorageGuard.textRecordDeviceReserveBytes,
+        purpose: AppStoragePurpose.mileageTracking,
+      ),
+    );
+
+    final report = await first;
+
+    expect(report.queued, isTrue);
+    expect(report.summary?.dashboardMode, 'contractor');
+    expect(storageReadCount, 2);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(queue.pendingRecords.single.data['dashboardMode'], 'contractor');
+    expect(queue.pendingRecords.single.data['syncsUsedInWindow'], 3);
+    expect(queue.pendingRecords.single.data['freeSyncsRemaining'], 3);
+  });
 }
 
 class _RecordingSink implements MaintainiacFirestoreDocumentSink {
