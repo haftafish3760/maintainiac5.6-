@@ -451,6 +451,10 @@ class TripTrackingController extends ChangeNotifier {
     final projection = _projection;
     if (session == null || engine == null || projection == null) return null;
 
+    if (sample.recordedAt.toUtc().isBefore(session.startedAt.toUtc())) {
+      return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
+    }
+
     if (referenceTime != null &&
         sample.recordedAt.toUtc().isAfter(
           referenceTime.toUtc().add(engine.policy.maximumFutureSampleSkew),

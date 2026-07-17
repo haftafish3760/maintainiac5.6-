@@ -1952,6 +1952,33 @@ void main() {
   );
 
   test(
+    'cached native fixes before trip start cannot anchor live mileage',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_cached_native_fix',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final stale = await controller.ingest(
+        sample(-80, -5),
+        referenceTime: start,
+      );
+
+      expect(stale?.disposition, TripSampleDisposition.rejectedOutOfOrder);
+      expect(controller.acceptedMeters, 0);
+      expect(store.pendingSampleFor('trip_cached_native_fix'), isNull);
+      expect(store.activeSession?.updatedAt, start);
+    },
+  );
+
+  test(
     'native sampling escalates only after an accepted high-speed sample',
     () async {
       final native = _FakeTripTrackingPlatform();
