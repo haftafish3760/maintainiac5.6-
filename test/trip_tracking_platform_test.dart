@@ -147,6 +147,22 @@ void main() {
     expect(invalid.lowPowerModeEnabled, isFalse);
   });
 
+  test('malformed authorization state cannot imply precise tracking', () {
+    final malformed = TripTrackingAuthorization.fromMap(const {
+      'state': 'superAlways',
+      'preciseLocation': true,
+    });
+    final valid = TripTrackingAuthorization.fromMap(const {
+      'state': 'whileInUse',
+      'preciseLocation': true,
+    });
+
+    expect(malformed.state, TripTrackingAuthorizationState.notDetermined);
+    expect(malformed.preciseLocation, isFalse);
+    expect(malformed.canTrackPrecisely, isFalse);
+    expect(valid.canTrackPrecisely, isTrue);
+  });
+
   test(
     'platform event maps only a declared location payload into a sample',
     () {

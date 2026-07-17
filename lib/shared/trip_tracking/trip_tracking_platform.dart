@@ -218,14 +218,18 @@ class TripTrackingAuthorization {
   bool get canTrackInBackground =>
       state == TripTrackingAuthorizationState.always;
 
-  factory TripTrackingAuthorization.fromMap(Map<dynamic, dynamic> map) =>
-      TripTrackingAuthorization(
-        state: TripTrackingAuthorizationState.values.firstWhere(
-          (value) => value.name == map['state'],
-          orElse: () => TripTrackingAuthorizationState.notDetermined,
-        ),
-        preciseLocation: map['preciseLocation'] == true,
-      );
+  factory TripTrackingAuthorization.fromMap(Map<dynamic, dynamic> map) {
+    final state = TripTrackingAuthorizationState.values.firstWhere(
+      (value) => value.name == map['state'],
+      orElse: () => TripTrackingAuthorizationState.notDetermined,
+    );
+    return TripTrackingAuthorization(
+      state: state,
+      preciseLocation:
+          state != TripTrackingAuthorizationState.notDetermined &&
+          map['preciseLocation'] == true,
+    );
+  }
 }
 
 enum TripTrackingPlatformEventType {
