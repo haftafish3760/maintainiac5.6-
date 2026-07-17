@@ -33,9 +33,7 @@ class OdometerReadingEvent {
     final correctionReviewValue = map['correctionReview'];
     return OdometerReadingEvent(
       id: '${map['id'] ?? ''}',
-      reading: map['reading'] is int
-          ? map['reading'] as int
-          : int.tryParse('${map['reading'] ?? ''}') ?? 0,
+      reading: _safeOdometerReading(map['reading']),
       recordedAt:
           DateTime.tryParse('${map['recordedAt'] ?? ''}') ?? DateTime.now(),
       mileageReview: mileageReviewValue is Map
@@ -45,9 +43,7 @@ class OdometerReadingEvent {
           ? OdometerCorrectionReview.fromMap(correctionReviewValue)
           : null,
       affectsCurrentReading: map['affectsCurrentReading'] != false,
-      previousReading: map['previousReading'] is int
-          ? map['previousReading'] as int
-          : int.tryParse('${map['previousReading'] ?? ''}'),
+      previousReading: _optionalSafeOdometerReading(map['previousReading']),
       workProfileId: map['workProfileId'] as String?,
       sourceType: map['sourceType'] as String?,
       sourceId: map['sourceId'] as String?,
@@ -68,13 +64,15 @@ class OdometerReadingEvent {
   }) {
     return OdometerReadingEvent(
       id: id ?? this.id,
-      reading: reading ?? this.reading,
+      reading: _safeOdometerReading(reading ?? this.reading),
       recordedAt: recordedAt ?? this.recordedAt,
       mileageReview: mileageReview ?? this.mileageReview,
       correctionReview: correctionReview ?? this.correctionReview,
       affectsCurrentReading:
           affectsCurrentReading ?? this.affectsCurrentReading,
-      previousReading: previousReading ?? this.previousReading,
+      previousReading: _optionalSafeOdometerReading(
+        previousReading ?? this.previousReading,
+      ),
       workProfileId: workProfileId ?? this.workProfileId,
       sourceType: sourceType ?? this.sourceType,
       sourceId: sourceId ?? this.sourceId,
@@ -84,17 +82,30 @@ class OdometerReadingEvent {
   Map<String, Object?> toMap() {
     return {
       'id': id,
-      'reading': reading,
+      'reading': _safeOdometerReading(reading),
       'recordedAt': recordedAt.toIso8601String(),
       'mileageReview': mileageReview?.toMap(),
       'correctionReview': correctionReview?.toMap(),
       'affectsCurrentReading': affectsCurrentReading,
-      'previousReading': previousReading,
+      'previousReading': _optionalSafeOdometerReading(previousReading),
       'workProfileId': workProfileId,
       'sourceType': sourceType,
       'sourceId': sourceId,
     };
   }
+}
+
+int _safeOdometerReading(Object? value) {
+  final parsed = value is int ? value : int.tryParse('${value ?? ''}');
+  if (parsed == null || parsed < 0) return 0;
+  return parsed;
+}
+
+int? _optionalSafeOdometerReading(Object? value) {
+  if (value == null) return null;
+  final parsed = value is int ? value : int.tryParse('$value');
+  if (parsed == null || parsed < 0) return null;
+  return parsed;
 }
 
 class OdometerValidationResult {

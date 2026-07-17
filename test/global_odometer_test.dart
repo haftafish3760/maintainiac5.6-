@@ -629,6 +629,26 @@ void main() {
     expect(restored.mileageReview?.businessMiles, 20);
   });
 
+  test('odometer event serialization never writes negative readings', () {
+    final event = OdometerReadingEvent(
+      id: 'event-negative',
+      reading: -10,
+      recordedAt: DateTime(2026, 6, 12, 8),
+      previousReading: -20,
+    );
+    final map = event.toMap();
+    final restored = OdometerReadingEvent.fromMap({
+      ...map,
+      'reading': -30,
+      'previousReading': -40,
+    });
+
+    expect(map['reading'], isZero);
+    expect(map['previousReading'], isNull);
+    expect(restored.reading, isZero);
+    expect(restored.previousReading, isNull);
+  });
+
   test('vehicle labels normalize into stable temporary odometer keys', () {
     expect(odometerVehicleIdForLabel('Work Truck 1'), 'work_truck_1');
     expect(odometerVehicleIdForLabel('  Ram 2500 / Crew  '), 'ram_2500_crew');
