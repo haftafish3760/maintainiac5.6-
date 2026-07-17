@@ -37,7 +37,8 @@ class TripTrackingBluetoothVehicleLink {
         deviceId: _safeId(map['deviceId']),
         vehicleId: _safeId(map['vehicleId']),
         createdAt:
-            DateTime.tryParse('${map['createdAt'] ?? ''}') ?? DateTime.now(),
+            DateTime.tryParse('${map['createdAt'] ?? ''}') ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         displayName: _safeDisplayName(map['displayName']),
       );
 }

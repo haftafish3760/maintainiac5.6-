@@ -100,6 +100,16 @@ void main() {
     expect(link.isValid, isTrue);
   });
 
+  test('malformed Bluetooth link timestamps do not become current time', () {
+    final link = TripTrackingBluetoothVehicleLink.fromMap({
+      'deviceId': 'head-unit',
+      'vehicleId': 'vehicle_1',
+      'createdAt': 'not-a-date',
+    });
+
+    expect(link.createdAt, DateTime.fromMillisecondsSinceEpoch(0, isUtc: true));
+  });
+
   test('Bluetooth lookups and removals use normalized local ids', () async {
     final store = TripTrackingBluetoothVehicleLinkStore.memory();
     final createdAt = DateTime.utc(2026, 7, 13, 8);
