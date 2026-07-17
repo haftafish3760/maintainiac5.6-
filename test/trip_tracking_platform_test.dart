@@ -238,6 +238,27 @@ void main() {
     expect(event.errorMessage, 'Ignored unknown native trip tracking event.');
   });
 
+  test('non-map native event payloads fail closed instead of disappearing', () {
+    for (final payload in const [
+      null,
+      'location',
+      42,
+      ['type', 'location'],
+    ]) {
+      final event = TripTrackingPlatformEvent.fromNativePayload(payload);
+
+      expect(event.type, TripTrackingPlatformEventType.error);
+      expect(event.location, isNull);
+      expect(event.activity, isNull);
+      expect(event.authorization, isNull);
+      expect(event.errorCode, 'invalidNativeEventPayload');
+      expect(
+        event.errorMessage,
+        'Ignored malformed native trip tracking event.',
+      );
+    }
+  });
+
   test('native status and error strings are bounded before use', () {
     final status = TripTrackingPlatformEvent.fromMap({
       'type': 'status',

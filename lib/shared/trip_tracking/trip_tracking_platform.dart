@@ -36,8 +36,7 @@ class TripTrackingPlatform implements TripTrackingNativeGateway {
   @override
   Stream<TripTrackingPlatformEvent> get events => _events
       .receiveBroadcastStream()
-      .where((event) => event is Map)
-      .map((event) => TripTrackingPlatformEvent.fromMap(event as Map));
+      .map(TripTrackingPlatformEvent.fromNativePayload);
 
   @override
   Future<TripTrackingPlatformCapabilities> readCapabilities() async {
@@ -264,6 +263,15 @@ class TripTrackingPlatformEvent {
   final String? status;
   final String? errorCode;
   final String? errorMessage;
+
+  factory TripTrackingPlatformEvent.fromNativePayload(Object? payload) {
+    if (payload is Map) return TripTrackingPlatformEvent.fromMap(payload);
+    return const TripTrackingPlatformEvent._(
+      type: TripTrackingPlatformEventType.error,
+      errorCode: 'invalidNativeEventPayload',
+      errorMessage: 'Ignored malformed native trip tracking event.',
+    );
+  }
 
   factory TripTrackingPlatformEvent.fromMap(Map<dynamic, dynamic> map) {
     final declaredType = TripTrackingPlatformEventType.values.firstWhere(
