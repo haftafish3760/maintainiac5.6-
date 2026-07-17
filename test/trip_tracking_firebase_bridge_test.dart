@@ -709,6 +709,37 @@ void main() {
     }
   });
 
+  test(
+    'mileage backup permits reviewed odometer and GPS estimate differences',
+    () {
+      final discrepancy = TripTrackingReviewRecord(
+        id: 'trip_reviewed_discrepancy',
+        vehicleId: 'truck-1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1012,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 14, 12),
+        finishedAt: DateTime.utc(2026, 7, 14, 13),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 19312.128,
+          walkingReviewSuggested: false,
+        ),
+        confirmedEndingOdometer: 1010,
+        odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+      );
+      final doc =
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: discrepancy,
+          );
+
+      MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+      expect(doc.data['estimatedEndingOdometer'], 1012);
+      expect(doc.data['confirmedEndingOdometer'], 1010);
+      expect(doc.data['locationDataIncluded'], isFalse);
+    },
+  );
+
   test('local upload policy rejects organization fields on private mileage', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
