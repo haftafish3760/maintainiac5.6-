@@ -66,11 +66,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final activeWorkday = ActiveWorkdayScope.of(context);
     final session = activeWorkday.activeSession;
     final quickActions = _quickActionsFor(session);
-    final currentOdometer = GlobalOdometerScope.of(context).reading;
+    final odometer = GlobalOdometerScope.of(context);
     final elapsed = session == null
         ? _elapsed
         : session.elapsedWorkTimeAt(DateTime.now());
-    final milesToday = session?.milesSoFar(currentOdometer).toString() ?? '0';
 
     return AppScreenShell(
       section: AppSection.dashboard,
@@ -101,9 +100,16 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _MetricTile(
-                        label: 'Miles Today',
-                        value: milesToday,
+                      child: AnimatedBuilder(
+                        animation: odometer,
+                        builder: (context, _) => _MetricTile(
+                          label: 'Miles Today',
+                          value:
+                              session
+                                  ?.milesSoFar(odometer.reading)
+                                  .toString() ??
+                              '0',
+                        ),
                       ),
                     ),
                   ],
