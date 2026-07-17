@@ -130,6 +130,31 @@ void main() {
     expect(result.reason, contains('Free backup sync limit reached'));
   });
 
+  test('free sync quota is read at upload time', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    var usedSyncs = HostedUsageLimits.freeUserSyncsPer24HourWindow;
+    final coordinator = MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      freeSyncsUsedInWindowReader: () => usedSyncs,
+    );
+    await queue.enqueue(_safeDraft('parserHealth/live_free_sync_quota'));
+
+    final blocked = await coordinator.uploadPending(
+      nowUtc: DateTime.utc(2026, 6, 23, 14),
+    );
+    usedSyncs = 0;
+    final uploaded = await coordinator.uploadPending(
+      nowUtc: DateTime.utc(2026, 6, 23, 14, 1),
+    );
+
+    expect(blocked.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+    expect(uploaded.status, MaintainiacFirestoreUploadStatus.uploaded);
+    expect(sink.writes, hasLength(1));
+  });
+
   test('concurrent flushes upload a queued document only once', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();

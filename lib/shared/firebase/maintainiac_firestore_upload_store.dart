@@ -269,20 +269,25 @@ abstract class MaintainiacFirestoreDocumentSink {
 Future<void> _firestoreUploadTail = Future<void>.value();
 
 class MaintainiacFirestoreUploadCoordinator {
-  const MaintainiacFirestoreUploadCoordinator({
+  MaintainiacFirestoreUploadCoordinator({
     required MaintainiacFirestoreUploadQueueStore queue,
     required MaintainiacFirestoreDocumentSink sink,
     bool uploadEnabled = false,
     int? freeSyncsUsedInWindow,
+    int Function()? freeSyncsUsedInWindowReader,
   }) : _queue = queue,
        _sink = sink,
        _uploadEnabled = uploadEnabled,
-       _freeSyncsUsedInWindow = freeSyncsUsedInWindow;
+       _freeSyncsUsedInWindowReader =
+           freeSyncsUsedInWindowReader ??
+           (freeSyncsUsedInWindow == null
+               ? null
+               : (() => freeSyncsUsedInWindow));
 
   final MaintainiacFirestoreUploadQueueStore _queue;
   final MaintainiacFirestoreDocumentSink _sink;
   final bool _uploadEnabled;
-  final int? _freeSyncsUsedInWindow;
+  final int Function()? _freeSyncsUsedInWindowReader;
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
     int? limit,
@@ -305,7 +310,7 @@ class MaintainiacFirestoreUploadCoordinator {
         reason: 'Firestore uploads are disabled until hosted sync is enabled.',
       );
     }
-    final freeSyncsUsed = _freeSyncsUsedInWindow;
+    final freeSyncsUsed = _freeSyncsUsedInWindowReader?.call();
     if (freeSyncsUsed != null &&
         !HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: freeSyncsUsed)) {
       return const MaintainiacFirestoreUploadResult(
