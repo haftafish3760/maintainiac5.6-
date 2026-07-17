@@ -56,7 +56,7 @@ class _MapboxTestScreenState extends State<MapboxTestScreen> {
   void _configureMapboxIfReady() {
     final config = widget.config;
     if (!config.canInitializeMapbox) return;
-    MapboxOptions.setAccessToken(config.mapboxAccessToken);
+    MapboxOptions.setAccessToken(config.sanitizedMapboxAccessToken);
   }
 }
 

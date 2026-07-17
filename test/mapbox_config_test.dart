@@ -23,17 +23,41 @@ void main() {
       expect(config.mapsEnabled, isTrue);
       expect(config.hasMapboxToken, isFalse);
       expect(config.canInitializeMapbox, isFalse);
-      expect(config.statusLabel, 'Mapbox token missing');
+      expect(config.statusLabel, 'Mapbox public token required');
     });
 
-    test('allows Mapbox initialization only with provider and token', () {
-      const config = MaintainiacMapConfig(
-        provider: MaintainiacMapProvider.mapbox,
-        mapboxAccessToken: 'test-token-redacted',
-      );
+    test(
+      'allows Mapbox initialization only with provider and public token',
+      () {
+        const config = MaintainiacMapConfig(
+          provider: MaintainiacMapProvider.mapbox,
+          mapboxAccessToken: ' pk.runtime-token-redacted ',
+        );
 
-      expect(config.canInitializeMapbox, isTrue);
-      expect(config.statusLabel, 'Mapbox ready');
+        expect(config.sanitizedMapboxAccessToken, 'pk.runtime-token-redacted');
+        expect(config.canInitializeMapbox, isTrue);
+        expect(config.statusLabel, 'Mapbox ready');
+      },
+    );
+
+    test('rejects secret or malformed runtime tokens', () {
+      const values = [
+        'sk.secret-download-token',
+        'test-token-redacted',
+        'pk.runtime-token-redacted extra',
+        'pk.runtime-token\tredacted',
+      ];
+
+      for (final value in values) {
+        final config = MaintainiacMapConfig(
+          provider: MaintainiacMapProvider.mapbox,
+          mapboxAccessToken: value,
+        );
+
+        expect(config.sanitizedMapboxAccessToken, isEmpty);
+        expect(config.hasMapboxToken, isFalse);
+        expect(config.canInitializeMapbox, isFalse);
+      }
     });
   });
 
