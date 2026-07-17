@@ -145,6 +145,26 @@ void main() {
     expect(moving.mode, TripSamplingMode.precision);
   });
 
+  test('malformed low battery GPS cutoffs fall back to twenty percent', () {
+    for (final cutoff in const [-1, 101]) {
+      final decision = TripTrackingPolicy(lowBatteryGpsCutoffPercent: cutoff)
+          .gpsBatteryDecision(
+            batteryPercent: 19,
+            isCharging: false,
+            lowBatteryProtectionEnabled: true,
+            lowBatteryOverrideEnabled: false,
+            lowBatteryWarningDismissed: false,
+          );
+
+      expect(
+        decision.status,
+        TripGpsBatteryDecisionStatus.userPromptRequired,
+        reason: 'cutoff $cutoff must not disable the default battery guard',
+      );
+      expect(decision.reasonCode, 'low_battery_requires_user_choice');
+    }
+  });
+
   test('does not count stationary GPS jitter as miles', () {
     final engine = TripTrackingEngine();
 
