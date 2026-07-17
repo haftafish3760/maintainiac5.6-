@@ -657,7 +657,9 @@ class TripTrackingController extends ChangeNotifier {
     final batteryDecision = _policy.gpsBatteryDecision(
       batteryPercent: batterySnapshot.batteryPercent,
       isCharging: batterySnapshot.isCharging,
-      lowPowerModeEnabled: batterySnapshot.lowPowerModeEnabled,
+      lowPowerModeEnabled:
+          capabilities.lowPowerModeAvailable &&
+          batterySnapshot.lowPowerModeEnabled,
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,

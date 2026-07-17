@@ -513,6 +513,42 @@ void main() {
     );
   });
 
+  test('unavailable low power capability cannot block GPS startup', () async {
+    final native = _FakeTripTrackingPlatform(
+      batteryStateAvailable: true,
+      lowPowerModeAvailable: false,
+      batterySnapshot: const TripTrackingBatterySnapshot(
+        batteryPercent: 80,
+        isCharging: false,
+        lowPowerModeEnabled: true,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_low_power_unavailable',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+
+    expect(native.requestAuthorizationCalls, 1);
+    expect(native.startCalls, 1);
+    expect(controller.platformStatus, 'tracking');
+    expect(controller.platformError, isNull);
+  });
+
   test(
     'battery snapshot read failures do not fabricate low battery blocks',
     () async {
@@ -3110,6 +3146,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.throwOnIsTracking = false,
     this.throwOnReadCapabilities = false,
     this.throwOnReadBatterySnapshot = false,
+    this.batteryStateAvailable = true,
+    this.lowPowerModeAvailable = true,
     this.startFailureMessage = 'native start fault',
     this.batterySnapshot = const TripTrackingBatterySnapshot(
       batteryPercent: 100,
@@ -3126,6 +3164,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool throwOnIsTracking;
   final bool throwOnReadCapabilities;
   final bool throwOnReadBatterySnapshot;
+  final bool batteryStateAvailable;
+  final bool lowPowerModeAvailable;
   final String startFailureMessage;
   final TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
@@ -3188,12 +3228,12 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     if (throwOnReadCapabilities) {
       throw StateError('capability probe failed');
     }
-    return const TripTrackingPlatformCapabilities(
+    return TripTrackingPlatformCapabilities(
       locationAvailable: true,
       backgroundTrackingAvailable: true,
       activityRecognitionAvailable: false,
-      batteryStateAvailable: true,
-      lowPowerModeAvailable: true,
+      batteryStateAvailable: batteryStateAvailable,
+      lowPowerModeAvailable: lowPowerModeAvailable,
     );
   }
 
