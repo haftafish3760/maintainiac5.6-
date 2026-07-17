@@ -371,6 +371,41 @@ void main() {
     expect(reviewMap, isNot(contains('confirmedEndingOdometer')));
   });
 
+  test('persisted GPS session identities are trimmed and bounded', () {
+    final session = TripTrackingSessionRecord(
+      id: ' ${'s' * 220} ',
+      vehicleId: ' ${'v' * 220} ',
+      startingOdometer: 1000,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      updatedAt: DateTime.utc(2026, 7, 14, 12, 1),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    );
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': ' ${'r' * 220} ',
+      'vehicleId': ' ${'truck' * 60} ',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1001,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'finishedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    final sessionMap = session.toMap();
+
+    expect(sessionMap['id'], hasLength(160));
+    expect(sessionMap['vehicleId'], hasLength(160));
+    expect(review.id, hasLength(160));
+    expect(review.vehicleId, hasLength(160));
+  });
+
   test('persisted review identity and odometer ranges are validated', () {
     final base = TripTrackingReviewRecord(
       id: 'trip_review_identity',

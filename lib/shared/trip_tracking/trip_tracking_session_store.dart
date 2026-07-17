@@ -58,8 +58,8 @@ class TripTrackingSessionRecord {
   );
 
   Map<String, Object?> toMap() => {
-    'id': id,
-    'vehicleId': vehicleId,
+    'id': _safeIdentifier(id),
+    'vehicleId': _safeIdentifier(vehicleId),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
     'startedAt': startedAt.toIso8601String(),
@@ -75,8 +75,8 @@ class TripTrackingSessionRecord {
     final startedAt = DateTime.tryParse('${map['startedAt'] ?? ''}');
     final updatedAt = DateTime.tryParse('${map['updatedAt'] ?? ''}');
     return TripTrackingSessionRecord(
-      id: '${map['id'] ?? ''}',
-      vehicleId: '${map['vehicleId'] ?? ''}',
+      id: _safeIdentifier(map['id']),
+      vehicleId: _safeIdentifier(map['vehicleId']),
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
       profile: TripTrackingProfile.values.firstWhere(
         (value) => value.name == map['profile'],
@@ -207,8 +207,8 @@ class TripTrackingReviewRecord {
   );
 
   Map<String, Object?> toMap() => {
-    'id': id,
-    'vehicleId': vehicleId,
+    'id': _safeIdentifier(id),
+    'vehicleId': _safeIdentifier(vehicleId),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
@@ -234,8 +234,8 @@ class TripTrackingReviewRecord {
   factory TripTrackingReviewRecord.fromMap(Map<dynamic, dynamic> map) {
     final startedAt = DateTime.tryParse('${map['startedAt'] ?? ''}');
     final finishedAt = DateTime.tryParse('${map['finishedAt'] ?? ''}');
-    final id = '${map['id'] ?? ''}';
-    final vehicleId = '${map['vehicleId'] ?? ''}';
+    final id = _safeIdentifier(map['id']);
+    final vehicleId = _safeIdentifier(map['vehicleId']);
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
@@ -315,6 +315,14 @@ int? _optionalPersistedOdometerValue(Object? value) {
   if (value is! num || !value.isFinite) return null;
   final odometer = value.round();
   return odometer < 0 ? null : odometer;
+}
+
+String _safeIdentifier(Object? value) {
+  final clean = '${value ?? ''}'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
+  if (clean.isEmpty) return '';
+  return clean.length > 160 ? clean.substring(0, 160) : clean;
 }
 
 /// One durable, bounded checkpoint for a sample currently entering the shared
