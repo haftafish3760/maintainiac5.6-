@@ -1051,6 +1051,38 @@ void main() {
   );
 
   test(
+    'a pre-scoped mileage review is bound to the current account before retry',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      await localStore.saveReview(
+        review().copyWith(
+          cloudBackupScope: TripTrackingCloudBackupScope.personal,
+          cloudSyncState: TripTrackingCloudSyncState.pending,
+        ),
+      );
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: false,
+        ),
+        localStore: localStore,
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+      );
+
+      await mirror.flushPending();
+
+      final stored = localStore.reviewForTrip('trip 1');
+      expect(stored?.cloudAccountUid, 'firebaseUid-1');
+      expect(stored?.cloudBackupScope, TripTrackingCloudBackupScope.personal);
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.queued);
+    },
+  );
+
+  test(
     'an organization switch cannot redirect a queued mileage review',
     () async {
       final localStore = TripTrackingSessionStore.memory();

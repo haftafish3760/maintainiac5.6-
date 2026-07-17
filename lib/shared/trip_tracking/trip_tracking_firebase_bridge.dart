@@ -452,10 +452,20 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
         usesOrganizationBackup) {
       return null;
     }
+    if (scope == TripTrackingCloudBackupScope.personal) {
+      return accountUid == null || accountUid.isEmpty
+          ? review.copyWith(cloudAccountUid: createdByUid)
+          : review;
+    }
     if (scope == TripTrackingCloudBackupScope.organization &&
         (!usesOrganizationBackup ||
             review.cloudOrganizationId?.trim() != orgId)) {
       return null;
+    }
+    if (scope == TripTrackingCloudBackupScope.organization) {
+      return accountUid == null || accountUid.isEmpty
+          ? review.copyWith(cloudAccountUid: createdByUid)
+          : review;
     }
     if (scope == null) {
       return review.copyWith(
