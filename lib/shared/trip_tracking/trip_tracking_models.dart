@@ -398,22 +398,30 @@ class TripTrackingDiagnostics {
     final counts = <TripSampleDisposition, int>{};
     if (rawCounts is Map) {
       for (final entry in rawCounts.entries) {
-        final disposition = TripSampleDisposition.values.firstWhere(
-          (value) => value.name == entry.key,
-          orElse: () => TripSampleDisposition.rejectedInvalid,
+        final key = entry.key;
+        if (key is! String) continue;
+        final disposition = TripSampleDisposition.values.where(
+          (value) => value.name == key,
         );
-        final count = (entry.value as num?)?.toInt() ?? 0;
-        if (count > 0) counts[disposition] = count;
+        if (disposition.isEmpty) continue;
+        final count = _safeNonNegativeInt(entry.value);
+        if (count > 0) counts[disposition.single] = count;
       }
     }
-    final received = (map['receivedSamples'] as num?)?.toInt() ?? 0;
-    final accepted = (map['acceptedSamples'] as num?)?.toInt() ?? 0;
+    final received = _safeNonNegativeInt(map['receivedSamples']);
+    final accepted = _safeNonNegativeInt(map['acceptedSamples']);
     return TripTrackingDiagnostics(
-      receivedSamples: received < 0 ? 0 : received,
-      acceptedSamples: accepted < 0 || accepted > received ? 0 : accepted,
+      receivedSamples: received,
+      acceptedSamples: accepted > received ? 0 : accepted,
       dispositionCounts: Map.unmodifiable(counts),
     );
   }
+}
+
+int _safeNonNegativeInt(Object? value) {
+  if (value is! num || !value.isFinite) return 0;
+  final parsed = value.toInt();
+  return parsed < 0 ? 0 : parsed;
 }
 
 double _safeAcceptedMeters(Object? value) {

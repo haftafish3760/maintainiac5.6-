@@ -587,6 +587,29 @@ void main() {
     },
   );
 
+  test('malformed persisted diagnostics cannot poison recovery', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 0,
+      'diagnostics': {
+        'receivedSamples': double.nan,
+        'acceptedSamples': double.infinity,
+        'dispositionCounts': {
+          'rejectedAccuracy': double.nan,
+          'acceptedDistance': -4,
+          'unknownFutureDisposition': 99,
+          7: 3,
+        },
+      },
+    });
+
+    final diagnostics = snapshot.diagnostics;
+
+    expect(diagnostics.receivedSamples, 0);
+    expect(diagnostics.acceptedSamples, 0);
+    expect(diagnostics.rejectedSamples, 0);
+    expect(diagnostics.dispositionCounts, isEmpty);
+  });
+
   test(
     'malformed recovery data never fabricates a GPS anchor or walk event',
     () {
