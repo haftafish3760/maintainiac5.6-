@@ -769,6 +769,21 @@ void main() {
     expect(controller.reading, 1000);
   });
 
+  test('live GPS trip projection cannot start above confirmed odometer', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_future_baseline',
+        startingOdometer: 1001,
+      ),
+      isFalse,
+    );
+    expect(controller.hasLiveTripProjection, isFalse);
+    expect(controller.reading, 1000);
+    expect(controller.confirmedReading, 1000);
+  });
+
   test(
     'stale GPS trip projection updates cannot move a restarted odometer',
     () {
