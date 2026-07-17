@@ -110,7 +110,6 @@ class TripTrackingEngine {
         policy.maximumHorizontalAccuracyMeters) {
       return _decision(TripSampleDisposition.rejectedAccuracy);
     }
-    _recordActivity(verifiedActivity, observedAt: sample.recordedAt);
 
     final lastAccepted = _lastAccepted;
     if (lastAccepted == null) {
@@ -161,6 +160,8 @@ class TripTrackingEngine {
         TripSampleDisposition.rejectedSpeedConflict,
       );
     }
+
+    _recordActivity(verifiedActivity, observedAt: sample.recordedAt);
 
     final strongWalking = _isStrongWalking(verifiedActivity);
     final vehicleSpeedEvidence =

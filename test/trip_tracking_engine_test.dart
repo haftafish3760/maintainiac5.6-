@@ -370,6 +370,26 @@ void main() {
     expect(engine.totalAcceptedMeters, 0);
   });
 
+  test('rejected jumps cannot accumulate walking stop evidence', () {
+    final engine = TripTrackingEngine();
+    engine.ingest(sample(-80, 0));
+    engine.ingest(sample(-79.9998, 20));
+
+    for (final seconds in const [22, 24, 26]) {
+      final decision = engine.ingest(
+        sample(-79.99 + (seconds * .01), seconds),
+        activity: walking(seconds),
+      );
+      expect(
+        decision.disposition,
+        TripSampleDisposition.rejectedImplausibleSpeed,
+      );
+      expect(decision.walkingReviewSuggested, isFalse);
+    }
+
+    expect(engine.needsWalkingReview, isFalse);
+  });
+
   test(
     'an impossible jump is re-anchored and cannot create a delayed bridge',
     () {
