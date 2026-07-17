@@ -242,6 +242,52 @@ void main() {
     );
   });
 
+  test(
+    'unsafe mileage backup identity stays pending without raw details',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      final unsafeReview = TripTrackingReviewRecord(
+        id: '///',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1013,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 14, 12),
+        finishedAt: DateTime.utc(2026, 7, 14, 13),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 19312.128,
+          walkingReviewSuggested: false,
+        ),
+        confirmedEndingOdometer: 1013,
+        odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+      );
+      await localStore.saveReview(unsafeReview);
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        personal: true,
+        createdByUid: 'firebaseUid-1',
+      );
+
+      await expectLater(mirror.queueReview(unsafeReview), throwsStateError);
+
+      expect(queue.pendingRecords, isEmpty);
+      final stored = localStore.reviewForTrip('///');
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+      expect(
+        stored?.cloudSyncError,
+        contains('valid trip and vehicle identity'),
+      );
+      expect(stored?.cloudSyncError, isNot(contains('///')));
+    },
+  );
+
   test('builds solo-user mileage backup under the authenticated user', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(

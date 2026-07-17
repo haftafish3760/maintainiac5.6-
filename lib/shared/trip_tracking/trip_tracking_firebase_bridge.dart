@@ -145,7 +145,18 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       );
       throw StateError(_backupScopeMismatchMessage);
     }
-    final document = _documentFor(createdByUid, boundReview);
+    late final MaintainiacFirestoreDocumentDraft document;
+    try {
+      document = _documentFor(createdByUid, boundReview);
+    } catch (_) {
+      await _saveReviewState(
+        review.copyWith(
+          cloudSyncState: TripTrackingCloudSyncState.pending,
+          cloudSyncError: _unsafeMileageIdentityMessage,
+        ),
+      );
+      throw StateError(_unsafeMileageIdentityMessage);
+    }
     await _queueStore.enqueueReplacingPendingForPath(
       document,
       queuedAtUtc: boundReview.finishedAt.toUtc(),
@@ -402,6 +413,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       'Mileage backup is waiting for a valid authenticated account.';
   static const _backupScopeMismatchMessage =
       'Mileage backup is waiting for its original account and organization.';
+  static const _unsafeMileageIdentityMessage =
+      'Mileage backup is waiting for a valid trip and vehicle identity.';
   static const _backupFlushFailedMessage =
       'Mileage backup could not finish. Retry backup when the connection is stable.';
 
