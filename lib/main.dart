@@ -8,6 +8,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app/maintaniac_app.dart';
 import 'screens/dashboard/active_workday_actions.dart';
 import 'screens/dashboard/data/active_workday_store.dart';
+import 'screens/dashboard/data/dashboard_firestore_mirror.dart';
+import 'screens/dashboard/data/dashboard_trip_tracking_summary_reporter.dart';
 import 'screens/expenses/data/expense_draft_store.dart';
 import 'screens/expenses/data/expense_cloud_backup_service.dart';
 import 'screens/expenses/data/expense_cloud_proof_reference_store.dart';
@@ -25,6 +27,7 @@ import 'shared/context/operational_context_store.dart';
 import 'shared/profiles/user_profile_store.dart';
 import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
+import 'shared/storage/app_storage_guard.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
@@ -120,12 +123,17 @@ Future<void> main() async {
   );
   final tripTrackingStore = await TripTrackingSessionStore.create();
   TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror();
+  DashboardFirestoreMirror? dashboardMirror;
   if (firebaseSupported && userProfiles.activeProfile.id.trim().isNotEmpty) {
     final queueStore = await MaintainiacFirestoreUploadQueueStore.create();
     final uploadCoordinator = MaintainiacFirestoreUploadCoordinator(
       queue: queueStore,
       sink: FirebaseFirestoreDocumentSink(),
       uploadEnabled: true,
+    );
+    dashboardMirror = DashboardFirestoreMirror(
+      queueStore: queueStore,
+      uploadCoordinator: uploadCoordinator,
     );
     cloudMirror = TripTrackingFirebaseMirror(
       queueStore: queueStore,
@@ -167,6 +175,40 @@ Future<void> main() async {
     cloudMirror: cloudMirror,
   );
   await tripTracking.restore();
+  final activeDashboardMirror = dashboardMirror;
+  if (activeDashboardMirror != null) {
+    final dashboardReporter = DashboardTripTrackingSummaryReporter(
+      mirror: activeDashboardMirror,
+      settingsController: tripTrackingSettings,
+      uid: () => FirebaseAuth.instance.currentUser?.uid,
+      dashboardId: () => 'active_dashboard',
+      orgId: () => operationalContext.context.companyId,
+      activeVehicleId: () => operationalContext.context.activeVehicleId,
+      activeWorkdayId: () => activeWorkday.activeSession?.id,
+      activeWorkProfileId: () => operationalContext.context.workProfileId,
+      tripTracking: tripTracking,
+      activeWorkday: activeWorkday,
+      storageReader: () =>
+          AppStorageGuard.check(AppStoragePurpose.mileageTracking),
+    );
+    Future<void> queueDashboardTripSummary() async {
+      await dashboardReporter.queueNow();
+    }
+
+    unawaited(queueDashboardTripSummary());
+    tripTracking.addListener(() {
+      unawaited(queueDashboardTripSummary());
+    });
+    tripTrackingSettings.addListener(() {
+      unawaited(queueDashboardTripSummary());
+    });
+    activeWorkday.addListener(() {
+      unawaited(queueDashboardTripSummary());
+    });
+    operationalContext.addListener(() {
+      unawaited(queueDashboardTripSummary());
+    });
+  }
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(maintaniacSystemUiStyle);
   runApp(
