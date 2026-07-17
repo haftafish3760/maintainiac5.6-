@@ -250,6 +250,29 @@ void main() {
   );
 
   test(
+    'active workday events cannot persist below the starting odometer',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      await store.startDay(
+        vehicleId: 'vehicle_1',
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'business',
+        startOdometer: 1000,
+      );
+
+      await expectLater(
+        store.addEvent(type: ActiveWorkdayEventType.stop, odometerReading: 999),
+        throwsArgumentError,
+      );
+
+      expect(store.activeSession?.status, ActiveWorkdayStatus.active);
+      expect(store.activeSession?.events.map((event) => event.type), [
+        ActiveWorkdayEventType.started,
+      ]);
+    },
+  );
+
+  test(
     'resuming a paused day restores the active local session state',
     () async {
       final store = ActiveWorkdayController.memory();

@@ -384,12 +384,11 @@ class ActiveWorkdayController extends ChangeNotifier {
   }) => _enqueue(() async {
     final session = activeSession;
     if (session == null) return null;
-    if (type == ActiveWorkdayEventType.ended &&
-        odometerReading < session.startOdometer) {
+    if (odometerReading < session.startOdometer) {
       throw ArgumentError.value(
         odometerReading,
         'odometerReading',
-        'Ending odometer cannot be below the active day starting odometer.',
+        'Event odometer cannot be below the active day starting odometer.',
       );
     }
     await _ensureStorageForWrite();
