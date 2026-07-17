@@ -418,8 +418,19 @@ class TripTrackingController extends ChangeNotifier {
       return true;
     }
     if (pending != null && pending.sessionId == session.id) {
-      await ingest(pending.sample, activity: pending.activity);
-      await _sessionStore.clearPending(session.id);
+      try {
+        await ingest(pending.sample, activity: pending.activity);
+        await _sessionStore.clearPending(session.id);
+      } catch (error) {
+        // The active checkpoint and live odometer projection are already
+        // restored. If replaying the optional in-flight sample cannot be
+        // persisted, keep the trip recoverable and let the next sample move it
+        // forward instead of failing the whole restore.
+        _platformStatus = 'pending_replay_failed';
+        _platformError = 'Could not replay the last pending GPS sample.';
+        notifyListeners();
+        return true;
+      }
     }
     final platform = _platform;
     if (platform != null) {

@@ -1271,6 +1271,53 @@ void main() {
     expect(store.pendingSampleFor('trip_pending_replay'), isNull);
   });
 
+  test('recovery survives a failed pending GPS sample replay write', () async {
+    var storageAvailable = true;
+    final store = TripTrackingSessionStore.memory(
+      storageCheck: () async => AppStorageCheck(
+        availableBytes: storageAvailable
+            ? AppStorageGuard.mileageTrackingWriteBytes
+            : 0,
+        operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        purpose: AppStoragePurpose.mileageTracking,
+      ),
+    );
+    final original = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await original.start(
+      tripId: 'trip_pending_replay_storage_full',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await original.ingest(sample(-80, 0));
+    await store.savePending(
+      TripTrackingPendingSample(
+        sessionId: 'trip_pending_replay_storage_full',
+        sample: sample(-79.98, 90),
+      ),
+    );
+    storageAvailable = false;
+    final recovered = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+
+    expect(await recovered.restore(), isTrue);
+    expect(recovered.isTracking, isTrue);
+    expect(recovered.platformStatus, 'pending_replay_failed');
+    expect(
+      store.pendingSampleFor('trip_pending_replay_storage_full'),
+      isNotNull,
+    );
+  });
+
   test('recovery clears stale pending samples that cannot replay', () async {
     final store = TripTrackingSessionStore.memory();
     final original = TripTrackingController(
