@@ -77,7 +77,7 @@ class ActiveWorkdayEvent {
       type: _eventTypeFromName(map['type'] as String?),
       occurredAt:
           DateTime.tryParse((map['occurredAt'] as String?) ?? '') ??
-          DateTime.now(),
+          _fallbackWorkdayTimestamp(),
       odometerReading: _safeOdometer(map['odometerReading']) ?? 0,
       label: _safeText(map['label'], fallback: 'Workday event', maxLength: 80),
       note: _optionalSafeText(map['note'], maxLength: 240),
@@ -251,7 +251,7 @@ class ActiveWorkdaySessionRecord {
       ),
       startedAt:
           DateTime.tryParse((map['startedAt'] as String?) ?? '') ??
-          DateTime.now(),
+          _fallbackWorkdayTimestamp(),
       startOdometer: _safeOdometer(map['startOdometer']) ?? 0,
       status: _statusFromName(map['status'] as String?),
       events: events,
@@ -501,6 +501,9 @@ String _labelForEvent(ActiveWorkdayEventType type) {
 String _newId(String prefix) {
   return '${prefix}_${DateTime.now().microsecondsSinceEpoch}';
 }
+
+DateTime _fallbackWorkdayTimestamp() =>
+    DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
 bool _isSafeActiveWorkdayId(String value) {
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();

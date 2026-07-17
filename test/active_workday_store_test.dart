@@ -252,6 +252,31 @@ void main() {
     expect(restored.milesSoFar(12), 12);
   });
 
+  test('malformed active workday timestamps do not become current time', () {
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'malformed-workday-time',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': 'not-a-date',
+      'startOdometer': 1200,
+      'status': 'active',
+      'events': [
+        {
+          'id': 'bad-time-event',
+          'type': 'stop',
+          'occurredAt': 'also-bad',
+          'odometerReading': 1201,
+          'label': 'Stop logged',
+        },
+      ],
+    });
+
+    final fallback = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    expect(restored.startedAt, fallback);
+    expect(restored.events.single.occurredAt, fallback);
+  });
+
   test('active workday serialization never writes negative odometers', () {
     final record = ActiveWorkdaySessionRecord(
       id: 'negative-workday-odometer',
