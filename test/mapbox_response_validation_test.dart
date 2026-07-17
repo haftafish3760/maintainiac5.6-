@@ -235,6 +235,56 @@ void main() {
       expect(overwideCoordinate.isAccepted, isFalse);
     });
 
+    test('rejects route distance that disagrees with geometry length', () {
+      final understated =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'code': 'Ok',
+              'routes': [
+                {
+                  'distance': 10,
+                  'duration': 60,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35],
+                      [-79, 35],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+      final overstated =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'code': 'Ok',
+              'routes': [
+                {
+                  'distance': 100000,
+                  'duration': 60,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35],
+                      [-80.0001, 35.0001],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+
+      expect(understated.isAccepted, isFalse);
+      expect(overstated.isAccepted, isFalse);
+      expect(
+        understated.failures.single.code,
+        MapboxExternalFailureCode.invalidRouteShape,
+      );
+    });
+
     test('caps accepted alternatives and rejects oversized geometries', () {
       final manyRoutes =
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(

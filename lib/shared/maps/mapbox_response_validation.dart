@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 enum MapboxExternalFailureCode {
   httpFailure,
   rateLimited,
@@ -168,6 +170,12 @@ class MapboxExternalRouteValidator {
     }
     final coordinates = _coordinatesFromGeometry(route['geometry']);
     if (coordinates == null || coordinates.length < 2) return null;
+    if (!_hasCoherentRouteDistance(
+      reportedDistanceMeters: distance,
+      coordinates: coordinates,
+    )) {
+      return null;
+    }
     return MapboxValidatedRouteCandidate(
       distanceMeters: distance,
       durationSeconds: duration,
@@ -207,4 +215,45 @@ class MapboxExternalRouteValidator {
     if (value is! num || !value.isFinite) return null;
     return value.toDouble();
   }
+
+  static bool _hasCoherentRouteDistance({
+    required double reportedDistanceMeters,
+    required List<MapboxValidatedCoordinate> coordinates,
+  }) {
+    var geometryMeters = 0.0;
+    for (var index = 1; index < coordinates.length; index++) {
+      geometryMeters += _distanceMeters(
+        coordinates[index - 1],
+        coordinates[index],
+      );
+    }
+    if (!geometryMeters.isFinite || geometryMeters <= 0) return false;
+    final lowerBound = (geometryMeters / 5) - 1000;
+    final upperBound = (geometryMeters * 3) + 1000;
+    return reportedDistanceMeters >= lowerBound &&
+        reportedDistanceMeters <= upperBound;
+  }
 }
+
+double _distanceMeters(
+  MapboxValidatedCoordinate left,
+  MapboxValidatedCoordinate right,
+) {
+  const earthRadiusMeters = 6371008.8;
+  final latitudeDelta = _radians(right.latitude - left.latitude);
+  final longitudeDelta = _radians(right.longitude - left.longitude);
+  final a =
+      _square(_sin(latitudeDelta / 2)) +
+      _cos(_radians(left.latitude)) *
+          _cos(_radians(right.latitude)) *
+          _square(_sin(longitudeDelta / 2));
+  final boundedA = a.clamp(0.0, 1.0).toDouble();
+  return earthRadiusMeters * 2 * _atan2(_sqrt(boundedA), _sqrt(1 - boundedA));
+}
+
+double _radians(double degrees) => degrees * 3.1415926535897932 / 180;
+double _square(double value) => value * value;
+double _sin(double value) => math.sin(value);
+double _cos(double value) => math.cos(value);
+double _sqrt(double value) => math.sqrt(value);
+double _atan2(double y, double x) => math.atan2(y, x);
