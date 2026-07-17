@@ -18,11 +18,16 @@ void main() {
     expect(snapshot.toSafeDashboardMap(DateTime.utc(2026)), {
       'label': 'Odometer',
       'displayValue': '0001000',
+      'confirmedDisplayValue': '0001000',
       'isLive': false,
       'deltaMiles': 0,
       'statusLabel': null,
+      'advisoryLabel': null,
       'freshness': 'fresh',
+      'manualEntryBlocked': false,
+      'truthLabel': 'Confirmed odometer',
     });
+    expect(snapshot.semanticsLabelAt(DateTime.utc(2026)), 'Odometer 0001000');
   });
 
   test('live odometer display exposes only advisory delta text', () {
@@ -38,6 +43,12 @@ void main() {
     expect(snapshot.displayValue, '0001003');
     expect(snapshot.deltaMiles, 3);
     expect(snapshot.deltaLabel, '+3 mi live');
+    expect(snapshot.confirmedDisplayValue, '0001000');
+    expect(snapshot.manualEntryBlocked, isTrue);
+    expect(
+      snapshot.advisoryLabel,
+      'GPS-assisted estimate is 3 mi ahead of confirmed odometer.',
+    );
     expect(
       snapshot.isStaleAt(updatedAt.add(const Duration(minutes: 1))),
       false,
@@ -45,6 +56,10 @@ void main() {
     expect(
       snapshot.statusLabelAt(updatedAt.add(const Duration(minutes: 1))),
       '+3 mi live',
+    );
+    expect(
+      snapshot.semanticsLabelAt(updatedAt.add(const Duration(minutes: 1))),
+      'Live GPS odometer, 0001003, +3 mi live, confirmed 0001000',
     );
   });
 
@@ -63,10 +78,16 @@ void main() {
     expect(snapshot.toSafeDashboardMap(now), {
       'label': 'Live GPS odometer',
       'displayValue': '0001004',
+      'confirmedDisplayValue': '0001000',
       'isLive': true,
       'deltaMiles': 4,
       'statusLabel': 'Live GPS paused',
+      'advisoryLabel':
+          'GPS-assisted estimate is 4 mi ahead of confirmed odometer.',
       'freshness': 'stale',
+      'manualEntryBlocked': true,
+      'truthLabel':
+          'Confirmed odometer remains the mileage truth until trip review.',
     });
   });
 
@@ -78,7 +99,11 @@ void main() {
     );
 
     expect(snapshot.deltaMiles, isZero);
-    expect(snapshot.deltaLabel, '+0 mi live');
+    expect(snapshot.deltaLabel, 'GPS live');
+    expect(
+      snapshot.advisoryLabel,
+      'GPS-assisted odometer is live; confirmed mileage has not changed.',
+    );
     expect(snapshot.displayValue, '0000999');
   });
 

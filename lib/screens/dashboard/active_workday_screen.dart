@@ -716,13 +716,59 @@ class _LiveOdometerDialogLine extends StatelessWidget {
     final odometer = GlobalOdometerScope.of(context);
     return AnimatedBuilder(
       animation: odometer,
-      builder: (context, _) => Text(
-        'Odometer: ${odometer.displayValue}',
-        style: const TextStyle(
-          color: Color(0xFFC8D0D3),
-          fontWeight: FontWeight.w800,
-        ),
-      ),
+      builder: (context, _) {
+        final display = odometer.liveDisplaySnapshot;
+        final status = display.statusLabelAt(DateTime.now());
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${display.label}: ${display.displayValue}',
+              semanticsLabel: display.semanticsLabelAt(DateTime.now()),
+              style: const TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            if (status != null) ...[
+              const SizedBox(height: 3),
+              Text(
+                '$status • confirmed ${display.confirmedDisplayValue}',
+                style: const TextStyle(
+                  color: Color(0xFF20F060),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _LiveOdometerPanelLine extends StatelessWidget {
+  const _LiveOdometerPanelLine();
+
+  @override
+  Widget build(BuildContext context) {
+    final odometer = GlobalOdometerScope.of(context);
+    return AnimatedBuilder(
+      animation: odometer,
+      builder: (context, _) {
+        final display = odometer.liveDisplaySnapshot;
+        final status = display.statusLabelAt(DateTime.now());
+        return Text(
+          'Live odometer: ${display.displayValue}${status == null ? '' : ' • $status'}',
+          style: const TextStyle(
+            color: Color(0xFF20F060),
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+          semanticsLabel: display.semanticsLabelAt(DateTime.now()),
+        );
+      },
     );
   }
 }
@@ -769,7 +815,6 @@ class _GpsTripPanel extends StatelessWidget {
     final calibrationSignal = odometerAlertEnabled && controller != null
         ? controller.odometerCalibrationSignal()
         : null;
-    final odometer = GlobalOdometerScope.of(context);
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
     return Container(
@@ -823,17 +868,7 @@ class _GpsTripPanel extends StatelessWidget {
                 ),
                 if (tracking) ...[
                   const SizedBox(height: 3),
-                  AnimatedBuilder(
-                    animation: odometer,
-                    builder: (context, _) => Text(
-                      'Live odometer: ${odometer.displayValue}',
-                      style: const TextStyle(
-                        color: Color(0xFF20F060),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+                  const _LiveOdometerPanelLine(),
                 ],
                 if (capabilityGuidance != null) ...[
                   const SizedBox(height: 3),

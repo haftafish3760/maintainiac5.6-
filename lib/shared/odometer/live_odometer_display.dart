@@ -18,10 +18,32 @@ class LiveOdometerDisplaySnapshot {
 
   String get label => isLive ? 'Live GPS odometer' : 'Odometer';
 
+  String get truthLabel => isLive
+      ? 'Confirmed odometer remains the mileage truth until trip review.'
+      : 'Confirmed odometer';
+
+  bool get manualEntryBlocked => isLive;
+
+  bool get hasAdvisoryDelta => isLive && deltaMiles > 0;
+
   String get displayValue =>
       _safeReading(displayReading).toString().padLeft(7, '0');
 
-  String? get deltaLabel => isLive ? '+$deltaMiles mi live' : null;
+  String get confirmedDisplayValue =>
+      _safeReading(confirmedReading).toString().padLeft(7, '0');
+
+  String? get deltaLabel {
+    if (!isLive) return null;
+    return hasAdvisoryDelta ? '+$deltaMiles mi live' : 'GPS live';
+  }
+
+  String? get advisoryLabel {
+    if (!isLive) return null;
+    if (hasAdvisoryDelta) {
+      return 'GPS-assisted estimate is $deltaMiles mi ahead of confirmed odometer.';
+    }
+    return 'GPS-assisted odometer is live; confirmed mileage has not changed.';
+  }
 
   bool isStaleAt(
     DateTime now, {
@@ -39,13 +61,28 @@ class LiveOdometerDisplaySnapshot {
     return deltaLabel;
   }
 
+  String semanticsLabelAt(DateTime now) {
+    final status = statusLabelAt(now);
+    if (!isLive) return '$label $displayValue';
+    return [
+      label,
+      displayValue,
+      ?status,
+      'confirmed $confirmedDisplayValue',
+    ].join(', ');
+  }
+
   Map<String, Object?> toSafeDashboardMap(DateTime now) => {
     'label': label,
     'displayValue': displayValue,
+    'confirmedDisplayValue': confirmedDisplayValue,
     'isLive': isLive,
     'deltaMiles': deltaMiles,
     'statusLabel': statusLabelAt(now),
+    'advisoryLabel': advisoryLabel,
     'freshness': isStaleAt(now) ? 'stale' : 'fresh',
+    'manualEntryBlocked': manualEntryBlocked,
+    'truthLabel': truthLabel,
   };
 }
 

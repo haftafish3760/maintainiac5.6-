@@ -1112,7 +1112,8 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('Odometer: 0001004'), findsOneWidget);
+      expect(find.text('Live GPS odometer: 0001004'), findsOneWidget);
+      expect(find.text('+4 mi live • confirmed 0001000'), findsOneWidget);
       expect(find.text('Odometer: 0001000'), findsNothing);
     },
   );
