@@ -737,6 +737,38 @@ void main() {
     expect(controller.hasLiveTripProjection, isFalse);
   });
 
+  test('live GPS trip projection rejects over-range odometer estimates', () {
+    final controller = GlobalOdometerController(
+      initialReading: 1000,
+      validationPolicy: const OdometerValidationPolicy(
+        maxSupportedReading: 2000,
+      ),
+    );
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_1',
+        startingOdometer: 2001,
+      ),
+      isFalse,
+    );
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_1',
+        startingOdometer: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_1',
+        estimatedOdometer: 2001,
+      ),
+      isFalse,
+    );
+    expect(controller.reading, 1000);
+  });
+
   test(
     'an active GPS trip prevents switching the active odometer vehicle',
     () async {

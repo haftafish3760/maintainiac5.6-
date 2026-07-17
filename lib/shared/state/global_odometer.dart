@@ -122,7 +122,10 @@ class GlobalOdometerController extends ChangeNotifier {
     required int startingOdometer,
   }) {
     if (!_isSafeLiveTripId(tripId) || hasLiveTripProjection) return false;
-    if (startingOdometer < _reading) return false;
+    if (startingOdometer < _reading ||
+        startingOdometer > _validationPolicy.maxSupportedReading) {
+      return false;
+    }
     _liveTripId = tripId;
     _liveTripEstimatedReading = startingOdometer;
     notifyListeners();
@@ -133,7 +136,11 @@ class GlobalOdometerController extends ChangeNotifier {
     required String tripId,
     required int estimatedOdometer,
   }) {
-    if (_liveTripId != tripId || estimatedOdometer < _reading) return false;
+    if (_liveTripId != tripId ||
+        estimatedOdometer < _reading ||
+        estimatedOdometer > _validationPolicy.maxSupportedReading) {
+      return false;
+    }
     final current = _liveTripEstimatedReading ?? _reading;
     if (estimatedOdometer <= current) return true;
     _liveTripEstimatedReading = estimatedOdometer;
