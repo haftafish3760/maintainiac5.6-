@@ -43,6 +43,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   Timer? _timer;
   var _elapsed = Duration.zero;
   late var _activeVehicle = widget.activeVehicle;
+  var _gpsStartInFlight = false;
 
   @override
   void initState() {
@@ -111,6 +112,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   onStart: _startGpsTrip,
                   onStop: _stopGpsTrip,
                   onReviewLatest: _reviewLatestGpsTrip,
+                  startInFlight: _gpsStartInFlight,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -363,6 +365,20 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   }
 
   Future<void> _startGpsTrip() async {
+    if (_gpsStartInFlight) return;
+    setState(() => _gpsStartInFlight = true);
+    try {
+      await _startGpsTripImpl();
+    } finally {
+      if (mounted) {
+        setState(() => _gpsStartInFlight = false);
+      } else {
+        _gpsStartInFlight = false;
+      }
+    }
+  }
+
+  Future<void> _startGpsTripImpl() async {
     final settingsController = TripTrackingSettingsScope.maybeOf(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (settingsController == null || tripTracking == null) return;
@@ -623,11 +639,13 @@ class _GpsTripPanel extends StatelessWidget {
     required this.onStart,
     required this.onStop,
     required this.onReviewLatest,
+    required this.startInFlight,
   });
 
   final Future<void> Function() onStart;
   final Future<void> Function() onStop;
   final Future<void> Function() onReviewLatest;
+  final bool startInFlight;
 
   @override
   Widget build(BuildContext context) {
@@ -748,14 +766,20 @@ class _GpsTripPanel extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            onPressed: nativeTracking ? onStop : onStart,
+            onPressed: startInFlight
+                ? null
+                : nativeTracking
+                ? onStop
+                : onStart,
             style: FilledButton.styleFrom(
               backgroundColor: nativeTracking
                   ? const Color(0xFF8D2D2D)
                   : const Color(0xFF1976B9),
             ),
             child: Text(
-              nativeTracking
+              startInFlight
+                  ? 'STARTING'
+                  : nativeTracking
                   ? 'STOP'
                   : tracking
                   ? 'RESUME'
