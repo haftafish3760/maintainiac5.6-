@@ -118,7 +118,7 @@ int _safeSamplingIntervalMillis(Duration interval) {
 }
 
 double _safeMinimumDisplacementMeters(double meters) {
-  if (!meters.isFinite || meters < 0) return 0;
+  if (!meters.isFinite || meters <= 0) return 1;
   return meters > 1000 ? 1000 : meters;
 }
 

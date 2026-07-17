@@ -39,9 +39,22 @@ void main() {
     );
 
     expect(tooFast.toMap()['intervalMillis'], 1000);
-    expect(tooFast.toMap()['minimumDisplacementMeters'], 0);
+    expect(tooFast.toMap()['minimumDisplacementMeters'], 1);
     expect(tooSparse.toMap()['intervalMillis'], 120000);
     expect(tooSparse.toMap()['minimumDisplacementMeters'], 1000);
+  });
+
+  test('native request never asks for zero-displacement GPS callbacks', () {
+    const request = TripTrackingNativeRequest(
+      profile: TripTrackingProfile.roadVehicle,
+      sampling: TripSamplingRecommendation(
+        mode: TripSamplingMode.precision,
+        interval: Duration(seconds: 2),
+        minimumDisplacementMeters: 0,
+      ),
+    );
+
+    expect(request.toMap()['minimumDisplacementMeters'], 1);
   });
 
   test('iOS bridge maps every road-style profile to automotive navigation', () {
