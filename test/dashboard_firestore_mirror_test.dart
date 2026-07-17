@@ -109,6 +109,69 @@ void main() {
     expect(queue.pendingRecords, hasLength(1));
     expect(queue.pendingRecords.single.data['gpsAssistState'], 'on');
   });
+
+  test(
+    'rejects unsafe dashboard summaries before they reach the queue',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      );
+
+      await expectLater(
+        mirror.queueSummary(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+          dashboardMode: 'god_mode',
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        mirror.queueSummary(
+          uid: 'firebaseUid-1',
+          dashboardId: ' /// ',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        ),
+        throwsArgumentError,
+      );
+
+      expect(queue.pendingRecords, isEmpty);
+    },
+  );
+
+  test('rejects unsafe dashboard flush paths before upload', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingSink();
+    final mirror = DashboardFirestoreMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+      ),
+    );
+
+    expect(
+      () => mirror.flushSummary(uid: 'firebaseUid-1', dashboardId: ' /// '),
+      throwsArgumentError,
+    );
+    expect(
+      () => mirror.flushSummary(
+        uid: 'firebaseUid-1',
+        orgId: ' /// ',
+        dashboardId: 'today',
+      ),
+      throwsArgumentError,
+    );
+
+    expect(sink.writes, isEmpty);
+  });
 }
 
 class _RecordingSink implements MaintainiacFirestoreDocumentSink {
