@@ -221,7 +221,7 @@ class TripTrackingSettingsController extends ChangeNotifier {
   TripTrackingSettingsController._(this._box, this._settings);
   TripTrackingSettingsController.memory([TripTrackingSettings? settings])
     : _box = null,
-      _settings = settings ?? const TripTrackingSettings();
+      _settings = _normalized(settings ?? const TripTrackingSettings());
 
   static const boxName = 'gps_trip_tracking_settings';
   static const _settingsKey = 'settings';
@@ -230,6 +230,9 @@ class TripTrackingSettingsController extends ChangeNotifier {
   TripTrackingSettings _settings;
 
   TripTrackingSettings get settings => _settings;
+
+  static TripTrackingSettings _normalized(TripTrackingSettings settings) =>
+      TripTrackingSettings.fromMap(settings.toMap());
 
   static Future<TripTrackingSettingsController> create() async {
     final box = await Hive.openBox<dynamic>(boxName);
@@ -243,7 +246,7 @@ class TripTrackingSettingsController extends ChangeNotifier {
   }
 
   Future<void> update(TripTrackingSettings settings) async {
-    final normalized = TripTrackingSettings.fromMap(settings.toMap());
+    final normalized = _normalized(settings);
     if (_settings.toMap().toString() == normalized.toMap().toString()) return;
     _settings = normalized;
     await _box?.put(_settingsKey, normalized.toMap());

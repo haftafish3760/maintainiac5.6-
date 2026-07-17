@@ -149,6 +149,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     final settings = TripTrackingSettingsController.memory(
       const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
         lowBatteryGpsOverrideEnabled: true,
         lowBatteryGpsWarningDismissed: true,
       ),

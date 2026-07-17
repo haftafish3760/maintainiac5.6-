@@ -89,6 +89,19 @@ void main() {
     },
   );
 
+  test('memory settings controller normalizes injected settings before use', () {
+    final controller = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(
+        lowBatteryGpsOverrideEnabled: true,
+        lowBatteryGpsWarningDismissed: true,
+      ),
+    );
+
+    expect(controller.settings.gpsAssistedTrackingEnabled, isFalse);
+    expect(controller.settings.lowBatteryGpsOverrideEnabled, isFalse);
+    expect(controller.settings.lowBatteryGpsWarningDismissed, isFalse);
+  });
+
   test(
     'driver profile choices persist for onboarding and dashboard defaults',
     () {
