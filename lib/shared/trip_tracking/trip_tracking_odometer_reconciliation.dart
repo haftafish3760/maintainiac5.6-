@@ -281,6 +281,7 @@ class TripOdometerCalibrationSignal {
         .where(
           (review) =>
               review.isOdometerConfirmed &&
+              review.hasValidTimeline &&
               review.vehicleId.trim().isNotEmpty &&
               (requestedVehicleId == null ||
                   requestedVehicleId.isEmpty ||
