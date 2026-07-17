@@ -555,6 +555,14 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   ),
                 ),
               ),
+              const Text(
+                'You can reverse this later in Dashboard GPS settings.',
+                style: TextStyle(
+                  color: Color(0xFF9FB0B6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           actions: [

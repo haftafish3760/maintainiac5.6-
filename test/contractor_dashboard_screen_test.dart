@@ -519,6 +519,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Battery below 20%'), findsOneWidget);
+    expect(
+      find.text('You can reverse this later in Dashboard GPS settings.'),
+      findsOneWidget,
+    );
     expect(native.requestAuthorizationCalls, 0);
     expect(native.startCalls, 0);
 
