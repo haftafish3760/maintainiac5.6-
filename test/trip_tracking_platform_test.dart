@@ -331,4 +331,18 @@ void main() {
     expect(event.type, TripTrackingPlatformEventType.error);
     expect(event.errorCode, 'invalidActivityPayload');
   });
+
+  test('native activity timestamps accept epoch milliseconds', () {
+    final recordedAt = DateTime.utc(2026, 7, 13, 12);
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'activity',
+      'activity': 'walking',
+      'confidence': 90,
+      'recordedAt': recordedAt.millisecondsSinceEpoch,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.activity);
+    expect(event.activity?.activity, TripActivity.walking);
+    expect(event.activity?.recordedAt, recordedAt);
+  });
 }

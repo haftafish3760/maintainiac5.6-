@@ -321,7 +321,7 @@ class TripActivityObservation {
     final rawConfidence = _tripNumberFrom(map['confidence']);
     if (rawConfidence == null) return null;
     final confidence = rawConfidence.round();
-    final recordedAt = DateTime.tryParse('${map['recordedAt'] ?? ''}');
+    final recordedAt = _tripTimestampFrom(map['recordedAt']);
     if (confidence < 0 || confidence > 100 || recordedAt == null) {
       return null;
     }
