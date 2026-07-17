@@ -42,6 +42,7 @@ class TripOdometerReconciliation {
     final gpsMiles = review.engineSnapshot.totalAcceptedMeters / 1609.344;
     if (odometerDelta < 0 ||
         !gpsMiles.isFinite ||
+        gpsMiles < 0 ||
         !materialDifferenceMiles.isFinite ||
         materialDifferenceMiles < 0 ||
         !materialDifferencePercent.isFinite ||

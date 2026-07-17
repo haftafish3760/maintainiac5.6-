@@ -62,6 +62,28 @@ void main() {
     expect(result.status, TripOdometerReconciliationStatus.invalid);
   });
 
+  test('negative persisted GPS distance fails closed', () {
+    final result = TripOdometerReconciliation.compare(
+      review: TripTrackingReviewRecord(
+        id: 'trip_negative_gps_distance',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        estimatedEndingOdometer: 1020,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 13, 12),
+        finishedAt: DateTime.utc(2026, 7, 13, 14),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: -1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+      confirmedEndingOdometer: 1020,
+    );
+
+    expect(result.status, TripOdometerReconciliationStatus.invalid);
+    expect(result.filteredGpsMiles, 0);
+  });
+
   test('a next trip cannot start below the previous confirmed ending', () {
     final previous = review.copyWith(
       confirmedEndingOdometer: 1020,
