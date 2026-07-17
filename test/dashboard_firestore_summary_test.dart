@@ -230,6 +230,35 @@ void main() {
     }
   });
 
+  test('dashboard upload policy rejects oversized reference strings', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        );
+
+    for (final entry in const <String, String>{
+      'dashboardId': 'today',
+      'createdByUid': 'firebaseUid-1',
+      'updatedByUid': 'firebaseUid-1',
+      'activeVehicleId': 'truck_1',
+      'activeWorkdayId': 'workday_1',
+      'activeWorkProfileId': 'profile_1',
+    }.entries) {
+      final poisoned = MaintainiacFirestoreDocumentDraft(
+        path: doc.path,
+        data: {...doc.data, entry.key: 'x' * 129},
+      );
+
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+        throwsArgumentError,
+        reason: '${entry.key} must stay bounded',
+      );
+    }
+  });
+
   test('dashboard upload policy rejects malformed timestamps', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
@@ -318,6 +347,14 @@ void main() {
       expect(rules, contains('function isAllowedDashboardSyncMode'));
       expect(rules, contains('function isAllowedGpsAssistState'));
       expect(rules, contains('function hasValidDashboardSummaryStrings'));
+      expect(
+        rules,
+        contains('request.resource.data.dashboardId.size() <= 128'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.activeVehicleId.size() <= 128'),
+      );
       for (final field in const <String>[
         'dashboardId',
         'createdByUid',

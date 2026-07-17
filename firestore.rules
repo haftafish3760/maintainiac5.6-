@@ -326,24 +326,31 @@ service cloud.firestore {
     function hasValidDashboardSummaryStrings() {
       return request.resource.data.dashboardId is string &&
         request.resource.data.dashboardId.size() > 0 &&
+        request.resource.data.dashboardId.size() <= 128 &&
         request.resource.data.createdByUid is string &&
         request.resource.data.createdByUid.size() > 0 &&
+        request.resource.data.createdByUid.size() <= 128 &&
         request.resource.data.updatedByUid is string &&
         request.resource.data.updatedByUid.size() > 0 &&
+        request.resource.data.updatedByUid.size() <= 128 &&
         request.resource.data.updatedAt is string &&
         request.resource.data.updatedAt.size() > 0 &&
         (!request.resource.data.keys().hasAny(['orgId']) ||
           (request.resource.data.orgId is string &&
-            request.resource.data.orgId.size() > 0)) &&
+            request.resource.data.orgId.size() > 0 &&
+            request.resource.data.orgId.size() <= 128)) &&
         (!request.resource.data.keys().hasAny(['activeVehicleId']) ||
           (request.resource.data.activeVehicleId is string &&
-            request.resource.data.activeVehicleId.size() > 0)) &&
+            request.resource.data.activeVehicleId.size() > 0 &&
+            request.resource.data.activeVehicleId.size() <= 128)) &&
         (!request.resource.data.keys().hasAny(['activeWorkdayId']) ||
           (request.resource.data.activeWorkdayId is string &&
-            request.resource.data.activeWorkdayId.size() > 0)) &&
+            request.resource.data.activeWorkdayId.size() > 0 &&
+            request.resource.data.activeWorkdayId.size() <= 128)) &&
         (!request.resource.data.keys().hasAny(['activeWorkProfileId']) ||
           (request.resource.data.activeWorkProfileId is string &&
-            request.resource.data.activeWorkProfileId.size() > 0));
+            request.resource.data.activeWorkProfileId.size() > 0 &&
+            request.resource.data.activeWorkProfileId.size() <= 128));
     }
 
     function isAllowedDashboardMode(value) {

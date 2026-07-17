@@ -251,9 +251,9 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['locationDataIncluded'] == false &&
         draft.data['rawModuleDataIncluded'] == false &&
         draft.data.keys.every(allowed.contains) &&
-        _isNonEmptyString(draft.data['dashboardId']) &&
-        _isNonEmptyString(draft.data['createdByUid']) &&
-        _isNonEmptyString(draft.data['updatedByUid']) &&
+        _isBoundedDashboardReference(draft.data['dashboardId']) &&
+        _isBoundedDashboardReference(draft.data['createdByUid']) &&
+        _isBoundedDashboardReference(draft.data['updatedByUid']) &&
         _isNonEmptyString(draft.data['updatedAt']) &&
         _hasValidOptionalStringField(draft.data, 'activeVehicleId') &&
         _hasValidOptionalStringField(draft.data, 'activeWorkdayId') &&
@@ -482,10 +482,13 @@ class MaintainiacFirestoreUploadPolicy {
   static bool _isNonEmptyString(Object? value) =>
       value is String && value.trim().isNotEmpty;
 
+  static bool _isBoundedDashboardReference(Object? value) =>
+      value is String && value.trim().isNotEmpty && value.length <= 128;
+
   static bool _hasValidOptionalStringField(
     Map<String, Object?> data,
     String field,
-  ) => !data.containsKey(field) || _isNonEmptyString(data[field]);
+  ) => !data.containsKey(field) || _isBoundedDashboardReference(data[field]);
 
   static bool _isAllowedString(Object? value, Set<String> allowed) =>
       value is String && allowed.contains(value.trim());
