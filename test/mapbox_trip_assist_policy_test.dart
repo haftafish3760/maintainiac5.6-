@@ -21,6 +21,10 @@ void main() {
       expect(decision.shouldShowRoute, isFalse);
       expect(decision.canModifyTripLog, isFalse);
       expect(decision.canModifyOdometer, isFalse);
+      expect(decision.trustedMileageSource, MapboxTrustedMileageSource.none);
+      expect(decision.toSafeSummary()['schemaVersion'], 1);
+      expect(decision.toSafeSummary()['advisoryOnly'], isTrue);
+      expect(decision.toSafeSummary()['officialMileageSource'], 'odometer');
       expect(decision.toSafeSummary()['rawGeometryIncluded'], isFalse);
     },
   );
@@ -38,6 +42,8 @@ void main() {
     expect(decision.routeDistanceMiles, isNull);
     expect(decision.canModifyTripLog, isFalse);
     expect(decision.canModifyOdometer, isFalse);
+    expect(decision.toSafeSummary()['fallbackMode'], isNull);
+    expect(decision.toSafeSummary()['trustedComparisonSource'], 'none');
   });
 
   test(
@@ -54,9 +60,32 @@ void main() {
       expect(decision.shouldPromptReview, isFalse);
       expect(decision.routeDistanceMiles, closeTo(1, .001));
       expect(decision.comparisonDeltaMiles, closeTo(.03, .001));
+      expect(
+        decision.trustedMileageSource,
+        MapboxTrustedMileageSource.odometer,
+      );
       expect(decision.canModifyOdometer, isFalse);
     },
   );
+
+  test('GPS accepted mileage is only a fallback comparison source', () {
+    final decision = MapboxTripAssistPolicy.evaluateRouteAssist(
+      validation: _validRoute(distanceMeters: 1609.344 * 6.1),
+      confirmedOdometerMiles: null,
+      gpsAcceptedMiles: 6,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.status, MapboxTripAssistStatus.visualOnly);
+    expect(
+      decision.trustedMileageSource,
+      MapboxTrustedMileageSource.gpsAccepted,
+    );
+    expect(summary['trustedComparisonSource'], 'gpsAccepted');
+    expect(summary['officialMileageSource'], 'odometer');
+    expect(summary['canModifyOdometer'], isFalse);
+    expect(summary['canModifyTripLog'], isFalse);
+  });
 
   test(
     'large Mapbox mismatch prompts review without becoming authoritative',
@@ -73,6 +102,7 @@ void main() {
       expect(decision.comparisonDeltaMiles, closeTo(4, .001));
       expect(decision.canModifyTripLog, isFalse);
       expect(decision.canModifyOdometer, isFalse);
+      expect(decision.toSafeSummary()['shouldPromptReview'], isTrue);
     },
   );
 
@@ -86,6 +116,7 @@ void main() {
     expect(decision.status, MapboxTripAssistStatus.visualOnly);
     expect(decision.safeReason, 'mapbox_visual_only_no_trusted_mileage');
     expect(decision.comparisonDeltaMiles, isNull);
+    expect(decision.trustedMileageSource, MapboxTrustedMileageSource.none);
   });
 
   test('safe summaries never expose raw route geometry or coordinates', () {
@@ -98,7 +129,42 @@ void main() {
     expect(summary.keys, isNot(contains('coordinates')));
     expect(summary.keys, isNot(contains('geometry')));
     expect(summary.keys, isNot(contains('polyline')));
+    expect(summary['rawResponseIncluded'], isFalse);
+    expect(summary['tokensIncluded'], isFalse);
+    expect(summary['publicTokenIncluded'], isFalse);
+    expect(summary['secretTokenIncluded'], isFalse);
+    expect(summary['coordinatesIncluded'], isFalse);
+    expect(summary['routeGeometryIncluded'], isFalse);
     expect(summary['rawGeometryIncluded'], isFalse);
+  });
+
+  test('safe summaries round route assist miles for dashboard storage', () {
+    final decision = MapboxTripAssistPolicy.evaluateRouteAssist(
+      validation: _validRoute(distanceMeters: 1609.344 * 7.12349),
+      confirmedOdometerMiles: 7.12301,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['routeDistanceMiles'], 7.123);
+    expect(summary['comparisonDeltaMiles'], 0.0);
+    expect(summary['advisoryOnly'], isTrue);
+  });
+
+  test('invalid review thresholds fail closed before using Mapbox mileage', () {
+    final decision = MapboxTripAssistPolicy.evaluateRouteAssist(
+      validation: _validRoute(distanceMeters: 1609.344),
+      confirmedOdometerMiles: 1,
+      reviewDifferenceMiles: double.nan,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.status, MapboxTripAssistStatus.rejected);
+    expect(decision.safeReason, 'invalid_map_assist_threshold');
+    expect(summary['shouldShowRoute'], isFalse);
+    expect(summary['shouldPromptReview'], isFalse);
+    expect(summary['routeDistanceMiles'], isNull);
+    expect(summary['canPersistRawRoute'], isFalse);
+    expect(summary['canPersistCoordinates'], isFalse);
   });
 }
 

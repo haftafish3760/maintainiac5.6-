@@ -34,12 +34,18 @@ class MapboxServiceGuardDecision {
   bool get shouldFallbackToGpsOnly => status != MapboxServiceGuardStatus.ready;
 
   Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
     'kind': kind.name,
     'status': status.name,
     'safeReason': safeReason,
     if (retryAfterSeconds != null) 'retryAfterSeconds': retryAfterSeconds,
+    'featureOptional': true,
+    'fallbackMode': shouldFallbackToGpsOnly ? 'gps_only' : 'map_assist',
+    'sensitiveWriteAllowed': false,
     'rawResponseIncluded': false,
     'tokensIncluded': false,
+    'publicTokenIncluded': false,
+    'secretTokenIncluded': false,
     'coordinatesIncluded': false,
   };
 }

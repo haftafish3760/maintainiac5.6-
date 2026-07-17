@@ -8,18 +8,22 @@ enum MapboxTripAssistStatus {
   distanceReview,
 }
 
+enum MapboxTrustedMileageSource { none, odometer, gpsAccepted }
+
 class MapboxTripAssistDecision {
   const MapboxTripAssistDecision({
     required this.status,
     required this.safeReason,
     required this.routeDistanceMiles,
     required this.comparisonDeltaMiles,
+    required this.trustedMileageSource,
   });
 
   final MapboxTripAssistStatus status;
   final String safeReason;
   final double? routeDistanceMiles;
   final double? comparisonDeltaMiles;
+  final MapboxTrustedMileageSource trustedMileageSource;
 
   bool get canModifyTripLog => false;
   bool get canModifyOdometer => false;
@@ -30,13 +34,28 @@ class MapboxTripAssistDecision {
       status == MapboxTripAssistStatus.distanceReview;
 
   Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
     'status': status.name,
     'safeReason': safeReason,
-    if (routeDistanceMiles != null) 'routeDistanceMiles': routeDistanceMiles,
+    'advisoryOnly': true,
+    'officialMileageSource': 'odometer',
+    'trustedComparisonSource': trustedMileageSource.name,
+    'shouldShowRoute': shouldShowRoute,
+    'shouldPromptReview': shouldPromptReview,
+    if (_safeMiles(routeDistanceMiles) != null)
+      'routeDistanceMiles': _safeMiles(routeDistanceMiles),
     if (comparisonDeltaMiles != null)
-      'comparisonDeltaMiles': comparisonDeltaMiles,
+      'comparisonDeltaMiles': _safeMiles(comparisonDeltaMiles),
     'canModifyTripLog': false,
     'canModifyOdometer': false,
+    'canPersistRawRoute': false,
+    'canPersistCoordinates': false,
+    'rawResponseIncluded': false,
+    'tokensIncluded': false,
+    'publicTokenIncluded': false,
+    'secretTokenIncluded': false,
+    'coordinatesIncluded': false,
+    'routeGeometryIncluded': false,
     'rawGeometryIncluded': false,
   };
 }
@@ -60,6 +79,7 @@ class MapboxTripAssistPolicy {
         safeReason: 'invalid_map_assist_threshold',
         routeDistanceMiles: null,
         comparisonDeltaMiles: null,
+        trustedMileageSource: MapboxTrustedMileageSource.none,
       );
     }
     if (!validation.isAccepted) {
@@ -77,22 +97,25 @@ class MapboxTripAssistPolicy {
         safeReason: reason,
         routeDistanceMiles: null,
         comparisonDeltaMiles: null,
+        trustedMileageSource: MapboxTrustedMileageSource.none,
       );
     }
     final candidate = validation.candidates.first;
     final routeMiles = candidate.distanceMiles;
-    final comparisonMiles = _trustedComparisonMiles(
+    final comparison = _trustedComparisonMiles(
       confirmedOdometerMiles: confirmedOdometerMiles,
       gpsAcceptedMiles: gpsAcceptedMiles,
     );
-    if (comparisonMiles == null || comparisonMiles <= 0) {
+    if (comparison.miles == null || comparison.miles! <= 0) {
       return MapboxTripAssistDecision(
         status: MapboxTripAssistStatus.visualOnly,
         safeReason: 'mapbox_visual_only_no_trusted_mileage',
         routeDistanceMiles: routeMiles,
         comparisonDeltaMiles: null,
+        trustedMileageSource: MapboxTrustedMileageSource.none,
       );
     }
+    final comparisonMiles = comparison.miles!;
     final deltaMiles = (routeMiles - comparisonMiles).abs();
     final percent = comparisonMiles == 0
         ? 0
@@ -109,23 +132,43 @@ class MapboxTripAssistPolicy {
           : 'mapbox_visual_assist_only',
       routeDistanceMiles: routeMiles,
       comparisonDeltaMiles: deltaMiles,
+      trustedMileageSource: comparison.source,
     );
   }
 }
 
-double? _trustedComparisonMiles({
+class _TrustedMileageComparison {
+  const _TrustedMileageComparison(this.miles, this.source);
+
+  final double? miles;
+  final MapboxTrustedMileageSource source;
+}
+
+_TrustedMileageComparison _trustedComparisonMiles({
   required double? confirmedOdometerMiles,
   required double? gpsAcceptedMiles,
 }) {
   if (confirmedOdometerMiles != null &&
       confirmedOdometerMiles.isFinite &&
       confirmedOdometerMiles > 0) {
-    return confirmedOdometerMiles;
+    return _TrustedMileageComparison(
+      confirmedOdometerMiles,
+      MapboxTrustedMileageSource.odometer,
+    );
   }
   if (gpsAcceptedMiles != null &&
       gpsAcceptedMiles.isFinite &&
       gpsAcceptedMiles > 0) {
-    return gpsAcceptedMiles;
+    return _TrustedMileageComparison(
+      gpsAcceptedMiles,
+      MapboxTrustedMileageSource.gpsAccepted,
+    );
   }
-  return null;
+  return const _TrustedMileageComparison(null, MapboxTrustedMileageSource.none);
+}
+
+double? _safeMiles(double? value) {
+  if (value == null || !value.isFinite || value < 0) return null;
+  if (value > 12500) return null;
+  return (value * 1000).roundToDouble() / 1000;
 }

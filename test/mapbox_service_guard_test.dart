@@ -30,8 +30,14 @@ void main() {
 
       expect(decision.status, MapboxServiceGuardStatus.ready);
       expect(decision.canUseFeature, isTrue);
+      expect(summary['schemaVersion'], 1);
+      expect(summary['featureOptional'], isTrue);
+      expect(summary['fallbackMode'], 'map_assist');
+      expect(summary['sensitiveWriteAllowed'], isFalse);
       expect(summary['rawResponseIncluded'], isFalse);
       expect(summary['tokensIncluded'], isFalse);
+      expect(summary['publicTokenIncluded'], isFalse);
+      expect(summary['secretTokenIncluded'], isFalse);
       expect(summary['coordinatesIncluded'], isFalse);
       expect(summary.toString(), isNot(contains('private')));
       expect(summary.toString(), isNot(contains('35.1')));
@@ -51,6 +57,8 @@ void main() {
     expect(decision.status, MapboxServiceGuardStatus.rateLimited);
     expect(decision.retryAfterSeconds, 86400);
     expect(decision.shouldFallbackToGpsOnly, isTrue);
+    expect(summary['fallbackMode'], 'gps_only');
+    expect(summary['sensitiveWriteAllowed'], isFalse);
     expect(summary.toString(), isNot(contains('pk.secret')));
     expect(summary.toString(), isNot(contains('35.1')));
     expect(summary.toString(), isNot(contains('-80.1')));
