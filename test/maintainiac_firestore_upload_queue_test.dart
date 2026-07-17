@@ -373,7 +373,11 @@ void main() {
 
   test('retains failed writes with retry metadata', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
-    final sink = _RecordingFirestoreSink(failPathsContaining: 'catalogHealth');
+    final sink = _RecordingFirestoreSink(
+      failPathsContaining: 'catalogHealth',
+      failureMessage:
+          'token=pk.secret lat:35.123 longitude=-80.456\nsecond line',
+    );
     await queue.enqueueAll([
       _safeDraft('parserHealth/receipt_parser_v1'),
       _safeDraft('catalogHealth/work_supply_core'),
@@ -391,6 +395,15 @@ void main() {
     expect(queue.pendingRecords, hasLength(1));
     expect(queue.pendingRecords.single.attemptCount, 1);
     expect(queue.pendingRecords.single.lastError, isNotEmpty);
+    expect(queue.pendingRecords.single.lastError, isNot(contains('pk.secret')));
+    expect(queue.pendingRecords.single.lastError, isNot(contains('35.123')));
+    expect(queue.pendingRecords.single.lastError, isNot(contains('-80.456')));
+    expect(queue.pendingRecords.single.lastError, contains('token redacted'));
+    expect(queue.pendingRecords.single.lastError, contains('lat redacted'));
+    expect(
+      queue.pendingRecords.single.lastError,
+      contains('longitude redacted'),
+    );
     expect(
       queue.pendingRecords.single.nextAttemptAtUtc,
       DateTime.utc(2026, 6, 23, 14, 0, 30),
@@ -622,9 +635,13 @@ MaintainiacFirestoreDocumentDraft _safeDraft(String path) {
 }
 
 class _RecordingFirestoreSink implements MaintainiacFirestoreDocumentSink {
-  _RecordingFirestoreSink({this.failPathsContaining});
+  _RecordingFirestoreSink({
+    this.failPathsContaining,
+    this.failureMessage = 'simulated upload failure',
+  });
 
   final String? failPathsContaining;
+  final String failureMessage;
   final writes = <String, Map<String, Object?>>{};
 
   @override
@@ -633,7 +650,7 @@ class _RecordingFirestoreSink implements MaintainiacFirestoreDocumentSink {
     required Map<String, Object?> data,
   }) async {
     if (failPathsContaining != null && path.contains(failPathsContaining!)) {
-      throw StateError('simulated upload failure');
+      throw StateError(failureMessage);
     }
     writes[path] = data;
   }

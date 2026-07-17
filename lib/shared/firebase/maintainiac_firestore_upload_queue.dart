@@ -90,7 +90,9 @@ class MaintainiacFirestoreQueuedDocument {
       nextAttemptAtUtc: DateTime.tryParse(
         value['nextAttemptAtUtc']?.toString() ?? '',
       ),
-      lastError: value['lastError']?.toString(),
+      lastError: value['lastError'] == null
+          ? null
+          : _safeError(value['lastError'].toString()),
       uploadedAtUtc: DateTime.tryParse(
         value['uploadedAtUtc']?.toString() ?? '',
       ),
@@ -151,12 +153,12 @@ String _safeError(String value) {
         RegExp(r'\btoken\s*=\s*[^,\s;]+', caseSensitive: false),
         'token=[redacted]',
       )
-      .replaceAll(
+      .replaceAllMapped(
         RegExp(
-          r'\b(lat|latitude|lon|lng|longitude)\s*=\s*-?\d+(\.\d+)?',
+          r'\b(lat|latitude|lon|lng|longitude)\s*[:=]\s*-?\d+(\.\d+)?',
           caseSensitive: false,
         ),
-        r'$1=[redacted]',
+        (match) => '${match.group(1)} redacted',
       );
   return redacted
       .replaceAll(RegExp(r'[^A-Za-z0-9_ .:/-]+'), ' ')
