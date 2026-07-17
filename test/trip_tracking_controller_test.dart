@@ -1144,6 +1144,37 @@ void main() {
     },
   );
 
+  test(
+    'malformed native payload events are ignored without stopping GPS',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_malformed_native_payload',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addMalformedPayload();
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.platformStatus, 'tracking');
+      expect(controller.platformError, isNull);
+    },
+  );
+
   test('a fatal native platform error interrupts and stops tracking', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(
@@ -3853,6 +3884,10 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
         'errorMessage': message,
       }),
     );
+  }
+
+  void addMalformedPayload() {
+    _events.add(TripTrackingPlatformEvent.fromNativePayload('not-a-map'));
   }
 
   void addStatus(String status) {

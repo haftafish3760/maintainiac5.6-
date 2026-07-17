@@ -916,7 +916,7 @@ class TripTrackingController extends ChangeNotifier {
           if (_isDisposed) return;
           _platformError = 'GPS event could not be processed safely.';
           notifyListeners();
-      });
+        });
   }
 
   Future<void> _cancelPlatformSubscriptionAfterNativeStop() async {
@@ -929,20 +929,20 @@ class TripTrackingController extends ChangeNotifier {
     }
   }
 
-  String _safeNativePlatformErrorMessage(String? errorCode) =>
-      switch (errorCode) {
-        'trip_tracking_foreground_service_denied' =>
-          'GPS foreground service permission is required for this tracking mode.',
-        'trip_tracking_location_registration_failed' =>
-          'GPS location updates could not be registered by the device.',
-        'trip_tracking_location_denied' =>
-          'GPS location permission is required for trip tracking.',
-        'trip_tracking_gps_unavailable' =>
-          'GPS is unavailable on this device right now.',
-        'trip_tracking_gps_disabled' =>
-          'GPS was turned off while tracking.',
-        _ => 'GPS reported a device error.',
-      };
+  String _safeNativePlatformErrorMessage(
+    String? errorCode,
+  ) => switch (errorCode) {
+    'trip_tracking_foreground_service_denied' =>
+      'GPS foreground service permission is required for this tracking mode.',
+    'trip_tracking_location_registration_failed' =>
+      'GPS location updates could not be registered by the device.',
+    'trip_tracking_location_denied' =>
+      'GPS location permission is required for trip tracking.',
+    'trip_tracking_gps_unavailable' =>
+      'GPS is unavailable on this device right now.',
+    'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
+    _ => 'GPS reported a device error.',
+  };
 
   Future<void> _maybeUpdateNativeSampling(
     TripLocationSample sample,
@@ -1016,6 +1016,7 @@ class TripTrackingController extends ChangeNotifier {
       switch (errorCode) {
         'invalidLocationPayload' ||
         'invalidActivityPayload' ||
+        'invalidNativeEventPayload' ||
         'invalidStatusPayload' => true,
         _ => false,
       };
