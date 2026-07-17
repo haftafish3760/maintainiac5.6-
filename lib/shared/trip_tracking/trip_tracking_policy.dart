@@ -6,12 +6,32 @@ class TripGpsBatteryDecision {
   const TripGpsBatteryDecision({
     required this.status,
     required this.reasonCode,
+    required this.batteryBucket,
+    required this.promptTitle,
+    required this.promptBody,
   });
 
   final TripGpsBatteryDecisionStatus status;
   final String reasonCode;
+  final String batteryBucket;
+  final String promptTitle;
+  final String promptBody;
 
   bool get allowsGps => status == TripGpsBatteryDecisionStatus.allowed;
+  bool get requiresUserChoice =>
+      status == TripGpsBatteryDecisionStatus.userPromptRequired;
+  bool get isSavedBlock => status == TripGpsBatteryDecisionStatus.blocked;
+
+  Map<String, Object?> toSafeSummary() => {
+    'status': status.name,
+    'reasonCode': reasonCode,
+    'batteryBucket': batteryBucket,
+    'promptTitle': promptTitle,
+    'promptBody': promptBody,
+    'allowsGps': allowsGps,
+    'requiresUserChoice': requiresUserChoice,
+    'preciseBatteryIncluded': false,
+  };
 }
 
 class TripTrackingPolicy {
@@ -67,15 +87,17 @@ class TripTrackingPolicy {
     required bool lowBatteryWarningDismissed,
   }) {
     if (!lowBatteryProtectionEnabled) {
-      return const TripGpsBatteryDecision(
+      return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_protection_disabled',
+        batteryPercent: batteryPercent,
       );
     }
     if (isCharging) {
-      return const TripGpsBatteryDecision(
+      return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'device_charging',
+        batteryPercent: batteryPercent,
       );
     }
     final percent = batteryPercent;
@@ -85,55 +107,64 @@ class TripTrackingPolicy {
         : 20;
     if (percent != null && percent >= 0 && percent < cutoff) {
       if (lowBatteryOverrideEnabled) {
-        return const TripGpsBatteryDecision(
+        return _batteryDecision(
           status: TripGpsBatteryDecisionStatus.allowed,
           reasonCode: 'user_override_low_battery',
+          batteryPercent: percent,
         );
       }
       if (lowBatteryWarningDismissed) {
-        return const TripGpsBatteryDecision(
+        return _batteryDecision(
           status: TripGpsBatteryDecisionStatus.blocked,
           reasonCode: 'low_battery_gps_blocked_by_saved_choice',
+          batteryPercent: percent,
         );
       }
-      return const TripGpsBatteryDecision(
+      return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.userPromptRequired,
         reasonCode: 'low_battery_requires_user_choice',
+        batteryPercent: percent,
       );
     }
     if (lowPowerModeEnabled) {
       if (lowBatteryOverrideEnabled) {
-        return const TripGpsBatteryDecision(
+        return _batteryDecision(
           status: TripGpsBatteryDecisionStatus.allowed,
           reasonCode: 'user_override_low_power_mode',
+          batteryPercent: percent,
         );
       }
       if (lowBatteryWarningDismissed) {
-        return const TripGpsBatteryDecision(
+        return _batteryDecision(
           status: TripGpsBatteryDecisionStatus.blocked,
           reasonCode: 'low_power_mode_gps_blocked_by_saved_choice',
+          batteryPercent: percent,
         );
       }
-      return const TripGpsBatteryDecision(
+      return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.userPromptRequired,
         reasonCode: 'low_power_mode_requires_user_choice',
+        batteryPercent: percent,
       );
     }
     if (percent == null || percent < 0 || percent > 100) {
-      return const TripGpsBatteryDecision(
+      return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_unknown',
+        batteryPercent: percent,
       );
     }
     if (percent >= cutoff) {
-      return const TripGpsBatteryDecision(
+      return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_above_cutoff',
+        batteryPercent: percent,
       );
     }
-    return const TripGpsBatteryDecision(
+    return _batteryDecision(
       status: TripGpsBatteryDecisionStatus.allowed,
       reasonCode: 'battery_unknown',
+      batteryPercent: percent,
     );
   }
 
@@ -187,6 +218,53 @@ class TripTrackingPolicy {
       minimumDisplacementMeters: 20,
     );
   }
+}
+
+TripGpsBatteryDecision _batteryDecision({
+  required TripGpsBatteryDecisionStatus status,
+  required String reasonCode,
+  required int? batteryPercent,
+}) {
+  return TripGpsBatteryDecision(
+    status: status,
+    reasonCode: reasonCode,
+    batteryBucket: _batteryBucket(batteryPercent),
+    promptTitle: _batteryPromptTitle(reasonCode),
+    promptBody: _batteryPromptBody(reasonCode),
+  );
+}
+
+String _batteryBucket(int? percent) {
+  if (percent == null || percent < 0 || percent > 100) return 'unknown';
+  if (percent < 20) return 'below_20';
+  if (percent < 50) return '20_to_49';
+  return '50_plus';
+}
+
+String _batteryPromptTitle(String reasonCode) {
+  return switch (reasonCode) {
+    'low_battery_requires_user_choice' ||
+    'low_battery_gps_blocked_by_saved_choice' => 'Battery below 20%',
+    'low_power_mode_requires_user_choice' ||
+    'low_power_mode_gps_blocked_by_saved_choice' => 'Battery saver is active',
+    _ => 'GPS battery guard',
+  };
+}
+
+String _batteryPromptBody(String reasonCode) {
+  return switch (reasonCode) {
+    'low_battery_requires_user_choice' =>
+      'GPS-assisted tracking is paused by default below the safety threshold. Continue only if you want GPS to keep running.',
+    'low_battery_gps_blocked_by_saved_choice' =>
+      'GPS-assisted tracking is blocked by your saved low-battery choice. You can reverse this in dashboard settings.',
+    'low_power_mode_requires_user_choice' =>
+      'Battery saver may limit GPS reliability. Continue only if you want GPS to keep running.',
+    'low_power_mode_gps_blocked_by_saved_choice' =>
+      'GPS-assisted tracking is blocked by your saved battery-saver choice. You can reverse this in dashboard settings.',
+    'user_override_low_battery' || 'user_override_low_power_mode' =>
+      'GPS is continuing because you opted in to bypass the battery guard.',
+    _ => 'GPS battery guard did not block tracking.',
+  };
 }
 
 double _safePositiveDouble(double value, {required double fallback}) =>
