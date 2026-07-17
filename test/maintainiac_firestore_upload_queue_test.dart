@@ -640,6 +640,15 @@ void main() {
         ),
         throwsArgumentError,
       );
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(
+          MaintainiacFirestoreDocumentDraft(
+            path: 'parserHealth/non_json_data',
+            data: {'schema': Object()},
+          ),
+        ),
+        throwsArgumentError,
+      );
 
       await expectLater(
         queue.enqueue(

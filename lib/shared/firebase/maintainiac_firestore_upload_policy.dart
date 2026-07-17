@@ -191,7 +191,16 @@ class MaintainiacFirestoreUploadPolicy {
       RegExp(r'[\x00-\x1F\x7F]').hasMatch(segment);
 
   static void _validateDocumentSize(MaintainiacFirestoreDocumentDraft draft) {
-    final bytes = utf8.encode(jsonEncode(draft.data)).length;
+    late final int bytes;
+    try {
+      bytes = utf8.encode(jsonEncode(draft.data)).length;
+    } catch (_) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Firestore document contains unsupported data.',
+      );
+    }
     if (bytes > maxDocumentBytes) {
       throw ArgumentError.value(
         bytes,
