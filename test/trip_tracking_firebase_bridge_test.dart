@@ -1590,7 +1590,14 @@ void main() {
       localStore.reviewForTrip('trip 1')?.cloudSyncState,
       TripTrackingCloudSyncState.failed,
     );
-    expect(localStore.reviewForTrip('trip 1')?.cloudSyncError, 'failed');
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      contains('saved locally'),
+    );
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      contains('retry'),
+    );
     expect(
       localStore.reviewForTrip('trip 1')?.cloudSyncError,
       isNot(contains('sk.secret')),

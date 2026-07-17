@@ -366,7 +366,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
           await _saveReviewState(
             boundReview.copyWith(
               cloudSyncState: TripTrackingCloudSyncState.failed,
-              cloudSyncError: result.status.name,
+              cloudSyncError: _backupWriteFailedMessage,
             ),
           );
         }
@@ -433,6 +433,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       'Mileage backup is waiting for a valid trip and vehicle identity.';
   static const _backupFlushFailedMessage =
       'Mileage backup could not finish. Retry backup when the connection is stable.';
+  static const _backupWriteFailedMessage =
+      'Mileage backup could not upload. It remains saved locally and will retry.';
 
   TripTrackingReviewRecord? _bindReview(
     TripTrackingReviewRecord review,
