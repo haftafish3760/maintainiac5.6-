@@ -438,7 +438,7 @@ void main() {
     expect(find.text('GPS assist is ready for delivery work.'), findsOneWidget);
     expect(find.textContaining('walking evidence'), findsOneWidget);
     expect(find.text('Delivery'), findsWidgets);
-    expect(find.text('Sync: Wi-Fi only'), findsOneWidget);
+    expect(find.textContaining('Sync: Wi-Fi only'), findsOneWidget);
     expect(find.text('Battery guard on'), findsOneWidget);
     expect(find.textContaining('Motion assist is recommended'), findsOneWidget);
     expect(find.textContaining('Odometer remains'), findsOneWidget);

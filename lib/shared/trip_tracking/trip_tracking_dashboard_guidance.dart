@@ -1,6 +1,7 @@
 import 'trip_tracking_models.dart';
 import 'trip_tracking_profile_strategy.dart';
 import 'trip_tracking_settings_store.dart';
+import 'trip_tracking_sync_policy.dart';
 
 class TripTrackingDashboardGuidance {
   const TripTrackingDashboardGuidance({
@@ -10,6 +11,7 @@ class TripTrackingDashboardGuidance {
     required this.primaryStatus,
     required this.safetyStatus,
     required this.syncStatus,
+    required this.syncReason,
     required this.stopDetectionStatus,
     required this.odometerStatus,
     required this.recommendsActivityRecognition,
@@ -25,6 +27,7 @@ class TripTrackingDashboardGuidance {
   final String primaryStatus;
   final String safetyStatus;
   final String syncStatus;
+  final String syncReason;
   final String stopDetectionStatus;
   final String odometerStatus;
   final bool recommendsActivityRecognition;
@@ -52,9 +55,22 @@ class TripTrackingDashboardGuidance {
 
   static TripTrackingDashboardGuidance fromSettings(
     TripTrackingSettings settings,
-  ) {
+  ) => fromSettingsWithSyncContext(settings);
+
+  static TripTrackingDashboardGuidance fromSettingsWithSyncContext(
+    TripTrackingSettings settings, {
+    bool? wifiAvailable,
+    bool? mobileDataAvailable,
+    int? syncsUsedInWindow,
+  }) {
     final strategy = TripTrackingProfileStrategy.forProfile(
       settings.defaultProfile,
+    );
+    final syncDecision = TripTrackingBackupSyncPolicy.evaluate(
+      networkPolicy: settings.backupNetworkPolicy,
+      wifiAvailable: wifiAvailable,
+      mobileDataAvailable: mobileDataAvailable,
+      syncsUsedInWindow: syncsUsedInWindow,
     );
     final enabled = settings.gpsAssistedTrackingEnabled;
     final activityActive =
@@ -76,7 +92,8 @@ class TripTrackingDashboardGuidance {
         lowBatteryProtection: settings.lowBatteryGpsProtectionEnabled,
         backgroundTracking: backgroundActive,
       ),
-      syncStatus: _syncLabel(settings.backupNetworkPolicy),
+      syncStatus: syncDecision.dashboardLabel,
+      syncReason: syncDecision.userFacingReason,
       stopDetectionStatus: strategy.stopDetectionSummary,
       odometerStatus: odometerAlerts
           ? 'Odometer anomaly review is on. GPS remains advisory and will not replace confirmed odometer readings.'
@@ -97,15 +114,6 @@ String _profileLabel(TripTrackingProfile profile) {
     TripTrackingProfile.contractorVehicle => 'Contractor',
     TripTrackingProfile.lowSpeedEquipment => 'Equipment',
     TripTrackingProfile.roadVehicle => 'Road vehicle',
-  };
-}
-
-String _syncLabel(TripTrackingBackupNetworkPolicy policy) {
-  return switch (policy) {
-    TripTrackingBackupNetworkPolicy.wifiOnly => 'Sync: Wi-Fi only',
-    TripTrackingBackupNetworkPolicy.wifiAndMobileData =>
-      'Sync: Wi-Fi or mobile data',
-    TripTrackingBackupNetworkPolicy.mobileDataOnly => 'Sync: mobile data only',
   };
 }
 

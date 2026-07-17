@@ -14,9 +14,16 @@ void main() {
     expect(guidance.modeToken, 'default');
     expect(guidance.primaryStatus, contains('GPS assist is off'));
     expect(guidance.safetyStatus, contains('GPS is off'));
-    expect(guidance.syncStatus, 'Sync: Wi-Fi or mobile data');
+    expect(
+      guidance.syncStatus,
+      'Sync: Wi-Fi or mobile data; free sync usage pending',
+    );
+    expect(guidance.syncReason, contains('network status'));
     expect(guidance.dashboardBadges, contains('Road vehicle'));
-    expect(guidance.dashboardBadges, contains('Sync: Wi-Fi or mobile data'));
+    expect(
+      guidance.dashboardBadges,
+      contains('Sync: Wi-Fi or mobile data; free sync usage pending'),
+    );
     expect(guidance.shouldShowActivityRecognitionRecommendation, isFalse);
     expect(guidance.shouldShowOdometerReview, isFalse);
   });
@@ -52,7 +59,7 @@ void main() {
 
     expect(guidance.profileLabel, 'Rideshare');
     expect(guidance.modeToken, 'gig_driver');
-    expect(guidance.syncStatus, 'Sync: Wi-Fi only');
+    expect(guidance.syncStatus, contains('Sync: Wi-Fi only'));
     expect(guidance.stopDetectionStatus, contains('driver often stays'));
     expect(guidance.dashboardBadges, contains('Battery guard on'));
   });
@@ -93,7 +100,7 @@ void main() {
 
     expect(guidance.profileLabel, 'Equipment');
     expect(guidance.modeToken, 'default');
-    expect(guidance.syncStatus, 'Sync: mobile data only');
+    expect(guidance.syncStatus, contains('Sync: mobile data only'));
     expect(guidance.recommendsActivityRecognition, isFalse);
     expect(guidance.activityRecognitionActive, isFalse);
     expect(guidance.shouldShowActivityRecognitionRecommendation, isFalse);
@@ -113,5 +120,24 @@ void main() {
     expect(guidance.shouldShowBatterySafety, isFalse);
     expect(guidance.safetyStatus, contains('off by user choice'));
     expect(guidance.dashboardBadges, isNot(contains('Battery guard on')));
+  });
+
+  test('dashboard guidance can include verified free sync context', () {
+    final guidance = TripTrackingDashboardGuidance.fromSettingsWithSyncContext(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        backupNetworkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
+      ),
+      wifiAvailable: true,
+      mobileDataAvailable: false,
+      syncsUsedInWindow: 5,
+    );
+
+    expect(guidance.syncStatus, 'Sync: Wi-Fi only; 1 free sync left');
+    expect(guidance.syncReason, 'Backup sync is ready.');
+    expect(
+      guidance.dashboardBadges,
+      contains('Sync: Wi-Fi only; 1 free sync left'),
+    );
   });
 }
