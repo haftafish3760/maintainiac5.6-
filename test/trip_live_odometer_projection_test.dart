@@ -21,4 +21,11 @@ void main() {
     expect(projection.updateAcceptedMeters(double.infinity), 120000);
     expect(projection.updateAcceptedMeters(-1), 120000);
   });
+
+  test('negative projection baselines recover to zero', () {
+    final projection = TripLiveOdometerProjection(startingOdometer: -20);
+
+    expect(projection.projectedReading, isZero);
+    expect(projection.updateAcceptedMeters(1609.344), 1);
+  });
 }

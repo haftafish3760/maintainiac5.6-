@@ -4,7 +4,7 @@ const metersPerMile = 1609.344;
 /// confirmed odometer is intentionally not overwritten until trip review.
 class TripLiveOdometerProjection {
   TripLiveOdometerProjection({required this.startingOdometer})
-    : _lastProjectedReading = startingOdometer;
+    : _lastProjectedReading = _safeStartingOdometer(startingOdometer);
 
   final int startingOdometer;
   int _lastProjectedReading;
@@ -16,10 +16,13 @@ class TripLiveOdometerProjection {
       return _lastProjectedReading;
     }
     final estimated =
-        startingOdometer + (acceptedMeters / metersPerMile).round();
+        _safeStartingOdometer(startingOdometer) +
+        (acceptedMeters / metersPerMile).round();
     if (estimated > _lastProjectedReading) {
       _lastProjectedReading = estimated;
     }
     return _lastProjectedReading;
   }
 }
+
+int _safeStartingOdometer(int value) => value < 0 ? 0 : value;
