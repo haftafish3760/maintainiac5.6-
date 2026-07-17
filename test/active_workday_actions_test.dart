@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/active_workday_actions.dart';
+import 'package:maintaniac/screens/dashboard/active_workday_quick_action_editor.dart';
 
 void main() {
   test('default quick action layout matches the active dashboard buttons', () {
@@ -57,6 +59,10 @@ void main() {
       }).activeKinds,
       defaultWorkdayQuickActionKinds,
     );
+    expect(
+      WorkdayQuickActionLayout.fromMap(const {'activeKinds': []}).activeKinds,
+      isEmpty,
+    );
   });
 
   test(
@@ -84,4 +90,31 @@ void main() {
       expect(notifications, 1);
     },
   );
+
+  testWidgets('quick action editor removes and adds actions through scope', (
+    tester,
+  ) async {
+    final controller = WorkdayQuickActionLayoutController.memory(
+      const WorkdayQuickActionLayout(
+        activeKinds: [WorkdayQuickActionKind.addStop],
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WorkdayQuickActionLayoutScope(
+          controller: controller,
+          child: const ActiveWorkdayQuickActionEditor(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Add Stop'));
+    await tester.pump();
+    expect(controller.layout.activeKinds, isEmpty);
+
+    await tester.tap(find.text('Expense'));
+    await tester.pump();
+    expect(controller.layout.activeKinds, [WorkdayQuickActionKind.expense]);
+  });
 }

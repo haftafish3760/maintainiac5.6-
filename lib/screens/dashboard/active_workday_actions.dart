@@ -251,12 +251,14 @@ class WorkdayQuickActionLayout {
 
 List<WorkdayQuickActionKind> _sanitizeActionKinds(Iterable<String> rawKinds) {
   final selected = <WorkdayQuickActionKind>[];
+  var hadSavedValues = false;
   for (final rawKind in rawKinds.take(availableWorkdayQuickActions.length)) {
+    hadSavedValues = true;
     final kind = _actionKindFromName(rawKind);
     if (kind == null || selected.contains(kind)) continue;
     selected.add(kind);
   }
-  return selected.isEmpty
+  return selected.isEmpty && hadSavedValues
       ? List.unmodifiable(defaultWorkdayQuickActionKinds)
       : List.unmodifiable(selected);
 }

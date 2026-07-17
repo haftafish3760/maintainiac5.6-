@@ -14,6 +14,11 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
     final availableActions = availableWorkdayQuickActions
         .where((action) => !activeLayout.activeKinds.contains(action.kind))
         .toList();
+    Future<void> updateKinds(List<WorkdayQuickActionKind> kinds) async {
+      await layoutController?.update(
+        WorkdayQuickActionLayout(activeKinds: kinds),
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
@@ -29,11 +34,27 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
             const SizedBox(height: 14),
             const _EditorSectionTitle('ACTIVE BUTTONS'),
             const SizedBox(height: 8),
-            _QuickActionGrid(actions: activeLayout.activeActions, active: true),
+            _QuickActionGrid(
+              actions: activeLayout.activeActions,
+              active: true,
+              onActionTap: (action) {
+                final nextKinds = [
+                  for (final kind in activeLayout.activeKinds)
+                    if (kind != action.kind) kind,
+                ];
+                updateKinds(nextKinds);
+              },
+            ),
             const SizedBox(height: 18),
             const _EditorSectionTitle('AVAILABLE BUTTONS'),
             const SizedBox(height: 8),
-            _QuickActionGrid(actions: availableActions, active: false),
+            _QuickActionGrid(
+              actions: availableActions,
+              active: false,
+              onActionTap: (action) {
+                updateKinds([...activeLayout.activeKinds, action.kind]);
+              },
+            ),
           ],
         ),
       ),
@@ -68,10 +89,15 @@ class _EditorIntroPanel extends StatelessWidget {
 }
 
 class _QuickActionGrid extends StatelessWidget {
-  const _QuickActionGrid({required this.actions, required this.active});
+  const _QuickActionGrid({
+    required this.actions,
+    required this.active,
+    required this.onActionTap,
+  });
 
   final List<WorkdayQuickActionSpec> actions;
   final bool active;
+  final ValueChanged<WorkdayQuickActionSpec> onActionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +115,11 @@ class _QuickActionGrid extends StatelessWidget {
             for (final action in actions)
               SizedBox(
                 width: width,
-                child: _EditorActionTile(action: action, active: active),
+                child: _EditorActionTile(
+                  action: action,
+                  active: active,
+                  onTap: () => onActionTap(action),
+                ),
               ),
           ],
         );
@@ -99,75 +129,86 @@ class _QuickActionGrid extends StatelessWidget {
 }
 
 class _EditorActionTile extends StatelessWidget {
-  const _EditorActionTile({required this.action, required this.active});
+  const _EditorActionTile({
+    required this.action,
+    required this.active,
+    required this.onTap,
+  });
 
   final WorkdayQuickActionSpec action;
   final bool active;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 92),
-      padding: const EdgeInsets.fromLTRB(6, 7, 6, 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151B1E),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF3E4A50)),
-      ),
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.topRight,
-            child: Icon(
-              active ? Icons.remove_circle_rounded : Icons.add_circle_rounded,
-              color: active ? const Color(0xFFFF5A4D) : const Color(0xFF35B86B),
-              size: 18,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 92),
+        padding: const EdgeInsets.fromLTRB(6, 7, 6, 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF151B1E),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF3E4A50)),
+        ),
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: Icon(
+                active ? Icons.remove_circle_rounded : Icons.add_circle_rounded,
+                color: active
+                    ? const Color(0xFFFF5A4D)
+                    : const Color(0xFF35B86B),
+                size: 18,
+              ),
             ),
-          ),
-          Container(
-            width: 42,
-            height: 42,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: action.color,
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: [
-                BoxShadow(
-                  color: action.color.withValues(alpha: 0.35),
-                  blurRadius: 7,
-                ),
-              ],
+            Container(
+              width: 42,
+              height: 42,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: action.color,
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: action.color.withValues(alpha: 0.35),
+                    blurRadius: 7,
+                  ),
+                ],
+              ),
+              child: Text(
+                action.emoji,
+                style: const TextStyle(fontSize: 24, height: 1),
+              ),
             ),
-            child: Text(
-              action.emoji,
-              style: const TextStyle(fontSize: 24, height: 1),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            action.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFE2E8EA),
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          if (action.requiresOdometer)
-            const Text(
-              'Odometer',
+            const SizedBox(height: 6),
+            Text(
+              action.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFFFFD166),
-                fontSize: 9,
+              style: const TextStyle(
+                color: Color(0xFFE2E8EA),
+                fontSize: 11,
                 fontWeight: FontWeight.w900,
               ),
             ),
-        ],
+            if (action.requiresOdometer)
+              const Text(
+                'Odometer',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFFFD166),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
