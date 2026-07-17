@@ -319,7 +319,7 @@ String? _safePlatformMessage(Object? value) {
       )
       .replaceAll(
         RegExp(
-          r'\b(lat|latitude|lon|lng|longitude)\s*=\s*-?\d+(\.\d+)?',
+          r'\b(lat|latitude|lon|lng|longitude)\s*[:=]\s*-?\d+(\.\d+)?',
           caseSensitive: false,
         ),
         r'$1=[redacted]',
