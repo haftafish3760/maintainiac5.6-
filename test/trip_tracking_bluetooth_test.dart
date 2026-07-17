@@ -82,6 +82,22 @@ void main() {
     },
   );
 
+  test('Bluetooth vehicle links are trimmed and bounded locally', () {
+    final link = TripTrackingBluetoothVehicleLink.fromMap({
+      'deviceId': '  ${'d' * 200}  ',
+      'vehicleId': '  ${'v' * 200}  ',
+      'displayName': 'Truck\n${'x' * 120}',
+      'createdAt': DateTime.utc(2026, 7, 13, 8).toIso8601String(),
+    });
+    final map = link.toMap();
+
+    expect((map['deviceId'] as String), hasLength(160));
+    expect((map['vehicleId'] as String), hasLength(160));
+    expect((map['displayName'] as String), hasLength(80));
+    expect(map['displayName'], isNot(contains('\n')));
+    expect(link.isValid, isTrue);
+  });
+
   test(
     'a vehicle may have multiple links and blank links cannot be saved',
     () async {

@@ -17,27 +17,28 @@ class TripTrackingBluetoothVehicleLink {
   final DateTime createdAt;
   final String displayName;
 
-  bool get isValid => deviceId.trim().isNotEmpty && vehicleId.trim().isNotEmpty;
+  bool get isValid =>
+      _safeId(deviceId).isNotEmpty && _safeId(vehicleId).isNotEmpty;
 
   /// The device identifier is never displayed or sent off-device.  This key is
   /// deliberately normalized only for local de-duplication; platform adapters
   /// remain responsible for supplying a stable opaque identifier.
-  String get normalizedDeviceId => deviceId.trim();
+  String get normalizedDeviceId => _safeId(deviceId);
 
   Map<String, Object?> toMap() => {
-    'deviceId': deviceId,
-    'vehicleId': vehicleId,
+    'deviceId': normalizedDeviceId,
+    'vehicleId': _safeId(vehicleId),
     'createdAt': createdAt.toIso8601String(),
-    'displayName': displayName,
+    'displayName': _safeDisplayName(displayName),
   };
 
   factory TripTrackingBluetoothVehicleLink.fromMap(Map<dynamic, dynamic> map) =>
       TripTrackingBluetoothVehicleLink(
-        deviceId: '${map['deviceId'] ?? ''}',
-        vehicleId: '${map['vehicleId'] ?? ''}',
+        deviceId: _safeId(map['deviceId']),
+        vehicleId: _safeId(map['vehicleId']),
         createdAt:
             DateTime.tryParse('${map['createdAt'] ?? ''}') ?? DateTime.now(),
-        displayName: '${map['displayName'] ?? ''}',
+        displayName: _safeDisplayName(map['displayName']),
       );
 }
 
@@ -97,9 +98,9 @@ class TripTrackingBluetoothVehicleLinkStore {
     }
     final normalized = TripTrackingBluetoothVehicleLink(
       deviceId: link.normalizedDeviceId,
-      vehicleId: link.vehicleId.trim(),
+      vehicleId: _safeId(link.vehicleId),
       createdAt: link.createdAt,
-      displayName: link.displayName.trim(),
+      displayName: _safeDisplayName(link.displayName),
     );
     if (_box == null) {
       _memoryLinks[normalized.normalizedDeviceId] = normalized;
@@ -114,6 +115,20 @@ class TripTrackingBluetoothVehicleLinkStore {
     _memoryLinks.remove(key);
     await _box?.delete(key);
   }
+}
+
+String _safeId(Object? value) {
+  final clean = '${value ?? ''}'.trim();
+  if (clean.isEmpty) return '';
+  return clean.length > 160 ? clean.substring(0, 160) : clean;
+}
+
+String _safeDisplayName(Object? value) {
+  final clean = '${value ?? ''}'
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
+  if (clean.isEmpty) return '';
+  return clean.length > 80 ? clean.substring(0, 80) : clean;
 }
 
 enum BluetoothVehicleMatchDisposition {
