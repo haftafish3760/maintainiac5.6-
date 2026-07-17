@@ -37,6 +37,7 @@ class DashboardTripTrackingSummary {
     required this.sensorAssistState,
     required this.odometerCalibrationState,
     required this.odometerCalibrationSamples,
+    required this.odometerCalibrationMultiplier,
     required this.odometerUsageState,
     required this.odometerUsageReviewedDays,
     required this.dashboardWidgetTokens,
@@ -67,6 +68,7 @@ class DashboardTripTrackingSummary {
   final String sensorAssistState;
   final String odometerCalibrationState;
   final int? odometerCalibrationSamples;
+  final double? odometerCalibrationMultiplier;
   final String odometerUsageState;
   final int? odometerUsageReviewedDays;
   final List<String> dashboardWidgetTokens;
@@ -90,6 +92,7 @@ class DashboardTripTrackingSummary {
     String sensorAssistState = 'unknown',
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
+    double? odometerCalibrationMultiplier,
     String odometerUsageState = 'disabled',
     int? odometerUsageReviewedDays,
     String recoveryState = 'none',
@@ -157,6 +160,9 @@ class DashboardTripTrackingSummary {
       ),
       odometerCalibrationSamples: _safeCalibrationSamples(
         odometerCalibrationSamples,
+      ),
+      odometerCalibrationMultiplier: _safeCalibrationMultiplier(
+        odometerCalibrationMultiplier,
       ),
       odometerUsageState: _safeOdometerUsageState(odometerUsageState),
       odometerUsageReviewedDays: _safeCalibrationSamples(
@@ -227,6 +233,8 @@ class DashboardTripTrackingSummary {
       sensorAssistState: _sensorAssistStateFor(capabilityGuidance),
       odometerCalibrationState: _calibrationStateFor(calibrationSignal),
       odometerCalibrationSamples: calibrationSignal?.eligibleSampleCount,
+      odometerCalibrationMultiplier:
+          calibrationSignal?.gpsAssistanceCalibrationMultiplier,
       odometerUsageState: _usageStateFor(usageSignal),
       odometerUsageReviewedDays: usageSignal?.reviewedDayCount,
       recoveryState: _recoveryStateFor(recoveryDecision),

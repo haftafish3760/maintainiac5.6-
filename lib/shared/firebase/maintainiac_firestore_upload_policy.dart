@@ -395,6 +395,7 @@ class MaintainiacFirestoreUploadPolicy {
       'sensorAssistState',
       'odometerCalibrationState',
       'odometerCalibrationSamples',
+      'odometerCalibrationMultiplier',
       'odometerUsageState',
       'odometerUsageReviewedDays',
       'dashboardWidgetTokens',
@@ -476,6 +477,9 @@ class MaintainiacFirestoreUploadPolicy {
           _allowedOdometerCalibrationStates,
         ) &&
         _isValidSyncsUsedInWindow(draft.data['odometerCalibrationSamples']) &&
+        _isValidDashboardCalibrationMultiplier(
+          draft.data['odometerCalibrationMultiplier'],
+        ) &&
         _isAllowedString(
           draft.data['odometerUsageState'],
           _allowedOdometerUsageStates,
@@ -730,6 +734,9 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isValidSyncsUsedInWindow(Object? value) =>
       value == null || (value is int && value >= 0 && value <= 999);
+
+  static bool _isValidDashboardCalibrationMultiplier(Object? value) =>
+      value == null || (value is num && value >= .8 && value <= 1.25);
 
   static bool _hasValidDashboardTokenList(Object? value, Set<String> allowed) {
     if (value == null) return true;

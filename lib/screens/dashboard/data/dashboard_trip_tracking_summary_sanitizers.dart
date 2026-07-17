@@ -175,6 +175,12 @@ int? _safeCalibrationSamples(int? value) {
   return value > 999 ? 999 : value;
 }
 
+double? _safeCalibrationMultiplier(double? value) {
+  if (value == null || !value.isFinite) return null;
+  if (value < .8 || value > 1.25) return null;
+  return double.parse(value.toStringAsFixed(4));
+}
+
 List<String> _safeDashboardWidgetTokens(Iterable<String> tokens) {
   const allowed = {
     'start_day',

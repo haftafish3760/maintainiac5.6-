@@ -114,6 +114,10 @@ void main() {
       expect(rules, contains('request.resource.data.stopClassificationReason'));
       expect(
         rules,
+        contains('request.resource.data.odometerCalibrationMultiplier <= 1.25'),
+      );
+      expect(
+        rules,
         contains('request.resource.data.locationDataIncluded == false'),
       );
       for (final forbiddenRouteField in const [

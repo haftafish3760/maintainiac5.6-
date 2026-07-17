@@ -36,6 +36,7 @@ void main() {
     expect(summary.sensorAssistState, 'unknown');
     expect(summary.odometerCalibrationState, 'disabled');
     expect(summary.odometerCalibrationSamples, isNull);
+    expect(summary.odometerCalibrationMultiplier, isNull);
     expect(summary.odometerUsageState, 'disabled');
     expect(summary.odometerUsageReviewedDays, isNull);
     expect(summary.freeSyncsRemaining, isNull);
@@ -94,6 +95,7 @@ void main() {
       sensorAssistState: 'motion_battery_available',
       odometerCalibrationState: 'review_recommended',
       odometerCalibrationSamples: 7,
+      odometerCalibrationMultiplier: 1.063829787,
       odometerUsageState: 'review_recommended',
       odometerUsageReviewedDays: 7,
       wifiAvailable: false,
@@ -112,6 +114,7 @@ void main() {
     expect(summary.sensorAssistState, 'motion_battery_available');
     expect(summary.odometerCalibrationState, 'review_recommended');
     expect(summary.odometerCalibrationSamples, 7);
+    expect(summary.odometerCalibrationMultiplier, 1.0638);
     expect(summary.odometerUsageState, 'review_recommended');
     expect(summary.odometerUsageReviewedDays, 7);
     expect(summary.freeSyncsRemaining, 1);
@@ -138,6 +141,7 @@ void main() {
       sensorAssistState: 'raw_motion_payload',
       odometerCalibrationState: 'raw_drift_payload',
       odometerCalibrationSamples: -1,
+      odometerCalibrationMultiplier: double.nan,
       odometerUsageState: 'raw_average_payload',
       odometerUsageReviewedDays: -1,
       wifiAvailable: true,
@@ -150,6 +154,7 @@ void main() {
     expect(summary.sensorAssistState, 'unknown');
     expect(summary.odometerCalibrationState, 'unknown');
     expect(summary.odometerCalibrationSamples, isNull);
+    expect(summary.odometerCalibrationMultiplier, isNull);
     expect(summary.odometerUsageState, 'unknown');
     expect(summary.odometerUsageReviewedDays, isNull);
     expect(summary.freeSyncsRemaining, isNull);
@@ -374,6 +379,7 @@ void main() {
 
       expect(summary.odometerCalibrationState, 'review_recommended');
       expect(summary.odometerCalibrationSamples, 7);
+      expect(summary.odometerCalibrationMultiplier, closeTo(.9091, .0001));
       expect(
         controller.odometerCalibrationSignal().canOverwriteConfirmedOdometer,
         isFalse,

@@ -23,6 +23,7 @@ void main() {
           sensorAssistState: 'motion_battery_available',
           odometerCalibrationState: 'review_recommended',
           odometerCalibrationSamples: 7,
+          odometerCalibrationMultiplier: .9090909,
           odometerUsageState: 'review_recommended',
           odometerUsageReviewedDays: 7,
           freeSyncsRemaining: HostedUsageLimits.freeUserSyncsPer24HourWindow,
@@ -48,6 +49,7 @@ void main() {
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
     expect(doc.data['odometerCalibrationSamples'], 7);
+    expect(doc.data['odometerCalibrationMultiplier'], .9091);
     expect(doc.data['odometerUsageState'], 'review_recommended');
     expect(doc.data['odometerUsageReviewedDays'], 7);
     expect(doc.data.keys, isNot(contains('latitude')));
@@ -76,6 +78,7 @@ void main() {
     expect(doc.data['odometerCalibrationState'], 'disabled');
     expect(doc.data['odometerUsageState'], 'disabled');
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
+    expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));
     expect(doc.data.keys, isNot(contains('odometerUsageReviewedDays')));
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });

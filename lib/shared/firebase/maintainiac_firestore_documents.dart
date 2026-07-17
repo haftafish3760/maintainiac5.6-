@@ -367,6 +367,7 @@ class MaintainiacFirestoreDocumentBuilder {
     String sensorAssistState = 'unknown',
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
+    double? odometerCalibrationMultiplier,
     String odometerUsageState = 'disabled',
     int? odometerUsageReviewedDays,
     List<String> dashboardWidgetTokens = const [],
@@ -500,6 +501,11 @@ class MaintainiacFirestoreDocumentBuilder {
             fieldName: 'odometerCalibrationSamples',
             max: 999,
           ),
+        if (odometerCalibrationMultiplier != null)
+          'odometerCalibrationMultiplier':
+              _optionalDashboardCalibrationMultiplier(
+                odometerCalibrationMultiplier,
+              ),
         'odometerUsageState': _requiredDashboardSummaryToken(
           odometerUsageState,
           'odometerUsageState',
@@ -705,6 +711,17 @@ const _allowedOdometerUsageStates = <String>{
   'review_recommended',
   'invalid',
 };
+
+double _optionalDashboardCalibrationMultiplier(double value) {
+  if (!value.isFinite || value < .8 || value > 1.25) {
+    throw ArgumentError.value(
+      value,
+      'odometerCalibrationMultiplier',
+      'Dashboard calibration multiplier must stay advisory and bounded.',
+    );
+  }
+  return double.parse(value.toStringAsFixed(4));
+}
 
 const _allowedDashboardWidgetTokens = <String>{
   'start_day',

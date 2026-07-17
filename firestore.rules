@@ -328,6 +328,7 @@ service cloud.firestore {
         'sensorAssistState',
         'odometerCalibrationState',
         'odometerCalibrationSamples',
+        'odometerCalibrationMultiplier',
         'odometerUsageState',
         'odometerUsageReviewedDays',
         'dashboardWidgetTokens',
@@ -704,6 +705,10 @@ service cloud.firestore {
           (request.resource.data.odometerCalibrationSamples is int &&
             request.resource.data.odometerCalibrationSamples >= 0 &&
             request.resource.data.odometerCalibrationSamples <= 999)) &&
+        (!request.resource.data.keys().hasAny(['odometerCalibrationMultiplier']) ||
+          (request.resource.data.odometerCalibrationMultiplier is number &&
+            request.resource.data.odometerCalibrationMultiplier >= 0.8 &&
+            request.resource.data.odometerCalibrationMultiplier <= 1.25)) &&
         isAllowedOdometerUsageState(
           request.resource.data.odometerUsageState
         ) &&
