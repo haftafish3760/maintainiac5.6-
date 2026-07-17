@@ -89,18 +89,21 @@ void main() {
     },
   );
 
-  test('memory settings controller normalizes injected settings before use', () {
-    final controller = TripTrackingSettingsController.memory(
-      const TripTrackingSettings(
-        lowBatteryGpsOverrideEnabled: true,
-        lowBatteryGpsWarningDismissed: true,
-      ),
-    );
+  test(
+    'memory settings controller normalizes injected settings before use',
+    () {
+      final controller = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          lowBatteryGpsOverrideEnabled: true,
+          lowBatteryGpsWarningDismissed: true,
+        ),
+      );
 
-    expect(controller.settings.gpsAssistedTrackingEnabled, isFalse);
-    expect(controller.settings.lowBatteryGpsOverrideEnabled, isFalse);
-    expect(controller.settings.lowBatteryGpsWarningDismissed, isFalse);
-  });
+      expect(controller.settings.gpsAssistedTrackingEnabled, isFalse);
+      expect(controller.settings.lowBatteryGpsOverrideEnabled, isFalse);
+      expect(controller.settings.lowBatteryGpsWarningDismissed, isFalse);
+    },
+  );
 
   test(
     'driver profile choices persist for onboarding and dashboard defaults',
@@ -244,6 +247,43 @@ void main() {
       }).samplingPreset,
       TripTrackingSamplingPreset.custom,
     );
+  });
+
+  test('unsupported settings schema version fails closed', () {
+    final restored = TripTrackingSettings.fromMap(const {
+      'schemaVersion': 99,
+      'gpsAssistedTrackingEnabled': true,
+      'backgroundTrackingEnabled': true,
+      'activityRecognitionEnabled': true,
+      'organizationMileageSharingEnabled': true,
+      'lowBatteryGpsOverrideEnabled': true,
+      'lowBatteryGpsWarningDismissed': true,
+      'bluetoothVehicleRecognitionEnabled': true,
+      'automaticVehicleSwitchEnabled': true,
+      'backupNetworkPolicy': 'mobileDataOnly',
+    });
+    final malformed = TripTrackingSettings.fromMap(const {
+      'schemaVersion': '1',
+      'gpsAssistedTrackingEnabled': true,
+    });
+
+    expect(
+      restored.toMap()['schemaVersion'],
+      TripTrackingSettings.schemaVersion,
+    );
+    expect(restored.gpsAssistedTrackingEnabled, isFalse);
+    expect(restored.backgroundTrackingEnabled, isFalse);
+    expect(restored.activityRecognitionEnabled, isFalse);
+    expect(restored.organizationMileageSharingEnabled, isFalse);
+    expect(restored.lowBatteryGpsOverrideEnabled, isFalse);
+    expect(restored.lowBatteryGpsWarningDismissed, isFalse);
+    expect(restored.bluetoothVehicleRecognitionEnabled, isFalse);
+    expect(restored.automaticVehicleSwitchEnabled, isFalse);
+    expect(
+      restored.backupNetworkPolicy,
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+    );
+    expect(malformed.gpsAssistedTrackingEnabled, isFalse);
   });
 
   test('motion activity recognition is a separately persisted opt-in', () {

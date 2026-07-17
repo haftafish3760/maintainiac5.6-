@@ -53,6 +53,8 @@ class TripTrackingSettings {
         TripTrackingBackupNetworkPolicy.wifiAndMobileData,
   });
 
+  static const schemaVersion = 1;
+
   final bool gpsAssistedTrackingEnabled;
   final TripTrackingSamplingPreset samplingPreset;
   final int customIntervalSeconds;
@@ -128,6 +130,7 @@ class TripTrackingSettings {
   }
 
   Map<String, Object?> toMap() => {
+    'schemaVersion': schemaVersion,
     'gpsAssistedTrackingEnabled': gpsAssistedTrackingEnabled,
     'samplingPreset': samplingPreset.name,
     'customIntervalSeconds': _validCustomInterval(customIntervalSeconds),
@@ -146,6 +149,7 @@ class TripTrackingSettings {
   };
 
   factory TripTrackingSettings.fromMap(Map<dynamic, dynamic> map) {
+    if (_hasUnsupportedSchemaVersion(map)) return const TripTrackingSettings();
     final bluetoothEnabled = map['bluetoothVehicleRecognitionEnabled'] == true;
     final defaultProfile = _profileFromMap(map);
     final hasInvalidDefaultProfile =
@@ -183,6 +187,13 @@ class TripTrackingSettings {
       ),
     );
   }
+}
+
+bool _hasUnsupportedSchemaVersion(Map<dynamic, dynamic> map) {
+  if (!map.containsKey('schemaVersion')) return false;
+  final rawVersion = map['schemaVersion'];
+  if (rawVersion is! int) return true;
+  return rawVersion < 1 || rawVersion > TripTrackingSettings.schemaVersion;
 }
 
 int _validCustomInterval(int seconds) => seconds.clamp(3, 600);
