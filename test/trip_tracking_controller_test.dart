@@ -291,6 +291,48 @@ void main() {
   );
 
   test(
+    'empty-trip discard reports transient pending cleanup failure',
+    () async {
+      final store = _FailingPendingCleanupStore();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      expect(
+        await controller.start(
+          tripId: 'trip_discard_pending_cleanup_fault',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await store.savePending(
+        TripTrackingPendingSample(
+          sessionId: 'trip_discard_pending_cleanup_fault',
+          sample: sample(-80, 0),
+        ),
+      );
+
+      expect(await controller.discardEmptyTrip(), isTrue);
+
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(store.activeSession, isNull);
+      expect(
+        store.pendingSampleFor('trip_discard_pending_cleanup_fault'),
+        isNotNull,
+      );
+      expect(controller.platformStatus, 'pending_cleanup_failed');
+      expect(
+        controller.platformError,
+        contains('Could not clear transient GPS recovery data'),
+      );
+    },
+  );
+
+  test(
     'native GPS cannot start without a durable lifecycle checkpoint',
     () async {
       final hiveDirectory = await Directory.systemTemp.createTemp(
@@ -3593,6 +3635,15 @@ class _FailingReviewCleanupStore extends TripTrackingSessionStore {
   @override
   Future<void> clear() async {
     throw StateError('stale recovery cleanup failed');
+  }
+}
+
+class _FailingPendingCleanupStore extends TripTrackingSessionStore {
+  _FailingPendingCleanupStore() : super.memory();
+
+  @override
+  Future<void> clearPending(String sessionId) async {
+    throw StateError('pending cleanup failed');
   }
 }
 
