@@ -28,24 +28,31 @@ void main() {
     recordedAt: start.add(Duration(seconds: seconds)),
   );
 
-  test('rideshare profile requires stronger walking evidence than delivery', () {
-    final rideshare = TripTrackingProfileStrategy.forProfile(
-      TripTrackingProfile.rideshareVehicle,
-    );
-    final delivery = TripTrackingProfileStrategy.forProfile(
-      TripTrackingProfile.deliveryVehicle,
-    );
+  test(
+    'rideshare profile requires stronger walking evidence than delivery',
+    () {
+      final rideshare = TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.rideshareVehicle,
+      );
+      final delivery = TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.deliveryVehicle,
+      );
 
-    expect(rideshare.walkingConfirmationCount, greaterThan(delivery.walkingConfirmationCount));
-    expect(
-      rideshare.walkingStopConfirmationDuration,
-      greaterThan(delivery.walkingStopConfirmationDuration),
-    );
-    expect(rideshare.stopReviewReasonCode, contains('rideshare'));
-    expect(rideshare.dashboardModeToken, 'gig_driver');
-    expect(rideshare.recommendedActivityRecognition, isTrue);
-    expect(rideshare.stopDetectionSummary, contains('stays in the vehicle'));
-  });
+      expect(
+        rideshare.walkingConfirmationCount,
+        greaterThan(delivery.walkingConfirmationCount),
+      );
+      expect(
+        rideshare.walkingStopConfirmationDuration,
+        greaterThan(delivery.walkingStopConfirmationDuration),
+      );
+      expect(rideshare.stopReviewReasonCode, contains('rideshare'));
+      expect(rideshare.dashboardModeToken, 'gig_driver');
+      expect(rideshare.recommendedActivityRecognition, isTrue);
+      expect(rideshare.requiresStrongerStopDebounce, isTrue);
+      expect(rideshare.stopDetectionSummary, contains('stays in the vehicle'));
+    },
+  );
 
   test('delivery walking stop evidence can identify a real stop quickly', () {
     final engine = TripTrackingEngine(
@@ -62,20 +69,23 @@ void main() {
     expect(engine.needsWalkingReview, isTrue);
   });
 
-  test('rideshare does not treat a short passenger stop as a completed stop', () {
-    final engine = TripTrackingEngine(
-      profile: TripTrackingProfile.rideshareVehicle,
-    );
+  test(
+    'rideshare does not treat a short passenger stop as a completed stop',
+    () {
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.rideshareVehicle,
+      );
 
-    engine.ingest(sample(-80, 0), activity: automotive(0));
-    engine.ingest(sample(-79.9997, 15), activity: automotive(15));
-    engine.ingest(sample(-79.9997, 30), activity: walking(30));
-    engine.ingest(sample(-79.9997, 45), activity: walking(45));
-    engine.ingest(sample(-79.9997, 60), activity: walking(60));
+      engine.ingest(sample(-80, 0), activity: automotive(0));
+      engine.ingest(sample(-79.9997, 15), activity: automotive(15));
+      engine.ingest(sample(-79.9997, 30), activity: walking(30));
+      engine.ingest(sample(-79.9997, 45), activity: walking(45));
+      engine.ingest(sample(-79.9997, 60), activity: walking(60));
 
-    expect(engine.motionState, TripMotionState.stopCandidate);
-    expect(engine.needsWalkingReview, isFalse);
-  });
+      expect(engine.motionState, TripMotionState.stopCandidate);
+      expect(engine.needsWalkingReview, isFalse);
+    },
+  );
 
   test('rideshare eventually accepts sustained walking stop evidence', () {
     final engine = TripTrackingEngine(
@@ -93,22 +103,110 @@ void main() {
     expect(engine.needsWalkingReview, isTrue);
   });
 
-  test('profile dashboard hints distinguish gig contractor and equipment modes', () {
-    final delivery = TripTrackingProfileStrategy.forProfile(
+  test(
+    'profile dashboard hints distinguish gig contractor and equipment modes',
+    () {
+      final delivery = TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.deliveryVehicle,
+      );
+      final contractor = TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.contractorVehicle,
+      );
+      final equipment = TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.lowSpeedEquipment,
+      );
+
+      expect(delivery.dashboardModeToken, 'gig_driver');
+      expect(contractor.dashboardModeToken, 'contractor');
+      expect(equipment.dashboardModeToken, 'default');
+      expect(equipment.recommendedActivityRecognition, isFalse);
+      expect(equipment.usesWalkingStopEvidence, isFalse);
+    },
+  );
+
+  test(
+    'rideshare dashboard defaults prioritize pay and miles over stop tools',
+    () {
+      final strategy = TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.rideshareVehicle,
+      );
+
+      expect(strategy.dashboardWidgetTokens, contains('pay'));
+      expect(strategy.dashboardWidgetTokens, contains('miles'));
+      expect(strategy.dashboardWidgetTokens, isNot(contains('stops')));
+      expect(strategy.quickActionTokens, contains('add_pay'));
+      expect(strategy.quickActionTokens, isNot(contains('add_dropoff')));
+    },
+  );
+
+  test('delivery dashboard defaults include stop and earnings workflow', () {
+    final strategy = TripTrackingProfileStrategy.forProfile(
       TripTrackingProfile.deliveryVehicle,
     );
-    final contractor = TripTrackingProfileStrategy.forProfile(
+
+    expect(strategy.dashboardWidgetTokens, contains('stops'));
+    expect(strategy.dashboardWidgetTokens, contains('pay'));
+    expect(strategy.dashboardWidgetTokens, contains('expenses'));
+    expect(strategy.quickActionTokens, contains('add_pickup'));
+    expect(strategy.quickActionTokens, contains('add_dropoff'));
+    expect(strategy.quickActionTokens, contains('review_mileage'));
+  });
+
+  test('contractor dashboard defaults include jobs materials and payments', () {
+    final strategy = TripTrackingProfileStrategy.forProfile(
       TripTrackingProfile.contractorVehicle,
     );
-    final equipment = TripTrackingProfileStrategy.forProfile(
+
+    expect(strategy.dashboardModeToken, 'contractor');
+    expect(strategy.dashboardWidgetTokens, contains('jobs'));
+    expect(strategy.dashboardWidgetTokens, contains('materials'));
+    expect(strategy.dashboardWidgetTokens, contains('payments'));
+    expect(strategy.quickActionTokens, contains('add_job'));
+    expect(strategy.quickActionTokens, contains('record_payment'));
+  });
+
+  test('equipment dashboard defaults stay minimal and skip motion assist', () {
+    final strategy = TripTrackingProfileStrategy.forProfile(
       TripTrackingProfile.lowSpeedEquipment,
     );
 
-    expect(delivery.dashboardModeToken, 'gig_driver');
-    expect(contractor.dashboardModeToken, 'contractor');
-    expect(equipment.dashboardModeToken, 'default');
-    expect(equipment.recommendedActivityRecognition, isFalse);
-    expect(equipment.usesWalkingStopEvidence, isFalse);
+    expect(strategy.dashboardWidgetTokens, contains('maintenance'));
+    expect(strategy.dashboardWidgetTokens, isNot(contains('pay')));
+    expect(strategy.quickActionTokens, contains('maintenance_log'));
+    expect(strategy.recommendedActivityRecognition, isFalse);
+    expect(strategy.requiresStrongerStopDebounce, isFalse);
+  });
+
+  test('dashboard profile map is safe for dashboard summaries', () {
+    final strategy = TripTrackingProfileStrategy.forProfile(
+      TripTrackingProfile.contractorVehicle,
+    );
+
+    expect(strategy.toDashboardProfileMap(), {
+      'profile': 'contractorVehicle',
+      'workStyle': 'contractor',
+      'dashboardMode': 'contractor',
+      'recommendedActivityRecognition': true,
+      'usesWalkingStopEvidence': true,
+      'requiresStrongerStopDebounce': false,
+      'stopReviewReasonCode': 'contractor_stop_walk_review',
+      'dashboardWidgetTokens': [
+        'start_day',
+        'live_odometer',
+        'jobs',
+        'materials',
+        'expenses',
+        'payments',
+        'miles',
+      ],
+      'quickActionTokens': [
+        'add_stop',
+        'add_job',
+        'add_expense',
+        'record_payment',
+        'review_mileage',
+      ],
+    });
   });
 
   test('profile strategy clamps malformed walking thresholds safely', () {
@@ -121,6 +219,9 @@ void main() {
     );
 
     expect(strategy.walkingConfirmationCount, 3);
-    expect(strategy.walkingStopConfirmationDuration, const Duration(seconds: 20));
+    expect(
+      strategy.walkingStopConfirmationDuration,
+      const Duration(seconds: 20),
+    );
   });
 }

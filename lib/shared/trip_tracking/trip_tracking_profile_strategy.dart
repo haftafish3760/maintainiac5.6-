@@ -18,6 +18,8 @@ class TripTrackingProfileStrategy {
     required this.walkingStopConfirmationDuration,
     required this.stopReviewReasonCode,
     required this.dashboardModeToken,
+    required this.dashboardWidgetTokens,
+    required this.quickActionTokens,
     required this.recommendedActivityRecognition,
     required this.stopDetectionSummary,
   });
@@ -29,10 +31,27 @@ class TripTrackingProfileStrategy {
   final Duration walkingStopConfirmationDuration;
   final String stopReviewReasonCode;
   final String dashboardModeToken;
+  final List<String> dashboardWidgetTokens;
+  final List<String> quickActionTokens;
   final bool recommendedActivityRecognition;
   final String stopDetectionSummary;
 
   bool get walkingMayExcludeRoadMileage => usesWalkingStopEvidence;
+  bool get requiresStrongerStopDebounce =>
+      walkingConfirmationCount > 3 ||
+      walkingStopConfirmationDuration > const Duration(seconds: 30);
+
+  Map<String, Object?> toDashboardProfileMap() => {
+    'profile': profile.name,
+    'workStyle': workStyle.name,
+    'dashboardMode': dashboardModeToken,
+    'recommendedActivityRecognition': recommendedActivityRecognition,
+    'usesWalkingStopEvidence': usesWalkingStopEvidence,
+    'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
+    'stopReviewReasonCode': stopReviewReasonCode,
+    'dashboardWidgetTokens': List.unmodifiable(dashboardWidgetTokens),
+    'quickActionTokens': List.unmodifiable(quickActionTokens),
+  };
 
   bool hasWalkingStopEvidence({
     required int walkingEvidenceCount,
@@ -70,6 +89,15 @@ class TripTrackingProfileStrategy {
             : baseDuration,
         stopReviewReasonCode: 'rideshare_stop_requires_extra_evidence',
         dashboardModeToken: 'gig_driver',
+        dashboardWidgetTokens: const [
+          'start_day',
+          'live_odometer',
+          'pay',
+          'profit',
+          'miles',
+          'hours',
+        ],
+        quickActionTokens: const ['add_pay', 'end_trip', 'review_mileage'],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
             'Passenger-service trips require stronger stop evidence because the driver often stays in the vehicle.',
@@ -82,6 +110,21 @@ class TripTrackingProfileStrategy {
         walkingStopConfirmationDuration: baseDuration,
         stopReviewReasonCode: 'delivery_stop_walk_review',
         dashboardModeToken: 'gig_driver',
+        dashboardWidgetTokens: const [
+          'start_day',
+          'live_odometer',
+          'stops',
+          'pay',
+          'profit',
+          'miles',
+          'expenses',
+        ],
+        quickActionTokens: const [
+          'add_pickup',
+          'add_dropoff',
+          'add_pay',
+          'review_mileage',
+        ],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
             'Delivery trips can use walking evidence as a strong stop clue after vehicle movement.',
@@ -94,6 +137,22 @@ class TripTrackingProfileStrategy {
         walkingStopConfirmationDuration: baseDuration,
         stopReviewReasonCode: 'contractor_stop_walk_review',
         dashboardModeToken: 'contractor',
+        dashboardWidgetTokens: const [
+          'start_day',
+          'live_odometer',
+          'jobs',
+          'materials',
+          'expenses',
+          'payments',
+          'miles',
+        ],
+        quickActionTokens: const [
+          'add_stop',
+          'add_job',
+          'add_expense',
+          'record_payment',
+          'review_mileage',
+        ],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
             'Contractor trips can use walking evidence to identify job-site stops without changing odometer truth.',
@@ -106,6 +165,13 @@ class TripTrackingProfileStrategy {
         walkingStopConfirmationDuration: baseDuration,
         stopReviewReasonCode: 'equipment_ignores_walking_stop_evidence',
         dashboardModeToken: 'default',
+        dashboardWidgetTokens: const [
+          'start_day',
+          'live_odometer',
+          'hours',
+          'maintenance',
+        ],
+        quickActionTokens: const ['start_trip', 'end_trip', 'maintenance_log'],
         recommendedActivityRecognition: false,
         stopDetectionSummary:
             'Low-speed equipment ignores walking-stop evidence so mower and equipment routes do not become false stops.',
@@ -118,6 +184,13 @@ class TripTrackingProfileStrategy {
         walkingStopConfirmationDuration: baseDuration,
         stopReviewReasonCode: 'road_vehicle_stop_walk_review',
         dashboardModeToken: 'default',
+        dashboardWidgetTokens: const [
+          'start_day',
+          'live_odometer',
+          'miles',
+          'expenses',
+        ],
+        quickActionTokens: const ['start_trip', 'end_trip', 'review_mileage'],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
             'General road trips use conservative walking evidence as review-only stop assistance.',
