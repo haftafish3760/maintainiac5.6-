@@ -888,13 +888,124 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'active workday trip review reports confirmed local backup retry',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1500);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      odometer.dispose();
+      odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final activeWorkday = ActiveWorkdayController.memory();
+      await activeWorkday.startDay(
+        vehicleId: odometer.vehicleId,
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'business',
+        startOdometer: 1000,
+        startedAt: DateTime(2026, 7, 16, 8),
+      );
+      final tripStore = TripTrackingSessionStore.memory();
+      final cloudMirror = _RecordingTripCloudMirror(throwOnQueue: true);
+      final tripController = TripTrackingController(
+        sessionStore: tripStore,
+        odometer: odometer,
+        cloudMirror: cloudMirror,
+      );
+      await tripStore.saveReview(
+        TripTrackingReviewRecord(
+          id: 'dashboard_review_cloud_retry',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1001,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 16, 12),
+          finishedAt: DateTime.utc(2026, 7, 16, 12, 10),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ActiveWorkdayScope(
+            controller: activeWorkday,
+            child: GlobalOdometerScope(
+              controller: odometer,
+              child: TripTrackingScope(
+                controller: tripController,
+                child: const MaterialApp(
+                  home: ActiveWorkdayScreen(
+                    activeVehicle: VehicleProfilePreview(
+                      id: 'vehicle_1',
+                      nickname: 'Work Truck',
+                      year: '2026',
+                      make: 'Ford',
+                      model: 'Transit',
+                      odometer: '0001000',
+                      status: 'ACTIVE',
+                    ),
+                    workProfileName: 'Business',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.text('REVIEW LATEST GPS TRIP'));
+      await tester.pump();
+      await tester.tap(
+        find
+            .ancestor(
+              of: find.text('REVIEW LATEST GPS TRIP'),
+              matching: find.byType(InkWell),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '1001');
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirm Odometer'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Business'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save Miles'));
+      await tester.pumpAndSettle();
+
+      final stored = tripStore.reviewForTrip('dashboard_review_cloud_retry');
+      expect(stored?.isOdometerConfirmed, isTrue);
+      expect(odometer.confirmedReading, 1001);
+      expect(cloudMirror.documents, isEmpty);
+      expect(tripController.cloudMirrorError, contains('pending'));
+      expect(
+        find.text(
+          'GPS trip reviewed and saved locally; cloud backup will retry.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 }
 
 class _RecordingTripCloudMirror implements TripTrackingCloudMirror {
+  _RecordingTripCloudMirror({this.throwOnQueue = false});
+
+  final bool throwOnQueue;
   final documents = <Map<String, Object?>>[];
 
   @override
   Future<void> queueReview(TripTrackingReviewRecord review) async {
+    if (throwOnQueue) {
+      throw StateError('queue unavailable');
+    }
     documents.add(
       MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
         uid: 'firebaseUid-1',
