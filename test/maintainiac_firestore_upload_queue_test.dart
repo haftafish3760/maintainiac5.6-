@@ -371,6 +371,32 @@ void main() {
     },
   );
 
+  test('malformed stored retry metadata is sanitized on restore', () {
+    final queuedAt = DateTime.utc(2026, 7, 14, 12);
+    final restored = MaintainiacFirestoreQueuedDocument.fromStored({
+      'id': 'queued_bad_retry_metadata',
+      'path': 'parserHealth/bad_retry_metadata',
+      'data': {'schema': 'parser_health_v1'},
+      'queuedAtUtc': queuedAt.toIso8601String(),
+      'attemptCount': -9,
+      'lastAttemptAtUtc': queuedAt
+          .subtract(const Duration(minutes: 1))
+          .toIso8601String(),
+      'nextAttemptAtUtc': queuedAt
+          .subtract(const Duration(seconds: 30))
+          .toIso8601String(),
+      'uploadedAtUtc': queuedAt
+          .subtract(const Duration(seconds: 1))
+          .toIso8601String(),
+    });
+
+    expect(restored.attemptCount, isZero);
+    expect(restored.lastAttemptAtUtc, isNull);
+    expect(restored.nextAttemptAtUtc, isNull);
+    expect(restored.uploadedAtUtc, isNull);
+    expect(restored.isPendingUpload, isTrue);
+  });
+
   test('retains failed writes with retry metadata', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink(

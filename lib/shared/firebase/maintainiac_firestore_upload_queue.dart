@@ -76,25 +76,31 @@ class MaintainiacFirestoreQueuedDocument {
   factory MaintainiacFirestoreQueuedDocument.fromStored(Object? value) {
     if (value is! Map) return MaintainiacFirestoreQueuedDocument.empty;
     final data = value['data'];
+    final queuedAt =
+        DateTime.tryParse(value['queuedAtUtc']?.toString() ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final lastAttemptAt = _safeQueueTimestamp(
+      value['lastAttemptAtUtc'],
+      notBefore: queuedAt,
+    );
+    final nextAttemptAt = _safeQueueTimestamp(
+      value['nextAttemptAtUtc'],
+      notBefore: lastAttemptAt ?? queuedAt,
+    );
     return MaintainiacFirestoreQueuedDocument(
       id: value['id']?.toString() ?? '',
       path: value['path']?.toString() ?? '',
       data: data is Map ? Map<String, Object?>.from(data) : const {},
-      queuedAtUtc:
-          DateTime.tryParse(value['queuedAtUtc']?.toString() ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      attemptCount: _intValue(value['attemptCount']),
-      lastAttemptAtUtc: DateTime.tryParse(
-        value['lastAttemptAtUtc']?.toString() ?? '',
-      ),
-      nextAttemptAtUtc: DateTime.tryParse(
-        value['nextAttemptAtUtc']?.toString() ?? '',
-      ),
+      queuedAtUtc: queuedAt,
+      attemptCount: _nonNegativeIntValue(value['attemptCount']),
+      lastAttemptAtUtc: lastAttemptAt,
+      nextAttemptAtUtc: nextAttemptAt,
       lastError: value['lastError'] == null
           ? null
           : _safeError(value['lastError'].toString()),
-      uploadedAtUtc: DateTime.tryParse(
-        value['uploadedAtUtc']?.toString() ?? '',
+      uploadedAtUtc: _safeQueueTimestamp(
+        value['uploadedAtUtc'],
+        notBefore: queuedAt,
       ),
     );
   }
@@ -140,10 +146,19 @@ class MaintainiacFirestoreQueuedDocument {
   }
 }
 
-int _intValue(Object? value) {
-  if (value is int) return value;
-  if (value is num) return value.toInt();
-  return int.tryParse(value?.toString() ?? '') ?? 0;
+int _nonNegativeIntValue(Object? value) {
+  final parsed = value is int
+      ? value
+      : value is num && value.isFinite
+      ? value.toInt()
+      : int.tryParse(value?.toString() ?? '') ?? 0;
+  return parsed < 0 ? 0 : parsed;
+}
+
+DateTime? _safeQueueTimestamp(Object? value, {required DateTime notBefore}) {
+  final parsed = DateTime.tryParse(value?.toString() ?? '');
+  if (parsed == null || parsed.isBefore(notBefore)) return null;
+  return parsed.toUtc();
 }
 
 String _safeError(String value) {
