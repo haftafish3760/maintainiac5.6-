@@ -204,6 +204,36 @@ void main() {
   );
 
   test(
+    'a contractor jobsite stop excludes walking work before the next drive',
+    () {
+      final result = replayTrip([
+        SimulatedTripPoint(point(-80, 0, speed: 10)),
+        SimulatedTripPoint(point(-79.999, 20, speed: 10)),
+        SimulatedTripPoint(point(-79.998, 40, speed: 10)),
+        SimulatedTripPoint(point(-79.99795, 60), activity: walking(60)),
+        SimulatedTripPoint(point(-79.99785, 80), activity: walking(80)),
+        SimulatedTripPoint(point(-79.9977, 100), activity: walking(100)),
+        SimulatedTripPoint(point(-79.99755, 120), activity: walking(120)),
+        SimulatedTripPoint(point(-79.9968, 170, speed: 10)),
+        SimulatedTripPoint(point(-79.9958, 190, speed: 10)),
+      ], profile: TripTrackingProfile.contractorVehicle);
+
+      expect(result.needsWalkingReview, isTrue);
+      expect(result.motionState, TripMotionState.moving);
+      expect(
+        result.count(TripSampleDisposition.excludedWalking),
+        greaterThanOrEqualTo(4),
+      );
+      expect(
+        result.count(TripSampleDisposition.acceptedDistance),
+        greaterThanOrEqualTo(3),
+      );
+      expect(result.acceptedMeters, greaterThan(250));
+      expect(result.acceptedMeters, lessThan(450));
+    },
+  );
+
+  test(
     'spoof-like jumps, timestamp reversals, and malformed points fail closed',
     () {
       final result = replayTrip([
