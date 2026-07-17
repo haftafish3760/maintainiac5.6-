@@ -353,7 +353,9 @@ class TripTrackingEngineSnapshot {
     'lastAccepted': lastAccepted?.toMap(),
     'lastObservedAt': lastObservedAt?.toIso8601String(),
     'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
-    'walkingEvidence': walkingEvidence.map((item) => item.toMap()).toList(),
+    'walkingEvidence': _boundedWalkingEvidence(
+      walkingEvidence,
+    ).map((item) => item.toMap()).toList(),
     'walkingReviewSuggested': walkingReviewSuggested,
     'motionState': motionState.name,
     'vehicleMovementObserved': vehicleMovementObserved,
@@ -376,6 +378,8 @@ class TripTrackingEngineSnapshot {
                 .map(TripActivityObservation.tryFromMap)
                 .whereType<TripActivityObservation>()
                 .toList(growable: false)
+                .takeLast(_maxPersistedWalkingEvidence)
+                .toList(growable: false)
           : const [],
       walkingReviewSuggested: map['walkingReviewSuggested'] == true,
       motionState: TripMotionState.values.firstWhere(
@@ -389,6 +393,22 @@ class TripTrackingEngineSnapshot {
       schemaVersion: _safeSchemaVersion(map['schemaVersion']),
       algorithmVersion: _safeAlgorithmVersion(map['algorithmVersion']),
     );
+  }
+}
+
+const _maxPersistedWalkingEvidence = 12;
+
+Iterable<TripActivityObservation> _boundedWalkingEvidence(
+  Iterable<TripActivityObservation> evidence,
+) {
+  final items = evidence.toList(growable: false);
+  return items.takeLast(_maxPersistedWalkingEvidence);
+}
+
+extension _TakeLastExtension<T> on List<T> {
+  Iterable<T> takeLast(int maxLength) {
+    if (length <= maxLength) return this;
+    return skip(length - maxLength);
   }
 }
 

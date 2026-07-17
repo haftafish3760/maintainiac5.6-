@@ -690,6 +690,27 @@ void main() {
     },
   );
 
+  test('persisted walking evidence keeps only a bounded recent window', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 17,
+      'walkingReviewSuggested': true,
+      'walkingEvidence': [
+        for (var i = 0; i < 20; i++)
+          {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': DateTime.utc(2026, 7, 12, 12, i).toIso8601String(),
+          },
+      ],
+    });
+    final map = snapshot.toMap();
+    final persistedEvidence = map['walkingEvidence'] as List<Object?>;
+
+    expect(snapshot.walkingEvidence, hasLength(12));
+    expect(snapshot.walkingEvidence.first.recordedAt.minute, 8);
+    expect(persistedEvidence, hasLength(12));
+  });
+
   test('non-finite in-memory snapshot distance cannot poison recovery', () {
     final restored = TripTrackingEngine.fromSnapshot(
       const TripTrackingEngineSnapshot(
