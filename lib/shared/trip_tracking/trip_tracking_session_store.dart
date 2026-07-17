@@ -123,6 +123,7 @@ class TripTrackingSessionRecord {
       hasValidTimeline:
           startedAt != null &&
           updatedAt != null &&
+          !updatedAt.isBefore(startedAt) &&
           hasSafeIdentity &&
           hasValidProfile &&
           hasValidLifecycleState &&

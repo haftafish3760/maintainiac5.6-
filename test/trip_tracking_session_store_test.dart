@@ -893,6 +893,23 @@ void main() {
     expect(session.startingOdometer, isZero);
   });
 
+  test('active trip restore rejects an inverted update timeline', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_inverted_update_timeline',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 11, 59).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    expect(session.hasValidTimeline, isFalse);
+  });
+
   test('negative persisted active-trip odometers recover safely', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'trip_negative_active_odometer',
