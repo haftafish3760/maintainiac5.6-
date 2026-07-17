@@ -694,6 +694,50 @@ void main() {
     },
   );
 
+  test(
+    'background tracking requires explicit background authorization before native start',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        authorization: const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.whileInUse,
+          preciseLocation: true,
+        ),
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_background_permission_denied',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isFalse,
+      );
+
+      expect(native.requestAuthorizationCalls, 1);
+      expect(native.startCalls, 0);
+      expect(native.hasEventListener, isFalse);
+      expect(
+        controller.platformError,
+        contains('Background location permission is required'),
+      );
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.permissionRequired,
+      );
+      expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
+    },
+  );
+
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
     final odometer = GlobalOdometerController(initialReading: 1000);
