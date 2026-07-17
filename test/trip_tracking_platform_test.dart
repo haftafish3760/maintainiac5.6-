@@ -209,7 +209,7 @@ void main() {
       'type': 'error',
       'errorCode': 'trip_tracking_gps_disabled',
       'errorMessage':
-          'token=pk.secret lat=35.123 lon=-80.456 latitude: 35.99 longitude: -80.99',
+          'token=pk.secret lat=35.123 lon=-80.456 latitude: 35.99 longitude: -80.99 last fix 35.12345,-80.98765',
     });
 
     expect(status.status, 'stopped');
@@ -222,7 +222,9 @@ void main() {
     expect(sensitiveMessage.errorMessage, isNot(contains('pk.secret')));
     expect(sensitiveMessage.errorMessage, isNot(contains('35.123')));
     expect(sensitiveMessage.errorMessage, isNot(contains('35.99')));
+    expect(sensitiveMessage.errorMessage, isNot(contains('-80.98765')));
     expect(sensitiveMessage.errorMessage, contains('token=[redacted]'));
+    expect(sensitiveMessage.errorMessage, contains('[redacted_coordinates]'));
   });
 
   test('non-error native events cannot carry error fields', () {

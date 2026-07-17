@@ -351,6 +351,10 @@ String? _safePlatformMessage(Object? value) {
         ),
         r'$1=[redacted]',
       )
+      .replaceAll(
+        RegExp(r'\b-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}\b'),
+        '[redacted_coordinates]',
+      )
       .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
       .trim();
   if (clean.isEmpty) return null;
