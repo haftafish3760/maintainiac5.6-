@@ -315,6 +315,8 @@ service cloud.firestore {
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
+        'odometerCalibrationState',
+        'odometerCalibrationSamples',
         'freeSyncsRemaining',
         'syncsUsedInWindow',
         'batteryGpsLimited',
@@ -338,6 +340,7 @@ service cloud.firestore {
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
+        'odometerCalibrationState',
         'batteryGpsLimited',
         'reviewRequired',
         'locationDataIncluded',
@@ -475,6 +478,17 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function isAllowedOdometerCalibrationState(value) {
+      return [
+        'unknown',
+        'disabled',
+        'insufficient_history',
+        'stable',
+        'review_recommended',
+        'invalid'
+      ].hasAny([value]);
+    }
+
     function isDashboardCommandCenterSummary() {
       return request.resource.data.schema ==
           'dashboard_command_center_summary_v1' &&
@@ -497,6 +511,13 @@ service cloud.firestore {
         isAllowedDashboardSensorAssistState(
           request.resource.data.sensorAssistState
         ) &&
+        isAllowedOdometerCalibrationState(
+          request.resource.data.odometerCalibrationState
+        ) &&
+        (!request.resource.data.keys().hasAny(['odometerCalibrationSamples']) ||
+          (request.resource.data.odometerCalibrationSamples is int &&
+            request.resource.data.odometerCalibrationSamples >= 0 &&
+            request.resource.data.odometerCalibrationSamples <= 999)) &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool;
     }

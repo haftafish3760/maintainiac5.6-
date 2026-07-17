@@ -23,6 +23,8 @@ void main() {
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
+    expect(summary.odometerCalibrationState, 'disabled');
+    expect(summary.odometerCalibrationSamples, isNull);
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.batteryGpsLimited, isFalse);
@@ -68,6 +70,8 @@ void main() {
       storageState: 'low_storage',
       deviceCapabilityState: 'full_safety_assist',
       sensorAssistState: 'motion_battery_available',
+      odometerCalibrationState: 'review_recommended',
+      odometerCalibrationSamples: 7,
       wifiAvailable: false,
       mobileDataAvailable: true,
       syncsUsedInWindow: 5,
@@ -79,6 +83,8 @@ void main() {
     expect(summary.storageState, 'low_storage');
     expect(summary.deviceCapabilityState, 'full_safety_assist');
     expect(summary.sensorAssistState, 'motion_battery_available');
+    expect(summary.odometerCalibrationState, 'review_recommended');
+    expect(summary.odometerCalibrationSamples, 7);
     expect(summary.freeSyncsRemaining, 1);
     expect(summary.batteryGpsLimited, isTrue);
     expect(summary.reviewRequired, isTrue);
@@ -101,6 +107,8 @@ void main() {
       storageState: 'raw_coordinates_enabled',
       deviceCapabilityState: 'precise_location_history',
       sensorAssistState: 'raw_motion_payload',
+      odometerCalibrationState: 'raw_drift_payload',
+      odometerCalibrationSamples: -1,
       wifiAvailable: true,
       mobileDataAvailable: true,
       syncsUsedInWindow: -1,
@@ -109,6 +117,8 @@ void main() {
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
+    expect(summary.odometerCalibrationState, 'unknown');
+    expect(summary.odometerCalibrationSamples, isNull);
     expect(summary.freeSyncsRemaining, isNull);
     expect(summary.syncsUsedInWindow, isNull);
     expect(summary.hasVerifiedSyncCounters, isFalse);
@@ -128,7 +138,10 @@ void main() {
   });
 
   test('runtime summary reports a recoverable local GPS trip', () async {
-    final odometer = GlobalOdometerController(initialReading: 1000);
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
@@ -171,41 +184,92 @@ void main() {
     expect(summary.reviewRequired, isFalse);
   });
 
-  test('runtime summary mirrors device capability without raw sensor payloads', () async {
-    final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: odometer,
-      platform: _SummaryNativeGateway(),
-    );
-    addTearDown(controller.dispose);
-    addTearDown(odometer.dispose);
+  test(
+    'runtime summary mirrors device capability without raw sensor payloads',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: _SummaryNativeGateway(),
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
 
-    expect(
-      await controller.start(
-        tripId: 'runtime_summary_capability',
-        vehicleId: odometer.vehicleId,
-        profile: TripTrackingProfile.deliveryVehicle,
-        startedAt: DateTime.utc(2026, 7, 17, 9),
-      ),
-      isTrue,
-    );
-    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
+      expect(
+        await controller.start(
+          tripId: 'runtime_summary_capability',
+          vehicleId: odometer.vehicleId,
+          profile: TripTrackingProfile.deliveryVehicle,
+          startedAt: DateTime.utc(2026, 7, 17, 9),
+        ),
+        isTrue,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
 
-    final summary = DashboardTripTrackingSummary.fromRuntime(
-      settings: const TripTrackingSettings(
-        gpsAssistedTrackingEnabled: true,
-        backgroundTrackingEnabled: true,
-        activityRecognitionEnabled: true,
-        defaultProfile: TripTrackingProfile.deliveryVehicle,
-      ),
-      tripTracking: controller,
-    );
+      final summary = DashboardTripTrackingSummary.fromRuntime(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          backgroundTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+          defaultProfile: TripTrackingProfile.deliveryVehicle,
+        ),
+        tripTracking: controller,
+      );
 
-    expect(summary.gpsAssistState, 'on');
-    expect(summary.deviceCapabilityState, 'full_safety_assist');
-    expect(summary.sensorAssistState, 'motion_battery_available');
-  });
+      expect(summary.gpsAssistState, 'on');
+      expect(summary.deviceCapabilityState, 'full_safety_assist');
+      expect(summary.sensorAssistState, 'motion_battery_available');
+    },
+  );
+
+  test(
+    'runtime summary mirrors odometer calibration as review-only state',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      for (var index = 0; index < 7; index += 1) {
+        await store.saveReview(
+          _confirmedReview(
+            id: 'calibration_$index',
+            startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+            filteredGpsMiles: 110,
+            odometerMiles: 100,
+          ),
+        );
+      }
+
+      final summary = DashboardTripTrackingSummary.fromRuntime(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          odometerAnomalyAlertsEnabled: true,
+        ),
+        tripTracking: controller,
+      );
+
+      expect(summary.odometerCalibrationState, 'review_recommended');
+      expect(summary.odometerCalibrationSamples, 7);
+      expect(
+        controller.odometerCalibrationSignal().canOverwriteConfirmedOdometer,
+        isFalse,
+      );
+    },
+  );
 
   test('runtime summary marks paused workday as requiring review', () {
     final activeWorkday = ActiveWorkdaySessionRecord(
@@ -275,6 +339,30 @@ void main() {
   });
 }
 
+TripTrackingReviewRecord _confirmedReview({
+  required String id,
+  required DateTime startedAt,
+  required double filteredGpsMiles,
+  required int odometerMiles,
+}) {
+  final startingOdometer = 1000;
+  return TripTrackingReviewRecord(
+    id: id,
+    vehicleId: 'vehicle_1',
+    startingOdometer: startingOdometer,
+    estimatedEndingOdometer: startingOdometer + odometerMiles,
+    confirmedEndingOdometer: startingOdometer + odometerMiles,
+    odometerConfirmedAt: startedAt.add(const Duration(hours: 1)),
+    profile: TripTrackingProfile.roadVehicle,
+    startedAt: startedAt,
+    finishedAt: startedAt.add(const Duration(hours: 1)),
+    engineSnapshot: TripTrackingEngineSnapshot(
+      totalAcceptedMeters: filteredGpsMiles * 1609.344,
+      walkingReviewSuggested: false,
+    ),
+  );
+}
+
 class _SummaryNativeGateway implements TripTrackingNativeGateway {
   @override
   Stream<TripTrackingPlatformEvent> get events =>
@@ -302,11 +390,10 @@ class _SummaryNativeGateway implements TripTrackingNativeGateway {
   Future<TripTrackingAuthorization> requestAuthorization({
     required bool allowBackground,
     required bool activityRecognitionEnabled,
-  }) async =>
-      const TripTrackingAuthorization(
-        state: TripTrackingAuthorizationState.always,
-        preciseLocation: true,
-      );
+  }) async => const TripTrackingAuthorization(
+    state: TripTrackingAuthorizationState.always,
+    preciseLocation: true,
+  );
 
   @override
   Future<bool> start(TripTrackingNativeRequest request) async => true;

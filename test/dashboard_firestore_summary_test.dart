@@ -23,6 +23,8 @@ void main() {
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
+          odometerCalibrationState: 'review_recommended',
+          odometerCalibrationSamples: 7,
           freeSyncsRemaining: HostedUsageLimits.freeUserSyncsPer24HourWindow,
           syncsUsedInWindow: 0,
           batteryGpsLimited: true,
@@ -44,6 +46,8 @@ void main() {
     expect(doc.data['batteryGpsLimited'], isTrue);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
+    expect(doc.data['odometerCalibrationState'], 'review_recommended');
+    expect(doc.data['odometerCalibrationSamples'], 7);
     expect(doc.data.keys, isNot(contains('latitude')));
     expect(doc.data.keys, isNot(contains('route')));
     expect(doc.data.keys, isNot(contains('rawSamples')));
@@ -230,6 +234,7 @@ void main() {
       'storageState': 'remote_authoritative',
       'deviceCapabilityState': 'precise_location_history',
       'sensorAssistState': 'raw_motion_payload',
+      'odometerCalibrationState': 'raw_drift_payload',
     }.entries) {
       final poisoned = MaintainiacFirestoreDocumentDraft(
         path: doc.path,
@@ -260,6 +265,7 @@ void main() {
       'storageState': ' unknown ',
       'deviceCapabilityState': ' unknown ',
       'sensorAssistState': ' unknown ',
+      'odometerCalibrationState': ' unknown ',
     }.entries) {
       final poisoned = MaintainiacFirestoreDocumentDraft(
         path: doc.path,
@@ -283,6 +289,7 @@ void main() {
       'storageState': 'remote_authoritative',
       'deviceCapabilityState': 'precise_location_history',
       'sensorAssistState': 'raw_motion_payload',
+      'odometerCalibrationState': 'raw_drift_payload',
     }.entries) {
       expect(
         () =>
@@ -307,6 +314,9 @@ void main() {
                   ? entry.value
                   : 'unknown',
               sensorAssistState: entry.key == 'sensorAssistState'
+                  ? entry.value
+                  : 'unknown',
+              odometerCalibrationState: entry.key == 'odometerCalibrationState'
                   ? entry.value
                   : 'unknown',
             ),

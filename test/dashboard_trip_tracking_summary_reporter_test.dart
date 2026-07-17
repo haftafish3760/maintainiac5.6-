@@ -103,6 +103,8 @@ void main() {
       expect(data['freeSyncsRemaining'], 4);
       expect(data['deviceCapabilityState'], 'unknown');
       expect(data['sensorAssistState'], 'unknown');
+      expect(data['odometerCalibrationState'], 'disabled');
+      expect(data.keys, isNot(contains('odometerCalibrationSamples')));
       expect(data['activeVehicleId'], odometer.vehicleId);
       expect(data['locationDataIncluded'], isFalse);
       expect(data['rawModuleDataIncluded'], isFalse);

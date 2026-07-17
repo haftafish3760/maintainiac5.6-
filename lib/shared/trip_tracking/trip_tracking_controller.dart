@@ -9,6 +9,7 @@ import 'trip_tracking_engine.dart';
 import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
+import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_platform.dart';
 import 'trip_tracking_policy.dart';
 import 'trip_tracking_session_store.dart';
@@ -78,6 +79,26 @@ class TripTrackingController extends ChangeNotifier {
       .pendingReviews
       .where((review) => !review.isOdometerConfirmed)
       .firstOrNull;
+
+  TripOdometerCalibrationSignal odometerCalibrationSignal({
+    String? vehicleId,
+    DateTime? nowUtc,
+  }) => TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+    reviews: _sessionStore.pendingReviews,
+    vehicleId: vehicleId ?? _odometer.vehicleId,
+    nowUtc: nowUtc,
+  );
+
+  TripOdometerUsageAnomalySignal odometerUsageAnomalySignal({
+    required double currentOdometerMiles,
+    String? vehicleId,
+    DateTime? nowUtc,
+  }) => TripOdometerUsageAnomalySignal.evaluate(
+    currentOdometerMiles: currentOdometerMiles,
+    history: _sessionStore.pendingReviews,
+    vehicleId: vehicleId ?? _odometer.vehicleId,
+    nowUtc: nowUtc,
+  );
 
   Future<bool> confirmOdometerReview({
     required String reviewId,
@@ -684,8 +705,7 @@ class TripTrackingController extends ChangeNotifier {
       return false;
     }
     if (allowBackground && !capabilities.backgroundTrackingAvailable) {
-      _platformError =
-          'Background GPS tracking is unavailable on this device.';
+      _platformError = 'Background GPS tracking is unavailable on this device.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
