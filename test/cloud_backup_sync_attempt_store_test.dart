@@ -64,4 +64,29 @@ void main() {
     expect(store.attemptsFor('org-a-user-device', now: now), hasLength(1));
     expect(store.attemptsFor('org-b-user-device', now: now), isEmpty);
   });
+
+  test('rejects unsafe scope identifiers before writing', () async {
+    final store = CloudBackupSyncAttemptStore.memory();
+    final now = DateTime.utc(2026, 7, 16, 12);
+
+    await expectLater(
+      store.recordAttempt(' org-user-device', at: now),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.recordAttempt('org:user:device', at: now),
+      throwsArgumentError,
+    );
+
+    expect(store.attemptsFor('org-user-device', now: now), isEmpty);
+  });
+
+  test('ignores malformed stored attempt payloads instead of crashing', () {
+    final store = CloudBackupSyncAttemptStore.memory();
+
+    expect(
+      store.attemptsFor('missing-scope', now: DateTime.utc(2026, 7, 16, 12)),
+      isEmpty,
+    );
+  });
 }

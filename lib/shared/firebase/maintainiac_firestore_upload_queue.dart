@@ -40,6 +40,8 @@ class MaintainiacFirestoreUploadResult {
 
 typedef MaintainiacFirestoreQueueStorageCheck =
     Future<AppStorageCheck> Function();
+typedef MaintainiacFirestoreFreeSyncAttemptRecorder =
+    Future<void> Function(DateTime nowUtc);
 
 /// Shared Firestore sink for module-specific backup coordinators. Keeping the
 /// actual write primitive here prevents Expenses, Trips, and future modules

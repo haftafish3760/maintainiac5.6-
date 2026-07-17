@@ -287,11 +287,13 @@ class MaintainiacFirestoreUploadCoordinator {
     bool uploadEnabled = false,
     int? freeSyncsUsedInWindow,
     int Function()? freeSyncsUsedInWindowReader,
+    MaintainiacFirestoreFreeSyncAttemptRecorder? freeSyncAttemptRecorder,
     bool Function()? uploadNetworkAllowed,
   }) : _queue = queue,
        _sink = sink,
        _uploadEnabled = uploadEnabled,
        _uploadNetworkAllowed = uploadNetworkAllowed,
+       _freeSyncAttemptRecorder = freeSyncAttemptRecorder,
        _freeSyncsUsedInWindowReader =
            freeSyncsUsedInWindowReader ??
            (freeSyncsUsedInWindow == null
@@ -302,6 +304,7 @@ class MaintainiacFirestoreUploadCoordinator {
   final MaintainiacFirestoreDocumentSink _sink;
   final bool _uploadEnabled;
   final bool Function()? _uploadNetworkAllowed;
+  final MaintainiacFirestoreFreeSyncAttemptRecorder? _freeSyncAttemptRecorder;
   final int Function()? _freeSyncsUsedInWindowReader;
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
@@ -373,6 +376,19 @@ class MaintainiacFirestoreUploadCoordinator {
         attemptedCount: 0,
         uploadedCount: 0,
         failedCount: 0,
+      );
+    }
+    try {
+      await _freeSyncAttemptRecorder?.call(
+        (nowUtc ?? DateTime.now().toUtc()).toUtc(),
+      );
+    } catch (_) {
+      return const MaintainiacFirestoreUploadResult(
+        status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+        attemptedCount: 0,
+        uploadedCount: 0,
+        failedCount: 0,
+        reason: 'Free backup sync attempt could not be recorded locally.',
       );
     }
 
