@@ -273,6 +273,11 @@ class MaintainiacFirestoreDocumentBuilder {
         'Physical odometer confirmation is required before mileage backup.',
       );
     }
+    if (!review.hasValidTimeline) {
+      throw StateError(
+        'A valid trip timeline is required before mileage backup.',
+      );
+    }
     final safeTripId = _requiredSafePathToken(review.id, 'tripId');
     final safeVehicleId = _requiredSafePathToken(review.vehicleId, 'vehicleId');
     final acceptedMeters = review.engineSnapshot.totalAcceptedMeters;

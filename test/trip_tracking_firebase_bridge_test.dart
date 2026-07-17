@@ -209,6 +209,22 @@ void main() {
     );
   });
 
+  test('document builders reject confirmed reviews with invalid timelines', () {
+    final invalidTimeline = TripTrackingReviewRecord.fromMap({
+      ...review().toMap(),
+      'finishedAt': DateTime.utc(2026, 7, 14, 11).toIso8601String(),
+    });
+
+    expect(
+      () =>
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+            uid: 'firebaseUid-1',
+            review: invalidTimeline,
+          ),
+      throwsStateError,
+    );
+  });
+
   test('document builders reject impossible mileage odometer math', () {
     TripTrackingReviewRecord impossibleReview({
       required int estimatedEndingOdometer,
@@ -1231,7 +1247,10 @@ void main() {
       expect(stored?.cloudAccountUid, 'firebaseUid-1');
       expect(stored?.cloudBackupScope, TripTrackingCloudBackupScope.personal);
       expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
-      expect(stored?.cloudSyncError, contains('Firestore uploads are disabled'));
+      expect(
+        stored?.cloudSyncError,
+        contains('Firestore uploads are disabled'),
+      );
     },
   );
 
@@ -1623,10 +1642,7 @@ void main() {
     );
     expect(queue.pendingRecords.single.lastError, isNot(contains('sk.secret')));
     expect(queue.pendingRecords.single.lastError, isNot(contains('35.123')));
-    expect(
-      queue.pendingRecords.single.lastError,
-      isNot(contains('-80.45678')),
-    );
+    expect(queue.pendingRecords.single.lastError, isNot(contains('-80.45678')));
     expect(queue.pendingRecords.single.lastError, contains('token redacted'));
     expect(
       queue.pendingRecords.single.lastError,
