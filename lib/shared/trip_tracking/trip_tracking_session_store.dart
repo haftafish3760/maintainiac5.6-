@@ -235,36 +235,41 @@ class TripTrackingReviewRecord {
     DateTime? cloudSyncedAt,
     int? confirmedEndingOdometer,
     DateTime? odometerConfirmedAt,
-  }) => TripTrackingReviewRecord(
-    id: id,
-    vehicleId: vehicleId,
-    startingOdometer: startingOdometer,
-    estimatedEndingOdometer: estimatedEndingOdometer,
-    profile: profile,
-    startedAt: startedAt,
-    finishedAt: finishedAt,
-    engineSnapshot: engineSnapshot,
-    cloudSyncState: cloudSyncState ?? this.cloudSyncState,
-    cloudAccountUid: _optionalSafeCloudToken(
-      cloudAccountUid ?? this.cloudAccountUid,
-    ),
-    cloudBackupScope: cloudBackupScope ?? this.cloudBackupScope,
-    cloudOrganizationId: _optionalSafeCloudToken(
-      cloudOrganizationId ?? this.cloudOrganizationId,
-    ),
-    cloudSyncError: clearCloudSyncError
-        ? null
-        : _optionalSafeText(
-            cloudSyncError ?? this.cloudSyncError,
-            maxLength: 240,
-          ),
-    cloudSyncedAt: cloudSyncedAt ?? this.cloudSyncedAt,
-    confirmedEndingOdometer:
-        confirmedEndingOdometer ?? this.confirmedEndingOdometer,
-    odometerConfirmedAt: odometerConfirmedAt ?? this.odometerConfirmedAt,
-    schemaVersion: schemaVersion,
-    hasValidTimeline: hasValidTimeline,
-  );
+  }) {
+    final effectiveScope = cloudBackupScope ?? this.cloudBackupScope;
+    final effectiveOrganizationId =
+        effectiveScope == TripTrackingCloudBackupScope.organization
+        ? _optionalSafeCloudToken(cloudOrganizationId ?? this.cloudOrganizationId)
+        : null;
+    return TripTrackingReviewRecord(
+      id: id,
+      vehicleId: vehicleId,
+      startingOdometer: startingOdometer,
+      estimatedEndingOdometer: estimatedEndingOdometer,
+      profile: profile,
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      engineSnapshot: engineSnapshot,
+      cloudSyncState: cloudSyncState ?? this.cloudSyncState,
+      cloudAccountUid: _optionalSafeCloudToken(
+        cloudAccountUid ?? this.cloudAccountUid,
+      ),
+      cloudBackupScope: effectiveScope,
+      cloudOrganizationId: effectiveOrganizationId,
+      cloudSyncError: clearCloudSyncError
+          ? null
+          : _optionalSafeText(
+              cloudSyncError ?? this.cloudSyncError,
+              maxLength: 240,
+            ),
+      cloudSyncedAt: cloudSyncedAt ?? this.cloudSyncedAt,
+      confirmedEndingOdometer:
+          confirmedEndingOdometer ?? this.confirmedEndingOdometer,
+      odometerConfirmedAt: odometerConfirmedAt ?? this.odometerConfirmedAt,
+      schemaVersion: schemaVersion,
+      hasValidTimeline: hasValidTimeline,
+    );
+  }
 
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
@@ -363,7 +368,7 @@ class TripTrackingReviewRecord {
       odometerConfirmedAt: odometerConfirmedAt,
       cloudBackupScope: cloudBackupScope,
       cloudOrganizationId:
-          cloudBackupScope != null && map['cloudOrganizationId'] is String
+          cloudBackupScope == TripTrackingCloudBackupScope.organization
           ? _optionalSafeCloudToken(map['cloudOrganizationId'])
           : null,
       cloudSyncError: _optionalSafeText(map['cloudSyncError'], maxLength: 240),
@@ -381,6 +386,10 @@ class TripTrackingReviewRecord {
             syncedAt: cloudSyncedAt,
             finishedAt: finishedAt,
           ) &&
+          _hasValidCloudBackupScopeBinding(
+            cloudBackupScope,
+            map['cloudOrganizationId'],
+          ) &&
           hasValidConfirmation &&
           estimatedEndingOdometer >= startingOdometer &&
           hasSupportedSchemaVersion,
@@ -395,6 +404,17 @@ bool _hasValidCloudSyncTimeline(
 }) =>
     state != TripTrackingCloudSyncState.synced ||
     (syncedAt != null && finishedAt != null && !syncedAt.isBefore(finishedAt));
+
+bool _hasValidCloudBackupScopeBinding(
+  TripTrackingCloudBackupScope? scope,
+  Object? organizationId,
+) {
+  final safeOrganizationId = _optionalSafeCloudToken(organizationId);
+  return switch (scope) {
+    TripTrackingCloudBackupScope.organization => safeOrganizationId != null,
+    TripTrackingCloudBackupScope.personal || null => safeOrganizationId == null,
+  };
+}
 
 int _sessionSchemaVersion(Object? value) {
   if (value is! num || !value.isFinite) return 1;
