@@ -539,14 +539,18 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           confirmedEndingOdometer: confirmedEndingOdometer,
         );
     if (!mounted) return;
+    final confirmationError = confirmedEndingOdometer == null
+        ? null
+        : tripTracking.platformError;
     _showGpsMessage(
       review == null
           ? (tripTracking.platformError ?? 'No active GPS trip to stop.')
           : reviewConfirmed
           ? 'GPS trip reviewed and odometer confirmed.'
-          : cloudMirrorError == null
-          ? 'GPS trip ended and is ready for review.'
-          : 'GPS trip saved locally; cloud backup will retry.',
+          : confirmationError ??
+                (cloudMirrorError == null
+                    ? 'GPS trip ended and is ready for review.'
+                    : 'GPS trip saved locally; cloud backup will retry.'),
     );
   }
 
@@ -577,10 +581,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           confirmedEndingOdometer: confirmedEndingOdometer,
         );
     if (!mounted) return;
+    final confirmationError = confirmedEndingOdometer == null
+        ? null
+        : tripTracking!.platformError;
     _showGpsMessage(
       reviewConfirmed
           ? 'GPS trip reviewed and odometer confirmed.'
-          : 'GPS trip review remains available locally.',
+          : confirmationError ?? 'GPS trip review remains available locally.',
     );
   }
 
