@@ -736,6 +736,63 @@ void main() {
     );
   });
 
+  test('an unsafe authenticated UID cannot queue mileage backup', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    await localStore.saveReview(review());
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingSink();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'unsafe/uid',
+    );
+
+    await expectLater(mirror.queueReview(review()), throwsStateError);
+
+    expect(queue.pendingRecords, isEmpty);
+    expect(sink.writes, isEmpty);
+    final stored = localStore.reviewForTrip('trip 1');
+    expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+    expect(stored?.cloudSyncError, contains('valid authenticated account'));
+  });
+
+  test(
+    'an unsafe authenticated UID cannot flush pending mileage backup',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      await localStore.saveReview(
+        review().copyWith(cloudSyncState: TripTrackingCloudSyncState.pending),
+      );
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final sink = _RecordingSink();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: sink,
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        personal: true,
+        createdByUid: 'unsafe uid with spaces',
+      );
+
+      await mirror.flushPending();
+
+      expect(queue.pendingRecords, isEmpty);
+      expect(sink.writes, isEmpty);
+      final stored = localStore.reviewForTrip('trip 1');
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+      expect(stored?.cloudSyncError, contains('valid authenticated account'));
+    },
+  );
+
   test(
     'an account switch cannot adopt an already-bound mileage review',
     () async {

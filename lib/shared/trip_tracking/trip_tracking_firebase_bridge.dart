@@ -116,6 +116,15 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
         'Firebase sign-in is required before mileage backup can be queued.',
       );
     }
+    if (!_isSafeFirestoreUid(createdByUid)) {
+      await _saveReviewState(
+        review.copyWith(
+          cloudSyncState: TripTrackingCloudSyncState.pending,
+          cloudSyncError: _unsafeAccountMessage,
+        ),
+      );
+      throw StateError(_unsafeAccountMessage);
+    }
     if (_usesOrganizationBackup && !(_orgId?.trim().isNotEmpty ?? false)) {
       const message = _missingOrganizationMessage;
       await _saveReviewState(
@@ -218,6 +227,23 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     final createdByUid = _currentUid;
     if (createdByUid == null || createdByUid.trim().isEmpty) return;
     final localStore = _localStore;
+    if (!_isSafeFirestoreUid(createdByUid)) {
+      if (localStore != null) {
+        for (final review in localStore.pendingReviews) {
+          if (review.cloudSyncState == TripTrackingCloudSyncState.synced ||
+              review.cloudSyncState == TripTrackingCloudSyncState.localOnly) {
+            continue;
+          }
+          await _saveReviewState(
+            review.copyWith(
+              cloudSyncState: TripTrackingCloudSyncState.pending,
+              cloudSyncError: _unsafeAccountMessage,
+            ),
+          );
+        }
+      }
+      return;
+    }
     if (_usesOrganizationBackup && !(_orgId?.trim().isNotEmpty ?? false)) {
       if (localStore != null) {
         for (final review in localStore.pendingReviews) {
@@ -372,6 +398,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
 
   static const _missingOrganizationMessage =
       'An organization is required before company mileage backup can be queued.';
+  static const _unsafeAccountMessage =
+      'Mileage backup is waiting for a valid authenticated account.';
   static const _backupScopeMismatchMessage =
       'Mileage backup is waiting for its original account and organization.';
 
@@ -380,6 +408,11 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     String createdByUid,
   ) {
     final accountUid = review.cloudAccountUid?.trim();
+    if (accountUid != null &&
+        accountUid.isNotEmpty &&
+        !_isSafeFirestoreUid(accountUid)) {
+      return null;
+    }
     if (accountUid != null &&
         accountUid.isNotEmpty &&
         accountUid != createdByUid) {
@@ -412,6 +445,7 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
   Future<void> _discardQueuedBackupFor(TripTrackingReviewRecord review) async {
     final accountUid = review.cloudAccountUid?.trim() ?? _currentUid?.trim();
     if (accountUid == null || accountUid.isEmpty) return;
+    if (!_isSafeFirestoreUid(accountUid)) return;
     final scope = review.cloudBackupScope;
     if (scope == TripTrackingCloudBackupScope.organization &&
         review.cloudOrganizationId?.trim().isNotEmpty == true) {
@@ -464,4 +498,11 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
   void dispose() {
     unawaited(_authSubscription?.cancel());
   }
+}
+
+bool _isSafeFirestoreUid(String value) {
+  final clean = value.trim();
+  return clean.isNotEmpty &&
+      clean.length <= 128 &&
+      RegExp(r'^[A-Za-z0-9:_-]+$').hasMatch(clean);
 }
