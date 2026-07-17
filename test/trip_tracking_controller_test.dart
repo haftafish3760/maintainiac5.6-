@@ -2505,6 +2505,37 @@ void main() {
   );
 
   test(
+    'invalid GPS fixes are rejected before durable pending recovery',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_invalid_pending',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final decision = await controller.ingest(
+        TripLocationSample(
+          latitude: 91,
+          longitude: -80,
+          recordedAt: start,
+          horizontalAccuracyMeters: 5,
+        ),
+      );
+
+      expect(decision?.disposition, TripSampleDisposition.rejectedInvalid);
+      expect(controller.acceptedMeters, 0);
+      expect(store.pendingSampleFor('trip_invalid_pending'), isNull);
+      expect(store.activeSession?.updatedAt, start);
+    },
+  );
+
+  test(
     'cached native fixes before trip start cannot anchor live mileage',
     () async {
       final store = TripTrackingSessionStore.memory();

@@ -525,6 +525,10 @@ class TripTrackingController extends ChangeNotifier {
       return engine.reject(TripSampleDisposition.rejectedFutureTimestamp);
     }
 
+    if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
+      return engine.reject(TripSampleDisposition.rejectedInvalid);
+    }
+
     if (sample.mockedLocation != true) {
       await _sessionStore.savePending(
         TripTrackingPendingSample(
