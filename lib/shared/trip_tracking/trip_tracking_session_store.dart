@@ -302,6 +302,11 @@ class TripTrackingReviewRecord {
       map['profile'],
       TripTrackingProfile.values.map((value) => value.name),
     );
+    final hasValidCloudSyncState = _hasMissingOrKnownEnumName(
+      map,
+      'cloudSyncState',
+      TripTrackingCloudSyncState.values.map((value) => value.name),
+    );
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
@@ -350,6 +355,7 @@ class TripTrackingReviewRecord {
           !finishedAt.isBefore(startedAt) &&
           hasSafeIdentity &&
           hasValidProfile &&
+          hasValidCloudSyncState &&
           estimatedEndingOdometer >= startingOdometer,
     );
   }
