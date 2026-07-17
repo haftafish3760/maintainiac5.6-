@@ -222,6 +222,24 @@ void main() {
       expect(rules, contains('function isAllowedDashboardMode'));
       expect(rules, contains('function isAllowedDashboardSyncMode'));
       expect(rules, contains('function isAllowedGpsAssistState'));
+      expect(rules, contains('function hasValidDashboardSummaryStrings'));
+      for (final field in const <String>[
+        'dashboardId',
+        'createdByUid',
+        'updatedByUid',
+        'updatedAt',
+      ]) {
+        expect(rules, contains('request.resource.data.$field.size() > 0'));
+      }
+      for (final field in const <String>[
+        'orgId',
+        'activeVehicleId',
+        'activeWorkdayId',
+        'activeWorkProfileId',
+      ]) {
+        expect(rules, contains('request.resource.data.$field is string'));
+        expect(rules, contains('request.resource.data.$field.size() > 0'));
+      }
       expect(rules, contains('request.resource.data.freeSyncsRemaining <= 6'));
       expect(rules, contains('request.resource.data.syncsUsedInWindow <= 999'));
       expect(
