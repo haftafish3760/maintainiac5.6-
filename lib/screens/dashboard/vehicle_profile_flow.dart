@@ -48,15 +48,35 @@ class ActiveVehicleDrawer extends StatelessWidget {
                 const Text('🚚', style: TextStyle(fontSize: 20, height: 1)),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    activeVehicle.nickname,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        activeVehicle.nickname,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                      if (activeVehicle.odometer.trim().isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${activeVehicle.status == 'LIVE GPS' ? 'Live odometer' : 'Odometer'} ${activeVehicle.odometer}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFF314047),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: .2,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),

@@ -37,18 +37,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
   Widget build(BuildContext context) {
     final appState = AppStateScope.of(context);
     final selectedVehicle = appState.activeVehicle;
-    final activeVehicle = selectedVehicle == null
-        ? defaultVehicleProfile
-        : VehicleProfilePreview(
-            id: selectedVehicle.id,
-            nickname: selectedVehicle.nickname,
-            year: selectedVehicle.year,
-            make: selectedVehicle.make,
-            model: selectedVehicle.model,
-            odometer: '',
-            status: 'Active',
-            usage: selectedVehicle.usage,
-          );
+    final odometer = GlobalOdometerScope.of(context);
     final activeWorkProfile = ExpenseWorkProfileScope.of(
       context,
     ).activeWorkProfile;
@@ -65,15 +54,45 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         const SliverToBoxAdapter(child: GlobalOdometerHeader()),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
-          child: DashboardContextSelectors(
-            activeVehicle: activeVehicle,
-            workProfile: activeWorkProfile.name,
-            onVehicleChanged: (vehicle) async {
-              final match = appState.vehicles.where(
-                (candidate) => candidate.id == vehicle.id,
+          child: AnimatedBuilder(
+            animation: odometer,
+            builder: (context, _) {
+              final activeVehicle = selectedVehicle == null
+                  ? VehicleProfilePreview(
+                      id: defaultVehicleProfile.id,
+                      nickname: defaultVehicleProfile.nickname,
+                      year: defaultVehicleProfile.year,
+                      make: defaultVehicleProfile.make,
+                      model: defaultVehicleProfile.model,
+                      odometer: odometer.displayValue,
+                      status: odometer.hasLiveTripProjection
+                          ? 'LIVE GPS'
+                          : 'Active',
+                      usage: defaultVehicleProfile.usage,
+                    )
+                  : VehicleProfilePreview(
+                      id: selectedVehicle.id,
+                      nickname: selectedVehicle.nickname,
+                      year: selectedVehicle.year,
+                      make: selectedVehicle.make,
+                      model: selectedVehicle.model,
+                      odometer: odometer.displayValue,
+                      status: odometer.hasLiveTripProjection
+                          ? 'LIVE GPS'
+                          : 'Active',
+                      usage: selectedVehicle.usage,
+                    );
+              return DashboardContextSelectors(
+                activeVehicle: activeVehicle,
+                workProfile: activeWorkProfile.name,
+                onVehicleChanged: (vehicle) async {
+                  final match = appState.vehicles.where(
+                    (candidate) => candidate.id == vehicle.id,
+                  );
+                  if (match.isEmpty) return;
+                  await appState.selectVehicle(match.first);
+                },
               );
-              if (match.isEmpty) return;
-              await appState.selectVehicle(match.first);
             },
           ),
         ),
