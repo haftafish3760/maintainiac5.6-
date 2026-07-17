@@ -13,11 +13,13 @@ class SimulatedTripResult {
     required this.acceptedMeters,
     required this.dispositions,
     required this.needsWalkingReview,
+    required this.motionState,
   });
 
   final double acceptedMeters;
   final List<TripSampleDisposition> dispositions;
   final bool needsWalkingReview;
+  final TripMotionState motionState;
 
   int count(TripSampleDisposition disposition) =>
       dispositions.where((value) => value == disposition).length;
@@ -41,5 +43,6 @@ SimulatedTripResult replayTrip(
     acceptedMeters: engine.totalAcceptedMeters,
     dispositions: List.unmodifiable(dispositions),
     needsWalkingReview: engine.needsWalkingReview,
+    motionState: engine.motionState,
   );
 }

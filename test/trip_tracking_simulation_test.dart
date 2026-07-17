@@ -154,6 +154,7 @@ void main() {
       final result = replayTrip(points);
 
       expect(result.needsWalkingReview, isFalse);
+      expect(result.motionState, TripMotionState.moving);
       expect(result.count(TripSampleDisposition.excludedWalking), isZero);
       expect(
         result.count(TripSampleDisposition.rejectedDrift),
@@ -191,6 +192,7 @@ void main() {
       final result = replayTrip(points);
 
       expect(result.needsWalkingReview, isFalse);
+      expect(result.motionState, TripMotionState.moving);
       expect(result.count(TripSampleDisposition.excludedWalking), isZero);
       expect(
         result.count(TripSampleDisposition.rejectedDrift),
