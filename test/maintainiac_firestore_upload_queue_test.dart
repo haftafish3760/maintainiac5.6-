@@ -193,6 +193,24 @@ void main() {
     expect(result.reason, contains('selected network'));
   });
 
+  test('broken network policy checks preserve pending uploads', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/broken_network_check'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      uploadNetworkAllowed: () => throw StateError('network check failed'),
+    ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.networkUnavailable);
+    expect(result.attemptedCount, 0);
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+  });
+
   test('concurrent flushes upload a queued document only once', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();

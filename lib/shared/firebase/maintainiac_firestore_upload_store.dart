@@ -313,7 +313,13 @@ class MaintainiacFirestoreUploadCoordinator {
         reason: 'Firestore uploads are disabled until hosted sync is enabled.',
       );
     }
-    if (_uploadNetworkAllowed?.call() == false) {
+    bool networkAllowed;
+    try {
+      networkAllowed = _uploadNetworkAllowed?.call() ?? true;
+    } catch (_) {
+      networkAllowed = false;
+    }
+    if (!networkAllowed) {
       return const MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.networkUnavailable,
         attemptedCount: 0,
