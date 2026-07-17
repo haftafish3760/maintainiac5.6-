@@ -1120,6 +1120,38 @@ void main() {
     expect(queue.pendingRecords.single.nextAttemptAtUtc, isNotNull);
   });
 
+  test('network-blocked trip backup remains pending for retry', () async {
+    final localStore = TripTrackingSessionStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingSink();
+    final mirror = TripTrackingFirebaseMirror(
+      queueStore: queue,
+      uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+        uploadNetworkAllowed: () => false,
+      ),
+      localStore: localStore,
+      personal: true,
+      createdByUid: 'firebaseUid-1',
+    );
+
+    await mirror.queueReview(review());
+    await mirror.flushPending();
+
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncState,
+      TripTrackingCloudSyncState.pending,
+    );
+    expect(
+      localStore.reviewForTrip('trip 1')?.cloudSyncError,
+      contains('selected network'),
+    );
+  });
+
   test(
     'consent withdrawal clears a Firebase write that previously failed',
     () async {

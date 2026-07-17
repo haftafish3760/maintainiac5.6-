@@ -299,6 +299,16 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
               clearCloudSyncError: true,
             ),
           );
+        } else if (result.status ==
+                MaintainiacFirestoreUploadStatus.quotaExceeded ||
+            result.status ==
+                MaintainiacFirestoreUploadStatus.networkUnavailable) {
+          await _saveReviewState(
+            boundReview.copyWith(
+              cloudSyncState: TripTrackingCloudSyncState.pending,
+              cloudSyncError: result.reason ?? result.status.name,
+            ),
+          );
         } else if (result.failedCount > 0) {
           await _saveReviewState(
             boundReview.copyWith(
