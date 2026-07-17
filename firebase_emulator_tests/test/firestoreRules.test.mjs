@@ -395,6 +395,71 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
+  test('dashboard summaries are owner-scoped and reject raw route data', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    const outsider = dbFor('outsiderUid');
+    const personalSummary = dashboardSummary({
+      dashboardId: 'today',
+      createdByUid: 'ownerUid',
+      updatedByUid: 'ownerUid',
+    });
+    const orgSummary = dashboardSummary({
+      dashboardId: 'fleetToday',
+      orgId: 'orgA',
+      createdByUid: 'helperUid',
+      updatedByUid: 'helperUid',
+    });
+
+    await assertSucceeds(
+      setDoc(doc(owner, 'users/ownerUid/dashboardSummaries/today'), personalSummary),
+    );
+    await assertSucceeds(
+      getDoc(doc(owner, 'users/ownerUid/dashboardSummaries/today')),
+    );
+    await assertFails(
+      getDoc(doc(outsider, 'users/ownerUid/dashboardSummaries/today')),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/dashboardSummaries/badRoute'), {
+        ...personalSummary,
+        dashboardId: 'badRoute',
+        mapboxRoute: 'encoded-private-route',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/dashboardSummaries/badOrg'), {
+        ...personalSummary,
+        dashboardId: 'badOrg',
+        orgId: 'orgA',
+      }),
+    );
+
+    await assertSucceeds(
+      setDoc(doc(helper, 'orgs/orgA/dashboardSummaries/fleetToday'), orgSummary),
+    );
+    await assertSucceeds(
+      getDoc(doc(helper, 'orgs/orgA/dashboardSummaries/fleetToday')),
+    );
+    await assertFails(
+      getDoc(doc(owner, 'orgs/orgA/dashboardSummaries/fleetToday')),
+    );
+    await assertFails(
+      setDoc(doc(helper, 'orgs/orgA/dashboardSummaries/badOwner'), {
+        ...orgSummary,
+        dashboardId: 'badOwner',
+        createdByUid: 'ownerUid',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(helper, 'orgs/orgA/dashboardSummaries/badRoute'), {
+        ...orgSummary,
+        dashboardId: 'badRoute',
+        rawSamples: [{ latitude: 35, longitude: -80 }],
+      }),
+    );
+  });
+
   test('jobs and generic records reject passenger and patient fields', async () => {
     const owner = dbFor('ownerUid');
 
@@ -547,6 +612,31 @@ function mileageSummary(overrides = {}) {
     acceptedSampleCount: 18,
     locationDataIncluded: false,
     visibilityScope: 'mileage_only',
+    ...overrides,
+  };
+}
+
+function dashboardSummary(overrides = {}) {
+  return {
+    schema: 'dashboard_command_center_summary_v1',
+    dashboardId: 'today',
+    createdByUid: 'ownerUid',
+    updatedByUid: 'ownerUid',
+    updatedAt: '2026-07-16T12:00:00.000Z',
+    activeVehicleId: 'truck1',
+    activeWorkdayId: 'workday1',
+    activeWorkProfileId: 'profile1',
+    dashboardMode: 'gig_driver',
+    mileageMode: 'gps_assisted',
+    syncMode: 'wifi_only',
+    gpsAssistState: 'battery_limited',
+    storageState: 'text_record_safe',
+    freeSyncsRemaining: 5,
+    syncsUsedInWindow: 1,
+    batteryGpsLimited: true,
+    reviewRequired: false,
+    locationDataIncluded: false,
+    rawModuleDataIncluded: false,
     ...overrides,
   };
 }
