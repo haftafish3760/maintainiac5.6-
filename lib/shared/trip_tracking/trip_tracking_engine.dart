@@ -248,6 +248,9 @@ class TripTrackingEngine {
     final credibleMovement =
         disposition == TripSampleDisposition.acceptedDistance && !walking;
     if (automotive || credibleMovement) {
+      if (credibleMovement && !_vehicleMovementObserved) {
+        _walkingEvidence.clear();
+      }
       _vehicleMovementObserved = true;
       _motionState = TripMotionState.moving;
       return;

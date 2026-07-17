@@ -432,6 +432,17 @@ void main() {
     },
   );
 
+  test('walking before vehicle movement cannot count toward a later stop', () {
+    final engine = TripTrackingEngine();
+
+    engine.ingest(sample(-80, 0), activity: walking(0));
+    engine.ingest(sample(-79.995, 60));
+    final decision = engine.ingest(sample(-79.995, 75), activity: walking(75));
+
+    expect(decision.walkingReviewSuggested, isFalse);
+    expect(engine.motionState, TripMotionState.stopCandidate);
+  });
+
   test('automotive recognition clears an unconfirmed walking streak', () {
     final engine = TripTrackingEngine();
 
