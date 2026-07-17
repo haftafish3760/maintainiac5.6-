@@ -128,7 +128,7 @@ void main() {
 
   test('malformed sampling thresholds do not force high-rate GPS', () {
     const policy = TripTrackingPolicy(
-      precisionSpeedMetersPerSecond: double.nan,
+      precisionSpeedMetersPerSecond: 0,
       precisionExitSpeedMetersPerSecond: -1,
       lowSpeedMovementMetersPerSecond: double.infinity,
     );
@@ -145,6 +145,23 @@ void main() {
 
     expect(parked.mode, TripSamplingMode.economy);
     expect(moving.mode, TripSamplingMode.precision);
+  });
+
+  test('zero precision thresholds cannot force parked precision GPS', () {
+    const policy = TripTrackingPolicy(
+      precisionSpeedMetersPerSecond: 0,
+      precisionExitSpeedMetersPerSecond: 0,
+      lowSpeedMovementMetersPerSecond: 0,
+    );
+
+    final parked = policy.samplingFor(
+      speedMetersPerSecond: 0,
+      vehicleMovementConfirmed: true,
+      currentMode: TripSamplingMode.precision,
+    );
+
+    expect(parked.mode, TripSamplingMode.balanced);
+    expect(parked.interval, const Duration(seconds: 5));
   });
 
   test('malformed low battery GPS cutoffs fall back to twenty percent', () {

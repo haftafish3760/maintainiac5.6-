@@ -190,4 +190,4 @@ class TripTrackingPolicy {
 }
 
 double _safePositiveDouble(double value, {required double fallback}) =>
-    value.isFinite && value >= 0 ? value : fallback;
+    value.isFinite && value > 0 ? value : fallback;
