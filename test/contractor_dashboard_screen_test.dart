@@ -90,6 +90,13 @@ void main() {
     expect(find.text('Create Invoice'), findsOneWidget);
     expect(find.text('Record Payment'), findsOneWidget);
     expect(find.text('Proof Photo'), findsNothing);
+
+    await tester.tap(find.text('Add Stop'));
+    await tester.pumpAndSettle();
+    expect(
+      activeWorkday.activeSession?.events.last.type,
+      ActiveWorkdayEventType.stop,
+    );
   });
 
   testWidgets('contractor day controls persist pause resume and end events', (

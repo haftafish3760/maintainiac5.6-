@@ -209,7 +209,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     return session.milesSoFar(odometer.reading).toString();
   }
 
-  void _handleCommand(ContractorCommand command) {
+  Future<void> _handleCommand(ContractorCommand command) async {
     switch (command.target) {
       case ContractorCommandTarget.createJob:
       case ContractorCommandTarget.jobs:
@@ -228,9 +228,30 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const InvoiceWorkspaceScreen(mode: InvoiceWorkspaceMode.estimates),
         );
       case ContractorCommandTarget.recordPayment:
-      case ContractorCommandTarget.note:
         _showPending(command.label);
+      case ContractorCommandTarget.note:
+        await _recordQuickActiveDayEvent(command);
     }
+  }
+
+  Future<void> _recordQuickActiveDayEvent(ContractorCommand command) async {
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
+    final session = activeWorkday?.activeSession;
+    if (activeWorkday == null || session == null) {
+      _showPending(command.label);
+      return;
+    }
+    final type = command.label == 'Add Stop'
+        ? ActiveWorkdayEventType.stop
+        : ActiveWorkdayEventType.note;
+    final updated = await _recordContractorDayEvent(activeWorkday, type);
+    if (!updated || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${command.label} saved to the active contractor day.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _open(Widget screen) {
