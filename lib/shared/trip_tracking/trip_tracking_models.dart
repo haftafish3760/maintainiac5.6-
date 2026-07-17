@@ -201,7 +201,7 @@ class TripLocationSample {
     'longitude': longitude,
     'recordedAt': recordedAt.toIso8601String(),
     'horizontalAccuracyMeters': horizontalAccuracyMeters,
-    'speedMetersPerSecond': speedMetersPerSecond,
+    'speedMetersPerSecond': _tripSpeedFrom(speedMetersPerSecond),
     if (mockedLocation != null) 'mockedLocation': mockedLocation,
   };
 

@@ -168,6 +168,21 @@ void main() {
     expect(recovered?.sample.mockedLocation, isTrue);
   });
 
+  test('persisted GPS samples do not write non-finite speed values', () {
+    final sample = TripLocationSample(
+      latitude: 35,
+      longitude: -80,
+      recordedAt: DateTime.utc(2026, 7, 12, 12),
+      horizontalAccuracyMeters: 5,
+      speedMetersPerSecond: double.nan,
+    );
+
+    final map = sample.toMap();
+
+    expect(map['speedMetersPerSecond'], isNull);
+    expect(TripLocationSample.tryFromMap(map)?.speedMetersPerSecond, isNull);
+  });
+
   test('legacy GPS records receive safe persistence defaults', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'legacy',
