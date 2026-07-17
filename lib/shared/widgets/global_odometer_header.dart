@@ -304,29 +304,49 @@ class _CompactOdometerText extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Flexible(
-                child: Text(
-                  controller.displayValue,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      controller.displayValue,
+                      maxLines: 1,
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        color: Color(0xFF126D43),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  const Icon(
+                    Icons.edit_rounded,
+                    color: Color(0xFF101416),
+                    size: 17,
+                  ),
+                ],
+              ),
+              if (controller.hasLiveTripProjection) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '+${controller.liveTripDeltaMiles} mi live',
                   maxLines: 1,
                   textAlign: TextAlign.right,
                   style: const TextStyle(
-                    color: Color(0xFF126D43),
-                    fontSize: 20,
+                    color: Color(0xFF2F383D),
+                    fontSize: 10,
                     fontWeight: FontWeight.w900,
                     height: 1,
                   ),
                 ),
-              ),
-              const SizedBox(width: 5),
-              const Icon(
-                Icons.edit_rounded,
-                color: Color(0xFF101416),
-                size: 17,
-              ),
+              ],
             ],
           ),
         ),

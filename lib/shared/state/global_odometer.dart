@@ -42,6 +42,7 @@ class GlobalOdometerController extends ChangeNotifier {
   String _vehicleId;
   String? _liveTripId;
   int? _liveTripEstimatedReading;
+  DateTime? _liveTripUpdatedAt;
   var _eventSequence = 0;
   final OdometerValidationPolicy _validationPolicy;
   bool _drivingPatternReviewEnabled;
@@ -60,6 +61,10 @@ class GlobalOdometerController extends ChangeNotifier {
   int get confirmedReading => _reading;
   String get vehicleId => _vehicleId;
   bool get hasLiveTripProjection => _liveTripId != null;
+  DateTime? get liveTripUpdatedAt => _liveTripUpdatedAt;
+  int get liveTripDeltaMiles => hasLiveTripProjection ? reading - _reading : 0;
+  String get liveTripDisplayLabel =>
+      hasLiveTripProjection ? 'Live GPS odometer' : 'Odometer';
   List<OdometerReadingEvent> get history => List.unmodifiable(_history);
   List<OdometerReadingEvent> get unresolvedMileageEvents => _history
       .where(
@@ -128,6 +133,7 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     _liveTripId = tripId;
     _liveTripEstimatedReading = startingOdometer;
+    _liveTripUpdatedAt = DateTime.now();
     notifyListeners();
     return true;
   }
@@ -144,6 +150,7 @@ class GlobalOdometerController extends ChangeNotifier {
     final current = _liveTripEstimatedReading ?? _reading;
     if (estimatedOdometer <= current) return true;
     _liveTripEstimatedReading = estimatedOdometer;
+    _liveTripUpdatedAt = DateTime.now();
     notifyListeners();
     return true;
   }
@@ -152,6 +159,7 @@ class GlobalOdometerController extends ChangeNotifier {
     if (_liveTripId != tripId) return false;
     _liveTripId = null;
     _liveTripEstimatedReading = null;
+    _liveTripUpdatedAt = null;
     notifyListeners();
     return true;
   }

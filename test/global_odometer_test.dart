@@ -752,9 +752,15 @@ void main() {
       );
       expect(controller.reading, 1002);
       expect(controller.confirmedReading, 1000);
+      expect(controller.liveTripDeltaMiles, 2);
+      expect(controller.liveTripDisplayLabel, 'Live GPS odometer');
+      expect(controller.liveTripUpdatedAt, isNotNull);
       expect(controller.updateFromText('1003').ok, isFalse);
       expect(controller.clearLiveTripProjection(tripId: 'trip_1'), isTrue);
       expect(controller.reading, 1000);
+      expect(controller.liveTripDeltaMiles, 0);
+      expect(controller.liveTripDisplayLabel, 'Odometer');
+      expect(controller.liveTripUpdatedAt, isNull);
     },
   );
 

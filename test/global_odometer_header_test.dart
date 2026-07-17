@@ -52,6 +52,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('0001002'), findsOneWidget);
+    expect(find.text('+2 mi live'), findsOneWidget);
   });
 
   testWidgets('shared odometer header redraws from accepted GPS trip samples', (
@@ -92,6 +93,7 @@ void main() {
 
     expect(find.text('0001000'), findsNothing);
     expect(find.text(odometer.displayValue), findsOneWidget);
+    expect(find.text('+${odometer.liveTripDeltaMiles} mi live'), findsOneWidget);
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
   });
