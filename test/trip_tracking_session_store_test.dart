@@ -37,6 +37,37 @@ void main() {
     },
   );
 
+  test('unknown persisted trip profiles are marked invalid', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_unknown_profile',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'silentTracker',
+      'startedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 12, 12, 5).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+    final review = TripTrackingReviewRecord.fromMap({
+      'id': 'trip_unknown_profile',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'estimatedEndingOdometer': 1001,
+      'profile': 'silentTracker',
+      'startedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+      'finishedAt': DateTime.utc(2026, 7, 12, 12, 5).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    expect(session.hasValidTimeline, isFalse);
+    expect(review.hasValidTimeline, isFalse);
+  });
+
   test(
     'does not claim an active trip checkpoint when storage is full',
     () async {

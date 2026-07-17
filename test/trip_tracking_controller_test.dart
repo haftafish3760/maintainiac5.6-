@@ -2607,6 +2607,34 @@ void main() {
     expect(controller.isTracking, isFalse);
   });
 
+  test('an unknown persisted profile is cleared instead of restored', () async {
+    final store = TripTrackingSessionStore.memory();
+    await store.save(
+      TripTrackingSessionRecord.fromMap({
+        'id': 'trip_unknown_profile',
+        'vehicleId': 'vehicle_1',
+        'startingOdometer': 1000,
+        'profile': 'silentTracker',
+        'startedAt': start.toIso8601String(),
+        'updatedAt': start.toIso8601String(),
+        'engineSnapshot': const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ).toMap(),
+      }),
+    );
+    final odometer = GlobalOdometerController(initialReading: 1000);
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(store.activeSession, isNull);
+    expect(controller.isTracking, isFalse);
+    expect(odometer.hasLiveTripProjection, isFalse);
+  });
+
   test('recovery never projects a GPS trip onto another vehicle', () async {
     final store = TripTrackingSessionStore.memory();
     await store.save(

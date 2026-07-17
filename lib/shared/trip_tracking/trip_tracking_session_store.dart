@@ -89,6 +89,10 @@ class TripTrackingSessionRecord {
       'healthState',
       TripTrackingHealthState.values.map((value) => value.name),
     );
+    final hasValidProfile = _hasKnownEnumName(
+      map['profile'],
+      TripTrackingProfile.values.map((value) => value.name),
+    );
     return TripTrackingSessionRecord(
       id: _safeIdentifier(map['id']),
       vehicleId: _safeIdentifier(map['vehicleId']),
@@ -127,6 +131,7 @@ class TripTrackingSessionRecord {
           startedAt != null &&
           updatedAt != null &&
           hasSafeIdentity &&
+          hasValidProfile &&
           hasValidLifecycleState &&
           hasValidHealthState,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
@@ -293,6 +298,10 @@ class TripTrackingReviewRecord {
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
         _isSafeStoreIdentifierValue(map['vehicleId']);
+    final hasValidProfile = _hasKnownEnumName(
+      map['profile'],
+      TripTrackingProfile.values.map((value) => value.name),
+    );
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
@@ -343,6 +352,7 @@ class TripTrackingReviewRecord {
           finishedAt != null &&
           !finishedAt.isBefore(startedAt) &&
           hasSafeIdentity &&
+          hasValidProfile &&
           estimatedEndingOdometer >= startingOdometer,
     );
   }
@@ -368,7 +378,10 @@ bool _hasMissingOrKnownEnumName(
   Iterable<String> allowedNames,
 ) {
   if (!map.containsKey(key)) return true;
-  final value = map[key];
+  return _hasKnownEnumName(map[key], allowedNames);
+}
+
+bool _hasKnownEnumName(Object? value, Iterable<String> allowedNames) {
   return value is String && allowedNames.contains(value);
 }
 
