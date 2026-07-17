@@ -301,11 +301,22 @@ class TripOdometerCalibrationSignal {
       );
     }
 
-    final reconciliations = confirmedReviews.map(
-      (review) => TripOdometerReconciliation.compare(
+    final dailyTotals = <String, _DailyCalibrationTotals>{};
+    for (final review in confirmedReviews) {
+      final reconciliation = TripOdometerReconciliation.compare(
         review: review,
         confirmedEndingOdometer: review.confirmedEndingOdometer!,
-      ),
+      );
+      if (reconciliation.status == TripOdometerReconciliationStatus.invalid) {
+        continue;
+      }
+      final dayKey = _calibrationDayKey(review.startedAt.toUtc());
+      dailyTotals
+          .putIfAbsent(dayKey, _DailyCalibrationTotals.new)
+          .add(reconciliation);
+    }
+    final reconciliations = dailyTotals.values.map(
+      (totals) => totals.toReconciliation(),
     );
     return evaluate(
       history: reconciliations,
@@ -316,6 +327,35 @@ class TripOdometerCalibrationSignal {
     );
   }
 }
+
+class _DailyCalibrationTotals {
+  var odometerMiles = 0.0;
+  var gpsMiles = 0.0;
+
+  void add(TripOdometerReconciliation reconciliation) {
+    odometerMiles += reconciliation.confirmedOdometerDeltaMiles;
+    gpsMiles += reconciliation.filteredGpsMiles;
+  }
+
+  TripOdometerReconciliation toReconciliation() {
+    final difference = (odometerMiles - gpsMiles).abs();
+    final percent = odometerMiles <= 0
+        ? double.nan
+        : difference / odometerMiles * 100;
+    return TripOdometerReconciliation(
+      status: TripOdometerReconciliationStatus.aligned,
+      confirmedOdometerDeltaMiles: odometerMiles,
+      filteredGpsMiles: gpsMiles,
+      absoluteDifferenceMiles: difference,
+      differencePercent: percent,
+    );
+  }
+}
+
+String _calibrationDayKey(DateTime value) =>
+    '${value.year.toString().padLeft(4, '0')}-'
+    '${value.month.toString().padLeft(2, '0')}-'
+    '${value.day.toString().padLeft(2, '0')}';
 
 double? _recomputedCalibrationDifferencePercent(
   TripOdometerReconciliation sample,

@@ -448,6 +448,68 @@ void main() {
     expect(signal.canOverwriteConfirmedOdometer, isFalse);
   });
 
+  test('calibration requires distinct reviewed driving days', () {
+    final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+    final reviews = List.generate(
+      7,
+      (index) => TripTrackingReviewRecord(
+        id: 'trip_same_day_$index',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000 + (index * 10),
+        estimatedEndingOdometer: 1010 + (index * 10),
+        confirmedEndingOdometer: 1010 + (index * 10),
+        odometerConfirmedAt: confirmedAt.add(Duration(minutes: index)),
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 14, 8, index),
+        finishedAt: DateTime.utc(2026, 7, 14, 8, index + 1),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 9.4 * 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.eligibleSampleCount, 1);
+    expect(signal.reasonCode, 'needs_more_reviewed_days');
+  });
+
+  test('calibration aggregates multiple reviewed trips on the same day', () {
+    final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+    final reviews = [
+      for (var day = 0; day < 7; day++)
+        for (var trip = 0; trip < 2; trip++)
+          TripTrackingReviewRecord(
+            id: 'trip_daily_${day}_$trip',
+            vehicleId: 'vehicle_1',
+            startingOdometer: 1000 + (day * 100) + (trip * 50),
+            estimatedEndingOdometer: 1050 + (day * 100) + (trip * 50),
+            confirmedEndingOdometer: 1050 + (day * 100) + (trip * 50),
+            odometerConfirmedAt: confirmedAt.add(Duration(days: day)),
+            profile: TripTrackingProfile.roadVehicle,
+            startedAt: DateTime.utc(2026, 7, 1 + day, 8 + trip),
+            finishedAt: DateTime.utc(2026, 7, 1 + day, 9 + trip),
+            engineSnapshot: const TripTrackingEngineSnapshot(
+              totalAcceptedMeters: 47 * 1609.344,
+              walkingReviewSuggested: false,
+            ),
+          ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
+    expect(signal.reasonCode, 'persistent_gps_odometer_drift');
+  });
+
   test(
     'calibration history fails closed when confirmed reviews mix vehicles',
     () {
@@ -513,35 +575,38 @@ void main() {
     expect(signal.reasonCode, 'calibration_stable');
   });
 
-  test('calibration weights longer reviewed trips over short noisy errands', () {
-    final history = [
-      ...List.generate(
-        6,
-        (_) => const TripOdometerReconciliation(
-          status: TripOdometerReconciliationStatus.reviewRecommended,
-          confirmedOdometerDeltaMiles: 10,
-          filteredGpsMiles: 8,
-          absoluteDifferenceMiles: 2,
-          differencePercent: 20,
+  test(
+    'calibration weights longer reviewed trips over short noisy errands',
+    () {
+      final history = [
+        ...List.generate(
+          6,
+          (_) => const TripOdometerReconciliation(
+            status: TripOdometerReconciliationStatus.reviewRecommended,
+            confirmedOdometerDeltaMiles: 10,
+            filteredGpsMiles: 8,
+            absoluteDifferenceMiles: 2,
+            differencePercent: 20,
+          ),
         ),
-      ),
-      const TripOdometerReconciliation(
-        status: TripOdometerReconciliationStatus.aligned,
-        confirmedOdometerDeltaMiles: 500,
-        filteredGpsMiles: 495,
-        absoluteDifferenceMiles: 5,
-        differencePercent: 1,
-      ),
-    ];
+        const TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.aligned,
+          confirmedOdometerDeltaMiles: 500,
+          filteredGpsMiles: 495,
+          absoluteDifferenceMiles: 5,
+          differencePercent: 1,
+        ),
+      ];
 
-    final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+      final signal = TripOdometerCalibrationSignal.evaluate(history: history);
 
-    expect(signal.status, TripOdometerCalibrationStatus.stable);
-    expect(signal.eligibleSampleCount, 7);
-    expect(signal.averageGpsToOdometerRatio, closeTo(543 / 560, .001));
-    expect(signal.averageDifferencePercent, closeTo(17 / 560 * 100, .001));
-    expect(signal.reasonCode, 'calibration_stable');
-  });
+      expect(signal.status, TripOdometerCalibrationStatus.stable);
+      expect(signal.eligibleSampleCount, 7);
+      expect(signal.averageGpsToOdometerRatio, closeTo(543 / 560, .001));
+      expect(signal.averageDifferencePercent, closeTo(17 / 560 * 100, .001));
+      expect(signal.reasonCode, 'calibration_stable');
+    },
+  );
 
   test('calibration ignores non-finite reviewed history values', () {
     final signal = TripOdometerCalibrationSignal.evaluate(
