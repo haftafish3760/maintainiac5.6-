@@ -266,12 +266,17 @@ class TripTrackingPlatformEvent {
     final activity = declaredType == TripTrackingPlatformEventType.activity
         ? TripActivityObservation.tryFromMap(map)
         : null;
+    final status = declaredType == TripTrackingPlatformEventType.status
+        ? _safePlatformToken(map['status'])
+        : null;
     final type =
         declaredType == TripTrackingPlatformEventType.location &&
             location == null
         ? TripTrackingPlatformEventType.error
         : declaredType == TripTrackingPlatformEventType.activity &&
               activity == null
+        ? TripTrackingPlatformEventType.error
+        : declaredType == TripTrackingPlatformEventType.status && status == null
         ? TripTrackingPlatformEventType.error
         : declaredType;
     return TripTrackingPlatformEvent._(
@@ -281,9 +286,7 @@ class TripTrackingPlatformEvent {
       authorization: type == TripTrackingPlatformEventType.authorization
           ? TripTrackingAuthorization.fromMap(map)
           : null,
-      status: type == TripTrackingPlatformEventType.status
-          ? _safePlatformToken(map['status'])
-          : null,
+      status: type == TripTrackingPlatformEventType.status ? status : null,
       errorCode:
           type == TripTrackingPlatformEventType.error &&
               declaredType == TripTrackingPlatformEventType.location
@@ -291,6 +294,9 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'invalidActivityPayload'
+          : type == TripTrackingPlatformEventType.error &&
+                declaredType == TripTrackingPlatformEventType.status
+          ? 'invalidStatusPayload'
           : type == TripTrackingPlatformEventType.error
           ? _safePlatformToken(map['errorCode'])
           : null,
@@ -301,6 +307,9 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.activity
           ? 'Ignored malformed activity payload.'
+          : type == TripTrackingPlatformEventType.error &&
+                declaredType == TripTrackingPlatformEventType.status
+          ? 'Ignored malformed status payload.'
           : type == TripTrackingPlatformEventType.error
           ? _safePlatformMessage(map['errorMessage'])
           : null,

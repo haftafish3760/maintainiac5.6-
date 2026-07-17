@@ -227,6 +227,25 @@ void main() {
     expect(location.errorMessage, isNull);
   });
 
+  test('malformed status payloads fail closed without platform details', () {
+    final missing = TripTrackingPlatformEvent.fromMap({'type': 'status'});
+    final unsafe = TripTrackingPlatformEvent.fromMap({
+      'type': 'status',
+      'status': 'stopped with spaces',
+      'errorMessage': 'lat=35.123 token=pk.secret',
+    });
+
+    expect(missing.type, TripTrackingPlatformEventType.error);
+    expect(missing.status, isNull);
+    expect(missing.errorCode, 'invalidStatusPayload');
+    expect(missing.errorMessage, 'Ignored malformed status payload.');
+    expect(unsafe.type, TripTrackingPlatformEventType.error);
+    expect(unsafe.status, isNull);
+    expect(unsafe.errorCode, 'invalidStatusPayload');
+    expect(unsafe.errorMessage, isNot(contains('35.123')));
+    expect(unsafe.errorMessage, isNot(contains('pk.secret')));
+  });
+
   test('malformed location payloads fail closed without fabricated values', () {
     final event = TripTrackingPlatformEvent.fromMap({
       'type': 'location',
