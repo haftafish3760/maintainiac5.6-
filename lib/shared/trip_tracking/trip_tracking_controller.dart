@@ -1035,8 +1035,13 @@ class TripTrackingController extends ChangeNotifier {
         _platformError = 'The device could not cleanly stop GPS tracking.';
       }
     }
-    await _platformSubscription?.cancel();
-    _platformSubscription = null;
+    try {
+      await _platformSubscription?.cancel();
+    } catch (error) {
+      _platformError ??= 'Could not detach GPS event listener cleanly.';
+    } finally {
+      _platformSubscription = null;
+    }
     // Drain events emitted just before the native stop/cancel boundary so a
     // final credible sample cannot be dropped before review is recorded.
     await _platformEventQueue;

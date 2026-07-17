@@ -964,6 +964,38 @@ void main() {
   );
 
   test(
+    'native subscription cancel failure still clears GPS tracking state',
+    () async {
+      final native = _FakeTripTrackingPlatform(throwOnCancel: true);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_cancel_fault',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+
+      await controller.stopNativeTracking();
+
+      expect(native.stopCalls, 1);
+      expect(controller.nativeTracking, isFalse);
+      expect(
+        controller.platformError,
+        'Could not detach GPS event listener cleanly.',
+      );
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.paused,
+      );
+    },
+  );
+
+  test(
     'backgrounding during foreground-only startup stops GPS after it starts',
     () async {
       final startGate = Completer<void>();
@@ -3596,6 +3628,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     ),
     this.throwOnStart = false,
     this.throwOnStop = false,
+    this.throwOnCancel = false,
     this.throwOnIsTracking = false,
     this.throwOnReadCapabilities = false,
     this.throwOnReadBatterySnapshot = false,
@@ -3608,12 +3641,19 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
       lowPowerModeEnabled: false,
     ),
     this.startDelay,
-  });
+  }) : _events = throwOnCancel
+           ? StreamController<TripTrackingPlatformEvent>(
+               onCancel: () async {
+                 throw StateError('native subscription cancel fault');
+               },
+             )
+           : StreamController<TripTrackingPlatformEvent>.broadcast();
 
-  final _events = StreamController<TripTrackingPlatformEvent>.broadcast();
+  final StreamController<TripTrackingPlatformEvent> _events;
   final TripTrackingAuthorization authorization;
   final bool throwOnStart;
   final bool throwOnStop;
+  final bool throwOnCancel;
   final bool throwOnIsTracking;
   final bool throwOnReadCapabilities;
   final bool throwOnReadBatterySnapshot;
