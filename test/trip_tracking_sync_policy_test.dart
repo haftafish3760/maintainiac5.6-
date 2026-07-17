@@ -112,4 +112,55 @@ void main() {
     expect(decision.dashboardLabel, contains('free sync usage pending'));
     expect(decision.userFacingReason, contains('being verified'));
   });
+
+  test('free sync window counter keeps a rolling 24 hour usage window', () {
+    final started = DateTime.utc(2026, 7, 17, 8);
+    var counter = TripTrackingFreeSyncWindowCounter(
+      windowStartedAtUtc: started,
+      syncsUsed: 0,
+    );
+
+    counter = counter.recordAttempt(started.add(const Duration(hours: 1)));
+    counter = counter.recordAttempt(started.add(const Duration(hours: 23)));
+
+    expect(counter.windowStartedAtUtc, started);
+    expect(counter.syncsUsed, 2);
+    expect(counter.usedInWindowAt(started.add(const Duration(hours: 23))), 2);
+    expect(counter.usedInWindowAt(started.add(const Duration(hours: 24))), 0);
+  });
+
+  test('free sync window counter resets after the 24 hour window', () {
+    final started = DateTime.utc(2026, 7, 17, 8);
+    final counter = TripTrackingFreeSyncWindowCounter(
+      windowStartedAtUtc: started,
+      syncsUsed: 6,
+    ).recordAttempt(started.add(const Duration(hours: 24, minutes: 1)));
+
+    expect(counter.syncsUsed, 1);
+    expect(
+      counter.windowStartedAtUtc,
+      started.add(const Duration(hours: 24, minutes: 1)),
+    );
+  });
+
+  test('free sync window counter preserves invalid counters as unverified', () {
+    final started = DateTime.utc(2026, 7, 17, 8);
+    final counter = TripTrackingFreeSyncWindowCounter(
+      windowStartedAtUtc: started,
+      syncsUsed: -1,
+    );
+
+    expect(counter.usedInWindowAt(started.add(const Duration(hours: 1))), -1);
+    expect(
+      TripTrackingBackupSyncPolicy.evaluate(
+        networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+        wifiAvailable: true,
+        mobileDataAvailable: true,
+        syncsUsedInWindow: counter.usedInWindowAt(
+          started.add(const Duration(hours: 1)),
+        ),
+      ).reasonCode,
+      'free_sync_limit_invalid',
+    );
+  });
 }

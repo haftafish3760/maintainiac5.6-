@@ -45,6 +45,42 @@ class TripTrackingBackupSyncPolicy {
   }
 }
 
+class TripTrackingFreeSyncWindowCounter {
+  const TripTrackingFreeSyncWindowCounter({
+    required this.windowStartedAtUtc,
+    required this.syncsUsed,
+  });
+
+  final DateTime windowStartedAtUtc;
+  final int syncsUsed;
+
+  TripTrackingFreeSyncWindowCounter recordAttempt(DateTime nowUtc) {
+    final normalizedNow = nowUtc.toUtc();
+    if (!_sameWindow(normalizedNow)) {
+      return TripTrackingFreeSyncWindowCounter(
+        windowStartedAtUtc: normalizedNow,
+        syncsUsed: 1,
+      );
+    }
+    return TripTrackingFreeSyncWindowCounter(
+      windowStartedAtUtc: windowStartedAtUtc.toUtc(),
+      syncsUsed: syncsUsed < 0 ? 1 : syncsUsed + 1,
+    );
+  }
+
+  int usedInWindowAt(DateTime nowUtc) {
+    if (!_sameWindow(nowUtc.toUtc())) return 0;
+    if (syncsUsed < 0) return -1;
+    return syncsUsed;
+  }
+
+  bool _sameWindow(DateTime nowUtc) {
+    final start = windowStartedAtUtc.toUtc();
+    return !nowUtc.isBefore(start) &&
+        nowUtc.difference(start) < const Duration(hours: 24);
+  }
+}
+
 class TripTrackingBackupSyncDecision {
   const TripTrackingBackupSyncDecision({
     required this.networkPolicy,
