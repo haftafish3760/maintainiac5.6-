@@ -399,10 +399,7 @@ service cloud.firestore {
         'fleet_owner',
         'employee',
         'customer',
-        'personal',
-        'gigDriver',
-        'soloContractor',
-        'fleetOwner'
+        'personal'
       ].hasAny([value]);
     }
 
@@ -413,10 +410,7 @@ service cloud.firestore {
         'workday',
         'employee_shift',
         'fleet_review',
-        'customer_hidden',
-        'employeeShift',
-        'fleetReview',
-        'customerHidden'
+        'customer_hidden'
       ].hasAny([value]);
     }
 
@@ -428,10 +422,7 @@ service cloud.firestore {
         'wifi_and_mobile',
         'mobile_only',
         'firebase_backup',
-        'company_sync',
-        'localOnly',
-        'firebaseBackup',
-        'companySync'
+        'company_sync'
       ].hasAny([value]);
     }
 

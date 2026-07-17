@@ -84,9 +84,6 @@ class MaintainiacFirestoreUploadPolicy {
     'employee',
     'customer',
     'personal',
-    'gigDriver',
-    'soloContractor',
-    'fleetOwner',
   };
 
   static const _allowedMileageModes = <String>{
@@ -96,9 +93,6 @@ class MaintainiacFirestoreUploadPolicy {
     'employee_shift',
     'fleet_review',
     'customer_hidden',
-    'employeeShift',
-    'fleetReview',
-    'customerHidden',
   };
 
   static const _allowedSyncModes = <String>{
@@ -109,9 +103,6 @@ class MaintainiacFirestoreUploadPolicy {
     'mobile_only',
     'firebase_backup',
     'company_sync',
-    'localOnly',
-    'firebaseBackup',
-    'companySync',
   };
 
   static const _allowedGpsAssistStates = <String>{
