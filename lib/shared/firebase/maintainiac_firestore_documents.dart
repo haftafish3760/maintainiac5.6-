@@ -284,6 +284,20 @@ class MaintainiacFirestoreDocumentBuilder {
         'Trip distance must be finite and non-negative.',
       );
     }
+    if (review.estimatedEndingOdometer < review.startingOdometer) {
+      throw ArgumentError.value(
+        review.estimatedEndingOdometer,
+        'estimatedEndingOdometer',
+        'Estimated ending odometer cannot be below starting odometer.',
+      );
+    }
+    if (review.confirmedEndingOdometer! < review.estimatedEndingOdometer) {
+      throw ArgumentError.value(
+        review.confirmedEndingOdometer,
+        'confirmedEndingOdometer',
+        'Confirmed ending odometer cannot be below estimated ending odometer.',
+      );
+    }
     return MaintainiacFirestoreDocumentDraft(
       path: path,
       data: Map.unmodifiable({

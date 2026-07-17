@@ -209,6 +209,47 @@ void main() {
     );
   });
 
+  test('document builders reject impossible mileage odometer math', () {
+    TripTrackingReviewRecord impossibleReview({
+      required int estimatedEndingOdometer,
+      required int confirmedEndingOdometer,
+    }) => TripTrackingReviewRecord(
+      id: 'trip_bad_math',
+      vehicleId: 'truck-1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: estimatedEndingOdometer,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 19312.128,
+        walkingReviewSuggested: false,
+      ),
+      confirmedEndingOdometer: confirmedEndingOdometer,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 14, 13, 1),
+    );
+
+    for (final badReview in [
+      impossibleReview(
+        estimatedEndingOdometer: 999,
+        confirmedEndingOdometer: 1013,
+      ),
+      impossibleReview(
+        estimatedEndingOdometer: 1012,
+        confirmedEndingOdometer: 1011,
+      ),
+    ]) {
+      expect(
+        () =>
+            MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+              uid: 'firebaseUid-1',
+              review: badReview,
+            ),
+        throwsArgumentError,
+      );
+    }
+  });
+
   test('document builders reject unsafe mileage path identifiers', () {
     expect(
       () => MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
