@@ -40,6 +40,22 @@ void main() {
     expect(restored.cloudOrganizationId, isNull);
     expect(personal.cloudOrganizationId, isNull);
   });
+
+  test('direct organization review writes require a safe organization id', () async {
+    final store = TripTrackingSessionStore.memory();
+    final missingOrg = _review().copyWith(
+      cloudBackupScope: TripTrackingCloudBackupScope.organization,
+    );
+    final validOrg = _review().copyWith(
+      cloudBackupScope: TripTrackingCloudBackupScope.organization,
+      cloudOrganizationId: 'org_1',
+    );
+
+    await expectLater(store.saveReview(missingOrg), throwsArgumentError);
+    await store.saveReview(validOrg);
+
+    expect(store.reviewForTrip('trip_1')?.cloudOrganizationId, 'org_1');
+  });
 }
 
 Map<String, Object?> _reviewMap({

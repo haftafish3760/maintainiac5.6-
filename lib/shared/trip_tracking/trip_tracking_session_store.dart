@@ -701,6 +701,10 @@ class TripTrackingSessionStore {
         if (!review.hasValidTimeline ||
             review.finishedAt.isBefore(review.startedAt) ||
             review.estimatedEndingOdometer < review.startingOdometer ||
+            !_hasValidCloudBackupScopeBinding(
+              review.cloudBackupScope,
+              review.cloudOrganizationId,
+            ) ||
             ((review.confirmedEndingOdometer != null ||
                     review.odometerConfirmedAt != null) &&
                 !review.isOdometerConfirmed)) {
