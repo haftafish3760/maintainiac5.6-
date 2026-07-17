@@ -36,6 +36,19 @@ void main() {
     expect(controller.history.single.reading, isZero);
   });
 
+  test('malformed odometer event timestamps do not become current time', () {
+    final event = OdometerReadingEvent.fromMap({
+      'id': 'bad-time',
+      'reading': 1000,
+      'recordedAt': 'not-a-date',
+    });
+
+    expect(
+      event.recordedAt,
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+  });
+
   test('can validate a reviewed reading before committing it', () {
     final controller = GlobalOdometerController(initialReading: 1000);
 

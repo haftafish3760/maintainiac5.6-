@@ -35,7 +35,8 @@ class OdometerReadingEvent {
       id: '${map['id'] ?? ''}',
       reading: _safeOdometerReading(map['reading']),
       recordedAt:
-          DateTime.tryParse('${map['recordedAt'] ?? ''}') ?? DateTime.now(),
+          DateTime.tryParse('${map['recordedAt'] ?? ''}') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       mileageReview: mileageReviewValue is Map
           ? OdometerMileageReview.fromMap(mileageReviewValue)
           : null,
