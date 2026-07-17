@@ -55,18 +55,38 @@ class TripTrackingProfileStrategy {
   bool get requiresStrongerStopDebounce =>
       walkingConfirmationCount > 3 ||
       walkingStopConfirmationDuration > const Duration(seconds: 30);
+  String get driverKindToken => switch (profile) {
+    TripTrackingProfile.rideshareVehicle => 'passenger_service',
+    TripTrackingProfile.deliveryVehicle => 'delivery_or_route',
+    TripTrackingProfile.contractorVehicle => 'contractor_or_jobsite',
+    TripTrackingProfile.lowSpeedEquipment => 'equipment',
+    TripTrackingProfile.roadVehicle => 'general',
+  };
+
+  String get stopEvidenceTier {
+    if (!usesWalkingStopEvidence) return 'gps_only_review';
+    if (requiresStrongerStopDebounce) return 'strong_debounce_review';
+    return 'walking_assisted_review';
+  }
 
   Map<String, Object?> toDashboardProfileMap() => {
+    'schemaVersion': 1,
     'profile': profile.name,
+    'driverKind': driverKindToken,
     'workStyle': workStyleToken,
     'dashboardMode': dashboardModeToken,
     'stopDetectionMode': stopDetectionModeToken,
+    'stopEvidenceTier': stopEvidenceTier,
     'recommendedActivityRecognition': recommendedActivityRecognition,
     'usesWalkingStopEvidence': usesWalkingStopEvidence,
     'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
     'stopReviewReasonCode': stopReviewReasonCode,
     'dashboardWidgetTokens': List.unmodifiable(dashboardWidgetTokens),
     'quickActionTokens': List.unmodifiable(quickActionTokens),
+    'mapsRequiredForTracking': false,
+    'odometerRemainsCanonical': true,
+    'rawLocationIncluded': false,
+    'rawSensorPayloadIncluded': false,
   };
 
   bool hasWalkingStopEvidence({

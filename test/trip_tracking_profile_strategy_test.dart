@@ -48,6 +48,8 @@ void main() {
       );
       expect(rideshare.stopReviewReasonCode, contains('rideshare'));
       expect(rideshare.dashboardModeToken, 'gig_driver');
+      expect(rideshare.driverKindToken, 'passenger_service');
+      expect(rideshare.stopEvidenceTier, 'strong_debounce_review');
       expect(rideshare.recommendedActivityRecognition, isTrue);
       expect(rideshare.requiresStrongerStopDebounce, isTrue);
       expect(rideshare.stopDetectionSummary, contains('stays in the vehicle'));
@@ -119,6 +121,8 @@ void main() {
       expect(delivery.dashboardModeToken, 'gig_driver');
       expect(contractor.dashboardModeToken, 'contractor');
       expect(equipment.dashboardModeToken, 'default');
+      expect(equipment.driverKindToken, 'equipment');
+      expect(equipment.stopEvidenceTier, 'gps_only_review');
       expect(equipment.recommendedActivityRecognition, isFalse);
       expect(equipment.usesWalkingStopEvidence, isFalse);
     },
@@ -183,10 +187,13 @@ void main() {
     );
 
     expect(strategy.toDashboardProfileMap(), {
+      'schemaVersion': 1,
       'profile': 'contractorVehicle',
+      'driverKind': 'contractor_or_jobsite',
       'workStyle': 'contractor',
       'dashboardMode': 'contractor',
       'stopDetectionMode': 'walking_assisted',
+      'stopEvidenceTier': 'walking_assisted_review',
       'recommendedActivityRecognition': true,
       'usesWalkingStopEvidence': true,
       'requiresStrongerStopDebounce': false,
@@ -207,7 +214,27 @@ void main() {
         'record_payment',
         'review_mileage',
       ],
+      'mapsRequiredForTracking': false,
+      'odometerRemainsCanonical': true,
+      'rawLocationIncluded': false,
+      'rawSensorPayloadIncluded': false,
     });
+  });
+
+  test('profile maps never require maps or expose raw sensor payloads', () {
+    for (final profile in TripTrackingProfile.values) {
+      final profileMap = TripTrackingProfileStrategy.forProfile(
+        profile,
+      ).toDashboardProfileMap();
+
+      expect(profileMap['schemaVersion'], 1);
+      expect(profileMap['mapsRequiredForTracking'], isFalse);
+      expect(profileMap['odometerRemainsCanonical'], isTrue);
+      expect(profileMap['rawLocationIncluded'], isFalse);
+      expect(profileMap['rawSensorPayloadIncluded'], isFalse);
+      expect(profileMap['driverKind'], isA<String>());
+      expect(profileMap['stopEvidenceTier'], isA<String>());
+    }
   });
 
   test('profile strategy clamps malformed walking thresholds safely', () {
