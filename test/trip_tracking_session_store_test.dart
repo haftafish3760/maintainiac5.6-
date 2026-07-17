@@ -526,6 +526,28 @@ void main() {
     expect(map['tripLogReference'], hasLength(160));
   });
 
+  test('malformed GPS advisory timestamps do not become current time', () {
+    final advisory = TripTrackingAdvisoryEvent.fromMap({
+      'id': 'advisory_bad_time',
+      'type': 'probableStop',
+      'sessionId': 'trip_bad_time',
+      'vehicleId': 'vehicle_1',
+      'profile': 'roadVehicle',
+      'detectedAt': 'not-a-date',
+      'evidenceStartedAt': 'also-bad',
+      'evidenceEndedAt': double.nan,
+      'confidence': 'medium',
+      'suggestedAction': 'review',
+    });
+
+    expect(
+      advisory.detectedAt,
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+    expect(advisory.evidenceStartedAt, advisory.detectedAt);
+    expect(advisory.evidenceEndedAt, advisory.detectedAt);
+  });
+
   test('persisted GPS advisories keep only a bounded recent window', () {
     final session = TripTrackingSessionRecord(
       id: 'trip_many_advisories',

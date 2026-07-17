@@ -117,47 +117,55 @@ class TripTrackingAdvisoryEvent {
     'tripLogReference': _optionalSafeText(tripLogReference, maxLength: 160),
   };
 
-  factory TripTrackingAdvisoryEvent.fromMap(Map<dynamic, dynamic> map) =>
-      TripTrackingAdvisoryEvent(
-        id: _safeText(map['id'], maxLength: 160),
-        type: TripTrackingAdvisoryType.values.firstWhere(
-          (value) => value.name == map['type'],
-          orElse: () => TripTrackingAdvisoryType.probableStop,
-        ),
-        sessionId: _safeText(map['sessionId'], maxLength: 160),
-        vehicleId: _safeText(map['vehicleId'], maxLength: 160),
-        profile: TripTrackingProfile.values.firstWhere(
-          (value) => value.name == map['profile'],
-          orElse: () => TripTrackingProfile.roadVehicle,
-        ),
-        detectedAt:
-            DateTime.tryParse('${map['detectedAt'] ?? ''}') ?? DateTime.now(),
-        evidenceStartedAt:
-            DateTime.tryParse('${map['evidenceStartedAt'] ?? ''}') ??
-            DateTime.tryParse('${map['detectedAt'] ?? ''}') ??
-            DateTime.now(),
-        evidenceEndedAt:
-            DateTime.tryParse('${map['evidenceEndedAt'] ?? ''}') ??
-            DateTime.tryParse('${map['detectedAt'] ?? ''}') ??
-            DateTime.now(),
-        confidence: TripTrackingConfidence.values.firstWhere(
-          (value) => value.name == map['confidence'],
-          orElse: () => TripTrackingConfidence.unknown,
-        ),
-        suggestedAction: _safeText(
-          map['suggestedAction'],
-          maxLength: 120,
-          fallback: 'review',
-        ),
-        disposition: TripTrackingAdvisoryDisposition.values.firstWhere(
-          (value) => value.name == map['disposition'],
-          orElse: () => TripTrackingAdvisoryDisposition.pending,
-        ),
-        tripLogReference: _optionalSafeText(
-          map['tripLogReference'],
-          maxLength: 160,
-        ),
-      );
+  factory TripTrackingAdvisoryEvent.fromMap(Map<dynamic, dynamic> map) {
+    final detectedAt =
+        _safeAdvisoryTimestamp(map['detectedAt']) ??
+        _safeAdvisoryFallbackTimestamp();
+    return TripTrackingAdvisoryEvent(
+      id: _safeText(map['id'], maxLength: 160),
+      type: TripTrackingAdvisoryType.values.firstWhere(
+        (value) => value.name == map['type'],
+        orElse: () => TripTrackingAdvisoryType.probableStop,
+      ),
+      sessionId: _safeText(map['sessionId'], maxLength: 160),
+      vehicleId: _safeText(map['vehicleId'], maxLength: 160),
+      profile: TripTrackingProfile.values.firstWhere(
+        (value) => value.name == map['profile'],
+        orElse: () => TripTrackingProfile.roadVehicle,
+      ),
+      detectedAt: detectedAt,
+      evidenceStartedAt:
+          _safeAdvisoryTimestamp(map['evidenceStartedAt']) ?? detectedAt,
+      evidenceEndedAt:
+          _safeAdvisoryTimestamp(map['evidenceEndedAt']) ?? detectedAt,
+      confidence: TripTrackingConfidence.values.firstWhere(
+        (value) => value.name == map['confidence'],
+        orElse: () => TripTrackingConfidence.unknown,
+      ),
+      suggestedAction: _safeText(
+        map['suggestedAction'],
+        maxLength: 120,
+        fallback: 'review',
+      ),
+      disposition: TripTrackingAdvisoryDisposition.values.firstWhere(
+        (value) => value.name == map['disposition'],
+        orElse: () => TripTrackingAdvisoryDisposition.pending,
+      ),
+      tripLogReference: _optionalSafeText(
+        map['tripLogReference'],
+        maxLength: 160,
+      ),
+    );
+  }
+}
+
+DateTime _safeAdvisoryFallbackTimestamp() =>
+    DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
+DateTime? _safeAdvisoryTimestamp(Object? value) {
+  if (value == null) return null;
+  if (value is num) return _tripTimestampFrom(value);
+  return DateTime.tryParse('$value');
 }
 
 String _safeText(
