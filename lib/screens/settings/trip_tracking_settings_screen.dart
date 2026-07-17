@@ -500,5 +500,8 @@ String _samplingPresetLabel(TripTrackingSamplingPreset preset) =>
 
 String _profileLabel(TripTrackingProfile profile) => switch (profile) {
   TripTrackingProfile.roadVehicle => 'Road vehicle',
+  TripTrackingProfile.rideshareVehicle => 'Rideshare / passenger driving',
+  TripTrackingProfile.deliveryVehicle => 'Delivery driver',
+  TripTrackingProfile.contractorVehicle => 'Contractor / service vehicle',
   TripTrackingProfile.lowSpeedEquipment => 'Low-speed equipment',
 };

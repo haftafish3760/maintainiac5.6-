@@ -65,6 +65,21 @@ void main() {
     },
   );
 
+  test(
+    'driver profile choices persist for onboarding and dashboard defaults',
+    () {
+      for (final profile in TripTrackingProfile.values) {
+        final settings = TripTrackingSettings(defaultProfile: profile);
+
+        expect(
+          TripTrackingSettings.fromMap(settings.toMap()).defaultProfile,
+          profile,
+          reason: profile.name,
+        );
+      }
+    },
+  );
+
   test('organization mileage sharing is a separately persisted opt-in', () {
     const settings = TripTrackingSettings();
     final enabled = settings.copyWith(organizationMileageSharingEnabled: true);

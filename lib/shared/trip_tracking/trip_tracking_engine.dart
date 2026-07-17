@@ -159,7 +159,7 @@ class TripTrackingEngine {
     // A strong fitness-motion walking signal is never road-vehicle mileage.
     // We retain it as advisory evidence, but exclude it immediately instead
     // of allowing the first few on-foot points to inflate the live estimate.
-    if (profile == TripTrackingProfile.roadVehicle &&
+    if (_usesRoadVehicleStopRules(profile) &&
         _isStrongWalking(verifiedActivity)) {
       _lastAccepted = sample;
       return _finish(
@@ -210,8 +210,7 @@ class TripTrackingEngine {
       _walkingEvidence.clear();
       return;
     }
-    if (profile != TripTrackingProfile.roadVehicle ||
-        !_isStrongWalking(activity)) {
+    if (!_usesRoadVehicleStopRules(profile) || !_isStrongWalking(activity)) {
       return;
     }
     if (!_walkingEvidence.any(
@@ -257,7 +256,7 @@ class TripTrackingEngine {
     // Walking is a corroborating clue only. A traffic light has no walking
     // evidence, and walking before any observed vehicle movement cannot become
     // a vehicle-stop suggestion.
-    if (profile != TripTrackingProfile.roadVehicle ||
+    if (!_usesRoadVehicleStopRules(profile) ||
         !_vehicleMovementObserved ||
         !walking) {
       return;
@@ -308,3 +307,12 @@ double _distanceMeters(TripLocationSample left, TripLocationSample right) {
 }
 
 double _radians(double degrees) => degrees * math.pi / 180;
+
+bool _usesRoadVehicleStopRules(TripTrackingProfile profile) =>
+    switch (profile) {
+      TripTrackingProfile.roadVehicle ||
+      TripTrackingProfile.rideshareVehicle ||
+      TripTrackingProfile.deliveryVehicle ||
+      TripTrackingProfile.contractorVehicle => true,
+      TripTrackingProfile.lowSpeedEquipment => false,
+    };

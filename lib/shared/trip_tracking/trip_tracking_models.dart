@@ -1,4 +1,10 @@
-enum TripTrackingProfile { roadVehicle, lowSpeedEquipment }
+enum TripTrackingProfile {
+  roadVehicle,
+  rideshareVehicle,
+  deliveryVehicle,
+  contractorVehicle,
+  lowSpeedEquipment,
+}
 
 enum TripSamplingMode { economy, balanced, precision }
 

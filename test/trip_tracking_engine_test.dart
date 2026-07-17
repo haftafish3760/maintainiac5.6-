@@ -480,6 +480,30 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
   });
 
+  test('road-style work profiles use conservative walking stop rules', () {
+    for (final profile in const [
+      TripTrackingProfile.roadVehicle,
+      TripTrackingProfile.rideshareVehicle,
+      TripTrackingProfile.deliveryVehicle,
+      TripTrackingProfile.contractorVehicle,
+    ]) {
+      final engine = TripTrackingEngine(profile: profile);
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      engine.ingest(sample(-80, 0), activity: automotive);
+      engine.ingest(sample(-79.9997, 15), activity: automotive);
+      engine.ingest(sample(-79.9997, 30), activity: walking(30));
+      engine.ingest(sample(-79.9997, 45), activity: walking(45));
+      engine.ingest(sample(-79.9997, 60), activity: walking(60));
+
+      expect(engine.motionState, TripMotionState.stopped, reason: profile.name);
+      expect(engine.needsWalkingReview, isTrue, reason: profile.name);
+    }
+  });
+
   test('one walking classification needs sustained stationary evidence', () {
     final engine = TripTrackingEngine();
     final automotive = TripActivityObservation(
