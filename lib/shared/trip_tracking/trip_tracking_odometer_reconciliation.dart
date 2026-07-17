@@ -158,7 +158,12 @@ class TripOdometerCalibrationSignal {
     if (!averageGpsToOdometerRatio.isFinite || averageGpsToOdometerRatio <= 0) {
       return 1;
     }
-    return 1 / averageGpsToOdometerRatio;
+    return (1 / averageGpsToOdometerRatio)
+        .clamp(
+          _minimumGpsAssistanceCalibrationMultiplier,
+          _maximumGpsAssistanceCalibrationMultiplier,
+        )
+        .toDouble();
   }
 
   static TripOdometerCalibrationSignal evaluate({
@@ -241,3 +246,6 @@ class TripOdometerCalibrationSignal {
     );
   }
 }
+
+const _minimumGpsAssistanceCalibrationMultiplier = 0.8;
+const _maximumGpsAssistanceCalibrationMultiplier = 1.25;

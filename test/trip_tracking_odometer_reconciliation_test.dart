@@ -385,4 +385,29 @@ void main() {
     expect(signal.gpsAssistanceCalibrationMultiplier, 1);
     expect(signal.canOverwriteConfirmedOdometer, isFalse);
   });
+
+  test(
+    'calibration multiplier is bounded against extreme advisory signals',
+    () {
+      const lowGpsSignal = TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.reviewRecommended,
+        eligibleSampleCount: 7,
+        averageGpsToOdometerRatio: .2,
+        averageDifferencePercent: 80,
+        reasonCode: 'extreme_low_gps_signal',
+      );
+      const highGpsSignal = TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.reviewRecommended,
+        eligibleSampleCount: 7,
+        averageGpsToOdometerRatio: 2,
+        averageDifferencePercent: 100,
+        reasonCode: 'extreme_high_gps_signal',
+      );
+
+      expect(lowGpsSignal.gpsAssistanceCalibrationMultiplier, 1.25);
+      expect(highGpsSignal.gpsAssistanceCalibrationMultiplier, .8);
+      expect(lowGpsSignal.canOverwriteConfirmedOdometer, isFalse);
+      expect(highGpsSignal.canOverwriteConfirmedOdometer, isFalse);
+    },
+  );
 }
