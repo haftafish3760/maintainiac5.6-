@@ -542,6 +542,13 @@ void main() {
       {...doc.data, 'finishedAt': 'not-a-date'},
       {...doc.data, 'acceptedSampleCount': 999},
       {...doc.data, 'vehicleId': ''},
+      {...doc.data, 'createdAt': 'not-a-date'},
+      {...doc.data, 'updatedAt': 'not-a-date'},
+      {
+        ...doc.data,
+        'createdAt': DateTime.utc(2026, 7, 14, 14).toIso8601String(),
+        'updatedAt': DateTime.utc(2026, 7, 14, 13).toIso8601String(),
+      },
     ]) {
       expect(
         () => MaintainiacFirestoreUploadPolicy.validateDraft(

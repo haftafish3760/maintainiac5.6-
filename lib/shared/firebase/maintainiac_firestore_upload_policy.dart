@@ -391,8 +391,8 @@ class MaintainiacFirestoreUploadPolicy {
         _isAllowedString(draft.data['profile'], _allowedTripProfiles) &&
         _isNonEmptyString(draft.data['startedAt']) &&
         _isNonEmptyString(draft.data['finishedAt']) &&
-        _isNonEmptyString(draft.data['createdAt']) &&
-        _isNonEmptyString(draft.data['updatedAt']) &&
+        _isIsoTimestamp(draft.data['createdAt']) &&
+        _isIsoTimestamp(draft.data['updatedAt']) &&
         _isNonNegativeInt(startingOdometer) &&
         _isNonNegativeInt(estimatedEndingOdometer) &&
         (estimatedEndingOdometer as int) >= (startingOdometer as int) &&
@@ -442,11 +442,16 @@ class MaintainiacFirestoreUploadPolicy {
     final confirmedAt = DateTime.tryParse(
       '${draft.data['odometerConfirmedAt'] ?? ''}',
     );
+    final createdAt = DateTime.tryParse('${draft.data['createdAt'] ?? ''}');
+    final updatedAt = DateTime.tryParse('${draft.data['updatedAt'] ?? ''}');
     return startedAt != null &&
         finishedAt != null &&
         confirmedAt != null &&
+        createdAt != null &&
+        updatedAt != null &&
         !finishedAt.isBefore(startedAt) &&
-        !confirmedAt.isBefore(finishedAt);
+        !confirmedAt.isBefore(finishedAt) &&
+        !updatedAt.isBefore(createdAt);
   }
 
   static bool _hasCoherentTripMileageDistance({
