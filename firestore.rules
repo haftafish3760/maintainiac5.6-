@@ -355,6 +355,9 @@ service cloud.firestore {
         'preciseLocationIncluded',
         'externalRoutesCanonical',
         'odometerRemainsCanonical',
+        'externalServiceWritesAllowed',
+        'mapboxCanModifyTripLog',
+        'mapboxCanModifyOdometer',
         'locationDataIncluded',
         'mapboxRouteGeometryIncluded',
         'rawModuleDataIncluded',
@@ -403,6 +406,9 @@ service cloud.firestore {
         'preciseLocationIncluded',
         'externalRoutesCanonical',
         'odometerRemainsCanonical',
+        'externalServiceWritesAllowed',
+        'mapboxCanModifyTripLog',
+        'mapboxCanModifyOdometer',
         'locationDataIncluded',
         'mapboxRouteGeometryIncluded',
         'rawModuleDataIncluded',
@@ -853,6 +859,9 @@ service cloud.firestore {
         request.resource.data.preciseLocationIncluded == false &&
         request.resource.data.externalRoutesCanonical == false &&
         request.resource.data.odometerRemainsCanonical == true &&
+        request.resource.data.externalServiceWritesAllowed == false &&
+        request.resource.data.mapboxCanModifyTripLog == false &&
+        request.resource.data.mapboxCanModifyOdometer == false &&
         request.resource.data.mapboxRouteGeometryIncluded == false;
     }
 

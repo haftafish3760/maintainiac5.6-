@@ -73,6 +73,9 @@ void main() {
     expect(doc.data['preciseLocationIncluded'], isFalse);
     expect(doc.data['externalRoutesCanonical'], isFalse);
     expect(doc.data['odometerRemainsCanonical'], isTrue);
+    expect(doc.data['externalServiceWritesAllowed'], isFalse);
+    expect(doc.data['mapboxCanModifyTripLog'], isFalse);
+    expect(doc.data['mapboxCanModifyOdometer'], isFalse);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
@@ -123,6 +126,9 @@ void main() {
     expect(doc.data['preciseLocationIncluded'], isFalse);
     expect(doc.data['externalRoutesCanonical'], isFalse);
     expect(doc.data['odometerRemainsCanonical'], isTrue);
+    expect(doc.data['externalServiceWritesAllowed'], isFalse);
+    expect(doc.data['mapboxCanModifyTripLog'], isFalse);
+    expect(doc.data['mapboxCanModifyOdometer'], isFalse);
     expect(doc.data['odometerUsageState'], 'disabled');
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));

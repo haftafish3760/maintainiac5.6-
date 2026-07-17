@@ -470,6 +470,9 @@ class MaintainiacFirestoreUploadPolicy {
       'preciseLocationIncluded',
       'externalRoutesCanonical',
       'odometerRemainsCanonical',
+      'externalServiceWritesAllowed',
+      'mapboxCanModifyTripLog',
+      'mapboxCanModifyOdometer',
       'locationDataIncluded',
       'mapboxRouteGeometryIncluded',
       'rawModuleDataIncluded',
@@ -602,7 +605,10 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['employeeTrackingRequiresMutualConsent'] == true &&
         draft.data['preciseLocationIncluded'] == false &&
         draft.data['externalRoutesCanonical'] == false &&
-        draft.data['odometerRemainsCanonical'] == true;
+        draft.data['odometerRemainsCanonical'] == true &&
+        draft.data['externalServiceWritesAllowed'] == false &&
+        draft.data['mapboxCanModifyTripLog'] == false &&
+        draft.data['mapboxCanModifyOdometer'] == false;
     if (!validShape) {
       throw ArgumentError.value(
         draft.path,

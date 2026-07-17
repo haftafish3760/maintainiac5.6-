@@ -74,6 +74,9 @@ void main() {
       'preciseLocationIncluded',
       'externalRoutesCanonical',
       'odometerRemainsCanonical',
+      'externalServiceWritesAllowed',
+      'mapboxCanModifyTripLog',
+      'mapboxCanModifyOdometer',
     ]) {
       expect(
         rules,
@@ -94,6 +97,9 @@ void main() {
       'request.resource.data.preciseLocationIncluded == false',
       'request.resource.data.externalRoutesCanonical == false',
       'request.resource.data.odometerRemainsCanonical == true',
+      'request.resource.data.externalServiceWritesAllowed == false',
+      'request.resource.data.mapboxCanModifyTripLog == false',
+      'request.resource.data.mapboxCanModifyOdometer == false',
     ]) {
       expect(
         rules,

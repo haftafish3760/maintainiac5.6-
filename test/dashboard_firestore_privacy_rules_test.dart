@@ -135,6 +135,18 @@ void main() {
       );
       expect(
         rules,
+        contains('request.resource.data.externalServiceWritesAllowed == false'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.mapboxCanModifyTripLog == false'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.mapboxCanModifyOdometer == false'),
+      );
+      expect(
+        rules,
         contains('request.resource.data.odometerCalibrationMultiplier <= 1.25'),
       );
       expect(
