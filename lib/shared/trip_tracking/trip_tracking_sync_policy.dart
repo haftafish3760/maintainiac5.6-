@@ -74,6 +74,37 @@ class TripTrackingFreeSyncWindowCounter {
     return syncsUsed;
   }
 
+  DateTime expiresAtUtc() =>
+      windowStartedAtUtc.toUtc().add(const Duration(hours: 24));
+
+  int? secondsUntilResetAt(DateTime nowUtc) {
+    if (!_sameWindow(nowUtc.toUtc())) return 0;
+    final remaining = expiresAtUtc().difference(nowUtc.toUtc()).inSeconds;
+    if (remaining < 0) return 0;
+    return remaining > 86400 ? 86400 : remaining;
+  }
+
+  Map<String, Object?> toSafeSummary(DateTime nowUtc) {
+    final used = usedInWindowAt(nowUtc);
+    return {
+      'schemaVersion': 1,
+      'windowState': used < 0
+          ? 'invalid'
+          : used == 0
+          ? 'empty_or_reset'
+          : 'active',
+      'syncsUsedInWindow': used,
+      'freeSyncsRemaining': used < 0
+          ? null
+          : HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: used),
+      'secondsUntilReset': secondsUntilResetAt(nowUtc),
+      'windowHours': 24,
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    };
+  }
+
   bool _sameWindow(DateTime nowUtc) {
     final start = windowStartedAtUtc.toUtc();
     return !nowUtc.isBefore(start) &&
@@ -116,6 +147,21 @@ class TripTrackingBackupSyncDecision {
         : '$remaining free sync${remaining == 1 ? '' : 's'} left';
     return 'Sync: $networkLabel; $freeLabel';
   }
+
+  Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
+    'networkPolicy': networkPolicy.name,
+    'networkKnown': networkKnown,
+    'networkAllowed': networkAllowed,
+    'freeSyncAllowed': freeSyncAllowed,
+    'freeSyncsRemaining': freeSyncsRemaining,
+    'mayAttemptSync': mayAttemptSync,
+    'reasonCode': reasonCode,
+    'label': dashboardLabel,
+    'tokensIncluded': false,
+    'locationDataIncluded': false,
+    'rawModuleDataIncluded': false,
+  };
 
   String get userFacingReason {
     return switch (reasonCode) {

@@ -40,6 +40,20 @@ void main() {
     expect(decision.reasonCode, 'free_sync_limit_reached');
     expect(decision.userFacingReason, contains('24-hour window'));
     expect(decision.dashboardLabel, contains('0 free syncs left'));
+    expect(decision.toSafeSummary(), {
+      'schemaVersion': 1,
+      'networkPolicy': 'wifiAndMobileData',
+      'networkKnown': true,
+      'networkAllowed': true,
+      'freeSyncAllowed': false,
+      'freeSyncsRemaining': 0,
+      'mayAttemptSync': false,
+      'reasonCode': 'free_sync_limit_reached',
+      'label': 'Sync: Wi-Fi or mobile data; 0 free syncs left',
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    });
   });
 
   test('malformed free sync counter fails closed', () {
@@ -126,6 +140,22 @@ void main() {
     expect(counter.windowStartedAtUtc, started);
     expect(counter.syncsUsed, 2);
     expect(counter.usedInWindowAt(started.add(const Duration(hours: 23))), 2);
+    expect(counter.expiresAtUtc(), started.add(const Duration(hours: 24)));
+    expect(
+      counter.secondsUntilResetAt(started.add(const Duration(hours: 23))),
+      3600,
+    );
+    expect(counter.toSafeSummary(started.add(const Duration(hours: 23))), {
+      'schemaVersion': 1,
+      'windowState': 'active',
+      'syncsUsedInWindow': 2,
+      'freeSyncsRemaining': 4,
+      'secondsUntilReset': 3600,
+      'windowHours': 24,
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    });
     expect(counter.usedInWindowAt(started.add(const Duration(hours: 24))), 0);
   });
 
@@ -141,6 +171,17 @@ void main() {
       counter.windowStartedAtUtc,
       started.add(const Duration(hours: 24, minutes: 1)),
     );
+    expect(counter.toSafeSummary(started.add(const Duration(hours: 25))), {
+      'schemaVersion': 1,
+      'windowState': 'active',
+      'syncsUsedInWindow': 1,
+      'freeSyncsRemaining': 5,
+      'secondsUntilReset': 82860,
+      'windowHours': 24,
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    });
   });
 
   test('free sync window counter preserves invalid counters as unverified', () {
@@ -151,6 +192,17 @@ void main() {
     );
 
     expect(counter.usedInWindowAt(started.add(const Duration(hours: 1))), -1);
+    expect(counter.toSafeSummary(started.add(const Duration(hours: 1))), {
+      'schemaVersion': 1,
+      'windowState': 'invalid',
+      'syncsUsedInWindow': -1,
+      'freeSyncsRemaining': null,
+      'secondsUntilReset': 82800,
+      'windowHours': 24,
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    });
     expect(
       TripTrackingBackupSyncPolicy.evaluate(
         networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
