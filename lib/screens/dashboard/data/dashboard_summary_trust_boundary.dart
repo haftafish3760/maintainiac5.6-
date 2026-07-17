@@ -4,6 +4,7 @@ class DashboardSummaryTrustBoundary {
   const DashboardSummaryTrustBoundary._();
 
   static final DateTime minimumTrustedTimestamp = DateTime.utc(2020);
+  static const maximumFutureTimestampSkew = Duration(minutes: 10);
 
   static DashboardSummaryIdentityDecision validateIdentity({
     required String? uid,
@@ -58,11 +59,20 @@ class DashboardSummaryTrustBoundary {
     );
   }
 
-  static DashboardSummaryTimestampDecision validateTimestamp(DateTime value) {
+  static DashboardSummaryTimestampDecision validateTimestamp(
+    DateTime value, {
+    DateTime? trustedNowUtc,
+  }) {
     final safe = value.toUtc();
     if (safe.isBefore(minimumTrustedTimestamp)) {
       return DashboardSummaryTimestampDecision.reject(
         'dashboard_summary_clock_untrusted',
+      );
+    }
+    final now = (trustedNowUtc ?? DateTime.now()).toUtc();
+    if (safe.isAfter(now.add(maximumFutureTimestampSkew))) {
+      return DashboardSummaryTimestampDecision.reject(
+        'dashboard_summary_clock_future',
       );
     }
     return DashboardSummaryTimestampDecision.accept(safe);

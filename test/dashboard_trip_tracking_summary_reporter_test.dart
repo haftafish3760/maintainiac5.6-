@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_firestore_mirror.dart';
+import 'package:maintaniac/screens/dashboard/data/dashboard_summary_trust_boundary.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_trip_tracking_summary_reporter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
@@ -195,6 +196,48 @@ void main() {
     expect(report.queued, isFalse);
     expect(report.reasonCode, 'dashboard_summary_clock_untrusted');
     expect(queue.pendingRecords, isEmpty);
+  });
+
+  test('rejects far-future dashboard timestamps without queueing', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final reporter = DashboardTripTrackingSummaryReporter(
+      mirror: DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      ),
+      settingsController: TripTrackingSettingsController.memory(),
+      uid: () => 'firebaseUid-1',
+      dashboardId: () => 'today',
+      clock: () => DateTime.now().toUtc().add(const Duration(days: 1)),
+    );
+
+    final report = await reporter.queueNow();
+
+    expect(report.queued, isFalse);
+    expect(report.reasonCode, 'dashboard_summary_clock_future');
+    expect(queue.pendingRecords, isEmpty);
+  });
+
+  test('trust boundary allows a small future clock skew only', () {
+    final now = DateTime.utc(2026, 7, 17, 9);
+
+    final nearFuture = DashboardSummaryTrustBoundary.validateTimestamp(
+      now.add(const Duration(minutes: 9)),
+      trustedNowUtc: now,
+    );
+    final farFuture = DashboardSummaryTrustBoundary.validateTimestamp(
+      now.add(const Duration(minutes: 11)),
+      trustedNowUtc: now,
+    );
+
+    expect(nearFuture.accepted, isTrue);
+    expect(nearFuture.reasonCode, 'dashboard_summary_clock_valid');
+    expect(farFuture.accepted, isFalse);
+    expect(farFuture.reasonCode, 'dashboard_summary_clock_future');
   });
 
   test('storage and network reader failures fail gracefully', () async {
