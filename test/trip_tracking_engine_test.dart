@@ -202,7 +202,7 @@ void main() {
   });
 
   test('malformed low battery GPS cutoffs fall back to twenty percent', () {
-    for (final cutoff in const [-1, 101]) {
+    for (final cutoff in const [-1, 0, 101]) {
       final decision = TripTrackingPolicy(lowBatteryGpsCutoffPercent: cutoff)
           .gpsBatteryDecision(
             batteryPercent: 19,

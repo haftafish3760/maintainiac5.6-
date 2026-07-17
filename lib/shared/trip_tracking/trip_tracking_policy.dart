@@ -80,7 +80,7 @@ class TripTrackingPolicy {
     }
     final percent = batteryPercent;
     final cutoff =
-        lowBatteryGpsCutoffPercent >= 0 && lowBatteryGpsCutoffPercent <= 100
+        lowBatteryGpsCutoffPercent >= 1 && lowBatteryGpsCutoffPercent <= 100
         ? lowBatteryGpsCutoffPercent
         : 20;
     if (percent != null && percent >= 0 && percent < cutoff) {
