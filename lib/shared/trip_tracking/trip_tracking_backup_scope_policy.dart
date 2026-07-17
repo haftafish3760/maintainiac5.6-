@@ -13,9 +13,8 @@ class TripTrackingBackupScopeDecision {
     required this.failure,
   });
 
-  const TripTrackingBackupScopeDecision.allowed(
-    TripTrackingReviewRecord review,
-  ) : this._(boundReview: review, failure: null);
+  const TripTrackingBackupScopeDecision.allowed(TripTrackingReviewRecord review)
+    : this._(boundReview: review, failure: null);
 
   const TripTrackingBackupScopeDecision.rejected(
     TripTrackingBackupScopeFailure failure,
@@ -25,6 +24,35 @@ class TripTrackingBackupScopeDecision {
   final TripTrackingBackupScopeFailure? failure;
 
   bool get canQueue => boundReview != null && failure == null;
+
+  Map<String, Object?> toSafeSummary() {
+    final review = boundReview;
+    final scope = review?.cloudBackupScope;
+    final hasOrganizationBinding =
+        scope == TripTrackingCloudBackupScope.organization &&
+        TripTrackingBackupScopePolicy.hasUsableOrganizationId(
+          review?.cloudOrganizationId,
+        );
+    return {
+      'schemaVersion': 1,
+      'canQueue': canQueue,
+      'scope': scope?.name ?? 'unbound',
+      'failure': failure?.name,
+      'requiresReview': !canQueue,
+      'safeErrorMessage': safeErrorMessage,
+      'accountBound': TripTrackingBackupScopePolicy.isSafeCloudToken(
+        review?.cloudAccountUid,
+      ),
+      'organizationBound': hasOrganizationBinding,
+      'authorizationRequired': true,
+      'authenticationImpliesAuthorization': false,
+      'employeeTrackingRequiresMutualConsent': true,
+      'preciseLocationIncluded': false,
+      'accountIdIncluded': false,
+      'organizationIdIncluded': false,
+      'rawReviewIncluded': false,
+    };
+  }
 
   String get safeErrorMessage {
     return switch (failure) {
@@ -58,8 +86,7 @@ class TripTrackingBackupScopePolicy {
         RegExp(r'^[A-Za-z0-9:_-]+$').hasMatch(clean);
   }
 
-  static bool hasUsableOrganizationId(String? orgId) =>
-      isSafeCloudToken(orgId);
+  static bool hasUsableOrganizationId(String? orgId) => isSafeCloudToken(orgId);
 
   static bool hasValidScopeBinding({
     required TripTrackingCloudBackupScope? scope,
@@ -100,7 +127,8 @@ class TripTrackingBackupScopePolicy {
       }
     }
 
-    final usesOrganizationBackup = !personalBackup && organizationSharingEnabled;
+    final usesOrganizationBackup =
+        !personalBackup && organizationSharingEnabled;
     final cleanOrgId = orgId?.trim();
     if (usesOrganizationBackup && !hasUsableOrganizationId(cleanOrgId)) {
       return const TripTrackingBackupScopeDecision.rejected(
