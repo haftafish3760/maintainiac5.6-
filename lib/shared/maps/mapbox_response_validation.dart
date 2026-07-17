@@ -158,7 +158,7 @@ class MapboxExternalRouteValidator {
       return null;
     }
     final coordinates = _coordinatesFromGeometry(route['geometry']);
-    if (coordinates == null || coordinates.isEmpty) return null;
+    if (coordinates == null || coordinates.length < 2) return null;
     return MapboxValidatedRouteCandidate(
       distanceMeters: distance,
       durationSeconds: duration,
@@ -180,7 +180,7 @@ class MapboxExternalRouteValidator {
     }
     final coordinates = <MapboxValidatedCoordinate>[];
     for (final raw in rawCoordinates) {
-      if (raw is! List || raw.length < 2) return null;
+      if (raw is! List || raw.length != 2) return null;
       final longitude = _finiteNumber(raw[0]);
       final latitude = _finiteNumber(raw[1]);
       if (longitude == null || latitude == null) return null;

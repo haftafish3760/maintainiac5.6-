@@ -128,6 +128,49 @@ void main() {
       );
     });
 
+    test('rejects partial or overwide route geometry coordinates', () {
+      final onePoint =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'routes': [
+                {
+                  'distance': 10,
+                  'duration': 60,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+      final overwideCoordinate =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'routes': [
+                {
+                  'distance': 10,
+                  'duration': 60,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35, 900],
+                      [-80.01, 35.01, 901],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+
+      expect(onePoint.isAccepted, isFalse);
+      expect(overwideCoordinate.isAccepted, isFalse);
+    });
+
     test('caps accepted alternatives and rejects oversized geometries', () {
       final manyRoutes =
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(
