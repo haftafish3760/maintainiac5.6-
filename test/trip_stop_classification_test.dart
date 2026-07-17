@@ -167,9 +167,18 @@ void main() {
       acceptedDistanceCount: 2,
     ).toSafeSummary();
 
+    expect(summary['schemaVersion'], 1);
     expect(summary['signal'], 'reviewOnlyStop');
+    expect(summary['reviewOnly'], isTrue);
+    expect(summary['advisoryOnly'], isTrue);
+    expect(summary['officialStopSource'], 'user_review');
+    expect(summary['officialMileageSource'], 'odometer');
+    expect(summary['canCreateOfficialStop'], isFalse);
+    expect(summary['canReplaceOdometer'], isFalse);
     expect(summary['rawSamplesIncluded'], isFalse);
+    expect(summary['rawMotionPayloadIncluded'], isFalse);
     expect(summary['coordinatesIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
+    expect(summary['mapboxGeometryIncluded'], isFalse);
   });
 }

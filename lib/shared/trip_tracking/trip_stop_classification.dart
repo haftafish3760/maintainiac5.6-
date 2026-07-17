@@ -32,15 +32,24 @@ class TripStopClassification {
       signal == TripStopSignal.reviewOnlyStop;
 
   Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
     'signal': signal.name,
     'reasonCode': reasonCode,
     'requiresUserReview': requiresUserReview,
     'canSuggestStop': canSuggestStop,
+    'reviewOnly': true,
+    'advisoryOnly': true,
+    'officialStopSource': 'user_review',
+    'officialMileageSource': 'odometer',
+    'canCreateOfficialStop': false,
+    'canReplaceOdometer': false,
     'actionToken': actionToken,
     'dashboardMessage': dashboardMessage,
     'rawSamplesIncluded': false,
+    'rawMotionPayloadIncluded': false,
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
+    'mapboxGeometryIncluded': false,
   };
 }
 
