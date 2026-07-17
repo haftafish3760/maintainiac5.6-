@@ -7,6 +7,7 @@ class TripGpsBatteryDecision {
     required this.status,
     required this.reasonCode,
     required this.batteryBucket,
+    required this.safetyCutoffPercent,
     required this.promptTitle,
     required this.promptBody,
   });
@@ -14,6 +15,7 @@ class TripGpsBatteryDecision {
   final TripGpsBatteryDecisionStatus status;
   final String reasonCode;
   final String batteryBucket;
+  final int safetyCutoffPercent;
   final String promptTitle;
   final String promptBody;
 
@@ -26,11 +28,18 @@ class TripGpsBatteryDecision {
     'status': status.name,
     'reasonCode': reasonCode,
     'batteryBucket': batteryBucket,
+    'safetyCutoffPercent': safetyCutoffPercent,
     'promptTitle': promptTitle,
     'promptBody': promptBody,
     'allowsGps': allowsGps,
     'requiresUserChoice': requiresUserChoice,
+    'userCanOverride': requiresUserChoice,
+    'continueGpsActionLabel': 'Continue with GPS',
+    'cancelGpsActionLabel': 'Cancel GPS',
+    'doNotShowAgainAvailable': requiresUserChoice,
+    'settingsReversalAvailable': true,
     'preciseBatteryIncluded': false,
+    'rawBatteryPayloadIncluded': false,
   };
 }
 
@@ -91,6 +100,7 @@ class TripTrackingPolicy {
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_protection_disabled',
         batteryPercent: batteryPercent,
+        cutoffPercent: lowBatteryGpsCutoffPercent,
       );
     }
     if (isCharging) {
@@ -98,6 +108,7 @@ class TripTrackingPolicy {
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'device_charging',
         batteryPercent: batteryPercent,
+        cutoffPercent: lowBatteryGpsCutoffPercent,
       );
     }
     final percent = batteryPercent;
@@ -111,6 +122,7 @@ class TripTrackingPolicy {
           status: TripGpsBatteryDecisionStatus.allowed,
           reasonCode: 'user_override_low_battery',
           batteryPercent: percent,
+          cutoffPercent: cutoff,
         );
       }
       if (lowBatteryWarningDismissed) {
@@ -118,12 +130,14 @@ class TripTrackingPolicy {
           status: TripGpsBatteryDecisionStatus.blocked,
           reasonCode: 'low_battery_gps_blocked_by_saved_choice',
           batteryPercent: percent,
+          cutoffPercent: cutoff,
         );
       }
       return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.userPromptRequired,
         reasonCode: 'low_battery_requires_user_choice',
         batteryPercent: percent,
+        cutoffPercent: cutoff,
       );
     }
     if (lowPowerModeEnabled) {
@@ -132,6 +146,7 @@ class TripTrackingPolicy {
           status: TripGpsBatteryDecisionStatus.allowed,
           reasonCode: 'user_override_low_power_mode',
           batteryPercent: percent,
+          cutoffPercent: cutoff,
         );
       }
       if (lowBatteryWarningDismissed) {
@@ -139,12 +154,14 @@ class TripTrackingPolicy {
           status: TripGpsBatteryDecisionStatus.blocked,
           reasonCode: 'low_power_mode_gps_blocked_by_saved_choice',
           batteryPercent: percent,
+          cutoffPercent: cutoff,
         );
       }
       return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.userPromptRequired,
         reasonCode: 'low_power_mode_requires_user_choice',
         batteryPercent: percent,
+        cutoffPercent: cutoff,
       );
     }
     if (percent == null || percent < 0 || percent > 100) {
@@ -152,6 +169,7 @@ class TripTrackingPolicy {
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_unknown',
         batteryPercent: percent,
+        cutoffPercent: cutoff,
       );
     }
     if (percent >= cutoff) {
@@ -159,12 +177,14 @@ class TripTrackingPolicy {
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_above_cutoff',
         batteryPercent: percent,
+        cutoffPercent: cutoff,
       );
     }
     return _batteryDecision(
       status: TripGpsBatteryDecisionStatus.allowed,
       reasonCode: 'battery_unknown',
       batteryPercent: percent,
+      cutoffPercent: cutoff,
     );
   }
 
@@ -224,11 +244,15 @@ TripGpsBatteryDecision _batteryDecision({
   required TripGpsBatteryDecisionStatus status,
   required String reasonCode,
   required int? batteryPercent,
+  required int cutoffPercent,
 }) {
   return TripGpsBatteryDecision(
     status: status,
     reasonCode: reasonCode,
     batteryBucket: _batteryBucket(batteryPercent),
+    safetyCutoffPercent: cutoffPercent >= 1 && cutoffPercent <= 100
+        ? cutoffPercent
+        : 20,
     promptTitle: _batteryPromptTitle(reasonCode),
     promptBody: _batteryPromptBody(reasonCode),
   );

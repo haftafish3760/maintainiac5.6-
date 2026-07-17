@@ -218,8 +218,55 @@ void main() {
         reason: 'cutoff $cutoff must not disable the default battery guard',
       );
       expect(decision.reasonCode, 'low_battery_requires_user_choice');
+      expect(decision.toSafeSummary()['safetyCutoffPercent'], 20);
     }
   });
+
+  test(
+    'low battery GPS decision summary is actionable without raw battery data',
+    () {
+      final prompt = const TripTrackingPolicy().gpsBatteryDecision(
+        batteryPercent: 19,
+        isCharging: false,
+        lowBatteryProtectionEnabled: true,
+        lowBatteryOverrideEnabled: false,
+        lowBatteryWarningDismissed: false,
+      );
+      final blocked = const TripTrackingPolicy().gpsBatteryDecision(
+        batteryPercent: 18,
+        isCharging: false,
+        lowPowerModeEnabled: true,
+        lowBatteryProtectionEnabled: true,
+        lowBatteryOverrideEnabled: false,
+        lowBatteryWarningDismissed: true,
+      );
+
+      expect(prompt.requiresUserChoice, isTrue);
+      expect(prompt.toSafeSummary(), {
+        'status': 'userPromptRequired',
+        'reasonCode': 'low_battery_requires_user_choice',
+        'batteryBucket': 'below_20',
+        'safetyCutoffPercent': 20,
+        'promptTitle': 'Battery below 20%',
+        'promptBody':
+            'GPS-assisted tracking is paused by default below the safety threshold. Continue only if you want GPS to keep running.',
+        'allowsGps': false,
+        'requiresUserChoice': true,
+        'userCanOverride': true,
+        'continueGpsActionLabel': 'Continue with GPS',
+        'cancelGpsActionLabel': 'Cancel GPS',
+        'doNotShowAgainAvailable': true,
+        'settingsReversalAvailable': true,
+        'preciseBatteryIncluded': false,
+        'rawBatteryPayloadIncluded': false,
+      });
+      expect(blocked.isSavedBlock, isTrue);
+      expect(blocked.toSafeSummary()['requiresUserChoice'], isFalse);
+      expect(blocked.toSafeSummary()['doNotShowAgainAvailable'], isFalse);
+      expect(blocked.toSafeSummary()['settingsReversalAvailable'], isTrue);
+      expect(blocked.toSafeSummary().keys, isNot(contains('batteryPercent')));
+    },
+  );
 
   test('does not count stationary GPS jitter as miles', () {
     final engine = TripTrackingEngine();
