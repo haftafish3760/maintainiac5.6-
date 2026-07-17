@@ -206,3 +206,68 @@ const availableWorkdayQuickActions = [
         'Add a dated note and optionally link it to a day, trip, customer, or record.',
   ),
 ];
+
+const defaultWorkdayQuickActionKinds = [
+  WorkdayQuickActionKind.pauseDay,
+  WorkdayQuickActionKind.endDay,
+  WorkdayQuickActionKind.addFuel,
+  WorkdayQuickActionKind.addStop,
+  WorkdayQuickActionKind.addPickup,
+  WorkdayQuickActionKind.addDropOff,
+  WorkdayQuickActionKind.expense,
+  WorkdayQuickActionKind.payment,
+  WorkdayQuickActionKind.invoice,
+];
+
+class WorkdayQuickActionLayout {
+  const WorkdayQuickActionLayout({required this.activeKinds});
+
+  factory WorkdayQuickActionLayout.defaults() => const WorkdayQuickActionLayout(
+    activeKinds: defaultWorkdayQuickActionKinds,
+  );
+
+  factory WorkdayQuickActionLayout.fromMap(Map<dynamic, dynamic> map) {
+    final rawKinds = map['activeKinds'];
+    if (rawKinds is! Iterable) return WorkdayQuickActionLayout.defaults();
+    return WorkdayQuickActionLayout(
+      activeKinds: _sanitizeActionKinds(
+        rawKinds.map((value) => value?.toString() ?? ''),
+      ),
+    );
+  }
+
+  final List<WorkdayQuickActionKind> activeKinds;
+
+  List<WorkdayQuickActionSpec> get activeActions => [
+    for (final kind in activeKinds)
+      if (_actionByKind[kind] != null) _actionByKind[kind]!,
+  ];
+
+  Map<String, Object?> toMap() => {
+    'activeKinds': activeKinds.map((kind) => kind.name).toList(),
+  };
+}
+
+List<WorkdayQuickActionKind> _sanitizeActionKinds(Iterable<String> rawKinds) {
+  final selected = <WorkdayQuickActionKind>[];
+  for (final rawKind in rawKinds.take(availableWorkdayQuickActions.length)) {
+    final kind = _actionKindFromName(rawKind);
+    if (kind == null || selected.contains(kind)) continue;
+    selected.add(kind);
+  }
+  return selected.isEmpty
+      ? List.unmodifiable(defaultWorkdayQuickActionKinds)
+      : List.unmodifiable(selected);
+}
+
+WorkdayQuickActionKind? _actionKindFromName(String rawKind) {
+  final clean = rawKind.trim();
+  for (final kind in WorkdayQuickActionKind.values) {
+    if (kind.name == clean) return kind;
+  }
+  return null;
+}
+
+final Map<WorkdayQuickActionKind, WorkdayQuickActionSpec> _actionByKind = {
+  for (final action in availableWorkdayQuickActions) action.kind: action,
+};
