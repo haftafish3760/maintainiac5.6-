@@ -608,8 +608,36 @@ void main() {
     expect(restored.startedAt, fallback);
     expect(restored.status, ActiveWorkdayStatus.active);
     expect(restored.endedAt, isNull);
+    expect(restored.hasValidIdentity, isFalse);
     expect(restored.events.single.type, ActiveWorkdayEventType.note);
+    expect(restored.events.single.hasValidIdentity, isFalse);
     expect(restored.events.single.occurredAt, fallback);
+  });
+
+  test('unknown active workday enum values fail closed on restore', () {
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'unknown-enum-workday',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+      'startOdometer': 1200,
+      'status': 'ghostMode',
+      'events': [
+        {
+          'id': 'unknown-enum-event',
+          'type': 'teleport',
+          'occurredAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+          'odometerReading': 1201,
+          'label': 'Unknown event',
+        },
+      ],
+    });
+
+    expect(restored.status, ActiveWorkdayStatus.active);
+    expect(restored.hasValidIdentity, isFalse);
+    expect(restored.events.single.type, ActiveWorkdayEventType.note);
+    expect(restored.events.single.hasValidIdentity, isFalse);
   });
 
   test('active workday serialization never writes negative odometers', () {

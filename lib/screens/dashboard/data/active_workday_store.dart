@@ -75,9 +75,10 @@ class ActiveWorkdayEvent {
 
   factory ActiveWorkdayEvent.fromMap(Map<dynamic, dynamic> map) {
     final rawId = map['id'];
+    final rawType = _stringValue(map['type']);
     return ActiveWorkdayEvent(
       id: _safeText(rawId, fallback: _newId('event'), maxLength: 160),
-      type: _eventTypeFromName(_stringValue(map['type'])),
+      type: _eventTypeFromName(rawType),
       occurredAt:
           DateTime.tryParse(_stringValue(map['occurredAt']) ?? '') ??
           _fallbackWorkdayTimestamp(),
@@ -86,7 +87,9 @@ class ActiveWorkdayEvent {
       note: _optionalSafeText(map['note'], maxLength: 240),
       sourceType: _optionalSafeText(map['sourceType'], maxLength: 80),
       sourceId: _optionalSafeText(map['sourceId'], maxLength: 160),
-      hasValidIdentity: rawId == null || _isSafeActiveWorkdayIdValue(rawId),
+      hasValidIdentity:
+          (rawId == null || _isSafeActiveWorkdayIdValue(rawId)) &&
+          _hasKnownEventTypeName(rawType),
     );
   }
 }
@@ -254,7 +257,8 @@ class ActiveWorkdaySessionRecord {
         .toList(growable: false);
     final endOdometer = _safeOdometer(map['endOdometer']);
     final endedAt = DateTime.tryParse(_stringValue(map['endedAt']) ?? '');
-    final status = _statusFromName(_stringValue(map['status']));
+    final rawStatus = _stringValue(map['status']);
+    final status = _statusFromName(rawStatus);
     final hasEndedEvent = events.any(
       (event) => event.type == ActiveWorkdayEventType.ended,
     );
@@ -303,6 +307,7 @@ class ActiveWorkdaySessionRecord {
           _isSafeActiveWorkdayIdValue(rawId) &&
           _isSafeActiveWorkdayIdValue(rawVehicleId) &&
           _isSafeActiveWorkdayIdValue(rawWorkProfileId) &&
+          _hasKnownStatusName(rawStatus) &&
           events.every((event) => event.hasValidIdentity),
     );
   }
@@ -572,12 +577,18 @@ ActiveWorkdayStatus _statusFromName(String? name) {
   );
 }
 
+bool _hasKnownStatusName(String? name) =>
+    ActiveWorkdayStatus.values.any((status) => status.name == name);
+
 ActiveWorkdayEventType _eventTypeFromName(String? name) {
   return ActiveWorkdayEventType.values.firstWhere(
     (type) => type.name == name,
     orElse: () => ActiveWorkdayEventType.note,
   );
 }
+
+bool _hasKnownEventTypeName(String? name) =>
+    ActiveWorkdayEventType.values.any((type) => type.name == name);
 
 String _labelForEvent(ActiveWorkdayEventType type) {
   return switch (type) {
