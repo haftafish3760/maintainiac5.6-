@@ -240,6 +240,17 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
   });
 
+  test('stale walking evidence cannot suppress later vehicle mileage', () {
+    final engine = TripTrackingEngine();
+    engine.ingest(sample(-80, 0));
+
+    final decision = engine.ingest(sample(-79.9998, 60), activity: walking(1));
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(decision.addedMeters, greaterThan(0));
+    expect(engine.needsWalkingReview, isFalse);
+  });
+
   test(
     'accumulates credible low-speed movement after it clears accuracy noise',
     () {

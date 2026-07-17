@@ -85,10 +85,7 @@ class TripTrackingEngine {
     TripLocationSample sample, {
     TripActivityObservation? activity,
   }) {
-    final verifiedActivity =
-        activity != null && activity.recordedAt.isAfter(sample.recordedAt)
-        ? null
-        : activity;
+    final verifiedActivity = _freshActivityForSample(sample, activity);
     if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
       return _decision(TripSampleDisposition.rejectedInvalid);
     }
@@ -199,6 +196,19 @@ class TripTrackingEngine {
   /// that must remain outside deterministic replay behavior.
   TripSampleDecision reject(TripSampleDisposition disposition) {
     return _decision(disposition);
+  }
+
+  TripActivityObservation? _freshActivityForSample(
+    TripLocationSample sample,
+    TripActivityObservation? activity,
+  ) {
+    if (activity == null || activity.recordedAt.isAfter(sample.recordedAt)) {
+      return null;
+    }
+    return sample.recordedAt.difference(activity.recordedAt) <=
+            policy.walkingConfirmationWindow
+        ? activity
+        : null;
   }
 
   void _recordActivity(
