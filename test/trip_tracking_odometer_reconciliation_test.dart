@@ -309,6 +309,35 @@ void main() {
     expect(signal.eligibleSampleCount, 0);
   });
 
+  test('calibration ignores extreme reviewed outliers', () {
+    final history = [
+      ...List.generate(
+        7,
+        (_) => const TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 100,
+          filteredGpsMiles: 94,
+          absoluteDifferenceMiles: 6,
+          differencePercent: 6,
+        ),
+      ),
+      const TripOdometerReconciliation(
+        status: TripOdometerReconciliationStatus.reviewRecommended,
+        confirmedOdometerDeltaMiles: 100,
+        filteredGpsMiles: 2,
+        absoluteDifferenceMiles: 98,
+        differencePercent: 98,
+      ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+
+    expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
+    expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(1.0638, .001));
+  });
+
   test('calibration rejects non-finite thresholds', () {
     final signal = TripOdometerCalibrationSignal.evaluate(
       history: const [],
@@ -318,6 +347,10 @@ void main() {
       history: const [],
       reviewDifferencePercent: double.nan,
     );
+    final outlierSignal = TripOdometerCalibrationSignal.evaluate(
+      history: const [],
+      maximumEligibleDifferencePercent: 3,
+    );
 
     expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
     expect(signal.reasonCode, 'invalid_calibration_threshold');
@@ -326,6 +359,11 @@ void main() {
       TripOdometerCalibrationStatus.insufficientHistory,
     );
     expect(percentSignal.reasonCode, 'invalid_calibration_threshold');
+    expect(
+      outlierSignal.status,
+      TripOdometerCalibrationStatus.insufficientHistory,
+    );
+    expect(outlierSignal.reasonCode, 'invalid_calibration_threshold');
   });
 
   test('calibration multiplier falls back safely for malformed signals', () {

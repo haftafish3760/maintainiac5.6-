@@ -166,12 +166,15 @@ class TripOdometerCalibrationSignal {
     int minimumSamples = 7,
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
+    double maximumEligibleDifferencePercent = 25,
   }) {
     if (minimumSamples <= 0 ||
         minimumOdometerMiles <= 0 ||
         !minimumOdometerMiles.isFinite ||
         !reviewDifferencePercent.isFinite ||
-        reviewDifferencePercent < 0) {
+        reviewDifferencePercent < 0 ||
+        !maximumEligibleDifferencePercent.isFinite ||
+        maximumEligibleDifferencePercent < reviewDifferencePercent) {
       return const TripOdometerCalibrationSignal(
         status: TripOdometerCalibrationStatus.insufficientHistory,
         eligibleSampleCount: 0,
@@ -189,7 +192,8 @@ class TripOdometerCalibrationSignal {
               sample.confirmedOdometerDeltaMiles >= minimumOdometerMiles &&
               sample.filteredGpsMiles.isFinite &&
               sample.filteredGpsMiles > 0 &&
-              sample.differencePercent.isFinite,
+              sample.differencePercent.isFinite &&
+              sample.differencePercent <= maximumEligibleDifferencePercent,
         )
         .toList(growable: false);
     if (eligible.length < minimumSamples) {
