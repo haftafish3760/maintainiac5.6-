@@ -138,6 +138,57 @@ void main() {
     expect(queue.pendingRecords, isEmpty);
   });
 
+  test('rejects unsafe dashboard identity before Firestore queueing', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final reporter = DashboardTripTrackingSummaryReporter(
+      mirror: DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      ),
+      settingsController: TripTrackingSettingsController.memory(),
+      uid: () => 'firebaseUid-1',
+      dashboardId: () => '../today',
+      orgId: () => 'company/one',
+      activeVehicleId: () => 'truck-1',
+      activeWorkdayId: () => 'workday-1',
+      activeWorkProfileId: () => 'profile-1',
+    );
+
+    final report = await reporter.queueNow();
+
+    expect(report.queued, isFalse);
+    expect(report.reasonCode, 'dashboard_summary_identity_invalid');
+    expect(queue.pendingRecords, isEmpty);
+  });
+
+  test('rejects untrusted dashboard timestamps without queueing', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final reporter = DashboardTripTrackingSummaryReporter(
+      mirror: DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      ),
+      settingsController: TripTrackingSettingsController.memory(),
+      uid: () => 'firebaseUid-1',
+      dashboardId: () => 'today',
+      clock: () => DateTime.utc(1970),
+    );
+
+    final report = await reporter.queueNow();
+
+    expect(report.queued, isFalse);
+    expect(report.reasonCode, 'dashboard_summary_clock_untrusted');
+    expect(queue.pendingRecords, isEmpty);
+  });
+
   test('storage and network reader failures fail gracefully', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final settings = TripTrackingSettingsController.memory(
@@ -175,6 +226,52 @@ void main() {
     expect(
       queue.pendingRecords.single.data.keys,
       isNot(contains('freeSyncsRemaining')),
+    );
+  });
+
+  test('invalid storage and sync counters are treated as unverified', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final reporter = DashboardTripTrackingSummaryReporter(
+      mirror: DashboardFirestoreMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+      ),
+      settingsController: TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          backupNetworkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
+        ),
+      ),
+      uid: () => 'firebaseUid-1',
+      dashboardId: () => 'today',
+      storageReader: () async => const AppStorageCheck(
+        availableBytes: -1,
+        operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        requiredBytes:
+            AppStorageGuard.mileageTrackingWriteBytes +
+            AppStorageGuard.textRecordDeviceReserveBytes,
+        purpose: AppStoragePurpose.mileageTracking,
+      ),
+      wifiAvailable: () => true,
+      mobileDataAvailable: () => false,
+      syncsUsedInWindow: () => 1000,
+      clock: () => DateTime.utc(2026, 7, 17, 9),
+    );
+
+    final report = await reporter.queueNow();
+
+    expect(report.queued, isTrue);
+    expect(report.summary?.storageState, 'unknown');
+    expect(report.summary?.freeSyncsRemaining, isNull);
+    expect(report.summary?.syncsUsedInWindow, isNull);
+    expect(queue.pendingRecords.single.data['storageState'], 'unknown');
+    expect(
+      queue.pendingRecords.single.data.keys,
+      isNot(contains('syncsUsedInWindow')),
     );
   });
 

@@ -3,6 +3,7 @@ import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'active_workday_store.dart';
 import 'dashboard_firestore_mirror.dart';
+import 'dashboard_summary_trust_boundary.dart';
 import 'dashboard_trip_tracking_summary.dart';
 
 typedef DashboardSummaryStringReader = String? Function();
@@ -102,35 +103,55 @@ class DashboardTripTrackingSummaryReporter {
   }
 
   Future<DashboardTripTrackingSummaryReport> _queueOnce() async {
-    final uid = _safeRequiredId(_uid());
-    final dashboardId = _safeRequiredId(_dashboardId());
-    if (uid == null || dashboardId == null) {
-      return const DashboardTripTrackingSummaryReport(
+    final identity = DashboardSummaryTrustBoundary.validateIdentity(
+      uid: _uid(),
+      dashboardId: _dashboardId(),
+      orgId: _orgId?.call(),
+      activeVehicleId: _activeVehicleId?.call(),
+      activeWorkdayId: _activeWorkdayId?.call(),
+      activeWorkProfileId: _activeWorkProfileId?.call(),
+    );
+    if (!identity.accepted) {
+      return DashboardTripTrackingSummaryReport(
         queued: false,
-        reasonCode: 'dashboard_summary_identity_missing',
+        reasonCode: identity.reasonCode,
         summary: null,
       );
     }
     try {
       final storage = await _readStorage();
+      final timestamp = DashboardSummaryTrustBoundary.validateTimestamp(
+        _clock(),
+      );
+      if (!timestamp.accepted) {
+        return DashboardTripTrackingSummaryReport(
+          queued: false,
+          reasonCode: timestamp.reasonCode,
+          summary: null,
+        );
+      }
       final summary = DashboardTripTrackingSummary.fromRuntime(
         settings: _settingsController.settings,
         tripTracking: _tripTracking,
         activeWorkday: _activeWorkday?.activeSession,
         storageCheck: storage,
-        wifiAvailable: _safeBool(_wifiAvailable),
-        mobileDataAvailable: _safeBool(_mobileDataAvailable),
-        syncsUsedInWindow: _safeInt(_syncsUsedInWindow),
+        wifiAvailable: DashboardSummaryTrustBoundary.safeBool(_wifiAvailable),
+        mobileDataAvailable: DashboardSummaryTrustBoundary.safeBool(
+          _mobileDataAvailable,
+        ),
+        syncsUsedInWindow: DashboardSummaryTrustBoundary.safeSyncUsage(
+          _syncsUsedInWindow,
+        ),
       );
       await _mirror.queueTripTrackingSummary(
-        uid: uid,
-        dashboardId: dashboardId,
-        updatedAtUtc: _clock().toUtc(),
+        uid: identity.uid!,
+        dashboardId: identity.dashboardId!,
+        updatedAtUtc: timestamp.updatedAtUtc!,
         tripTracking: summary,
-        orgId: _safeOptionalId(_orgId?.call()),
-        activeVehicleId: _safeOptionalId(_activeVehicleId?.call()),
-        activeWorkdayId: _safeOptionalId(_activeWorkdayId?.call()),
-        activeWorkProfileId: _safeOptionalId(_activeWorkProfileId?.call()),
+        orgId: identity.orgId,
+        activeVehicleId: identity.activeVehicleId,
+        activeWorkdayId: identity.activeWorkdayId,
+        activeWorkProfileId: identity.activeWorkProfileId,
       );
       return DashboardTripTrackingSummaryReport(
         queued: true,
@@ -150,36 +171,10 @@ class DashboardTripTrackingSummaryReporter {
     final reader = _storageReader;
     if (reader == null) return null;
     try {
-      return await reader();
+      final check = await reader();
+      return DashboardSummaryTrustBoundary.validateStorageCheck(check);
     } catch (_) {
       return null;
     }
-  }
-}
-
-String? _safeRequiredId(String? value) {
-  final clean = value?.trim();
-  if (clean == null || clean.isEmpty) return null;
-  return clean;
-}
-
-String? _safeOptionalId(String? value) {
-  final clean = value?.trim();
-  return clean == null || clean.isEmpty ? null : clean;
-}
-
-bool? _safeBool(DashboardSummaryBoolReader? reader) {
-  try {
-    return reader?.call();
-  } catch (_) {
-    return null;
-  }
-}
-
-int? _safeInt(DashboardSummaryIntReader? reader) {
-  try {
-    return reader?.call();
-  } catch (_) {
-    return null;
   }
 }
