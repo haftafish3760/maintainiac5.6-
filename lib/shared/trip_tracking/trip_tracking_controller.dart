@@ -12,6 +12,7 @@ import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_platform.dart';
 import 'trip_tracking_policy.dart';
+import 'trip_tracking_recovery_policy.dart';
 import 'trip_tracking_session_store.dart';
 import 'trip_tracking_state_machine.dart';
 
@@ -65,6 +66,12 @@ class TripTrackingController extends ChangeNotifier {
   TripTrackingSessionLifecycleState? get lifecycleState =>
       _session?.lifecycleState;
   TripTrackingHealthState? get healthState => _session?.healthState;
+  TripTrackingRecoveryDecision get recoveryDecision =>
+      TripTrackingRecoveryPolicy.evaluate(
+        session: _session,
+        currentVehicleId: _odometer.vehicleId,
+        currentConfirmedOdometer: _odometer.confirmedReading,
+      );
   bool get nativeTracking => _nativeTracking;
   String? get platformStatus => _platformStatus;
   String? get platformError => _platformError;

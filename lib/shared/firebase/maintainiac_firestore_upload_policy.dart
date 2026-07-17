@@ -117,6 +117,30 @@ class MaintainiacFirestoreUploadPolicy {
     'equipment_ignores_walking_stop_evidence',
   };
 
+  static const _allowedDashboardRecoveryStates = <String>{
+    'none',
+    'ready',
+    'pending_replay',
+    'completed_review',
+    'invalid_session',
+    'invalid_review',
+    'vehicle_mismatch',
+    'odometer_mismatch',
+    'projection_invalid',
+  };
+
+  static const _allowedDashboardRecoveryReasons = <String>{
+    'trip_recovery_none',
+    'trip_recovery_ready',
+    'trip_recovery_pending_replay_ready',
+    'trip_recovery_completed_review_present',
+    'trip_recovery_invalid_session',
+    'trip_recovery_invalid_review_present',
+    'trip_recovery_vehicle_mismatch',
+    'trip_recovery_odometer_mismatch',
+    'trip_recovery_odometer_projection_invalid',
+  };
+
   static const _allowedSyncModes = <String>{
     'device_retained',
     'local_only',
@@ -326,6 +350,9 @@ class MaintainiacFirestoreUploadPolicy {
       'stopReviewReasonCode',
       'recommendedActivityRecognition',
       'requiresStrongerStopDebounce',
+      'recoveryState',
+      'recoveryReason',
+      'recoveryUserActionRequired',
       'mileageMode',
       'syncMode',
       'gpsAssistState',
@@ -373,6 +400,15 @@ class MaintainiacFirestoreUploadPolicy {
         ) &&
         draft.data['recommendedActivityRecognition'] is bool &&
         draft.data['requiresStrongerStopDebounce'] is bool &&
+        _isAllowedString(
+          draft.data['recoveryState'],
+          _allowedDashboardRecoveryStates,
+        ) &&
+        _isAllowedString(
+          draft.data['recoveryReason'],
+          _allowedDashboardRecoveryReasons,
+        ) &&
+        draft.data['recoveryUserActionRequired'] is bool &&
         _isAllowedString(draft.data['mileageMode'], _allowedMileageModes) &&
         _isAllowedString(draft.data['syncMode'], _allowedSyncModes) &&
         _isIsoTimestamp(draft.data['updatedAt']) &&

@@ -103,6 +103,9 @@ void main() {
       expect(data['stopReviewReasonCode'], 'delivery_stop_walk_review');
       expect(data['recommendedActivityRecognition'], isTrue);
       expect(data['requiresStrongerStopDebounce'], isFalse);
+      expect(data['recoveryState'], 'ready');
+      expect(data['recoveryReason'], 'trip_recovery_ready');
+      expect(data['recoveryUserActionRequired'], isFalse);
       expect(data['mileageMode'], 'gps_assisted');
       expect(data['syncMode'], 'wifi_only');
       expect(data['freeSyncsRemaining'], 4);

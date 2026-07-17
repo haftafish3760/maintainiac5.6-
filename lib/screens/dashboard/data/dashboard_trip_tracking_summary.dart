@@ -5,6 +5,7 @@ import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart';
 import '../../../shared/trip_tracking/trip_tracking_profile_strategy.dart';
+import '../../../shared/trip_tracking/trip_tracking_recovery_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../../shared/trip_tracking/trip_tracking_storage_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
@@ -18,6 +19,9 @@ class DashboardTripTrackingSummary {
     required this.stopReviewReasonCode,
     required this.recommendedActivityRecognition,
     required this.requiresStrongerStopDebounce,
+    required this.recoveryState,
+    required this.recoveryReason,
+    required this.recoveryUserActionRequired,
     required this.mileageMode,
     required this.syncMode,
     required this.gpsAssistState,
@@ -42,6 +46,9 @@ class DashboardTripTrackingSummary {
   final String stopReviewReasonCode;
   final bool recommendedActivityRecognition;
   final bool requiresStrongerStopDebounce;
+  final String recoveryState;
+  final String recoveryReason;
+  final bool recoveryUserActionRequired;
   final String mileageMode;
   final String syncMode;
   final String gpsAssistState;
@@ -75,6 +82,9 @@ class DashboardTripTrackingSummary {
     int? odometerCalibrationSamples,
     String odometerUsageState = 'disabled',
     int? odometerUsageReviewedDays,
+    String recoveryState = 'none',
+    String recoveryReason = 'trip_recovery_none',
+    bool recoveryUserActionRequired = false,
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -108,6 +118,9 @@ class DashboardTripTrackingSummary {
       ),
       recommendedActivityRecognition: strategy.recommendedActivityRecognition,
       requiresStrongerStopDebounce: strategy.requiresStrongerStopDebounce,
+      recoveryState: _safeRecoveryState(recoveryState),
+      recoveryReason: _safeRecoveryReason(recoveryReason),
+      recoveryUserActionRequired: recoveryUserActionRequired,
       mileageMode: settings.gpsAssistedTrackingEnabled
           ? 'gps_assisted'
           : 'manual',
@@ -157,6 +170,7 @@ class DashboardTripTrackingSummary {
     final status = platformStatus ?? tripTracking?.platformStatus;
     final activeTrip = tripTracking?.isTracking == true;
     final nativeTracking = tripTracking?.nativeTracking == true;
+    final recoveryDecision = tripTracking?.recoveryDecision;
     final capabilityGuidance = tripTracking?.lastKnownCapabilities == null
         ? null
         : TripTrackingCapabilityGuidance.fromCapabilities(
@@ -193,6 +207,9 @@ class DashboardTripTrackingSummary {
       odometerCalibrationSamples: calibrationSignal?.eligibleSampleCount,
       odometerUsageState: _usageStateFor(usageSignal),
       odometerUsageReviewedDays: usageSignal?.reviewedDayCount,
+      recoveryState: _recoveryStateFor(recoveryDecision),
+      recoveryReason: _recoveryReasonFor(recoveryDecision),
+      recoveryUserActionRequired: recoveryDecision?.requiresUserAction == true,
       wifiAvailable: wifiAvailable,
       mobileDataAvailable: mobileDataAvailable,
       syncsUsedInWindow: syncsUsedInWindow,
@@ -251,6 +268,40 @@ String _safeStopReviewReasonCode(String value) {
     'equipment_ignores_walking_stop_evidence' =>
       'equipment_ignores_walking_stop_evidence',
     _ => 'road_vehicle_stop_walk_review',
+  };
+}
+
+String _safeRecoveryState(String value) {
+  return switch (value.trim()) {
+    'none' => 'none',
+    'ready' => 'ready',
+    'pending_replay' => 'pending_replay',
+    'completed_review' => 'completed_review',
+    'invalid_session' => 'invalid_session',
+    'invalid_review' => 'invalid_review',
+    'vehicle_mismatch' => 'vehicle_mismatch',
+    'odometer_mismatch' => 'odometer_mismatch',
+    'projection_invalid' => 'projection_invalid',
+    _ => 'none',
+  };
+}
+
+String _safeRecoveryReason(String value) {
+  return switch (value.trim()) {
+    'trip_recovery_none' => 'trip_recovery_none',
+    'trip_recovery_ready' => 'trip_recovery_ready',
+    'trip_recovery_pending_replay_ready' =>
+      'trip_recovery_pending_replay_ready',
+    'trip_recovery_completed_review_present' =>
+      'trip_recovery_completed_review_present',
+    'trip_recovery_invalid_session' => 'trip_recovery_invalid_session',
+    'trip_recovery_invalid_review_present' =>
+      'trip_recovery_invalid_review_present',
+    'trip_recovery_vehicle_mismatch' => 'trip_recovery_vehicle_mismatch',
+    'trip_recovery_odometer_mismatch' => 'trip_recovery_odometer_mismatch',
+    'trip_recovery_odometer_projection_invalid' =>
+      'trip_recovery_odometer_projection_invalid',
+    _ => 'trip_recovery_none',
   };
 }
 
@@ -414,4 +465,23 @@ bool _isBatteryLimitedStatus(String? status) {
     'low_power_mode_gps_blocked_by_saved_choice' => true,
     _ => false,
   };
+}
+
+String _recoveryStateFor(TripTrackingRecoveryDecision? decision) {
+  return switch (decision?.status) {
+    TripTrackingRecoveryStatus.ready => 'ready',
+    TripTrackingRecoveryStatus.pendingReplayReady => 'pending_replay',
+    TripTrackingRecoveryStatus.completedReviewPresent => 'completed_review',
+    TripTrackingRecoveryStatus.invalidSession => 'invalid_session',
+    TripTrackingRecoveryStatus.invalidReviewPresent => 'invalid_review',
+    TripTrackingRecoveryStatus.vehicleMismatch => 'vehicle_mismatch',
+    TripTrackingRecoveryStatus.odometerMismatch => 'odometer_mismatch',
+    TripTrackingRecoveryStatus.odometerProjectionInvalid =>
+      'projection_invalid',
+    TripTrackingRecoveryStatus.noRecoverableTrip || null => 'none',
+  };
+}
+
+String _recoveryReasonFor(TripTrackingRecoveryDecision? decision) {
+  return _safeRecoveryReason(decision?.safeReason ?? 'trip_recovery_none');
 }

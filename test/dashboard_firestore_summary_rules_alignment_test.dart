@@ -62,6 +62,9 @@ void main() {
       'stopReviewReasonCode',
       'recommendedActivityRecognition',
       'requiresStrongerStopDebounce',
+      'recoveryState',
+      'recoveryReason',
+      'recoveryUserActionRequired',
     ]) {
       expect(
         rules,
@@ -89,6 +92,15 @@ void main() {
       'delivery_stop_walk_review',
       'contractor_stop_walk_review',
       'equipment_ignores_walking_stop_evidence',
+      'trip_recovery_none',
+      'trip_recovery_ready',
+      'trip_recovery_pending_replay_ready',
+      'trip_recovery_completed_review_present',
+      'trip_recovery_invalid_session',
+      'trip_recovery_invalid_review_present',
+      'trip_recovery_vehicle_mismatch',
+      'trip_recovery_odometer_mismatch',
+      'trip_recovery_odometer_projection_invalid',
     ]) {
       expect(
         rules,
@@ -101,6 +113,7 @@ void main() {
       'raw_route_worker',
       'always_precise',
       'raw_stop_address',
+      'raw_recovery_payload',
       'precise_stop_coordinates',
     ]) {
       expect(

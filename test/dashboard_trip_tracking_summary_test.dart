@@ -22,6 +22,9 @@ void main() {
     expect(summary.stopReviewReasonCode, 'road_vehicle_stop_walk_review');
     expect(summary.recommendedActivityRecognition, isTrue);
     expect(summary.requiresStrongerStopDebounce, isFalse);
+    expect(summary.recoveryState, 'none');
+    expect(summary.recoveryReason, 'trip_recovery_none');
+    expect(summary.recoveryUserActionRequired, isFalse);
     expect(summary.mileageMode, 'manual');
     expect(summary.syncMode, 'wifi_and_mobile');
     expect(summary.gpsAssistState, 'off');
@@ -59,6 +62,7 @@ void main() {
     expect(summary.stopReviewReasonCode, 'delivery_stop_walk_review');
     expect(summary.recommendedActivityRecognition, isTrue);
     expect(summary.requiresStrongerStopDebounce, isFalse);
+    expect(summary.recoveryState, 'none');
     expect(summary.mileageMode, 'gps_assisted');
     expect(summary.syncMode, 'wifi_only');
     expect(summary.gpsAssistState, 'on');
@@ -202,6 +206,9 @@ void main() {
     expect(summary.dashboardMode, 'gig_driver');
     expect(summary.mileageMode, 'gps_assisted');
     expect(summary.gpsAssistState, 'gps_assisted');
+    expect(summary.recoveryState, 'ready');
+    expect(summary.recoveryReason, 'trip_recovery_ready');
+    expect(summary.recoveryUserActionRequired, isFalse);
     expect(summary.storageState, 'text_record_safe');
     expect(summary.freeSyncsRemaining, 5);
     expect(summary.reviewRequired, isFalse);

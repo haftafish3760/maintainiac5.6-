@@ -248,6 +248,8 @@ void main() {
       'workStyle': 'raw_route_worker',
       'stopDetectionMode': 'always_precise',
       'stopReviewReasonCode': 'raw_stop_address',
+      'recoveryState': 'raw_recovery',
+      'recoveryReason': 'raw_recovery_payload',
       'mileageMode': 'silent_tracking',
       'syncMode': 'always_spy',
       'gpsAssistState': 'raw_coordinates_enabled',
@@ -283,6 +285,8 @@ void main() {
       'workStyle': ' general_road ',
       'stopDetectionMode': ' walking_assisted ',
       'stopReviewReasonCode': ' road_vehicle_stop_walk_review ',
+      'recoveryState': ' none ',
+      'recoveryReason': ' trip_recovery_none ',
       'mileageMode': ' manual ',
       'syncMode': ' wifi_only ',
       'gpsAssistState': ' off ',
@@ -311,6 +315,8 @@ void main() {
       'workStyle': 'raw_route_worker',
       'stopDetectionMode': 'always_precise',
       'stopReviewReasonCode': 'raw_stop_address',
+      'recoveryState': 'raw_recovery',
+      'recoveryReason': 'raw_recovery_payload',
       'mileageMode': 'silent_tracking',
       'syncMode': 'always_spy',
       'gpsAssistState': 'raw_coordinates_enabled',
@@ -338,6 +344,12 @@ void main() {
               stopReviewReasonCode: entry.key == 'stopReviewReasonCode'
                   ? entry.value
                   : 'road_vehicle_stop_walk_review',
+              recoveryState: entry.key == 'recoveryState'
+                  ? entry.value
+                  : 'none',
+              recoveryReason: entry.key == 'recoveryReason'
+                  ? entry.value
+                  : 'trip_recovery_none',
               mileageMode: entry.key == 'mileageMode' ? entry.value : 'manual',
               syncMode: entry.key == 'syncMode'
                   ? entry.value

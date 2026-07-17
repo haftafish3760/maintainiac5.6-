@@ -353,6 +353,9 @@ class MaintainiacFirestoreDocumentBuilder {
     String stopReviewReasonCode = 'road_vehicle_stop_walk_review',
     bool recommendedActivityRecognition = true,
     bool requiresStrongerStopDebounce = false,
+    String recoveryState = 'none',
+    String recoveryReason = 'trip_recovery_none',
+    bool recoveryUserActionRequired = false,
     String mileageMode = 'manual',
     String syncMode = 'device_retained',
     String gpsAssistState = 'off',
@@ -427,6 +430,17 @@ class MaintainiacFirestoreDocumentBuilder {
         ),
         'recommendedActivityRecognition': recommendedActivityRecognition,
         'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
+        'recoveryState': _requiredDashboardSummaryToken(
+          recoveryState,
+          'recoveryState',
+          _allowedDashboardRecoveryStates,
+        ),
+        'recoveryReason': _requiredDashboardSummaryToken(
+          recoveryReason,
+          'recoveryReason',
+          _allowedDashboardRecoveryReasons,
+        ),
+        'recoveryUserActionRequired': recoveryUserActionRequired,
         'mileageMode': _requiredDashboardSummaryToken(
           mileageMode,
           'mileageMode',
@@ -543,6 +557,30 @@ const _allowedDashboardStopReviewReasons = <String>{
   'delivery_stop_walk_review',
   'contractor_stop_walk_review',
   'equipment_ignores_walking_stop_evidence',
+};
+
+const _allowedDashboardRecoveryStates = <String>{
+  'none',
+  'ready',
+  'pending_replay',
+  'completed_review',
+  'invalid_session',
+  'invalid_review',
+  'vehicle_mismatch',
+  'odometer_mismatch',
+  'projection_invalid',
+};
+
+const _allowedDashboardRecoveryReasons = <String>{
+  'trip_recovery_none',
+  'trip_recovery_ready',
+  'trip_recovery_pending_replay_ready',
+  'trip_recovery_completed_review_present',
+  'trip_recovery_invalid_session',
+  'trip_recovery_invalid_review_present',
+  'trip_recovery_vehicle_mismatch',
+  'trip_recovery_odometer_mismatch',
+  'trip_recovery_odometer_projection_invalid',
 };
 
 const _allowedMileageModes = <String>{
