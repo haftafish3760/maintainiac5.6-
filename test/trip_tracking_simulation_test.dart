@@ -128,6 +128,58 @@ void main() {
   );
 
   test(
+    'a multi-stop delivery route distinguishes walking stops from traffic lights',
+    () {
+      final points = <SimulatedTripPoint>[
+        SimulatedTripPoint(point(-80, 0, speed: 9)),
+        SimulatedTripPoint(point(-79.999, 20, speed: 9)),
+        SimulatedTripPoint(point(-79.998, 40, speed: 9)),
+        SimulatedTripPoint(point(-79.99795, 55), activity: walking(55)),
+        SimulatedTripPoint(point(-79.99788, 70), activity: walking(70)),
+        SimulatedTripPoint(point(-79.99782, 85), activity: walking(85)),
+        SimulatedTripPoint(point(-79.9968, 120, speed: 9)),
+      ];
+      for (var index = 0; index < 8; index++) {
+        points.add(
+          SimulatedTripPoint(
+            point(
+              -79.9968 + ((index.isEven ? 1 : -1) * .000008),
+              140 + (index * 10),
+              speed: 0,
+            ),
+          ),
+        );
+      }
+      points.addAll([
+        SimulatedTripPoint(point(-79.9958, 230, speed: 9)),
+        SimulatedTripPoint(point(-79.9948, 250, speed: 9)),
+        SimulatedTripPoint(point(-79.99475, 270), activity: walking(270)),
+        SimulatedTripPoint(point(-79.99468, 285), activity: walking(285)),
+        SimulatedTripPoint(point(-79.99462, 300), activity: walking(300)),
+        SimulatedTripPoint(point(-79.9938, 340, speed: 9)),
+      ]);
+
+      final result = replayTrip(
+        points,
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+
+      expect(result.needsWalkingReview, isTrue);
+      expect(
+        result.count(TripSampleDisposition.excludedWalking),
+        greaterThanOrEqualTo(4),
+      );
+      expect(
+        result.count(TripSampleDisposition.rejectedDrift),
+        greaterThanOrEqualTo(6),
+      );
+      expect(result.motionState, TripMotionState.moving);
+      expect(result.acceptedMeters, greaterThan(400));
+      expect(result.acceptedMeters, lessThan(700));
+    },
+  );
+
+  test(
     'a rideshare-style long traffic light does not become a delivery stop',
     () {
       final points = <SimulatedTripPoint>[
