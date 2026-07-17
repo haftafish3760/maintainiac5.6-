@@ -188,7 +188,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     ActiveWorkdaySessionRecord? session,
   ) {
     if (session?.status != ActiveWorkdayStatus.paused) {
-      return workdayQuickActions;
+      return WorkdayQuickActionLayout.defaults().activeActions;
     }
 
     return [
@@ -201,7 +201,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         flowTitle: 'Resume Workday',
         flowSummary: 'Resume the current workday without creating a new day.',
       ),
-      ...workdayQuickActions.skip(1),
+      ...WorkdayQuickActionLayout.defaults().activeActions.skip(1),
     ];
   }
 

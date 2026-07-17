@@ -8,8 +8,9 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeLayout = WorkdayQuickActionLayout.defaults();
     final availableActions = availableWorkdayQuickActions
-        .where((action) => !workdayQuickActions.contains(action))
+        .where((action) => !activeLayout.activeKinds.contains(action.kind))
         .toList();
 
     return Scaffold(
@@ -26,7 +27,7 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
             const SizedBox(height: 14),
             const _EditorSectionTitle('ACTIVE BUTTONS'),
             const SizedBox(height: 8),
-            _QuickActionGrid(actions: workdayQuickActions, active: true),
+            _QuickActionGrid(actions: activeLayout.activeActions, active: true),
             const SizedBox(height: 18),
             const _EditorSectionTitle('AVAILABLE BUTTONS'),
             const SizedBox(height: 8),
