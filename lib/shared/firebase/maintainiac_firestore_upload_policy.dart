@@ -117,6 +117,37 @@ class MaintainiacFirestoreUploadPolicy {
     'equipment_ignores_walking_stop_evidence',
   };
 
+  static const _allowedDashboardStopSignals = <String>{
+    'no_stop',
+    'stop_candidate',
+    'review_only_stop',
+    'likely_traffic_control',
+    'equipment_ignored',
+    'unsafe_evidence',
+  };
+
+  static const _allowedDashboardStopActionTokens = <String>{
+    'keep_tracking',
+    'continue_monitoring',
+    'review_delivery_stop',
+    'review_jobsite_stop',
+    'review_shift_stop',
+    'review_trip_stop',
+  };
+
+  static const _allowedDashboardStopClassificationReasons = <String>{
+    'no_stop_review_needed',
+    'unsafe_stop_evidence_rejected',
+    'equipment_walking_evidence_ignored',
+    'road_vehicle_stop_walk_review',
+    'rideshare_stop_requires_extra_evidence',
+    'delivery_stop_walk_review',
+    'contractor_stop_walk_review',
+    'stop_candidate_waiting_for_stronger_evidence',
+    'stop_candidate_waiting_for_confirmation',
+    'traffic_control_or_stationary_jitter',
+  };
+
   static const _allowedDashboardRecoveryStates = <String>{
     'none',
     'ready',
@@ -348,6 +379,9 @@ class MaintainiacFirestoreUploadPolicy {
       'workStyle',
       'stopDetectionMode',
       'stopReviewReasonCode',
+      'stopSignal',
+      'stopActionToken',
+      'stopClassificationReason',
       'recommendedActivityRecognition',
       'requiresStrongerStopDebounce',
       'recoveryState',
@@ -397,6 +431,18 @@ class MaintainiacFirestoreUploadPolicy {
         _isAllowedString(
           draft.data['stopReviewReasonCode'],
           _allowedDashboardStopReviewReasons,
+        ) &&
+        _isAllowedString(
+          draft.data['stopSignal'],
+          _allowedDashboardStopSignals,
+        ) &&
+        _isAllowedString(
+          draft.data['stopActionToken'],
+          _allowedDashboardStopActionTokens,
+        ) &&
+        _isAllowedString(
+          draft.data['stopClassificationReason'],
+          _allowedDashboardStopClassificationReasons,
         ) &&
         draft.data['recommendedActivityRecognition'] is bool &&
         draft.data['requiresStrongerStopDebounce'] is bool &&

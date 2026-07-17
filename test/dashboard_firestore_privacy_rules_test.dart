@@ -109,6 +109,9 @@ void main() {
       expect(rules, contains('request.resource.data.freeSyncsRemaining <= 6'));
       expect(rules, contains('request.resource.data.syncsUsedInWindow <= 999'));
       expect(rules, contains('6 - request.resource.data.syncsUsedInWindow'));
+      expect(rules, contains('request.resource.data.stopSignal'));
+      expect(rules, contains('request.resource.data.stopActionToken'));
+      expect(rules, contains('request.resource.data.stopClassificationReason'));
       expect(
         rules,
         contains('request.resource.data.locationDataIncluded == false'),

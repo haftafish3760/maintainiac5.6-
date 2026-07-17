@@ -61,6 +61,8 @@ class TripTrackingController extends ChangeNotifier {
   bool get needsWalkingReview => _engine?.needsWalkingReview ?? false;
   TripMotionState get motionState =>
       _engine?.motionState ?? TripMotionState.unknown;
+  TripTrackingDiagnostics get diagnostics =>
+      _engine?.snapshot.diagnostics ?? const TripTrackingDiagnostics();
   List<TripTrackingAdvisoryEvent> get advisories =>
       List.unmodifiable(_session?.advisories ?? const []);
   TripTrackingSessionLifecycleState? get lifecycleState =>

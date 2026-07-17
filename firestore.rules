@@ -312,6 +312,9 @@ service cloud.firestore {
         'workStyle',
         'stopDetectionMode',
         'stopReviewReasonCode',
+        'stopSignal',
+        'stopActionToken',
+        'stopClassificationReason',
         'recommendedActivityRecognition',
         'requiresStrongerStopDebounce',
         'recoveryState',
@@ -349,6 +352,9 @@ service cloud.firestore {
         'workStyle',
         'stopDetectionMode',
         'stopReviewReasonCode',
+        'stopSignal',
+        'stopActionToken',
+        'stopClassificationReason',
         'recommendedActivityRecognition',
         'requiresStrongerStopDebounce',
         'recoveryState',
@@ -456,6 +462,43 @@ service cloud.firestore {
         'delivery_stop_walk_review',
         'contractor_stop_walk_review',
         'equipment_ignores_walking_stop_evidence'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardStopSignal(value) {
+      return [
+        'no_stop',
+        'stop_candidate',
+        'review_only_stop',
+        'likely_traffic_control',
+        'equipment_ignored',
+        'unsafe_evidence'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardStopActionToken(value) {
+      return [
+        'keep_tracking',
+        'continue_monitoring',
+        'review_delivery_stop',
+        'review_jobsite_stop',
+        'review_shift_stop',
+        'review_trip_stop'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardStopClassificationReason(value) {
+      return [
+        'no_stop_review_needed',
+        'unsafe_stop_evidence_rejected',
+        'equipment_walking_evidence_ignored',
+        'road_vehicle_stop_walk_review',
+        'rideshare_stop_requires_extra_evidence',
+        'delivery_stop_walk_review',
+        'contractor_stop_walk_review',
+        'stop_candidate_waiting_for_stronger_evidence',
+        'stop_candidate_waiting_for_confirmation',
+        'traffic_control_or_stationary_jitter'
       ].hasAny([value]);
     }
 
@@ -631,6 +674,13 @@ service cloud.firestore {
         ) &&
         isAllowedDashboardStopReviewReason(
           request.resource.data.stopReviewReasonCode
+        ) &&
+        isAllowedDashboardStopSignal(request.resource.data.stopSignal) &&
+        isAllowedDashboardStopActionToken(
+          request.resource.data.stopActionToken
+        ) &&
+        isAllowedDashboardStopClassificationReason(
+          request.resource.data.stopClassificationReason
         ) &&
         request.resource.data.recommendedActivityRecognition is bool &&
         request.resource.data.requiresStrongerStopDebounce is bool &&

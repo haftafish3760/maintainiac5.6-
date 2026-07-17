@@ -20,6 +20,9 @@ void main() {
     expect(summary.workStyle, 'general_road');
     expect(summary.stopDetectionMode, 'walking_assisted');
     expect(summary.stopReviewReasonCode, 'road_vehicle_stop_walk_review');
+    expect(summary.stopSignal, 'no_stop');
+    expect(summary.stopActionToken, 'keep_tracking');
+    expect(summary.stopClassificationReason, 'no_stop_review_needed');
     expect(summary.recommendedActivityRecognition, isTrue);
     expect(summary.requiresStrongerStopDebounce, isFalse);
     expect(summary.recoveryState, 'none');
@@ -60,6 +63,9 @@ void main() {
     expect(summary.workStyle, 'delivery');
     expect(summary.stopDetectionMode, 'walking_assisted');
     expect(summary.stopReviewReasonCode, 'delivery_stop_walk_review');
+    expect(summary.stopSignal, 'no_stop');
+    expect(summary.stopActionToken, 'keep_tracking');
+    expect(summary.stopClassificationReason, 'no_stop_review_needed');
     expect(summary.recommendedActivityRecognition, isTrue);
     expect(summary.requiresStrongerStopDebounce, isFalse);
     expect(summary.recoveryState, 'none');

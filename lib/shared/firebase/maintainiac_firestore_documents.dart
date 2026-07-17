@@ -351,6 +351,9 @@ class MaintainiacFirestoreDocumentBuilder {
     String workStyle = 'general_road',
     String stopDetectionMode = 'walking_assisted',
     String stopReviewReasonCode = 'road_vehicle_stop_walk_review',
+    String stopSignal = 'no_stop',
+    String stopActionToken = 'keep_tracking',
+    String stopClassificationReason = 'no_stop_review_needed',
     bool recommendedActivityRecognition = true,
     bool requiresStrongerStopDebounce = false,
     String recoveryState = 'none',
@@ -427,6 +430,21 @@ class MaintainiacFirestoreDocumentBuilder {
           stopReviewReasonCode,
           'stopReviewReasonCode',
           _allowedDashboardStopReviewReasons,
+        ),
+        'stopSignal': _requiredDashboardSummaryToken(
+          stopSignal,
+          'stopSignal',
+          _allowedDashboardStopSignals,
+        ),
+        'stopActionToken': _requiredDashboardSummaryToken(
+          stopActionToken,
+          'stopActionToken',
+          _allowedDashboardStopActionTokens,
+        ),
+        'stopClassificationReason': _requiredDashboardSummaryToken(
+          stopClassificationReason,
+          'stopClassificationReason',
+          _allowedDashboardStopClassificationReasons,
         ),
         'recommendedActivityRecognition': recommendedActivityRecognition,
         'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
@@ -557,6 +575,37 @@ const _allowedDashboardStopReviewReasons = <String>{
   'delivery_stop_walk_review',
   'contractor_stop_walk_review',
   'equipment_ignores_walking_stop_evidence',
+};
+
+const _allowedDashboardStopSignals = <String>{
+  'no_stop',
+  'stop_candidate',
+  'review_only_stop',
+  'likely_traffic_control',
+  'equipment_ignored',
+  'unsafe_evidence',
+};
+
+const _allowedDashboardStopActionTokens = <String>{
+  'keep_tracking',
+  'continue_monitoring',
+  'review_delivery_stop',
+  'review_jobsite_stop',
+  'review_shift_stop',
+  'review_trip_stop',
+};
+
+const _allowedDashboardStopClassificationReasons = <String>{
+  'no_stop_review_needed',
+  'unsafe_stop_evidence_rejected',
+  'equipment_walking_evidence_ignored',
+  'road_vehicle_stop_walk_review',
+  'rideshare_stop_requires_extra_evidence',
+  'delivery_stop_walk_review',
+  'contractor_stop_walk_review',
+  'stop_candidate_waiting_for_stronger_evidence',
+  'stop_candidate_waiting_for_confirmation',
+  'traffic_control_or_stationary_jitter',
 };
 
 const _allowedDashboardRecoveryStates = <String>{

@@ -151,6 +151,9 @@ void main() {
     expect(data['workStyle'], 'delivery');
     expect(data['stopDetectionMode'], 'walking_assisted');
     expect(data['stopReviewReasonCode'], 'delivery_stop_walk_review');
+    expect(data['stopSignal'], 'no_stop');
+    expect(data['stopActionToken'], 'keep_tracking');
+    expect(data['stopClassificationReason'], 'no_stop_review_needed');
     expect(data['recommendedActivityRecognition'], isTrue);
     expect(data['requiresStrongerStopDebounce'], isFalse);
     expect(data['recoveryState'], 'none');

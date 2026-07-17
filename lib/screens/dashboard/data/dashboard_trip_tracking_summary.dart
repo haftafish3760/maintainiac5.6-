@@ -2,6 +2,8 @@ import '../../../shared/storage/app_storage_guard.dart';
 import '../../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
+import '../../../shared/trip_tracking/trip_stop_classification.dart';
+import '../../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart';
 import '../../../shared/trip_tracking/trip_tracking_profile_strategy.dart';
@@ -19,6 +21,9 @@ class DashboardTripTrackingSummary {
     required this.workStyle,
     required this.stopDetectionMode,
     required this.stopReviewReasonCode,
+    required this.stopSignal,
+    required this.stopActionToken,
+    required this.stopClassificationReason,
     required this.recommendedActivityRecognition,
     required this.requiresStrongerStopDebounce,
     required this.recoveryState,
@@ -46,6 +51,9 @@ class DashboardTripTrackingSummary {
   final String workStyle;
   final String stopDetectionMode;
   final String stopReviewReasonCode;
+  final String stopSignal;
+  final String stopActionToken;
+  final String stopClassificationReason;
   final bool recommendedActivityRecognition;
   final bool requiresStrongerStopDebounce;
   final String recoveryState;
@@ -87,6 +95,9 @@ class DashboardTripTrackingSummary {
     String recoveryState = 'none',
     String recoveryReason = 'trip_recovery_none',
     bool recoveryUserActionRequired = false,
+    String stopSignal = 'no_stop',
+    String stopActionToken = 'keep_tracking',
+    String stopClassificationReason = 'no_stop_review_needed',
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -117,6 +128,11 @@ class DashboardTripTrackingSummary {
       ),
       stopReviewReasonCode: _safeStopReviewReasonCode(
         strategy.stopReviewReasonCode,
+      ),
+      stopSignal: _safeStopSignal(stopSignal),
+      stopActionToken: _safeStopActionToken(stopActionToken),
+      stopClassificationReason: _safeStopClassificationReason(
+        stopClassificationReason,
       ),
       recommendedActivityRecognition: strategy.recommendedActivityRecognition,
       requiresStrongerStopDebounce: strategy.requiresStrongerStopDebounce,
@@ -173,6 +189,10 @@ class DashboardTripTrackingSummary {
     final activeTrip = tripTracking?.isTracking == true;
     final nativeTracking = tripTracking?.nativeTracking == true;
     final recoveryDecision = tripTracking?.recoveryDecision;
+    final stopClassification = _stopClassificationFor(
+      settings: settings,
+      tripTracking: tripTracking,
+    );
     final capabilityGuidance = tripTracking?.lastKnownCapabilities == null
         ? null
         : TripTrackingCapabilityGuidance.fromCapabilities(
@@ -212,6 +232,10 @@ class DashboardTripTrackingSummary {
       recoveryState: _recoveryStateFor(recoveryDecision),
       recoveryReason: _recoveryReasonFor(recoveryDecision),
       recoveryUserActionRequired: recoveryDecision?.requiresUserAction == true,
+      stopSignal: _dashboardStopSignalFor(stopClassification),
+      stopActionToken: stopClassification?.actionToken ?? 'keep_tracking',
+      stopClassificationReason:
+          stopClassification?.reasonCode ?? 'no_stop_review_needed',
       wifiAvailable: wifiAvailable,
       mobileDataAvailable: mobileDataAvailable,
       syncsUsedInWindow: syncsUsedInWindow,
@@ -238,6 +262,38 @@ String _gpsAssistState({
   if (nativeTracking) return 'on';
   if (recoverableTrip) return 'gps_assisted';
   return 'gps_assisted';
+}
+
+TripStopClassification? _stopClassificationFor({
+  required TripTrackingSettings settings,
+  required TripTrackingController? tripTracking,
+}) {
+  if (tripTracking == null || !tripTracking.isTracking) return null;
+  final counts = tripTracking.diagnostics.dispositionCounts;
+  return TripStopClassifier.classify(
+    profile: settings.defaultProfile,
+    motionState: tripTracking.motionState,
+    needsWalkingReview: tripTracking.needsWalkingReview,
+    excludedWalkingCount: counts[TripSampleDisposition.excludedWalking] ?? 0,
+    rejectedDriftCount: counts[TripSampleDisposition.rejectedDrift] ?? 0,
+    rejectedUnsafeCount:
+        (counts[TripSampleDisposition.rejectedInvalid] ?? 0) +
+        (counts[TripSampleDisposition.rejectedMockLocation] ?? 0) +
+        (counts[TripSampleDisposition.rejectedAccuracy] ?? 0) +
+        (counts[TripSampleDisposition.rejectedOutOfOrder] ?? 0),
+    acceptedDistanceCount: counts[TripSampleDisposition.acceptedDistance] ?? 0,
+  );
+}
+
+String _dashboardStopSignalFor(TripStopClassification? classification) {
+  return switch (classification?.signal) {
+    TripStopSignal.stopCandidate => 'stop_candidate',
+    TripStopSignal.reviewOnlyStop => 'review_only_stop',
+    TripStopSignal.likelyTrafficControl => 'likely_traffic_control',
+    TripStopSignal.equipmentIgnored => 'equipment_ignored',
+    TripStopSignal.unsafeEvidence => 'unsafe_evidence',
+    _ => 'no_stop',
+  };
 }
 
 String _deviceCapabilityStateFor(
