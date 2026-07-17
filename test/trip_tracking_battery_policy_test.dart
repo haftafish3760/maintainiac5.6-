@@ -65,12 +65,19 @@ void main() {
       'status': 'allowed',
       'reasonCode': 'user_override_low_battery',
       'batteryBucket': 'below_20',
+      'safetyCutoffPercent': 20,
       'promptTitle': 'GPS battery guard',
       'promptBody':
           'GPS is continuing because you opted in to bypass the battery guard.',
       'allowsGps': true,
       'requiresUserChoice': false,
+      'userCanOverride': false,
+      'continueGpsActionLabel': 'Continue with GPS',
+      'cancelGpsActionLabel': 'Cancel GPS',
+      'doNotShowAgainAvailable': false,
+      'settingsReversalAvailable': true,
       'preciseBatteryIncluded': false,
+      'rawBatteryPayloadIncluded': false,
     });
   });
 
@@ -164,6 +171,8 @@ void main() {
       final summary = decision.toSafeSummary();
 
       expect(summary['preciseBatteryIncluded'], isFalse);
+      expect(summary['rawBatteryPayloadIncluded'], isFalse);
+      expect(summary['settingsReversalAvailable'], isTrue);
       expect(summary.toString(), isNot(contains('batteryPercent')));
       expect(
         summary['batteryBucket'],
