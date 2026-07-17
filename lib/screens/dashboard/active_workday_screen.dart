@@ -7,6 +7,7 @@ import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
@@ -744,6 +745,9 @@ class _GpsTripPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context)?.settings;
+    final guidance = settings == null
+        ? null
+        : TripTrackingDashboardGuidance.fromSettings(settings);
     final odometer = GlobalOdometerScope.of(context);
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
@@ -787,8 +791,8 @@ class _GpsTripPanel extends StatelessWidget {
                       ? 'Tracking ${controller!.acceptedMeters.toStringAsFixed(0)} m; odometer is live.'
                       : tracking
                       ? 'Trip is recoverable. Resume GPS when ready.'
-                      : settings?.gpsAssistedTrackingEnabled == true
-                      ? 'Ready when you are driving.'
+                      : guidance?.enabled == true
+                      ? guidance!.primaryStatus
                       : 'Off in trip tracking settings.',
                   style: const TextStyle(
                     color: Color(0xFFCAD2D5),
@@ -807,6 +811,53 @@ class _GpsTripPanel extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
                       ),
+                    ),
+                  ),
+                ],
+                if (guidance != null && !tracking) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    guidance.stopDetectionStatus,
+                    style: const TextStyle(
+                      color: Color(0xFF95A2A8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: guidance.dashboardBadges
+                        .map(
+                          (badge) => _GpsTripBadge(
+                            label: badge,
+                            active: guidance.enabled,
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
+                ],
+                if (guidance?.shouldShowActivityRecognitionRecommendation ==
+                    true) ...[
+                  const SizedBox(height: 3),
+                  const Text(
+                    'Motion assist is recommended for this work profile, but it remains opt-in.',
+                    style: TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+                if (guidance?.shouldShowOdometerReview == true) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    guidance!.odometerStatus,
+                    style: const TextStyle(
+                      color: Color(0xFFCAD2D5),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -885,6 +936,37 @@ class _GpsTripPanel extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GpsTripBadge extends StatelessWidget {
+  const _GpsTripBadge({required this.label, required this.active});
+
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: active ? const Color(0xFF1E342B) : const Color(0xFF2A3033),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: active ? const Color(0xFF20F060) : const Color(0xFF52656D),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? const Color(0xFFE8FFF0) : const Color(0xFFCAD2D5),
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
       ),
     );
   }

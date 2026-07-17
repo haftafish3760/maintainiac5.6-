@@ -364,6 +364,86 @@ void main() {
     );
   });
 
+  testWidgets('active day shows profile-aware GPS guidance before tracking', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 1500);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    odometer.dispose();
+    odometer = GlobalOdometerController(initialReading: 1000);
+    final activeWorkday = ActiveWorkdayController.memory();
+    await activeWorkday.startDay(
+      vehicleId: odometer.vehicleId,
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'delivery',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 16, 8),
+    );
+    final tripController = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+      platform: _DashboardTripNativeGateway(
+        batterySnapshot: const TripTrackingBatterySnapshot(
+          batteryPercent: 90,
+          isCharging: false,
+          lowPowerModeEnabled: false,
+        ),
+      ),
+    );
+    final settingsController = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        defaultProfile: TripTrackingProfile.deliveryVehicle,
+        backupNetworkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
+      ),
+    );
+    addTearDown(tripController.dispose);
+    addTearDown(settingsController.dispose);
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: ActiveWorkdayScope(
+          controller: activeWorkday,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: TripTrackingSettingsScope(
+              controller: settingsController,
+              child: TripTrackingScope(
+                controller: tripController,
+                child: const MaterialApp(
+                  home: ActiveWorkdayScreen(
+                    activeVehicle: VehicleProfilePreview(
+                      id: 'vehicle_1',
+                      nickname: 'Work Truck',
+                      year: '2026',
+                      make: 'Ford',
+                      model: 'Transit',
+                      odometer: '0001000',
+                      status: 'ACTIVE',
+                    ),
+                    workProfileName: 'Delivery',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.ensureVisible(find.text('GPS-ASSISTED TRIP'));
+    expect(find.text('GPS assist is ready for delivery work.'), findsOneWidget);
+    expect(find.textContaining('walking evidence'), findsOneWidget);
+    expect(find.text('Delivery'), findsWidgets);
+    expect(find.text('Sync: Wi-Fi only'), findsOneWidget);
+    expect(find.text('Battery guard on'), findsOneWidget);
+    expect(find.textContaining('Motion assist is recommended'), findsOneWidget);
+    expect(find.textContaining('Odometer remains'), findsOneWidget);
+  });
+
   testWidgets('active day asks before starting GPS below 20 percent battery', (
     tester,
   ) async {
