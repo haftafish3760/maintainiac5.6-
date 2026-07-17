@@ -405,11 +405,15 @@ class TripTrackingEngineSnapshot {
               .toList(growable: false)
         : const <TripActivityObservation>[];
     final vehicleMovementObserved = map['vehicleMovementObserved'] == true;
+    final lastAccepted = map['lastAccepted'] is Map
+        ? TripLocationSample.tryFromMap(map['lastAccepted'] as Map)
+        : null;
     return TripTrackingEngineSnapshot(
-      lastAccepted: map['lastAccepted'] is Map
-          ? TripLocationSample.tryFromMap(map['lastAccepted'] as Map)
-          : null,
-      lastObservedAt: DateTime.tryParse('${map['lastObservedAt'] ?? ''}'),
+      lastAccepted: lastAccepted,
+      lastObservedAt: _safeLastObservedAt(
+        map['lastObservedAt'],
+        lastAccepted: lastAccepted,
+      ),
       totalAcceptedMeters: _safeAcceptedMeters(map['totalAcceptedMeters']),
       walkingEvidence: walkingEvidence,
       walkingReviewSuggested: _safeWalkingReviewSuggested(
@@ -432,6 +436,7 @@ class TripTrackingEngineSnapshot {
 }
 
 const _maxPersistedWalkingEvidence = 12;
+const _maxPersistedObservationLead = Duration(minutes: 2);
 
 Iterable<TripActivityObservation> _boundedWalkingEvidence(
   Iterable<TripActivityObservation> evidence,
@@ -588,6 +593,23 @@ String _safeAlgorithmVersion(Object? value) {
       .replaceAll(RegExp(r'^_|_$'), '');
   if (safe.isEmpty) return 'gps-v1';
   return safe.length > 48 ? safe.substring(0, 48) : safe;
+}
+
+DateTime? _safeLastObservedAt(
+  Object? value, {
+  required TripLocationSample? lastAccepted,
+}) {
+  if (lastAccepted == null) return null;
+  final parsed = _tripTimestampFrom(value);
+  if (parsed == null) return lastAccepted.recordedAt;
+  if (parsed.isBefore(lastAccepted.recordedAt)) {
+    return lastAccepted.recordedAt;
+  }
+  if (parsed.difference(lastAccepted.recordedAt) >
+      _maxPersistedObservationLead) {
+    return lastAccepted.recordedAt;
+  }
+  return parsed;
 }
 
 class TripSamplingRecommendation {

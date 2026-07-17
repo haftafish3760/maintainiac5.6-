@@ -734,6 +734,34 @@ void main() {
     },
   );
 
+  test('restored observation timestamp cannot poison future samples', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot.fromMap({
+        'lastAccepted': sample(-80, 0).toMap(),
+        'lastObservedAt': start.add(const Duration(days: 30)).toIso8601String(),
+        'totalAcceptedMeters': 0,
+      }),
+    );
+
+    final decision = restored.ingest(sample(-79.9998, 20));
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(restored.totalAcceptedMeters, greaterThan(0));
+  });
+
+  test('last observed restore is discarded without a valid anchor', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'lastObservedAt': start.add(const Duration(days: 30)).toIso8601String(),
+      'totalAcceptedMeters': 0,
+    });
+    final restored = TripTrackingEngine.fromSnapshot(snapshot);
+
+    final decision = restored.ingest(sample(-80, 0));
+
+    expect(snapshot.lastObservedAt, isNull);
+    expect(decision.disposition, TripSampleDisposition.acceptedAnchor);
+  });
+
   test('persisted walking evidence keeps only a bounded recent window', () {
     final snapshot = TripTrackingEngineSnapshot.fromMap({
       'totalAcceptedMeters': 17,
