@@ -93,6 +93,10 @@ class TripTrackingSessionRecord {
       map['profile'],
       TripTrackingProfile.values.map((value) => value.name),
     );
+    final hasSupportedSchemaVersion = _hasSupportedSessionSchemaVersion(
+      map,
+      'schemaVersion',
+    );
     return TripTrackingSessionRecord(
       id: _safeIdentifier(map['id']),
       vehicleId: _safeIdentifier(map['vehicleId']),
@@ -127,7 +131,8 @@ class TripTrackingSessionRecord {
           hasSafeIdentity &&
           hasValidProfile &&
           hasValidLifecycleState &&
-          hasValidHealthState,
+          hasValidHealthState &&
+          hasSupportedSchemaVersion,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
     );
   }
@@ -307,6 +312,10 @@ class TripTrackingReviewRecord {
       'cloudSyncState',
       TripTrackingCloudSyncState.values.map((value) => value.name),
     );
+    final hasSupportedSchemaVersion = _hasSupportedSessionSchemaVersion(
+      map,
+      'schemaVersion',
+    );
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
@@ -369,7 +378,8 @@ class TripTrackingReviewRecord {
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(cloudSyncState, cloudSyncedAt) &&
           hasValidConfirmation &&
-          estimatedEndingOdometer >= startingOdometer,
+          estimatedEndingOdometer >= startingOdometer &&
+          hasSupportedSchemaVersion,
     );
   }
 }
@@ -383,6 +393,14 @@ int _sessionSchemaVersion(Object? value) {
   if (value is! num || !value.isFinite) return 1;
   final version = value.toInt();
   return version < 1 ? 1 : version;
+}
+
+bool _hasSupportedSessionSchemaVersion(Map<dynamic, dynamic> map, String key) {
+  if (!map.containsKey(key)) return true;
+  final rawVersion = map[key];
+  if (rawVersion is! num || !rawVersion.isFinite) return false;
+  final version = rawVersion.toInt();
+  return version >= 1 && version <= 1;
 }
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
