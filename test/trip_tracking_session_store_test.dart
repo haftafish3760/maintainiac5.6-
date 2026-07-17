@@ -183,6 +183,37 @@ void main() {
     expect(TripLocationSample.tryFromMap(map)?.speedMetersPerSecond, isNull);
   });
 
+  test('malformed GPS and activity numeric fields are isolated', () {
+    expect(
+      TripLocationSample.tryFromMap({
+        'latitude': '35.0',
+        'longitude': -80,
+        'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+        'horizontalAccuracyMeters': 5,
+      }),
+      isNull,
+    );
+
+    expect(
+      TripLocationSample.tryFromMap({
+        'latitude': 35,
+        'longitude': -80,
+        'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+        'horizontalAccuracyMeters': 'accurate',
+      }),
+      isNull,
+    );
+
+    expect(
+      TripActivityObservation.tryFromMap({
+        'activity': 'walking',
+        'confidence': 'high',
+        'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+      }),
+      isNull,
+    );
+  });
+
   test('persisted engine snapshots do not write invalid accepted distance', () {
     const snapshot = TripTrackingEngineSnapshot(
       totalAcceptedMeters: double.negativeInfinity,

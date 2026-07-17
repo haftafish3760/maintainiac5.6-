@@ -234,9 +234,9 @@ class TripLocationSample {
   /// intentional: missing coordinates or a timestamp must not become a
   /// plausible-looking point at (0, 0) or at the current time.
   static TripLocationSample? tryFromMap(Map<dynamic, dynamic> map) {
-    final latitude = (map['latitude'] as num?)?.toDouble();
-    final longitude = (map['longitude'] as num?)?.toDouble();
-    final accuracy = (map['horizontalAccuracyMeters'] as num?)?.toDouble();
+    final latitude = _tripNumberFrom(map['latitude']);
+    final longitude = _tripNumberFrom(map['longitude']);
+    final accuracy = _tripNumberFrom(map['horizontalAccuracyMeters']);
     final recordedAt = _tripTimestampFrom(map['recordedAt']);
     if (latitude == null ||
         longitude == null ||
@@ -259,8 +259,13 @@ class TripLocationSample {
 }
 
 double? _tripSpeedFrom(Object? rawSpeed) {
-  final speed = (rawSpeed as num?)?.toDouble();
+  final speed = _tripNumberFrom(rawSpeed);
   return speed != null && speed.isFinite && speed >= 0 ? speed : null;
+}
+
+double? _tripNumberFrom(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  return value.toDouble();
 }
 
 DateTime? _tripTimestampFrom(Object? rawTimestamp) {
@@ -301,8 +306,8 @@ class TripActivityObservation {
   /// Parses a complete activity observation without substituting the current
   /// time for a missing native timestamp.
   static TripActivityObservation? tryFromMap(Map<dynamic, dynamic> map) {
-    final rawConfidence = map['confidence'] as num?;
-    if (rawConfidence == null || !rawConfidence.isFinite) return null;
+    final rawConfidence = _tripNumberFrom(map['confidence']);
+    if (rawConfidence == null) return null;
     final confidence = rawConfidence.round();
     final recordedAt = DateTime.tryParse('${map['recordedAt'] ?? ''}');
     if (confidence < 0 || confidence > 100 || recordedAt == null) {
