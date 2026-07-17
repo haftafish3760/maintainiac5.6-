@@ -127,6 +127,26 @@ void main() {
     );
   });
 
+  test('native capability dependencies fail closed without location', () {
+    final capabilities = TripTrackingPlatformCapabilities.fromMap({
+      'locationAvailable': false,
+      'backgroundTrackingAvailable': true,
+      'activityRecognitionAvailable': true,
+      'batteryStateAvailable': true,
+      'lowPowerModeAvailable': true,
+    });
+
+    expect(capabilities.locationAvailable, isFalse);
+    expect(capabilities.backgroundTrackingAvailable, isFalse);
+    expect(capabilities.activityRecognitionAvailable, isFalse);
+    expect(capabilities.batteryStateAvailable, isFalse);
+    expect(capabilities.lowPowerModeAvailable, isFalse);
+    expect(
+      capabilities.deviceTier,
+      TripTrackingDeviceCapabilityTier.unavailable,
+    );
+  });
+
   test('malformed native battery snapshots are not trusted', () {
     final valid = TripTrackingBatterySnapshot.fromMap({
       'batteryPercent': 19.4,

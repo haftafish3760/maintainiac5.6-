@@ -148,15 +148,21 @@ class TripTrackingPlatformCapabilities {
     return TripTrackingDeviceCapabilityTier.locationOnly;
   }
 
-  factory TripTrackingPlatformCapabilities.fromMap(Map<dynamic, dynamic> map) =>
-      TripTrackingPlatformCapabilities(
-        locationAvailable: map['locationAvailable'] == true,
-        backgroundTrackingAvailable: map['backgroundTrackingAvailable'] == true,
-        activityRecognitionAvailable:
-            map['activityRecognitionAvailable'] == true,
-        batteryStateAvailable: map['batteryStateAvailable'] == true,
-        lowPowerModeAvailable: map['lowPowerModeAvailable'] == true,
-      );
+  factory TripTrackingPlatformCapabilities.fromMap(Map<dynamic, dynamic> map) {
+    final locationAvailable = map['locationAvailable'] == true;
+    final batteryStateAvailable =
+        locationAvailable && map['batteryStateAvailable'] == true;
+    return TripTrackingPlatformCapabilities(
+      locationAvailable: locationAvailable,
+      backgroundTrackingAvailable:
+          locationAvailable && map['backgroundTrackingAvailable'] == true,
+      activityRecognitionAvailable:
+          locationAvailable && map['activityRecognitionAvailable'] == true,
+      batteryStateAvailable: batteryStateAvailable,
+      lowPowerModeAvailable:
+          batteryStateAvailable && map['lowPowerModeAvailable'] == true,
+    );
+  }
 }
 
 enum TripTrackingDeviceCapabilityTier {
