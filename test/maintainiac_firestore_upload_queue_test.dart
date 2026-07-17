@@ -111,6 +111,26 @@ void main() {
     expect(queue.records, isEmpty);
   });
 
+  test('upload sinks cannot mutate queued document payloads', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await queue.enqueue(_safeDraft('parserHealth/immutable_sink_payload'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: _MutatingFirestoreSink(),
+      uploadEnabled: true,
+    ).uploadPending(nowUtc: DateTime.utc(2026, 7, 17, 12));
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.failed);
+    expect(result.failedCount, 1);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(queue.pendingRecords.single.data['schema'], 'qa_safe_document_v1');
+    expect(
+      queue.pendingRecords.single.data.keys,
+      isNot(contains('mutatedBySink')),
+    );
+  });
+
   test('free sync quota exhaustion preserves pending uploads', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink();
@@ -769,5 +789,15 @@ class _RecordingFirestoreSink implements MaintainiacFirestoreDocumentSink {
       throw StateError(failureMessage);
     }
     writes[path] = data;
+  }
+}
+
+class _MutatingFirestoreSink implements MaintainiacFirestoreDocumentSink {
+  @override
+  Future<void> writeDocument({
+    required String path,
+    required Map<String, Object?> data,
+  }) async {
+    data['mutatedBySink'] = true;
   }
 }

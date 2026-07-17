@@ -387,7 +387,10 @@ class MaintainiacFirestoreUploadCoordinator {
             data: record.data,
           ),
         );
-        await _sink.writeDocument(path: record.path, data: record.data);
+        await _sink.writeDocument(
+          path: record.path,
+          data: Map<String, Object?>.unmodifiable(record.data),
+        );
         uploadedIds.add(record.id);
         uploadedCount += 1;
       } catch (error) {
