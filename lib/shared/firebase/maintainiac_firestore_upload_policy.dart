@@ -492,7 +492,7 @@ class MaintainiacFirestoreUploadPolicy {
   ) => !data.containsKey(field) || _isBoundedDashboardReference(data[field]);
 
   static bool _isAllowedString(Object? value, Set<String> allowed) =>
-      value is String && allowed.contains(value.trim());
+      value is String && allowed.contains(value);
 
   static bool _isIsoTimestamp(Object? value) =>
       value is String && DateTime.tryParse(value) != null;

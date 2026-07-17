@@ -238,6 +238,34 @@ void main() {
     }
   });
 
+  test('dashboard upload policy rejects padded mode and state values', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          dashboardId: 'today',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        );
+
+    for (final entry in const <String, String>{
+      'dashboardMode': ' default ',
+      'mileageMode': ' manual ',
+      'syncMode': ' wifi_only ',
+      'gpsAssistState': ' off ',
+      'storageState': ' unknown ',
+    }.entries) {
+      final poisoned = MaintainiacFirestoreDocumentDraft(
+        path: doc.path,
+        data: {...doc.data, entry.key: entry.value},
+      );
+
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+        throwsArgumentError,
+        reason: '${entry.key} must match the Firestore rules enum exactly',
+      );
+    }
+  });
+
   test('dashboard summary builder rejects unknown mode and state values', () {
     for (final entry in const <String, String>{
       'dashboardMode': 'god_mode',
