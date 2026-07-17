@@ -1,6 +1,7 @@
 import '../../../shared/context/operational_context_models.dart';
 import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
+import 'dashboard_trip_tracking_summary.dart';
 
 /// Dashboard-only cloud mirror.
 ///
@@ -106,6 +107,36 @@ class DashboardFirestoreMirror {
       syncsUsedInWindow: syncsUsedInWindow,
       batteryGpsLimited: batteryGpsLimited,
       reviewRequired: reviewRequired,
+    );
+  }
+
+  Future<void> queueTripTrackingSummary({
+    required String uid,
+    required String dashboardId,
+    required DateTime updatedAtUtc,
+    required DashboardTripTrackingSummary tripTracking,
+    String? orgId,
+    String? activeVehicleId,
+    String? activeWorkdayId,
+    String? activeWorkProfileId,
+  }) {
+    return queueSummary(
+      uid: uid,
+      dashboardId: dashboardId,
+      updatedAtUtc: updatedAtUtc,
+      orgId: orgId,
+      activeVehicleId: activeVehicleId,
+      activeWorkdayId: activeWorkdayId,
+      activeWorkProfileId: activeWorkProfileId,
+      dashboardMode: tripTracking.dashboardMode,
+      mileageMode: tripTracking.mileageMode,
+      syncMode: tripTracking.syncMode,
+      gpsAssistState: tripTracking.gpsAssistState,
+      storageState: tripTracking.storageState,
+      freeSyncsRemaining: tripTracking.freeSyncsRemaining,
+      syncsUsedInWindow: tripTracking.syncsUsedInWindow,
+      batteryGpsLimited: tripTracking.batteryGpsLimited,
+      reviewRequired: tripTracking.reviewRequired,
     );
   }
 
