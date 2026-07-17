@@ -485,14 +485,25 @@ class TripTrackingPendingSample {
     }
     final sample = TripLocationSample.tryFromMap(sampleMap);
     if (sample == null) return null;
+    final activity = map['activity'] is Map
+        ? TripActivityObservation.tryFromMap(map['activity'] as Map)
+        : null;
     return TripTrackingPendingSample(
       sessionId: sessionId as String,
       sample: sample,
-      activity: map['activity'] is Map
-          ? TripActivityObservation.tryFromMap(map['activity'] as Map)
-          : null,
+      activity: _isCoherentPendingActivity(sample, activity) ? activity : null,
     );
   }
+}
+
+bool _isCoherentPendingActivity(
+  TripLocationSample sample,
+  TripActivityObservation? activity,
+) {
+  if (activity == null) return false;
+  if (sample.recordedAt.isBefore(activity.recordedAt)) return false;
+  return sample.recordedAt.difference(activity.recordedAt) <=
+      const Duration(seconds: 90);
 }
 
 class TripTrackingSessionStore {

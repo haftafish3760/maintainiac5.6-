@@ -308,6 +308,39 @@ void main() {
     expect(recovered?.sample.mockedLocation, isTrue);
   });
 
+  test('pending recovery ignores stale or future activity evidence', () {
+    final sampleAt = DateTime.utc(2026, 7, 12, 12);
+    Map<String, Object?> pendingWithActivity(DateTime activityAt) =>
+        TripTrackingPendingSample(
+          sessionId: 'trip_pending_activity_window',
+          sample: TripLocationSample(
+            latitude: 35,
+            longitude: -80,
+            recordedAt: sampleAt,
+            horizontalAccuracyMeters: 5,
+          ),
+          activity: TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 90,
+            recordedAt: activityAt,
+          ),
+        ).toMap();
+
+    final recent = TripTrackingPendingSample.tryFromMap(
+      pendingWithActivity(sampleAt.subtract(const Duration(seconds: 45))),
+    );
+    final stale = TripTrackingPendingSample.tryFromMap(
+      pendingWithActivity(sampleAt.subtract(const Duration(seconds: 91))),
+    );
+    final future = TripTrackingPendingSample.tryFromMap(
+      pendingWithActivity(sampleAt.add(const Duration(seconds: 1))),
+    );
+
+    expect(recent?.activity, isNotNull);
+    expect(stale?.activity, isNull);
+    expect(future?.activity, isNull);
+  });
+
   test('persisted GPS samples do not write unusable speed values', () {
     final sample = TripLocationSample(
       latitude: 35,
