@@ -621,4 +621,35 @@ void main() {
       expect(highGpsSignal.canOverwriteConfirmedOdometer, isFalse);
     },
   );
+
+  test('calibration vehicle matching normalizes legacy padded ids', () {
+    final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+    final reviews = List.generate(
+      7,
+      (index) => TripTrackingReviewRecord(
+        id: 'trip_padded_vehicle_$index',
+        vehicleId: index.isEven ? 'vehicle_1' : ' vehicle_1 ',
+        startingOdometer: 1000 + (index * 100),
+        estimatedEndingOdometer: 1100 + (index * 100),
+        confirmedEndingOdometer: 1100 + (index * 100),
+        odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+        finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 94 * 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+      vehicleId: ' vehicle_1 ',
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.reasonCode, 'persistent_gps_odometer_drift');
+  });
 }

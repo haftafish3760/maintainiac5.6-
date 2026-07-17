@@ -284,7 +284,7 @@ class TripOdometerCalibrationSignal {
         )
         .toList(growable: false);
     final vehicleIds = confirmedReviews
-        .map((review) => review.vehicleId)
+        .map((review) => review.vehicleId.trim())
         .toSet();
     if ((requestedVehicleId == null || requestedVehicleId.isEmpty) &&
         vehicleIds.length > 1) {
