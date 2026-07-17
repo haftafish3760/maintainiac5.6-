@@ -19,9 +19,7 @@ class OdometerVehicleSnapshot {
     final rawHistory = map['history'];
     return OdometerVehicleSnapshot(
       vehicleId: '${map['vehicleId'] ?? defaultVehicleId}',
-      currentReading: map['currentReading'] is int
-          ? map['currentReading'] as int
-          : int.tryParse('${map['currentReading'] ?? ''}') ?? 0,
+      currentReading: _safeOdometerReading(map['currentReading']),
       updatedAt:
           DateTime.tryParse('${map['updatedAt'] ?? ''}') ?? DateTime.now(),
       history: rawHistory is Iterable
@@ -37,12 +35,18 @@ class OdometerVehicleSnapshot {
   Map<String, Object?> toMap() {
     return {
       'vehicleId': vehicleId,
-      'currentReading': currentReading,
+      'currentReading': _safeOdometerReading(currentReading),
       'updatedAt': updatedAt.toIso8601String(),
       'history': history.map((event) => event.toMap()).toList(),
       'drivingPatternReviewEnabled': drivingPatternReviewEnabled,
     };
   }
+}
+
+int _safeOdometerReading(Object? value) {
+  final parsed = value is int ? value : int.tryParse('${value ?? ''}');
+  if (parsed == null || parsed < 0) return 0;
+  return parsed;
 }
 
 const defaultVehicleId = 'active_vehicle';

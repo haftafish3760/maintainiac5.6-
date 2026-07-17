@@ -30,6 +30,27 @@ void main() {
     expect(saved.history.last.mileageReview?.businessMiles, 30);
   });
 
+  test(
+    'odometer vehicle snapshots never persist negative current readings',
+    () {
+      final saved = OdometerVehicleSnapshot(
+        vehicleId: 'truck-negative',
+        currentReading: -42,
+        updatedAt: DateTime.utc(2026, 7, 17, 12),
+        history: const [],
+      ).toMap();
+      final restored = OdometerVehicleSnapshot.fromMap({
+        'vehicleId': 'truck-negative',
+        'currentReading': -99,
+        'updatedAt': DateTime.utc(2026, 7, 17, 12).toIso8601String(),
+        'history': const [],
+      });
+
+      expect(saved['currentReading'], isZero);
+      expect(restored.currentReading, isZero);
+    },
+  );
+
   test('switching vehicles keeps odometer histories separate', () async {
     final store = OdometerStore.memory();
     await store.saveSnapshot(
