@@ -90,6 +90,22 @@ void main() {
     expect(store.activeSession, isNull);
   });
 
+  test('starting a workday rejects negative odometers before persistence', () {
+    final store = ActiveWorkdayController.memory();
+
+    expect(
+      () => store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: -1,
+      ),
+      throwsArgumentError,
+    );
+
+    expect(store.activeSession, isNull);
+  });
+
   test('unsafe active workday ids are not used as durable lookup keys', () {
     final store = ActiveWorkdayController.memory();
 

@@ -385,6 +385,13 @@ class ActiveWorkdayController extends ChangeNotifier {
   }) => _enqueue(() async {
     final existing = activeSession;
     if (existing != null) return existing;
+    if (startOdometer < 0) {
+      throw ArgumentError.value(
+        startOdometer,
+        'startOdometer',
+        'Active day starting odometer cannot be negative.',
+      );
+    }
     await _ensureStorageForWrite();
     final now = startedAt ?? DateTime.now();
     final sessionId = _newId('workday');
