@@ -865,8 +865,9 @@ class TripTrackingController extends ChangeNotifier {
           } else if (event.activity != null) {
             _latestActivity = event.activity;
           } else if (event.type == TripTrackingPlatformEventType.status) {
-            _platformStatus = event.status;
-            if (event.status == 'stopped') {
+            final status = event.status;
+            if (status == 'stopped') {
+              _platformStatus = status;
               _nativeTracking = false;
               _nativeSampling = null;
               unawaited(_platformSubscription?.cancel());
@@ -877,6 +878,12 @@ class TripTrackingController extends ChangeNotifier {
                   TripTrackingSessionLifecycleState.paused,
                 );
               }
+            } else if (status == 'tracking' && _nativeTracking) {
+              _platformStatus = status;
+            } else if (status == 'idle' && !_nativeTracking) {
+              _platformStatus = status;
+            } else {
+              return;
             }
             notifyListeners();
           } else if (event.type == TripTrackingPlatformEventType.error) {

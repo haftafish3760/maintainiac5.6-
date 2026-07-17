@@ -1666,6 +1666,36 @@ void main() {
   );
 
   test(
+    'native idle status is ignored while GPS is actively tracking',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_active_status_guard',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+      expect(controller.platformStatus, 'tracking');
+
+      native.addStatus('idle');
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.platformStatus, 'tracking');
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(native.hasEventListener, isTrue);
+      expect(native.stopCalls, 0);
+    },
+  );
+
+  test(
     'disposing the controller detaches its native GPS event listener',
     () async {
       final native = _FakeTripTrackingPlatform();
