@@ -4,21 +4,40 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_usage_ano
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
-  test('unusually high odometer delta recommends review from driver history', () {
-    final signal = TripOdometerUsageAnomalySignal.evaluate(
-      currentOdometerMiles: 180,
-      history: _history(dailyMiles: 40),
-      vehicleId: 'vehicle_1',
-    );
+  test(
+    'unusually high odometer delta recommends review from driver history',
+    () {
+      final signal = TripOdometerUsageAnomalySignal.evaluate(
+        currentOdometerMiles: 180,
+        history: _history(dailyMiles: 40),
+        vehicleId: 'vehicle_1',
+      );
 
-    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
-    expect(signal.shouldPromptUser, isTrue);
-    expect(signal.reviewedDayCount, 7);
-    expect(signal.averageDailyMiles, 40);
-    expect(signal.reviewThresholdMiles, 100);
-    expect(signal.reasonCode, 'unusually_high_odometer_delta');
-    expect(signal.canAutoCorrectOdometer, isFalse);
-  });
+      expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+      expect(signal.shouldPromptUser, isTrue);
+      expect(signal.reviewedDayCount, 7);
+      expect(signal.averageDailyMiles, 40);
+      expect(signal.reviewThresholdMiles, 100);
+      expect(signal.reasonCode, 'unusually_high_odometer_delta');
+      expect(signal.canAutoCorrectOdometer, isFalse);
+      expect(signal.toSafeDashboardMap(), {
+        'schemaVersion': 1,
+        'status': 'reviewRecommended',
+        'reviewedDayCount': 7,
+        'currentOdometerMiles': 180.0,
+        'averageDailyMiles': 40.0,
+        'reviewThresholdMiles': 100.0,
+        'reasonCode': 'unusually_high_odometer_delta',
+        'shouldPromptUser': true,
+        'canAutoCorrectOdometer': false,
+        'odometerRemainsCanonical': true,
+        'gpsCanReplaceOdometer': false,
+        'rawHistoryIncluded': false,
+        'rawTripRecordsIncluded': false,
+        'rawLocationIncluded': false,
+      });
+    },
+  );
 
   test('normal odometer delta stays advisory-silent', () {
     final signal = TripOdometerUsageAnomalySignal.evaluate(
@@ -85,6 +104,8 @@ void main() {
     expect(signal.status, TripOdometerUsageAnomalyStatus.invalid);
     expect(signal.reasonCode, 'invalid_usage_anomaly_input');
     expect(signal.canAutoCorrectOdometer, isFalse);
+    expect(signal.toSafeDashboardMap()['currentOdometerMiles'], 0);
+    expect(signal.toSafeDashboardMap()['rawHistoryIncluded'], isFalse);
   });
 }
 
@@ -117,7 +138,8 @@ TripTrackingReviewRecord _review({
     startingOdometer: startingOdometer,
     estimatedEndingOdometer: confirmedEndingOdometer,
     confirmedEndingOdometer: confirmedEndingOdometer,
-    odometerConfirmedAt: confirmedAt ?? finishedAt.add(const Duration(minutes: 5)),
+    odometerConfirmedAt:
+        confirmedAt ?? finishedAt.add(const Duration(minutes: 5)),
     profile: TripTrackingProfile.roadVehicle,
     startedAt: startedAt,
     finishedAt: finishedAt,

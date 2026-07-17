@@ -33,6 +33,23 @@ class TripOdometerUsageAnomalySignal {
   bool get shouldPromptUser =>
       status == TripOdometerUsageAnomalyStatus.reviewRecommended;
 
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'reviewedDayCount': reviewedDayCount < 0 ? 0 : reviewedDayCount,
+    'currentOdometerMiles': _safeRoundedMiles(currentOdometerMiles),
+    'averageDailyMiles': _safeRoundedMiles(averageDailyMiles),
+    'reviewThresholdMiles': _safeRoundedMiles(reviewThresholdMiles),
+    'reasonCode': _safeUsageReason(reasonCode),
+    'shouldPromptUser': shouldPromptUser,
+    'canAutoCorrectOdometer': false,
+    'odometerRemainsCanonical': true,
+    'gpsCanReplaceOdometer': false,
+    'rawHistoryIncluded': false,
+    'rawTripRecordsIncluded': false,
+    'rawLocationIncluded': false,
+  };
+
   static TripOdometerUsageAnomalySignal evaluate({
     required double currentOdometerMiles,
     required Iterable<TripTrackingReviewRecord> history,
@@ -76,12 +93,15 @@ class TripOdometerUsageAnomalySignal {
               reviewVehicleId != requestedVehicleId)) {
         continue;
       }
-      final miles =
-          (review.confirmedEndingOdometer! - review.startingOdometer)
-              .toDouble();
+      final miles = (review.confirmedEndingOdometer! - review.startingOdometer)
+          .toDouble();
       if (!miles.isFinite || miles < 0) continue;
       final dayKey = _usageDayKey(review.startedAt.toUtc());
-      dailyMiles.update(dayKey, (value) => value + miles, ifAbsent: () => miles);
+      dailyMiles.update(
+        dayKey,
+        (value) => value + miles,
+        ifAbsent: () => miles,
+      );
     }
 
     if (dailyMiles.length < minimumReviewedDays) {
@@ -124,3 +144,18 @@ String _usageDayKey(DateTime utc) =>
     '${utc.year.toString().padLeft(4, '0')}-'
     '${utc.month.toString().padLeft(2, '0')}-'
     '${utc.day.toString().padLeft(2, '0')}';
+
+double _safeRoundedMiles(double value) {
+  if (!value.isFinite || value < 0) return 0;
+  return double.parse(value.toStringAsFixed(1));
+}
+
+String _safeUsageReason(String value) {
+  return switch (value) {
+    'invalid_usage_anomaly_input' => value,
+    'needs_more_reviewed_days_for_usage_anomaly' => value,
+    'unusually_high_odometer_delta' => value,
+    'odometer_usage_within_review_threshold' => value,
+    _ => 'invalid_usage_anomaly_input',
+  };
+}
