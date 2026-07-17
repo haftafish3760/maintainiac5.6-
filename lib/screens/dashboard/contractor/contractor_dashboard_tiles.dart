@@ -23,7 +23,7 @@ class ContractorMetricTile extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -34,18 +34,18 @@ class ContractorMetricTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFC9D1D4),
-                fontSize: 11,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
               metric.value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: metric.color,
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.w900,
               ),
             ),
