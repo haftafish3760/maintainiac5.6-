@@ -148,11 +148,23 @@ class TripTrackingPolicy {
     final speed = reportedSpeed.isFinite && reportedSpeed >= 0
         ? reportedSpeed
         : 0.0;
+    final precisionSpeed = _safePositiveDouble(
+      precisionSpeedMetersPerSecond,
+      fallback: 6.7056,
+    );
+    final precisionExitSpeed = _safePositiveDouble(
+      precisionExitSpeedMetersPerSecond,
+      fallback: 5.6,
+    );
+    final lowSpeedMovement = _safePositiveDouble(
+      lowSpeedMovementMetersPerSecond,
+      fallback: 0.8,
+    );
     final remainPrecision =
         currentMode == TripSamplingMode.precision &&
-        speed >= precisionExitSpeedMetersPerSecond;
+        speed >= precisionExitSpeed;
     if (vehicleMovementConfirmed &&
-        (speed >= precisionSpeedMetersPerSecond || remainPrecision)) {
+        (speed >= precisionSpeed || remainPrecision)) {
       return const TripSamplingRecommendation(
         mode: TripSamplingMode.precision,
         interval: Duration(seconds: 2),
@@ -161,7 +173,7 @@ class TripTrackingPolicy {
     }
     if (activeTrip ||
         vehicleMovementConfirmed ||
-        speed >= lowSpeedMovementMetersPerSecond ||
+        speed >= lowSpeedMovement ||
         profile == TripTrackingProfile.lowSpeedEquipment) {
       return const TripSamplingRecommendation(
         mode: TripSamplingMode.balanced,
@@ -176,3 +188,6 @@ class TripTrackingPolicy {
     );
   }
 }
+
+double _safePositiveDouble(double value, {required double fallback}) =>
+    value.isFinite && value >= 0 ? value : fallback;

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 
 void main() {
   final start = DateTime.utc(2026, 7, 12, 12);
@@ -121,6 +122,27 @@ void main() {
     expect(snapshot.algorithmVersion, hasLength(48));
     expect(nonFinite.schemaVersion, 1);
     expect(nonFinite.algorithmVersion, 'gps-v1');
+  });
+
+  test('malformed sampling thresholds do not force high-rate GPS', () {
+    const policy = TripTrackingPolicy(
+      precisionSpeedMetersPerSecond: double.nan,
+      precisionExitSpeedMetersPerSecond: -1,
+      lowSpeedMovementMetersPerSecond: double.infinity,
+    );
+
+    final parked = policy.samplingFor(
+      speedMetersPerSecond: 0,
+      vehicleMovementConfirmed: false,
+      currentMode: TripSamplingMode.precision,
+    );
+    final moving = policy.samplingFor(
+      speedMetersPerSecond: 7,
+      vehicleMovementConfirmed: true,
+    );
+
+    expect(parked.mode, TripSamplingMode.economy);
+    expect(moving.mode, TripSamplingMode.precision);
   });
 
   test('does not count stationary GPS jitter as miles', () {
