@@ -18,11 +18,32 @@ void main() {
       ),
     );
 
-    expect(find.text('Mapbox token missing'), findsOneWidget);
+    expect(find.text('Mapbox public token required'), findsOneWidget);
     expect(
       find.textContaining('Trip tracking must continue to work'),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('maintainiac-mapbox-test-map')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('Mapbox test screen rejects secret runtime tokens', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MapboxTestScreen(
+          config: MaintainiacMapConfig(
+            provider: MaintainiacMapProvider.mapbox,
+            mapboxAccessToken: 'sk.secret-download-token',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Mapbox public token required'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('maintainiac-mapbox-test-map')),
       findsNothing,

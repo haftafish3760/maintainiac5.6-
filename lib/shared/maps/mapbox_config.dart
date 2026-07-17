@@ -24,7 +24,7 @@ class MaintainiacMapConfig {
 
   bool get mapsEnabled => provider != MaintainiacMapProvider.none;
 
-  bool get hasMapboxToken => mapboxAccessToken.trim().isNotEmpty;
+  bool get hasMapboxToken => _isPublicMapboxToken(mapboxAccessToken);
 
   bool get canInitializeMapbox =>
       provider == MaintainiacMapProvider.mapbox && hasMapboxToken;
@@ -32,7 +32,7 @@ class MaintainiacMapConfig {
   String get statusLabel {
     if (provider == MaintainiacMapProvider.none) return 'Maps off';
     if (provider == MaintainiacMapProvider.mapbox && !hasMapboxToken) {
-      return 'Mapbox token missing';
+      return 'Mapbox public token required';
     }
     return 'Mapbox ready';
   }
@@ -44,4 +44,9 @@ class MaintainiacMapConfig {
       _ => MaintainiacMapProvider.none,
     };
   }
+}
+
+bool _isPublicMapboxToken(String value) {
+  final token = value.trim();
+  return token.startsWith('pk.') && !token.startsWith('sk.');
 }
