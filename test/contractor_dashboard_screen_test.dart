@@ -400,6 +400,110 @@ void main() {
     expect(find.text('GPS-assisted trip tracking started.'), findsOneWidget);
   });
 
+  testWidgets('active day prevents duplicate GPS stops while finishing', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 1500);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    odometer.dispose();
+    odometer = GlobalOdometerController(initialReading: 1000);
+    final activeWorkday = ActiveWorkdayController.memory();
+    await activeWorkday.startDay(
+      vehicleId: odometer.vehicleId,
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'business',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 16, 8),
+    );
+    final stopCompleter = Completer<void>();
+    final native = _DashboardTripNativeGateway(
+      batterySnapshot: const TripTrackingBatterySnapshot(
+        batteryPercent: 90,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      ),
+      stopDelay: stopCompleter.future,
+    );
+    final tripController = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+      platform: native,
+    );
+    final settingsController = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+    );
+    addTearDown(tripController.dispose);
+    addTearDown(settingsController.dispose);
+
+    await tester.pumpWidget(
+      AppStateScope(
+        controller: appState,
+        child: ActiveWorkdayScope(
+          controller: activeWorkday,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: TripTrackingSettingsScope(
+              controller: settingsController,
+              child: TripTrackingScope(
+                controller: tripController,
+                child: const MaterialApp(
+                  home: ActiveWorkdayScreen(
+                    activeVehicle: VehicleProfilePreview(
+                      id: 'vehicle_1',
+                      nickname: 'Work Truck',
+                      year: '2026',
+                      make: 'Ford',
+                      model: 'Transit',
+                      odometer: '0001000',
+                      status: 'ACTIVE',
+                    ),
+                    workProfileName: 'Business',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(FilledButton, 'STOP'), findsOneWidget);
+    await tripController.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: DateTime.utc(2026, 7, 16, 12),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+    await tripController.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -79.985,
+        recordedAt: DateTime.utc(2026, 7, 16, 12, 1),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'STOP'));
+    await tester.pump();
+    expect(find.widgetWithText(FilledButton, 'STOPPING'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'STOPPING'));
+    await tester.pump();
+    stopCompleter.complete();
+    await tester.pumpAndSettle();
+    await tester.pump();
+
+    expect(native.stopCalls, 1);
+  });
+
   testWidgets(
     'active workday stop dialog redraws live GPS odometer projection',
     (tester) async {
@@ -614,13 +718,19 @@ class _RecordingTripCloudMirror implements TripTrackingCloudMirror {
 }
 
 class _DashboardTripNativeGateway implements TripTrackingNativeGateway {
-  _DashboardTripNativeGateway({required this.batterySnapshot, this.startDelay});
+  _DashboardTripNativeGateway({
+    required this.batterySnapshot,
+    this.startDelay,
+    this.stopDelay,
+  });
 
   final TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
+  final Future<void>? stopDelay;
   final _events = StreamController<TripTrackingPlatformEvent>.broadcast();
   var requestAuthorizationCalls = 0;
   var startCalls = 0;
+  var stopCalls = 0;
   var _tracking = false;
 
   @override
@@ -665,6 +775,8 @@ class _DashboardTripNativeGateway implements TripTrackingNativeGateway {
 
   @override
   Future<void> stop() async {
+    await stopDelay;
+    stopCalls += 1;
     _tracking = false;
   }
 

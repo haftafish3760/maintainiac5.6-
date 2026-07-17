@@ -44,6 +44,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   var _elapsed = Duration.zero;
   late var _activeVehicle = widget.activeVehicle;
   var _gpsStartInFlight = false;
+  var _gpsStopInFlight = false;
 
   @override
   void initState() {
@@ -113,6 +114,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   onStop: _stopGpsTrip,
                   onReviewLatest: _reviewLatestGpsTrip,
                   startInFlight: _gpsStartInFlight,
+                  stopInFlight: _gpsStopInFlight,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -534,6 +536,20 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   }
 
   Future<void> _stopGpsTrip() async {
+    if (_gpsStopInFlight) return;
+    setState(() => _gpsStopInFlight = true);
+    try {
+      await _stopGpsTripImpl();
+    } finally {
+      if (mounted) {
+        setState(() => _gpsStopInFlight = false);
+      } else {
+        _gpsStopInFlight = false;
+      }
+    }
+  }
+
+  Future<void> _stopGpsTripImpl() async {
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (tripTracking == null || !tripTracking.isTracking) return;
     final review = await tripTracking.finishForReview();
@@ -640,12 +656,14 @@ class _GpsTripPanel extends StatelessWidget {
     required this.onStop,
     required this.onReviewLatest,
     required this.startInFlight,
+    required this.stopInFlight,
   });
 
   final Future<void> Function() onStart;
   final Future<void> Function() onStop;
   final Future<void> Function() onReviewLatest;
   final bool startInFlight;
+  final bool stopInFlight;
 
   @override
   Widget build(BuildContext context) {
@@ -766,7 +784,7 @@ class _GpsTripPanel extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            onPressed: startInFlight
+            onPressed: startInFlight || stopInFlight
                 ? null
                 : nativeTracking
                 ? onStop
@@ -779,6 +797,8 @@ class _GpsTripPanel extends StatelessWidget {
             child: Text(
               startInFlight
                   ? 'STARTING'
+                  : stopInFlight
+                  ? 'STOPPING'
                   : nativeTracking
                   ? 'STOP'
                   : tracking
