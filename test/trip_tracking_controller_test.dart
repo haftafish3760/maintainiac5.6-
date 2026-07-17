@@ -1143,9 +1143,45 @@ void main() {
       controller.lifecycleState,
       TripTrackingSessionLifecycleState.interrupted,
     );
-    expect(controller.platformError, contains('could not register'));
+    expect(controller.platformError, contains('could not be registered'));
     expect(native.stopCalls, 1);
   });
+
+  test(
+    'native platform errors do not surface raw tokens or coordinates',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_platform_error_redaction',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addPlatformError(
+        code: 'upstream_raw_error',
+        message: 'token=pk.secret lat=35.123 lon=-80.456',
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.platformError, 'GPS reported a device error.');
+      expect(controller.platformError, isNot(contains('pk.secret')));
+      expect(controller.platformError, isNot(contains('35.123')));
+      expect(controller.platformError, isNot(contains('-80.456')));
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+    },
+  );
 
   test(
     'a native stopped event after a fatal error stays interrupted',
