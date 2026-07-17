@@ -358,6 +358,8 @@ class MaintainiacFirestoreDocumentBuilder {
     int? odometerCalibrationSamples,
     String odometerUsageState = 'disabled',
     int? odometerUsageReviewedDays,
+    List<String> dashboardWidgetTokens = const [],
+    List<String> quickActionTokens = const [],
     int? freeSyncsRemaining,
     int? syncsUsedInWindow,
     bool batteryGpsLimited = false,
@@ -454,6 +456,18 @@ class MaintainiacFirestoreDocumentBuilder {
             odometerUsageReviewedDays,
             fieldName: 'odometerUsageReviewedDays',
             max: 999,
+          ),
+        if (dashboardWidgetTokens.isNotEmpty)
+          'dashboardWidgetTokens': _dashboardSummaryTokenList(
+            dashboardWidgetTokens,
+            _allowedDashboardWidgetTokens,
+            'dashboardWidgetTokens',
+          ),
+        if (quickActionTokens.isNotEmpty)
+          'quickActionTokens': _dashboardSummaryTokenList(
+            quickActionTokens,
+            _allowedDashboardQuickActionTokens,
+            'quickActionTokens',
           ),
         if (freeSyncsRemaining != null)
           'freeSyncsRemaining': _optionalDashboardSyncCounter(
@@ -561,6 +575,35 @@ const _allowedOdometerUsageStates = <String>{
   'invalid',
 };
 
+const _allowedDashboardWidgetTokens = <String>{
+  'start_day',
+  'live_odometer',
+  'stops',
+  'pay',
+  'profit',
+  'miles',
+  'hours',
+  'expenses',
+  'jobs',
+  'materials',
+  'payments',
+  'maintenance',
+};
+
+const _allowedDashboardQuickActionTokens = <String>{
+  'start_trip',
+  'end_trip',
+  'add_stop',
+  'add_pickup',
+  'add_dropoff',
+  'add_job',
+  'add_expense',
+  'add_pay',
+  'record_payment',
+  'maintenance_log',
+  'review_mileage',
+};
+
 String _requiredDashboardSummaryToken(
   String value,
   String fieldName,
@@ -582,6 +625,25 @@ int _optionalDashboardSyncCounter(
     throw ArgumentError.value(value, fieldName, 'Must be between 0 and $max.');
   }
   return value;
+}
+
+List<String> _dashboardSummaryTokenList(
+  List<String> tokens,
+  Set<String> allowed,
+  String fieldName,
+) {
+  if (tokens.length > 12) {
+    throw ArgumentError.value(tokens.length, fieldName, 'Too many tokens.');
+  }
+  final safe = tokens.map(_safeToken).toList(growable: false);
+  if (safe.any((token) => !allowed.contains(token))) {
+    throw ArgumentError.value(
+      tokens,
+      fieldName,
+      'Unsupported dashboard token.',
+    );
+  }
+  return List.unmodifiable(safe);
 }
 
 void _validateDashboardSyncCounterPair({

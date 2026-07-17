@@ -4,6 +4,7 @@ import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart';
+import '../../../shared/trip_tracking/trip_tracking_profile_strategy.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
 import 'active_workday_store.dart';
@@ -21,6 +22,8 @@ class DashboardTripTrackingSummary {
     required this.odometerCalibrationSamples,
     required this.odometerUsageState,
     required this.odometerUsageReviewedDays,
+    required this.dashboardWidgetTokens,
+    required this.quickActionTokens,
     required this.freeSyncsRemaining,
     required this.syncsUsedInWindow,
     required this.batteryGpsLimited,
@@ -38,6 +41,8 @@ class DashboardTripTrackingSummary {
   final int? odometerCalibrationSamples;
   final String odometerUsageState;
   final int? odometerUsageReviewedDays;
+  final List<String> dashboardWidgetTokens;
+  final List<String> quickActionTokens;
   final int? freeSyncsRemaining;
   final int? syncsUsedInWindow;
   final bool batteryGpsLimited;
@@ -78,6 +83,9 @@ class DashboardTripTrackingSummary {
     final safeSyncsUsed = syncsUsedInWindow == null || syncsUsedInWindow < 0
         ? null
         : syncsUsedInWindow;
+    final strategy = TripTrackingProfileStrategy.forProfile(
+      settings.defaultProfile,
+    );
     return DashboardTripTrackingSummary(
       dashboardMode: guidance.modeToken,
       mileageMode: settings.gpsAssistedTrackingEnabled
@@ -103,6 +111,10 @@ class DashboardTripTrackingSummary {
       odometerUsageReviewedDays: _safeCalibrationSamples(
         odometerUsageReviewedDays,
       ),
+      dashboardWidgetTokens: _safeDashboardWidgetTokens(
+        strategy.dashboardWidgetTokens,
+      ),
+      quickActionTokens: _safeQuickActionTokens(strategy.quickActionTokens),
       freeSyncsRemaining: safeSyncsUsed == null
           ? null
           : syncDecision.freeSyncsRemaining,
@@ -250,6 +262,41 @@ String _safeOdometerUsageState(String value) {
 int? _safeCalibrationSamples(int? value) {
   if (value == null || value < 0) return null;
   return value > 999 ? 999 : value;
+}
+
+List<String> _safeDashboardWidgetTokens(Iterable<String> tokens) {
+  const allowed = {
+    'start_day',
+    'live_odometer',
+    'stops',
+    'pay',
+    'profit',
+    'miles',
+    'hours',
+    'expenses',
+    'jobs',
+    'materials',
+    'payments',
+    'maintenance',
+  };
+  return tokens.where(allowed.contains).take(12).toList(growable: false);
+}
+
+List<String> _safeQuickActionTokens(Iterable<String> tokens) {
+  const allowed = {
+    'start_trip',
+    'end_trip',
+    'add_stop',
+    'add_pickup',
+    'add_dropoff',
+    'add_job',
+    'add_expense',
+    'add_pay',
+    'record_payment',
+    'maintenance_log',
+    'review_mileage',
+  };
+  return tokens.where(allowed.contains).take(12).toList(growable: false);
 }
 
 String _deviceCapabilityStateFor(

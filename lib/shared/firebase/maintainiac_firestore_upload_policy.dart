@@ -160,6 +160,35 @@ class MaintainiacFirestoreUploadPolicy {
     'invalid',
   };
 
+  static const _allowedDashboardWidgetTokens = <String>{
+    'start_day',
+    'live_odometer',
+    'stops',
+    'pay',
+    'profit',
+    'miles',
+    'hours',
+    'expenses',
+    'jobs',
+    'materials',
+    'payments',
+    'maintenance',
+  };
+
+  static const _allowedDashboardQuickActionTokens = <String>{
+    'start_trip',
+    'end_trip',
+    'add_stop',
+    'add_pickup',
+    'add_dropoff',
+    'add_job',
+    'add_expense',
+    'add_pay',
+    'record_payment',
+    'maintenance_log',
+    'review_mileage',
+  };
+
   static const _allowedTripProfiles = <String>{
     'roadVehicle',
     'rideshareVehicle',
@@ -280,6 +309,8 @@ class MaintainiacFirestoreUploadPolicy {
       'odometerCalibrationSamples',
       'odometerUsageState',
       'odometerUsageReviewedDays',
+      'dashboardWidgetTokens',
+      'quickActionTokens',
       'freeSyncsRemaining',
       'syncsUsedInWindow',
       'batteryGpsLimited',
@@ -327,6 +358,14 @@ class MaintainiacFirestoreUploadPolicy {
           _allowedOdometerUsageStates,
         ) &&
         _isValidSyncsUsedInWindow(draft.data['odometerUsageReviewedDays']) &&
+        _hasValidDashboardTokenList(
+          draft.data['dashboardWidgetTokens'],
+          _allowedDashboardWidgetTokens,
+        ) &&
+        _hasValidDashboardTokenList(
+          draft.data['quickActionTokens'],
+          _allowedDashboardQuickActionTokens,
+        ) &&
         _isValidFreeSyncsRemaining(draft.data['freeSyncsRemaining']) &&
         _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
         _hasConsistentDashboardSyncCounters(draft.data) &&
@@ -568,6 +607,12 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isValidSyncsUsedInWindow(Object? value) =>
       value == null || (value is int && value >= 0 && value <= 999);
+
+  static bool _hasValidDashboardTokenList(Object? value, Set<String> allowed) {
+    if (value == null) return true;
+    if (value is! List || value.length > 12) return false;
+    return value.every((item) => item is String && allowed.contains(item));
+  }
 
   static bool _hasConsistentDashboardSyncCounters(Map<String, Object?> data) {
     final remaining = data['freeSyncsRemaining'];

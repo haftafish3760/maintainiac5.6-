@@ -319,6 +319,8 @@ service cloud.firestore {
         'odometerCalibrationSamples',
         'odometerUsageState',
         'odometerUsageReviewedDays',
+        'dashboardWidgetTokens',
+        'quickActionTokens',
         'freeSyncsRemaining',
         'syncsUsedInWindow',
         'batteryGpsLimited',
@@ -503,6 +505,42 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function hasValidDashboardTokenLists() {
+      return (!request.resource.data.keys().hasAny(['dashboardWidgetTokens']) ||
+          (request.resource.data.dashboardWidgetTokens is list &&
+            request.resource.data.dashboardWidgetTokens.size() <= 12 &&
+            request.resource.data.dashboardWidgetTokens.hasOnly([
+              'start_day',
+              'live_odometer',
+              'stops',
+              'pay',
+              'profit',
+              'miles',
+              'hours',
+              'expenses',
+              'jobs',
+              'materials',
+              'payments',
+              'maintenance'
+            ]))) &&
+        (!request.resource.data.keys().hasAny(['quickActionTokens']) ||
+          (request.resource.data.quickActionTokens is list &&
+            request.resource.data.quickActionTokens.size() <= 12 &&
+            request.resource.data.quickActionTokens.hasOnly([
+              'start_trip',
+              'end_trip',
+              'add_stop',
+              'add_pickup',
+              'add_dropoff',
+              'add_job',
+              'add_expense',
+              'add_pay',
+              'record_payment',
+              'maintenance_log',
+              'review_mileage'
+            ])));
+    }
+
     function isDashboardCommandCenterSummary() {
       return request.resource.data.schema ==
           'dashboard_command_center_summary_v1' &&
@@ -539,6 +577,7 @@ service cloud.firestore {
           (request.resource.data.odometerUsageReviewedDays is int &&
             request.resource.data.odometerUsageReviewedDays >= 0 &&
             request.resource.data.odometerUsageReviewedDays <= 999)) &&
+        hasValidDashboardTokenLists() &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool;
     }
