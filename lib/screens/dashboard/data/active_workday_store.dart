@@ -88,7 +88,7 @@ class ActiveWorkdayEvent {
       sourceType: _optionalSafeText(map['sourceType'], maxLength: 80),
       sourceId: _optionalSafeText(map['sourceId'], maxLength: 160),
       hasValidIdentity:
-          (rawId == null || _isSafeActiveWorkdayIdValue(rawId)) &&
+          _isSafeActiveWorkdayIdValue(rawId) &&
           _hasKnownEventTypeName(rawType),
     );
   }

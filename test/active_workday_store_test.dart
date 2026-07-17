@@ -770,6 +770,29 @@ void main() {
     expect(restored.events.single.hasValidIdentity, isFalse);
   });
 
+  test('restored active workday events require explicit safe event ids', () {
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'missing-event-id-workday',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+      'startOdometer': 1200,
+      'status': 'active',
+      'events': [
+        {
+          'type': 'stop',
+          'occurredAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+          'odometerReading': 1201,
+          'label': 'Stop logged',
+        },
+      ],
+    });
+
+    expect(restored.hasValidIdentity, isFalse);
+    expect(restored.events.single.hasValidIdentity, isFalse);
+  });
+
   test('active workday serialization never writes negative odometers', () {
     final record = ActiveWorkdaySessionRecord(
       id: 'negative-workday-odometer',
