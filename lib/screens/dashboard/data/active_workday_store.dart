@@ -78,7 +78,7 @@ class ActiveWorkdayEvent {
       occurredAt:
           DateTime.tryParse((map['occurredAt'] as String?) ?? '') ??
           DateTime.now(),
-      odometerReading: (map['odometerReading'] as num?)?.round() ?? 0,
+      odometerReading: _safeOdometer(map['odometerReading']) ?? 0,
       label: (map['label'] as String?) ?? 'Workday event',
       note: map['note'] as String?,
       sourceType: map['sourceType'] as String?,
@@ -216,11 +216,11 @@ class ActiveWorkdaySessionRecord {
       startedAt:
           DateTime.tryParse((map['startedAt'] as String?) ?? '') ??
           DateTime.now(),
-      startOdometer: (map['startOdometer'] as num?)?.round() ?? 0,
+      startOdometer: _safeOdometer(map['startOdometer']) ?? 0,
       status: _statusFromName(map['status'] as String?),
       events: events,
       endedAt: DateTime.tryParse((map['endedAt'] as String?) ?? ''),
-      endOdometer: (map['endOdometer'] as num?)?.round(),
+      endOdometer: _safeOdometer(map['endOdometer']),
     );
   }
 }
@@ -455,4 +455,10 @@ String _labelForEvent(ActiveWorkdayEventType type) {
 
 String _newId(String prefix) {
   return '${prefix}_${DateTime.now().microsecondsSinceEpoch}';
+}
+
+int? _safeOdometer(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  final rounded = value.round();
+  return rounded < 0 ? 0 : rounded;
 }

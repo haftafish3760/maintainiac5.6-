@@ -216,4 +216,31 @@ void main() {
       expect(restored.events.single.timeLabel, '9:15 AM');
     },
   );
+
+  test('malformed active workday odometers recover safely', () {
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'malformed-workday-odometer',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+      'startOdometer': double.nan,
+      'status': 'ended',
+      'endOdometer': double.negativeInfinity,
+      'events': [
+        {
+          'id': 'bad-odometer-event',
+          'type': 'stop',
+          'occurredAt': DateTime(2026, 6, 12, 9).toIso8601String(),
+          'odometerReading': -10,
+          'label': 'Stop logged',
+        },
+      ],
+    });
+
+    expect(restored.startOdometer, 0);
+    expect(restored.endOdometer, isNull);
+    expect(restored.events.single.odometerReading, 0);
+    expect(restored.milesSoFar(12), 12);
+  });
 }
