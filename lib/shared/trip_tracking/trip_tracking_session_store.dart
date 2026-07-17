@@ -111,14 +111,7 @@ class TripTrackingSessionRecord {
               totalAcceptedMeters: 0,
               walkingReviewSuggested: false,
             ),
-      advisories:
-          (map['advisories'] as Iterable?)
-              ?.whereType<Map>()
-              .map(TripTrackingAdvisoryEvent.fromMap)
-              .toList(growable: false)
-              .takeLast(_maxPersistedAdvisories)
-              .toList(growable: false) ??
-          const [],
+      advisories: _advisoriesFromMapValue(map['advisories']),
       lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
         (value) => value.name == map['lifecycleState'],
         orElse: () => TripTrackingSessionLifecycleState.ready,
@@ -146,6 +139,16 @@ Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
 ) {
   final items = advisories.toList(growable: false);
   return items.takeLast(_maxPersistedAdvisories);
+}
+
+List<TripTrackingAdvisoryEvent> _advisoriesFromMapValue(Object? value) {
+  if (value is! Iterable) return const [];
+  return value
+      .whereType<Map>()
+      .map(TripTrackingAdvisoryEvent.fromMap)
+      .toList(growable: false)
+      .takeLast(_maxPersistedAdvisories)
+      .toList(growable: false);
 }
 
 extension _TakeLastExtension<T> on List<T> {

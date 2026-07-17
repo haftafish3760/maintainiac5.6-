@@ -446,6 +446,25 @@ void main() {
     expect(session.hasValidTimeline, isFalse);
   });
 
+  test('malformed persisted advisory lists recover safely', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_bad_advisories',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'advisories': {'bad': 'shape'},
+    });
+
+    expect(session.advisories, isEmpty);
+    expect(session.hasValidTimeline, isTrue);
+  });
+
   test('non-finite persisted schema versions use safe defaults', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'trip_schema_nan',
