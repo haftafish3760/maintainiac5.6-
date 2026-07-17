@@ -41,14 +41,18 @@ class OperationalContextController extends ChangeNotifier {
   }) async {
     final box = await Hive.openBox<dynamic>(boxName);
     final stored = box.get(_activeContextKey);
-    final context = stored is Map
+    final fallback = ActiveOperationalContext.fromProfile(
+      profile: profile,
+      activeVehicleId: activeVehicleId,
+      activeVehicleLabel: activeVehicleLabel,
+      activeVehicleUsage: activeVehicleUsage,
+    );
+    final restored = stored is Map
         ? ActiveOperationalContext.fromMap(stored)
-        : ActiveOperationalContext.fromProfile(
-            profile: profile,
-            activeVehicleId: activeVehicleId,
-            activeVehicleLabel: activeVehicleLabel,
-            activeVehicleUsage: activeVehicleUsage,
-          );
+        : null;
+    final context = restored != null && _hasSafeOperationalContextIds(restored)
+        ? restored
+        : fallback;
     return OperationalContextController._(
       box: box,
       context: context,
@@ -225,4 +229,12 @@ bool _isSafeOperationalContextId(String value) {
       clean.isNotEmpty &&
       clean.length <= 160 &&
       RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean);
+}
+
+bool _hasSafeOperationalContextIds(ActiveOperationalContext context) {
+  return _isSafeOperationalContextId(context.userProfileId) &&
+      _isSafeOperationalContextId(context.workProfileId) &&
+      _isSafeOperationalContextId(context.activeVehicleId) &&
+      (context.companyId.trim().isEmpty ||
+          _isSafeOperationalContextId(context.companyId));
 }

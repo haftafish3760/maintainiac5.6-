@@ -170,6 +170,37 @@ void main() {
 
     expect(controller.context.activeVehicleId, 'truck-1');
   });
+
+  test('unsafe restored dashboard context ids fall back to profile context', () async {
+    final box = await Hive.openBox<dynamic>(OperationalContextController.boxName);
+    await box.put('activeContext', {
+      'userProfileId': 'user_1',
+      'userName': 'User',
+      'profileType': 'contractor',
+      'role': 'owner',
+      'permissions': ['recordMileage'],
+      'companyMode': 'solo',
+      'dashboardMode': 'fleetOwner',
+      'mileageMode': 'fleetReview',
+      'syncMode': 'companySync',
+      'workProfileId': 'business',
+      'workProfileName': 'Business',
+      'activeVehicleId': 'truck/../other',
+      'activeVehicleLabel': 'Bad Truck',
+      'activeVehicleUsage': 'businessOnly',
+      'updatedAt': DateTime.utc(2026, 7, 17, 12).toIso8601String(),
+    });
+
+    final controller = await OperationalContextController.create(
+      profile: UserProfileRecord.starterContractor(),
+      activeVehicleId: 'truck-1',
+      activeVehicleLabel: 'Work Truck 1',
+      activeVehicleUsage: VehicleUsage.businessPersonal,
+    );
+
+    expect(controller.context.activeVehicleId, 'truck-1');
+    expect(controller.context.dashboardMode, OperationalDashboardMode.soloContractor);
+  });
 }
 
 Future<AppStorageCheck> _fullStorageCheck() async => const AppStorageCheck(
