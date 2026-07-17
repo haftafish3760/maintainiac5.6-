@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
@@ -27,6 +29,22 @@ class ContractorDashboardScreen extends StatefulWidget {
 
 class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   var _dayStarted = false;
+  DateTime _now = DateTime.now();
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +71,10 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
           const ContractorAttentionPanel(),
           const SizedBox(height: 10),
           if (dayStarted) ...[
-            const ContractorActiveShiftPanel(),
+            ContractorActiveShiftPanel(
+              shiftTime: _shiftTimeLabel(activeSession),
+              milesToday: _milesTodayLabel(activeSession),
+            ),
             const SizedBox(height: 10),
             ContractorCommandGrid(
               commands: contractorActiveCommands,
@@ -173,6 +194,19 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
       );
       return false;
     }
+  }
+
+  String _shiftTimeLabel(ActiveWorkdaySessionRecord? session) {
+    final elapsed = session?.elapsedWorkTimeAt(_now) ?? Duration.zero;
+    final hours = elapsed.inHours.toString().padLeft(2, '0');
+    final minutes = elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    return '$hours:$minutes';
+  }
+
+  String _milesTodayLabel(ActiveWorkdaySessionRecord? session) {
+    if (session == null) return '0';
+    final odometer = GlobalOdometerScope.of(context);
+    return session.milesSoFar(odometer.reading).toString();
   }
 
   void _handleCommand(ContractorCommand command) {

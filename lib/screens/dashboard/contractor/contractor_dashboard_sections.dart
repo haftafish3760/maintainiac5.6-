@@ -183,7 +183,16 @@ class ContractorDayControlPanel extends StatelessWidget {
 }
 
 class ContractorActiveShiftPanel extends StatelessWidget {
-  const ContractorActiveShiftPanel({super.key});
+  const ContractorActiveShiftPanel({
+    this.shiftTime = '00:00',
+    this.milesToday = '0',
+    this.currentJob = '1',
+    super.key,
+  });
+
+  final String shiftTime;
+  final String milesToday;
+  final String currentJob;
 
   @override
   Widget build(BuildContext context) {
@@ -235,25 +244,25 @@ class ContractorActiveShiftPanel extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Row(
-                children: const [
+                children: [
                   Expanded(
                     child: ContractorShiftReadout(
                       label: 'Shift Time',
-                      value: '00:00',
+                      value: shiftTime,
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ContractorShiftReadout(
                       label: 'Miles Today',
-                      value: '14.2',
+                      value: milesToday,
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ContractorShiftReadout(
                       label: 'Current Job',
-                      value: '1',
+                      value: currentJob,
                     ),
                   ),
                 ],

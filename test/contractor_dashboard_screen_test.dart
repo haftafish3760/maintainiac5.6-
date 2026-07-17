@@ -80,6 +80,9 @@ void main() {
     expect(find.text('Active Contractor Day'), findsOneWidget);
     expect(activeWorkday.activeSession, isNotNull);
     expect(activeWorkday.activeSession?.vehicleId, odometer.vehicleId);
+    expect(find.text('Shift Time'), findsOneWidget);
+    expect(find.text('Miles Today'), findsOneWidget);
+    expect(find.text('14.2'), findsNothing);
     expect(find.text('Add Stop'), findsOneWidget);
     expect(find.text('Job Note'), findsOneWidget);
     expect(find.text('Use Materials'), findsOneWidget);
