@@ -45,9 +45,9 @@ class OdometerReadingEvent {
           : null,
       affectsCurrentReading: map['affectsCurrentReading'] != false,
       previousReading: _optionalSafeOdometerReading(map['previousReading']),
-      workProfileId: map['workProfileId'] as String?,
-      sourceType: map['sourceType'] as String?,
-      sourceId: map['sourceId'] as String?,
+      workProfileId: _optionalSafeOdometerText(map['workProfileId']),
+      sourceType: _optionalSafeOdometerText(map['sourceType']),
+      sourceId: _optionalSafeOdometerText(map['sourceId']),
     );
   }
 
@@ -107,6 +107,15 @@ int? _optionalSafeOdometerReading(Object? value) {
   final parsed = value is int ? value : int.tryParse('$value');
   if (parsed == null || parsed < 0) return null;
   return parsed;
+}
+
+String? _optionalSafeOdometerText(Object? value, {int maxLength = 160}) {
+  if (value is! String) return null;
+  final clean = value
+      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+      .trim();
+  if (clean.isEmpty) return null;
+  return clean.length > maxLength ? clean.substring(0, maxLength) : clean;
 }
 
 class OdometerValidationResult {

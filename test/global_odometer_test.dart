@@ -642,6 +642,22 @@ void main() {
     expect(restored.mileageReview?.businessMiles, 20);
   });
 
+  test('restored odometer event metadata is trimmed and bounded', () {
+    final restored = OdometerReadingEvent.fromMap({
+      'id': 'event-metadata',
+      'reading': 1234,
+      'recordedAt': DateTime(2026, 6, 12, 8).toIso8601String(),
+      'workProfileId': '  work\nprofile  ',
+      'sourceType': ' gps_trip_review\t',
+      'sourceId': ' ${'trip' * 80} ',
+    });
+
+    expect(restored.workProfileId, 'work profile');
+    expect(restored.sourceType, 'gps_trip_review');
+    expect(restored.sourceId, hasLength(160));
+    expect(restored.sourceId, isNot(contains('\n')));
+  });
+
   test('odometer event serialization never writes negative readings', () {
     final event = OdometerReadingEvent(
       id: 'event-negative',
