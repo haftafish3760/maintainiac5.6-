@@ -94,6 +94,15 @@ class TripTrackingController extends ChangeNotifier {
     }
     final confirmationTime = confirmedAt ?? DateTime.now();
     if (confirmationTime.isBefore(review.finishedAt)) return false;
+    if (confirmationTime.toUtc().isAfter(
+      DateTime.now().toUtc().add(_policy.maximumFutureSampleSkew),
+    )) {
+      _platformStatus = 'odometer_confirmation_time_invalid';
+      _platformError =
+          'Trip odometer confirmation time cannot be in the future.';
+      notifyListeners();
+      return false;
+    }
     final continuity = _continuityAgainstPreviousConfirmedReview(review);
     if (continuity.shouldBlockConfirmation) {
       _platformStatus = 'odometer_continuity_invalid';
