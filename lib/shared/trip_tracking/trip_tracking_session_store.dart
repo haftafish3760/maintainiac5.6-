@@ -239,7 +239,9 @@ class TripTrackingReviewRecord {
     final effectiveScope = cloudBackupScope ?? this.cloudBackupScope;
     final effectiveOrganizationId =
         effectiveScope == TripTrackingCloudBackupScope.organization
-        ? _optionalSafeCloudToken(cloudOrganizationId ?? this.cloudOrganizationId)
+        ? _optionalSafeCloudToken(
+            cloudOrganizationId ?? this.cloudOrganizationId,
+          )
         : null;
     return TripTrackingReviewRecord(
       id: id,
@@ -417,17 +419,14 @@ bool _hasValidCloudBackupScopeBinding(
 }
 
 int _sessionSchemaVersion(Object? value) {
-  if (value is! num || !value.isFinite) return 1;
-  final version = value.toInt();
-  return version < 1 ? 1 : version;
+  if (value is! int) return 1;
+  return value < 1 ? 1 : value;
 }
 
 bool _hasSupportedSessionSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  if (rawVersion is! num || !rawVersion.isFinite) return false;
-  final version = rawVersion.toInt();
-  return version >= 1 && version <= 1;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 1;
 }
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
