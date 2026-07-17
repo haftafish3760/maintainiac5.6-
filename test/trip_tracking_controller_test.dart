@@ -1837,6 +1837,11 @@ void main() {
         TripSampleDisposition.rejectedFutureTimestamp,
       );
       expect(controller.acceptedMeters, 0);
+      expect(store.pendingSampleFor('trip_future_native_timestamp'), isNull);
+      expect(
+        store.activeSession?.updatedAt,
+        start.add(const Duration(seconds: 0)),
+      );
     },
   );
 
