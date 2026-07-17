@@ -10,12 +10,47 @@ void main() {
         1 + AppStorageGuard.minimumDeviceReserveBytes,
       );
       expect(
+        AppStorageGuard.protectedRequiredBytesFor(
+          AppStoragePurpose.dashboardRecord,
+          1,
+        ),
+        1 + AppStorageGuard.textRecordDeviceReserveBytes,
+      );
+      expect(
         AppStorageGuard.defaultOperationBytesFor(
           AppStoragePurpose.mileageTracking,
         ),
         AppStorageGuard.mileageTrackingWriteBytes,
       );
     });
+
+    test(
+      'dashboard and mileage text records keep a smaller reserve than media',
+      () async {
+        final dashboard = await AppStorageGuard.checkForBytes(
+          operationBytes: 1 * 1024 * 1024,
+          purpose: AppStoragePurpose.dashboardRecord,
+          freeStorageReader: () async => 26,
+        );
+        final mileage = await AppStorageGuard.checkForBytes(
+          operationBytes: 2 * 1024 * 1024,
+          purpose: AppStoragePurpose.mileageTracking,
+          freeStorageReader: () async => 27,
+        );
+        final receipt = await AppStorageGuard.checkForBytes(
+          operationBytes: 1 * 1024 * 1024,
+          purpose: AppStoragePurpose.receiptPhotoSave,
+          freeStorageReader: () async => 26,
+        );
+
+        expect(dashboard.hasEnoughSpace, isTrue);
+        expect(dashboard.reserveLabel, '25 MB');
+        expect(mileage.hasEnoughSpace, isTrue);
+        expect(mileage.reserveLabel, '25 MB');
+        expect(receipt.hasEnoughSpace, isFalse);
+        expect(receipt.reserveLabel, '50 MB');
+      },
+    );
 
     test('rejects an invalid negative storage reservation', () async {
       await expectLater(
@@ -70,19 +105,22 @@ void main() {
       expect(check.warningMessage(), contains('getting low on storage'));
     });
 
-    test('classifies shared storage health at the approved thresholds', () async {
-      Future<AppStorageLevel> levelFor(double freeMb) async =>
-          (await AppStorageGuard.checkForBytes(
-            operationBytes: 1,
-            purpose: AppStoragePurpose.smallRecordWrite,
-            freeStorageReader: () async => freeMb,
-          )).level;
+    test(
+      'classifies shared storage health at the approved thresholds',
+      () async {
+        Future<AppStorageLevel> levelFor(double freeMb) async =>
+            (await AppStorageGuard.checkForBytes(
+              operationBytes: 1,
+              purpose: AppStoragePurpose.smallRecordWrite,
+              freeStorageReader: () async => freeMb,
+            )).level;
 
-      expect(await levelFor(1024), AppStorageLevel.green);
-      expect(await levelFor(500), AppStorageLevel.yellow);
-      expect(await levelFor(499), AppStorageLevel.orange);
-      expect(await levelFor(250), AppStorageLevel.red);
-    });
+        expect(await levelFor(1024), AppStorageLevel.green);
+        expect(await levelFor(500), AppStorageLevel.yellow);
+        expect(await levelFor(499), AppStorageLevel.orange);
+        expect(await levelFor(250), AppStorageLevel.red);
+      },
+    );
 
     test('allows safe action when the device has enough space', () async {
       final check = await AppStorageGuard.checkForBytes(

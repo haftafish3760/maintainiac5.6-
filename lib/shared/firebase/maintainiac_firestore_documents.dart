@@ -37,6 +37,8 @@ class MaintainiacFirestoreDocumentBuilder {
   static const _schemaParserHealth = 'parser_health_snapshot_v1';
   static const _schemaExpenseTelemetrySummary = 'expense_telemetry_summary_v1';
   static const _schemaCorrectionCandidate = 'shared_correction_candidate_v1';
+  static const _schemaDashboardCommandCenter =
+      'dashboard_command_center_summary_v1';
 
   static MaintainiacFirestoreDocumentDraft catalogPackDocument(
     WorkSupplyHostedCatalogManifest manifest,
@@ -310,6 +312,65 @@ class MaintainiacFirestoreDocumentBuilder {
             review.engineSnapshot.diagnostics.acceptedSamples,
         'locationDataIncluded': false,
         'visibilityScope': 'mileage_only',
+      }),
+    );
+  }
+
+  /// Builds a command-center dashboard summary. This document is deliberately
+  /// reference-only: it can name the current vehicle/workday/profile and broad
+  /// sync/tracking states, but it must not carry raw module records, GPS
+  /// samples, route points, addresses, receipt text, or local file paths.
+  static MaintainiacFirestoreDocumentDraft dashboardCommandCenterDocument({
+    required String uid,
+    required String dashboardId,
+    required DateTime updatedAtUtc,
+    String? orgId,
+    String? activeVehicleId,
+    String? activeWorkdayId,
+    String? activeWorkProfileId,
+    String dashboardMode = 'default',
+    String mileageMode = 'manual',
+    String syncMode = 'device_retained',
+    String gpsAssistState = 'off',
+    String storageState = 'unknown',
+    int? freeSyncsRemaining,
+    int? syncsUsedInWindow,
+    bool batteryGpsLimited = false,
+    bool reviewRequired = false,
+  }) {
+    final safeUid = _safeFirestoreUid(uid);
+    final safeDashboardId = _safePathToken(dashboardId);
+    final safeOrgId = orgId == null ? null : _safePathToken(orgId);
+    return MaintainiacFirestoreDocumentDraft(
+      path: safeOrgId == null
+          ? '${MaintainiacFirestoreSchema.userCollectionPath(safeUid, MaintainiacFirestoreSchema.orgDashboardSummaries)}/$safeDashboardId'
+          : '${MaintainiacFirestoreSchema.orgCollectionPath(safeOrgId, MaintainiacFirestoreSchema.orgDashboardSummaries)}/$safeDashboardId',
+      data: Map.unmodifiable({
+        'schema': _schemaDashboardCommandCenter,
+        'dashboardId': safeDashboardId,
+        ...safeOrgId == null ? const <String, Object?>{} : {'orgId': safeOrgId},
+        'createdByUid': safeUid,
+        'updatedByUid': safeUid,
+        'updatedAt': updatedAtUtc.toUtc().toIso8601String(),
+        if (activeVehicleId != null)
+          'activeVehicleId': _safePathToken(activeVehicleId),
+        if (activeWorkdayId != null)
+          'activeWorkdayId': _safePathToken(activeWorkdayId),
+        if (activeWorkProfileId != null)
+          'activeWorkProfileId': _safePathToken(activeWorkProfileId),
+        'dashboardMode': _safeToken(dashboardMode),
+        'mileageMode': _safeToken(mileageMode),
+        'syncMode': _safeToken(syncMode),
+        'gpsAssistState': _safeToken(gpsAssistState),
+        'storageState': _safeToken(storageState),
+        if (freeSyncsRemaining != null)
+          'freeSyncsRemaining': freeSyncsRemaining.clamp(0, 999).toInt(),
+        if (syncsUsedInWindow != null)
+          'syncsUsedInWindow': syncsUsedInWindow.clamp(0, 999).toInt(),
+        'batteryGpsLimited': batteryGpsLimited,
+        'reviewRequired': reviewRequired,
+        'locationDataIncluded': false,
+        'rawModuleDataIncluded': false,
       }),
     );
   }

@@ -400,7 +400,7 @@ class ActiveWorkdayController extends ChangeNotifier {
   }
 
   static Future<AppStorageCheck> _defaultStorageCheck() =>
-      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+      AppStorageGuard.check(AppStoragePurpose.dashboardRecord);
 }
 
 class ActiveWorkdayScope extends InheritedNotifier<ActiveWorkdayController> {

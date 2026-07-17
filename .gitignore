@@ -63,6 +63,9 @@ lib/firebase_options.dart
 # Local secrets and server credentials must never be committed.
 .env
 .env.*
+*.env
+token.env
+*.token.env
 *.pem
 *.p8
 *.key

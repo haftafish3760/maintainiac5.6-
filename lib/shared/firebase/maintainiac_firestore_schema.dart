@@ -15,6 +15,7 @@ class MaintainiacFirestoreSchema {
   static const orgVehicles = 'vehicles';
   static const orgExpenses = 'expenses';
   static const orgMileageRecords = 'mileageRecords';
+  static const orgDashboardSummaries = 'dashboardSummaries';
   static const orgReceiptProofs = 'proofs';
   static const orgSettings = 'settings';
   static const orgInventoryItems = 'inventoryItems';

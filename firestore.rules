@@ -240,6 +240,72 @@ service cloud.firestore {
         acceptedMiles < odometerDelta + 0.5;
     }
 
+    function hasOnlyDashboardSummaryFields() {
+      return request.resource.data.keys().hasOnly([
+        'schema',
+        'dashboardId',
+        'orgId',
+        'createdByUid',
+        'updatedByUid',
+        'updatedAt',
+        'activeVehicleId',
+        'activeWorkdayId',
+        'activeWorkProfileId',
+        'dashboardMode',
+        'mileageMode',
+        'syncMode',
+        'gpsAssistState',
+        'storageState',
+        'freeSyncsRemaining',
+        'syncsUsedInWindow',
+        'batteryGpsLimited',
+        'reviewRequired',
+        'locationDataIncluded',
+        'rawModuleDataIncluded',
+      ]);
+    }
+
+    function hasRequiredDashboardSummaryFields() {
+      return request.resource.data.keys().hasAll([
+        'schema',
+        'dashboardId',
+        'createdByUid',
+        'updatedByUid',
+        'updatedAt',
+        'dashboardMode',
+        'mileageMode',
+        'syncMode',
+        'gpsAssistState',
+        'storageState',
+        'batteryGpsLimited',
+        'reviewRequired',
+        'locationDataIncluded',
+        'rawModuleDataIncluded',
+      ]);
+    }
+
+    function isDashboardCommandCenterSummary() {
+      return request.resource.data.schema ==
+          'dashboard_command_center_summary_v1' &&
+        request.resource.data.locationDataIncluded == false &&
+        request.resource.data.rawModuleDataIncluded == false &&
+        hasOnlyDashboardSummaryFields() &&
+        hasRequiredDashboardSummaryFields() &&
+        noLocationTrackingFields() &&
+        noForbiddenSensitiveFields() &&
+        request.resource.data.dashboardId is string &&
+        request.resource.data.createdByUid is string &&
+        request.resource.data.updatedByUid is string &&
+        request.resource.data.updatedAt is string &&
+        request.resource.data.dashboardMode is string &&
+        request.resource.data.mileageMode is string &&
+        request.resource.data.syncMode is string &&
+        request.resource.data.gpsAssistState is string &&
+        request.resource.data.storageState is string &&
+        request.resource.data.batteryGpsLimited is bool &&
+        request.resource.data.reviewRequired is bool;
+    }
+
     function noServerManagedFieldsOnCreate() {
       return !request.resource.data.keys().hasAny([
         'plan',
@@ -309,6 +375,24 @@ service cloud.firestore {
         allow update: if isSelf(uid) &&
           resource.data.createdByUid == uid &&
           request.resource.data.diff(resource.data).affectedKeys().size() == 0;
+        allow delete: if false;
+      }
+
+      match /dashboardSummaries/{dashboardId} {
+        allow read: if isSelf(uid);
+        allow create: if isSelf(uid) &&
+          request.resource.data.dashboardId == dashboardId &&
+          request.resource.data.createdByUid == uid &&
+          request.resource.data.updatedByUid == uid &&
+          isDashboardCommandCenterSummary() &&
+          !request.resource.data.keys().hasAny(['orgId']);
+        allow update: if isSelf(uid) &&
+          resource.data.createdByUid == uid &&
+          request.resource.data.dashboardId == resource.data.dashboardId &&
+          request.resource.data.createdByUid == resource.data.createdByUid &&
+          request.resource.data.updatedByUid == uid &&
+          isDashboardCommandCenterSummary() &&
+          !request.resource.data.keys().hasAny(['orgId']);
         allow delete: if false;
       }
     }
@@ -505,6 +589,25 @@ service cloud.firestore {
         // document after a client-side retry ambiguity.
         allow update: if resource.data.createdByUid == request.auth.uid &&
           request.resource.data.diff(resource.data).affectedKeys().size() == 0;
+        allow delete: if false;
+      }
+
+      match /dashboardSummaries/{dashboardId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if isActiveMember(orgId) &&
+          request.resource.data.dashboardId == dashboardId &&
+          request.resource.data.orgId == orgId &&
+          request.resource.data.createdByUid == request.auth.uid &&
+          request.resource.data.updatedByUid == request.auth.uid &&
+          isDashboardCommandCenterSummary();
+        allow update: if isActiveMember(orgId) &&
+          resource.data.createdByUid == request.auth.uid &&
+          request.resource.data.dashboardId == resource.data.dashboardId &&
+          request.resource.data.orgId == resource.data.orgId &&
+          request.resource.data.createdByUid == resource.data.createdByUid &&
+          request.resource.data.updatedByUid == request.auth.uid &&
+          isDashboardCommandCenterSummary();
         allow delete: if false;
       }
 

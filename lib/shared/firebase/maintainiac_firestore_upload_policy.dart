@@ -83,6 +83,7 @@ class MaintainiacFirestoreUploadPolicy {
       allowPrivateExpenseBackup: _isPrivateExpenseBackupPath(draft.path),
     );
     _validateTripMileageSummaryShape(draft);
+    _validateDashboardSummaryShape(draft);
     _validateCatalogReadShape(draft);
   }
 
@@ -125,6 +126,86 @@ class MaintainiacFirestoreUploadPolicy {
         parts.first == MaintainiacFirestoreSchema.orgs &&
         (parts[2] == MaintainiacFirestoreSchema.orgExpenses ||
             parts[2] == MaintainiacFirestoreSchema.orgSettings);
+  }
+
+  static void _validateDashboardSummaryShape(
+    MaintainiacFirestoreDocumentDraft draft,
+  ) {
+    final parts = draft.path.trim().split('/');
+    final isOrganizationDashboardPath =
+        parts.length == 4 &&
+        parts[0] == MaintainiacFirestoreSchema.orgs &&
+        parts[2] == MaintainiacFirestoreSchema.orgDashboardSummaries;
+    final isPersonalDashboardPath =
+        parts.length == 4 &&
+        parts[0] == 'users' &&
+        parts[2] == MaintainiacFirestoreSchema.orgDashboardSummaries;
+    if (!isOrganizationDashboardPath && !isPersonalDashboardPath) return;
+
+    const allowed = {
+      'schema',
+      'dashboardId',
+      'orgId',
+      'createdByUid',
+      'updatedByUid',
+      'updatedAt',
+      'activeVehicleId',
+      'activeWorkdayId',
+      'activeWorkProfileId',
+      'dashboardMode',
+      'mileageMode',
+      'syncMode',
+      'gpsAssistState',
+      'storageState',
+      'freeSyncsRemaining',
+      'syncsUsedInWindow',
+      'batteryGpsLimited',
+      'reviewRequired',
+      'locationDataIncluded',
+      'rawModuleDataIncluded',
+    };
+    final validShape =
+        draft.data['schema'] == 'dashboard_command_center_summary_v1' &&
+        draft.data['dashboardId'] == parts[3] &&
+        draft.data['locationDataIncluded'] == false &&
+        draft.data['rawModuleDataIncluded'] == false &&
+        draft.data.keys.every(allowed.contains) &&
+        _isNonEmptyString(draft.data['createdByUid']) &&
+        _isNonEmptyString(draft.data['updatedByUid']) &&
+        _isNonEmptyString(draft.data['updatedAt']) &&
+        _isNonEmptyString(draft.data['dashboardMode']) &&
+        _isNonEmptyString(draft.data['mileageMode']) &&
+        _isNonEmptyString(draft.data['syncMode']) &&
+        _isNonEmptyString(draft.data['gpsAssistState']) &&
+        _isNonEmptyString(draft.data['storageState']) &&
+        draft.data['batteryGpsLimited'] is bool &&
+        draft.data['reviewRequired'] is bool;
+    if (!validShape) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Dashboard uploads must be reference-only command-center summaries.',
+      );
+    }
+    if (isPersonalDashboardPath) {
+      if (draft.data['createdByUid'] != parts[1] ||
+          draft.data['updatedByUid'] != parts[1] ||
+          draft.data.containsKey('orgId')) {
+        throw ArgumentError.value(
+          draft.path,
+          'draft',
+          'Personal dashboard summary must match its user path.',
+        );
+      }
+      return;
+    }
+    if (draft.data['orgId'] != parts[1]) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Organization dashboard summary must match its organization path.',
+      );
+    }
   }
 
   static void _validateTripMileageSummaryShape(

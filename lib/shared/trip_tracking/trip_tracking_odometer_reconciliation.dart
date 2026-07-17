@@ -2,6 +2,12 @@ import 'trip_tracking_session_store.dart';
 
 enum TripOdometerReconciliationStatus { aligned, reviewRecommended, invalid }
 
+enum TripOdometerCalibrationStatus {
+  insufficientHistory,
+  stable,
+  reviewRecommended,
+}
+
 /// Explicit comparison only: confirmed odometer mileage remains authoritative.
 /// This object never writes an odometer, TripLog, or recap record.
 class TripOdometerReconciliation {
@@ -52,6 +58,97 @@ class TripOdometerReconciliation {
       filteredGpsMiles: gpsMiles,
       absoluteDifferenceMiles: difference,
       differencePercent: percent,
+    );
+  }
+}
+
+class TripOdometerCalibrationSignal {
+  const TripOdometerCalibrationSignal({
+    required this.status,
+    required this.eligibleSampleCount,
+    required this.averageGpsToOdometerRatio,
+    required this.averageDifferencePercent,
+    required this.reasonCode,
+  });
+
+  final TripOdometerCalibrationStatus status;
+  final int eligibleSampleCount;
+  final double averageGpsToOdometerRatio;
+  final double averageDifferencePercent;
+  final String reasonCode;
+
+  /// Calibration is advisory. It may prompt a user review or tune future
+  /// assistance, but it must never overwrite confirmed odometer truth.
+  bool get canOverwriteConfirmedOdometer => false;
+
+  static TripOdometerCalibrationSignal evaluate({
+    required Iterable<TripOdometerReconciliation> history,
+    int minimumSamples = 7,
+    double minimumOdometerMiles = 5,
+    double reviewDifferencePercent = 4,
+  }) {
+    if (minimumSamples <= 0 ||
+        minimumOdometerMiles <= 0 ||
+        reviewDifferencePercent < 0) {
+      return const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: 0,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'invalid_calibration_threshold',
+      );
+    }
+
+    final eligible = history
+        .where(
+          (sample) =>
+              sample.status != TripOdometerReconciliationStatus.invalid &&
+              sample.confirmedOdometerDeltaMiles >= minimumOdometerMiles &&
+              sample.filteredGpsMiles.isFinite &&
+              sample.filteredGpsMiles > 0,
+        )
+        .toList(growable: false);
+    if (eligible.length < minimumSamples) {
+      return TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: eligible.length,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'needs_more_reviewed_days',
+      );
+    }
+
+    var ratioTotal = 0.0;
+    var percentTotal = 0.0;
+    for (final sample in eligible) {
+      ratioTotal +=
+          sample.filteredGpsMiles / sample.confirmedOdometerDeltaMiles;
+      percentTotal += sample.differencePercent.abs();
+    }
+    final averageRatio = ratioTotal / eligible.length;
+    final averagePercent = percentTotal / eligible.length;
+    final persistentSameDirection =
+        eligible.every(
+          (sample) =>
+              sample.filteredGpsMiles > sample.confirmedOdometerDeltaMiles,
+        ) ||
+        eligible.every(
+          (sample) =>
+              sample.filteredGpsMiles < sample.confirmedOdometerDeltaMiles,
+        );
+
+    final shouldReview =
+        persistentSameDirection && averagePercent >= reviewDifferencePercent;
+    return TripOdometerCalibrationSignal(
+      status: shouldReview
+          ? TripOdometerCalibrationStatus.reviewRecommended
+          : TripOdometerCalibrationStatus.stable,
+      eligibleSampleCount: eligible.length,
+      averageGpsToOdometerRatio: averageRatio,
+      averageDifferencePercent: averagePercent,
+      reasonCode: shouldReview
+          ? 'persistent_gps_odometer_drift'
+          : 'calibration_stable',
     );
   }
 }

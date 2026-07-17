@@ -2,6 +2,7 @@ import 'package:disk_space_plus/disk_space_plus.dart';
 
 enum AppStoragePurpose {
   appStartup,
+  dashboardRecord,
   smallRecordWrite,
   mileageTracking,
   receiptPhotoCapture,
@@ -21,11 +22,13 @@ class AppStorageGuard {
   AppStorageGuard._();
 
   static const int minimumDeviceReserveBytes = 50 * 1024 * 1024;
+  static const int textRecordDeviceReserveBytes = 25 * 1024 * 1024;
   static const int greenStorageBytes = 1024 * 1024 * 1024;
   static const int yellowStorageBytes = 500 * 1024 * 1024;
   static const int orangeStorageBytes = 250 * 1024 * 1024;
   static const int lowStorageWarningBytes = greenStorageBytes;
   static const int smallRecordWriteBytes = 1 * 1024 * 1024;
+  static const int dashboardRecordWriteBytes = 1 * 1024 * 1024;
   static const int mileageTrackingWriteBytes = 2 * 1024 * 1024;
   static const int receiptPhotoCaptureBytes = 25 * 1024 * 1024;
   static const int receiptProofSaveBytes = 12 * 1024 * 1024;
@@ -55,7 +58,7 @@ class AppStorageGuard {
         'must not be negative',
       );
     }
-    final protectedBytes = protectedRequiredBytes(operationBytes);
+    final protectedBytes = protectedRequiredBytesFor(purpose, operationBytes);
     try {
       final freeMb = freeStorageReader != null
           ? await freeStorageReader()
@@ -86,9 +89,25 @@ class AppStorageGuard {
     return operationBytes + minimumDeviceReserveBytes;
   }
 
+  static int protectedRequiredBytesFor(
+    AppStoragePurpose purpose,
+    int operationBytes,
+  ) {
+    return operationBytes + deviceReserveBytesFor(purpose);
+  }
+
+  static int deviceReserveBytesFor(AppStoragePurpose purpose) {
+    return switch (purpose) {
+      AppStoragePurpose.dashboardRecord ||
+      AppStoragePurpose.mileageTracking => textRecordDeviceReserveBytes,
+      _ => minimumDeviceReserveBytes,
+    };
+  }
+
   static int defaultOperationBytesFor(AppStoragePurpose purpose) {
     return switch (purpose) {
       AppStoragePurpose.appStartup => smallRecordWriteBytes,
+      AppStoragePurpose.dashboardRecord => dashboardRecordWriteBytes,
       AppStoragePurpose.smallRecordWrite => smallRecordWriteBytes,
       AppStoragePurpose.mileageTracking => mileageTrackingWriteBytes,
       AppStoragePurpose.receiptPhotoCapture => receiptPhotoCaptureBytes,
@@ -102,6 +121,7 @@ class AppStorageGuard {
   static String purposeLabel(AppStoragePurpose purpose) {
     return switch (purpose) {
       AppStoragePurpose.appStartup => 'start Maintaniac',
+      AppStoragePurpose.dashboardRecord => 'save dashboard records',
       AppStoragePurpose.smallRecordWrite => 'save this record',
       AppStoragePurpose.mileageTracking => 'save mileage tracking',
       AppStoragePurpose.receiptPhotoCapture => 'take another receipt photo',
@@ -174,8 +194,9 @@ class AppStorageCheck {
 
   String get minimumLabel => AppStorageGuard.formatBytes(requiredBytes);
   String get operationLabel => AppStorageGuard.formatBytes(operationBytes);
-  String get reserveLabel =>
-      AppStorageGuard.formatBytes(AppStorageGuard.minimumDeviceReserveBytes);
+  String get reserveLabel => AppStorageGuard.formatBytes(
+    AppStorageGuard.deviceReserveBytesFor(purpose),
+  );
 
   String get availableLabel {
     final available = availableBytes;

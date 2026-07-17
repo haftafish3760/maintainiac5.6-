@@ -7,7 +7,6 @@ void main() {
     final source = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-
     expect(source, contains('private var locationPermissionRequested = false'));
     expect(source, contains('if (locationPermissionRequested) {'));
     expect(source, contains('completeAuthorizationRequest()'));
@@ -17,17 +16,34 @@ void main() {
     final source = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final manifest = File('android/app/src/main/AndroidManifest.xml')
-        .readAsStringSync();
+    final service = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+    final manifest = File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsStringSync();
 
     expect(manifest, contains('android.permission.POST_NOTIFICATIONS'));
-    expect(source, contains('private var notificationPermissionRequested = false'));
+    expect(
+      source,
+      contains('private var notificationPermissionRequested = false'),
+    );
     expect(source, contains('Manifest.permission.POST_NOTIFICATIONS'));
     expect(source, contains('hasNotificationPermission()'));
     expect(source, contains('A denial must never silently block mileage'));
     expect(
+      service,
+      contains(
+        'getBooleanExtra(activityRecognitionEnabledExtra, false) == true',
+      ),
+    );
+    expect(
       source,
-      isNot(contains('notificationPermissionRequested = false\n        pendingAuthorizationResult')),
+      isNot(
+        contains(
+          'notificationPermissionRequested = false\n        pendingAuthorizationResult',
+        ),
+      ),
     );
   });
 
@@ -45,6 +61,10 @@ void main() {
         contains('locationManager.requestWhenInUseAuthorization()'),
       );
       expect(source, contains('locationManager.requestAlwaysAuthorization()'));
+      expect(
+        source,
+        contains('arguments?["activityRecognitionEnabled"] as? Bool ?? false'),
+      );
       expect(plist, contains('NSMotionUsageDescription'));
     },
   );
@@ -131,14 +151,17 @@ void main() {
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
   });
 
-  test('Android tracking notification gives the driver a direct stop control', () {
-    final android = File(
-      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
-    ).readAsStringSync();
+  test(
+    'Android tracking notification gives the driver a direct stop control',
+    () {
+      final android = File(
+        'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+      ).readAsStringSync();
 
-    expect(android, contains('private const val stopAction'));
-    expect(android, contains('intent?.action == stopAction'));
-    expect(android, contains('"Stop trip tracking"'));
-    expect(android, contains('PendingIntent.getService'));
-  });
+      expect(android, contains('private const val stopAction'));
+      expect(android, contains('intent?.action == stopAction'));
+      expect(android, contains('"Stop trip tracking"'));
+      expect(android, contains('PendingIntent.getService'));
+    },
+  );
 }

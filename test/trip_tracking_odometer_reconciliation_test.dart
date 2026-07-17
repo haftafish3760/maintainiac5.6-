@@ -51,4 +51,63 @@ void main() {
 
     expect(result.status, TripOdometerReconciliationStatus.invalid);
   });
+
+  test(
+    'persistent seven-day GPS odometer drift recommends calibration review',
+    () {
+      final history = List.generate(
+        7,
+        (_) => const TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 100,
+          filteredGpsMiles: 94,
+          absoluteDifferenceMiles: 6,
+          differencePercent: 6,
+        ),
+      );
+
+      final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+
+      expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
+      expect(signal.eligibleSampleCount, 7);
+      expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
+      expect(signal.reasonCode, 'persistent_gps_odometer_drift');
+      expect(signal.canOverwriteConfirmedOdometer, isFalse);
+    },
+  );
+
+  test('calibration waits for enough reviewed driving days', () {
+    final signal = TripOdometerCalibrationSignal.evaluate(
+      history: const [
+        TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 100,
+          filteredGpsMiles: 94,
+          absoluteDifferenceMiles: 6,
+          differencePercent: 6,
+        ),
+      ],
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.reasonCode, 'needs_more_reviewed_days');
+  });
+
+  test('mixed drift directions do not trigger a tire-size style warning', () {
+    final history = List.generate(7, (index) {
+      final gpsMiles = index.isEven ? 94.0 : 106.0;
+      return TripOdometerReconciliation(
+        status: TripOdometerReconciliationStatus.reviewRecommended,
+        confirmedOdometerDeltaMiles: 100,
+        filteredGpsMiles: gpsMiles,
+        absoluteDifferenceMiles: 6,
+        differencePercent: 6,
+      );
+    });
+
+    final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+
+    expect(signal.status, TripOdometerCalibrationStatus.stable);
+    expect(signal.reasonCode, 'calibration_stable');
+  });
 }

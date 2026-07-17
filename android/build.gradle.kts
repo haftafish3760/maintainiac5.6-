@@ -38,7 +38,10 @@ subprojects {
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
-            val target = if (project.name == "doc_scan_kit") {
+            val target = if (
+                project.name == "doc_scan_kit" ||
+                project.name == "mapbox_maps_flutter"
+            ) {
                 org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
             } else if (project.name == "disk_space_plus") {
                 org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
@@ -55,7 +58,10 @@ subprojects {
         }
         tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
             compilerOptions {
-                val target = if (project.name == "doc_scan_kit") {
+                val target = if (
+                    project.name == "doc_scan_kit" ||
+                    project.name == "mapbox_maps_flutter"
+                ) {
                     org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
                 } else if (project.name == "disk_space_plus") {
                     org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
