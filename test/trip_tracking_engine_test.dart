@@ -102,6 +102,27 @@ void main() {
     }
   });
 
+  test('malformed persisted engine version fields recover safely', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 0,
+      'walkingReviewSuggested': false,
+      'schemaVersion': '2',
+      'algorithmVersion': ' gps/v1 with spaces and ${'x' * 80} ',
+    });
+    final nonFinite = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 0,
+      'walkingReviewSuggested': false,
+      'schemaVersion': double.nan,
+      'algorithmVersion': '\n\t',
+    });
+
+    expect(snapshot.schemaVersion, 1);
+    expect(snapshot.algorithmVersion, isNot(contains('/')));
+    expect(snapshot.algorithmVersion, hasLength(48));
+    expect(nonFinite.schemaVersion, 1);
+    expect(nonFinite.algorithmVersion, 'gps-v1');
+  });
+
   test('does not count stationary GPS jitter as miles', () {
     final engine = TripTrackingEngine();
 

@@ -446,13 +446,20 @@ double _safeAcceptedMeters(Object? value) {
 }
 
 int _safeSchemaVersion(Object? value) {
-  final version = (value as num?)?.toInt() ?? 1;
+  if (value is! num || !value.isFinite) return 1;
+  final version = value.toInt();
   return version < 1 ? 1 : version;
 }
 
 String _safeAlgorithmVersion(Object? value) {
   final version = value is String ? value.trim() : '';
-  return version.isEmpty ? 'gps-v1' : version;
+  if (version.isEmpty) return 'gps-v1';
+  final safe = version
+      .replaceAll(RegExp(r'[^A-Za-z0-9_.-]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+  if (safe.isEmpty) return 'gps-v1';
+  return safe.length > 48 ? safe.substring(0, 48) : safe;
 }
 
 class TripSamplingRecommendation {
