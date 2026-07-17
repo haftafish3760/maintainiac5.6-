@@ -240,6 +240,35 @@ void main() {
       );
     });
 
+    test('rejects impossible route speed metrics', () {
+      final impossibleSpeed =
+          MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+            httpStatus: 200,
+            decodedBody: {
+              'code': 'Ok',
+              'routes': [
+                {
+                  'distance': 100000,
+                  'duration': 10,
+                  'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                      [-80, 35],
+                      [-79.2, 35],
+                    ],
+                  },
+                },
+              ],
+            },
+          );
+
+      expect(impossibleSpeed.isAccepted, isFalse);
+      expect(
+        impossibleSpeed.failures.single.code,
+        MapboxExternalFailureCode.invalidRouteShape,
+      );
+    });
+
     test('rejects partial or overwide route geometry coordinates', () {
       final onePoint =
           MapboxExternalRouteValidator.validateDirectionsLikeResponse(

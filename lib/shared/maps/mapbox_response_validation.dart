@@ -89,6 +89,7 @@ class MapboxExternalRouteValidator {
   static const int rateLimitStatus = 429;
   static const double maximumReasonableRouteMeters = 20000000;
   static const double maximumReasonableRouteSeconds = 60 * 60 * 24 * 14;
+  static const double maximumReasonableRouteMetersPerSecond = 90;
   static const int maximumRouteCoordinates = 25000;
 
   static MapboxRouteValidationResult validateDirectionsLikeResponse({
@@ -166,6 +167,9 @@ class MapboxExternalRouteValidator {
     if (duration == null ||
         duration <= 0 ||
         duration > maximumReasonableRouteSeconds) {
+      return null;
+    }
+    if (distance / duration > maximumReasonableRouteMetersPerSecond) {
       return null;
     }
     final coordinates = _coordinatesFromGeometry(route['geometry']);
