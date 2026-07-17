@@ -26,7 +26,7 @@ class TripTrackingBackupSyncPolicy {
             syncsUsedInWindow: syncsUsedInWindow,
           );
     final freeSyncAllowed =
-        syncsUsedInWindow == null ||
+        syncsUsedInWindow != null &&
         HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: syncsUsedInWindow);
     final reasonCode = _reasonCode(
       networkKnown: networkKnown,
@@ -89,6 +89,8 @@ class TripTrackingBackupSyncDecision {
         'Backup sync is waiting for the selected network.',
       'free_sync_limit_invalid' =>
         'Free backup sync usage could not be verified.',
+      'free_sync_limit_unknown' =>
+        'Free backup sync usage is still being verified.',
       'free_sync_limit_reached' =>
         'Free backup sync limit reached for this 24-hour window.',
       _ => 'Backup sync is waiting.',
@@ -105,8 +107,9 @@ String _reasonCode({
   if (syncsUsedInWindow != null && syncsUsedInWindow < 0) {
     return 'free_sync_limit_invalid';
   }
-  if (!freeSyncAllowed) return 'free_sync_limit_reached';
   if (!networkKnown) return 'network_unknown';
   if (!networkAllowed) return 'network_policy_blocked';
+  if (syncsUsedInWindow == null) return 'free_sync_limit_unknown';
+  if (!freeSyncAllowed) return 'free_sync_limit_reached';
   return 'sync_ready';
 }

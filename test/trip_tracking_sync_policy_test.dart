@@ -95,4 +95,21 @@ void main() {
     expect(decision.reasonCode, 'network_unknown');
     expect(decision.userFacingReason, contains('network status'));
   });
+
+  test('known network still waits until free sync usage is verified', () {
+    final decision = TripTrackingBackupSyncPolicy.evaluate(
+      networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+      wifiAvailable: true,
+      mobileDataAvailable: true,
+    );
+
+    expect(decision.networkKnown, isTrue);
+    expect(decision.networkAllowed, isTrue);
+    expect(decision.freeSyncAllowed, isFalse);
+    expect(decision.freeSyncsRemaining, isNull);
+    expect(decision.mayAttemptSync, isFalse);
+    expect(decision.reasonCode, 'free_sync_limit_unknown');
+    expect(decision.dashboardLabel, contains('free sync usage pending'));
+    expect(decision.userFacingReason, contains('being verified'));
+  });
 }
