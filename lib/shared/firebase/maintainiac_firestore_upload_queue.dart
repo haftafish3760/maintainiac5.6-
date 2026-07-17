@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'maintainiac_firestore_documents.dart';
 import 'maintainiac_firestore_schema.dart';
+import 'hosted_usage_limits.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
 import '../storage/app_storage_guard.dart';
 

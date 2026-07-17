@@ -10,6 +10,7 @@ import '../../screens/work_supplies/data/work_supply_catalog_health_event.dart';
 import '../../screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart';
 import '../trip_tracking/trip_tracking_session_store.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
+import 'hosted_usage_limits.dart';
 import 'maintainiac_firestore_schema.dart';
 
 part 'maintainiac_firestore_ocr_contract_sanitizer.dart';
@@ -364,7 +365,9 @@ class MaintainiacFirestoreDocumentBuilder {
         'gpsAssistState': _safeToken(gpsAssistState),
         'storageState': _safeToken(storageState),
         if (freeSyncsRemaining != null)
-          'freeSyncsRemaining': freeSyncsRemaining.clamp(0, 999).toInt(),
+          'freeSyncsRemaining': freeSyncsRemaining
+              .clamp(0, HostedUsageLimits.freeUserSyncsPer24HourWindow)
+              .toInt(),
         if (syncsUsedInWindow != null)
           'syncsUsedInWindow': syncsUsedInWindow.clamp(0, 999).toInt(),
         'batteryGpsLimited': batteryGpsLimited,

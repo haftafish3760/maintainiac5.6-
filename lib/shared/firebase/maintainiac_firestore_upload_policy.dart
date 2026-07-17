@@ -178,6 +178,8 @@ class MaintainiacFirestoreUploadPolicy {
         _isNonEmptyString(draft.data['syncMode']) &&
         _isNonEmptyString(draft.data['gpsAssistState']) &&
         _isNonEmptyString(draft.data['storageState']) &&
+        _isValidFreeSyncsRemaining(draft.data['freeSyncsRemaining']) &&
+        _isValidSyncsUsedInWindow(draft.data['syncsUsedInWindow']) &&
         draft.data['batteryGpsLimited'] is bool &&
         draft.data['reviewRequired'] is bool;
     if (!validShape) {
@@ -378,6 +380,15 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isNonEmptyString(Object? value) =>
       value is String && value.trim().isNotEmpty;
+
+  static bool _isValidFreeSyncsRemaining(Object? value) =>
+      value == null ||
+      (value is int &&
+          value >= 0 &&
+          value <= HostedUsageLimits.freeUserSyncsPer24HourWindow);
+
+  static bool _isValidSyncsUsedInWindow(Object? value) =>
+      value == null || (value is int && value >= 0 && value <= 999);
 
   static bool _isNonNegativeInt(Object? value) => value is int && value >= 0;
 

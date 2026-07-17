@@ -55,6 +55,35 @@ void main() {
     expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 99), 0);
   });
 
+  test(
+    'dashboard summaries cannot claim more than the free sync allowance',
+    () {
+      final doc =
+          MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+            uid: 'firebaseUid-1',
+            dashboardId: 'today',
+            updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+            freeSyncsRemaining: 99,
+            syncsUsedInWindow: 0,
+          );
+
+      expect(
+        doc.data['freeSyncsRemaining'],
+        HostedUsageLimits.freeUserSyncsPer24HourWindow,
+      );
+      MaintainiacFirestoreUploadPolicy.validateDraft(doc);
+
+      final poisoned = MaintainiacFirestoreDocumentDraft(
+        path: doc.path,
+        data: {...doc.data, 'freeSyncsRemaining': 99},
+      );
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(poisoned),
+        throwsArgumentError,
+      );
+    },
+  );
+
   test('builds an organization dashboard summary scoped to the member org', () {
     final doc =
         MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
