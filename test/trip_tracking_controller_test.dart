@@ -2539,6 +2539,47 @@ void main() {
   );
 
   test(
+    'near-future native timestamps stay within clock-skew tolerance',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      final now = start.add(const Duration(minutes: 10));
+      await controller.start(
+        tripId: 'trip_near_future_native_timestamp',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        (await controller.ingest(
+          sample(-80, 9 * 60 + 30),
+          referenceTime: now,
+        ))?.disposition,
+        TripSampleDisposition.acceptedAnchor,
+      );
+      final accepted = await controller.ingest(
+        sample(-79.999, 11 * 60),
+        referenceTime: now,
+      );
+
+      expect(accepted?.disposition, TripSampleDisposition.acceptedDistance);
+      expect(controller.acceptedMeters, greaterThan(0));
+      expect(odometer.confirmedReading, 1000);
+      expect(
+        store.pendingSampleFor('trip_near_future_native_timestamp'),
+        isNull,
+      );
+    },
+  );
+
+  test(
     'cached native fixes before trip start cannot anchor live mileage',
     () async {
       final store = TripTrackingSessionStore.memory();
