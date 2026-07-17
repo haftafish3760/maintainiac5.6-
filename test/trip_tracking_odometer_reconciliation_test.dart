@@ -52,6 +52,16 @@ void main() {
     expect(result.status, TripOdometerReconciliationStatus.invalid);
   });
 
+  test('non-finite reconciliation thresholds fail closed', () {
+    final result = TripOdometerReconciliation.compare(
+      review: review,
+      confirmedEndingOdometer: 1020,
+      materialDifferenceMiles: double.nan,
+    );
+
+    expect(result.status, TripOdometerReconciliationStatus.invalid);
+  });
+
   test('a next trip cannot start below the previous confirmed ending', () {
     final previous = review.copyWith(
       confirmedEndingOdometer: 1020,
@@ -221,5 +231,29 @@ void main() {
 
     expect(signal.status, TripOdometerCalibrationStatus.stable);
     expect(signal.reasonCode, 'calibration_stable');
+  });
+
+  test('calibration ignores non-finite reviewed history values', () {
+    final signal = TripOdometerCalibrationSignal.evaluate(
+      history: const [
+        TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: double.infinity,
+          filteredGpsMiles: 94,
+          absoluteDifferenceMiles: 6,
+          differencePercent: 6,
+        ),
+        TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 100,
+          filteredGpsMiles: 94,
+          absoluteDifferenceMiles: 6,
+          differencePercent: double.nan,
+        ),
+      ],
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.eligibleSampleCount, 0);
   });
 }

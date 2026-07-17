@@ -42,7 +42,9 @@ class TripOdometerReconciliation {
     final gpsMiles = review.engineSnapshot.totalAcceptedMeters / 1609.344;
     if (odometerDelta < 0 ||
         !gpsMiles.isFinite ||
+        !materialDifferenceMiles.isFinite ||
         materialDifferenceMiles < 0 ||
+        !materialDifferencePercent.isFinite ||
         materialDifferencePercent < 0) {
       return const TripOdometerReconciliation(
         status: TripOdometerReconciliationStatus.invalid,
@@ -169,9 +171,11 @@ class TripOdometerCalibrationSignal {
         .where(
           (sample) =>
               sample.status != TripOdometerReconciliationStatus.invalid &&
+              sample.confirmedOdometerDeltaMiles.isFinite &&
               sample.confirmedOdometerDeltaMiles >= minimumOdometerMiles &&
               sample.filteredGpsMiles.isFinite &&
-              sample.filteredGpsMiles > 0,
+              sample.filteredGpsMiles > 0 &&
+              sample.differencePercent.isFinite,
         )
         .toList(growable: false);
     if (eligible.length < minimumSamples) {
