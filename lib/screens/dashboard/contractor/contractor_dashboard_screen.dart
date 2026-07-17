@@ -16,6 +16,7 @@ import '../../../shared/calendar/calendar.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/global_odometer.dart';
 import '../data/active_workday_store.dart';
+import 'contractor_active_shift_panel.dart';
 import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_pulse.dart';
 import 'contractor_dashboard_sections.dart';
@@ -81,6 +82,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
                   activeSession,
                   odometerReading: odometer.reading,
                 ),
+                liveOdometerLabel: odometer.hasLiveTripProjection
+                    ? 'Live odometer: ${odometer.displayValue}'
+                    : null,
               ),
             ),
             const SizedBox(height: 10),
