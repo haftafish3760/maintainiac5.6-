@@ -12,10 +12,9 @@ class MaintainiacMapConfig {
       defaultValue: 'none',
     );
     const token = String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
-    const accessToken = String.fromEnvironment('ACCESS_TOKEN');
     return MaintainiacMapConfig(
       provider: _providerFromName(providerName),
-      mapboxAccessToken: token.isNotEmpty ? token : accessToken,
+      mapboxAccessToken: token,
     );
   }
 

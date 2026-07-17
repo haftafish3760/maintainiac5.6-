@@ -63,6 +63,15 @@ void main() {
         expect(config.canInitializeMapbox, isFalse);
       }
     });
+
+    test('does not use broad non-Mapbox token environment names', () async {
+      final source = await File(
+        'lib/shared/maps/mapbox_config.dart',
+      ).readAsString();
+
+      expect(source, contains("'MAPBOX_ACCESS_TOKEN'"));
+      expect(source, isNot(contains("'ACCESS_TOKEN'")));
+    });
   });
 
   test('local Mapbox env files are ignored and not tracked', () async {
