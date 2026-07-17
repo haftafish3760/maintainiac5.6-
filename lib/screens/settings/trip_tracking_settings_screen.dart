@@ -340,6 +340,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             onChanged: (value) =>
                 onChanged(settings.copyWith(defaultProfile: value)),
           ),
+          _profileGuidance(settings.defaultProfile),
           _switch(
             title: 'Walking-transition review',
             detail:
@@ -348,6 +349,18 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             onChanged: (value) => onChanged(
               settings.copyWith(walkingTransitionReviewEnabled: value),
             ),
+          ),
+          _switch(
+            title: 'Odometer anomaly alerts',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'Optional. After enough reviewed driving days, warn when GPS-assisted distance and confirmed odometer patterns look persistently unusual. This never changes odometer truth.'
+                : 'Enable GPS-assisted tracking before using optional odometer anomaly alerts.',
+            value: settings.odometerAnomalyAlertsEnabled,
+            onChanged: settings.gpsAssistedTrackingEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(odometerAnomalyAlertsEnabled: value),
+                  )
+                : null,
           ),
           _switch(
             title: 'Recognize a linked vehicle by Bluetooth',
@@ -391,6 +404,18 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           Switch(value: value, onChanged: onChanged),
         ],
+      ),
+    ),
+  );
+
+  Widget _profileGuidance(TripTrackingProfile profile) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Container(
+      padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+      decoration: _rowDecoration,
+      child: _SettingText(
+        title: 'Profile-specific stop detection',
+        detail: _profileTrackingDetail(profile),
       ),
     ),
   );
@@ -530,4 +555,17 @@ String _profileLabel(TripTrackingProfile profile) => switch (profile) {
   TripTrackingProfile.deliveryVehicle => 'Delivery driver',
   TripTrackingProfile.contractorVehicle => 'Contractor / service vehicle',
   TripTrackingProfile.lowSpeedEquipment => 'Low-speed equipment',
+};
+
+String _profileTrackingDetail(TripTrackingProfile profile) => switch (profile) {
+  TripTrackingProfile.rideshareVehicle =>
+    'Uses stronger stop evidence because the driver often stays in the vehicle. Long lights should not become delivery-style stops.',
+  TripTrackingProfile.deliveryVehicle =>
+    'Uses walking evidence as a review-only stop clue after vehicle movement so porch or pickup walks are not counted as vehicle miles.',
+  TripTrackingProfile.contractorVehicle =>
+    'Uses walking evidence as a review-only jobsite stop clue while keeping confirmed odometer entries authoritative.',
+  TripTrackingProfile.lowSpeedEquipment =>
+    'Ignores walking-stop evidence so low-speed equipment routes do not become false stops.',
+  TripTrackingProfile.roadVehicle =>
+    'Uses conservative walking evidence for review-only stop assistance without changing confirmed odometer mileage.',
 };

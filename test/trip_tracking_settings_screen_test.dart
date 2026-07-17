@@ -4,12 +4,13 @@ import 'package:maintaniac/screens/settings/trip_tracking_settings_screen.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/profiles/user_profile_store.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
   testWidgets('GPS settings are visible and remain opt-in', (tester) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(900, 1500);
+    tester.view.physicalSize = const Size(900, 2400);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
     final settings = TripTrackingSettingsController.memory();
@@ -44,13 +45,30 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Use motion activity for walking review'), findsOneWidget);
+    expect(find.text('Profile-specific stop detection'), findsOneWidget);
+    expect(find.text('Odometer anomaly alerts'), findsOneWidget);
     expect(find.text('Protect GPS below 20% battery'), findsOneWidget);
     expect(find.text('Allow GPS below 20% battery'), findsOneWidget);
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
     expect(find.text('Mileage backup network'), findsOneWidget);
     expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
+    expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
+    await tester.ensureVisible(find.text('Odometer anomaly alerts'));
+    await tester.pump();
+    final disabledAnomalyRow = find
+        .ancestor(
+          of: find.text('Odometer anomaly alerts'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: disabledAnomalyRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
+
     await tester.ensureVisible(
       find.text('Use motion activity for walking review'),
     );
@@ -96,6 +114,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.settings.activityRecognitionEnabled, isTrue);
     expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
+    await tester.ensureVisible(find.text('Odometer anomaly alerts'));
+    await tester.pump();
+    final enabledAnomalyRow = find
+        .ancestor(
+          of: find.text('Odometer anomaly alerts'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: enabledAnomalyRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.odometerAnomalyAlertsEnabled, isTrue);
     expect(find.text('Back up reviewed mileage'), findsOneWidget);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
     expect(find.text('Firebase backup account'), findsNothing);
@@ -106,7 +137,7 @@ void main() {
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(900, 1500);
+    tester.view.physicalSize = const Size(900, 2400);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
     final settings = TripTrackingSettingsController.memory();
@@ -139,6 +170,52 @@ void main() {
     expect(
       settings.settings.backupNetworkPolicy,
       TripTrackingBackupNetworkPolicy.wifiOnly,
+    );
+  });
+
+  testWidgets('driver profile guidance updates with the selected profile', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 2400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final settings = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+    );
+    final profiles = UserProfileController.memory();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: GlobalOdometerScope(
+            controller: GlobalOdometerController(),
+            child: TripTrackingSettingsScope(
+              controller: settings,
+              child: UserProfileScope(
+                controller: profiles,
+                child: const TripTrackingSettingsScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Default tracking profile'));
+    await tester.tap(find.byType(DropdownButton<TripTrackingProfile>).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rideshare / passenger driving').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      settings.settings.defaultProfile,
+      TripTrackingProfile.rideshareVehicle,
+    );
+    expect(
+      find.textContaining('driver often stays in the vehicle'),
+      findsOneWidget,
     );
   });
 
