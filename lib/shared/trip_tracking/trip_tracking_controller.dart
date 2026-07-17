@@ -1189,6 +1189,14 @@ class TripTrackingController extends ChangeNotifier {
     final engine = _engine;
     final projection = _projection;
     if (session == null || engine == null || projection == null) return null;
+    final completedAt = finishedAt ?? DateTime.now();
+    if (completedAt.isBefore(session.startedAt)) {
+      _platformStatus = 'review_timeline_invalid';
+      _platformError =
+          'Trip review could not be saved because the finish time is before the start time.';
+      notifyListeners();
+      return null;
+    }
     if (session.lifecycleState == TripTrackingSessionLifecycleState.active ||
         session.lifecycleState == TripTrackingSessionLifecycleState.paused ||
         session.lifecycleState == TripTrackingSessionLifecycleState.degraded) {
@@ -1204,7 +1212,7 @@ class TripTrackingController extends ChangeNotifier {
       ),
       profile: session.profile,
       startedAt: session.startedAt,
-      finishedAt: finishedAt ?? DateTime.now(),
+      finishedAt: completedAt,
       engineSnapshot: engine.snapshot,
     );
     try {
