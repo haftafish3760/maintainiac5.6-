@@ -68,6 +68,7 @@ void main() {
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
     expect(find.text('Back up reviewed mileage'), findsOneWidget);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
+    expect(find.text('Firebase backup account'), findsNothing);
     expect(profiles.activeProfile.cloudBackupEnabled, isFalse);
   });
 

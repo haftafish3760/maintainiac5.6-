@@ -115,7 +115,7 @@ class _FirebaseBackupAccountPanelState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Firebase backup account',
+                'Mileage backup account',
                 style: TextStyle(
                   color: Color(0xFFE2E8EA),
                   fontSize: 16,

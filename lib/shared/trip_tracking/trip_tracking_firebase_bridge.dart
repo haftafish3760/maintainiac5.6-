@@ -109,11 +109,11 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       await _saveReviewState(
         review.copyWith(
           cloudSyncState: TripTrackingCloudSyncState.pending,
-          cloudSyncError: 'Firebase sign-in is required before backup.',
+          cloudSyncError: 'Backup sign-in is required before backup.',
         ),
       );
       throw StateError(
-        'Firebase sign-in is required before mileage backup can be queued.',
+        'Backup sign-in is required before mileage backup can be queued.',
       );
     }
     if (!_isSafeFirestoreUid(createdByUid)) {
