@@ -364,10 +364,17 @@ class TripTrackingController extends ChangeNotifier {
     )) {
       return false;
     }
-    _odometer.updateLiveTripProjection(
+    if (!_odometer.updateLiveTripProjection(
       tripId: session.id,
       estimatedOdometer: estimatedOdometer,
-    );
+    )) {
+      _odometer.clearLiveTripProjection(tripId: session.id);
+      _platformStatus = 'odometer_projection_invalid';
+      _platformError =
+          'Saved GPS trip distance is outside the supported odometer range.';
+      notifyListeners();
+      return false;
+    }
     _session = session;
     _engine = TripTrackingEngine.fromSnapshot(
       session.engineSnapshot,

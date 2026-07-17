@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
+import 'package:maintaniac/shared/odometer/odometer_validation.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
@@ -23,6 +24,7 @@ class GlobalOdometerController
   GlobalOdometerController({
     super.vehicleId = 'vehicle_1',
     super.initialReading = 298150,
+    super.validationPolicy,
   });
 }
 
@@ -2209,6 +2211,41 @@ void main() {
     expect(store.activeSession, isNull);
     expect(controller.isTracking, isFalse);
     expect(odometer.hasLiveTripProjection, isFalse);
+  });
+
+  test('restore rejects over-range live odometer projections safely', () async {
+    final store = TripTrackingSessionStore.memory();
+    await store.save(
+      TripTrackingSessionRecord(
+        id: 'trip_projection_too_high',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 3218688,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+      validationPolicy: const OdometerValidationPolicy(
+        maxSupportedReading: 1200,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+
+    expect(await controller.restore(), isFalse);
+    expect(store.activeSession?.id, 'trip_projection_too_high');
+    expect(controller.isTracking, isFalse);
+    expect(odometer.hasLiveTripProjection, isFalse);
+    expect(controller.platformStatus, 'odometer_projection_invalid');
   });
 
   test(
