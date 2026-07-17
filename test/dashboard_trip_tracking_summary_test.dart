@@ -31,6 +31,9 @@ void main() {
     expect(summary.mileageMode, 'manual');
     expect(summary.syncMode, 'wifi_and_mobile');
     expect(summary.gpsAssistState, 'off');
+    expect(summary.gpsSignalQuality, 'no_samples');
+    expect(summary.gpsSignalReason, 'gps_signal_waiting_for_samples');
+    expect(summary.gpsSignalReviewRequired, isFalse);
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
@@ -340,6 +343,9 @@ void main() {
       expect(summary.stopSignal, 'review_only_stop');
       expect(summary.stopActionToken, 'review_delivery_stop');
       expect(summary.stopClassificationReason, 'delivery_stop_walk_review');
+      expect(summary.gpsSignalQuality, 'poor');
+      expect(summary.gpsSignalReason, 'gps_signal_poor_measurement_quality');
+      expect(summary.gpsSignalReviewRequired, isFalse);
       expect(summary.reviewRequired, isTrue);
     },
   );

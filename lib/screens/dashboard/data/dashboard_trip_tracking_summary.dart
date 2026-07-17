@@ -9,6 +9,7 @@ import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart'
 import '../../../shared/trip_tracking/trip_tracking_profile_strategy.dart';
 import '../../../shared/trip_tracking/trip_tracking_recovery_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import '../../../shared/trip_tracking/trip_tracking_signal_quality.dart';
 import '../../../shared/trip_tracking/trip_tracking_storage_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_sync_policy.dart';
 import 'active_workday_store.dart';
@@ -32,6 +33,9 @@ class DashboardTripTrackingSummary {
     required this.mileageMode,
     required this.syncMode,
     required this.gpsAssistState,
+    required this.gpsSignalQuality,
+    required this.gpsSignalReason,
+    required this.gpsSignalReviewRequired,
     required this.storageState,
     required this.deviceCapabilityState,
     required this.sensorAssistState,
@@ -63,6 +67,9 @@ class DashboardTripTrackingSummary {
   final String mileageMode;
   final String syncMode;
   final String gpsAssistState;
+  final String gpsSignalQuality;
+  final String gpsSignalReason;
+  final bool gpsSignalReviewRequired;
   final String storageState;
   final String deviceCapabilityState;
   final String sensorAssistState;
@@ -101,6 +108,9 @@ class DashboardTripTrackingSummary {
     String stopSignal = 'no_stop',
     String stopActionToken = 'keep_tracking',
     String stopClassificationReason = 'no_stop_review_needed',
+    String gpsSignalQuality = 'no_samples',
+    String gpsSignalReason = 'gps_signal_waiting_for_samples',
+    bool gpsSignalReviewRequired = false,
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -152,6 +162,9 @@ class DashboardTripTrackingSummary {
         recoverableTrip: recoverableTrip,
         lowBatteryLimited: lowBatteryLimited,
       ),
+      gpsSignalQuality: _safeGpsSignalQuality(gpsSignalQuality),
+      gpsSignalReason: _safeGpsSignalReason(gpsSignalReason),
+      gpsSignalReviewRequired: gpsSignalReviewRequired,
       storageState: _safeStorageState(storageState),
       deviceCapabilityState: _safeDeviceCapabilityState(deviceCapabilityState),
       sensorAssistState: _safeSensorAssistState(sensorAssistState),
@@ -195,6 +208,9 @@ class DashboardTripTrackingSummary {
     final activeTrip = tripTracking?.isTracking == true;
     final nativeTracking = tripTracking?.nativeTracking == true;
     final recoveryDecision = tripTracking?.recoveryDecision;
+    final signalQuality = tripTracking == null
+        ? null
+        : TripTrackingSignalQualitySummary.evaluate(tripTracking.diagnostics);
     final stopClassification = _stopClassificationFor(
       settings: settings,
       tripTracking: tripTracking,
@@ -227,6 +243,7 @@ class DashboardTripTrackingSummary {
           tripTracking?.latestUnconfirmedReview != null ||
           tripTracking?.needsWalkingReview == true ||
           activeWorkday?.isPaused == true ||
+          signalQuality?.requiresUserReview == true ||
           usageSignal?.shouldPromptUser == true,
       storageState: _storageStateFor(storageCheck),
       deviceCapabilityState: _deviceCapabilityStateFor(capabilityGuidance),
@@ -244,6 +261,10 @@ class DashboardTripTrackingSummary {
       stopActionToken: stopClassification?.actionToken ?? 'keep_tracking',
       stopClassificationReason:
           stopClassification?.reasonCode ?? 'no_stop_review_needed',
+      gpsSignalQuality: _dashboardGpsSignalQualityFor(signalQuality),
+      gpsSignalReason:
+          signalQuality?.reasonCode ?? 'gps_signal_waiting_for_samples',
+      gpsSignalReviewRequired: signalQuality?.requiresUserReview == true,
       wifiAvailable: wifiAvailable,
       mobileDataAvailable: mobileDataAvailable,
       syncsUsedInWindow: syncsUsedInWindow,
@@ -301,6 +322,19 @@ String _dashboardStopSignalFor(TripStopClassification? classification) {
     TripStopSignal.equipmentIgnored => 'equipment_ignored',
     TripStopSignal.unsafeEvidence => 'unsafe_evidence',
     _ => 'no_stop',
+  };
+}
+
+String _dashboardGpsSignalQualityFor(
+  TripTrackingSignalQualitySummary? summary,
+) {
+  return switch (summary?.quality) {
+    TripTrackingSignalQuality.healthy => 'healthy',
+    TripTrackingSignalQuality.reduced => 'reduced',
+    TripTrackingSignalQuality.poor => 'poor',
+    TripTrackingSignalQuality.interrupted => 'interrupted',
+    TripTrackingSignalQuality.unsafe => 'unsafe',
+    _ => 'no_samples',
   };
 }
 

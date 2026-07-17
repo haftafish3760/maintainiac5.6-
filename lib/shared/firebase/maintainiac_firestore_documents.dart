@@ -362,6 +362,9 @@ class MaintainiacFirestoreDocumentBuilder {
     String mileageMode = 'manual',
     String syncMode = 'device_retained',
     String gpsAssistState = 'off',
+    String gpsSignalQuality = 'no_samples',
+    String gpsSignalReason = 'gps_signal_waiting_for_samples',
+    bool gpsSignalReviewRequired = false,
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
@@ -475,6 +478,17 @@ class MaintainiacFirestoreDocumentBuilder {
           'gpsAssistState',
           _allowedGpsAssistStates,
         ),
+        'gpsSignalQuality': _requiredDashboardSummaryToken(
+          gpsSignalQuality,
+          'gpsSignalQuality',
+          _allowedDashboardGpsSignalQualities,
+        ),
+        'gpsSignalReason': _requiredDashboardSummaryToken(
+          gpsSignalReason,
+          'gpsSignalReason',
+          _allowedDashboardGpsSignalReasons,
+        ),
+        'gpsSignalReviewRequired': gpsSignalReviewRequired,
         'storageState': _requiredDashboardSummaryToken(
           storageState,
           'storageState',
@@ -664,6 +678,24 @@ const _allowedGpsAssistStates = <String>{
   'battery_limited',
   'permission_denied',
   'unavailable',
+};
+
+const _allowedDashboardGpsSignalQualities = <String>{
+  'no_samples',
+  'healthy',
+  'reduced',
+  'poor',
+  'interrupted',
+  'unsafe',
+};
+
+const _allowedDashboardGpsSignalReasons = <String>{
+  'gps_signal_waiting_for_samples',
+  'gps_signal_healthy',
+  'gps_signal_reduced_but_usable',
+  'gps_signal_poor_measurement_quality',
+  'gps_signal_interrupted_by_gap',
+  'gps_signal_unsafe_provider_evidence',
 };
 
 const _allowedDashboardStorageStates = <String>{

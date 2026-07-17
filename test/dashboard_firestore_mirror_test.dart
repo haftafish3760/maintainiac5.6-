@@ -162,6 +162,9 @@ void main() {
     expect(data['mileageMode'], 'gps_assisted');
     expect(data['syncMode'], 'wifi_only');
     expect(data['gpsAssistState'], 'on');
+    expect(data['gpsSignalQuality'], 'no_samples');
+    expect(data['gpsSignalReason'], 'gps_signal_waiting_for_samples');
+    expect(data['gpsSignalReviewRequired'], isFalse);
     expect(data['storageState'], 'text_record_safe');
     expect(data['deviceCapabilityState'], 'unknown');
     expect(data['sensorAssistState'], 'unknown');

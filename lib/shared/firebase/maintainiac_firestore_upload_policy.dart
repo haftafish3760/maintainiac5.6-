@@ -191,6 +191,24 @@ class MaintainiacFirestoreUploadPolicy {
     'unavailable',
   };
 
+  static const _allowedDashboardGpsSignalQualities = <String>{
+    'no_samples',
+    'healthy',
+    'reduced',
+    'poor',
+    'interrupted',
+    'unsafe',
+  };
+
+  static const _allowedDashboardGpsSignalReasons = <String>{
+    'gps_signal_waiting_for_samples',
+    'gps_signal_healthy',
+    'gps_signal_reduced_but_usable',
+    'gps_signal_poor_measurement_quality',
+    'gps_signal_interrupted_by_gap',
+    'gps_signal_unsafe_provider_evidence',
+  };
+
   static const _allowedStorageStates = <String>{
     'unknown',
     'green',
@@ -390,6 +408,9 @@ class MaintainiacFirestoreUploadPolicy {
       'mileageMode',
       'syncMode',
       'gpsAssistState',
+      'gpsSignalQuality',
+      'gpsSignalReason',
+      'gpsSignalReviewRequired',
       'storageState',
       'deviceCapabilityState',
       'sensorAssistState',
@@ -463,6 +484,15 @@ class MaintainiacFirestoreUploadPolicy {
           draft.data['gpsAssistState'],
           _allowedGpsAssistStates,
         ) &&
+        _isAllowedString(
+          draft.data['gpsSignalQuality'],
+          _allowedDashboardGpsSignalQualities,
+        ) &&
+        _isAllowedString(
+          draft.data['gpsSignalReason'],
+          _allowedDashboardGpsSignalReasons,
+        ) &&
+        draft.data['gpsSignalReviewRequired'] is bool &&
         _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
         _isAllowedString(
           draft.data['deviceCapabilityState'],

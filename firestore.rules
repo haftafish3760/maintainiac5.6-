@@ -323,6 +323,9 @@ service cloud.firestore {
         'mileageMode',
         'syncMode',
         'gpsAssistState',
+        'gpsSignalQuality',
+        'gpsSignalReason',
+        'gpsSignalReviewRequired',
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
@@ -364,6 +367,9 @@ service cloud.firestore {
         'mileageMode',
         'syncMode',
         'gpsAssistState',
+        'gpsSignalQuality',
+        'gpsSignalReason',
+        'gpsSignalReviewRequired',
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
@@ -565,6 +571,28 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function isAllowedDashboardGpsSignalQuality(value) {
+      return [
+        'no_samples',
+        'healthy',
+        'reduced',
+        'poor',
+        'interrupted',
+        'unsafe'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardGpsSignalReason(value) {
+      return [
+        'gps_signal_waiting_for_samples',
+        'gps_signal_healthy',
+        'gps_signal_reduced_but_usable',
+        'gps_signal_poor_measurement_quality',
+        'gps_signal_interrupted_by_gap',
+        'gps_signal_unsafe_provider_evidence'
+      ].hasAny([value]);
+    }
+
     function isAllowedDashboardStorageState(value) {
       return [
         'unknown',
@@ -691,6 +719,13 @@ service cloud.firestore {
         isAllowedMileageMode(request.resource.data.mileageMode) &&
         isAllowedDashboardSyncMode(request.resource.data.syncMode) &&
         isAllowedGpsAssistState(request.resource.data.gpsAssistState) &&
+        isAllowedDashboardGpsSignalQuality(
+          request.resource.data.gpsSignalQuality
+        ) &&
+        isAllowedDashboardGpsSignalReason(
+          request.resource.data.gpsSignalReason
+        ) &&
+        request.resource.data.gpsSignalReviewRequired is bool &&
         isAllowedDashboardStorageState(request.resource.data.storageState) &&
         isAllowedDashboardDeviceCapabilityState(
           request.resource.data.deviceCapabilityState

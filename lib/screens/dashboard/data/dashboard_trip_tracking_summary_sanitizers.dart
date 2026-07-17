@@ -78,6 +78,32 @@ String _safeStopClassificationReason(String value) {
   };
 }
 
+String _safeGpsSignalQuality(String value) {
+  return switch (value.trim()) {
+    'no_samples' => 'no_samples',
+    'healthy' => 'healthy',
+    'reduced' => 'reduced',
+    'poor' => 'poor',
+    'interrupted' => 'interrupted',
+    'unsafe' => 'unsafe',
+    _ => 'no_samples',
+  };
+}
+
+String _safeGpsSignalReason(String value) {
+  return switch (value.trim()) {
+    'gps_signal_waiting_for_samples' => 'gps_signal_waiting_for_samples',
+    'gps_signal_healthy' => 'gps_signal_healthy',
+    'gps_signal_reduced_but_usable' => 'gps_signal_reduced_but_usable',
+    'gps_signal_poor_measurement_quality' =>
+      'gps_signal_poor_measurement_quality',
+    'gps_signal_interrupted_by_gap' => 'gps_signal_interrupted_by_gap',
+    'gps_signal_unsafe_provider_evidence' =>
+      'gps_signal_unsafe_provider_evidence',
+    _ => 'gps_signal_waiting_for_samples',
+  };
+}
+
 String _safeRecoveryState(String value) {
   return switch (value.trim()) {
     'none' => 'none',

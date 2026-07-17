@@ -18,6 +18,9 @@ void main() {
           mileageMode: 'gps_assisted',
           syncMode: 'wifi_only',
           gpsAssistState: 'battery_limited',
+          gpsSignalQuality: 'poor',
+          gpsSignalReason: 'gps_signal_poor_measurement_quality',
+          gpsSignalReviewRequired: true,
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
@@ -45,6 +48,9 @@ void main() {
       HostedUsageLimits.freeUserSyncsPer24HourWindow,
     );
     expect(doc.data['batteryGpsLimited'], isTrue);
+    expect(doc.data['gpsSignalQuality'], 'poor');
+    expect(doc.data['gpsSignalReason'], 'gps_signal_poor_measurement_quality');
+    expect(doc.data['gpsSignalReviewRequired'], isTrue);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
@@ -76,6 +82,9 @@ void main() {
         );
 
     expect(doc.data['odometerCalibrationState'], 'disabled');
+    expect(doc.data['gpsSignalQuality'], 'no_samples');
+    expect(doc.data['gpsSignalReason'], 'gps_signal_waiting_for_samples');
+    expect(doc.data['gpsSignalReviewRequired'], isFalse);
     expect(doc.data['odometerUsageState'], 'disabled');
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));

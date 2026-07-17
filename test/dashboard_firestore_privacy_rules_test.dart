@@ -112,6 +112,9 @@ void main() {
       expect(rules, contains('request.resource.data.stopSignal'));
       expect(rules, contains('request.resource.data.stopActionToken'));
       expect(rules, contains('request.resource.data.stopClassificationReason'));
+      expect(rules, contains('request.resource.data.gpsSignalQuality'));
+      expect(rules, contains('request.resource.data.gpsSignalReason'));
+      expect(rules, contains('request.resource.data.gpsSignalReviewRequired'));
       expect(
         rules,
         contains('request.resource.data.odometerCalibrationMultiplier <= 1.25'),
