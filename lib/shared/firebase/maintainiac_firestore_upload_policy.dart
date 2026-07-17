@@ -297,6 +297,13 @@ class MaintainiacFirestoreUploadPolicy {
         'Organization dashboard summary must match its organization path.',
       );
     }
+    if (draft.data['createdByUid'] != draft.data['updatedByUid']) {
+      throw ArgumentError.value(
+        draft.path,
+        'draft',
+        'Organization dashboard summary owner fields must agree.',
+      );
+    }
   }
 
   static void _validateTripMileageSummaryShape(

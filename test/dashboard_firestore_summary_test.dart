@@ -130,6 +130,26 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
+  test('organization dashboard summaries reject divergent owner UIDs', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+          uid: 'firebaseUid-1',
+          orgId: 'org A',
+          dashboardId: 'contractor',
+          updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
+        );
+
+    expect(
+      () => MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(
+          path: doc.path,
+          data: {...doc.data, 'updatedByUid': 'firebaseUid-2'},
+        ),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('dashboard summaries reject blank optional reference ids', () {
     for (final entry in const <String, String>{
       'activeVehicleId': ' /// ',
