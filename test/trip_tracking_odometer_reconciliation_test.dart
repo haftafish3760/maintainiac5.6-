@@ -302,6 +302,13 @@ void main() {
           absoluteDifferenceMiles: 6,
           differencePercent: double.nan,
         ),
+        TripOdometerReconciliation(
+          status: TripOdometerReconciliationStatus.reviewRecommended,
+          confirmedOdometerDeltaMiles: 100,
+          filteredGpsMiles: 94,
+          absoluteDifferenceMiles: 6,
+          differencePercent: -6,
+        ),
       ],
     );
 

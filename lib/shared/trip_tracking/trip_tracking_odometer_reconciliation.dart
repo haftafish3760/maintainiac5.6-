@@ -193,6 +193,7 @@ class TripOdometerCalibrationSignal {
               sample.filteredGpsMiles.isFinite &&
               sample.filteredGpsMiles > 0 &&
               sample.differencePercent.isFinite &&
+              sample.differencePercent >= 0 &&
               sample.differencePercent <= maximumEligibleDifferencePercent,
         )
         .toList(growable: false);
