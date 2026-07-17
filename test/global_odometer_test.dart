@@ -14,6 +14,28 @@ void main() {
     expect(controller.reading, 1000);
   });
 
+  test('negative odometer baselines recover to zero', () async {
+    final controller = GlobalOdometerController(initialReading: -100);
+
+    expect(controller.reading, isZero);
+    expect(controller.confirmedReading, isZero);
+    expect(controller.history.single.reading, isZero);
+
+    final switched = await controller.switchVehicle(
+      OdometerVehicleSnapshot(
+        vehicleId: 'vehicle_negative_snapshot',
+        currentReading: -5,
+        updatedAt: DateTime.utc(2026, 7, 17, 12),
+        history: const [],
+      ),
+    );
+
+    expect(switched, isTrue);
+    expect(controller.reading, isZero);
+    expect(controller.confirmedReading, isZero);
+    expect(controller.history.single.reading, isZero);
+  });
+
   test('can validate a reviewed reading before committing it', () {
     final controller = GlobalOdometerController(initialReading: 1000);
 

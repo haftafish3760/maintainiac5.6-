@@ -22,7 +22,7 @@ class GlobalOdometerController extends ChangeNotifier {
     snapshotReader,
     Future<void> Function(OdometerVehicleSnapshot snapshot)? snapshotWriter,
   }) : _vehicleId = vehicleId,
-       _reading = initialReading,
+       _reading = _safeOdometerReading(initialReading),
        _validationPolicy = validationPolicy,
        _drivingPatternReviewEnabled =
            validationPolicy.drivingPatternReviewEnabled,
@@ -31,7 +31,7 @@ class GlobalOdometerController extends ChangeNotifier {
        _history = initialHistory == null || initialHistory.isEmpty
            ? [
                OdometerReadingEvent(
-                 reading: initialReading,
+                 reading: _safeOdometerReading(initialReading),
                  recordedAt: initialRecordedAt ?? DateTime.now(),
                  affectsCurrentReading: true,
                ),
@@ -91,7 +91,7 @@ class GlobalOdometerController extends ChangeNotifier {
     if (hasLiveTripProjection) return false;
     await _persistSnapshot();
     _vehicleId = snapshot.vehicleId;
-    _reading = snapshot.currentReading;
+    _reading = _safeOdometerReading(snapshot.currentReading);
     _drivingPatternReviewEnabled = snapshot.drivingPatternReviewEnabled;
     _history
       ..clear()
@@ -99,7 +99,7 @@ class GlobalOdometerController extends ChangeNotifier {
         snapshot.history.isEmpty
             ? [
                 OdometerReadingEvent(
-                  reading: snapshot.currentReading,
+                  reading: _safeOdometerReading(snapshot.currentReading),
                   recordedAt: snapshot.updatedAt,
                 ),
               ]
@@ -593,3 +593,5 @@ class GlobalOdometerScope extends InheritedNotifier<GlobalOdometerController> {
 
 String _odometerSourceLabel(String? sourceType) =>
     sourceType == 'gps_trip_review' ? 'GPS trip' : 'receipt';
+
+int _safeOdometerReading(int value) => value < 0 ? 0 : value;
