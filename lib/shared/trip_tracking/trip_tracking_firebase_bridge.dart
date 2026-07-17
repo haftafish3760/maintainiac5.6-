@@ -462,32 +462,38 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     if (accountUid == null || accountUid.isEmpty) return;
     if (!_isSafeFirestoreUid(accountUid)) return;
     final scope = review.cloudBackupScope;
-    if (scope == TripTrackingCloudBackupScope.organization &&
-        review.cloudOrganizationId?.trim().isNotEmpty == true) {
-      await _queueStore.discardPendingForPath(
-        MaintainiacFirestoreDocumentBuilder.tripTrackingReviewPath(
-          orgId: review.cloudOrganizationId!.trim(),
-          tripId: review.id,
-        ),
-      );
-    } else if (scope == null &&
-        !personal &&
-        _orgId?.trim().isNotEmpty == true) {
-      // Reviews queued before scope binding was introduced used the active
-      // organization path. Remove that legacy pending record on withdrawal.
-      await _queueStore.discardPendingForPath(
-        MaintainiacFirestoreDocumentBuilder.tripTrackingReviewPath(
-          orgId: _orgId!.trim(),
-          tripId: review.id,
-        ),
-      );
-    } else if (scope == TripTrackingCloudBackupScope.personal || personal) {
-      await _queueStore.discardPendingForPath(
-        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewPath(
-          uid: accountUid,
-          tripId: review.id,
-        ),
-      );
+    try {
+      if (scope == TripTrackingCloudBackupScope.organization &&
+          review.cloudOrganizationId?.trim().isNotEmpty == true) {
+        await _queueStore.discardPendingForPath(
+          MaintainiacFirestoreDocumentBuilder.tripTrackingReviewPath(
+            orgId: review.cloudOrganizationId!.trim(),
+            tripId: review.id,
+          ),
+        );
+      } else if (scope == null &&
+          !personal &&
+          _orgId?.trim().isNotEmpty == true) {
+        // Reviews queued before scope binding was introduced used the active
+        // organization path. Remove that legacy pending record on withdrawal.
+        await _queueStore.discardPendingForPath(
+          MaintainiacFirestoreDocumentBuilder.tripTrackingReviewPath(
+            orgId: _orgId!.trim(),
+            tripId: review.id,
+          ),
+        );
+      } else if (scope == TripTrackingCloudBackupScope.personal || personal) {
+        await _queueStore.discardPendingForPath(
+          MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewPath(
+            uid: accountUid,
+            tripId: review.id,
+          ),
+        );
+      }
+    } catch (_) {
+      // Queue cleanup is best effort. Consent withdrawal must still make the
+      // durable local review local-only so an unsafe legacy path cannot keep
+      // mileage eligible for cloud upload.
     }
   }
 

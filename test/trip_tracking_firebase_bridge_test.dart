@@ -1179,6 +1179,41 @@ void main() {
     );
   });
 
+  test(
+    'backup withdrawal ignores unsafe legacy org paths without keeping cloud eligibility',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      final legacyReview = review().copyWith(
+        cloudAccountUid: 'firebaseUid-1',
+        cloudBackupScope: TripTrackingCloudBackupScope.organization,
+        cloudOrganizationId: ' /// ',
+        cloudSyncState: TripTrackingCloudSyncState.queued,
+      );
+      await localStore.saveReview(legacyReview);
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        orgId: 'org-1',
+        createdByUid: 'firebaseUid-1',
+      );
+
+      await mirror.withdrawBackupConsent();
+
+      expect(queue.pendingRecords, isEmpty);
+      expect(
+        localStore.reviewForTrip('trip 1')?.cloudSyncState,
+        TripTrackingCloudSyncState.localOnly,
+      );
+      expect(localStore.reviewForTrip('trip 1')?.cloudSyncError, isNull);
+    },
+  );
+
   test('missing organization keeps company backup durably retryable', () async {
     final localStore = TripTrackingSessionStore.memory();
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
