@@ -23,10 +23,22 @@ class MaintainiacFirestoreUploadQueueStore {
     final loaded = <MaintainiacFirestoreQueuedDocument>[];
     for (final value in _box.values) {
       final record = MaintainiacFirestoreQueuedDocument.fromStored(value);
-      if (!record.isEmpty) loaded.add(record);
+      if (_isRecoverableQueuedDocument(record)) loaded.add(record);
     }
     loaded.sort((a, b) => a.queuedAtUtc.compareTo(b.queuedAtUtc));
     return List.unmodifiable(loaded);
+  }
+
+  bool _isRecoverableQueuedDocument(MaintainiacFirestoreQueuedDocument record) {
+    if (record.isEmpty) return false;
+    try {
+      MaintainiacFirestoreUploadPolicy.validateDraft(
+        MaintainiacFirestoreDocumentDraft(path: record.path, data: record.data),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   List<MaintainiacFirestoreQueuedDocument> get pendingRecords {

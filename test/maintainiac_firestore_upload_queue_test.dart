@@ -174,23 +174,26 @@ void main() {
     expect(queue.pendingRecords, hasLength(1));
   });
 
-  test('malformed free sync quota counts fail closed without uploading', () async {
-    final queue = await MaintainiacFirestoreUploadQueueStore.create();
-    final sink = _RecordingFirestoreSink();
-    await queue.enqueue(_safeDraft('parserHealth/malformed_free_sync_quota'));
+  test(
+    'malformed free sync quota counts fail closed without uploading',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final sink = _RecordingFirestoreSink();
+      await queue.enqueue(_safeDraft('parserHealth/malformed_free_sync_quota'));
 
-    final result = await MaintainiacFirestoreUploadCoordinator(
-      queue: queue,
-      sink: sink,
-      uploadEnabled: true,
-      freeSyncsUsedInWindow: -1,
-    ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
+      final result = await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+        freeSyncsUsedInWindow: -1,
+      ).uploadPending(nowUtc: DateTime.utc(2026, 6, 23, 14));
 
-    expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
-    expect(result.attemptedCount, 0);
-    expect(sink.writes, isEmpty);
-    expect(queue.pendingRecords, hasLength(1));
-  });
+      expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+      expect(result.attemptedCount, 0);
+      expect(sink.writes, isEmpty);
+      expect(queue.pendingRecords, hasLength(1));
+    },
+  );
 
   test('network policy block preserves pending uploads', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
@@ -431,6 +434,40 @@ void main() {
     expect(restored.data, {'schema': 'parser_health_v1'});
   });
 
+  test('unsafe restored queue records are not retried or uploaded', () async {
+    final box = await Hive.openBox<dynamic>(
+      MaintainiacFirestoreUploadQueueStore.boxName,
+    );
+    await box.put('unsafe_path', {
+      'id': 'unsafe_path',
+      'path': 'unknownCollection/private',
+      'data': {'schema': 'bad'},
+      'queuedAtUtc': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+    });
+    await box.put('unsafe_data', {
+      'id': 'unsafe_data',
+      'path': 'parserHealth/private_text',
+      'data': {
+        'schema': 'bad',
+        'rawReceiptText': 'PRIVATE STORE SECRET ITEM 99.99',
+      },
+      'queuedAtUtc': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+    });
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+    ).uploadPending(nowUtc: DateTime.utc(2026, 7, 14, 12, 2));
+
+    expect(queue.pendingRecords, isEmpty);
+    expect(result.status, MaintainiacFirestoreUploadStatus.empty);
+    expect(result.attemptedCount, 0);
+    expect(sink.writes, isEmpty);
+  });
+
   test('retains failed writes with retry metadata', () async {
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
     final sink = _RecordingFirestoreSink(
@@ -459,7 +496,10 @@ void main() {
     expect(queue.pendingRecords.single.lastError, isNot(contains('pk.secret')));
     expect(queue.pendingRecords.single.lastError, isNot(contains('35.123')));
     expect(queue.pendingRecords.single.lastError, isNot(contains('-80.456')));
-    expect(queue.pendingRecords.single.lastError, isNot(contains('-122.12345')));
+    expect(
+      queue.pendingRecords.single.lastError,
+      isNot(contains('-122.12345')),
+    );
     expect(queue.pendingRecords.single.lastError, isNot(contains('37.12345')));
     expect(queue.pendingRecords.single.lastError, contains('token redacted'));
     expect(queue.pendingRecords.single.lastError, contains('lat redacted'));
