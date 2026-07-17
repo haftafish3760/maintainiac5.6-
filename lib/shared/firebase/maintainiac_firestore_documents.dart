@@ -348,6 +348,11 @@ class MaintainiacFirestoreDocumentBuilder {
     String? activeWorkdayId,
     String? activeWorkProfileId,
     String dashboardMode = 'default',
+    String workStyle = 'general_road',
+    String stopDetectionMode = 'walking_assisted',
+    String stopReviewReasonCode = 'road_vehicle_stop_walk_review',
+    bool recommendedActivityRecognition = true,
+    bool requiresStrongerStopDebounce = false,
     String mileageMode = 'manual',
     String syncMode = 'device_retained',
     String gpsAssistState = 'off',
@@ -405,6 +410,23 @@ class MaintainiacFirestoreDocumentBuilder {
           'dashboardMode',
           _allowedDashboardModes,
         ),
+        'workStyle': _requiredDashboardSummaryToken(
+          workStyle,
+          'workStyle',
+          _allowedDashboardWorkStyles,
+        ),
+        'stopDetectionMode': _requiredDashboardSummaryToken(
+          stopDetectionMode,
+          'stopDetectionMode',
+          _allowedDashboardStopDetectionModes,
+        ),
+        'stopReviewReasonCode': _requiredDashboardSummaryToken(
+          stopReviewReasonCode,
+          'stopReviewReasonCode',
+          _allowedDashboardStopReviewReasons,
+        ),
+        'recommendedActivityRecognition': recommendedActivityRecognition,
+        'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
         'mileageMode': _requiredDashboardSummaryToken(
           mileageMode,
           'mileageMode',
@@ -499,6 +521,28 @@ const _allowedDashboardModes = <String>{
   'employee',
   'customer',
   'personal',
+};
+
+const _allowedDashboardWorkStyles = <String>{
+  'general_road',
+  'rideshare',
+  'delivery',
+  'contractor',
+  'equipment',
+};
+
+const _allowedDashboardStopDetectionModes = <String>{
+  'walking_assisted',
+  'strong_debounce',
+  'walking_ignored',
+};
+
+const _allowedDashboardStopReviewReasons = <String>{
+  'road_vehicle_stop_walk_review',
+  'rideshare_stop_requires_extra_evidence',
+  'delivery_stop_walk_review',
+  'contractor_stop_walk_review',
+  'equipment_ignores_walking_stop_evidence',
 };
 
 const _allowedMileageModes = <String>{

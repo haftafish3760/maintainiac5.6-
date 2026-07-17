@@ -95,6 +95,28 @@ class MaintainiacFirestoreUploadPolicy {
     'customer_hidden',
   };
 
+  static const _allowedDashboardWorkStyles = <String>{
+    'general_road',
+    'rideshare',
+    'delivery',
+    'contractor',
+    'equipment',
+  };
+
+  static const _allowedDashboardStopDetectionModes = <String>{
+    'walking_assisted',
+    'strong_debounce',
+    'walking_ignored',
+  };
+
+  static const _allowedDashboardStopReviewReasons = <String>{
+    'road_vehicle_stop_walk_review',
+    'rideshare_stop_requires_extra_evidence',
+    'delivery_stop_walk_review',
+    'contractor_stop_walk_review',
+    'equipment_ignores_walking_stop_evidence',
+  };
+
   static const _allowedSyncModes = <String>{
     'device_retained',
     'local_only',
@@ -299,6 +321,11 @@ class MaintainiacFirestoreUploadPolicy {
       'activeWorkdayId',
       'activeWorkProfileId',
       'dashboardMode',
+      'workStyle',
+      'stopDetectionMode',
+      'stopReviewReasonCode',
+      'recommendedActivityRecognition',
+      'requiresStrongerStopDebounce',
       'mileageMode',
       'syncMode',
       'gpsAssistState',
@@ -332,6 +359,20 @@ class MaintainiacFirestoreUploadPolicy {
         _hasValidOptionalStringField(draft.data, 'activeWorkdayId') &&
         _hasValidOptionalStringField(draft.data, 'activeWorkProfileId') &&
         _isAllowedString(draft.data['dashboardMode'], _allowedDashboardModes) &&
+        _isAllowedString(
+          draft.data['workStyle'],
+          _allowedDashboardWorkStyles,
+        ) &&
+        _isAllowedString(
+          draft.data['stopDetectionMode'],
+          _allowedDashboardStopDetectionModes,
+        ) &&
+        _isAllowedString(
+          draft.data['stopReviewReasonCode'],
+          _allowedDashboardStopReviewReasons,
+        ) &&
+        draft.data['recommendedActivityRecognition'] is bool &&
+        draft.data['requiresStrongerStopDebounce'] is bool &&
         _isAllowedString(draft.data['mileageMode'], _allowedMileageModes) &&
         _isAllowedString(draft.data['syncMode'], _allowedSyncModes) &&
         _isIsoTimestamp(draft.data['updatedAt']) &&

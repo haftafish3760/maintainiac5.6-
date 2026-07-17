@@ -148,6 +148,11 @@ void main() {
 
     final data = queue.pendingRecords.single.data;
     expect(data['dashboardMode'], 'gig_driver');
+    expect(data['workStyle'], 'delivery');
+    expect(data['stopDetectionMode'], 'walking_assisted');
+    expect(data['stopReviewReasonCode'], 'delivery_stop_walk_review');
+    expect(data['recommendedActivityRecognition'], isTrue);
+    expect(data['requiresStrongerStopDebounce'], isFalse);
     expect(data['mileageMode'], 'gps_assisted');
     expect(data['syncMode'], 'wifi_only');
     expect(data['gpsAssistState'], 'on');

@@ -13,6 +13,11 @@ import 'active_workday_store.dart';
 class DashboardTripTrackingSummary {
   const DashboardTripTrackingSummary({
     required this.dashboardMode,
+    required this.workStyle,
+    required this.stopDetectionMode,
+    required this.stopReviewReasonCode,
+    required this.recommendedActivityRecognition,
+    required this.requiresStrongerStopDebounce,
     required this.mileageMode,
     required this.syncMode,
     required this.gpsAssistState,
@@ -32,6 +37,11 @@ class DashboardTripTrackingSummary {
   });
 
   final String dashboardMode;
+  final String workStyle;
+  final String stopDetectionMode;
+  final String stopReviewReasonCode;
+  final bool recommendedActivityRecognition;
+  final bool requiresStrongerStopDebounce;
   final String mileageMode;
   final String syncMode;
   final String gpsAssistState;
@@ -89,6 +99,15 @@ class DashboardTripTrackingSummary {
     );
     return DashboardTripTrackingSummary(
       dashboardMode: guidance.modeToken,
+      workStyle: _safeWorkStyle(strategy.workStyleToken),
+      stopDetectionMode: _safeStopDetectionMode(
+        strategy.stopDetectionModeToken,
+      ),
+      stopReviewReasonCode: _safeStopReviewReasonCode(
+        strategy.stopReviewReasonCode,
+      ),
+      recommendedActivityRecognition: strategy.recommendedActivityRecognition,
+      requiresStrongerStopDebounce: strategy.requiresStrongerStopDebounce,
       mileageMode: settings.gpsAssistedTrackingEnabled
           ? 'gps_assisted'
           : 'manual',
@@ -200,6 +219,39 @@ String _gpsAssistState({
   if (nativeTracking) return 'on';
   if (recoverableTrip) return 'gps_assisted';
   return 'gps_assisted';
+}
+
+String _safeWorkStyle(String value) {
+  return switch (value.trim()) {
+    'general_road' => 'general_road',
+    'rideshare' => 'rideshare',
+    'delivery' => 'delivery',
+    'contractor' => 'contractor',
+    'equipment' => 'equipment',
+    _ => 'general_road',
+  };
+}
+
+String _safeStopDetectionMode(String value) {
+  return switch (value.trim()) {
+    'walking_assisted' => 'walking_assisted',
+    'strong_debounce' => 'strong_debounce',
+    'walking_ignored' => 'walking_ignored',
+    _ => 'walking_assisted',
+  };
+}
+
+String _safeStopReviewReasonCode(String value) {
+  return switch (value.trim()) {
+    'road_vehicle_stop_walk_review' => 'road_vehicle_stop_walk_review',
+    'rideshare_stop_requires_extra_evidence' =>
+      'rideshare_stop_requires_extra_evidence',
+    'delivery_stop_walk_review' => 'delivery_stop_walk_review',
+    'contractor_stop_walk_review' => 'contractor_stop_walk_review',
+    'equipment_ignores_walking_stop_evidence' =>
+      'equipment_ignores_walking_stop_evidence',
+    _ => 'road_vehicle_stop_walk_review',
+  };
 }
 
 String _safeStorageState(String value) {

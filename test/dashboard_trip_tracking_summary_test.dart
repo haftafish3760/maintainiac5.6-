@@ -17,6 +17,11 @@ void main() {
     );
 
     expect(summary.dashboardMode, 'default');
+    expect(summary.workStyle, 'general_road');
+    expect(summary.stopDetectionMode, 'walking_assisted');
+    expect(summary.stopReviewReasonCode, 'road_vehicle_stop_walk_review');
+    expect(summary.recommendedActivityRecognition, isTrue);
+    expect(summary.requiresStrongerStopDebounce, isFalse);
     expect(summary.mileageMode, 'manual');
     expect(summary.syncMode, 'wifi_and_mobile');
     expect(summary.gpsAssistState, 'off');
@@ -49,6 +54,11 @@ void main() {
     );
 
     expect(summary.dashboardMode, 'gig_driver');
+    expect(summary.workStyle, 'delivery');
+    expect(summary.stopDetectionMode, 'walking_assisted');
+    expect(summary.stopReviewReasonCode, 'delivery_stop_walk_review');
+    expect(summary.recommendedActivityRecognition, isTrue);
+    expect(summary.requiresStrongerStopDebounce, isFalse);
     expect(summary.mileageMode, 'gps_assisted');
     expect(summary.syncMode, 'wifi_only');
     expect(summary.gpsAssistState, 'on');
@@ -82,6 +92,9 @@ void main() {
     );
 
     expect(summary.dashboardMode, 'contractor');
+    expect(summary.workStyle, 'contractor');
+    expect(summary.stopDetectionMode, 'walking_assisted');
+    expect(summary.stopReviewReasonCode, 'contractor_stop_walk_review');
     expect(summary.syncMode, 'mobile_only');
     expect(summary.gpsAssistState, 'battery_limited');
     expect(summary.storageState, 'low_storage');

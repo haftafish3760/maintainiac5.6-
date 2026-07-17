@@ -186,6 +186,7 @@ void main() {
       'profile': 'contractorVehicle',
       'workStyle': 'contractor',
       'dashboardMode': 'contractor',
+      'stopDetectionMode': 'walking_assisted',
       'recommendedActivityRecognition': true,
       'usesWalkingStopEvidence': true,
       'requiresStrongerStopDebounce': false,

@@ -36,6 +36,21 @@ class TripTrackingProfileStrategy {
   final bool recommendedActivityRecognition;
   final String stopDetectionSummary;
 
+  String get workStyleToken => switch (workStyle) {
+    TripTrackingWorkStyle.generalRoad => 'general_road',
+    TripTrackingWorkStyle.rideshare => 'rideshare',
+    TripTrackingWorkStyle.delivery => 'delivery',
+    TripTrackingWorkStyle.contractor => 'contractor',
+    TripTrackingWorkStyle.equipment => 'equipment',
+  };
+
+  String get stopDetectionModeToken {
+    if (!usesWalkingStopEvidence) return 'walking_ignored';
+    return requiresStrongerStopDebounce
+        ? 'strong_debounce'
+        : 'walking_assisted';
+  }
+
   bool get walkingMayExcludeRoadMileage => usesWalkingStopEvidence;
   bool get requiresStrongerStopDebounce =>
       walkingConfirmationCount > 3 ||
@@ -43,8 +58,9 @@ class TripTrackingProfileStrategy {
 
   Map<String, Object?> toDashboardProfileMap() => {
     'profile': profile.name,
-    'workStyle': workStyle.name,
+    'workStyle': workStyleToken,
     'dashboardMode': dashboardModeToken,
+    'stopDetectionMode': stopDetectionModeToken,
     'recommendedActivityRecognition': recommendedActivityRecognition,
     'usesWalkingStopEvidence': usesWalkingStopEvidence,
     'requiresStrongerStopDebounce': requiresStrongerStopDebounce,

@@ -309,6 +309,11 @@ service cloud.firestore {
         'activeWorkdayId',
         'activeWorkProfileId',
         'dashboardMode',
+        'workStyle',
+        'stopDetectionMode',
+        'stopReviewReasonCode',
+        'recommendedActivityRecognition',
+        'requiresStrongerStopDebounce',
         'mileageMode',
         'syncMode',
         'gpsAssistState',
@@ -338,6 +343,11 @@ service cloud.firestore {
         'updatedByUid',
         'updatedAt',
         'dashboardMode',
+        'workStyle',
+        'stopDetectionMode',
+        'stopReviewReasonCode',
+        'recommendedActivityRecognition',
+        'requiresStrongerStopDebounce',
         'mileageMode',
         'syncMode',
         'gpsAssistState',
@@ -412,6 +422,34 @@ service cloud.firestore {
         'employee',
         'customer',
         'personal'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardWorkStyle(value) {
+      return [
+        'general_road',
+        'rideshare',
+        'delivery',
+        'contractor',
+        'equipment'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardStopDetectionMode(value) {
+      return [
+        'walking_assisted',
+        'strong_debounce',
+        'walking_ignored'
+      ].hasAny([value]);
+    }
+
+    function isAllowedDashboardStopReviewReason(value) {
+      return [
+        'road_vehicle_stop_walk_review',
+        'rideshare_stop_requires_extra_evidence',
+        'delivery_stop_walk_review',
+        'contractor_stop_walk_review',
+        'equipment_ignores_walking_stop_evidence'
       ].hasAny([value]);
     }
 
@@ -553,6 +591,15 @@ service cloud.firestore {
         hasValidDashboardSyncCounters() &&
         hasValidDashboardSummaryStrings() &&
         isAllowedDashboardMode(request.resource.data.dashboardMode) &&
+        isAllowedDashboardWorkStyle(request.resource.data.workStyle) &&
+        isAllowedDashboardStopDetectionMode(
+          request.resource.data.stopDetectionMode
+        ) &&
+        isAllowedDashboardStopReviewReason(
+          request.resource.data.stopReviewReasonCode
+        ) &&
+        request.resource.data.recommendedActivityRecognition is bool &&
+        request.resource.data.requiresStrongerStopDebounce is bool &&
         isAllowedMileageMode(request.resource.data.mileageMode) &&
         isAllowedDashboardSyncMode(request.resource.data.syncMode) &&
         isAllowedGpsAssistState(request.resource.data.gpsAssistState) &&
