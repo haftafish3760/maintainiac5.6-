@@ -135,10 +135,10 @@ class MaintainiacHostedCacheRecord {
 
   factory MaintainiacHostedCacheRecord.fromStored(Object? value) {
     if (value is! Map) return MaintainiacHostedCacheRecord.empty;
-    final data = value['data'];
+    final data = _safeHostedCacheData(value['data']);
     return MaintainiacHostedCacheRecord(
       path: value['path']?.toString() ?? '',
-      data: data is Map ? Map<String, Object?>.from(data) : const {},
+      data: data,
       cachedAtUtc:
           DateTime.tryParse(value['cachedAtUtc']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
@@ -338,4 +338,16 @@ String? _nullableString(Object? value) {
   final text = value?.toString().trim();
   if (text == null || text.isEmpty) return null;
   return text;
+}
+
+Map<String, Object?> _safeHostedCacheData(Object? value) {
+  if (value is! Map) return const {};
+  final safe = <String, Object?>{};
+  for (final entry in value.entries) {
+    final key = entry.key;
+    if (key is String && key.trim() == key && key.isNotEmpty) {
+      safe[key] = entry.value;
+    }
+  }
+  return Map.unmodifiable(safe);
 }

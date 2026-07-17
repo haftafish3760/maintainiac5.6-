@@ -221,6 +221,24 @@ void main() {
     );
     expect(store.records, isEmpty);
   });
+
+  test('malformed persisted cache data keys are sanitized on restore', () {
+    final restored = MaintainiacHostedCacheRecord.fromStored({
+      'path': 'catalogHealth/malformed_data',
+      'data': const {
+        'schema': 'catalog_health_event_v1',
+        7: 'non-string-key',
+        ' padded ': 'unsafe-key',
+        '': 'blank-key',
+      },
+      'cachedAtUtc': '2026-07-16T12:00:00.000Z',
+      'expiresAtUtc': '2026-08-16T12:00:00.000Z',
+      'sha256': 'bad-fingerprint',
+    });
+
+    expect(restored.data, {'schema': 'catalog_health_event_v1'});
+    expect(restored.isTrusted, isFalse);
+  });
 }
 
 Map<String, Object?> _safeCatalogPackData() {
