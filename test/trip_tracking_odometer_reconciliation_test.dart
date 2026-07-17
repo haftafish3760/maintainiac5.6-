@@ -219,6 +219,45 @@ void main() {
     );
   });
 
+  test('odometer continuity normalizes legacy padded vehicle ids', () {
+    final previous = TripTrackingReviewRecord(
+      id: 'trip_previous_padded_vehicle',
+      vehicleId: ' vehicle_1 ',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1020,
+      confirmedEndingOdometer: 1020,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 13, 14, 5),
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 13, 12),
+      finishedAt: DateTime.utc(2026, 7, 13, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 20 * 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+    final next = TripTrackingReviewRecord(
+      id: 'trip_next_padded_vehicle',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1025,
+      estimatedEndingOdometer: 1035,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 14),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 10 * 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final check = TripOdometerContinuityCheck.betweenReviews(
+      previous: previous,
+      next: next,
+    );
+
+    expect(check.status, TripOdometerContinuityStatus.aligned);
+    expect(check.odometerGapMiles, 5);
+  });
+
   test('odometer continuity rejects out-of-order same-vehicle timelines', () {
     final previous = review.copyWith(
       confirmedEndingOdometer: 1020,

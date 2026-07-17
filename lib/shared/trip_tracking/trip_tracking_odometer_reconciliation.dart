@@ -96,7 +96,9 @@ class TripOdometerContinuityCheck {
     int materialUntrackedGapMiles = 50,
   }) {
     final previousEnding = previous.confirmedEndingOdometer;
-    if (previous.vehicleId != next.vehicleId || previousEnding == null) {
+    final previousVehicleId = previous.vehicleId.trim();
+    final nextVehicleId = next.vehicleId.trim();
+    if (previousVehicleId != nextVehicleId || previousEnding == null) {
       return const TripOdometerContinuityCheck(
         status: TripOdometerContinuityStatus.insufficientData,
         odometerGapMiles: 0,
@@ -105,8 +107,8 @@ class TripOdometerContinuityCheck {
     }
     if (previous.id.trim().isEmpty ||
         next.id.trim().isEmpty ||
-        previous.vehicleId.trim().isEmpty ||
-        next.vehicleId.trim().isEmpty ||
+        previousVehicleId.isEmpty ||
+        nextVehicleId.isEmpty ||
         !previous.hasValidTimeline ||
         !next.hasValidTimeline ||
         !previous.isOdometerConfirmed ||
