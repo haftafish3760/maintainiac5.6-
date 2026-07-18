@@ -45,9 +45,11 @@ class TripOdometerReconciliation {
     'absoluteDifferenceMiles': _safeRoundedMiles(absoluteDifferenceMiles),
     'differencePercent': _safeRoundedPercent(differencePercent),
     'shouldPromptUser': shouldPromptUser,
+    'userReviewRequiredBeforeChange': shouldPromptUser,
     'odometerRemainsCanonical': true,
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
+    'calibrationCanApplySilently': false,
     'rawLocationIncluded': false,
     'rawTripRecordsIncluded': false,
   };
@@ -121,9 +123,11 @@ class TripOdometerContinuityCheck {
     'reasonCode': _safeContinuityReason(reasonCode),
     'shouldBlockConfirmation': shouldBlockConfirmation,
     'shouldPromptUser': shouldPromptUser,
+    'manualReviewRequired': shouldPromptUser,
     'odometerRemainsCanonical': true,
     'gpsCanFillGapAutomatically': false,
     'mapboxCanFillGapAutomatically': false,
+    'remoteBackupCanFillGapAutomatically': false,
     'rawTripRecordsIncluded': false,
     'rawLocationIncluded': false,
   };
@@ -229,6 +233,11 @@ class TripOdometerCalibrationSignal {
     'shouldPromptUser': shouldPromptUser,
     'maySuggestTireOrSpeedometerReview': maySuggestTireOrSpeedometerReview,
     'canOverwriteConfirmedOdometer': false,
+    'calibrationRequiresUserOptIn': true,
+    'canApplySilently': false,
+    'gpsAssistanceCalibrationMultiplier': _safeRoundedMultiplier(
+      gpsAssistanceCalibrationMultiplier,
+    ),
     'odometerRemainsCanonical': true,
     'gpsAssistAdvisoryOnly': true,
     'mapboxAssistAdvisoryOnly': true,
@@ -413,6 +422,11 @@ double _safeRoundedPercent(double value) {
 double _safeRoundedMiles(double value) {
   if (!value.isFinite || value < 0) return 0;
   return (value * 10).round() / 10;
+}
+
+double _safeRoundedMultiplier(double value) {
+  if (!value.isFinite || value <= 0) return 1;
+  return double.parse(value.toStringAsFixed(4));
 }
 
 String _safeCalibrationReason(String value) {

@@ -48,9 +48,11 @@ void main() {
         'absoluteDifferenceMiles': 15.0,
         'differencePercent': 42.9,
         'shouldPromptUser': true,
+        'userReviewRequiredBeforeChange': true,
         'odometerRemainsCanonical': true,
         'gpsCanReplaceOdometer': false,
         'mapboxCanReplaceOdometer': false,
+        'calibrationCanApplySilently': false,
         'rawLocationIncluded': false,
         'rawTripRecordsIncluded': false,
       });
@@ -159,9 +161,11 @@ void main() {
       'reasonCode': 'starting_odometer_below_previous_confirmed_ending',
       'shouldBlockConfirmation': true,
       'shouldPromptUser': true,
+      'manualReviewRequired': true,
       'odometerRemainsCanonical': true,
       'gpsCanFillGapAutomatically': false,
       'mapboxCanFillGapAutomatically': false,
+      'remoteBackupCanFillGapAutomatically': false,
       'rawTripRecordsIncluded': false,
       'rawLocationIncluded': false,
     });
@@ -405,6 +409,17 @@ void main() {
       expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(1.0638, .001));
       expect(signal.reasonCode, 'persistent_gps_odometer_drift');
       expect(signal.canOverwriteConfirmedOdometer, isFalse);
+      expect(
+        signal.toSafeDashboardMap()['calibrationRequiresUserOptIn'],
+        isTrue,
+      );
+      expect(signal.toSafeDashboardMap()['canApplySilently'], isFalse);
+      expect(
+        signal.toSafeDashboardMap()['gpsAssistanceCalibrationMultiplier'],
+        1.0638,
+      );
+      expect(signal.toSafeDashboardMap()['odometerRemainsCanonical'], isTrue);
+      expect(signal.toSafeDashboardMap()['rawLocationIncluded'], isFalse);
     },
   );
 
@@ -939,6 +954,9 @@ void main() {
       'shouldPromptUser': true,
       'maySuggestTireOrSpeedometerReview': true,
       'canOverwriteConfirmedOdometer': false,
+      'calibrationRequiresUserOptIn': true,
+      'canApplySilently': false,
+      'gpsAssistanceCalibrationMultiplier': 0.9434,
       'odometerRemainsCanonical': true,
       'gpsAssistAdvisoryOnly': true,
       'mapboxAssistAdvisoryOnly': true,
