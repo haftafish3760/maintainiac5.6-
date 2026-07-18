@@ -54,6 +54,9 @@ class TripOdometerCalibrationPromptDecision {
     'calibrationPromptRequiresFreshLocalEvaluation': true,
     'calibrationAppliesToFutureGpsAssistanceOnly': true,
     'calibrationCanRewritePastTrips': false,
+    'calibrationCanSetGlobalTruth': false,
+    'calibrationCanChangeGlobalTruth': false,
+    'calibrationCanConfirmOfficialMileage': false,
     'calibrationCanReplaceConfirmedOdometer': false,
     'calibrationCanLowerConfirmedOdometer': false,
     'calibrationCanCreateMaintenanceRecord': false,
@@ -128,6 +131,9 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'calibrationPromptRequiresFreshLocalEvaluation',
       'calibrationAppliesToFutureGpsAssistanceOnly',
       'calibrationCanRewritePastTrips',
+      'calibrationCanSetGlobalTruth',
+      'calibrationCanChangeGlobalTruth',
+      'calibrationCanConfirmOfficialMileage',
       'calibrationCanReplaceConfirmedOdometer',
       'calibrationCanLowerConfirmedOdometer',
       'calibrationCanCreateMaintenanceRecord',
@@ -183,6 +189,9 @@ class TripOdometerCalibrationPromptSummaryValidation {
       reasons.add('calibration_review_boundary_missing');
     }
     if (summary['calibrationCanRewritePastTrips'] != false ||
+        summary['calibrationCanSetGlobalTruth'] != false ||
+        summary['calibrationCanChangeGlobalTruth'] != false ||
+        summary['calibrationCanConfirmOfficialMileage'] != false ||
         summary['calibrationCanReplaceConfirmedOdometer'] != false ||
         summary['calibrationCanLowerConfirmedOdometer'] != false ||
         summary['calibrationCanCreateMaintenanceRecord'] != false ||

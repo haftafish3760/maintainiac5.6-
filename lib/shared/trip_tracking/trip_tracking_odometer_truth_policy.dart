@@ -51,10 +51,21 @@ class TripTrackingOdometerTruthPolicy {
     'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
     'physicalOdometerIsCanonical': true,
+    'globalTruthSource': 'physical_odometer_or_user_confirmed_review',
+    'onlyPhysicalOdometerOrUserReviewCanSetGlobalTruth': true,
     'physicalOdometerRequiredForOfficialMileage': true,
     'confirmedOdometerOverridesExternalMileage': true,
     'externalMileageCannotBecomeGlobalTruth': true,
     'userConfirmedOdometerReviewCanSetTruth': true,
+    'assistSourceCanSetGlobalTruth': false,
+    'remoteSourceCanSetGlobalTruth': false,
+    'mapboxCanSetGlobalTruth': false,
+    'gpsCanSetGlobalTruth': false,
+    'firebaseMirrorCanSetGlobalTruth': false,
+    'cloudFunctionCanSetGlobalTruth': false,
+    'importedFileCanSetGlobalTruth': false,
+    'localCacheCanSetGlobalTruth': false,
+    'sensorFusionCanSetGlobalTruth': false,
     'gpsDistanceCanOnlyAdviseMileageReview': true,
     'mapMatchingCanOnlyAdviseMileageReview': true,
     'optimizationCannotChangeOfficialMileage': true,
@@ -90,6 +101,12 @@ class TripTrackingOdometerTruthPolicy {
   }
 
   static bool canAssistSourceSetOfficialMileage(
+    TripTrackingMileageAssistSource source,
+  ) {
+    return false;
+  }
+
+  static bool canAssistSourceSetGlobalTruth(
     TripTrackingMileageAssistSource source,
   ) {
     return false;
@@ -169,6 +186,11 @@ class TripTrackingOdometerTruthPolicy {
     if (summary['officialMileageSource'] is String &&
         !_isAllowedOfficialMileageSource(summary['officialMileageSource'])) {
       reasons.add('invalid_official_mileage_source');
+    }
+    if (summary['globalTruthSource'] is String &&
+        summary['globalTruthSource'] !=
+            'physical_odometer_or_user_confirmed_review') {
+      reasons.add('invalid_global_truth_source');
     }
     if (summary.values.any(_looksSensitive)) {
       reasons.add('odometer_truth_summary_contains_sensitive_text');

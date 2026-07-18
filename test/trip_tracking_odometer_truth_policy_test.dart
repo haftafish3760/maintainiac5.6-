@@ -25,6 +25,11 @@ void main() {
         reason: '${source.name} must remain advisory only.',
       );
       expect(
+        TripTrackingOdometerTruthPolicy.canAssistSourceSetGlobalTruth(source),
+        isFalse,
+        reason: '${source.name} must never become global odometer truth.',
+      );
+      expect(
         TripTrackingOdometerTruthPolicy.canAssistSourceApplyCalibration(source),
         isFalse,
         reason: '${source.name} must not apply calibration by itself.',
@@ -45,6 +50,23 @@ void main() {
 
       expect(validation.isValid, isTrue);
       expect(summary['odometerIsGlobalTruth'], isTrue);
+      expect(
+        summary['globalTruthSource'],
+        'physical_odometer_or_user_confirmed_review',
+      );
+      expect(
+        summary['onlyPhysicalOdometerOrUserReviewCanSetGlobalTruth'],
+        isTrue,
+      );
+      expect(summary['assistSourceCanSetGlobalTruth'], isFalse);
+      expect(summary['remoteSourceCanSetGlobalTruth'], isFalse);
+      expect(summary['gpsCanSetGlobalTruth'], isFalse);
+      expect(summary['mapboxCanSetGlobalTruth'], isFalse);
+      expect(summary['firebaseMirrorCanSetGlobalTruth'], isFalse);
+      expect(summary['cloudFunctionCanSetGlobalTruth'], isFalse);
+      expect(summary['importedFileCanSetGlobalTruth'], isFalse);
+      expect(summary['localCacheCanSetGlobalTruth'], isFalse);
+      expect(summary['sensorFusionCanSetGlobalTruth'], isFalse);
       expect(summary['physicalOdometerIsCanonical'], isTrue);
       expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
       expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
@@ -68,6 +90,9 @@ void main() {
     final unsafe = <String, Object?>{
       ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
       'officialMileageSource': 'mapbox',
+      'globalTruthSource': 'mapbox',
+      'assistSourceCanSetGlobalTruth': true,
+      'mapboxCanSetGlobalTruth': true,
       'physicalOdometerRequiredForOfficialMileage': false,
       'confirmedOdometerOverridesExternalMileage': false,
       'externalMileageCannotBecomeGlobalTruth': false,
@@ -89,6 +114,7 @@ void main() {
       contains('missing_or_invalid_physicalOdometerRequiredForOfficialMileage'),
     );
     expect(validation.reasons, contains('invalid_official_mileage_source'));
+    expect(validation.reasons, contains('invalid_global_truth_source'));
     expect(
       validation.reasons,
       contains('odometer_truth_summary_contains_sensitive_text'),

@@ -228,6 +228,9 @@ class TripTrackingCalibrationApplyGuard {
     ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'canApplyToFutureGpsProjection': canApplyToFutureGpsProjection,
     'appliesToPastTrips': false,
+    'calibrationCanSetGlobalTruth': false,
+    'calibrationCanChangeGlobalTruth': false,
+    'calibrationCanConfirmOfficialMileage': false,
     'canRewriteConfirmedOdometer': false,
     'canApplySilently': false,
     'calibrationCanChangeDisplayedConfirmedMiles': false,
@@ -331,6 +334,9 @@ class TripTrackingCalibrationApplySummaryValidation {
       reasons.add('invalid_excluded_poor_gps_day_count');
     }
     if (summary['appliesToPastTrips'] != false ||
+        summary['calibrationCanSetGlobalTruth'] != false ||
+        summary['calibrationCanChangeGlobalTruth'] != false ||
+        summary['calibrationCanConfirmOfficialMileage'] != false ||
         summary['canRewriteConfirmedOdometer'] != false ||
         summary['canApplySilently'] != false ||
         summary['calibrationCanChangeDisplayedConfirmedMiles'] != false ||

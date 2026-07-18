@@ -26,6 +26,12 @@ void main() {
       initial.toSafeSummary()['calibrationCanReplaceConfirmedOdometer'],
       isFalse,
     );
+    expect(initial.toSafeSummary()['calibrationCanSetGlobalTruth'], isFalse);
+    expect(initial.toSafeSummary()['calibrationCanChangeGlobalTruth'], isFalse);
+    expect(
+      initial.toSafeSummary()['calibrationCanConfirmOfficialMileage'],
+      isFalse,
+    );
     expect(initial.toSafeSummary()['odometerRemainsCanonical'], isTrue);
   });
 
@@ -80,6 +86,9 @@ void main() {
     expect(summary['singleDayCalibrationRejected'], isTrue);
     expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanRewritePastTrips'], isFalse);
+    expect(summary['calibrationCanSetGlobalTruth'], isFalse);
+    expect(summary['calibrationCanChangeGlobalTruth'], isFalse);
+    expect(summary['calibrationCanConfirmOfficialMileage'], isFalse);
     expect(summary['calibrationCanLowerConfirmedOdometer'], isFalse);
     expect(summary['calibrationCanCreateMaintenanceRecord'], isFalse);
     expect(summary['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
@@ -107,6 +116,9 @@ void main() {
     expect(summary['unknownSignalDiagnosticsFailNeutralInController'], isTrue);
     expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
+    expect(summary['calibrationCanSetGlobalTruth'], isFalse);
+    expect(summary['calibrationCanChangeGlobalTruth'], isFalse);
+    expect(summary['calibrationCanConfirmOfficialMileage'], isFalse);
     expect(summary['calibrationCanMutateTripLog'], isFalse);
     expect(summary['calibrationCanLowerConfirmedOdometer'], isFalse);
     expect(summary['calibrationCanCreateMaintenanceRecord'], isFalse);

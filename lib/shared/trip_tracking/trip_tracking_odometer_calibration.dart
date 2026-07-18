@@ -69,6 +69,9 @@ class TripOdometerCalibrationSignal {
         _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
         maySuggestTireOrSpeedometerReview,
     'canOverwriteConfirmedOdometer': false,
+    'calibrationCanSetGlobalTruth': false,
+    'calibrationCanChangeGlobalTruth': false,
+    'calibrationCanConfirmOfficialMileage': false,
     'calibrationRequiresUserOptIn': true,
     'calibrationRequiresMultipleReviewedTrips': true,
     'continuousCalibrationAverageRequired': true,

@@ -94,6 +94,9 @@ void main() {
     expect(guard.multiplier, closeTo(1.0638, .001));
     expect(guard.canApplyToFutureGpsProjection, isTrue);
     expect(safe['appliesToPastTrips'], isFalse);
+    expect(safe['calibrationCanSetGlobalTruth'], isFalse);
+    expect(safe['calibrationCanChangeGlobalTruth'], isFalse);
+    expect(safe['calibrationCanConfirmOfficialMileage'], isFalse);
     expect(safe['canRewriteConfirmedOdometer'], isFalse);
     expect(safe['canApplySilently'], isFalse);
     expect(safe['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
@@ -512,6 +515,9 @@ void main() {
               nowUtc: now,
             ).toSafeDashboardMap()..addAll({
               'appliesToPastTrips': true,
+              'calibrationCanSetGlobalTruth': true,
+              'calibrationCanChangeGlobalTruth': true,
+              'calibrationCanConfirmOfficialMileage': true,
               'canRewriteConfirmedOdometer': true,
               'canApplySilently': true,
               'calibrationCanChangeDisplayedConfirmedMiles': true,

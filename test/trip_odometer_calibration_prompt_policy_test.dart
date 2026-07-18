@@ -130,6 +130,9 @@ void main() {
     expect(safe['calibrationRequiresDaytimeLocalSource'], isTrue);
     expect(safe['calibrationRequiresManualUserConfirmation'], isTrue);
     expect(safe['calibrationPromptRequiresFreshLocalEvaluation'], isTrue);
+    expect(safe['calibrationCanSetGlobalTruth'], isFalse);
+    expect(safe['calibrationCanChangeGlobalTruth'], isFalse);
+    expect(safe['calibrationCanConfirmOfficialMileage'], isFalse);
     expect(safe['calibrationCanReplaceConfirmedOdometer'], isFalse);
     expect(safe['calibrationCanLowerConfirmedOdometer'], isFalse);
     expect(safe['calibrationCanCreateMaintenanceRecord'], isFalse);
@@ -202,6 +205,9 @@ void main() {
             'calibrationPromptRequiresFreshLocalEvaluation': false,
             'calibrationAppliesToFutureGpsAssistanceOnly': false,
             'calibrationCanRewritePastTrips': true,
+            'calibrationCanSetGlobalTruth': true,
+            'calibrationCanChangeGlobalTruth': true,
+            'calibrationCanConfirmOfficialMileage': true,
             'calibrationCanReplaceConfirmedOdometer': true,
             'calibrationCanLowerConfirmedOdometer': true,
             'calibrationCanCreateMaintenanceRecord': true,

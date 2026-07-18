@@ -124,6 +124,19 @@ void main() {
       isFalse,
     );
     expect(
+      projection.toSafeDashboardMap()['liveProjectionCanSetGlobalTruth'],
+      isFalse,
+    );
+    expect(
+      projection.toSafeDashboardMap()['liveProjectionCanChangeGlobalTruth'],
+      isFalse,
+    );
+    expect(
+      projection
+          .toSafeDashboardMap()['liveProjectionCanConfirmOfficialMileage'],
+      isFalse,
+    );
+    expect(
       projection.toSafeDashboardMap()['calibrationCanDecreaseLiveProjection'],
       isFalse,
     );
@@ -256,6 +269,9 @@ void main() {
           'dashboardCacheCanOverrideLocalTrip': true,
           'mapboxCanOverrideLiveProjection': true,
           'mapboxCanIncreaseLiveMileage': true,
+          'liveProjectionCanSetGlobalTruth': true,
+          'liveProjectionCanChangeGlobalTruth': true,
+          'liveProjectionCanConfirmOfficialMileage': true,
           'staleProjectionCanNotifyAsFresh': true,
           'calibrationCanCommitWithoutReview': true,
           'calibrationCanDecreaseLiveProjection': true,
@@ -276,6 +292,7 @@ void main() {
         'firestore_can_override_live_projection',
         'remote_display_can_override_local_trip',
         'mapbox_can_override_live_projection',
+        'live_projection_claims_global_truth',
       ]),
     );
   });
