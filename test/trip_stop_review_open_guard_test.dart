@@ -33,6 +33,9 @@ void main() {
     expect(safe['remoteCanOpenStopReview'], isFalse);
     expect(safe['firestoreCanOpenStopReview'], isFalse);
     expect(safe['mapboxCanOpenStopReview'], isFalse);
+    expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(safe['employerGodModeAllowed'], isFalse);
+    expect(safe['stopReviewPayloadCanExposeLiveLocation'], isFalse);
     expect(safe['canEndTripAutomatically'], isFalse);
     expect(safe['canReplaceOdometer'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
@@ -154,6 +157,15 @@ void main() {
     expect(safe.toString(), isNot(contains('pk.')));
     expect(safe.toString(), isNot(contains('sk.')));
     expect(safe.toString(), isNot(contains('35.')));
+  });
+
+  test('stop review mirror payload cannot expose live employee location', () {
+    final payload = TripStopReviewOpenGuard.evaluate(request()).reviewPayload;
+
+    expect(payload['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(payload['employerGodModeAllowed'], isFalse);
+    expect(payload['stopReviewPayloadCanExposeLiveLocation'], isFalse);
+    expect(payload['coordinatesIncluded'], isFalse);
   });
 }
 

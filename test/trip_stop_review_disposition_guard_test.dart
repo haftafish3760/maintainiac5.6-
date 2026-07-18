@@ -37,6 +37,9 @@ void main() {
     );
     expect(safe['firestoreCanApplyDisposition'], isFalse);
     expect(safe['mapboxCanApplyDisposition'], isFalse);
+    expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(safe['employerGodModeAllowed'], isFalse);
+    expect(safe['dispositionPayloadCanExposeLiveLocation'], isFalse);
     expect(safe['canReplaceOdometer'], isFalse);
   });
 
@@ -148,6 +151,17 @@ void main() {
     expect(decision.updatedAdvisories.single.tripLogReference, isNull);
     expect(decision.reviewPayload['tripLogReference'], isNull);
     expect(decision.reviewPayload.toString(), isNot(contains('sk.secret')));
+  });
+
+  test('disposition mirror payload cannot expose live employee location', () {
+    final payload = TripStopReviewDispositionGuard.evaluate(
+      request(nowUtc: now, reviewedAtUtc: now),
+    ).reviewPayload;
+
+    expect(payload['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(payload['employerGodModeAllowed'], isFalse);
+    expect(payload['dispositionPayloadCanExposeLiveLocation'], isFalse);
+    expect(payload['coordinatesIncluded'], isFalse);
   });
 }
 
