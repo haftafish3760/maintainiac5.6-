@@ -141,6 +141,7 @@ void main() {
     expect(safe['replayRequiresLocalDurableCheckpoint'], isTrue);
     expect(safe['replayRequiresSameBackupPreference'], isTrue);
     expect(safe['replayRequiresFreshReservationAttempt'], isTrue);
+    expect(safe['replayRequiresIdempotencyKey'], isTrue);
     expect(safe['authenticationAloneAuthorizesReplay'], isFalse);
     expect(safe['failedReplayCanDeleteLocalQueue'], isFalse);
     expect(safe['successfulReplayCanSilentlyDeleteLocalData'], isFalse);
@@ -152,8 +153,12 @@ void main() {
     expect(safe['remoteReplayCanAdvanceLocalRevision'], isFalse);
     expect(safe['remoteReplayCanChangeOdometer'], isFalse);
     expect(safe['remoteReplayCanCreateStops'], isFalse);
+    expect(safe['remoteReplayCanCreateCalibration'], isFalse);
+    expect(safe['remoteReplayCanApplyCalibration'], isFalse);
     expect(safe['cloudFunctionCanReplayWithoutLocalQueue'], isFalse);
     expect(safe['firestoreMirrorOnly'], isTrue);
+    expect(safe['replayPayloadMustBeSummaryOnly'], isTrue);
+    expect(safe['replayCannotUploadRawGpsPings'], isTrue);
     expect(safe['rawTripPayloadIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });
@@ -178,6 +183,7 @@ void main() {
         'replayRequiresLocalDurableCheckpoint': false,
         'replayRequiresSameBackupPreference': false,
         'replayRequiresFreshReservationAttempt': false,
+        'replayRequiresIdempotencyKey': false,
         'authenticationAloneAuthorizesReplay': true,
         'freeReplayRequiresReservationBeforeUpload': false,
         'replayCannotUploadIfLocalRecordDisappears': false,
@@ -190,6 +196,8 @@ void main() {
         'remoteReplayCanAdvanceLocalRevision': true,
         'remoteReplayCanChangeOdometer': true,
         'remoteReplayCanCreateStops': true,
+        'remoteReplayCanCreateCalibration': true,
+        'remoteReplayCanApplyCalibration': true,
         'replaySuccessRequiresExplicitQueueCleanup': false,
         'remoteBackupCanOverrideLocalDay': true,
         'firestoreMirrorOnly': false,
@@ -199,6 +207,8 @@ void main() {
         'mapboxCanRepairReplayRecords': true,
         'mapboxCanFillReplayGaps': true,
         'cloudFunctionCanReplayWithoutLocalQueue': true,
+        'replayPayloadMustBeSummaryOnly': false,
+        'replayCannotUploadRawGpsPings': false,
         'rawTripPayloadIncluded': true,
         'preciseLocationIncluded': true,
         'routeGeometryIncluded': true,

@@ -43,6 +43,7 @@ class TripOfflineSyncReplayDecision {
     'replayRequiresLocalDurableCheckpoint': true,
     'replayRequiresSameBackupPreference': true,
     'replayRequiresFreshReservationAttempt': true,
+    'replayRequiresIdempotencyKey': true,
     'authenticationAloneAuthorizesReplay': false,
     'freeReplayRequiresReservationBeforeUpload': true,
     'failedReplayCanDeleteLocalQueue': false,
@@ -53,6 +54,8 @@ class TripOfflineSyncReplayDecision {
     'remoteReplayCanAdvanceLocalRevision': false,
     'remoteReplayCanChangeOdometer': false,
     'remoteReplayCanCreateStops': false,
+    'remoteReplayCanCreateCalibration': false,
+    'remoteReplayCanApplyCalibration': false,
     'replaySuccessRequiresExplicitQueueCleanup': true,
     'replayCannotUploadIfLocalRecordDisappears': true,
     'replayCannotUploadAfterBackupOptOut': true,
@@ -65,6 +68,8 @@ class TripOfflineSyncReplayDecision {
     'mapboxCanRepairReplayRecords': false,
     'mapboxCanFillReplayGaps': false,
     'cloudFunctionCanReplayWithoutLocalQueue': false,
+    'replayPayloadMustBeSummaryOnly': true,
+    'replayCannotUploadRawGpsPings': true,
     'rawTripPayloadIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -191,6 +196,7 @@ class TripOfflineSyncReplaySummaryValidation {
       'replayRequiresLocalDurableCheckpoint',
       'replayRequiresSameBackupPreference',
       'replayRequiresFreshReservationAttempt',
+      'replayRequiresIdempotencyKey',
       'authenticationAloneAuthorizesReplay',
       'freeReplayRequiresReservationBeforeUpload',
       'failedReplayCanDeleteLocalQueue',
@@ -201,6 +207,8 @@ class TripOfflineSyncReplaySummaryValidation {
       'remoteReplayCanAdvanceLocalRevision',
       'remoteReplayCanChangeOdometer',
       'remoteReplayCanCreateStops',
+      'remoteReplayCanCreateCalibration',
+      'remoteReplayCanApplyCalibration',
       'replaySuccessRequiresExplicitQueueCleanup',
       'replayCannotUploadIfLocalRecordDisappears',
       'replayCannotUploadAfterBackupOptOut',
@@ -213,6 +221,8 @@ class TripOfflineSyncReplaySummaryValidation {
       'mapboxCanRepairReplayRecords',
       'mapboxCanFillReplayGaps',
       'cloudFunctionCanReplayWithoutLocalQueue',
+      'replayPayloadMustBeSummaryOnly',
+      'replayCannotUploadRawGpsPings',
       'rawTripPayloadIncluded',
       'preciseLocationIncluded',
       'routeGeometryIncluded',
@@ -228,6 +238,7 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['replayRequiresLocalDurableCheckpoint'] != true ||
         summary['replayRequiresSameBackupPreference'] != true ||
         summary['replayRequiresFreshReservationAttempt'] != true ||
+        summary['replayRequiresIdempotencyKey'] != true ||
         summary['authenticationAloneAuthorizesReplay'] != false ||
         summary['freeReplayRequiresReservationBeforeUpload'] != true ||
         summary['replayCannotUploadIfLocalRecordDisappears'] != true ||
@@ -242,6 +253,8 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['remoteReplayCanAdvanceLocalRevision'] != false ||
         summary['remoteReplayCanChangeOdometer'] != false ||
         summary['remoteReplayCanCreateStops'] != false ||
+        summary['remoteReplayCanCreateCalibration'] != false ||
+        summary['remoteReplayCanApplyCalibration'] != false ||
         summary['replaySuccessRequiresExplicitQueueCleanup'] != true ||
         summary['remoteBackupCanOverrideLocalDay'] != false) {
       reasons.add('remote_replay_can_mutate_local_data');
@@ -253,7 +266,9 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['mapboxCanReplaySyncQueue'] != false ||
         summary['mapboxCanRepairReplayRecords'] != false ||
         summary['mapboxCanFillReplayGaps'] != false ||
-        summary['cloudFunctionCanReplayWithoutLocalQueue'] != false) {
+        summary['cloudFunctionCanReplayWithoutLocalQueue'] != false ||
+        summary['replayPayloadMustBeSummaryOnly'] != true ||
+        summary['replayCannotUploadRawGpsPings'] != true) {
       reasons.add('source_of_truth_boundary_missing');
     }
     if (summary['rawTripPayloadIncluded'] != false ||
