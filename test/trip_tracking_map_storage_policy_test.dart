@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_map_route_point_payload_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_map_storage_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
@@ -324,4 +325,122 @@ void main() {
     expect(summary['mapboxResponseCanBypassBudget'], isFalse);
     expect(summary['localTripLogProtected'], isTrue);
   });
+
+  test('route point payload validation accepts compact GPS history only', () {
+    final now = DateTime.utc(2026, 7, 18, 12);
+    final decision = TripTrackingMapRoutePointPayloadPolicy.validate(
+      expectedTripId: 'trip_map_history_1',
+      nowUtc: now,
+      payload: {
+        'schemaVersion': 1,
+        'tripId': 'trip_map_history_1',
+        'source': 'gps',
+        'sequence': 42,
+        'latitude': 35.2271,
+        'longitude': -80.8431,
+        'recordedAt': now
+            .subtract(const Duration(minutes: 5))
+            .toIso8601String(),
+        'horizontalAccuracyMeters': 8,
+      },
+    );
+    final summary = decision.toSafeDashboardMap();
+
+    expect(decision.accepted, isTrue);
+    expect(summary['accepted'], isTrue);
+    expect(summary['source'], 'gps');
+    expect(summary['sequenceBucket'], 'under_1k');
+    expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+    expect(summary['routePointCanReplaceOdometer'], isFalse);
+    expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
+    expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
+    expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
+    expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
+    expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
+    expect(summary['preciseLocationIncluded'], isFalse);
+    expect(summary['preciseTimestampIncluded'], isFalse);
+    expect(summary['routeGeometryIncluded'], isFalse);
+    expect(summary['mapboxGeometryIncluded'], isFalse);
+    expect(summary['tokensIncluded'], isFalse);
+    expect(summary.toString(), isNot(contains('35.2271')));
+    expect(summary.toString(), isNot(contains('-80.8431')));
+    expect(summary.toString(), isNot(contains('trip_map_history_1')));
+  });
+
+  test(
+    'route point payload validation rejects unsafe external map payloads',
+    () {
+      final now = DateTime.utc(2026, 7, 18, 12);
+      final unsafeTrip = TripTrackingMapRoutePointPayloadPolicy.validate(
+        expectedTripId: 'trip_owner',
+        nowUtc: now,
+        payload: {
+          'schemaVersion': 1,
+          'tripId': 'trip_owner/../other',
+          'source': 'gps',
+          'sequence': 1,
+          'latitude': 35,
+          'longitude': -80,
+          'recordedAt': now.toIso8601String(),
+          'horizontalAccuracyMeters': 8,
+        },
+      );
+      final rawMapbox = TripTrackingMapRoutePointPayloadPolicy.validate(
+        expectedTripId: 'trip_owner',
+        nowUtc: now,
+        payload: {
+          'schemaVersion': 1,
+          'tripId': 'trip_owner',
+          'source': 'mapMatchedGps',
+          'sequence': 2,
+          'latitude': 35,
+          'longitude': -80,
+          'recordedAt': now.toIso8601String(),
+          'horizontalAccuracyMeters': 8,
+          'mapboxGeometry': 'private-polyline-token=sk.secret',
+        },
+      );
+      final malformed = TripTrackingMapRoutePointPayloadPolicy.validate(
+        expectedTripId: 'trip_owner',
+        nowUtc: now,
+        payload: {
+          'schemaVersion': 99,
+          'tripId': 'trip_owner',
+          'source': 'mapboxGodMode',
+          'sequence': -1,
+          'latitude': 999,
+          'longitude': double.nan,
+          'recordedAt': now.add(const Duration(days: 1)).toIso8601String(),
+          'horizontalAccuracyMeters': double.infinity,
+          'token': 'pk.public',
+        },
+      );
+
+      expect(unsafeTrip.accepted, isFalse);
+      expect(unsafeTrip.reasonCode, 'unsafe_trip_binding');
+      expect(rawMapbox.accepted, isFalse);
+      expect(rawMapbox.reasonCode, 'raw_map_payload_not_allowed');
+      expect(malformed.accepted, isFalse);
+      expect(malformed.reasonCode, 'unsupported_schema');
+      for (final summary in [
+        unsafeTrip.toSafeDashboardMap(),
+        rawMapbox.toSafeDashboardMap(),
+        malformed.toSafeDashboardMap(),
+      ]) {
+        expect(summary['accepted'], isFalse);
+        expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+        expect(summary['routePointCanReplaceOdometer'], isFalse);
+        expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
+        expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
+        expect(summary['preciseLocationIncluded'], isFalse);
+        expect(summary['routeGeometryIncluded'], isFalse);
+        expect(summary['mapboxGeometryIncluded'], isFalse);
+        expect(summary['tokensIncluded'], isFalse);
+        expect(summary.toString(), isNot(contains('sk.secret')));
+        expect(summary.toString(), isNot(contains('pk.public')));
+        expect(summary.toString(), isNot(contains('private-polyline')));
+        expect(summary.toString(), isNot(contains('trip_owner')));
+      }
+    },
+  );
 }
