@@ -283,7 +283,17 @@ void main() {
   );
 
   test('native status diagnostics accept only known lifecycle states', () {
-    for (final status in const ['idle', 'tracking', 'stopped']) {
+    for (final status in const [
+      'idle',
+      'tracking',
+      'paused',
+      'recovering',
+      'degraded',
+      'backgroundRestricted',
+      'permissionRequired',
+      'providerUnavailable',
+      'stopped',
+    ]) {
       final event = TripTrackingPlatformEvent.fromMap({
         'type': 'status',
         'status': status,

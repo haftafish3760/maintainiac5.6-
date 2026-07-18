@@ -519,7 +519,15 @@ String? _safePlatformToken(Object? value) {
 String? _safePlatformStatus(Object? value) {
   final clean = _safePlatformToken(value);
   return switch (clean) {
-    'idle' || 'tracking' || 'stopped' => clean,
+    'idle' ||
+    'tracking' ||
+    'paused' ||
+    'recovering' ||
+    'degraded' ||
+    'backgroundRestricted' ||
+    'permissionRequired' ||
+    'providerUnavailable' ||
+    'stopped' => clean,
     _ => null,
   };
 }
