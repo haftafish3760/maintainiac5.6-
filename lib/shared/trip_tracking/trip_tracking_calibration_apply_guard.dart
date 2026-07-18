@@ -3,6 +3,8 @@ import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_odometer_calibration.dart';
 import 'trip_tracking_odometer_truth_policy.dart';
 
+part 'trip_tracking_calibration_apply_validation.dart';
+
 enum TripTrackingCalibrationApplyStatus {
   disabled,
   waitingForHistory,
@@ -318,157 +320,6 @@ class TripTrackingCalibrationApplyGuard {
   };
 }
 
-class TripTrackingCalibrationApplySummaryValidation {
-  const TripTrackingCalibrationApplySummaryValidation._({
-    required this.isRenderable,
-    required this.status,
-    required this.reasons,
-  });
-
-  factory TripTrackingCalibrationApplySummaryValidation.fromSummary(
-    Map<String, Object?> summary,
-  ) {
-    final reasons = <String>[];
-    final status = _safeStatus(summary['status']);
-    if (summary['schemaVersion'] != 1) {
-      reasons.add('unsupported_schema_version');
-    }
-    if (status == null) reasons.add('invalid_calibration_apply_status');
-    final multiplier = summary['multiplier'];
-    if (multiplier is! num ||
-        !multiplier.isFinite ||
-        multiplier < 0.8 ||
-        multiplier > 1.25) {
-      reasons.add('invalid_calibration_multiplier');
-    }
-    final reasonCodes = summary['reasonCodes'];
-    if (reasonCodes is! List ||
-        reasonCodes.any((reason) => _safeApplyReason(reason) == null)) {
-      reasons.add('invalid_calibration_reason_codes');
-    }
-    if (summary['canApplyToFutureGpsProjection'] == true &&
-        status != TripTrackingCalibrationApplyStatus.readyForFutureProjection) {
-      reasons.add('unsafe_future_projection_apply_claim');
-    }
-    final trustedGpsWindowCount = summary['trustedGpsWindowCount'];
-    if (trustedGpsWindowCount is! int ||
-        trustedGpsWindowCount < 0 ||
-        trustedGpsWindowCount > 366) {
-      reasons.add('invalid_trusted_gps_window_count');
-    }
-    final excludedPoorGpsDayCount = summary['excludedPoorGpsDayCount'];
-    if (excludedPoorGpsDayCount is! int ||
-        excludedPoorGpsDayCount < 0 ||
-        excludedPoorGpsDayCount > 366) {
-      reasons.add('invalid_excluded_poor_gps_day_count');
-    }
-    if (summary['appliesToPastTrips'] != false ||
-        summary['calibrationCanSetGlobalTruth'] != false ||
-        summary['calibrationCanChangeGlobalTruth'] != false ||
-        summary['calibrationCanConfirmOfficialMileage'] != false ||
-        summary['canRewriteConfirmedOdometer'] != false ||
-        summary['canApplySilently'] != false ||
-        summary['calibrationCanChangeDisplayedConfirmedMiles'] != false ||
-        summary['calibrationCanMutateTripLog'] != false ||
-        summary['calibrationCanPurgeLocalDataAfterBackup'] != false ||
-        summary['calibrationCanBypassVehicleProfile'] != false ||
-        summary['calibrationCanApplyAcrossVehicles'] != false ||
-        summary['calibrationRequiresSingleVehicleHistory'] != true ||
-        summary['calibrationRequiresLocalReviewedOdometerHistory'] != true ||
-        summary['calibrationRequiresOwnershipOrExplicitAccess'] != true ||
-        summary['fleetObserverCanApplyCalibration'] != false ||
-        summary['remoteCalibrationCanRewritePastTrips'] != false) {
-      reasons.add('calibration_can_mutate_trip_truth');
-    }
-    if (summary['mapboxRouteDistanceCanBecomeOfficial'] != false ||
-        summary['firestoreCanApplyCalibration'] != false ||
-        summary['mapboxCanApplyCalibration'] != false ||
-        summary['cloudFunctionCanApplyCalibration'] != false ||
-        summary['importedFileCanApplyCalibration'] != false ||
-        summary['dashboardCacheCanApplyCalibration'] != false ||
-        summary['remoteCalibrationCanOverrideLocalState'] != false) {
-      reasons.add('remote_or_map_can_apply_calibration');
-    }
-    if (summary['userOptInRequired'] != true ||
-        summary['reviewAcceptanceRequired'] != true ||
-        summary['requiresMultipleReviewedOdometerDays'] != true ||
-        summary['continuousCalibrationAverageRequired'] != true ||
-        summary['poorGpsDaysExcludedFromCalibration'] != true ||
-        summary['calibrationRequiresTrustedGpsWindow'] != true ||
-        summary['excludedPoorGpsDayCountIncluded'] != true ||
-        summary['poorGpsExcludedDayCountTrustedAfterValidationOnly'] != true ||
-        summary['gpsDependabilityRollupRequiredForCalibration'] != true ||
-        summary['oneGoodGpsWindowCannotClearBadCalibrationDay'] != true ||
-        summary['poorGpsWindowExcludesCalibrationDay'] != true ||
-        summary['interruptedGpsWindowExcludesCalibrationDay'] != true ||
-        summary['unsafeGpsWindowExcludesCalibrationDay'] != true ||
-        summary['poorGpsDaysCannotCountAsTrustedWindow'] != true ||
-        summary['unknownSignalDiagnosticsCannotCountAsTrustedWindow'] != true ||
-        summary['unknownSignalDiagnosticsExcludedByDefault'] != true ||
-        summary['excludedPoorGpsCannotBecomeCalibrationProof'] != true ||
-        summary['singleDayCalibrationRejected'] != true ||
-        summary['calibrationAverageVehicleScoped'] != true ||
-        summary['latestReviewTimestampRequired'] != true ||
-        summary['staleCalibrationReviewRejected'] != true ||
-        summary['excessiveHistoryCountRejected'] != true ||
-        summary['settingsCanDisableCalibrationAssist'] != true ||
-        summary['settingsCanResetCalibrationPrompt'] != true) {
-      reasons.add('calibration_review_boundary_missing');
-    }
-    if (summary['odometerIsGlobalTruth'] != true ||
-        summary['odometerRemainsCanonical'] != true ||
-        summary['physicalOdometerIsCanonical'] != true ||
-        summary['userConfirmedOdometerReviewCanSetTruth'] != true ||
-        summary['firebaseMirrorCanOverrideOdometer'] != false ||
-        summary['cloudFunctionCanOverrideOdometer'] != false ||
-        summary['mapboxCanOverrideOdometer'] != false ||
-        summary['gpsCanOverrideOdometer'] != false ||
-        summary['importedFileCanOverrideOdometer'] != false ||
-        summary['localCacheCanOverrideOdometer'] != false ||
-        summary['sensorFusionCanOverrideOdometer'] != false ||
-        summary['calibrationAppliesToFutureGpsProjectionOnly'] != true ||
-        summary['calibrationRequiresAcceptedReview'] != true ||
-        summary['gpsEstimateRemainsNonCanonical'] != true ||
-        summary['tireOrSpeedometerReviewIsAdvisory'] != true ||
-        summary['tireChangeDoesNotCreateMaintenanceEntry'] != true ||
-        summary['calibrationCanLowerConfirmedOdometer'] != false ||
-        summary['calibrationCanCreateMaintenanceRecord'] != false) {
-      reasons.add('odometer_truth_boundary_missing');
-    }
-    final truthValidation = TripTrackingOdometerTruthPolicy.validateSummary(
-      summary,
-    );
-    reasons.addAll(truthValidation.reasons);
-    if (summary['remoteCalibrationCanEnableSetting'] != false ||
-        summary['remoteCalibrationCanResetPrompt'] != false ||
-        summary['mapboxCanTriggerTirePrompt'] != false ||
-        summary['gpsCanAutoApplyCalibration'] != false) {
-      reasons.add('remote_or_sensor_can_control_prompt');
-    }
-    if (summary['rawReviewedTripsIncluded'] != false ||
-        summary['rawGpsIncluded'] != false ||
-        summary['calibrationVehicleIdIncluded'] != false ||
-        summary['rawVehicleIdsIncluded'] != false ||
-        summary['preciseLocationIncluded'] != false ||
-        summary['tokensIncluded'] != false) {
-      reasons.add('summary_contains_sensitive_calibration_material');
-    }
-    if (summary.values.any(_looksSensitive)) {
-      reasons.add('summary_contains_sensitive_text');
-    }
-
-    return TripTrackingCalibrationApplySummaryValidation._(
-      isRenderable: reasons.isEmpty,
-      status: reasons.isEmpty ? status : null,
-      reasons: List.unmodifiable(reasons),
-    );
-  }
-
-  final bool isRenderable;
-  final TripTrackingCalibrationApplyStatus? status;
-  final List<String> reasons;
-}
-
 String _safeReason(String value) {
   return switch (value.trim()) {
     'invalid_calibration_threshold' => value.trim(),
@@ -490,54 +341,6 @@ Duration _safeReviewAge(Duration value) {
   return value > const Duration(days: 90) ? const Duration(days: 90) : value;
 }
 
-TripTrackingCalibrationApplyStatus? _safeStatus(Object? value) {
-  if (value is! String) return null;
-  for (final status in TripTrackingCalibrationApplyStatus.values) {
-    if (status.name == value) return status;
-  }
-  return null;
-}
-
-String? _safeApplyReason(Object? value) {
-  if (value is! String) return null;
-  return switch (value) {
-    'invalid_minimum_reviewed_days' => value,
-    'negative_sample_count' => value,
-    'excessive_sample_count' => value,
-    'negative_trusted_gps_window_count' => value,
-    'excessive_trusted_gps_window_count' => value,
-    'trusted_gps_window_count_below_eligible_days' => value,
-    'negative_excluded_poor_gps_day_count' => value,
-    'excessive_excluded_poor_gps_day_count' => value,
-    'invalid_gps_odometer_ratio' => value,
-    'invalid_difference_percent' => value,
-    'unknown_signal_reason' => value,
-    'inconsistent_calibration_review_signal' => value,
-    'calibration_review_difference_too_small' => value,
-    'inconsistent_stable_calibration_signal' => value,
-    'inconsistent_insufficient_history_signal' => value,
-    'future_review_timestamp' => value,
-    'missing_latest_review_timestamp' => value,
-    'stale_review_timestamp' => value,
-    'local_reviewed_odometer_history_required' => value,
-    'gps_dependability_rollup_required_for_calibration' => value,
-    'fleet_observer_read_only' => value,
-    'unsafe_current_user_id' => value,
-    'unsafe_calibration_owner_user_id' => value,
-    'calibration_owner_or_explicit_access_required' => value,
-    'unsafe_active_vehicle_id' => value,
-    'unsafe_reviewed_vehicle_id' => value,
-    'mixed_vehicle_calibration_history' => value,
-    'calibration_vehicle_mismatch' => value,
-    'calibration_user_opt_in_required' => value,
-    'more_reviewed_odometer_days_required' => value,
-    'user_must_accept_calibration_review' => value,
-    'calibration_stable_neutral_multiplier' => value,
-    'calibration_review_accepted_future_projection_only' => value,
-    _ => null,
-  };
-}
-
 int _safeEvidenceCount(int value) => value < 0
     ? 0
     : value > 366
@@ -545,14 +348,6 @@ int _safeEvidenceCount(int value) => value < 0
     : value;
 
 const _minimumReviewDifferencePercent = 4.0;
-
-bool _looksSensitive(Object? value) {
-  if (value is! String) return false;
-  final clean = value.trim();
-  return clean.startsWith('pk.') ||
-      clean.startsWith('sk.') ||
-      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
-}
 
 bool _isSafeVehicleToken(String value) {
   final clean = value.trim();
