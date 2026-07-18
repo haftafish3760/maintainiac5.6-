@@ -109,6 +109,11 @@ class TripTrackingProfileStrategy {
     'quickActionTokens': List.unmodifiable(
       quickActionTokens.map(_safeQuickActionToken),
     ),
+    'defaultSingleVehicleSupported': true,
+    'workProfileOptionalForDefaultSetup': true,
+    'vehicleProfileOptionalForDefaultSetup': true,
+    'dashboardCustomizationSupported': true,
+    'profileCanBeChangedLater': true,
     'walkingEvidenceCanOnlySuggestReview': true,
     'activityRecognitionRequiresOptIn': recommendedActivityRecognition,
     'activityRecognitionCanConfirmStopAutomatically': false,

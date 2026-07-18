@@ -218,6 +218,11 @@ void main() {
         'record_payment',
         'review_mileage',
       ],
+      'defaultSingleVehicleSupported': true,
+      'workProfileOptionalForDefaultSetup': true,
+      'vehicleProfileOptionalForDefaultSetup': true,
+      'dashboardCustomizationSupported': true,
+      'profileCanBeChangedLater': true,
       'walkingEvidenceCanOnlySuggestReview': true,
       'activityRecognitionRequiresOptIn': true,
       'activityRecognitionCanConfirmStopAutomatically': false,
@@ -287,6 +292,11 @@ void main() {
       expect(profileMap['driverKind'], isA<String>());
       expect(profileMap['stopEvidenceTier'], isA<String>());
       expect(profileMap['stopReviewConfidencePolicy'], isA<String>());
+      expect(profileMap['defaultSingleVehicleSupported'], isTrue);
+      expect(profileMap['workProfileOptionalForDefaultSetup'], isTrue);
+      expect(profileMap['vehicleProfileOptionalForDefaultSetup'], isTrue);
+      expect(profileMap['dashboardCustomizationSupported'], isTrue);
+      expect(profileMap['profileCanBeChangedLater'], isTrue);
     }
   });
 
@@ -366,6 +376,8 @@ void main() {
     expect(profileMap['remoteProfileCanEnableEmployeeTracking'], isFalse);
     expect(profileMap['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(profileMap['employerGodModeAllowed'], isFalse);
+    expect(profileMap['defaultSingleVehicleSupported'], isTrue);
+    expect(profileMap['dashboardCustomizationSupported'], isTrue);
     expect(profileMap.toString(), isNot(contains('sk.secret')));
     expect(profileMap.toString(), isNot(contains('35.1')));
   });
