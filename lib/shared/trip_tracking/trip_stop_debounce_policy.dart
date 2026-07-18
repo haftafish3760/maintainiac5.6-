@@ -1,7 +1,9 @@
 import 'trip_stop_classification.dart';
+import 'trip_stop_debounce_evidence_digest.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_profile_strategy.dart';
 import 'trip_vehicle_only_dwell_policy.dart';
+import 'trip_walking_evidence_recency_guard.dart';
 
 enum TripStopDebounceStatus {
   keepTracking,
@@ -95,61 +97,6 @@ class TripStopDebounceDecision {
   };
 }
 
-class TripStopDebounceEvidenceDigest {
-  const TripStopDebounceEvidenceDigest({
-    required this.profile,
-    required this.acceptedDistanceCount,
-    required this.rejectedDriftCount,
-    required this.rejectedUnsafeCount,
-    required this.walkingEvidenceCount,
-    required this.stationaryDuration,
-    required this.walkingEvidenceSpan,
-    required this.minimumStationary,
-    required this.minimumWalkingEvidenceSpacing,
-    required this.acceptedVehicleMovementObserved,
-    required this.providerValuesUsable,
-    required this.walkingBurstProtected,
-  });
-
-  final TripTrackingProfile profile;
-  final int acceptedDistanceCount;
-  final int rejectedDriftCount;
-  final int rejectedUnsafeCount;
-  final int walkingEvidenceCount;
-  final Duration stationaryDuration;
-  final Duration walkingEvidenceSpan;
-  final Duration minimumStationary;
-  final Duration minimumWalkingEvidenceSpacing;
-  final bool acceptedVehicleMovementObserved;
-  final bool providerValuesUsable;
-  final bool walkingBurstProtected;
-
-  bool get hasAcceptedVehicleMovement =>
-      acceptedVehicleMovementObserved && acceptedDistanceCount > 0;
-
-  Map<String, Object?> toSafeDashboardMap() => {
-    'schemaVersion': 1,
-    'profile': profile.name,
-    'acceptedDistanceCount': _safeCount(acceptedDistanceCount),
-    'rejectedDriftCount': _safeCount(rejectedDriftCount),
-    'rejectedUnsafeCount': _safeCount(rejectedUnsafeCount),
-    'walkingEvidenceCount': _safeCount(walkingEvidenceCount),
-    'stationarySeconds': _safeDuration(stationaryDuration).inSeconds,
-    'walkingEvidenceSpanSeconds': _safeDuration(walkingEvidenceSpan).inSeconds,
-    'minimumStationarySeconds': _safeDuration(minimumStationary).inSeconds,
-    'minimumWalkingEvidenceSpacingSeconds': _safeDuration(
-      minimumWalkingEvidenceSpacing,
-    ).inSeconds,
-    'hasAcceptedVehicleMovement': hasAcceptedVehicleMovement,
-    'providerValuesUsable': providerValuesUsable,
-    'walkingBurstProtected': walkingBurstProtected,
-    'rawSamplesIncluded': false,
-    'coordinatesIncluded': false,
-    'routeGeometryIncluded': false,
-    'tokensIncluded': false,
-  };
-}
-
 class TripStopDebouncePolicy {
   const TripStopDebouncePolicy._();
 
@@ -164,10 +111,19 @@ class TripStopDebouncePolicy {
     final rejectedUnsafeCount = unsafe
         ? _safeCount(observation.rejectedUnsafeCount) + 3
         : _safeCount(observation.rejectedUnsafeCount);
-    final walkingCount = _safeCount(observation.walkingEvidenceCount);
+    final rawWalkingCount = _safeCount(observation.walkingEvidenceCount);
     final stationaryDuration = _safeDuration(observation.stationaryDuration);
-    final walkingSpan = _safeDuration(observation.walkingEvidenceSpan);
+    final rawWalkingSpan = _safeDuration(observation.walkingEvidenceSpan);
     final minimumStationary = _minimumStationaryFor(strategy);
+    final walkingRecency = TripWalkingEvidenceRecencyGuard.evaluate(
+      strategy: strategy,
+      walkingEvidenceCount: rawWalkingCount,
+      walkingEvidenceSpan: rawWalkingSpan,
+      observedAt: observation.observedAt,
+      latestWalkingEvidenceAt: observation.latestWalkingEvidenceAt,
+    );
+    final walkingCount = walkingRecency.walkingEvidenceCount;
+    final walkingSpan = walkingRecency.walkingEvidenceSpan;
     final walkingBurstProtected = _looksLikeWalkingBurst(
       strategy: strategy,
       walkingCount: walkingCount,
@@ -187,6 +143,8 @@ class TripStopDebouncePolicy {
           observation.acceptedVehicleMovementObserved,
       providerValuesUsable: !unsafe,
       walkingBurstProtected: walkingBurstProtected,
+      walkingEvidenceCurrent: walkingRecency.usable,
+      walkingEvidenceRecency: walkingRecency,
     );
     final vehicleOnlyDwell = TripVehicleOnlyDwellPolicy.evaluate(
       profile: profile,
@@ -230,6 +188,22 @@ class TripStopDebouncePolicy {
         rejectedDriftCount: rejectedDriftCount,
         rejectedUnsafeCount: rejectedUnsafeCount,
         acceptedDistanceCount: 0,
+      );
+    }
+
+    if (walkingRecency.rejected && rawWalkingCount > 0) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: walkingRecency.reasonCode,
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: 0,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
       );
     }
 
@@ -471,6 +445,9 @@ String _safeReason(String value) {
     'vehicle_only_dwell_manual_fallback' =>
       'vehicle_only_dwell_manual_fallback',
     'walking_burst_debounce_protected' => 'walking_burst_debounce_protected',
+    'future_walking_evidence_rejected' => 'future_walking_evidence_rejected',
+    'stale_walking_evidence_rejected' => 'stale_walking_evidence_rejected',
+    'undated_walking_evidence_rejected' => 'undated_walking_evidence_rejected',
     'walking_stop_debounce_ready' => 'walking_stop_debounce_ready',
     'stop_debounce_waiting_for_confirmation' =>
       'stop_debounce_waiting_for_confirmation',

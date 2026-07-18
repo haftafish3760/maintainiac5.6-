@@ -137,6 +137,77 @@ void main() {
     expect(evidenceDigest['hasAcceptedVehicleMovement'], isTrue);
   });
 
+  test('future walking evidence cannot open a stop review', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: TripStopDebounceObservation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 2),
+        walkingEvidenceCount: 5,
+        walkingEvidenceSpan: const Duration(seconds: 35),
+        rejectedDriftCount: 0,
+        rejectedUnsafeCount: 0,
+        acceptedDistanceCount: 9,
+        acceptedVehicleMovementObserved: true,
+        speedMps: 0.1,
+        horizontalAccuracyMeters: 10,
+        latestWalkingEvidenceAt: observedAt.add(const Duration(seconds: 2)),
+        observedAt: observedAt,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+    final digest = safe['evidenceDigest'] as Map<String, Object?>;
+    final recency = digest['walkingEvidenceRecency'] as Map<String, Object?>;
+
+    expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
+    expect(decision.reasonCode, 'future_walking_evidence_rejected');
+    expect(decision.canOpenReview, isFalse);
+    expect(decision.classification.canSuggestStop, isFalse);
+    expect(digest['walkingEvidenceCurrent'], isFalse);
+    expect(recency['futureEvidenceRejected'], isTrue);
+  });
+
+  test('stale walking evidence cannot be replayed into a stop review', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
+      observation: observation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 4),
+        walkingEvidenceCount: 6,
+        walkingEvidenceSpan: const Duration(minutes: 2),
+        speedMps: 0.1,
+      ),
+    );
+    final staleDecision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
+      observation: TripStopDebounceObservation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 4),
+        walkingEvidenceCount: 6,
+        walkingEvidenceSpan: const Duration(minutes: 2),
+        rejectedDriftCount: 0,
+        rejectedUnsafeCount: 0,
+        acceptedDistanceCount: 8,
+        acceptedVehicleMovementObserved: true,
+        speedMps: 0.1,
+        horizontalAccuracyMeters: 12,
+        latestWalkingEvidenceAt: observedAt.subtract(
+          const Duration(minutes: 9),
+        ),
+        observedAt: observedAt,
+      ),
+    );
+    final digest =
+        staleDecision.toSafeDashboardMap()['evidenceDigest']
+            as Map<String, Object?>;
+
+    expect(decision.status, TripStopDebounceStatus.readyForReview);
+    expect(staleDecision.status, TripStopDebounceStatus.waitingForEvidence);
+    expect(staleDecision.reasonCode, 'stale_walking_evidence_rejected');
+    expect(staleDecision.canOpenReview, isFalse);
+    expect(digest['walkingEvidenceCurrent'], isFalse);
+  });
+
   test('profile thresholds are visible without raw GPS samples', () {
     final delivery = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
