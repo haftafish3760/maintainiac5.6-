@@ -103,8 +103,12 @@ void main() {
       expect(safe['limitedFieldTrialRequiresPrivacyConsent'], isTrue);
       expect(safe['limitedFieldTrialRequiresOdometerReview'], isTrue);
       expect(safe['limitedFieldTrialRequiresStopDisposition'], isTrue);
+      expect(safe['limitedFieldTrialRequiresCalibrationSignalReview'], isTrue);
+      expect(safe['poorGpsCalibrationEvidenceRequired'], isTrue);
       expect(safe['evidenceCanConfirmOdometer'], isFalse);
       expect(safe['evidenceCanCreateOfficialStop'], isFalse);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe['preciseLocationIncluded'], isFalse);
       expect(safe['deviceIdentifierIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
@@ -131,9 +135,12 @@ void main() {
         'limitedFieldTrialRequiresPrivacyConsent': false,
         'limitedFieldTrialRequiresOdometerReview': false,
         'limitedFieldTrialRequiresStopDisposition': false,
+        'limitedFieldTrialRequiresCalibrationSignalReview': false,
+        'poorGpsCalibrationEvidenceRequired': false,
         'evidenceCanConfirmOdometer': true,
         'evidenceCanCreateOfficialStop': true,
         'evidenceCanDeleteLocalData': true,
+        'odometerIsGlobalTruth': false,
         'odometerRemainsOfficialMileageTruth': false,
         'gpsAssistedTrackingAvailableWithoutMaps': false,
         'mapsRequiredForEvidence': true,

@@ -36,12 +36,15 @@ class TripFieldTrialEvidenceDecision {
     'limitedFieldTrialRequiresPrivacyConsent': true,
     'limitedFieldTrialRequiresOdometerReview': true,
     'limitedFieldTrialRequiresStopDisposition': true,
+    'limitedFieldTrialRequiresCalibrationSignalReview': true,
+    'poorGpsCalibrationEvidenceRequired': true,
     'evidenceCanConfirmOdometer': false,
     'evidenceCanCreateOfficialStop': false,
     'evidenceCanDeleteLocalData': false,
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'mapsRequiredForEvidence': false,
     'mapboxFailureCanInvalidateGpsEvidence': false,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'employeeTrackingRequiresMutualConsent': true,
     'rawTripRecordsIncluded': false,
@@ -144,12 +147,15 @@ class TripFieldTrialEvidenceSummaryValidation {
       'limitedFieldTrialRequiresPrivacyConsent',
       'limitedFieldTrialRequiresOdometerReview',
       'limitedFieldTrialRequiresStopDisposition',
+      'limitedFieldTrialRequiresCalibrationSignalReview',
+      'poorGpsCalibrationEvidenceRequired',
       'evidenceCanConfirmOdometer',
       'evidenceCanCreateOfficialStop',
       'evidenceCanDeleteLocalData',
       'gpsAssistedTrackingAvailableWithoutMaps',
       'mapsRequiredForEvidence',
       'mapboxFailureCanInvalidateGpsEvidence',
+      'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
       'employeeTrackingRequiresMutualConsent',
       'rawTripRecordsIncluded',
@@ -169,12 +175,15 @@ class TripFieldTrialEvidenceSummaryValidation {
         summary['limitedFieldTrialRequiresRedactedEvidence'] != true ||
         summary['limitedFieldTrialRequiresPrivacyConsent'] != true ||
         summary['limitedFieldTrialRequiresOdometerReview'] != true ||
-        summary['limitedFieldTrialRequiresStopDisposition'] != true) {
+        summary['limitedFieldTrialRequiresStopDisposition'] != true ||
+        summary['limitedFieldTrialRequiresCalibrationSignalReview'] != true ||
+        summary['poorGpsCalibrationEvidenceRequired'] != true) {
       reasons.add('limited_field_trial_evidence_boundary_missing');
     }
     if (summary['evidenceCanConfirmOdometer'] != false ||
         summary['evidenceCanCreateOfficialStop'] != false ||
         summary['evidenceCanDeleteLocalData'] != false ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('evidence_can_create_trip_truth');
     }
