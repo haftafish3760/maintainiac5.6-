@@ -15,6 +15,20 @@ void main() {
     expect(summary.toSafeDashboardMap()['advisoryOnly'], isTrue);
     expect(summary.toSafeDashboardMap()['officialMileageSource'], 'odometer');
     expect(summary.toSafeDashboardMap()['canReplaceOdometer'], isFalse);
+    expect(
+      summary.toSafeDashboardMap()['gpsCanWriteConfirmedTripLog'],
+      isFalse,
+    );
+    expect(summary.toSafeDashboardMap()['mapboxCanReplaceOdometer'], isFalse);
+    expect(
+      summary.toSafeDashboardMap()['mapboxCanWriteConfirmedTripLog'],
+      isFalse,
+    );
+    expect(
+      summary.toSafeDashboardMap()['remoteTotalsCanBecomeCanonical'],
+      isFalse,
+    );
+    expect(summary.toSafeDashboardMap()['localTripLogProtected'], isTrue);
     expect(summary.toSafeDashboardMap()['coordinatesIncluded'], isFalse);
   });
 
@@ -125,5 +139,24 @@ void main() {
     expect(summary.acceptedSamples, 0);
     expect(summary.rejectedSamples, 3);
     expect(summary.quality, TripTrackingSignalQuality.poor);
+  });
+
+  test('safe signal summaries sanitize direct malformed public fields', () {
+    const summary = TripTrackingSignalQualitySummary(
+      quality: TripTrackingSignalQuality.reduced,
+      reasonCode: 'lat=35.1 token=sk.secret',
+      receivedSamples: 4,
+      acceptedSamples: 2,
+      rejectedSamples: 2,
+      acceptanceRate: .5,
+      requiresUserReview: false,
+    );
+    final safe = summary.toSafeDashboardMap();
+
+    expect(safe['reasonCode'], 'gps_signal_unsafe_provider_evidence');
+    expect(safe['remoteTotalsCanBecomeCanonical'], isFalse);
+    expect(safe['localTripLogProtected'], isTrue);
+    expect(safe.toString(), isNot(contains('35.1')));
+    expect(safe.toString(), isNot(contains('sk.secret')));
   });
 }

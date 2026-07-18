@@ -43,7 +43,7 @@ class TripTrackingSignalQualitySummary {
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
     'quality': quality.name,
-    'reasonCode': reasonCode,
+    'reasonCode': _safeSignalReason(reasonCode),
     'receivedSamples': receivedSamples,
     'acceptedSamples': acceptedSamples,
     'rejectedSamples': rejectedSamples,
@@ -52,6 +52,11 @@ class TripTrackingSignalQualitySummary {
     'advisoryOnly': true,
     'officialMileageSource': 'odometer',
     'canReplaceOdometer': false,
+    'gpsCanWriteConfirmedTripLog': false,
+    'mapboxCanReplaceOdometer': false,
+    'mapboxCanWriteConfirmedTripLog': false,
+    'remoteTotalsCanBecomeCanonical': false,
+    'localTripLogProtected': true,
     'canUploadRawGps': false,
     'rawSamplesIncluded': false,
     'coordinatesIncluded': false,
@@ -181,4 +186,18 @@ int _safeCount(int value) => value < 0
 int _safeAccepted(int accepted, int received) {
   final safe = _safeCount(accepted);
   return safe > received ? 0 : safe;
+}
+
+String _safeSignalReason(String value) {
+  return switch (value.trim()) {
+    'gps_signal_waiting_for_samples' => 'gps_signal_waiting_for_samples',
+    'gps_signal_healthy' => 'gps_signal_healthy',
+    'gps_signal_reduced_but_usable' => 'gps_signal_reduced_but_usable',
+    'gps_signal_poor_measurement_quality' =>
+      'gps_signal_poor_measurement_quality',
+    'gps_signal_interrupted_by_gap' => 'gps_signal_interrupted_by_gap',
+    'gps_signal_unsafe_provider_evidence' =>
+      'gps_signal_unsafe_provider_evidence',
+    _ => 'gps_signal_unsafe_provider_evidence',
+  };
 }

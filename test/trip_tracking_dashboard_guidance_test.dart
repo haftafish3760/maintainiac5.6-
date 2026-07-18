@@ -204,8 +204,13 @@ void main() {
 
       expect(safe['syncStatus'], contains('unverified'));
       expect(safe['advisoryOnly'], isTrue);
+      expect(safe['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
       expect(safe['odometerRemainsCanonical'], isTrue);
       expect(safe['mapsRequiredForTracking'], isFalse);
+      expect(safe['mapboxCanReplaceOdometer'], isFalse);
+      expect(safe['mapboxCanWriteConfirmedTripLog'], isFalse);
+      expect(safe['remoteTotalsCanBecomeCanonical'], isFalse);
+      expect(safe['localTripLogProtected'], isTrue);
       expect(safe['locationSharingRequiresActiveOptIn'], isTrue);
       expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
       expect(safe['employerGodModeAllowed'], isFalse);
