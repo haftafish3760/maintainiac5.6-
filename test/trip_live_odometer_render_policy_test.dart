@@ -27,6 +27,11 @@ void main() {
     expect(safe['manualConfirmationRequired'], isFalse);
     expect(safe['calendarReviewUsesConfirmedTruth'], isTrue);
     expect(safe['writesConfirmedOdometer'], isFalse);
+    expect(safe['confirmedOnlyCanRenderWithoutActiveTrip'], isTrue);
+    expect(
+      TripLiveOdometerRenderSummaryValidation.fromSummary(safe).isRenderable,
+      isTrue,
+    );
   });
 
   test('fresh live projection updates all subscribed dashboard surfaces', () {
@@ -64,8 +69,17 @@ void main() {
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
     expect(safe['fleetDashboardUsesLiveProjection'], isTrue);
     expect(safe['standardDashboardUsesLiveProjection'], isTrue);
+    expect(safe['singleSnapshotMustDriveEverySubscribedSurface'], isTrue);
+    expect(safe['surfaceSpecificTripIdsAllowed'], isFalse);
+    expect(safe['liveProjectionRequiresDeviceLocalSource'], isTrue);
+    expect(safe['liveProjectionRequiresOwnershipValidation'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
     expect(safe['confirmedDisplayValueValidated'], isTrue);
+    final validation = TripLiveOdometerRenderSummaryValidation.fromSummary(
+      safe,
+    );
+    expect(validation.isRenderable, isTrue);
+    expect(validation.shouldNotifyListeners, isTrue);
   });
 
   test(
@@ -95,6 +109,7 @@ void main() {
       expect(safe['confirmedOdometerRemainsCanonical'], isTrue);
       expect(safe['writesConfirmedOdometer'], isFalse);
       expect(safe['gpsCanReplaceOdometer'], isFalse);
+      expect(safe['staleProjectionCanCommitMileage'], isFalse);
     },
   );
 
@@ -121,6 +136,13 @@ void main() {
     expect(decision.confirmedDisplayValue, isNull);
     expect(decision.reasonCodes, contains('live_trip_id_mismatch'));
     expect(safe['firestoreCanOverrideLiveDisplay'], isFalse);
+    expect(safe['blockedProjectionSuppressesNotify'], isTrue);
+    expect(
+      TripLiveOdometerRenderSummaryValidation.fromSummary(
+        safe,
+      ).shouldNotifyListeners,
+      isFalse,
+    );
   });
 
   test('malformed live snapshot cannot roll back the UI odometer', () {
@@ -239,6 +261,10 @@ void main() {
       expect(decision.shouldRender, isTrue);
       expect(decision.shouldNotifyListeners, isFalse);
       expect(decision.reasonCodes, contains('no_dashboard_surface_subscribed'));
+      expect(
+        decision.toSafeUiMap()['surfaceSubscriptionRequiredForNotify'],
+        isTrue,
+      );
     },
   );
 
@@ -269,4 +295,80 @@ void main() {
       expect(safe.toString(), isNot(contains('sk.')));
     },
   );
+
+  test(
+    'safe UI summary validation rejects forged surface-specific mileage',
+    () {
+      final safe = TripLiveOdometerRenderPolicy.evaluate(
+        snapshot: LiveOdometerDisplaySnapshot(
+          confirmedReading: 1000,
+          displayReading: 1002,
+          isLive: true,
+          liveUpdatedAt: now,
+        ),
+        now: now,
+        activeTripId: 'trip_safe',
+        expectedTripId: 'trip_safe',
+        subscribedSurfaces: TripLiveOdometerRenderSurface.values,
+      ).toSafeUiMap();
+
+      expect(
+        TripLiveOdometerRenderSummaryValidation.fromSummary({
+          ...safe,
+          'surfaceSpecificMileageCalculationAllowed': true,
+        }).isRenderable,
+        isFalse,
+      );
+      expect(
+        TripLiveOdometerRenderSummaryValidation.fromSummary({
+          ...safe,
+          'writesConfirmedOdometer': true,
+        }).isRenderable,
+        isFalse,
+      );
+      expect(
+        TripLiveOdometerRenderSummaryValidation.fromSummary({
+          ...safe,
+          'firestoreCanOverrideLiveDisplay': true,
+        }).isRenderable,
+        isFalse,
+      );
+      expect(
+        TripLiveOdometerRenderSummaryValidation.fromSummary({
+          ...safe,
+          'debug': '35.123456,-80.123456 token=sk.secret',
+        }).isRenderable,
+        isFalse,
+      );
+    },
+  );
+
+  test('safe UI summary validation rejects malformed display values', () {
+    final safe = TripLiveOdometerRenderPolicy.evaluate(
+      snapshot: const LiveOdometerDisplaySnapshot(
+        confirmedReading: 1000,
+        displayReading: 1000,
+        isLive: false,
+      ),
+      now: now,
+      activeTripId: null,
+      expectedTripId: 'trip_confirmed',
+      subscribedSurfaces: TripLiveOdometerRenderSurface.values,
+    ).toSafeUiMap();
+
+    expect(
+      TripLiveOdometerRenderSummaryValidation.fromSummary({
+        ...safe,
+        'displayValue': '1000',
+      }).reasons,
+      contains('invalid_display_value'),
+    );
+    expect(
+      TripLiveOdometerRenderSummaryValidation.fromSummary({
+        ...safe,
+        'surfaces': ['dashboard', 'unknownSurface'],
+      }).reasons,
+      contains('invalid_render_surfaces'),
+    );
+  });
 }

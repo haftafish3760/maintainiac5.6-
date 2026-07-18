@@ -91,16 +91,166 @@ class TripLiveOdometerRenderDecision {
       'dashboardCacheCanOverrideLocalTrip': false,
       'authenticationDoesNotGrantDisplayAuthority': true,
       'matchingActiveTripRequired': true,
+      'singleSnapshotMustDriveEverySubscribedSurface': true,
+      'surfaceSubscriptionRequiredForNotify': true,
+      'blockedProjectionSuppressesNotify': true,
+      'confirmedOnlyCanRenderWithoutActiveTrip': true,
+      'liveProjectionCannotRenderWithoutMatchingTrip': true,
+      'liveProjectionRequiresDeviceLocalSource': true,
+      'liveProjectionRequiresOwnershipValidation': true,
+      'projectionCannotOutliveActiveDay': true,
       'activeTripIdIncluded': false,
       'ownerUserIdIncluded': false,
+      'surfaceSpecificTripIdsAllowed': false,
       'futureProjectionCanRender': false,
       'impossibleProjectionCanRender': false,
+      'staleProjectionCanCommitMileage': false,
+      'remoteProjectionCanReviveEndedTrip': false,
+      'calendarCanRewriteConfirmedTruth': false,
       'rawGpsIncluded': false,
       'preciseLocationIncluded': false,
       'routeGeometryIncluded': false,
       'tokensIncluded': false,
     };
   }
+}
+
+class TripLiveOdometerRenderSummaryValidation {
+  const TripLiveOdometerRenderSummaryValidation._({
+    required this.isRenderable,
+    required this.shouldNotifyListeners,
+    required this.reasons,
+  });
+
+  factory TripLiveOdometerRenderSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (!_allowedStatuses.contains(summary['status'])) {
+      reasons.add('invalid_render_status');
+    }
+    final displayValue = summary['displayValue'];
+    final confirmedDisplayValue = summary['confirmedDisplayValue'];
+    if (displayValue != null && displayValue is! String) {
+      reasons.add('display_value_not_string');
+    } else if (!_displayValueSafe(displayValue as String?)) {
+      reasons.add('invalid_display_value');
+    }
+    if (confirmedDisplayValue != null && confirmedDisplayValue is! String) {
+      reasons.add('confirmed_display_value_not_string');
+    } else if (!_displayValueSafe(confirmedDisplayValue as String?)) {
+      reasons.add('invalid_confirmed_display_value');
+    }
+    final surfaces = summary['surfaces'];
+    if (surfaces is! List ||
+        surfaces.any((surface) => !_allowedSurfaces.contains(surface))) {
+      reasons.add('invalid_render_surfaces');
+    }
+    final reasonCodes = summary['reasonCodes'];
+    if (reasonCodes is! List ||
+        reasonCodes.any((reason) => reason is! String || _sensitive(reason))) {
+      reasons.add('invalid_render_reasons');
+    }
+    for (final key in const [
+      'shouldRender',
+      'shouldNotifyListeners',
+      'reviewRequired',
+      'futureProjectionBlocked',
+      'impossibleProjectionDeltaBlocked',
+      'odometerDisplayOutOfRangeBlocked',
+      'displayValueValidated',
+      'confirmedDisplayValueValidated',
+      'liveUiMustRefreshOnProjectionChange',
+      'singleLiveOdometerSnapshotRequired',
+      'allDashboardSurfacesUseSameSnapshot',
+      'surfaceSpecificMileageCalculationAllowed',
+      'activeVehicleBlockUsesLiveProjection',
+      'vehicleProfileUsesLiveProjection',
+      'contractorDashboardUsesLiveProjection',
+      'fleetDashboardUsesLiveProjection',
+      'standardDashboardUsesLiveProjection',
+      'calendarReviewUsesConfirmedTruth',
+      'advisoryOnly',
+      'confirmedOdometerRemainsCanonical',
+      'manualConfirmationRequired',
+      'writesConfirmedOdometer',
+      'gpsCanReplaceOdometer',
+      'mapboxCanReplaceOdometer',
+      'firestoreCanOverrideLiveDisplay',
+      'remoteDisplayCanOverrideLocalTrip',
+      'importedDisplayCanOverrideLocalTrip',
+      'dashboardCacheCanOverrideLocalTrip',
+      'authenticationDoesNotGrantDisplayAuthority',
+      'matchingActiveTripRequired',
+      'singleSnapshotMustDriveEverySubscribedSurface',
+      'surfaceSubscriptionRequiredForNotify',
+      'blockedProjectionSuppressesNotify',
+      'confirmedOnlyCanRenderWithoutActiveTrip',
+      'liveProjectionCannotRenderWithoutMatchingTrip',
+      'liveProjectionRequiresDeviceLocalSource',
+      'liveProjectionRequiresOwnershipValidation',
+      'projectionCannotOutliveActiveDay',
+      'activeTripIdIncluded',
+      'ownerUserIdIncluded',
+      'surfaceSpecificTripIdsAllowed',
+      'futureProjectionCanRender',
+      'impossibleProjectionCanRender',
+      'staleProjectionCanCommitMileage',
+      'remoteProjectionCanReviveEndedTrip',
+      'calendarCanRewriteConfirmedTruth',
+      'rawGpsIncluded',
+      'preciseLocationIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['displayValueValidated'] != true ||
+        summary['confirmedDisplayValueValidated'] != true) {
+      reasons.add('display_values_not_validated');
+    }
+    if (summary['singleLiveOdometerSnapshotRequired'] != true ||
+        summary['allDashboardSurfacesUseSameSnapshot'] != true ||
+        summary['singleSnapshotMustDriveEverySubscribedSurface'] != true ||
+        summary['surfaceSpecificMileageCalculationAllowed'] != false ||
+        summary['surfaceSpecificTripIdsAllowed'] != false) {
+      reasons.add('single_snapshot_boundary_missing');
+    }
+    if (summary['writesConfirmedOdometer'] != false ||
+        summary['gpsCanReplaceOdometer'] != false ||
+        summary['mapboxCanReplaceOdometer'] != false ||
+        summary['confirmedOdometerRemainsCanonical'] != true ||
+        summary['calendarCanRewriteConfirmedTruth'] != false) {
+      reasons.add('odometer_truth_boundary_missing');
+    }
+    if (summary['firestoreCanOverrideLiveDisplay'] != false ||
+        summary['remoteDisplayCanOverrideLocalTrip'] != false ||
+        summary['importedDisplayCanOverrideLocalTrip'] != false ||
+        summary['dashboardCacheCanOverrideLocalTrip'] != false ||
+        summary['authenticationDoesNotGrantDisplayAuthority'] != true) {
+      reasons.add('remote_display_boundary_missing');
+    }
+    if (summary['activeTripIdIncluded'] != false ||
+        summary['ownerUserIdIncluded'] != false ||
+        summary['rawGpsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_sensitiveValue)) {
+      reasons.add('summary_contains_sensitive_odometer_material');
+    }
+    return TripLiveOdometerRenderSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      shouldNotifyListeners:
+          reasons.isEmpty && summary['shouldNotifyListeners'] == true,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final bool shouldNotifyListeners;
+  final List<String> reasons;
 }
 
 bool _displayValueSafe(String? value) =>
@@ -172,4 +322,45 @@ Set<TripLiveOdometerRenderSurface> _safeSurfaces(
             surface == TripLiveOdometerRenderSurface.calendarDayReview,
       )
       .toSet();
+}
+
+const _allowedStatuses = {
+  'confirmedOnly',
+  'liveRenderable',
+  'staleReviewOnly',
+  'blocked',
+};
+
+const _allowedSurfaces = {
+  'dashboard',
+  'activeVehicleBlock',
+  'vehicleProfile',
+  'contractorDashboard',
+  'fleetDashboard',
+  'calendarDayReview',
+};
+
+bool _sensitiveValue(Object? value) {
+  if (value == null || value is bool || value is num) return false;
+  if (value is Iterable) return value.any(_sensitiveValue);
+  if (value is Map) return true;
+  return _sensitive(value.toString());
+}
+
+bool _sensitive(String value) {
+  final normalized = value.toLowerCase();
+  if (normalized == 'tokensincluded' ||
+      normalized == 'preciselocationincluded' ||
+      normalized == 'routegeometryincluded') {
+    return false;
+  }
+  return normalized.contains('pk.') ||
+      normalized.contains('sk.') ||
+      normalized.contains('token=') ||
+      normalized.contains('latitude') ||
+      normalized.contains('longitude') ||
+      normalized.contains('geometry=') ||
+      normalized.contains('polyline') ||
+      normalized.contains('gps trace') ||
+      RegExp(r'-?\d{2,3}\.\d{4,}\s*,\s*-?\d{2,3}\.\d{4,}').hasMatch(normalized);
 }
