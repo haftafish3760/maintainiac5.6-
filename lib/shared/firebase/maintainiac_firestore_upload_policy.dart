@@ -139,6 +139,7 @@ class MaintainiacFirestoreUploadPolicy {
     'no_stop_review_needed',
     'unsafe_stop_evidence_rejected',
     'equipment_walking_evidence_ignored',
+    'walking_stop_without_vehicle_movement',
     'road_vehicle_stop_walk_review',
     'rideshare_stop_requires_extra_evidence',
     'delivery_stop_walk_review',

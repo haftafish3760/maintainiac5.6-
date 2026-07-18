@@ -139,6 +139,7 @@ void main() {
       'strong_debounce',
       'walking_ignored',
       'road_vehicle_stop_walk_review',
+      'walking_stop_without_vehicle_movement',
       'rideshare_stop_requires_extra_evidence',
       'delivery_stop_walk_review',
       'contractor_stop_walk_review',

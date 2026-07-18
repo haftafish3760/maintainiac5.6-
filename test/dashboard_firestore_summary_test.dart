@@ -407,6 +407,34 @@ void main() {
     }
   });
 
+  test(
+    'dashboard summary accepts walking stop evidence rejected as unsafe',
+    () {
+      final doc =
+          MaintainiacFirestoreDocumentBuilder.dashboardCommandCenterDocument(
+            uid: 'firebaseUid-1',
+            dashboardId: 'today',
+            updatedAtUtc: DateTime.utc(2026, 7, 18, 12),
+            stopSignal: 'unsafe_evidence',
+            stopActionToken: 'keep_tracking',
+            stopClassificationReason: 'walking_stop_without_vehicle_movement',
+            reviewRequired: false,
+          );
+
+      expect(
+        doc.data['stopClassificationReason'],
+        'walking_stop_without_vehicle_movement',
+      );
+      expect(doc.data['stopSignal'], 'unsafe_evidence');
+      expect(doc.data['locationDataIncluded'], isFalse);
+      expect(doc.data['rawModuleDataIncluded'], isFalse);
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(doc),
+        returnsNormally,
+      );
+    },
+  );
+
   test('dashboard summary builder rejects unknown mode and state values', () {
     for (final entry in const <String, String>{
       'dashboardMode': 'god_mode',
