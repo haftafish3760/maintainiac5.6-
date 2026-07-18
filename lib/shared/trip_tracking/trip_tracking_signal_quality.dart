@@ -63,6 +63,12 @@ class TripTrackingSignalQualitySummary {
     'advisoryOnly': true,
     'diagnosticsCanOnlyRequestReview': true,
     'diagnosticsCanEndTrip': false,
+    'stopReviewRequiresTrustedGps': true,
+    'stopReviewSignalQualityEligible': _safeStopReviewEligible(quality),
+    'noGpsCanOpenStopReview': false,
+    'poorGpsCanOpenStopReview': false,
+    'interruptedGpsCanOpenStopReview': false,
+    'unsafeGpsCanOpenStopReview': false,
     'officialMileageSource': 'odometer',
     'odometerIsGlobalTruth': true,
     'canReplaceOdometer': false,
@@ -76,6 +82,9 @@ class TripTrackingSignalQualitySummary {
       acceptedSamples: acceptedSamples,
       acceptanceRate: acceptanceRate,
     ),
+    'minimumAcceptedSamplesForCalibration': _minimumAcceptedSamplesForCalibration,
+    'calibrationRequiresMinimumAcceptedSamples': true,
+    'calibrationRequiresSustainedAcceptanceRate': true,
     'signalQualityCanCreateCalibration': false,
     'signalQualityCanApplyCalibration': false,
     'signalQualityCanOverrideCalibration': false,
@@ -288,6 +297,22 @@ bool _safeCalibrationEligible({
   }
   final received = _safeCount(receivedSamples);
   final accepted = _safeAccepted(acceptedSamples, received);
-  if (received <= 0 || accepted <= 0) return false;
+  if (received < _minimumAcceptedSamplesForCalibration ||
+      accepted < _minimumAcceptedSamplesForCalibration) {
+    return false;
+  }
   return _safeRate(acceptanceRate) >= .65;
+}
+
+const int _minimumAcceptedSamplesForCalibration = 5;
+
+bool _safeStopReviewEligible(TripTrackingSignalQuality quality) {
+  return switch (quality) {
+    TripTrackingSignalQuality.healthy || TripTrackingSignalQuality.reduced =>
+      true,
+    TripTrackingSignalQuality.noSamples ||
+    TripTrackingSignalQuality.poor ||
+    TripTrackingSignalQuality.interrupted ||
+    TripTrackingSignalQuality.unsafe => false,
+  };
 }
