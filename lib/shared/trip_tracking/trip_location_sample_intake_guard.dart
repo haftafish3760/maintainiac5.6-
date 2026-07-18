@@ -14,7 +14,10 @@ enum TripLocationSampleIntakeReason {
   invalidTimestamp,
   futureTimestamp,
   staleTimestamp,
+  duplicateTimestamp,
+  outOfOrderTimestamp,
   mockedLocationRejected,
+  invalidReportedSpeed,
   impossibleReportedSpeed,
 }
 
@@ -49,6 +52,9 @@ class TripLocationSampleIntakeDecision {
     'ownerVerified': ownerVerified,
     'sessionVerified': sessionVerified,
     'acceptedClockSkewBucket': _clockSkewBucket(acceptedClockSkew),
+    'orderedAfterAcceptedSample':
+        reason != TripLocationSampleIntakeReason.duplicateTimestamp &&
+        reason != TripLocationSampleIntakeReason.outOfOrderTimestamp,
     'validatedBeforeUse': true,
     'authDoesNotImplyAuthorization': true,
     'localTripSessionRequired': true,
@@ -79,6 +85,7 @@ class TripLocationSampleIntakeGuard {
     required DateTime receivedAt,
     Duration maximumFutureSkew = const Duration(minutes: 2),
     Duration maximumStaleAge = const Duration(hours: 18),
+    DateTime? latestAcceptedRecordedAt,
   }) {
     if (payload is! Map) {
       return _rejected(
@@ -132,6 +139,15 @@ class TripLocationSampleIntakeGuard {
         sessionVerified: true,
       );
     }
+    final reportedSpeedFailure = _reportedSpeedFailureReason(samplePayload);
+    if (reportedSpeedFailure != null) {
+      return _rejected(
+        reportedSpeedFailure,
+        schemaVersion: schemaVersion,
+        ownerVerified: true,
+        sessionVerified: true,
+      );
+    }
 
     final sample = TripLocationSample.tryFromMap(samplePayload);
     if (sample == null) {
@@ -162,6 +178,27 @@ class TripLocationSampleIntakeGuard {
         sessionVerified: true,
         acceptedClockSkew: received.difference(recordedAt),
       );
+    }
+    final latestAccepted = latestAcceptedRecordedAt?.toUtc();
+    if (latestAccepted != null) {
+      if (recordedAt.isAtSameMomentAs(latestAccepted)) {
+        return _rejected(
+          TripLocationSampleIntakeReason.duplicateTimestamp,
+          schemaVersion: schemaVersion,
+          ownerVerified: true,
+          sessionVerified: true,
+          acceptedClockSkew: Duration.zero,
+        );
+      }
+      if (recordedAt.isBefore(latestAccepted)) {
+        return _rejected(
+          TripLocationSampleIntakeReason.outOfOrderTimestamp,
+          schemaVersion: schemaVersion,
+          ownerVerified: true,
+          sessionVerified: true,
+          acceptedClockSkew: latestAccepted.difference(recordedAt),
+        );
+      }
     }
     if ((sample.speedMetersPerSecond ?? 0) > 70) {
       return _rejected(
@@ -238,6 +275,21 @@ TripLocationSampleIntakeReason _parseFailureReason(Map<dynamic, dynamic> map) {
     return TripLocationSampleIntakeReason.invalidTimestamp;
   }
   return TripLocationSampleIntakeReason.missingRequiredFields;
+}
+
+TripLocationSampleIntakeReason? _reportedSpeedFailureReason(
+  Map<dynamic, dynamic> map,
+) {
+  if (!map.containsKey('speedMetersPerSecond') ||
+      map['speedMetersPerSecond'] == null) {
+    return null;
+  }
+  final speed = map['speedMetersPerSecond'];
+  if (speed is! num || !speed.isFinite || speed < -0.5) {
+    return TripLocationSampleIntakeReason.invalidReportedSpeed;
+  }
+  if (speed > 70) return TripLocationSampleIntakeReason.impossibleReportedSpeed;
+  return null;
 }
 
 bool _hasKeys(Map<dynamic, dynamic> map, List<String> keys) {

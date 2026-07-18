@@ -82,14 +82,47 @@ void main() {
       sample(recordedAt: receivedAt.subtract(const Duration(hours: 19))),
     );
     final mock = evaluate(sample(mockedLocation: true));
+    final invalidSpeed = evaluate(sample(speed: -2));
     final tooFast = evaluate(sample(speed: 71));
 
     expect(future.reason, TripLocationSampleIntakeReason.futureTimestamp);
     expect(stale.reason, TripLocationSampleIntakeReason.staleTimestamp);
     expect(mock.reason, TripLocationSampleIntakeReason.mockedLocationRejected);
     expect(
+      invalidSpeed.reason,
+      TripLocationSampleIntakeReason.invalidReportedSpeed,
+    );
+    expect(
       tooFast.reason,
       TripLocationSampleIntakeReason.impossibleReportedSpeed,
+    );
+  });
+
+  test('rejects duplicate and out-of-order replayed samples', () {
+    final latestAccepted = receivedAt.subtract(const Duration(seconds: 10));
+    final duplicate = evaluate(
+      sample(recordedAt: latestAccepted),
+      latestAcceptedRecordedAt: latestAccepted,
+    );
+    final olderReplay = evaluate(
+      sample(recordedAt: latestAccepted.subtract(const Duration(seconds: 1))),
+      latestAcceptedRecordedAt: latestAccepted,
+    );
+    final nextSample = evaluate(
+      sample(recordedAt: latestAccepted.add(const Duration(seconds: 1))),
+      latestAcceptedRecordedAt: latestAccepted,
+    );
+
+    expect(duplicate.reason, TripLocationSampleIntakeReason.duplicateTimestamp);
+    expect(
+      olderReplay.reason,
+      TripLocationSampleIntakeReason.outOfOrderTimestamp,
+    );
+    expect(nextSample.canFeedTripEngine, isTrue);
+    expect(duplicate.toSafeSummary()['orderedAfterAcceptedSample'], isFalse);
+    expect(
+      olderReplay.toSafeSummary()['remoteSampleCanOverrideLocalTruth'],
+      isFalse,
     );
   });
 
@@ -116,7 +149,10 @@ void main() {
   });
 }
 
-TripLocationSampleIntakeDecision evaluate(Object? payloadValue) {
+TripLocationSampleIntakeDecision evaluate(
+  Object? payloadValue, {
+  DateTime? latestAcceptedRecordedAt,
+}) {
   final externalPayload =
       payloadValue is Map &&
           payloadValue.containsKey('schemaVersion') &&
@@ -130,6 +166,7 @@ TripLocationSampleIntakeDecision evaluate(Object? payloadValue) {
     expectedOwnerUid: 'user-1',
     expectedSessionId: 'session-1',
     receivedAt: DateTime.utc(2026, 7, 18, 12),
+    latestAcceptedRecordedAt: latestAcceptedRecordedAt,
   );
 }
 
