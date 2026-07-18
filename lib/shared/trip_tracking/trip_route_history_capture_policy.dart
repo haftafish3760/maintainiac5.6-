@@ -62,6 +62,8 @@ class TripRouteHistoryCaptureDecision {
     'mapboxCanCreateOfficialStop': false,
     'mapboxCanReorderOfficialStops': false,
     'routeHistoryCanConfirmMileage': false,
+    'routeHistoryCanCreateCalibration': false,
+    'routeHistoryCanApplyCalibration': false,
     'routeHistoryCanBecomeCalibrationProof': false,
     'routeHistoryCannotDeleteTextTripLog': true,
     'routeHistoryCannotUploadRawPingsToFirestore': true,
@@ -139,6 +141,8 @@ class TripRouteHistorySummaryValidation {
         summary['mapboxCanCreateOfficialStop'] != false ||
         summary['mapboxCanReorderOfficialStops'] != false ||
         summary['routeHistoryCanConfirmMileage'] != false ||
+        summary['routeHistoryCanCreateCalibration'] != false ||
+        summary['routeHistoryCanApplyCalibration'] != false ||
         summary['routeHistoryCanBecomeCalibrationProof'] != false ||
         summary['routeHistoryCannotDeleteTextTripLog'] != true ||
         summary['routeHistoryCannotUploadRawPingsToFirestore'] != true ||

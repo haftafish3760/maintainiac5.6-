@@ -34,6 +34,8 @@ void main() {
     expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
     expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['routeStorageCanCreateCalibration'], isFalse);
+    expect(summary['routeStorageCanApplyCalibration'], isFalse);
     expect(summary['routeStorageCanBecomeCalibrationProof'], isFalse);
     expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
@@ -256,6 +258,8 @@ void main() {
     expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
     expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['routeStorageCanCreateCalibration'], isFalse);
+    expect(summary['routeStorageCanApplyCalibration'], isFalse);
     expect(summary['routeStorageCanBecomeCalibrationProof'], isFalse);
     expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
@@ -356,6 +360,8 @@ void main() {
           'routeStorageCannotDeleteTextTripLog': false,
           'routeStorageCannotUploadRawPingsToFirestore': false,
           'odometerIsGlobalTruth': false,
+          'routeStorageCanCreateCalibration': true,
+          'routeStorageCanApplyCalibration': true,
           'routeStorageCanBecomeCalibrationProof': true,
           'calibrationRequiresTrustedGpsWindow': false,
           'poorGpsDaysExcludedFromCalibration': false,
@@ -386,6 +392,8 @@ void main() {
           ).toSafeDashboardMap()
           ..remove('odometerIsGlobalTruth')
           ..remove('odometerRemainsCanonical')
+          ..remove('routeStorageCanCreateCalibration')
+          ..remove('routeStorageCanApplyCalibration')
           ..remove('routeStorageCanBecomeCalibrationProof')
           ..remove('calibrationRequiresTrustedGpsWindow')
           ..remove('poorGpsDaysExcludedFromCalibration');

@@ -68,6 +68,8 @@ class TripTrackingMapStorageEstimate {
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
+    'routeStorageCanCreateCalibration': false,
+    'routeStorageCanApplyCalibration': false,
     'routeStorageCanBecomeCalibrationProof': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
@@ -137,6 +139,8 @@ class TripTrackingMapRoutePointDecision {
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
+    'routeStorageCanCreateCalibration': false,
+    'routeStorageCanApplyCalibration': false,
     'routeStorageCanBecomeCalibrationProof': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
@@ -336,6 +340,8 @@ class TripTrackingMapStorageSummaryValidation {
       'purgeRequiresConfirmedBackupOrUserAction',
       'odometerIsGlobalTruth',
       'odometerRemainsCanonical',
+      'routeStorageCanCreateCalibration',
+      'routeStorageCanApplyCalibration',
       'routeStorageCanBecomeCalibrationProof',
       'calibrationRequiresTrustedGpsWindow',
       'poorGpsDaysExcludedFromCalibration',
@@ -378,6 +384,8 @@ class TripTrackingMapStorageSummaryValidation {
     }
     if (summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsCanonical'] != true ||
+        summary['routeStorageCanCreateCalibration'] != false ||
+        summary['routeStorageCanApplyCalibration'] != false ||
         summary['routeStorageCanBecomeCalibrationProof'] != false ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
