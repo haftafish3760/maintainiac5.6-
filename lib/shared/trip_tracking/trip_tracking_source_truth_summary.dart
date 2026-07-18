@@ -28,12 +28,14 @@ class TripTrackingSourceTruthSummary {
     var advisoryEstimatedMiles = 0;
     var rejectedRecordCount = 0;
     final rejectionReasons = <String>{};
+    final seenReviewIds = <String>{};
 
     for (final review in reviews) {
       final rejection = _rejectionReason(
         review,
         targetDay: targetDay,
         vehicleId: vehicleId,
+        seenReviewIds: seenReviewIds,
       );
       if (rejection != null) {
         rejectedRecordCount += 1;
@@ -87,6 +89,9 @@ class TripTrackingSourceTruthSummary {
     'hasUnconfirmedMileage': hasUnconfirmedMileage,
     'rejectedRecordCount': rejectedRecordCount,
     'rejectionReasons': rejectionReasons,
+    'duplicateReviewIdsRejected': rejectionReasons.contains(
+      'duplicate_review_id',
+    ),
     'derivedFromValidatedLocalReviewRecords': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreTotalsAcceptedAsCanonical': false,
@@ -108,8 +113,12 @@ String? _rejectionReason(
   TripTrackingReviewRecord review, {
   required DateTime targetDay,
   required String? vehicleId,
+  required Set<String> seenReviewIds,
 }) {
   if (!review.hasValidTimeline) return 'invalid_timeline';
+  final reviewId = review.id.trim();
+  if (reviewId.isEmpty || reviewId != review.id) return 'invalid_review_id';
+  if (!seenReviewIds.add(reviewId)) return 'duplicate_review_id';
   if (vehicleId != null && review.vehicleId != vehicleId) {
     return 'wrong_vehicle';
   }

@@ -105,6 +105,50 @@ void main() {
     expect(summary.rejectionReasons, contains('outside_requested_day'));
   });
 
+  test('duplicate review ids cannot inflate confirmed mileage totals', () {
+    final first = review(
+      id: 'trip_duplicate',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1012,
+      confirmedEndingOdometer: 1011,
+      odometerConfirmedAt: day.add(const Duration(hours: 9)),
+    );
+    final replayedMirror = review(
+      id: 'trip_duplicate',
+      startingOdometer: 2000,
+      estimatedEndingOdometer: 2050,
+      confirmedEndingOdometer: 2050,
+      odometerConfirmedAt: day.add(const Duration(hours: 10)),
+    );
+    final summary = TripTrackingSourceTruthSummary.forLocalReviewDay(
+      day: day,
+      reviews: [first, replayedMirror],
+    );
+    final safe = summary.toSafeDashboardMap();
+
+    expect(summary.confirmedTripCount, 1);
+    expect(summary.confirmedMiles, 11);
+    expect(summary.rejectedRecordCount, 1);
+    expect(summary.rejectionReasons, contains('duplicate_review_id'));
+    expect(safe['duplicateReviewIdsRejected'], isTrue);
+    expect(safe['firestoreTotalsAcceptedAsCanonical'], isFalse);
+  });
+
+  test('malformed review ids are rejected before dashboard totals', () {
+    final summary = TripTrackingSourceTruthSummary.forLocalReviewDay(
+      day: day,
+      reviews: [
+        review(id: ''),
+        review(id: ' trip_with_spaces '),
+      ],
+    );
+
+    expect(summary.confirmedTripCount, 0);
+    expect(summary.unconfirmedTripCount, 0);
+    expect(summary.rejectedRecordCount, 2);
+    expect(summary.rejectionReasons, contains('invalid_review_id'));
+  });
+
   test('invalid confirmation cannot become official mileage', () {
     final invalid = TripTrackingReviewRecord.fromMap({
       ...review(
