@@ -38,6 +38,13 @@ class TripGpsBatteryDecision {
     'cancelGpsActionLabel': 'Cancel GPS',
     'doNotShowAgainAvailable': requiresUserChoice,
     'settingsReversalAvailable': true,
+    'defaultGpsPausesBelowCutoff': true,
+    'userOverrideRequiresExplicitChoice': true,
+    'batteryGuardCanBeChangedInSettings': true,
+    'gpsTrackingCanRetryWhenCharging': true,
+    'mapsRequiredForGps': false,
+    'tripDataDeletionAllowed': false,
+    'odometerRemainsCanonical': true,
     'preciseBatteryIncluded': false,
     'rawBatteryPayloadIncluded': false,
   };

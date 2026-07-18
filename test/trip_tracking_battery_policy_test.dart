@@ -76,6 +76,13 @@ void main() {
       'cancelGpsActionLabel': 'Cancel GPS',
       'doNotShowAgainAvailable': false,
       'settingsReversalAvailable': true,
+      'defaultGpsPausesBelowCutoff': true,
+      'userOverrideRequiresExplicitChoice': true,
+      'batteryGuardCanBeChangedInSettings': true,
+      'gpsTrackingCanRetryWhenCharging': true,
+      'mapsRequiredForGps': false,
+      'tripDataDeletionAllowed': false,
+      'odometerRemainsCanonical': true,
       'preciseBatteryIncluded': false,
       'rawBatteryPayloadIncluded': false,
     });
@@ -173,6 +180,12 @@ void main() {
       expect(summary['preciseBatteryIncluded'], isFalse);
       expect(summary['rawBatteryPayloadIncluded'], isFalse);
       expect(summary['settingsReversalAvailable'], isTrue);
+      expect(summary['defaultGpsPausesBelowCutoff'], isTrue);
+      expect(summary['userOverrideRequiresExplicitChoice'], isTrue);
+      expect(summary['batteryGuardCanBeChangedInSettings'], isTrue);
+      expect(summary['mapsRequiredForGps'], isFalse);
+      expect(summary['tripDataDeletionAllowed'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
       expect(summary.toString(), isNot(contains('batteryPercent')));
       expect(
         summary['batteryBucket'],
