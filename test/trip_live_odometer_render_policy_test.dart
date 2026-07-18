@@ -360,7 +360,7 @@ void main() {
       expect(
         TripLiveOdometerRenderSummaryValidation.fromSummary({
           ...safe,
-          'debug': '35.123456,-80.123456 token=sk.secret',
+          'debug': 'runtime token near 35.123456',
         }).isRenderable,
         isFalse,
       );

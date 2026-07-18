@@ -419,11 +419,11 @@ bool _sensitive(String value) {
   }
   return normalized.contains('pk.') ||
       normalized.contains('sk.') ||
-      normalized.contains('token=') ||
+      normalized.contains('token') ||
       normalized.contains('latitude') ||
       normalized.contains('longitude') ||
       normalized.contains('geometry=') ||
       normalized.contains('polyline') ||
       normalized.contains('gps trace') ||
-      RegExp(r'-?\d{2,3}\.\d{4,}\s*,\s*-?\d{2,3}\.\d{4,}').hasMatch(normalized);
+      RegExp(r'-?\d{1,3}\.\d{5,}').hasMatch(normalized);
 }
