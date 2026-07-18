@@ -23,8 +23,18 @@ void main() {
     expect(saved.payload['confirmedOdometerRemainsCanonical'], isTrue);
     expect(saved.payload['mapboxCanReplaceOdometer'], isFalse);
     expect(saved.payload['mapboxCanCreateDurableRecord'], isFalse);
+    expect(saved.payload['pendingSamplesPersistedInDurableRecord'], isFalse);
+    expect(
+      saved.payload['activityWalkingEvidencePersistedInDurableRecord'],
+      isFalse,
+    );
+    expect(saved.payload['durableRecordCanDeleteLocalTrip'], isFalse);
+    expect(saved.payload['durableRecordCanPurgeLocalDeviceData'], isFalse);
     expect(saved.payload['rawGpsIncluded'], isFalse);
+    expect(saved.payload['coordinatesIncluded'], isFalse);
     expect(saved.payload['rawMapboxGeometryIncluded'], isFalse);
+    expect(saved.payload['routeGeometryIncluded'], isFalse);
+    expect(saved.payload['tokensIncluded'], isFalse);
     expect((saved.payload['engineSnapshot'] as Map)['walkingEvidence'], isNull);
     expect(
       (saved.payload['engineSnapshot']
@@ -104,8 +114,14 @@ void main() {
       'mapboxDataAdvisoryOnly': true,
       'mapboxCanCreateDurableRecord': false,
       'mapboxCanReplaceDurableMileage': false,
+      'pendingSamplesPersistedInDurableRecord': false,
+      'activityWalkingEvidencePersistedInDurableRecord': false,
+      'durableRecordCanDeleteLocalTrip': false,
+      'durableRecordCanPurgeLocalDeviceData': false,
       'rawGpsIncluded': false,
+      'coordinatesIncluded': false,
       'rawMapboxGeometryIncluded': false,
+      'routeGeometryIncluded': false,
       'tokensIncluded': false,
     });
   });
@@ -142,8 +158,14 @@ void main() {
               'mapboxDataAdvisoryOnly': false,
               'mapboxCanCreateDurableRecord': true,
               'mapboxCanReplaceDurableMileage': true,
+              'pendingSamplesPersistedInDurableRecord': true,
+              'activityWalkingEvidencePersistedInDurableRecord': true,
+              'durableRecordCanDeleteLocalTrip': true,
+              'durableRecordCanPurgeLocalDeviceData': true,
               'rawGpsIncluded': true,
+              'coordinatesIncluded': true,
               'rawMapboxGeometryIncluded': true,
+              'routeGeometryIncluded': true,
               'tokensIncluded': true,
               'debug': 'sk.secret 35.123456,-80.123456',
             }),
@@ -155,9 +177,40 @@ void main() {
       expect(validation.reasons, contains('mapbox_can_control_durable_record'));
       expect(
         validation.reasons,
+        contains('durable_record_can_persist_operational_or_delete_data'),
+      );
+      expect(
+        validation.reasons,
         contains('summary_contains_sensitive_trip_material'),
       );
       expect(validation.reasons, contains('summary_contains_sensitive_text'));
+    },
+  );
+
+  test(
+    'durable reviewed payload strips raw route, pending, and token fields',
+    () async {
+      final bridge = TripTrackingDurableRecordBridge(
+        MaintainiacDurableRecordStore.memory(),
+      );
+      final saved = await bridge.saveReviewedTrip(_review());
+      final forgedPayload = Map<String, dynamic>.from(saved.payload)
+        ..['pendingSample'] = {'latitude': 35.123456}
+        ..['rawGps'] = '35.123456,-80.123456'
+        ..['mapboxRoute'] = {'geometry': 'encoded'}
+        ..['publicToken'] = 'pk.redacted';
+
+      final resaved = await bridge.saveReviewedTrip(
+        TripTrackingReviewRecord.fromMap(forgedPayload),
+        expectedRevision: saved.lifecycle.revision,
+      );
+      final payloadText = resaved.payload.toString();
+
+      expect(resaved.payload.keys, isNot(contains('pendingSample')));
+      expect(resaved.payload.keys, isNot(contains('rawGps')));
+      expect(resaved.payload.keys, isNot(contains('mapboxRoute')));
+      expect(payloadText, isNot(contains('35.123456')));
+      expect(payloadText, isNot(contains('pk.')));
     },
   );
 }

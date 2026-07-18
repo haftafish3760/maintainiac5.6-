@@ -69,8 +69,14 @@ class TripTrackingDurableRecordBridge {
     'mapboxDataAdvisoryOnly': true,
     'mapboxCanCreateDurableRecord': false,
     'mapboxCanReplaceDurableMileage': false,
+    'pendingSamplesPersistedInDurableRecord': false,
+    'activityWalkingEvidencePersistedInDurableRecord': false,
+    'durableRecordCanDeleteLocalTrip': false,
+    'durableRecordCanPurgeLocalDeviceData': false,
     'rawGpsIncluded': false,
+    'coordinatesIncluded': false,
     'rawMapboxGeometryIncluded': false,
+    'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
 }
@@ -116,8 +122,16 @@ class TripTrackingDurableRecordBridgeSummaryValidation {
         summary['mapboxCanReplaceDurableMileage'] != false) {
       reasons.add('mapbox_can_control_durable_record');
     }
+    if (summary['pendingSamplesPersistedInDurableRecord'] != false ||
+        summary['activityWalkingEvidencePersistedInDurableRecord'] != false ||
+        summary['durableRecordCanDeleteLocalTrip'] != false ||
+        summary['durableRecordCanPurgeLocalDeviceData'] != false) {
+      reasons.add('durable_record_can_persist_operational_or_delete_data');
+    }
     if (summary['rawGpsIncluded'] != false ||
+        summary['coordinatesIncluded'] != false ||
         summary['rawMapboxGeometryIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
         summary['tokensIncluded'] != false) {
       reasons.add('summary_contains_sensitive_trip_material');
     }
@@ -167,8 +181,7 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   final map = Map<String, dynamic>.from(review.toMap());
   final engineSnapshot = map['engineSnapshot'];
   if (engineSnapshot is Map) {
-    final safeEngineSnapshot = Map<String, dynamic>.from(engineSnapshot);
-    safeEngineSnapshot.remove('walkingEvidence');
+    final safeEngineSnapshot = _scrubSensitiveTripPayload(engineSnapshot);
     safeEngineSnapshot['walkingEvidencePersistedInDurableRecord'] = false;
     map['engineSnapshot'] = safeEngineSnapshot;
   }
@@ -184,6 +197,7 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   ]) {
     map.remove(forbidden);
   }
+  _scrubSensitiveTripPayload(map);
   map['durableRecordSchema'] = 'trip_tracking_review_v1';
   map['hiveRemainsSourceOfTruth'] = true;
   map['firestoreMirrorOnly'] = true;
@@ -194,9 +208,52 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   map['confirmedOdometerRemainsCanonical'] = true;
   map['mapboxCanReplaceOdometer'] = false;
   map['mapboxCanCreateDurableRecord'] = false;
+  map['pendingSamplesPersistedInDurableRecord'] = false;
+  map['activityWalkingEvidencePersistedInDurableRecord'] = false;
+  map['durableRecordCanDeleteLocalTrip'] = false;
+  map['durableRecordCanPurgeLocalDeviceData'] = false;
   map['rawGpsIncluded'] = false;
+  map['coordinatesIncluded'] = false;
   map['rawMapboxGeometryIncluded'] = false;
+  map['routeGeometryIncluded'] = false;
+  map['tokensIncluded'] = false;
   return map;
+}
+
+Map<String, dynamic> _scrubSensitiveTripPayload(Map<dynamic, dynamic> source) {
+  final safe = Map<String, dynamic>.from(source);
+  for (final key in source.keys.toList()) {
+    final normalized = key.toString().toLowerCase();
+    if (_isForbiddenPayloadKey(normalized) || _looksSensitive(source[key])) {
+      safe.remove(key);
+      continue;
+    }
+    final value = source[key];
+    if (value is Map) {
+      safe[key.toString()] = _scrubSensitiveTripPayload(value);
+    } else if (value is Iterable) {
+      safe[key.toString()] = value
+          .where((item) => !_looksSensitive(item))
+          .map((item) => item is Map ? _scrubSensitiveTripPayload(item) : item)
+          .toList(growable: false);
+    }
+  }
+  return safe;
+}
+
+bool _isForbiddenPayloadKey(String key) {
+  return key.contains('lastaccepted') ||
+      key.contains('walkingevidence') ||
+      key.contains('pendingsample') ||
+      key.contains('rawgps') ||
+      key.contains('rawlocation') ||
+      key.contains('rawmapboxgeometry') ||
+      key.contains('mapboxroute') ||
+      key.contains('routegeometry') ||
+      key.contains('coordinates') ||
+      key.contains('latitude') ||
+      key.contains('longitude') ||
+      key.contains('token');
 }
 
 TripTrackingReviewRecord? _reviewFromPayload(Map<String, dynamic> payload) {
