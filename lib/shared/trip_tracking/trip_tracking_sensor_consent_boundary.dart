@@ -3,6 +3,7 @@ import 'trip_tracking_settings_store.dart';
 
 enum TripTrackingSensorConsentStatus {
   gpsOff,
+  gpsBlocked,
   gpsOnly,
   motionAssistAllowed,
   backgroundGpsAllowed,
@@ -174,6 +175,13 @@ class TripTrackingSensorConsentSummaryValidation {
         reasonCodes.any((reason) => _safeReason(reason) == null)) {
       reasons.add('invalid_sensor_reason_codes');
     }
+    final statusBoundaryRisk = _statusBoundaryRisk(
+      status: status,
+      gpsAllowed: gpsAllowed,
+      activityAllowed: activityAllowed,
+      backgroundAllowed: backgroundAllowed,
+    );
+    if (statusBoundaryRisk != null) reasons.add(statusBoundaryRisk);
     if ((activityAllowed == true || backgroundAllowed == true) &&
         gpsAllowed != true) {
       reasons.add('assist_enabled_without_gps');
@@ -262,7 +270,7 @@ TripTrackingSensorConsentStatus _statusFor({
   required bool activityAllowed,
   required bool backgroundAllowed,
 }) {
-  if (!gpsAllowed) return TripTrackingSensorConsentStatus.gpsOnly;
+  if (!gpsAllowed) return TripTrackingSensorConsentStatus.gpsBlocked;
   if (activityAllowed && backgroundAllowed) {
     return TripTrackingSensorConsentStatus.fullAssistAllowed;
   }
@@ -279,6 +287,43 @@ TripTrackingSensorConsentStatus? _safeStatus(Object? value) {
   if (value is! String) return null;
   for (final status in TripTrackingSensorConsentStatus.values) {
     if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _statusBoundaryRisk({
+  required TripTrackingSensorConsentStatus? status,
+  required Object? gpsAllowed,
+  required Object? activityAllowed,
+  required Object? backgroundAllowed,
+}) {
+  if (status == null ||
+      gpsAllowed is! bool ||
+      activityAllowed is! bool ||
+      backgroundAllowed is! bool) {
+    return null;
+  }
+  if (status == TripTrackingSensorConsentStatus.gpsOff && gpsAllowed) {
+    return 'sensor_status_conflicts_with_grants';
+  }
+  if (status == TripTrackingSensorConsentStatus.gpsBlocked && gpsAllowed) {
+    return 'sensor_status_conflicts_with_grants';
+  }
+  if (status == TripTrackingSensorConsentStatus.gpsOnly &&
+      (!gpsAllowed || activityAllowed || backgroundAllowed)) {
+    return 'sensor_status_conflicts_with_grants';
+  }
+  if (status == TripTrackingSensorConsentStatus.motionAssistAllowed &&
+      (!gpsAllowed || !activityAllowed || backgroundAllowed)) {
+    return 'sensor_status_conflicts_with_grants';
+  }
+  if (status == TripTrackingSensorConsentStatus.backgroundGpsAllowed &&
+      (!gpsAllowed || activityAllowed || !backgroundAllowed)) {
+    return 'sensor_status_conflicts_with_grants';
+  }
+  if (status == TripTrackingSensorConsentStatus.fullAssistAllowed &&
+      (!gpsAllowed || !activityAllowed || !backgroundAllowed)) {
+    return 'sensor_status_conflicts_with_grants';
   }
   return null;
 }

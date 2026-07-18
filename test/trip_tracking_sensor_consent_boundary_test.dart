@@ -156,6 +156,7 @@ void main() {
       );
       final safe = boundary.toSafeDashboardMap();
 
+      expect(boundary.status, TripTrackingSensorConsentStatus.gpsBlocked);
       expect(boundary.gpsAllowed, isFalse);
       expect(
         boundary.reasonCodes,
@@ -270,6 +271,8 @@ void main() {
         'sensorConsentCanChangeOfficialMileage': true,
         'gpsCanReplaceOdometer': true,
         'mapboxCanReplaceOdometer': true,
+        'status': 'gpsOnly',
+        'gpsAllowed': false,
         'deviceModelIncluded': true,
         'rawSensorPayloadIncluded': true,
         'preciseLocationIncluded': true,
@@ -278,6 +281,7 @@ void main() {
       }),
     );
 
+    expect(validation.reasons, contains('sensor_status_conflicts_with_grants'));
     expect(validation.isRenderable, isFalse);
     expect(
       validation.reasons,
