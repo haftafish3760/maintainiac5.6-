@@ -24,6 +24,12 @@ void main() {
       isFalse,
     );
     expect(
+      usage.toSafeSummary(now)['firebaseAuthDoesNotSupplyUsageCounter'],
+      isTrue,
+    );
+    expect(usage.toSafeSummary(now)['accountScopeMustBeDeviceLocal'], isTrue);
+    expect(usage.toSafeSummary(now)['uploadMustReserveBeforeNetwork'], isTrue);
+    expect(
       usage.toSafeSummary(now)['reservationSerializedBeforeUpload'],
       isTrue,
     );
@@ -213,6 +219,10 @@ void main() {
       );
       expect(
         localUsage.toSafeSummary(now)['localAttemptLedgerIsCanonical'],
+        isTrue,
+      );
+      expect(
+        localUsage.toSafeSummary(now)['accountScopeMustBeDeviceLocal'],
         isTrue,
       );
     },

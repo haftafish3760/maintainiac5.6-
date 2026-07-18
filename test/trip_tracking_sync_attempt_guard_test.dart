@@ -17,6 +17,8 @@ void main() {
     expect(decision.mirrorPayload['firestoreRole'], 'mirror');
     expect(decision.mirrorPayload['canOverrideLocalDaytimeData'], isFalse);
     expect(decision.mirrorPayload['canDeleteLocalData'], isFalse);
+    expect(decision.mirrorPayload['mapboxDataIncluded'], isFalse);
+    expect(decision.mirrorPayload['rawRouteHistoryIncluded'], isFalse);
     expect(decision.toSafeSummary()['revisionFresh'], isTrue);
     expect(decision.toSafeSummary()['firestoreMirrorOnly'], isTrue);
     expect(
@@ -117,6 +119,10 @@ void main() {
     expect(decision.mirrorPayload, isEmpty);
     expect(
       decision.toSafeSummary()['authorizationCheckedAfterAuthentication'],
+      isTrue,
+    );
+    expect(
+      decision.toSafeSummary()['firebaseAuthDoesNotGrantMirrorAuthority'],
       isTrue,
     );
   });
@@ -248,6 +254,11 @@ void main() {
     expect(summary['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(summary['mapboxCanReplaceOdometer'], isFalse);
     expect(summary['validatedBeforeUpload'], isTrue);
+    expect(summary['authenticatedUidMustOwnSourceRecord'], isTrue);
+    expect(summary['firebaseAuthDoesNotGrantMirrorAuthority'], isTrue);
+    expect(summary['mirrorPayloadRequiresLocalPersistence'], isTrue);
+    expect(summary['mirrorPayloadExcludesRawRouteHistory'], isTrue);
+    expect(summary['blockedAttemptConsumesFreeSync'], isFalse);
     expect(summary['tokensIncluded'], isFalse);
     expect(summary['preciseLocationIncluded'], isFalse);
     expect(summary['rawTripRecordsIncluded'], isFalse);

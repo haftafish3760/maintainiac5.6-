@@ -83,6 +83,8 @@ class TripTrackingSyncSourceRecord {
       'canOverrideLocalDaytimeData': false,
       'canDeleteLocalData': false,
       'odometerRemainsOfficialMileageTruth': true,
+      'mapboxDataIncluded': false,
+      'rawRouteHistoryIncluded': false,
     };
   }
 }
@@ -269,6 +271,11 @@ class TripTrackingSyncAttemptDecision {
       'validatedBeforeUpload': true,
       'localRevisionMustAdvanceBeforeUpload': true,
       'authorizationCheckedAfterAuthentication': true,
+      'authenticatedUidMustOwnSourceRecord': true,
+      'firebaseAuthDoesNotGrantMirrorAuthority': true,
+      'mirrorPayloadRequiresLocalPersistence': true,
+      'mirrorPayloadExcludesRawRouteHistory': true,
+      'blockedAttemptConsumesFreeSync': false,
       'tokensIncluded': false,
       'preciseLocationIncluded': false,
       'rawTripRecordsIncluded': false,
