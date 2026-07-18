@@ -33,6 +33,7 @@ void main() {
     expect(guard['liveUiMayRefresh'], isTrue);
     expect(guard['liveUiMayCommitMileage'], isFalse);
     expect(guard['manualConfirmationRequiredBeforeOfficialMileage'], isTrue);
+    expect(guard['odometerIsGlobalTruth'], isTrue);
     expect(guard['liveProjectionRequiresOwnershipValidation'], isTrue);
     expect(guard['liveProjectionRequiresDeviceLocalSource'], isTrue);
     expect(guard['projectionCannotOutliveActiveDay'], isTrue);
@@ -83,7 +84,11 @@ void main() {
       ),
       _GuardCase(
         name: 'malformed advisory contract',
-        payload: {...clean, 'advisoryOnly': false},
+        payload: {
+          ...clean,
+          'advisoryOnly': false,
+          'odometerIsGlobalTruth': false,
+        },
         status: TripLiveOdometerPayloadGuardStatus.blockedMalformedPayload,
         reason: 'missing_advisory_display_contract',
       ),

@@ -82,6 +82,7 @@ class TripLiveOdometerRenderDecision {
       'calendarReviewUsesConfirmedTruth': true,
       'advisoryOnly': true,
       'confirmedOdometerRemainsCanonical': true,
+      'odometerIsGlobalTruth': true,
       'manualConfirmationRequired':
           status != TripLiveOdometerRenderStatus.confirmedOnly,
       'writesConfirmedOdometer': false,
@@ -183,6 +184,7 @@ class TripLiveOdometerRenderSummaryValidation {
       'calendarReviewUsesConfirmedTruth',
       'advisoryOnly',
       'confirmedOdometerRemainsCanonical',
+      'odometerIsGlobalTruth',
       'manualConfirmationRequired',
       'writesConfirmedOdometer',
       'gpsCanReplaceOdometer',
@@ -240,6 +242,7 @@ class TripLiveOdometerRenderSummaryValidation {
         summary['mapboxCanReplaceOdometer'] != false ||
         summary['mapboxCanIncreaseLiveMileage'] != false ||
         summary['confirmedOdometerRemainsCanonical'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['calendarCanRewriteConfirmedTruth'] != false ||
         summary['calibrationCanCommitWithoutReview'] != false ||
         summary['calibrationCanDecreaseLiveProjection'] != false ||

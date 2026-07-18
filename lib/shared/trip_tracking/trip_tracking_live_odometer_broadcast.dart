@@ -137,6 +137,7 @@ class TripTrackingLiveOdometerBroadcast {
           ? 'confirmed_odometer'
           : 'gps_assisted_projection',
       'confirmedOdometerRemainsCanonical': true,
+      'odometerIsGlobalTruth': true,
       'writesConfirmedOdometer': false,
       'gpsCanReplaceOdometer': false,
       'mapboxCanReplaceOdometer': false,
@@ -185,6 +186,7 @@ class TripTrackingLiveOdometerBroadcast {
         ? 'confirmed_odometer'
         : 'gps_assisted_projection',
     'confirmedOdometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'manualConfirmationRequired': status.name != 'inactive',
     'writesConfirmedOdometer': false,
     'gpsCanReplaceOdometer': false,

@@ -137,7 +137,8 @@ List<String> _validateSharedPayload(
       payload['calendarReviewUsesConfirmedTruth'] != true) {
     reasons.add('live_odometer_surface_contract_missing');
   }
-  if (payload['confirmedOdometerRemainsCanonical'] != true) {
+  if (payload['confirmedOdometerRemainsCanonical'] != true ||
+      payload['odometerIsGlobalTruth'] != true) {
     reasons.add('confirmed_odometer_not_canonical');
   }
   if (payload['writesConfirmedOdometer'] != false ||
@@ -186,6 +187,7 @@ List<String> _validateSharedPayload(
     if (payloadGuard['canRenderAdvisoryLiveOdometer'] != true ||
         payloadGuard['liveUiMayCommitMileage'] != false ||
         payloadGuard['confirmedOdometerRemainsCanonical'] != true ||
+        payloadGuard['odometerIsGlobalTruth'] != true ||
         payloadGuard['remotePayloadCanConfirmOdometer'] != false ||
         payloadGuard['remotePayloadCanAdvanceProjectionRevision'] == true ||
         payloadGuard['mapboxCanRenderWithoutLocalTrip'] != false ||

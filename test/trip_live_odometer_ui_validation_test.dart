@@ -44,6 +44,7 @@ void main() {
     expect(validation.status, 'renderable');
     expect(validation.displayValue, '0001203');
     expect(validation.reasons, isEmpty);
+    expect(safeBroadcastMap()['odometerIsGlobalTruth'], isTrue);
   });
 
   test('render map validates across subscribed dashboard surfaces', () {
@@ -55,6 +56,7 @@ void main() {
     expect(validation.status, 'liveRenderable');
     expect(validation.displayValue, '0001203');
     expect(validation.reasons, isEmpty);
+    expect(safeRenderMap()['odometerIsGlobalTruth'], isTrue);
   });
 
   test('remote authority and odometer replacement claims fail closed', () {
@@ -67,6 +69,7 @@ void main() {
         'remoteDisplayCanOverrideLocalTrip': true,
         'importedDisplayCanOverrideLocalTrip': true,
         'dashboardCacheCanOverrideLocalTrip': true,
+        'odometerIsGlobalTruth': false,
         'authenticationDoesNotGrantDisplayAuthority': false,
         'matchingActiveTripRequired': false,
       }),
@@ -101,6 +104,7 @@ void main() {
           'fleetDashboardUsesLiveProjection': false,
           'standardDashboardUsesLiveProjection': false,
           'calendarReviewUsesConfirmedTruth': false,
+          'odometerIsGlobalTruth': false,
         }),
       );
 

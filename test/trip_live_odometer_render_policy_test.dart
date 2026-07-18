@@ -26,6 +26,7 @@ void main() {
     expect(decision.displayValue, '0001000');
     expect(safe['manualConfirmationRequired'], isFalse);
     expect(safe['calendarReviewUsesConfirmedTruth'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['writesConfirmedOdometer'], isFalse);
     expect(safe['confirmedOnlyCanRenderWithoutActiveTrip'], isTrue);
     expect(
@@ -75,6 +76,7 @@ void main() {
     expect(safe['surfaceSpecificTripIdsAllowed'], isFalse);
     expect(safe['liveProjectionRequiresDeviceLocalSource'], isTrue);
     expect(safe['liveProjectionRequiresOwnershipValidation'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['matchingVehicleProfileRequired'], isTrue);
     expect(safe['projectionRevisionMustIncrease'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
@@ -111,6 +113,7 @@ void main() {
       expect(decision.shouldRender, isTrue);
       expect(decision.reviewRequired, isTrue);
       expect(safe['confirmedOdometerRemainsCanonical'], isTrue);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
       expect(safe['writesConfirmedOdometer'], isFalse);
       expect(safe['gpsCanReplaceOdometer'], isFalse);
       expect(safe['staleProjectionCanCommitMileage'], isFalse);
@@ -244,6 +247,7 @@ void main() {
     expect(safe['impossibleProjectionDeltaBlocked'], isTrue);
     expect(safe['impossibleProjectionCanRender'], isFalse);
     expect(safe['confirmedOdometerRemainsCanonical'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
   });
 
   test(
