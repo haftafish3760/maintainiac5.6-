@@ -97,6 +97,7 @@ class TripLiveOdometerRenderDecision {
       'matchingActiveTripRequired': true,
       'matchingVehicleProfileRequired': true,
       'projectionRevisionMustIncrease': true,
+      'sameOrOlderProjectionRevisionCanNotify': false,
       'singleSnapshotMustDriveEverySubscribedSurface': true,
       'surfaceSubscriptionRequiredForNotify': true,
       'blockedProjectionSuppressesNotify': true,
@@ -198,6 +199,7 @@ class TripLiveOdometerRenderSummaryValidation {
       'matchingActiveTripRequired',
       'matchingVehicleProfileRequired',
       'projectionRevisionMustIncrease',
+      'sameOrOlderProjectionRevisionCanNotify',
       'singleSnapshotMustDriveEverySubscribedSurface',
       'surfaceSubscriptionRequiredForNotify',
       'blockedProjectionSuppressesNotify',
@@ -255,6 +257,7 @@ class TripLiveOdometerRenderSummaryValidation {
         summary['dashboardCacheCanOverrideLocalTrip'] != false ||
         summary['matchingVehicleProfileRequired'] != true ||
         summary['projectionRevisionMustIncrease'] != true ||
+        summary['sameOrOlderProjectionRevisionCanNotify'] != false ||
         summary['authenticationDoesNotGrantDisplayAuthority'] != true) {
       reasons.add('remote_display_boundary_missing');
     }

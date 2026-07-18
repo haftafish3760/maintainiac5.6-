@@ -203,6 +203,7 @@ void main() {
       safeBroadcastMap()..addAll({
         'matchingVehicleProfileRequired': false,
         'projectionRevisionMustIncrease': false,
+        'sameOrOlderProjectionRevisionCanNotify': true,
         'mapboxCanIncreaseLiveMileage': true,
         'calibrationCanDecreaseLiveProjection': true,
       }),

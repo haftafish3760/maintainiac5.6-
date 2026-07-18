@@ -25,6 +25,7 @@ class TripTrackingLiveOdometerBroadcast {
     Duration maximumFutureSkew = const Duration(minutes: 2),
     int maximumLiveDeltaMiles = 2000,
     int maximumRenderableOdometer = 9999999,
+    int? lastRenderedProjectionRevision,
   }) {
     final reasons = <String>[];
     final safeFutureSkew = _safeFutureSkew(maximumFutureSkew);
@@ -46,6 +47,12 @@ class TripTrackingLiveOdometerBroadcast {
     }
     if (snapshot.projectionRevision < 0) {
       reasons.add('negative_projection_revision');
+    }
+    if (snapshot.isLive &&
+        lastRenderedProjectionRevision != null &&
+        lastRenderedProjectionRevision >= 0 &&
+        snapshot.projectionRevision <= lastRenderedProjectionRevision) {
+      reasons.add('projection_revision_not_newer');
     }
     if (snapshot.isLive && activeTripId != expectedTripId) {
       reasons.add('live_trip_id_mismatch');
@@ -128,6 +135,9 @@ class TripTrackingLiveOdometerBroadcast {
     'odometerDisplayOutOfRangeBlocked': reasonCodes.contains(
       'odometer_display_out_of_range',
     ),
+    'staleProjectionRevisionBlocked': reasonCodes.contains(
+      'projection_revision_not_newer',
+    ),
     'displayValueValidated': _displayValueSafe(displayValue),
     'confirmedDisplayValueValidated': _displayValueSafe(confirmedDisplayValue),
     'payloadGuard': TripLiveOdometerPayloadGuard.evaluate({
@@ -152,6 +162,7 @@ class TripTrackingLiveOdometerBroadcast {
       'matchingActiveTripRequired': true,
       'matchingVehicleProfileRequired': true,
       'projectionRevisionMustIncrease': true,
+      'sameOrOlderProjectionRevisionCanNotify': false,
       'liveProjectionRequiresOwnershipValidation': true,
       'liveProjectionRequiresDeviceLocalSource': true,
       'projectionCannotOutliveActiveDay': true,
@@ -200,6 +211,7 @@ class TripTrackingLiveOdometerBroadcast {
     'matchingActiveTripRequired': true,
     'matchingVehicleProfileRequired': true,
     'projectionRevisionMustIncrease': true,
+    'sameOrOlderProjectionRevisionCanNotify': false,
     'liveProjectionRequiresOwnershipValidation': true,
     'liveProjectionRequiresDeviceLocalSource': true,
     'projectionCannotOutliveActiveDay': true,

@@ -189,6 +189,31 @@ void main() {
     expect(safe['futureProjectionCanRender'], isFalse);
   });
 
+  test('same or older live projection revision cannot notify as fresh', () {
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1002,
+      isLive: true,
+      liveUpdatedAt: now,
+      projectionRevision: 4,
+    );
+    final broadcast = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+      snapshot,
+      now: now,
+      activeTripId: 'trip_revision',
+      expectedTripId: 'trip_revision',
+      lastRenderedProjectionRevision: 4,
+    );
+    final safe = broadcast.toSafeDashboardMap();
+
+    expect(broadcast.status, TripTrackingLiveOdometerBroadcastStatus.rejected);
+    expect(broadcast.shouldNotifyDashboard, isFalse);
+    expect(broadcast.reasonCodes, contains('projection_revision_not_newer'));
+    expect(safe['staleProjectionRevisionBlocked'], isTrue);
+    expect(safe['projectionRevisionMustIncrease'], isTrue);
+    expect(safe['sameOrOlderProjectionRevisionCanNotify'], isFalse);
+  });
+
   test('out-of-range odometer display is blocked before UI render', () {
     final snapshot = LiveOdometerDisplaySnapshot(
       confirmedReading: 9999998,

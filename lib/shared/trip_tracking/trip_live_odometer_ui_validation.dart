@@ -162,7 +162,8 @@ List<String> _validateSharedPayload(
     reasons.add('matching_active_trip_not_required');
   }
   if (payload['matchingVehicleProfileRequired'] == false ||
-      payload['projectionRevisionMustIncrease'] == false) {
+      payload['projectionRevisionMustIncrease'] == false ||
+      payload['sameOrOlderProjectionRevisionCanNotify'] != false) {
     reasons.add('live_projection_revision_boundary_missing');
   }
   if (payload['activeTripIdIncluded'] != false ||
@@ -245,6 +246,7 @@ String? _safeReason(Object? value) {
     'odometer_display_out_of_range' => value,
     'display_below_confirmed_reading' => value,
     'negative_projection_revision' => value,
+    'projection_revision_not_newer' => value,
     'live_trip_id_mismatch' => value,
     'missing_live_update_time' => value,
     'live_update_time_in_future' => value,
