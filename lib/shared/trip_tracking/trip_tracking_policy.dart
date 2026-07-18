@@ -24,30 +24,37 @@ class TripGpsBatteryDecision {
       status == TripGpsBatteryDecisionStatus.userPromptRequired;
   bool get isSavedBlock => status == TripGpsBatteryDecisionStatus.blocked;
 
-  Map<String, Object?> toSafeSummary() => {
-    'status': status.name,
-    'reasonCode': reasonCode,
-    'batteryBucket': batteryBucket,
-    'safetyCutoffPercent': safetyCutoffPercent,
-    'promptTitle': promptTitle,
-    'promptBody': promptBody,
-    'allowsGps': allowsGps,
-    'requiresUserChoice': requiresUserChoice,
-    'userCanOverride': requiresUserChoice,
-    'continueGpsActionLabel': 'Continue with GPS',
-    'cancelGpsActionLabel': 'Cancel GPS',
-    'doNotShowAgainAvailable': requiresUserChoice,
-    'settingsReversalAvailable': true,
-    'defaultGpsPausesBelowCutoff': true,
-    'userOverrideRequiresExplicitChoice': true,
-    'batteryGuardCanBeChangedInSettings': true,
-    'gpsTrackingCanRetryWhenCharging': true,
-    'mapsRequiredForGps': false,
-    'tripDataDeletionAllowed': false,
-    'odometerRemainsCanonical': true,
-    'preciseBatteryIncluded': false,
-    'rawBatteryPayloadIncluded': false,
-  };
+  Map<String, Object?> toSafeSummary() {
+    final safeReasonCode = _safeBatteryReasonCode(reasonCode);
+    return {
+      'status': status.name,
+      'reasonCode': safeReasonCode,
+      'batteryBucket': _safeBatteryBucket(batteryBucket),
+      'safetyCutoffPercent': _safeBatteryCutoff(safetyCutoffPercent),
+      'promptTitle': _batteryPromptTitle(safeReasonCode),
+      'promptBody': _batteryPromptBody(safeReasonCode),
+      'allowsGps': allowsGps,
+      'requiresUserChoice': requiresUserChoice,
+      'userCanOverride': requiresUserChoice,
+      'continueGpsActionLabel': 'Continue with GPS',
+      'cancelGpsActionLabel': 'Cancel GPS',
+      'doNotShowAgainAvailable': requiresUserChoice,
+      'settingsReversalAvailable': true,
+      'defaultGpsPausesBelowCutoff': true,
+      'userOverrideRequiresExplicitChoice': true,
+      'batteryGuardCanBeChangedInSettings': true,
+      'gpsTrackingCanRetryWhenCharging': true,
+      'batteryDataTrustedAfterValidationOnly': true,
+      'firebaseBatteryStateCanOverrideGpsDecision': false,
+      'mapboxCanOverrideBatteryDecision': false,
+      'malformedBatteryPayloadFailsSafe': true,
+      'mapsRequiredForGps': false,
+      'tripDataDeletionAllowed': false,
+      'odometerRemainsCanonical': true,
+      'preciseBatteryIncluded': false,
+      'rawBatteryPayloadIncluded': false,
+    };
+  }
 }
 
 class TripTrackingPolicy {
@@ -275,6 +282,40 @@ String _batteryBucket(int? percent) {
   if (percent < 20) return 'below_20';
   if (percent < 50) return '20_to_49';
   return '50_plus';
+}
+
+String _safeBatteryReasonCode(String reasonCode) {
+  return switch (reasonCode.trim()) {
+    'battery_protection_disabled' => 'battery_protection_disabled',
+    'device_charging' => 'device_charging',
+    'user_override_low_battery' => 'user_override_low_battery',
+    'user_override_low_power_mode' => 'user_override_low_power_mode',
+    'low_battery_requires_user_choice' => 'low_battery_requires_user_choice',
+    'low_battery_gps_blocked_by_saved_choice' =>
+      'low_battery_gps_blocked_by_saved_choice',
+    'low_power_mode_requires_user_choice' =>
+      'low_power_mode_requires_user_choice',
+    'low_power_mode_gps_blocked_by_saved_choice' =>
+      'low_power_mode_gps_blocked_by_saved_choice',
+    'battery_above_cutoff' => 'battery_above_cutoff',
+    'battery_unknown' => 'battery_unknown',
+    _ => 'battery_unknown',
+  };
+}
+
+String _safeBatteryBucket(String batteryBucket) {
+  return switch (batteryBucket.trim()) {
+    'unknown' => 'unknown',
+    'below_20' => 'below_20',
+    '20_to_49' => '20_to_49',
+    '50_plus' => '50_plus',
+    _ => 'unknown',
+  };
+}
+
+int _safeBatteryCutoff(int cutoffPercent) {
+  if (cutoffPercent >= 1 && cutoffPercent <= 100) return cutoffPercent;
+  return 20;
 }
 
 String _batteryPromptTitle(String reasonCode) {

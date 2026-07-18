@@ -80,6 +80,10 @@ void main() {
       'userOverrideRequiresExplicitChoice': true,
       'batteryGuardCanBeChangedInSettings': true,
       'gpsTrackingCanRetryWhenCharging': true,
+      'batteryDataTrustedAfterValidationOnly': true,
+      'firebaseBatteryStateCanOverrideGpsDecision': false,
+      'mapboxCanOverrideBatteryDecision': false,
+      'malformedBatteryPayloadFailsSafe': true,
       'mapsRequiredForGps': false,
       'tripDataDeletionAllowed': false,
       'odometerRemainsCanonical': true,
@@ -183,6 +187,10 @@ void main() {
       expect(summary['defaultGpsPausesBelowCutoff'], isTrue);
       expect(summary['userOverrideRequiresExplicitChoice'], isTrue);
       expect(summary['batteryGuardCanBeChangedInSettings'], isTrue);
+      expect(summary['batteryDataTrustedAfterValidationOnly'], isTrue);
+      expect(summary['firebaseBatteryStateCanOverrideGpsDecision'], isFalse);
+      expect(summary['mapboxCanOverrideBatteryDecision'], isFalse);
+      expect(summary['malformedBatteryPayloadFailsSafe'], isTrue);
       expect(summary['mapsRequiredForGps'], isFalse);
       expect(summary['tripDataDeletionAllowed'], isFalse);
       expect(summary['odometerRemainsCanonical'], isTrue);
@@ -192,5 +200,31 @@ void main() {
         isIn(const ['below_20', '20_to_49', '50_plus', 'unknown']),
       );
     }
+  });
+
+  test('GPS battery summary sanitizes malformed public fields', () {
+    const decision = TripGpsBatteryDecision(
+      status: TripGpsBatteryDecisionStatus.userPromptRequired,
+      reasonCode: 'sk.secret at 35.12,-80.12',
+      batteryBucket: '18 percent',
+      safetyCutoffPercent: 999,
+      promptTitle: 'raw pk.public token',
+      promptBody: 'driver stopped at 35.12,-80.12',
+    );
+
+    final summary = decision.toSafeSummary();
+
+    expect(summary['reasonCode'], 'battery_unknown');
+    expect(summary['batteryBucket'], 'unknown');
+    expect(summary['safetyCutoffPercent'], 20);
+    expect(summary['promptTitle'], 'GPS battery guard');
+    expect(summary['promptBody'], 'GPS battery guard did not block tracking.');
+    expect(summary['batteryDataTrustedAfterValidationOnly'], isTrue);
+    expect(summary['firebaseBatteryStateCanOverrideGpsDecision'], isFalse);
+    expect(summary['mapboxCanOverrideBatteryDecision'], isFalse);
+    expect(summary['malformedBatteryPayloadFailsSafe'], isTrue);
+    expect(summary.toString(), isNot(contains('35.12')));
+    expect(summary.toString(), isNot(contains('sk.secret')));
+    expect(summary.toString(), isNot(contains('pk.public')));
   });
 }
