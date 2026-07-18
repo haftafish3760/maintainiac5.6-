@@ -18,7 +18,10 @@ void main() {
     expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(summary['mapsRequireSeparateOptIn'], isTrue);
     expect(summary['routeHistoryRequiresSeparateOptIn'], isTrue);
+    expect(summary['mapsOptInDoesNotEnableRouteHistory'], isTrue);
+    expect(summary['routeHistoryRequiresLocalSettings'], isTrue);
     expect(summary['freePlanMaxDailyBudgetMb'], 2);
+    expect(summary['freePlanBudgetCannotBeRaisedRemotely'], isTrue);
     expect(summary['compactRoutePointBytes'], 96);
     expect(summary['oneToThreeSecondRawPingStorageDiscouraged'], isTrue);
     expect(summary['routeStorageAdvisoryOnly'], isTrue);
@@ -32,6 +35,8 @@ void main() {
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
     expect(summary['malformedRouteStoragePayloadFailsSafe'], isTrue);
     expect(summary['canSilentlyDeleteRouteHistory'], isFalse);
+    expect(summary['routeStorageCannotDeleteTextTripLog'], isTrue);
+    expect(summary['routeStorageCannotUploadRawPingsToFirestore'], isTrue);
     expect(summary['localTripLogProtected'], isTrue);
     expect(summary['purgeRequiresConfirmedBackupOrUserAction'], isTrue);
     expect(summary['rawCoordinatesIncluded'], isFalse);
@@ -272,6 +277,7 @@ void main() {
     expect(summary['estimatedStoredMbAfterPoint'], 0);
     expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
     expect(summary['mapStorageFailureStopsGpsTracking'], isFalse);
+    expect(summary['freePlanBudgetCannotBeRaisedRemotely'], isTrue);
     expect(summary['mapboxTimeoutCanStopGpsTracking'], isFalse);
     expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
     expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
@@ -324,6 +330,36 @@ void main() {
     expect(summary['mapStorageFailureStopsGpsTracking'], isFalse);
     expect(summary['mapboxResponseCanBypassBudget'], isFalse);
     expect(summary['localTripLogProtected'], isTrue);
+  });
+
+  test('map storage validation rejects remote budget and deletion claims', () {
+    final summary =
+        TripTrackingMapStoragePolicy.estimate(
+          settings: const TripTrackingSettings().copyWith(
+            gpsAssistedTrackingEnabled: true,
+            mapPreviewEnabled: true,
+            mapRouteHistorySavingEnabled: true,
+            mapRouteHistoryDailyBudgetMb: 1,
+          ),
+        ).toSafeDashboardMap()..addAll({
+          'mapsOptInDoesNotEnableRouteHistory': false,
+          'routeHistoryRequiresLocalSettings': false,
+          'freePlanBudgetCannotBeRaisedRemotely': false,
+          'routeStorageCannotDeleteTextTripLog': false,
+          'routeStorageCannotUploadRawPingsToFirestore': false,
+        });
+
+    final validation = TripTrackingMapStorageSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('map_storage_blocks_gps_trip_log'));
+    expect(
+      validation.reasons,
+      contains('route_history_can_be_silently_deleted'),
+    );
+    expect(validation.reasons, contains('free_plan_budget_boundary_missing'));
   });
 
   test('route point payload validation accepts compact GPS history only', () {

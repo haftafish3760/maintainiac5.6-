@@ -12,6 +12,8 @@ void main() {
     expect(safe['mapsRequiredForTripTracking'], isFalse);
     expect(safe['textTripLogStillWritten'], isTrue);
     expect(safe['textTripLogCanContinueAtLowStorage'], isTrue);
+    expect(safe['mapsOptInDoesNotEnableRouteHistory'], isTrue);
+    expect(safe['routeHistoryRequiresLocalSettings'], isTrue);
     expect(safe['routeHistoryRequiresOwnershipValidation'], isTrue);
     expect(safe['authenticationAloneAuthorizesRouteHistory'], isFalse);
   });
@@ -41,6 +43,7 @@ void main() {
     expect(decision.maximumRetainedPointsPerDay, lessThanOrEqualTo(2500));
     expect(safe['oneToThreeSecondRawPingStorageAllowed'], isFalse);
     expect(safe['rawHighFrequencyPingsRetained'], isFalse);
+    expect(safe['freeTierRouteHistoryBudgetCapped'], isTrue);
   });
 
   test(
@@ -104,6 +107,8 @@ void main() {
     ).toSafeSummary();
 
     expect(safe['routeHistoryCanConfirmMileage'], isFalse);
+    expect(safe['routeHistoryCannotDeleteTextTripLog'], isTrue);
+    expect(safe['routeHistoryCannotUploadRawPingsToFirestore'], isTrue);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanCreateOfficialStop'], isFalse);
     expect(safe['mapboxCanReorderOfficialStops'], isFalse);
@@ -151,9 +156,12 @@ void main() {
           'freeGpsTripTrackerRemainsFree': false,
           'mapboxFailureStopsTextTripLog': true,
           'firestoreCanEnableMapsWithoutUserOptIn': true,
+          'mapsOptInDoesNotEnableRouteHistory': false,
+          'routeHistoryRequiresLocalSettings': false,
           'authenticationAloneAuthorizesRouteHistory': true,
           'userCanDisableMapRouteHistoryAnytime': false,
           'oneToThreeSecondRawPingStorageAllowed': true,
+          'freeTierRouteHistoryBudgetCapped': false,
           'remoteConfigCanIncreaseSamplingCadence': true,
           'remoteConfigCanExceedDailyBudget': true,
           'mapboxCanReplaceTripLog': true,
@@ -161,6 +169,8 @@ void main() {
           'mapboxCanCreateOfficialStop': true,
           'mapboxCanReorderOfficialStops': true,
           'routeHistoryCanConfirmMileage': true,
+          'routeHistoryCannotDeleteTextTripLog': false,
+          'routeHistoryCannotUploadRawPingsToFirestore': false,
           'durableStorageRemainsSharedAcrossModules': false,
           'firestoreCanRestoreDeletedRouteHistory': true,
           'routeHistoryCleanupRequiresExplicitUserAction': false,

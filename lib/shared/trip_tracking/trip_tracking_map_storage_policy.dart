@@ -41,8 +41,11 @@ class TripTrackingMapStorageEstimate {
     'gpsTrackingCanRunWithoutMaps': true,
     'mapsRequireSeparateOptIn': true,
     'routeHistoryRequiresSeparateOptIn': true,
+    'mapsOptInDoesNotEnableRouteHistory': true,
+    'routeHistoryRequiresLocalSettings': true,
     'userControlsDailyBudget': true,
     'freePlanMaxDailyBudgetMb': 2,
+    'freePlanBudgetCannotBeRaisedRemotely': true,
     'compactRoutePointBytes': TripTrackingMapStoragePolicy.compactBytesPerPoint,
     'oneToThreeSecondRawPingStorageDiscouraged': true,
     'routeStorageAdvisoryOnly': true,
@@ -59,6 +62,8 @@ class TripTrackingMapStorageEstimate {
     'routeStorageTrustedAfterValidationOnly': true,
     'malformedRouteStoragePayloadFailsSafe': true,
     'canSilentlyDeleteRouteHistory': false,
+    'routeStorageCannotDeleteTextTripLog': true,
+    'routeStorageCannotUploadRawPingsToFirestore': true,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'odometerRemainsCanonical': true,
@@ -105,6 +110,7 @@ class TripTrackingMapRoutePointDecision {
     'gpsTrackingCanContinueWithoutMaps': true,
     'mapStorageFailureStopsGpsTracking': false,
     'freePlanMaxDailyBudgetMb': 2,
+    'freePlanBudgetCannotBeRaisedRemotely': true,
     'compactRoutePointBytes': TripTrackingMapStoragePolicy.compactBytesPerPoint,
     'oneToThreeSecondRawPingStorageDiscouraged': true,
     'routeStorageAdvisoryOnly': true,
@@ -121,6 +127,8 @@ class TripTrackingMapRoutePointDecision {
     'routeStorageTrustedAfterValidationOnly': true,
     'malformedRouteStoragePayloadFailsSafe': true,
     'canSilentlyDeleteRouteHistory': false,
+    'routeStorageCannotDeleteTextTripLog': true,
+    'routeStorageCannotUploadRawPingsToFirestore': true,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'rawCoordinatesIncluded': false,
@@ -294,7 +302,10 @@ class TripTrackingMapStorageSummaryValidation {
       'gpsTrackingCanContinueWithoutMaps',
       'mapsRequireSeparateOptIn',
       'routeHistoryRequiresSeparateOptIn',
+      'mapsOptInDoesNotEnableRouteHistory',
+      'routeHistoryRequiresLocalSettings',
       'userControlsDailyBudget',
+      'freePlanBudgetCannotBeRaisedRemotely',
       'oneToThreeSecondRawPingStorageDiscouraged',
       'routeStorageAdvisoryOnly',
       'mapPreviewCanRunWithoutRouteHistory',
@@ -310,6 +321,8 @@ class TripTrackingMapStorageSummaryValidation {
       'routeStorageTrustedAfterValidationOnly',
       'malformedRouteStoragePayloadFailsSafe',
       'canSilentlyDeleteRouteHistory',
+      'routeStorageCannotDeleteTextTripLog',
+      'routeStorageCannotUploadRawPingsToFirestore',
       'localTripLogProtected',
       'purgeRequiresConfirmedBackupOrUserAction',
       'odometerRemainsCanonical',
@@ -328,6 +341,8 @@ class TripTrackingMapStorageSummaryValidation {
         summary['routeStorageCanPauseWithoutStoppingGps'] != true ||
         summary['storageBudgetExhaustionCanOnlyPauseRouteHistory'] != true ||
         summary['userCanDisableRouteHistoryWithoutDisablingGps'] != true ||
+        summary['mapsOptInDoesNotEnableRouteHistory'] == false ||
+        summary['routeHistoryRequiresLocalSettings'] == false ||
         summary['localTripLogProtected'] != true) {
       reasons.add('map_storage_blocks_gps_trip_log');
     }
@@ -340,8 +355,13 @@ class TripTrackingMapStorageSummaryValidation {
       reasons.add('mapbox_or_remote_can_override_trip');
     }
     if (summary['canSilentlyDeleteRouteHistory'] != false ||
+        summary['routeStorageCannotDeleteTextTripLog'] != true ||
+        summary['routeStorageCannotUploadRawPingsToFirestore'] != true ||
         summary['purgeRequiresConfirmedBackupOrUserAction'] != true) {
       reasons.add('route_history_can_be_silently_deleted');
+    }
+    if (summary['freePlanBudgetCannotBeRaisedRemotely'] == false) {
+      reasons.add('free_plan_budget_boundary_missing');
     }
     if ((summary['odometerRemainsCanonical'] == false) ||
         summary['rawCoordinatesIncluded'] != false ||

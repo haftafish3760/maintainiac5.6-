@@ -43,9 +43,12 @@ class TripRouteHistoryCaptureDecision {
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'mapsRequiredForTripTracking': false,
     'mapRouteHistoryRequiresSeparateOptIn': true,
+    'mapsOptInDoesNotEnableRouteHistory': true,
+    'routeHistoryRequiresLocalSettings': true,
     'routeHistoryRequiresOwnershipValidation': true,
     'authenticationAloneAuthorizesRouteHistory': false,
     'freeGpsTripTrackerRemainsFree': true,
+    'freeTierRouteHistoryBudgetCapped': true,
     'routeHistoryCanBeDisabledWithoutStoppingTrip': true,
     'textTripLogStillWritten': true,
     'textTripLogCanContinueAtLowStorage': true,
@@ -59,6 +62,8 @@ class TripRouteHistoryCaptureDecision {
     'mapboxCanCreateOfficialStop': false,
     'mapboxCanReorderOfficialStops': false,
     'routeHistoryCanConfirmMileage': false,
+    'routeHistoryCannotDeleteTextTripLog': true,
+    'routeHistoryCannotUploadRawPingsToFirestore': true,
     'odometerRemainsOfficialMileageTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
@@ -109,6 +114,8 @@ class TripRouteHistorySummaryValidation {
       reasons.add('gps_text_log_boundary_missing');
     }
     if (summary['mapRouteHistoryRequiresSeparateOptIn'] != true ||
+        summary['mapsOptInDoesNotEnableRouteHistory'] != true ||
+        summary['routeHistoryRequiresLocalSettings'] != true ||
         summary['routeHistoryRequiresOwnershipValidation'] != true ||
         summary['authenticationAloneAuthorizesRouteHistory'] != false ||
         summary['userCanDisableMapRouteHistoryAnytime'] != true ||
@@ -118,6 +125,7 @@ class TripRouteHistorySummaryValidation {
     if (summary['storesOnlyBoundedRoutePoints'] != true ||
         summary['oneToThreeSecondRawPingStorageAllowed'] != false ||
         summary['rawHighFrequencyPingsRetained'] != false ||
+        summary['freeTierRouteHistoryBudgetCapped'] != true ||
         summary['remoteConfigCanIncreaseSamplingCadence'] != false ||
         summary['remoteConfigCanExceedDailyBudget'] != false) {
       reasons.add('route_history_budget_boundary_missing');
@@ -127,6 +135,8 @@ class TripRouteHistorySummaryValidation {
         summary['mapboxCanCreateOfficialStop'] != false ||
         summary['mapboxCanReorderOfficialStops'] != false ||
         summary['routeHistoryCanConfirmMileage'] != false ||
+        summary['routeHistoryCannotDeleteTextTripLog'] != true ||
+        summary['routeHistoryCannotUploadRawPingsToFirestore'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('map_route_claims_trip_truth');
     }
