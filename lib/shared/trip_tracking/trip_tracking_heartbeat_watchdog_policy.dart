@@ -54,15 +54,122 @@ class TripTrackingHeartbeatWatchdogDecision {
     'heartbeatGapCanCreateMileage': false,
     'heartbeatGapCanCreateOfficialStop': false,
     'heartbeatGapCanConfirmOdometer': false,
+    'heartbeatGapCanReplayPendingSample': false,
+    'heartbeatGapRequiresLifecycleSupervisor': true,
+    'heartbeatGapRequiresLocalCheckpoint': true,
+    'heartbeatGapCannotBypassUserConsent': true,
+    'heartbeatCanUploadBackupMirror': false,
+    'heartbeatCanPurgeLocalDataAfterBackup': false,
     'localCheckpointPreservedUntilReview': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
+    'firestoreCanMarkTripInterrupted': false,
     'mapboxCanFillHeartbeatGap': false,
+    'cloudFunctionCanFillHeartbeatGap': false,
     'odometerRemainsOfficialMileageTruth': true,
     'rawLocationIncluded': false,
     'preciseTimestampIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripTrackingHeartbeatWatchdogSummaryValidation {
+  const TripTrackingHeartbeatWatchdogSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_heartbeat_status');
+    }
+    if (_safeAction(summary['action']) == null) {
+      reasons.add('invalid_heartbeat_action');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_heartbeat_reason');
+    }
+    if (_safeLifecycle(summary['targetLifecycle']) == null) {
+      reasons.add('invalid_target_lifecycle');
+    }
+    for (final key in const [
+      'canBridgeDistanceGap',
+      'shouldRetryNativeTracking',
+      'requiresUserReview',
+      'backgroundHeartbeatTrustedAfterValidationOnly',
+      'heartbeatRespectsPausedTrip',
+      'heartbeatCannotResumeTerminalTrip',
+      'androidSleepCanDeleteCheckpoint',
+      'iosBackgroundPauseCanDeleteCheckpoint',
+      'heartbeatGapCanCreateMileage',
+      'heartbeatGapCanCreateOfficialStop',
+      'heartbeatGapCanConfirmOdometer',
+      'heartbeatGapCanReplayPendingSample',
+      'heartbeatGapRequiresLifecycleSupervisor',
+      'heartbeatGapRequiresLocalCheckpoint',
+      'heartbeatGapCannotBypassUserConsent',
+      'heartbeatCanUploadBackupMirror',
+      'heartbeatCanPurgeLocalDataAfterBackup',
+      'localCheckpointPreservedUntilReview',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'firestoreCanMarkTripInterrupted',
+      'mapboxCanFillHeartbeatGap',
+      'cloudFunctionCanFillHeartbeatGap',
+      'odometerRemainsOfficialMileageTruth',
+      'rawLocationIncluded',
+      'preciseTimestampIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['canBridgeDistanceGap'] != false ||
+        summary['heartbeatGapCanCreateMileage'] != false ||
+        summary['heartbeatGapCanCreateOfficialStop'] != false ||
+        summary['heartbeatGapCanConfirmOdometer'] != false ||
+        summary['heartbeatGapCanReplayPendingSample'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('heartbeat_claims_trip_truth');
+    }
+    if (summary['androidSleepCanDeleteCheckpoint'] != false ||
+        summary['iosBackgroundPauseCanDeleteCheckpoint'] != false ||
+        summary['heartbeatCanPurgeLocalDataAfterBackup'] != false ||
+        summary['localCheckpointPreservedUntilReview'] != true) {
+      reasons.add('heartbeat_can_delete_checkpoint');
+    }
+    if (summary['heartbeatGapRequiresLifecycleSupervisor'] != true ||
+        summary['heartbeatGapRequiresLocalCheckpoint'] != true ||
+        summary['heartbeatGapCannotBypassUserConsent'] != true ||
+        summary['backgroundHeartbeatTrustedAfterValidationOnly'] != true ||
+        summary['heartbeatCanUploadBackupMirror'] != false) {
+      reasons.add('heartbeat_recovery_boundary_missing');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['firestoreCanMarkTripInterrupted'] != false ||
+        summary['mapboxCanFillHeartbeatGap'] != false ||
+        summary['cloudFunctionCanFillHeartbeatGap'] != false) {
+      reasons.add('remote_can_control_heartbeat_gap');
+    }
+    if (summary['rawLocationIncluded'] != false ||
+        summary['preciseTimestampIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_heartbeat_material');
+    }
+    return TripTrackingHeartbeatWatchdogSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripTrackingHeartbeatWatchdogPolicy {
@@ -183,4 +290,37 @@ String _safeReason(String value) {
     'heartbeat_terminal_session_protected' => clean,
     _ => 'heartbeat_clock_invalid',
   };
+}
+
+TripTrackingHeartbeatWatchdogStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripTrackingHeartbeatWatchdogStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+TripTrackingHeartbeatWatchdogAction? _safeAction(Object? value) {
+  if (value is! String) return null;
+  for (final action in TripTrackingHeartbeatWatchdogAction.values) {
+    if (action.name == value) return action;
+  }
+  return null;
+}
+
+TripTrackingSessionLifecycleState? _safeLifecycle(Object? value) {
+  if (value is! String) return null;
+  for (final lifecycle in TripTrackingSessionLifecycleState.values) {
+    if (lifecycle.name == value) return lifecycle;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains('token=') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}'));
 }

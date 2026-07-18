@@ -53,6 +53,9 @@ void main() {
     );
     expect(decision.requiresUserReview, isTrue);
     expect(safe['heartbeatGapCanCreateMileage'], isFalse);
+    expect(safe['heartbeatGapCanReplayPendingSample'], isFalse);
+    expect(safe['heartbeatGapRequiresLifecycleSupervisor'], isTrue);
+    expect(safe['heartbeatGapRequiresLocalCheckpoint'], isTrue);
     expect(safe['localCheckpointPreservedUntilReview'], isTrue);
   });
 
@@ -142,11 +145,57 @@ void main() {
     expect(safe['heartbeatGapCanCreateOfficialStop'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
+    expect(safe['firestoreCanMarkTripInterrupted'], isFalse);
     expect(safe['mapboxCanFillHeartbeatGap'], isFalse);
+    expect(safe['cloudFunctionCanFillHeartbeatGap'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['heartbeatCanUploadBackupMirror'], isFalse);
+    expect(safe['heartbeatCanPurgeLocalDataAfterBackup'], isFalse);
     expect(safe['rawLocationIncluded'], isFalse);
     expect(safe['preciseTimestampIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
+    expect(
+      TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
+  test('heartbeat summary validation rejects forged trip truth authority', () {
+    final safe = evaluate(
+      now,
+      lastHeartbeatUtc: now.subtract(const Duration(minutes: 12)),
+    ).toSafeSummary();
+
+    expect(
+      TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
+        ...safe,
+        'heartbeatGapCanCreateMileage': true,
+      }).reasons,
+      contains('heartbeat_claims_trip_truth'),
+    );
+    expect(
+      TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
+        ...safe,
+        'androidSleepCanDeleteCheckpoint': true,
+      }).reasons,
+      contains('heartbeat_can_delete_checkpoint'),
+    );
+    expect(
+      TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
+        ...safe,
+        'firestoreCanMarkTripInterrupted': true,
+      }).reasons,
+      contains('remote_can_control_heartbeat_gap'),
+    );
+    expect(
+      TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
+        ...safe,
+        'debug': '35.123456,-80.123456 token=sk.secret',
+      }).reasons,
+      contains('summary_contains_sensitive_heartbeat_material'),
+    );
   });
 }
 
