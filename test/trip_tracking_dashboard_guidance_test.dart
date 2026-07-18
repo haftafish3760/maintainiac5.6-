@@ -19,6 +19,7 @@ void main() {
       'Sync: Wi-Fi or mobile data; free sync usage pending',
     );
     expect(guidance.syncReason, contains('network status'));
+    expect(guidance.mapStatus, 'Maps are separate from GPS assist.');
     expect(guidance.dashboardBadges, contains('Road vehicle'));
     expect(
       guidance.dashboardBadges,
@@ -40,6 +41,7 @@ void main() {
     expect(guidance.profileLabel, 'Delivery');
     expect(guidance.modeToken, 'gig_driver');
     expect(guidance.primaryStatus, contains('delivery'));
+    expect(guidance.mapStatus, 'GPS assist is running without maps.');
     expect(guidance.stopDetectionStatus, contains('walking evidence'));
     expect(guidance.recommendsActivityRecognition, isTrue);
     expect(guidance.activityRecognitionActive, isFalse);
@@ -139,5 +141,31 @@ void main() {
       guidance.dashboardBadges,
       contains('Sync: Wi-Fi only; 1 free sync left'),
     );
+  });
+
+  test('dashboard guidance keeps map preview and route history separate', () {
+    final previewOnly = TripTrackingDashboardGuidance.fromSettings(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+      ),
+    );
+    final routeHistory = TripTrackingDashboardGuidance.fromSettings(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1,
+      ),
+    );
+
+    expect(previewOnly.mapStatus, 'Map preview on');
+    expect(previewOnly.dashboardBadges, contains('Map preview on'));
+    expect(
+      previewOnly.dashboardBadges,
+      isNot(contains('Map route history on')),
+    );
+    expect(routeHistory.mapStatus, 'Map route history on');
+    expect(routeHistory.dashboardBadges, contains('Map route history on'));
   });
 }

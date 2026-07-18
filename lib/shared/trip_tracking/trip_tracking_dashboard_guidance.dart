@@ -12,6 +12,7 @@ class TripTrackingDashboardGuidance {
     required this.safetyStatus,
     required this.syncStatus,
     required this.syncReason,
+    required this.mapStatus,
     required this.stopDetectionStatus,
     required this.odometerStatus,
     required this.recommendsActivityRecognition,
@@ -28,6 +29,7 @@ class TripTrackingDashboardGuidance {
   final String safetyStatus;
   final String syncStatus;
   final String syncReason;
+  final String mapStatus;
   final String stopDetectionStatus;
   final String odometerStatus;
   final bool recommendsActivityRecognition;
@@ -50,6 +52,8 @@ class TripTrackingDashboardGuidance {
     if (backgroundTrackingActive) badges.add('Background GPS on');
     if (lowBatteryProtectionActive) badges.add('Battery guard on');
     if (odometerAnomalyAlertsActive) badges.add('Odometer alerts on');
+    if (mapStatus == 'Map preview on') badges.add('Map preview on');
+    if (mapStatus == 'Map route history on') badges.add('Map route history on');
     return badges;
   }
 
@@ -94,6 +98,7 @@ class TripTrackingDashboardGuidance {
       ),
       syncStatus: syncDecision.dashboardLabel,
       syncReason: syncDecision.userFacingReason,
+      mapStatus: _mapStatus(settings),
       stopDetectionStatus: strategy.stopDetectionSummary,
       odometerStatus: odometerAlerts
           ? 'Odometer anomaly review is on. GPS remains advisory and will not replace confirmed odometer readings.'
@@ -105,6 +110,17 @@ class TripTrackingDashboardGuidance {
       odometerAnomalyAlertsActive: odometerAlerts,
     );
   }
+}
+
+String _mapStatus(TripTrackingSettings settings) {
+  if (!settings.gpsAssistedTrackingEnabled) {
+    return 'Maps are separate from GPS assist.';
+  }
+  if (!settings.mapPreviewEnabled) {
+    return 'GPS assist is running without maps.';
+  }
+  if (!settings.mapRouteHistorySavingEnabled) return 'Map preview on';
+  return 'Map route history on';
 }
 
 String _profileLabel(TripTrackingProfile profile) {
