@@ -64,6 +64,22 @@ void main() {
 
     expect(next?.mode, TripSamplingMode.precision);
     expect(next?.interval, const Duration(seconds: 2));
+    final summary = TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+      recommendation: next,
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+    final validation = TripTrackingNativeSamplingSummaryValidation.fromSummary(
+      summary,
+    );
+    expect(summary['canUpdateNativeCadence'], isTrue);
+    expect(summary['validatedSampleRequired'], isTrue);
+    expect(summary['mapboxCanChangeNativeCadence'], isFalse);
+    expect(summary['nativeSamplingCanConfirmOdometer'], isFalse);
+    expect(validation.isRenderable, isTrue);
+    expect(validation.canUpdateNativeCadence, isTrue);
   });
 
   test(
@@ -87,6 +103,18 @@ void main() {
 
       expect(next?.mode, TripSamplingMode.balanced);
       expect(next?.interval, const Duration(seconds: 5));
+      expect(
+        TripTrackingNativeSamplingSummaryValidation.fromSummary(
+          TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+            recommendation: next,
+            adaptiveSamplingEnabled: true,
+            nativeTracking: true,
+            platformAvailable: true,
+            sessionAvailable: true,
+          ),
+        ).isRenderable,
+        isTrue,
+      );
     },
   );
 
@@ -112,6 +140,20 @@ void main() {
             sessionAvailable: flags.session,
           ),
           isNull,
+        );
+        final summary =
+            TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+              recommendation: null,
+              adaptiveSamplingEnabled: flags.adaptive,
+              nativeTracking: flags.tracking,
+              platformAvailable: flags.platform,
+              sessionAvailable: flags.session,
+            );
+        expect(
+          TripTrackingNativeSamplingSummaryValidation.fromSummary(
+            summary,
+          ).canUpdateNativeCadence,
+          isFalse,
         );
       }
     },
@@ -256,5 +298,57 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  test('safe native sampling summaries reject forged authority', () {
+    final summary = TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+      recommendation: const TripSamplingRecommendation(
+        mode: TripSamplingMode.precision,
+        interval: Duration(seconds: 2),
+        minimumDisplacementMeters: 3,
+      ),
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+
+    expect(
+      TripTrackingNativeSamplingSummaryValidation.fromSummary({
+        ...summary,
+        'mapboxCanChangeNativeCadence': true,
+      }).reasons,
+      contains('external_or_unsafe_sample_can_change_cadence'),
+    );
+    expect(
+      TripTrackingNativeSamplingSummaryValidation.fromSummary({
+        ...summary,
+        'nativeSamplingCanConfirmOdometer': true,
+      }).reasons,
+      contains('native_sampling_claims_trip_truth'),
+    );
+    expect(
+      TripTrackingNativeSamplingSummaryValidation.fromSummary({
+        ...summary,
+        'debug': '35.123456,-80.123456 token=sk.secret',
+      }).reasons,
+      contains('summary_contains_sensitive_sampling_material'),
+    );
+  });
+
+  test('summary cannot claim cadence update without local prerequisites', () {
+    final validation = TripTrackingNativeSamplingSummaryValidation.fromSummary({
+      ...TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+        recommendation: null,
+        adaptiveSamplingEnabled: false,
+        nativeTracking: false,
+        platformAvailable: false,
+        sessionAvailable: false,
+      ),
+      'canUpdateNativeCadence': true,
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('unsafe_native_cadence_update_claim'));
   });
 }
