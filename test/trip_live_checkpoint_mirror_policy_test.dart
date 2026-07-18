@@ -32,6 +32,10 @@ void main() {
       expect(payload['localRevisionMonotonic'], isTrue);
       expect(payload['canOverrideLocalDaytimeData'], isFalse);
       expect(payload['canDeleteLocalData'], isFalse);
+      expect(payload['remoteCheckpointCanResolveConflictSilently'], isFalse);
+      expect(payload['checkpointMirrorRequiresLocalAckBeforeCleanup'], isTrue);
+      expect(payload['localTombstoneBlocksCheckpointMirror'], isTrue);
+      expect(payload['remoteCheckpointCannotAdvanceLocalRevision'], isTrue);
       expect(payload['odometerIsGlobalTruth'], isTrue);
       expect(payload['physicalOdometerRequiredForOfficialMileage'], isTrue);
       expect(payload['confirmedOdometerOverridesExternalMileage'], isTrue);
@@ -134,6 +138,10 @@ void main() {
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
     expect(safe['remoteBackupCanDeleteLocalData'], isFalse);
+    expect(safe['remoteCheckpointCanResolveConflictSilently'], isFalse);
+    expect(safe['checkpointMirrorRequiresLocalAckBeforeCleanup'], isTrue);
+    expect(safe['localTombstoneBlocksCheckpointMirror'], isTrue);
+    expect(safe['remoteCheckpointCannotAdvanceLocalRevision'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['mirrorCanConfirmOdometer'], isFalse);
     expect(safe['mirrorCanApplyCalibration'], isFalse);
@@ -190,6 +198,10 @@ void main() {
         ).toSafeDashboardMap()..addAll({
           'remoteBackupCanOverrideLocalDay': true,
           'remoteBackupCanDeleteLocalData': true,
+          'remoteCheckpointCanResolveConflictSilently': true,
+          'checkpointMirrorRequiresLocalAckBeforeCleanup': false,
+          'localTombstoneBlocksCheckpointMirror': false,
+          'remoteCheckpointCannotAdvanceLocalRevision': false,
           'backupFailureCanStopGpsTracking': true,
           'backupFailureCanDropCurrentCheckpoint': true,
           'mirrorCanConfirmOdometer': true,

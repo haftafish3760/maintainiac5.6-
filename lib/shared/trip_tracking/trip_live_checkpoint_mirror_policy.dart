@@ -38,6 +38,10 @@ class TripLiveCheckpointMirrorDecision {
     'firestoreMirrorOnly': true,
     'remoteBackupCanOverrideLocalDay': false,
     'remoteBackupCanDeleteLocalData': false,
+    'remoteCheckpointCanResolveConflictSilently': false,
+    'checkpointMirrorRequiresLocalAckBeforeCleanup': true,
+    'localTombstoneBlocksCheckpointMirror': true,
+    'remoteCheckpointCannotAdvanceLocalRevision': true,
     'mirrorCanConfirmOdometer': false,
     'mirrorCanCreateStop': false,
     'mirrorCanEndTripAutomatically': false,
@@ -97,6 +101,10 @@ class TripLiveCheckpointMirrorSummaryValidation {
       'firestoreMirrorOnly',
       'remoteBackupCanOverrideLocalDay',
       'remoteBackupCanDeleteLocalData',
+      'remoteCheckpointCanResolveConflictSilently',
+      'checkpointMirrorRequiresLocalAckBeforeCleanup',
+      'localTombstoneBlocksCheckpointMirror',
+      'remoteCheckpointCannotAdvanceLocalRevision',
       'mirrorCanConfirmOdometer',
       'mirrorCanCreateStop',
       'mirrorCanEndTripAutomatically',
@@ -130,6 +138,10 @@ class TripLiveCheckpointMirrorSummaryValidation {
         summary['firestoreMirrorOnly'] != true ||
         summary['remoteBackupCanOverrideLocalDay'] != false ||
         summary['remoteBackupCanDeleteLocalData'] != false ||
+        summary['remoteCheckpointCanResolveConflictSilently'] != false ||
+        summary['checkpointMirrorRequiresLocalAckBeforeCleanup'] != true ||
+        summary['localTombstoneBlocksCheckpointMirror'] != true ||
+        summary['remoteCheckpointCannotAdvanceLocalRevision'] != true ||
         summary['backupFailureCanStopGpsTracking'] != false ||
         summary['backupFailureCanDropCurrentCheckpoint'] != false) {
       reasons.add('checkpoint_local_truth_boundary_missing');
@@ -237,6 +249,10 @@ Map<String, Object?> _payloadFor(Map<String, Object?> source) {
     'localRevisionMonotonic': true,
     'canOverrideLocalDaytimeData': false,
     'canDeleteLocalData': false,
+    'remoteCheckpointCanResolveConflictSilently': false,
+    'checkpointMirrorRequiresLocalAckBeforeCleanup': true,
+    'localTombstoneBlocksCheckpointMirror': true,
+    'remoteCheckpointCannotAdvanceLocalRevision': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'physicalOdometerRequiredForOfficialMileage': true,
