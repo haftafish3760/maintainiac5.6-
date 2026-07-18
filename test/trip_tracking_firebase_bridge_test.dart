@@ -442,6 +442,56 @@ void main() {
     }
   });
 
+  test('trip summary contract validates trust-boundary value shape', () {
+    final doc =
+        MaintainiacFirestoreDocumentBuilder.personalTripTrackingReviewDocument(
+          uid: 'firebaseUid-1',
+          review: review(),
+        );
+
+    expect(
+      TripTrackingFirestoreContract.isReviewedSummaryShape(doc.data),
+      isTrue,
+    );
+    expect(
+      TripTrackingFirestoreContract.reviewedSummaryFindings(doc.data),
+      isEmpty,
+    );
+
+    final unsafe = <String, Object?>{
+      ...doc.data,
+      'tripId': 'trip/../other',
+      'createdByUid': 'firebaseUid-1',
+      'updatedByUid': 'firebaseUid-2',
+      'profile': 'silentTracker',
+      'motionState': 'rawLocationStreaming',
+      'locationDataIncluded': true,
+      'acceptedMeters': double.nan,
+      'acceptedSampleCount': 9,
+      'receivedSampleCount': 1,
+      'rawRoute': '35.1,-80.1',
+    };
+
+    final findings = TripTrackingFirestoreContract.reviewedSummaryFindings(
+      unsafe,
+    );
+
+    expect(findings, contains('unknown_fields'));
+    expect(findings, contains('not_mileage_only'));
+    expect(findings, contains('unsafe_identity'));
+    expect(findings, contains('owner_mismatch'));
+    expect(findings, contains('invalid_profile'));
+    expect(findings, contains('invalid_motion_state'));
+    expect(findings, contains('invalid_distance'));
+    expect(findings, contains('invalid_sample_counts'));
+    expect(
+      TripTrackingFirestoreContract.isReviewedSummaryShape(unsafe),
+      isFalse,
+    );
+    expect(findings.toString(), isNot(contains('35.1')));
+    expect(findings.toString(), isNot(contains('rawRoute')));
+  });
+
   test(
     'Firestore rules allowlist stays aligned with the trip summary contract',
     () {
