@@ -71,8 +71,12 @@ class TripSampleWindowQualityDecision {
     'mapboxCanOverrideWindowQuality': false,
     'firestoreCanOverrideWindowQuality': false,
     'remoteWindowCanOverrideLocalTrip': false,
+    'remoteWindowCanRepairInvalidSamples': false,
     'odometerRemainsOfficialMileageTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
+    'sampleTimestampsValidated': true,
+    'futureSamplesRejected': true,
+    'staleSamplesRejectedWhenEvaluationClockProvided': true,
     'rawSamplesIncluded': false,
     'coordinatesIncluded': false,
     'preciseTimestampsIncluded': false,
@@ -87,19 +91,39 @@ class TripSampleWindowQualityPolicy {
   static TripSampleWindowQualityDecision evaluate({
     required List<TripLocationSample> samples,
     required TripRouteHistoryCaptureDecision routeHistoryDecision,
+    DateTime? evaluationNow,
     int persistedRoutePointsToday = 0,
     int maximumAcceptedGapSeconds = 180,
     double maximumAccuracyMeters = 120,
     double maximumPointJumpMeters = 2500,
+    Duration maximumSampleAge = const Duration(hours: 18),
+    Duration maximumFutureSkew = const Duration(minutes: 2),
   }) {
     final safeGapLimit = _safeGap(maximumAcceptedGapSeconds).clamp(30, 600);
     final safeAccuracy = _safeAccuracy(maximumAccuracyMeters);
     final safeJump = _safeJump(maximumPointJumpMeters);
-    final sorted =
-        samples
-            .where((sample) => _isIndividuallySafe(sample, safeAccuracy))
-            .toList()
-          ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
+    final safeNow = evaluationNow?.toUtc();
+    final safeMaximumAge = _safeDuration(
+      maximumSampleAge,
+      fallback: const Duration(hours: 18),
+      minimum: const Duration(minutes: 5),
+      maximum: const Duration(days: 2),
+    );
+    final safeFutureSkew = _safeDuration(
+      maximumFutureSkew,
+      fallback: const Duration(minutes: 2),
+      minimum: Duration.zero,
+      maximum: const Duration(hours: 1),
+    );
+    final sorted = samples.where((sample) {
+      return _isIndividuallySafe(
+        sample,
+        safeAccuracy,
+        evaluationNow: safeNow,
+        maximumSampleAge: safeMaximumAge,
+        maximumFutureSkew: safeFutureSkew,
+      );
+    }).toList()..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
     final rejected = samples.length - sorted.length;
 
     if (samples.isEmpty) {
@@ -223,7 +247,8 @@ class TripSampleWindowQualityPolicy {
       );
     }
 
-    final degraded = maximumGap > safeGapLimit || rejectedSegments > 0;
+    final degraded =
+        maximumGap > safeGapLimit || rejectedSegments > 0 || rejected > 0;
     final sparseOrBroken = acceptedDistance > 0 && !projectionSafe;
     return _decision(
       status: degraded
@@ -300,12 +325,40 @@ bool _canFeedProjection({
   return true;
 }
 
-bool _isIndividuallySafe(TripLocationSample sample, double maxAccuracy) {
+bool _isIndividuallySafe(
+  TripLocationSample sample,
+  double maxAccuracy, {
+  required DateTime? evaluationNow,
+  required Duration maximumSampleAge,
+  required Duration maximumFutureSkew,
+}) {
   if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) return false;
   if (sample.mockedLocation == true) return false;
   if (sample.horizontalAccuracyMeters > maxAccuracy) return false;
+  if (!_hasSafeTimestamp(
+    sample.recordedAt,
+    evaluationNow: evaluationNow,
+    maximumSampleAge: maximumSampleAge,
+    maximumFutureSkew: maximumFutureSkew,
+  )) {
+    return false;
+  }
   final speed = sample.speedMetersPerSecond;
   return speed == null || (speed.isFinite && speed >= 0 && speed <= 70);
+}
+
+bool _hasSafeTimestamp(
+  DateTime recordedAt, {
+  required DateTime? evaluationNow,
+  required Duration maximumSampleAge,
+  required Duration maximumFutureSkew,
+}) {
+  if (recordedAt.millisecondsSinceEpoch == 0) return false;
+  if (evaluationNow == null) return true;
+  final age = evaluationNow.difference(recordedAt.toUtc());
+  if (age < -maximumFutureSkew) return false;
+  if (age > maximumSampleAge) return false;
+  return true;
 }
 
 bool _routePointAllowed(
@@ -357,6 +410,18 @@ double _safeAccuracy(double value) {
 double _safeJump(double value) {
   if (!value.isFinite || value <= 0) return 2500;
   return value.clamp(25, 10000).toDouble();
+}
+
+Duration _safeDuration(
+  Duration value, {
+  required Duration fallback,
+  required Duration minimum,
+  required Duration maximum,
+}) {
+  if (value.isNegative) return fallback;
+  if (value < minimum) return minimum;
+  if (value > maximum) return maximum;
+  return value;
 }
 
 String _distanceBucket(double meters) {

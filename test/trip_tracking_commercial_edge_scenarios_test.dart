@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_route_history_capture_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_sample_window_quality_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_commercial_edge_scenarios.dart';
@@ -28,6 +30,23 @@ void main() {
     confidence: 92,
     recordedAt: start.add(Duration(seconds: seconds)),
   );
+
+  TripRouteHistoryCaptureDecision routeDecision({
+    bool optedIntoMaps = true,
+    bool optedIntoHistory = true,
+    double budgetMb = 1,
+  }) {
+    return TripRouteHistoryCapturePolicy.evaluate(
+      accountTier: TripRouteHistoryAccountTier.free,
+      gpsAssistedTrackingEnabled: true,
+      userOptedIntoMaps: optedIntoMaps,
+      userOptedIntoRouteHistory: optedIntoHistory,
+      mapboxRuntimeAvailable: optedIntoMaps,
+      requestedDailyBudgetMb: budgetMb,
+      availableStorageMb: 2000,
+      requestedSampleIntervalSeconds: 15,
+    );
+  }
 
   test('delivery parking-lot crawl does not turn into walking mileage', () {
     final result = replayTrip([
@@ -345,6 +364,46 @@ void main() {
       expect(summary['simulationCanReplaceOdometer'], isFalse);
       expect(summary['officialMileageSource'], 'odometer');
       expect(summary['stopCanCreateOfficialStop'], isFalse);
+    },
+  );
+
+  test(
+    'commercial replay quality rejects stale and future samples before maps',
+    () {
+      final sampleWindow = [
+        point(-80, 0, speed: 10),
+        point(-79.999, 20, speed: 10),
+        point(-79.998, 40, speed: 10),
+        point(-79.997, 900, speed: 10),
+        point(-79.996, 1000, speed: 10),
+      ];
+      final quality = TripSampleWindowQualityPolicy.evaluate(
+        evaluationNow: start.add(const Duration(seconds: 60)),
+        maximumSampleAge: const Duration(minutes: 5),
+        maximumFutureSkew: const Duration(seconds: 30),
+        samples: sampleWindow,
+        routeHistoryDecision: routeDecision(),
+      );
+      final replay = replayTrip(
+        sampleWindow.map(SimulatedTripPoint.new).toList(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final summary = replay.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final safeQuality = quality.toSafeDashboardMap();
+
+      expect(
+        quality.status,
+        TripSampleWindowQualityStatus.degradedTrackingOnly,
+      );
+      expect(quality.rejectedSampleCount, 2);
+      expect(quality.canFeedLiveOdometerProjection, isTrue);
+      expect(safeQuality['futureSamplesRejected'], isTrue);
+      expect(safeQuality['remoteWindowCanRepairInvalidSamples'], isFalse);
+      expect(summary['simulationCanReplaceOdometer'], isFalse);
+      expect(summary['officialMileageSource'], 'odometer');
+      expect(summary['mapsRequiredForStopReview'], isFalse);
     },
   );
 }

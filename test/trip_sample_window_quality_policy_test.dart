@@ -107,6 +107,66 @@ void main() {
     expect(decision.canFeedLiveOdometerProjection, isFalse);
   });
 
+  test('future samples are rejected when an evaluation clock is supplied', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      evaluationNow: start.add(const Duration(minutes: 10)),
+      maximumFutureSkew: const Duration(seconds: 30),
+      samples: [
+        sample(580, 35.0000, -80.0000),
+        sample(600, 35.0002, -80.0000),
+        sample(720, 35.0004, -80.0000),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripSampleWindowQualityStatus.degradedTrackingOnly);
+    expect(decision.validSampleCount, 2);
+    expect(decision.rejectedSampleCount, 1);
+    expect(decision.canFeedLiveOdometerProjection, isTrue);
+    expect(safe['futureSamplesRejected'], isTrue);
+    expect(safe['remoteWindowCanRepairInvalidSamples'], isFalse);
+  });
+
+  test('stale samples fail closed instead of reviving old daytime mileage', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      evaluationNow: start.add(const Duration(hours: 12)),
+      maximumSampleAge: const Duration(minutes: 30),
+      samples: [
+        sample(0, 35.0000, -80.0000),
+        sample(20, 35.0002, -80.0000),
+        sample(43_100, 35.0004, -80.0000),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripSampleWindowQualityStatus.degradedTrackingOnly);
+    expect(decision.validSampleCount, 1);
+    expect(decision.rejectedSampleCount, 2);
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
+    expect(safe['staleSamplesRejectedWhenEvaluationClockProvided'], isTrue);
+    expect(safe['remoteWindowCanOverrideLocalTrip'], isFalse);
+  });
+
+  test('epoch timestamps are rejected even without a device clock', () {
+    final epoch = TripLocationSample(
+      latitude: 35,
+      longitude: -80,
+      recordedAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      horizontalAccuracyMeters: 10,
+    );
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      samples: [epoch, sample(20, 35.0002, -80.0000)],
+      routeHistoryDecision: routeDecision(),
+    );
+
+    expect(decision.status, TripSampleWindowQualityStatus.degradedTrackingOnly);
+    expect(decision.validSampleCount, 1);
+    expect(decision.rejectedSampleCount, 1);
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
+  });
+
   test('jumped segments fail closed instead of inflating distance', () {
     final decision = TripSampleWindowQualityPolicy.evaluate(
       samples: [sample(0, 35.0000, -80.0000), sample(10, 36.0000, -81.0000)],
@@ -198,7 +258,9 @@ void main() {
     expect(safe['routeGeometryIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
     expect(safe['remoteWindowCanOverrideLocalTrip'], isFalse);
+    expect(safe['remoteWindowCanRepairInvalidSamples'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['sampleTimestampsValidated'], isTrue);
     expect(safe['acceptedSegmentCount'], 1);
     expect(safe['rejectedGapSegmentCount'], 0);
   });
