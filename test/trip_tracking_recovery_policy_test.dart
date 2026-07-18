@@ -54,8 +54,12 @@ void main() {
     expect(summary['schemaVersion'], 1);
     expect(summary['localRecoveryAuthoritative'], isTrue);
     expect(summary['firestoreCanOverrideLocalRecovery'], isFalse);
+    expect(summary['cloudMirrorCanDeleteLocalRecovery'], isFalse);
+    expect(summary['recoveryNeverDeletesTripData'], isTrue);
     expect(summary['odometerRemainsCanonical'], isTrue);
     expect(summary['mapboxCanRestoreTrip'], isFalse);
+    expect(summary['mapboxCanModifyRecoveredOdometer'], isFalse);
+    expect(summary['manualReviewRequiredBeforeConfirmation'], isFalse);
     expect(summary['requiresSameVehicle'], isTrue);
     expect(summary['requiresSameConfirmedOdometer'], isTrue);
     expect(summary['rawLocationIncluded'], isFalse);
@@ -191,6 +195,10 @@ void main() {
     expect(vehicleMismatch.requiresUserAction, isTrue);
     expect(vehicleMismatch.toSafeSummary()['canRestore'], isFalse);
     expect(
+      vehicleMismatch.toSafeSummary()['manualReviewRequiredBeforeConfirmation'],
+      isTrue,
+    );
+    expect(
       odometerMismatch.status,
       TripTrackingRecoveryStatus.odometerMismatch,
     );
@@ -200,5 +208,24 @@ void main() {
       odometerMismatch.toSafeSummary()['odometerRemainsCanonical'],
       isTrue,
     );
+  });
+
+  test('safe recovery summaries sanitize direct malformed public fields', () {
+    const decision = TripTrackingRecoveryDecision(
+      status: TripTrackingRecoveryStatus.ready,
+      safeReason: 'lat=35.1 token=sk.secret',
+      canRestore: true,
+      requiresUserAction: false,
+      estimatedOdometer: 1001,
+      pendingSampleQueued: false,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['safeReason'], 'trip_recovery_invalid_session');
+    expect(summary['cloudMirrorCanDeleteLocalRecovery'], isFalse);
+    expect(summary['recoveryNeverDeletesTripData'], isTrue);
+    expect(summary['mapboxCanModifyRecoveredOdometer'], isFalse);
+    expect(summary.toString(), isNot(contains('35.1')));
+    expect(summary.toString(), isNot(contains('sk.secret')));
   });
 }
