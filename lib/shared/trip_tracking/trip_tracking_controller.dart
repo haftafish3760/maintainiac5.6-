@@ -1339,11 +1339,15 @@ class TripTrackingController extends ChangeNotifier {
     required TripMotionState currentMotionState,
     required DateTime detectedAt,
   }) {
-    TripTrackingAdvisoryType? type;
-    if (previousMotionState != TripMotionState.stopped &&
+    if (previousMotionState == TripMotionState.stopCandidate &&
         currentMotionState == TripMotionState.stopped) {
+      return _upgradedStopCandidateAdvisories(session, detectedAt: detectedAt);
+    }
+    TripTrackingAdvisoryType? type;
+    if (!_isStopLikeMotion(previousMotionState) &&
+        _isStopLikeMotion(currentMotionState)) {
       type = TripTrackingAdvisoryType.probableStop;
-    } else if (previousMotionState == TripMotionState.stopped &&
+    } else if (_isStopLikeMotion(previousMotionState) &&
         currentMotionState == TripMotionState.moving) {
       type = TripTrackingAdvisoryType.resumedMovement;
     }
@@ -1364,7 +1368,7 @@ class TripTrackingController extends ChangeNotifier {
         detectedAt: detectedAt,
         evidenceStartedAt: evidenceStartedAt,
         evidenceEndedAt: detectedAt,
-        confidence: type == TripTrackingAdvisoryType.probableStop
+        confidence: currentMotionState == TripMotionState.stopped
             ? TripTrackingConfidence.high
             : TripTrackingConfidence.medium,
         suggestedAction: type == TripTrackingAdvisoryType.probableStop
@@ -1372,6 +1376,29 @@ class TripTrackingController extends ChangeNotifier {
             : 'reviewResumedMovement',
       ),
     ];
+  }
+
+  bool _isStopLikeMotion(TripMotionState state) =>
+      state == TripMotionState.stopCandidate ||
+      state == TripMotionState.stopped;
+
+  List<TripTrackingAdvisoryEvent> _upgradedStopCandidateAdvisories(
+    TripTrackingSessionRecord session, {
+    required DateTime detectedAt,
+  }) {
+    final latestPendingStopIndex = session.advisories.lastIndexWhere(
+      (event) =>
+          event.type == TripTrackingAdvisoryType.probableStop &&
+          event.disposition == TripTrackingAdvisoryDisposition.pending,
+    );
+    if (latestPendingStopIndex < 0) return session.advisories;
+    final advisories = [...session.advisories];
+    advisories[latestPendingStopIndex] = advisories[latestPendingStopIndex]
+        .copyWith(
+          evidenceEndedAt: detectedAt,
+          confidence: TripTrackingConfidence.high,
+        );
+    return advisories;
   }
 
   /// Drops a just-created trip only when it has not accepted any distance.

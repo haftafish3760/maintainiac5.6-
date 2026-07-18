@@ -85,6 +85,8 @@ class TripTrackingAdvisoryEvent {
   final String? tripLogReference;
 
   TripTrackingAdvisoryEvent copyWith({
+    DateTime? evidenceEndedAt,
+    TripTrackingConfidence? confidence,
     TripTrackingAdvisoryDisposition? disposition,
     String? tripLogReference,
   }) => TripTrackingAdvisoryEvent(
@@ -95,8 +97,8 @@ class TripTrackingAdvisoryEvent {
     profile: profile,
     detectedAt: detectedAt,
     evidenceStartedAt: evidenceStartedAt,
-    evidenceEndedAt: evidenceEndedAt,
-    confidence: confidence,
+    evidenceEndedAt: evidenceEndedAt ?? this.evidenceEndedAt,
+    confidence: confidence ?? this.confidence,
     suggestedAction: suggestedAction,
     disposition: disposition ?? this.disposition,
     tripLogReference: tripLogReference ?? this.tripLogReference,

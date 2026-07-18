@@ -948,6 +948,55 @@ void main() {
     },
   );
 
+  test(
+    'vehicle-only waiting creates one review-safe stop candidate advisory',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_vehicle_only_stop_candidate',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.rideshareVehicle,
+        startedAt: start,
+      );
+      TripActivityObservation automotive(int seconds) =>
+          TripActivityObservation(
+            activity: TripActivity.automotive,
+            confidence: 90,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+
+      await controller.ingest(sample(-80, 0), activity: automotive(0));
+      await controller.ingest(sample(-79.9997, 15), activity: automotive(15));
+      for (final seconds in [30, 60, 90, 135, 150]) {
+        await controller.ingest(sample(-79.9997, seconds));
+      }
+
+      expect(controller.needsWalkingReview, isFalse);
+      expect(controller.advisories, hasLength(1));
+      expect(
+        controller.advisories.single.type,
+        TripTrackingAdvisoryType.probableStop,
+      );
+      expect(
+        controller.advisories.single.confidence,
+        TripTrackingConfidence.medium,
+      );
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.pending,
+      );
+
+      await controller.ingest(sample(-79.997, 170), activity: automotive(170));
+      expect(controller.advisories.map((event) => event.type), [
+        TripTrackingAdvisoryType.probableStop,
+        TripTrackingAdvisoryType.resumedMovement,
+      ]);
+    },
+  );
+
   test('overlapping native start and stop requests are serialized', () async {
     final startGate = Completer<void>();
     final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
