@@ -256,6 +256,26 @@ void main() {
     );
   });
 
+  test('legacy padded vehicle ids recover without widening ownership', () {
+    final padded = TripTrackingRecoveryPolicy.evaluate(
+      session: session(vehicleId: ' vehicle_1 '),
+      currentVehicleId: 'vehicle_1',
+      currentConfirmedOdometer: 1000,
+    );
+    final unsafe = TripTrackingRecoveryPolicy.evaluate(
+      session: session(vehicleId: 'vehicle_1\nvehicle_2'),
+      currentVehicleId: 'vehicle_1',
+      currentConfirmedOdometer: 1000,
+    );
+
+    expect(padded.status, TripTrackingRecoveryStatus.ready);
+    expect(padded.canRestore, isTrue);
+    expect(unsafe.status, TripTrackingRecoveryStatus.vehicleMismatch);
+    expect(unsafe.canRestore, isFalse);
+    expect(unsafe.requiresUserAction, isTrue);
+    expect(unsafe.toSafeSummary()['rawSessionIncluded'], isFalse);
+  });
+
   test('safe recovery summaries sanitize direct malformed public fields', () {
     const decision = TripTrackingRecoveryDecision(
       status: TripTrackingRecoveryStatus.ready,

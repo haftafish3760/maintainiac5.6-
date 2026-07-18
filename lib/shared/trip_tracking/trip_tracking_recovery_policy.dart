@@ -122,7 +122,7 @@ class TripTrackingRecoveryPolicy {
         'trip_recovery_completed_review_present',
       );
     }
-    if (session.vehicleId != currentVehicleId) {
+    if (!_sameSafeVehicleId(session.vehicleId, currentVehicleId)) {
       return _decision(
         TripTrackingRecoveryStatus.vehicleMismatch,
         'trip_recovery_vehicle_mismatch',
@@ -185,6 +185,18 @@ bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
       TripTrackingSessionLifecycleState.completed ||
       TripTrackingSessionLifecycleState.failedTerminal => false,
     };
+
+bool _sameSafeVehicleId(String left, String right) {
+  final safeLeft = _safeRecoveryVehicleId(left);
+  final safeRight = _safeRecoveryVehicleId(right);
+  return safeLeft != null && safeLeft == safeRight;
+}
+
+String? _safeRecoveryVehicleId(String value) {
+  final clean = value.trim();
+  if (clean.isEmpty || clean.length > 120) return null;
+  return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : null;
+}
 
 bool _hasRecoverablePendingSample({
   required TripTrackingSessionRecord session,
