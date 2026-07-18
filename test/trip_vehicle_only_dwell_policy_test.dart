@@ -204,6 +204,26 @@ void main() {
     );
   });
 
+  test('zero provider accuracy cannot create vehicle-only fallback', () {
+    final decision = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      stationaryDuration: const Duration(minutes: 10),
+      walkingEvidenceCount: 0,
+      rejectedDriftCount: 0,
+      acceptedDistanceCount: 8,
+      acceptedVehicleMovementObserved: true,
+      speedMps: 0,
+      horizontalAccuracyMeters: 0,
+    );
+
+    expect(decision.status, TripVehicleOnlyDwellStatus.unsafeEvidence);
+    expect(decision.canSurfaceManualFallback, isFalse);
+    expect(
+      decision.toSafeDashboardMap()['vehicleOnlyDwellCanCreateOfficialStop'],
+      isFalse,
+    );
+  });
+
   test(
     'equipment GPS-only profile gets conservative fallback after long dwell',
     () {

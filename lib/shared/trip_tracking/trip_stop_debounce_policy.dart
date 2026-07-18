@@ -529,7 +529,7 @@ bool _unsafeObservation(TripStopDebounceObservation value) {
     return true;
   }
   if (value.speedMps < 0 || value.speedMps > 90) return true;
-  if (value.horizontalAccuracyMeters < 0 ||
+  if (value.horizontalAccuracyMeters <= 0 ||
       value.horizontalAccuracyMeters > 250) {
     return true;
   }

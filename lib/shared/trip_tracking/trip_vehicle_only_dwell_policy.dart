@@ -455,7 +455,7 @@ int _minimumAcceptedDistanceCountFor(TripTrackingProfileStrategy strategy) {
 bool _safeProviderValues(double speedMps, double horizontalAccuracyMeters) {
   if (!speedMps.isFinite || !horizontalAccuracyMeters.isFinite) return false;
   if (speedMps < 0 || speedMps > 90) return false;
-  return horizontalAccuracyMeters >= 0 && horizontalAccuracyMeters <= 250;
+  return horizontalAccuracyMeters > 0 && horizontalAccuracyMeters <= 250;
 }
 
 bool _signalQualityUnsafe(TripTrackingSignalQuality quality) =>
