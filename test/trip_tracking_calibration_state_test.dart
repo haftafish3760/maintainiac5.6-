@@ -65,11 +65,20 @@ void main() {
 
     expect(summary['enabled'], isTrue);
     expect(summary['requiresReviewedOdometerHistory'], isTrue);
+    expect(summary['continuousCalibrationAverageRequired'], isTrue);
+    expect(summary['singleDayCalibrationRejected'], isTrue);
+    expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanRewritePastTrips'], isFalse);
+    expect(summary['calibrationCanLowerConfirmedOdometer'], isFalse);
+    expect(summary['calibrationCanCreateMaintenanceRecord'], isFalse);
     expect(summary['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
     expect(summary['gpsEstimateRemainsNonCanonical'], isTrue);
     expect(summary['remoteCalibrationCanOverrideLocalState'], isFalse);
+    expect(summary['remoteCalibrationCanEnableSetting'], isFalse);
+    expect(summary['remoteCalibrationCanResetPrompt'], isFalse);
     expect(summary['mapboxCanOverrideCalibration'], isFalse);
+    expect(summary['mapboxCanTriggerTirePrompt'], isFalse);
+    expect(summary['gpsCanAutoApplyCalibration'], isFalse);
     expect(summary['malformedCalibrationSignalFailsNeutral'], isTrue);
     expect(summary['rawGpsIncluded'], isFalse);
     expect(summary['preciseLocationIncluded'], isFalse);
@@ -80,9 +89,16 @@ void main() {
     final summary = signal(.9).toSafeDashboardMap();
 
     expect(summary['gpsAssistCanOnlyScaleFutureProjectionAfterOptIn'], isTrue);
+    expect(summary['continuousCalibrationAverageRequired'], isTrue);
+    expect(summary['singleDayCalibrationRejected'], isTrue);
+    expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
     expect(summary['calibrationCanMutateTripLog'], isFalse);
+    expect(summary['calibrationCanLowerConfirmedOdometer'], isFalse);
+    expect(summary['calibrationCanCreateMaintenanceRecord'], isFalse);
     expect(summary['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
+    expect(summary['mapboxCanTriggerTirePrompt'], isFalse);
+    expect(summary['gpsCanAutoApplyCalibration'], isFalse);
     expect(summary['calibrationCanRewritePastTrips'], isFalse);
     expect(summary['canOverwriteConfirmedOdometer'], isFalse);
     expect(summary['rawReviewedTripsIncluded'], isFalse);

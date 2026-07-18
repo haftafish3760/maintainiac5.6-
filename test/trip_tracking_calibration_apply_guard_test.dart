@@ -99,14 +99,42 @@ void main() {
     expect(safe['calibrationCanApplyAcrossVehicles'], isFalse);
     expect(safe['calibrationRequiresSingleVehicleHistory'], isTrue);
     expect(safe['calibrationRequiresLocalReviewedOdometerHistory'], isTrue);
+    expect(safe['continuousCalibrationAverageRequired'], isTrue);
+    expect(safe['singleDayCalibrationRejected'], isTrue);
+    expect(safe['calibrationAverageVehicleScoped'], isTrue);
     expect(safe['calibrationRequiresOwnershipOrExplicitAccess'], isTrue);
     expect(safe['fleetObserverCanApplyCalibration'], isFalse);
     expect(safe['calibrationVehicleIdIncluded'], isFalse);
     expect(safe['rawVehicleIdsIncluded'], isFalse);
     expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
     expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
+    expect(safe['settingsCanDisableCalibrationAssist'], isTrue);
+    expect(safe['settingsCanResetCalibrationPrompt'], isTrue);
     expect(safe['odometerRemainsCanonical'], isTrue);
     expect(safe['gpsEstimateRemainsNonCanonical'], isTrue);
+  });
+
+  test('calibration tire review is advisory and never creates records', () {
+    final safe = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(differencePercent: 9),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      activeVehicleId: 'vehicle_1',
+      reviewedVehicleId: 'vehicle_1',
+      reviewedVehicleIds: const ['vehicle_1'],
+    ).toSafeDashboardMap();
+
+    expect(safe['tireOrSpeedometerReviewIsAdvisory'], isTrue);
+    expect(safe['tireChangeDoesNotCreateMaintenanceEntry'], isTrue);
+    expect(safe['calibrationCanCreateMaintenanceRecord'], isFalse);
+    expect(safe['calibrationCanLowerConfirmedOdometer'], isFalse);
+    expect(safe['remoteCalibrationCanEnableSetting'], isFalse);
+    expect(safe['remoteCalibrationCanResetPrompt'], isFalse);
+    expect(safe['mapboxCanTriggerTirePrompt'], isFalse);
+    expect(safe['gpsCanAutoApplyCalibration'], isFalse);
   });
 
   test('review calibration requires a current accepted review timestamp', () {
@@ -442,7 +470,12 @@ void main() {
               'calibrationCanApplyAcrossVehicles': true,
               'calibrationRequiresSingleVehicleHistory': false,
               'calibrationRequiresLocalReviewedOdometerHistory': false,
+              'continuousCalibrationAverageRequired': false,
+              'singleDayCalibrationRejected': false,
+              'calibrationAverageVehicleScoped': false,
               'calibrationRequiresOwnershipOrExplicitAccess': false,
+              'settingsCanDisableCalibrationAssist': false,
+              'settingsCanResetCalibrationPrompt': false,
               'fleetObserverCanApplyCalibration': true,
               'calibrationVehicleIdIncluded': true,
               'rawVehicleIdsIncluded': true,
@@ -454,6 +487,13 @@ void main() {
               'importedFileCanApplyCalibration': true,
               'dashboardCacheCanApplyCalibration': true,
               'remoteCalibrationCanOverrideLocalState': true,
+              'remoteCalibrationCanEnableSetting': true,
+              'remoteCalibrationCanResetPrompt': true,
+              'mapboxCanTriggerTirePrompt': true,
+              'gpsCanAutoApplyCalibration': true,
+              'tireChangeDoesNotCreateMaintenanceEntry': false,
+              'calibrationCanLowerConfirmedOdometer': true,
+              'calibrationCanCreateMaintenanceRecord': true,
               'rawReviewedTripsIncluded': true,
               'rawGpsIncluded': true,
               'preciseLocationIncluded': true,
@@ -468,6 +508,15 @@ void main() {
         validation.reasons,
         contains('remote_or_map_can_apply_calibration'),
       );
+      expect(
+        validation.reasons,
+        contains('remote_or_sensor_can_control_prompt'),
+      );
+      expect(
+        validation.reasons,
+        contains('calibration_review_boundary_missing'),
+      );
+      expect(validation.reasons, contains('odometer_truth_boundary_missing'));
       expect(
         validation.reasons,
         contains('summary_contains_sensitive_calibration_material'),

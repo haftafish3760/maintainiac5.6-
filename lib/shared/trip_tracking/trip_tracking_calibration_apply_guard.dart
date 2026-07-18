@@ -198,10 +198,16 @@ class TripTrackingCalibrationApplyGuard {
     'userOptInRequired': true,
     'reviewAcceptanceRequired': true,
     'requiresMultipleReviewedOdometerDays': true,
+    'continuousCalibrationAverageRequired': true,
+    'singleDayCalibrationRejected': true,
+    'calibrationAverageVehicleScoped': true,
     'latestReviewTimestampRequired': true,
     'staleCalibrationReviewRejected': true,
     'excessiveHistoryCountRejected': true,
     'tireOrSpeedometerReviewIsAdvisory': true,
+    'tireChangeDoesNotCreateMaintenanceEntry': true,
+    'settingsCanDisableCalibrationAssist': true,
+    'settingsCanResetCalibrationPrompt': true,
     'odometerRemainsCanonical': true,
     'gpsEstimateRemainsNonCanonical': true,
     'remoteCalibrationCanOverrideLocalState': false,
@@ -210,6 +216,12 @@ class TripTrackingCalibrationApplyGuard {
     'cloudFunctionCanApplyCalibration': false,
     'importedFileCanApplyCalibration': false,
     'dashboardCacheCanApplyCalibration': false,
+    'remoteCalibrationCanEnableSetting': false,
+    'remoteCalibrationCanResetPrompt': false,
+    'mapboxCanTriggerTirePrompt': false,
+    'gpsCanAutoApplyCalibration': false,
+    'calibrationCanLowerConfirmedOdometer': false,
+    'calibrationCanCreateMaintenanceRecord': false,
     'rawReviewedTripsIncluded': false,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
@@ -276,15 +288,29 @@ class TripTrackingCalibrationApplySummaryValidation {
     if (summary['userOptInRequired'] != true ||
         summary['reviewAcceptanceRequired'] != true ||
         summary['requiresMultipleReviewedOdometerDays'] != true ||
+        summary['continuousCalibrationAverageRequired'] != true ||
+        summary['singleDayCalibrationRejected'] != true ||
+        summary['calibrationAverageVehicleScoped'] != true ||
         summary['latestReviewTimestampRequired'] != true ||
         summary['staleCalibrationReviewRejected'] != true ||
-        summary['excessiveHistoryCountRejected'] != true) {
+        summary['excessiveHistoryCountRejected'] != true ||
+        summary['settingsCanDisableCalibrationAssist'] != true ||
+        summary['settingsCanResetCalibrationPrompt'] != true) {
       reasons.add('calibration_review_boundary_missing');
     }
     if (summary['odometerRemainsCanonical'] != true ||
         summary['gpsEstimateRemainsNonCanonical'] != true ||
-        summary['tireOrSpeedometerReviewIsAdvisory'] != true) {
+        summary['tireOrSpeedometerReviewIsAdvisory'] != true ||
+        summary['tireChangeDoesNotCreateMaintenanceEntry'] != true ||
+        summary['calibrationCanLowerConfirmedOdometer'] != false ||
+        summary['calibrationCanCreateMaintenanceRecord'] != false) {
       reasons.add('odometer_truth_boundary_missing');
+    }
+    if (summary['remoteCalibrationCanEnableSetting'] != false ||
+        summary['remoteCalibrationCanResetPrompt'] != false ||
+        summary['mapboxCanTriggerTirePrompt'] != false ||
+        summary['gpsCanAutoApplyCalibration'] != false) {
+      reasons.add('remote_or_sensor_can_control_prompt');
     }
     if (summary['rawReviewedTripsIncluded'] != false ||
         summary['rawGpsIncluded'] != false ||
