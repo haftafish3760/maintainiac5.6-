@@ -179,6 +179,13 @@ void main() {
 
     await store.savePending(pending);
     expect(store.pendingSampleFor('trip_2')?.sample.latitude, 35);
+    final summary = store.pendingSampleFor('trip_2')!.toBoundarySummary();
+    expect(summary['authoritativeForMileage'], isFalse);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['pendingSampleCanCreateCalibration'], isFalse);
+    expect(summary['pendingSampleCanApplyCalibration'], isFalse);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     await store.clearPending('trip_2');
     expect(store.pendingSampleFor('trip_2'), isNull);
   });

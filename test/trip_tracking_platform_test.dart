@@ -382,6 +382,11 @@ void main() {
     expect(log['platformEventCanAuthorizeUserDataAccess'], isFalse);
     expect(log['platformEventCanOverrideLocalTripLog'], isFalse);
     expect(log['platformEventCanConfirmOdometer'], isFalse);
+    expect(log['odometerIsGlobalTruth'], isTrue);
+    expect(log['platformEventCanCreateCalibration'], isFalse);
+    expect(log['platformEventCanApplyCalibration'], isFalse);
+    expect(log['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(log['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(log['mapboxEventCanOverrideTripLog'], isFalse);
     expect(log['mapboxEventCanConfirmOdometer'], isFalse);
     expect(log['firestoreEventCanOverridePlatformState'], isFalse);
@@ -617,6 +622,8 @@ void main() {
     expect(summary['activity'], 'walking');
     expect(summary['activityConfidenceBucket'], 'high');
     expect(summary['activityCanSupportStopReview'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['platformEventCanCreateCalibration'], isFalse);
     expect(summary['rawSensorPayloadIncluded'], isFalse);
     expect(summary['preciseTimestampIncluded'], isFalse);
     expect(summary.toString(), isNot(contains('2026-07-13T12:00:00')));

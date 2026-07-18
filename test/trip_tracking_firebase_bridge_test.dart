@@ -1505,6 +1505,12 @@ void main() {
       expect(summary['hasUsableOrganizationId'], isTrue);
       expect(summary['queuesReviewedMileageOnly'], isTrue);
       expect(summary['requiresConfirmedOdometer'], isTrue);
+      expect(summary['odometerIsGlobalTruth'], isTrue);
+      expect(summary['confirmedOdometerRemainsCanonical'], isTrue);
+      expect(summary['firebaseMirrorCanCreateCalibration'], isFalse);
+      expect(summary['firebaseMirrorCanApplyCalibration'], isFalse);
+      expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(summary['requiresAuthUidToMatchCreatedByUid'], isTrue);
       expect(summary['requiresLocalReviewBeforeFlush'], isTrue);
       expect(summary['requiresOrganizationConsentForOrgMirror'], isTrue);
