@@ -381,5 +381,14 @@ void main() {
       }),
       isFalse,
     );
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid({
+        ...safe,
+        'status': TripVehicleOnlyDwellStatus.manualFallbackRecommended.name,
+        'canSurfaceManualFallback': true,
+        'longTrafficLightProtected': true,
+      }),
+      isFalse,
+    );
   });
 }
