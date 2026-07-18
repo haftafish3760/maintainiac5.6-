@@ -250,4 +250,197 @@ void main() {
     expect(summary['deviceModelIncluded'], isFalse);
     expect(summary['rawSensorPayloadIncluded'], isFalse);
   });
+
+  test('device consent policy enables GPS without requiring maps', () {
+    final decision = TripTrackingDeviceConsentPolicy.evaluate(
+      settings: const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        backgroundTrackingEnabled: true,
+        activityRecognitionEnabled: true,
+        lowBatteryGpsProtectionEnabled: true,
+        mapRouteHistorySavingEnabled: false,
+      ),
+      capabilities: const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: true,
+        batteryStateAvailable: true,
+      ),
+      userConsentedToGps: true,
+      userConsentedToBackground: true,
+      userConsentedToActivityRecognition: true,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.status, TripTrackingDeviceConsentStatus.ready);
+    expect(
+      decision.assistLevel,
+      TripTrackingDeviceAssistLevel.motionAndBatteryAssist,
+    );
+    expect(decision.canStartGpsTracking, isTrue);
+    expect(decision.canUseMotionStopAssist, isTrue);
+    expect(decision.backgroundEnabled, isTrue);
+    expect(decision.activityRecognitionEnabled, isTrue);
+    expect(decision.batteryGuardEnabled, isTrue);
+    expect(decision.mapHistoryEnabled, isFalse);
+    expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
+    expect(summary['mapsRequiredForTracking'], isFalse);
+    expect(summary['mapboxCanEnableGpsTracking'], isFalse);
+    expect(summary['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(summary['activityRecognitionCanOnlySuggestReview'], isTrue);
+    expect(summary['odometerRemainsOfficialMileageTruth'], isTrue);
+  });
+
+  test('activity sensors require explicit consent and capability', () {
+    for (final entry in [
+      (
+        consent: false,
+        capability: true,
+        reason: 'activity_recognition_not_authorized_or_available',
+      ),
+      (
+        consent: true,
+        capability: false,
+        reason: 'activity_recognition_not_authorized_or_available',
+      ),
+    ]) {
+      final decision = TripTrackingDeviceConsentPolicy.evaluate(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+        ),
+        capabilities: TripTrackingPlatformCapabilities(
+          locationAvailable: true,
+          backgroundTrackingAvailable: true,
+          activityRecognitionAvailable: entry.capability,
+          batteryStateAvailable: true,
+        ),
+        userConsentedToGps: true,
+        userConsentedToBackground: false,
+        userConsentedToActivityRecognition: entry.consent,
+      );
+
+      expect(
+        decision.status,
+        TripTrackingDeviceConsentStatus.motionNeedsConsentOrCapability,
+      );
+      expect(decision.activityRecognitionEnabled, isFalse);
+      expect(decision.canUseMotionStopAssist, isFalse);
+      expect(decision.reasonCodes, contains(entry.reason));
+      expect(
+        decision.toSafeSummary()['firebaseCanEnableSensorsWithoutUserConsent'],
+        isFalse,
+      );
+    }
+  });
+
+  test('background tracking requires user consent and native capability', () {
+    final decision = TripTrackingDeviceConsentPolicy.evaluate(
+      settings: const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        backgroundTrackingEnabled: true,
+      ),
+      capabilities: const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: false,
+        activityRecognitionAvailable: false,
+        batteryStateAvailable: false,
+      ),
+      userConsentedToGps: true,
+      userConsentedToBackground: true,
+      userConsentedToActivityRecognition: false,
+    );
+
+    expect(
+      decision.status,
+      TripTrackingDeviceConsentStatus.backgroundNeedsConsentOrCapability,
+    );
+    expect(decision.locationEnabled, isTrue);
+    expect(decision.backgroundEnabled, isFalse);
+    expect(decision.recommendedSettings.backgroundTrackingEnabled, isFalse);
+    expect(
+      decision.toSafeSummary()['backgroundTrackingRequiresPlatformCapability'],
+      isTrue,
+    );
+  });
+
+  test(
+    'GPS disabled or unavailable fails closed without sensor side effects',
+    () {
+      final disabled = TripTrackingDeviceConsentPolicy.evaluate(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: false,
+          backgroundTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+        ),
+        capabilities: const TripTrackingPlatformCapabilities(
+          locationAvailable: true,
+          backgroundTrackingAvailable: true,
+          activityRecognitionAvailable: true,
+          batteryStateAvailable: true,
+        ),
+        userConsentedToGps: false,
+        userConsentedToBackground: true,
+        userConsentedToActivityRecognition: true,
+      );
+      final unavailable = TripTrackingDeviceConsentPolicy.evaluate(
+        settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+        capabilities: const TripTrackingPlatformCapabilities(
+          locationAvailable: false,
+          backgroundTrackingAvailable: true,
+          activityRecognitionAvailable: true,
+        ),
+        userConsentedToGps: true,
+        userConsentedToBackground: true,
+        userConsentedToActivityRecognition: true,
+      );
+
+      expect(
+        disabled.status,
+        TripTrackingDeviceConsentStatus.gpsDisabledByUser,
+      );
+      expect(disabled.canStartGpsTracking, isFalse);
+      expect(disabled.activityRecognitionEnabled, isFalse);
+      expect(
+        unavailable.status,
+        TripTrackingDeviceConsentStatus.locationUnavailable,
+      );
+      expect(unavailable.canStartGpsTracking, isFalse);
+      expect(
+        unavailable.assistLevel,
+        TripTrackingDeviceAssistLevel.unavailable,
+      );
+    },
+  );
+
+  test('device consent summary is safe for logs and employers', () {
+    final summary = TripTrackingDeviceConsentPolicy.evaluate(
+      settings: const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        activityRecognitionEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1,
+      ),
+      capabilities: const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: true,
+        batteryStateAvailable: true,
+      ),
+      userConsentedToGps: true,
+      userConsentedToBackground: false,
+      userConsentedToActivityRecognition: true,
+    ).toSafeSummary();
+
+    expect(summary['employerCanEnableTrackingWithoutUserConsent'], isFalse);
+    expect(summary['deviceCapabilityCanSilentlyStartTracking'], isFalse);
+    expect(summary['batteryGuardCanStopTripAutomatically'], isFalse);
+    expect(summary['batteryGuardCanDeleteTripRecords'], isFalse);
+    expect(summary['rawSensorPayloadIncluded'], isFalse);
+    expect(summary['preciseLocationIncluded'], isFalse);
+    expect(summary['deviceModelIncluded'], isFalse);
+    expect(summary['tokensIncluded'], isFalse);
+    expect(summary.toString(), isNot(contains('pk.')));
+    expect(summary.toString(), isNot(contains('sk.')));
+  });
 }

@@ -9,6 +9,174 @@ enum TripTrackingStorageDecisionStatus {
   reviewStorage,
 }
 
+enum TripTrackingDeviceAssistLevel {
+  unavailable,
+  locationOnly,
+  locationWithBatteryGuard,
+  motionAssist,
+  motionAndBatteryAssist,
+}
+
+enum TripTrackingDeviceConsentStatus {
+  ready,
+  gpsDisabledByUser,
+  locationUnavailable,
+  backgroundNeedsConsentOrCapability,
+  motionNeedsConsentOrCapability,
+}
+
+class TripTrackingDeviceConsentDecision {
+  const TripTrackingDeviceConsentDecision({
+    required this.status,
+    required this.assistLevel,
+    required this.locationEnabled,
+    required this.backgroundEnabled,
+    required this.activityRecognitionEnabled,
+    required this.batteryGuardEnabled,
+    required this.mapHistoryEnabled,
+    required this.reasonCodes,
+    required this.recommendedSettings,
+  });
+
+  final TripTrackingDeviceConsentStatus status;
+  final TripTrackingDeviceAssistLevel assistLevel;
+  final bool locationEnabled;
+  final bool backgroundEnabled;
+  final bool activityRecognitionEnabled;
+  final bool batteryGuardEnabled;
+  final bool mapHistoryEnabled;
+  final List<String> reasonCodes;
+  final TripTrackingSettings recommendedSettings;
+
+  bool get canStartGpsTracking =>
+      status == TripTrackingDeviceConsentStatus.ready && locationEnabled;
+
+  bool get canUseMotionStopAssist =>
+      canStartGpsTracking && activityRecognitionEnabled;
+
+  Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'assistLevel': assistLevel.name,
+    'reasonCodes': reasonCodes,
+    'canStartGpsTracking': canStartGpsTracking,
+    'canUseMotionStopAssist': canUseMotionStopAssist,
+    'locationEnabled': locationEnabled,
+    'backgroundEnabled': backgroundEnabled,
+    'activityRecognitionEnabled': activityRecognitionEnabled,
+    'batteryGuardEnabled': batteryGuardEnabled,
+    'mapHistoryEnabled': mapHistoryEnabled,
+    'gpsTrackingCanRunWithoutMaps': true,
+    'mapsRequiredForTracking': false,
+    'mapHistoryRequiresSeparateOptIn': true,
+    'mapboxCanEnableGpsTracking': false,
+    'mapboxCanEnableMotionSensors': false,
+    'firebaseCanEnableSensorsWithoutUserConsent': false,
+    'employerCanEnableTrackingWithoutUserConsent': false,
+    'activityRecognitionRequiresUserConsent': true,
+    'backgroundTrackingRequiresUserConsent': true,
+    'backgroundTrackingRequiresPlatformCapability': true,
+    'deviceCapabilityTrustedAfterValidationOnly': true,
+    'deviceCapabilityCanSilentlyStartTracking': false,
+    'activityRecognitionCanCreateOfficialStop': false,
+    'activityRecognitionCanOnlySuggestReview': true,
+    'batteryGuardCanStopTripAutomatically': false,
+    'batteryGuardCanDeleteTripRecords': false,
+    'lowBatteryDefaultGpsPausePercent': 20,
+    'lowBatteryPauseCanBeOverriddenByUser': true,
+    'odometerRemainsOfficialMileageTruth': true,
+    'rawSensorPayloadIncluded': false,
+    'preciseLocationIncluded': false,
+    'deviceModelIncluded': false,
+    'tokensIncluded': false,
+  };
+}
+
+class TripTrackingDeviceConsentPolicy {
+  const TripTrackingDeviceConsentPolicy._();
+
+  static TripTrackingDeviceConsentDecision evaluate({
+    required TripTrackingSettings settings,
+    required TripTrackingPlatformCapabilities capabilities,
+    required bool userConsentedToGps,
+    required bool userConsentedToBackground,
+    required bool userConsentedToActivityRecognition,
+  }) {
+    final reasons = <String>[];
+    if (!settings.gpsAssistedTrackingEnabled || !userConsentedToGps) {
+      reasons.add('gps_tracking_not_enabled_by_user');
+    }
+    if (!capabilities.locationAvailable) {
+      reasons.add('location_capability_unavailable');
+    }
+
+    final locationEnabled =
+        settings.gpsAssistedTrackingEnabled &&
+        userConsentedToGps &&
+        capabilities.locationAvailable;
+    final backgroundEnabled =
+        locationEnabled &&
+        settings.backgroundTrackingEnabled &&
+        userConsentedToBackground &&
+        capabilities.backgroundTrackingAvailable;
+    if (settings.backgroundTrackingEnabled &&
+        (!userConsentedToBackground ||
+            !capabilities.backgroundTrackingAvailable)) {
+      reasons.add('background_tracking_not_authorized_or_available');
+    }
+
+    final activityRecognitionEnabled =
+        locationEnabled &&
+        settings.activityRecognitionEnabled &&
+        userConsentedToActivityRecognition &&
+        capabilities.activityRecognitionAvailable;
+    if (settings.activityRecognitionEnabled &&
+        (!userConsentedToActivityRecognition ||
+            !capabilities.activityRecognitionAvailable)) {
+      reasons.add('activity_recognition_not_authorized_or_available');
+    }
+
+    final batteryGuardEnabled =
+        locationEnabled &&
+        settings.lowBatteryGpsProtectionEnabled &&
+        capabilities.batteryStateAvailable;
+    final mapHistoryEnabled =
+        locationEnabled &&
+        settings.mapRouteHistorySavingEnabled &&
+        settings.mapRouteHistoryDailyBudgetMb > 0;
+
+    final status = _statusFor(
+      locationEnabled: locationEnabled,
+      gpsRequested: settings.gpsAssistedTrackingEnabled || userConsentedToGps,
+      locationAvailable: capabilities.locationAvailable,
+      backgroundRequested: settings.backgroundTrackingEnabled,
+      backgroundEnabled: backgroundEnabled,
+      activityRequested: settings.activityRecognitionEnabled,
+      activityEnabled: activityRecognitionEnabled,
+    );
+    return TripTrackingDeviceConsentDecision(
+      status: status,
+      assistLevel: _assistLevelFor(
+        locationEnabled: locationEnabled,
+        activityRecognitionEnabled: activityRecognitionEnabled,
+        batteryGuardEnabled: batteryGuardEnabled,
+      ),
+      locationEnabled: locationEnabled,
+      backgroundEnabled: backgroundEnabled,
+      activityRecognitionEnabled: activityRecognitionEnabled,
+      batteryGuardEnabled: batteryGuardEnabled,
+      mapHistoryEnabled: mapHistoryEnabled,
+      reasonCodes: List.unmodifiable(reasons.isEmpty ? ['ready'] : reasons),
+      recommendedSettings: settings.copyWith(
+        backgroundTrackingEnabled: backgroundEnabled,
+        activityRecognitionEnabled: activityRecognitionEnabled,
+        lowBatteryGpsProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
+        mapRouteHistorySavingEnabled: mapHistoryEnabled,
+      ),
+    );
+  }
+}
+
 class TripTrackingStorageDecision {
   const TripTrackingStorageDecision({
     required this.status,
@@ -106,6 +274,48 @@ class TripTrackingStorageDecision {
       mapRouteHistoryAllowed: mapRouteHistoryRequested,
     );
   }
+}
+
+TripTrackingDeviceConsentStatus _statusFor({
+  required bool locationEnabled,
+  required bool gpsRequested,
+  required bool locationAvailable,
+  required bool backgroundRequested,
+  required bool backgroundEnabled,
+  required bool activityRequested,
+  required bool activityEnabled,
+}) {
+  if (!locationAvailable && gpsRequested) {
+    return TripTrackingDeviceConsentStatus.locationUnavailable;
+  }
+  if (!locationEnabled) {
+    return TripTrackingDeviceConsentStatus.gpsDisabledByUser;
+  }
+  if (backgroundRequested && !backgroundEnabled) {
+    return TripTrackingDeviceConsentStatus.backgroundNeedsConsentOrCapability;
+  }
+  if (activityRequested && !activityEnabled) {
+    return TripTrackingDeviceConsentStatus.motionNeedsConsentOrCapability;
+  }
+  return TripTrackingDeviceConsentStatus.ready;
+}
+
+TripTrackingDeviceAssistLevel _assistLevelFor({
+  required bool locationEnabled,
+  required bool activityRecognitionEnabled,
+  required bool batteryGuardEnabled,
+}) {
+  if (!locationEnabled) return TripTrackingDeviceAssistLevel.unavailable;
+  if (activityRecognitionEnabled && batteryGuardEnabled) {
+    return TripTrackingDeviceAssistLevel.motionAndBatteryAssist;
+  }
+  if (activityRecognitionEnabled) {
+    return TripTrackingDeviceAssistLevel.motionAssist;
+  }
+  if (batteryGuardEnabled) {
+    return TripTrackingDeviceAssistLevel.locationWithBatteryGuard;
+  }
+  return TripTrackingDeviceAssistLevel.locationOnly;
 }
 
 class TripTrackingDeviceOperationalPolicy {
