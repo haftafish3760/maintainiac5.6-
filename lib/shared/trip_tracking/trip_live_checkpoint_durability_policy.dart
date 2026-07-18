@@ -44,6 +44,8 @@ class TripLiveCheckpointDurabilityDecision {
     'remoteBackupCanOverrideLocalDay': false,
     'remoteBackupCanDeleteLocalData': false,
     'remoteBackupCanConfirmCheckpoint': false,
+    'remoteBackupCanSetGlobalTruth': false,
+    'remoteBackupCanChangeOfficialMileage': false,
     'checkpointPolicyCanDeleteLocalData': false,
     'backupFailureCanStopGpsTracking': false,
     'backupFailureCanDropCurrentCheckpoint': false,
@@ -60,6 +62,8 @@ class TripLiveCheckpointDurabilityDecision {
     'optimizationCannotChangeOfficialMileage': true,
     'checkpointCanApplyCalibration': false,
     'checkpointCanCreateOfficialMileage': false,
+    'checkpointCanSetGlobalTruth': false,
+    'checkpointCanChangeOfficialMileage': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
     'mapboxCanCreateCheckpoint': false,
@@ -96,6 +100,8 @@ class TripLiveCheckpointDurabilitySummaryValidation {
       'remoteBackupCanOverrideLocalDay',
       'remoteBackupCanDeleteLocalData',
       'remoteBackupCanConfirmCheckpoint',
+      'remoteBackupCanSetGlobalTruth',
+      'remoteBackupCanChangeOfficialMileage',
       'checkpointPolicyCanDeleteLocalData',
       'backupFailureCanStopGpsTracking',
       'backupFailureCanDropCurrentCheckpoint',
@@ -112,6 +118,8 @@ class TripLiveCheckpointDurabilitySummaryValidation {
       'optimizationCannotChangeOfficialMileage',
       'checkpointCanApplyCalibration',
       'checkpointCanCreateOfficialMileage',
+      'checkpointCanSetGlobalTruth',
+      'checkpointCanChangeOfficialMileage',
       'calibrationRequiresTrustedGpsWindow',
       'poorGpsDaysExcludedFromCalibration',
       'mapboxCanCreateCheckpoint',
@@ -144,6 +152,8 @@ class TripLiveCheckpointDurabilitySummaryValidation {
     if (summary['remoteBackupCanOverrideLocalDay'] != false ||
         summary['remoteBackupCanDeleteLocalData'] != false ||
         summary['remoteBackupCanConfirmCheckpoint'] != false ||
+        summary['remoteBackupCanSetGlobalTruth'] != false ||
+        summary['remoteBackupCanChangeOfficialMileage'] != false ||
         summary['checkpointPolicyCanDeleteLocalData'] != false ||
         summary['backupFailureCanStopGpsTracking'] != false ||
         summary['backupFailureCanDropCurrentCheckpoint'] != false) {
@@ -159,6 +169,8 @@ class TripLiveCheckpointDurabilitySummaryValidation {
         summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['checkpointCanApplyCalibration'] != false ||
         summary['checkpointCanCreateOfficialMileage'] != false ||
+        summary['checkpointCanSetGlobalTruth'] != false ||
+        summary['checkpointCanChangeOfficialMileage'] != false ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['mapboxCanCreateCheckpoint'] != false ||

@@ -153,6 +153,8 @@ void main() {
       expect(safe['backupFailureCanDropCurrentCheckpoint'], isFalse);
       expect(safe['remoteBackupCanDeleteLocalData'], isFalse);
       expect(safe['remoteBackupCanConfirmCheckpoint'], isFalse);
+      expect(safe['remoteBackupCanSetGlobalTruth'], isFalse);
+      expect(safe['remoteBackupCanChangeOfficialMileage'], isFalse);
       expect(safe['localCheckpointCanStoreWhileBackupDeferred'], isTrue);
       expect(safe['localCheckpointWriteHasPriorityOverBackup'], isTrue);
       expect(safe['localDaytimeDataNeverSilentlyOverwritten'], isTrue);
@@ -195,6 +197,8 @@ void main() {
       expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe['checkpointCanApplyCalibration'], isFalse);
       expect(safe['checkpointCanCreateOfficialMileage'], isFalse);
+      expect(safe['checkpointCanSetGlobalTruth'], isFalse);
+      expect(safe['checkpointCanChangeOfficialMileage'], isFalse);
       expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
       expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['mapboxCanCreateCheckpoint'], isFalse);
@@ -225,6 +229,8 @@ void main() {
               'remoteBackupCanOverrideLocalDay': true,
               'remoteBackupCanDeleteLocalData': true,
               'remoteBackupCanConfirmCheckpoint': true,
+              'remoteBackupCanSetGlobalTruth': true,
+              'remoteBackupCanChangeOfficialMileage': true,
               'checkpointPolicyCanDeleteLocalData': true,
               'backupFailureCanStopGpsTracking': true,
               'backupFailureCanDropCurrentCheckpoint': true,
@@ -232,6 +238,8 @@ void main() {
               'odometerRemainsOfficialMileageTruth': false,
               'checkpointCanApplyCalibration': true,
               'checkpointCanCreateOfficialMileage': true,
+              'checkpointCanSetGlobalTruth': true,
+              'checkpointCanChangeOfficialMileage': true,
               'calibrationRequiresTrustedGpsWindow': false,
               'poorGpsDaysExcludedFromCalibration': false,
               'mapboxCanCreateCheckpoint': true,

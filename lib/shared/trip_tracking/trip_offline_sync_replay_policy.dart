@@ -57,6 +57,8 @@ class TripOfflineSyncReplayDecision {
     'remoteReplayCanReviveDeletedLocalTrip': false,
     'remoteReplayCanAdvanceLocalRevision': false,
     'remoteReplayCanChangeOdometer': false,
+    'remoteReplayCanSetGlobalTruth': false,
+    'remoteReplayCanChangeOfficialMileage': false,
     'remoteReplayCanCreateStops': false,
     'remoteReplayCanCreateCalibration': false,
     'remoteReplayCanApplyCalibration': false,
@@ -220,6 +222,8 @@ class TripOfflineSyncReplaySummaryValidation {
       'remoteReplayCanReviveDeletedLocalTrip',
       'remoteReplayCanAdvanceLocalRevision',
       'remoteReplayCanChangeOdometer',
+      'remoteReplayCanSetGlobalTruth',
+      'remoteReplayCanChangeOfficialMileage',
       'remoteReplayCanCreateStops',
       'remoteReplayCanCreateCalibration',
       'remoteReplayCanApplyCalibration',
@@ -276,6 +280,8 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['remoteReplayCanReviveDeletedLocalTrip'] != false ||
         summary['remoteReplayCanAdvanceLocalRevision'] != false ||
         summary['remoteReplayCanChangeOdometer'] != false ||
+        summary['remoteReplayCanSetGlobalTruth'] != false ||
+        summary['remoteReplayCanChangeOfficialMileage'] != false ||
         summary['remoteReplayCanCreateStops'] != false ||
         summary['remoteReplayCanCreateCalibration'] != false ||
         summary['remoteReplayCanApplyCalibration'] != false ||

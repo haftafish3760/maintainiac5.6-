@@ -43,6 +43,9 @@ void main() {
       expect(payload['mirrorCanApplyCalibration'], isFalse);
       expect(payload['mirrorCanCreateCalibrationProof'], isFalse);
       expect(payload['mirrorCanCreateOfficialMileage'], isFalse);
+      expect(payload['mirrorCanSetGlobalTruth'], isFalse);
+      expect(payload['mirrorCanChangeOfficialMileage'], isFalse);
+      expect(payload['mirrorCanApplyCalibrationAsGlobalTruth'], isFalse);
       expect(payload['calibrationRequiresTrustedGpsWindow'], isTrue);
       expect(payload['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(
@@ -144,9 +147,12 @@ void main() {
     expect(safe['remoteCheckpointCannotAdvanceLocalRevision'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['mirrorCanConfirmOdometer'], isFalse);
+    expect(safe['mirrorCanSetGlobalTruth'], isFalse);
+    expect(safe['mirrorCanChangeOfficialMileage'], isFalse);
     expect(safe['mirrorCanApplyCalibration'], isFalse);
     expect(safe['mirrorCanCreateCalibrationProof'], isFalse);
     expect(safe['mirrorCanCreateOfficialMileage'], isFalse);
+    expect(safe['mirrorCanApplyCalibrationAsGlobalTruth'], isFalse);
     expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['mapboxCanCreateCheckpoint'], isFalse);
@@ -205,12 +211,15 @@ void main() {
           'backupFailureCanStopGpsTracking': true,
           'backupFailureCanDropCurrentCheckpoint': true,
           'mirrorCanConfirmOdometer': true,
+          'mirrorCanSetGlobalTruth': true,
+          'mirrorCanChangeOfficialMileage': true,
           'mirrorCanCreateStop': true,
           'mirrorCanEndTripAutomatically': true,
           'odometerIsGlobalTruth': false,
           'mirrorCanApplyCalibration': true,
           'mirrorCanCreateCalibrationProof': true,
           'mirrorCanCreateOfficialMileage': true,
+          'mirrorCanApplyCalibrationAsGlobalTruth': true,
           'calibrationRequiresTrustedGpsWindow': false,
           'poorGpsDaysExcludedFromCalibration': false,
           'mapboxCanCreateCheckpoint': true,

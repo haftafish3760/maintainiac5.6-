@@ -55,6 +55,8 @@ class TripSyncReservationCommitDecision {
     'reservationCanCreateStops': false,
     'reservationCanConfirmMileage': false,
     'reservationCanModifyOdometer': false,
+    'reservationCanSetGlobalTruth': false,
+    'reservationCanChangeOfficialMileage': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'remoteCounterCanOverrideLocalLedger': false,
@@ -119,6 +121,8 @@ class TripSyncReservationCommitSummaryValidation {
       'reservationCanCreateStops',
       'reservationCanConfirmMileage',
       'reservationCanModifyOdometer',
+      'reservationCanSetGlobalTruth',
+      'reservationCanChangeOfficialMileage',
       'hiveRemainsOperationalSourceOfTruth',
       'firestoreMirrorOnly',
       'remoteCounterCanOverrideLocalLedger',
@@ -157,6 +161,8 @@ class TripSyncReservationCommitSummaryValidation {
         summary['reservationCanCreateStops'] != false ||
         summary['reservationCanConfirmMileage'] != false ||
         summary['reservationCanModifyOdometer'] != false ||
+        summary['reservationCanSetGlobalTruth'] != false ||
+        summary['reservationCanChangeOfficialMileage'] != false ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
         summary['remoteCounterCanOverrideLocalLedger'] != false ||

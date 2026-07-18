@@ -156,6 +156,8 @@ void main() {
     expect(safe['remoteReplayCanReviveDeletedLocalTrip'], isFalse);
     expect(safe['remoteReplayCanAdvanceLocalRevision'], isFalse);
     expect(safe['remoteReplayCanChangeOdometer'], isFalse);
+    expect(safe['remoteReplayCanSetGlobalTruth'], isFalse);
+    expect(safe['remoteReplayCanChangeOfficialMileage'], isFalse);
     expect(safe['remoteReplayCanCreateStops'], isFalse);
     expect(safe['remoteReplayCanCreateCalibration'], isFalse);
     expect(safe['remoteReplayCanApplyCalibration'], isFalse);
@@ -209,6 +211,8 @@ void main() {
         'remoteReplayCanReviveDeletedLocalTrip': true,
         'remoteReplayCanAdvanceLocalRevision': true,
         'remoteReplayCanChangeOdometer': true,
+        'remoteReplayCanSetGlobalTruth': true,
+        'remoteReplayCanChangeOfficialMileage': true,
         'remoteReplayCanCreateStops': true,
         'remoteReplayCanCreateCalibration': true,
         'remoteReplayCanApplyCalibration': true,

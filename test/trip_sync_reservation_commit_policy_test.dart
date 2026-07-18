@@ -78,6 +78,8 @@ void main() {
     expect(safe['reservationCanCreateStops'], isFalse);
     expect(safe['reservationCanConfirmMileage'], isFalse);
     expect(safe['reservationCanModifyOdometer'], isFalse);
+    expect(safe['reservationCanSetGlobalTruth'], isFalse);
+    expect(safe['reservationCanChangeOfficialMileage'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['remoteCounterCanOverrideLocalLedger'], isFalse);
@@ -149,6 +151,8 @@ void main() {
           'reservationCanCreateStops': true,
           'reservationCanConfirmMileage': true,
           'reservationCanModifyOdometer': true,
+          'reservationCanSetGlobalTruth': true,
+          'reservationCanChangeOfficialMileage': true,
           'hiveRemainsOperationalSourceOfTruth': false,
           'firestoreMirrorOnly': false,
           'remoteCounterCanOverrideLocalLedger': true,
