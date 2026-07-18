@@ -517,16 +517,17 @@ class TripTrackingPendingSample {
     return TripTrackingPendingSample(
       sessionId: sessionId as String,
       sample: sample,
-      activity: _isCoherentPendingActivity(sample, activity) ? activity : null,
+      activity: _isSafePendingActivity(sample, activity) ? activity : null,
     );
   }
 }
 
-bool _isCoherentPendingActivity(
+bool _isSafePendingActivity(
   TripLocationSample sample,
   TripActivityObservation? activity,
 ) {
   if (activity == null) return false;
+  if (activity.confidence < 0 || activity.confidence > 100) return false;
   if (sample.recordedAt.isBefore(activity.recordedAt)) return false;
   return sample.recordedAt.difference(activity.recordedAt) <=
       const Duration(seconds: 90);
@@ -672,6 +673,14 @@ class TripTrackingSessionStore {
           pending.sample,
           'sample',
           'Pending GPS samples require valid coordinates and accuracy.',
+        );
+      }
+      if (pending.activity != null &&
+          !_isSafePendingActivity(pending.sample, pending.activity)) {
+        throw ArgumentError.value(
+          pending.activity,
+          'activity',
+          'Pending GPS activity evidence must be bounded and coherent.',
         );
       }
       if (_storageCheck != null) await _ensureStorageForWrite();
