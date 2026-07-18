@@ -85,6 +85,12 @@ void main() {
       expect(safe['mapboxCanOverrideBatteryChoice'], isFalse);
       expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+      expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe['preciseBatteryIncluded'], isFalse);
       expect(safe['rawBatteryPayloadIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);

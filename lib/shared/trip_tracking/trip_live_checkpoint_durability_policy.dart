@@ -52,6 +52,12 @@ class TripLiveCheckpointDurabilityDecision {
     'localDaytimeDataNeverSilentlyOverwritten': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'checkpointCanApplyCalibration': false,
     'checkpointCanCreateOfficialMileage': false,
     'calibrationRequiresTrustedGpsWindow': true,
@@ -98,6 +104,12 @@ class TripLiveCheckpointDurabilitySummaryValidation {
       'localDaytimeDataNeverSilentlyOverwritten',
       'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'checkpointCanApplyCalibration',
       'checkpointCanCreateOfficialMileage',
       'calibrationRequiresTrustedGpsWindow',
@@ -139,6 +151,12 @@ class TripLiveCheckpointDurabilitySummaryValidation {
     }
     if (summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['checkpointCanApplyCalibration'] != false ||
         summary['checkpointCanCreateOfficialMileage'] != false ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||

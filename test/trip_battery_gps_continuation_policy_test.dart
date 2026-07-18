@@ -109,6 +109,11 @@ void main() {
     expect(safe['gpsPauseCanEndTripAutomatically'], isFalse);
     expect(safe['gpsPauseCanDeleteTripRecords'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
   });
 
   test('background GPS pauses when foreground service is unavailable', () {
@@ -187,6 +192,11 @@ void main() {
       expect(safe['backgroundPermissionCanBeProvidedByFirestore'], isFalse);
       expect(safe['backgroundPermissionCanBeProvidedByMapbox'], isFalse);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+      expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe.toString(), isNot(contains('12')));
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));

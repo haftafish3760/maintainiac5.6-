@@ -95,6 +95,12 @@ void main() {
       expect(safe['permissionLossCannotFeedEngine'], isTrue);
       expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+      expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe['mapsRequiredForRecovery'], isFalse);
       expect(safe['mapboxCanForceRecovery'], isFalse);
       expect(safe['rawNativePayloadIncluded'], isFalse);

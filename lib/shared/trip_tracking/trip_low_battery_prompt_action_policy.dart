@@ -61,6 +61,12 @@ class TripLowBatteryPromptActionDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'mapsRequiredForGps': false,
     'preciseBatteryIncluded': false,
     'rawBatteryPayloadIncluded': false,
@@ -112,6 +118,12 @@ class TripLowBatteryPromptActionSummaryValidation {
       'hiveRemainsOperationalSourceOfTruth',
       'odometerRemainsOfficialMileageTruth',
       'odometerIsGlobalTruth',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'mapsRequiredForGps',
       'preciseBatteryIncluded',
       'rawBatteryPayloadIncluded',
@@ -143,7 +155,13 @@ class TripLowBatteryPromptActionSummaryValidation {
         summary['batteryActionCanConfirmMileage'] != false ||
         summary['batteryActionCanCreateOfficialStop'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
-        summary['odometerIsGlobalTruth'] != true) {
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true) {
       reasons.add('battery_action_claims_trip_truth');
     }
     if (summary['firebaseCanOverrideBatteryChoice'] != false ||

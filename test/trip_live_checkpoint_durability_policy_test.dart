@@ -187,6 +187,12 @@ void main() {
       expect(safe['backupMirrorRequiresMatchingLocalRevision'], isTrue);
       expect(safe['lowStorageCanBlockTextCheckpointAboveReserve'], isFalse);
       expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe['checkpointCanApplyCalibration'], isFalse);
       expect(safe['checkpointCanCreateOfficialMileage'], isFalse);
       expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);

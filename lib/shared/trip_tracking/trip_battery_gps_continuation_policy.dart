@@ -72,6 +72,12 @@ class TripBatteryGpsContinuationDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'preciseBatteryIncluded': false,
     'rawBatteryPayloadIncluded': false,
     'tokensIncluded': false,
@@ -131,6 +137,12 @@ class TripBatteryGpsContinuationSummaryValidation {
       'hiveRemainsOperationalSourceOfTruth',
       'odometerRemainsOfficialMileageTruth',
       'odometerIsGlobalTruth',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'preciseBatteryIncluded',
       'rawBatteryPayloadIncluded',
       'tokensIncluded',
@@ -142,7 +154,13 @@ class TripBatteryGpsContinuationSummaryValidation {
         summary['gpsPauseCanConfirmMileage'] != false ||
         summary['gpsPauseCanCreateOfficialStop'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
-        summary['odometerIsGlobalTruth'] != true) {
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true) {
       reasons.add('battery_pause_claims_trip_truth');
     }
     if (summary['textTripLogContinuesWithoutGps'] !=

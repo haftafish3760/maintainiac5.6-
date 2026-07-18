@@ -80,6 +80,12 @@ class TripNativeEventLifecycleDecision {
     'completedSessionCanResume': false,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'rawNativePayloadIncluded': false,
     'rawLocationIncluded': false,
     'preciseTimestampIncluded': false,
@@ -149,7 +155,13 @@ class TripNativeEventLifecycleSummaryValidation {
       reasons.add('interruption_recovery_boundary_missing');
     }
     if (summary['odometerRemainsOfficialMileageTruth'] != true ||
-        summary['odometerIsGlobalTruth'] != true) {
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true) {
       reasons.add('odometer_truth_boundary_missing');
     }
     if (summary['rawNativePayloadIncluded'] != false ||

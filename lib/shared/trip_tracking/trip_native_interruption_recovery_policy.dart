@@ -72,6 +72,12 @@ class TripNativeInterruptionRecoveryDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'rawNativePayloadIncluded': false,
     'rawLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -114,7 +120,13 @@ class TripNativeInterruptionRecoverySummaryValidation {
     if (summary['localCheckpointRequiredForRecovery'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
-        summary['odometerIsGlobalTruth'] != true) {
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true) {
       reasons.add('local_recovery_truth_boundary_missing');
     }
     if (summary['nativeInterruptionCanEndTripAutomatically'] != false ||

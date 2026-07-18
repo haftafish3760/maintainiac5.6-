@@ -143,6 +143,12 @@ void main() {
 
       expect(decision.action, TripNativeEventLifecycleAction.markInterrupted);
       expect(decision.to, TripTrackingSessionLifecycleState.failedRecoverable);
+      expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe['rawNativePayloadIncluded'], isFalse);
       expect(safe['rawLocationIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
