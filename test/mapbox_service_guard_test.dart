@@ -161,6 +161,47 @@ void main() {
     expect(oversizedSearch.safeReason, 'mapbox_search_unexpected_shape');
   });
 
+  test('matrix service requires bounded reachable cells before readiness', () {
+    final allUnreachable = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.matrix,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'durations': [
+          [null, null],
+          [null, null],
+        ],
+      },
+    );
+    final oversized = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.matrix,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: {
+        'code': 'Ok',
+        'durations': [List<num>.filled(26, 60)],
+      },
+    );
+    final impossibleDuration = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.matrix,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'durations': [
+          [0, 60 * 60 * 24 * 15],
+        ],
+      },
+    );
+
+    expect(allUnreachable.canUseFeature, isFalse);
+    expect(allUnreachable.shouldFallbackToGpsOnly, isTrue);
+    expect(allUnreachable.safeReason, 'mapbox_matrix_unexpected_shape');
+    expect(oversized.canUseFeature, isFalse);
+    expect(impossibleDuration.canUseFeature, isFalse);
+  });
+
   test('retry-after values are type checked and bounded', () {
     int? retry(Object? raw) => MapboxServiceGuard.evaluate(
       kind: MapboxOptionalServiceKind.search,

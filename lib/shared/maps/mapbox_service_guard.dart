@@ -128,8 +128,8 @@ bool _hasExpectedShape(MapboxOptionalServiceKind kind, Map body) {
     MapboxOptionalServiceKind.maps => true,
     MapboxOptionalServiceKind.directions => _hasUsableRouteList(body['routes']),
     MapboxOptionalServiceKind.matrix =>
-      _hasUsableMatrix(body['durations']) ||
-          _hasUsableMatrix(body['distances']),
+      _hasUsableMatrix(body['durations'], maxCellValue: 60 * 60 * 24 * 14) ||
+          _hasUsableMatrix(body['distances'], maxCellValue: 20000000),
     MapboxOptionalServiceKind.mapMatching =>
       _hasUsableRouteList(body['matchings']) ||
           _hasUsableRouteList(body['routes']),
@@ -170,17 +170,19 @@ bool _hasUsableRouteShape(Object? value) {
       duration != null;
 }
 
-bool _hasUsableMatrix(Object? value) {
-  if (value is! List || value.isEmpty || value.length > 50) return false;
+bool _hasUsableMatrix(Object? value, {required double maxCellValue}) {
+  if (value is! List || value.isEmpty || value.length > 25) return false;
+  var hasReachableCell = false;
   for (final row in value) {
-    if (row is! List || row.isEmpty || row.length > 50) return false;
+    if (row is! List || row.isEmpty || row.length > 25) return false;
     for (final cell in row) {
       if (cell == null) continue;
       final number = _safeFiniteNumber(cell);
-      if (number == null || number < 0 || number > 20000000) return false;
+      if (number == null || number < 0 || number > maxCellValue) return false;
+      hasReachableCell = true;
     }
   }
-  return true;
+  return hasReachableCell;
 }
 
 bool _hasUsableFeatureList(Object? value) {
