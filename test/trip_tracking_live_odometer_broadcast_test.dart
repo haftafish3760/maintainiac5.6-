@@ -301,6 +301,10 @@ void main() {
     expect(safe['routeGeometryIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
     expect(safe['gpsCanReplaceOdometer'], isFalse);
+    expect(safe['gpsCanSetGlobalTruth'], isFalse);
+    expect(safe['gpsCanChangeOfficialMileage'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
+    expect(safe['mapboxCanSetGlobalTruth'], isFalse);
+    expect(safe['mapboxCanChangeOfficialMileage'], isFalse);
   });
 }

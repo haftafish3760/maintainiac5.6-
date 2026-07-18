@@ -52,9 +52,13 @@ class TripLiveOdometerPayloadGuardDecision {
     'remotePayloadCanAdvanceProjectionRevision': false,
     'dashboardCacheCanOverrideLocalTrip': false,
     'mapboxCanReplaceOdometer': false,
+    'mapboxCanSetGlobalTruth': false,
+    'mapboxCanChangeOfficialMileage': false,
     'mapboxCanRenderWithoutLocalTrip': false,
     'mapboxCanIncreaseLiveMileage': false,
     'cloudFunctionCanConfirmOdometer': false,
+    'cloudFunctionCanSetGlobalTruth': false,
+    'cloudFunctionCanChangeOfficialMileage': false,
     'firestoreCanOverrideLiveDisplay': false,
     'staleProjectionCanCommitMileage': false,
     'staleProjectionCanNotifyAsFresh': false,
@@ -96,6 +100,8 @@ class TripLiveOdometerPayloadGuard {
     if (payload['writesConfirmedOdometer'] != false ||
         payload['gpsCanReplaceOdometer'] != false ||
         payload['mapboxCanReplaceOdometer'] != false ||
+        payload['mapboxCanSetGlobalTruth'] != false ||
+        payload['mapboxCanChangeOfficialMileage'] != false ||
         payload['mapboxCanIncreaseLiveMileage'] == true ||
         payload['displayProjectionIsNotOfficialMileage'] != true ||
         payload['liveProjectionCanSetGlobalTruth'] == true ||
@@ -109,6 +115,9 @@ class TripLiveOdometerPayloadGuard {
     }
     if (payload['firestoreCanOverrideLiveDisplay'] != false ||
         payload['firestoreCanOverrideLiveProjection'] == true ||
+        payload['cloudFunctionCanSetGlobalTruth'] == true ||
+        payload['cloudFunctionCanChangeOfficialMileage'] == true ||
+        payload['cloudFunctionCanConfirmOdometer'] == true ||
         payload['remoteDisplayCanOverrideLocalTrip'] != false ||
         payload['remoteProjectionCanOverrideLocalTrip'] == true ||
         payload['dashboardCacheCanOverrideLocalTrip'] != false ||

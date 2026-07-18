@@ -51,6 +51,8 @@ void main() {
     expect(guard['remotePayloadCanConfirmOdometer'], isFalse);
     expect(guard['remotePayloadCanAdvanceProjectionRevision'], isFalse);
     expect(guard['mapboxCanRenderWithoutLocalTrip'], isFalse);
+    expect(guard['mapboxCanSetGlobalTruth'], isFalse);
+    expect(guard['mapboxCanChangeOfficialMileage'], isFalse);
     expect(guard['mapboxCanIncreaseLiveMileage'], isFalse);
     expect(validation.isRenderable, isTrue);
   });
@@ -76,6 +78,8 @@ void main() {
           'writesConfirmedOdometer': true,
           'liveProjectionCanSetGlobalTruth': true,
           'liveProjectionCanConfirmOfficialMileage': true,
+          'mapboxCanSetGlobalTruth': true,
+          'mapboxCanChangeOfficialMileage': true,
           'remoteProjectionCanReviveEndedTrip': true,
           'staleProjectionCanNotifyAsFresh': true,
           'calibrationCanCommitWithoutReview': true,

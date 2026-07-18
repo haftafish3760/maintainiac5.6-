@@ -76,7 +76,11 @@ class TripLiveOdometerProjection {
     'optimizationCannotChangeOfficialMileage': true,
     'manualConfirmationRequired': true,
     'gpsCanReplaceOdometer': false,
+    'gpsCanSetGlobalTruth': false,
+    'gpsCanChangeOfficialMileage': false,
     'mapboxCanReplaceOdometer': false,
+    'mapboxCanSetGlobalTruth': false,
+    'mapboxCanChangeOfficialMileage': false,
     'mapsRequiredForTracking': false,
     'mapboxCanChangeProjection': false,
     'calibrationCanCommitWithoutReview': false,
@@ -202,6 +206,12 @@ class TripLiveOdometerDashboardPayloadValidation {
     }
     if (payload['manualConfirmationRequired'] != true) {
       reasons.add('manual_confirmation_not_required');
+    }
+    if (payload['gpsCanSetGlobalTruth'] != false ||
+        payload['gpsCanChangeOfficialMileage'] != false ||
+        payload['mapboxCanSetGlobalTruth'] != false ||
+        payload['mapboxCanChangeOfficialMileage'] != false) {
+      reasons.add('external_mileage_claims_global_truth');
     }
     if (payload['matchingActiveTripRequired'] != true ||
         payload['remoteProjectionRequiresMatchingTripId'] != true ||

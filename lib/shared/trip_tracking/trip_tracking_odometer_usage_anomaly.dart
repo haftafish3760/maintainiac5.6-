@@ -55,8 +55,14 @@ class TripOdometerUsageAnomalySignal {
     'odometerRemainsCanonical': true,
     'odometerIsGlobalTruth': true,
     'gpsCanReplaceOdometer': false,
+    'gpsCanSetGlobalTruth': false,
+    'gpsCanChangeOfficialMileage': false,
     'mapboxCanReplaceOdometer': false,
+    'mapboxCanSetGlobalTruth': false,
+    'mapboxCanChangeOfficialMileage': false,
     'remoteTotalsCanReplaceOdometer': false,
+    'remoteTotalsCanSetGlobalTruth': false,
+    'remoteTotalsCanChangeOfficialMileage': false,
     'firestoreCanCreateUsageAnomaly': false,
     'mapboxCanCreateUsageAnomaly': false,
     'usageAnomalyCanBlockWithoutUserReview': false,
@@ -253,8 +259,14 @@ class TripOdometerUsageAnomalySummaryValidation {
         summary['odometerRemainsCanonical'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
         summary['gpsCanReplaceOdometer'] != false ||
+        summary['gpsCanSetGlobalTruth'] != false ||
+        summary['gpsCanChangeOfficialMileage'] != false ||
         summary['mapboxCanReplaceOdometer'] != false ||
+        summary['mapboxCanSetGlobalTruth'] != false ||
+        summary['mapboxCanChangeOfficialMileage'] != false ||
         summary['remoteTotalsCanReplaceOdometer'] != false ||
+        summary['remoteTotalsCanSetGlobalTruth'] != false ||
+        summary['remoteTotalsCanChangeOfficialMileage'] != false ||
         summary['usageAnomalyCanBlockWithoutUserReview'] != false) {
       reasons.add('usage_anomaly_can_mutate_odometer_truth');
     }
