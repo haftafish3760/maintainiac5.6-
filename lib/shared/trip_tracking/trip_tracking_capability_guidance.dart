@@ -39,6 +39,32 @@ class TripTrackingCapabilityGuidance {
   bool get hasSafetySensors =>
       canUseBatteryGuard || canUseActivityRecognition || canUseLowPowerGuard;
 
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'readiness': readiness.name,
+    'canStartForegroundGps': canStartForegroundGps,
+    'canStartBackgroundGps': canStartBackgroundGps,
+    'canUseActivityRecognition': canUseActivityRecognition,
+    'canUseBatteryGuard': canUseBatteryGuard,
+    'canUseLowPowerGuard': canUseLowPowerGuard,
+    'gpsUnavailable': gpsUnavailable,
+    'hasSafetySensors': hasSafetySensors,
+    'safeStatus': safeStatus,
+    'dashboardBadge': dashboardBadge,
+    'gpsAssistRequiresOptIn': true,
+    'backgroundTrackingRequiresOptIn': true,
+    'activityRecognitionRequiresOptIn': true,
+    'batteryGuardRequiresOptIn': true,
+    'deviceCapabilityCanReduceAccuracy': true,
+    'gpsTrackingCanRunWithoutMaps': true,
+    'mapsRequiredForTracking': false,
+    'odometerRemainsCanonical': true,
+    'rawNativePayloadIncluded': false,
+    'rawSensorPayloadIncluded': false,
+    'preciseLocationIncluded': false,
+    'tokensIncluded': false,
+  };
+
   static TripTrackingCapabilityGuidance fromCapabilities({
     required TripTrackingPlatformCapabilities capabilities,
     required TripTrackingSettings settings,

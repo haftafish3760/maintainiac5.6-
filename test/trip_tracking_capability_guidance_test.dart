@@ -168,6 +168,19 @@ void main() {
       expect(guidance.safeStatus, isNot(contains('{')));
       expect(guidance.safeStatus, isNot(contains('latitude')));
       expect(guidance.safeStatus, isNot(contains('token')));
+      final summary = guidance.toSafeDashboardMap();
+      expect(summary['schemaVersion'], 1);
+      expect(summary['gpsAssistRequiresOptIn'], isTrue);
+      expect(summary['activityRecognitionRequiresOptIn'], isTrue);
+      expect(summary['backgroundTrackingRequiresOptIn'], isTrue);
+      expect(summary['deviceCapabilityCanReduceAccuracy'], isTrue);
+      expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
+      expect(summary['mapsRequiredForTracking'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['rawNativePayloadIncluded'], isFalse);
+      expect(summary['rawSensorPayloadIncluded'], isFalse);
+      expect(summary['preciseLocationIncluded'], isFalse);
+      expect(summary['tokensIncluded'], isFalse);
     }
   });
 }

@@ -17,6 +17,9 @@ void main() {
     expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(summary['mapsRequireSeparateOptIn'], isTrue);
     expect(summary['routeHistoryRequiresSeparateOptIn'], isTrue);
+    expect(summary['canSilentlyDeleteRouteHistory'], isFalse);
+    expect(summary['localTripLogProtected'], isTrue);
+    expect(summary['purgeRequiresConfirmedBackupOrUserAction'], isTrue);
     expect(summary['rawCoordinatesIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
     expect(summary['mapboxGeometryIncluded'], isFalse);
@@ -165,6 +168,16 @@ void main() {
     expect(
       exhausted.toSafeDashboardMap()['mapStorageFailureStopsGpsTracking'],
       isFalse,
+    );
+    expect(
+      exhausted.toSafeDashboardMap()['canSilentlyDeleteRouteHistory'],
+      isFalse,
+    );
+    expect(exhausted.toSafeDashboardMap()['localTripLogProtected'], isTrue);
+    expect(
+      exhausted
+          .toSafeDashboardMap()['purgeRequiresConfirmedBackupOrUserAction'],
+      isTrue,
     );
     expect(exhausted.toSafeDashboardMap()['rawCoordinatesIncluded'], isFalse);
   });
