@@ -75,6 +75,9 @@ void main() {
     expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
     expect(safe['sampleWindowRequiresLocalDeviceSource'], isTrue);
     expect(safe['sampleWindowRequiresOwnershipValidation'], isTrue);
+    expect(safe['sampleWindowRequiresIntakeGuardBeforeEvaluation'], isTrue);
+    expect(safe['simulatorWindowRequiresExplicitTestHarness'], isTrue);
+    expect(safe['simulatorWindowCannotWriteProductionHistory'], isTrue);
     expect(safe['authenticationAloneAuthorizesWindowUse'], isFalse);
   });
 
@@ -129,6 +132,25 @@ void main() {
     expect(decision.canFeedLiveOdometerProjection, isTrue);
     expect(safe['futureSamplesRejected'], isTrue);
     expect(safe['remoteWindowCanRepairInvalidSamples'], isFalse);
+  });
+
+  test('duplicate timestamps reject a segment before live projection', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000),
+        sample(0, 35.0002, -80.0000),
+        sample(20, 35.0004, -80.0000),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripSampleWindowQualityStatus.degradedTrackingOnly);
+    expect(decision.rejectedGapSegmentCount, 1);
+    expect(decision.acceptedSegmentCount, 1);
+    expect(decision.canFeedLiveOdometerProjection, isTrue);
+    expect(safe['duplicateOrOutOfOrderSegmentsRejected'], isTrue);
+    expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
   });
 
   test('stale samples fail closed instead of reviving old daytime mileage', () {
@@ -294,6 +316,9 @@ void main() {
         ).toSafeDashboardMap()..addAll({
           'sampleWindowRequiresLocalDeviceSource': false,
           'sampleWindowRequiresOwnershipValidation': false,
+          'sampleWindowRequiresIntakeGuardBeforeEvaluation': false,
+          'simulatorWindowRequiresExplicitTestHarness': false,
+          'simulatorWindowCannotWriteProductionHistory': false,
           'authenticationAloneAuthorizesWindowUse': true,
           'mapboxCanOverrideWindowQuality': true,
           'firestoreCanOverrideWindowQuality': true,
@@ -327,6 +352,7 @@ void main() {
             'sampleWindowCanConfirmOdometer': true,
             'sampleWindowCanCreateOfficialStop': true,
             'sampleWindowCanDeleteTripData': true,
+            'duplicateOrOutOfOrderSegmentsRejected': false,
             'odometerRemainsOfficialMileageTruth': false,
             'rawSamplesIncluded': true,
             'coordinatesIncluded': true,

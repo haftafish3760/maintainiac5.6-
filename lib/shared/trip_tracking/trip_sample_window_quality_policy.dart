@@ -67,6 +67,9 @@ class TripSampleWindowQualityDecision {
     'segmentRejectionReasonsCounted': true,
     'sampleWindowRequiresLocalDeviceSource': true,
     'sampleWindowRequiresOwnershipValidation': true,
+    'sampleWindowRequiresIntakeGuardBeforeEvaluation': true,
+    'simulatorWindowRequiresExplicitTestHarness': true,
+    'simulatorWindowCannotWriteProductionHistory': true,
     'authenticationAloneAuthorizesWindowUse': false,
     'sampleWindowCanConfirmOdometer': false,
     'sampleWindowCanCreateOfficialStop': false,
@@ -78,6 +81,7 @@ class TripSampleWindowQualityDecision {
     'odometerRemainsOfficialMileageTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'sampleTimestampsValidated': true,
+    'duplicateOrOutOfOrderSegmentsRejected': true,
     'futureSamplesRejected': true,
     'staleSamplesRejectedWhenEvaluationClockProvided': true,
     'rawSamplesIncluded': false,
@@ -144,10 +148,14 @@ class TripSampleWindowQualitySummaryValidation {
       'odometerRemainsOfficialMileageTruth',
       'hiveRemainsOperationalSourceOfTruth',
       'sampleTimestampsValidated',
+      'duplicateOrOutOfOrderSegmentsRejected',
       'futureSamplesRejected',
       'staleSamplesRejectedWhenEvaluationClockProvided',
       'sampleWindowRequiresLocalDeviceSource',
       'sampleWindowRequiresOwnershipValidation',
+      'sampleWindowRequiresIntakeGuardBeforeEvaluation',
+      'simulatorWindowRequiresExplicitTestHarness',
+      'simulatorWindowCannotWriteProductionHistory',
     ]) {
       if (summary[key] is! bool) reasons.add('${key}_not_bool');
     }
@@ -159,6 +167,9 @@ class TripSampleWindowQualitySummaryValidation {
     }
     if (summary['sampleWindowRequiresLocalDeviceSource'] != true ||
         summary['sampleWindowRequiresOwnershipValidation'] != true ||
+        summary['sampleWindowRequiresIntakeGuardBeforeEvaluation'] != true ||
+        summary['simulatorWindowRequiresExplicitTestHarness'] != true ||
+        summary['simulatorWindowCannotWriteProductionHistory'] != true ||
         summary['authenticationAloneAuthorizesWindowUse'] != false) {
       reasons.add('sample_window_authorization_boundary_missing');
     }
@@ -174,7 +185,8 @@ class TripSampleWindowQualitySummaryValidation {
         summary['remoteWindowCanRepairInvalidSamples'] != false) {
       reasons.add('remote_can_override_sample_window');
     }
-    if (summary['rawSamplesIncluded'] != false ||
+    if (summary['duplicateOrOutOfOrderSegmentsRejected'] != true ||
+        summary['rawSamplesIncluded'] != false ||
         summary['coordinatesIncluded'] != false ||
         summary['preciseTimestampsIncluded'] != false ||
         summary['routeGeometryIncluded'] != false ||
