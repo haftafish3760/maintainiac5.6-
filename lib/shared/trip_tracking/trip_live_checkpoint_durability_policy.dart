@@ -35,14 +35,19 @@ class TripLiveCheckpointDurabilityDecision {
     'mayUploadBackupMirror': mayUploadBackupMirror,
     'shouldRetryBackupLater': shouldRetryBackupLater,
     'minimumNextLocalWriteSeconds': _safeSeconds(minimumNextLocalWriteSeconds),
+    'localCheckpointCanStoreWhileBackupDeferred': true,
+    'localCheckpointWriteHasPriorityOverBackup': true,
     'localCheckpointRequiredBeforeBackup': true,
+    'backupMirrorRequiresMatchingLocalRevision': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'remoteBackupCanOverrideLocalDay': false,
     'remoteBackupCanDeleteLocalData': false,
+    'remoteBackupCanConfirmCheckpoint': false,
     'checkpointPolicyCanDeleteLocalData': false,
     'backupFailureCanStopGpsTracking': false,
     'backupFailureCanDropCurrentCheckpoint': false,
+    'lowStorageCanBlockTextCheckpointAboveReserve': false,
     'freePlanReservationRequiredBeforeUpload': true,
     'localDaytimeDataNeverSilentlyOverwritten': true,
     'odometerRemainsOfficialMileageTruth': true,
@@ -52,6 +57,96 @@ class TripLiveCheckpointDurabilityDecision {
     'preciseLocationIncluded': false,
     'rawTripRecordsIncluded': false,
   };
+}
+
+class TripLiveCheckpointDurabilitySummaryValidation {
+  const TripLiveCheckpointDurabilitySummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripLiveCheckpointDurabilitySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    for (final key in const [
+      'shouldWriteLocalCheckpointNow',
+      'mayUploadBackupMirror',
+      'shouldRetryBackupLater',
+      'localCheckpointCanStoreWhileBackupDeferred',
+      'localCheckpointWriteHasPriorityOverBackup',
+      'localCheckpointRequiredBeforeBackup',
+      'backupMirrorRequiresMatchingLocalRevision',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'remoteBackupCanOverrideLocalDay',
+      'remoteBackupCanDeleteLocalData',
+      'remoteBackupCanConfirmCheckpoint',
+      'checkpointPolicyCanDeleteLocalData',
+      'backupFailureCanStopGpsTracking',
+      'backupFailureCanDropCurrentCheckpoint',
+      'lowStorageCanBlockTextCheckpointAboveReserve',
+      'freePlanReservationRequiredBeforeUpload',
+      'localDaytimeDataNeverSilentlyOverwritten',
+      'odometerRemainsOfficialMileageTruth',
+      'mapboxCanCreateCheckpoint',
+      'mapboxCanUploadBackup',
+      'tokensIncluded',
+      'preciseLocationIncluded',
+      'rawTripRecordsIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_checkpoint_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_checkpoint_reason');
+    }
+    if (summary['minimumNextLocalWriteSeconds'] is! int) {
+      reasons.add('invalid_checkpoint_interval');
+    }
+    if (summary['localCheckpointCanStoreWhileBackupDeferred'] != true ||
+        summary['localCheckpointWriteHasPriorityOverBackup'] != true ||
+        summary['localCheckpointRequiredBeforeBackup'] != true ||
+        summary['backupMirrorRequiresMatchingLocalRevision'] != true ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['localDaytimeDataNeverSilentlyOverwritten'] != true) {
+      reasons.add('local_checkpoint_truth_boundary_missing');
+    }
+    if (summary['remoteBackupCanOverrideLocalDay'] != false ||
+        summary['remoteBackupCanDeleteLocalData'] != false ||
+        summary['remoteBackupCanConfirmCheckpoint'] != false ||
+        summary['checkpointPolicyCanDeleteLocalData'] != false ||
+        summary['backupFailureCanStopGpsTracking'] != false ||
+        summary['backupFailureCanDropCurrentCheckpoint'] != false) {
+      reasons.add('remote_or_backup_can_mutate_local_trip');
+    }
+    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['mapboxCanCreateCheckpoint'] != false ||
+        summary['mapboxCanUploadBackup'] != false) {
+      reasons.add('mapbox_or_gps_can_replace_odometer');
+    }
+    if (summary['tokensIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['rawTripRecordsIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_checkpoint_material');
+    }
+
+    return TripLiveCheckpointDurabilitySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripLiveCheckpointDurabilityPolicy {
@@ -214,4 +309,20 @@ String _safeReason(String value) {
       'local_checkpoint_written_backup_ready',
     _ => 'invalid_live_checkpoint_boundary',
   };
+}
+
+TripLiveCheckpointDurabilityStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripLiveCheckpointDurabilityStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

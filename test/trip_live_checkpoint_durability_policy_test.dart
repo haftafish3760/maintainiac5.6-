@@ -96,7 +96,10 @@ void main() {
     expect(decision.status, TripLiveCheckpointDurabilityStatus.backupReady);
     expect(decision.shouldWriteLocalCheckpointNow, isFalse);
     expect(decision.mayUploadBackupMirror, isTrue);
+    expect(safe['localCheckpointCanStoreWhileBackupDeferred'], isTrue);
+    expect(safe['localCheckpointWriteHasPriorityOverBackup'], isTrue);
     expect(safe['localCheckpointRequiredBeforeBackup'], isTrue);
+    expect(safe['backupMirrorRequiresMatchingLocalRevision'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
   });
 
@@ -149,6 +152,9 @@ void main() {
       expect(failedReservation.shouldRetryBackupLater, isTrue);
       expect(safe['backupFailureCanDropCurrentCheckpoint'], isFalse);
       expect(safe['remoteBackupCanDeleteLocalData'], isFalse);
+      expect(safe['remoteBackupCanConfirmCheckpoint'], isFalse);
+      expect(safe['localCheckpointCanStoreWhileBackupDeferred'], isTrue);
+      expect(safe['localCheckpointWriteHasPriorityOverBackup'], isTrue);
       expect(safe['localDaytimeDataNeverSilentlyOverwritten'], isTrue);
     },
   );
@@ -178,9 +184,66 @@ void main() {
       expect(safe['checkpointPolicyCanDeleteLocalData'], isFalse);
       expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
       expect(safe['localDaytimeDataNeverSilentlyOverwritten'], isTrue);
+      expect(safe['backupMirrorRequiresMatchingLocalRevision'], isTrue);
+      expect(safe['lowStorageCanBlockTextCheckpointAboveReserve'], isFalse);
       expect(safe['mapboxCanCreateCheckpoint'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
+    },
+  );
+
+  test('safe summary validates checkpoint local-first mirror contract', () {
+    final validation =
+        TripLiveCheckpointDurabilitySummaryValidation.fromSummary(
+          evaluate().toSafeDashboardMap(),
+        );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'summary rejects remote authority and sensitive checkpoint material',
+    () {
+      final validation =
+          TripLiveCheckpointDurabilitySummaryValidation.fromSummary(
+            evaluate().toSafeDashboardMap()..addAll({
+              'localCheckpointCanStoreWhileBackupDeferred': false,
+              'localCheckpointWriteHasPriorityOverBackup': false,
+              'backupMirrorRequiresMatchingLocalRevision': false,
+              'remoteBackupCanOverrideLocalDay': true,
+              'remoteBackupCanDeleteLocalData': true,
+              'remoteBackupCanConfirmCheckpoint': true,
+              'checkpointPolicyCanDeleteLocalData': true,
+              'backupFailureCanStopGpsTracking': true,
+              'backupFailureCanDropCurrentCheckpoint': true,
+              'odometerRemainsOfficialMileageTruth': false,
+              'mapboxCanCreateCheckpoint': true,
+              'mapboxCanUploadBackup': true,
+              'tokensIncluded': true,
+              'preciseLocationIncluded': true,
+              'rawTripRecordsIncluded': true,
+              'debug': 'pk.public 35.123456,-80.123456',
+            }),
+          );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('local_checkpoint_truth_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('remote_or_backup_can_mutate_local_trip'),
+      );
+      expect(
+        validation.reasons,
+        contains('mapbox_or_gps_can_replace_odometer'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_checkpoint_material'),
+      );
     },
   );
 }
