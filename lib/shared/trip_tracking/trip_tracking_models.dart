@@ -335,8 +335,17 @@ class TripActivityObservation {
     'activity': activity.name,
     'confidenceBucket': _activityConfidenceBucket(confidence),
     'canSupportStopReview': canSupportStopReview,
+    'advisoryOnly': true,
+    'activityRecognitionRequiresOptIn': true,
+    'activityCanCreateOfficialStop': false,
+    'activityCanEndTripAutomatically': false,
+    'requiresAcceptedVehicleMovement': true,
+    'minimumTrustedSensorYear': _minimumTrustedSensorTime.year,
+    'walkingEvidenceCanOnlySuggestReview': true,
+    'odometerRemainsCanonical': true,
     'rawSensorPayloadIncluded': false,
     'preciseTimestampIncluded': false,
+    'preciseLocationIncluded': false,
   };
 
   Map<String, Object?> toMap() => {

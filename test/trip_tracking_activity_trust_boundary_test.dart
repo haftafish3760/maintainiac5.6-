@@ -24,6 +24,23 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
     expect(engine.motionState, TripMotionState.moving);
   });
+
+  test('trusted activity summaries never expose raw sensor details', () {
+    final summary = TripActivityObservation(
+      activity: TripActivity.walking,
+      confidence: 92,
+      recordedAt: DateTime.utc(2026, 7, 18, 12),
+    ).toSafeSummary();
+
+    expect(summary['canSupportStopReview'], isTrue);
+    expect(summary['activityRecognitionRequiresOptIn'], isTrue);
+    expect(summary['activityCanCreateOfficialStop'], isFalse);
+    expect(summary['activityCanEndTripAutomatically'], isFalse);
+    expect(summary['requiresAcceptedVehicleMovement'], isTrue);
+    expect(summary['preciseLocationIncluded'], isFalse);
+    expect(summary['preciseTimestampIncluded'], isFalse);
+    expect(summary.toString(), isNot(contains('2026-07-18')));
+  });
 }
 
 TripLocationSample _sample(
