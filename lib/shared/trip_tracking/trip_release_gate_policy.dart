@@ -56,6 +56,12 @@ class TripReleaseGateDecision {
     'releaseGateCanCreateOfficialStop': false,
     'commercialClaimRequiresSeparateLaunchAudit': true,
     'limitedFieldTrialRequiresRealDeviceEvidence': true,
+    'realDeviceRouteDiversityRequired': true,
+    'backgroundTrackingDeviceProofRequired': true,
+    'stopDetectionFieldProofRequired': true,
+    'odometerLiveUiFieldProofRequired': true,
+    'firebaseRulesAuditRequiredBeforeFleetRelease': true,
+    'mapboxIntegrationCanShipAfterGpsCore': true,
     'betaEvidenceMustRemainRedacted': true,
     'rawTripRecordsIncluded': false,
     'preciseLocationIncluded': false,
@@ -93,6 +99,10 @@ class TripReleaseGateSummaryValidation {
     }
     if (summary['syntheticGreenIsNotCommercialProof'] != true ||
         summary['deviceTestingRequiredBeforeProductionClaim'] != true ||
+        summary['realDeviceRouteDiversityRequired'] != true ||
+        summary['backgroundTrackingDeviceProofRequired'] != true ||
+        summary['stopDetectionFieldProofRequired'] != true ||
+        summary['odometerLiveUiFieldProofRequired'] != true ||
         summary['betaEvidenceMustRemainRedacted'] != true) {
       reasons.add('evidence_boundary_missing');
     }
@@ -107,8 +117,12 @@ class TripReleaseGateSummaryValidation {
         summary['employeeTrackingRequiresMutualConsent'] != true ||
         summary['employerGodModeAllowed'] != false ||
         summary['authorizationRulesRequiredBeforeFleetRelease'] != true ||
+        summary['firebaseRulesAuditRequiredBeforeFleetRelease'] != true ||
         summary['authenticatedUserStillNeedsRecordAuthorization'] != true) {
       reasons.add('privacy_authorization_boundary_missing');
+    }
+    if (summary['mapboxIntegrationCanShipAfterGpsCore'] != true) {
+      reasons.add('mapbox_release_sequence_boundary_missing');
     }
     if (summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||

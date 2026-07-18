@@ -154,6 +154,12 @@ void main() {
     expect(safe['releaseGateCanCreateOfficialStop'], isFalse);
     expect(safe['commercialClaimRequiresSeparateLaunchAudit'], isTrue);
     expect(safe['limitedFieldTrialRequiresRealDeviceEvidence'], isTrue);
+    expect(safe['realDeviceRouteDiversityRequired'], isTrue);
+    expect(safe['backgroundTrackingDeviceProofRequired'], isTrue);
+    expect(safe['stopDetectionFieldProofRequired'], isTrue);
+    expect(safe['odometerLiveUiFieldProofRequired'], isTrue);
+    expect(safe['firebaseRulesAuditRequiredBeforeFleetRelease'], isTrue);
+    expect(safe['mapboxIntegrationCanShipAfterGpsCore'], isTrue);
     expect(safe['betaEvidenceMustRemainRedacted'], isTrue);
     expect(safe['tokensIncluded'], isFalse);
   });
@@ -177,6 +183,10 @@ void main() {
           'limitedFieldTrialRequiresRealDeviceEvidence': false,
           'syntheticGreenIsNotCommercialProof': false,
           'deviceTestingRequiredBeforeProductionClaim': false,
+          'realDeviceRouteDiversityRequired': false,
+          'backgroundTrackingDeviceProofRequired': false,
+          'stopDetectionFieldProofRequired': false,
+          'odometerLiveUiFieldProofRequired': false,
           'betaEvidenceMustRemainRedacted': false,
           'gpsAssistedTrackingAvailableWithoutMaps': false,
           'mapsRequiredForGpsTripTracking': true,
@@ -185,6 +195,8 @@ void main() {
           'employeeTrackingRequiresMutualConsent': false,
           'employerGodModeAllowed': true,
           'authorizationRulesRequiredBeforeFleetRelease': false,
+          'firebaseRulesAuditRequiredBeforeFleetRelease': false,
+          'mapboxIntegrationCanShipAfterGpsCore': false,
           'odometerRemainsOfficialMileageTruth': false,
           'hiveRemainsOperationalSourceOfTruth': false,
           'firestoreMirrorOnly': false,
@@ -206,6 +218,10 @@ void main() {
       );
       expect(validation.reasons, contains('commercial_claim_audit_missing'));
       expect(validation.reasons, contains('evidence_boundary_missing'));
+      expect(
+        validation.reasons,
+        contains('mapbox_release_sequence_boundary_missing'),
+      );
       expect(validation.reasons, contains('maps_not_optional_for_gps_release'));
       expect(
         validation.reasons,
