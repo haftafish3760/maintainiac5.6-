@@ -283,4 +283,68 @@ void main() {
     expect(summary['coordinatesIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
   });
+
+  test(
+    'delivery stoplight followed by real door walk preserves both signals',
+    () {
+      final result = replayTrip(
+        commercialScenarios.deliveryStoplightThenConfirmedDoorWalk(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+
+      expect(result.needsWalkingReview, isTrue);
+      expect(
+        result.count(TripSampleDisposition.rejectedDrift),
+        greaterThanOrEqualTo(8),
+      );
+      expect(
+        result.count(TripSampleDisposition.excludedWalking),
+        greaterThanOrEqualTo(3),
+      );
+      expect(summary['stopSignal'], 'review_only_stop');
+      expect(summary['stopCanSuggestReview'], isTrue);
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+      expect(summary['officialMileageSource'], 'odometer');
+      expect(summary['mapsRequiredForStopReview'], isFalse);
+    },
+  );
+
+  test('rideshare brief pickup walk waits for stronger stop evidence', () {
+    final result = replayTrip(
+      commercialScenarios.rideshareBriefWalkAtPickupDoor(),
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['officialStopSource'], 'user_review');
+  });
+
+  test(
+    'provider burst reanchors before recovery drive without odometer truth',
+    () {
+      final result = replayTrip(
+        commercialScenarios.deliveryProviderBurstThenRecoveryDrive(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+
+      expect(result.rejectedGpsJumpCount, greaterThanOrEqualTo(1));
+      expect(result.acceptedMeters, greaterThan(150));
+      expect(result.acceptedMeters, lessThan(400));
+      expect(summary['simulationCanReplaceOdometer'], isFalse);
+      expect(summary['officialMileageSource'], 'odometer');
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+    },
+  );
 }

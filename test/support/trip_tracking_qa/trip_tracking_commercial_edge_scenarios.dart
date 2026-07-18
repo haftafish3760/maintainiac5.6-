@@ -121,4 +121,65 @@ class TripTrackingCommercialEdgeScenarios {
       activity: activity(TripActivity.walking, 242),
     ),
   ];
+
+  List<SimulatedTripPoint> deliveryStoplightThenConfirmedDoorWalk() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9992, 22, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9986, 44, speed: 4)),
+    ];
+    for (var index = 0; index < 12; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9986 + ((index.isEven ? 1 : -1) * .000006),
+            60 + (index * 10),
+            speed: index.isEven ? .2 : 0,
+          ),
+          activity: activity(TripActivity.automotive, 60 + (index * 10)),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9978, 205, speed: 8)),
+      SimulatedTripPoint(roadPoint(-79.9971, 228, speed: 7)),
+      SimulatedTripPoint(
+        roadPoint(-79.99704, 248, speed: 0),
+        activity: activity(TripActivity.walking, 248),
+      ),
+      SimulatedTripPoint(
+        roadPoint(-79.99698, 266, speed: 0),
+        activity: activity(TripActivity.walking, 266),
+      ),
+      SimulatedTripPoint(
+        roadPoint(-79.99691, 286, speed: 0),
+        activity: activity(TripActivity.walking, 286),
+      ),
+    ]);
+    return points;
+  }
+
+  List<SimulatedTripPoint> rideshareBriefWalkAtPickupDoor() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
+    SimulatedTripPoint(roadPoint(-79.9992, 20, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9986, 40, speed: 5)),
+    SimulatedTripPoint(
+      roadPoint(-79.99855, 58, speed: 0),
+      activity: activity(TripActivity.walking, 58),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99850, 68, speed: 0),
+      activity: activity(TripActivity.walking, 68),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9978, 98, speed: 8)),
+  ];
+
+  List<SimulatedTripPoint> deliveryProviderBurstThenRecoveryDrive() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9992, 20, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9700, 21, speed: 0)),
+    SimulatedTripPoint(roadPoint(-79.9990, 40, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9982, 62, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9974, 84, speed: 8)),
+  ];
 }
