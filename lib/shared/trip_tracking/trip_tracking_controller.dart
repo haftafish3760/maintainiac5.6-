@@ -9,6 +9,7 @@ import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
+import 'trip_tracking_native_error_policy.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_platform.dart';
@@ -1057,12 +1058,19 @@ class TripTrackingController extends ChangeNotifier {
             }
             notifyListeners();
           } else if (event.type == TripTrackingPlatformEventType.error) {
-            if (_isIgnorableMalformedPlatformPayload(event.errorCode)) {
+            if (TripTrackingNativeErrorPolicy.isIgnorableMalformedPayload(
+              event.errorCode,
+            )) {
               return;
             }
-            final message = _safeNativePlatformErrorMessage(event.errorCode);
+            final message = TripTrackingNativeErrorPolicy.safeMessage(
+              event.errorCode,
+            );
             _platformError = message;
-            if (_nativeTracking && _requiresNativeRecovery(event.errorCode)) {
+            if (_nativeTracking &&
+                TripTrackingNativeErrorPolicy.requiresRecovery(
+                  event.errorCode,
+                )) {
               unawaited(_handleNativeInterruption(message));
             } else {
               notifyListeners();
@@ -1085,21 +1093,6 @@ class TripTrackingController extends ChangeNotifier {
       _platformError ??= 'Could not detach GPS event listener cleanly.';
     }
   }
-
-  String _safeNativePlatformErrorMessage(
-    String? errorCode,
-  ) => switch (errorCode) {
-    'trip_tracking_foreground_service_denied' =>
-      'GPS foreground service permission is required for this tracking mode.',
-    'trip_tracking_location_registration_failed' =>
-      'GPS location updates could not be registered by the device.',
-    'trip_tracking_location_denied' =>
-      'GPS location permission is required for trip tracking.',
-    'trip_tracking_gps_unavailable' =>
-      'GPS is unavailable on this device right now.',
-    'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
-    _ => 'GPS reported a device error.',
-  };
 
   Future<void> _maybeUpdateNativeSampling(
     TripLocationSample sample,
@@ -1159,24 +1152,6 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  bool _requiresNativeRecovery(String? errorCode) => switch (errorCode) {
-    'trip_tracking_foreground_service_denied' ||
-    'trip_tracking_location_registration_failed' ||
-    'trip_tracking_location_denied' ||
-    'trip_tracking_gps_unavailable' ||
-    'trip_tracking_gps_disabled' => true,
-    _ => false,
-  };
-
-  bool _isIgnorableMalformedPlatformPayload(String? errorCode) =>
-      switch (errorCode) {
-        'invalidLocationPayload' ||
-        'invalidActivityPayload' ||
-        'invalidNativeEventPayload' ||
-        'invalidStatusPayload' => true,
-        _ => false,
-      };
 
   Future<void> stopNativeTracking() =>
       _enqueueNativeLifecycle(_stopNativeTracking);
