@@ -74,6 +74,14 @@ class TripTrackingDashboardGuidanceValidation {
     if (summary['moduleImportsCanMutateSourceModules'] != false) {
       reasons.add('module_imports_can_mutate_sources');
     }
+    if (summary['activeVehicleGearControlsPageSettings'] != true ||
+        summary['startButtonVisibleByDefault'] != true ||
+        summary['defaultSingleVehicleSupported'] != true ||
+        summary['workProfileOptionalForDefaultSetup'] != true ||
+        summary['vehicleProfileOptionalForDefaultSetup'] != true ||
+        summary['dashboardProfileCanBeChangedLater'] != true) {
+      reasons.add('dashboard_default_layout_boundary_invalid');
+    }
     if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
         summary['mapsRequiredForTracking'] != false) {
       reasons.add('gps_tracking_depends_on_maps');

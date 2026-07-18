@@ -45,6 +45,11 @@ class TripDashboardStatusRollupDecision {
     'dashboardRollupCanCreateOfficialStop': false,
     'dashboardRollupCanConfirmOdometer': false,
     'dashboardRollupCanDeleteLocalData': false,
+    'dashboardRollupCanEndTripAutomatically': false,
+    'dashboardRollupCanPurgeLocalDataAfterBackup': false,
+    'dashboardRollupCanImportWithoutValidation': false,
+    'dashboardWidgetsUserCustomizable': true,
+    'activeVehicleGearControlsPageSettings': true,
     'remoteRollupCanOverrideLocalTrip': false,
     'firestoreMirrorOnly': true,
     'hiveRemainsOperationalSourceOfTruth': true,
@@ -54,6 +59,80 @@ class TripDashboardStatusRollupDecision {
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripDashboardStatusRollupSummaryValidation {
+  const TripDashboardStatusRollupSummaryValidation._({
+    required this.isRenderable,
+    required this.severity,
+    required this.reasons,
+  });
+
+  factory TripDashboardStatusRollupSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final severity = _safeSeverity(summary['severity']);
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (severity == null) reasons.add('invalid_rollup_severity');
+    if (_safeReasonObject(summary['primaryReasonCode']) == null) {
+      reasons.add('invalid_rollup_reason');
+    }
+    for (final key in const [
+      'startButtonEnabled',
+      'liveTimerVisible',
+      'liveOdometerProjectionVisible',
+      'stopReviewVisible',
+      'odometerReviewVisible',
+      'backupStatusVisible',
+      'routeStorageWarningVisible',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['dashboardCanRunWithoutMaps'] != true ||
+        summary['mapsRequiredForTripDashboard'] != false) {
+      reasons.add('dashboard_requires_maps');
+    }
+    if (summary['dashboardRollupCanCreateOfficialStop'] != false ||
+        summary['dashboardRollupCanConfirmOdometer'] != false ||
+        summary['dashboardRollupCanDeleteLocalData'] != false ||
+        summary['dashboardRollupCanEndTripAutomatically'] != false ||
+        summary['dashboardRollupCanPurgeLocalDataAfterBackup'] != false ||
+        summary['dashboardRollupCanImportWithoutValidation'] != false) {
+      reasons.add('rollup_can_mutate_trip_truth');
+    }
+    if (summary['remoteRollupCanOverrideLocalTrip'] != false ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('rollup_truth_boundary_missing');
+    }
+    if (summary['dashboardWidgetsUserCustomizable'] != true ||
+        summary['activeVehicleGearControlsPageSettings'] != true) {
+      reasons.add('dashboard_customization_boundary_missing');
+    }
+    if (summary['rawTripRecordsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripDashboardStatusRollupSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      severity: reasons.isEmpty ? severity : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripDashboardStatusRollupSeverity? severity;
+  final List<String> reasons;
 }
 
 class TripDashboardStatusRollupPolicy {
@@ -232,4 +311,25 @@ String _safeReason(String value) {
     'trip_dashboard_normal' => 'trip_dashboard_normal',
     _ => 'trip_dashboard_blocked',
   };
+}
+
+TripDashboardStatusRollupSeverity? _safeSeverity(Object? value) {
+  if (value is! String) return null;
+  for (final severity in TripDashboardStatusRollupSeverity.values) {
+    if (severity.name == value) return severity;
+  }
+  return null;
+}
+
+String? _safeReasonObject(Object? value) {
+  if (value is! String) return null;
+  return _safeReason(value);
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

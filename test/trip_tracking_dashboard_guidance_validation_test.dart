@@ -108,6 +108,30 @@ void main() {
     expect(validation.reasons, contains('gps_tracking_depends_on_maps'));
   });
 
+  test(
+    'dashboard guidance requires default layout customization boundaries',
+    () {
+      final summary = deliveryGuidance().toSafeDashboardMap()
+        ..addAll({
+          'activeVehicleGearControlsPageSettings': false,
+          'startButtonVisibleByDefault': false,
+          'defaultSingleVehicleSupported': false,
+          'workProfileOptionalForDefaultSetup': false,
+          'vehicleProfileOptionalForDefaultSetup': false,
+          'dashboardProfileCanBeChangedLater': false,
+        });
+      final validation = TripTrackingDashboardGuidanceValidation.fromSummary(
+        summary,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('dashboard_default_layout_boundary_invalid'),
+      );
+    },
+  );
+
   test('dashboard guidance rejects malformed schema and display shape', () {
     final summary = deliveryGuidance().toSafeDashboardMap()
       ..addAll({
