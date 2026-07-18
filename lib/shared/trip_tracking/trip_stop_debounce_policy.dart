@@ -114,6 +114,8 @@ class TripStopDebounceDecision {
     'walkingEvidenceRequiresCurrentDeviceSensor': true,
     'walkingEvidenceCannotBeReplayedFromCloud': true,
     'walkingEvidenceCannotCommitStop': true,
+    'currentVehicleSpeedMustAllowStopReview': true,
+    'movingVehicleCannotOpenStopReview': true,
     'vehicleOnlyDwellCanOnlySuggestManualFallback': true,
     'vehicleOnlyDwellCanCreateOfficialStop': false,
     'vehicleOnlyDwellCannotInferAddress': true,
@@ -314,6 +316,22 @@ class TripStopDebouncePolicy {
       );
     }
 
+    if (!_speedAllowsStopReview(observation.speedMps) && walkingCount > 0) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: 'vehicle_speed_blocks_stop_review',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
     if (walkingBurstProtected) {
       return _decision(
         status: TripStopDebounceStatus.waitingForEvidence,
@@ -460,6 +478,9 @@ bool _looksLikeWalkingBurst({
   return walkingSpan < strategy.minimumWalkingEvidenceSpacing;
 }
 
+bool _speedAllowsStopReview(double speedMps) =>
+    speedMps.isFinite && speedMps <= 1.4;
+
 Duration _minimumStationaryFor(TripTrackingProfileStrategy strategy) {
   if (strategy.workStyle == TripTrackingWorkStyle.rideshare) {
     return const Duration(seconds: 45);
@@ -503,6 +524,7 @@ String _safeReason(String value) {
     'vehicle_only_dwell_manual_fallback' =>
       'vehicle_only_dwell_manual_fallback',
     'walking_burst_debounce_protected' => 'walking_burst_debounce_protected',
+    'vehicle_speed_blocks_stop_review' => 'vehicle_speed_blocks_stop_review',
     'future_walking_evidence_rejected' => 'future_walking_evidence_rejected',
     'stale_walking_evidence_rejected' => 'stale_walking_evidence_rejected',
     'undated_walking_evidence_rejected' => 'undated_walking_evidence_rejected',

@@ -137,6 +137,29 @@ void main() {
     expect(evidenceDigest['hasAcceptedVehicleMovement'], isTrue);
   });
 
+  test('moving vehicle speed blocks walking evidence from stop review', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: observation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 2),
+        walkingEvidenceCount: 5,
+        walkingEvidenceSpan: const Duration(seconds: 35),
+        speedMps: 8,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
+    expect(decision.reasonCode, 'vehicle_speed_blocks_stop_review');
+    expect(decision.canOpenReview, isFalse);
+    expect(decision.classification.canSuggestStop, isFalse);
+    expect(decision.classification.signal, TripStopSignal.stopCandidate);
+    expect(safe['currentVehicleSpeedMustAllowStopReview'], isTrue);
+    expect(safe['movingVehicleCannotOpenStopReview'], isTrue);
+    expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+  });
+
   test('future walking evidence cannot open a stop review', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
