@@ -339,7 +339,7 @@ void main() {
       'syncAttemptCanCreateOfficialMileage': true,
       'mapboxCanReplaceOdometer': true,
       'tokensIncluded': true,
-      'debug': 'sk.secret 35.123456,-80.123456',
+      'debug': 'runtime token near 35.123456',
     });
 
     expect(validation.isRenderable, isFalse);

@@ -491,6 +491,6 @@ bool _looksSensitive(Object? value) {
   final clean = value.toLowerCase();
   return clean.contains('pk.') ||
       clean.contains('sk.') ||
-      clean.contains('token=') ||
-      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
+      clean.contains('token') ||
+      RegExp(r'-?\d{1,3}\.\d{5,}').hasMatch(clean);
 }
