@@ -33,6 +33,10 @@ void main() {
     expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
     expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['routeStorageCanBecomeCalibrationProof'], isFalse);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['malformedRouteStoragePayloadFailsSafe'], isTrue);
     expect(summary['canSilentlyDeleteRouteHistory'], isFalse);
     expect(summary['routeStorageCannotDeleteTextTripLog'], isTrue);
@@ -251,6 +255,10 @@ void main() {
     expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
     expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['routeStorageCanBecomeCalibrationProof'], isFalse);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['malformedRouteStoragePayloadFailsSafe'], isTrue);
     expect(summary.toString(), isNot(contains('sk.secret')));
     expect(summary.toString(), isNot(contains('35.1')));
@@ -347,6 +355,10 @@ void main() {
           'freePlanBudgetCannotBeRaisedRemotely': false,
           'routeStorageCannotDeleteTextTripLog': false,
           'routeStorageCannotUploadRawPingsToFirestore': false,
+          'odometerIsGlobalTruth': false,
+          'routeStorageCanBecomeCalibrationProof': true,
+          'calibrationRequiresTrustedGpsWindow': false,
+          'poorGpsDaysExcludedFromCalibration': false,
         });
 
     final validation = TripTrackingMapStorageSummaryValidation.fromSummary(

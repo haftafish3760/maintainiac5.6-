@@ -66,7 +66,11 @@ class TripTrackingMapStorageEstimate {
     'routeStorageCannotUploadRawPingsToFirestore': true,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
+    'routeStorageCanBecomeCalibrationProof': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'rawCoordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'mapboxGeometryIncluded': false,
@@ -131,6 +135,10 @@ class TripTrackingMapRoutePointDecision {
     'routeStorageCannotUploadRawPingsToFirestore': true,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
+    'odometerIsGlobalTruth': true,
+    'routeStorageCanBecomeCalibrationProof': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'rawCoordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'mapboxGeometryIncluded': false,
@@ -325,7 +333,11 @@ class TripTrackingMapStorageSummaryValidation {
       'routeStorageCannotUploadRawPingsToFirestore',
       'localTripLogProtected',
       'purgeRequiresConfirmedBackupOrUserAction',
+      'odometerIsGlobalTruth',
       'odometerRemainsCanonical',
+      'routeStorageCanBecomeCalibrationProof',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
       'rawCoordinatesIncluded',
       'routeGeometryIncluded',
       'mapboxGeometryIncluded',
@@ -363,7 +375,11 @@ class TripTrackingMapStorageSummaryValidation {
     if (summary['freePlanBudgetCannotBeRaisedRemotely'] == false) {
       reasons.add('free_plan_budget_boundary_missing');
     }
-    if ((summary['odometerRemainsCanonical'] == false) ||
+    if ((summary['odometerIsGlobalTruth'] == false) ||
+        (summary['odometerRemainsCanonical'] == false) ||
+        summary['routeStorageCanBecomeCalibrationProof'] == true ||
+        summary['calibrationRequiresTrustedGpsWindow'] == false ||
+        summary['poorGpsDaysExcludedFromCalibration'] == false ||
         summary['rawCoordinatesIncluded'] != false ||
         summary['routeGeometryIncluded'] != false ||
         summary['mapboxGeometryIncluded'] != false ||

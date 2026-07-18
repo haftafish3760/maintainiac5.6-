@@ -107,12 +107,16 @@ void main() {
     ).toSafeSummary();
 
     expect(safe['routeHistoryCanConfirmMileage'], isFalse);
+    expect(safe['routeHistoryCanBecomeCalibrationProof'], isFalse);
     expect(safe['routeHistoryCannotDeleteTextTripLog'], isTrue);
     expect(safe['routeHistoryCannotUploadRawPingsToFirestore'], isTrue);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanCreateOfficialStop'], isFalse);
     expect(safe['mapboxCanReorderOfficialStops'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['rawCoordinatesIncluded'], isFalse);
     expect(safe['routeGeometryIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
@@ -169,6 +173,10 @@ void main() {
           'mapboxCanCreateOfficialStop': true,
           'mapboxCanReorderOfficialStops': true,
           'routeHistoryCanConfirmMileage': true,
+          'routeHistoryCanBecomeCalibrationProof': true,
+          'odometerIsGlobalTruth': false,
+          'calibrationRequiresTrustedGpsWindow': false,
+          'poorGpsDaysExcludedFromCalibration': false,
           'routeHistoryCannotDeleteTextTripLog': false,
           'routeHistoryCannotUploadRawPingsToFirestore': false,
           'durableStorageRemainsSharedAcrossModules': false,

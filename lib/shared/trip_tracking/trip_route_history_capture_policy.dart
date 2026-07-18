@@ -62,9 +62,13 @@ class TripRouteHistoryCaptureDecision {
     'mapboxCanCreateOfficialStop': false,
     'mapboxCanReorderOfficialStops': false,
     'routeHistoryCanConfirmMileage': false,
+    'routeHistoryCanBecomeCalibrationProof': false,
     'routeHistoryCannotDeleteTextTripLog': true,
     'routeHistoryCannotUploadRawPingsToFirestore': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'durableStorageRemainsSharedAcrossModules': true,
@@ -135,9 +139,13 @@ class TripRouteHistorySummaryValidation {
         summary['mapboxCanCreateOfficialStop'] != false ||
         summary['mapboxCanReorderOfficialStops'] != false ||
         summary['routeHistoryCanConfirmMileage'] != false ||
+        summary['routeHistoryCanBecomeCalibrationProof'] != false ||
         summary['routeHistoryCannotDeleteTextTripLog'] != true ||
         summary['routeHistoryCannotUploadRawPingsToFirestore'] != true ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true) {
       reasons.add('map_route_claims_trip_truth');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
