@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_review_open_guard.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_stop_review_open_summary_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 void main() {
@@ -55,6 +56,10 @@ void main() {
     expect(safe['canEndTripAutomatically'], isFalse);
     expect(safe['canReplaceOdometer'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
+    expect(
+      TripStopReviewOpenSummaryValidation.fromSummary(safe).isRenderable,
+      isTrue,
+    );
   });
 
   test('readiness boundary blocks traffic control and unsafe summaries', () {
@@ -204,6 +209,28 @@ void main() {
     expect(safe.toString(), isNot(contains('pk.')));
     expect(safe.toString(), isNot(contains('sk.')));
     expect(safe.toString(), isNot(contains('35.')));
+  });
+
+  test('safe dashboard map rejects forged open authority', () {
+    final safe = TripStopReviewOpenGuard.evaluate(
+      request(authenticatedUid: 'otherUser'),
+    ).toSafeDashboardMap();
+    final validation = TripStopReviewOpenSummaryValidation.fromSummary({
+      ...safe,
+      'mayOpenReview': true,
+      'reviewId': 'sessionA.stop.123',
+      'mapboxCanOpenStopReview': true,
+      'debug': '35.123456,-80.123456',
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('mapboxCanOpenStopReview_not_false'));
+    expect(validation.reasons, contains('open_review_authority_mismatch'));
+    expect(validation.reasons, contains('blocked_review_id_exposed'));
+    expect(
+      validation.reasons,
+      contains('open_summary_contains_sensitive_text'),
+    );
   });
 
   test('stop review mirror payload cannot expose live employee location', () {
