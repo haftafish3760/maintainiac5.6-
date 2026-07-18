@@ -101,4 +101,55 @@ void main() {
     expect(estimate.allowedToPersistRoute, isFalse);
     expect(estimate.toSafeDashboardMap()['exceedsDailyBudget'], isTrue);
   });
+
+  test('live route point persistence stops at the user daily budget', () {
+    final settings = const TripTrackingSettings().copyWith(
+      gpsAssistedTrackingEnabled: true,
+      mapPreviewEnabled: true,
+      mapRouteHistorySavingEnabled: true,
+      mapRouteHistoryDailyBudgetMb: 1,
+      mapRouteHistorySampleIntervalSeconds: 60,
+    );
+    final nearLimit = TripTrackingMapStoragePolicy.canPersistNextRoutePoint(
+      settings: settings,
+      persistedPointsToday: 32767,
+      bytesPerPoint: 32,
+    );
+    final exhausted = TripTrackingMapStoragePolicy.canPersistNextRoutePoint(
+      settings: settings,
+      persistedPointsToday: 32768,
+      bytesPerPoint: 32,
+    );
+
+    expect(nearLimit.allowedToPersistPoint, isTrue);
+    expect(nearLimit.reasonCode, 'map_route_history_point_within_live_budget');
+    expect(nearLimit.maxRoutePointsPerDay, 32768);
+    expect(nearLimit.remainingPointsToday, 0);
+    expect(exhausted.allowedToPersistPoint, isFalse);
+    expect(exhausted.reasonCode, 'map_route_history_live_budget_exhausted');
+    expect(
+      exhausted.toSafeDashboardMap()['mapStorageFailureStopsGpsTracking'],
+      isFalse,
+    );
+    expect(exhausted.toSafeDashboardMap()['rawCoordinatesIncluded'], isFalse);
+  });
+
+  test('route point persistence fails gracefully while GPS can continue', () {
+    final decision = TripTrackingMapStoragePolicy.canPersistNextRoutePoint(
+      settings: const TripTrackingSettings().copyWith(
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: false,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1,
+      ),
+      persistedPointsToday: -5,
+    );
+    final summary = decision.toSafeDashboardMap();
+
+    expect(decision.allowedToPersistPoint, isFalse);
+    expect(decision.persistedPointsToday, 0);
+    expect(decision.reasonCode, 'maps_not_enabled');
+    expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+    expect(summary['tokensIncluded'], isFalse);
+  });
 }
