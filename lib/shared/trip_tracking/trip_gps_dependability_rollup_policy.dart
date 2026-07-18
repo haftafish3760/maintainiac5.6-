@@ -1,4 +1,5 @@
 import 'trip_gps_dependability_policy.dart';
+import 'trip_tracking_models.dart';
 
 enum TripGpsDependabilityRollupStatus {
   noWindows,
@@ -71,8 +72,9 @@ class TripGpsDependabilityRollupPolicy {
 
   static TripGpsDependabilityRollupDecision evaluate({
     required Iterable<TripGpsDependabilityDecision> windows,
-    int minimumReadyWindowsForCalibration = 5,
-    double minimumReadyRateForCalibration = .75,
+    TripTrackingProfile profile = TripTrackingProfile.roadVehicle,
+    int? minimumReadyWindowsForCalibration,
+    double? minimumReadyRateForCalibration,
   }) {
     final list = windows.toList(growable: false);
     final windowCount = list.length;
@@ -98,15 +100,21 @@ class TripGpsDependabilityRollupPolicy {
           (window) => window.status == TripGpsDependabilityStatus.unsafeBlocked,
         )
         .length;
-    final safeMinimumWindows = minimumReadyWindowsForCalibration <= 0
-        ? 5
-        : minimumReadyWindowsForCalibration;
+    final profileMinimum = _minimumReadyWindowsFor(profile);
+    final profileRate = _minimumReadyRateFor(profile);
+    final requestedMinimumWindows = minimumReadyWindowsForCalibration;
+    final safeMinimumWindows =
+        requestedMinimumWindows == null || requestedMinimumWindows <= 0
+        ? profileMinimum
+        : requestedMinimumWindows;
+    final requestedMinimumRate = minimumReadyRateForCalibration;
     final safeMinimumRate =
-        minimumReadyRateForCalibration.isFinite &&
-            minimumReadyRateForCalibration > 0 &&
-            minimumReadyRateForCalibration <= 1
-        ? minimumReadyRateForCalibration
-        : .75;
+        requestedMinimumRate != null &&
+            requestedMinimumRate.isFinite &&
+            requestedMinimumRate > 0 &&
+            requestedMinimumRate <= 1
+        ? requestedMinimumRate
+        : profileRate;
 
     if (windowCount == 0) {
       return _decision(
@@ -230,5 +238,25 @@ String _safeReason(String reasonCode) {
     'gps_rollup_needs_more_ready_windows' =>
       'gps_rollup_needs_more_ready_windows',
     _ => 'gps_rollup_unsafe_window_present',
+  };
+}
+
+int _minimumReadyWindowsFor(TripTrackingProfile profile) {
+  return switch (profile) {
+    TripTrackingProfile.rideshareVehicle => 8,
+    TripTrackingProfile.deliveryVehicle => 6,
+    TripTrackingProfile.contractorVehicle => 6,
+    TripTrackingProfile.lowSpeedEquipment => 5,
+    TripTrackingProfile.roadVehicle => 5,
+  };
+}
+
+double _minimumReadyRateFor(TripTrackingProfile profile) {
+  return switch (profile) {
+    TripTrackingProfile.rideshareVehicle => .85,
+    TripTrackingProfile.lowSpeedEquipment => .8,
+    TripTrackingProfile.deliveryVehicle ||
+    TripTrackingProfile.contractorVehicle ||
+    TripTrackingProfile.roadVehicle => .75,
   };
 }

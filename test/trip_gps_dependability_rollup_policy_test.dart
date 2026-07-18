@@ -79,6 +79,51 @@ void main() {
     expect(rollup.canUseForCalibrationEvidence, isFalse);
   });
 
+  test('rideshare rollups require stronger sustained GPS evidence', () {
+    final borderline = TripGpsDependabilityRollupPolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      windows: [
+        for (var index = 0; index < 7; index += 1)
+          window(TripGpsDependabilityStatus.readyForAssist),
+      ],
+    );
+    final strong = TripGpsDependabilityRollupPolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      windows: [
+        for (var index = 0; index < 8; index += 1)
+          window(TripGpsDependabilityStatus.readyForAssist),
+      ],
+    );
+
+    expect(borderline.status, TripGpsDependabilityRollupStatus.reviewOnly);
+    expect(borderline.reasonCode, 'gps_rollup_needs_more_ready_windows');
+    expect(borderline.canUseForLiveAssist, isTrue);
+    expect(borderline.canUseForCalibrationEvidence, isFalse);
+    expect(strong.status, TripGpsDependabilityRollupStatus.reliable);
+    expect(strong.canUseForCalibrationEvidence, isTrue);
+  });
+
+  test(
+    'delivery and contractor profiles accept practical reviewed evidence',
+    () {
+      for (final profile in const [
+        TripTrackingProfile.deliveryVehicle,
+        TripTrackingProfile.contractorVehicle,
+      ]) {
+        final rollup = TripGpsDependabilityRollupPolicy.evaluate(
+          profile: profile,
+          windows: [
+            for (var index = 0; index < 6; index += 1)
+              window(TripGpsDependabilityStatus.readyForAssist),
+          ],
+        );
+
+        expect(rollup.status, TripGpsDependabilityRollupStatus.reliable);
+        expect(rollup.canUseForCalibrationEvidence, isTrue);
+      }
+    },
+  );
+
   test('unsafe windows fail closed and do not leak route data', () {
     final rollup = TripGpsDependabilityRollupPolicy.evaluate(
       windows: [
