@@ -324,9 +324,20 @@ void main() {
         decision.status,
         TripTrackingDeviceConsentStatus.motionNeedsConsentOrCapability,
       );
+      expect(decision.locationEnabled, isTrue);
+      expect(decision.canStartGpsTracking, isTrue);
       expect(decision.activityRecognitionEnabled, isFalse);
       expect(decision.canUseMotionStopAssist, isFalse);
       expect(decision.reasonCodes, contains(entry.reason));
+      expect(decision.toSafeSummary()['canDegradeToLocationOnly'], isTrue);
+      expect(
+        decision.toSafeSummary()['missingAssistBlocksGpsTracking'],
+        isFalse,
+      );
+      expect(
+        decision.toSafeSummary()['motionAssistCanDegradeWithoutStoppingTrip'],
+        isTrue,
+      );
       expect(
         decision.toSafeSummary()['firebaseCanEnableSensorsWithoutUserConsent'],
         isFalse,
@@ -356,8 +367,14 @@ void main() {
       TripTrackingDeviceConsentStatus.backgroundNeedsConsentOrCapability,
     );
     expect(decision.locationEnabled, isTrue);
+    expect(decision.canStartGpsTracking, isTrue);
     expect(decision.backgroundEnabled, isFalse);
     expect(decision.recommendedSettings.backgroundTrackingEnabled, isFalse);
+    expect(decision.toSafeSummary()['missingAssistBlocksGpsTracking'], isFalse);
+    expect(
+      decision.toSafeSummary()['backgroundAssistCanDegradeWithoutStoppingTrip'],
+      isTrue,
+    );
     expect(
       decision.toSafeSummary()['backgroundTrackingRequiresPlatformCapability'],
       isTrue,

@@ -112,7 +112,7 @@ class TripTrackingCapabilityGuidance {
     return TripTrackingCapabilityGuidance(
       readiness: readiness,
       canStartForegroundGps: capabilities.locationAvailable,
-      canStartBackgroundGps: capabilities.backgroundTrackingAvailable,
+      canStartBackgroundGps: backgroundEnabled,
       canUseActivityRecognition: capabilities.activityRecognitionAvailable,
       canUseBatteryGuard: capabilities.batteryStateAvailable,
       canUseLowPowerGuard: capabilities.lowPowerModeAvailable,

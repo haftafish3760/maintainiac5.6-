@@ -160,6 +160,78 @@ void main() {
     }
   });
 
+  test(
+    'malformed samples cannot change native sampling even with safe decision',
+    () {
+      const current = TripSamplingRecommendation(
+        mode: TripSamplingMode.balanced,
+        interval: Duration(seconds: 5),
+        minimumDisplacementMeters: 5,
+      );
+      final malformedSamples = [
+        TripLocationSample(
+          latitude: 95,
+          longitude: -80,
+          horizontalAccuracyMeters: 8,
+          recordedAt: start.add(const Duration(seconds: 20)),
+          speedMetersPerSecond: 8,
+        ),
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          horizontalAccuracyMeters: 500,
+          recordedAt: start.add(const Duration(seconds: 20)),
+          speedMetersPerSecond: 8,
+        ),
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          horizontalAccuracyMeters: 8,
+          recordedAt: DateTime.utc(1970),
+          speedMetersPerSecond: 8,
+        ),
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          horizontalAccuracyMeters: 8,
+          recordedAt: start.add(const Duration(seconds: 20)),
+          speedMetersPerSecond: double.infinity,
+        ),
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          horizontalAccuracyMeters: 8,
+          recordedAt: start.add(const Duration(seconds: 20)),
+          speedMetersPerSecond: 8,
+          mockedLocation: true,
+        ),
+      ];
+
+      for (final malformed in malformedSamples) {
+        expect(
+          TripTrackingNativeSamplingPolicy.isSafeSampleForNativeSampling(
+            malformed,
+          ),
+          isFalse,
+        );
+        expect(
+          TripTrackingNativeSamplingPolicy.nextRecommendation(
+            policy: const TripTrackingPolicy(),
+            profile: TripTrackingProfile.roadVehicle,
+            sample: malformed,
+            decision: decision(TripSampleDisposition.acceptedDistance),
+            current: current,
+            adaptiveSamplingEnabled: true,
+            nativeTracking: true,
+            platformAvailable: true,
+            sessionAvailable: true,
+          ),
+          isNull,
+        );
+      }
+    },
+  );
+
   test('walking exclusion can deescalate precision without adding mileage', () {
     final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
       policy: const TripTrackingPolicy(),

@@ -49,7 +49,9 @@ class TripTrackingDeviceConsentDecision {
   final TripTrackingSettings recommendedSettings;
 
   bool get canStartGpsTracking =>
-      status == TripTrackingDeviceConsentStatus.ready && locationEnabled;
+      locationEnabled &&
+      status != TripTrackingDeviceConsentStatus.gpsDisabledByUser &&
+      status != TripTrackingDeviceConsentStatus.locationUnavailable;
 
   bool get canUseMotionStopAssist =>
       canStartGpsTracking && activityRecognitionEnabled;
@@ -61,6 +63,10 @@ class TripTrackingDeviceConsentDecision {
     'reasonCodes': reasonCodes,
     'canStartGpsTracking': canStartGpsTracking,
     'canUseMotionStopAssist': canUseMotionStopAssist,
+    'canDegradeToLocationOnly': locationEnabled && !activityRecognitionEnabled,
+    'missingAssistBlocksGpsTracking': false,
+    'backgroundAssistCanDegradeWithoutStoppingTrip': true,
+    'motionAssistCanDegradeWithoutStoppingTrip': true,
     'locationEnabled': locationEnabled,
     'backgroundEnabled': backgroundEnabled,
     'activityRecognitionEnabled': activityRecognitionEnabled,

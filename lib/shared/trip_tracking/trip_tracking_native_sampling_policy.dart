@@ -19,6 +19,7 @@ class TripTrackingNativeSamplingPolicy {
         !platformAvailable ||
         !sessionAvailable ||
         !nativeTracking ||
+        !_safeSampleForNativeSampling(sample) ||
         decision == null ||
         (!isSafeDecisionForNativeSampling(decision) ||
             !decision.accepted &&
@@ -70,6 +71,9 @@ class TripTrackingNativeSamplingPolicy {
     };
   }
 
+  static bool isSafeSampleForNativeSampling(TripLocationSample sample) =>
+      _safeSampleForNativeSampling(sample);
+
   static bool isSameRecommendation(
     TripSamplingRecommendation? current,
     TripSamplingRecommendation next,
@@ -78,4 +82,16 @@ class TripTrackingNativeSamplingPolicy {
       current.mode == next.mode &&
       current.interval == next.interval &&
       current.minimumDisplacementMeters == next.minimumDisplacementMeters;
+}
+
+bool _safeSampleForNativeSampling(TripLocationSample sample) {
+  if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) return false;
+  if (sample.mockedLocation == true) return false;
+  if (sample.horizontalAccuracyMeters > 250) return false;
+  final speed = sample.speedMetersPerSecond;
+  if (speed != null && (!speed.isFinite || speed < 0 || speed > 70)) {
+    return false;
+  }
+  final year = sample.recordedAt.toUtc().year;
+  return year >= 2020 && year <= 2100;
 }

@@ -27,6 +27,7 @@ void main() {
     expect(guidance.readiness, TripTrackingCapabilityReadiness.unavailable);
     expect(guidance.gpsUnavailable, isTrue);
     expect(guidance.canStartForegroundGps, isFalse);
+    expect(guidance.canStartBackgroundGps, isFalse);
     expect(guidance.recommendedSettings.gpsAssistedTrackingEnabled, isFalse);
     expect(guidance.recommendedSettings.backgroundTrackingEnabled, isFalse);
     expect(guidance.recommendedSettings.activityRecognitionEnabled, isFalse);
