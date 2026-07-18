@@ -90,6 +90,24 @@ class TripTrackingCalibrationApplyGuard {
     if (_safeReason(signal.reasonCode) == 'unknown_calibration_state') {
       reasons.add('unknown_signal_reason');
     }
+    if (signal.status == TripOdometerCalibrationStatus.reviewRecommended) {
+      if (_safeReason(signal.reasonCode) != 'persistent_gps_odometer_drift') {
+        reasons.add('inconsistent_calibration_review_signal');
+      }
+      if (signal.averageDifferencePercent < _minimumReviewDifferencePercent) {
+        reasons.add('calibration_review_difference_too_small');
+      }
+    }
+    if (signal.status == TripOdometerCalibrationStatus.stable &&
+        _safeReason(signal.reasonCode) != 'calibration_stable') {
+      reasons.add('inconsistent_stable_calibration_signal');
+    }
+    if (signal.status == TripOdometerCalibrationStatus.insufficientHistory &&
+        _safeReason(signal.reasonCode) != 'needs_more_reviewed_days' &&
+        _safeReason(signal.reasonCode) != 'invalid_calibration_threshold' &&
+        _safeReason(signal.reasonCode) != 'mixed_vehicle_calibration_history') {
+      reasons.add('inconsistent_insufficient_history_signal');
+    }
     if (historySource !=
         TripTrackingCalibrationHistorySource.localReviewedOdometerHistory) {
       reasons.add('local_reviewed_odometer_history_required');
@@ -494,6 +512,10 @@ String? _safeApplyReason(Object? value) {
     'invalid_gps_odometer_ratio' => value,
     'invalid_difference_percent' => value,
     'unknown_signal_reason' => value,
+    'inconsistent_calibration_review_signal' => value,
+    'calibration_review_difference_too_small' => value,
+    'inconsistent_stable_calibration_signal' => value,
+    'inconsistent_insufficient_history_signal' => value,
     'future_review_timestamp' => value,
     'missing_latest_review_timestamp' => value,
     'stale_review_timestamp' => value,
@@ -521,6 +543,8 @@ int _safeEvidenceCount(int value) => value < 0
     : value > 366
     ? 366
     : value;
+
+const _minimumReviewDifferencePercent = 4.0;
 
 bool _looksSensitive(Object? value) {
   if (value is! String) return false;

@@ -350,6 +350,62 @@ void main() {
     expect(safe.toString(), isNot(contains('35.1')));
   });
 
+  test('inconsistent calibration signals fail neutral before applying', () {
+    final tinyReview = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(differencePercent: 1),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+    );
+    final wrongReviewReason = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(reason: 'calibration_stable'),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+    );
+    final wrongStableReason = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(
+        status: TripOdometerCalibrationStatus.stable,
+        ratio: 1.0,
+        differencePercent: 0,
+        reason: 'persistent_gps_odometer_drift',
+      ),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+    );
+
+    expect(tinyReview.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(
+      tinyReview.reasonCodes,
+      contains('calibration_review_difference_too_small'),
+    );
+    expect(tinyReview.canApplyToFutureGpsProjection, isFalse);
+    expect(tinyReview.multiplier, 1);
+    expect(
+      wrongReviewReason.status,
+      TripTrackingCalibrationApplyStatus.rejected,
+    );
+    expect(
+      wrongReviewReason.reasonCodes,
+      contains('inconsistent_calibration_review_signal'),
+    );
+    expect(
+      wrongStableReason.status,
+      TripTrackingCalibrationApplyStatus.rejected,
+    );
+    expect(
+      wrongStableReason.reasonCodes,
+      contains('inconsistent_stable_calibration_signal'),
+    );
+  });
+
   test('safe calibration apply summary excludes raw history and tokens', () {
     final safe = TripTrackingCalibrationApplyGuard.evaluate(
       signal: signal(),
