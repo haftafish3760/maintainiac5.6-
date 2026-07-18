@@ -27,6 +27,9 @@ void main() {
       expect(payload['recordId'], 'trip123');
       expect(payload['canonicalSource'], 'hive');
       expect(payload['firestoreRole'], 'mirror_after_local_write');
+      expect(payload['deviceIdMatchesLocalRecord'], isTrue);
+      expect(payload['tripDayKeyValidated'], isTrue);
+      expect(payload['localRevisionMonotonic'], isTrue);
       expect(payload['canOverrideLocalDaytimeData'], isFalse);
       expect(payload['canDeleteLocalData'], isFalse);
       expect(payload['rawGpsIncluded'], isFalse);
@@ -37,6 +40,10 @@ void main() {
       expect(payload.values, isNot(contains('owner123')));
       expect(payload.values, isNot(contains('device123')));
       expect(safe['backupFailureCanDropCurrentCheckpoint'], isFalse);
+      expect(safe['checkpointRequiresDeviceMatch'], isTrue);
+      expect(safe['checkpointRequiresDayKeyMatch'], isTrue);
+      expect(safe['checkpointRequiresMonotonicLocalRevision'], isTrue);
+      expect(safe['authenticationAloneAuthorizesCheckpointMirror'], isFalse);
     },
   );
 
@@ -75,6 +82,7 @@ void main() {
       accountTier: TripTrackingSyncAccountTier.paid,
       sourceValid: true,
       ownerValid: true,
+      revisionFresh: true,
       syncDecision: syncAttempt(now: now).syncDecision,
       freeSyncsRemainingBeforeAttempt: null,
       mirrorPayload: const {
@@ -116,6 +124,81 @@ void main() {
     expect(safe['mirrorCanConfirmOdometer'], isFalse);
     expect(safe['mapboxCanCreateCheckpoint'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
+  });
+
+  test('safe checkpoint mirror summary validates render boundary', () {
+    final sync = syncAttempt(now: now);
+    final safe = TripLiveCheckpointMirrorPolicy.evaluate(
+      durability: durabilityDecision(now: now, sync: sync),
+      syncAttempt: sync,
+    ).toSafeDashboardMap();
+
+    final validation = TripLiveCheckpointMirrorSummaryValidation.fromSummary(
+      safe,
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged checkpoint summary cannot gain auth-only authority', () {
+    final sync = syncAttempt(now: now);
+    final safe =
+        TripLiveCheckpointMirrorPolicy.evaluate(
+          durability: durabilityDecision(now: now, sync: sync),
+          syncAttempt: sync,
+        ).toSafeDashboardMap()..addAll({
+          'checkpointRequiresDeviceMatch': false,
+          'checkpointRequiresDayKeyMatch': false,
+          'checkpointRequiresMonotonicLocalRevision': false,
+          'authenticationAloneAuthorizesCheckpointMirror': true,
+        });
+
+    final validation = TripLiveCheckpointMirrorSummaryValidation.fromSummary(
+      safe,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('checkpoint_upload_boundary_missing'));
+  });
+
+  test('forged checkpoint summary cannot mutate local trip truth', () {
+    final sync = syncAttempt(now: now);
+    final safe =
+        TripLiveCheckpointMirrorPolicy.evaluate(
+          durability: durabilityDecision(now: now, sync: sync),
+          syncAttempt: sync,
+        ).toSafeDashboardMap()..addAll({
+          'remoteBackupCanOverrideLocalDay': true,
+          'remoteBackupCanDeleteLocalData': true,
+          'backupFailureCanStopGpsTracking': true,
+          'backupFailureCanDropCurrentCheckpoint': true,
+          'mirrorCanConfirmOdometer': true,
+          'mirrorCanCreateStop': true,
+          'mirrorCanEndTripAutomatically': true,
+          'mapboxCanCreateCheckpoint': true,
+          'payloadContainsRawGps': true,
+          'payloadContainsPreciseLocation': true,
+          'payloadContainsRouteGeometry': true,
+          'payloadContainsMapboxData': true,
+          'tokensIncluded': true,
+          'debug': 'sk.secret 35.123456,-80.123456',
+        });
+
+    final validation = TripLiveCheckpointMirrorSummaryValidation.fromSummary(
+      safe,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('checkpoint_local_truth_boundary_missing'),
+    );
+    expect(validation.reasons, contains('checkpoint_claims_trip_authority'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_checkpoint_material'),
+    );
   });
 }
 

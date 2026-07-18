@@ -401,7 +401,7 @@ bool _containsSensitivePayload(Object? value) {
   }
   if (value is Map) {
     for (final entry in value.entries) {
-      if (_containsSensitivePayload(entry.key) ||
+      if (_containsSensitiveKey(entry.key) ||
           _containsSensitivePayload(entry.value)) {
         return true;
       }
@@ -413,4 +413,11 @@ bool _containsSensitivePayload(Object? value) {
     }
   }
   return false;
+}
+
+bool _containsSensitiveKey(Object? value) {
+  if (value is! String) return false;
+  return value.startsWith('pk.') ||
+      value.startsWith('sk.') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(value);
 }

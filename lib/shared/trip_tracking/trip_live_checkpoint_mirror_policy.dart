@@ -30,6 +30,10 @@ class TripLiveCheckpointMirrorDecision {
     'localCheckpointRequiredBeforeBackup': true,
     'syncAttemptRequiredBeforeBackup': true,
     'reservationRequiredBeforeUpload': true,
+    'checkpointRequiresDeviceMatch': true,
+    'checkpointRequiresDayKeyMatch': true,
+    'checkpointRequiresMonotonicLocalRevision': true,
+    'authenticationAloneAuthorizesCheckpointMirror': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'remoteBackupCanOverrideLocalDay': false,
@@ -46,6 +50,95 @@ class TripLiveCheckpointMirrorDecision {
     'payloadContainsMapboxData': false,
     'tokensIncluded': false,
   };
+}
+
+class TripLiveCheckpointMirrorSummaryValidation {
+  const TripLiveCheckpointMirrorSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripLiveCheckpointMirrorSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_checkpoint_mirror_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_checkpoint_mirror_reason');
+    }
+    for (final key in const [
+      'mayMirrorLiveCheckpoint',
+      'localCheckpointRequiredBeforeBackup',
+      'syncAttemptRequiredBeforeBackup',
+      'reservationRequiredBeforeUpload',
+      'checkpointRequiresDeviceMatch',
+      'checkpointRequiresDayKeyMatch',
+      'checkpointRequiresMonotonicLocalRevision',
+      'authenticationAloneAuthorizesCheckpointMirror',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'remoteBackupCanOverrideLocalDay',
+      'remoteBackupCanDeleteLocalData',
+      'mirrorCanConfirmOdometer',
+      'mirrorCanCreateStop',
+      'mirrorCanEndTripAutomatically',
+      'backupFailureCanStopGpsTracking',
+      'backupFailureCanDropCurrentCheckpoint',
+      'mapboxCanCreateCheckpoint',
+      'payloadContainsRawGps',
+      'payloadContainsPreciseLocation',
+      'payloadContainsRouteGeometry',
+      'payloadContainsMapboxData',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['localCheckpointRequiredBeforeBackup'] != true ||
+        summary['syncAttemptRequiredBeforeBackup'] != true ||
+        summary['reservationRequiredBeforeUpload'] != true ||
+        summary['checkpointRequiresDeviceMatch'] != true ||
+        summary['checkpointRequiresDayKeyMatch'] != true ||
+        summary['checkpointRequiresMonotonicLocalRevision'] != true ||
+        summary['authenticationAloneAuthorizesCheckpointMirror'] != false) {
+      reasons.add('checkpoint_upload_boundary_missing');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteBackupCanOverrideLocalDay'] != false ||
+        summary['remoteBackupCanDeleteLocalData'] != false ||
+        summary['backupFailureCanStopGpsTracking'] != false ||
+        summary['backupFailureCanDropCurrentCheckpoint'] != false) {
+      reasons.add('checkpoint_local_truth_boundary_missing');
+    }
+    if (summary['mirrorCanConfirmOdometer'] != false ||
+        summary['mirrorCanCreateStop'] != false ||
+        summary['mirrorCanEndTripAutomatically'] != false ||
+        summary['mapboxCanCreateCheckpoint'] != false) {
+      reasons.add('checkpoint_claims_trip_authority');
+    }
+    if (summary['payloadContainsRawGps'] != false ||
+        summary['payloadContainsPreciseLocation'] != false ||
+        summary['payloadContainsRouteGeometry'] != false ||
+        summary['payloadContainsMapboxData'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_checkpoint_material');
+    }
+
+    return TripLiveCheckpointMirrorSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripLiveCheckpointMirrorPolicy {
@@ -109,6 +202,9 @@ Map<String, Object?> _payloadFor(Map<String, Object?> source) {
     'localPersisted': true,
     'canonicalSource': 'hive',
     'firestoreRole': 'mirror_after_local_write',
+    'deviceIdMatchesLocalRecord': true,
+    'tripDayKeyValidated': true,
+    'localRevisionMonotonic': true,
     'canOverrideLocalDaytimeData': false,
     'canDeleteLocalData': false,
     'odometerRemainsOfficialMileageTruth': true,
@@ -130,11 +226,31 @@ bool _payloadShapeSafe(Map<String, Object?> payload) {
       payload['localPersisted'] == true &&
       payload['canonicalSource'] == 'hive' &&
       payload['firestoreRole'] == 'mirror' &&
+      payload['deviceIdMatchesLocalRecord'] == true &&
+      payload['tripDayKeyValidated'] == true &&
+      payload['localRevisionMonotonic'] == true &&
+      payload['ownerValidatedBeforeMirror'] == true &&
       payload['canOverrideLocalDaytimeData'] == false &&
       payload['canDeleteLocalData'] == false &&
       payload['odometerRemainsOfficialMileageTruth'] == true &&
       _safeTripDayKey(payload['tripDayKey']) &&
       _safeDistance(payload['distanceMiles']);
+}
+
+TripLiveCheckpointMirrorStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripLiveCheckpointMirrorStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
 
 bool _safeKnownKind(Object? value) {
