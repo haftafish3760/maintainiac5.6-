@@ -48,9 +48,13 @@ void main() {
         ).toSafeLogMap(),
         {
           'schemaVersion': 1,
+          'externalNativeInput': true,
+          'payloadPassedSchemaValidation': true,
           'batteryPercentBucket': 'critical',
           'isCharging': false,
           'lowPowerModeEnabled': true,
+          'batteryCanStopTripAutomatically': false,
+          'batteryCanDeleteLocalData': false,
           'preciseBatteryIncluded': false,
           'rawBatteryPayloadIncluded': false,
         },
@@ -209,11 +213,15 @@ void main() {
       expect(log['hasAuthorization'], isTrue);
       expect(log['authorization'], {
         'schemaVersion': 1,
+        'externalNativeInput': true,
+        'payloadPassedSchemaValidation': true,
         'state': 'whileInUse',
         'preciseLocation': true,
         'canTrack': true,
         'canTrackInBackground': false,
         'authorizationDoesNotImplyOwnership': true,
+        'authorizationCanReadOtherUsersData': false,
+        'authorizationCanConfirmMileage': false,
         'backgroundTrackingRequiresOptIn': true,
         'rawAuthorizationPayloadIncluded': false,
       });
@@ -241,6 +249,38 @@ void main() {
     expect(serialized, isNot(contains('35.227111')));
     expect(serialized, isNot(contains('-80.843124')));
   });
+
+  test(
+    'safe platform diagnostics expose trust boundaries, not source payloads',
+    () {
+      final event = TripTrackingPlatformEvent.fromMap({
+        'schemaVersion': 1,
+        'type': 'location',
+        'latitude': 35.227111,
+        'longitude': -80.843124,
+        'recordedAt': '2026-07-13T12:00:00.000Z',
+        'horizontalAccuracyMeters': 5.0,
+        'ownerUid': 'user-private',
+        'mapboxGeometry': 'private-polyline',
+        'remoteOdometerMiles': 9999,
+      });
+
+      final log = event.toSafeLogMap();
+      final serialized = log.toString();
+
+      expect(log['payloadPassedSchemaValidation'], isTrue);
+      expect(log['externalPlatformPayloadTrustedAfterValidationOnly'], isTrue);
+      expect(log['platformEventCanAuthorizeUserDataAccess'], isFalse);
+      expect(log['platformEventCanOverrideLocalTripLog'], isFalse);
+      expect(log['platformEventCanConfirmOdometer'], isFalse);
+      expect(log['mapboxEventCanOverrideTripLog'], isFalse);
+      expect(log['mapboxEventCanConfirmOdometer'], isFalse);
+      expect(log['firestoreEventCanOverridePlatformState'], isFalse);
+      expect(serialized, isNot(contains('user-private')));
+      expect(serialized, isNot(contains('private-polyline')));
+      expect(serialized, isNot(contains('9999')));
+    },
+  );
 
   test('native status diagnostics accept only known lifecycle states', () {
     for (final status in const ['idle', 'tracking', 'stopped']) {

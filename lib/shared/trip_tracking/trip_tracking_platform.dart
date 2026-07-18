@@ -150,12 +150,16 @@ class TripTrackingPlatformCapabilities {
   /// Safe for diagnostics: no device model, identity, or raw sensor payloads.
   Map<String, Object> toSafeLogMap() => {
     'schemaVersion': 1,
+    'externalNativeInput': true,
+    'payloadPassedSchemaValidation': true,
     'locationAvailable': locationAvailable,
     'backgroundTrackingAvailable': backgroundTrackingAvailable,
     'activityRecognitionAvailable': activityRecognitionAvailable,
     'batteryStateAvailable': batteryStateAvailable,
     'lowPowerModeAvailable': lowPowerModeAvailable,
     'deviceTier': deviceTier.name,
+    'capabilityCanAuthorizeUserDataAccess': false,
+    'capabilityCanConfirmMileage': false,
     'deviceModelIncluded': false,
     'rawSensorPayloadIncluded': false,
     'preciseLocationIncluded': false,
@@ -163,6 +167,13 @@ class TripTrackingPlatformCapabilities {
   };
 
   factory TripTrackingPlatformCapabilities.fromMap(Map<dynamic, dynamic> map) {
+    if (!_schemaVersionAllowed(map['schemaVersion'])) {
+      return const TripTrackingPlatformCapabilities(
+        locationAvailable: false,
+        backgroundTrackingAvailable: false,
+        activityRecognitionAvailable: false,
+      );
+    }
     final locationAvailable = map['locationAvailable'] == true;
     final batteryStateAvailable =
         locationAvailable && map['batteryStateAvailable'] == true;
@@ -200,14 +211,25 @@ class TripTrackingBatterySnapshot {
   /// Buckets battery state without creating a precise telemetry trail.
   Map<String, Object?> toSafeLogMap() => {
     'schemaVersion': 1,
+    'externalNativeInput': true,
+    'payloadPassedSchemaValidation': true,
     'batteryPercentBucket': _batteryBucket(batteryPercent),
     'isCharging': isCharging,
     'lowPowerModeEnabled': lowPowerModeEnabled,
+    'batteryCanStopTripAutomatically': false,
+    'batteryCanDeleteLocalData': false,
     'preciseBatteryIncluded': false,
     'rawBatteryPayloadIncluded': false,
   };
 
   factory TripTrackingBatterySnapshot.fromMap(Map<dynamic, dynamic> map) {
+    if (!_schemaVersionAllowed(map['schemaVersion'])) {
+      return const TripTrackingBatterySnapshot(
+        batteryPercent: null,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+    }
     final rawPercent = map['batteryPercent'];
     final percent = rawPercent is num && rawPercent.isFinite
         ? rawPercent.floor()
@@ -250,16 +272,26 @@ class TripTrackingAuthorization {
 
   Map<String, Object> toSafeLogMap() => {
     'schemaVersion': 1,
+    'externalNativeInput': true,
+    'payloadPassedSchemaValidation': true,
     'state': state.name,
     'preciseLocation': preciseLocation,
     'canTrack': canTrack,
     'canTrackInBackground': canTrackInBackground,
     'authorizationDoesNotImplyOwnership': true,
+    'authorizationCanReadOtherUsersData': false,
+    'authorizationCanConfirmMileage': false,
     'backgroundTrackingRequiresOptIn': true,
     'rawAuthorizationPayloadIncluded': false,
   };
 
   factory TripTrackingAuthorization.fromMap(Map<dynamic, dynamic> map) {
+    if (!_schemaVersionAllowed(map['schemaVersion'])) {
+      return const TripTrackingAuthorization(
+        state: TripTrackingAuthorizationState.notDetermined,
+        preciseLocation: false,
+      );
+    }
     final state = TripTrackingAuthorizationState.values.firstWhere(
       (value) => value.name == map['state'],
       orElse: () => TripTrackingAuthorizationState.notDetermined,
@@ -302,13 +334,24 @@ class TripTrackingPlatformEvent {
 
   /// Boundary-safe diagnostics for native/Mapbox/GPS event handling.
   Map<String, Object?> toSafeLogMap() {
+    final payloadPassedSchemaValidation =
+        type != TripTrackingPlatformEventType.error;
     final result = <String, Object?>{
       'schemaVersion': 1,
       'type': type.name,
+      'payloadPassedSchemaValidation': payloadPassedSchemaValidation,
       'hasLocation': location != null,
       'hasActivity': activity != null,
       'hasAuthorization': authorization != null,
       'externalNativeInput': true,
+      'externalPlatformPayloadTrustedAfterValidationOnly': true,
+      'authenticationDoesNotImplyAuthorization': true,
+      'platformEventCanAuthorizeUserDataAccess': false,
+      'platformEventCanOverrideLocalTripLog': false,
+      'platformEventCanConfirmOdometer': false,
+      'mapboxEventCanOverrideTripLog': false,
+      'mapboxEventCanConfirmOdometer': false,
+      'firestoreEventCanOverridePlatformState': false,
       'rawNativePayloadIncluded': false,
       'preciseLocationIncluded': false,
       'rawSensorPayloadIncluded': false,
@@ -356,6 +399,13 @@ class TripTrackingPlatformEvent {
   }
 
   factory TripTrackingPlatformEvent.fromMap(Map<dynamic, dynamic> map) {
+    if (!_schemaVersionAllowed(map['schemaVersion'])) {
+      return const TripTrackingPlatformEvent._(
+        type: TripTrackingPlatformEventType.error,
+        errorCode: 'invalidSchemaVersion',
+        errorMessage: 'Ignored unsupported native trip tracking event schema.',
+      );
+    }
     final declaredType = TripTrackingPlatformEventType.values.firstWhere(
       (value) => value.name == map['type'],
       orElse: () => TripTrackingPlatformEventType.error,
@@ -430,6 +480,9 @@ class TripTrackingPlatformEvent {
     );
   }
 }
+
+bool _schemaVersionAllowed(Object? value) =>
+    value == null || (value is int && value == 1);
 
 TripTrackingAuthorization? _tryAuthorizationEvent(Map<dynamic, dynamic> map) {
   final rawState = map['state'];

@@ -166,6 +166,27 @@ void main() {
     );
   });
 
+  test('unsupported native capability schemas fail unavailable', () {
+    final capabilities = TripTrackingPlatformCapabilities.fromMap({
+      'schemaVersion': 99,
+      'locationAvailable': true,
+      'backgroundTrackingAvailable': true,
+      'activityRecognitionAvailable': true,
+      'batteryStateAvailable': true,
+      'lowPowerModeAvailable': true,
+    });
+
+    expect(capabilities.locationAvailable, isFalse);
+    expect(capabilities.backgroundTrackingAvailable, isFalse);
+    expect(capabilities.activityRecognitionAvailable, isFalse);
+    expect(capabilities.batteryStateAvailable, isFalse);
+    expect(capabilities.lowPowerModeAvailable, isFalse);
+    expect(
+      capabilities.deviceTier,
+      TripTrackingDeviceCapabilityTier.unavailable,
+    );
+  });
+
   test('malformed native battery snapshots are not trusted', () {
     final valid = TripTrackingBatterySnapshot.fromMap({
       'batteryPercent': 19.9,
@@ -189,6 +210,25 @@ void main() {
     expect(invalid.isCharging, isFalse);
     expect(invalid.lowPowerModeEnabled, isFalse);
   });
+
+  test(
+    'unsupported battery schemas fail closed without low power overrides',
+    () {
+      final snapshot = TripTrackingBatterySnapshot.fromMap({
+        'schemaVersion': 2,
+        'batteryPercent': 4,
+        'isCharging': true,
+        'lowPowerModeEnabled': true,
+      });
+      final log = snapshot.toSafeLogMap();
+
+      expect(snapshot.batteryPercent, isNull);
+      expect(snapshot.isCharging, isFalse);
+      expect(snapshot.lowPowerModeEnabled, isFalse);
+      expect(log['batteryCanStopTripAutomatically'], isFalse);
+      expect(log['batteryCanDeleteLocalData'], isFalse);
+    },
+  );
 
   test('malformed authorization state cannot imply precise tracking', () {
     final malformed = TripTrackingAuthorization.fromMap(const {
@@ -223,6 +263,21 @@ void main() {
       expect(event.errorCode, 'invalidAuthorizationPayload');
       expect(event.errorMessage, 'Ignored malformed authorization payload.');
     }
+  });
+
+  test('unsupported authorization schemas cannot grant tracking', () {
+    final authorization = TripTrackingAuthorization.fromMap(const {
+      'schemaVersion': 2,
+      'state': 'always',
+      'preciseLocation': true,
+    });
+    final log = authorization.toSafeLogMap();
+
+    expect(authorization.state, TripTrackingAuthorizationState.notDetermined);
+    expect(authorization.preciseLocation, isFalse);
+    expect(authorization.canTrack, isFalse);
+    expect(log['authorizationCanReadOtherUsersData'], isFalse);
+    expect(log['authorizationCanConfirmMileage'], isFalse);
   });
 
   test(
@@ -277,6 +332,55 @@ void main() {
       expect(event.toSafeLogMap()['rawSensorPayloadIncluded'], isFalse);
       expect(event.toSafeLogMap()['tokensIncluded'], isFalse);
     }
+  });
+
+  test('unsupported native event schemas are rejected before payload use', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'schemaVersion': 2,
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'horizontalAccuracyMeters': 4.5,
+      'errorMessage': 'token=pk.secret lat=35.2',
+    });
+    final log = event.toSafeLogMap();
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.location, isNull);
+    expect(event.errorCode, 'invalidSchemaVersion');
+    expect(log['payloadPassedSchemaValidation'], isFalse);
+    expect(log['platformEventCanOverrideLocalTripLog'], isFalse);
+    expect(log['platformEventCanConfirmOdometer'], isFalse);
+    expect(log.toString(), isNot(contains('35.2')));
+    expect(log.toString(), isNot(contains('pk.secret')));
+  });
+
+  test('validated platform events still cannot own trip log truth', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'schemaVersion': 1,
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'horizontalAccuracyMeters': 4.5,
+      'mapboxDistanceMeters': 999999,
+      'firestoreTripOwnerUid': 'other-user',
+    });
+    final log = event.toSafeLogMap();
+
+    expect(event.type, TripTrackingPlatformEventType.location);
+    expect(log['payloadPassedSchemaValidation'], isTrue);
+    expect(log['externalPlatformPayloadTrustedAfterValidationOnly'], isTrue);
+    expect(log['authenticationDoesNotImplyAuthorization'], isTrue);
+    expect(log['platformEventCanAuthorizeUserDataAccess'], isFalse);
+    expect(log['platformEventCanOverrideLocalTripLog'], isFalse);
+    expect(log['platformEventCanConfirmOdometer'], isFalse);
+    expect(log['mapboxEventCanOverrideTripLog'], isFalse);
+    expect(log['mapboxEventCanConfirmOdometer'], isFalse);
+    expect(log['firestoreEventCanOverridePlatformState'], isFalse);
+    expect(log.toString(), isNot(contains('999999')));
+    expect(log.toString(), isNot(contains('other-user')));
   });
 
   test('native status and error strings are bounded before use', () {
