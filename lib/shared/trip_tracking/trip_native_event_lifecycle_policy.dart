@@ -282,6 +282,7 @@ _NativeTarget _targetState(
 bool _locationCanFeedEngine(TripTrackingSessionLifecycleState currentState) {
   return switch (currentState) {
     TripTrackingSessionLifecycleState.disabled ||
+    TripTrackingSessionLifecycleState.paused ||
     TripTrackingSessionLifecycleState.permissionRequired ||
     TripTrackingSessionLifecycleState.awaitingReview ||
     TripTrackingSessionLifecycleState.completed ||

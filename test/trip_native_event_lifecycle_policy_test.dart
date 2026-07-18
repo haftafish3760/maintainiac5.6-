@@ -122,6 +122,23 @@ void main() {
     expect(safe['nativeEventCanConfirmOdometer'], isFalse);
   });
 
+  test('location events cannot feed engine while trip is paused', () {
+    final decision = TripNativeEventLifecyclePolicy.evaluate(
+      currentState: TripTrackingSessionLifecycleState.paused,
+      event: locationEvent(),
+    );
+    final safe = decision.toSafeSummary();
+
+    expect(decision.action, TripNativeEventLifecycleAction.ingestLocation);
+    expect(decision.to, TripTrackingSessionLifecycleState.paused);
+    expect(decision.canFeedEngine, isFalse);
+    expect(decision.requiresUserReview, isTrue);
+    expect(safe['canFeedEngine'], isFalse);
+    expect(safe['nativeEventCanConfirmOdometer'], isFalse);
+    expect(safe['nativeEventCanSetGlobalTruth'], isFalse);
+    expect(safe['nativeStatusRequiresLocalStateMachineTransition'], isTrue);
+  });
+
   test('terminal failure cannot be revived by a late location event', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
       currentState: TripTrackingSessionLifecycleState.failedTerminal,
