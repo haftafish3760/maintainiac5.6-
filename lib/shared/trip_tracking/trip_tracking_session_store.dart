@@ -662,6 +662,13 @@ class TripTrackingSessionStore {
         'Active GPS sessions require a sane timeline and known profile.',
       );
     }
+    if (session.startingOdometer < 0) {
+      throw ArgumentError.value(
+        session.startingOdometer,
+        'session.startingOdometer',
+        'Active GPS sessions require a non-negative starting odometer.',
+      );
+    }
     if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
       _memorySession = session;
@@ -745,6 +752,7 @@ class TripTrackingSessionStore {
         }
         if (!review.hasValidTimeline ||
             review.finishedAt.isBefore(review.startedAt) ||
+            review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
               review.cloudBackupScope,

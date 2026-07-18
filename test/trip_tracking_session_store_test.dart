@@ -146,6 +146,25 @@ void main() {
     expect(store.activeSession, isNull);
   });
 
+  test('active GPS session writes reject negative direct odometers', () async {
+    final store = TripTrackingSessionStore.memory();
+    final session = TripTrackingSessionRecord(
+      id: 'trip_negative_direct_session',
+      vehicleId: 'vehicle_1',
+      startingOdometer: -1,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 15),
+      updatedAt: DateTime.utc(2026, 7, 15),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    await expectLater(store.save(session), throwsArgumentError);
+    expect(store.activeSession, isNull);
+  });
+
   test('a pending GPS sample is local, bounded, and removable', () async {
     final store = TripTrackingSessionStore.memory();
     final pending = TripTrackingPendingSample(
@@ -799,6 +818,40 @@ void main() {
       ),
       throwsArgumentError,
     );
+  });
+
+  test('review writes reject negative direct odometer values', () async {
+    final store = TripTrackingSessionStore.memory();
+    final negativeStart = TripTrackingReviewRecord(
+      id: 'trip_negative_direct_review_start',
+      vehicleId: 'vehicle_1',
+      startingOdometer: -1,
+      estimatedEndingOdometer: 10,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+    final negativeEnd = TripTrackingReviewRecord(
+      id: 'trip_negative_direct_review_end',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 100,
+      estimatedEndingOdometer: -1,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    await expectLater(store.saveReview(negativeStart), throwsArgumentError);
+    await expectLater(store.saveReview(negativeEnd), throwsArgumentError);
+    expect(store.pendingReviews, isEmpty);
   });
 
   test('review cloud sync metadata is bounded and token-safe', () {
