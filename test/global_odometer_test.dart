@@ -761,6 +761,9 @@ void main() {
       expect(dashboardMap['displayValue'], '0001002');
       expect(dashboardMap['confirmedDisplayValue'], '0001000');
       expect(dashboardMap['confirmedReadingIsCanonical'], isTrue);
+      expect(dashboardMap['liveUiMustRefreshOnProjectionChange'], isTrue);
+      expect(dashboardMap['remoteProjectionRequiresMatchingTripId'], isTrue);
+      expect(dashboardMap['staleProjectionCanCommitMileage'], isFalse);
       expect(dashboardMap['rawGpsIncluded'], isFalse);
       expect(dashboardMap['routeGeometryIncluded'], isFalse);
       expect(dashboardMap['mapboxMayOverrideOdometer'], isFalse);
@@ -882,6 +885,41 @@ void main() {
       expect(controller.confirmedReading, 1000);
     },
   );
+
+  test('lower live GPS projections are ignored without stale UI rollback', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+    var notifications = 0;
+    controller.addListener(() => notifications += 1);
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_monotonic',
+        startingOdometer: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_monotonic',
+        estimatedOdometer: 1004,
+      ),
+      isTrue,
+    );
+    final updatedAt = controller.liveTripUpdatedAt;
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_monotonic',
+        estimatedOdometer: 1002,
+      ),
+      isTrue,
+    );
+
+    expect(controller.reading, 1004);
+    expect(controller.confirmedReading, 1000);
+    expect(controller.liveTripUpdatedAt, updatedAt);
+    expect(controller.liveDisplaySnapshot.displayValue, '0001004');
+    expect(notifications, 2);
+  });
 
   test(
     'an active GPS trip prevents switching the active odometer vehicle',

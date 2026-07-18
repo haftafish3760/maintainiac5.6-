@@ -19,6 +19,18 @@ void main() {
       isTrue,
     );
     expect(
+      projection.toSafeDashboardMap()['liveUiMustRefreshOnProjectionChange'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['remoteProjectionRequiresMatchingTripId'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['staleProjectionCanCommitMileage'],
+      isFalse,
+    );
+    expect(
       projection.toSafeDashboardMap()['remoteProjectionCanOverrideLocalTrip'],
       isFalse,
     );

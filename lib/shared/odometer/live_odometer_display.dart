@@ -114,12 +114,15 @@ class LiveOdometerDisplaySnapshot {
     'confirmedReadingIsCanonical': confirmedReadingIsCanonical,
     'advisoryOnly': true,
     'dashboardLiveUpdateReady': true,
+    'liveUiMustRefreshOnProjectionChange': true,
     'displayCanUpdateBeforeReview': isLive,
     'displayOnlyMileageSource': isLive
         ? 'gps_assisted_projection'
         : 'confirmed_odometer',
     'externalDistanceValidatedBeforeDisplay': true,
     'liveDisplayTrustedAfterValidationOnly': true,
+    'remoteProjectionRequiresMatchingTripId': true,
+    'staleProjectionCanCommitMileage': false,
     'remoteDisplayCanOverrideLocalTrip': false,
     'firestoreCanOverrideLiveDisplay': false,
     'mapboxCanOverrideLiveDisplay': false,

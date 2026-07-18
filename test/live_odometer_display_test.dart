@@ -32,10 +32,13 @@ void main() {
       'confirmedReadingIsCanonical': true,
       'advisoryOnly': true,
       'dashboardLiveUpdateReady': true,
+      'liveUiMustRefreshOnProjectionChange': true,
       'displayCanUpdateBeforeReview': false,
       'displayOnlyMileageSource': 'confirmed_odometer',
       'externalDistanceValidatedBeforeDisplay': true,
       'liveDisplayTrustedAfterValidationOnly': true,
+      'remoteProjectionRequiresMatchingTripId': true,
+      'staleProjectionCanCommitMileage': false,
       'remoteDisplayCanOverrideLocalTrip': false,
       'firestoreCanOverrideLiveDisplay': false,
       'mapboxCanOverrideLiveDisplay': false,
@@ -128,10 +131,13 @@ void main() {
       'confirmedReadingIsCanonical': true,
       'advisoryOnly': true,
       'dashboardLiveUpdateReady': true,
+      'liveUiMustRefreshOnProjectionChange': true,
       'displayCanUpdateBeforeReview': true,
       'displayOnlyMileageSource': 'gps_assisted_projection',
       'externalDistanceValidatedBeforeDisplay': true,
       'liveDisplayTrustedAfterValidationOnly': true,
+      'remoteProjectionRequiresMatchingTripId': true,
+      'staleProjectionCanCommitMileage': false,
       'remoteDisplayCanOverrideLocalTrip': false,
       'firestoreCanOverrideLiveDisplay': false,
       'mapboxCanOverrideLiveDisplay': false,
@@ -177,6 +183,18 @@ void main() {
         DateTime.utc(2026),
       )['displayCanUpdateBeforeReview'],
       isTrue,
+    );
+    expect(
+      snapshot.toSafeDashboardMap(
+        DateTime.utc(2026),
+      )['liveUiMustRefreshOnProjectionChange'],
+      isTrue,
+    );
+    expect(
+      snapshot.toSafeDashboardMap(
+        DateTime.utc(2026),
+      )['staleProjectionCanCommitMileage'],
+      isFalse,
     );
     expect(
       snapshot.toSafeDashboardMap(
