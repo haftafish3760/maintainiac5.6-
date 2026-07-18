@@ -127,6 +127,7 @@ class TripTrackingMapboxAssistBoundaryDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'localTripLogProtected': true,
     'officialMileageSource': 'odometer',
+    'odometerIsGlobalTruth': true,
     'mapboxCanModifyTripLog': false,
     'mapboxCanModifyOdometer': false,
     'mapboxCanCreateStop': false,
@@ -201,7 +202,8 @@ class TripTrackingMapboxAssistBoundarySummaryValidation {
         summary['advisoryOnly'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['localTripLogProtected'] != true ||
-        summary['officialMileageSource'] != 'odometer') {
+        summary['officialMileageSource'] != 'odometer' ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('mapbox_assist_truth_boundary_missing');
     }
     if (summary['mapboxCanModifyTripLog'] != false ||

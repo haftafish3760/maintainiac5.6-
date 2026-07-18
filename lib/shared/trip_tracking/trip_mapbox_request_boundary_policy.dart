@@ -48,6 +48,7 @@ class TripMapboxRequestBoundaryDecision {
     'mapboxRequestRequiresNetworkBudget': true,
     'mapboxCallRequiresRequestBudget': true,
     'mapboxResponseValidatedBeforeUse': true,
+    'odometerIsGlobalTruth': true,
     'mapboxDirectionsCanOnlyVisualize': true,
     'mapboxMatrixCanOnlyEstimate': true,
     'mapboxMapMatchingCanOnlyAssistReview': true,
@@ -122,6 +123,7 @@ class TripMapboxRequestBoundarySummaryValidation {
       reasons.add('gps_fallback_boundary_missing');
     }
     if (summary['mapboxResponseValidatedBeforeUse'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['mapboxDirectionsCanOnlyVisualize'] != true ||
         summary['mapboxMatrixCanOnlyEstimate'] != true ||
         summary['mapboxMapMatchingCanOnlyAssistReview'] != true ||

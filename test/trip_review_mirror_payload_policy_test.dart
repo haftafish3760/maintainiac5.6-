@@ -22,6 +22,7 @@ void main() {
     expect(payload['schema'], 'trip_review_mileage_mirror_v1');
     expect(payload['confirmedMiles'], 42);
     expect(payload['officialMileageSource'], 'odometer');
+    expect(payload['odometerIsGlobalTruth'], isTrue);
     expect(payload['gpsDistanceAdvisoryOnly'], isTrue);
     expect(payload['authenticationAloneAuthorizesMirror'], isFalse);
     expect(payload['backendRulesFailClosedForMirrorWrites'], isTrue);
@@ -37,6 +38,7 @@ void main() {
     expect(payload['tokensIncluded'], isFalse);
     expect(payload.values, isNot(contains('driver_1')));
     expect(safe['hiveRemainsSourceOfTruth'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['authenticationAloneAuthorizesMirror'], isFalse);
     expect(safe['backendRulesFailClosedForMirrorWrites'], isTrue);
@@ -151,6 +153,7 @@ void main() {
     expect(inbound.status, TripReviewMirrorPayloadStatus.ready);
     expect(inbound.mayMirror, isTrue);
     expect(inbound.payload['officialMileageSource'], 'odometer');
+    expect(inbound.payload['odometerIsGlobalTruth'], isTrue);
     expect(inbound.payload['authenticationAloneAuthorizesMirror'], isFalse);
     expect(inbound.payload['backendRulesFailClosedForMirrorWrites'], isTrue);
     expect(inbound.payload['routeGeometryIncluded'], isFalse);
@@ -180,6 +183,7 @@ void main() {
         'mirrorRequiresOwnerScopeDayValidation': false,
         'remoteTotalsCanBecomeCanonical': true,
         'officialMileageSource': 'gps',
+        'odometerIsGlobalTruth': false,
         'routeGeometryIncluded': true,
         'tokensIncluded': true,
       },

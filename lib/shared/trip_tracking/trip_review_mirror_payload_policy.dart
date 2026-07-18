@@ -41,6 +41,7 @@ class TripReviewMirrorPayloadDecision {
     'mirrorRequiresConfirmedLocalReview': true,
     'mirrorRequiresOwnerScopeDayValidation': true,
     'hiveRemainsSourceOfTruth': true,
+    'odometerIsGlobalTruth': true,
     'firestoreMirrorOnly': true,
     'cloudFunctionMirrorOnly': true,
     'remoteDataCanOverrideLocalTripLog': false,
@@ -172,6 +173,7 @@ class TripReviewMirrorPayloadPolicy {
         payload['cloudFunctionCanConfirmOdometer'] != false ||
         payload['cloudFunctionCanCreateStop'] != false ||
         payload['officialMileageSource'] != 'odometer' ||
+        payload['odometerIsGlobalTruth'] != true ||
         payload['gpsDistanceAdvisoryOnly'] != true ||
         payload['mapboxDistanceAdvisoryOnly'] != true) {
       reasons.add('payload_claims_trip_authority');
@@ -271,6 +273,7 @@ Map<String, Object?> _payloadFor(TripTrackingReviewRecord review) {
     'firestoreRulesMustValidateSchema': true,
     'firestoreRulesMustValidateScope': true,
     'officialMileageSource': 'odometer',
+    'odometerIsGlobalTruth': true,
     'gpsDistanceAdvisoryOnly': true,
     'mapboxDistanceAdvisoryOnly': true,
     'rawGpsIncluded': false,
@@ -397,6 +400,7 @@ Map<String, Object?> _redactedInboundPayload(Map<String, Object?> payload) {
     'firestoreRulesMustValidateSchema': true,
     'firestoreRulesMustValidateScope': true,
     'officialMileageSource': 'odometer',
+    'odometerIsGlobalTruth': true,
     'gpsDistanceAdvisoryOnly': true,
     'mapboxDistanceAdvisoryOnly': true,
     'rawGpsIncluded': false,

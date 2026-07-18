@@ -172,6 +172,7 @@ void main() {
     expect(safe['authenticationAloneAuthorizesMapboxRequest'], isFalse);
     expect(safe['mapboxCallRequiresRequestBudget'], isTrue);
     expect(safe['mapboxResponseValidatedBeforeUse'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['mapboxDirectionsCanOnlyVisualize'], isTrue);
     expect(safe['mapboxMatrixCanOnlyEstimate'], isTrue);
     expect(safe['mapboxMapMatchingCanOnlyAssistReview'], isTrue);
@@ -218,6 +219,7 @@ void main() {
           requestsUsedInWindow: 0,
         ).toSafeDashboardMap()..addAll({
           'mapboxResponseValidatedBeforeUse': false,
+          'odometerIsGlobalTruth': false,
           'mapboxRequestRequiresOwnershipValidation': false,
           'mapboxRequestRequiresDeviceLocalSource': false,
           'authenticationAloneAuthorizesMapboxRequest': true,

@@ -110,6 +110,7 @@ void main() {
     expect(decision.canPersistRouteHistory, isTrue);
     expect(safe['advisoryOnly'], isTrue);
     expect(safe['officialMileageSource'], 'odometer');
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['remoteRouteCanBecomeCanonical'], isFalse);
     expect(safe['mapboxCanConfirmMileage'], isFalse);
     expect(safe['mapboxCanConfirmStop'], isFalse);
@@ -274,6 +275,7 @@ void main() {
             'mapboxCanConfirmStop': true,
             'firestoreCanOverrideMapAssistBoundary': true,
             'remoteRouteCanBecomeCanonical': true,
+            'odometerIsGlobalTruth': false,
             'rawMapboxResponseIncluded': true,
             'rawGpsIncluded': true,
             'preciseLocationIncluded': true,
@@ -291,6 +293,10 @@ void main() {
       expect(
         validation.reasons,
         contains('mapbox_assist_claims_trip_authority'),
+      );
+      expect(
+        validation.reasons,
+        contains('mapbox_assist_truth_boundary_missing'),
       );
       expect(
         validation.reasons,
