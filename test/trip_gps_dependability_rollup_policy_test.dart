@@ -272,6 +272,35 @@ void main() {
       ]),
     );
   });
+
+  test('summary validation rejects forged calibration authority', () {
+    final poorDay =
+        TripGpsDependabilityRollupPolicy.evaluate(
+          windows: [
+            window(TripGpsDependabilityStatus.readyForAssist),
+            window(
+              TripGpsDependabilityStatus.projectionPaused,
+              signalQuality: TripTrackingSignalQuality.poor,
+            ),
+          ],
+        ).toSafeDashboardMap()..addAll({
+          'canUseForCalibrationEvidence': true,
+          'pausedWindowCount': 0,
+        });
+
+    final validation = TripGpsDependabilityRollupSummaryValidation.fromSummary(
+      poorDay,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'gps_rollup_window_counts_mismatch',
+        'gps_rollup_calibration_authority_mismatch',
+      ]),
+    );
+  });
 }
 
 TripGpsDependabilityDecision window(
