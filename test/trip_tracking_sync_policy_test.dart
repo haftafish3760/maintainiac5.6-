@@ -215,4 +215,36 @@ void main() {
       'free_sync_limit_invalid',
     );
   });
+
+  test('free sync window counter fails closed on device clock rollback', () {
+    final started = DateTime.utc(2026, 7, 17, 8);
+    final counter = TripTrackingFreeSyncWindowCounter(
+      windowStartedAtUtc: started,
+      syncsUsed: 2,
+    );
+    final rolledBack = started.subtract(const Duration(minutes: 5));
+
+    expect(counter.usedInWindowAt(rolledBack), -1);
+    expect(counter.recordAttempt(rolledBack).syncsUsed, -1);
+    expect(counter.toSafeSummary(rolledBack), {
+      'schemaVersion': 1,
+      'windowState': 'invalid',
+      'syncsUsedInWindow': -1,
+      'freeSyncsRemaining': null,
+      'secondsUntilReset': 86400,
+      'windowHours': 24,
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    });
+    expect(
+      TripTrackingBackupSyncPolicy.evaluate(
+        networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+        wifiAvailable: true,
+        mobileDataAvailable: true,
+        syncsUsedInWindow: counter.usedInWindowAt(rolledBack),
+      ).mayAttemptSync,
+      isFalse,
+    );
+  });
 }

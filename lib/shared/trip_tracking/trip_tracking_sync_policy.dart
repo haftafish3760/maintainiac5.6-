@@ -56,6 +56,12 @@ class TripTrackingFreeSyncWindowCounter {
 
   TripTrackingFreeSyncWindowCounter recordAttempt(DateTime nowUtc) {
     final normalizedNow = nowUtc.toUtc();
+    if (_clockMovedBeforeWindow(normalizedNow)) {
+      return TripTrackingFreeSyncWindowCounter(
+        windowStartedAtUtc: windowStartedAtUtc.toUtc(),
+        syncsUsed: -1,
+      );
+    }
     if (!_sameWindow(normalizedNow)) {
       return TripTrackingFreeSyncWindowCounter(
         windowStartedAtUtc: normalizedNow,
@@ -69,6 +75,7 @@ class TripTrackingFreeSyncWindowCounter {
   }
 
   int usedInWindowAt(DateTime nowUtc) {
+    if (_clockMovedBeforeWindow(nowUtc.toUtc())) return -1;
     if (!_sameWindow(nowUtc.toUtc())) return 0;
     if (syncsUsed < 0) return -1;
     return syncsUsed;
@@ -78,6 +85,7 @@ class TripTrackingFreeSyncWindowCounter {
       windowStartedAtUtc.toUtc().add(const Duration(hours: 24));
 
   int? secondsUntilResetAt(DateTime nowUtc) {
+    if (_clockMovedBeforeWindow(nowUtc.toUtc())) return 86400;
     if (!_sameWindow(nowUtc.toUtc())) return 0;
     final remaining = expiresAtUtc().difference(nowUtc.toUtc()).inSeconds;
     if (remaining < 0) return 0;
@@ -110,6 +118,9 @@ class TripTrackingFreeSyncWindowCounter {
     return !nowUtc.isBefore(start) &&
         nowUtc.difference(start) < const Duration(hours: 24);
   }
+
+  bool _clockMovedBeforeWindow(DateTime nowUtc) =>
+      nowUtc.toUtc().isBefore(windowStartedAtUtc.toUtc());
 }
 
 class TripTrackingBackupSyncDecision {
