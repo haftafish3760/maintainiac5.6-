@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_route_history_capture_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_sample_window_quality_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 
 void main() {
   final start = DateTime.utc(2026, 7, 18, 12);
@@ -78,6 +79,7 @@ void main() {
     expect(safe['sampleWindowRequiresLocalDeviceSource'], isTrue);
     expect(safe['sampleWindowRequiresOwnershipValidation'], isTrue);
     expect(safe['sampleWindowRequiresIntakeGuardBeforeEvaluation'], isTrue);
+    expect(safe['sampleWindowRequiresTrustedGpsSignal'], isTrue);
     expect(safe['simulatorWindowRequiresExplicitTestHarness'], isTrue);
     expect(safe['simulatorWindowCannotWriteProductionHistory'], isTrue);
     expect(safe['authenticationAloneAuthorizesWindowUse'], isFalse);
@@ -113,6 +115,59 @@ void main() {
     expect(decision.validSampleCount, 0);
     expect(decision.rejectedSampleCount, 3);
     expect(decision.canFeedLiveOdometerProjection, isFalse);
+  });
+
+  test(
+    'poor or interrupted GPS pauses projection and compact route points',
+    () {
+      for (final quality in const [
+        TripTrackingSignalQuality.noSamples,
+        TripTrackingSignalQuality.poor,
+        TripTrackingSignalQuality.interrupted,
+      ]) {
+        final decision = TripSampleWindowQualityPolicy.evaluate(
+          samples: [
+            sample(0, 35.0000, -80.0000),
+            sample(15, 35.0002, -80.0000),
+            sample(30, 35.0004, -80.0000),
+          ],
+          routeHistoryDecision: routeDecision(),
+          signalQuality: quality,
+        );
+        final safe = decision.toSafeDashboardMap();
+
+        expect(
+          decision.status,
+          TripSampleWindowQualityStatus.usableForTracking,
+        );
+        expect(decision.canFeedLiveOdometerProjection, isFalse);
+        expect(decision.canPersistCompactRoutePoint, isFalse);
+        expect(safe['poorGpsPausesLiveProjection'], isTrue);
+        expect(safe['interruptedGpsPausesLiveProjection'], isTrue);
+        expect(safe['missingGpsPausesLiveProjection'], isTrue);
+        expect(
+          TripSampleWindowQualitySummaryValidation.fromSummary(
+            safe,
+          ).isRenderable,
+          isTrue,
+        );
+      }
+    },
+  );
+
+  test('unsafe GPS rejects the sample window before live projection', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      samples: [sample(0, 35.0000, -80.0000), sample(15, 35.0002, -80.0000)],
+      routeHistoryDecision: routeDecision(),
+      signalQuality: TripTrackingSignalQuality.unsafe,
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripSampleWindowQualityStatus.unsafeRejected);
+    expect(decision.reasonCode, 'sample_window_unsafe_gps_signal');
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
+    expect(decision.canPersistCompactRoutePoint, isFalse);
+    expect(safe['unsafeGpsBlocksSampleWindow'], isTrue);
   });
 
   test('future samples are rejected when an evaluation clock is supplied', () {
@@ -322,6 +377,11 @@ void main() {
           'sampleWindowRequiresDeviceCapabilityContext': false,
           'sampleWindowRequiresMonotonicSampleOrder': false,
           'sampleWindowRequiresPermissionContinuity': false,
+          'sampleWindowRequiresTrustedGpsSignal': false,
+          'poorGpsPausesLiveProjection': false,
+          'interruptedGpsPausesLiveProjection': false,
+          'missingGpsPausesLiveProjection': false,
+          'unsafeGpsBlocksSampleWindow': false,
           'simulatorWindowRequiresExplicitTestHarness': false,
           'simulatorWindowCannotWriteProductionHistory': false,
           'authenticationAloneAuthorizesWindowUse': true,
@@ -341,6 +401,10 @@ void main() {
     expect(
       validation.reasons,
       contains('sample_window_authorization_boundary_missing'),
+    );
+    expect(
+      validation.reasons,
+      contains('sample_window_gps_quality_boundary_missing'),
     );
     expect(validation.reasons, contains('remote_can_override_sample_window'));
   });

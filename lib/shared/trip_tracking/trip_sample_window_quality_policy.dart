@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'trip_route_history_capture_policy.dart';
 import 'trip_tracking_models.dart';
+import 'trip_tracking_signal_quality.dart';
 
 enum TripSampleWindowQualityStatus {
   noSamples,
@@ -63,6 +64,11 @@ class TripSampleWindowQualityDecision {
     'mapsRequiredForGpsTracking': false,
     'routeStorageOptional': true,
     'routeStorageCanPauseWithoutStoppingTrip': true,
+    'sampleWindowRequiresTrustedGpsSignal': true,
+    'poorGpsPausesLiveProjection': true,
+    'interruptedGpsPausesLiveProjection': true,
+    'missingGpsPausesLiveProjection': true,
+    'unsafeGpsBlocksSampleWindow': true,
     'projectionPausesOnSparseOrBrokenWindow': true,
     'segmentRejectionReasonsCounted': true,
     'sampleWindowRequiresLocalDeviceSource': true,
@@ -153,6 +159,11 @@ class TripSampleWindowQualitySummaryValidation {
       'gpsAssistedTrackingAvailableWithoutMaps',
       'routeStorageOptional',
       'routeStorageCanPauseWithoutStoppingTrip',
+      'sampleWindowRequiresTrustedGpsSignal',
+      'poorGpsPausesLiveProjection',
+      'interruptedGpsPausesLiveProjection',
+      'missingGpsPausesLiveProjection',
+      'unsafeGpsBlocksSampleWindow',
       'projectionPausesOnSparseOrBrokenWindow',
       'segmentRejectionReasonsCounted',
       'odometerRemainsOfficialMileageTruth',
@@ -186,6 +197,13 @@ class TripSampleWindowQualitySummaryValidation {
         summary['routeStorageOptional'] != true ||
         summary['routeStorageCanPauseWithoutStoppingTrip'] != true) {
       reasons.add('gps_route_storage_boundary_missing');
+    }
+    if (summary['sampleWindowRequiresTrustedGpsSignal'] != true ||
+        summary['poorGpsPausesLiveProjection'] != true ||
+        summary['interruptedGpsPausesLiveProjection'] != true ||
+        summary['missingGpsPausesLiveProjection'] != true ||
+        summary['unsafeGpsBlocksSampleWindow'] != true) {
+      reasons.add('sample_window_gps_quality_boundary_missing');
     }
     if (summary['sampleWindowRequiresLocalDeviceSource'] != true ||
         summary['sampleWindowRequiresOwnershipValidation'] != true ||
@@ -245,6 +263,7 @@ class TripSampleWindowQualityPolicy {
   static TripSampleWindowQualityDecision evaluate({
     required List<TripLocationSample> samples,
     required TripRouteHistoryCaptureDecision routeHistoryDecision,
+    TripTrackingSignalQuality signalQuality = TripTrackingSignalQuality.healthy,
     DateTime? evaluationNow,
     int persistedRoutePointsToday = 0,
     int maximumAcceptedGapSeconds = 180,
@@ -269,6 +288,24 @@ class TripSampleWindowQualityPolicy {
       minimum: Duration.zero,
       maximum: const Duration(hours: 1),
     );
+    if (signalQuality == TripTrackingSignalQuality.unsafe) {
+      return _decision(
+        status: TripSampleWindowQualityStatus.unsafeRejected,
+        reasonCode: 'sample_window_unsafe_gps_signal',
+        validSampleCount: 0,
+        rejectedSampleCount: samples.length,
+        acceptedSegmentCount: 0,
+        rejectedGapSegmentCount: 0,
+        rejectedJumpSegmentCount: 0,
+        rejectedSpeedSegmentCount: 0,
+        maximumConsecutiveRejectedSegments: 0,
+        acceptedDistanceMeters: 0,
+        maximumGapSeconds: 0,
+        canFeedLiveOdometerProjection: false,
+        canPersistCompactRoutePoint: false,
+      );
+    }
+    final trustedSignal = _trustedSignalForProjection(signalQuality);
     final sorted = samples.where((sample) {
       return _isIndividuallySafe(
         sample,
@@ -375,14 +412,17 @@ class TripSampleWindowQualityPolicy {
       routeHistoryDecision,
       persistedRoutePointsToday,
     );
-    final projectionSafe = _canFeedProjection(
-      acceptedSegments: acceptedSegments,
-      rejectedSegments: rejectedSegments,
-      maximumConsecutiveRejectedSegments: maximumConsecutiveRejectedSegments,
-      maximumGap: maximumGap,
-      safeGapLimit: safeGapLimit,
-      acceptedDistanceMeters: acceptedDistance,
-    );
+    final projectionSafe =
+        _canFeedProjection(
+          acceptedSegments: acceptedSegments,
+          rejectedSegments: rejectedSegments,
+          maximumConsecutiveRejectedSegments:
+              maximumConsecutiveRejectedSegments,
+          maximumGap: maximumGap,
+          safeGapLimit: safeGapLimit,
+          acceptedDistanceMeters: acceptedDistance,
+        ) &&
+        trustedSignal;
     if (!routePointAllowed && routeHistoryDecision.canCaptureRouteHistory) {
       return _decision(
         status: TripSampleWindowQualityStatus.routeStoragePaused,
@@ -423,7 +463,7 @@ class TripSampleWindowQualityPolicy {
       acceptedDistanceMeters: acceptedDistance,
       maximumGapSeconds: maximumGap,
       canFeedLiveOdometerProjection: projectionSafe,
-      canPersistCompactRoutePoint: routePointAllowed,
+      canPersistCompactRoutePoint: routePointAllowed && trustedSignal,
     );
   }
 }
@@ -530,6 +570,17 @@ bool _impossibleSegmentSpeed(double distanceMeters, int gapSeconds) {
   return distanceMeters / gapSeconds > 70;
 }
 
+bool _trustedSignalForProjection(TripTrackingSignalQuality quality) {
+  return switch (quality) {
+    TripTrackingSignalQuality.healthy ||
+    TripTrackingSignalQuality.reduced => true,
+    TripTrackingSignalQuality.noSamples ||
+    TripTrackingSignalQuality.poor ||
+    TripTrackingSignalQuality.interrupted ||
+    TripTrackingSignalQuality.unsafe => false,
+  };
+}
+
 double _distanceMeters(TripLocationSample a, TripLocationSample b) {
   const earthRadiusMeters = 6371000.0;
   final dLat = _radians(b.latitude - a.latitude);
@@ -592,6 +643,7 @@ String _safeReason(String value) {
     'sample_window_needs_more_valid_points' =>
       'sample_window_needs_more_valid_points',
     'sample_window_segments_rejected' => 'sample_window_segments_rejected',
+    'sample_window_unsafe_gps_signal' => 'sample_window_unsafe_gps_signal',
     'route_storage_budget_paused' => 'route_storage_budget_paused',
     'sample_window_degraded_but_usable' => 'sample_window_degraded_but_usable',
     'sample_window_projection_paused' => 'sample_window_projection_paused',
