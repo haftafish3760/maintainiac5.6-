@@ -56,6 +56,10 @@ class TripCommercialReadinessDecision {
     'mapboxCanEndTrip': false,
     'profileStrategyCanEndTripAutomatically': false,
     'activityRecognitionCanCreateOfficialStop': false,
+    'gpsAccuracyStillRequiresFieldProof': true,
+    'commercialReadyDoesNotMeanProductionReady': true,
+    'limitedGpsOnlyCanStartWithoutMaps': true,
+    'realDeviceEvidenceRequiredForDependabilityClaim': true,
     'stopReviewRequiredBeforeOfficialStop': true,
     'confirmedMileageRequiresUserAction': true,
     'odometerRemainsOfficialMileageTruth': true,
@@ -71,6 +75,112 @@ class TripCommercialReadinessDecision {
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripCommercialReadinessSummaryValidation {
+  const TripCommercialReadinessSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripCommercialReadinessSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_commercial_status');
+    }
+    if (_safeScenario(summary['scenario']) == null) {
+      reasons.add('invalid_commercial_scenario');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_commercial_reason');
+    }
+    for (final key in const [
+      'canStartOrContinueTrip',
+      'manualReviewRecommended',
+      'mapsOptionalAndSafe',
+      'employeePrivacySafe',
+      'gpsAssistedTrackingAvailableWithoutMaps',
+      'mapsRequiredForTripTracking',
+      'mapboxFailureCannotBlockGpsOnlyTrip',
+      'mapboxAssistRequiresExplicitOptIn',
+      'mapboxCanReplaceOdometer',
+      'mapboxCanCreateOfficialStop',
+      'mapboxCanEndTrip',
+      'profileStrategyCanEndTripAutomatically',
+      'activityRecognitionCanCreateOfficialStop',
+      'gpsAccuracyStillRequiresFieldProof',
+      'commercialReadyDoesNotMeanProductionReady',
+      'limitedGpsOnlyCanStartWithoutMaps',
+      'realDeviceEvidenceRequiredForDependabilityClaim',
+      'stopReviewRequiredBeforeOfficialStop',
+      'confirmedMileageRequiresUserAction',
+      'odometerRemainsOfficialMileageTruth',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'employeeTrackingRequiresMutualConsent',
+      'employerGodModeAllowed',
+      'remoteDataCanOverrideLocalTrip',
+      'authenticatedRemoteDataStillRequiresAuthorization',
+      'commercialRollupCanDeleteLocalData',
+      'rawTripRecordsIncluded',
+      'preciseLocationIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
+        summary['mapsRequiredForTripTracking'] != false ||
+        summary['mapboxFailureCannotBlockGpsOnlyTrip'] != true ||
+        summary['mapboxAssistRequiresExplicitOptIn'] != true ||
+        summary['limitedGpsOnlyCanStartWithoutMaps'] != true) {
+      reasons.add('maps_optional_boundary_missing');
+    }
+    if (summary['mapboxCanReplaceOdometer'] != false ||
+        summary['mapboxCanCreateOfficialStop'] != false ||
+        summary['mapboxCanEndTrip'] != false ||
+        summary['profileStrategyCanEndTripAutomatically'] != false ||
+        summary['activityRecognitionCanCreateOfficialStop'] != false ||
+        summary['stopReviewRequiredBeforeOfficialStop'] != true ||
+        summary['confirmedMileageRequiresUserAction'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('commercial_claims_trip_truth_authority');
+    }
+    if (summary['gpsAccuracyStillRequiresFieldProof'] != true ||
+        summary['commercialReadyDoesNotMeanProductionReady'] != true ||
+        summary['realDeviceEvidenceRequiredForDependabilityClaim'] != true) {
+      reasons.add('commercial_evidence_boundary_missing');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteDataCanOverrideLocalTrip'] != false ||
+        summary['authenticatedRemoteDataStillRequiresAuthorization'] != true ||
+        summary['commercialRollupCanDeleteLocalData'] != false) {
+      reasons.add('commercial_remote_authority_boundary_missing');
+    }
+    if (summary['employeeTrackingRequiresMutualConsent'] != true ||
+        summary['employerGodModeAllowed'] != false) {
+      reasons.add('commercial_privacy_boundary_missing');
+    }
+    if (summary['rawTripRecordsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_commercial_material');
+    }
+    return TripCommercialReadinessSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripCommercialReadinessPolicy {
@@ -233,4 +343,29 @@ String _safeReason(String value) {
     'commercial_ready' => 'commercial_ready',
     _ => 'commercial_tracking_blocked',
   };
+}
+
+TripCommercialReadinessStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripCommercialReadinessStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+TripCommercialDriverScenario? _safeScenario(Object? value) {
+  if (value is! String) return null;
+  for (final scenario in TripCommercialDriverScenario.values) {
+    if (scenario.name == value) return scenario;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains('token=') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}'));
 }

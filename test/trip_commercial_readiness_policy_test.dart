@@ -185,11 +185,59 @@ void main() {
       expect(safe['mapboxCanCreateOfficialStop'], isFalse);
       expect(safe['mapboxCanEndTrip'], isFalse);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+      expect(safe['gpsAccuracyStillRequiresFieldProof'], isTrue);
+      expect(safe['commercialReadyDoesNotMeanProductionReady'], isTrue);
+      expect(safe['limitedGpsOnlyCanStartWithoutMaps'], isTrue);
+      expect(safe['realDeviceEvidenceRequiredForDependabilityClaim'], isTrue);
       expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
       expect(safe['employerGodModeAllowed'], isFalse);
       expect(safe['remoteDataCanOverrideLocalTrip'], isFalse);
       expect(safe['authenticatedRemoteDataStillRequiresAuthorization'], isTrue);
       expect(safe['tokensIncluded'], isFalse);
+      expect(
+        TripCommercialReadinessSummaryValidation.fromSummary(safe).isRenderable,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'commercial readiness summary rejects production and truth overclaims',
+    () {
+      final safe = evaluate().toSafeDashboardMap();
+
+      final validation = TripCommercialReadinessSummaryValidation.fromSummary({
+        ...safe,
+        'commercialReadyDoesNotMeanProductionReady': false,
+        'realDeviceEvidenceRequiredForDependabilityClaim': false,
+        'mapboxCanCreateOfficialStop': true,
+        'profileStrategyCanEndTripAutomatically': true,
+        'remoteDataCanOverrideLocalTrip': true,
+        'employerGodModeAllowed': true,
+        'debug': '35.123456,-80.123456 token=sk.secret',
+      });
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('commercial_evidence_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('commercial_claims_trip_truth_authority'),
+      );
+      expect(
+        validation.reasons,
+        contains('commercial_remote_authority_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('commercial_privacy_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_commercial_material'),
+      );
     },
   );
 }
