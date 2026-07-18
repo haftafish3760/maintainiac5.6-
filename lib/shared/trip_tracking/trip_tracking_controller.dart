@@ -187,6 +187,20 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    final entryValidation = TripOdometerEntryValidation.validate(
+      startingOdometer: review.startingOdometer,
+      endingOdometer: confirmedEndingOdometer,
+      previousConfirmedEndingOdometer: _previousConfirmedReviewFor(
+        review,
+      )?.confirmedEndingOdometer,
+    );
+    if (entryValidation.shouldBlockConfirmation) {
+      _platformStatus = 'odometer_entry_invalid';
+      _platformError =
+          'Review the starting and ending odometer readings before confirming this trip.';
+      notifyListeners();
+      return false;
+    }
     final odometerMileageReview = const OdometerMileageReview(
       use: OdometerMileageUse.unresolved,
     );
@@ -242,7 +256,14 @@ class TripTrackingController extends ChangeNotifier {
       _platformStatus = 'odometer_reconciliation_review';
       _platformError =
           'GPS and odometer mileage differ enough to review. The physical odometer remains the official mileage.';
+    } else if (entryValidation.shouldPromptUser) {
+      _platformStatus = 'odometer_entry_review';
+      _platformError =
+          'This odometer entry looks unusual compared with recent confirmed mileage. The physical odometer remains the official mileage.';
     } else if (_platformStatus == 'odometer_reconciliation_review') {
+      _platformStatus = null;
+      _platformError = null;
+    } else if (_platformStatus == 'odometer_entry_review') {
       _platformStatus = null;
       _platformError = null;
     }
@@ -262,15 +283,7 @@ class TripTrackingController extends ChangeNotifier {
   TripOdometerContinuityCheck _continuityAgainstPreviousConfirmedReview(
     TripTrackingReviewRecord review,
   ) {
-    final previous = _sessionStore.pendingReviews
-        .where(
-          (candidate) =>
-              candidate.id != review.id &&
-              candidate.vehicleId == review.vehicleId &&
-              candidate.isOdometerConfirmed &&
-              candidate.finishedAt.isBefore(review.startedAt),
-        )
-        .firstOrNull;
+    final previous = _previousConfirmedReviewFor(review);
     if (previous == null) {
       return const TripOdometerContinuityCheck(
         status: TripOdometerContinuityStatus.insufficientData,
@@ -283,6 +296,18 @@ class TripTrackingController extends ChangeNotifier {
       next: review,
     );
   }
+
+  TripTrackingReviewRecord? _previousConfirmedReviewFor(
+    TripTrackingReviewRecord review,
+  ) => _sessionStore.pendingReviews
+      .where(
+        (candidate) =>
+            candidate.id != review.id &&
+            candidate.vehicleId == review.vehicleId &&
+            candidate.isOdometerConfirmed &&
+            candidate.finishedAt.isBefore(review.startedAt),
+      )
+      .firstOrNull;
 
   /// Retries locally durable mileage backups without touching the active trip
   /// or confirmed odometer. A successful retry clears any stale dashboard
