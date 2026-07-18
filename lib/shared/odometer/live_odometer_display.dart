@@ -34,8 +34,12 @@ class LiveOdometerDisplaySnapshot {
 
   bool get mapboxMayOverrideOdometer => false;
 
+  int get safeDisplayReading => isLive && displayReading < confirmedReading
+      ? confirmedReading
+      : displayReading;
+
   String get displayValue =>
-      _safeReading(displayReading).toString().padLeft(7, '0');
+      _safeReading(safeDisplayReading).toString().padLeft(7, '0');
 
   String get confirmedDisplayValue =>
       _safeReading(confirmedReading).toString().padLeft(7, '0');

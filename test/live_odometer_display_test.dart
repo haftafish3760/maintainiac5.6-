@@ -132,7 +132,8 @@ void main() {
       snapshot.advisoryLabel,
       'GPS-assisted odometer is live; confirmed mileage has not changed.',
     );
-    expect(snapshot.displayValue, '0000999');
+    expect(snapshot.safeDisplayReading, 1000);
+    expect(snapshot.displayValue, '0001000');
   });
 
   test('live odometer dashboard map bounds clock skew and long gaps', () {
