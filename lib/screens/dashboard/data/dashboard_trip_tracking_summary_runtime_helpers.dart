@@ -101,3 +101,11 @@ String _sensorAssistStateFor(
   if (battery) return 'battery_available';
   return 'no_assist';
 }
+
+String _durableRecordBackupStateFor(TripTrackingController? tripTracking) {
+  if (tripTracking == null || !tripTracking.hasDurableRecordBridge) {
+    return 'not_configured';
+  }
+  if (tripTracking.durableRecordError != null) return 'pending_retry';
+  return 'available';
+}

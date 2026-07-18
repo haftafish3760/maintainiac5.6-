@@ -61,6 +61,7 @@ class DashboardTripTrackingSummary {
     required this.usesSharedDeviceCapabilityProfile,
     required this.usesSharedDurableTripRecordStore,
     required this.durableTripRecordsReviewedOnly,
+    required this.durableRecordBackupState,
     required this.gpsTrackingCanRunWithoutMaps,
     required this.mapsRequiredForTracking,
     required this.rawGpsIncluded,
@@ -119,6 +120,7 @@ class DashboardTripTrackingSummary {
   final bool usesSharedDeviceCapabilityProfile;
   final bool usesSharedDurableTripRecordStore;
   final bool durableTripRecordsReviewedOnly;
+  final String durableRecordBackupState;
   final bool gpsTrackingCanRunWithoutMaps;
   final bool mapsRequiredForTracking;
   final bool rawGpsIncluded;
@@ -154,6 +156,7 @@ class DashboardTripTrackingSummary {
     bool usesSharedDeviceCapabilityProfile = false,
     bool usesSharedDurableTripRecordStore = false,
     bool durableTripRecordsReviewedOnly = false,
+    String durableRecordBackupState = 'not_configured',
     bool gpsTrackingCanRunWithoutMaps = true,
     bool mapsRequiredForTracking = false,
     bool rawGpsIncluded = false,
@@ -273,6 +276,9 @@ class DashboardTripTrackingSummary {
       usesSharedDeviceCapabilityProfile: usesSharedDeviceCapabilityProfile,
       usesSharedDurableTripRecordStore: usesSharedDurableTripRecordStore,
       durableTripRecordsReviewedOnly: durableTripRecordsReviewedOnly,
+      durableRecordBackupState: _safeDurableRecordBackupState(
+        durableRecordBackupState,
+      ),
       gpsTrackingCanRunWithoutMaps: gpsTrackingCanRunWithoutMaps,
       mapsRequiredForTracking: mapsRequiredForTracking && false,
       rawGpsIncluded: rawGpsIncluded && false,
@@ -383,6 +389,7 @@ class DashboardTripTrackingSummary {
       usesSharedDeviceCapabilityProfile: devicePolicy != null,
       usesSharedDurableTripRecordStore: true,
       durableTripRecordsReviewedOnly: true,
+      durableRecordBackupState: _durableRecordBackupStateFor(tripTracking),
       gpsTrackingCanRunWithoutMaps: true,
       mapsRequiredForTracking: false,
       rawGpsIncluded: false,

@@ -91,6 +91,7 @@ class TripTrackingController extends ChangeNotifier {
   String? get platformError => _platformError;
   String? get cloudMirrorError => _cloudMirrorError;
   String? get durableRecordError => _durableRecordError;
+  bool get hasDurableRecordBridge => _durableRecordBridge != null;
   double get gpsAssistanceCalibrationMultiplier =>
       _gpsAssistanceCalibrationMultiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>

@@ -3,9 +3,11 @@ import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_trip_tracking_summary.dart';
 import 'package:maintaniac/shared/device_capabilities/device_capabilities.dart';
 import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
+import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
@@ -51,6 +53,7 @@ void main() {
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
+    expect(summary.durableRecordBackupState, 'not_configured');
     expect(summary.odometerCalibrationState, 'disabled');
     expect(summary.odometerCalibrationSamples, isNull);
     expect(summary.odometerCalibrationMultiplier, isNull);
@@ -312,6 +315,7 @@ void main() {
       expect(summary.usesSharedDeviceCapabilityProfile, isFalse);
       expect(summary.usesSharedDurableTripRecordStore, isTrue);
       expect(summary.durableTripRecordsReviewedOnly, isTrue);
+      expect(summary.durableRecordBackupState, 'not_configured');
       expect(summary.gpsTrackingCanRunWithoutMaps, isTrue);
       expect(summary.mapsRequiredForTracking, isFalse);
       expect(summary.rawGpsIncluded, isFalse);
@@ -350,6 +354,31 @@ void main() {
       expect(summary.rawMapboxGeometryIncluded, isFalse);
     },
   );
+
+  test('runtime summary reports configured durable trip backup state', () {
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      durableRecordBridge: TripTrackingDurableRecordBridge(
+        MaintainiacDurableRecordStore.memory(),
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    final summary = DashboardTripTrackingSummary.fromRuntime(
+      settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+      tripTracking: controller,
+    );
+
+    expect(summary.usesSharedDurableTripRecordStore, isTrue);
+    expect(summary.durableTripRecordsReviewedOnly, isTrue);
+    expect(summary.durableRecordBackupState, 'available');
+    expect(summary.rawGpsIncluded, isFalse);
+    expect(summary.rawMapboxGeometryIncluded, isFalse);
+  });
 
   test(
     'runtime summary mirrors stop-review tokens without raw GPS history',

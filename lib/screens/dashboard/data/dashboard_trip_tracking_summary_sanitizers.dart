@@ -236,6 +236,15 @@ String _safeSensorAssistState(String value) {
   };
 }
 
+String _safeDurableRecordBackupState(String value) {
+  return switch (value.trim()) {
+    'not_configured' => 'not_configured',
+    'available' => 'available',
+    'pending_retry' => 'pending_retry',
+    _ => 'not_configured',
+  };
+}
+
 String _safeOdometerCalibrationState(String value) {
   return switch (value.trim()) {
     'unknown' => 'unknown',
