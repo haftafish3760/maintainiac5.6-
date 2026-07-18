@@ -210,6 +210,13 @@ class TripStopFalsePositiveGuard {
         profile: profile,
       );
     }
+    if (canOpenReview && profile == TripTrackingProfile.rideshareVehicle) {
+      return _decision(
+        TripStopFalsePositiveGuardStatus.blockedVehicleOnlyAutoReview,
+        'rideshare_manual_review_required',
+        profile: profile,
+      );
+    }
     if (canOpenReview &&
         vehicleOnlyDwell?['status'] == 'manualFallbackRecommended') {
       return _decision(
@@ -329,6 +336,7 @@ String _safeReason(String value) {
     'remote_stop_guard_authority' => 'remote_stop_guard_authority',
     'traffic_control_review_blocked' => 'traffic_control_review_blocked',
     'vehicle_only_auto_review_blocked' => 'vehicle_only_auto_review_blocked',
+    'rideshare_manual_review_required' => 'rideshare_manual_review_required',
     'review_without_walking_evidence_blocked' =>
       'review_without_walking_evidence_blocked',
     _ => 'malformed_stop_guard_summary',

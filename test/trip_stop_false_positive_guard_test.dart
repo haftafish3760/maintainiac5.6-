@@ -113,6 +113,35 @@ void main() {
     );
   });
 
+  test('rideshare cannot auto-open review from forged walking evidence', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: _observation(
+        observedAt: observedAt,
+        latestWalkingEvidenceAt: observedAt.subtract(
+          const Duration(seconds: 25),
+        ),
+      ),
+    );
+
+    final forged = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      status: decision.status.name,
+      classification: decision.classification.toSafeSummary(),
+      vehicleOnlyDwell: decision.vehicleOnlyDwell?.toSafeDashboardMap(),
+      needsWalkingReview: true,
+      protectedTrafficControl: false,
+      canOpenReview: true,
+    );
+
+    expect(
+      forged.status,
+      TripStopFalsePositiveGuardStatus.blockedVehicleOnlyAutoReview,
+    );
+    expect(forged.reasonCode, 'rideshare_manual_review_required');
+    expect(forged.canAllowReviewOpen, isFalse);
+  });
+
   test('guard rejects remote authority, tokens, and precise coordinates', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.contractorVehicle,
