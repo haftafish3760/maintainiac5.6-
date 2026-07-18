@@ -21,6 +21,7 @@ class TripTrackingEngine {
   var _walkingReviewSuggested = false;
   var _motionState = TripMotionState.unknown;
   var _vehicleMovementObserved = false;
+  DateTime? _stationaryStartedAt;
   var _diagnostics = const TripTrackingDiagnostics();
 
   double get totalAcceptedMeters => _totalAcceptedMeters;
@@ -327,7 +328,18 @@ class TripTrackingEngine {
         _walkingEvidence.clear();
       }
       _vehicleMovementObserved = true;
+      _stationaryStartedAt = null;
       _motionState = TripMotionState.moving;
+      return;
+    }
+
+    if (disposition == TripSampleDisposition.rejectedDrift &&
+        _vehicleMovementObserved &&
+        !walking) {
+      _stationaryStartedAt ??= sample.recordedAt;
+      if (_hasVehicleOnlyStopCandidate(sample.recordedAt)) {
+        _motionState = TripMotionState.stopCandidate;
+      }
       return;
     }
 
@@ -362,6 +374,16 @@ class TripTrackingEngine {
     return _walkingEvidence.last.recordedAt.difference(
       _walkingEvidence.first.recordedAt,
     );
+  }
+
+  bool _hasVehicleOnlyStopCandidate(DateTime observedAt) {
+    final startedAt = _stationaryStartedAt;
+    if (startedAt == null || observedAt.isBefore(startedAt)) return false;
+    return observedAt.difference(startedAt) >=
+        _safePositiveDuration(
+          policy.vehicleOnlyStopCandidateDuration,
+          const Duration(seconds: 90),
+        );
   }
 
   TripSampleDecision _decision(

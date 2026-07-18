@@ -713,6 +713,38 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
   });
 
+  test('sustained vehicle-only waiting becomes review-safe stop candidate', () {
+    final engine = TripTrackingEngine(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+
+    for (final seconds in [30, 60, 90]) {
+      engine.ingest(sample(-79.9997, seconds));
+    }
+    expect(engine.motionState, isNot(TripMotionState.stopCandidate));
+
+    engine.ingest(sample(-79.9997, 135));
+    expect(engine.motionState, TripMotionState.stopCandidate);
+    expect(engine.needsWalkingReview, isFalse);
+
+    engine.ingest(
+      sample(-79.997, 160),
+      activity: TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start.add(const Duration(seconds: 160)),
+      ),
+    );
+    expect(engine.motionState, TripMotionState.moving);
+  });
+
   test('road-style work profiles use conservative walking stop rules', () {
     for (final profile in const [
       TripTrackingProfile.roadVehicle,
