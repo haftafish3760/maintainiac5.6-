@@ -65,6 +65,10 @@ class TripNativeEventLifecycleDecision {
     'firestoreEventCanForceLifecycle': false,
     'cloudFunctionCanForceLifecycle': false,
     'remoteLifecycleCanOverrideLocalCheckpoint': false,
+    'nativeEventCanPurgeLocalDataAfterBackup': false,
+    'nativeEventCanBypassLocalCheckpoint': false,
+    'nativeEventCanBypassAuthorization': false,
+    'nativeEventCanBypassUserConsent': false,
     'backgroundPauseRequiresRecoveryPath': true,
     'backgroundRestrictionCanOnlyInterruptRecoverably': true,
     'lateNativeStoppedStatusCannotEndTrip': true,
@@ -77,6 +81,89 @@ class TripNativeEventLifecycleDecision {
     'preciseTimestampIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripNativeEventLifecycleSummaryValidation {
+  const TripNativeEventLifecycleSummaryValidation._({
+    required this.isRenderable,
+    required this.action,
+    required this.reasons,
+  });
+
+  factory TripNativeEventLifecycleSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final action = _safeAction(summary['action']);
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (action == null) reasons.add('invalid_native_action');
+    if (_safeLifecycleReason(summary['reason']) == null) {
+      reasons.add('invalid_native_reason');
+    }
+    if (_safeLifecycleState(summary['from']) == null ||
+        _safeLifecycleState(summary['to']) == null) {
+      reasons.add('invalid_lifecycle_state');
+    }
+    if (summary['canFeedEngine'] == true &&
+        (summary['transitionAllowed'] != true ||
+            action != TripNativeEventLifecycleAction.ingestLocation)) {
+      reasons.add('unsafe_engine_feed_claim');
+    }
+    if (summary['nativeEventTrustedAfterValidationOnly'] != true ||
+        summary['localLifecycleAuthoritative'] != true ||
+        summary['nativeStatusRequiresLocalStateMachineTransition'] != true) {
+      reasons.add('native_lifecycle_boundary_missing');
+    }
+    if (summary['nativeEventCanForceComplete'] != false ||
+        summary['nativeEventCanDeleteCheckpoint'] != false ||
+        summary['nativeEventCanConfirmOdometer'] != false ||
+        summary['nativeEventCanCreateOfficialStop'] != false ||
+        summary['nativeEventCanPurgeLocalDataAfterBackup'] != false ||
+        summary['nativeEventCanBypassLocalCheckpoint'] != false) {
+      reasons.add('native_event_can_mutate_trip_truth');
+    }
+    if (summary['mapboxEventCanForceLifecycle'] != false ||
+        summary['firestoreEventCanForceLifecycle'] != false ||
+        summary['cloudFunctionCanForceLifecycle'] != false ||
+        summary['remoteLifecycleCanOverrideLocalCheckpoint'] != false) {
+      reasons.add('remote_event_can_force_lifecycle');
+    }
+    if (summary['nativeEventCanBypassAuthorization'] != false ||
+        summary['nativeEventCanBypassUserConsent'] != false ||
+        summary['permissionLossRequiresUserReview'] != true) {
+      reasons.add('permission_boundary_missing');
+    }
+    if (summary['backgroundPauseRequiresRecoveryPath'] != true ||
+        summary['backgroundRestrictionCanOnlyInterruptRecoverably'] != true ||
+        summary['lateNativeStoppedStatusCannotEndTrip'] != true ||
+        summary['completedSessionCanResume'] != false) {
+      reasons.add('interruption_recovery_boundary_missing');
+    }
+    if (summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('odometer_truth_boundary_missing');
+    }
+    if (summary['rawNativePayloadIncluded'] != false ||
+        summary['rawLocationIncluded'] != false ||
+        summary['preciseTimestampIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_native_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripNativeEventLifecycleSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      action: reasons.isEmpty ? action : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripNativeEventLifecycleAction? action;
+  final List<String> reasons;
 }
 
 class TripNativeEventLifecyclePolicy {
@@ -310,4 +397,36 @@ class _NativeTarget {
   final TripNativeEventLifecycleReason reason;
   final bool canFeedEngine;
   final bool requiresUserReview;
+}
+
+TripNativeEventLifecycleAction? _safeAction(Object? value) {
+  if (value is! String) return null;
+  for (final action in TripNativeEventLifecycleAction.values) {
+    if (action.name == value) return action;
+  }
+  return null;
+}
+
+TripNativeEventLifecycleReason? _safeLifecycleReason(Object? value) {
+  if (value is! String) return null;
+  for (final reason in TripNativeEventLifecycleReason.values) {
+    if (reason.name == value) return reason;
+  }
+  return null;
+}
+
+TripTrackingSessionLifecycleState? _safeLifecycleState(Object? value) {
+  if (value is! String) return null;
+  for (final state in TripTrackingSessionLifecycleState.values) {
+    if (state.name == value) return state;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

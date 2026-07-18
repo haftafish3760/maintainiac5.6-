@@ -141,6 +141,71 @@ void main() {
       expect(safe.toString(), isNot(contains('sk.')));
     },
   );
+
+  test('safe native recovery summary validates as renderable', () {
+    final validation =
+        TripNativeInterruptionRecoverySummaryValidation.fromSummary(
+          TripNativeInterruptionRecoveryPolicy.evaluate(
+            nativeDecision: nativeDecision(event: statusEvent('recovering')),
+            supervisorDecision: supervisorDecision(),
+            localCheckpointAvailable: true,
+          ).toSafeDashboardMap(),
+        );
+
+    expect(validation.isRenderable, isTrue);
+    expect(
+      validation.status,
+      TripNativeInterruptionRecoveryStatus.ignoreSafely,
+    );
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('native recovery summary rejects mutation and remote force claims', () {
+    final validation =
+        TripNativeInterruptionRecoverySummaryValidation.fromSummary(
+          TripNativeInterruptionRecoveryPolicy.evaluate(
+            nativeDecision: nativeDecision(event: statusEvent('recovering')),
+            supervisorDecision: supervisorDecision(),
+            localCheckpointAvailable: true,
+          ).toSafeDashboardMap()..addAll({
+            'nativeInterruptionCanEndTripAutomatically': true,
+            'nativeInterruptionCanDeleteLocalData': true,
+            'nativeInterruptionCanConfirmOdometer': true,
+            'nativeInterruptionCanCreateOfficialStop': true,
+            'nativeInterruptionCanPurgeLocalDataAfterBackup': true,
+            'nativeInterruptionCanBypassLocalCheckpoint': true,
+            'nativeInterruptionCanBypassUserConsent': true,
+            'completedSessionProtectedFromNativeResume': false,
+            'backgroundRecoveryCanRunWithoutMaps': false,
+            'mapsRequiredForRecovery': true,
+            'firestoreCanForceRecovery': true,
+            'cloudFunctionCanForceRecovery': true,
+            'mapboxCanForceRecovery': true,
+            'rawNativePayloadIncluded': true,
+            'rawLocationIncluded': true,
+            'routeGeometryIncluded': true,
+            'tokensIncluded': true,
+            'debug': 'pk.public 35.123456,-80.123456',
+          }),
+        );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('native_recovery_can_mutate_trip_truth'),
+    );
+    expect(validation.reasons, contains('consent_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('completed_session_resume_boundary_missing'),
+    );
+    expect(validation.reasons, contains('remote_or_map_can_force_recovery'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_recovery_material'),
+    );
+    expect(validation.reasons, contains('summary_contains_sensitive_text'));
+  });
 }
 
 const normalRollup = TripDashboardStatusRollupDecision(

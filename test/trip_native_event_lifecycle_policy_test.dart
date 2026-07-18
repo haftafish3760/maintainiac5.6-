@@ -144,6 +144,56 @@ void main() {
       expect(safe.toString(), isNot(contains('sk.')));
     },
   );
+
+  test('safe native lifecycle summary validates as renderable', () {
+    final validation = TripNativeEventLifecycleSummaryValidation.fromSummary(
+      TripNativeEventLifecyclePolicy.evaluate(
+        currentState: TripTrackingSessionLifecycleState.starting,
+        event: locationEvent(),
+      ).toSafeSummary(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.action, TripNativeEventLifecycleAction.ingestLocation);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('native lifecycle summary rejects mutation and sensitive claims', () {
+    final validation = TripNativeEventLifecycleSummaryValidation.fromSummary(
+      TripNativeEventLifecyclePolicy.evaluate(
+        currentState: TripTrackingSessionLifecycleState.active,
+        event: statusEvent('recovering'),
+      ).toSafeSummary()..addAll({
+        'nativeEventCanForceComplete': true,
+        'nativeEventCanDeleteCheckpoint': true,
+        'nativeEventCanConfirmOdometer': true,
+        'nativeEventCanCreateOfficialStop': true,
+        'nativeEventCanPurgeLocalDataAfterBackup': true,
+        'nativeEventCanBypassLocalCheckpoint': true,
+        'mapboxEventCanForceLifecycle': true,
+        'firestoreEventCanForceLifecycle': true,
+        'cloudFunctionCanForceLifecycle': true,
+        'remoteLifecycleCanOverrideLocalCheckpoint': true,
+        'nativeEventCanBypassAuthorization': true,
+        'nativeEventCanBypassUserConsent': true,
+        'rawNativePayloadIncluded': true,
+        'rawLocationIncluded': true,
+        'preciseTimestampIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'sk.secret 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('native_event_can_mutate_trip_truth'));
+    expect(validation.reasons, contains('remote_event_can_force_lifecycle'));
+    expect(validation.reasons, contains('permission_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_native_material'),
+    );
+    expect(validation.reasons, contains('summary_contains_sensitive_text'));
+  });
 }
 
 TripTrackingPlatformEvent locationEvent() {

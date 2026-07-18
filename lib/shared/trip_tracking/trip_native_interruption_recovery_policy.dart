@@ -47,6 +47,9 @@ class TripNativeInterruptionRecoveryDecision {
     'nativeInterruptionCanDeleteLocalData': false,
     'nativeInterruptionCanConfirmOdometer': false,
     'nativeInterruptionCanCreateOfficialStop': false,
+    'nativeInterruptionCanPurgeLocalDataAfterBackup': false,
+    'nativeInterruptionCanBypassLocalCheckpoint': false,
+    'nativeInterruptionCanBypassUserConsent': false,
     'completedSessionProtectedFromNativeResume': true,
     'backgroundRecoveryCanRunWithoutMaps': true,
     'mapsRequiredForRecovery': false,
@@ -60,6 +63,86 @@ class TripNativeInterruptionRecoveryDecision {
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripNativeInterruptionRecoverySummaryValidation {
+  const TripNativeInterruptionRecoverySummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasons,
+  });
+
+  factory TripNativeInterruptionRecoverySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_recovery_status');
+    if (_safeReasonObject(summary['reasonCode']) == null) {
+      reasons.add('invalid_recovery_reason');
+    }
+    if (_safeLifecycleState(summary['nextLifecycle']) == null) {
+      reasons.add('invalid_next_lifecycle');
+    }
+    if (summary['canFeedEngine'] == true &&
+        (status != TripNativeInterruptionRecoveryStatus.feedEngine ||
+            summary['shouldRequestUserAction'] == true)) {
+      reasons.add('unsafe_engine_feed_claim');
+    }
+    if (summary['canReplayPendingSample'] == true &&
+        (summary['localCheckpointRequiredForRecovery'] != true ||
+            summary['shouldRequestUserAction'] == true)) {
+      reasons.add('unsafe_pending_sample_replay_claim');
+    }
+    if (summary['localCheckpointRequiredForRecovery'] != true ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('local_recovery_truth_boundary_missing');
+    }
+    if (summary['nativeInterruptionCanEndTripAutomatically'] != false ||
+        summary['nativeInterruptionCanDeleteLocalData'] != false ||
+        summary['nativeInterruptionCanConfirmOdometer'] != false ||
+        summary['nativeInterruptionCanCreateOfficialStop'] != false ||
+        summary['nativeInterruptionCanPurgeLocalDataAfterBackup'] != false ||
+        summary['nativeInterruptionCanBypassLocalCheckpoint'] != false) {
+      reasons.add('native_recovery_can_mutate_trip_truth');
+    }
+    if (summary['nativeInterruptionCanBypassUserConsent'] != false) {
+      reasons.add('consent_boundary_missing');
+    }
+    if (summary['completedSessionProtectedFromNativeResume'] != true) {
+      reasons.add('completed_session_resume_boundary_missing');
+    }
+    if (summary['backgroundRecoveryCanRunWithoutMaps'] != true ||
+        summary['mapsRequiredForRecovery'] != false ||
+        summary['firestoreCanForceRecovery'] != false ||
+        summary['cloudFunctionCanForceRecovery'] != false ||
+        summary['mapboxCanForceRecovery'] != false) {
+      reasons.add('remote_or_map_can_force_recovery');
+    }
+    if (summary['rawNativePayloadIncluded'] != false ||
+        summary['rawLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_recovery_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripNativeInterruptionRecoverySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripNativeInterruptionRecoveryStatus? status;
+  final List<String> reasons;
 }
 
 class TripNativeInterruptionRecoveryPolicy {
@@ -246,4 +329,33 @@ String _safeReason(String value) {
     'native_sample_ready_for_engine' => 'native_sample_ready_for_engine',
     _ => 'native_recovery_illegal_transition',
   };
+}
+
+TripNativeInterruptionRecoveryStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripNativeInterruptionRecoveryStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReasonObject(Object? value) {
+  if (value is! String) return null;
+  return _safeReason(value);
+}
+
+TripTrackingSessionLifecycleState? _safeLifecycleState(Object? value) {
+  if (value is! String) return null;
+  for (final state in TripTrackingSessionLifecycleState.values) {
+    if (state.name == value) return state;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
