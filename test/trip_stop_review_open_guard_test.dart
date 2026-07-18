@@ -82,6 +82,37 @@ void main() {
     }
   });
 
+  test('moving vehicle blocks stale stop review payload creation', () {
+    final decision = TripStopReviewOpenGuard.evaluate(
+      request(currentVehicleSpeedMps: 7.0),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripStopReviewOpenStatus.blockedReadiness);
+    expect(decision.mayOpenReview, isFalse);
+    expect(decision.reviewPayload, isEmpty);
+    expect(
+      decision.readiness.reasonCode,
+      'vehicle_still_moving_for_stop_review',
+    );
+    expect(safe['movingVehicleCannotOpenStopReview'], isTrue);
+    expect(safe['createsOfficialStop'], isFalse);
+  });
+
+  test('malformed current vehicle speed fails closed at review boundary', () {
+    final decision = TripStopReviewOpenGuard.evaluate(
+      request(currentVehicleSpeedMps: double.infinity),
+    );
+
+    expect(decision.status, TripStopReviewOpenStatus.blockedReadiness);
+    expect(decision.mayOpenReview, isFalse);
+    expect(decision.reviewPayload, isEmpty);
+    expect(
+      decision.readiness.reasonCode,
+      'invalid_vehicle_speed_for_stop_review',
+    );
+  });
+
   test('authenticated user must own the local trip session', () {
     final decision = TripStopReviewOpenGuard.evaluate(
       request(authenticatedUid: 'otherUser'),
@@ -194,6 +225,7 @@ TripStopReviewOpenRequest request({
   bool activeTrip = true,
   bool localSessionAvailable = true,
   bool acceptedVehicleMovementObserved = true,
+  double? currentVehicleSpeedMps,
   DateTime? detectedAtUtc,
   DateTime? nowUtc,
   List<String> existingPendingReviewIds = const [],
@@ -209,6 +241,7 @@ TripStopReviewOpenRequest request({
     activeTrip: activeTrip,
     localSessionAvailable: localSessionAvailable,
     acceptedVehicleMovementObserved: acceptedVehicleMovementObserved,
+    currentVehicleSpeedMps: currentVehicleSpeedMps,
     detectedAtUtc: detectedAtUtc ?? DateTime.utc(2026, 7, 18, 12),
     nowUtc: now,
     existingPendingReviewIds: existingPendingReviewIds,

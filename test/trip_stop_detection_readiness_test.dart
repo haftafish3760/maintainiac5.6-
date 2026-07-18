@@ -126,6 +126,45 @@ void main() {
     );
   });
 
+  test('stale walking stop cannot open review while vehicle is moving', () {
+    final moving = TripStopDetectionReadiness.fromSummary(
+      reviewOnlyStopSummary(),
+      activeTrip: true,
+      localSessionAvailable: true,
+      acceptedVehicleMovementObserved: true,
+      currentVehicleSpeedMps: 8.5,
+    );
+    final malformed = TripStopDetectionReadiness.fromSummary(
+      reviewOnlyStopSummary(),
+      activeTrip: true,
+      localSessionAvailable: true,
+      acceptedVehicleMovementObserved: true,
+      currentVehicleSpeedMps: double.nan,
+    );
+
+    expect(moving.status, TripStopDetectionReadinessStatus.waitForMoreEvidence);
+    expect(moving.canOpenStopReview, isFalse);
+    expect(moving.actionToken, 'continue_monitoring');
+    expect(moving.reasonCode, 'vehicle_still_moving_for_stop_review');
+    expect(
+      moving.reasons,
+      contains('current_vehicle_speed_too_high_for_stop_review'),
+    );
+    expect(
+      moving.toSafeDashboardMap()['movingVehicleCannotOpenStopReview'],
+      isTrue,
+    );
+    expect(
+      TripStopDetectionReadinessSummaryValidation.fromSummary(
+        moving.toSafeDashboardMap(),
+      ).canOpenStopReview,
+      isFalse,
+    );
+    expect(malformed.status, TripStopDetectionReadinessStatus.unsafeBoundary);
+    expect(malformed.reasonCode, 'invalid_vehicle_speed_for_stop_review');
+    expect(malformed.reasons, contains('valid_current_vehicle_speed_required'));
+  });
+
   test('traffic-control summaries keep tracking and do not open review', () {
     final traffic = TripStopClassifier.classify(
       profile: TripTrackingProfile.deliveryVehicle,

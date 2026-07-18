@@ -76,6 +76,7 @@ class TripStopDetectionReadiness {
     required bool activeTrip,
     required bool localSessionAvailable,
     required bool acceptedVehicleMovementObserved,
+    double? currentVehicleSpeedMps,
     TripStopReviewAuthorization? authorization,
   }) {
     final validation = TripStopSummaryValidation.fromSummary(summary);
@@ -126,6 +127,24 @@ class TripStopDetectionReadiness {
         reasonCode: 'vehicle_movement_required_for_stop_review',
         reasons: ['accepted_vehicle_movement_required'],
       );
+    }
+    if (currentVehicleSpeedMps != null) {
+      if (!currentVehicleSpeedMps.isFinite || currentVehicleSpeedMps < 0) {
+        return const TripStopDetectionReadiness._(
+          status: TripStopDetectionReadinessStatus.unsafeBoundary,
+          actionToken: 'keep_tracking',
+          reasonCode: 'invalid_vehicle_speed_for_stop_review',
+          reasons: ['valid_current_vehicle_speed_required'],
+        );
+      }
+      if (currentVehicleSpeedMps > _maximumStopReviewSpeedMps) {
+        return const TripStopDetectionReadiness._(
+          status: TripStopDetectionReadinessStatus.waitForMoreEvidence,
+          actionToken: 'continue_monitoring',
+          reasonCode: 'vehicle_still_moving_for_stop_review',
+          reasons: ['current_vehicle_speed_too_high_for_stop_review'],
+        );
+      }
     }
 
     final signal = validation.signal;
@@ -363,6 +382,8 @@ const _allowedActions = {
   'review_shift_stop',
   'review_trip_stop',
 };
+
+const _maximumStopReviewSpeedMps = 2.0;
 
 bool _containsSensitivePayload(Map<String, Object?> summary) {
   for (final entry in summary.entries) {
