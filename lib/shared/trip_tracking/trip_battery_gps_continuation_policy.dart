@@ -236,6 +236,20 @@ class TripBatteryGpsContinuationPolicy {
         canRetryWhenForeground: false,
       );
     }
+    if (!_batteryDecisionTrusted(batteryDecision)) {
+      return _decision(
+        status: TripBatteryGpsContinuationStatus.promptUser,
+        reasonCode: 'battery_unknown',
+        shouldContinueGpsSampling: false,
+        shouldPromptUser: true,
+        shouldKeepTripSessionAlive: true,
+        shouldKeepTextTripLogWritable: true,
+        shouldWriteLocalCheckpoint: true,
+        requiresForegroundService: appInBackground,
+        requiresBackgroundPermission: false,
+        canRetryWhenForeground: false,
+      );
+    }
     if (appInBackground &&
         (!foregroundServiceAvailable || !backgroundTrackingPermissionGranted)) {
       return _decision(
@@ -320,6 +334,27 @@ TripBatteryGpsContinuationDecision _decision({
     requiresBackgroundPermission: requiresBackgroundPermission,
     canRetryWhenForeground: canRetryWhenForeground,
   );
+}
+
+bool _batteryDecisionTrusted(TripGpsBatteryDecision decision) {
+  final safe = decision.toSafeSummary();
+  if (safe['malformedBatteryPayloadFailsSafe'] != true ||
+      safe['batteryDataTrustedAfterValidationOnly'] != true ||
+      safe['batteryDataCanDeleteTripRecords'] != false ||
+      safe['lowBatteryCanStopTextTripLog'] != false ||
+      safe['tripDataDeletionAllowed'] != false ||
+      safe['odometerIsGlobalTruth'] != true ||
+      safe['firebaseBatteryStateCanOverrideGpsDecision'] != false ||
+      safe['mapboxCanOverrideBatteryDecision'] != false) {
+    return false;
+  }
+  if (safe['reasonCode'] != _safeReason(decision.reasonCode)) return false;
+  if (decision.reasonCode.trim() != safe['reasonCode']) return false;
+  if (decision.allowsGps && safe['allowsGps'] != true) return false;
+  if (decision.requiresUserChoice && safe['requiresUserChoice'] != true) {
+    return false;
+  }
+  return true;
 }
 
 bool _activeOrRecoverableLifecycle(

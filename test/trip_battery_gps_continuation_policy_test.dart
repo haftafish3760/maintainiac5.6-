@@ -142,6 +142,38 @@ void main() {
     expect(decision.canRetryWhenForeground, isTrue);
   });
 
+  test('malformed battery decision prompts instead of continuing GPS', () {
+    final decision = TripBatteryGpsContinuationPolicy.evaluate(
+      lifecycle: TripTrackingSessionLifecycleState.active,
+      localSessionAvailable: true,
+      batteryDecision: const TripGpsBatteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'token=sk.secret battery 12%',
+        batteryBucket: '12%',
+        safetyCutoffPercent: 20,
+        promptTitle: 'unsafe',
+        promptBody: 'unsafe',
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripBatteryGpsContinuationStatus.promptUser);
+    expect(decision.reasonCode, 'battery_unknown');
+    expect(decision.shouldContinueGpsSampling, isFalse);
+    expect(decision.shouldPromptUser, isTrue);
+    expect(decision.shouldKeepTripSessionAlive, isTrue);
+    expect(decision.shouldKeepTextTripLogWritable, isTrue);
+    expect(safe['rawBatteryPayloadIncluded'], isFalse);
+    expect(safe['preciseBatteryIncluded'], isFalse);
+    expect(safe.toString(), isNot(contains('sk.secret')));
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
   test('invalid trip state blocks battery GPS continuation boundary', () {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
       lifecycle: TripTrackingSessionLifecycleState.completed,
