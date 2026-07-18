@@ -625,41 +625,66 @@ void main() {
     'calibration excludes reviewed days with poor GPS signal diagnostics',
     () {
       final confirmedAt = DateTime.utc(2026, 7, 14, 12);
-      final reviews = List.generate(
-        7,
-        (index) => TripTrackingReviewRecord(
-          id: 'trip_signal_quality_$index',
-          vehicleId: 'vehicle_1',
-          startingOdometer: 1000 + (index * 100),
-          estimatedEndingOdometer: 1100 + (index * 100),
-          confirmedEndingOdometer: 1100 + (index * 100),
-          odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
-          profile: TripTrackingProfile.roadVehicle,
-          startedAt: DateTime.utc(2026, 7, 1 + index, 8),
-          finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
-          engineSnapshot: TripTrackingEngineSnapshot(
-            totalAcceptedMeters: 94 * 1609.344,
-            walkingReviewSuggested: false,
-            diagnostics: index == 0
-                ? const TripTrackingDiagnostics(
-                    receivedSamples: 100,
-                    acceptedSamples: 55,
-                    dispositionCounts: {
-                      TripSampleDisposition.acceptedDistance: 55,
-                      TripSampleDisposition.rejectedAccuracy: 45,
-                    },
-                  )
-                : const TripTrackingDiagnostics(
-                    receivedSamples: 100,
-                    acceptedSamples: 90,
-                    dispositionCounts: {
-                      TripSampleDisposition.acceptedDistance: 90,
-                      TripSampleDisposition.rejectedAccuracy: 10,
-                    },
-                  ),
+      final reviews = <TripTrackingReviewRecord>[
+        ...List.generate(
+          7,
+          (index) => TripTrackingReviewRecord(
+            id: 'trip_signal_quality_$index',
+            vehicleId: 'vehicle_1',
+            startingOdometer: 1000 + (index * 100),
+            estimatedEndingOdometer: 1100 + (index * 100),
+            confirmedEndingOdometer: 1100 + (index * 100),
+            odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+            profile: TripTrackingProfile.roadVehicle,
+            startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+            finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+            engineSnapshot: TripTrackingEngineSnapshot(
+              totalAcceptedMeters: 94 * 1609.344,
+              walkingReviewSuggested: false,
+              diagnostics: index == 0
+                  ? const TripTrackingDiagnostics(
+                      receivedSamples: 100,
+                      acceptedSamples: 55,
+                      dispositionCounts: {
+                        TripSampleDisposition.acceptedDistance: 55,
+                        TripSampleDisposition.rejectedAccuracy: 45,
+                      },
+                    )
+                  : const TripTrackingDiagnostics(
+                      receivedSamples: 100,
+                      acceptedSamples: 90,
+                      dispositionCounts: {
+                        TripSampleDisposition.acceptedDistance: 90,
+                        TripSampleDisposition.rejectedAccuracy: 10,
+                      },
+                    ),
+            ),
           ),
         ),
-      );
+        TripTrackingReviewRecord(
+          id: 'trip_signal_quality_same_day_clean',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1100,
+          estimatedEndingOdometer: 1200,
+          confirmedEndingOdometer: 1200,
+          odometerConfirmedAt: confirmedAt.add(const Duration(hours: 1)),
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 1, 13),
+          finishedAt: DateTime.utc(2026, 7, 1, 15),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 110 * 1609.344,
+            walkingReviewSuggested: false,
+            diagnostics: TripTrackingDiagnostics(
+              receivedSamples: 100,
+              acceptedSamples: 90,
+              dispositionCounts: {
+                TripSampleDisposition.acceptedDistance: 90,
+                TripSampleDisposition.rejectedAccuracy: 10,
+              },
+            ),
+          ),
+        ),
+      ];
 
       final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
         reviews: reviews,

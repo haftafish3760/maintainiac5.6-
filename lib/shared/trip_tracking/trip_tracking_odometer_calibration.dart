@@ -266,6 +266,7 @@ class TripOdometerCalibrationSignal {
     final dailyTotals = <String, _DailyCalibrationTotals>{};
     final poorGpsDayKeys = <String>{};
     for (final review in confirmedReviews) {
+      final dayKey = _calibrationDayKey(review.startedAt.toUtc());
       final reconciliation = TripOdometerReconciliation.compare(
         review: review,
         confirmedEndingOdometer: review.confirmedEndingOdometer!,
@@ -274,10 +275,13 @@ class TripOdometerCalibrationSignal {
         continue;
       }
       if (!_reviewHasTrustedCalibrationGpsWindow(review, reconciliation)) {
-        poorGpsDayKeys.add(_calibrationDayKey(review.startedAt.toUtc()));
+        poorGpsDayKeys.add(dayKey);
+        dailyTotals.remove(dayKey);
         continue;
       }
-      final dayKey = _calibrationDayKey(review.startedAt.toUtc());
+      if (poorGpsDayKeys.contains(dayKey)) {
+        continue;
+      }
       dailyTotals
           .putIfAbsent(dayKey, _DailyCalibrationTotals.new)
           .add(reconciliation);
