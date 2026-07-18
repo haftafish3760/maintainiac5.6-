@@ -133,11 +133,22 @@ void main() {
         horizontalAccuracyMeters: 5,
       ),
     );
+    final mockedReplay = TripTrackingPendingSample(
+      sessionId: 'trip_recovery_1',
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: startedAt.add(const Duration(minutes: 1)),
+        horizontalAccuracyMeters: 5,
+        mockedLocation: true,
+      ),
+    );
 
     for (final pending in [
       impossibleCoordinate,
       staleSensorEvidence,
       futureReplay,
+      mockedReplay,
     ]) {
       final decision = TripTrackingRecoveryPolicy.evaluate(
         session: session(),

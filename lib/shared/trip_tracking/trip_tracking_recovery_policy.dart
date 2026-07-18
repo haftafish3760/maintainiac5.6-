@@ -195,6 +195,7 @@ bool _hasRecoverablePendingSample({
   if (!pending.sample.hasValidCoordinate || !pending.sample.hasValidAccuracy) {
     return false;
   }
+  if (pending.sample.mockedLocation == true) return false;
   if (pending.sample.recordedAt.isBefore(session.startedAt)) return false;
   final replayWindowEnd = session.updatedAt.add(const Duration(minutes: 5));
   if (pending.sample.recordedAt.isAfter(replayWindowEnd)) return false;
