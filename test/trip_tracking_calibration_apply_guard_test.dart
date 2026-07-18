@@ -91,6 +91,9 @@ void main() {
     expect(safe['canApplySilently'], isFalse);
     expect(safe['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
     expect(safe['calibrationCanMutateTripLog'], isFalse);
+    expect(safe['calibrationCanPurgeLocalDataAfterBackup'], isFalse);
+    expect(safe['calibrationCanBypassVehicleProfile'], isFalse);
+    expect(safe['calibrationCanApplyAcrossVehicles'], isFalse);
     expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
     expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
     expect(safe['odometerRemainsCanonical'], isTrue);
@@ -231,4 +234,74 @@ void main() {
     expect(safe['requiresMultipleReviewedOdometerDays'], isTrue);
     expect(safe['latestReviewTimestampRequired'], isTrue);
   });
+
+  test('safe calibration apply summary validates as renderable', () {
+    final validation =
+        TripTrackingCalibrationApplySummaryValidation.fromSummary(
+          TripTrackingCalibrationApplyGuard.evaluate(
+            signal: signal(),
+            userOptedIn: true,
+            userAcceptedLatestReview: true,
+            minimumReviewedDays: 7,
+            latestReviewedAtUtc: now,
+            nowUtc: now,
+          ).toSafeDashboardMap(),
+        );
+
+    expect(validation.isRenderable, isTrue);
+    expect(
+      validation.status,
+      TripTrackingCalibrationApplyStatus.readyForFutureProjection,
+    );
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'calibration summary rejects mutation, remote, and sensitive claims',
+    () {
+      final validation =
+          TripTrackingCalibrationApplySummaryValidation.fromSummary(
+            TripTrackingCalibrationApplyGuard.evaluate(
+              signal: signal(),
+              userOptedIn: true,
+              userAcceptedLatestReview: true,
+              minimumReviewedDays: 7,
+              latestReviewedAtUtc: now,
+              nowUtc: now,
+            ).toSafeDashboardMap()..addAll({
+              'appliesToPastTrips': true,
+              'canRewriteConfirmedOdometer': true,
+              'canApplySilently': true,
+              'calibrationCanChangeDisplayedConfirmedMiles': true,
+              'calibrationCanMutateTripLog': true,
+              'calibrationCanPurgeLocalDataAfterBackup': true,
+              'calibrationCanBypassVehicleProfile': true,
+              'calibrationCanApplyAcrossVehicles': true,
+              'remoteCalibrationCanRewritePastTrips': true,
+              'mapboxRouteDistanceCanBecomeOfficial': true,
+              'firestoreCanApplyCalibration': true,
+              'mapboxCanApplyCalibration': true,
+              'cloudFunctionCanApplyCalibration': true,
+              'remoteCalibrationCanOverrideLocalState': true,
+              'rawReviewedTripsIncluded': true,
+              'rawGpsIncluded': true,
+              'preciseLocationIncluded': true,
+              'tokensIncluded': true,
+              'debug': 'sk.secret 35.123456,-80.123456',
+            }),
+          );
+
+      expect(validation.isRenderable, isFalse);
+      expect(validation.reasons, contains('calibration_can_mutate_trip_truth'));
+      expect(
+        validation.reasons,
+        contains('remote_or_map_can_apply_calibration'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_calibration_material'),
+      );
+      expect(validation.reasons, contains('summary_contains_sensitive_text'));
+    },
+  );
 }

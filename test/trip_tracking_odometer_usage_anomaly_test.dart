@@ -44,6 +44,9 @@ void main() {
         'calibrationAssistRequiresUserOptIn': true,
         'calibrationRequiresMultipleReviewedTrips': true,
         'calibrationCanAutoRewriteConfirmedOdometer': false,
+        'calibrationCanBypassVehicleProfile': false,
+        'usageAnomalyCanApplyCalibration': false,
+        'usageAnomalyCanPurgeLocalDataAfterBackup': false,
         'confirmedHistoryOnly': true,
         'futureConfirmationsIgnored': true,
         'rawHistoryIncluded': false,
@@ -228,10 +231,84 @@ void main() {
     expect(summary['calibrationAssistRequiresUserOptIn'], isTrue);
     expect(summary['calibrationRequiresMultipleReviewedTrips'], isTrue);
     expect(summary['calibrationCanAutoRewriteConfirmedOdometer'], isFalse);
+    expect(summary['calibrationCanBypassVehicleProfile'], isFalse);
+    expect(summary['usageAnomalyCanApplyCalibration'], isFalse);
+    expect(summary['usageAnomalyCanPurgeLocalDataAfterBackup'], isFalse);
     expect(summary['confirmedHistoryOnly'], isTrue);
     expect(summary['futureConfirmationsIgnored'], isTrue);
     expect(summary['remoteTotalsCanReplaceOdometer'], isFalse);
   });
+
+  test('safe usage anomaly summary validates as renderable', () {
+    final validation = TripOdometerUsageAnomalySummaryValidation.fromSummary(
+      TripOdometerUsageAnomalySignal.evaluate(
+        currentOdometerMiles: 120,
+        history: _history(dailyMiles: 40),
+        vehicleId: 'vehicle_1',
+      ).toSafeDashboardMap(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'usage anomaly summary rejects odometer, remote, and sensitive claims',
+    () {
+      final validation = TripOdometerUsageAnomalySummaryValidation.fromSummary(
+        TripOdometerUsageAnomalySignal.evaluate(
+          currentOdometerMiles: 120,
+          history: _history(dailyMiles: 40),
+          vehicleId: 'vehicle_1',
+        ).toSafeDashboardMap()..addAll({
+          'canAutoCorrectOdometer': true,
+          'manualReviewRequiredBeforeChange': false,
+          'odometerRemainsCanonical': false,
+          'gpsCanReplaceOdometer': true,
+          'mapboxCanReplaceOdometer': true,
+          'remoteTotalsCanReplaceOdometer': true,
+          'usageAnomalyCanBlockWithoutUserReview': true,
+          'firestoreCanCreateUsageAnomaly': true,
+          'mapboxCanCreateUsageAnomaly': true,
+          'anomalyAlertsRequireUserOptIn': false,
+          'calibrationAssistRequiresUserOptIn': false,
+          'calibrationRequiresMultipleReviewedTrips': false,
+          'calibrationCanAutoRewriteConfirmedOdometer': true,
+          'calibrationCanBypassVehicleProfile': true,
+          'usageAnomalyCanApplyCalibration': true,
+          'usageAnomalyCanPurgeLocalDataAfterBackup': true,
+          'confirmedHistoryOnly': false,
+          'futureConfirmationsIgnored': false,
+          'rawHistoryIncluded': true,
+          'rawTripRecordsIncluded': true,
+          'rawLocationIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'pk.public 35.123456,-80.123456',
+        }),
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('usage_anomaly_can_mutate_odometer_truth'),
+      );
+      expect(validation.reasons, contains('remote_or_map_can_create_anomaly'));
+      expect(
+        validation.reasons,
+        contains('calibration_anomaly_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('history_validation_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_anomaly_material'),
+      );
+      expect(validation.reasons, contains('summary_contains_sensitive_text'));
+    },
+  );
 }
 
 List<TripTrackingReviewRecord> _history({
