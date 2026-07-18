@@ -7,10 +7,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
 import 'package:maintaniac/shared/odometer/odometer_validation.dart';
+import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
@@ -2817,10 +2819,14 @@ void main() {
         initialReading: 1000,
       );
       final mirror = _FakeTripTrackingCloudMirror();
+      final durableBridge = TripTrackingDurableRecordBridge(
+        MaintainiacDurableRecordStore.memory(),
+      );
       final controller = TripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
+        durableRecordBridge: durableBridge,
       );
       await controller.start(
         tripId: 'trip_review',
@@ -2863,6 +2869,10 @@ void main() {
       expect(mirror.reviews.single.id, 'trip_review');
       expect(mirror.reviews.single.isOdometerConfirmed, isTrue);
       expect(mirror.flushCalls, 1);
+      final durableReview = durableBridge.reviewForTrip('trip_review');
+      expect(durableReview?.confirmedEndingOdometer, 1002);
+      expect(durableReview?.isOdometerConfirmed, isTrue);
+      expect(controller.durableRecordError, isNull);
     },
   );
 

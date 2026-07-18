@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
+import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
@@ -25,12 +26,14 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingNativeGateway? platform,
     TripTrackingPolicy policy = const TripTrackingPolicy(),
     TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
+    TripTrackingDurableRecordBridge? durableRecordBridge,
     double gpsAssistanceCalibrationMultiplier = 1,
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
        _policy = policy,
        _cloudMirror = cloudMirror,
+       _durableRecordBridge = durableRecordBridge,
        _gpsAssistanceCalibrationMultiplier =
            _safeGpsAssistanceCalibrationMultiplier(
              gpsAssistanceCalibrationMultiplier,
@@ -41,6 +44,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingNativeGateway? _platform;
   final TripTrackingPolicy _policy;
   final TripTrackingCloudMirror _cloudMirror;
+  final TripTrackingDurableRecordBridge? _durableRecordBridge;
   double _gpsAssistanceCalibrationMultiplier;
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
@@ -58,6 +62,7 @@ class TripTrackingController extends ChangeNotifier {
   String? _platformStatus;
   String? _platformError;
   String? _cloudMirrorError;
+  String? _durableRecordError;
   bool _gpsAssistanceCalibrationEnabled = false;
   TripActivityObservation? _latestActivity;
   TripTrackingPlatformCapabilities? _lastKnownCapabilities;
@@ -85,6 +90,7 @@ class TripTrackingController extends ChangeNotifier {
   String? get platformStatus => _platformStatus;
   String? get platformError => _platformError;
   String? get cloudMirrorError => _cloudMirrorError;
+  String? get durableRecordError => _durableRecordError;
   double get gpsAssistanceCalibrationMultiplier =>
       _gpsAssistanceCalibrationMultiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
@@ -221,6 +227,7 @@ class TripTrackingController extends ChangeNotifier {
       _platformStatus = null;
       _platformError = null;
     }
+    await _saveDurableReviewedTrip(confirmedReview);
     if (_gpsAssistanceCalibrationEnabled) {
       _gpsAssistanceCalibrationMultiplier =
           _safeGpsAssistanceCalibrationMultiplier(
@@ -283,7 +290,40 @@ class TripTrackingController extends ChangeNotifier {
   /// warning; failures remain visible and retryable.
   Future<void> retryCloudBackup() async {
     if (_isDisposed) return;
+    await _retryDurableReviewedTrips();
     await _flushCloudMirror();
+  }
+
+  Future<void> _saveDurableReviewedTrip(TripTrackingReviewRecord review) async {
+    final bridge = _durableRecordBridge;
+    if (bridge == null || !review.isOdometerConfirmed) return;
+    try {
+      await bridge.saveReviewedTrip(review);
+      if (_durableRecordError != null) _durableRecordError = null;
+    } catch (_) {
+      _durableRecordError =
+          'Reviewed trip is saved locally; durable backup is pending retry.';
+    }
+  }
+
+  Future<void> _retryDurableReviewedTrips() async {
+    final bridge = _durableRecordBridge;
+    if (bridge == null) return;
+    try {
+      for (final review in _sessionStore.pendingReviews) {
+        if (review.isOdometerConfirmed) {
+          await bridge.saveReviewedTrip(review);
+        }
+      }
+      if (_durableRecordError != null) {
+        _durableRecordError = null;
+        notifyListeners();
+      }
+    } catch (_) {
+      _durableRecordError =
+          'Reviewed trip is saved locally; durable backup is pending retry.';
+      notifyListeners();
+    }
   }
 
   @override
