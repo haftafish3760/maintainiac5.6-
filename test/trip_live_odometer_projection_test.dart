@@ -49,8 +49,26 @@ void main() {
     );
     expect(
       projection
+          .toSafeDashboardMap()['liveProjectionRequiresOwnershipValidation'],
+      isTrue,
+    );
+    expect(
+      projection
+          .toSafeDashboardMap()['liveProjectionRequiresDeviceLocalSource'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['projectionCannotOutliveActiveDay'],
+      isTrue,
+    );
+    expect(
+      projection
           .toSafeDashboardMap()['authenticationDoesNotGrantDisplayAuthority'],
       isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['remoteProjectionCanReviveEndedTrip'],
+      isFalse,
     );
     expect(
       projection.toSafeDashboardMap()['staleProjectionCanCommitMileage'],
@@ -229,8 +247,12 @@ void main() {
             'mapsRequiredForTracking': true,
             'matchingActiveTripRequired': false,
             'remoteProjectionRequiresMatchingTripId': false,
+            'liveProjectionRequiresOwnershipValidation': false,
+            'liveProjectionRequiresDeviceLocalSource': false,
+            'projectionCannotOutliveActiveDay': false,
             'localTripLogProtected': false,
             'authenticationDoesNotGrantDisplayAuthority': false,
+            'remoteProjectionCanReviveEndedTrip': true,
             'futureProjectionCanRender': true,
             'impossibleProjectionCanRender': true,
             'activeTripIdIncluded': true,
@@ -248,11 +270,37 @@ void main() {
           'unsupported_schema_version',
           'projection_below_starting_odometer',
           'live_projection_local_authorization_contract_missing',
+          'remote_projection_can_revive_ended_trip',
           'unsafe_projection_can_render',
           'payload_contains_trip_owner_identifiers',
           'payload_contains_sensitive_trip_material',
           'maps_required_for_tracking',
         ]),
+      );
+    },
+  );
+
+  test(
+    'dashboard payload validator rejects auth-only live projection access',
+    () {
+      final payload =
+          TripLiveOdometerProjection(
+            startingOdometer: 1000,
+          ).toSafeDashboardMap()..addAll({
+            'liveProjectionRequiresOwnershipValidation': false,
+            'liveProjectionRequiresDeviceLocalSource': false,
+            'projectionCannotOutliveActiveDay': false,
+            'authenticationDoesNotGrantDisplayAuthority': false,
+          });
+
+      final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
+        payload,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('live_projection_local_authorization_contract_missing'),
       );
     },
   );

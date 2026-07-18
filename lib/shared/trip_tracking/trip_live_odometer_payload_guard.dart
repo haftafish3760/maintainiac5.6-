@@ -29,10 +29,14 @@ class TripLiveOdometerPayloadGuardDecision {
     'manualConfirmationRequiredBeforeOfficialMileage': true,
     'activeTripMatchRequired': true,
     'localTripLogRequired': true,
+    'liveProjectionRequiresOwnershipValidation': true,
+    'liveProjectionRequiresDeviceLocalSource': true,
+    'projectionCannotOutliveActiveDay': true,
     'hiveRemainsSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'authenticationDoesNotGrantDisplayAuthority': true,
     'remotePayloadCanOverrideLocalTrip': false,
+    'remoteProjectionCanReviveEndedTrip': false,
     'remotePayloadCanConfirmOdometer': false,
     'remotePayloadCanEndTrip': false,
     'dashboardCacheCanOverrideLocalTrip': false,
@@ -70,7 +74,8 @@ class TripLiveOdometerPayloadGuard {
     if (payload['writesConfirmedOdometer'] != false ||
         payload['gpsCanReplaceOdometer'] != false ||
         payload['mapboxCanReplaceOdometer'] != false ||
-        payload['staleProjectionCanCommitMileage'] != false) {
+        payload['staleProjectionCanCommitMileage'] != false ||
+        payload['remoteProjectionCanReviveEndedTrip'] == true) {
       reasons.add('payload_claims_odometer_authority');
     }
     if (payload['firestoreCanOverrideLiveDisplay'] != false ||
@@ -85,6 +90,9 @@ class TripLiveOdometerPayloadGuard {
     }
     if (payload['authenticationDoesNotGrantDisplayAuthority'] != true ||
         payload['matchingActiveTripRequired'] != true ||
+        payload['liveProjectionRequiresOwnershipValidation'] != true ||
+        payload['liveProjectionRequiresDeviceLocalSource'] != true ||
+        payload['projectionCannotOutliveActiveDay'] != true ||
         payload['localTripLogProtected'] != true) {
       reasons.add('missing_local_trip_authorization_contract');
     }

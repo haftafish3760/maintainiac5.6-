@@ -41,8 +41,12 @@ class TripLiveOdometerProjection {
     'projectionTrustedAfterValidationOnly': true,
     'remoteProjectionRequiresMatchingTripId': true,
     'matchingActiveTripRequired': true,
+    'liveProjectionRequiresOwnershipValidation': true,
+    'liveProjectionRequiresDeviceLocalSource': true,
+    'projectionCannotOutliveActiveDay': true,
     'authenticationDoesNotGrantDisplayAuthority': true,
     'staleProjectionCanCommitMileage': false,
+    'remoteProjectionCanReviveEndedTrip': false,
     'remoteProjectionCanOverrideLocalTrip': false,
     'firestoreCanOverrideLiveProjection': false,
     'firestoreCanOverrideLiveDisplay': false,
@@ -169,9 +173,15 @@ class TripLiveOdometerDashboardPayloadValidation {
     }
     if (payload['matchingActiveTripRequired'] != true ||
         payload['remoteProjectionRequiresMatchingTripId'] != true ||
+        payload['liveProjectionRequiresOwnershipValidation'] != true ||
+        payload['liveProjectionRequiresDeviceLocalSource'] != true ||
+        payload['projectionCannotOutliveActiveDay'] != true ||
         payload['localTripLogProtected'] != true ||
         payload['authenticationDoesNotGrantDisplayAuthority'] != true) {
       reasons.add('live_projection_local_authorization_contract_missing');
+    }
+    if (payload['remoteProjectionCanReviveEndedTrip'] != false) {
+      reasons.add('remote_projection_can_revive_ended_trip');
     }
     if (payload['remoteProjectionCanOverrideLocalTrip'] != false) {
       reasons.add('remote_projection_can_override_local_trip');

@@ -33,6 +33,9 @@ void main() {
     expect(guard['liveUiMayRefresh'], isTrue);
     expect(guard['liveUiMayCommitMileage'], isFalse);
     expect(guard['manualConfirmationRequiredBeforeOfficialMileage'], isTrue);
+    expect(guard['liveProjectionRequiresOwnershipValidation'], isTrue);
+    expect(guard['liveProjectionRequiresDeviceLocalSource'], isTrue);
+    expect(guard['projectionCannotOutliveActiveDay'], isTrue);
     expect(guard['hiveRemainsSourceOfTruth'], isTrue);
     expect(guard['firestoreMirrorOnly'], isTrue);
     expect(guard['remotePayloadCanConfirmOdometer'], isFalse);
@@ -56,7 +59,11 @@ void main() {
     final cases = <_GuardCase>[
       _GuardCase(
         name: 'odometer authority',
-        payload: {...clean, 'writesConfirmedOdometer': true},
+        payload: {
+          ...clean,
+          'writesConfirmedOdometer': true,
+          'remoteProjectionCanReviveEndedTrip': true,
+        },
         status: TripLiveOdometerPayloadGuardStatus.blockedOdometerAuthority,
         reason: 'payload_claims_odometer_authority',
       ),
@@ -92,6 +99,39 @@ void main() {
       expect(guard.toSafeDashboardMap().toString(), isNot(contains('35.')));
       expect(guard.toSafeDashboardMap().toString(), isNot(contains('pk.')));
     }
+  });
+
+  test('payload guard rejects auth-only projection display shortcuts', () {
+    final clean = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+      LiveOdometerDisplaySnapshot(
+        confirmedReading: 1000,
+        displayReading: 1002,
+        isLive: true,
+        liveUpdatedAt: now,
+        projectionRevision: 2,
+      ),
+      now: now,
+      activeTripId: 'trip_live',
+      expectedTripId: 'trip_live',
+    ).toSafeDashboardMap();
+
+    final guard = TripLiveOdometerPayloadGuard.evaluate({
+      ...clean,
+      'liveProjectionRequiresOwnershipValidation': false,
+      'liveProjectionRequiresDeviceLocalSource': false,
+      'projectionCannotOutliveActiveDay': false,
+      'authenticationDoesNotGrantDisplayAuthority': false,
+    });
+
+    expect(
+      guard.status,
+      TripLiveOdometerPayloadGuardStatus.blockedMalformedPayload,
+    );
+    expect(
+      guard.reasonCodes,
+      contains('missing_local_trip_authorization_contract'),
+    );
+    expect(guard.canRenderAdvisoryLiveOdometer, isFalse);
   });
 
   test('UI validation rejects forged guard claims on unsafe payloads', () {
