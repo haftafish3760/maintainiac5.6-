@@ -46,6 +46,18 @@ void main() {
     );
     expect(decision.toSafeSummary(), containsPair('deletesLocalData', false));
     expect(decision.toSafeSummary(), containsPair('purgesLocalData', false));
+    expect(
+      decision.toSafeSummary(),
+      containsPair('canSilentlyDeleteLocalData', false),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('backupCanTriggerSilentLocalPurge', false),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('userActionRequiredForCleanup', true),
+    );
     expect(decision.toSafeSummary(), containsPair('cleanupSuggested', false));
   });
 
