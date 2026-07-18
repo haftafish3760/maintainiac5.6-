@@ -404,8 +404,68 @@ void main() {
         usage.toSafeSummary(now)['firestoreCounterCanConsumeFreeSync'],
         isFalse,
       );
+      expect(
+        usage.toSafeSummary(now)['freeSyncLimitCannotBeRaisedRemotely'],
+        isTrue,
+      );
+      expect(
+        usage.toSafeSummary(now)['syncUsageCannotBeResetByFirestore'],
+        isTrue,
+      );
+      expect(
+        usage.toSafeSummary(now)['syncUsageCannotBeResetByCloudFunction'],
+        isTrue,
+      );
     },
   );
+
+  test('free sync summary keeps network choices local-only', () {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'trip-dashboard-network-choice-device',
+    );
+    final summary = usage.toSafeSummary(DateTime.utc(2026, 7, 17, 12));
+
+    expect(summary['syncPreferenceRequiresLocalSettings'], isTrue);
+    expect(summary['wifiOnlyPreferenceCannotBeForcedRemotely'], isTrue);
+    expect(summary['mobileDataPreferenceCannotBeForcedRemotely'], isTrue);
+
+    final validation = TripTrackingFreeSyncUsageSummaryValidation.fromSummary(
+      summary..addAll({
+        'syncPreferenceRequiresLocalSettings': false,
+        'wifiOnlyPreferenceCannotBeForcedRemotely': false,
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('network_preference_boundary_missing'));
+  });
+
+  test('free sync reservation cannot mutate trip facts', () {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'trip-dashboard-reservation-mutation-device',
+    );
+    final summary = usage.toSafeSummary(DateTime.utc(2026, 7, 17, 12));
+
+    expect(summary['reservationRequiresFreshLocalPreflight'], isTrue);
+    expect(summary['failedMirrorWriteRequiresRetryNotQuotaRefund'], isTrue);
+    expect(summary['syncReservationCannotCreateStops'], isTrue);
+    expect(summary['syncReservationCannotConfirmMileage'], isTrue);
+    expect(summary['syncReservationCannotPurgeLocalQueue'], isTrue);
+    expect(summary['syncReservationCannotUploadRawGpsPings'], isTrue);
+
+    final validation = TripTrackingFreeSyncUsageSummaryValidation.fromSummary(
+      summary..addAll({
+        'reservationRequiresFreshLocalPreflight': false,
+        'syncReservationCannotCreateStops': false,
+        'syncReservationCannotConfirmMileage': false,
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('reservation_boundary_missing'));
+  });
 
   test('free sync usage summary validates as local-ledger only', () async {
     final usage = TripTrackingFreeSyncUsage(
@@ -436,8 +496,18 @@ void main() {
         'remoteQuotaResetCanOverrideLocalWindow': true,
         'cloudFunctionCanGrantExtraFreeSyncs': true,
         'firestoreCounterCanConsumeFreeSync': true,
+        'freeSyncLimitIsLocalRollingWindow': false,
+        'freeSyncLimitCannotBeRaisedRemotely': false,
+        'syncUsageCannotBeResetByFirestore': false,
+        'syncUsageCannotBeResetByCloudFunction': false,
         'blockedAttemptConsumesFreeSync': true,
         'failedPreflightConsumesFreeSync': true,
+        'reservationRequiresFreshLocalPreflight': false,
+        'failedMirrorWriteRequiresRetryNotQuotaRefund': false,
+        'syncReservationCannotCreateStops': false,
+        'syncReservationCannotConfirmMileage': false,
+        'syncReservationCannotPurgeLocalQueue': false,
+        'syncReservationCannotUploadRawGpsPings': false,
         'quotaScopeIncludesDeviceId': false,
         'scopeRequiresValidatedAccountUid': false,
         'scopeRequiresValidatedDeviceId': false,

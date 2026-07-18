@@ -38,14 +38,27 @@ class TripSyncReservationCommitDecision {
     'reservationMustCommitBeforeNetworkUpload': true,
     'reservationRequiresLocalLedgerWrite': true,
     'reservationRequiresAccountDeviceModuleScope': true,
+    'reservationRequiresSameValidatedUser': true,
+    'reservationRequiresSameValidatedDevice': true,
+    'reservationRequiresSameLocalAttempt': true,
+    'reservationCannotBeRevivedAfterExpiry': true,
+    'reservationCannotBeCommittedByRemoteCounter': true,
     'authenticationAloneAuthorizesReservation': false,
     'reservationFailureKeepsLocalQueue': true,
     'reservationSuccessDoesNotConfirmRemoteBackup': true,
+    'reservationSuccessDoesNotConfirmMirrorWrite': true,
+    'successfulMirrorWriteStillNeedsValidatedAck': true,
     'reservationCanDeleteLocalData': false,
     'reservationCanPurgeLocalRecordsSilently': false,
+    'reservationCanUploadRawTripData': false,
+    'reservationCanUploadRawGpsPings': false,
+    'reservationCanCreateStops': false,
+    'reservationCanConfirmMileage': false,
+    'reservationCanModifyOdometer': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'remoteCounterCanOverrideLocalLedger': false,
+    'remoteReservationCanOverrideLocalUsage': false,
     'remoteBackupCanOverrideLocalDay': false,
     'remoteBackupCanPurgeLocalRecordsSilently': false,
     'odometerRemainsOfficialMileageTruth': true,
@@ -88,14 +101,27 @@ class TripSyncReservationCommitSummaryValidation {
       'reservationMustCommitBeforeNetworkUpload',
       'reservationRequiresLocalLedgerWrite',
       'reservationRequiresAccountDeviceModuleScope',
+      'reservationRequiresSameValidatedUser',
+      'reservationRequiresSameValidatedDevice',
+      'reservationRequiresSameLocalAttempt',
+      'reservationCannotBeRevivedAfterExpiry',
+      'reservationCannotBeCommittedByRemoteCounter',
       'authenticationAloneAuthorizesReservation',
       'reservationFailureKeepsLocalQueue',
       'reservationSuccessDoesNotConfirmRemoteBackup',
+      'reservationSuccessDoesNotConfirmMirrorWrite',
+      'successfulMirrorWriteStillNeedsValidatedAck',
       'reservationCanDeleteLocalData',
       'reservationCanPurgeLocalRecordsSilently',
+      'reservationCanUploadRawTripData',
+      'reservationCanUploadRawGpsPings',
+      'reservationCanCreateStops',
+      'reservationCanConfirmMileage',
+      'reservationCanModifyOdometer',
       'hiveRemainsOperationalSourceOfTruth',
       'firestoreMirrorOnly',
       'remoteCounterCanOverrideLocalLedger',
+      'remoteReservationCanOverrideLocalUsage',
       'remoteBackupCanOverrideLocalDay',
       'remoteBackupCanPurgeLocalRecordsSilently',
       'odometerRemainsOfficialMileageTruth',
@@ -110,16 +136,29 @@ class TripSyncReservationCommitSummaryValidation {
         summary['reservationMustCommitBeforeNetworkUpload'] != true ||
         summary['reservationRequiresLocalLedgerWrite'] != true ||
         summary['reservationRequiresAccountDeviceModuleScope'] != true ||
+        summary['reservationRequiresSameValidatedUser'] != true ||
+        summary['reservationRequiresSameValidatedDevice'] != true ||
+        summary['reservationRequiresSameLocalAttempt'] != true ||
+        summary['reservationCannotBeRevivedAfterExpiry'] != true ||
+        summary['reservationCannotBeCommittedByRemoteCounter'] != true ||
         summary['authenticationAloneAuthorizesReservation'] != false ||
         summary['reservationFailureKeepsLocalQueue'] != true ||
-        summary['reservationSuccessDoesNotConfirmRemoteBackup'] != true) {
+        summary['reservationSuccessDoesNotConfirmRemoteBackup'] != true ||
+        summary['reservationSuccessDoesNotConfirmMirrorWrite'] != true ||
+        summary['successfulMirrorWriteStillNeedsValidatedAck'] != true) {
       reasons.add('reservation_upload_boundary_missing');
     }
     if (summary['reservationCanDeleteLocalData'] != false ||
         summary['reservationCanPurgeLocalRecordsSilently'] != false ||
+        summary['reservationCanUploadRawTripData'] != false ||
+        summary['reservationCanUploadRawGpsPings'] != false ||
+        summary['reservationCanCreateStops'] != false ||
+        summary['reservationCanConfirmMileage'] != false ||
+        summary['reservationCanModifyOdometer'] != false ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
         summary['remoteCounterCanOverrideLocalLedger'] != false ||
+        summary['remoteReservationCanOverrideLocalUsage'] != false ||
         summary['remoteBackupCanOverrideLocalDay'] != false ||
         summary['remoteBackupCanPurgeLocalRecordsSilently'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {

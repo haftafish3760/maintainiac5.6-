@@ -62,13 +62,26 @@ void main() {
     expect(safe['reservationMustCommitBeforeNetworkUpload'], isTrue);
     expect(safe['reservationRequiresLocalLedgerWrite'], isTrue);
     expect(safe['reservationRequiresAccountDeviceModuleScope'], isTrue);
+    expect(safe['reservationRequiresSameValidatedUser'], isTrue);
+    expect(safe['reservationRequiresSameValidatedDevice'], isTrue);
+    expect(safe['reservationRequiresSameLocalAttempt'], isTrue);
+    expect(safe['reservationCannotBeRevivedAfterExpiry'], isTrue);
+    expect(safe['reservationCannotBeCommittedByRemoteCounter'], isTrue);
     expect(safe['authenticationAloneAuthorizesReservation'], isFalse);
     expect(safe['reservationFailureKeepsLocalQueue'], isTrue);
     expect(safe['reservationSuccessDoesNotConfirmRemoteBackup'], isTrue);
+    expect(safe['reservationSuccessDoesNotConfirmMirrorWrite'], isTrue);
+    expect(safe['successfulMirrorWriteStillNeedsValidatedAck'], isTrue);
     expect(safe['reservationCanDeleteLocalData'], isFalse);
+    expect(safe['reservationCanUploadRawTripData'], isFalse);
+    expect(safe['reservationCanUploadRawGpsPings'], isFalse);
+    expect(safe['reservationCanCreateStops'], isFalse);
+    expect(safe['reservationCanConfirmMileage'], isFalse);
+    expect(safe['reservationCanModifyOdometer'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['remoteCounterCanOverrideLocalLedger'], isFalse);
+    expect(safe['remoteReservationCanOverrideLocalUsage'], isFalse);
     expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(safe['rawTripPayloadIncluded'], isFalse);
@@ -103,9 +116,16 @@ void main() {
           'reservationMustCommitBeforeNetworkUpload': false,
           'reservationRequiresLocalLedgerWrite': false,
           'reservationRequiresAccountDeviceModuleScope': false,
+          'reservationRequiresSameValidatedUser': false,
+          'reservationRequiresSameValidatedDevice': false,
+          'reservationRequiresSameLocalAttempt': false,
+          'reservationCannotBeRevivedAfterExpiry': false,
+          'reservationCannotBeCommittedByRemoteCounter': false,
           'authenticationAloneAuthorizesReservation': true,
           'reservationFailureKeepsLocalQueue': false,
           'reservationSuccessDoesNotConfirmRemoteBackup': false,
+          'reservationSuccessDoesNotConfirmMirrorWrite': false,
+          'successfulMirrorWriteStillNeedsValidatedAck': false,
         });
 
     final validation = TripSyncReservationCommitSummaryValidation.fromSummary(
@@ -124,9 +144,15 @@ void main() {
         ).toSafeSummary()..addAll({
           'reservationCanDeleteLocalData': true,
           'reservationCanPurgeLocalRecordsSilently': true,
+          'reservationCanUploadRawTripData': true,
+          'reservationCanUploadRawGpsPings': true,
+          'reservationCanCreateStops': true,
+          'reservationCanConfirmMileage': true,
+          'reservationCanModifyOdometer': true,
           'hiveRemainsOperationalSourceOfTruth': false,
           'firestoreMirrorOnly': false,
           'remoteCounterCanOverrideLocalLedger': true,
+          'remoteReservationCanOverrideLocalUsage': true,
           'remoteBackupCanOverrideLocalDay': true,
           'remoteBackupCanPurgeLocalRecordsSilently': true,
           'odometerRemainsOfficialMileageTruth': false,

@@ -129,6 +129,19 @@ class TripTrackingFreeSyncUsage {
       'freeSyncQuotaAppliesToTripBackups': true,
       'freeSyncLimitMatchesHostedPolicy':
           HostedUsageLimits.freeUserSyncsPer24HourWindow == 6,
+      'freeSyncLimitIsLocalRollingWindow': true,
+      'freeSyncLimitCannotBeRaisedRemotely': true,
+      'syncUsageCannotBeResetByFirestore': true,
+      'syncUsageCannotBeResetByCloudFunction': true,
+      'syncPreferenceRequiresLocalSettings': true,
+      'wifiOnlyPreferenceCannotBeForcedRemotely': true,
+      'mobileDataPreferenceCannotBeForcedRemotely': true,
+      'reservationRequiresFreshLocalPreflight': true,
+      'failedMirrorWriteRequiresRetryNotQuotaRefund': true,
+      'syncReservationCannotCreateStops': true,
+      'syncReservationCannotConfirmMileage': true,
+      'syncReservationCannotPurgeLocalQueue': true,
+      'syncReservationCannotUploadRawGpsPings': true,
       'remoteQuotaResetCanOverrideLocalWindow': false,
       'cloudFunctionCanGrantExtraFreeSyncs': false,
       'firestoreCounterCanConsumeFreeSync': false,
@@ -172,13 +185,23 @@ class TripTrackingFreeSyncUsageSummaryValidation {
         summary['remoteCountersCanOverrideLocalUsage'] != false ||
         summary['remoteQuotaResetCanOverrideLocalWindow'] != false ||
         summary['cloudFunctionCanGrantExtraFreeSyncs'] != false ||
-        summary['firestoreCounterCanConsumeFreeSync'] != false) {
+        summary['firestoreCounterCanConsumeFreeSync'] != false ||
+        summary['freeSyncLimitIsLocalRollingWindow'] != true ||
+        summary['freeSyncLimitCannotBeRaisedRemotely'] != true ||
+        summary['syncUsageCannotBeResetByFirestore'] != true ||
+        summary['syncUsageCannotBeResetByCloudFunction'] != true) {
       reasons.add('remote_quota_authority_claimed');
     }
     if (summary['uploadMustReserveBeforeNetwork'] != true ||
         summary['reservationSerializedBeforeUpload'] != true ||
         summary['blockedAttemptConsumesFreeSync'] != false ||
-        summary['failedPreflightConsumesFreeSync'] != false) {
+        summary['failedPreflightConsumesFreeSync'] != false ||
+        summary['reservationRequiresFreshLocalPreflight'] != true ||
+        summary['failedMirrorWriteRequiresRetryNotQuotaRefund'] != true ||
+        summary['syncReservationCannotCreateStops'] != true ||
+        summary['syncReservationCannotConfirmMileage'] != true ||
+        summary['syncReservationCannotPurgeLocalQueue'] != true ||
+        summary['syncReservationCannotUploadRawGpsPings'] != true) {
       reasons.add('reservation_boundary_missing');
     }
     if (summary['quotaScopeIncludesDeviceId'] != true ||
@@ -189,6 +212,11 @@ class TripTrackingFreeSyncUsageSummaryValidation {
         summary['scopeRequiresValidatedDeviceId'] != true ||
         summary['authenticationAloneAuthorizesQuotaScope'] != false) {
       reasons.add('quota_scope_boundary_missing');
+    }
+    if (summary['syncPreferenceRequiresLocalSettings'] != true ||
+        summary['wifiOnlyPreferenceCannotBeForcedRemotely'] != true ||
+        summary['mobileDataPreferenceCannotBeForcedRemotely'] != true) {
+      reasons.add('network_preference_boundary_missing');
     }
     if (summary['hiveRemainsSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true) {
