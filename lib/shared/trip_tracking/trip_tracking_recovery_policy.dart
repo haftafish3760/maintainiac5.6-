@@ -1,4 +1,5 @@
 import 'trip_live_odometer_projection.dart';
+import 'trip_tracking_models.dart';
 import 'trip_tracking_session_store.dart';
 
 enum TripTrackingRecoveryStatus {
@@ -72,7 +73,8 @@ class TripTrackingRecoveryPolicy {
         'trip_recovery_none',
       );
     }
-    if (!session.hasValidTimeline) {
+    if (!session.hasValidTimeline ||
+        !_isRecoverableLifecycleState(session.lifecycleState)) {
       return _decision(
         TripTrackingRecoveryStatus.invalidSession,
         'trip_recovery_invalid_session',
@@ -138,6 +140,24 @@ class TripTrackingRecoveryPolicy {
     );
   }
 }
+
+bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
+    switch (state) {
+      TripTrackingSessionLifecycleState.ready ||
+      TripTrackingSessionLifecycleState.starting ||
+      TripTrackingSessionLifecycleState.active ||
+      TripTrackingSessionLifecycleState.paused ||
+      TripTrackingSessionLifecycleState.degraded ||
+      TripTrackingSessionLifecycleState.interrupted ||
+      TripTrackingSessionLifecycleState.recovering ||
+      TripTrackingSessionLifecycleState.stopping ||
+      TripTrackingSessionLifecycleState.failedRecoverable => true,
+      TripTrackingSessionLifecycleState.disabled ||
+      TripTrackingSessionLifecycleState.permissionRequired ||
+      TripTrackingSessionLifecycleState.awaitingReview ||
+      TripTrackingSessionLifecycleState.completed ||
+      TripTrackingSessionLifecycleState.failedTerminal => false,
+    };
 
 bool _hasRecoverablePendingSample({
   required TripTrackingSessionRecord session,

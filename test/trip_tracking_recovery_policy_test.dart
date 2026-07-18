@@ -10,6 +10,8 @@ void main() {
     String vehicleId = 'vehicle_1',
     bool valid = true,
     double acceptedMeters = 1609.344,
+    TripTrackingSessionLifecycleState lifecycleState =
+        TripTrackingSessionLifecycleState.ready,
   }) => TripTrackingSessionRecord(
     id: 'trip_recovery_1',
     vehicleId: vehicleId,
@@ -17,6 +19,7 @@ void main() {
     profile: TripTrackingProfile.deliveryVehicle,
     startedAt: startedAt,
     updatedAt: startedAt.add(const Duration(minutes: 5)),
+    lifecycleState: lifecycleState,
     hasValidTimeline: valid,
     engineSnapshot: TripTrackingEngineSnapshot(
       totalAcceptedMeters: acceptedMeters,
@@ -178,6 +181,35 @@ void main() {
     );
     expect(invalidReview.requiresUserAction, isTrue);
   });
+
+  test(
+    'terminal lifecycle checkpoints cannot be restored from summary path',
+    () {
+      for (final lifecycleState in [
+        TripTrackingSessionLifecycleState.disabled,
+        TripTrackingSessionLifecycleState.permissionRequired,
+        TripTrackingSessionLifecycleState.awaitingReview,
+        TripTrackingSessionLifecycleState.completed,
+        TripTrackingSessionLifecycleState.failedTerminal,
+      ]) {
+        final decision = TripTrackingRecoveryPolicy.evaluate(
+          session: session(lifecycleState: lifecycleState),
+          currentVehicleId: 'vehicle_1',
+          currentConfirmedOdometer: 1000,
+        );
+
+        expect(decision.status, TripTrackingRecoveryStatus.invalidSession);
+        expect(decision.canRestore, isFalse);
+        expect(decision.requiresUserAction, isTrue);
+        expect(
+          decision.toSafeSummary()['safeReason'],
+          'trip_recovery_invalid_session',
+        );
+        expect(decision.toSafeSummary()['localRecoveryAuthoritative'], isTrue);
+        expect(decision.toSafeSummary()['rawSessionIncluded'], isFalse);
+      }
+    },
+  );
 
   test('vehicle or odometer mismatch requires user action', () {
     final vehicleMismatch = TripTrackingRecoveryPolicy.evaluate(
