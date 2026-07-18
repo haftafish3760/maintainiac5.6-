@@ -299,6 +299,21 @@ service cloud.firestore {
         acceptedMiles < odometerDelta + 0.5;
     }
 
+    function hasNoClientTripAuthorityFields() {
+      return !request.resource.data.keys().hasAny([
+        'liveOdometerProjection',
+        'liveProjectionRevision',
+        'officialStops',
+        'stopReviews',
+        'odometerCalibrationMultiplier',
+        'odometerCalibrationState',
+        'mapboxRouteGeometry',
+        'mapboxOptimizedStopOrder',
+        'rawGps',
+        'routePoints',
+      ]);
+    }
+
     function hasOnlyDashboardSummaryFields() {
       return request.resource.data.keys().hasOnly([
         'schema',
@@ -1004,6 +1019,7 @@ service cloud.firestore {
           hasRequiredMileageSummaryFields() &&
           hasValidMileageSummaryValues() &&
           hasCoherentMileageSummaryDistance() &&
+          hasNoClientTripAuthorityFields() &&
           request.resource.data.tripId == recordId &&
           !request.resource.data.keys().hasAny([
             'orgId',
@@ -1243,6 +1259,7 @@ service cloud.firestore {
           hasRequiredMileageSummaryFields() &&
           hasValidMileageSummaryValues() &&
           hasCoherentMileageSummaryDistance() &&
+          hasNoClientTripAuthorityFields() &&
           request.resource.data.tripId == recordId &&
           request.resource.data.orgId == orgId &&
           request.resource.data.organizationSharingConsent == true;

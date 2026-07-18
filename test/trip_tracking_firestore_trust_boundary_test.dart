@@ -29,6 +29,9 @@ void main() {
     expect(personal['remoteCanConfirmOdometer'], isFalse);
     expect(personal['remoteCanCreateOfficialStop'], isFalse);
     expect(personal['remoteCanPurgeLocalTripData'], isFalse);
+    expect(personal['rulesMustRejectLiveOdometerProjectionWrites'], isTrue);
+    expect(personal['rulesMustRejectClientStopWrites'], isTrue);
+    expect(personal['rulesMustRejectMapboxOptimizationWrites'], isTrue);
     expect(personal['publicTokenAllowedInPayload'], isFalse);
     expect(personal['secretTokenAllowedInPayload'], isFalse);
     expect(organization['organizationMembershipRequired'], isTrue);
@@ -123,6 +126,10 @@ void main() {
     expect(rules, contains('hasRequiredMileageSummaryFields()'));
     expect(rules, contains('hasValidMileageSummaryValues()'));
     expect(rules, contains('hasCoherentMileageSummaryDistance()'));
+    expect(rules, contains('hasNoClientTripAuthorityFields()'));
+    expect(rules, contains('liveOdometerProjection'));
+    expect(rules, contains('officialStops'));
+    expect(rules, contains('mapboxOptimizedStopOrder'));
     expect(rules, contains('allow delete: if false'));
     expect(rules, contains('request.resource.data.orgId == orgId'));
     expect(

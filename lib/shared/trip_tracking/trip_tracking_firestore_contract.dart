@@ -159,6 +159,9 @@ abstract final class TripTrackingFirestoreContract {
       'rulesMustRejectLocationArrays': true,
       'rulesMustRejectRawGps': true,
       'rulesMustRejectMapboxGeometry': true,
+      'rulesMustRejectLiveOdometerProjectionWrites': true,
+      'rulesMustRejectClientStopWrites': true,
+      'rulesMustRejectMapboxOptimizationWrites': true,
       'rulesMustRejectTokens': true,
       'rulesMustRejectServerManagedSpoofing': true,
       'rulesMustRejectDeletes': true,
@@ -229,6 +232,9 @@ abstract final class TripTrackingFirestoreContract {
     }
     if (summary['rulesMustRejectRawGps'] != true ||
         summary['rulesMustRejectMapboxGeometry'] != true ||
+        summary['rulesMustRejectLiveOdometerProjectionWrites'] != true ||
+        summary['rulesMustRejectClientStopWrites'] != true ||
+        summary['rulesMustRejectMapboxOptimizationWrites'] != true ||
         summary['rulesMustRejectTokens'] != true ||
         summary['publicTokenAllowedInPayload'] != false ||
         summary['secretTokenAllowedInPayload'] != false ||

@@ -1555,6 +1555,9 @@ void main() {
       expect(personal['rulesMustRejectClientManagedServerFields'], isTrue);
       expect(personal['rulesMustRejectLocationArrays'], isTrue);
       expect(personal['rulesMustRejectCrossUserReplay'], isTrue);
+      expect(personal['rulesMustRejectLiveOdometerProjectionWrites'], isTrue);
+      expect(personal['rulesMustRejectClientStopWrites'], isTrue);
+      expect(personal['rulesMustRejectMapboxOptimizationWrites'], isTrue);
       expect(personal['odometerIsGlobalTruth'], isTrue);
       expect(personal['rulesMustRejectRemoteCalibrationWrites'], isTrue);
       expect(personal['calibrationRequiresTrustedGpsWindow'], isTrue);
@@ -1581,6 +1584,9 @@ void main() {
         'rulesMustRejectClientManagedServerFields': false,
         'rulesMustRejectLocationArrays': false,
         'rulesMustRejectCrossUserReplay': false,
+        'rulesMustRejectLiveOdometerProjectionWrites': false,
+        'rulesMustRejectClientStopWrites': false,
+        'rulesMustRejectMapboxOptimizationWrites': false,
         'odometerIsGlobalTruth': false,
         'rulesMustRejectRemoteCalibrationWrites': false,
         'calibrationRequiresTrustedGpsWindow': false,
