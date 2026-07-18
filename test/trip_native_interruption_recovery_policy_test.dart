@@ -137,6 +137,15 @@ void main() {
       expect(safe['rawNativePayloadIncluded'], isFalse);
       expect(safe['rawLocationIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
+      expect(safe['failedTerminalSessionProtectedFromNativeResume'], isTrue);
+      expect(safe['nativeStoppedStatusCannotCompleteTrip'], isTrue);
+      expect(safe['permissionLossCannotFeedEngine'], isTrue);
+      expect(
+        safe['backgroundRestrictionRequiresRecoverableInterruption'],
+        isTrue,
+      );
+      expect(safe['foregroundServiceLossRequiresCheckpointRecovery'], isTrue);
+      expect(safe['recoveryCanDegradeToUserReviewWithoutDataLoss'], isTrue);
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));
     },
@@ -176,6 +185,12 @@ void main() {
             'nativeInterruptionCanBypassLocalCheckpoint': true,
             'nativeInterruptionCanBypassUserConsent': true,
             'completedSessionProtectedFromNativeResume': false,
+            'failedTerminalSessionProtectedFromNativeResume': false,
+            'nativeStoppedStatusCannotCompleteTrip': false,
+            'permissionLossCannotFeedEngine': false,
+            'backgroundRestrictionRequiresRecoverableInterruption': false,
+            'foregroundServiceLossRequiresCheckpointRecovery': false,
+            'recoveryCanDegradeToUserReviewWithoutDataLoss': false,
             'backgroundRecoveryCanRunWithoutMaps': false,
             'mapsRequiredForRecovery': true,
             'firestoreCanForceRecovery': true,

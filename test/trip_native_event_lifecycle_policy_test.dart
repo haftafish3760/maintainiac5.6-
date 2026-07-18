@@ -43,6 +43,7 @@ void main() {
     expect(decision.to, TripTrackingSessionLifecycleState.permissionRequired);
     expect(decision.requiresUserReview, isTrue);
     expect(safe['permissionLossRequiresUserReview'], isTrue);
+    expect(safe['permissionLossCannotFeedEngine'], isTrue);
     expect(safe['nativeEventCanForceComplete'], isFalse);
     expect(safe['backgroundPauseRequiresRecoveryPath'], isTrue);
   });
@@ -67,6 +68,10 @@ void main() {
             .toSafeSummary()['backgroundRestrictionCanOnlyInterruptRecoverably'],
         isTrue,
       );
+      expect(
+        decision.toSafeSummary()['foregroundServiceLossRequiresRecoveryPath'],
+        isTrue,
+      );
     },
   );
 
@@ -82,6 +87,7 @@ void main() {
     expect(decision.requiresUserReview, isTrue);
     expect(safe['nativeEventCanForceComplete'], isFalse);
     expect(safe['lateNativeStoppedStatusCannotEndTrip'], isTrue);
+    expect(safe['activityEventCannotFeedDistanceEngine'], isTrue);
     expect(safe['nativeStatusRequiresLocalStateMachineTransition'], isTrue);
   });
 
@@ -176,6 +182,9 @@ void main() {
         'remoteLifecycleCanOverrideLocalCheckpoint': true,
         'nativeEventCanBypassAuthorization': true,
         'nativeEventCanBypassUserConsent': true,
+        'foregroundServiceLossRequiresRecoveryPath': false,
+        'permissionLossCannotFeedEngine': false,
+        'activityEventCannotFeedDistanceEngine': false,
         'rawNativePayloadIncluded': true,
         'rawLocationIncluded': true,
         'preciseTimestampIncluded': true,

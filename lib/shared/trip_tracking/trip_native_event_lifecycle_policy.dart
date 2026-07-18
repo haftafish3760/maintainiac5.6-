@@ -71,6 +71,9 @@ class TripNativeEventLifecycleDecision {
     'nativeEventCanBypassUserConsent': false,
     'backgroundPauseRequiresRecoveryPath': true,
     'backgroundRestrictionCanOnlyInterruptRecoverably': true,
+    'foregroundServiceLossRequiresRecoveryPath': true,
+    'permissionLossCannotFeedEngine': true,
+    'activityEventCannotFeedDistanceEngine': true,
     'lateNativeStoppedStatusCannotEndTrip': true,
     'nativeStatusRequiresLocalStateMachineTransition': true,
     'permissionLossRequiresUserReview': true,
@@ -137,6 +140,9 @@ class TripNativeEventLifecycleSummaryValidation {
     }
     if (summary['backgroundPauseRequiresRecoveryPath'] != true ||
         summary['backgroundRestrictionCanOnlyInterruptRecoverably'] != true ||
+        summary['foregroundServiceLossRequiresRecoveryPath'] != true ||
+        summary['permissionLossCannotFeedEngine'] != true ||
+        summary['activityEventCannotFeedDistanceEngine'] != true ||
         summary['lateNativeStoppedStatusCannotEndTrip'] != true ||
         summary['completedSessionCanResume'] != false) {
       reasons.add('interruption_recovery_boundary_missing');
@@ -428,5 +434,5 @@ bool _looksSensitive(Object? value) {
   final clean = value.trim();
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
-      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }

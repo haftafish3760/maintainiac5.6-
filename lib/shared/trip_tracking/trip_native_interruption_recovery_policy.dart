@@ -51,6 +51,12 @@ class TripNativeInterruptionRecoveryDecision {
     'nativeInterruptionCanBypassLocalCheckpoint': false,
     'nativeInterruptionCanBypassUserConsent': false,
     'completedSessionProtectedFromNativeResume': true,
+    'failedTerminalSessionProtectedFromNativeResume': true,
+    'nativeStoppedStatusCannotCompleteTrip': true,
+    'permissionLossCannotFeedEngine': true,
+    'backgroundRestrictionRequiresRecoverableInterruption': true,
+    'foregroundServiceLossRequiresCheckpointRecovery': true,
+    'recoveryCanDegradeToUserReviewWithoutDataLoss': true,
     'backgroundRecoveryCanRunWithoutMaps': true,
     'mapsRequiredForRecovery': false,
     'firestoreCanForceRecovery': false,
@@ -113,7 +119,14 @@ class TripNativeInterruptionRecoverySummaryValidation {
     if (summary['nativeInterruptionCanBypassUserConsent'] != false) {
       reasons.add('consent_boundary_missing');
     }
-    if (summary['completedSessionProtectedFromNativeResume'] != true) {
+    if (summary['completedSessionProtectedFromNativeResume'] != true ||
+        summary['failedTerminalSessionProtectedFromNativeResume'] != true ||
+        summary['nativeStoppedStatusCannotCompleteTrip'] != true ||
+        summary['permissionLossCannotFeedEngine'] != true ||
+        summary['backgroundRestrictionRequiresRecoverableInterruption'] !=
+            true ||
+        summary['foregroundServiceLossRequiresCheckpointRecovery'] != true ||
+        summary['recoveryCanDegradeToUserReviewWithoutDataLoss'] != true) {
       reasons.add('completed_session_resume_boundary_missing');
     }
     if (summary['backgroundRecoveryCanRunWithoutMaps'] != true ||
@@ -357,5 +370,5 @@ bool _looksSensitive(Object? value) {
   final clean = value.trim();
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
-      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
