@@ -184,6 +184,26 @@ void main() {
     expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
   });
 
+  test('negative provider speed cannot create vehicle-only fallback', () {
+    final decision = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      stationaryDuration: const Duration(minutes: 10),
+      walkingEvidenceCount: 0,
+      rejectedDriftCount: 0,
+      acceptedDistanceCount: 8,
+      acceptedVehicleMovementObserved: true,
+      speedMps: -0.1,
+      horizontalAccuracyMeters: 8,
+    );
+
+    expect(decision.status, TripVehicleOnlyDwellStatus.unsafeEvidence);
+    expect(decision.canSurfaceManualFallback, isFalse);
+    expect(
+      decision.toSafeDashboardMap()['vehicleOnlyDwellCanCreateOfficialStop'],
+      isFalse,
+    );
+  });
+
   test(
     'equipment GPS-only profile gets conservative fallback after long dwell',
     () {

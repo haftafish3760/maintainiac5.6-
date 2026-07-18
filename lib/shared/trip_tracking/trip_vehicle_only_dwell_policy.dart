@@ -454,7 +454,7 @@ int _minimumAcceptedDistanceCountFor(TripTrackingProfileStrategy strategy) {
 
 bool _safeProviderValues(double speedMps, double horizontalAccuracyMeters) {
   if (!speedMps.isFinite || !horizontalAccuracyMeters.isFinite) return false;
-  if (speedMps < -0.5 || speedMps > 90) return false;
+  if (speedMps < 0 || speedMps > 90) return false;
   return horizontalAccuracyMeters >= 0 && horizontalAccuracyMeters <= 250;
 }
 
@@ -467,8 +467,8 @@ bool _signalQualityBlocksDwell(TripTrackingSignalQuality quality) {
     TripTrackingSignalQuality.poor ||
     TripTrackingSignalQuality.interrupted ||
     TripTrackingSignalQuality.unsafe => true,
-    TripTrackingSignalQuality.healthy || TripTrackingSignalQuality.reduced =>
-      false,
+    TripTrackingSignalQuality.healthy ||
+    TripTrackingSignalQuality.reduced => false,
   };
 }
 

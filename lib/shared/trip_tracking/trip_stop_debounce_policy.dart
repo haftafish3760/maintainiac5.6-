@@ -528,7 +528,7 @@ bool _unsafeObservation(TripStopDebounceObservation value) {
   if (!value.speedMps.isFinite || !value.horizontalAccuracyMeters.isFinite) {
     return true;
   }
-  if (value.speedMps < -0.5 || value.speedMps > 90) return true;
+  if (value.speedMps < 0 || value.speedMps > 90) return true;
   if (value.horizontalAccuracyMeters < 0 ||
       value.horizontalAccuracyMeters > 250) {
     return true;
@@ -562,7 +562,7 @@ bool _looksLikeWalkingBurst({
 }
 
 bool _speedAllowsStopReview(double speedMps) =>
-    speedMps.isFinite && speedMps <= 1.4;
+    speedMps.isFinite && speedMps >= 0 && speedMps <= 1.4;
 
 Duration _minimumStationaryFor(TripTrackingProfileStrategy strategy) {
   if (strategy.workStyle == TripTrackingWorkStyle.rideshare) {

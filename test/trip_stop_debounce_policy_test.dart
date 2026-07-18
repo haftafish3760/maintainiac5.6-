@@ -409,6 +409,23 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
   });
 
+  test('negative provider speed cannot open walking stop review', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: observation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 2),
+        walkingEvidenceCount: 6,
+        walkingEvidenceSpan: const Duration(seconds: 45),
+        speedMps: -0.1,
+      ),
+    );
+
+    expect(decision.status, TripStopDebounceStatus.unsafeEvidence);
+    expect(decision.canOpenReview, isFalse);
+    expect(decision.reasonCode, 'unsafe_stop_debounce_evidence');
+  });
+
   test('malformed observation fails closed without opening review', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
