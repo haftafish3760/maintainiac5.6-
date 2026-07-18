@@ -17,6 +17,7 @@ void main() {
     expect(decision.mirrorPayload['firestoreRole'], 'mirror');
     expect(decision.mirrorPayload['canOverrideLocalDaytimeData'], isFalse);
     expect(decision.mirrorPayload['canDeleteLocalData'], isFalse);
+    expect(decision.toSafeSummary()['revisionFresh'], isTrue);
     expect(decision.toSafeSummary()['firestoreMirrorOnly'], isTrue);
     expect(
       decision.toSafeSummary()['remoteBackupCanPurgeLocalRecordsSilently'],
@@ -118,6 +119,33 @@ void main() {
       decision.toSafeSummary()['authorizationCheckedAfterAuthentication'],
       isTrue,
     );
+  });
+
+  test('stale local revisions cannot replay over newer local trip state', () {
+    final stale = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        source: validSource(localRevision: 3),
+        syncsUsedInWindow: 0,
+        lastMirroredLocalRevision: 3,
+      ),
+    );
+    final fresh = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        source: validSource(localRevision: 4),
+        syncsUsedInWindow: 0,
+        lastMirroredLocalRevision: 3,
+      ),
+    );
+
+    expect(stale.status, TripTrackingSyncAttemptStatus.blockedStaleRevision);
+    expect(stale.mayUploadMirror, isFalse);
+    expect(stale.mirrorPayload, isEmpty);
+    expect(stale.userFacingReason, contains('newer local revision'));
+    expect(
+      stale.toSafeSummary()['staleMirrorRevisionCanOverrideLocalDay'],
+      isFalse,
+    );
+    expect(fresh.status, TripTrackingSyncAttemptStatus.ready);
   });
 
   test(
@@ -239,6 +267,7 @@ TripTrackingSyncAttemptRequest request({
   int? syncsUsedInWindow = 0,
   bool storageAvailableForSmallRecordWrite = true,
   DateTime? receivedAtUtc,
+  int? lastMirroredLocalRevision,
 }) {
   return TripTrackingSyncAttemptRequest(
     accountTier: accountTier,
@@ -250,6 +279,7 @@ TripTrackingSyncAttemptRequest request({
     syncsUsedInWindow: syncsUsedInWindow,
     storageAvailableForSmallRecordWrite: storageAvailableForSmallRecordWrite,
     receivedAtUtc: receivedAtUtc,
+    lastMirroredLocalRevision: lastMirroredLocalRevision,
   );
 }
 

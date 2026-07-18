@@ -19,6 +19,7 @@ enum TripTrackingSyncAttemptStatus {
   blockedQuota,
   blockedUnverifiedUsage,
   blockedStorage,
+  blockedStaleRevision,
 }
 
 class TripTrackingSyncSourceRecord {
@@ -97,6 +98,7 @@ class TripTrackingSyncAttemptRequest {
     required this.syncsUsedInWindow,
     required this.storageAvailableForSmallRecordWrite,
     this.receivedAtUtc,
+    this.lastMirroredLocalRevision,
   });
 
   final TripTrackingSyncAccountTier accountTier;
@@ -108,6 +110,7 @@ class TripTrackingSyncAttemptRequest {
   final int? syncsUsedInWindow;
   final bool storageAvailableForSmallRecordWrite;
   final DateTime? receivedAtUtc;
+  final int? lastMirroredLocalRevision;
 }
 
 class TripTrackingSyncAttemptGuard {
@@ -120,6 +123,10 @@ class TripTrackingSyncAttemptGuard {
       receivedAtUtc: request.receivedAtUtc,
     );
     final ownerValid = request.source.ownedBy(request.authenticatedUid);
+    final revisionFresh = _revisionFresh(
+      sourceRevision: request.source.localRevision,
+      lastMirroredRevision: request.lastMirroredLocalRevision,
+    );
     final syncDecision = TripTrackingBackupSyncPolicy.evaluate(
       networkPolicy: request.networkPolicy,
       wifiAvailable: request.wifiAvailable,
@@ -132,6 +139,7 @@ class TripTrackingSyncAttemptGuard {
       request: request,
       sourceValid: sourceValid,
       ownerValid: ownerValid,
+      revisionFresh: revisionFresh,
       syncDecision: syncDecision,
     );
 
@@ -140,6 +148,7 @@ class TripTrackingSyncAttemptGuard {
       accountTier: request.accountTier,
       sourceValid: sourceValid,
       ownerValid: ownerValid,
+      revisionFresh: revisionFresh,
       syncDecision: syncDecision,
       freeSyncsRemainingBeforeAttempt:
           request.accountTier == TripTrackingSyncAccountTier.free
@@ -155,10 +164,14 @@ class TripTrackingSyncAttemptGuard {
     required TripTrackingSyncAttemptRequest request,
     required bool sourceValid,
     required bool ownerValid,
+    required bool revisionFresh,
     required TripTrackingBackupSyncDecision syncDecision,
   }) {
     if (!sourceValid) return TripTrackingSyncAttemptStatus.blockedInvalidSource;
     if (!ownerValid) return TripTrackingSyncAttemptStatus.blockedInvalidOwner;
+    if (!revisionFresh) {
+      return TripTrackingSyncAttemptStatus.blockedStaleRevision;
+    }
     if (!request.storageAvailableForSmallRecordWrite) {
       return TripTrackingSyncAttemptStatus.blockedStorage;
     }
@@ -187,6 +200,7 @@ class TripTrackingSyncAttemptDecision {
     required this.accountTier,
     required this.sourceValid,
     required this.ownerValid,
+    required this.revisionFresh,
     required this.syncDecision,
     required this.freeSyncsRemainingBeforeAttempt,
     required this.mirrorPayload,
@@ -196,6 +210,7 @@ class TripTrackingSyncAttemptDecision {
   final TripTrackingSyncAccountTier accountTier;
   final bool sourceValid;
   final bool ownerValid;
+  final bool revisionFresh;
   final TripTrackingBackupSyncDecision syncDecision;
   final int? freeSyncsRemainingBeforeAttempt;
   final Map<String, Object?> mirrorPayload;
@@ -216,6 +231,8 @@ class TripTrackingSyncAttemptDecision {
         'Trip backup is waiting for a valid local trip record.',
       TripTrackingSyncAttemptStatus.blockedInvalidOwner =>
         'Trip backup is waiting for account ownership verification.',
+      TripTrackingSyncAttemptStatus.blockedStaleRevision =>
+        'Trip backup is waiting for a newer local revision.',
       TripTrackingSyncAttemptStatus.blockedNetwork =>
         syncDecision.userFacingReason,
       TripTrackingSyncAttemptStatus.blockedQuota =>
@@ -234,6 +251,7 @@ class TripTrackingSyncAttemptDecision {
       'accountTier': accountTier.name,
       'sourceValid': sourceValid,
       'ownerValid': ownerValid,
+      'revisionFresh': revisionFresh,
       'mayUploadMirror': mayUploadMirror,
       'mustReserveFreeAttemptBeforeUpload': mustReserveFreeAttemptBeforeUpload,
       'consumesFreeAttempt': consumesFreeAttempt,
@@ -243,11 +261,13 @@ class TripTrackingSyncAttemptDecision {
       'hiveRemainsOperationalSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'remoteBackupCanOverrideLocalDay': false,
+      'staleMirrorRevisionCanOverrideLocalDay': false,
       'remoteBackupCanPurgeLocalRecordsSilently': false,
       'syncAttemptCanDeleteLocalData': false,
       'odometerRemainsOfficialMileageTruth': true,
       'mapboxCanReplaceOdometer': false,
       'validatedBeforeUpload': true,
+      'localRevisionMustAdvanceBeforeUpload': true,
       'authorizationCheckedAfterAuthentication': true,
       'tokensIncluded': false,
       'preciseLocationIncluded': false,
@@ -301,4 +321,13 @@ bool _safeSourceFreshness(DateTime updatedAtUtc, DateTime? receivedAtUtc) {
     return false;
   }
   return true;
+}
+
+bool _revisionFresh({
+  required int sourceRevision,
+  required int? lastMirroredRevision,
+}) {
+  if (lastMirroredRevision == null) return true;
+  if (lastMirroredRevision < 0) return false;
+  return sourceRevision > lastMirroredRevision;
 }
