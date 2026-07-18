@@ -75,4 +75,17 @@ void main() {
     expect(summary['preciseLocationIncluded'], isFalse);
     expect(summary['tokensIncluded'], isFalse);
   });
+
+  test('calibration signal cannot mutate trip logs or confirmed miles', () {
+    final summary = signal(.9).toSafeDashboardMap();
+
+    expect(summary['gpsAssistCanOnlyScaleFutureProjectionAfterOptIn'], isTrue);
+    expect(summary['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
+    expect(summary['calibrationCanMutateTripLog'], isFalse);
+    expect(summary['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
+    expect(summary['calibrationCanRewritePastTrips'], isFalse);
+    expect(summary['canOverwriteConfirmedOdometer'], isFalse);
+    expect(summary['rawReviewedTripsIncluded'], isFalse);
+    expect(summary['rawLocationIncluded'], isFalse);
+  });
 }

@@ -76,6 +76,10 @@ void main() {
     expect(summary['firestoreTotalsAcceptedAsCanonical'], isFalse);
     expect(summary['mapboxDistanceAcceptedAsCanonical'], isFalse);
     expect(summary['remoteRecapCanOverrideLocalDay'], isFalse);
+    expect(summary['remoteTotalsRejectedAtTrustBoundary'], isTrue);
+    expect(summary['mapboxRoutesRejectedAsOfficialMileage'], isTrue);
+    expect(summary['cloudFunctionsCanOverrideLocalDay'], isFalse);
+    expect(summary['firebaseAuthDoesNotGrantRecordOwnership'], isTrue);
     expect(summary['notificationsUseRemoteTotals'], isFalse);
     expect(summary['exportsUseRemoteTotals'], isFalse);
     expect(summary['invoicesUseRemoteTotals'], isFalse);

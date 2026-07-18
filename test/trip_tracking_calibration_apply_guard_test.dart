@@ -89,6 +89,10 @@ void main() {
     expect(safe['appliesToPastTrips'], isFalse);
     expect(safe['canRewriteConfirmedOdometer'], isFalse);
     expect(safe['canApplySilently'], isFalse);
+    expect(safe['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
+    expect(safe['calibrationCanMutateTripLog'], isFalse);
+    expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
+    expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
     expect(safe['odometerRemainsCanonical'], isTrue);
     expect(safe['gpsEstimateRemainsNonCanonical'], isTrue);
   });
@@ -220,6 +224,10 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
     expect(safe['userOptInRequired'], isTrue);
     expect(safe['reviewAcceptanceRequired'], isTrue);
+    expect(safe['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
+    expect(safe['calibrationCanMutateTripLog'], isFalse);
+    expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
+    expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
     expect(safe['requiresMultipleReviewedOdometerDays'], isTrue);
     expect(safe['latestReviewTimestampRequired'], isTrue);
   });
