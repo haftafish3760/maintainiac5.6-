@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_route_history_capture_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_sample_window_quality_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_commercial_edge_scenarios.dart';
 import 'support/trip_tracking_qa/trip_tracking_scenarios.dart';
@@ -463,4 +464,24 @@ void main() {
       expect(summary['mapsRequiredForStopReview'], isFalse);
     },
   );
+
+  test('commercial sample window pauses projection on poor GPS', () {
+    final quality = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        point(-80, 0, speed: 10),
+        point(-79.999, 20, speed: 10),
+        point(-79.998, 40, speed: 10),
+      ],
+      routeHistoryDecision: routeDecision(),
+      signalQuality: TripTrackingSignalQuality.poor,
+    );
+    final safeQuality = quality.toSafeDashboardMap();
+
+    expect(quality.status, TripSampleWindowQualityStatus.usableForTracking);
+    expect(quality.canFeedLiveOdometerProjection, isFalse);
+    expect(quality.canPersistCompactRoutePoint, isFalse);
+    expect(safeQuality['poorGpsPausesLiveProjection'], isTrue);
+    expect(safeQuality['sampleWindowRequiresTrustedGpsSignal'], isTrue);
+    expect(safeQuality['odometerIsGlobalTruth'], isTrue);
+  });
 }
