@@ -93,6 +93,16 @@ class TripNativeEventLifecyclePolicy {
         requiresUserReview: true,
       );
     }
+    if (currentState == TripTrackingSessionLifecycleState.failedTerminal) {
+      return _decision(
+        action: TripNativeEventLifecycleAction.ignoreEvent,
+        reason: TripNativeEventLifecycleReason.illegalTransitionRejected,
+        from: currentState,
+        to: currentState,
+        canFeedEngine: false,
+        requiresUserReview: true,
+      );
+    }
     final target = _targetState(currentState, event);
     final transition = TripTrackingSessionStateMachine.evaluateTransition(
       currentState,
@@ -129,7 +139,8 @@ _NativeTarget _targetState(
       state: _activeCompatibleState(currentState),
       action: TripNativeEventLifecycleAction.ingestLocation,
       reason: TripNativeEventLifecycleReason.activeLocationSample,
-      canFeedEngine: currentState != TripTrackingSessionLifecycleState.disabled,
+      canFeedEngine: _locationCanFeedEngine(currentState),
+      requiresUserReview: !_locationCanFeedEngine(currentState),
     ),
     TripTrackingPlatformEventType.activity => _NativeTarget(
       state: _activeCompatibleState(currentState),
@@ -151,6 +162,17 @@ _NativeTarget _targetState(
       canFeedEngine: false,
       requiresUserReview: true,
     ),
+  };
+}
+
+bool _locationCanFeedEngine(TripTrackingSessionLifecycleState currentState) {
+  return switch (currentState) {
+    TripTrackingSessionLifecycleState.disabled ||
+    TripTrackingSessionLifecycleState.permissionRequired ||
+    TripTrackingSessionLifecycleState.awaitingReview ||
+    TripTrackingSessionLifecycleState.completed ||
+    TripTrackingSessionLifecycleState.failedTerminal => false,
+    _ => true,
   };
 }
 

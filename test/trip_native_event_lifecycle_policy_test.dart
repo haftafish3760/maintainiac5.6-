@@ -93,6 +93,32 @@ void main() {
     expect(decision.canFeedEngine, isFalse);
   });
 
+  test('location events cannot feed engine while permission is required', () {
+    final decision = TripNativeEventLifecyclePolicy.evaluate(
+      currentState: TripTrackingSessionLifecycleState.permissionRequired,
+      event: locationEvent(),
+    );
+    final safe = decision.toSafeSummary();
+
+    expect(decision.canFeedEngine, isFalse);
+    expect(decision.requiresUserReview, isTrue);
+    expect(safe['canFeedEngine'], isFalse);
+    expect(safe['permissionLossRequiresUserReview'], isTrue);
+    expect(safe['nativeEventCanConfirmOdometer'], isFalse);
+  });
+
+  test('terminal failure cannot be revived by a late location event', () {
+    final decision = TripNativeEventLifecyclePolicy.evaluate(
+      currentState: TripTrackingSessionLifecycleState.failedTerminal,
+      event: locationEvent(),
+    );
+
+    expect(decision.action, TripNativeEventLifecycleAction.ignoreEvent);
+    expect(decision.to, TripTrackingSessionLifecycleState.failedTerminal);
+    expect(decision.canFeedEngine, isFalse);
+    expect(decision.requiresUserReview, isTrue);
+  });
+
   test(
     'malformed native events fail into recovery without raw payload leakage',
     () {
