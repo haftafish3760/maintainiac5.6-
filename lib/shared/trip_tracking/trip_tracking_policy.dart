@@ -45,6 +45,8 @@ class TripGpsBatteryDecision {
       'batteryGuardCanBeChangedInSettings': true,
       'gpsTrackingCanRetryWhenCharging': true,
       'batteryDataTrustedAfterValidationOnly': true,
+      'batteryDataCanDeleteTripRecords': false,
+      'lowBatteryCanStopTextTripLog': false,
       'firebaseBatteryStateCanOverrideGpsDecision': false,
       'mapboxCanOverrideBatteryDecision': false,
       'malformedBatteryPayloadFailsSafe': true,

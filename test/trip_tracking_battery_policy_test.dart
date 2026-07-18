@@ -81,6 +81,8 @@ void main() {
       'batteryGuardCanBeChangedInSettings': true,
       'gpsTrackingCanRetryWhenCharging': true,
       'batteryDataTrustedAfterValidationOnly': true,
+      'batteryDataCanDeleteTripRecords': false,
+      'lowBatteryCanStopTextTripLog': false,
       'firebaseBatteryStateCanOverrideGpsDecision': false,
       'mapboxCanOverrideBatteryDecision': false,
       'malformedBatteryPayloadFailsSafe': true,
@@ -141,6 +143,11 @@ void main() {
     expect(decision.reasonCode, 'low_battery_gps_blocked_by_saved_choice');
     expect(decision.isSavedBlock, isTrue);
     expect(decision.promptBody, contains('dashboard settings'));
+    expect(
+      decision.toSafeSummary()['batteryDataCanDeleteTripRecords'],
+      isFalse,
+    );
+    expect(decision.toSafeSummary()['lowBatteryCanStopTextTripLog'], isFalse);
   });
 
   test('charging device or unknown battery reading does not block GPS', () {

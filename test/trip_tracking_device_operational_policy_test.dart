@@ -37,14 +37,21 @@ void main() {
     expect(summary['usesSharedDeviceCapabilityProfile'], isTrue);
     expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(summary['mapsRequiredForTracking'], isFalse);
+    expect(summary['mapUsageRequiresSeparateUserOptIn'], isTrue);
+    expect(summary['paidMapServicesCanBeDisabled'], isTrue);
     expect(summary['mapRouteHistoryIsOptional'], isTrue);
     expect(summary['deviceCapabilityTrustedAfterValidationOnly'], isTrue);
+    expect(summary['deviceCapabilityCanDeleteLocalData'], isFalse);
+    expect(summary['deviceCapabilityCanSilentlyStartTracking'], isFalse);
     expect(summary['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
     expect(summary['firebaseDeviceProfileCanOverrideUserConsent'], isFalse);
     expect(summary['mapboxCanOverrideDevicePolicy'], isFalse);
     expect(summary['malformedCapabilityPayloadFailsSafe'], isTrue);
     expect(summary['activityRecognitionRequiresOptIn'], isTrue);
+    expect(summary['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(summary['activityRecognitionCanOnlySuggestReview'], isTrue);
     expect(summary['backgroundTrackingRequiresPlatformPermission'], isTrue);
+    expect(summary['backgroundTrackingRequiresUserConsent'], isTrue);
     expect(summary['deviceModelIncluded'], isFalse);
     expect(summary['rawSensorPayloadIncluded'], isFalse);
   });
@@ -118,8 +125,10 @@ void main() {
       final summary = policy.toSafeSummary();
 
       expect(summary['gpsTextTripLogCanContinueWithLowStorage'], isTrue);
+      expect(summary['gpsTextTripLogCanContinueAtTwentyFiveMb'], isTrue);
       expect(summary['mapRouteHistoryIsOptional'], isTrue);
       expect(summary['mapRouteHistoryDeferBelowDeviceBudget'], isTrue);
+      expect(summary['deviceCapabilityCanDeleteLocalData'], isFalse);
       expect(policy.deferMapRouteHistory, isTrue);
       expect(summary['preciseLocationIncluded'], isFalse);
     },
