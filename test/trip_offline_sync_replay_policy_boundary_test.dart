@@ -58,6 +58,13 @@ void main() {
       expect(decision.shouldKeepLocalQueue, isTrue);
       expect(safe['successfulReplayCanSilentlyDeleteLocalData'], isFalse);
       expect(safe['successfulReplayCanPurgeLocalDaytimeData'], isFalse);
+      expect(
+        safe['successfulReplayRequiresLocalAckBeforeQueueCleanup'],
+        isTrue,
+      );
+      expect(safe['localTombstoneBlocksReplay'], isTrue);
+      expect(safe['replayRequiresLocalMergeReviewOnConflict'], isTrue);
+      expect(safe['replayCannotResolveRemoteConflictSilently'], isTrue);
       expect(safe['remoteConflictCanSilentlyWin'], isFalse);
       expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
       expect(safe['replayRequiresDeviceMatch'], isTrue);
@@ -65,6 +72,7 @@ void main() {
       expect(safe['replayRequiresMonotonicLocalRevision'], isTrue);
       expect(safe['authenticationAloneAuthorizesReplay'], isFalse);
       expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
+      expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
       expect(safe['mapboxCanRepairReplayRecords'], isFalse);
     },
   );

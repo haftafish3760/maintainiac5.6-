@@ -49,6 +49,10 @@ class TripOfflineSyncReplayDecision {
     'failedReplayCanDeleteLocalQueue': false,
     'successfulReplayCanSilentlyDeleteLocalData': false,
     'successfulReplayCanPurgeLocalDaytimeData': false,
+    'successfulReplayRequiresLocalAckBeforeQueueCleanup': true,
+    'localTombstoneBlocksReplay': true,
+    'replayRequiresLocalMergeReviewOnConflict': true,
+    'replayCannotResolveRemoteConflictSilently': true,
     'remoteConflictCanSilentlyWin': false,
     'remoteReplayCanReviveDeletedLocalTrip': false,
     'remoteReplayCanAdvanceLocalRevision': false,
@@ -64,6 +68,12 @@ class TripOfflineSyncReplayDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'mapboxCanReplaySyncQueue': false,
     'mapboxCanRepairReplayRecords': false,
     'mapboxCanFillReplayGaps': false,
@@ -202,6 +212,10 @@ class TripOfflineSyncReplaySummaryValidation {
       'failedReplayCanDeleteLocalQueue',
       'successfulReplayCanSilentlyDeleteLocalData',
       'successfulReplayCanPurgeLocalDaytimeData',
+      'successfulReplayRequiresLocalAckBeforeQueueCleanup',
+      'localTombstoneBlocksReplay',
+      'replayRequiresLocalMergeReviewOnConflict',
+      'replayCannotResolveRemoteConflictSilently',
       'remoteConflictCanSilentlyWin',
       'remoteReplayCanReviveDeletedLocalTrip',
       'remoteReplayCanAdvanceLocalRevision',
@@ -217,6 +231,12 @@ class TripOfflineSyncReplaySummaryValidation {
       'hiveRemainsOperationalSourceOfTruth',
       'odometerRemainsOfficialMileageTruth',
       'odometerIsGlobalTruth',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'mapboxCanReplaySyncQueue',
       'mapboxCanRepairReplayRecords',
       'mapboxCanFillReplayGaps',
@@ -248,6 +268,10 @@ class TripOfflineSyncReplaySummaryValidation {
     if (summary['failedReplayCanDeleteLocalQueue'] != false ||
         summary['successfulReplayCanSilentlyDeleteLocalData'] != false ||
         summary['successfulReplayCanPurgeLocalDaytimeData'] != false ||
+        summary['successfulReplayRequiresLocalAckBeforeQueueCleanup'] != true ||
+        summary['localTombstoneBlocksReplay'] != true ||
+        summary['replayRequiresLocalMergeReviewOnConflict'] != true ||
+        summary['replayCannotResolveRemoteConflictSilently'] != true ||
         summary['remoteConflictCanSilentlyWin'] != false ||
         summary['remoteReplayCanReviveDeletedLocalTrip'] != false ||
         summary['remoteReplayCanAdvanceLocalRevision'] != false ||
@@ -263,6 +287,12 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['mapboxCanReplaySyncQueue'] != false ||
         summary['mapboxCanRepairReplayRecords'] != false ||
         summary['mapboxCanFillReplayGaps'] != false ||

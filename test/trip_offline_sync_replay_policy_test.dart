@@ -145,6 +145,10 @@ void main() {
     expect(safe['authenticationAloneAuthorizesReplay'], isFalse);
     expect(safe['failedReplayCanDeleteLocalQueue'], isFalse);
     expect(safe['successfulReplayCanSilentlyDeleteLocalData'], isFalse);
+    expect(safe['successfulReplayRequiresLocalAckBeforeQueueCleanup'], isTrue);
+    expect(safe['localTombstoneBlocksReplay'], isTrue);
+    expect(safe['replayRequiresLocalMergeReviewOnConflict'], isTrue);
+    expect(safe['replayCannotResolveRemoteConflictSilently'], isTrue);
     expect(safe['replaySuccessRequiresExplicitQueueCleanup'], isTrue);
     expect(safe['replayCannotUploadIfLocalRecordDisappears'], isTrue);
     expect(safe['replayCannotUploadAfterBackupOptOut'], isTrue);
@@ -157,6 +161,12 @@ void main() {
     expect(safe['remoteReplayCanApplyCalibration'], isFalse);
     expect(safe['cloudFunctionCanReplayWithoutLocalQueue'], isFalse);
     expect(safe['firestoreMirrorOnly'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(safe['replayPayloadMustBeSummaryOnly'], isTrue);
     expect(safe['replayCannotUploadRawGpsPings'], isTrue);
     expect(safe['rawTripPayloadIncluded'], isFalse);
@@ -191,6 +201,10 @@ void main() {
         'failedReplayCanDeleteLocalQueue': true,
         'successfulReplayCanSilentlyDeleteLocalData': true,
         'successfulReplayCanPurgeLocalDaytimeData': true,
+        'successfulReplayRequiresLocalAckBeforeQueueCleanup': false,
+        'localTombstoneBlocksReplay': false,
+        'replayRequiresLocalMergeReviewOnConflict': false,
+        'replayCannotResolveRemoteConflictSilently': false,
         'remoteConflictCanSilentlyWin': true,
         'remoteReplayCanReviveDeletedLocalTrip': true,
         'remoteReplayCanAdvanceLocalRevision': true,
@@ -203,6 +217,12 @@ void main() {
         'firestoreMirrorOnly': false,
         'hiveRemainsOperationalSourceOfTruth': false,
         'odometerRemainsOfficialMileageTruth': false,
+        'physicalOdometerRequiredForOfficialMileage': false,
+        'confirmedOdometerOverridesExternalMileage': false,
+        'externalMileageCannotBecomeGlobalTruth': false,
+        'gpsDistanceCanOnlyAdviseMileageReview': false,
+        'mapMatchingCanOnlyAdviseMileageReview': false,
+        'optimizationCannotChangeOfficialMileage': false,
         'mapboxCanReplaySyncQueue': true,
         'mapboxCanRepairReplayRecords': true,
         'mapboxCanFillReplayGaps': true,
