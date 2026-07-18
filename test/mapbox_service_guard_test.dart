@@ -161,6 +161,47 @@ void main() {
     expect(oversizedSearch.safeReason, 'mapbox_search_unexpected_shape');
   });
 
+  test('billable routing services require bounded route metrics', () {
+    final geometryOnlyDirections = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.directions,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'routes': [
+          {'geometry': 'private'},
+        ],
+      },
+    );
+    final geometryOnlyOptimization = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.optimization,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'trips': [
+          {'geometry': 'private'},
+        ],
+      },
+    );
+    final matchedGeometry = MapboxServiceGuard.evaluate(
+      kind: MapboxOptionalServiceKind.mapMatching,
+      featureEnabled: true,
+      httpStatus: 200,
+      decodedBody: const {
+        'code': 'Ok',
+        'matchings': [
+          {'geometry': 'private'},
+        ],
+      },
+    );
+
+    expect(geometryOnlyDirections.canUseFeature, isFalse);
+    expect(geometryOnlyDirections.shouldFallbackToGpsOnly, isTrue);
+    expect(geometryOnlyOptimization.canUseFeature, isFalse);
+    expect(matchedGeometry.canUseFeature, isTrue);
+  });
+
   test('matrix service requires bounded reachable cells before readiness', () {
     final allUnreachable = MapboxServiceGuard.evaluate(
       kind: MapboxOptionalServiceKind.matrix,
@@ -253,7 +294,7 @@ Map<String, Object?> _validBodyFor(MapboxOptionalServiceKind kind) {
     MapboxOptionalServiceKind.optimization => const {
       'code': 'Ok',
       'trips': [
-        {'geometry': 'private'},
+        {'geometry': 'private', 'distance': 1000, 'duration': 600},
       ],
     },
     MapboxOptionalServiceKind.search => const {

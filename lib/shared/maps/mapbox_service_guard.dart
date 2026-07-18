@@ -126,7 +126,10 @@ class MapboxServiceGuard {
 bool _hasExpectedShape(MapboxOptionalServiceKind kind, Map body) {
   return switch (kind) {
     MapboxOptionalServiceKind.maps => true,
-    MapboxOptionalServiceKind.directions => _hasUsableRouteList(body['routes']),
+    MapboxOptionalServiceKind.directions => _hasUsableRouteList(
+      body['routes'],
+      requireMetric: true,
+    ),
     MapboxOptionalServiceKind.matrix =>
       _hasUsableMatrix(body['durations'], maxCellValue: 60 * 60 * 24 * 14) ||
           _hasUsableMatrix(body['distances'], maxCellValue: 20000000),
@@ -136,7 +139,8 @@ bool _hasExpectedShape(MapboxOptionalServiceKind kind, Map body) {
     MapboxOptionalServiceKind.isochrone =>
       _hasFeatureCollection(body) || _hasUsableFeatureList(body['features']),
     MapboxOptionalServiceKind.optimization =>
-      _hasUsableRouteList(body['trips']) || _hasUsableRouteList(body['routes']),
+      _hasUsableRouteList(body['trips'], requireMetric: true) ||
+          _hasUsableRouteList(body['routes'], requireMetric: true),
     MapboxOptionalServiceKind.search =>
       _hasUsableFeatureList(body['features']) ||
           _hasUsableFeatureList(body['suggestions']),
@@ -150,12 +154,14 @@ bool _hasFeatureCollection(Map body) {
       _hasUsableFeatureList(body['features']);
 }
 
-bool _hasUsableRouteList(Object? value) {
+bool _hasUsableRouteList(Object? value, {bool requireMetric = false}) {
   if (value is! List || value.isEmpty || value.length > 25) return false;
-  return value.any(_hasUsableRouteShape);
+  return value.any((route) {
+    return _hasUsableRouteShape(route, requireMetric: requireMetric);
+  });
 }
 
-bool _hasUsableRouteShape(Object? value) {
+bool _hasUsableRouteShape(Object? value, {required bool requireMetric}) {
   if (value is! Map) return false;
   final distance = _safeFiniteNumber(value['distance']);
   final duration = _safeFiniteNumber(value['duration']);
@@ -164,6 +170,7 @@ bool _hasUsableRouteShape(Object? value) {
   final hasBoundedDuration =
       duration == null || (duration > 0 && duration <= 60 * 60 * 24 * 14);
   if (!hasBoundedDistance || !hasBoundedDuration) return false;
+  if (requireMetric && distance == null && duration == null) return false;
   return value.containsKey('geometry') ||
       value.containsKey('legs') ||
       distance != null ||
