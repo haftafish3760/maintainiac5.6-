@@ -197,6 +197,7 @@ void main() {
       'recommendedActivityRecognition': true,
       'usesWalkingStopEvidence': true,
       'requiresStrongerStopDebounce': false,
+      'minimumWalkingEvidenceSpacingSeconds': 5,
       'phoneMayStayInVehicleDuringStops': false,
       'vehicleOnlyStopsNeedManualFallback': false,
       'stopReviewConfidencePolicy': 'walking_assist_jobsite_review',
@@ -320,5 +321,6 @@ void main() {
       strategy.walkingStopConfirmationDuration,
       const Duration(seconds: 20),
     );
+    expect(strategy.minimumWalkingEvidenceSpacing, const Duration(seconds: 5));
   });
 }

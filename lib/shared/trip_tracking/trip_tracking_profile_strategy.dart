@@ -16,6 +16,7 @@ class TripTrackingProfileStrategy {
     required this.usesWalkingStopEvidence,
     required this.walkingConfirmationCount,
     required this.walkingStopConfirmationDuration,
+    required this.minimumWalkingEvidenceSpacing,
     required this.stopReviewReasonCode,
     required this.dashboardModeToken,
     required this.dashboardWidgetTokens,
@@ -29,6 +30,7 @@ class TripTrackingProfileStrategy {
   final bool usesWalkingStopEvidence;
   final int walkingConfirmationCount;
   final Duration walkingStopConfirmationDuration;
+  final Duration minimumWalkingEvidenceSpacing;
   final String stopReviewReasonCode;
   final String dashboardModeToken;
   final List<String> dashboardWidgetTokens;
@@ -95,6 +97,8 @@ class TripTrackingProfileStrategy {
     'recommendedActivityRecognition': recommendedActivityRecognition,
     'usesWalkingStopEvidence': usesWalkingStopEvidence,
     'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
+    'minimumWalkingEvidenceSpacingSeconds':
+        minimumWalkingEvidenceSpacing.inSeconds,
     'phoneMayStayInVehicleDuringStops': phoneMayStayInVehicleDuringStops,
     'vehicleOnlyStopsNeedManualFallback': vehicleOnlyStopsNeedManualFallback,
     'stopReviewConfidencePolicy': stopReviewConfidencePolicyToken,
@@ -128,9 +132,14 @@ class TripTrackingProfileStrategy {
     required int walkingEvidenceCount,
     required DateTime observedAt,
     required DateTime? latestWalkingEvidenceAt,
+    required Duration walkingEvidenceSpan,
   }) {
     if (!usesWalkingStopEvidence) return false;
-    if (walkingEvidenceCount >= walkingConfirmationCount) return true;
+    if (walkingEvidenceCount >= walkingConfirmationCount &&
+        walkingEvidenceSpan >= walkingStopConfirmationDuration) {
+      return true;
+    }
+    if (walkingEvidenceCount < 2) return false;
     final latest = latestWalkingEvidenceAt;
     if (latest == null || observedAt.isBefore(latest)) return false;
     return observedAt.difference(latest) >= walkingStopConfirmationDuration;
@@ -148,6 +157,7 @@ class TripTrackingProfileStrategy {
       policy.walkingStopConfirmationDuration,
       const Duration(seconds: 20),
     );
+    final baseSpacing = _minimumEvidenceSpacingFor(baseDuration);
     return switch (profile) {
       TripTrackingProfile.rideshareVehicle => TripTrackingProfileStrategy(
         profile: profile,
@@ -158,6 +168,7 @@ class TripTrackingProfileStrategy {
             baseDuration < const Duration(seconds: 45)
             ? const Duration(seconds: 45)
             : baseDuration,
+        minimumWalkingEvidenceSpacing: baseSpacing,
         stopReviewReasonCode: 'rideshare_stop_requires_extra_evidence',
         dashboardModeToken: 'gig_driver',
         dashboardWidgetTokens: const [
@@ -179,6 +190,7 @@ class TripTrackingProfileStrategy {
         usesWalkingStopEvidence: true,
         walkingConfirmationCount: baseCount,
         walkingStopConfirmationDuration: baseDuration,
+        minimumWalkingEvidenceSpacing: baseSpacing,
         stopReviewReasonCode: 'delivery_stop_walk_review',
         dashboardModeToken: 'gig_driver',
         dashboardWidgetTokens: const [
@@ -206,6 +218,7 @@ class TripTrackingProfileStrategy {
         usesWalkingStopEvidence: true,
         walkingConfirmationCount: baseCount,
         walkingStopConfirmationDuration: baseDuration,
+        minimumWalkingEvidenceSpacing: baseSpacing,
         stopReviewReasonCode: 'contractor_stop_walk_review',
         dashboardModeToken: 'contractor',
         dashboardWidgetTokens: const [
@@ -234,6 +247,7 @@ class TripTrackingProfileStrategy {
         usesWalkingStopEvidence: false,
         walkingConfirmationCount: baseCount,
         walkingStopConfirmationDuration: baseDuration,
+        minimumWalkingEvidenceSpacing: baseSpacing,
         stopReviewReasonCode: 'equipment_ignores_walking_stop_evidence',
         dashboardModeToken: 'default',
         dashboardWidgetTokens: const [
@@ -253,6 +267,7 @@ class TripTrackingProfileStrategy {
         usesWalkingStopEvidence: true,
         walkingConfirmationCount: baseCount,
         walkingStopConfirmationDuration: baseDuration,
+        minimumWalkingEvidenceSpacing: baseSpacing,
         stopReviewReasonCode: 'road_vehicle_stop_walk_review',
         dashboardModeToken: 'default',
         dashboardWidgetTokens: const [
@@ -275,3 +290,12 @@ int _safePositiveInt(int value, {required int fallback}) =>
 
 Duration _safePositiveDuration(Duration value, Duration fallback) =>
     value > Duration.zero ? value : fallback;
+
+Duration _minimumEvidenceSpacingFor(Duration stopConfirmationDuration) {
+  final seconds = stopConfirmationDuration.inSeconds;
+  if (seconds <= 0) return const Duration(seconds: 5);
+  final spacing = seconds ~/ 4;
+  if (spacing < 5) return const Duration(seconds: 5);
+  if (spacing > 15) return const Duration(seconds: 15);
+  return Duration(seconds: spacing);
+}

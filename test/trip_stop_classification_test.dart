@@ -161,6 +161,54 @@ void main() {
     expect(classification.dashboardMessage, contains('traffic light'));
   });
 
+  test('burst walking sensor misfire at a stoplight stays out of review', () {
+    final result = replayTrip(
+      scenarios.burstWalkingMisfireAtStoplight(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.burstWalkingMisfireAtStoplight(),
+      TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.motionState, isNot(TripMotionState.stopped));
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.signal, isNot(TripStopSignal.reviewOnlyStop));
+  });
+
+  test('well-spaced delivery walking evidence becomes review-only stop', () {
+    final result = replayTrip(
+      scenarios.deliveryStopWithWellSpacedWalkingEvidence(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.deliveryStopWithWellSpacedWalkingEvidence(),
+      TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isTrue);
+    expect(result.motionState, TripMotionState.stopped);
+    expect(classification.signal, TripStopSignal.reviewOnlyStop);
+    expect(classification.canSuggestStop, isTrue);
+  });
+
+  test('stale walking evidence cannot create a stop after driving resumes', () {
+    final result = replayTrip(
+      scenarios.staleWalkingAfterDriveResumes(),
+      profile: TripTrackingProfile.contractorVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.staleWalkingAfterDriveResumes(),
+      TripTrackingProfile.contractorVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.motionState, TripMotionState.moving);
+    expect(classification.signal, TripStopSignal.noStop);
+    expect(classification.canSuggestStop, isFalse);
+  });
+
   test('unsafe provider evidence fails closed without a stop suggestion', () {
     final classification = classifyScenario(
       scenarios.hostileProviderReplay(),

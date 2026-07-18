@@ -277,6 +277,12 @@ class TripTrackingEngine {
     if (!_strategy.usesWalkingStopEvidence || !_isStrongWalking(activity)) {
       return;
     }
+    final latest = _walkingEvidence.isEmpty ? null : _walkingEvidence.last;
+    if (latest != null &&
+        activity.recordedAt.difference(latest.recordedAt) <
+            _strategy.minimumWalkingEvidenceSpacing) {
+      return;
+    }
     if (!_walkingEvidence.any(
       (item) => item.recordedAt == activity.recordedAt,
     )) {
@@ -347,6 +353,14 @@ class TripTrackingEngine {
       latestWalkingEvidenceAt: _walkingEvidence.isEmpty
           ? null
           : _walkingEvidence.last.recordedAt,
+      walkingEvidenceSpan: _walkingEvidenceSpan,
+    );
+  }
+
+  Duration get _walkingEvidenceSpan {
+    if (_walkingEvidence.length < 2) return Duration.zero;
+    return _walkingEvidence.last.recordedAt.difference(
+      _walkingEvidence.first.recordedAt,
     );
   }
 

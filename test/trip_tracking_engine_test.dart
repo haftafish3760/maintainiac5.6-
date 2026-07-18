@@ -736,7 +736,7 @@ void main() {
     }
   });
 
-  test('one walking classification needs sustained stationary evidence', () {
+  test('one reused walking classification cannot become a sustained stop', () {
     final engine = TripTrackingEngine();
     final automotive = TripActivityObservation(
       activity: TripActivity.automotive,
@@ -752,6 +752,25 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
 
     engine.ingest(sample(-79.9997, 60), activity: oneWalkingClassification);
+    expect(engine.motionState, TripMotionState.stopCandidate);
+    expect(engine.needsWalkingReview, isFalse);
+  });
+
+  test('fresh time-spaced walking classifications can suggest stop review', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+
+    engine.ingest(sample(-79.9997, 30), activity: walking(30));
+    engine.ingest(sample(-79.9997, 45), activity: walking(45));
+    expect(engine.needsWalkingReview, isFalse);
+
+    engine.ingest(sample(-79.9997, 60), activity: walking(60));
     expect(engine.motionState, TripMotionState.stopped);
     expect(engine.needsWalkingReview, isTrue);
   });

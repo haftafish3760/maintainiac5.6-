@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
+import 'support/trip_tracking_qa/trip_tracking_scenarios.dart';
 import 'support/trip_tracking_qa/trip_tracking_simulator.dart';
 
 void main() {
   final start = DateTime.utc(2026, 7, 17, 12);
+  final scenarios = TripTrackingScenarioLibrary(start: start);
 
   TripLocationSample point(
     double longitude,
@@ -73,5 +75,32 @@ void main() {
     expect(singleWalk.needsWalkingReview, isFalse);
     expect(repeatedWalk.needsWalkingReview, isTrue);
     expect(repeatedWalk.acceptedMeters, lessThan(singleWalk.acceptedMeters));
+  });
+
+  test('stop detection requires time-spaced evidence, not sensor bursts', () {
+    final burst = replayTrip(
+      scenarios.burstWalkingMisfireAtStoplight(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final spaced = replayTrip(
+      scenarios.deliveryStopWithWellSpacedWalkingEvidence(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(burst.needsWalkingReview, isFalse);
+    expect(burst.motionState, isNot(TripMotionState.stopped));
+    expect(spaced.needsWalkingReview, isTrue);
+    expect(spaced.motionState, TripMotionState.stopped);
+  });
+
+  test('stale walking evidence is discarded after movement continues', () {
+    final result = replayTrip(
+      scenarios.staleWalkingAfterDriveResumes(),
+      profile: TripTrackingProfile.contractorVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.motionState, TripMotionState.moving);
+    expect(result.acceptedDistanceCount, greaterThan(1));
   });
 }

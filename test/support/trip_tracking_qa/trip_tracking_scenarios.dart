@@ -247,6 +247,61 @@ class TripTrackingScenarioLibrary {
     return points;
   }
 
+  List<SimulatedTripPoint> burstWalkingMisfireAtStoplight() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.998, 40, speed: 9)),
+    SimulatedTripPoint(
+      roadPoint(-79.99799, 50, speed: 0),
+      activity: activity(TripActivity.walking, 50),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99798, 51, speed: 0),
+      activity: activity(TripActivity.walking, 51),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99799, 52, speed: 0),
+      activity: activity(TripActivity.walking, 52),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99798, 53, speed: 0),
+      activity: activity(TripActivity.walking, 53),
+    ),
+    SimulatedTripPoint(roadPoint(-79.997, 90, speed: 9)),
+  ];
+
+  List<SimulatedTripPoint> deliveryStopWithWellSpacedWalkingEvidence() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.998, 40, speed: 9)),
+    SimulatedTripPoint(
+      roadPoint(-79.99795, 55),
+      activity: activity(TripActivity.walking, 55),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.9979, 65),
+      activity: activity(TripActivity.walking, 65),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99784, 77),
+      activity: activity(TripActivity.walking, 77),
+    ),
+  ];
+
+  List<SimulatedTripPoint> staleWalkingAfterDriveResumes() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99895, 35),
+      activity: activity(TripActivity.walking, 35),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.9975, 100, speed: 9),
+      activity: activity(TripActivity.walking, 35),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9965, 120, speed: 9)),
+  ];
+
   List<SimulatedTripPoint> hostileProviderReplay() => [
     SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
     SimulatedTripPoint(roadPoint(-79.999, 20, speed: 8)),
