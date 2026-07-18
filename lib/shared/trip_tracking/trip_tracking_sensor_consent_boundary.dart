@@ -95,12 +95,15 @@ class TripTrackingSensorConsentBoundary {
     'platformPermissionRequired': true,
     'deviceCapabilityTrustedAfterValidationOnly': true,
     'validatedCapabilityDoesNotReplacePlatformPermission': true,
+    'deviceCapabilityCannotInferConsentFromModel': true,
     'sensorConsentCanBeRevokedWithoutDeletingTripLog': true,
     'gpsOnlyModeRemainsAvailableWithoutMotionAssist': true,
     'motionAssistCanDegradeWithoutStoppingTrip': true,
     'backgroundAssistCanDegradeWithoutStoppingTrip': true,
     'gpsConsentRequiredBeforeActivityEvidence': true,
     'activityEvidenceRequiresCurrentConsent': true,
+    'activityEvidenceRequiresCurrentDeviceSession': true,
+    'importedSensorEvidenceCannotEnableAssist': true,
     'backgroundTrackingRequiresSeparatePlatformGrant': true,
     'foregroundLocationDoesNotGrantBackgroundTracking': true,
     'remoteCapabilityCanEnableSensorsWithoutOptIn': false,
@@ -115,6 +118,13 @@ class TripTrackingSensorConsentBoundary {
     'activityRecognitionCanCreateOfficialStop': false,
     'activityRecognitionCanOnlySuggestReview': true,
     'odometerIsGlobalTruth': true,
+    'odometerRemainsOfficialMileageTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
     'sensorConsentCanCreateCalibration': false,
@@ -168,6 +178,8 @@ class TripTrackingSensorConsentSummaryValidation {
         summary['platformPermissionRequired'] != true ||
         summary['gpsConsentRequiredBeforeActivityEvidence'] != true ||
         summary['activityEvidenceRequiresCurrentConsent'] != true ||
+        summary['activityEvidenceRequiresCurrentDeviceSession'] != true ||
+        summary['importedSensorEvidenceCannotEnableAssist'] != true ||
         summary['backgroundTrackingRequiresSeparatePlatformGrant'] != true ||
         summary['foregroundLocationDoesNotGrantBackgroundTracking'] != true ||
         summary['validatedCapabilityDoesNotReplacePlatformPermission'] !=
@@ -178,6 +190,7 @@ class TripTrackingSensorConsentSummaryValidation {
       reasons.add('platform_permission_boundary_missing');
     }
     if (summary['deviceCapabilityTrustedAfterValidationOnly'] != true ||
+        summary['deviceCapabilityCannotInferConsentFromModel'] != true ||
         summary['remoteCapabilityCanEnableSensorsWithoutOptIn'] != false ||
         summary['firebaseCanEnableTrackingWithoutConsent'] != false ||
         summary['mapboxCanEnableTrackingWithoutConsent'] != false ||
@@ -195,6 +208,13 @@ class TripTrackingSensorConsentSummaryValidation {
     if (summary['activityRecognitionCanCreateOfficialStop'] != false ||
         summary['activityRecognitionCanOnlySuggestReview'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['sensorConsentCanCreateCalibration'] != false ||

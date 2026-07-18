@@ -73,10 +73,19 @@ void main() {
       expect(safe['backgroundAssistCanDegradeWithoutStoppingTrip'], isTrue);
       expect(safe['gpsConsentRequiredBeforeActivityEvidence'], isTrue);
       expect(safe['activityEvidenceRequiresCurrentConsent'], isTrue);
+      expect(safe['activityEvidenceRequiresCurrentDeviceSession'], isTrue);
+      expect(safe['importedSensorEvidenceCannotEnableAssist'], isTrue);
       expect(safe['backgroundTrackingRequiresSeparatePlatformGrant'], isTrue);
       expect(safe['foregroundLocationDoesNotGrantBackgroundTracking'], isTrue);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
       expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+      expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
       expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
       expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['sensorConsentCanCreateCalibration'], isFalse);
@@ -168,6 +177,7 @@ void main() {
     expect(safe['employerCanEnableTrackingWithoutEmployeeConsent'], isFalse);
     expect(safe['fleetAdminCanEnableTrackingWithoutEmployeeConsent'], isFalse);
     expect(safe['deviceCapabilityCanEnableTrackingWithoutConsent'], isFalse);
+    expect(safe['deviceCapabilityCannotInferConsentFromModel'], isTrue);
     expect(safe['backgroundPermissionCanBeAssumedFromForeground'], isFalse);
     expect(safe['activityPermissionCanBeAssumedFromLocation'], isFalse);
     expect(safe['sensorConsentCanBypassPlatformPermission'], isFalse);
@@ -218,6 +228,8 @@ void main() {
         'activityPermissionCanBeAssumedFromLocation': true,
         'gpsConsentRequiredBeforeActivityEvidence': false,
         'activityEvidenceRequiresCurrentConsent': false,
+        'activityEvidenceRequiresCurrentDeviceSession': false,
+        'importedSensorEvidenceCannotEnableAssist': false,
         'backgroundTrackingRequiresSeparatePlatformGrant': false,
         'foregroundLocationDoesNotGrantBackgroundTracking': false,
         'remoteCapabilityCanEnableSensorsWithoutOptIn': true,
@@ -233,6 +245,13 @@ void main() {
         'activityRecognitionCanCreateOfficialStop': true,
         'activityRecognitionCanOnlySuggestReview': false,
         'odometerIsGlobalTruth': false,
+        'odometerRemainsOfficialMileageTruth': false,
+        'physicalOdometerRequiredForOfficialMileage': false,
+        'confirmedOdometerOverridesExternalMileage': false,
+        'externalMileageCannotBecomeGlobalTruth': false,
+        'gpsDistanceCanOnlyAdviseMileageReview': false,
+        'mapMatchingCanOnlyAdviseMileageReview': false,
+        'optimizationCannotChangeOfficialMileage': false,
         'calibrationRequiresTrustedGpsWindow': false,
         'poorGpsDaysExcludedFromCalibration': false,
         'sensorConsentCanCreateCalibration': true,

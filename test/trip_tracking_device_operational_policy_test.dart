@@ -460,9 +460,18 @@ void main() {
 
     expect(summary['employerCanEnableTrackingWithoutUserConsent'], isFalse);
     expect(summary['deviceCapabilityCanOnlyRecommendSettings'], isTrue);
+    expect(summary['deviceCapabilityCannotInferConsentFromModel'], isTrue);
     expect(summary['deviceCapabilityCanSilentlyStartTracking'], isFalse);
+    expect(summary['activityEvidenceRequiresCurrentDeviceSession'], isTrue);
+    expect(summary['importedSensorEvidenceCannotEnableAssist'], isTrue);
     expect(summary['batteryGuardCanStopTripAutomatically'], isFalse);
     expect(summary['batteryGuardCanDeleteTripRecords'], isFalse);
+    expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(summary['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(summary['rawSensorPayloadIncluded'], isFalse);
     expect(summary['preciseLocationIncluded'], isFalse);
     expect(summary['deviceModelIncluded'], isFalse);

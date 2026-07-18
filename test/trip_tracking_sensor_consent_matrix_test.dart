@@ -146,6 +146,8 @@ void main() {
         expect(validation.isRenderable, isTrue, reason: entry.name);
         expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
         expect(safe['activityRecognitionCanOnlySuggestReview'], isTrue);
+        expect(safe['activityEvidenceRequiresCurrentDeviceSession'], isTrue);
+        expect(safe['importedSensorEvidenceCannotEnableAssist'], isTrue);
         expect(safe['gpsOnlyModeRemainsAvailableWithoutMotionAssist'], isTrue);
         expect(safe['motionAssistCanDegradeWithoutStoppingTrip'], isTrue);
         expect(safe['backgroundAssistCanDegradeWithoutStoppingTrip'], isTrue);
@@ -158,6 +160,8 @@ void main() {
           isFalse,
         );
         expect(safe['mapboxCanEnableTrackingWithoutConsent'], isFalse);
+        expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+        expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
         expect(safe['localTripLogProtected'], isTrue);
         expect(safe.toString(), isNot(contains('pk.')));
         expect(safe.toString(), isNot(contains('sk.')));
