@@ -28,6 +28,7 @@ class TripTrackingBackupScopeDecision {
   Map<String, Object?> toSafeSummary() {
     final review = boundReview;
     final scope = review?.cloudBackupScope;
+    final safeCanQueue = _safeCanQueue(review: review, failure: failure);
     final hasOrganizationBinding =
         scope == TripTrackingCloudBackupScope.organization &&
         TripTrackingBackupScopePolicy.hasUsableOrganizationId(
@@ -35,10 +36,10 @@ class TripTrackingBackupScopeDecision {
         );
     return {
       'schemaVersion': 1,
-      'canQueue': canQueue,
-      'scope': scope?.name ?? 'unbound',
+      'canQueue': safeCanQueue,
+      'scope': safeCanQueue ? scope?.name ?? 'unbound' : 'unbound',
       'failure': failure?.name,
-      'requiresReview': !canQueue,
+      'requiresReview': !safeCanQueue,
       'safeErrorMessage': safeErrorMessage,
       'accountBound': TripTrackingBackupScopePolicy.isSafeCloudToken(
         review?.cloudAccountUid,
@@ -46,10 +47,13 @@ class TripTrackingBackupScopeDecision {
       'organizationBound': hasOrganizationBinding,
       'authorizationRequired': true,
       'authenticationImpliesAuthorization': false,
-      'ownershipVerifiedBeforeWrite': canQueue,
+      'ownershipVerifiedBeforeWrite': safeCanQueue,
       'scopeBindingRequiredBeforeWrite': true,
       'backupConsentRequiredBeforeWrite': true,
       'organizationSharingConsentRequiredBeforeFleetVisibility': true,
+      'queueAllowedAfterValidationOnly': true,
+      'firestoreRulesMustVerifyOwner': true,
+      'cloudFunctionMustVerifyOwnerAndScope': true,
       'cloudMirrorOnly': true,
       'hiveRemainsSourceOfTruth': true,
       'remoteDataCanOverrideLocalTripLog': false,
@@ -79,6 +83,20 @@ class TripTrackingBackupScopeDecision {
       null => '',
     };
   }
+}
+
+bool _safeCanQueue({
+  required TripTrackingReviewRecord? review,
+  required TripTrackingBackupScopeFailure? failure,
+}) {
+  if (failure != null || review == null) return false;
+  if (!TripTrackingBackupScopePolicy.isSafeCloudToken(review.cloudAccountUid)) {
+    return false;
+  }
+  return TripTrackingBackupScopePolicy.hasValidScopeBinding(
+    scope: review.cloudBackupScope,
+    organizationId: review.cloudOrganizationId,
+  );
 }
 
 class TripTrackingBackupScopePolicy {

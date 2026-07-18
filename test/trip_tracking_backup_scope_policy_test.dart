@@ -69,6 +69,9 @@ void main() {
       summary['organizationSharingConsentRequiredBeforeFleetVisibility'],
       isTrue,
     );
+    expect(summary['queueAllowedAfterValidationOnly'], isTrue);
+    expect(summary['firestoreRulesMustVerifyOwner'], isTrue);
+    expect(summary['cloudFunctionMustVerifyOwnerAndScope'], isTrue);
     expect(summary['cloudMirrorOnly'], isTrue);
     expect(summary['hiveRemainsSourceOfTruth'], isTrue);
     expect(summary['remoteDataCanOverrideLocalTripLog'], isFalse);
@@ -140,9 +143,43 @@ void main() {
       isTrue,
     );
   });
+
+  test('direct backup scope summaries cannot forge authorization', () {
+    final unsafeAccount = TripTrackingBackupScopeDecision.allowed(
+      _review().copyWith(
+        cloudAccountUid: 'token=sk.secret',
+        cloudBackupScope: TripTrackingCloudBackupScope.personal,
+      ),
+    );
+    final unsafeOrgScope = TripTrackingBackupScopeDecision.allowed(
+      _review(
+        cloudAccountUid: 'firebaseUid-1',
+        cloudBackupScope: TripTrackingCloudBackupScope.personal,
+        cloudOrganizationId: 'org_1',
+      ),
+    );
+
+    for (final decision in [unsafeAccount, unsafeOrgScope]) {
+      final summary = decision.toSafeSummary();
+
+      expect(summary['canQueue'], isFalse);
+      expect(summary['scope'], 'unbound');
+      expect(summary['requiresReview'], isTrue);
+      expect(summary['ownershipVerifiedBeforeWrite'], isFalse);
+      expect(summary['queueAllowedAfterValidationOnly'], isTrue);
+      expect(summary['firestoreRulesMustVerifyOwner'], isTrue);
+      expect(summary['cloudFunctionMustVerifyOwnerAndScope'], isTrue);
+      expect(summary['accountIdIncluded'], isFalse);
+      expect(summary.toString(), isNot(contains('sk.secret')));
+    }
+  });
 }
 
-TripTrackingReviewRecord _review() => TripTrackingReviewRecord(
+TripTrackingReviewRecord _review({
+  String? cloudAccountUid,
+  TripTrackingCloudBackupScope? cloudBackupScope,
+  String? cloudOrganizationId,
+}) => TripTrackingReviewRecord(
   id: 'trip_1',
   vehicleId: 'vehicle_1',
   startingOdometer: 1000,
@@ -156,4 +193,7 @@ TripTrackingReviewRecord _review() => TripTrackingReviewRecord(
     totalAcceptedMeters: 16093.44,
     walkingReviewSuggested: false,
   ),
+  cloudAccountUid: cloudAccountUid,
+  cloudBackupScope: cloudBackupScope,
+  cloudOrganizationId: cloudOrganizationId,
 );
