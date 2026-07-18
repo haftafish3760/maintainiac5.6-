@@ -97,10 +97,17 @@ class TripTrackingSensorConsentBoundary {
     'validatedCapabilityDoesNotReplacePlatformPermission': true,
     'sensorConsentCanBeRevokedWithoutDeletingTripLog': true,
     'gpsOnlyModeRemainsAvailableWithoutMotionAssist': true,
+    'motionAssistCanDegradeWithoutStoppingTrip': true,
+    'backgroundAssistCanDegradeWithoutStoppingTrip': true,
+    'gpsConsentRequiredBeforeActivityEvidence': true,
+    'activityEvidenceRequiresCurrentConsent': true,
+    'backgroundTrackingRequiresSeparatePlatformGrant': true,
+    'foregroundLocationDoesNotGrantBackgroundTracking': true,
     'remoteCapabilityCanEnableSensorsWithoutOptIn': false,
     'firebaseCanEnableTrackingWithoutConsent': false,
     'mapboxCanEnableTrackingWithoutConsent': false,
     'employerCanEnableTrackingWithoutEmployeeConsent': false,
+    'fleetAdminCanEnableTrackingWithoutEmployeeConsent': false,
     'deviceCapabilityCanEnableTrackingWithoutConsent': false,
     'backgroundPermissionCanBeAssumedFromForeground': false,
     'activityPermissionCanBeAssumedFromLocation': false,
@@ -154,6 +161,10 @@ class TripTrackingSensorConsentSummaryValidation {
         summary['activityRecognitionRequiresUserOptIn'] != true ||
         summary['backgroundTrackingRequiresUserOptIn'] != true ||
         summary['platformPermissionRequired'] != true ||
+        summary['gpsConsentRequiredBeforeActivityEvidence'] != true ||
+        summary['activityEvidenceRequiresCurrentConsent'] != true ||
+        summary['backgroundTrackingRequiresSeparatePlatformGrant'] != true ||
+        summary['foregroundLocationDoesNotGrantBackgroundTracking'] != true ||
         summary['validatedCapabilityDoesNotReplacePlatformPermission'] !=
             true ||
         summary['sensorConsentCanBypassPlatformPermission'] != false ||
@@ -166,10 +177,13 @@ class TripTrackingSensorConsentSummaryValidation {
         summary['firebaseCanEnableTrackingWithoutConsent'] != false ||
         summary['mapboxCanEnableTrackingWithoutConsent'] != false ||
         summary['deviceCapabilityCanEnableTrackingWithoutConsent'] != false ||
-        summary['employerCanEnableTrackingWithoutEmployeeConsent'] != false) {
+        summary['employerCanEnableTrackingWithoutEmployeeConsent'] != false ||
+        summary['fleetAdminCanEnableTrackingWithoutEmployeeConsent'] != false) {
       reasons.add('remote_or_employer_can_enable_sensors');
     }
     if (summary['sensorConsentCanBeRevokedWithoutDeletingTripLog'] != true ||
+        summary['motionAssistCanDegradeWithoutStoppingTrip'] != true ||
+        summary['backgroundAssistCanDegradeWithoutStoppingTrip'] != true ||
         summary['localTripLogProtected'] != true) {
       reasons.add('consent_revocation_can_harm_trip_log');
     }
@@ -244,5 +258,5 @@ bool _looksSensitive(Object? value) {
   final clean = value.trim();
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
-      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }

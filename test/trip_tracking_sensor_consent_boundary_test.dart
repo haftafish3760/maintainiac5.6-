@@ -69,6 +69,12 @@ void main() {
         isTrue,
       );
       expect(safe['sensorConsentCanBeRevokedWithoutDeletingTripLog'], isTrue);
+      expect(safe['motionAssistCanDegradeWithoutStoppingTrip'], isTrue);
+      expect(safe['backgroundAssistCanDegradeWithoutStoppingTrip'], isTrue);
+      expect(safe['gpsConsentRequiredBeforeActivityEvidence'], isTrue);
+      expect(safe['activityEvidenceRequiresCurrentConsent'], isTrue);
+      expect(safe['backgroundTrackingRequiresSeparatePlatformGrant'], isTrue);
+      expect(safe['foregroundLocationDoesNotGrantBackgroundTracking'], isTrue);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
     },
   );
@@ -155,6 +161,7 @@ void main() {
     expect(safe['firebaseCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['mapboxCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['employerCanEnableTrackingWithoutEmployeeConsent'], isFalse);
+    expect(safe['fleetAdminCanEnableTrackingWithoutEmployeeConsent'], isFalse);
     expect(safe['deviceCapabilityCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['backgroundPermissionCanBeAssumedFromForeground'], isFalse);
     expect(safe['activityPermissionCanBeAssumedFromLocation'], isFalse);
@@ -201,12 +208,19 @@ void main() {
         'sensorConsentCanBypassPlatformPermission': true,
         'backgroundPermissionCanBeAssumedFromForeground': true,
         'activityPermissionCanBeAssumedFromLocation': true,
+        'gpsConsentRequiredBeforeActivityEvidence': false,
+        'activityEvidenceRequiresCurrentConsent': false,
+        'backgroundTrackingRequiresSeparatePlatformGrant': false,
+        'foregroundLocationDoesNotGrantBackgroundTracking': false,
         'remoteCapabilityCanEnableSensorsWithoutOptIn': true,
         'firebaseCanEnableTrackingWithoutConsent': true,
         'mapboxCanEnableTrackingWithoutConsent': true,
         'deviceCapabilityCanEnableTrackingWithoutConsent': true,
         'employerCanEnableTrackingWithoutEmployeeConsent': true,
+        'fleetAdminCanEnableTrackingWithoutEmployeeConsent': true,
         'sensorConsentCanBeRevokedWithoutDeletingTripLog': false,
+        'motionAssistCanDegradeWithoutStoppingTrip': false,
+        'backgroundAssistCanDegradeWithoutStoppingTrip': false,
         'localTripLogProtected': false,
         'activityRecognitionCanCreateOfficialStop': true,
         'activityRecognitionCanOnlySuggestReview': false,
