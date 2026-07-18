@@ -73,6 +73,9 @@ void main() {
     expect(decision.canPersistCompactRoutePoint, isFalse);
     expect(safe['routeStorageCanPauseWithoutStoppingTrip'], isTrue);
     expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
+    expect(safe['sampleWindowRequiresLocalDeviceSource'], isTrue);
+    expect(safe['sampleWindowRequiresOwnershipValidation'], isTrue);
+    expect(safe['authenticationAloneAuthorizesWindowUse'], isFalse);
   });
 
   test(
@@ -264,4 +267,88 @@ void main() {
     expect(safe['acceptedSegmentCount'], 1);
     expect(safe['rejectedGapSegmentCount'], 0);
   });
+
+  test('sample window summary validation accepts safe advisory windows', () {
+    final summary = TripSampleWindowQualityPolicy.evaluate(
+      samples: [sample(0, 35.0000, -80.0000), sample(15, 35.0002, -80.0000)],
+      routeHistoryDecision: routeDecision(),
+    ).toSafeDashboardMap();
+
+    final validation = TripSampleWindowQualitySummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.status, TripSampleWindowQualityStatus.usableForTracking);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('sample window validation rejects remote and auth-only authority', () {
+    final summary =
+        TripSampleWindowQualityPolicy.evaluate(
+          samples: [
+            sample(0, 35.0000, -80.0000),
+            sample(15, 35.0002, -80.0000),
+          ],
+          routeHistoryDecision: routeDecision(),
+        ).toSafeDashboardMap()..addAll({
+          'sampleWindowRequiresLocalDeviceSource': false,
+          'sampleWindowRequiresOwnershipValidation': false,
+          'authenticationAloneAuthorizesWindowUse': true,
+          'mapboxCanOverrideWindowQuality': true,
+          'firestoreCanOverrideWindowQuality': true,
+          'remoteWindowCanOverrideLocalTrip': true,
+          'remoteWindowCanRepairInvalidSamples': true,
+        });
+
+    final validation = TripSampleWindowQualitySummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('sample_window_authorization_boundary_missing'),
+    );
+    expect(validation.reasons, contains('remote_can_override_sample_window'));
+  });
+
+  test(
+    'sample window validation rejects trip truth and sensitive payloads',
+    () {
+      final summary =
+          TripSampleWindowQualityPolicy.evaluate(
+            samples: [
+              sample(0, 35.0000, -80.0000),
+              sample(15, 35.0002, -80.0000),
+            ],
+            routeHistoryDecision: routeDecision(),
+          ).toSafeDashboardMap()..addAll({
+            'sampleWindowCanConfirmOdometer': true,
+            'sampleWindowCanCreateOfficialStop': true,
+            'sampleWindowCanDeleteTripData': true,
+            'odometerRemainsOfficialMileageTruth': false,
+            'rawSamplesIncluded': true,
+            'coordinatesIncluded': true,
+            'preciseTimestampsIncluded': true,
+            'routeGeometryIncluded': true,
+            'tokensIncluded': true,
+            'debug': 'pk.redacted 35.123456,-80.123456',
+          });
+
+      final validation = TripSampleWindowQualitySummaryValidation.fromSummary(
+        summary,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('sample_window_claims_trip_truth_authority'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_sample_material'),
+      );
+    },
+  );
 }
