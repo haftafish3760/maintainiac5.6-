@@ -295,6 +295,12 @@ void main() {
       expect(event.type, TripTrackingPlatformEventType.location);
       expect(event.location?.horizontalAccuracyMeters, 4.5);
       expect(event.location?.speedMetersPerSecond, 8.1);
+      expect(event.toSafeLogMap()['locationAccuracyBucket'], 'high');
+      expect(event.toSafeLogMap()['locationSpeedBucket'], 'road_speed');
+      expect(event.toSafeLogMap()['rawLatitudeIncluded'], isFalse);
+      expect(event.toSafeLogMap()['rawLongitudeIncluded'], isFalse);
+      expect(event.toSafeLogMap()['rawTimestampIncluded'], isFalse);
+      expect(event.toSafeLogMap().toString(), isNot(contains('35.2')));
     },
   );
 

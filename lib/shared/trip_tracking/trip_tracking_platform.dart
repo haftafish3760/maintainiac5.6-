@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import 'trip_tracking_models.dart';
+import 'trip_tracking_provider_evidence_summary.dart';
 
 /// Native location bridge. It deliberately contains no trip policy: native
 /// code reports measurements and lifecycle state while [TripTrackingEngine]
@@ -359,21 +360,23 @@ class TripTrackingPlatformEvent {
     };
     final sample = location;
     if (sample != null) {
+      final summary = sample.toEvidenceBoundarySummary();
       result.addAll({
-        'locationAccuracyBucket': _accuracyBucket(
-          sample.horizontalAccuracyMeters,
-        ),
+        'locationAccuracyBucket': summary['accuracyBucket'],
+        'locationSpeedBucket': summary['speedBucket'],
+        'mockedLocationReported': summary['mockedLocationReported'],
         'hasSpeed': sample.speedMetersPerSecond != null,
+        'rawLatitudeIncluded': summary['rawLatitudeIncluded'],
+        'rawLongitudeIncluded': summary['rawLongitudeIncluded'],
+        'rawTimestampIncluded': summary['rawTimestampIncluded'],
       });
     }
     final observation = activity;
     if (observation != null) {
-      final summary = observation.toSafeSummary();
+      final summary = observation.toEvidenceBoundarySummary();
       result.addAll({
         'activity': summary['activity'],
-        'activityConfidenceBucket': _diagnosticActivityConfidenceBucket(
-          observation.confidence,
-        ),
+        'activityConfidenceBucket': summary['confidenceBucket'],
         'activityCanSupportStopReview': summary['canSupportStopReview'],
         'rawSensorPayloadIncluded': summary['rawSensorPayloadIncluded'],
         'preciseTimestampIncluded': summary['preciseTimestampIncluded'],
@@ -564,20 +567,4 @@ String _batteryBucket(int? percent) {
   if (percent < 40) return 'low';
   if (percent < 80) return 'normal';
   return 'high';
-}
-
-String _diagnosticActivityConfidenceBucket(int confidence) {
-  if (confidence < 0 || confidence > 100) return 'unknown';
-  if (confidence >= 85) return 'high';
-  if (confidence >= 40) return 'medium';
-  if (confidence >= 10) return 'low';
-  return 'veryLow';
-}
-
-String _accuracyBucket(double? meters) {
-  if (meters == null || !meters.isFinite || meters < 0) return 'unknown';
-  if (meters <= 10) return 'high';
-  if (meters <= 50) return 'medium';
-  if (meters <= 200) return 'low';
-  return 'unusable';
 }
