@@ -237,6 +237,10 @@ void main() {
       'employeeTrackingRequiresMutualConsent': true,
       'employerGodModeAllowed': false,
       'authDoesNotImplyAuthorization': true,
+      'profileDataTrustedAfterValidationOnly': true,
+      'remoteProfileCanEnableEmployeeTracking': false,
+      'remoteProfileCanEnableMapRouteStorage': false,
+      'remoteProfileCanChangeConfirmedMileage': false,
       'rawLocationIncluded': false,
       'rawSensorPayloadIncluded': false,
     });
@@ -264,6 +268,10 @@ void main() {
       expect(profileMap['gpsDistanceCanOnlyAssistOdometerReview'], isTrue);
       expect(profileMap['calibrationCanAutoRewriteConfirmedOdometer'], isFalse);
       expect(profileMap['authDoesNotImplyAuthorization'], isTrue);
+      expect(profileMap['profileDataTrustedAfterValidationOnly'], isTrue);
+      expect(profileMap['remoteProfileCanEnableEmployeeTracking'], isFalse);
+      expect(profileMap['remoteProfileCanEnableMapRouteStorage'], isFalse);
+      expect(profileMap['remoteProfileCanChangeConfirmedMileage'], isFalse);
       expect(profileMap['rawLocationIncluded'], isFalse);
       expect(profileMap['rawSensorPayloadIncluded'], isFalse);
       expect(profileMap['driverKind'], isA<String>());
@@ -322,5 +330,33 @@ void main() {
       const Duration(seconds: 20),
     );
     expect(strategy.minimumWalkingEvidenceSpacing, const Duration(seconds: 5));
+  });
+
+  test('direct profile maps sanitize malformed dashboard tokens', () {
+    final strategy = TripTrackingProfileStrategy(
+      profile: TripTrackingProfile.deliveryVehicle,
+      workStyle: TripTrackingWorkStyle.delivery,
+      usesWalkingStopEvidence: true,
+      walkingConfirmationCount: 3,
+      walkingStopConfirmationDuration: const Duration(seconds: 20),
+      minimumWalkingEvidenceSpacing: const Duration(seconds: 5),
+      stopReviewReasonCode: 'token=sk.secret lat=35.1',
+      dashboardModeToken: 'employer_god_mode',
+      dashboardWidgetTokens: const ['raw_location_35.1', 'pay'],
+      quickActionTokens: const ['track_employee_without_consent', 'add_pay'],
+      recommendedActivityRecognition: true,
+      stopDetectionSummary: 'raw sensor payload',
+    );
+    final profileMap = strategy.toDashboardProfileMap();
+
+    expect(profileMap['dashboardMode'], 'default');
+    expect(profileMap['stopReviewReasonCode'], 'road_vehicle_stop_walk_review');
+    expect(profileMap['dashboardWidgetTokens'], ['start_day', 'pay']);
+    expect(profileMap['quickActionTokens'], ['review_mileage', 'add_pay']);
+    expect(profileMap['remoteProfileCanEnableEmployeeTracking'], isFalse);
+    expect(profileMap['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(profileMap['employerGodModeAllowed'], isFalse);
+    expect(profileMap.toString(), isNot(contains('sk.secret')));
+    expect(profileMap.toString(), isNot(contains('35.1')));
   });
 }

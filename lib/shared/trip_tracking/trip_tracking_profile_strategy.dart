@@ -91,7 +91,7 @@ class TripTrackingProfileStrategy {
     'profile': profile.name,
     'driverKind': driverKindToken,
     'workStyle': workStyleToken,
-    'dashboardMode': dashboardModeToken,
+    'dashboardMode': _safeDashboardModeToken(dashboardModeToken),
     'stopDetectionMode': stopDetectionModeToken,
     'stopEvidenceTier': stopEvidenceTier,
     'recommendedActivityRecognition': recommendedActivityRecognition,
@@ -102,9 +102,13 @@ class TripTrackingProfileStrategy {
     'phoneMayStayInVehicleDuringStops': phoneMayStayInVehicleDuringStops,
     'vehicleOnlyStopsNeedManualFallback': vehicleOnlyStopsNeedManualFallback,
     'stopReviewConfidencePolicy': stopReviewConfidencePolicyToken,
-    'stopReviewReasonCode': stopReviewReasonCode,
-    'dashboardWidgetTokens': List.unmodifiable(dashboardWidgetTokens),
-    'quickActionTokens': List.unmodifiable(quickActionTokens),
+    'stopReviewReasonCode': _safeStopReviewReason(stopReviewReasonCode),
+    'dashboardWidgetTokens': List.unmodifiable(
+      dashboardWidgetTokens.map(_safeDashboardWidgetToken),
+    ),
+    'quickActionTokens': List.unmodifiable(
+      quickActionTokens.map(_safeQuickActionToken),
+    ),
     'walkingEvidenceCanOnlySuggestReview': true,
     'activityRecognitionRequiresOptIn': recommendedActivityRecognition,
     'activityRecognitionCanConfirmStopAutomatically': false,
@@ -124,6 +128,10 @@ class TripTrackingProfileStrategy {
     'employeeTrackingRequiresMutualConsent': true,
     'employerGodModeAllowed': false,
     'authDoesNotImplyAuthorization': true,
+    'profileDataTrustedAfterValidationOnly': true,
+    'remoteProfileCanEnableEmployeeTracking': false,
+    'remoteProfileCanEnableMapRouteStorage': false,
+    'remoteProfileCanChangeConfirmedMileage': false,
     'rawLocationIncluded': false,
     'rawSensorPayloadIncluded': false,
   };
@@ -298,4 +306,61 @@ Duration _minimumEvidenceSpacingFor(Duration stopConfirmationDuration) {
   if (spacing < 5) return const Duration(seconds: 5);
   if (spacing > 15) return const Duration(seconds: 15);
   return Duration(seconds: spacing);
+}
+
+String _safeDashboardModeToken(String value) {
+  return switch (value.trim()) {
+    'default' => 'default',
+    'gig_driver' => 'gig_driver',
+    'contractor' => 'contractor',
+    _ => 'default',
+  };
+}
+
+String _safeStopReviewReason(String value) {
+  return switch (value.trim()) {
+    'rideshare_stop_requires_extra_evidence' =>
+      'rideshare_stop_requires_extra_evidence',
+    'delivery_stop_walk_review' => 'delivery_stop_walk_review',
+    'contractor_stop_walk_review' => 'contractor_stop_walk_review',
+    'equipment_ignores_walking_stop_evidence' =>
+      'equipment_ignores_walking_stop_evidence',
+    'road_vehicle_stop_walk_review' => 'road_vehicle_stop_walk_review',
+    _ => 'road_vehicle_stop_walk_review',
+  };
+}
+
+String _safeDashboardWidgetToken(String value) {
+  return switch (value.trim()) {
+    'start_day' => 'start_day',
+    'live_odometer' => 'live_odometer',
+    'pay' => 'pay',
+    'profit' => 'profit',
+    'miles' => 'miles',
+    'hours' => 'hours',
+    'stops' => 'stops',
+    'expenses' => 'expenses',
+    'jobs' => 'jobs',
+    'materials' => 'materials',
+    'payments' => 'payments',
+    'maintenance' => 'maintenance',
+    _ => 'start_day',
+  };
+}
+
+String _safeQuickActionToken(String value) {
+  return switch (value.trim()) {
+    'add_pay' => 'add_pay',
+    'end_trip' => 'end_trip',
+    'review_mileage' => 'review_mileage',
+    'add_pickup' => 'add_pickup',
+    'add_dropoff' => 'add_dropoff',
+    'add_stop' => 'add_stop',
+    'add_job' => 'add_job',
+    'add_expense' => 'add_expense',
+    'record_payment' => 'record_payment',
+    'start_trip' => 'start_trip',
+    'maintenance_log' => 'maintenance_log',
+    _ => 'review_mileage',
+  };
 }
