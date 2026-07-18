@@ -60,6 +60,9 @@ class TripReleaseGateDecision {
     'backgroundTrackingDeviceProofRequired': true,
     'stopDetectionFieldProofRequired': true,
     'odometerLiveUiFieldProofRequired': true,
+    'poorGpsCalibrationProofRequired': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'firebaseRulesAuditRequiredBeforeFleetRelease': true,
     'mapboxIntegrationCanShipAfterGpsCore': true,
     'betaEvidenceMustRemainRedacted': true,
@@ -103,6 +106,9 @@ class TripReleaseGateSummaryValidation {
         summary['backgroundTrackingDeviceProofRequired'] != true ||
         summary['stopDetectionFieldProofRequired'] != true ||
         summary['odometerLiveUiFieldProofRequired'] != true ||
+        summary['poorGpsCalibrationProofRequired'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['betaEvidenceMustRemainRedacted'] != true) {
       reasons.add('evidence_boundary_missing');
     }

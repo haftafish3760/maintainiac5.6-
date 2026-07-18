@@ -158,6 +158,9 @@ void main() {
     expect(safe['backgroundTrackingDeviceProofRequired'], isTrue);
     expect(safe['stopDetectionFieldProofRequired'], isTrue);
     expect(safe['odometerLiveUiFieldProofRequired'], isTrue);
+    expect(safe['poorGpsCalibrationProofRequired'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['firebaseRulesAuditRequiredBeforeFleetRelease'], isTrue);
     expect(safe['mapboxIntegrationCanShipAfterGpsCore'], isTrue);
     expect(safe['betaEvidenceMustRemainRedacted'], isTrue);
@@ -187,6 +190,9 @@ void main() {
           'backgroundTrackingDeviceProofRequired': false,
           'stopDetectionFieldProofRequired': false,
           'odometerLiveUiFieldProofRequired': false,
+          'poorGpsCalibrationProofRequired': false,
+          'calibrationRequiresTrustedGpsWindow': false,
+          'poorGpsDaysExcludedFromCalibration': false,
           'betaEvidenceMustRemainRedacted': false,
           'gpsAssistedTrackingAvailableWithoutMaps': false,
           'mapsRequiredForGpsTripTracking': true,
