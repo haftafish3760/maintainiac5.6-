@@ -81,6 +81,34 @@ class MapboxRouteValidationResult {
   final List<MapboxExternalValidationFailure> failures;
 
   bool get isAccepted => candidates.isNotEmpty && failures.isEmpty;
+  int get acceptedCandidateCount => candidates.length;
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'accepted': isAccepted,
+    'acceptedCandidateCount': acceptedCandidateCount,
+    'failureCount': failures.length,
+    if (failures.isNotEmpty) 'safeReason': failures.first.safeReason,
+    'coordinatesIncluded': false,
+    'geometryIncluded': false,
+    'routeGeometryIncluded': false,
+    'rawResponseIncluded': false,
+    'tokensIncluded': false,
+    'publicTokenIncluded': false,
+    'secretTokenIncluded': false,
+    'odometerAuthoritative': false,
+    'canModifyTripLog': false,
+    'canModifyOdometer': false,
+    'canConfirmStop': false,
+    'canPersistRawRoute': false,
+    'canPersistCoordinates': false,
+    if (candidates.isNotEmpty)
+      'primaryDistanceMiles': _safeAssistMiles(candidates.first.distanceMiles),
+    if (candidates.isNotEmpty)
+      'primaryDurationMinutes': _safeAssistMinutes(
+        candidates.first.durationSeconds,
+      ),
+  };
 }
 
 class MapboxValidatedMatrixCell {
@@ -127,10 +155,122 @@ class MapboxMatrixValidationResult {
     'accepted': isAccepted,
     'reachableCellCount': reachableCellCount,
     'cellCount': cells.length,
+    'failureCount': failures.length,
+    if (failures.isNotEmpty) 'safeReason': failures.first.safeReason,
     'coordinatesIncluded': false,
+    'geometryIncluded': false,
+    'routeGeometryIncluded': false,
+    'rawResponseIncluded': false,
     'tokensIncluded': false,
+    'publicTokenIncluded': false,
+    'secretTokenIncluded': false,
     'odometerAuthoritative': false,
+    'canModifyTripLog': false,
+    'canModifyOdometer': false,
+    'canConfirmStop': false,
+    'canPersistRawRoute': false,
+    'canPersistCoordinates': false,
   };
+}
+
+class MapboxSafeDashboardSummaryValidation {
+  const MapboxSafeDashboardSummaryValidation._();
+
+  static const _allowedFailureReasons = {
+    'mapbox_rate_limited',
+    'mapbox_http_failure',
+    'mapbox_response_not_object',
+    'mapbox_service_code_not_ok',
+    'mapbox_routes_missing',
+    'mapbox_routes_invalid',
+    'mapbox_matrix_durations_missing',
+    'mapbox_matrix_rows_exceeded',
+    'mapbox_matrix_distance_shape_invalid',
+    'mapbox_matrix_duration_row_invalid',
+    'mapbox_matrix_columns_invalid',
+    'mapbox_matrix_distance_row_invalid',
+    'mapbox_matrix_duration_invalid',
+    'mapbox_matrix_distance_invalid',
+    'mapbox_matrix_no_reachable_cells',
+  };
+
+  static bool isValid(Map<String, Object?> summary) {
+    if (summary['schemaVersion'] != 1) return false;
+    if (summary['accepted'] is! bool) return false;
+    if (!_nonNegativeInt(summary['failureCount'])) return false;
+    final reason = summary['safeReason'];
+    if (reason != null &&
+        (reason is! String || !_allowedFailureReasons.contains(reason))) {
+      return false;
+    }
+    if (!_falseFlag(summary, 'coordinatesIncluded')) return false;
+    if (!_falseFlag(summary, 'geometryIncluded')) return false;
+    if (!_falseFlag(summary, 'routeGeometryIncluded')) return false;
+    if (!_falseFlag(summary, 'rawResponseIncluded')) return false;
+    if (!_falseFlag(summary, 'tokensIncluded')) return false;
+    if (!_falseFlag(summary, 'publicTokenIncluded')) return false;
+    if (!_falseFlag(summary, 'secretTokenIncluded')) return false;
+    if (!_falseFlag(summary, 'odometerAuthoritative')) return false;
+    if (!_falseFlag(summary, 'canModifyTripLog')) return false;
+    if (!_falseFlag(summary, 'canModifyOdometer')) return false;
+    if (!_falseFlag(summary, 'canConfirmStop')) return false;
+    if (!_falseFlag(summary, 'canPersistRawRoute')) return false;
+    if (!_falseFlag(summary, 'canPersistCoordinates')) return false;
+    for (final entry in summary.entries) {
+      if (_sensitiveKey(entry.key) || _sensitiveValue(entry.value)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _falseFlag(Map<String, Object?> summary, String key) =>
+      summary[key] == false;
+
+  static bool _nonNegativeInt(Object? value) =>
+      value is int && value >= 0 && value <= 1000;
+
+  static bool _sensitiveKey(String key) {
+    final normalized = key.toLowerCase();
+    if (normalized == 'coordinatesincluded' ||
+        normalized == 'geometryincluded' ||
+        normalized == 'routegeometryincluded' ||
+        normalized == 'rawresponseincluded' ||
+        normalized == 'tokensincluded' ||
+        normalized == 'publictokenincluded' ||
+        normalized == 'secrettokenincluded' ||
+        normalized == 'canpersistrawroute' ||
+        normalized == 'canpersistcoordinates') {
+      return false;
+    }
+    return normalized.contains('token') ||
+        normalized.contains('coordinate') ||
+        normalized.contains('geometry') ||
+        normalized.contains('polyline') ||
+        normalized.contains('rawresponse') ||
+        normalized.contains('secret') ||
+        normalized == 'lat' ||
+        normalized == 'latitude' ||
+        normalized == 'lon' ||
+        normalized == 'lng' ||
+        normalized == 'longitude';
+  }
+
+  static bool _sensitiveValue(Object? value) {
+    if (value == null || value is bool || value is num) return false;
+    if (value is Iterable || value is Map) return true;
+    final normalized = value.toString().toLowerCase();
+    return normalized.contains('pk.') ||
+        normalized.contains('sk.') ||
+        normalized.contains('token') ||
+        normalized.contains('coordinate') ||
+        normalized.contains('geometry') ||
+        normalized.contains('polyline') ||
+        normalized.contains('raw response') ||
+        normalized.contains('latitude') ||
+        normalized.contains('longitude') ||
+        normalized.contains('gps trace');
+  }
 }
 
 class MapboxExternalRouteValidator {
@@ -491,3 +631,15 @@ double _sin(double value) => math.sin(value);
 double _cos(double value) => math.cos(value);
 double _sqrt(double value) => math.sqrt(value);
 double _atan2(double y, double x) => math.atan2(y, x);
+
+double? _safeAssistMiles(double value) {
+  if (!value.isFinite || value < 0 || value > 12500) return null;
+  return (value * 1000).roundToDouble() / 1000;
+}
+
+double? _safeAssistMinutes(double seconds) {
+  if (!seconds.isFinite || seconds < 0) return null;
+  final minutes = seconds / 60;
+  if (minutes > 60 * 24 * 14) return null;
+  return (minutes * 10).roundToDouble() / 10;
+}

@@ -29,6 +29,14 @@ void main() {
       expect(result.candidates.single.distanceMiles, closeTo(1, .001));
       expect(result.candidates.single.odometerAuthoritative, isFalse);
       expect(result.failures, isEmpty);
+      expect(result.toSafeDashboardMap()['primaryDistanceMiles'], 1.0);
+      expect(result.toSafeDashboardMap()['primaryDurationMinutes'], 8.0);
+      expect(
+        MapboxSafeDashboardSummaryValidation.isValid(
+          result.toSafeDashboardMap(),
+        ),
+        isTrue,
+      );
     });
 
     test('rejects non-Ok Mapbox service status bodies', () {
@@ -59,6 +67,12 @@ void main() {
         MapboxExternalFailureCode.malformedResponse,
       );
       expect(result.failures.single.safeReason, 'mapbox_service_code_not_ok');
+      expect(
+        MapboxSafeDashboardSummaryValidation.isValid(
+          result.toSafeDashboardMap(),
+        ),
+        isTrue,
+      );
     });
 
     test('rejects missing Mapbox service status bodies', () {
@@ -111,6 +125,14 @@ void main() {
       expect(
         rateLimited.failures.single.code,
         MapboxExternalFailureCode.rateLimited,
+      );
+      expect(
+        serverFailure.toSafeDashboardMap()['safeReason'],
+        'mapbox_http_failure',
+      );
+      expect(
+        rateLimited.toSafeDashboardMap()['safeReason'],
+        'mapbox_rate_limited',
       );
     });
 
@@ -409,6 +431,85 @@ void main() {
 
       expect(manyRoutes.candidates, hasLength(3));
       expect(oversized.isAccepted, isFalse);
+      expect(manyRoutes.toSafeDashboardMap()['acceptedCandidateCount'], 3);
+      expect(
+        manyRoutes.toSafeDashboardMap().toString(),
+        isNot(contains('-80.0')),
+      );
+    });
+  });
+
+  group('MapboxSafeDashboardSummaryValidation', () {
+    test('validates matrix summaries without leaking raw Mapbox data', () {
+      final result = MapboxExternalMatrixValidator.validateMatrixLikeResponse(
+        httpStatus: 200,
+        decodedBody: const {
+          'code': 'Ok',
+          'durations': [
+            [0, 300],
+            [310, null],
+          ],
+          'distances': [
+            [0, 1500],
+            [1550, null],
+          ],
+        },
+      );
+      final summary = result.toSafeDashboardMap();
+
+      expect(result.isAccepted, isTrue);
+      expect(summary['reachableCellCount'], 3);
+      expect(summary['cellCount'], 4);
+      expect(MapboxSafeDashboardSummaryValidation.isValid(summary), isTrue);
+      expect(summary['odometerAuthoritative'], isFalse);
+      expect(summary['canModifyTripLog'], isFalse);
+      expect(summary['canPersistCoordinates'], isFalse);
+    });
+
+    test('rejects summaries with raw geometry, tokens, or authority flags', () {
+      final safe = MapboxExternalRouteValidator.validateDirectionsLikeResponse(
+        httpStatus: 200,
+        decodedBody: {
+          'code': 'Ok',
+          'routes': [
+            {
+              'distance': 1609.344,
+              'duration': 480,
+              'geometry': {
+                'type': 'LineString',
+                'coordinates': [
+                  [-80.0, 35.0],
+                  [-80.01, 35.01],
+                ],
+              },
+            },
+          ],
+        },
+      ).toSafeDashboardMap();
+
+      expect(
+        MapboxSafeDashboardSummaryValidation.isValid({
+          ...safe,
+          'canModifyOdometer': true,
+        }),
+        isFalse,
+      );
+      expect(
+        MapboxSafeDashboardSummaryValidation.isValid({
+          ...safe,
+          'safeReason': 'lat=35 lon=-80 token=pk.secret',
+        }),
+        isFalse,
+      );
+      expect(
+        MapboxSafeDashboardSummaryValidation.isValid({
+          ...safe,
+          'rawGeometry': [
+            [-80.0, 35.0],
+          ],
+        }),
+        isFalse,
+      );
     });
   });
 }
