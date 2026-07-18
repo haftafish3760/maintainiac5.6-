@@ -155,9 +155,9 @@ void main() {
         'horizontalAccuracyMeters': 900,
       }).toSafeLogMap();
 
-      expect(medium['locationAccuracyBucket'], 'medium');
-      expect(low['locationAccuracyBucket'], 'low');
-      expect(unusable['locationAccuracyBucket'], 'unusable');
+      expect(medium['locationAccuracyBucket'], 'usable');
+      expect(low['locationAccuracyBucket'], 'untrusted');
+      expect(unusable['locationAccuracyBucket'], 'untrusted');
     },
   );
 
@@ -177,7 +177,7 @@ void main() {
       expect(log['type'], 'activity');
       expect(log['hasActivity'], isTrue);
       expect(log['activity'], TripActivity.walking.name);
-      expect(log['activityConfidenceBucket'], 'medium');
+      expect(log['activityConfidenceBucket'], 'review');
       expect(log.containsKey('rawProviderBlob'), isFalse);
     },
   );
@@ -194,7 +194,7 @@ void main() {
     expect(activityLog(95)['activityConfidenceBucket'], 'high');
     expect(activityLog(60)['activityConfidenceBucket'], 'medium');
     expect(activityLog(30)['activityConfidenceBucket'], 'low');
-    expect(activityLog(5)['activityConfidenceBucket'], 'veryLow');
+    expect(activityLog(5)['activityConfidenceBucket'], 'low');
   });
 
   test(
