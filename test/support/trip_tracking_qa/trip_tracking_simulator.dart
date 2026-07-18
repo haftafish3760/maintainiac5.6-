@@ -1,6 +1,7 @@
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_stop_false_positive_guard.dart';
 
 class SimulatedTripPoint {
   const SimulatedTripPoint(this.sample, {this.activity});
@@ -83,6 +84,18 @@ class SimulatedTripResult {
       rejectedUnsafeCount: rejectedUnsafeCount,
       acceptedDistanceCount: acceptedDistanceCount,
     );
+    final classificationSummary = classification.toSafeSummary();
+    final stopCanOpenReview =
+        classification.requiresUserReview && classification.canSuggestStop;
+    final falsePositiveGuard = TripStopFalsePositiveGuard.evaluate(
+      status: _dashboardDebounceStatus(classification.signal),
+      classification: classificationSummary,
+      vehicleOnlyDwell: null,
+      needsWalkingReview: needsWalkingReview,
+      protectedTrafficControl:
+          classification.signal == TripStopSignal.likelyTrafficControl,
+      canOpenReview: stopCanOpenReview,
+    ).toSafeDashboardMap();
     return {
       ...toSafeSummary(),
       'profile': profile.name,
@@ -100,6 +113,7 @@ class SimulatedTripResult {
       'stopReviewConfidenceCanReplaceOdometer': false,
       'stopReviewConfidenceCanEndTripAutomatically': false,
       'mapsRequiredForStopReview': false,
+      'falsePositiveGuard': falsePositiveGuard,
     };
   }
 }
@@ -112,6 +126,17 @@ String _dashboardStopSignal(TripStopSignal signal) {
     TripStopSignal.likelyTrafficControl => 'likely_traffic_control',
     TripStopSignal.equipmentIgnored => 'equipment_ignored',
     TripStopSignal.unsafeEvidence => 'unsafe_evidence',
+  };
+}
+
+String _dashboardDebounceStatus(TripStopSignal signal) {
+  return switch (signal) {
+    TripStopSignal.reviewOnlyStop => 'readyForReview',
+    TripStopSignal.likelyTrafficControl => 'trafficControlProtected',
+    TripStopSignal.unsafeEvidence => 'unsafeEvidence',
+    TripStopSignal.stopCandidate => 'waitingForEvidence',
+    TripStopSignal.equipmentIgnored => 'waitingForEvidence',
+    TripStopSignal.noStop => 'keepTracking',
   };
 }
 

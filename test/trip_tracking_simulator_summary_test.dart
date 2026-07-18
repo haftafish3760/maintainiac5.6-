@@ -68,6 +68,11 @@ void main() {
     expect(summary['stopRequiresUserReview'], isTrue);
     expect(summary['coordinatesIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
+    expect(
+      (summary['falsePositiveGuard']
+          as Map<String, Object?>)['canAllowReviewOpen'],
+      isTrue,
+    );
   });
 
   test('dashboard replay summary keeps traffic delays out of stops', () {
@@ -84,5 +89,31 @@ void main() {
     expect(summary['stopSignal'], 'likely_traffic_control');
     expect(summary['stopActionToken'], 'keep_tracking');
     expect(summary['stopCanSuggestReview'], isFalse);
+    final guard = summary['falsePositiveGuard'] as Map<String, Object?>;
+    expect(guard['guardsLongTrafficLight'], isTrue);
+    expect(guard['canAllowReviewOpen'], isTrue);
+  });
+
+  test('vehicle-only delivery simulation carries manual-review guard', () {
+    final scenarios = TripTrackingScenarioLibrary();
+    final result = replayTrip(
+      scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final guard = summary['falsePositiveGuard'] as Map<String, Object?>;
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(guard['guardsVehicleOnlyDwell'], isTrue);
+    expect(guard['officialStopRequiresUserAction'], isTrue);
+    expect(guard['mapboxCanOverrideFalsePositiveGuard'], isFalse);
+    expect(guard['firestoreCanOverrideFalsePositiveGuard'], isFalse);
+    expect(summary.toString(), isNot(contains('35.')));
+    expect(summary.toString(), isNot(contains('-79.')));
   });
 }
