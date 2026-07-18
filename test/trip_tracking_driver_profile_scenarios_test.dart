@@ -147,7 +147,10 @@ void main() {
       expect(validation.isRenderable, isTrue, reason: profile.name);
       expect(summary['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
       expect(summary['mapsRequiredForTracking'], isFalse);
+      expect(summary['odometerIsGlobalTruth'], isTrue);
       expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(summary['employeeTrackingRequiresMutualConsent'], isTrue);
       expect(summary['employerGodModeAllowed'], isFalse);
       expect(summary['rawLocationIncluded'], isFalse);
@@ -168,7 +171,10 @@ void main() {
         'mapboxCanConfirmStop': true,
         'mapboxCanReplaceGpsDistance': true,
         'mapboxProfileCanOverrideStopPolicy': true,
+        'odometerIsGlobalTruth': false,
         'odometerRemainsCanonical': false,
+        'calibrationRequiresTrustedGpsWindow': false,
+        'poorGpsDaysExcludedFromCalibration': false,
         'calibrationCanAutoRewriteConfirmedOdometer': true,
         'locationSharingRequiresActiveOptIn': false,
         'employeeTrackingRequiresMutualConsent': false,

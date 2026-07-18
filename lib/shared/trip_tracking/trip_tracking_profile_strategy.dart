@@ -125,9 +125,12 @@ class TripTrackingProfileStrategy {
     'mapRouteOptimizationOptional': true,
     'mapboxCanConfirmStop': false,
     'mapboxCanReplaceGpsDistance': false,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
     'gpsDistanceCanOnlyAssistOdometerReview': true,
     'calibrationRequiresMultipleReviewedTrips': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'calibrationCanAutoRewriteConfirmedOdometer': false,
     'locationSharingRequiresActiveOptIn': true,
     'employeeTrackingRequiresMutualConsent': true,
@@ -351,9 +354,12 @@ class TripTrackingProfileStrategySummaryValidation {
       'mapRouteOptimizationOptional',
       'mapboxCanConfirmStop',
       'mapboxCanReplaceGpsDistance',
+      'odometerIsGlobalTruth',
       'odometerRemainsCanonical',
       'gpsDistanceCanOnlyAssistOdometerReview',
       'calibrationRequiresMultipleReviewedTrips',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
       'calibrationCanAutoRewriteConfirmedOdometer',
       'locationSharingRequiresActiveOptIn',
       'employeeTrackingRequiresMutualConsent',
@@ -393,9 +399,12 @@ class TripTrackingProfileStrategySummaryValidation {
         summary['mapboxProfileCanOverrideStopPolicy'] != false) {
       reasons.add('mapbox_can_control_profile_strategy');
     }
-    if (summary['odometerRemainsCanonical'] != true ||
+    if (summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsCanonical'] != true ||
         summary['gpsDistanceCanOnlyAssistOdometerReview'] != true ||
         summary['calibrationRequiresMultipleReviewedTrips'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['calibrationCanAutoRewriteConfirmedOdometer'] != false) {
       reasons.add('odometer_or_calibration_boundary_missing');
     }
