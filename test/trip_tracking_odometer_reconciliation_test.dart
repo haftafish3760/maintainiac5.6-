@@ -1283,6 +1283,8 @@ void main() {
       'continuousCalibrationAverageRequired': true,
       'poorGpsDaysExcludedFromCalibration': true,
       'calibrationRequiresTrustedGpsWindow': true,
+      'controllerRequiresTrustedSignalDiagnostics': true,
+      'unknownSignalDiagnosticsFailNeutralInController': true,
       'singleDayCalibrationRejected': true,
       'calibrationRequiresVehicleScopedHistory': true,
       'calibrationCanRewritePastTrips': false,

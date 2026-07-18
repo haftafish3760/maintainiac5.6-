@@ -47,6 +47,8 @@ class TripTrackingCalibrationState {
     'continuousCalibrationAverageRequired': true,
     'poorGpsDaysExcludedFromCalibration': true,
     'calibrationRequiresTrustedGpsWindow': true,
+    'calibrationRequiresTrustedSignalDiagnostics': true,
+    'unknownSignalDiagnosticsFailNeutralInController': true,
     'singleDayCalibrationRejected': true,
     'calibrationRequiresVehicleScopedHistory': true,
     'settingsCanDisableCalibrationAssist': true,
