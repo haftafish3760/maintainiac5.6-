@@ -156,15 +156,17 @@ void main() {
   });
 
   test('duplicate GPS window keys are treated as replayed unsafe evidence', () {
+    final replayKey = TripGpsDependabilityRollupPolicy.windowKey(
+      sessionId: 'trip_1',
+      windowStartedAt: DateTime.utc(2026, 7, 18, 12, 0, 4),
+      windowEndedAt: DateTime.utc(2026, 7, 18, 12, 0, 58),
+    );
     final rollup = TripGpsDependabilityRollupPolicy.evaluate(
       windows: [
         window(TripGpsDependabilityStatus.readyForAssist),
         window(TripGpsDependabilityStatus.readyForAssist),
       ],
-      windowKeys: const [
-        'trip-1:2026-07-18T12:00Z',
-        'trip-1:2026-07-18T12:00Z',
-      ],
+      windowKeys: [replayKey, replayKey],
     );
     final safe = rollup.toSafeDashboardMap();
 
@@ -180,6 +182,27 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'window keys are bucketed and sanitized without coordinates or tokens',
+    () {
+      final first = TripGpsDependabilityRollupPolicy.windowKey(
+        sessionId: 'trip 1 pk.public',
+        windowStartedAt: DateTime.utc(2026, 7, 18, 12, 0, 4),
+        windowEndedAt: DateTime.utc(2026, 7, 18, 12, 1, 3),
+      );
+      final second = TripGpsDependabilityRollupPolicy.windowKey(
+        sessionId: 'trip 1 pk.public',
+        windowStartedAt: DateTime.utc(2026, 7, 18, 12, 0, 50),
+        windowEndedAt: DateTime.utc(2026, 7, 18, 12, 1, 59),
+      );
+
+      expect(first, second);
+      expect(first, isNot(contains(' ')));
+      expect(first, isNot(contains('pk.')));
+      expect(first, isNot(contains('-80.')));
+    },
+  );
 
   test(
     'blank GPS window keys are ignored instead of creating false replay',

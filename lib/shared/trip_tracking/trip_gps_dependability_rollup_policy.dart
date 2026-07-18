@@ -168,6 +168,19 @@ class TripGpsDependabilityRollupSummaryValidation {
 class TripGpsDependabilityRollupPolicy {
   const TripGpsDependabilityRollupPolicy._();
 
+  static String windowKey({
+    required String sessionId,
+    required DateTime windowStartedAt,
+    required DateTime windowEndedAt,
+    int bucketSeconds = 60,
+  }) {
+    final session = _safeWindowToken(sessionId);
+    final start = _bucketedEpochSeconds(windowStartedAt, bucketSeconds);
+    final end = _bucketedEpochSeconds(windowEndedAt, bucketSeconds);
+    final safeEnd = end < start ? start : end;
+    return '$session:$start:$safeEnd';
+  }
+
   static TripGpsDependabilityRollupDecision evaluate({
     required Iterable<TripGpsDependabilityDecision> windows,
     Iterable<String> windowKeys = const [],
@@ -380,6 +393,28 @@ bool _looksSensitive(Object? value) {
   if (text.contains('pk.') || text.contains('sk.')) return true;
   if (RegExp(r'-?\d{1,3}\.\d{4,}').hasMatch(text)) return true;
   return false;
+}
+
+String _safeWindowToken(String value) {
+  final clean = value.trim();
+  if (clean.isEmpty || clean.startsWith('pk.') || clean.startsWith('sk.')) {
+    return 'unknown_session';
+  }
+  final stripped = clean.replaceAll(
+    RegExp(r'(pk|sk)\.[A-Za-z0-9_.:-]+'),
+    'token',
+  );
+  return stripped
+      .replaceAll(RegExp(r'[^A-Za-z0-9_.:-]'), '_')
+      .substring(0, stripped.length > 120 ? 120 : stripped.length);
+}
+
+int _bucketedEpochSeconds(DateTime value, int bucketSeconds) {
+  final safeBucket = bucketSeconds <= 0 || bucketSeconds > 3600
+      ? 60
+      : bucketSeconds;
+  final epochSeconds = value.toUtc().millisecondsSinceEpoch ~/ 1000;
+  return epochSeconds - (epochSeconds % safeBucket);
 }
 
 int _minimumReadyWindowsFor(TripTrackingProfile profile) {
