@@ -47,12 +47,86 @@ class TripSimulationReadinessDecision {
     'deviceTestingStillRequiredBeforeCommercialClaim': true,
     'mapsRequiredForSimulation': false,
     'mapboxCanMakeSimulationPass': false,
+    'simulationRequiresProfileSpecificExpectations': true,
+    'deliveryStopRequiresWalkingOrManualReviewEvidence': true,
+    'contractorStopRequiresWalkingOrManualReviewEvidence': true,
+    'rideshareVehicleOnlyStopsStayManualFallback': true,
+    'trafficControlMustStayOutOfStopReview': true,
     'odometerRemainsOfficialMileageTruth': true,
     'rawSamplesIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripSimulationReadinessSummaryValidation {
+  const TripSimulationReadinessSummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasons,
+  });
+
+  factory TripSimulationReadinessSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_simulation_status');
+    if (_safeReasonObject(summary['reasonCode']) == null) {
+      reasons.add('invalid_simulation_reason');
+    }
+    if (_safeProfile(summary['profile']) == null) {
+      reasons.add('invalid_profile');
+    }
+    if (summary['readyForFieldTrial'] == true &&
+        status != TripSimulationReadinessStatus.readyForFieldTrial) {
+      reasons.add('unsafe_field_trial_ready_claim');
+    }
+    if (summary['simulationCanCreateOfficialStop'] != false ||
+        summary['simulationCanConfirmOdometer'] != false ||
+        summary['simulationCanDeleteLocalData'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('simulation_can_create_official_truth');
+    }
+    if (summary['deviceTestingStillRequiredBeforeCommercialClaim'] != true) {
+      reasons.add('device_testing_requirement_missing');
+    }
+    if (summary['mapsRequiredForSimulation'] != false ||
+        summary['mapboxCanMakeSimulationPass'] != false) {
+      reasons.add('maps_can_control_simulation');
+    }
+    if (summary['simulationRequiresProfileSpecificExpectations'] != true ||
+        summary['deliveryStopRequiresWalkingOrManualReviewEvidence'] != true ||
+        summary['contractorStopRequiresWalkingOrManualReviewEvidence'] !=
+            true ||
+        summary['rideshareVehicleOnlyStopsStayManualFallback'] != true ||
+        summary['trafficControlMustStayOutOfStopReview'] != true) {
+      reasons.add('profile_expectation_boundary_missing');
+    }
+    if (summary['rawSamplesIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripSimulationReadinessSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripSimulationReadinessStatus? status;
+  final List<String> reasons;
 }
 
 class TripSimulationReadinessPolicy {
@@ -163,4 +237,33 @@ String _safeReason(String value) {
     'simulation_ready_for_field_trial' => 'simulation_ready_for_field_trial',
     _ => 'simulation_unsafe_evidence_blocked',
   };
+}
+
+TripSimulationReadinessStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripSimulationReadinessStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReasonObject(Object? value) {
+  if (value is! String) return null;
+  return _safeReason(value);
+}
+
+TripTrackingProfile? _safeProfile(Object? value) {
+  if (value is! String) return null;
+  for (final profile in TripTrackingProfile.values) {
+    if (profile.name == value) return profile;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
