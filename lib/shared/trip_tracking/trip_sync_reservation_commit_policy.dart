@@ -36,6 +36,9 @@ class TripSyncReservationCommitDecision {
     'blockedAttemptConsumesFreeSync': false,
     'uploadWithoutReservationAllowed': false,
     'reservationMustCommitBeforeNetworkUpload': true,
+    'reservationRequiresLocalLedgerWrite': true,
+    'reservationRequiresAccountDeviceModuleScope': true,
+    'authenticationAloneAuthorizesReservation': false,
     'reservationFailureKeepsLocalQueue': true,
     'reservationSuccessDoesNotConfirmRemoteBackup': true,
     'reservationCanDeleteLocalData': false,
@@ -50,6 +53,93 @@ class TripSyncReservationCommitDecision {
     'preciseLocationIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripSyncReservationCommitSummaryValidation {
+  const TripSyncReservationCommitSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripSyncReservationCommitSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_reservation_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_reservation_reason');
+    }
+    if (summary['freePlanSyncLimitPer24Hours'] != 6) {
+      reasons.add('invalid_free_sync_limit');
+    }
+    for (final key in const [
+      'canUploadAfterReservation',
+      'reservationCommittedBeforeUpload',
+      'consumesFreeAttempt',
+      'shouldRetryLater',
+      'blockedAttemptConsumesFreeSync',
+      'uploadWithoutReservationAllowed',
+      'reservationMustCommitBeforeNetworkUpload',
+      'reservationRequiresLocalLedgerWrite',
+      'reservationRequiresAccountDeviceModuleScope',
+      'authenticationAloneAuthorizesReservation',
+      'reservationFailureKeepsLocalQueue',
+      'reservationSuccessDoesNotConfirmRemoteBackup',
+      'reservationCanDeleteLocalData',
+      'reservationCanPurgeLocalRecordsSilently',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'remoteCounterCanOverrideLocalLedger',
+      'remoteBackupCanOverrideLocalDay',
+      'remoteBackupCanPurgeLocalRecordsSilently',
+      'odometerRemainsOfficialMileageTruth',
+      'rawTripPayloadIncluded',
+      'preciseLocationIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['blockedAttemptConsumesFreeSync'] != false ||
+        summary['uploadWithoutReservationAllowed'] != false ||
+        summary['reservationMustCommitBeforeNetworkUpload'] != true ||
+        summary['reservationRequiresLocalLedgerWrite'] != true ||
+        summary['reservationRequiresAccountDeviceModuleScope'] != true ||
+        summary['authenticationAloneAuthorizesReservation'] != false ||
+        summary['reservationFailureKeepsLocalQueue'] != true ||
+        summary['reservationSuccessDoesNotConfirmRemoteBackup'] != true) {
+      reasons.add('reservation_upload_boundary_missing');
+    }
+    if (summary['reservationCanDeleteLocalData'] != false ||
+        summary['reservationCanPurgeLocalRecordsSilently'] != false ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteCounterCanOverrideLocalLedger'] != false ||
+        summary['remoteBackupCanOverrideLocalDay'] != false ||
+        summary['remoteBackupCanPurgeLocalRecordsSilently'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('reservation_local_truth_boundary_missing');
+    }
+    if (summary['rawTripPayloadIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_reservation_material');
+    }
+
+    return TripSyncReservationCommitSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripSyncReservationCommitPolicy {
@@ -120,4 +210,20 @@ String _safeReason(String value) {
     'free_sync_reserved_before_upload' => clean,
     _ => 'sync_attempt_not_ready',
   };
+}
+
+TripSyncReservationCommitStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripSyncReservationCommitStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }

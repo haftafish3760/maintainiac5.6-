@@ -60,6 +60,9 @@ void main() {
     expect(safe['blockedAttemptConsumesFreeSync'], isFalse);
     expect(safe['uploadWithoutReservationAllowed'], isFalse);
     expect(safe['reservationMustCommitBeforeNetworkUpload'], isTrue);
+    expect(safe['reservationRequiresLocalLedgerWrite'], isTrue);
+    expect(safe['reservationRequiresAccountDeviceModuleScope'], isTrue);
+    expect(safe['authenticationAloneAuthorizesReservation'], isFalse);
     expect(safe['reservationFailureKeepsLocalQueue'], isTrue);
     expect(safe['reservationSuccessDoesNotConfirmRemoteBackup'], isTrue);
     expect(safe['reservationCanDeleteLocalData'], isFalse);
@@ -73,6 +76,79 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
     expect(safe.toString(), isNot(contains('pk.')));
     expect(safe.toString(), isNot(contains('sk.')));
+  });
+
+  test('safe reservation summary validates local-ledger boundary', () {
+    final summary = TripSyncReservationCommitPolicy.evaluate(
+      attemptDecision: attempt(syncsUsed: 0),
+      reservationWriteSucceeded: true,
+    ).toSafeSummary();
+
+    final validation = TripSyncReservationCommitSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged reservation summary cannot bypass local ledger reservation', () {
+    final summary =
+        TripSyncReservationCommitPolicy.evaluate(
+          attemptDecision: attempt(syncsUsed: 0),
+          reservationWriteSucceeded: true,
+        ).toSafeSummary()..addAll({
+          'blockedAttemptConsumesFreeSync': true,
+          'uploadWithoutReservationAllowed': true,
+          'reservationMustCommitBeforeNetworkUpload': false,
+          'reservationRequiresLocalLedgerWrite': false,
+          'reservationRequiresAccountDeviceModuleScope': false,
+          'authenticationAloneAuthorizesReservation': true,
+          'reservationFailureKeepsLocalQueue': false,
+          'reservationSuccessDoesNotConfirmRemoteBackup': false,
+        });
+
+    final validation = TripSyncReservationCommitSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('reservation_upload_boundary_missing'));
+  });
+
+  test('forged reservation summary cannot mutate local trip state', () {
+    final summary =
+        TripSyncReservationCommitPolicy.evaluate(
+          attemptDecision: attempt(syncsUsed: 0),
+          reservationWriteSucceeded: true,
+        ).toSafeSummary()..addAll({
+          'reservationCanDeleteLocalData': true,
+          'reservationCanPurgeLocalRecordsSilently': true,
+          'hiveRemainsOperationalSourceOfTruth': false,
+          'firestoreMirrorOnly': false,
+          'remoteCounterCanOverrideLocalLedger': true,
+          'remoteBackupCanOverrideLocalDay': true,
+          'remoteBackupCanPurgeLocalRecordsSilently': true,
+          'odometerRemainsOfficialMileageTruth': false,
+          'rawTripPayloadIncluded': true,
+          'preciseLocationIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'sk.secret 35.123456,-80.123456',
+        });
+
+    final validation = TripSyncReservationCommitSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('reservation_local_truth_boundary_missing'),
+    );
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_reservation_material'),
+    );
   });
 }
 
