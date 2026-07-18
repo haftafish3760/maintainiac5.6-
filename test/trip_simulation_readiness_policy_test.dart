@@ -108,6 +108,8 @@ void main() {
 
       expect(safe['simulationCanCreateOfficialStop'], isFalse);
       expect(safe['simulationCanConfirmOdometer'], isFalse);
+      expect(safe['simulationCanSetGlobalTruth'], isFalse);
+      expect(safe['simulationCanChangeOfficialMileage'], isFalse);
       expect(safe['odometerIsGlobalTruth'], isTrue);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe['poorGpsCalibrationScenarioRequired'], isTrue);

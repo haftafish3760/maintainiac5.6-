@@ -64,6 +64,8 @@ class TripCommercialReadinessDecision {
     'confirmedMileageRequiresUserAction': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'commercialReadinessCanSetGlobalTruth': false,
+    'commercialReadinessCanChangeOfficialMileage': false,
     'poorGpsCalibrationProofRequired': true,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
@@ -125,6 +127,8 @@ class TripCommercialReadinessSummaryValidation {
       'confirmedMileageRequiresUserAction',
       'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
+      'commercialReadinessCanSetGlobalTruth',
+      'commercialReadinessCanChangeOfficialMileage',
       'poorGpsCalibrationProofRequired',
       'calibrationRequiresTrustedGpsWindow',
       'poorGpsDaysExcludedFromCalibration',
@@ -158,7 +162,9 @@ class TripCommercialReadinessSummaryValidation {
         summary['stopReviewRequiredBeforeOfficialStop'] != true ||
         summary['confirmedMileageRequiresUserAction'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['commercialReadinessCanSetGlobalTruth'] != false ||
+        summary['commercialReadinessCanChangeOfficialMileage'] != false) {
       reasons.add('commercial_claims_trip_truth_authority');
     }
     if (summary['gpsAccuracyStillRequiresFieldProof'] != true ||

@@ -190,6 +190,8 @@ void main() {
       expect(safe['limitedGpsOnlyCanStartWithoutMaps'], isTrue);
       expect(safe['realDeviceEvidenceRequiredForDependabilityClaim'], isTrue);
       expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['commercialReadinessCanSetGlobalTruth'], isFalse);
+      expect(safe['commercialReadinessCanChangeOfficialMileage'], isFalse);
       expect(safe['poorGpsCalibrationProofRequired'], isTrue);
       expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
       expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
@@ -222,6 +224,8 @@ void main() {
         'mapboxCanCreateOfficialStop': true,
         'profileStrategyCanEndTripAutomatically': true,
         'odometerIsGlobalTruth': false,
+        'commercialReadinessCanSetGlobalTruth': true,
+        'commercialReadinessCanChangeOfficialMileage': true,
         'remoteDataCanOverrideLocalTrip': true,
         'employerGodModeAllowed': true,
         'debug': '35.123456,-80.123456 token=sk.secret',

@@ -152,6 +152,8 @@ void main() {
     expect(safe['authenticatedUserStillNeedsRecordAuthorization'], isTrue);
     expect(safe['releaseGateCanConfirmOdometer'], isFalse);
     expect(safe['releaseGateCanCreateOfficialStop'], isFalse);
+    expect(safe['releaseGateCanSetGlobalTruth'], isFalse);
+    expect(safe['releaseGateCanChangeOfficialMileage'], isFalse);
     expect(safe['commercialClaimRequiresSeparateLaunchAudit'], isTrue);
     expect(safe['limitedFieldTrialRequiresRealDeviceEvidence'], isTrue);
     expect(safe['realDeviceRouteDiversityRequired'], isTrue);
@@ -209,6 +211,8 @@ void main() {
           'releaseGateCanDeleteLocalData': true,
           'releaseGateCanConfirmOdometer': true,
           'releaseGateCanCreateOfficialStop': true,
+          'releaseGateCanSetGlobalTruth': true,
+          'releaseGateCanChangeOfficialMileage': true,
           'rawTripRecordsIncluded': true,
           'preciseLocationIncluded': true,
           'routeGeometryIncluded': true,

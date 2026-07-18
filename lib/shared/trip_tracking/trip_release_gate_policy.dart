@@ -55,6 +55,8 @@ class TripReleaseGateDecision {
     'releaseGateCanDeleteLocalData': false,
     'releaseGateCanConfirmOdometer': false,
     'releaseGateCanCreateOfficialStop': false,
+    'releaseGateCanSetGlobalTruth': false,
+    'releaseGateCanChangeOfficialMileage': false,
     'commercialClaimRequiresSeparateLaunchAudit': true,
     'limitedFieldTrialRequiresRealDeviceEvidence': true,
     'realDeviceRouteDiversityRequired': true,
@@ -137,7 +139,9 @@ class TripReleaseGateSummaryValidation {
         summary['firestoreMirrorOnly'] != true ||
         summary['releaseGateCanDeleteLocalData'] != false ||
         summary['releaseGateCanConfirmOdometer'] != false ||
-        summary['releaseGateCanCreateOfficialStop'] != false) {
+        summary['releaseGateCanCreateOfficialStop'] != false ||
+        summary['releaseGateCanSetGlobalTruth'] != false ||
+        summary['releaseGateCanChangeOfficialMileage'] != false) {
       reasons.add('release_gate_can_mutate_trip_truth');
     }
     if (summary['rawTripRecordsIncluded'] != false ||

@@ -43,6 +43,8 @@ class TripSimulationReadinessDecision {
         status == TripSimulationReadinessStatus.readyForFieldTrial,
     'simulationCanCreateOfficialStop': false,
     'simulationCanConfirmOdometer': false,
+    'simulationCanSetGlobalTruth': false,
+    'simulationCanChangeOfficialMileage': false,
     'simulationCanDeleteLocalData': false,
     'deviceTestingStillRequiredBeforeCommercialClaim': true,
     'mapsRequiredForSimulation': false,
@@ -92,6 +94,8 @@ class TripSimulationReadinessSummaryValidation {
     }
     if (summary['simulationCanCreateOfficialStop'] != false ||
         summary['simulationCanConfirmOdometer'] != false ||
+        summary['simulationCanSetGlobalTruth'] != false ||
+        summary['simulationCanChangeOfficialMileage'] != false ||
         summary['simulationCanDeleteLocalData'] != false ||
         summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {

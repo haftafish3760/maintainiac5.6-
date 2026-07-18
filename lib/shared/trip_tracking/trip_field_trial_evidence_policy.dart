@@ -40,6 +40,8 @@ class TripFieldTrialEvidenceDecision {
     'poorGpsCalibrationEvidenceRequired': true,
     'evidenceCanConfirmOdometer': false,
     'evidenceCanCreateOfficialStop': false,
+    'evidenceCanSetGlobalTruth': false,
+    'evidenceCanChangeOfficialMileage': false,
     'evidenceCanDeleteLocalData': false,
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'mapsRequiredForEvidence': false,
@@ -151,6 +153,8 @@ class TripFieldTrialEvidenceSummaryValidation {
       'poorGpsCalibrationEvidenceRequired',
       'evidenceCanConfirmOdometer',
       'evidenceCanCreateOfficialStop',
+      'evidenceCanSetGlobalTruth',
+      'evidenceCanChangeOfficialMileage',
       'evidenceCanDeleteLocalData',
       'gpsAssistedTrackingAvailableWithoutMaps',
       'mapsRequiredForEvidence',
@@ -182,6 +186,8 @@ class TripFieldTrialEvidenceSummaryValidation {
     }
     if (summary['evidenceCanConfirmOdometer'] != false ||
         summary['evidenceCanCreateOfficialStop'] != false ||
+        summary['evidenceCanSetGlobalTruth'] != false ||
+        summary['evidenceCanChangeOfficialMileage'] != false ||
         summary['evidenceCanDeleteLocalData'] != false ||
         summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {

@@ -107,6 +107,8 @@ void main() {
       expect(safe['poorGpsCalibrationEvidenceRequired'], isTrue);
       expect(safe['evidenceCanConfirmOdometer'], isFalse);
       expect(safe['evidenceCanCreateOfficialStop'], isFalse);
+      expect(safe['evidenceCanSetGlobalTruth'], isFalse);
+      expect(safe['evidenceCanChangeOfficialMileage'], isFalse);
       expect(safe['odometerIsGlobalTruth'], isTrue);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe['preciseLocationIncluded'], isFalse);
@@ -139,6 +141,8 @@ void main() {
         'poorGpsCalibrationEvidenceRequired': false,
         'evidenceCanConfirmOdometer': true,
         'evidenceCanCreateOfficialStop': true,
+        'evidenceCanSetGlobalTruth': true,
+        'evidenceCanChangeOfficialMileage': true,
         'evidenceCanDeleteLocalData': true,
         'odometerIsGlobalTruth': false,
         'odometerRemainsOfficialMileageTruth': false,
