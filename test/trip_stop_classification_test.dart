@@ -291,6 +291,9 @@ void main() {
     expect(summary['unsafeEvidenceSuppressesStopReview'], isFalse);
     expect(summary['externalMotionDataValidatedBeforeUse'], isTrue);
     expect(summary['stopEvidenceTrustedAfterValidationOnly'], isTrue);
+    expect(summary['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(summary['stopEvidenceCanConfirmOfficialMileage'], isFalse);
+    expect(summary['stopEvidenceCanChangeOfficialMileage'], isFalse);
     expect(summary['remoteStopSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['firestoreCanCreateOfficialStop'], isFalse);
     expect(summary['cloudFunctionCanCreateOfficialStop'], isFalse);
@@ -370,6 +373,8 @@ void main() {
     expect(summary['canSuggestStop'], isFalse);
     expect(summary['shouldSurfaceManualStopFallback'], isFalse);
     expect(summary['canCreateOfficialStop'], isFalse);
+    expect(summary['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(summary['stopEvidenceCanConfirmOfficialMileage'], isFalse);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['malformedStopSummaryFailsSafe'], isTrue);
   });
@@ -397,11 +402,15 @@ void main() {
     expect(traffic['signal'], 'likelyTrafficControl');
     expect(traffic['longTrafficLightProtected'], isTrue);
     expect(traffic['canCreateOfficialStop'], isFalse);
+    expect(traffic['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(traffic['stopEvidenceCanConfirmOfficialMileage'], isFalse);
     expect(traffic['canEndTripAutomatically'], isFalse);
     expect(traffic['remoteStopSummaryCanOverrideLocalTrip'], isFalse);
     expect(vehicleOnly['signal'], 'stopCandidate');
     expect(vehicleOnly['vehicleOnlyStopFallbackAvailable'], isTrue);
     expect(vehicleOnly['walkingEvidenceCanOnlySuggestReview'], isTrue);
+    expect(vehicleOnly['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(vehicleOnly['stopEvidenceCanConfirmOfficialMileage'], isFalse);
     expect(vehicleOnly['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(vehicleOnly['firestoreCanCreateOfficialStop'], isFalse);
     expect(vehicleOnly['mapboxCanEndTrip'], isFalse);

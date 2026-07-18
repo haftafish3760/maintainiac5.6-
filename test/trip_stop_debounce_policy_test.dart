@@ -67,6 +67,11 @@ void main() {
     expect(safe['mapsRequiredForStopDebounce'], isFalse);
     expect(safe['mapboxCanCreateStop'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(safe['stopEvidenceCanConfirmOfficialMileage'], isFalse);
+    expect(safe['stopEvidenceCanChangeOfficialMileage'], isFalse);
+    expect(safe['walkingEvidenceCanConfirmOfficialMileage'], isFalse);
+    expect(safe['trafficControlCanConfirmOfficialMileage'], isFalse);
   });
 
   test(

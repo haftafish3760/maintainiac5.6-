@@ -62,6 +62,11 @@ class TripStopFalsePositiveGuardDecision {
     'optimizationCannotChangeOfficialMileage': true,
     'stopEvidenceCanCreateCalibration': false,
     'stopEvidenceCanApplyCalibration': false,
+    'stopEvidenceCanSetGlobalTruth': false,
+    'stopEvidenceCanConfirmOfficialMileage': false,
+    'stopEvidenceCanChangeOfficialMileage': false,
+    'walkingEvidenceCanConfirmOfficialMileage': false,
+    'trafficControlCanConfirmOfficialMileage': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
     'officialStopRequiresUserAction': true,
@@ -129,6 +134,11 @@ class TripStopFalsePositiveGuardSummaryValidation {
       'authenticationAloneAuthorizesStopReview',
       'stopEvidenceCanCreateCalibration',
       'stopEvidenceCanApplyCalibration',
+      'stopEvidenceCanSetGlobalTruth',
+      'stopEvidenceCanConfirmOfficialMileage',
+      'stopEvidenceCanChangeOfficialMileage',
+      'walkingEvidenceCanConfirmOfficialMileage',
+      'trafficControlCanConfirmOfficialMileage',
       'rawSamplesIncluded',
       'coordinatesIncluded',
       'routeGeometryIncluded',
@@ -263,6 +273,9 @@ bool _safeClassification(Map<String, Object?> value) {
       value['canCreateOfficialStop'] == false &&
       value['canEndTripAutomatically'] == false &&
       value['canReplaceOdometer'] == false &&
+      value['stopEvidenceCanSetGlobalTruth'] == false &&
+      value['stopEvidenceCanConfirmOfficialMileage'] == false &&
+      value['stopEvidenceCanChangeOfficialMileage'] == false &&
       value['stopRequiresAcceptedVehicleMovement'] == true &&
       value['localTripLogRequiredForReview'] == true &&
       value['authenticatedUserStillNeedsAuthorization'] == true &&

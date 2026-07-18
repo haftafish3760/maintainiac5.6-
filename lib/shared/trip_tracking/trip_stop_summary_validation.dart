@@ -86,7 +86,10 @@ class TripStopSummaryValidation {
     }
     if (summary['canCreateOfficialStop'] != false ||
         summary['canEndTripAutomatically'] != false ||
-        summary['canReplaceOdometer'] != false) {
+        summary['canReplaceOdometer'] != false ||
+        summary['stopEvidenceCanSetGlobalTruth'] != false ||
+        summary['stopEvidenceCanConfirmOfficialMileage'] != false ||
+        summary['stopEvidenceCanChangeOfficialMileage'] != false) {
       reasons.add('summary_can_mutate_trip_truth');
     }
     if (summary['officialStopSource'] != 'user_review') {

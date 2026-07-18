@@ -78,6 +78,9 @@ class TripStopClassification {
       'activityRecognitionCanCreateOfficialStop': false,
       'externalMotionDataValidatedBeforeUse': true,
       'stopEvidenceTrustedAfterValidationOnly': true,
+      'stopEvidenceCanSetGlobalTruth': false,
+      'stopEvidenceCanConfirmOfficialMileage': false,
+      'stopEvidenceCanChangeOfficialMileage': false,
       'unsafeEvidenceCanCreateStop': false,
       'unsafeEvidenceSuppressesStopReview':
           signal == TripStopSignal.unsafeEvidence,

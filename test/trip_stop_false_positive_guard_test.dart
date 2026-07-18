@@ -42,6 +42,11 @@ void main() {
     expect(guard['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(guard['stopEvidenceCanCreateCalibration'], isFalse);
     expect(guard['stopEvidenceCanApplyCalibration'], isFalse);
+    expect(guard['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(guard['stopEvidenceCanConfirmOfficialMileage'], isFalse);
+    expect(guard['stopEvidenceCanChangeOfficialMileage'], isFalse);
+    expect(guard['walkingEvidenceCanConfirmOfficialMileage'], isFalse);
+    expect(guard['trafficControlCanConfirmOfficialMileage'], isFalse);
     expect(guard['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(guard['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(guard['mapboxCanInferOfficialStopAddress'], isFalse);
@@ -184,6 +189,9 @@ void main() {
       status: decision.status.name,
       classification: {
         ...decision.classification.toSafeSummary(),
+        'stopEvidenceCanSetGlobalTruth': true,
+        'stopEvidenceCanConfirmOfficialMileage': true,
+        'stopEvidenceCanChangeOfficialMileage': true,
         'localTripLogRequiredForReview': false,
         'stopRequiresAcceptedVehicleMovement': false,
       },
@@ -241,6 +249,9 @@ void main() {
       'ownershipValidationRequiredForReview': false,
       'addressRequiresUserConfirmation': false,
       'odometerIsGlobalTruth': false,
+      'stopEvidenceCanSetGlobalTruth': true,
+      'stopEvidenceCanConfirmOfficialMileage': true,
+      'stopEvidenceCanChangeOfficialMileage': true,
       'mapboxCanInferOfficialStopAddress': true,
     };
 
@@ -279,6 +290,18 @@ void main() {
       contains('addressRequiresUserConfirmation_not_true'),
     );
     expect(validation.reasons, contains('odometerIsGlobalTruth_not_true'));
+    expect(
+      validation.reasons,
+      contains('stopEvidenceCanSetGlobalTruth_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('stopEvidenceCanConfirmOfficialMileage_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('stopEvidenceCanChangeOfficialMileage_not_false'),
+    );
     expect(
       validation.reasons,
       contains('mapboxCanInferOfficialStopAddress_not_false'),

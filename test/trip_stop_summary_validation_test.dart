@@ -36,6 +36,15 @@ void main() {
       safeDeliveryStopSummary()['externalMileageCannotBecomeGlobalTruth'],
       isTrue,
     );
+    expect(safeDeliveryStopSummary()['stopEvidenceCanSetGlobalTruth'], isFalse);
+    expect(
+      safeDeliveryStopSummary()['stopEvidenceCanConfirmOfficialMileage'],
+      isFalse,
+    );
+    expect(
+      safeDeliveryStopSummary()['stopEvidenceCanChangeOfficialMileage'],
+      isFalse,
+    );
   });
 
   test('remote stop payload cannot create official trip facts', () {
@@ -52,6 +61,9 @@ void main() {
         'canCreateOfficialStop': true,
         'canEndTripAutomatically': true,
         'canReplaceOdometer': true,
+        'stopEvidenceCanSetGlobalTruth': true,
+        'stopEvidenceCanConfirmOfficialMileage': true,
+        'stopEvidenceCanChangeOfficialMileage': true,
       });
     final validation = TripStopSummaryValidation.fromSummary(summary);
 

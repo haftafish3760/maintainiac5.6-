@@ -88,6 +88,11 @@ class TripStopDebounceSummaryValidation {
     if (summary['stopEvidenceCanCreateCalibration'] != false ||
         summary['walkingEvidenceCanCreateCalibration'] != false ||
         summary['trafficControlCanCreateCalibration'] != false ||
+        summary['stopEvidenceCanSetGlobalTruth'] != false ||
+        summary['stopEvidenceCanConfirmOfficialMileage'] != false ||
+        summary['stopEvidenceCanChangeOfficialMileage'] != false ||
+        summary['walkingEvidenceCanConfirmOfficialMileage'] != false ||
+        summary['trafficControlCanConfirmOfficialMileage'] != false ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true) {
       reasons.add('stop_evidence_can_create_calibration');
