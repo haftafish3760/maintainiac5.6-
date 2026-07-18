@@ -12,9 +12,13 @@ void main() {
     double ratio = .94,
     double differencePercent = 6,
     String reason = 'persistent_gps_odometer_drift',
+    int? trustedGpsWindowCount,
+    int excludedPoorGpsDayCount = 0,
   }) => TripOdometerCalibrationSignal(
     status: status,
     eligibleSampleCount: samples,
+    trustedGpsWindowCount: trustedGpsWindowCount,
+    excludedPoorGpsDayCount: excludedPoorGpsDayCount,
     averageGpsToOdometerRatio: ratio,
     averageDifferencePercent: differencePercent,
     reasonCode: reason,
@@ -102,6 +106,10 @@ void main() {
     expect(safe['continuousCalibrationAverageRequired'], isTrue);
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['trustedGpsWindowCount'], 7);
+    expect(safe['excludedPoorGpsDayCount'], 0);
+    expect(safe['excludedPoorGpsDayCountIncluded'], isTrue);
+    expect(safe['poorGpsExcludedDayCountTrustedAfterValidationOnly'], isTrue);
     expect(safe['singleDayCalibrationRejected'], isTrue);
     expect(safe['calibrationAverageVehicleScoped'], isTrue);
     expect(safe['calibrationRequiresOwnershipOrExplicitAccess'], isTrue);
@@ -186,6 +194,33 @@ void main() {
     expect(guard.canApplyToFutureGpsProjection, isFalse);
     expect(safe['excessiveHistoryCountRejected'], isTrue);
     expect(safe['canRewriteConfirmedOdometer'], isFalse);
+  });
+
+  test('calibration rejects mismatched trusted GPS window evidence', () {
+    final guard = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(
+        samples: 7,
+        trustedGpsWindowCount: 6,
+        excludedPoorGpsDayCount: 1,
+      ),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+    );
+    final safe = guard.toSafeDashboardMap();
+
+    expect(guard.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(
+      guard.reasonCodes,
+      contains('trusted_gps_window_count_below_eligible_days'),
+    );
+    expect(guard.canApplyToFutureGpsProjection, isFalse);
+    expect(safe['trustedGpsWindowCount'], 6);
+    expect(safe['excludedPoorGpsDayCount'], 1);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
   });
 
   test('calibration rejects mixed or mismatched vehicle history', () {

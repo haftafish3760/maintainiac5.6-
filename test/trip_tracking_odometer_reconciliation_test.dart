@@ -667,11 +667,15 @@ void main() {
 
       expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
       expect(signal.eligibleSampleCount, 6);
+      expect(signal.trustedGpsWindowCount, 6);
+      expect(signal.excludedPoorGpsDayCount, 1);
       expect(signal.reasonCode, 'needs_more_reviewed_days');
       expect(
         signal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
         isTrue,
       );
+      expect(signal.toSafeDashboardMap()['trustedGpsWindowCount'], 6);
+      expect(signal.toSafeDashboardMap()['excludedPoorGpsDayCount'], 1);
       expect(signal.toSafeDashboardMap()['odometerIsGlobalTruth'], isTrue);
     },
   );
@@ -1196,6 +1200,8 @@ void main() {
       'schemaVersion': 1,
       'status': 'reviewRecommended',
       'eligibleSampleCount': 7,
+      'trustedGpsWindowCount': 7,
+      'excludedPoorGpsDayCount': 0,
       'averageDifferencePercent': 6.2,
       'reasonCode': 'persistent_gps_odometer_drift',
       'shouldPromptUser': true,

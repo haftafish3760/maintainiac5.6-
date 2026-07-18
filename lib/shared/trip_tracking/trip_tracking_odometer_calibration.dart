@@ -15,6 +15,8 @@ class TripOdometerCalibrationSignal {
     required this.averageGpsToOdometerRatio,
     required this.averageDifferencePercent,
     required this.reasonCode,
+    this.trustedGpsWindowCount,
+    this.excludedPoorGpsDayCount = 0,
   });
 
   final TripOdometerCalibrationStatus status;
@@ -22,6 +24,8 @@ class TripOdometerCalibrationSignal {
   final double averageGpsToOdometerRatio;
   final double averageDifferencePercent;
   final String reasonCode;
+  final int? trustedGpsWindowCount;
+  final int excludedPoorGpsDayCount;
 
   bool get canOverwriteConfirmedOdometer => false;
 
@@ -45,6 +49,10 @@ class TripOdometerCalibrationSignal {
     'schemaVersion': 1,
     'status': status.name,
     'eligibleSampleCount': eligibleSampleCount < 0 ? 0 : eligibleSampleCount,
+    'trustedGpsWindowCount': _safeCount(
+      trustedGpsWindowCount ?? eligibleSampleCount,
+    ),
+    'excludedPoorGpsDayCount': _safeCount(excludedPoorGpsDayCount),
     'averageDifferencePercent': _safeRoundedPercent(averageDifferencePercent),
     'reasonCode': _safeCalibrationReason(reasonCode),
     'shouldPromptUser': _safeCalibrationShouldPrompt(
@@ -116,6 +124,7 @@ class TripOdometerCalibrationSignal {
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
+    int excludedPoorGpsDayCount = 0,
   }) {
     if (minimumSamples <= 0 ||
         minimumOdometerMiles <= 0 ||
@@ -127,6 +136,8 @@ class TripOdometerCalibrationSignal {
       return const TripOdometerCalibrationSignal(
         status: TripOdometerCalibrationStatus.insufficientHistory,
         eligibleSampleCount: 0,
+        trustedGpsWindowCount: 0,
+        excludedPoorGpsDayCount: 0,
         averageGpsToOdometerRatio: 1,
         averageDifferencePercent: 0,
         reasonCode: 'invalid_calibration_threshold',
@@ -153,6 +164,8 @@ class TripOdometerCalibrationSignal {
       return TripOdometerCalibrationSignal(
         status: TripOdometerCalibrationStatus.insufficientHistory,
         eligibleSampleCount: eligible.length,
+        trustedGpsWindowCount: eligible.length,
+        excludedPoorGpsDayCount: _safeCount(excludedPoorGpsDayCount),
         averageGpsToOdometerRatio: 1,
         averageDifferencePercent: 0,
         reasonCode: 'needs_more_reviewed_days',
@@ -190,6 +203,8 @@ class TripOdometerCalibrationSignal {
           ? TripOdometerCalibrationStatus.reviewRecommended
           : TripOdometerCalibrationStatus.stable,
       eligibleSampleCount: eligible.length,
+      trustedGpsWindowCount: eligible.length,
+      excludedPoorGpsDayCount: _safeCount(excludedPoorGpsDayCount),
       averageGpsToOdometerRatio: averageRatio,
       averageDifferencePercent: averagePercent,
       reasonCode: shouldReview
@@ -249,6 +264,7 @@ class TripOdometerCalibrationSignal {
     }
 
     final dailyTotals = <String, _DailyCalibrationTotals>{};
+    final poorGpsDayKeys = <String>{};
     for (final review in confirmedReviews) {
       final reconciliation = TripOdometerReconciliation.compare(
         review: review,
@@ -258,6 +274,7 @@ class TripOdometerCalibrationSignal {
         continue;
       }
       if (!_reviewHasTrustedCalibrationGpsWindow(review, reconciliation)) {
+        poorGpsDayKeys.add(_calibrationDayKey(review.startedAt.toUtc()));
         continue;
       }
       final dayKey = _calibrationDayKey(review.startedAt.toUtc());
@@ -278,6 +295,7 @@ class TripOdometerCalibrationSignal {
       minimumOdometerMiles: minimumOdometerMiles,
       reviewDifferencePercent: reviewDifferencePercent,
       maximumEligibleDifferencePercent: maximumEligibleDifferencePercent,
+      excludedPoorGpsDayCount: poorGpsDayKeys.length,
     );
   }
 
@@ -304,6 +322,12 @@ double _safeRoundedPercent(double value) {
   if (!value.isFinite || value < 0) return 0;
   return (value * 10).round() / 10;
 }
+
+int _safeCount(int value) => value < 0
+    ? 0
+    : value > 366
+    ? 366
+    : value;
 
 double _safeRoundedMultiplier(double value) {
   if (!value.isFinite || value <= 0) return 1;

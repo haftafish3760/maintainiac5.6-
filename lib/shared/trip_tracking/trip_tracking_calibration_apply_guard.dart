@@ -23,6 +23,8 @@ class TripTrackingCalibrationApplyGuard {
     required this.status,
     required this.multiplier,
     required this.reasonCodes,
+    required this.trustedGpsWindowCount,
+    required this.excludedPoorGpsDayCount,
   });
 
   factory TripTrackingCalibrationApplyGuard.evaluate({
@@ -57,6 +59,23 @@ class TripTrackingCalibrationApplyGuard {
     if (minimumReviewedDays <= 0) reasons.add('invalid_minimum_reviewed_days');
     if (signal.eligibleSampleCount < 0) reasons.add('negative_sample_count');
     if (signal.eligibleSampleCount > 366) reasons.add('excessive_sample_count');
+    final trustedGpsWindowCount =
+        signal.trustedGpsWindowCount ?? signal.eligibleSampleCount;
+    if (trustedGpsWindowCount < 0) {
+      reasons.add('negative_trusted_gps_window_count');
+    }
+    if (trustedGpsWindowCount > 366) {
+      reasons.add('excessive_trusted_gps_window_count');
+    }
+    if (trustedGpsWindowCount < signal.eligibleSampleCount) {
+      reasons.add('trusted_gps_window_count_below_eligible_days');
+    }
+    if (signal.excludedPoorGpsDayCount < 0) {
+      reasons.add('negative_excluded_poor_gps_day_count');
+    }
+    if (signal.excludedPoorGpsDayCount > 366) {
+      reasons.add('excessive_excluded_poor_gps_day_count');
+    }
     if (!signal.averageGpsToOdometerRatio.isFinite ||
         signal.averageGpsToOdometerRatio <= 0) {
       reasons.add('invalid_gps_odometer_ratio');
@@ -125,36 +144,57 @@ class TripTrackingCalibrationApplyGuard {
         status: TripTrackingCalibrationApplyStatus.rejected,
         multiplier: 1,
         reasonCodes: List.unmodifiable(reasons),
+        trustedGpsWindowCount: _safeEvidenceCount(trustedGpsWindowCount),
+        excludedPoorGpsDayCount: _safeEvidenceCount(
+          signal.excludedPoorGpsDayCount,
+        ),
       );
     }
     if (!userOptedIn) {
-      return const TripTrackingCalibrationApplyGuard._(
+      return TripTrackingCalibrationApplyGuard._(
         status: TripTrackingCalibrationApplyStatus.disabled,
         multiplier: 1,
-        reasonCodes: ['calibration_user_opt_in_required'],
+        reasonCodes: const ['calibration_user_opt_in_required'],
+        trustedGpsWindowCount: _safeEvidenceCount(trustedGpsWindowCount),
+        excludedPoorGpsDayCount: _safeEvidenceCount(
+          signal.excludedPoorGpsDayCount,
+        ),
       );
     }
     if (signal.eligibleSampleCount < minimumReviewedDays ||
+        trustedGpsWindowCount < minimumReviewedDays ||
         signal.status == TripOdometerCalibrationStatus.insufficientHistory) {
-      return const TripTrackingCalibrationApplyGuard._(
+      return TripTrackingCalibrationApplyGuard._(
         status: TripTrackingCalibrationApplyStatus.waitingForHistory,
         multiplier: 1,
-        reasonCodes: ['more_reviewed_odometer_days_required'],
+        reasonCodes: const ['more_reviewed_odometer_days_required'],
+        trustedGpsWindowCount: _safeEvidenceCount(trustedGpsWindowCount),
+        excludedPoorGpsDayCount: _safeEvidenceCount(
+          signal.excludedPoorGpsDayCount,
+        ),
       );
     }
     if (signal.status == TripOdometerCalibrationStatus.reviewRecommended &&
         !userAcceptedLatestReview) {
-      return const TripTrackingCalibrationApplyGuard._(
+      return TripTrackingCalibrationApplyGuard._(
         status: TripTrackingCalibrationApplyStatus.reviewRequired,
         multiplier: 1,
-        reasonCodes: ['user_must_accept_calibration_review'],
+        reasonCodes: const ['user_must_accept_calibration_review'],
+        trustedGpsWindowCount: _safeEvidenceCount(trustedGpsWindowCount),
+        excludedPoorGpsDayCount: _safeEvidenceCount(
+          signal.excludedPoorGpsDayCount,
+        ),
       );
     }
     if (signal.status == TripOdometerCalibrationStatus.stable) {
-      return const TripTrackingCalibrationApplyGuard._(
+      return TripTrackingCalibrationApplyGuard._(
         status: TripTrackingCalibrationApplyStatus.readyForFutureProjection,
         multiplier: 1,
-        reasonCodes: ['calibration_stable_neutral_multiplier'],
+        reasonCodes: const ['calibration_stable_neutral_multiplier'],
+        trustedGpsWindowCount: _safeEvidenceCount(trustedGpsWindowCount),
+        excludedPoorGpsDayCount: _safeEvidenceCount(
+          signal.excludedPoorGpsDayCount,
+        ),
       );
     }
     return TripTrackingCalibrationApplyGuard._(
@@ -163,12 +203,18 @@ class TripTrackingCalibrationApplyGuard {
         signal.gpsAssistanceCalibrationMultiplier,
       ),
       reasonCodes: const ['calibration_review_accepted_future_projection_only'],
+      trustedGpsWindowCount: _safeEvidenceCount(trustedGpsWindowCount),
+      excludedPoorGpsDayCount: _safeEvidenceCount(
+        signal.excludedPoorGpsDayCount,
+      ),
     );
   }
 
   final TripTrackingCalibrationApplyStatus status;
   final double multiplier;
   final List<String> reasonCodes;
+  final int trustedGpsWindowCount;
+  final int excludedPoorGpsDayCount;
 
   bool get canApplyToFutureGpsProjection =>
       status == TripTrackingCalibrationApplyStatus.readyForFutureProjection;
@@ -201,6 +247,10 @@ class TripTrackingCalibrationApplyGuard {
     'continuousCalibrationAverageRequired': true,
     'poorGpsDaysExcludedFromCalibration': true,
     'calibrationRequiresTrustedGpsWindow': true,
+    'trustedGpsWindowCount': trustedGpsWindowCount,
+    'excludedPoorGpsDayCount': excludedPoorGpsDayCount,
+    'excludedPoorGpsDayCountIncluded': true,
+    'poorGpsExcludedDayCountTrustedAfterValidationOnly': true,
     'singleDayCalibrationRejected': true,
     'calibrationAverageVehicleScoped': true,
     'latestReviewTimestampRequired': true,
@@ -264,6 +314,18 @@ class TripTrackingCalibrationApplySummaryValidation {
         status != TripTrackingCalibrationApplyStatus.readyForFutureProjection) {
       reasons.add('unsafe_future_projection_apply_claim');
     }
+    final trustedGpsWindowCount = summary['trustedGpsWindowCount'];
+    if (trustedGpsWindowCount is! int ||
+        trustedGpsWindowCount < 0 ||
+        trustedGpsWindowCount > 366) {
+      reasons.add('invalid_trusted_gps_window_count');
+    }
+    final excludedPoorGpsDayCount = summary['excludedPoorGpsDayCount'];
+    if (excludedPoorGpsDayCount is! int ||
+        excludedPoorGpsDayCount < 0 ||
+        excludedPoorGpsDayCount > 366) {
+      reasons.add('invalid_excluded_poor_gps_day_count');
+    }
     if (summary['appliesToPastTrips'] != false ||
         summary['canRewriteConfirmedOdometer'] != false ||
         summary['canApplySilently'] != false ||
@@ -294,6 +356,8 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['continuousCalibrationAverageRequired'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['excludedPoorGpsDayCountIncluded'] != true ||
+        summary['poorGpsExcludedDayCountTrustedAfterValidationOnly'] != true ||
         summary['singleDayCalibrationRejected'] != true ||
         summary['calibrationAverageVehicleScoped'] != true ||
         summary['latestReviewTimestampRequired'] != true ||
@@ -377,6 +441,11 @@ String? _safeApplyReason(Object? value) {
     'invalid_minimum_reviewed_days' => value,
     'negative_sample_count' => value,
     'excessive_sample_count' => value,
+    'negative_trusted_gps_window_count' => value,
+    'excessive_trusted_gps_window_count' => value,
+    'trusted_gps_window_count_below_eligible_days' => value,
+    'negative_excluded_poor_gps_day_count' => value,
+    'excessive_excluded_poor_gps_day_count' => value,
     'invalid_gps_odometer_ratio' => value,
     'invalid_difference_percent' => value,
     'unknown_signal_reason' => value,
@@ -400,6 +469,12 @@ String? _safeApplyReason(Object? value) {
     _ => null,
   };
 }
+
+int _safeEvidenceCount(int value) => value < 0
+    ? 0
+    : value > 366
+    ? 366
+    : value;
 
 bool _looksSensitive(Object? value) {
   if (value is! String) return false;
