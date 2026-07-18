@@ -144,6 +144,102 @@ class TripLifecycleSupervisorPolicy {
   }
 }
 
+class TripLifecycleSupervisorSummaryValidation {
+  const TripLifecycleSupervisorSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripLifecycleSupervisorSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_supervisor_status');
+    }
+    if (_safeLifecycle(summary['nextLifecycle']) == null) {
+      reasons.add('invalid_next_lifecycle');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_supervisor_reason');
+    }
+    for (final key in const [
+      'shouldKeepForegroundServiceAlive',
+      'shouldRequestUserAction',
+      'canReplayPendingSample',
+      'canUploadBackupMirror',
+      'supervisorCanDeleteLocalData',
+      'supervisorCanConfirmOdometer',
+      'supervisorCanCreateOfficialStop',
+      'remoteSupervisorCanOverrideLocalTrip',
+      'firestoreCanOverrideLifecycle',
+      'mapboxCanOverrideLifecycle',
+      'malformedNativePayloadCanEndTrip',
+      'backgroundRecoveryCanRunWithoutMaps',
+      'mapsRequiredForRecovery',
+      'localCheckpointPreservedUntilReview',
+      'backgroundRecoveryRequiresLocalCheckpoint',
+      'foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip',
+      'backupMirrorBlockedWhenUserActionRequired',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'odometerRemainsOfficialMileageTruth',
+      'rawNativePayloadIncluded',
+      'rawTripRecordsIncluded',
+      'preciseLocationIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['supervisorCanDeleteLocalData'] != false ||
+        summary['supervisorCanConfirmOdometer'] != false ||
+        summary['supervisorCanCreateOfficialStop'] != false ||
+        summary['malformedNativePayloadCanEndTrip'] != false) {
+      reasons.add('supervisor_can_create_trip_truth');
+    }
+    if (summary['remoteSupervisorCanOverrideLocalTrip'] != false ||
+        summary['firestoreCanOverrideLifecycle'] != false ||
+        summary['mapboxCanOverrideLifecycle'] != false) {
+      reasons.add('remote_can_override_lifecycle');
+    }
+    if (summary['backgroundRecoveryCanRunWithoutMaps'] != true ||
+        summary['mapsRequiredForRecovery'] != false ||
+        summary['localCheckpointPreservedUntilReview'] != true ||
+        summary['backgroundRecoveryRequiresLocalCheckpoint'] != true ||
+        summary['foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip'] !=
+            true ||
+        summary['backupMirrorBlockedWhenUserActionRequired'] != true) {
+      reasons.add('recovery_checkpoint_boundary_missing');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('recovery_source_of_truth_boundary_missing');
+    }
+    if (summary['rawNativePayloadIncluded'] != false ||
+        summary['rawTripRecordsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_recovery_material');
+    }
+
+    return TripLifecycleSupervisorSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
+}
+
 TripLifecycleSupervisorDecision _decision({
   required TripLifecycleSupervisorStatus status,
   required String reasonCode,
@@ -224,4 +320,28 @@ String _safeReason(String value) {
     'supervisor_continue_tracking' => 'supervisor_continue_tracking',
     _ => 'supervisor_invalid_local_boundary',
   };
+}
+
+TripLifecycleSupervisorStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripLifecycleSupervisorStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+TripTrackingSessionLifecycleState? _safeLifecycle(Object? value) {
+  if (value is! String) return null;
+  for (final lifecycle in TripTrackingSessionLifecycleState.values) {
+    if (lifecycle.name == value) return lifecycle;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

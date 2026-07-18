@@ -200,4 +200,77 @@ void main() {
       expect(safe['tokensIncluded'], isFalse);
     },
   );
+
+  test('safe supervisor summary validates recovery truth boundary', () {
+    final validation = TripLifecycleSupervisorSummaryValidation.fromSummary(
+      TripLifecycleSupervisorPolicy.evaluate(
+        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        dashboardRollup: normalRollup,
+        errorRecoveryPlan: recoveryPlan(null),
+        recoveryDecision: noRecovery,
+        localCheckpointAvailable: true,
+        nativeTrackingAvailable: true,
+        backupMirrorReady: true,
+      ).toSafeDashboardMap(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'forged supervisor summaries cannot finish or remotely control trips',
+    () {
+      final validation = TripLifecycleSupervisorSummaryValidation.fromSummary(
+        TripLifecycleSupervisorPolicy.evaluate(
+          currentLifecycle: TripTrackingSessionLifecycleState.active,
+          dashboardRollup: normalRollup,
+          errorRecoveryPlan: recoveryPlan(null),
+          recoveryDecision: noRecovery,
+          localCheckpointAvailable: true,
+          nativeTrackingAvailable: true,
+          backupMirrorReady: true,
+        ).toSafeDashboardMap()..addAll({
+          'supervisorCanDeleteLocalData': true,
+          'supervisorCanConfirmOdometer': true,
+          'supervisorCanCreateOfficialStop': true,
+          'malformedNativePayloadCanEndTrip': true,
+          'remoteSupervisorCanOverrideLocalTrip': true,
+          'firestoreCanOverrideLifecycle': true,
+          'mapboxCanOverrideLifecycle': true,
+          'backgroundRecoveryCanRunWithoutMaps': false,
+          'mapsRequiredForRecovery': true,
+          'localCheckpointPreservedUntilReview': false,
+          'backgroundRecoveryRequiresLocalCheckpoint': false,
+          'foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip': false,
+          'backupMirrorBlockedWhenUserActionRequired': false,
+          'hiveRemainsOperationalSourceOfTruth': false,
+          'firestoreMirrorOnly': false,
+          'odometerRemainsOfficialMileageTruth': false,
+          'rawNativePayloadIncluded': true,
+          'rawTripRecordsIncluded': true,
+          'preciseLocationIncluded': true,
+          'routeGeometryIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'sk.secret 35.123456,-80.123456',
+        }),
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(validation.reasons, contains('supervisor_can_create_trip_truth'));
+      expect(validation.reasons, contains('remote_can_override_lifecycle'));
+      expect(
+        validation.reasons,
+        contains('recovery_checkpoint_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('recovery_source_of_truth_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_recovery_material'),
+      );
+    },
+  );
 }
