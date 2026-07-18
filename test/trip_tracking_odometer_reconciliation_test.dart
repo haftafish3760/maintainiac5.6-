@@ -53,6 +53,10 @@ void main() {
         'gpsCanReplaceOdometer': false,
         'mapboxCanReplaceOdometer': false,
         'calibrationCanApplySilently': false,
+        'externalMileageTrustedAfterValidationOnly': true,
+        'remoteTotalsCanBecomeCanonical': false,
+        'firestoreCanOverrideOdometerTruth': false,
+        'mapboxCanOverrideOdometerTruth': false,
         'rawLocationIncluded': false,
         'rawTripRecordsIncluded': false,
       });
@@ -166,6 +170,9 @@ void main() {
       'gpsCanFillGapAutomatically': false,
       'mapboxCanFillGapAutomatically': false,
       'remoteBackupCanFillGapAutomatically': false,
+      'continuityTrustedAfterValidationOnly': true,
+      'firestoreCanOverrideContinuity': false,
+      'mapboxCanOverrideContinuity': false,
       'rawTripRecordsIncluded': false,
       'rawLocationIncluded': false,
     });
@@ -956,6 +963,10 @@ void main() {
       'canOverwriteConfirmedOdometer': false,
       'calibrationRequiresUserOptIn': true,
       'canApplySilently': false,
+      'calibrationTrustedAfterReviewedHistoryOnly': true,
+      'remoteCalibrationCanApplySilently': false,
+      'firestoreCanOverrideCalibration': false,
+      'mapboxCanOverrideCalibration': false,
       'gpsAssistanceCalibrationMultiplier': 0.9434,
       'odometerRemainsCanonical': true,
       'gpsAssistAdvisoryOnly': true,
@@ -981,6 +992,11 @@ void main() {
     expect(summary['eligibleSampleCount'], 0);
     expect(summary['averageDifferencePercent'], 0);
     expect(summary['reasonCode'], 'unknown_calibration_state');
+    expect(summary['shouldPromptUser'], isFalse);
+    expect(summary['maySuggestTireOrSpeedometerReview'], isFalse);
+    expect(summary['remoteCalibrationCanApplySilently'], isFalse);
+    expect(summary['firestoreCanOverrideCalibration'], isFalse);
+    expect(summary['mapboxCanOverrideCalibration'], isFalse);
     expect(summary.toString(), isNot(contains('pk.secret')));
     expect(summary.toString(), isNot(contains('35.1')));
   });
@@ -1002,8 +1018,29 @@ void main() {
     expect(reconciliation.toSafeDashboardMap()['filteredGpsMiles'], 0);
     expect(reconciliation.toSafeDashboardMap()['differencePercent'], 0);
     expect(
+      reconciliation
+          .toSafeDashboardMap()['externalMileageTrustedAfterValidationOnly'],
+      isTrue,
+    );
+    expect(
+      reconciliation.toSafeDashboardMap()['remoteTotalsCanBecomeCanonical'],
+      isFalse,
+    );
+    expect(
+      reconciliation.toSafeDashboardMap()['mapboxCanOverrideOdometerTruth'],
+      isFalse,
+    );
+    expect(
       continuity.toSafeDashboardMap()['reasonCode'],
       'invalid_odometer_continuity_input',
+    );
+    expect(
+      continuity.toSafeDashboardMap()['continuityTrustedAfterValidationOnly'],
+      isTrue,
+    );
+    expect(
+      continuity.toSafeDashboardMap()['firestoreCanOverrideContinuity'],
+      isFalse,
     );
     expect(
       continuity.toSafeDashboardMap().toString(),

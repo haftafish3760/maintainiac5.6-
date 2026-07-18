@@ -50,6 +50,10 @@ class TripOdometerReconciliation {
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
     'calibrationCanApplySilently': false,
+    'externalMileageTrustedAfterValidationOnly': true,
+    'remoteTotalsCanBecomeCanonical': false,
+    'firestoreCanOverrideOdometerTruth': false,
+    'mapboxCanOverrideOdometerTruth': false,
     'rawLocationIncluded': false,
     'rawTripRecordsIncluded': false,
   };
@@ -128,6 +132,9 @@ class TripOdometerContinuityCheck {
     'gpsCanFillGapAutomatically': false,
     'mapboxCanFillGapAutomatically': false,
     'remoteBackupCanFillGapAutomatically': false,
+    'continuityTrustedAfterValidationOnly': true,
+    'firestoreCanOverrideContinuity': false,
+    'mapboxCanOverrideContinuity': false,
     'rawTripRecordsIncluded': false,
     'rawLocationIncluded': false,
   };
@@ -230,11 +237,20 @@ class TripOdometerCalibrationSignal {
     'eligibleSampleCount': eligibleSampleCount < 0 ? 0 : eligibleSampleCount,
     'averageDifferencePercent': _safeRoundedPercent(averageDifferencePercent),
     'reasonCode': _safeCalibrationReason(reasonCode),
-    'shouldPromptUser': shouldPromptUser,
-    'maySuggestTireOrSpeedometerReview': maySuggestTireOrSpeedometerReview,
+    'shouldPromptUser': _safeCalibrationShouldPrompt(
+      status: status,
+      reasonCode: reasonCode,
+    ),
+    'maySuggestTireOrSpeedometerReview':
+        _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
+        maySuggestTireOrSpeedometerReview,
     'canOverwriteConfirmedOdometer': false,
     'calibrationRequiresUserOptIn': true,
     'canApplySilently': false,
+    'calibrationTrustedAfterReviewedHistoryOnly': true,
+    'remoteCalibrationCanApplySilently': false,
+    'firestoreCanOverrideCalibration': false,
+    'mapboxCanOverrideCalibration': false,
     'gpsAssistanceCalibrationMultiplier': _safeRoundedMultiplier(
       gpsAssistanceCalibrationMultiplier,
     ),
@@ -440,6 +456,13 @@ String _safeCalibrationReason(String value) {
     _ => 'unknown_calibration_state',
   };
 }
+
+bool _safeCalibrationShouldPrompt({
+  required TripOdometerCalibrationStatus status,
+  required String reasonCode,
+}) =>
+    status == TripOdometerCalibrationStatus.reviewRecommended &&
+    _safeCalibrationReason(reasonCode) == 'persistent_gps_odometer_drift';
 
 String _safeContinuityReason(String value) {
   final clean = value.trim();
