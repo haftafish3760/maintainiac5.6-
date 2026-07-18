@@ -149,6 +149,7 @@ void main() {
       expect(failedReservation.shouldRetryBackupLater, isTrue);
       expect(safe['backupFailureCanDropCurrentCheckpoint'], isFalse);
       expect(safe['remoteBackupCanDeleteLocalData'], isFalse);
+      expect(safe['localDaytimeDataNeverSilentlyOverwritten'], isTrue);
     },
   );
 
