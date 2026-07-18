@@ -137,6 +137,43 @@ void main() {
     expect(decision.canFeedLiveOdometerProjection, isFalse);
   });
 
+  test('reported GPS speed boundary accepts 70 mps and rejects above it', () {
+    final boundary = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000, speed: 70),
+        sample(30, 35.0002, -80.0000, speed: 70),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+    final aboveBoundary = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000, speed: 70.1),
+        sample(30, 35.0002, -80.0000, speed: 70.1),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+    final malformed = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000, speed: double.nan),
+        sample(30, 35.0002, -80.0000, speed: double.infinity),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+
+    expect(boundary.status, TripSampleWindowQualityStatus.usableForTracking);
+    expect(boundary.validSampleCount, 2);
+    expect(boundary.rejectedSampleCount, 0);
+    expect(
+      aboveBoundary.status,
+      TripSampleWindowQualityStatus.degradedTrackingOnly,
+    );
+    expect(aboveBoundary.validSampleCount, 0);
+    expect(aboveBoundary.rejectedSampleCount, 2);
+    expect(malformed.validSampleCount, 0);
+    expect(malformed.rejectedSampleCount, 2);
+    expect(malformed.canFeedLiveOdometerProjection, isFalse);
+  });
+
   test(
     'poor or interrupted GPS pauses projection and compact route points',
     () {

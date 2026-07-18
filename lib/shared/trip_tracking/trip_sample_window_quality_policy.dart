@@ -416,7 +416,10 @@ bool _isIndividuallySafe(
     return false;
   }
   final speed = sample.speedMetersPerSecond;
-  return speed == null || (speed.isFinite && speed >= 0 && speed <= 70);
+  return speed == null ||
+      (speed.isFinite &&
+          speed >= 0 &&
+          speed <= _maximumCredibleGpsSpeedMetersPerSecond);
 }
 
 bool _hasSafeTimestamp(
@@ -445,8 +448,10 @@ bool _routePointAllowed(
 
 bool _impossibleSegmentSpeed(double distanceMeters, int gapSeconds) {
   if (gapSeconds <= 0) return true;
-  return distanceMeters / gapSeconds > 70;
+  return distanceMeters / gapSeconds > _maximumCredibleGpsSpeedMetersPerSecond;
 }
+
+const _maximumCredibleGpsSpeedMetersPerSecond = 70.0;
 
 bool _trustedSignalForProjection(TripTrackingSignalQuality quality) {
   return switch (quality) {
