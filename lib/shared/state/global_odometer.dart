@@ -44,6 +44,7 @@ class GlobalOdometerController extends ChangeNotifier {
   String? _liveTripId;
   int? _liveTripEstimatedReading;
   DateTime? _liveTripUpdatedAt;
+  var _liveTripProjectionRevision = 0;
   var _eventSequence = 0;
   final OdometerValidationPolicy _validationPolicy;
   bool _drivingPatternReviewEnabled;
@@ -63,7 +64,9 @@ class GlobalOdometerController extends ChangeNotifier {
   String get vehicleId => _vehicleId;
   int get maxSupportedReading => _validationPolicy.maxSupportedReading;
   bool get hasLiveTripProjection => _liveTripId != null;
+  String? get activeLiveTripId => _liveTripId;
   DateTime? get liveTripUpdatedAt => _liveTripUpdatedAt;
+  int get liveTripProjectionRevision => _liveTripProjectionRevision;
   int get liveTripDeltaMiles => hasLiveTripProjection ? reading - _reading : 0;
   String get liveTripDisplayLabel =>
       hasLiveTripProjection ? 'Live GPS odometer' : 'Odometer';
@@ -73,6 +76,7 @@ class GlobalOdometerController extends ChangeNotifier {
         displayReading: reading,
         isLive: hasLiveTripProjection,
         liveUpdatedAt: _liveTripUpdatedAt,
+        projectionRevision: _liveTripProjectionRevision,
       );
   List<OdometerReadingEvent> get history => List.unmodifiable(_history);
   List<OdometerReadingEvent> get unresolvedMileageEvents => _history
@@ -134,6 +138,7 @@ class GlobalOdometerController extends ChangeNotifier {
   bool beginLiveTripProjection({
     required String tripId,
     required int startingOdometer,
+    DateTime? observedAtUtc,
   }) {
     if (!_isSafeLiveTripId(tripId) || hasLiveTripProjection) return false;
     if (startingOdometer != _reading ||
@@ -142,7 +147,8 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     _liveTripId = tripId;
     _liveTripEstimatedReading = startingOdometer;
-    _liveTripUpdatedAt = DateTime.now();
+    _liveTripUpdatedAt = _safeBeginLiveProjectionUpdateTime(observedAtUtc);
+    _liveTripProjectionRevision += 1;
     notifyListeners();
     return true;
   }
@@ -150,16 +156,27 @@ class GlobalOdometerController extends ChangeNotifier {
   bool updateLiveTripProjection({
     required String tripId,
     required int estimatedOdometer,
+    DateTime? observedAtUtc,
+    DateTime? receivedAtUtc,
+    Duration staleAfter = const Duration(minutes: 5),
   }) {
+    final trustedUpdateAt = _safeLiveProjectionUpdateTime(
+      observedAtUtc,
+      receivedAtUtc: receivedAtUtc,
+      currentUpdatedAt: _liveTripUpdatedAt,
+      staleAfter: staleAfter,
+    );
     if (_liveTripId != tripId ||
         estimatedOdometer < _reading ||
-        estimatedOdometer > _validationPolicy.maxSupportedReading) {
+        estimatedOdometer > _validationPolicy.maxSupportedReading ||
+        trustedUpdateAt == null) {
       return false;
     }
     final current = _liveTripEstimatedReading ?? _reading;
     if (estimatedOdometer <= current) return true;
     _liveTripEstimatedReading = estimatedOdometer;
-    _liveTripUpdatedAt = DateTime.now();
+    _liveTripUpdatedAt = trustedUpdateAt;
+    _liveTripProjectionRevision += 1;
     notifyListeners();
     return true;
   }
@@ -169,6 +186,7 @@ class GlobalOdometerController extends ChangeNotifier {
     _liveTripId = null;
     _liveTripEstimatedReading = null;
     _liveTripUpdatedAt = null;
+    _liveTripProjectionRevision += 1;
     notifyListeners();
     return true;
   }
@@ -624,3 +642,26 @@ String _odometerSourceLabel(String? sourceType) =>
     sourceType == 'gps_trip_review' ? 'GPS trip' : 'receipt';
 
 int _safeOdometerReading(int value) => value < 0 ? 0 : value;
+
+DateTime _safeBeginLiveProjectionUpdateTime(DateTime? observedAtUtc) =>
+    (observedAtUtc ?? DateTime.now()).toUtc();
+
+DateTime? _safeLiveProjectionUpdateTime(
+  DateTime? observedAtUtc, {
+  DateTime? receivedAtUtc,
+  DateTime? currentUpdatedAt,
+  Duration staleAfter = const Duration(minutes: 5),
+}) {
+  final received = (receivedAtUtc ?? DateTime.now()).toUtc();
+  final observed = (observedAtUtc ?? received).toUtc();
+  if (observed.isAfter(received.add(const Duration(seconds: 30)))) {
+    return null;
+  }
+  if (staleAfter > Duration.zero &&
+      received.difference(observed) > staleAfter) {
+    return null;
+  }
+  final current = currentUpdatedAt?.toUtc();
+  if (current != null && observed.isBefore(current)) return null;
+  return observed;
+}

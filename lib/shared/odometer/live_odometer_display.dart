@@ -4,12 +4,14 @@ class LiveOdometerDisplaySnapshot {
     required this.displayReading,
     required this.isLive,
     this.liveUpdatedAt,
+    this.projectionRevision = 0,
   });
 
   final int confirmedReading;
   final int displayReading;
   final bool isLive;
   final DateTime? liveUpdatedAt;
+  final int projectionRevision;
 
   int get deltaMiles {
     final delta = displayReading - confirmedReading;
@@ -108,6 +110,7 @@ class LiveOdometerDisplaySnapshot {
     'advisoryLabel': advisoryLabel,
     'freshness': freshnessAt(now),
     'ageSeconds': ageSecondsAt(now),
+    'projectionRevision': projectionRevision < 0 ? 0 : projectionRevision,
     'reviewRequired': isStaleAt(now),
     'manualEntryBlocked': manualEntryBlocked,
     'truthLabel': truthLabel,

@@ -26,6 +26,7 @@ void main() {
       'advisoryLabel': null,
       'freshness': 'inactive',
       'ageSeconds': null,
+      'projectionRevision': 0,
       'reviewRequired': false,
       'manualEntryBlocked': false,
       'truthLabel': 'Confirmed odometer',
@@ -124,6 +125,7 @@ void main() {
           'GPS-assisted estimate is 4 mi ahead of confirmed odometer.',
       'freshness': 'stale',
       'ageSeconds': 360,
+      'projectionRevision': 0,
       'reviewRequired': true,
       'manualEntryBlocked': true,
       'truthLabel':
@@ -262,6 +264,7 @@ void main() {
     expect(live.deltaMiles, 2);
     expect(live.deltaLabel, '+2 mi live');
     expect(live.liveUpdatedAt, isNotNull);
+    expect(live.projectionRevision, 2);
     expect(controller.confirmedReading, 1000);
   });
 }

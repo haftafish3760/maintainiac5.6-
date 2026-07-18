@@ -140,6 +140,64 @@ void main() {
     expect(conflict.message, contains('GPS trip'));
   });
 
+  test('live GPS odometer projection rejects stale or future updates', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+    final start = DateTime.utc(2026, 7, 18, 12);
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_live_trust_boundary',
+        startingOdometer: 1000,
+        observedAtUtc: start,
+      ),
+      isTrue,
+    );
+    expect(controller.liveTripProjectionRevision, 1);
+
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_live_trust_boundary',
+        estimatedOdometer: 1002,
+        observedAtUtc: start.subtract(const Duration(seconds: 1)),
+        receivedAtUtc: start,
+      ),
+      isFalse,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_live_trust_boundary',
+        estimatedOdometer: 1002,
+        observedAtUtc: start.add(const Duration(minutes: 1)),
+        receivedAtUtc: start,
+      ),
+      isFalse,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_live_trust_boundary',
+        estimatedOdometer: 1002,
+        observedAtUtc: start.add(const Duration(minutes: 1)),
+        receivedAtUtc: start.add(const Duration(minutes: 7)),
+      ),
+      isFalse,
+    );
+
+    expect(controller.reading, 1000);
+    expect(controller.liveTripProjectionRevision, 1);
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_live_trust_boundary',
+        estimatedOdometer: 1002,
+        observedAtUtc: start.add(const Duration(minutes: 1)),
+        receivedAtUtc: start.add(const Duration(minutes: 1, seconds: 5)),
+      ),
+      isTrue,
+    );
+    expect(controller.reading, 1002);
+    expect(controller.confirmedReading, 1000);
+    expect(controller.liveTripProjectionRevision, 2);
+  });
+
   test('lower odometer reading requires correction review', () {
     final controller = GlobalOdometerController(initialReading: 1000);
     final result = controller.updateFromText('999');
