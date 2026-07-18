@@ -518,22 +518,47 @@ class TripTrackingPendingSample {
     required this.sessionId,
     required this.sample,
     this.activity,
+    this.schemaVersion = _pendingSampleSchemaVersion,
   });
 
   final String sessionId;
   final TripLocationSample sample;
   final TripActivityObservation? activity;
+  final int schemaVersion;
 
   Map<String, Object?> toMap() => {
+    'schemaVersion': _pendingSampleSchemaVersion,
     'sessionId': sessionId,
     'sample': sample.toMap(),
     'activity': activity?.toMap(),
   };
 
+  Map<String, Object?> toBoundarySummary({DateTime? now}) {
+    final activitySafe = _isSafePendingActivity(sample, activity);
+    return {
+      'schemaVersion': _pendingSampleSchemaVersion,
+      'hasSafeSessionId': _isSafePendingSessionId(sessionId),
+      'hasValidCoordinate': sample.hasValidCoordinate,
+      'hasValidAccuracy': sample.hasValidAccuracy,
+      'hasActivityEvidence': activity != null,
+      'hasSafeActivityEvidence': activitySafe,
+      'mockedLocationReported': sample.mockedLocation == true,
+      'preciseLocationIncluded': false,
+      'preciseTimestampIncluded': false,
+      'rawProviderPayloadIncluded': false,
+      'authoritativeForMileage': false,
+      'canOverrideOdometer': false,
+      'canCreateTripLogEntry': false,
+    };
+  }
+
   static TripTrackingPendingSample? tryFromMap(Map<dynamic, dynamic> map) {
     final sampleMap = map['sample'];
     final sessionId = map['sessionId'];
-    if (!_isSafePendingSessionId(sessionId) || sampleMap is! Map) {
+    if (_pendingSchemaVersion(map['schemaVersion']) !=
+            _pendingSampleSchemaVersion ||
+        !_isSafePendingSessionId(sessionId) ||
+        sampleMap is! Map) {
       return null;
     }
     final sample = TripLocationSample.tryFromMap(sampleMap);
@@ -545,8 +570,16 @@ class TripTrackingPendingSample {
       sessionId: sessionId as String,
       sample: sample,
       activity: _isSafePendingActivity(sample, activity) ? activity : null,
+      schemaVersion: _pendingSampleSchemaVersion,
     );
   }
+}
+
+const int _pendingSampleSchemaVersion = 1;
+
+int? _pendingSchemaVersion(Object? value) {
+  if (value is int && value == _pendingSampleSchemaVersion) return value;
+  return null;
 }
 
 bool _isSafePendingActivity(
