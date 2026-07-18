@@ -31,4 +31,42 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
     _ => 'GPS reported a device error.',
   };
+
+  static Map<String, Object?> toSafeSummary(String? errorCode) {
+    final recoverable = requiresRecovery(errorCode);
+    final malformedPayload = isIgnorableMalformedPayload(errorCode);
+    return {
+      'schemaVersion': 1,
+      'recoverable': recoverable,
+      'ignorableMalformedPayload': malformedPayload,
+      'safeMessage': safeMessage(errorCode),
+      'nativeErrorCode': _safeErrorCode(errorCode),
+      'gpsCanContinueOffline': malformedPayload,
+      'requiresUserAction': recoverable,
+      'failClosedForGpsStartup': recoverable,
+      'malformedPayloadCanStopTrip': false,
+      'rawNativePayloadIncluded': false,
+      'preciseLocationIncluded': false,
+      'tokensIncluded': false,
+      'mapboxErrorCanCorruptTripLog': false,
+      'odometerRemainsCanonical': true,
+    };
+  }
+}
+
+String _safeErrorCode(String? value) {
+  return switch (value?.trim()) {
+    'trip_tracking_foreground_service_denied' =>
+      'trip_tracking_foreground_service_denied',
+    'trip_tracking_location_registration_failed' =>
+      'trip_tracking_location_registration_failed',
+    'trip_tracking_location_denied' => 'trip_tracking_location_denied',
+    'trip_tracking_gps_unavailable' => 'trip_tracking_gps_unavailable',
+    'trip_tracking_gps_disabled' => 'trip_tracking_gps_disabled',
+    'invalidLocationPayload' => 'invalidLocationPayload',
+    'invalidActivityPayload' => 'invalidActivityPayload',
+    'invalidNativeEventPayload' => 'invalidNativeEventPayload',
+    'invalidStatusPayload' => 'invalidStatusPayload',
+    _ => 'unknown_native_gps_error',
+  };
 }

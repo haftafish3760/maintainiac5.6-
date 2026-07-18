@@ -64,4 +64,29 @@ void main() {
       isNot(contains('pk')),
     );
   });
+
+  test('native error summaries expose only allow-listed codes', () {
+    final denied = TripTrackingNativeErrorPolicy.toSafeSummary(
+      'trip_tracking_location_denied',
+    );
+    final malformed = TripTrackingNativeErrorPolicy.toSafeSummary(
+      'invalidLocationPayload',
+    );
+    final unknown = TripTrackingNativeErrorPolicy.toSafeSummary(
+      'token=sk.secret lat=35.1',
+    );
+
+    expect(denied['nativeErrorCode'], 'trip_tracking_location_denied');
+    expect(denied['recoverable'], isTrue);
+    expect(denied['requiresUserAction'], isTrue);
+    expect(malformed['ignorableMalformedPayload'], isTrue);
+    expect(malformed['gpsCanContinueOffline'], isTrue);
+    expect(malformed['malformedPayloadCanStopTrip'], isFalse);
+    expect(unknown['nativeErrorCode'], 'unknown_native_gps_error');
+    expect(unknown['rawNativePayloadIncluded'], isFalse);
+    expect(unknown['mapboxErrorCanCorruptTripLog'], isFalse);
+    expect(unknown['odometerRemainsCanonical'], isTrue);
+    expect(unknown.toString(), isNot(contains('sk.secret')));
+    expect(unknown.toString(), isNot(contains('35.1')));
+  });
 }
