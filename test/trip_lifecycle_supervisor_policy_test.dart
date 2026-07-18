@@ -229,6 +229,69 @@ void main() {
     expect(validation.reasons, isEmpty);
   });
 
+  test('supervisor validation rejects forged replay and upload states', () {
+    final base = TripLifecycleSupervisorPolicy.evaluate(
+      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      dashboardRollup: normalRollup,
+      errorRecoveryPlan: recoveryPlan(null),
+      recoveryDecision: noRecovery,
+      localCheckpointAvailable: true,
+      nativeTrackingAvailable: true,
+      backupMirrorReady: true,
+    ).toSafeDashboardMap();
+
+    final replay = TripLifecycleSupervisorSummaryValidation.fromSummary(
+      base..addAll({
+        'status': 'continueTracking',
+        'reasonCode': 'supervisor_continue_tracking',
+        'nextLifecycle': 'active',
+        'canReplayPendingSample': true,
+      }),
+    );
+    final upload = TripLifecycleSupervisorSummaryValidation.fromSummary(
+      TripLifecycleSupervisorPolicy.evaluate(
+        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        dashboardRollup: normalRollup,
+        errorRecoveryPlan: recoveryPlan(null),
+        recoveryDecision: noRecovery,
+        localCheckpointAvailable: true,
+        nativeTrackingAvailable: true,
+        backupMirrorReady: true,
+      ).toSafeDashboardMap()..addAll({
+        'shouldRequestUserAction': true,
+        'canUploadBackupMirror': true,
+      }),
+    );
+    final blocked = TripLifecycleSupervisorSummaryValidation.fromSummary(
+      TripLifecycleSupervisorPolicy.evaluate(
+        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        dashboardRollup: normalRollup,
+        errorRecoveryPlan: recoveryPlan(null),
+        recoveryDecision: noRecovery,
+        localCheckpointAvailable: false,
+        nativeTrackingAvailable: true,
+        backupMirrorReady: true,
+      ).toSafeDashboardMap()..addAll({
+        'canReplayPendingSample': true,
+        'canUploadBackupMirror': true,
+        'shouldKeepForegroundServiceAlive': true,
+      }),
+    );
+
+    expect(replay.isRenderable, isFalse);
+    expect(
+      replay.reasons,
+      contains('pending_replay_lifecycle_boundary_missing'),
+    );
+    expect(upload.isRenderable, isFalse);
+    expect(
+      upload.reasons,
+      contains('backup_upload_user_action_boundary_missing'),
+    );
+    expect(blocked.isRenderable, isFalse);
+    expect(blocked.reasons, contains('blocked_supervisor_boundary_missing'));
+  });
+
   test(
     'forged supervisor summaries cannot finish or remotely control trips',
     () {

@@ -164,14 +164,15 @@ class TripLifecycleSupervisorSummaryValidation {
     if (summary['schemaVersion'] != 1) {
       reasons.add('unsupported_schema_version');
     }
-    if (_safeStatus(summary['status']) == null) {
+    final status = _safeStatus(summary['status']);
+    final reasonCode = summary['reasonCode']?.toString() ?? '';
+    if (status == null) {
       reasons.add('invalid_supervisor_status');
     }
     if (_safeLifecycle(summary['nextLifecycle']) == null) {
       reasons.add('invalid_next_lifecycle');
     }
-    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
-        summary['reasonCode']) {
+    if (_safeReason(reasonCode) != summary['reasonCode']) {
       reasons.add('invalid_supervisor_reason');
     }
     for (final key in const [
@@ -215,6 +216,24 @@ class TripLifecycleSupervisorSummaryValidation {
         summary['supervisorCanCreateOfficialStop'] != false ||
         summary['malformedNativePayloadCanEndTrip'] != false) {
       reasons.add('supervisor_can_create_trip_truth');
+    }
+    if (summary['canReplayPendingSample'] == true &&
+        (status != TripLifecycleSupervisorStatus.recoverInBackground ||
+            reasonCode != 'replay_pending_sample_after_restore' ||
+            summary['nextLifecycle'] !=
+                TripTrackingSessionLifecycleState.recovering.name ||
+            summary['shouldRequestUserAction'] != false)) {
+      reasons.add('pending_replay_lifecycle_boundary_missing');
+    }
+    if (summary['canUploadBackupMirror'] == true &&
+        summary['shouldRequestUserAction'] == true) {
+      reasons.add('backup_upload_user_action_boundary_missing');
+    }
+    if (summary['status'] == TripLifecycleSupervisorStatus.blocked.name &&
+        (summary['canReplayPendingSample'] != false ||
+            summary['canUploadBackupMirror'] != false ||
+            summary['shouldKeepForegroundServiceAlive'] != false)) {
+      reasons.add('blocked_supervisor_boundary_missing');
     }
     if (summary['remoteSupervisorCanOverrideLocalTrip'] != false ||
         summary['firestoreCanOverrideLifecycle'] != false ||
