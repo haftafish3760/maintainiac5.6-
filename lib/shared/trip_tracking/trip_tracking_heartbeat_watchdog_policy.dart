@@ -4,6 +4,8 @@ enum TripTrackingHeartbeatWatchdogStatus {
   healthy,
   staleButRecoverable,
   interruptedNeedsRecovery,
+  pausedNoop,
+  terminalProtected,
   blockedInvalidClock,
 }
 
@@ -11,6 +13,8 @@ enum TripTrackingHeartbeatWatchdogAction {
   continueTracking,
   markDegraded,
   markInterrupted,
+  preservePaused,
+  protectTerminal,
   ignoreInvalidClock,
 }
 
@@ -43,6 +47,8 @@ class TripTrackingHeartbeatWatchdogDecision {
     'shouldRetryNativeTracking': shouldRetryNativeTracking,
     'requiresUserReview': requiresUserReview,
     'backgroundHeartbeatTrustedAfterValidationOnly': true,
+    'heartbeatRespectsPausedTrip': true,
+    'heartbeatCannotResumeTerminalTrip': true,
     'androidSleepCanDeleteCheckpoint': false,
     'iosBackgroundPauseCanDeleteCheckpoint': false,
     'heartbeatGapCanCreateMileage': false,
@@ -77,6 +83,23 @@ class TripTrackingHeartbeatWatchdogPolicy {
         'invalid_watchdog_thresholds',
         currentLifecycle,
         requiresUserReview: true,
+      );
+    }
+    if (_terminalProtected(currentLifecycle)) {
+      return _decision(
+        TripTrackingHeartbeatWatchdogStatus.terminalProtected,
+        TripTrackingHeartbeatWatchdogAction.protectTerminal,
+        'heartbeat_terminal_session_protected',
+        currentLifecycle,
+        requiresUserReview: true,
+      );
+    }
+    if (currentLifecycle == TripTrackingSessionLifecycleState.paused) {
+      return _decision(
+        TripTrackingHeartbeatWatchdogStatus.pausedNoop,
+        TripTrackingHeartbeatWatchdogAction.preservePaused,
+        'heartbeat_paused_trip_preserved',
+        currentLifecycle,
       );
     }
     final heartbeat = lastHeartbeatUtc?.toUtc();
@@ -121,6 +144,13 @@ class TripTrackingHeartbeatWatchdogPolicy {
   }
 }
 
+bool _terminalProtected(TripTrackingSessionLifecycleState state) {
+  return state == TripTrackingSessionLifecycleState.completed ||
+      state == TripTrackingSessionLifecycleState.awaitingReview ||
+      state == TripTrackingSessionLifecycleState.failedTerminal ||
+      state == TripTrackingSessionLifecycleState.disabled;
+}
+
 TripTrackingHeartbeatWatchdogDecision _decision(
   TripTrackingHeartbeatWatchdogStatus status,
   TripTrackingHeartbeatWatchdogAction action,
@@ -148,7 +178,9 @@ String _safeReason(String value) {
     'heartbeat_recent' ||
     'native_tracking_not_expected' ||
     'heartbeat_stale_retry_native' ||
-    'heartbeat_interrupted_recovery_required' => clean,
+    'heartbeat_interrupted_recovery_required' ||
+    'heartbeat_paused_trip_preserved' ||
+    'heartbeat_terminal_session_protected' => clean,
     _ => 'heartbeat_clock_invalid',
   };
 }

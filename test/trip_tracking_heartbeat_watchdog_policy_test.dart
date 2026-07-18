@@ -56,6 +56,48 @@ void main() {
     expect(safe['localCheckpointPreservedUntilReview'], isTrue);
   });
 
+  test('paused trips are preserved instead of restarted by heartbeat', () {
+    final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
+      currentLifecycle: TripTrackingSessionLifecycleState.paused,
+      lastHeartbeatUtc: now.subtract(const Duration(minutes: 20)),
+      nowUtc: now,
+    );
+    final safe = decision.toSafeSummary();
+
+    expect(decision.status, TripTrackingHeartbeatWatchdogStatus.pausedNoop);
+    expect(decision.action, TripTrackingHeartbeatWatchdogAction.preservePaused);
+    expect(decision.targetLifecycle, TripTrackingSessionLifecycleState.paused);
+    expect(decision.shouldRetryNativeTracking, isFalse);
+    expect(safe['heartbeatRespectsPausedTrip'], isTrue);
+  });
+
+  test('terminal sessions cannot be resumed by stale heartbeat recovery', () {
+    for (final state in [
+      TripTrackingSessionLifecycleState.completed,
+      TripTrackingSessionLifecycleState.awaitingReview,
+      TripTrackingSessionLifecycleState.failedTerminal,
+      TripTrackingSessionLifecycleState.disabled,
+    ]) {
+      final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
+        currentLifecycle: state,
+        lastHeartbeatUtc: now.subtract(const Duration(minutes: 20)),
+        nowUtc: now,
+      );
+
+      expect(
+        decision.status,
+        TripTrackingHeartbeatWatchdogStatus.terminalProtected,
+        reason: state.name,
+      );
+      expect(decision.targetLifecycle, state);
+      expect(decision.shouldRetryNativeTracking, isFalse);
+      expect(
+        decision.toSafeSummary()['heartbeatCannotResumeTerminalTrip'],
+        isTrue,
+      );
+    }
+  });
+
   test(
     'invalid clocks fail closed without changing mileage or checkpoints',
     () {
