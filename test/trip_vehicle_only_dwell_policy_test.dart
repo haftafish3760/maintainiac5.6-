@@ -227,6 +227,8 @@ void main() {
       );
       expect(decision.canSurfaceManualFallback, isTrue);
       expect(safe['manualFallbackRequiresUserAction'], isTrue);
+      expect(safe['manualFallbackCanConfirmMileage'], isFalse);
+      expect(safe['manualFallbackCanInferAddress'], isFalse);
       expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
       expect(safe['activityRecognitionCanConfirmVehicleOnlyStop'], isFalse);
       expect(safe['walkingEvidenceCanBeReplayedFromCloud'], isFalse);
@@ -236,6 +238,8 @@ void main() {
       expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['twoPersonDeliveryRequiresManualConfirmation'], isTrue);
       expect(safe['manualFallbackCanBackdateWithoutReview'], isFalse);
+      expect(safe['gridlockCanInferStopAddress'], isFalse);
+      expect(safe['gridlockCanConfirmMileage'], isFalse);
       expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
     },
   );
@@ -264,6 +268,13 @@ void main() {
       TripVehicleOnlyDwellSummaryValidation.isValid({
         ...safe,
         'manualFallbackCanEditOdometer': true,
+      }),
+      isFalse,
+    );
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid({
+        ...safe,
+        'manualFallbackCanConfirmMileage': true,
       }),
       isFalse,
     );

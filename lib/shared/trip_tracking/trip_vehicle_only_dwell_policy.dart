@@ -50,6 +50,8 @@ class TripVehicleOnlyDwellDecision {
     'manualFallbackRequiresActiveLocalTrip': true,
     'manualFallbackRequiresUserAction': true,
     'manualFallbackCanEditOdometer': false,
+    'manualFallbackCanConfirmMileage': false,
+    'manualFallbackCanInferAddress': false,
     'manualFallbackCanBackdateWithoutReview': false,
     'vehicleOnlyDwellCanCreateOfficialStop': false,
     'vehicleOnlyDwellCanEndTripAutomatically': false,
@@ -73,7 +75,10 @@ class TripVehicleOnlyDwellDecision {
         status == TripVehicleOnlyDwellStatus.trafficControlProtected,
     'trafficControlCanSurfaceManualFallback': false,
     'trafficControlCanInferStopAddress': false,
+    'trafficControlCanConfirmMileage': false,
     'gridlockCanCreateOfficialStop': false,
+    'gridlockCanInferStopAddress': false,
+    'gridlockCanConfirmMileage': false,
     'gridlockRequiresManualConfirmation': true,
     'twoPersonDeliveryRequiresManualConfirmation': true,
     'manualFallbackCannotInferJobsiteAddress': true,
@@ -124,6 +129,8 @@ class TripVehicleOnlyDwellSummaryValidation {
     }
     if (!_trueFlag(summary, 'manualFallbackRequiresUserAction')) return false;
     if (!_falseFlag(summary, 'manualFallbackCanEditOdometer')) return false;
+    if (!_falseFlag(summary, 'manualFallbackCanConfirmMileage')) return false;
+    if (!_falseFlag(summary, 'manualFallbackCanInferAddress')) return false;
     if (!_falseFlag(summary, 'manualFallbackCanBackdateWithoutReview')) {
       return false;
     }
@@ -174,7 +181,10 @@ class TripVehicleOnlyDwellSummaryValidation {
     if (!_falseFlag(summary, 'trafficControlCanInferStopAddress')) {
       return false;
     }
+    if (!_falseFlag(summary, 'trafficControlCanConfirmMileage')) return false;
     if (!_falseFlag(summary, 'gridlockCanCreateOfficialStop')) return false;
+    if (!_falseFlag(summary, 'gridlockCanInferStopAddress')) return false;
+    if (!_falseFlag(summary, 'gridlockCanConfirmMileage')) return false;
     if (!_trueFlag(summary, 'gridlockRequiresManualConfirmation')) {
       return false;
     }

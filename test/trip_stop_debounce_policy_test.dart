@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_summary_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 void main() {
@@ -282,6 +283,16 @@ void main() {
       decision.toSafeDashboardMap()['longStoplightCannotCreateOfficialStop'],
       isTrue,
     );
+    expect(
+      decision.toSafeDashboardMap()['longStoplightCannotInferAddress'],
+      isTrue,
+    );
+    expect(
+      TripStopDebounceSummaryValidation.fromDashboardMap(
+        decision.toSafeDashboardMap(),
+      ).isRenderable,
+      isTrue,
+    );
   });
 
   test('long rideshare vehicle-only dwell surfaces manual fallback only', () {
@@ -335,8 +346,17 @@ void main() {
       expect(vehicleOnly['longTrafficLightProtected'], isTrue);
       expect(vehicleOnly['trafficControlCanSurfaceManualFallback'], isFalse);
       expect(vehicleOnly['trafficControlCanInferStopAddress'], isFalse);
+      expect(vehicleOnly['trafficControlCanConfirmMileage'], isFalse);
       expect(vehicleOnly['gridlockCanCreateOfficialStop'], isFalse);
+      expect(vehicleOnly['gridlockCanInferStopAddress'], isFalse);
+      expect(vehicleOnly['gridlockCanConfirmMileage'], isFalse);
       expect(vehicleOnly['gridlockRequiresManualConfirmation'], isTrue);
+      expect(
+        TripStopDebounceSummaryValidation.fromDashboardMap(
+          decision.toSafeDashboardMap(),
+        ).isRenderable,
+        isTrue,
+      );
     },
   );
 
@@ -441,13 +461,22 @@ void main() {
     expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['walkingEvidenceCanOnlySuggestReview'], isTrue);
+    expect(safe['walkingEvidenceRequiresUserSensorOptIn'], isTrue);
     expect(safe['walkingEvidenceRequiresCurrentDeviceSensor'], isTrue);
     expect(safe['walkingEvidenceCannotBeReplayedFromCloud'], isTrue);
+    expect(safe['walkingEvidenceCannotBeImportedFromFile'], isTrue);
     expect(safe['walkingEvidenceCannotCommitStop'], isTrue);
     expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
     expect(safe['stopReviewCannotCommitWithoutUserAction'], isTrue);
     expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
+    expect(safe['manualFallbackCannotInferAddress'], isTrue);
+    expect(safe['manualFallbackCannotConfirmMileage'], isTrue);
+    expect(safe['gridlockCannotInferAddress'], isTrue);
     expect(safe['driverProfileThresholdsAreLocalPolicy'], isTrue);
+    expect(
+      TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
+      isTrue,
+    );
   });
 
   test('safe summary carries counts but never remote stop authority', () {

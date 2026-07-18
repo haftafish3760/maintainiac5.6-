@@ -93,15 +93,21 @@ class TripStopDebounceSummaryValidation {
       reasons.add('stop_evidence_can_create_calibration');
     }
     if (summary['walkingEvidenceCanOnlySuggestReview'] != true ||
+        summary['walkingEvidenceRequiresUserSensorOptIn'] != true ||
         summary['walkingEvidenceRequiresCurrentDeviceSensor'] != true ||
         summary['walkingEvidenceCannotBeReplayedFromCloud'] != true ||
+        summary['walkingEvidenceCannotBeImportedFromFile'] != true ||
         summary['walkingEvidenceCannotCommitStop'] != true) {
       reasons.add('walking_evidence_not_advisory_only');
     }
     if (summary['vehicleOnlyDwellCanOnlySuggestManualFallback'] != true ||
         summary['vehicleOnlyDwellCannotInferAddress'] != true ||
+        summary['manualFallbackCannotInferAddress'] != true ||
+        summary['manualFallbackCannotConfirmMileage'] != true ||
         summary['longStoplightCannotCreateOfficialStop'] != true ||
+        summary['longStoplightCannotInferAddress'] != true ||
         summary['gridlockCannotCreateOfficialStop'] != true ||
+        summary['gridlockCannotInferAddress'] != true ||
         summary['twoPersonDeliveryRequiresManualConfirmation'] != true ||
         summary['driverProfileThresholdsAreLocalPolicy'] != true) {
       reasons.add('vehicle_only_dwell_not_manual_only');
@@ -183,7 +189,9 @@ String? _safeDebounceReason(Object? value) {
     'unsafe_stop_debounce_evidence' => value,
     'vehicle_movement_required_before_stop_review' => value,
     'traffic_control_debounce_protected' => value,
+    'vehicle_only_dwell_traffic_control_protected' => value,
     'vehicle_only_dwell_manual_fallback' => value,
+    'vehicle_speed_blocks_stop_review' => value,
     'walking_burst_debounce_protected' => value,
     'future_walking_evidence_rejected' => value,
     'stale_walking_evidence_rejected' => value,
