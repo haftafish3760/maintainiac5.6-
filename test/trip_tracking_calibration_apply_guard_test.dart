@@ -100,6 +100,8 @@ void main() {
     expect(safe['calibrationRequiresSingleVehicleHistory'], isTrue);
     expect(safe['calibrationRequiresLocalReviewedOdometerHistory'], isTrue);
     expect(safe['continuousCalibrationAverageRequired'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['singleDayCalibrationRejected'], isTrue);
     expect(safe['calibrationAverageVehicleScoped'], isTrue);
     expect(safe['calibrationRequiresOwnershipOrExplicitAccess'], isTrue);
@@ -110,6 +112,7 @@ void main() {
     expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
     expect(safe['settingsCanDisableCalibrationAssist'], isTrue);
     expect(safe['settingsCanResetCalibrationPrompt'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['odometerRemainsCanonical'], isTrue);
     expect(safe['gpsEstimateRemainsNonCanonical'], isTrue);
   });
@@ -471,6 +474,8 @@ void main() {
               'calibrationRequiresSingleVehicleHistory': false,
               'calibrationRequiresLocalReviewedOdometerHistory': false,
               'continuousCalibrationAverageRequired': false,
+              'poorGpsDaysExcludedFromCalibration': false,
+              'calibrationRequiresTrustedGpsWindow': false,
               'singleDayCalibrationRejected': false,
               'calibrationAverageVehicleScoped': false,
               'calibrationRequiresOwnershipOrExplicitAccess': false,
@@ -491,6 +496,7 @@ void main() {
               'remoteCalibrationCanResetPrompt': true,
               'mapboxCanTriggerTirePrompt': true,
               'gpsCanAutoApplyCalibration': true,
+              'odometerIsGlobalTruth': false,
               'tireChangeDoesNotCreateMaintenanceEntry': false,
               'calibrationCanLowerConfirmedOdometer': true,
               'calibrationCanCreateMaintenanceRecord': true,

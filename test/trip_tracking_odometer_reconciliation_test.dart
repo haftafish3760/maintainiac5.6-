@@ -516,6 +516,14 @@ void main() {
         isTrue,
       );
       expect(
+        signal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
+        isTrue,
+      );
+      expect(
+        signal.toSafeDashboardMap()['calibrationRequiresTrustedGpsWindow'],
+        isTrue,
+      );
+      expect(
         signal.toSafeDashboardMap()['calibrationCanRewritePastTrips'],
         isFalse,
       );
@@ -538,6 +546,7 @@ void main() {
         1.0638,
       );
       expect(signal.toSafeDashboardMap()['odometerRemainsCanonical'], isTrue);
+      expect(signal.toSafeDashboardMap()['odometerIsGlobalTruth'], isTrue);
       expect(signal.toSafeDashboardMap()['rawLocationIncluded'], isFalse);
       expect(signal.toSafeDashboardMap()['tokensIncluded'], isFalse);
     },
@@ -609,6 +618,61 @@ void main() {
     expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
     expect(signal.canOverwriteConfirmedOdometer, isFalse);
   });
+
+  test(
+    'calibration excludes reviewed days with poor GPS signal diagnostics',
+    () {
+      final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+      final reviews = List.generate(
+        7,
+        (index) => TripTrackingReviewRecord(
+          id: 'trip_signal_quality_$index',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000 + (index * 100),
+          estimatedEndingOdometer: 1100 + (index * 100),
+          confirmedEndingOdometer: 1100 + (index * 100),
+          odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+          finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+          engineSnapshot: TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 94 * 1609.344,
+            walkingReviewSuggested: false,
+            diagnostics: index == 0
+                ? const TripTrackingDiagnostics(
+                    receivedSamples: 100,
+                    acceptedSamples: 55,
+                    dispositionCounts: {
+                      TripSampleDisposition.acceptedDistance: 55,
+                      TripSampleDisposition.rejectedAccuracy: 45,
+                    },
+                  )
+                : const TripTrackingDiagnostics(
+                    receivedSamples: 100,
+                    acceptedSamples: 90,
+                    dispositionCounts: {
+                      TripSampleDisposition.acceptedDistance: 90,
+                      TripSampleDisposition.rejectedAccuracy: 10,
+                    },
+                  ),
+          ),
+        ),
+      );
+
+      final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+        reviews: reviews,
+      );
+
+      expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+      expect(signal.eligibleSampleCount, 6);
+      expect(signal.reasonCode, 'needs_more_reviewed_days');
+      expect(
+        signal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
+        isTrue,
+      );
+      expect(signal.toSafeDashboardMap()['odometerIsGlobalTruth'], isTrue);
+    },
+  );
 
   test(
     'calibration ignores future-dated odometer confirmations when now is provided',
@@ -1140,6 +1204,8 @@ void main() {
       'calibrationRequiresUserOptIn': true,
       'calibrationRequiresMultipleReviewedTrips': true,
       'continuousCalibrationAverageRequired': true,
+      'poorGpsDaysExcludedFromCalibration': true,
+      'calibrationRequiresTrustedGpsWindow': true,
       'singleDayCalibrationRejected': true,
       'calibrationRequiresVehicleScopedHistory': true,
       'calibrationCanRewritePastTrips': false,
@@ -1161,6 +1227,7 @@ void main() {
       'mapboxCanTriggerTirePrompt': false,
       'gpsCanAutoApplyCalibration': false,
       'gpsAssistanceCalibrationMultiplier': 0.9434,
+      'odometerIsGlobalTruth': true,
       'odometerRemainsCanonical': true,
       'gpsAssistAdvisoryOnly': true,
       'mapboxAssistAdvisoryOnly': true,

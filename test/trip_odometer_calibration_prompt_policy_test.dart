@@ -121,6 +121,8 @@ void main() {
 
     expect(safe['calibrationRequiresUserOptIn'], isTrue);
     expect(safe['continuousCalibrationAverageRequired'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['singleDayCalibrationRejected'], isTrue);
     expect(safe['calibrationRequiresReviewedLocalHistory'], isTrue);
     expect(safe['calibrationRequiresVehicleMatchedHistory'], isTrue);
@@ -133,6 +135,7 @@ void main() {
     expect(safe['calibrationCanCreateMaintenanceRecord'], isFalse);
     expect(safe['gpsCanReplaceOdometerSilently'], isFalse);
     expect(safe['mapboxCanReplaceOdometerSilently'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(safe['tirePromptIsAdvisoryOnly'], isTrue);
     expect(safe['tirePromptDoesNotCreateMaintenanceEntry'], isTrue);
@@ -182,6 +185,8 @@ void main() {
             'calibrationRequiresUserOptIn': false,
             'calibrationRequiresMultipleReviewedTrips': false,
             'continuousCalibrationAverageRequired': false,
+            'poorGpsDaysExcludedFromCalibration': false,
+            'calibrationRequiresTrustedGpsWindow': false,
             'singleDayCalibrationRejected': false,
             'calibrationRequiresReviewedLocalHistory': false,
             'calibrationRequiresVehicleMatchedHistory': false,
@@ -196,6 +201,7 @@ void main() {
             'calibrationCanCreateMaintenanceRecord': true,
             'gpsCanReplaceOdometerSilently': true,
             'mapboxCanReplaceOdometerSilently': true,
+            'odometerIsGlobalTruth': false,
             'odometerRemainsOfficialMileageTruth': false,
             'tirePromptIsAdvisoryOnly': false,
             'tirePromptDoesNotCreateMaintenanceEntry': false,

@@ -43,6 +43,8 @@ class TripOdometerCalibrationPromptDecision {
     'calibrationRequiresUserOptIn': true,
     'calibrationRequiresMultipleReviewedTrips': true,
     'continuousCalibrationAverageRequired': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'calibrationRequiresTrustedGpsWindow': true,
     'singleDayCalibrationRejected': true,
     'calibrationRequiresReviewedLocalHistory': true,
     'calibrationRequiresVehicleMatchedHistory': true,
@@ -57,6 +59,7 @@ class TripOdometerCalibrationPromptDecision {
     'calibrationCanCreateMaintenanceRecord': false,
     'gpsCanReplaceOdometerSilently': false,
     'mapboxCanReplaceOdometerSilently': false,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'tirePromptIsAdvisoryOnly': true,
     'tirePromptDoesNotCreateMaintenanceEntry': true,
@@ -108,6 +111,8 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'calibrationRequiresUserOptIn',
       'calibrationRequiresMultipleReviewedTrips',
       'continuousCalibrationAverageRequired',
+      'poorGpsDaysExcludedFromCalibration',
+      'calibrationRequiresTrustedGpsWindow',
       'singleDayCalibrationRejected',
       'calibrationRequiresReviewedLocalHistory',
       'calibrationRequiresVehicleMatchedHistory',
@@ -122,6 +127,7 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'calibrationCanCreateMaintenanceRecord',
       'gpsCanReplaceOdometerSilently',
       'mapboxCanReplaceOdometerSilently',
+      'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
       'tirePromptIsAdvisoryOnly',
       'tirePromptDoesNotCreateMaintenanceEntry',
@@ -152,6 +158,8 @@ class TripOdometerCalibrationPromptSummaryValidation {
         summary['calibrationRequiresUserOptIn'] != true ||
         summary['calibrationRequiresMultipleReviewedTrips'] != true ||
         summary['continuousCalibrationAverageRequired'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['singleDayCalibrationRejected'] != true ||
         summary['calibrationRequiresReviewedLocalHistory'] != true ||
         summary['calibrationRequiresVehicleMatchedHistory'] != true ||
@@ -168,6 +176,7 @@ class TripOdometerCalibrationPromptSummaryValidation {
         summary['calibrationCanCreateMaintenanceRecord'] != false ||
         summary['gpsCanReplaceOdometerSilently'] != false ||
         summary['mapboxCanReplaceOdometerSilently'] != false ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['tirePromptIsAdvisoryOnly'] != true ||
         summary['tirePromptDoesNotCreateMaintenanceEntry'] != true) {

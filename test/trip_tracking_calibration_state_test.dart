@@ -66,6 +66,8 @@ void main() {
     expect(summary['enabled'], isTrue);
     expect(summary['requiresReviewedOdometerHistory'], isTrue);
     expect(summary['continuousCalibrationAverageRequired'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['singleDayCalibrationRejected'], isTrue);
     expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanRewritePastTrips'], isFalse);
@@ -73,6 +75,7 @@ void main() {
     expect(summary['calibrationCanCreateMaintenanceRecord'], isFalse);
     expect(summary['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
     expect(summary['gpsEstimateRemainsNonCanonical'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
     expect(summary['remoteCalibrationCanOverrideLocalState'], isFalse);
     expect(summary['remoteCalibrationCanEnableSetting'], isFalse);
     expect(summary['remoteCalibrationCanResetPrompt'], isFalse);

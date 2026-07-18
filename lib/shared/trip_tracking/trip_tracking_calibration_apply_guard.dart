@@ -199,6 +199,8 @@ class TripTrackingCalibrationApplyGuard {
     'reviewAcceptanceRequired': true,
     'requiresMultipleReviewedOdometerDays': true,
     'continuousCalibrationAverageRequired': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'calibrationRequiresTrustedGpsWindow': true,
     'singleDayCalibrationRejected': true,
     'calibrationAverageVehicleScoped': true,
     'latestReviewTimestampRequired': true,
@@ -208,6 +210,7 @@ class TripTrackingCalibrationApplyGuard {
     'tireChangeDoesNotCreateMaintenanceEntry': true,
     'settingsCanDisableCalibrationAssist': true,
     'settingsCanResetCalibrationPrompt': true,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
     'gpsEstimateRemainsNonCanonical': true,
     'remoteCalibrationCanOverrideLocalState': false,
@@ -289,6 +292,8 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['reviewAcceptanceRequired'] != true ||
         summary['requiresMultipleReviewedOdometerDays'] != true ||
         summary['continuousCalibrationAverageRequired'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['singleDayCalibrationRejected'] != true ||
         summary['calibrationAverageVehicleScoped'] != true ||
         summary['latestReviewTimestampRequired'] != true ||
@@ -298,7 +303,8 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['settingsCanResetCalibrationPrompt'] != true) {
       reasons.add('calibration_review_boundary_missing');
     }
-    if (summary['odometerRemainsCanonical'] != true ||
+    if (summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsCanonical'] != true ||
         summary['gpsEstimateRemainsNonCanonical'] != true ||
         summary['tireOrSpeedometerReviewIsAdvisory'] != true ||
         summary['tireChangeDoesNotCreateMaintenanceEntry'] != true ||

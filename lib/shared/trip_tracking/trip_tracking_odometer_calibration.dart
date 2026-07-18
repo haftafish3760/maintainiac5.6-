@@ -1,4 +1,5 @@
 import 'trip_tracking_odometer_reconciliation.dart';
+import 'trip_tracking_models.dart';
 import 'trip_tracking_session_store.dart';
 
 enum TripOdometerCalibrationStatus {
@@ -63,6 +64,8 @@ class TripOdometerCalibrationSignal {
     'calibrationRequiresUserOptIn': true,
     'calibrationRequiresMultipleReviewedTrips': true,
     'continuousCalibrationAverageRequired': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'calibrationRequiresTrustedGpsWindow': true,
     'singleDayCalibrationRejected': true,
     'calibrationRequiresVehicleScopedHistory': true,
     'calibrationCanRewritePastTrips': false,
@@ -86,6 +89,7 @@ class TripOdometerCalibrationSignal {
     'gpsAssistanceCalibrationMultiplier': _safeRoundedMultiplier(
       gpsAssistanceCalibrationMultiplier,
     ),
+    'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
     'gpsAssistAdvisoryOnly': true,
     'mapboxAssistAdvisoryOnly': true,
@@ -134,6 +138,7 @@ class TripOdometerCalibrationSignal {
       final recomputedDifferencePercent =
           _recomputedCalibrationDifferencePercent(sample);
       if (sample.status == TripOdometerReconciliationStatus.invalid ||
+          !isTrustedCalibrationGpsWindow(sample) ||
           !sample.confirmedOdometerDeltaMiles.isFinite ||
           sample.confirmedOdometerDeltaMiles < minimumOdometerMiles ||
           !sample.filteredGpsMiles.isFinite ||
@@ -252,6 +257,9 @@ class TripOdometerCalibrationSignal {
       if (reconciliation.status == TripOdometerReconciliationStatus.invalid) {
         continue;
       }
+      if (!_reviewHasTrustedCalibrationGpsWindow(review, reconciliation)) {
+        continue;
+      }
       final dayKey = _calibrationDayKey(review.startedAt.toUtc());
       dailyTotals
           .putIfAbsent(dayKey, _DailyCalibrationTotals.new)
@@ -271,6 +279,24 @@ class TripOdometerCalibrationSignal {
       reviewDifferencePercent: reviewDifferencePercent,
       maximumEligibleDifferencePercent: maximumEligibleDifferencePercent,
     );
+  }
+
+  static bool isTrustedCalibrationGpsWindow(
+    TripOdometerReconciliation sample, {
+    double minimumAcceptedMiles = 5,
+  }) {
+    if (!minimumAcceptedMiles.isFinite || minimumAcceptedMiles <= 0) {
+      return false;
+    }
+    if (sample.status == TripOdometerReconciliationStatus.invalid ||
+        !sample.filteredGpsMiles.isFinite ||
+        sample.filteredGpsMiles < minimumAcceptedMiles) {
+      return false;
+    }
+    final recomputedDifferencePercent = _recomputedCalibrationDifferencePercent(
+      sample,
+    );
+    return recomputedDifferencePercent != null;
   }
 }
 
@@ -302,6 +328,47 @@ bool _safeCalibrationShouldPrompt({
 }) =>
     status == TripOdometerCalibrationStatus.reviewRecommended &&
     _safeCalibrationReason(reasonCode) == 'persistent_gps_odometer_drift';
+
+bool _reviewHasTrustedCalibrationGpsWindow(
+  TripTrackingReviewRecord review,
+  TripOdometerReconciliation reconciliation,
+) {
+  if (!TripOdometerCalibrationSignal.isTrustedCalibrationGpsWindow(
+    reconciliation,
+  )) {
+    return false;
+  }
+  final diagnostics = review.engineSnapshot.diagnostics;
+  final received = diagnostics.receivedSamples;
+  final accepted = diagnostics.acceptedSamples;
+  if (received <= 0) return true;
+  if (accepted <= 0 || accepted > received) return false;
+  final acceptanceRatio = accepted / received;
+  final rejectedAccuracy =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedAccuracy] ??
+      0;
+  final rejectedMock =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedMockLocation] ??
+      0;
+  final rejectedInvalid =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedInvalid] ?? 0;
+  final rejectedFuture =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedFutureTimestamp] ??
+      0;
+  final rejectedOutOfOrder =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedOutOfOrder] ??
+      0;
+  final hardRejected =
+      rejectedAccuracy +
+      rejectedMock +
+      rejectedInvalid +
+      rejectedFuture +
+      rejectedOutOfOrder;
+  if (hardRejected > 0 && hardRejected / received > .2) return false;
+  return acceptanceRatio >= .65;
+}
 
 class _DailyCalibrationTotals {
   var odometerMiles = 0.0;
