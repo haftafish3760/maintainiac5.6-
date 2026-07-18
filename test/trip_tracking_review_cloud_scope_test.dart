@@ -90,6 +90,19 @@ void main() {
     expect(allowed['accountBound'], isTrue);
     expect(allowed['organizationBound'], isTrue);
     expect(allowed['authenticationImpliesAuthorization'], isFalse);
+    expect(allowed['scopeBindingRequiredBeforeWrite'], isTrue);
+    expect(allowed['backupConsentRequiredBeforeWrite'], isTrue);
+    expect(
+      allowed['organizationSharingConsentRequiredBeforeFleetVisibility'],
+      isTrue,
+    );
+    expect(allowed['cloudMirrorOnly'], isTrue);
+    expect(allowed['hiveRemainsSourceOfTruth'], isTrue);
+    expect(allowed['remoteDataCanOverrideLocalTripLog'], isFalse);
+    expect(allowed['remoteTotalsCanBecomeCanonical'], isFalse);
+    expect(allowed['cloudMirrorCanDeleteLocalTripLog'], isFalse);
+    expect(allowed['queuedWriteCanContainRawGps'], isFalse);
+    expect(allowed['queuedWriteCanContainMapboxGeometry'], isFalse);
     expect(allowed['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(allowed['preciseLocationIncluded'], isFalse);
     expect(allowed['accountIdIncluded'], isFalse);

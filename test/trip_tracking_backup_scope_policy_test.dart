@@ -62,6 +62,20 @@ void main() {
 
     expect(summary['authorizationRequired'], isTrue);
     expect(summary['authenticationImpliesAuthorization'], isFalse);
+    expect(summary['ownershipVerifiedBeforeWrite'], isTrue);
+    expect(summary['scopeBindingRequiredBeforeWrite'], isTrue);
+    expect(summary['backupConsentRequiredBeforeWrite'], isTrue);
+    expect(
+      summary['organizationSharingConsentRequiredBeforeFleetVisibility'],
+      isTrue,
+    );
+    expect(summary['cloudMirrorOnly'], isTrue);
+    expect(summary['hiveRemainsSourceOfTruth'], isTrue);
+    expect(summary['remoteDataCanOverrideLocalTripLog'], isFalse);
+    expect(summary['remoteTotalsCanBecomeCanonical'], isFalse);
+    expect(summary['cloudMirrorCanDeleteLocalTripLog'], isFalse);
+    expect(summary['queuedWriteCanContainRawGps'], isFalse);
+    expect(summary['queuedWriteCanContainMapboxGeometry'], isFalse);
     expect(summary['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(summary['locationSharingRequiresActiveOptIn'], isTrue);
     expect(summary['employerGodModeAllowed'], isFalse);
@@ -99,6 +113,14 @@ void main() {
     expect(
       orgMismatch.safeErrorMessage,
       TripTrackingBackupScopePolicy.scopeMismatchMessage,
+    );
+    expect(
+      accountMismatch.toSafeSummary()['ownershipVerifiedBeforeWrite'],
+      isFalse,
+    );
+    expect(
+      orgMismatch.toSafeSummary()['remoteDataCanOverrideLocalTripLog'],
+      isFalse,
     );
   });
 
