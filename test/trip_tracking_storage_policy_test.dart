@@ -40,6 +40,15 @@ void main() {
       containsPair('recordType', 'trip_text_record'),
     );
     expect(decision.toSafeSummary(), containsPair('canWriteTextRecord', true));
+    expect(decision.toSafeSummary(), containsPair('textRecordReserveMb', 25));
+    expect(
+      decision.toSafeSummary(),
+      containsPair('storagePolicyScope', 'gps_trip_text_records'),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('photosAndReceiptsHandledElsewhere', true),
+    );
     expect(
       decision.toSafeSummary(),
       containsPair('localWriteMode', 'append_only'),
@@ -53,6 +62,10 @@ void main() {
     expect(
       decision.toSafeSummary(),
       containsPair('backupCanTriggerSilentLocalPurge', false),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('confirmedBackupCanOnlySuggestCleanup', true),
     );
     expect(
       decision.toSafeSummary(),
@@ -103,6 +116,10 @@ void main() {
       decision.toSafeSummary(),
       containsPair('minimumReserveBucket', 'red'),
     );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('mapboxFailureStopsTextRecord', false),
+    );
   });
 
   test('green storage allows text mileage writes without warning', () {
@@ -127,6 +144,8 @@ void main() {
     expect(summary.keys, isNot(contains('availableBytes')));
     expect(summary.keys, isNot(contains('requiredBytes')));
     expect(summary['requiredBucket'], 'red');
+    expect(summary['hiveRemainsSourceOfTruth'], isTrue);
+    expect(summary['firestoreMirrorOnly'], isTrue);
     expect(summary['rawLocationIncluded'], isFalse);
     expect(summary['rawModuleDataIncluded'], isFalse);
   });
