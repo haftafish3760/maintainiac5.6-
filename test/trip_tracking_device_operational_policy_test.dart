@@ -134,6 +134,69 @@ void main() {
     },
   );
 
+  test('storage decision keeps text trip logs and defers map history', () {
+    final decision = TripTrackingStorageDecision.evaluate(
+      freeStorageMb: 25,
+      mapRouteHistoryRequested: true,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(
+      decision.status,
+      TripTrackingStorageDecisionStatus.deferMapRouteHistory,
+    );
+    expect(decision.textTripLogAllowed, isTrue);
+    expect(decision.mapRouteHistoryAllowed, isFalse);
+    expect(summary['freeStorageBucket'], '25_to_499_mb');
+    expect(summary['minimumTextTripLogStorageMb'], 25);
+    expect(summary['gpsTextTripLogCanContinueAtTwentyFiveMb'], isTrue);
+    expect(summary['mapRouteHistoryCanBeDeferredWithoutStoppingTrip'], isTrue);
+    expect(summary['storageDecisionCanDeleteTripData'], isFalse);
+    expect(summary['firebaseBackupCanPurgeLocalRecordsSilently'], isFalse);
+    expect(summary['preciseFreeStorageIncluded'], isFalse);
+  });
+
+  test('storage decision never blocks text TripLog at critical storage', () {
+    final decision = TripTrackingStorageDecision.evaluate(
+      freeStorageMb: 10,
+      mapRouteHistoryRequested: true,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.status, TripTrackingStorageDecisionStatus.reviewStorage);
+    expect(decision.shouldPromptUser, isTrue);
+    expect(decision.textTripLogAllowed, isTrue);
+    expect(decision.mapRouteHistoryAllowed, isFalse);
+    expect(summary['reasonCode'], 'critically_low_storage_review');
+    expect(summary['freeStorageBucket'], 'below_25_mb');
+    expect(summary['storageDecisionCanPurgeLocalRecords'], isFalse);
+    expect(summary['rawStoragePayloadIncluded'], isFalse);
+  });
+
+  test('storage decision allows optional map history only with budget', () {
+    final noMaps = TripTrackingStorageDecision.evaluate(
+      freeStorageMb: 5000,
+      mapRouteHistoryRequested: false,
+    );
+    final maps = TripTrackingStorageDecision.evaluate(
+      freeStorageMb: 5000,
+      mapRouteHistoryRequested: true,
+    );
+    final malformed = TripTrackingStorageDecision.evaluate(
+      freeStorageMb: 5000,
+      mapRouteHistoryRequested: true,
+      minimumTextTripLogStorageMb: 1000,
+      minimumMapRouteHistoryStorageMb: 100,
+    );
+
+    expect(noMaps.mapRouteHistoryAllowed, isFalse);
+    expect(noMaps.reasonCode, 'storage_allows_text_log');
+    expect(maps.mapRouteHistoryAllowed, isTrue);
+    expect(maps.reasonCode, 'storage_allows_text_log_and_map_history');
+    expect(malformed.status, TripTrackingStorageDecisionStatus.reviewStorage);
+    expect(malformed.reasonCode, 'invalid_storage_policy');
+  });
+
   test('battery guard defaults are user-controlled and token-safe', () {
     final policy = TripTrackingDeviceOperationalPolicy.fromDeviceProfile(
       DeviceCapabilityProfile(
