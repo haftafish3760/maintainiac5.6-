@@ -307,6 +307,8 @@ void main() {
       ).toSafeDashboardMap();
 
       expect(safe['dashboardRollupCanConfirmOdometer'], isFalse);
+      expect(safe['dashboardRollupCanSetGlobalTruth'], isFalse);
+      expect(safe['dashboardRollupCanChangeOfficialMileage'], isFalse);
       expect(safe['importedRollupCanOpenSensitiveReview'], isFalse);
       expect(safe['dashboardRollupRequiresLocalTripLog'], isTrue);
       expect(safe['dashboardRollupRequiresOwnershipValidation'], isTrue);

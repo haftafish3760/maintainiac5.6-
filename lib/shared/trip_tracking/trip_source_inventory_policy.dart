@@ -43,6 +43,8 @@ class TripSourceInventoryDecision {
     'calibrationProofBoundaryTracked': true,
     'inventoryCanApplyCalibration': false,
     'inventoryCanCreateOfficialMileage': false,
+    'inventoryCanSetGlobalTruth': false,
+    'inventoryCanChangeOfficialMileage': false,
     'rawSourceIncluded': false,
     'tokensIncluded': false,
   };

@@ -60,6 +60,8 @@ class TripLocationVisibilityConsentDecision {
     'remotePolicyCanOverrideLocalConsent': false,
     'liveSharingCanConfirmStops': false,
     'liveSharingCanConfirmOdometer': false,
+    'liveSharingCanSetGlobalTruth': false,
+    'liveSharingCanChangeOfficialMileage': false,
     'liveSharingCanDeleteLocalData': false,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,

@@ -29,6 +29,8 @@ void main() {
       normal.toSafeDashboardMap()..addAll({
         'dashboardRollupCanCreateOfficialStop': true,
         'dashboardRollupCanConfirmOdometer': true,
+        'dashboardRollupCanSetGlobalTruth': true,
+        'dashboardRollupCanChangeOfficialMileage': true,
         'dashboardRollupCanDeleteLocalData': true,
         'dashboardRollupCanEndTripAutomatically': true,
         'dashboardRollupCanPurgeLocalDataAfterBackup': true,

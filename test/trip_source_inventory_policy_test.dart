@@ -81,6 +81,8 @@ void main() {
     expect(safe['calibrationProofBoundaryTracked'], isTrue);
     expect(safe['inventoryCanApplyCalibration'], isFalse);
     expect(safe['inventoryCanCreateOfficialMileage'], isFalse);
+    expect(safe['inventoryCanSetGlobalTruth'], isFalse);
+    expect(safe['inventoryCanChangeOfficialMileage'], isFalse);
     expect(safe['rawSourceIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });

@@ -44,6 +44,8 @@ class TripDailyIntegrityDecision {
     'poorGpsDaysExcludedFromCalibration': true,
     'dailyIntegrityCanApplyCalibration': false,
     'dailyIntegrityCanCreateOfficialMileage': false,
+    'dailyIntegrityCanSetGlobalTruth': false,
+    'dailyIntegrityCanChangeOfficialMileage': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'remoteBackupCanOverrideLocalDay': false,

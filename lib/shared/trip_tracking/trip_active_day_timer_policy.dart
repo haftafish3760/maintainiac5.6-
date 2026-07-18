@@ -37,6 +37,8 @@ class TripActiveDayTimerDecision {
     'mapsRequiredForTimer': false,
     'timerCanCreateMileage': false,
     'timerCanConfirmOdometer': false,
+    'timerCanSetGlobalTruth': false,
+    'timerCanChangeOfficialMileage': false,
     'timerCanCreateOfficialStop': false,
     'timerCanDeleteLocalData': false,
     'remoteTimerCanOverrideLocalSession': false,

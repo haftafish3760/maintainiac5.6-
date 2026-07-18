@@ -179,6 +179,8 @@ void main() {
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['dailyIntegrityCanApplyCalibration'], isFalse);
     expect(safe['dailyIntegrityCanCreateOfficialMileage'], isFalse);
+    expect(safe['dailyIntegrityCanSetGlobalTruth'], isFalse);
+    expect(safe['dailyIntegrityCanChangeOfficialMileage'], isFalse);
     expect(safe['dailyIntegrityCanDeleteLocalData'], isFalse);
     expect(safe['dailyIntegrityCanConfirmOdometer'], isFalse);
     expect(safe['preciseLocationIncluded'], isFalse);

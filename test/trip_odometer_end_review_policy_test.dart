@@ -84,6 +84,8 @@ void main() {
     expect(decision.canConfirmOdometer, isFalse);
     expect(safe['invalidEntryFailsClosed'], isTrue);
     expect(safe['gpsCanConfirmOdometer'], isFalse);
+    expect(safe['gpsCanSetGlobalTruth'], isFalse);
+    expect(safe['gpsCanChangeOfficialMileage'], isFalse);
   });
 
   test('GPS difference recommends review but still leaves user in control', () {
@@ -147,6 +149,9 @@ void main() {
     expect(decision.reasonCode, 'calibration_prompt_review');
     expect(safe['calibrationCanApplySilently'], isFalse);
     expect(safe['calibrationCanCreateOfficialMileage'], isFalse);
+    expect(safe['mapboxCanSetGlobalTruth'], isFalse);
+    expect(safe['firestoreCanSetGlobalTruth'], isFalse);
+    expect(safe['cloudFunctionCanSetGlobalTruth'], isFalse);
     expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
@@ -193,6 +198,8 @@ void main() {
     expect(decision.canConfirmOdometer, isTrue);
     expect(decision.shouldShowReviewBeforeConfirm, isTrue);
     expect(safe['usageAnomalyCanConfirmOdometer'], isFalse);
+    expect(safe['usageAnomalyCanSetGlobalTruth'], isFalse);
+    expect(safe['usageAnomalyCanChangeOfficialMileage'], isFalse);
     expect(safe['usageAnomalyCanCorrectOdometer'], isFalse);
     expect(safe['usageAnomalyReviewRequiresUserAction'], isTrue);
     expect(

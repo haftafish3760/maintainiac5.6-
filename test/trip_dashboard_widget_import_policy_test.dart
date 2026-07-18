@@ -80,6 +80,8 @@ void main() {
     expect(safe['moduleImportsCanMutateMaterials'], isFalse);
     expect(safe['moduleImportsCanMutateMaintenance'], isFalse);
     expect(safe['importedWidgetCanConfirmOdometer'], isFalse);
+    expect(safe['importedWidgetCanSetGlobalTruth'], isFalse);
+    expect(safe['importedWidgetCanChangeOfficialMileage'], isFalse);
     expect(safe['importedWidgetCanCreateOfficialStop'], isFalse);
     expect(safe['importedWidgetCanDeleteLocalData'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
@@ -138,6 +140,8 @@ void main() {
             'authenticationAloneAuthorizesWidgetAccess': true,
             'dashboardCanMutateSourceModule': true,
             'importedWidgetCanConfirmOdometer': true,
+            'importedWidgetCanSetGlobalTruth': true,
+            'importedWidgetCanChangeOfficialMileage': true,
             'importedWidgetCanCreateOfficialStop': true,
             'importedWidgetCanDeleteLocalData': true,
           });

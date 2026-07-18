@@ -103,6 +103,8 @@ void main() {
     expect(safe['mapsRequiredForTimer'], isFalse);
     expect(safe['timerCanCreateMileage'], isFalse);
     expect(safe['timerCanConfirmOdometer'], isFalse);
+    expect(safe['timerCanSetGlobalTruth'], isFalse);
+    expect(safe['timerCanChangeOfficialMileage'], isFalse);
     expect(safe['timerCanCreateOfficialStop'], isFalse);
     expect(safe['timerCanDeleteLocalData'], isFalse);
     expect(safe['remoteTimerCanOverrideLocalSession'], isFalse);

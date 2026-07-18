@@ -44,6 +44,8 @@ class TripDashboardStatusRollupDecision {
     'mapsRequiredForTripDashboard': false,
     'dashboardRollupCanCreateOfficialStop': false,
     'dashboardRollupCanConfirmOdometer': false,
+    'dashboardRollupCanSetGlobalTruth': false,
+    'dashboardRollupCanChangeOfficialMileage': false,
     'dashboardRollupCanDeleteLocalData': false,
     'dashboardRollupCanEndTripAutomatically': false,
     'dashboardRollupCanPurgeLocalDataAfterBackup': false,
@@ -106,6 +108,8 @@ class TripDashboardStatusRollupSummaryValidation {
     }
     if (summary['dashboardRollupCanCreateOfficialStop'] != false ||
         summary['dashboardRollupCanConfirmOdometer'] != false ||
+        summary['dashboardRollupCanSetGlobalTruth'] != false ||
+        summary['dashboardRollupCanChangeOfficialMileage'] != false ||
         summary['dashboardRollupCanDeleteLocalData'] != false ||
         summary['dashboardRollupCanEndTripAutomatically'] != false ||
         summary['dashboardRollupCanPurgeLocalDataAfterBackup'] != false ||
@@ -126,7 +130,9 @@ class TripDashboardStatusRollupSummaryValidation {
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['dashboardRollupCanApplyCalibration'] != false ||
-        summary['dashboardRollupCanCreateOfficialMileage'] != false) {
+        summary['dashboardRollupCanCreateOfficialMileage'] != false ||
+        summary['dashboardRollupCanSetGlobalTruth'] != false ||
+        summary['dashboardRollupCanChangeOfficialMileage'] != false) {
       reasons.add('rollup_truth_boundary_missing');
     }
     if (summary['dashboardWidgetsUserCustomizable'] != true ||

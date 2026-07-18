@@ -174,6 +174,8 @@ void main() {
       expect(safe['accountOwnerAloneCanEnableEmployeeTracking'], isFalse);
       expect(safe['remotePolicyCanOverrideLocalConsent'], isFalse);
       expect(safe['firestoreCanEnableLocationSharing'], isFalse);
+      expect(safe['liveSharingCanSetGlobalTruth'], isFalse);
+      expect(safe['liveSharingCanChangeOfficialMileage'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
       expect(safe['organizationIdIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
