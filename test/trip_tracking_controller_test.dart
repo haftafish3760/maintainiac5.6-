@@ -47,6 +47,15 @@ void main() {
     speedMetersPerSecond: speed,
   );
 
+  Future<void> drainNativeTripEventsUntil(
+    bool Function() condition, {
+    int maxPumps = 12,
+  }) async {
+    for (var pump = 0; pump < maxPumps && !condition(); pump += 1) {
+      await Future<void>.delayed(Duration.zero);
+    }
+  }
+
   test(
     'a failed initial local checkpoint releases the live odometer lock',
     () async {
@@ -746,6 +755,16 @@ void main() {
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
     final odometer = GlobalOdometerController(initialReading: 1000);
+    final nativeStart = DateTime.now().toUtc().subtract(
+      const Duration(minutes: 4),
+    );
+    TripLocationSample nativeSample(double longitude, int seconds) =>
+        TripLocationSample(
+          latitude: 35,
+          longitude: longitude,
+          recordedAt: nativeStart.add(Duration(seconds: seconds)),
+          horizontalAccuracyMeters: 5,
+        );
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
@@ -755,19 +774,20 @@ void main() {
       tripId: 'trip_native',
       vehicleId: 'vehicle_1',
       profile: TripTrackingProfile.roadVehicle,
-      startedAt: start,
+      startedAt: nativeStart,
     );
 
     expect(
       await controller.startNativeTracking(allowBackground: false),
       isTrue,
     );
-    native.addLocation(sample(-80, 0));
-    native.addLocation(sample(-79.9998, 20));
-    native.addLocation(sample(-79.9996, 35));
-    native.addLocation(sample(-79.985, 60));
-    await Future<void>.delayed(Duration.zero);
-    await Future<void>.delayed(Duration.zero);
+    native.addLocation(nativeSample(-80, 0));
+    native.addLocation(nativeSample(-79.9998, 20));
+    native.addLocation(nativeSample(-79.9996, 35));
+    native.addLocation(nativeSample(-79.985, 150));
+    await drainNativeTripEventsUntil(
+      () => odometer.reading > 1000 && native.startedRequest != null,
+    );
 
     expect(
       native.startedRequest?.sampling.interval,
@@ -3034,8 +3054,10 @@ void main() {
       native.addLocation(sample(-80, 0, speed: 8));
       native.addLocation(sample(-79.999, 20, speed: 8));
       native.addLocation(sample(-79.998, 40, speed: 6));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await drainNativeTripEventsUntil(
+        () =>
+            native.updatedRequest?.sampling.mode == TripSamplingMode.precision,
+      );
 
       expect(native.updatedRequest?.sampling.mode, TripSamplingMode.precision);
       expect(
@@ -3064,13 +3086,16 @@ void main() {
       await controller.startNativeTracking(allowBackground: false);
       native.addLocation(sample(-80, 0, speed: 8));
       native.addLocation(sample(-79.999, 20, speed: 8));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await drainNativeTripEventsUntil(
+        () =>
+            native.updatedRequest?.sampling.mode == TripSamplingMode.precision,
+      );
       expect(native.updatedRequest?.sampling.mode, TripSamplingMode.precision);
 
       native.addLocation(sample(-79.999, 22, speed: 0));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await drainNativeTripEventsUntil(
+        () => native.updatedRequest?.sampling.mode == TripSamplingMode.balanced,
+      );
 
       expect(native.updatedRequest?.sampling.mode, TripSamplingMode.balanced);
       expect(
@@ -3098,8 +3123,9 @@ void main() {
     native.addLocation(sample(-80, 0, speed: 8));
     native.addLocation(sample(-79.999, 20, speed: 8));
     native.addLocation(sample(-79.9985, 40, speed: 4));
-    await Future<void>.delayed(Duration.zero);
-    await Future<void>.delayed(Duration.zero);
+    await drainNativeTripEventsUntil(
+      () => native.updatedRequest?.sampling.mode == TripSamplingMode.balanced,
+    );
 
     expect(native.updatedRequest?.sampling.mode, TripSamplingMode.balanced);
     expect(

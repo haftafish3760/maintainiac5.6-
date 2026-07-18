@@ -116,4 +116,73 @@ void main() {
       }
     },
   );
+
+  test('unsafe rejected GPS samples cannot change native sampling cadence', () {
+    const current = TripSamplingRecommendation(
+      mode: TripSamplingMode.precision,
+      interval: Duration(seconds: 2),
+      minimumDisplacementMeters: 3,
+    );
+
+    for (final disposition in [
+      TripSampleDisposition.rejectedInvalid,
+      TripSampleDisposition.rejectedMockLocation,
+      TripSampleDisposition.rejectedAccuracy,
+      TripSampleDisposition.rejectedOutOfOrder,
+      TripSampleDisposition.rejectedImplausibleSpeed,
+      TripSampleDisposition.rejectedSpeedConflict,
+      TripSampleDisposition.rejectedGap,
+      TripSampleDisposition.rejectedFutureTimestamp,
+    ]) {
+      final rejected = decision(disposition);
+      expect(
+        TripTrackingNativeSamplingPolicy.isSafeDecisionForNativeSampling(
+          rejected,
+        ),
+        isFalse,
+        reason: disposition.name,
+      );
+      expect(
+        TripTrackingNativeSamplingPolicy.nextRecommendation(
+          policy: const TripTrackingPolicy(),
+          profile: TripTrackingProfile.roadVehicle,
+          sample: sample(seconds: 30, speed: 0),
+          decision: rejected,
+          current: current,
+          adaptiveSamplingEnabled: true,
+          nativeTracking: true,
+          platformAvailable: true,
+          sessionAvailable: true,
+        ),
+        isNull,
+        reason: disposition.name,
+      );
+    }
+  });
+
+  test('walking exclusion can deescalate precision without adding mileage', () {
+    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+      policy: const TripTrackingPolicy(),
+      profile: TripTrackingProfile.deliveryVehicle,
+      sample: sample(seconds: 40, speed: 0.4),
+      decision: decision(TripSampleDisposition.excludedWalking),
+      current: const TripSamplingRecommendation(
+        mode: TripSamplingMode.precision,
+        interval: Duration(seconds: 2),
+        minimumDisplacementMeters: 3,
+      ),
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+
+    expect(next?.mode, TripSamplingMode.balanced);
+    expect(
+      TripTrackingNativeSamplingPolicy.isSafeDecisionForNativeSampling(
+        decision(TripSampleDisposition.excludedWalking),
+      ),
+      isTrue,
+    );
+  });
 }

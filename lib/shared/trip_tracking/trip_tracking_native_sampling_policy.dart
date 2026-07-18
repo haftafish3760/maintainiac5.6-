@@ -20,12 +20,13 @@ class TripTrackingNativeSamplingPolicy {
         !sessionAvailable ||
         !nativeTracking ||
         decision == null ||
-        (!decision.accepted &&
-            !canDeescalatePrecision(
-              policy: policy,
-              sample: sample,
-              current: current,
-            ))) {
+        (!isSafeDecisionForNativeSampling(decision) ||
+            !decision.accepted &&
+                !canDeescalatePrecision(
+                  policy: policy,
+                  sample: sample,
+                  current: current,
+                ))) {
       return null;
     }
     final next = policy.samplingFor(
@@ -50,6 +51,23 @@ class TripTrackingNativeSamplingPolicy {
         speed.isFinite &&
         speed >= 0 &&
         speed < policy.precisionExitSpeedMetersPerSecond;
+  }
+
+  static bool isSafeDecisionForNativeSampling(TripSampleDecision decision) {
+    return switch (decision.disposition) {
+      TripSampleDisposition.acceptedAnchor ||
+      TripSampleDisposition.acceptedDistance ||
+      TripSampleDisposition.rejectedDrift ||
+      TripSampleDisposition.excludedWalking => true,
+      TripSampleDisposition.rejectedInvalid ||
+      TripSampleDisposition.rejectedMockLocation ||
+      TripSampleDisposition.rejectedAccuracy ||
+      TripSampleDisposition.rejectedOutOfOrder ||
+      TripSampleDisposition.rejectedImplausibleSpeed ||
+      TripSampleDisposition.rejectedSpeedConflict ||
+      TripSampleDisposition.rejectedGap ||
+      TripSampleDisposition.rejectedFutureTimestamp => false,
+    };
   }
 
   static bool isSameRecommendation(
