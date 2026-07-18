@@ -171,6 +171,10 @@ void main() {
 
     expect(summary['storageState'], 'unknown');
     expect(summary['safeReason'], 'storage_unknown_continue_text_records');
+    expect(summary['canWriteTextRecord'], isTrue);
+    expect(summary['shouldWarnUser'], isFalse);
+    expect(summary['shouldBlockTextRecord'], isFalse);
+    expect(summary['localWriteMode'], 'append_only');
     expect(summary['availableBucket'], 'red');
     expect(summary['firebaseBackupCanOverrideStorageDecision'], isFalse);
     expect(summary['mapboxCanOverrideStorageDecision'], isFalse);
@@ -178,6 +182,25 @@ void main() {
     expect(summary.toString(), isNot(contains('sk.secret')));
     expect(summary.toString(), isNot(contains('/Users/private')));
     expect(summary.keys, isNot(contains('message')));
+  });
+
+  test('direct malformed storage blocks cannot stop text GPS logging', () {
+    const decision = TripTrackingStorageDecision(
+      action: TripTrackingStorageAction.block,
+      storageState: 'blocked',
+      safeReason: 'remote_claimed_full_disk_token=sk.secret',
+      message: 'remote storage says no',
+      availableBytes: null,
+      requiredBytes: requiredBytes,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['safeReason'], 'storage_unknown_continue_text_records');
+    expect(summary['canWriteTextRecord'], isTrue);
+    expect(summary['shouldBlockTextRecord'], isFalse);
+    expect(summary['localWriteMode'], 'append_only');
+    expect(summary['remoteStorageStateCanBlockLocalTripLog'], isFalse);
+    expect(summary.toString(), isNot(contains('sk.secret')));
   });
 
   test('remote storage state cannot block local GPS text logging', () {

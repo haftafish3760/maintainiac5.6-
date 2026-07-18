@@ -32,9 +32,18 @@ class TripTrackingStorageDecision {
     'storageState': _safeStorageState(storageState),
     'safeReason': _safeStorageReason(safeReason),
     'recordType': 'trip_text_record',
-    'canWriteTextRecord': canWriteTextRecord,
-    'shouldWarnUser': shouldWarnUser,
-    'shouldBlockTextRecord': shouldBlockTextRecord,
+    'canWriteTextRecord': _safeCanWriteTextRecord(
+      action: action,
+      safeReason: safeReason,
+    ),
+    'shouldWarnUser': _safeShouldWarnUser(
+      action: action,
+      safeReason: safeReason,
+    ),
+    'shouldBlockTextRecord': _safeShouldBlockTextRecord(
+      action: action,
+      safeReason: safeReason,
+    ),
     'availableBucket': _bucketBytes(availableBytes),
     'requiredBucket': _bucketBytes(requiredBytes),
     'minimumReserveBucket': _bucketBytes(
@@ -43,7 +52,10 @@ class TripTrackingStorageDecision {
     'textRecordReserveMb': 25,
     'storagePolicyScope': 'gps_trip_text_records',
     'photosAndReceiptsHandledElsewhere': true,
-    'localWriteMode': shouldBlockTextRecord ? 'blocked' : 'append_only',
+    'localWriteMode':
+        _safeShouldBlockTextRecord(action: action, safeReason: safeReason)
+        ? 'blocked'
+        : 'append_only',
     'deletesLocalData': false,
     'purgesLocalData': false,
     'canSilentlyDeleteLocalData': false,
@@ -140,3 +152,22 @@ String _safeStorageReason(String value) {
     _ => 'storage_unknown_continue_text_records',
   };
 }
+
+bool _safeShouldBlockTextRecord({
+  required TripTrackingStorageAction action,
+  required String safeReason,
+}) =>
+    action == TripTrackingStorageAction.block &&
+    _safeStorageReason(safeReason) == 'storage_below_text_record_reserve';
+
+bool _safeShouldWarnUser({
+  required TripTrackingStorageAction action,
+  required String safeReason,
+}) =>
+    action == TripTrackingStorageAction.warn &&
+    _safeStorageReason(safeReason) == 'storage_low_text_records_allowed';
+
+bool _safeCanWriteTextRecord({
+  required TripTrackingStorageAction action,
+  required String safeReason,
+}) => !_safeShouldBlockTextRecord(action: action, safeReason: safeReason);
