@@ -48,10 +48,13 @@ class TripOdometerReconciliation {
     'calibrationCanApplySilently': false,
     'externalMileageTrustedAfterValidationOnly': true,
     'remoteTotalsCanBecomeCanonical': false,
+    'remoteTotalsCanConfirmOdometer': false,
+    'mapboxRouteCanConfirmOdometer': false,
     'firestoreCanOverrideOdometerTruth': false,
     'mapboxCanOverrideOdometerTruth': false,
     'rawLocationIncluded': false,
     'rawTripRecordsIncluded': false,
+    'tokensIncluded': false,
   };
 
   static TripOdometerReconciliation compare({
@@ -131,8 +134,11 @@ class TripOdometerContinuityCheck {
     'continuityTrustedAfterValidationOnly': true,
     'firestoreCanOverrideContinuity': false,
     'mapboxCanOverrideContinuity': false,
+    'remoteContinuityCanConfirmOdometer': false,
+    'userReviewRequiredBeforeGapAcceptance': shouldPromptUser,
     'rawTripRecordsIncluded': false,
     'rawLocationIncluded': false,
+    'tokensIncluded': false,
   };
 
   static TripOdometerContinuityCheck betweenReviews({
@@ -234,8 +240,11 @@ class TripOdometerEntryValidation {
     'entryTrustedAfterLocalValidationOnly': true,
     'firestoreCanOverrideEntryValidation': false,
     'cloudFunctionCanOverrideEntryValidation': false,
+    'remoteEntryCanConfirmOdometer': false,
+    'userTypedOdometerRequiredForOfficialMileage': true,
     'rawTripRecordsIncluded': false,
     'rawLocationIncluded': false,
+    'tokensIncluded': false,
   };
 
   static TripOdometerEntryValidation validate({
