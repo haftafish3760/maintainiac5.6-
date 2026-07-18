@@ -470,6 +470,11 @@ void main() {
     expect(summary['sequenceBucket'], 'under_1k');
     expect(summary['orderedAfterLastPoint'], isTrue);
     expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['officialMileageSource'], 'confirmed_odometer');
+    expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(summary['confirmedOdometerOverridesRoutePointMileage'], isTrue);
+    expect(summary['routePointMileageCanOnlyAdviseReview'], isTrue);
     expect(summary['routePointCanReplaceOdometer'], isFalse);
     expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
     expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
@@ -587,6 +592,10 @@ void main() {
       ]) {
         expect(summary['accepted'], isFalse);
         expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+        expect(summary['odometerIsGlobalTruth'], isTrue);
+        expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+        expect(summary['confirmedOdometerOverridesRoutePointMileage'], isTrue);
+        expect(summary['routePointMileageCanOnlyAdviseReview'], isTrue);
         expect(summary['routePointCanReplaceOdometer'], isFalse);
         expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
         expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
