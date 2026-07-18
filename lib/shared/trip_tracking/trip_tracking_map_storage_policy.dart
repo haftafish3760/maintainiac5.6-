@@ -24,8 +24,14 @@ class TripTrackingMapStorageEstimate {
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
-    'mapStorageEnabled': enabled,
-    'allowedToPersistRoute': allowedToPersistRoute,
+    'mapStorageEnabled':
+        enabled && _safeMapStorageReason(reasonCode) != 'maps_not_enabled',
+    'allowedToPersistRoute': _safeAllowedToPersistRoute(
+      allowedToPersistRoute: allowedToPersistRoute,
+      reasonCode: reasonCode,
+      estimatedDailyMb: estimatedDailyMb,
+      dailyBudgetMb: dailyBudgetMb,
+    ),
     'reasonCode': _safeMapStorageReason(reasonCode),
     'sampleIntervalSeconds': _safeSampleIntervalSeconds(sampleIntervalSeconds),
     'dailyBudgetMb': _safeDailyBudgetMb(dailyBudgetMb),
@@ -45,6 +51,10 @@ class TripTrackingMapStorageEstimate {
     'mapboxFailureCanCorruptTripLog': false,
     'mapboxTimeoutCanStopGpsTracking': false,
     'mapboxRouteCanReplaceGpsDistance': false,
+    'mapboxCanOverrideRouteBudget': false,
+    'remoteRouteSummaryCanOverrideLocalTrip': false,
+    'routeStorageTrustedAfterValidationOnly': true,
+    'malformedRouteStoragePayloadFailsSafe': true,
     'canSilentlyDeleteRouteHistory': false,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
@@ -77,7 +87,12 @@ class TripTrackingMapRoutePointDecision {
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
-    'allowedToPersistPoint': allowedToPersistPoint,
+    'allowedToPersistPoint': _safeAllowedToPersistPoint(
+      allowedToPersistPoint: allowedToPersistPoint,
+      reasonCode: reasonCode,
+      persistedPointsToday: persistedPointsToday,
+      maxRoutePointsPerDay: maxRoutePointsPerDay,
+    ),
     'reasonCode': _safeMapStorageReason(reasonCode),
     'persistedPointsToday': _safePersistedPoints(persistedPointsToday),
     'maxRoutePointsPerDay': _safePersistedPoints(maxRoutePointsPerDay),
@@ -95,6 +110,10 @@ class TripTrackingMapRoutePointDecision {
     'mapboxFailureCanCorruptTripLog': false,
     'mapboxTimeoutCanStopGpsTracking': false,
     'mapboxRouteCanReplaceGpsDistance': false,
+    'mapboxCanOverrideRouteBudget': false,
+    'remoteRouteSummaryCanOverrideLocalTrip': false,
+    'routeStorageTrustedAfterValidationOnly': true,
+    'malformedRouteStoragePayloadFailsSafe': true,
     'canSilentlyDeleteRouteHistory': false,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
@@ -274,6 +293,37 @@ int _remainingPoints(int maxPoints, int persistedPoints) =>
 
 double _storedMb(int points, int bytesPerPoint) =>
     _roundMb(points * bytesPerPoint / (1024 * 1024));
+
+bool _safeAllowedToPersistRoute({
+  required bool allowedToPersistRoute,
+  required String reasonCode,
+  required double estimatedDailyMb,
+  required double dailyBudgetMb,
+}) {
+  if (!allowedToPersistRoute) return false;
+  if (_safeMapStorageReason(reasonCode) != 'map_route_history_within_budget') {
+    return false;
+  }
+  final safeDailyBudget = _safeDailyBudgetMb(dailyBudgetMb);
+  final safeEstimate = _safeMb(estimatedDailyMb);
+  return safeDailyBudget > 0 && safeEstimate <= safeDailyBudget;
+}
+
+bool _safeAllowedToPersistPoint({
+  required bool allowedToPersistPoint,
+  required String reasonCode,
+  required int persistedPointsToday,
+  required int maxRoutePointsPerDay,
+}) {
+  if (!allowedToPersistPoint) return false;
+  if (_safeMapStorageReason(reasonCode) !=
+      'map_route_history_point_within_live_budget') {
+    return false;
+  }
+  final maxPoints = _safePersistedPoints(maxRoutePointsPerDay);
+  if (maxPoints <= 0) return false;
+  return _safePersistedPoints(persistedPointsToday) < maxPoints;
+}
 
 String _safeMapStorageReason(String value) {
   return switch (value.trim()) {

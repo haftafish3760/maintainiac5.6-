@@ -26,6 +26,10 @@ void main() {
     expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
     expect(summary['mapboxTimeoutCanStopGpsTracking'], isFalse);
     expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
+    expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
+    expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
+    expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
+    expect(summary['malformedRouteStoragePayloadFailsSafe'], isTrue);
     expect(summary['canSilentlyDeleteRouteHistory'], isFalse);
     expect(summary['localTripLogProtected'], isTrue);
     expect(summary['purgeRequiresConfirmedBackupOrUserAction'], isTrue);
@@ -231,11 +235,17 @@ void main() {
     final summary = estimate.toSafeDashboardMap();
 
     expect(summary['reasonCode'], 'maps_not_enabled');
+    expect(summary['mapStorageEnabled'], isFalse);
+    expect(summary['allowedToPersistRoute'], isFalse);
     expect(summary['sampleIntervalSeconds'], 15);
     expect(summary['dailyBudgetMb'], 0);
     expect(summary['estimatedSamplesPerDay'], 0);
     expect(summary['estimatedDailyMb'], 0);
     expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
+    expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
+    expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
+    expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
+    expect(summary['malformedRouteStoragePayloadFailsSafe'], isTrue);
     expect(summary.toString(), isNot(contains('sk.secret')));
     expect(summary.toString(), isNot(contains('35.1')));
   });
@@ -253,6 +263,7 @@ void main() {
     final summary = decision.toSafeDashboardMap();
 
     expect(summary['reasonCode'], 'maps_not_enabled');
+    expect(summary['allowedToPersistPoint'], isFalse);
     expect(summary['persistedPointsToday'], 0);
     expect(summary['maxRoutePointsPerDay'], 0);
     expect(summary['remainingPointsToday'], 0);
@@ -262,5 +273,33 @@ void main() {
     expect(summary['mapStorageFailureStopsGpsTracking'], isFalse);
     expect(summary['mapboxTimeoutCanStopGpsTracking'], isFalse);
     expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
+    expect(summary['mapboxCanOverrideRouteBudget'], isFalse);
+    expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
+    expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
+    expect(summary['malformedRouteStoragePayloadFailsSafe'], isTrue);
+  });
+
+  test('direct route summaries cannot forge budget authorization', () {
+    const estimate = TripTrackingMapStorageEstimate(
+      enabled: true,
+      allowedToPersistRoute: true,
+      reasonCode: 'map_route_history_budget_exceeded',
+      sampleIntervalSeconds: 15,
+      dailyBudgetMb: 1,
+      estimatedSamplesPerDay: 90000,
+      estimatedDailyMb: 2,
+    );
+    const decision = TripTrackingMapRoutePointDecision(
+      allowedToPersistPoint: true,
+      reasonCode: 'map_route_history_live_budget_exhausted',
+      persistedPointsToday: 32768,
+      maxRoutePointsPerDay: 32768,
+      remainingPointsToday: 0,
+      dailyBudgetMb: 1,
+      estimatedStoredMbAfterPoint: 1,
+    );
+
+    expect(estimate.toSafeDashboardMap()['allowedToPersistRoute'], isFalse);
+    expect(decision.toSafeDashboardMap()['allowedToPersistPoint'], isFalse);
   });
 }
