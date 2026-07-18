@@ -45,6 +45,15 @@ class TripReviewMirrorPayloadDecision {
     'mirrorCanConfirmOdometer': false,
     'mirrorCanCreateStop': false,
     'mirrorCanEndTripAutomatically': false,
+    'cloudFunctionCanOverrideLocalTripLog': false,
+    'cloudFunctionCanConfirmOdometer': false,
+    'cloudFunctionCanCreateStop': false,
+    'cloudFunctionMustRevalidateOwner': true,
+    'cloudFunctionMustRevalidateSchema': true,
+    'cloudFunctionMustRevalidateScope': true,
+    'firestoreRulesMustValidateOwner': true,
+    'firestoreRulesMustValidateSchema': true,
+    'firestoreRulesMustValidateScope': true,
     'payloadContainsRawGps': false,
     'payloadContainsRouteGeometry': false,
     'payloadContainsMapboxData': false,
@@ -151,16 +160,35 @@ class TripReviewMirrorPayloadPolicy {
     if (payload['remoteCanOverrideLocalTripLog'] != false ||
         payload['remoteTotalsCanBecomeCanonical'] != false ||
         payload['mirrorCanDeleteLocalTripLog'] != false ||
+        payload['cloudFunctionCanOverrideLocalTripLog'] != false ||
+        payload['cloudFunctionCanConfirmOdometer'] != false ||
+        payload['cloudFunctionCanCreateStop'] != false ||
         payload['officialMileageSource'] != 'odometer' ||
         payload['gpsDistanceAdvisoryOnly'] != true ||
         payload['mapboxDistanceAdvisoryOnly'] != true) {
       reasons.add('payload_claims_trip_authority');
     }
+    if (payload['firestoreRulesMustValidateOwner'] != true ||
+        payload['firestoreRulesMustValidateSchema'] != true ||
+        payload['firestoreRulesMustValidateScope'] != true ||
+        payload['cloudFunctionMustRevalidateOwner'] != true ||
+        payload['cloudFunctionMustRevalidateSchema'] != true ||
+        payload['cloudFunctionMustRevalidateScope'] != true) {
+      reasons.add('payload_missing_backend_revalidation_contract');
+    }
+    if (scopeSummary['authenticationImpliesAuthorization'] != false ||
+        scopeSummary['hiveRemainsSourceOfTruth'] != true ||
+        scopeSummary['remoteDataCanOverrideLocalTripLog'] != false ||
+        scopeSummary['remoteTotalsCanBecomeCanonical'] != false ||
+        scopeSummary['cloudMirrorCanDeleteLocalTripLog'] != false) {
+      reasons.add('scope_summary_claims_remote_authority');
+    }
     if (payload['rawGpsIncluded'] != false ||
         payload['routeGeometryIncluded'] != false ||
         payload['mapboxGeometryIncluded'] != false ||
         payload['preciseCoordinatesIncluded'] != false ||
-        payload['tokensIncluded'] != false) {
+        payload['tokensIncluded'] != false ||
+        _containsSensitivePayload(payload)) {
       reasons.add('payload_contains_sensitive_material');
     }
     if (reasons.isNotEmpty) {
@@ -221,6 +249,15 @@ Map<String, Object?> _payloadFor(TripTrackingReviewRecord review) {
     'remoteCanOverrideLocalTripLog': false,
     'remoteTotalsCanBecomeCanonical': false,
     'mirrorCanDeleteLocalTripLog': false,
+    'cloudFunctionCanOverrideLocalTripLog': false,
+    'cloudFunctionCanConfirmOdometer': false,
+    'cloudFunctionCanCreateStop': false,
+    'cloudFunctionMustRevalidateOwner': true,
+    'cloudFunctionMustRevalidateSchema': true,
+    'cloudFunctionMustRevalidateScope': true,
+    'firestoreRulesMustValidateOwner': true,
+    'firestoreRulesMustValidateSchema': true,
+    'firestoreRulesMustValidateScope': true,
     'officialMileageSource': 'odometer',
     'gpsDistanceAdvisoryOnly': true,
     'mapboxDistanceAdvisoryOnly': true,
@@ -334,6 +371,15 @@ Map<String, Object?> _redactedInboundPayload(Map<String, Object?> payload) {
     'remoteCanOverrideLocalTripLog': false,
     'remoteTotalsCanBecomeCanonical': false,
     'mirrorCanDeleteLocalTripLog': false,
+    'cloudFunctionCanOverrideLocalTripLog': false,
+    'cloudFunctionCanConfirmOdometer': false,
+    'cloudFunctionCanCreateStop': false,
+    'cloudFunctionMustRevalidateOwner': true,
+    'cloudFunctionMustRevalidateSchema': true,
+    'cloudFunctionMustRevalidateScope': true,
+    'firestoreRulesMustValidateOwner': true,
+    'firestoreRulesMustValidateSchema': true,
+    'firestoreRulesMustValidateScope': true,
     'officialMileageSource': 'odometer',
     'gpsDistanceAdvisoryOnly': true,
     'mapboxDistanceAdvisoryOnly': true,
@@ -343,4 +389,28 @@ Map<String, Object?> _redactedInboundPayload(Map<String, Object?> payload) {
     'preciseCoordinatesIncluded': false,
     'tokensIncluded': false,
   });
+}
+
+bool _containsSensitivePayload(Object? value) {
+  if (value is String) {
+    final lower = value.toLowerCase();
+    return value.startsWith('pk.') ||
+        value.startsWith('sk.') ||
+        lower.contains('mapbox') ||
+        RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(value);
+  }
+  if (value is Map) {
+    for (final entry in value.entries) {
+      if (_containsSensitivePayload(entry.key) ||
+          _containsSensitivePayload(entry.value)) {
+        return true;
+      }
+    }
+  }
+  if (value is Iterable) {
+    for (final item in value) {
+      if (_containsSensitivePayload(item)) return true;
+    }
+  }
+  return false;
 }

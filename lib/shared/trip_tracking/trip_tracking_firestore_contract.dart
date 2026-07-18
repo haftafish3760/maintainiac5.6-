@@ -4,6 +4,9 @@
 abstract final class TripTrackingFirestoreContract {
   static const reviewedSummarySchema = 'trip_tracking_review_v1';
   static const visibilityScopeMileageOnly = 'mileage_only';
+  static const mileageRecordPathUser = 'users/{uid}/mileageRecords/{tripId}';
+  static const mileageRecordPathOrganization =
+      'orgs/{orgId}/mileageRecords/{tripId}';
 
   static const reviewedSummaryFields = <String>{
     'schema',
@@ -132,6 +135,101 @@ abstract final class TripTrackingFirestoreContract {
 
   static bool isReviewedSummaryShape(Map<String, Object?> data) =>
       reviewedSummaryFindings(data).isEmpty;
+
+  static Map<String, Object?> trustBoundarySummary({
+    required bool organizationScoped,
+  }) {
+    return Map.unmodifiable({
+      'schemaVersion': 1,
+      'boundary': 'firestore_mileage_mirror',
+      'documentPath': organizationScoped
+          ? mileageRecordPathOrganization
+          : mileageRecordPathUser,
+      'authenticationImpliesAuthorization': false,
+      'rulesMustValidateOwnerUid': true,
+      'rulesMustValidateTripIdMatchesRecordId': true,
+      'rulesMustValidateAllowedFields': true,
+      'rulesMustValidateRequiredFields': true,
+      'rulesMustValidateValueTypes': true,
+      'rulesMustValidateOdometerDoesNotRegress': true,
+      'rulesMustValidateDistanceMatchesOdometerWindow': true,
+      'rulesMustRejectRawGps': true,
+      'rulesMustRejectMapboxGeometry': true,
+      'rulesMustRejectTokens': true,
+      'rulesMustRejectServerManagedSpoofing': true,
+      'rulesMustRejectDeletes': true,
+      'rulesAllowOnlyIdempotentCreatorReplay': true,
+      'hiveRemainsSourceOfTruth': true,
+      'firestoreMirrorOnly': true,
+      'remoteCanOverrideLocalTripLog': false,
+      'remoteCanConfirmOdometer': false,
+      'remoteCanCreateOfficialStop': false,
+      'remoteCanPurgeLocalTripData': false,
+      'remoteTotalsCanBecomeCanonical': false,
+      'mapboxCanReplaceOdometer': false,
+      'organizationMembershipRequired': organizationScoped,
+      'organizationSharingConsentRequired': organizationScoped,
+      'fleetReadRequiresConsent': organizationScoped,
+      'employeeTrackingRequiresMutualConsent': organizationScoped,
+      'publicTokenAllowedInPayload': false,
+      'secretTokenAllowedInPayload': false,
+      'preciseCoordinatesAllowedInPayload': false,
+      'routeGeometryAllowedInPayload': false,
+    });
+  }
+
+  static List<String> trustBoundaryFindings(Map<String, Object?> summary) {
+    final findings = <String>[];
+    if (summary['schemaVersion'] != 1 ||
+        summary['boundary'] != 'firestore_mileage_mirror') {
+      findings.add('invalid_boundary_schema');
+    }
+    if (summary['authenticationImpliesAuthorization'] != false ||
+        summary['rulesMustValidateOwnerUid'] != true ||
+        summary['rulesMustValidateTripIdMatchesRecordId'] != true ||
+        summary['rulesMustValidateAllowedFields'] != true ||
+        summary['rulesMustValidateRequiredFields'] != true ||
+        summary['rulesMustValidateValueTypes'] != true ||
+        summary['rulesMustRejectDeletes'] != true) {
+      findings.add('authorization_boundary_not_closed');
+    }
+    if (summary['hiveRemainsSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteCanOverrideLocalTripLog'] != false ||
+        summary['remoteCanConfirmOdometer'] != false ||
+        summary['remoteCanCreateOfficialStop'] != false ||
+        summary['remoteCanPurgeLocalTripData'] != false ||
+        summary['remoteTotalsCanBecomeCanonical'] != false ||
+        summary['mapboxCanReplaceOdometer'] != false) {
+      findings.add('remote_authority_too_high');
+    }
+    if (summary['rulesMustRejectRawGps'] != true ||
+        summary['rulesMustRejectMapboxGeometry'] != true ||
+        summary['rulesMustRejectTokens'] != true ||
+        summary['publicTokenAllowedInPayload'] != false ||
+        summary['secretTokenAllowedInPayload'] != false ||
+        summary['preciseCoordinatesAllowedInPayload'] != false ||
+        summary['routeGeometryAllowedInPayload'] != false) {
+      findings.add('sensitive_payload_boundary_open');
+    }
+    final organizationScoped =
+        summary['documentPath'] == mileageRecordPathOrganization;
+    if (organizationScoped &&
+        (summary['organizationMembershipRequired'] != true ||
+            summary['organizationSharingConsentRequired'] != true ||
+            summary['fleetReadRequiresConsent'] != true ||
+            summary['employeeTrackingRequiresMutualConsent'] != true)) {
+      findings.add('organization_consent_boundary_open');
+    }
+    if (!organizationScoped &&
+        summary['documentPath'] != mileageRecordPathUser) {
+      findings.add('unknown_document_path');
+    }
+    return List.unmodifiable(findings);
+  }
+
+  static bool isTrustBoundaryClosed(Map<String, Object?> summary) =>
+      trustBoundaryFindings(summary).isEmpty;
 }
 
 bool _isSafeToken(Object? value) {
