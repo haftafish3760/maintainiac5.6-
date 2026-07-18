@@ -145,6 +145,12 @@ class TripTrackingMapboxAssistBoundaryDecision {
     'mapboxOptimizationCanOnlySuggestOrder': true,
     'mapboxIsochroneCanOnlyVisualizeCoverage': true,
     'mapboxEvChargeFinderCanOnlySuggestStops': true,
+    'mapboxSearchCanOnlySuggestAddress': true,
+    'mapboxSearchCannotConfirmStopAddress': true,
+    'mapboxNavigationCanOnlyGuideUser': true,
+    'mapboxNavigationCannotEndTrip': true,
+    'mapboxMapMatchingCannotRewriteGpsTrace': true,
+    'mapboxOptimizationCannotPersistStopOrderWithoutReview': true,
     'mapboxCanReorderOfficialStops': false,
     'mapboxCanPersistRouteWithoutOptIn': false,
     'mapboxCanConfirmMileage': false,
@@ -236,7 +242,14 @@ class TripTrackingMapboxAssistBoundarySummaryValidation {
         summary['mapboxMapMatchingCanOnlyAssistReview'] != true ||
         summary['mapboxOptimizationCanOnlySuggestOrder'] != true ||
         summary['mapboxIsochroneCanOnlyVisualizeCoverage'] != true ||
-        summary['mapboxEvChargeFinderCanOnlySuggestStops'] != true) {
+        summary['mapboxEvChargeFinderCanOnlySuggestStops'] != true ||
+        summary['mapboxSearchCanOnlySuggestAddress'] != true ||
+        summary['mapboxSearchCannotConfirmStopAddress'] != true ||
+        summary['mapboxNavigationCanOnlyGuideUser'] != true ||
+        summary['mapboxNavigationCannotEndTrip'] != true ||
+        summary['mapboxMapMatchingCannotRewriteGpsTrace'] != true ||
+        summary['mapboxOptimizationCannotPersistStopOrderWithoutReview'] !=
+            true) {
       reasons.add('mapbox_service_boundary_missing');
     }
     if (summary['rawMapboxResponseIncluded'] != false ||

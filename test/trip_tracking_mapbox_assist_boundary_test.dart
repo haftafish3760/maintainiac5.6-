@@ -117,6 +117,15 @@ void main() {
     expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
     expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
     expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
+    expect(safe['mapboxSearchCanOnlySuggestAddress'], isTrue);
+    expect(safe['mapboxSearchCannotConfirmStopAddress'], isTrue);
+    expect(safe['mapboxNavigationCanOnlyGuideUser'], isTrue);
+    expect(safe['mapboxNavigationCannotEndTrip'], isTrue);
+    expect(safe['mapboxMapMatchingCannotRewriteGpsTrace'], isTrue);
+    expect(
+      safe['mapboxOptimizationCannotPersistStopOrderWithoutReview'],
+      isTrue,
+    );
     expect(safe['remoteRouteCanBecomeCanonical'], isFalse);
     expect(safe['mapboxCanConfirmMileage'], isFalse);
     expect(safe['mapboxCanConfirmStop'], isFalse);
@@ -279,6 +288,12 @@ void main() {
             'mapboxCanPersistRouteWithoutOptIn': true,
             'mapboxCanConfirmMileage': true,
             'mapboxCanConfirmStop': true,
+            'mapboxSearchCanOnlySuggestAddress': false,
+            'mapboxSearchCannotConfirmStopAddress': false,
+            'mapboxNavigationCanOnlyGuideUser': false,
+            'mapboxNavigationCannotEndTrip': false,
+            'mapboxMapMatchingCannotRewriteGpsTrace': false,
+            'mapboxOptimizationCannotPersistStopOrderWithoutReview': false,
             'firestoreCanOverrideMapAssistBoundary': true,
             'remoteRouteCanBecomeCanonical': true,
             'odometerIsGlobalTruth': false,

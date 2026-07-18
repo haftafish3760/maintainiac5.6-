@@ -61,6 +61,12 @@ class TripMapboxRequestBoundaryDecision {
     'mapboxOptimizationCanOnlySuggestOrder': true,
     'mapboxIsochroneCanOnlyVisualizeCoverage': true,
     'mapboxEvChargeFinderCanOnlySuggestStops': true,
+    'mapboxSearchCanOnlySuggestAddress': true,
+    'mapboxSearchCannotConfirmStopAddress': true,
+    'mapboxNavigationCanOnlyGuideUser': true,
+    'mapboxNavigationCannotEndTrip': true,
+    'mapboxMapMatchingCannotRewriteGpsTrace': true,
+    'mapboxOptimizationCannotPersistStopOrderWithoutReview': true,
     'mapboxCanModifyTripLog': false,
     'mapboxCanReplaceOdometer': false,
     'mapboxCanCreateStop': false,
@@ -141,7 +147,14 @@ class TripMapboxRequestBoundarySummaryValidation {
         summary['mapboxMapMatchingCanOnlyAssistReview'] != true ||
         summary['mapboxOptimizationCanOnlySuggestOrder'] != true ||
         summary['mapboxIsochroneCanOnlyVisualizeCoverage'] != true ||
-        summary['mapboxEvChargeFinderCanOnlySuggestStops'] != true) {
+        summary['mapboxEvChargeFinderCanOnlySuggestStops'] != true ||
+        summary['mapboxSearchCanOnlySuggestAddress'] != true ||
+        summary['mapboxSearchCannotConfirmStopAddress'] != true ||
+        summary['mapboxNavigationCanOnlyGuideUser'] != true ||
+        summary['mapboxNavigationCannotEndTrip'] != true ||
+        summary['mapboxMapMatchingCannotRewriteGpsTrace'] != true ||
+        summary['mapboxOptimizationCannotPersistStopOrderWithoutReview'] !=
+            true) {
       reasons.add('mapbox_service_boundary_missing');
     }
     if (summary['mapboxCanModifyTripLog'] != false ||

@@ -185,6 +185,15 @@ void main() {
     expect(safe['mapboxOptimizationCanOnlySuggestOrder'], isTrue);
     expect(safe['mapboxIsochroneCanOnlyVisualizeCoverage'], isTrue);
     expect(safe['mapboxEvChargeFinderCanOnlySuggestStops'], isTrue);
+    expect(safe['mapboxSearchCanOnlySuggestAddress'], isTrue);
+    expect(safe['mapboxSearchCannotConfirmStopAddress'], isTrue);
+    expect(safe['mapboxNavigationCanOnlyGuideUser'], isTrue);
+    expect(safe['mapboxNavigationCannotEndTrip'], isTrue);
+    expect(safe['mapboxMapMatchingCannotRewriteGpsTrace'], isTrue);
+    expect(
+      safe['mapboxOptimizationCannotPersistStopOrderWithoutReview'],
+      isTrue,
+    );
     expect(safe['mapboxCanModifyTripLog'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanCreateStop'], isFalse);
@@ -241,6 +250,12 @@ void main() {
           'mapboxOptimizationCanOnlySuggestOrder': false,
           'mapboxIsochroneCanOnlyVisualizeCoverage': false,
           'mapboxEvChargeFinderCanOnlySuggestStops': false,
+          'mapboxSearchCanOnlySuggestAddress': false,
+          'mapboxSearchCannotConfirmStopAddress': false,
+          'mapboxNavigationCanOnlyGuideUser': false,
+          'mapboxNavigationCannotEndTrip': false,
+          'mapboxMapMatchingCannotRewriteGpsTrace': false,
+          'mapboxOptimizationCannotPersistStopOrderWithoutReview': false,
           'mapboxCanModifyTripLog': true,
           'mapboxCanReplaceOdometer': true,
           'mapboxCanCreateStop': true,
