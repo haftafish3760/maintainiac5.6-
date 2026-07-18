@@ -780,10 +780,10 @@ class MaintainiacFirestoreUploadPolicy {
     final receivedSampleCount = draft.data['receivedSampleCount'];
     final acceptedSampleCount = draft.data['acceptedSampleCount'];
     final valid =
-        _isNonEmptyString(draft.data['tripId']) &&
-        _isNonEmptyString(draft.data['createdByUid']) &&
-        _isNonEmptyString(draft.data['updatedByUid']) &&
-        _isNonEmptyString(draft.data['vehicleId']) &&
+        _isSafeFirestoreMileageToken(draft.data['tripId']) &&
+        _isSafeFirestoreMileageUid(draft.data['createdByUid']) &&
+        _isSafeFirestoreMileageUid(draft.data['updatedByUid']) &&
+        _isSafeFirestoreMileageToken(draft.data['vehicleId']) &&
         _isAllowedString(draft.data['profile'], _allowedTripProfiles) &&
         _isNonEmptyString(draft.data['startedAt']) &&
         _isNonEmptyString(draft.data['finishedAt']) &&
@@ -870,6 +870,18 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isNonEmptyString(Object? value) =>
       value is String && value.trim().isNotEmpty;
+
+  static bool _isSafeFirestoreMileageUid(Object? value) =>
+      value is String &&
+      value.trim() == value &&
+      value.length <= 128 &&
+      RegExp(r'^[A-Za-z0-9:_-]+$').hasMatch(value);
+
+  static bool _isSafeFirestoreMileageToken(Object? value) =>
+      value is String &&
+      value.trim() == value &&
+      value.length <= 128 &&
+      RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(value);
 
   static bool _isBoundedDashboardReference(Object? value) =>
       value is String &&

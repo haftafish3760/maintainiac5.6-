@@ -831,6 +831,32 @@ void main() {
     );
   });
 
+  test('local upload policy rejects unsafe mileage identity fields', () {
+    final doc = MaintainiacFirestoreDocumentBuilder.tripTrackingReviewDocument(
+      orgId: 'orgA',
+      createdByUid: 'firebaseUid-1',
+      review: review(),
+    );
+
+    for (final badData in [
+      {...doc.data, 'tripId': 'trip/1'},
+      {...doc.data, 'tripId': ' trip_1 '},
+      {...doc.data, 'vehicleId': 'truck 1'},
+      {...doc.data, 'vehicleId': 'truck/1'},
+      {...doc.data, 'createdByUid': 'firebase uid'},
+      {...doc.data, 'updatedByUid': 'firebaseUid/1'},
+      {...doc.data, 'createdByUid': 'firebaseUid-1 '},
+      {...doc.data, 'updatedByUid': ' firebaseUid-1'},
+    ]) {
+      expect(
+        () => MaintainiacFirestoreUploadPolicy.validateDraft(
+          MaintainiacFirestoreDocumentDraft(path: doc.path, data: badData),
+        ),
+        throwsArgumentError,
+      );
+    }
+  });
+
   test(
     'queues and uploads a reviewed trip while preserving local retry state',
     () async {
