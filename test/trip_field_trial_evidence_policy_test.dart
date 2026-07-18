@@ -110,4 +110,59 @@ void main() {
       expect(safe['tokensIncluded'], isFalse);
     },
   );
+
+  test('safe field evidence summary validates proof boundary', () {
+    final validation = TripFieldTrialEvidenceSummaryValidation.fromSummary(
+      evaluate().toSafeSummary(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged field evidence cannot claim commercial readiness', () {
+    final validation = TripFieldTrialEvidenceSummaryValidation.fromSummary(
+      evaluate().toSafeSummary()..addAll({
+        'canSupportCommercialClaim': true,
+        'syntheticOnlyEvidenceCanSupportCommercialClaim': true,
+        'commercialClaimRequiresSeparateLaunchAudit': false,
+        'fieldTrialEvidenceRequiresRealDeviceRun': false,
+        'limitedFieldTrialRequiresRedactedEvidence': false,
+        'limitedFieldTrialRequiresPrivacyConsent': false,
+        'limitedFieldTrialRequiresOdometerReview': false,
+        'limitedFieldTrialRequiresStopDisposition': false,
+        'evidenceCanConfirmOdometer': true,
+        'evidenceCanCreateOfficialStop': true,
+        'evidenceCanDeleteLocalData': true,
+        'odometerRemainsOfficialMileageTruth': false,
+        'gpsAssistedTrackingAvailableWithoutMaps': false,
+        'mapsRequiredForEvidence': true,
+        'mapboxFailureCanInvalidateGpsEvidence': true,
+        'employeeTrackingRequiresMutualConsent': false,
+        'rawTripRecordsIncluded': true,
+        'preciseLocationIncluded': true,
+        'routeGeometryIncluded': true,
+        'deviceIdentifierIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'sk.secret 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('commercial_claim_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('limited_field_trial_evidence_boundary_missing'),
+    );
+    expect(validation.reasons, contains('evidence_can_create_trip_truth'));
+    expect(validation.reasons, contains('map_dependency_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('employee_tracking_consent_boundary_missing'),
+    );
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_field_trial_material'),
+    );
+  });
 }
