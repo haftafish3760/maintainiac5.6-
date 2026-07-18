@@ -173,7 +173,18 @@ class GlobalOdometerController extends ChangeNotifier {
       return false;
     }
     final current = _liveTripEstimatedReading ?? _reading;
-    if (estimatedOdometer <= current) return true;
+    if (estimatedOdometer < current) return true;
+    if (estimatedOdometer == current) {
+      if (_liveProjectionTimestampCanRefresh(
+        trustedUpdateAt,
+        currentUpdatedAt: _liveTripUpdatedAt,
+      )) {
+        _liveTripUpdatedAt = trustedUpdateAt;
+        _liveTripProjectionRevision += 1;
+        notifyListeners();
+      }
+      return true;
+    }
     _liveTripEstimatedReading = estimatedOdometer;
     _liveTripUpdatedAt = trustedUpdateAt;
     _liveTripProjectionRevision += 1;
@@ -664,4 +675,13 @@ DateTime? _safeLiveProjectionUpdateTime(
   final current = currentUpdatedAt?.toUtc();
   if (current != null && observed.isBefore(current)) return null;
   return observed;
+}
+
+bool _liveProjectionTimestampCanRefresh(
+  DateTime trustedUpdateAt, {
+  DateTime? currentUpdatedAt,
+}) {
+  final current = currentUpdatedAt?.toUtc();
+  if (current == null) return true;
+  return trustedUpdateAt.toUtc().isAfter(current);
 }

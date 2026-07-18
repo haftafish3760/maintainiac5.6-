@@ -979,6 +979,70 @@ void main() {
     expect(notifications, 2);
   });
 
+  test('same-mile live GPS samples refresh dashboard freshness', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+    var notifications = 0;
+    final start = DateTime.utc(2026, 7, 18, 12);
+    controller.addListener(() => notifications += 1);
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_same_mile_refresh',
+        startingOdometer: 1000,
+        observedAtUtc: start,
+      ),
+      isTrue,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_same_mile_refresh',
+        estimatedOdometer: 1000,
+        observedAtUtc: start.add(const Duration(minutes: 3)),
+        receivedAtUtc: start.add(const Duration(minutes: 3, seconds: 1)),
+      ),
+      isTrue,
+    );
+
+    expect(controller.reading, 1000);
+    expect(controller.confirmedReading, 1000);
+    expect(controller.liveTripUpdatedAt, start.add(const Duration(minutes: 3)));
+    expect(controller.liveTripProjectionRevision, 2);
+    expect(
+      controller.liveDisplaySnapshot.isStaleAt(
+        start.add(const Duration(minutes: 7)),
+      ),
+      isFalse,
+    );
+    expect(notifications, 2);
+  });
+
+  test('older same-mile live GPS samples cannot roll freshness backward', () {
+    final controller = GlobalOdometerController(initialReading: 1000);
+    final start = DateTime.utc(2026, 7, 18, 12);
+
+    expect(
+      controller.beginLiveTripProjection(
+        tripId: 'trip_same_mile_backward',
+        startingOdometer: 1000,
+        observedAtUtc: start.add(const Duration(minutes: 5)),
+      ),
+      isTrue,
+    );
+    expect(
+      controller.updateLiveTripProjection(
+        tripId: 'trip_same_mile_backward',
+        estimatedOdometer: 1000,
+        observedAtUtc: start.add(const Duration(minutes: 4)),
+        receivedAtUtc: start.add(const Duration(minutes: 4, seconds: 1)),
+      ),
+      isFalse,
+    );
+
+    expect(controller.liveTripUpdatedAt, start.add(const Duration(minutes: 5)));
+    expect(controller.liveTripProjectionRevision, 1);
+    expect(controller.liveDisplaySnapshot.displayValue, '0001000');
+  });
+
   test(
     'an active GPS trip prevents switching the active odometer vehicle',
     () async {
