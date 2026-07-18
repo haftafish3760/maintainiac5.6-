@@ -26,6 +26,7 @@ void main() {
     expect(safe['mapboxCanConfirmVehicleOnlyStop'], isFalse);
     expect(safe['firestoreCanCreateVehicleOnlyStop'], isFalse);
     expect(safe['mapsRequiredForVehicleOnlyDwell'], isFalse);
+    expect(safe['hasEnoughCleanDriveEvidence'], isTrue);
   });
 
   test(
@@ -53,6 +54,42 @@ void main() {
       );
     },
   );
+
+  test('extended delivery gridlock jitter is protected before fallback', () {
+    final decision = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      stationaryDuration: const Duration(minutes: 5),
+      walkingEvidenceCount: 0,
+      rejectedDriftCount: 9,
+      acceptedDistanceCount: 5,
+      acceptedVehicleMovementObserved: true,
+      speedMps: 0.1,
+      horizontalAccuracyMeters: 16,
+    );
+
+    expect(decision.status, TripVehicleOnlyDwellStatus.trafficControlProtected);
+    expect(decision.canSurfaceManualFallback, isFalse);
+  });
+
+  test('manual fallback requires enough clean drive evidence first', () {
+    final decision = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      stationaryDuration: const Duration(minutes: 10),
+      walkingEvidenceCount: 0,
+      rejectedDriftCount: 0,
+      acceptedDistanceCount: 1,
+      acceptedVehicleMovementObserved: true,
+      speedMps: 0,
+      horizontalAccuracyMeters: 10,
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripVehicleOnlyDwellStatus.keepTracking);
+    expect(decision.reasonCode, 'vehicle_only_dwell_needs_more_drive_evidence');
+    expect(decision.canSurfaceManualFallback, isFalse);
+    expect(safe['hasEnoughCleanDriveEvidence'], isFalse);
+    expect(safe['minimumAcceptedDistanceCount'], 4);
+  });
 
   test(
     'walking evidence is handled by walking stop policy, not dwell fallback',
@@ -111,6 +148,8 @@ void main() {
     expect(safe['rawSamplesIncluded'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
+    expect(safe['acceptedDistanceCount'], 8);
+    expect(safe['minimumAcceptedDistanceCount'], 3);
   });
 
   test(

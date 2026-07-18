@@ -15,6 +15,9 @@ class TripVehicleOnlyDwellDecision {
     required this.reasonCode,
     required this.minimumDwell,
     required this.observedDwell,
+    required this.acceptedDistanceCount,
+    required this.rejectedDriftCount,
+    required this.minimumAcceptedDistanceCount,
     required this.canSurfaceManualFallback,
     required this.shouldContinueSampling,
   });
@@ -23,6 +26,9 @@ class TripVehicleOnlyDwellDecision {
   final String reasonCode;
   final Duration minimumDwell;
   final Duration observedDwell;
+  final int acceptedDistanceCount;
+  final int rejectedDriftCount;
+  final int minimumAcceptedDistanceCount;
   final bool canSurfaceManualFallback;
   final bool shouldContinueSampling;
 
@@ -32,6 +38,12 @@ class TripVehicleOnlyDwellDecision {
     'reasonCode': _safeReason(reasonCode),
     'minimumDwellSeconds': _safeDurationSeconds(minimumDwell),
     'observedDwellSeconds': _safeDurationSeconds(observedDwell),
+    'acceptedDistanceCount': _safeCount(acceptedDistanceCount),
+    'rejectedDriftCount': _safeCount(rejectedDriftCount),
+    'minimumAcceptedDistanceCount': _safeCount(minimumAcceptedDistanceCount),
+    'hasEnoughCleanDriveEvidence':
+        _safeCount(acceptedDistanceCount) >=
+        _safeCount(minimumAcceptedDistanceCount),
     'canSurfaceManualFallback': canSurfaceManualFallback,
     'shouldContinueSampling': shouldContinueSampling,
     'vehicleOnlyStopRequiresUserReview': true,
@@ -73,6 +85,9 @@ class TripVehicleOnlyDwellPolicy {
     final safeRejectedDriftCount = _safeCount(rejectedDriftCount);
     final safeAcceptedDistanceCount = _safeCount(acceptedDistanceCount);
     final minimumDwell = _minimumVehicleOnlyDwellFor(strategy);
+    final minimumAcceptedDistanceCount = _minimumAcceptedDistanceCountFor(
+      strategy,
+    );
 
     if (!_safeProviderValues(speedMps, horizontalAccuracyMeters) ||
         stationaryDuration.isNegative) {
@@ -81,6 +96,9 @@ class TripVehicleOnlyDwellPolicy {
         reasonCode: 'unsafe_vehicle_only_dwell_evidence',
         minimumDwell: minimumDwell,
         observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
         canSurfaceManualFallback: false,
       );
     }
@@ -91,6 +109,9 @@ class TripVehicleOnlyDwellPolicy {
         reasonCode: 'vehicle_only_dwell_not_needed_for_profile',
         minimumDwell: minimumDwell,
         observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
         canSurfaceManualFallback: false,
       );
     }
@@ -103,6 +124,22 @@ class TripVehicleOnlyDwellPolicy {
         reasonCode: 'vehicle_only_dwell_waiting_for_clean_evidence',
         minimumDwell: minimumDwell,
         observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
+        canSurfaceManualFallback: false,
+      );
+    }
+
+    if (safeAcceptedDistanceCount < minimumAcceptedDistanceCount) {
+      return _decision(
+        status: TripVehicleOnlyDwellStatus.keepTracking,
+        reasonCode: 'vehicle_only_dwell_needs_more_drive_evidence',
+        minimumDwell: minimumDwell,
+        observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
         canSurfaceManualFallback: false,
       );
     }
@@ -118,6 +155,9 @@ class TripVehicleOnlyDwellPolicy {
         reasonCode: 'vehicle_only_dwell_traffic_control_protected',
         minimumDwell: minimumDwell,
         observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
         canSurfaceManualFallback: false,
       );
     }
@@ -128,6 +168,9 @@ class TripVehicleOnlyDwellPolicy {
         reasonCode: 'vehicle_only_dwell_manual_fallback',
         minimumDwell: minimumDwell,
         observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
         canSurfaceManualFallback: true,
       );
     }
@@ -137,6 +180,9 @@ class TripVehicleOnlyDwellPolicy {
       reasonCode: 'vehicle_only_dwell_keep_tracking',
       minimumDwell: minimumDwell,
       observedDwell: safeStationary,
+      acceptedDistanceCount: safeAcceptedDistanceCount,
+      rejectedDriftCount: safeRejectedDriftCount,
+      minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
       canSurfaceManualFallback: false,
     );
   }
@@ -147,6 +193,9 @@ TripVehicleOnlyDwellDecision _decision({
   required String reasonCode,
   required Duration minimumDwell,
   required Duration observedDwell,
+  required int acceptedDistanceCount,
+  required int rejectedDriftCount,
+  required int minimumAcceptedDistanceCount,
   required bool canSurfaceManualFallback,
 }) {
   return TripVehicleOnlyDwellDecision(
@@ -154,6 +203,9 @@ TripVehicleOnlyDwellDecision _decision({
     reasonCode: _safeReason(reasonCode),
     minimumDwell: minimumDwell,
     observedDwell: observedDwell,
+    acceptedDistanceCount: acceptedDistanceCount,
+    rejectedDriftCount: rejectedDriftCount,
+    minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
     canSurfaceManualFallback: canSurfaceManualFallback,
     shouldContinueSampling: true,
   );
@@ -166,7 +218,12 @@ bool _looksLikeTrafficControl({
   required double speedMps,
 }) {
   if (rejectedDriftCount < 4) return false;
-  if (stationaryDuration > _trafficControlCeilingFor(strategy)) return false;
+  final ceiling = _trafficControlCeilingFor(strategy);
+  final extendedJitterCeiling = _extendedJitterCeilingFor(strategy);
+  if (stationaryDuration > ceiling &&
+      (rejectedDriftCount < 8 || stationaryDuration > extendedJitterCeiling)) {
+    return false;
+  }
   return speedMps <= 1.2;
 }
 
@@ -185,6 +242,24 @@ Duration _trafficControlCeilingFor(TripTrackingProfileStrategy strategy) {
     TripTrackingWorkStyle.rideshare => const Duration(minutes: 5),
     TripTrackingWorkStyle.delivery => const Duration(minutes: 4),
     _ => const Duration(minutes: 3),
+  };
+}
+
+Duration _extendedJitterCeilingFor(TripTrackingProfileStrategy strategy) {
+  return switch (strategy.workStyle) {
+    TripTrackingWorkStyle.rideshare => const Duration(minutes: 8),
+    TripTrackingWorkStyle.delivery => const Duration(minutes: 6),
+    _ => const Duration(minutes: 5),
+  };
+}
+
+int _minimumAcceptedDistanceCountFor(TripTrackingProfileStrategy strategy) {
+  return switch (strategy.workStyle) {
+    TripTrackingWorkStyle.rideshare => 4,
+    TripTrackingWorkStyle.delivery => 3,
+    TripTrackingWorkStyle.contractor => 3,
+    TripTrackingWorkStyle.generalRoad => 3,
+    TripTrackingWorkStyle.equipment => 3,
   };
 }
 
@@ -214,6 +289,8 @@ String _safeReason(String value) {
       'vehicle_only_dwell_not_needed_for_profile',
     'vehicle_only_dwell_waiting_for_clean_evidence' =>
       'vehicle_only_dwell_waiting_for_clean_evidence',
+    'vehicle_only_dwell_needs_more_drive_evidence' =>
+      'vehicle_only_dwell_needs_more_drive_evidence',
     'vehicle_only_dwell_traffic_control_protected' =>
       'vehicle_only_dwell_traffic_control_protected',
     'vehicle_only_dwell_manual_fallback' =>
