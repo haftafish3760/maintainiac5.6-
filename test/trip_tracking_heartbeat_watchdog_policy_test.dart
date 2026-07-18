@@ -74,6 +74,33 @@ void main() {
     expect(safe['heartbeatRespectsPausedTrip'], isTrue);
   });
 
+  test('missing heartbeat is no-op when native tracking is not expected', () {
+    final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
+      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      lastHeartbeatUtc: null,
+      nowUtc: now,
+      nativeTrackingExpected: false,
+    );
+    final safe = decision.toSafeSummary();
+
+    expect(decision.status, TripTrackingHeartbeatWatchdogStatus.healthy);
+    expect(
+      decision.action,
+      TripTrackingHeartbeatWatchdogAction.continueTracking,
+    );
+    expect(decision.reasonCode, 'native_tracking_not_expected');
+    expect(decision.shouldRetryNativeTracking, isFalse);
+    expect(decision.requiresUserReview, isFalse);
+    expect(safe['heartbeatGapCanCreateMileage'], isFalse);
+    expect(safe['heartbeatCanPurgeLocalDataAfterBackup'], isFalse);
+    expect(
+      TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
   test('terminal sessions cannot be resumed by stale heartbeat recovery', () {
     for (final state in [
       TripTrackingSessionLifecycleState.completed,

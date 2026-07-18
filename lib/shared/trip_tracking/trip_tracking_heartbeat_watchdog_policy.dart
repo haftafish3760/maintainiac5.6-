@@ -218,6 +218,14 @@ class TripTrackingHeartbeatWatchdogPolicy {
         currentLifecycle,
       );
     }
+    if (!nativeTrackingExpected) {
+      return _decision(
+        TripTrackingHeartbeatWatchdogStatus.healthy,
+        TripTrackingHeartbeatWatchdogAction.continueTracking,
+        'native_tracking_not_expected',
+        currentLifecycle,
+      );
+    }
     final heartbeat = lastHeartbeatUtc?.toUtc();
     final now = nowUtc.toUtc();
     if (heartbeat == null || heartbeat.isAfter(now)) {
@@ -230,13 +238,11 @@ class TripTrackingHeartbeatWatchdogPolicy {
       );
     }
     final age = now.difference(heartbeat);
-    if (!nativeTrackingExpected || age < staleAfter) {
+    if (age < staleAfter) {
       return _decision(
         TripTrackingHeartbeatWatchdogStatus.healthy,
         TripTrackingHeartbeatWatchdogAction.continueTracking,
-        nativeTrackingExpected
-            ? 'heartbeat_recent'
-            : 'native_tracking_not_expected',
+        'heartbeat_recent',
         currentLifecycle,
       );
     }
