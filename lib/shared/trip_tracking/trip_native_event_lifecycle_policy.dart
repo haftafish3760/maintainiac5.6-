@@ -174,6 +174,8 @@ class TripNativeEventLifecycleSummaryValidation {
         summary['tokensIncluded'] != false) {
       reasons.add('summary_contains_sensitive_native_material');
     }
+    final boundaryRisk = _nativeLifecycleBoundaryRisk(summary, action);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     if (summary.values.any(_looksSensitive)) {
       reasons.add('summary_contains_sensitive_text');
     }
@@ -444,6 +446,45 @@ TripTrackingSessionLifecycleState? _safeLifecycleState(Object? value) {
   if (value is! String) return null;
   for (final state in TripTrackingSessionLifecycleState.values) {
     if (state.name == value) return state;
+  }
+  return null;
+}
+
+String? _nativeLifecycleBoundaryRisk(
+  Map<String, Object?> summary,
+  TripNativeEventLifecycleAction? action,
+) {
+  final transition = summary['transitionAllowed'];
+  final canFeed = summary['canFeedEngine'];
+  final review = summary['requiresUserReview'];
+  final reason = _safeLifecycleReason(summary['reason']);
+  final from = _safeLifecycleState(summary['from']);
+  final to = _safeLifecycleState(summary['to']);
+  if (action == null ||
+      transition is! bool ||
+      canFeed is! bool ||
+      review is! bool ||
+      from == null ||
+      to == null) {
+    return null;
+  }
+  if (canFeed &&
+      (action != TripNativeEventLifecycleAction.ingestLocation ||
+          !transition ||
+          from == TripTrackingSessionLifecycleState.paused ||
+          from == TripTrackingSessionLifecycleState.permissionRequired)) {
+    return 'native_lifecycle_status_conflicts_with_authority';
+  }
+  if (!transition && to != from) {
+    return 'native_lifecycle_status_conflicts_with_authority';
+  }
+  if (action == TripNativeEventLifecycleAction.requestUserPermissionReview &&
+      (!review || canFeed)) {
+    return 'native_lifecycle_status_conflicts_with_authority';
+  }
+  if (reason == TripNativeEventLifecycleReason.permissionRequired &&
+      (!review || canFeed)) {
+    return 'native_lifecycle_status_conflicts_with_authority';
   }
   return null;
 }

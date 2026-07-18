@@ -230,6 +230,39 @@ void main() {
     );
     expect(validation.reasons, contains('summary_contains_sensitive_text'));
   });
+
+  test('native lifecycle summary rejects status authority mismatch', () {
+    final paused = TripNativeEventLifecyclePolicy.evaluate(
+      currentState: TripTrackingSessionLifecycleState.paused,
+      event: locationEvent(),
+    ).toSafeSummary();
+    final permission = TripNativeEventLifecyclePolicy.evaluate(
+      currentState: TripTrackingSessionLifecycleState.active,
+      event: authorizationEvent(TripTrackingAuthorizationState.denied),
+    ).toSafeSummary();
+
+    final forgedPaused = TripNativeEventLifecycleSummaryValidation.fromSummary({
+      ...paused,
+      'canFeedEngine': true,
+    });
+    final forgedPermission =
+        TripNativeEventLifecycleSummaryValidation.fromSummary({
+          ...permission,
+          'reason': TripNativeEventLifecycleReason.permissionRequired.name,
+          'requiresUserReview': false,
+        });
+
+    expect(forgedPaused.isRenderable, isFalse);
+    expect(forgedPermission.isRenderable, isFalse);
+    expect(
+      forgedPaused.reasons,
+      contains('native_lifecycle_status_conflicts_with_authority'),
+    );
+    expect(
+      forgedPermission.reasons,
+      contains('native_lifecycle_status_conflicts_with_authority'),
+    );
+  });
 }
 
 TripTrackingPlatformEvent locationEvent() {
