@@ -16,14 +16,35 @@ class TripTrackingSessionRecoveryValidation {
   });
 
   factory TripTrackingSessionRecoveryValidation.activeSession(
-    TripTrackingSessionRecord session,
-  ) {
+    TripTrackingSessionRecord session, {
+    DateTime? recoveredAt,
+    Duration maximumCheckpointAge = const Duration(hours: 18),
+    Duration maximumFutureSkew = const Duration(minutes: 2),
+  }) {
     final reasons = <String>[];
     if (!_safeIdentifier(session.id)) reasons.add('unsafe_session_id');
     if (!_safeIdentifier(session.vehicleId)) reasons.add('unsafe_vehicle_id');
     if (!session.hasValidTimeline) reasons.add('invalid_session_timeline');
     if (session.updatedAt.isBefore(session.startedAt)) {
       reasons.add('updated_before_started');
+    }
+    final recoveryClock = recoveredAt;
+    if (recoveryClock != null) {
+      final recovered = recoveryClock.toUtc();
+      final started = session.startedAt.toUtc();
+      final updated = session.updatedAt.toUtc();
+      final futureSkew = _safeFutureSkew(maximumFutureSkew);
+      if (started.isAfter(recovered.add(futureSkew))) {
+        reasons.add('session_started_in_future');
+      }
+      if (updated.isAfter(recovered.add(futureSkew))) {
+        reasons.add('session_checkpoint_in_future');
+      }
+      if (updated.isBefore(
+        recovered.subtract(_safeCheckpointAge(maximumCheckpointAge)),
+      )) {
+        reasons.add('session_checkpoint_too_stale');
+      }
     }
     if (session.startingOdometer < 0) {
       reasons.add('negative_starting_odometer');
@@ -51,8 +72,10 @@ class TripTrackingSessionRecoveryValidation {
   }
 
   factory TripTrackingSessionRecoveryValidation.review(
-    TripTrackingReviewRecord review,
-  ) {
+    TripTrackingReviewRecord review, {
+    DateTime? recoveredAt,
+    Duration maximumFutureSkew = const Duration(minutes: 2),
+  }) {
     final reasons = <String>[];
     if (!_safeIdentifier(review.id)) reasons.add('unsafe_review_id');
     if (!_safeIdentifier(review.vehicleId)) reasons.add('unsafe_vehicle_id');
@@ -73,6 +96,16 @@ class TripTrackingSessionRecoveryValidation {
     if (review.cloudSyncState == TripTrackingCloudSyncState.synced &&
         review.cloudSyncedAt == null) {
       reasons.add('synced_without_timestamp');
+    }
+    final recoveryClock = recoveredAt;
+    final syncedAt = review.cloudSyncedAt;
+    if (recoveryClock != null && syncedAt != null) {
+      final recovered = recoveryClock.toUtc();
+      if (syncedAt.toUtc().isAfter(
+        recovered.add(_safeFutureSkew(maximumFutureSkew)),
+      )) {
+        reasons.add('sync_timestamp_in_future');
+      }
     }
     if (review.cloudBackupScope == TripTrackingCloudBackupScope.organization &&
         !_safeIdentifier(review.cloudOrganizationId)) {
@@ -157,6 +190,18 @@ bool _hasSensitiveAdvisoryText(
 );
 
 bool _supportedSchema(int value) => value == 1;
+
+Duration _safeCheckpointAge(Duration value) {
+  if (value <= Duration.zero) return const Duration(hours: 1);
+  return value > const Duration(days: 30) ? const Duration(days: 30) : value;
+}
+
+Duration _safeFutureSkew(Duration value) {
+  if (value <= Duration.zero) return Duration.zero;
+  return value > const Duration(minutes: 10)
+      ? const Duration(minutes: 10)
+      : value;
+}
 
 bool _safeIdentifier(Object? value) {
   if (value is! String) return false;

@@ -104,6 +104,77 @@ void main() {
     expect(decision.canResumeNativeTracking, isFalse);
   });
 
+  test('unsafe vehicle ids are blocked before resume comparison', () {
+    final unsafeCurrent = TripRecoveryResumePolicy.evaluate(
+      validation: TripTrackingSessionRecoveryValidation.activeSession(
+        session(),
+      ),
+      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentVehicleId: 'vehicle_1\nvehicle_2',
+      expectedVehicleId: 'vehicle_1',
+      currentConfirmedOdometer: 999,
+      startingOdometer: 1000,
+    );
+    final unsafeExpected = TripRecoveryResumePolicy.evaluate(
+      validation: TripTrackingSessionRecoveryValidation.activeSession(
+        session(),
+      ),
+      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentVehicleId: 'vehicle_1',
+      expectedVehicleId: ' vehicle_1 ',
+      currentConfirmedOdometer: 999,
+      startingOdometer: 1000,
+    );
+
+    expect(
+      unsafeCurrent.reason,
+      TripRecoveryResumeReason.unsafeVehicleBoundary,
+    );
+    expect(
+      unsafeExpected.reason,
+      TripRecoveryResumeReason.unsafeVehicleBoundary,
+    );
+    expect(unsafeCurrent.canResumeNativeTracking, isFalse);
+    expect(unsafeCurrent.toSafeSummary()['vehicleBoundaryValidated'], isFalse);
+  });
+
+  test('invalid odometer boundary blocks recovery before rollback math', () {
+    final negativeConfirmed = TripRecoveryResumePolicy.evaluate(
+      validation: TripTrackingSessionRecoveryValidation.activeSession(
+        session(),
+      ),
+      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentVehicleId: 'vehicle_1',
+      expectedVehicleId: 'vehicle_1',
+      currentConfirmedOdometer: -1,
+      startingOdometer: 1000,
+    );
+    final negativeStarting = TripRecoveryResumePolicy.evaluate(
+      validation: TripTrackingSessionRecoveryValidation.activeSession(
+        session(),
+      ),
+      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentVehicleId: 'vehicle_1',
+      expectedVehicleId: 'vehicle_1',
+      currentConfirmedOdometer: 999,
+      startingOdometer: -1,
+    );
+
+    expect(
+      negativeConfirmed.reason,
+      TripRecoveryResumeReason.invalidOdometerBoundary,
+    );
+    expect(
+      negativeStarting.reason,
+      TripRecoveryResumeReason.invalidOdometerBoundary,
+    );
+    expect(negativeConfirmed.canResumeNativeTracking, isFalse);
+    expect(
+      negativeConfirmed.toSafeSummary()['odometerBoundaryValidated'],
+      isFalse,
+    );
+  });
+
   test(
     'safe recovery summary preserves local truth and privacy boundaries',
     () {

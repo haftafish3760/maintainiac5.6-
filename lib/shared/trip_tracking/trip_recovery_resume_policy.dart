@@ -10,7 +10,9 @@ enum TripRecoveryResumeReason {
   quarantinedRecord,
   illegalLifecycleTransition,
   vehicleMismatch,
+  unsafeVehicleBoundary,
   odometerRollbackRisk,
+  invalidOdometerBoundary,
 }
 
 class TripRecoveryResumeDecision {
@@ -42,6 +44,10 @@ class TripRecoveryResumeDecision {
     'requiresUserReview': requiresUserReview,
     'localRecoveryValidationRequired': true,
     'localLifecycleAuthoritative': true,
+    'vehicleBoundaryValidated':
+        reason != TripRecoveryResumeReason.unsafeVehicleBoundary,
+    'odometerBoundaryValidated':
+        reason != TripRecoveryResumeReason.invalidOdometerBoundary,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreCanReviveQuarantinedSession': false,
     'mapboxCanReviveQuarantinedSession': false,
@@ -72,6 +78,19 @@ class TripRecoveryResumePolicy {
     if (!validation.isRecoverable) {
       return _blocked(
         TripRecoveryResumeReason.quarantinedRecord,
+        currentLifecycle,
+      );
+    }
+    if (!_safeIdentifier(currentVehicleId) ||
+        !_safeIdentifier(expectedVehicleId)) {
+      return _blocked(
+        TripRecoveryResumeReason.unsafeVehicleBoundary,
+        currentLifecycle,
+      );
+    }
+    if (currentConfirmedOdometer < 0 || startingOdometer < 0) {
+      return _blocked(
+        TripRecoveryResumeReason.invalidOdometerBoundary,
         currentLifecycle,
       );
     }
@@ -118,6 +137,13 @@ class TripRecoveryResumePolicy {
       requiresUserReview: false,
     );
   }
+}
+
+bool _safeIdentifier(String value) {
+  return value.trim() == value &&
+      value.isNotEmpty &&
+      value.length <= 160 &&
+      RegExp(r'^[A-Za-z0-9._:-]+$').hasMatch(value);
 }
 
 TripRecoveryResumeDecision _blocked(

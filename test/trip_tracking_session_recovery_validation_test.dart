@@ -113,6 +113,42 @@ void main() {
     expect(validation.reasons, contains('unsafe_engine_snapshot'));
   });
 
+  test('active recovery quarantines future and stale checkpoints', () {
+    final recoveredAt = DateTime.utc(2026, 7, 18, 12);
+    final futureSession =
+        activeSession(
+          id: 'trip_future_checkpoint',
+          advisories: const [],
+        ).copyWithForTest(
+          startedAt: recoveredAt.add(const Duration(minutes: 4)),
+          updatedAt: recoveredAt.add(const Duration(minutes: 5)),
+        );
+    final staleSession = activeSession(id: 'trip_stale_checkpoint')
+        .copyWithForTest(
+          startedAt: recoveredAt.subtract(const Duration(days: 2)),
+          updatedAt: recoveredAt.subtract(const Duration(hours: 20)),
+        );
+
+    final future = TripTrackingSessionRecoveryValidation.activeSession(
+      futureSession,
+      recoveredAt: recoveredAt,
+    );
+    final stale = TripTrackingSessionRecoveryValidation.activeSession(
+      staleSession,
+      recoveredAt: recoveredAt,
+    );
+
+    expect(future.isRecoverable, isFalse);
+    expect(future.reasons, contains('session_started_in_future'));
+    expect(future.reasons, contains('session_checkpoint_in_future'));
+    expect(stale.isRecoverable, isFalse);
+    expect(stale.reasons, contains('session_checkpoint_too_stale'));
+    expect(
+      stale.toSafeSummary()['firestoreCanReviveQuarantinedSession'],
+      isFalse,
+    );
+  });
+
   test('recoverable review cannot create confirmed mileage by itself', () {
     final validation = TripTrackingSessionRecoveryValidation.review(review());
     final safe = validation.toSafeSummary();
@@ -150,4 +186,43 @@ void main() {
     expect(validation.toSafeSummary()['tokensIncluded'], isFalse);
     expect(validation.toSafeSummary()['preciseLocationIncluded'], isFalse);
   });
+
+  test('review recovery rejects impossible future sync timestamp', () {
+    final validation = TripTrackingSessionRecoveryValidation.review(
+      review(
+        cloudSyncState: TripTrackingCloudSyncState.synced,
+        cloudSyncedAt: DateTime.utc(2026, 7, 18, 12, 5),
+      ),
+      recoveredAt: DateTime.utc(2026, 7, 18, 12),
+    );
+
+    expect(validation.isRecoverable, isFalse);
+    expect(validation.reasons, contains('sync_timestamp_in_future'));
+    expect(
+      validation.toSafeSummary()['cloudFunctionCanReviveQuarantinedSession'],
+      isFalse,
+    );
+  });
+}
+
+extension on TripTrackingSessionRecord {
+  TripTrackingSessionRecord copyWithForTest({
+    required DateTime startedAt,
+    required DateTime updatedAt,
+  }) {
+    return TripTrackingSessionRecord(
+      id: id,
+      vehicleId: vehicleId,
+      startingOdometer: startingOdometer,
+      profile: profile,
+      startedAt: startedAt,
+      updatedAt: updatedAt,
+      engineSnapshot: engineSnapshot,
+      advisories: advisories,
+      lifecycleState: lifecycleState,
+      healthState: healthState,
+      hasValidTimeline: hasValidTimeline,
+      schemaVersion: schemaVersion,
+    );
+  }
 }
