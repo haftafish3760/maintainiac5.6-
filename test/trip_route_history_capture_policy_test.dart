@@ -12,6 +12,8 @@ void main() {
     expect(safe['mapsRequiredForTripTracking'], isFalse);
     expect(safe['textTripLogStillWritten'], isTrue);
     expect(safe['textTripLogCanContinueAtLowStorage'], isTrue);
+    expect(safe['routeHistoryRequiresOwnershipValidation'], isTrue);
+    expect(safe['authenticationAloneAuthorizesRouteHistory'], isFalse);
   });
 
   test('route history requires separate explicit opt in', () {
@@ -103,6 +105,8 @@ void main() {
 
     expect(safe['routeHistoryCanConfirmMileage'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
+    expect(safe['mapboxCanCreateOfficialStop'], isFalse);
+    expect(safe['mapboxCanReorderOfficialStops'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(safe['rawCoordinatesIncluded'], isFalse);
     expect(safe['routeGeometryIncluded'], isFalse);
@@ -111,6 +115,7 @@ void main() {
     expect(safe['routeHistoryCleanupRequiresExplicitUserAction'], isTrue);
     expect(safe['mapboxFailureStopsTextTripLog'], isFalse);
     expect(safe['firestoreCanEnableMapsWithoutUserOptIn'], isFalse);
+    expect(safe['firestoreCanRestoreDeletedRouteHistory'], isFalse);
     expect(safe['remoteConfigCanIncreaseSamplingCadence'], isFalse);
     expect(safe['remoteConfigCanExceedDailyBudget'], isFalse);
     expect(safe.toString(), isNot(contains('pk.')));
@@ -146,14 +151,18 @@ void main() {
           'freeGpsTripTrackerRemainsFree': false,
           'mapboxFailureStopsTextTripLog': true,
           'firestoreCanEnableMapsWithoutUserOptIn': true,
+          'authenticationAloneAuthorizesRouteHistory': true,
           'userCanDisableMapRouteHistoryAnytime': false,
           'oneToThreeSecondRawPingStorageAllowed': true,
           'remoteConfigCanIncreaseSamplingCadence': true,
           'remoteConfigCanExceedDailyBudget': true,
           'mapboxCanReplaceTripLog': true,
           'mapboxCanReplaceOdometer': true,
+          'mapboxCanCreateOfficialStop': true,
+          'mapboxCanReorderOfficialStops': true,
           'routeHistoryCanConfirmMileage': true,
           'durableStorageRemainsSharedAcrossModules': false,
+          'firestoreCanRestoreDeletedRouteHistory': true,
           'routeHistoryCleanupRequiresExplicitUserAction': false,
           'rawCoordinatesIncluded': true,
           'routeGeometryIncluded': true,
@@ -183,6 +192,44 @@ void main() {
       );
     },
   );
+
+  test('route history validation rejects unbounded cadence and point caps', () {
+    final summary =
+        evaluate(
+          accountTier: TripRouteHistoryAccountTier.paid,
+          userOptedIntoMaps: true,
+          userOptedIntoRouteHistory: true,
+          requestedDailyBudgetMb: 3,
+        ).toSafeSummary()..addAll({
+          'recommendedSampleIntervalSeconds': 1,
+          'maximumRetainedPointsPerDay': 500000,
+        });
+
+    final validation = TripRouteHistorySummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('invalid_route_history_cadence'));
+  });
+
+  test('route history validation rejects auth-only ownership shortcuts', () {
+    final summary =
+        evaluate(
+          userOptedIntoMaps: true,
+          userOptedIntoRouteHistory: true,
+          requestedDailyBudgetMb: 1,
+        ).toSafeSummary()..addAll({
+          'routeHistoryRequiresOwnershipValidation': false,
+          'authenticationAloneAuthorizesRouteHistory': true,
+        });
+
+    final validation = TripRouteHistorySummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('route_history_opt_in_boundary_missing'),
+    );
+  });
 }
 
 TripRouteHistoryCaptureDecision evaluate({

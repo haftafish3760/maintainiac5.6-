@@ -43,6 +43,8 @@ class TripRouteHistoryCaptureDecision {
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'mapsRequiredForTripTracking': false,
     'mapRouteHistoryRequiresSeparateOptIn': true,
+    'routeHistoryRequiresOwnershipValidation': true,
+    'authenticationAloneAuthorizesRouteHistory': false,
     'freeGpsTripTrackerRemainsFree': true,
     'routeHistoryCanBeDisabledWithoutStoppingTrip': true,
     'textTripLogStillWritten': true,
@@ -54,6 +56,8 @@ class TripRouteHistoryCaptureDecision {
     'rawHighFrequencyPingsRetained': false,
     'mapboxCanReplaceTripLog': false,
     'mapboxCanReplaceOdometer': false,
+    'mapboxCanCreateOfficialStop': false,
+    'mapboxCanReorderOfficialStops': false,
     'routeHistoryCanConfirmMileage': false,
     'odometerRemainsOfficialMileageTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
@@ -62,6 +66,7 @@ class TripRouteHistoryCaptureDecision {
     'routeHistoryCleanupRequiresExplicitUserAction': true,
     'mapboxFailureStopsTextTripLog': false,
     'firestoreCanEnableMapsWithoutUserOptIn': false,
+    'firestoreCanRestoreDeletedRouteHistory': false,
     'remoteConfigCanIncreaseSamplingCadence': false,
     'remoteConfigCanExceedDailyBudget': false,
     'backgroundTrackingRequiresPlatformPermission': true,
@@ -88,8 +93,8 @@ class TripRouteHistorySummaryValidation {
     if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
     if (plan == null) reasons.add('invalid_route_history_plan');
     if (reason == null) reasons.add('invalid_route_history_reason');
-    if (summary['recommendedSampleIntervalSeconds'] is! int ||
-        summary['maximumRetainedPointsPerDay'] is! int) {
+    if (!_safeInterval(summary['recommendedSampleIntervalSeconds']) ||
+        !_safePointCap(summary['maximumRetainedPointsPerDay'])) {
       reasons.add('invalid_route_history_cadence');
     }
     if (summary['canCaptureRouteHistory'] == true &&
@@ -104,6 +109,8 @@ class TripRouteHistorySummaryValidation {
       reasons.add('gps_text_log_boundary_missing');
     }
     if (summary['mapRouteHistoryRequiresSeparateOptIn'] != true ||
+        summary['routeHistoryRequiresOwnershipValidation'] != true ||
+        summary['authenticationAloneAuthorizesRouteHistory'] != false ||
         summary['userCanDisableMapRouteHistoryAnytime'] != true ||
         summary['firestoreCanEnableMapsWithoutUserOptIn'] != false) {
       reasons.add('route_history_opt_in_boundary_missing');
@@ -117,6 +124,8 @@ class TripRouteHistorySummaryValidation {
     }
     if (summary['mapboxCanReplaceTripLog'] != false ||
         summary['mapboxCanReplaceOdometer'] != false ||
+        summary['mapboxCanCreateOfficialStop'] != false ||
+        summary['mapboxCanReorderOfficialStops'] != false ||
         summary['routeHistoryCanConfirmMileage'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('map_route_claims_trip_truth');
@@ -124,6 +133,7 @@ class TripRouteHistorySummaryValidation {
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
         summary['durableStorageRemainsSharedAcrossModules'] != true ||
+        summary['firestoreCanRestoreDeletedRouteHistory'] != false ||
         summary['routeHistoryCleanupRequiresExplicitUserAction'] != true) {
       reasons.add('storage_authority_boundary_missing');
     }
@@ -285,6 +295,16 @@ String _dailyBudgetBucket(double value) {
   if (value < 2) return 'half_to_two_mb';
   if (value < 10) return 'two_to_ten_mb';
   return 'ten_to_twenty_five_mb';
+}
+
+bool _safeInterval(Object? value) {
+  if (value is! int) return false;
+  return value == 0 || (value >= 5 && value <= 60);
+}
+
+bool _safePointCap(Object? value) {
+  if (value is! int) return false;
+  return value >= 0 && value <= 12000;
 }
 
 TripRouteHistoryPlan? _safePlan(Object? value) {
