@@ -131,12 +131,14 @@ int _schemaVersion(Object? raw) {
 }
 
 String _safeToken(Object? raw) {
-  final clean = '${raw ?? ''}'
-      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '')
-      .trim();
+  final original = '${raw ?? ''}';
+  final clean = original.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '').trim();
   if (clean.isEmpty || clean.length > 160) return '';
+  if (clean != original) return '';
   if (clean.startsWith('pk.') || clean.startsWith('sk.')) return '';
+  if (clean.toLowerCase().contains('token')) return '';
   if (clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'))) return '';
+  if (!RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean)) return '';
   return clean;
 }
 

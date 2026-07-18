@@ -85,6 +85,36 @@ void main() {
     },
   );
 
+  test('owner and session identifiers require exact safe token shape', () {
+    for (final badOwner in const [
+      ' driver-1',
+      'driver 1',
+      'driver-token',
+      'driver/1',
+      'driver\n1',
+    ]) {
+      final decision = TripLocationSampleIntakeGuard.evaluate(
+        payload: payload(ownerUid: badOwner),
+        expectedOwnerUid: badOwner,
+        expectedSessionId: 'trip-1',
+        receivedAt: receivedAt,
+      );
+
+      expect(decision.status, TripLocationSampleIntakeStatus.rejected);
+      expect(decision.reason, TripLocationSampleIntakeReason.ownerMismatch);
+    }
+
+    final badSession = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload(sessionId: 'trip token 1'),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip token 1',
+      receivedAt: receivedAt,
+    );
+
+    expect(badSession.status, TripLocationSampleIntakeStatus.rejected);
+    expect(badSession.reason, TripLocationSampleIntakeReason.sessionMismatch);
+  });
+
   test('remote or Mapbox source cannot feed native trip engine', () {
     for (final source in const [
       'firestore_mirror',
