@@ -91,7 +91,7 @@ void main() {
     expect(summary['stopCanSuggestReview'], isFalse);
     final guard = summary['falsePositiveGuard'] as Map<String, Object?>;
     expect(guard['guardsLongTrafficLight'], isTrue);
-    expect(guard['canAllowReviewOpen'], isTrue);
+    expect(guard['canAllowReviewOpen'], isFalse);
   });
 
   test('vehicle-only delivery simulation carries manual-review guard', () {

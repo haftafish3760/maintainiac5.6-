@@ -104,6 +104,7 @@ class SimulatedTripResult {
       'stopActionToken': classification.actionToken,
       'stopReviewConfidence': classification.reviewConfidence.name,
       'stopClassificationReason': classification.reasonCode,
+      'stopClassification': classificationSummary,
       'stopRequiresUserReview': classification.requiresUserReview,
       'stopCanSuggestReview': classification.canSuggestStop,
       'stopShouldSurfaceManualFallback':

@@ -69,6 +69,9 @@ class TripStopSummaryValidation {
     if (summary['localTripLogRequiredForReview'] != true) {
       reasons.add('local_trip_log_not_required_for_review');
     }
+    if (summary['stopRequiresAcceptedVehicleMovement'] != true) {
+      reasons.add('accepted_vehicle_movement_not_required_for_stop_review');
+    }
     if (summary['authenticatedUserStillNeedsAuthorization'] != true) {
       reasons.add('authentication_treated_as_authorization');
     }

@@ -121,7 +121,7 @@ class TripStopFalsePositiveGuard {
       status: TripStopFalsePositiveGuardStatus.passed,
       reasonCode: 'stop_false_positive_guard_passed',
       profile: profile,
-      canAllowReviewOpen: true,
+      canAllowReviewOpen: canOpenReview,
     );
   }
 }
@@ -151,8 +151,15 @@ bool _safeStatus(String value) {
 
 bool _safeClassification(Map<String, Object?> value) {
   return value['schemaVersion'] == 1 &&
+      value['reviewOnly'] == true &&
+      value['advisoryOnly'] == true &&
+      value['gpsAssistedOnly'] == true &&
       value['canCreateOfficialStop'] == false &&
       value['canEndTripAutomatically'] == false &&
+      value['canReplaceOdometer'] == false &&
+      value['stopRequiresAcceptedVehicleMovement'] == true &&
+      value['localTripLogRequiredForReview'] == true &&
+      value['authenticatedUserStillNeedsAuthorization'] == true &&
       value['officialStopSource'] == 'user_review' &&
       value['officialMileageSource'] == 'odometer';
 }

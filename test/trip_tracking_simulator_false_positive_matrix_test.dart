@@ -116,19 +116,13 @@ void main() {
     final summary = result.toSafeDashboardSummary(
       profile: TripTrackingProfile.deliveryVehicle,
     );
-    final classification = {
-      'schemaVersion': 1,
-      'canCreateOfficialStop': false,
-      'canEndTripAutomatically': false,
-      'officialStopSource': 'user_review',
-      'officialMileageSource': 'odometer',
-      'mapboxCanCreateStop': true,
-    };
+    final classification =
+        (summary['stopClassification'] as Map<String, Object?>);
 
     final remote = TripStopFalsePositiveGuard.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
       status: 'readyForReview',
-      classification: classification,
+      classification: {...classification, 'mapboxCanCreateStop': true},
       vehicleOnlyDwell: null,
       needsWalkingReview: true,
       protectedTrafficControl: false,

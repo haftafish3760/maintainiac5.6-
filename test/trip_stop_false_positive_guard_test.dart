@@ -138,6 +138,51 @@ void main() {
     expect(sensitive.toSafeDashboardMap().toString(), isNot(contains('35.')));
     expect(sensitive.toSafeDashboardMap().toString(), isNot(contains('sk.')));
   });
+
+  test('guard pass does not authorize review when debounce kept it closed', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      observation: _observation(
+        observedAt: observedAt,
+        walkingEvidenceCount: 3,
+        walkingEvidenceSpan: const Duration(seconds: 35),
+        stationaryDuration: const Duration(seconds: 50),
+      ),
+    );
+    final guard =
+        decision.toSafeDashboardMap()['falsePositiveGuard']
+            as Map<String, Object?>;
+
+    expect(decision.canOpenReview, isFalse);
+    expect(guard['status'], TripStopFalsePositiveGuardStatus.passed.name);
+    expect(guard['canAllowReviewOpen'], isFalse);
+  });
+
+  test('guard treats missing trip authority fields as malformed', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: _observation(observedAt: observedAt),
+    );
+    final malformed = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      status: decision.status.name,
+      classification: {
+        ...decision.classification.toSafeSummary(),
+        'localTripLogRequiredForReview': false,
+        'stopRequiresAcceptedVehicleMovement': false,
+      },
+      vehicleOnlyDwell: decision.vehicleOnlyDwell?.toSafeDashboardMap(),
+      needsWalkingReview: true,
+      protectedTrafficControl: false,
+      canOpenReview: true,
+    );
+
+    expect(
+      malformed.status,
+      TripStopFalsePositiveGuardStatus.blockedMalformedSummary,
+    );
+    expect(malformed.canAllowReviewOpen, isFalse);
+  });
 }
 
 TripStopDebounceObservation _observation({

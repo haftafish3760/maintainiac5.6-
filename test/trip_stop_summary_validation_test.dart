@@ -29,6 +29,10 @@ void main() {
     final summary = safeDeliveryStopSummary()
       ..addAll({
         'remoteStopSummaryCanOverrideLocalTrip': true,
+        'remoteDashboardCanOpenStopReview': true,
+        'importedStopSummaryCanOpenStopReview': true,
+        'localTripLogRequiredForReview': false,
+        'stopRequiresAcceptedVehicleMovement': false,
         'firestoreCanCreateOfficialStop': true,
         'cloudFunctionCanCreateOfficialStop': true,
         'activityRecognitionCanCreateOfficialStop': true,
@@ -45,6 +49,9 @@ void main() {
       containsAll([
         'activity_recognition_can_create_stop',
         'remote_summary_can_override_local_trip',
+        'remote_summary_can_open_stop_review',
+        'local_trip_log_not_required_for_review',
+        'accepted_vehicle_movement_not_required_for_stop_review',
         'firestore_can_create_stop',
         'cloud_function_can_create_stop',
         'summary_can_mutate_trip_truth',
