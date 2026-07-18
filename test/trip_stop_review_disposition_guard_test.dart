@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_review_disposition_guard.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_stop_review_disposition_summary_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
@@ -63,6 +64,10 @@ void main() {
     expect(safe['employerGodModeAllowed'], isFalse);
     expect(safe['dispositionPayloadCanExposeLiveLocation'], isFalse);
     expect(safe['canReplaceOdometer'], isFalse);
+    expect(
+      TripStopReviewDispositionSummaryValidation.fromSummary(safe).isRenderable,
+      isTrue,
+    );
   });
 
   test(
@@ -214,6 +219,37 @@ void main() {
     expect(payload['dispositionPayloadCanExposeLiveLocation'], isFalse);
     expect(payload['coordinatesIncluded'], isFalse);
     expect(payload['remoteCanMarkStopOfficial'], isFalse);
+  });
+
+  test('disposition summary rejects forged remote apply authority', () {
+    final safe = TripStopReviewDispositionGuard.evaluate(
+      request(authenticatedUid: 'otherUser', nowUtc: now, reviewedAtUtc: now),
+    ).toSafeDashboardMap();
+    final validation = TripStopReviewDispositionSummaryValidation.fromSummary({
+      ...safe,
+      'mayApplyDisposition': true,
+      'firestoreCanApplyDisposition': true,
+      'mapboxCanInferOfficialStopAddress': true,
+      'debug': '35.123456,-80.123456',
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('firestoreCanApplyDisposition_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('mapboxCanInferOfficialStopAddress_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('disposition_apply_authority_mismatch'),
+    );
+    expect(
+      validation.reasons,
+      contains('disposition_summary_contains_sensitive_text'),
+    );
   });
 }
 
