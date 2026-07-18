@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../../shared/storage/app_storage_guard.dart';
 import '../../../shared/device_capabilities/device_capabilities.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
@@ -13,7 +15,7 @@ typedef DashboardSummaryBoolReader = bool? Function();
 typedef DashboardSummaryClock = DateTime Function();
 typedef DashboardSummaryStorageReader = Future<AppStorageCheck?> Function();
 typedef DashboardSummaryDeviceProfileReader =
-    DeviceCapabilityProfile? Function();
+    FutureOr<DeviceCapabilityProfile?> Function();
 
 class DashboardTripTrackingSummaryReport {
   const DashboardTripTrackingSummaryReport({
@@ -141,7 +143,7 @@ class DashboardTripTrackingSummaryReporter {
         tripTracking: _tripTracking,
         activeWorkday: _activeWorkday?.activeSession,
         storageCheck: storage,
-        deviceCapabilityProfile: _safeDeviceProfile(),
+        deviceCapabilityProfile: await _safeDeviceProfile(),
         wifiAvailable: DashboardSummaryTrustBoundary.safeBool(_wifiAvailable),
         mobileDataAvailable: DashboardSummaryTrustBoundary.safeBool(
           _mobileDataAvailable,
@@ -185,11 +187,11 @@ class DashboardTripTrackingSummaryReporter {
     }
   }
 
-  DeviceCapabilityProfile? _safeDeviceProfile() {
+  Future<DeviceCapabilityProfile?> _safeDeviceProfile() async {
     final reader = _deviceCapabilityProfile;
     if (reader == null) return null;
     try {
-      return reader();
+      return await reader();
     } catch (_) {
       return null;
     }

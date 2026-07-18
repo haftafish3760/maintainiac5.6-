@@ -27,6 +27,12 @@ void main() {
     expect(mainSource, contains('dashboardId: () => \'active_dashboard\''));
     expect(mainSource, contains('tripTracking: tripTracking'));
     expect(mainSource, contains('activeWorkday: activeWorkday'));
+    expect(
+      mainSource,
+      contains(
+        'deviceCapabilityProfile: () => DeviceCapabilityService.instance.profile()',
+      ),
+    );
   });
 
   test('dashboard trip summaries use reference-only scoped identifiers', () {

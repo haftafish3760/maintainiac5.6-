@@ -24,6 +24,7 @@ import 'shared/firebase/maintainiac_firebase.dart';
 import 'shared/firebase/app_installation_identity.dart';
 import 'shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'shared/context/operational_context_store.dart';
+import 'shared/device_capabilities/device_capabilities.dart';
 import 'shared/profiles/user_profile_store.dart';
 import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
@@ -199,6 +200,7 @@ Future<void> main() async {
       activeWorkday: activeWorkday,
       storageReader: () =>
           AppStorageGuard.check(AppStoragePurpose.mileageTracking),
+      deviceCapabilityProfile: () => DeviceCapabilityService.instance.profile(),
     );
     Future<void> queueDashboardTripSummary() async {
       await dashboardReporter.queueNow();
