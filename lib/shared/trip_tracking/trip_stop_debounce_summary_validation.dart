@@ -198,6 +198,8 @@ String? _safeDebounceReason(Object? value) {
   return switch (value) {
     'unsafe_stop_debounce_evidence' => value,
     'unsafe_gps_blocks_stop_review' => value,
+    'gps_dependability_blocks_stop_review' => value,
+    'gps_dependability_waiting_for_projection_grade_signal' => value,
     'gps_signal_quality_blocks_stop_review' => value,
     'vehicle_movement_required_before_stop_review' => value,
     'traffic_control_debounce_protected' => value,

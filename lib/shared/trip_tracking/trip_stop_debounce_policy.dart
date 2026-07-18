@@ -1,3 +1,4 @@
+import 'trip_gps_dependability_policy.dart';
 import 'trip_stop_classification.dart';
 import 'trip_stop_debounce_evidence_digest.dart';
 import 'trip_stop_false_positive_guard.dart';
@@ -30,6 +31,7 @@ class TripStopDebounceObservation {
     this.latestWalkingEvidenceAt,
     this.observedAt,
     this.signalQuality = TripTrackingSignalQuality.healthy,
+    this.gpsDependability,
   });
 
   final TripMotionState motionState;
@@ -45,6 +47,7 @@ class TripStopDebounceObservation {
   final DateTime? latestWalkingEvidenceAt;
   final DateTime? observedAt;
   final TripTrackingSignalQuality signalQuality;
+  final TripGpsDependabilityDecision? gpsDependability;
 }
 
 class TripStopDebounceDecision {
@@ -225,6 +228,40 @@ class TripStopDebouncePolicy {
       horizontalAccuracyMeters: observation.horizontalAccuracyMeters,
       signalQuality: observation.signalQuality,
     );
+    final gpsDependability = observation.gpsDependability;
+
+    if (gpsDependability?.status == TripGpsDependabilityStatus.unsafeBlocked) {
+      return _decision(
+        status: TripStopDebounceStatus.unsafeEvidence,
+        reasonCode: 'gps_dependability_blocks_stop_review',
+        profile: profile,
+        motionState: observation.motionState,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount + 3,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
+    if (gpsDependability?.status ==
+        TripGpsDependabilityStatus.projectionPaused) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: 'gps_dependability_waiting_for_projection_grade_signal',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
 
     if (unsafe ||
         rejectedUnsafeCount >= 3 ||
@@ -569,8 +606,8 @@ bool _signalQualityBlocksStopReview(TripTrackingSignalQuality quality) {
     TripTrackingSignalQuality.poor ||
     TripTrackingSignalQuality.interrupted ||
     TripTrackingSignalQuality.unsafe => true,
-    TripTrackingSignalQuality.healthy || TripTrackingSignalQuality.reduced =>
-      false,
+    TripTrackingSignalQuality.healthy ||
+    TripTrackingSignalQuality.reduced => false,
   };
 }
 
@@ -578,6 +615,10 @@ String _safeReason(String value) {
   return switch (value.trim()) {
     'unsafe_stop_debounce_evidence' => 'unsafe_stop_debounce_evidence',
     'unsafe_gps_blocks_stop_review' => 'unsafe_gps_blocks_stop_review',
+    'gps_dependability_blocks_stop_review' =>
+      'gps_dependability_blocks_stop_review',
+    'gps_dependability_waiting_for_projection_grade_signal' =>
+      'gps_dependability_waiting_for_projection_grade_signal',
     'gps_signal_quality_blocks_stop_review' =>
       'gps_signal_quality_blocks_stop_review',
     'vehicle_movement_required_before_stop_review' =>
