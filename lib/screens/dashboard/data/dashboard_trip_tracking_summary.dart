@@ -1,8 +1,10 @@
 import '../../../shared/storage/app_storage_guard.dart';
+import '../../../shared/device_capabilities/device_capabilities.dart';
 import '../../../shared/maps/mapbox_trip_assist_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
+import '../../../shared/trip_tracking/trip_tracking_device_operational_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_map_storage_policy.dart';
 import '../../../shared/trip_tracking/trip_stop_classification.dart';
 import '../../../shared/trip_tracking/trip_tracking_models.dart';
@@ -56,6 +58,13 @@ class DashboardTripTrackingSummary {
     required this.storageState,
     required this.deviceCapabilityState,
     required this.sensorAssistState,
+    required this.usesSharedDeviceCapabilityProfile,
+    required this.usesSharedDurableTripRecordStore,
+    required this.durableTripRecordsReviewedOnly,
+    required this.gpsTrackingCanRunWithoutMaps,
+    required this.mapsRequiredForTracking,
+    required this.rawGpsIncluded,
+    required this.rawMapboxGeometryIncluded,
     required this.odometerCalibrationAssistEnabled,
     required this.odometerCalibrationState,
     required this.odometerCalibrationSamples,
@@ -107,6 +116,13 @@ class DashboardTripTrackingSummary {
   final String storageState;
   final String deviceCapabilityState;
   final String sensorAssistState;
+  final bool usesSharedDeviceCapabilityProfile;
+  final bool usesSharedDurableTripRecordStore;
+  final bool durableTripRecordsReviewedOnly;
+  final bool gpsTrackingCanRunWithoutMaps;
+  final bool mapsRequiredForTracking;
+  final bool rawGpsIncluded;
+  final bool rawMapboxGeometryIncluded;
   final bool odometerCalibrationAssistEnabled;
   final String odometerCalibrationState;
   final int? odometerCalibrationSamples;
@@ -135,6 +151,13 @@ class DashboardTripTrackingSummary {
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
+    bool usesSharedDeviceCapabilityProfile = false,
+    bool usesSharedDurableTripRecordStore = false,
+    bool durableTripRecordsReviewedOnly = false,
+    bool gpsTrackingCanRunWithoutMaps = true,
+    bool mapsRequiredForTracking = false,
+    bool rawGpsIncluded = false,
+    bool rawMapboxGeometryIncluded = false,
     bool odometerCalibrationAssistEnabled = false,
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
@@ -247,6 +270,13 @@ class DashboardTripTrackingSummary {
       storageState: _safeStorageState(storageState),
       deviceCapabilityState: _safeDeviceCapabilityState(deviceCapabilityState),
       sensorAssistState: _safeSensorAssistState(sensorAssistState),
+      usesSharedDeviceCapabilityProfile: usesSharedDeviceCapabilityProfile,
+      usesSharedDurableTripRecordStore: usesSharedDurableTripRecordStore,
+      durableTripRecordsReviewedOnly: durableTripRecordsReviewedOnly,
+      gpsTrackingCanRunWithoutMaps: gpsTrackingCanRunWithoutMaps,
+      mapsRequiredForTracking: mapsRequiredForTracking && false,
+      rawGpsIncluded: rawGpsIncluded && false,
+      rawMapboxGeometryIncluded: rawMapboxGeometryIncluded && false,
       odometerCalibrationAssistEnabled:
           odometerCalibrationAssistEnabled &&
           settings.odometerAnomalyAlertsEnabled,
@@ -291,6 +321,7 @@ class DashboardTripTrackingSummary {
     TripTrackingController? tripTracking,
     ActiveWorkdaySessionRecord? activeWorkday,
     AppStorageCheck? storageCheck,
+    DeviceCapabilityProfile? deviceCapabilityProfile,
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     int? syncsUsedInWindow,
@@ -307,12 +338,21 @@ class DashboardTripTrackingSummary {
       settings: settings,
       tripTracking: tripTracking,
     );
-    final capabilityGuidance = tripTracking?.lastKnownCapabilities == null
+    final devicePolicy = deviceCapabilityProfile == null
         ? null
-        : TripTrackingCapabilityGuidance.fromCapabilities(
-            capabilities: tripTracking!.lastKnownCapabilities!,
-            settings: settings,
+        : TripTrackingDeviceOperationalPolicy.fromDeviceProfile(
+            deviceCapabilityProfile,
           );
+    final capabilityGuidance =
+        devicePolicy?.guidanceFor(settings) ??
+        (tripTracking?.lastKnownCapabilities == null
+            ? null
+            : TripTrackingCapabilityGuidance.fromCapabilities(
+                capabilities: tripTracking!.lastKnownCapabilities!,
+                settings: settings,
+              ));
+    final effectiveSettings =
+        capabilityGuidance?.recommendedSettings ?? settings;
     final calibrationSignal =
         settings.gpsAssistedTrackingEnabled &&
             settings.odometerAnomalyAlertsEnabled
@@ -327,7 +367,7 @@ class DashboardTripTrackingSummary {
           )
         : null;
     return fromSettings(
-      settings: settings,
+      settings: effectiveSettings,
       nativeTracking: nativeTracking,
       recoverableTrip: activeTrip && !nativeTracking,
       lowBatteryLimited: _isBatteryLimitedStatus(status),
@@ -340,6 +380,13 @@ class DashboardTripTrackingSummary {
       storageState: _storageStateFor(storageCheck),
       deviceCapabilityState: _deviceCapabilityStateFor(capabilityGuidance),
       sensorAssistState: _sensorAssistStateFor(capabilityGuidance),
+      usesSharedDeviceCapabilityProfile: devicePolicy != null,
+      usesSharedDurableTripRecordStore: true,
+      durableTripRecordsReviewedOnly: true,
+      gpsTrackingCanRunWithoutMaps: true,
+      mapsRequiredForTracking: false,
+      rawGpsIncluded: false,
+      rawMapboxGeometryIncluded: false,
       odometerCalibrationAssistEnabled:
           settings.gpsOdometerCalibrationAssistEnabled,
       odometerCalibrationState: _calibrationStateFor(calibrationSignal),

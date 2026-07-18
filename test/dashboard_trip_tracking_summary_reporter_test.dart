@@ -7,6 +7,7 @@ import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_firestore_mirror.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_summary_trust_boundary.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_trip_tracking_summary_reporter.dart';
+import 'package:maintaniac/shared/device_capabilities/device_capabilities.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
@@ -88,6 +89,7 @@ void main() {
         wifiAvailable: () => true,
         mobileDataAvailable: () => false,
         syncsUsedInWindow: () => 2,
+        deviceCapabilityProfile: _safeDeviceProfile,
         clock: () => DateTime.utc(2026, 7, 17, 9),
       );
 
@@ -96,6 +98,10 @@ void main() {
       expect(report.queued, isTrue);
       expect(report.reasonCode, 'dashboard_summary_queued');
       expect(report.summary?.gpsAssistState, 'gps_assisted');
+      expect(report.summary?.usesSharedDeviceCapabilityProfile, isTrue);
+      expect(report.summary?.usesSharedDurableTripRecordStore, isTrue);
+      expect(report.summary?.gpsTrackingCanRunWithoutMaps, isTrue);
+      expect(report.summary?.mapsRequiredForTracking, isFalse);
       expect(queue.pendingRecords, hasLength(1));
       final data = queue.pendingRecords.single.data;
       expect(data['dashboardMode'], 'gig_driver');
@@ -110,8 +116,8 @@ void main() {
       expect(data['mileageMode'], 'gps_assisted');
       expect(data['syncMode'], 'wifi_only');
       expect(data['freeSyncsRemaining'], 4);
-      expect(data['deviceCapabilityState'], 'unknown');
-      expect(data['sensorAssistState'], 'unknown');
+      expect(data['deviceCapabilityState'], 'foreground_ready');
+      expect(data['sensorAssistState'], 'motion_battery_available');
       expect(data['odometerCalibrationState'], 'disabled');
       expect(data.keys, isNot(contains('odometerCalibrationSamples')));
       expect(data['odometerUsageState'], 'disabled');
@@ -451,6 +457,36 @@ void main() {
     expect(queue.pendingRecords.single.data['syncsUsedInWindow'], 3);
     expect(queue.pendingRecords.single.data['freeSyncsRemaining'], 3);
   });
+}
+
+DeviceCapabilityProfile _safeDeviceProfile() {
+  return DeviceCapabilityProfile(
+    hardware: const DeviceHardwareSnapshot(
+      platform: 'android',
+      physicalRamMb: 8192,
+      cpuCores: 8,
+      applicationHeapMb: 512,
+    ),
+    runtime: DeviceRuntimeSnapshot(
+      observedAt: DateTime.utc(2026, 7, 17, 9),
+      freeStorageMb: 64000,
+      totalStorageMb: 128000,
+    ),
+    camera: const DeviceCameraCapabilities(),
+    extended: const DeviceExtendedCapabilities(
+      sensors: DeviceSensorCapabilities(types: {'accelerometer', 'gyroscope'}),
+      battery: DeviceBatteryCapabilities(levelPercent: 82),
+      connectivity: DeviceConnectivityCapabilities(
+        transports: {'wifi'},
+        isConnected: true,
+      ),
+    ),
+    baselineTier: DevicePerformanceTier.performance,
+    tier: DevicePerformanceTier.performance,
+    confidence: DeviceCapabilityConfidence.high,
+    score: 9,
+    limitingFactors: const [],
+  );
 }
 
 class _RecordingSink implements MaintainiacFirestoreDocumentSink {

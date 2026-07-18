@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/data/dashboard_trip_tracking_summary.dart';
+import 'package:maintaniac/shared/device_capabilities/device_capabilities.dart';
 import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
@@ -308,6 +309,45 @@ void main() {
       expect(summary.gpsAssistState, 'on');
       expect(summary.deviceCapabilityState, 'full_safety_assist');
       expect(summary.sensorAssistState, 'motion_battery_available');
+      expect(summary.usesSharedDeviceCapabilityProfile, isFalse);
+      expect(summary.usesSharedDurableTripRecordStore, isTrue);
+      expect(summary.durableTripRecordsReviewedOnly, isTrue);
+      expect(summary.gpsTrackingCanRunWithoutMaps, isTrue);
+      expect(summary.mapsRequiredForTracking, isFalse);
+      expect(summary.rawGpsIncluded, isFalse);
+      expect(summary.rawMapboxGeometryIncluded, isFalse);
+    },
+  );
+
+  test(
+    'runtime summary can prefer shared device profile policy over raw guesses',
+    () {
+      final summary = DashboardTripTrackingSummary.fromRuntime(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          backgroundTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+          mapRouteHistorySavingEnabled: true,
+          mapRouteHistorySampleIntervalSeconds: 15,
+        ),
+        deviceCapabilityProfile: _deviceProfile(
+          tier: DevicePerformanceTier.entry,
+          batteryPercent: 18,
+          powerSaving: true,
+          sensorTypes: const {'accelerometer', 'gyroscope'},
+          wifiUnmetered: false,
+        ),
+      );
+
+      expect(summary.usesSharedDeviceCapabilityProfile, isTrue);
+      expect(summary.deviceCapabilityState, 'foreground_ready');
+      expect(summary.sensorAssistState, 'motion_battery_available');
+      expect(summary.mapRouteHistorySavingEnabled, isFalse);
+      expect(summary.mapRouteHistorySampleIntervalSeconds, 15);
+      expect(summary.gpsTrackingCanRunWithoutMaps, isTrue);
+      expect(summary.mapsRequiredForTracking, isFalse);
+      expect(summary.rawGpsIncluded, isFalse);
+      expect(summary.rawMapboxGeometryIncluded, isFalse);
     },
   );
 
@@ -560,6 +600,44 @@ void main() {
     expect(blocked.storageState, 'blocked');
     expect(unknown.storageState, 'unknown');
   });
+}
+
+DeviceCapabilityProfile _deviceProfile({
+  required DevicePerformanceTier tier,
+  required int batteryPercent,
+  required bool powerSaving,
+  required Set<String> sensorTypes,
+  required bool wifiUnmetered,
+}) {
+  return DeviceCapabilityProfile(
+    hardware: const DeviceHardwareSnapshot(
+      platform: 'android',
+      physicalRamMb: 4096,
+      cpuCores: 8,
+      applicationHeapMb: 256,
+    ),
+    runtime: DeviceRuntimeSnapshot(
+      observedAt: DateTime.utc(2026, 7, 17),
+      freeStorageMb: 2500,
+      totalStorageMb: 128000,
+      powerSaving: powerSaving,
+    ),
+    camera: const DeviceCameraCapabilities(),
+    extended: DeviceExtendedCapabilities(
+      sensors: DeviceSensorCapabilities(types: sensorTypes),
+      battery: DeviceBatteryCapabilities(levelPercent: batteryPercent),
+      connectivity: DeviceConnectivityCapabilities(
+        transports: wifiUnmetered ? const {'wifi'} : const {'mobile'},
+        isConnected: true,
+        isMetered: !wifiUnmetered,
+      ),
+    ),
+    baselineTier: tier,
+    tier: tier,
+    confidence: DeviceCapabilityConfidence.high,
+    score: 4,
+    limitingFactors: const [],
+  );
 }
 
 TripTrackingReviewRecord _confirmedReview({

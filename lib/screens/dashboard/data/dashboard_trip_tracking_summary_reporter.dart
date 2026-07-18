@@ -1,4 +1,5 @@
 import '../../../shared/storage/app_storage_guard.dart';
+import '../../../shared/device_capabilities/device_capabilities.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'active_workday_store.dart';
@@ -11,6 +12,8 @@ typedef DashboardSummaryIntReader = int? Function();
 typedef DashboardSummaryBoolReader = bool? Function();
 typedef DashboardSummaryClock = DateTime Function();
 typedef DashboardSummaryStorageReader = Future<AppStorageCheck?> Function();
+typedef DashboardSummaryDeviceProfileReader =
+    DeviceCapabilityProfile? Function();
 
 class DashboardTripTrackingSummaryReport {
   const DashboardTripTrackingSummaryReport({
@@ -45,6 +48,7 @@ class DashboardTripTrackingSummaryReporter {
     DashboardSummaryBoolReader? wifiAvailable,
     DashboardSummaryBoolReader? mobileDataAvailable,
     DashboardSummaryIntReader? syncsUsedInWindow,
+    DashboardSummaryDeviceProfileReader? deviceCapabilityProfile,
     DashboardSummaryClock? clock,
   }) : _mirror = mirror,
        _settingsController = settingsController,
@@ -60,6 +64,7 @@ class DashboardTripTrackingSummaryReporter {
        _wifiAvailable = wifiAvailable,
        _mobileDataAvailable = mobileDataAvailable,
        _syncsUsedInWindow = syncsUsedInWindow,
+       _deviceCapabilityProfile = deviceCapabilityProfile,
        _clock = clock ?? DateTime.now;
 
   final DashboardFirestoreMirror _mirror;
@@ -76,6 +81,7 @@ class DashboardTripTrackingSummaryReporter {
   final DashboardSummaryBoolReader? _wifiAvailable;
   final DashboardSummaryBoolReader? _mobileDataAvailable;
   final DashboardSummaryIntReader? _syncsUsedInWindow;
+  final DashboardSummaryDeviceProfileReader? _deviceCapabilityProfile;
   final DashboardSummaryClock _clock;
   var _queueInFlight = false;
   var _queueAgainRequested = false;
@@ -135,6 +141,7 @@ class DashboardTripTrackingSummaryReporter {
         tripTracking: _tripTracking,
         activeWorkday: _activeWorkday?.activeSession,
         storageCheck: storage,
+        deviceCapabilityProfile: _safeDeviceProfile(),
         wifiAvailable: DashboardSummaryTrustBoundary.safeBool(_wifiAvailable),
         mobileDataAvailable: DashboardSummaryTrustBoundary.safeBool(
           _mobileDataAvailable,
@@ -173,6 +180,16 @@ class DashboardTripTrackingSummaryReporter {
     try {
       final check = await reader();
       return DashboardSummaryTrustBoundary.validateStorageCheck(check);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DeviceCapabilityProfile? _safeDeviceProfile() {
+    final reader = _deviceCapabilityProfile;
+    if (reader == null) return null;
+    try {
+      return reader();
     } catch (_) {
       return null;
     }
