@@ -81,8 +81,10 @@ class TripTrackingSignalQualitySummary {
       receivedSamples: receivedSamples,
       acceptedSamples: acceptedSamples,
       acceptanceRate: acceptanceRate,
+      requiresUserReview: requiresUserReview,
     ),
-    'minimumAcceptedSamplesForCalibration': _minimumAcceptedSamplesForCalibration,
+    'minimumAcceptedSamplesForCalibration':
+        _minimumAcceptedSamplesForCalibration,
     'calibrationRequiresMinimumAcceptedSamples': true,
     'calibrationRequiresSustainedAcceptanceRate': true,
     'signalQualityCanCreateCalibration': false,
@@ -285,8 +287,10 @@ bool _safeCalibrationEligible({
   required int receivedSamples,
   required int acceptedSamples,
   required double acceptanceRate,
+  required bool requiresUserReview,
 }) {
   final safeReason = _safeSignalReason(reasonCode);
+  if (requiresUserReview) return false;
   if (quality != TripTrackingSignalQuality.healthy &&
       quality != TripTrackingSignalQuality.reduced) {
     return false;
@@ -308,8 +312,8 @@ const int _minimumAcceptedSamplesForCalibration = 5;
 
 bool _safeStopReviewEligible(TripTrackingSignalQuality quality) {
   return switch (quality) {
-    TripTrackingSignalQuality.healthy || TripTrackingSignalQuality.reduced =>
-      true,
+    TripTrackingSignalQuality.healthy ||
+    TripTrackingSignalQuality.reduced => true,
     TripTrackingSignalQuality.noSamples ||
     TripTrackingSignalQuality.poor ||
     TripTrackingSignalQuality.interrupted ||

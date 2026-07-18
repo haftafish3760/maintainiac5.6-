@@ -18,7 +18,10 @@ void main() {
       isTrue,
     );
     expect(summary.toSafeDashboardMap()['diagnosticsCanEndTrip'], isFalse);
-    expect(summary.toSafeDashboardMap()['stopReviewRequiresTrustedGps'], isTrue);
+    expect(
+      summary.toSafeDashboardMap()['stopReviewRequiresTrustedGps'],
+      isTrue,
+    );
     expect(
       summary.toSafeDashboardMap()['stopReviewSignalQualityEligible'],
       isFalse,
@@ -127,6 +130,27 @@ void main() {
     expect(
       summary.toSafeDashboardMap()['stopReviewSignalQualityEligible'],
       isTrue,
+    );
+  });
+
+  test('single unsafe provider sample blocks calibration even if reduced', () {
+    final summary = TripTrackingSignalQualitySummary.evaluate(
+      const TripTrackingDiagnostics(
+        receivedSamples: 8,
+        acceptedSamples: 7,
+        dispositionCounts: {
+          TripSampleDisposition.acceptedAnchor: 1,
+          TripSampleDisposition.acceptedDistance: 6,
+          TripSampleDisposition.rejectedInvalid: 1,
+        },
+      ),
+    );
+
+    expect(summary.quality, TripTrackingSignalQuality.reduced);
+    expect(summary.requiresUserReview, isTrue);
+    expect(
+      summary.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isFalse,
     );
   });
 
