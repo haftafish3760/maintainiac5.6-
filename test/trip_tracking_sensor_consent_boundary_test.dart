@@ -76,6 +76,11 @@ void main() {
       expect(safe['backgroundTrackingRequiresSeparatePlatformGrant'], isTrue);
       expect(safe['foregroundLocationDoesNotGrantBackgroundTracking'], isTrue);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+      expect(safe['sensorConsentCanCreateCalibration'], isFalse);
+      expect(safe['sensorConsentCanApplyCalibration'], isFalse);
     },
   );
 
@@ -166,6 +171,9 @@ void main() {
     expect(safe['backgroundPermissionCanBeAssumedFromForeground'], isFalse);
     expect(safe['activityPermissionCanBeAssumedFromLocation'], isFalse);
     expect(safe['sensorConsentCanBypassPlatformPermission'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['sensorConsentCanCreateCalibration'], isFalse);
+    expect(safe['sensorConsentCanApplyCalibration'], isFalse);
     expect(safe['gpsCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['deviceModelIncluded'], isFalse);
@@ -224,6 +232,11 @@ void main() {
         'localTripLogProtected': false,
         'activityRecognitionCanCreateOfficialStop': true,
         'activityRecognitionCanOnlySuggestReview': false,
+        'odometerIsGlobalTruth': false,
+        'calibrationRequiresTrustedGpsWindow': false,
+        'poorGpsDaysExcludedFromCalibration': false,
+        'sensorConsentCanCreateCalibration': true,
+        'sensorConsentCanApplyCalibration': true,
         'gpsCanReplaceOdometer': true,
         'mapboxCanReplaceOdometer': true,
         'deviceModelIncluded': true,

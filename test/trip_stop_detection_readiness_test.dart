@@ -34,6 +34,11 @@ void main() {
       expect(safe['dashboardMaySuggestStop'], isTrue);
       expect(safe['officialStopCreated'], isFalse);
       expect(safe['officialMileageSource'], 'odometer');
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['readinessCanCreateCalibration'], isFalse);
+      expect(safe['readinessCanApplyCalibration'], isFalse);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['validatedStopSummaryRequired'], isTrue);
       expect(safe['localTripLogMustOwnStopReview'], isTrue);
       expect(safe['requiresOwnershipOrExplicitAccess'], isTrue);
@@ -159,6 +164,8 @@ void main() {
     expect(safe['dashboardMaySuggestStop'], isFalse);
     expect(safe['dashboardMaySuggestManualFallback'], isTrue);
     expect(safe['manualFallbackCanCreateOfficialStop'], isFalse);
+    expect(safe['readinessCanCreateCalibration'], isFalse);
+    expect(safe['readinessCanApplyCalibration'], isFalse);
     expect(safe['manualFallbackRequiresUserAction'], isTrue);
     expect(safe['requiresReviewBeforeCommit'], isTrue);
     expect(safe['stopReviewCanBackdateWithoutReview'], isFalse);
@@ -311,6 +318,17 @@ void main() {
       TripStopDetectionReadinessSummaryValidation.fromSummary({
         ...safe,
         'stopReviewCanEditOdometer': true,
+      }).isRenderable,
+      isFalse,
+    );
+    expect(
+      TripStopDetectionReadinessSummaryValidation.fromSummary({
+        ...safe,
+        'odometerIsGlobalTruth': false,
+        'readinessCanCreateCalibration': true,
+        'readinessCanApplyCalibration': true,
+        'calibrationRequiresTrustedGpsWindow': false,
+        'poorGpsDaysExcludedFromCalibration': false,
       }).isRenderable,
       isFalse,
     );

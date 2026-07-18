@@ -183,6 +183,11 @@ class TripStopDetectionReadiness {
     'manualFallbackRequiresUserAction': true,
     'officialStopCreated': false,
     'officialMileageSource': 'odometer',
+    'odometerIsGlobalTruth': true,
+    'readinessCanCreateCalibration': false,
+    'readinessCanApplyCalibration': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'requiresLocalTripLog': true,
     'requiresActiveTrip': true,
     'requiresAcceptedVehicleMovement': true,
@@ -260,6 +265,8 @@ class TripStopDetectionReadinessSummaryValidation {
     }
     for (final key in const [
       'manualFallbackCanCreateOfficialStop',
+      'readinessCanCreateCalibration',
+      'readinessCanApplyCalibration',
       'stopReviewCanEditOdometer',
       'stopReviewCanBackdateWithoutReview',
       'officialStopCreated',
@@ -278,7 +285,10 @@ class TripStopDetectionReadinessSummaryValidation {
     ]) {
       if (summary[key] != false) reasons.add('${key}_not_false');
     }
-    if (summary['officialMileageSource'] != 'odometer') {
+    if (summary['officialMileageSource'] != 'odometer' ||
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true) {
       reasons.add('odometer_not_official_source');
     }
     final safeReasons = summary['reasons'];

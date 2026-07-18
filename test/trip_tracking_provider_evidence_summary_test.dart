@@ -25,6 +25,11 @@ void main() {
     expect(summary['timestampBucket'], 'fresh');
     expect(summary['mockedLocationReported'], isTrue);
     expect(summary['trustedAfterValidationOnly'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['providerEvidenceCanCreateCalibration'], isFalse);
+    expect(summary['providerEvidenceCanApplyCalibration'], isFalse);
     expect(summary['canCreateOfficialMileage'], isFalse);
     expect(summary['canOverrideOdometer'], isFalse);
     expect(summary['canCreateOfficialStop'], isFalse);
@@ -54,6 +59,7 @@ void main() {
     expect(summary['speedBucket'], 'invalid');
     expect(summary['timestampBucket'], 'future');
     expect(summary['canCreateOfficialMileage'], isFalse);
+    expect(summary['providerEvidenceCanCreateCalibration'], isFalse);
     expect(summary.toString(), isNot(contains('NaN')));
   });
 
@@ -67,6 +73,9 @@ void main() {
     expect(summary['evidenceType'], 'activity_observation');
     expect(summary['confidenceBucket'], 'high');
     expect(summary['activityRecognitionRequiresOptIn'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['activityEvidenceCanCreateCalibration'], isFalse);
+    expect(summary['activityEvidenceCanApplyCalibration'], isFalse);
     expect(summary['canSupportStopReview'], isTrue);
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['canEndTripAutomatically'], isFalse);

@@ -114,6 +114,11 @@ class TripTrackingSensorConsentBoundary {
     'sensorConsentCanBypassPlatformPermission': false,
     'activityRecognitionCanCreateOfficialStop': false,
     'activityRecognitionCanOnlySuggestReview': true,
+    'odometerIsGlobalTruth': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'sensorConsentCanCreateCalibration': false,
+    'sensorConsentCanApplyCalibration': false,
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
     'localTripLogProtected': true,
@@ -189,6 +194,11 @@ class TripTrackingSensorConsentSummaryValidation {
     }
     if (summary['activityRecognitionCanCreateOfficialStop'] != false ||
         summary['activityRecognitionCanOnlySuggestReview'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['sensorConsentCanCreateCalibration'] != false ||
+        summary['sensorConsentCanApplyCalibration'] != false ||
         summary['gpsCanReplaceOdometer'] != false ||
         summary['mapboxCanReplaceOdometer'] != false) {
       reasons.add('sensor_can_create_trip_truth');
