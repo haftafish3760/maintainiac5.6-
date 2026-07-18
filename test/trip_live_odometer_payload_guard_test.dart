@@ -50,6 +50,7 @@ void main() {
     expect(guard['firestoreMirrorOnly'], isTrue);
     expect(guard['remotePayloadCanConfirmOdometer'], isFalse);
     expect(guard['remotePayloadCanAdvanceProjectionRevision'], isFalse);
+    expect(guard['sameOrOlderProjectionRevisionCanNotify'], isFalse);
     expect(guard['mapboxCanRenderWithoutLocalTrip'], isFalse);
     expect(guard['mapboxCanSetGlobalTruth'], isFalse);
     expect(guard['mapboxCanChangeOfficialMileage'], isFalse);
@@ -93,6 +94,7 @@ void main() {
           ...clean,
           'remoteDisplayCanOverrideLocalTrip': true,
           'remotePayloadCanAdvanceProjectionRevision': true,
+          'sameOrOlderProjectionRevisionCanNotify': true,
         },
         status: TripLiveOdometerPayloadGuardStatus.blockedRemoteAuthority,
         reason: 'payload_claims_remote_display_authority',

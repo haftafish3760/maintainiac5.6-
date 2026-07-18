@@ -50,6 +50,7 @@ class TripLiveOdometerPayloadGuardDecision {
     'remotePayloadCanConfirmOdometer': false,
     'remotePayloadCanEndTrip': false,
     'remotePayloadCanAdvanceProjectionRevision': false,
+    'sameOrOlderProjectionRevisionCanNotify': false,
     'dashboardCacheCanOverrideLocalTrip': false,
     'mapboxCanReplaceOdometer': false,
     'mapboxCanSetGlobalTruth': false,
@@ -123,6 +124,7 @@ class TripLiveOdometerPayloadGuard {
         payload['dashboardCacheCanOverrideLocalTrip'] != false ||
         payload['importedDisplayCanOverrideLocalTrip'] != false ||
         payload['remotePayloadCanAdvanceProjectionRevision'] == true ||
+        payload['sameOrOlderProjectionRevisionCanNotify'] == true ||
         payload['mapboxCanChangeProjection'] == true ||
         payload['mapboxCanOverrideLiveProjection'] == true) {
       reasons.add('payload_claims_remote_display_authority');
