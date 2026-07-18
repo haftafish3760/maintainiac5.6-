@@ -87,6 +87,7 @@ class TripTrackingDashboardGuidanceValidation {
       reasons.add('gps_tracking_depends_on_maps');
     }
     if (summary['odometerRemainsCanonical'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['mapboxCanReplaceOdometer'] != false ||
         summary['mapboxCanWriteConfirmedTripLog'] != false ||
         summary['remoteTotalsCanBecomeCanonical'] != false) {

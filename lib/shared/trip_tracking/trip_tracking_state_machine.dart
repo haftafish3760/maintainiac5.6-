@@ -161,6 +161,7 @@ class TripTrackingLifecycleTransitionDecision {
     'failedTerminalRequiresFreshOptIn': true,
     'recoveryRequiresLocalCheckpoint': true,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'rawNativePayloadIncluded': false,
     'rawLocationIncluded': false,
     'rawMapboxPayloadIncluded': false,

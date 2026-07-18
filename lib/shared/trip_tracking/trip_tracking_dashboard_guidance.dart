@@ -92,6 +92,7 @@ class TripTrackingDashboardGuidance {
     'startButtonVisibleByDefault': true,
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'mapsRequiredForTracking': false,
     'mapPreviewRequiresSeparateOptIn': true,
     'routeHistoryRequiresSeparateOptIn': true,

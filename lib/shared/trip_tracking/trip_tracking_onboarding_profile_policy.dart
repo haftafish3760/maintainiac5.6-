@@ -56,6 +56,7 @@ class TripTrackingOnboardingProfileDecision {
     'vehicleOnlyStopsNeedManualFallback':
         strategy.vehicleOnlyStopsNeedManualFallback,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'profileDataTrustedAfterValidationOnly': true,
     'remoteProfileCanEnableTracking': false,
     'employerCanEnableTrackingWithoutMutualConsent': false,

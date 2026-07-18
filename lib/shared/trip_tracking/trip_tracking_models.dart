@@ -376,6 +376,7 @@ class TripActivityObservation {
     'minimumTrustedSensorYear': _minimumTrustedSensorTime.year,
     'walkingEvidenceCanOnlySuggestReview': true,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'rawSensorPayloadIncluded': false,
     'preciseTimestampIncluded': false,
     'preciseLocationIncluded': false,

@@ -65,6 +65,7 @@ class TripTrackingRecoveryDecision {
     'permissionLossCanDeleteCheckpoint': false,
     'localCheckpointPreservedUntilReview': true,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'mapboxCanRestoreTrip': false,
     'mapboxCanModifyRecoveredOdometer': false,
     'manualReviewRequiredBeforeConfirmation': _safeRequiresUserAction(

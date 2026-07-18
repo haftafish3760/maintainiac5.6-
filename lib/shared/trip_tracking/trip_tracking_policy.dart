@@ -53,6 +53,7 @@ class TripGpsBatteryDecision {
       'mapsRequiredForGps': false,
       'tripDataDeletionAllowed': false,
       'odometerRemainsCanonical': true,
+      'odometerIsGlobalTruth': true,
       'preciseBatteryIncluded': false,
       'rawBatteryPayloadIncluded': false,
       'tokensIncluded': false,

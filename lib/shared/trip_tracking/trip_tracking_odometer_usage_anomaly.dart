@@ -53,6 +53,7 @@ class TripOdometerUsageAnomalySignal {
     'anomalyAlertsEnabled': anomalyAlertsEnabled,
     'manualReviewRequiredBeforeChange': shouldPromptUser,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
     'remoteTotalsCanReplaceOdometer': false,
@@ -250,6 +251,7 @@ class TripOdometerUsageAnomalySummaryValidation {
         summary['manualReviewRequiredBeforeChange'] !=
             (summary['shouldPromptUser'] == true) ||
         summary['odometerRemainsCanonical'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['gpsCanReplaceOdometer'] != false ||
         summary['mapboxCanReplaceOdometer'] != false ||
         summary['remoteTotalsCanReplaceOdometer'] != false ||

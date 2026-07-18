@@ -73,6 +73,7 @@ class TripTrackingCapabilityGuidance {
     'routeHistoryRequiresLocationCapability': true,
     'routeHistoryDisabledWhenGpsUnavailable': true,
     'odometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'nativeCapabilitiesAreAdvisory': true,
     'sensorAvailabilityRequiresRuntimePermission': true,
     'capabilityReadDoesNotStartTracking': true,
@@ -198,6 +199,7 @@ class TripTrackingCapabilityGuidanceSummaryValidation {
       reasons.add('map_tracking_boundary_missing');
     }
     if (summary['odometerRemainsCanonical'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['nativeCapabilitiesAreAdvisory'] != true ||
         summary['deviceCapabilityCanReduceAccuracy'] != true ||
         summary['deviceCapabilityControlsSamplingTier'] != true ||

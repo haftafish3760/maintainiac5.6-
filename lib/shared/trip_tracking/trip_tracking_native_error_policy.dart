@@ -56,6 +56,7 @@ class TripTrackingNativeErrorPolicy {
       'tokensIncluded': false,
       'mapboxErrorCanCorruptTripLog': false,
       'odometerRemainsCanonical': true,
+      'odometerIsGlobalTruth': true,
     };
   }
 }
