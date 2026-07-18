@@ -73,6 +73,9 @@ void main() {
         sampleWindow: window(),
       );
       final safe = decision.toSafeDashboardMap();
+      final validation = TripGpsDependabilitySummaryValidation.fromSummary(
+        safe,
+      );
 
       expect(decision.status, TripGpsDependabilityStatus.readyForAssist);
       expect(decision.confidence, TripTrackingConfidence.high);
@@ -86,6 +89,9 @@ void main() {
       expect(safe['gpsCanReplaceOdometer'], isFalse);
       expect(safe['gpsCanCreateOfficialStop'], isFalse);
       expect(safe['coordinatesIncluded'], isFalse);
+      expect(validation.isRenderable, isTrue);
+      expect(validation.status, TripGpsDependabilityStatus.readyForAssist);
+      expect(validation.reason, 'gps_dependability_ready');
     },
   );
 
@@ -211,5 +217,86 @@ void main() {
     expect(safe['firestoreCanOverrideGpsDependability'], isFalse);
     expect(safe['cloudFunctionCanOverrideGpsDependability'], isFalse);
     expect(safe.toString(), isNot(contains('-80')));
+  });
+
+  test('summary validation rejects malformed authority and remote truth', () {
+    final summary =
+        TripGpsDependabilityPolicy.evaluate(
+          profile: TripTrackingProfile.deliveryVehicle,
+          signalSummary: signal(),
+          sampleWindow: window(),
+        ).toSafeDashboardMap()..addAll({
+          'schemaVersion': 2,
+          'status': 'forceReady',
+          'reasonCode': 'gps_dependability_ready',
+          'profile': 'fleetGodMode',
+          'confidence': 'certain',
+          'signalQuality': 'perfect',
+          'gpsAssistedTrackingWorksWithoutMaps': false,
+          'mapsRequiredForGpsDependability': true,
+          'gpsDependabilityRequiresIntakeGuard': false,
+          'gpsDependabilityRequiresSampleWindowPolicy': false,
+          'gpsDependabilityRequiresSignalQualityPolicy': false,
+          'gpsDependabilityRequiresDeviceCapabilityContext': false,
+          'gpsDependabilityRequiresPermissionContinuity': false,
+          'gpsDependabilityRequiresBatteryAllowance': false,
+          'reducedGpsIsReviewOnly': false,
+          'poorGpsPausesProjection': false,
+          'interruptedGpsPausesProjection': false,
+          'unsafeGpsBlocksAllAssistance': false,
+          'stopReviewRequiresTrustedGpsAndDebounce': false,
+          'calibrationRequiresTrustedGpsAndOdometerReview': false,
+          'odometerRemainsOfficialMileageTruth': false,
+          'odometerIsGlobalTruth': false,
+          'gpsCanReplaceOdometer': true,
+          'gpsCanConfirmOfficialMileage': true,
+          'gpsCanCreateOfficialStop': true,
+          'mapboxCanOverrideGpsDependability': true,
+          'firestoreCanOverrideGpsDependability': true,
+          'cloudFunctionCanOverrideGpsDependability': true,
+          'remoteTotalsCanBecomeCanonical': true,
+          'rawSamplesIncluded': true,
+          'coordinatesIncluded': true,
+          'routeGeometryIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'pk.public -80.123456',
+        });
+    final validation = TripGpsDependabilitySummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'unsupported_schema',
+        'invalid_gps_dependability_status',
+        'invalid_gps_dependability_profile',
+        'invalid_gps_dependability_confidence',
+        'invalid_gps_dependability_signal_quality',
+        'maps_boundary_missing',
+        'gps_dependency_boundary_missing',
+        'gps_quality_boundary_missing',
+        'gps_can_create_trip_truth',
+        'remote_can_override_gps_dependability',
+        'summary_contains_sensitive_trip_material',
+        'summary_contains_sensitive_text',
+      ]),
+    );
+  });
+
+  test('summary validation rejects unsafe reason text', () {
+    final summary = TripGpsDependabilityPolicy.evaluate(
+      profile: TripTrackingProfile.roadVehicle,
+      signalSummary: signal(),
+      sampleWindow: window(),
+    ).toSafeDashboardMap()..['reasonCode'] = 'lat=-80.123456 sk.secret';
+    final validation = TripGpsDependabilitySummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('invalid_gps_dependability_reason'));
+    expect(validation.reasons, contains('summary_contains_sensitive_text'));
   });
 }

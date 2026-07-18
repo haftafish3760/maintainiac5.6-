@@ -79,6 +79,126 @@ class TripGpsDependabilityDecision {
   };
 }
 
+class TripGpsDependabilitySummaryValidation {
+  const TripGpsDependabilitySummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reason,
+    required this.reasons,
+  });
+
+  factory TripGpsDependabilitySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    final reason = _safeReasonValue(summary['reasonCode']);
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (status == null) reasons.add('invalid_gps_dependability_status');
+    if (reason == null) reasons.add('invalid_gps_dependability_reason');
+    if (_safeProfile(summary['profile']) == null) {
+      reasons.add('invalid_gps_dependability_profile');
+    }
+    if (_safeConfidence(summary['confidence']) == null) {
+      reasons.add('invalid_gps_dependability_confidence');
+    }
+    if (_safeSignalQuality(summary['signalQuality']) == null) {
+      reasons.add('invalid_gps_dependability_signal_quality');
+    }
+    for (final key in const [
+      'canFeedLiveOdometerProjection',
+      'canPersistCompactRoutePoint',
+      'canOpenStopReview',
+      'canContributeToCalibration',
+      'shouldContinueSampling',
+      'requiresUserReview',
+      'gpsAssistedTrackingWorksWithoutMaps',
+      'mapsRequiredForGpsDependability',
+      'gpsDependabilityRequiresIntakeGuard',
+      'gpsDependabilityRequiresSampleWindowPolicy',
+      'gpsDependabilityRequiresSignalQualityPolicy',
+      'gpsDependabilityRequiresDeviceCapabilityContext',
+      'gpsDependabilityRequiresPermissionContinuity',
+      'gpsDependabilityRequiresBatteryAllowance',
+      'reducedGpsIsReviewOnly',
+      'poorGpsPausesProjection',
+      'interruptedGpsPausesProjection',
+      'unsafeGpsBlocksAllAssistance',
+      'stopReviewRequiresTrustedGpsAndDebounce',
+      'calibrationRequiresTrustedGpsAndOdometerReview',
+      'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
+      'gpsCanReplaceOdometer',
+      'gpsCanConfirmOfficialMileage',
+      'gpsCanCreateOfficialStop',
+      'mapboxCanOverrideGpsDependability',
+      'firestoreCanOverrideGpsDependability',
+      'cloudFunctionCanOverrideGpsDependability',
+      'remoteTotalsCanBecomeCanonical',
+      'rawSamplesIncluded',
+      'coordinatesIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['gpsAssistedTrackingWorksWithoutMaps'] != true ||
+        summary['mapsRequiredForGpsDependability'] != false) {
+      reasons.add('maps_boundary_missing');
+    }
+    if (summary['gpsDependabilityRequiresIntakeGuard'] != true ||
+        summary['gpsDependabilityRequiresSampleWindowPolicy'] != true ||
+        summary['gpsDependabilityRequiresSignalQualityPolicy'] != true ||
+        summary['gpsDependabilityRequiresDeviceCapabilityContext'] != true ||
+        summary['gpsDependabilityRequiresPermissionContinuity'] != true ||
+        summary['gpsDependabilityRequiresBatteryAllowance'] != true) {
+      reasons.add('gps_dependency_boundary_missing');
+    }
+    if (summary['reducedGpsIsReviewOnly'] != true ||
+        summary['poorGpsPausesProjection'] != true ||
+        summary['interruptedGpsPausesProjection'] != true ||
+        summary['unsafeGpsBlocksAllAssistance'] != true ||
+        summary['stopReviewRequiresTrustedGpsAndDebounce'] != true ||
+        summary['calibrationRequiresTrustedGpsAndOdometerReview'] != true) {
+      reasons.add('gps_quality_boundary_missing');
+    }
+    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['gpsCanReplaceOdometer'] != false ||
+        summary['gpsCanConfirmOfficialMileage'] != false ||
+        summary['gpsCanCreateOfficialStop'] != false) {
+      reasons.add('gps_can_create_trip_truth');
+    }
+    if (summary['mapboxCanOverrideGpsDependability'] != false ||
+        summary['firestoreCanOverrideGpsDependability'] != false ||
+        summary['cloudFunctionCanOverrideGpsDependability'] != false ||
+        summary['remoteTotalsCanBecomeCanonical'] != false) {
+      reasons.add('remote_can_override_gps_dependability');
+    }
+    if (summary['rawSamplesIncluded'] != false ||
+        summary['coordinatesIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripGpsDependabilitySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reason: reasons.isEmpty ? reason : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripGpsDependabilityStatus? status;
+  final String? reason;
+  final List<String> reasons;
+}
+
 class TripGpsDependabilityPolicy {
   const TripGpsDependabilityPolicy._();
 
@@ -263,4 +383,49 @@ String _safeReason(String reasonCode) {
     'gps_dependability_unsafe_evidence' => 'gps_dependability_unsafe_evidence',
     _ => 'gps_dependability_unsafe_evidence',
   };
+}
+
+TripGpsDependabilityStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripGpsDependabilityStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReasonValue(Object? value) {
+  if (value is! String) return null;
+  final safe = _safeReason(value);
+  return safe == value ? safe : null;
+}
+
+TripTrackingProfile? _safeProfile(Object? value) {
+  if (value is! String) return null;
+  for (final profile in TripTrackingProfile.values) {
+    if (profile.name == value) return profile;
+  }
+  return null;
+}
+
+TripTrackingConfidence? _safeConfidence(Object? value) {
+  if (value is! String) return null;
+  for (final confidence in TripTrackingConfidence.values) {
+    if (confidence.name == value) return confidence;
+  }
+  return null;
+}
+
+TripTrackingSignalQuality? _safeSignalQuality(Object? value) {
+  if (value is! String) return null;
+  for (final quality in TripTrackingSignalQuality.values) {
+    if (quality.name == value) return quality;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  final text = '$value'.toLowerCase();
+  if (text.contains('pk.') || text.contains('sk.')) return true;
+  if (RegExp(r'-?\d{1,3}\.\d{4,}').hasMatch(text)) return true;
+  return false;
 }
