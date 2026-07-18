@@ -78,6 +78,9 @@ void main() {
     expect(summary['firestoreCanOverrideLocalRecovery'], isFalse);
     expect(summary['cloudMirrorCanDeleteLocalRecovery'], isFalse);
     expect(summary['recoveryNeverDeletesTripData'], isTrue);
+    expect(summary['backgroundInterruptionCanDeleteCheckpoint'], isFalse);
+    expect(summary['permissionLossCanDeleteCheckpoint'], isFalse);
+    expect(summary['localCheckpointPreservedUntilReview'], isTrue);
     expect(summary['odometerRemainsCanonical'], isTrue);
     expect(summary['mapboxCanRestoreTrip'], isFalse);
     expect(summary['mapboxCanModifyRecoveredOdometer'], isFalse);
@@ -265,6 +268,10 @@ void main() {
           'trip_recovery_invalid_session',
         );
         expect(decision.toSafeSummary()['localRecoveryAuthoritative'], isTrue);
+        expect(
+          decision.toSafeSummary()['localCheckpointPreservedUntilReview'],
+          isTrue,
+        );
         expect(decision.toSafeSummary()['rawSessionIncluded'], isFalse);
       }
     },
@@ -338,6 +345,7 @@ void main() {
     expect(summary['manualReviewRequiredBeforeConfirmation'], isTrue);
     expect(summary['cloudMirrorCanDeleteLocalRecovery'], isFalse);
     expect(summary['recoveryNeverDeletesTripData'], isTrue);
+    expect(summary['backgroundInterruptionCanDeleteCheckpoint'], isFalse);
     expect(summary['mapboxCanModifyRecoveredOdometer'], isFalse);
     expect(summary.toString(), isNot(contains('35.1')));
     expect(summary.toString(), isNot(contains('sk.secret')));
@@ -395,5 +403,30 @@ void main() {
     expect(summary['pendingSampleQueued'], isFalse);
     expect(summary['remotePendingSampleCanReplayWithoutValidation'], isFalse);
     expect(summary['pendingSampleIncluded'], isFalse);
+  });
+
+  test('interrupted and degraded checkpoints remain recoverable locally', () {
+    for (final lifecycleState in [
+      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.degraded,
+      TripTrackingSessionLifecycleState.failedRecoverable,
+    ]) {
+      final decision = TripTrackingRecoveryPolicy.evaluate(
+        session: session(lifecycleState: lifecycleState),
+        currentVehicleId: 'vehicle_1',
+        currentConfirmedOdometer: 1000,
+      );
+      final summary = decision.toSafeSummary();
+
+      expect(decision.canRestore, isTrue, reason: lifecycleState.name);
+      expect(summary['canRestore'], isTrue, reason: lifecycleState.name);
+      expect(summary['localRecoveryAuthoritative'], isTrue);
+      expect(summary['backgroundInterruptionCanDeleteCheckpoint'], isFalse);
+      expect(summary['permissionLossCanDeleteCheckpoint'], isFalse);
+      expect(summary['localCheckpointPreservedUntilReview'], isTrue);
+      expect(summary['manualReviewRequiredBeforeConfirmation'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['rawSessionIncluded'], isFalse);
+    }
   });
 }

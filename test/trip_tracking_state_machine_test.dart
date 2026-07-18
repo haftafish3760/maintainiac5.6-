@@ -76,6 +76,10 @@ void main() {
       expect(allowed['nativeEventCanForceComplete'], isFalse);
       expect(allowed['mapboxEventCanForceComplete'], isFalse);
       expect(allowed['remoteEventCanForceComplete'], isFalse);
+      expect(allowed['backgroundPauseCanDeleteCheckpoint'], isFalse);
+      expect(allowed['backgroundInterruptionRequiresRecovery'], isTrue);
+      expect(allowed['permissionLossRequiresUserReview'], isTrue);
+      expect(allowed['localCheckpointPreservedAcrossInterruption'], isTrue);
       expect(allowed['recoveryRequiresLocalCheckpoint'], isTrue);
       expect(rejected['allowed'], isFalse);
       expect(rejected['reasonCode'], 'completed_session_cannot_resume');
@@ -117,5 +121,33 @@ void main() {
     expect(summary['completedSessionCanResume'], isFalse);
     expect(summary['remoteLifecycleCanOverrideLocalCheckpoint'], isFalse);
     expect(summary['firestoreCanForceLifecycleTransition'], isFalse);
+  });
+
+  test('background interruption transitions preserve local checkpoint', () {
+    final interrupted = TripTrackingSessionStateMachine.evaluateTransition(
+      TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.interrupted,
+    ).toSafeSummary();
+    final recovering = TripTrackingSessionStateMachine.evaluateTransition(
+      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.recovering,
+    ).toSafeSummary();
+    final permissionLoss = TripTrackingSessionStateMachine.evaluateTransition(
+      TripTrackingSessionLifecycleState.starting,
+      TripTrackingSessionLifecycleState.permissionRequired,
+    ).toSafeSummary();
+
+    for (final summary in [interrupted, recovering, permissionLoss]) {
+      expect(summary['allowed'], isTrue);
+      expect(summary['backgroundPauseCanDeleteCheckpoint'], isFalse);
+      expect(summary['localCheckpointPreservedAcrossInterruption'], isTrue);
+      expect(summary['remoteLifecycleCanOverrideLocalCheckpoint'], isFalse);
+      expect(summary['nativeEventCanForceComplete'], isFalse);
+      expect(summary['mapboxEventCanForceComplete'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+    }
+    expect(interrupted['requiresUserReview'], isFalse);
+    expect(recovering['requiresUserReview'], isFalse);
+    expect(permissionLoss['permissionLossRequiresUserReview'], isTrue);
   });
 }
