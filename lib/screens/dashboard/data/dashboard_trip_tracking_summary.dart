@@ -8,7 +8,7 @@ import '../../../shared/trip_tracking/trip_tracking_device_operational_policy.da
 import '../../../shared/trip_tracking/trip_tracking_map_storage_policy.dart';
 import '../../../shared/trip_tracking/trip_stop_classification.dart';
 import '../../../shared/trip_tracking/trip_tracking_models.dart';
-import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
+import '../../../shared/trip_tracking/trip_tracking_odometer_calibration.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart';
 import '../../../shared/trip_tracking/trip_tracking_profile_strategy.dart';
 import '../../../shared/trip_tracking/trip_tracking_recovery_policy.dart';

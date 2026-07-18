@@ -12,6 +12,7 @@ import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_native_error_policy.dart';
 import 'trip_tracking_native_sampling_policy.dart';
+import 'trip_tracking_odometer_calibration.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_platform.dart';

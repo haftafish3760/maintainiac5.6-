@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_calibration.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 

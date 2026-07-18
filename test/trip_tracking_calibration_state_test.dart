@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_calibration_state.dart';
-import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_calibration.dart';
 
 void main() {
   TripOdometerCalibrationSignal signal(double multiplier) =>
