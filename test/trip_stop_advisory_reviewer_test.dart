@@ -148,4 +148,97 @@ void main() {
       expect(upgraded.single.confidence, TripTrackingConfidence.high);
     },
   );
+
+  test('advisory transitions clamp evidence inside the trip boundary', () {
+    final session = sessionWith(const []);
+    final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
+      session,
+      engineSnapshot: TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: true,
+        motionState: TripMotionState.stopped,
+        vehicleMovementObserved: true,
+        walkingEvidence: [
+          TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 94,
+            recordedAt: start.subtract(const Duration(minutes: 10)),
+          ),
+        ],
+      ),
+      previousMotionState: TripMotionState.moving,
+      currentMotionState: TripMotionState.stopped,
+      detectedAt: start.subtract(const Duration(minutes: 2)),
+    );
+
+    expect(advisories, hasLength(1));
+    expect(advisories.single.detectedAt, start);
+    expect(advisories.single.evidenceStartedAt, start);
+    expect(advisories.single.evidenceEndedAt, start);
+    expect(advisories.single.confidence, TripTrackingConfidence.high);
+  });
+
+  test(
+    'duplicate transition timestamps do not create duplicate advisories',
+    () {
+      final detectedAt = start.add(const Duration(minutes: 5));
+      final first = TripStopAdvisoryReviewer.afterMotionTransition(
+        sessionWith(const []),
+        engineSnapshot: TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+          motionState: TripMotionState.stopCandidate,
+          vehicleMovementObserved: true,
+          stationaryStartedAt: start.add(const Duration(minutes: 3)),
+        ),
+        previousMotionState: TripMotionState.moving,
+        currentMotionState: TripMotionState.stopCandidate,
+        detectedAt: detectedAt,
+      );
+      final second = TripStopAdvisoryReviewer.afterMotionTransition(
+        sessionWith(first),
+        engineSnapshot: TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+          motionState: TripMotionState.stopCandidate,
+          vehicleMovementObserved: true,
+          stationaryStartedAt: start.add(const Duration(minutes: 3)),
+        ),
+        previousMotionState: TripMotionState.moving,
+        currentMotionState: TripMotionState.stopCandidate,
+        detectedAt: detectedAt,
+      );
+
+      expect(first, hasLength(1));
+      expect(second, hasLength(1));
+      expect(second.single.id, first.single.id);
+    },
+  );
+
+  test(
+    'far future advisory timestamps are capped instead of persisted raw',
+    () {
+      final cappedAt = start.add(const Duration(days: 30));
+      final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
+        sessionWith(const []),
+        engineSnapshot: TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+          motionState: TripMotionState.stopCandidate,
+          vehicleMovementObserved: true,
+          stationaryStartedAt: start.add(const Duration(minutes: 1)),
+        ),
+        previousMotionState: TripMotionState.moving,
+        currentMotionState: TripMotionState.stopCandidate,
+        detectedAt: start.add(const Duration(days: 365)),
+      );
+
+      expect(advisories.single.detectedAt, cappedAt);
+      expect(advisories.single.evidenceEndedAt, cappedAt);
+      expect(
+        advisories.single.id,
+        contains('${cappedAt.microsecondsSinceEpoch}'),
+      );
+    },
+  );
 }

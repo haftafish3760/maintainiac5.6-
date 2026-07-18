@@ -36,9 +36,13 @@ class TripStopAdvisoryReviewer {
     required TripMotionState currentMotionState,
     required DateTime detectedAt,
   }) {
+    final safeDetectedAt = _safeDetectedAt(session, detectedAt);
     if (previousMotionState == TripMotionState.stopCandidate &&
         currentMotionState == TripMotionState.stopped) {
-      return upgradedStopCandidateAdvisories(session, detectedAt: detectedAt);
+      return upgradedStopCandidateAdvisories(
+        session,
+        detectedAt: safeDetectedAt,
+      );
     }
     final type = _transitionType(
       previousMotionState: previousMotionState,
@@ -49,22 +53,26 @@ class TripStopAdvisoryReviewer {
         !hasActiveStopReview(session)) {
       return session.advisories;
     }
+    if (_hasSameTransition(session, type: type, detectedAt: safeDetectedAt)) {
+      return session.advisories;
+    }
     final evidenceStartedAt = _evidenceStartedAt(
       type: type,
       engineSnapshot: engineSnapshot,
-      detectedAt: detectedAt,
+      session: session,
+      detectedAt: safeDetectedAt,
     );
     return [
       ...session.advisories,
       TripTrackingAdvisoryEvent(
-        id: '${session.id}:${type.name}:${detectedAt.microsecondsSinceEpoch}',
+        id: '${session.id}:${type.name}:${safeDetectedAt.microsecondsSinceEpoch}',
         type: type,
         sessionId: session.id,
         vehicleId: session.vehicleId,
         profile: session.profile,
-        detectedAt: detectedAt,
+        detectedAt: safeDetectedAt,
         evidenceStartedAt: evidenceStartedAt,
-        evidenceEndedAt: detectedAt,
+        evidenceEndedAt: safeDetectedAt,
         confidence: currentMotionState == TripMotionState.stopped
             ? TripTrackingConfidence.high
             : TripTrackingConfidence.medium,
@@ -99,9 +107,10 @@ class TripStopAdvisoryReviewer {
     );
     if (latestPendingStopIndex < 0) return session.advisories;
     final advisories = [...session.advisories];
+    final safeDetectedAt = _safeDetectedAt(session, detectedAt);
     advisories[latestPendingStopIndex] = advisories[latestPendingStopIndex]
         .copyWith(
-          evidenceEndedAt: detectedAt,
+          evidenceEndedAt: safeDetectedAt,
           confidence: TripTrackingConfidence.high,
         );
     return advisories;
@@ -129,17 +138,64 @@ class TripStopAdvisoryReviewer {
   static DateTime _evidenceStartedAt({
     required TripTrackingAdvisoryType type,
     required TripTrackingEngineSnapshot engineSnapshot,
+    required TripTrackingSessionRecord session,
     required DateTime detectedAt,
   }) {
     if (type != TripTrackingAdvisoryType.probableStop) return detectedAt;
     if (engineSnapshot.walkingEvidence.isNotEmpty) {
-      return engineSnapshot.walkingEvidence.first.recordedAt;
+      return _safeEvidenceStartedAt(
+        session,
+        engineSnapshot.walkingEvidence.first.recordedAt,
+        detectedAt: detectedAt,
+      );
     }
     final stationaryStartedAt = engineSnapshot.stationaryStartedAt;
     if (stationaryStartedAt == null ||
         stationaryStartedAt.isAfter(detectedAt)) {
       return detectedAt;
     }
-    return stationaryStartedAt;
+    return _safeEvidenceStartedAt(
+      session,
+      stationaryStartedAt,
+      detectedAt: detectedAt,
+    );
+  }
+
+  static bool _hasSameTransition(
+    TripTrackingSessionRecord session, {
+    required TripTrackingAdvisoryType type,
+    required DateTime detectedAt,
+  }) {
+    return session.advisories.any(
+      (event) =>
+          event.type == type &&
+          event.detectedAt == detectedAt &&
+          event.sessionId == session.id &&
+          event.vehicleId == session.vehicleId,
+    );
+  }
+
+  static DateTime _safeDetectedAt(
+    TripTrackingSessionRecord session,
+    DateTime detectedAt,
+  ) {
+    final tripStart = session.startedAt.toUtc();
+    final clean = detectedAt.toUtc();
+    if (clean.isBefore(tripStart)) return session.startedAt;
+    final latestSupported = tripStart.add(const Duration(days: 30));
+    if (clean.isAfter(latestSupported)) return latestSupported;
+    return detectedAt;
+  }
+
+  static DateTime _safeEvidenceStartedAt(
+    TripTrackingSessionRecord session,
+    DateTime evidenceStartedAt, {
+    required DateTime detectedAt,
+  }) {
+    final tripStart = session.startedAt.toUtc();
+    final clean = evidenceStartedAt.toUtc();
+    if (clean.isBefore(tripStart)) return session.startedAt;
+    if (clean.isAfter(detectedAt.toUtc())) return detectedAt;
+    return evidenceStartedAt;
   }
 }
