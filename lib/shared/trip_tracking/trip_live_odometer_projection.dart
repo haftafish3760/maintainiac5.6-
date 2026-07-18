@@ -63,6 +63,7 @@ class TripLiveOdometerProjection {
     'malformedProjectionPayloadFailsSafe': true,
     'writesConfirmedOdometer': false,
     'confirmedOdometerRemainsCanonical': true,
+    'odometerIsGlobalTruth': true,
     'manualConfirmationRequired': true,
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
@@ -173,7 +174,8 @@ class TripLiveOdometerDashboardPayloadValidation {
         payload['projectionTrustedAfterValidationOnly'] != true) {
       reasons.add('external_distance_validation_contract_missing');
     }
-    if (payload['confirmedOdometerRemainsCanonical'] != true) {
+    if (payload['confirmedOdometerRemainsCanonical'] != true ||
+        payload['odometerIsGlobalTruth'] != true) {
       reasons.add('confirmed_odometer_not_marked_canonical');
     }
     if (payload['manualConfirmationRequired'] != true) {

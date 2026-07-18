@@ -104,6 +104,7 @@ void main() {
       projection.toSafeDashboardMap()['confirmedOdometerRemainsCanonical'],
       isTrue,
     );
+    expect(projection.toSafeDashboardMap()['odometerIsGlobalTruth'], isTrue);
     expect(
       projection.toSafeDashboardMap()['calibrationCanCommitWithoutReview'],
       isFalse,
@@ -245,6 +246,7 @@ void main() {
           'calibrationCanCommitWithoutReview': true,
           'calibrationCanDecreaseLiveProjection': true,
           'writesConfirmedOdometer': true,
+          'odometerIsGlobalTruth': false,
         });
     final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
       payload,
