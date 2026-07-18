@@ -309,6 +309,54 @@ void main() {
     expect(decision.mirrorPayload['ownerValidatedBeforeMirror'], isTrue);
     expect(decision.mirrorPayload['deviceIdMatchesLocalRecord'], isTrue);
   });
+
+  test('safe sync attempt summary validates trust boundaries', () {
+    final validation = TripTrackingSyncAttemptSummaryValidation.fromSummary(
+      TripTrackingSyncAttemptGuard.evaluate(
+        request(syncsUsedInWindow: 1),
+      ).toSafeSummary(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('sync attempt summary rejects forged upload and truth claims', () {
+    final blocked = TripTrackingSyncAttemptGuard.evaluate(
+      request(syncsUsedInWindow: 6),
+    ).toSafeSummary();
+    final validation = TripTrackingSyncAttemptSummaryValidation.fromSummary({
+      ...blocked,
+      'mayUploadMirror': true,
+      'consumesFreeAttempt': true,
+      'remoteBackupCanOverrideLocalDay': true,
+      'remoteBackupCanPurgeLocalRecordsSilently': true,
+      'syncAttemptCanDeleteLocalData': true,
+      'blockedAttemptConsumesFreeSync': true,
+      'odometerIsGlobalTruth': false,
+      'syncAttemptCanCreateCalibration': true,
+      'syncAttemptCanApplyCalibration': true,
+      'syncAttemptCanCreateOfficialMileage': true,
+      'mapboxCanReplaceOdometer': true,
+      'tokensIncluded': true,
+      'debug': 'sk.secret 35.123456,-80.123456',
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('sync_attempt_status_conflicts_with_authority'),
+    );
+    expect(
+      validation.reasons,
+      contains('sync_attempt_local_truth_boundary_missing'),
+    );
+    expect(validation.reasons, contains('sync_attempt_can_create_trip_truth'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_sync_material'),
+    );
+  });
 }
 
 TripTrackingSyncAttemptRequest request({

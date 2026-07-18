@@ -306,6 +306,100 @@ class TripTrackingSyncAttemptDecision {
   }
 }
 
+class TripTrackingSyncAttemptSummaryValidation {
+  const TripTrackingSyncAttemptSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingSyncAttemptSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeAttemptStatus(summary['status']);
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (status == null) reasons.add('invalid_sync_attempt_status');
+    if (!_safeAccountTier(summary['accountTier'])) {
+      reasons.add('invalid_sync_account_tier');
+    }
+    for (final key in const [
+      'sourceValid',
+      'ownerValid',
+      'revisionFresh',
+      'mayUploadMirror',
+      'mustReserveFreeAttemptBeforeUpload',
+      'consumesFreeAttempt',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'remoteBackupCanOverrideLocalDay',
+      'staleMirrorRevisionCanOverrideLocalDay',
+      'remoteBackupCanPurgeLocalRecordsSilently',
+      'syncAttemptCanDeleteLocalData',
+      'odometerIsGlobalTruth',
+      'odometerRemainsOfficialMileageTruth',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
+      'syncAttemptCanCreateCalibration',
+      'syncAttemptCanApplyCalibration',
+      'syncAttemptCanCreateOfficialMileage',
+      'mapboxCanReplaceOdometer',
+      'validatedBeforeUpload',
+      'deviceIdMatchesLocalRecord',
+      'tripDayKeyValidated',
+      'mirrorPayloadHasMonotonicLocalRevision',
+      'localRevisionMustAdvanceBeforeUpload',
+      'authorizationCheckedAfterAuthentication',
+      'authenticatedUidMustOwnSourceRecord',
+      'firebaseAuthDoesNotGrantMirrorAuthority',
+      'authenticationAloneAuthorizesMirrorUpload',
+      'mirrorPayloadRequiresLocalPersistence',
+      'mirrorPayloadExcludesRawRouteHistory',
+      'blockedAttemptConsumesFreeSync',
+      'remoteQuotaCountersCanOverrideLocalLedger',
+      'cloudFunctionCanGrantExtraFreeSyncs',
+      'firestoreCounterCanConsumeFreeSync',
+      'quotaScopeMustIncludeAccountDeviceAndModule',
+      'tokensIncluded',
+      'preciseLocationIncluded',
+      'rawTripRecordsIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (_syncAttemptBoundaryRisk(summary, status) != null) {
+      reasons.add('sync_attempt_status_conflicts_with_authority');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteBackupCanOverrideLocalDay'] != false ||
+        summary['remoteBackupCanPurgeLocalRecordsSilently'] != false ||
+        summary['syncAttemptCanDeleteLocalData'] != false ||
+        summary['blockedAttemptConsumesFreeSync'] != false) {
+      reasons.add('sync_attempt_local_truth_boundary_missing');
+    }
+    if (summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['syncAttemptCanCreateCalibration'] != false ||
+        summary['syncAttemptCanApplyCalibration'] != false ||
+        summary['syncAttemptCanCreateOfficialMileage'] != false ||
+        summary['mapboxCanReplaceOdometer'] != false) {
+      reasons.add('sync_attempt_can_create_trip_truth');
+    }
+    if (summary['tokensIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['rawTripRecordsIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_sync_material');
+    }
+    return TripTrackingSyncAttemptSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
+}
+
 final DateTime _minimumAcceptedTimestampUtc = DateTime.utc(2020);
 final DateTime _maximumAcceptedTimestampUtc = DateTime.utc(2100);
 final RegExp _safeIdPattern = RegExp(r'^[A-Za-z0-9_.-]+$');
@@ -360,4 +454,43 @@ bool _revisionFresh({
   if (lastMirroredRevision == null) return true;
   if (lastMirroredRevision < 0) return false;
   return sourceRevision > lastMirroredRevision;
+}
+
+TripTrackingSyncAttemptStatus? _safeAttemptStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripTrackingSyncAttemptStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _safeAccountTier(Object? value) {
+  if (value is! String) return false;
+  return TripTrackingSyncAccountTier.values.any((tier) => tier.name == value);
+}
+
+String? _syncAttemptBoundaryRisk(
+  Map<String, Object?> summary,
+  TripTrackingSyncAttemptStatus? status,
+) {
+  final mayUpload = summary['mayUploadMirror'];
+  final consumes = summary['consumesFreeAttempt'];
+  if (status == null || mayUpload is! bool || consumes is! bool) return null;
+  if (status == TripTrackingSyncAttemptStatus.ready && !mayUpload) {
+    return 'blocked';
+  }
+  if (status != TripTrackingSyncAttemptStatus.ready &&
+      (mayUpload || consumes)) {
+    return 'blocked';
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.toLowerCase();
+  return clean.contains('pk.') ||
+      clean.contains('sk.') ||
+      clean.contains('token=') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
