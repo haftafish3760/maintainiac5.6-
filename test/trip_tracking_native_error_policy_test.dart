@@ -95,4 +95,43 @@ void main() {
     expect(unknown.toString(), isNot(contains('sk.secret')));
     expect(unknown.toString(), isNot(contains('35.1')));
   });
+
+  test('native error summaries validate as renderable', () {
+    final validation = TripTrackingNativeErrorSummaryValidation.fromSummary(
+      TripTrackingNativeErrorPolicy.toSafeSummary('trip_tracking_gps_disabled'),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('native error summary rejects forged status and truth claims', () {
+    final validation = TripTrackingNativeErrorSummaryValidation.fromSummary({
+      ...TripTrackingNativeErrorPolicy.toSafeSummary('invalidLocationPayload'),
+      'recoverable': true,
+      'requiresUserAction': false,
+      'failClosedForGpsStartup': false,
+      'nativeErrorCanDeleteLocalTripData': true,
+      'nativeErrorCanOverrideOdometer': true,
+      'firestoreErrorCanOverrideGpsState': true,
+      'mapboxServiceFailureStopsGpsTracking': true,
+      'mapboxErrorCanCorruptTripLog': true,
+      'odometerRemainsCanonical': false,
+      'rawNativePayloadIncluded': true,
+      'preciseLocationIncluded': true,
+      'tokensIncluded': true,
+      'debug': 'token=sk.secret 35.123456,-80.123456',
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('native_error_status_conflicts_with_authority'),
+    );
+    expect(validation.reasons, contains('native_error_can_mutate_trip_truth'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_native_error_material'),
+    );
+  });
 }
