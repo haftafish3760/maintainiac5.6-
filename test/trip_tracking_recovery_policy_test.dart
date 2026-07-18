@@ -43,6 +43,25 @@ void main() {
         ),
       );
 
+  TripTrackingReviewRecord reviewVariant({
+    String vehicleId = 'vehicle_1',
+    TripTrackingProfile profile = TripTrackingProfile.deliveryVehicle,
+    DateTime? startedAtOverride,
+  }) => TripTrackingReviewRecord(
+    id: 'trip_recovery_1',
+    vehicleId: vehicleId,
+    startingOdometer: 1000,
+    estimatedEndingOdometer: 1001,
+    profile: profile,
+    startedAt: startedAtOverride ?? startedAt,
+    finishedAt: startedAt.add(const Duration(minutes: 10)),
+    hasValidTimeline: true,
+    engineSnapshot: const TripTrackingEngineSnapshot(
+      totalAcceptedMeters: 1609.344,
+      walkingReviewSuggested: false,
+    ),
+  );
+
   test('ready recovery estimates odometer without exposing raw location', () {
     final decision = TripTrackingRecoveryPolicy.evaluate(
       session: session(),
@@ -194,6 +213,32 @@ void main() {
       TripTrackingRecoveryStatus.invalidReviewPresent,
     );
     expect(invalidReview.requiresUserAction, isTrue);
+  });
+
+  test('recovery rejects completed reviews that do not own the session', () {
+    for (final badReview in [
+      reviewVariant(vehicleId: 'vehicle_2'),
+      reviewVariant(profile: TripTrackingProfile.rideshareVehicle),
+      reviewVariant(
+        startedAtOverride: startedAt.add(const Duration(seconds: 1)),
+      ),
+    ]) {
+      final decision = TripTrackingRecoveryPolicy.evaluate(
+        session: session(),
+        currentVehicleId: 'vehicle_1',
+        currentConfirmedOdometer: 1000,
+        review: badReview,
+      );
+
+      expect(decision.status, TripTrackingRecoveryStatus.invalidReviewPresent);
+      expect(decision.canRestore, isFalse);
+      expect(decision.requiresUserAction, isTrue);
+      expect(decision.toSafeSummary()['rawReviewIncluded'], isFalse);
+      expect(
+        decision.toSafeSummary()['firestoreCanOverrideLocalRecovery'],
+        isFalse,
+      );
+    }
   });
 
   test(

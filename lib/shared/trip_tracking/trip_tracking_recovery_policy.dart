@@ -110,7 +110,11 @@ class TripTrackingRecoveryPolicy {
     }
     final savedReview = review;
     if (savedReview != null) {
-      if (!savedReview.hasValidTimeline || savedReview.id != session.id) {
+      if (!savedReview.hasValidTimeline ||
+          savedReview.id != session.id ||
+          !_sameSafeVehicleId(savedReview.vehicleId, session.vehicleId) ||
+          savedReview.profile != session.profile ||
+          savedReview.startedAt != session.startedAt) {
         return _decision(
           TripTrackingRecoveryStatus.invalidReviewPresent,
           'trip_recovery_invalid_review_present',
