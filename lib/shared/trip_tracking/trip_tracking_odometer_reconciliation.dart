@@ -519,10 +519,20 @@ class TripOdometerCalibrationSignal {
     String? vehicleId,
     DateTime? nowUtc,
     int minimumSamples = 7,
+    int maximumReviewedDays = 30,
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
   }) {
+    if (maximumReviewedDays < minimumSamples) {
+      return const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: 0,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'invalid_calibration_threshold',
+      );
+    }
     final requestedVehicleId = vehicleId?.trim();
     final trustedNowUtc = nowUtc?.toUtc();
     final confirmedReviews = reviews
@@ -568,8 +578,12 @@ class TripOdometerCalibrationSignal {
           .putIfAbsent(dayKey, _DailyCalibrationTotals.new)
           .add(reconciliation);
     }
-    final reconciliations = dailyTotals.values.map(
-      (totals) => totals.toReconciliation(),
+    final recentDayKeys = dailyTotals.keys.toList(growable: false)..sort();
+    final boundedDayKeys = recentDayKeys.length > maximumReviewedDays
+        ? recentDayKeys.skip(recentDayKeys.length - maximumReviewedDays)
+        : recentDayKeys;
+    final reconciliations = boundedDayKeys.map(
+      (key) => dailyTotals[key]!.toReconciliation(),
     );
     return evaluate(
       history: reconciliations,

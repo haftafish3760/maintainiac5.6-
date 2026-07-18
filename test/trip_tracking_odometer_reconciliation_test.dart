@@ -695,6 +695,57 @@ void main() {
     expect(signal.reasonCode, 'persistent_gps_odometer_drift');
   });
 
+  test('calibration uses a recent reviewed-day window for tire changes', () {
+    final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+    final olderOppositeDrift = List.generate(
+      20,
+      (index) => TripTrackingReviewRecord(
+        id: 'trip_old_tires_$index',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000 + (index * 100),
+        estimatedEndingOdometer: 1100 + (index * 100),
+        confirmedEndingOdometer: 1100 + (index * 100),
+        odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 6, 1 + index, 8),
+        finishedAt: DateTime.utc(2026, 6, 1 + index, 10),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 106 * 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+    final recentNewTires = List.generate(
+      7,
+      (index) => TripTrackingReviewRecord(
+        id: 'trip_new_tires_$index',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 4000 + (index * 100),
+        estimatedEndingOdometer: 4100 + (index * 100),
+        confirmedEndingOdometer: 4100 + (index * 100),
+        odometerConfirmedAt: confirmedAt.add(Duration(days: 30 + index)),
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+        finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 94 * 1609.344,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: [...olderOppositeDrift, ...recentNewTires],
+      maximumReviewedDays: 7,
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.averageGpsToOdometerRatio, closeTo(.94, .001));
+    expect(signal.reasonCode, 'persistent_gps_odometer_drift');
+    expect(signal.canOverwriteConfirmedOdometer, isFalse);
+  });
+
   test(
     'calibration history fails closed when confirmed reviews mix vehicles',
     () {
@@ -952,6 +1003,16 @@ void main() {
       TripOdometerCalibrationStatus.insufficientHistory,
     );
     expect(outlierSignal.reasonCode, 'invalid_calibration_threshold');
+    final badWindowSignal =
+        TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+          reviews: const [],
+          maximumReviewedDays: 6,
+        );
+    expect(
+      badWindowSignal.status,
+      TripOdometerCalibrationStatus.insufficientHistory,
+    );
+    expect(badWindowSignal.reasonCode, 'invalid_calibration_threshold');
   });
 
   test('calibration multiplier falls back safely for malformed signals', () {
