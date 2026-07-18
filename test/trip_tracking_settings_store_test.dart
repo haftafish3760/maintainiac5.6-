@@ -23,6 +23,10 @@ void main() {
       expect(settings.lowBatteryGpsProtectionEnabled, isTrue);
       expect(settings.lowBatteryGpsOverrideEnabled, isFalse);
       expect(settings.lowBatteryGpsWarningDismissed, isFalse);
+      expect(settings.mapPreviewEnabled, isFalse);
+      expect(settings.mapRouteHistorySavingEnabled, isFalse);
+      expect(settings.mapRouteHistoryDailyBudgetMb, 0);
+      expect(settings.mapRouteHistorySampleIntervalSeconds, 30);
       expect(
         settings.backupNetworkPolicy,
         TripTrackingBackupNetworkPolicy.wifiAndMobileData,
@@ -59,6 +63,10 @@ void main() {
       lowBatteryGpsOverrideEnabled: true,
       lowBatteryGpsWarningDismissed: true,
       odometerAnomalyAlertsEnabled: true,
+      mapPreviewEnabled: true,
+      mapRouteHistorySavingEnabled: true,
+      mapRouteHistoryDailyBudgetMb: 1.25,
+      mapRouteHistorySampleIntervalSeconds: 45,
       defaultProfile: TripTrackingProfile.deliveryVehicle,
       backupNetworkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
     );
@@ -78,13 +86,23 @@ void main() {
       summary['lowBatteryGpsDefaultAction'],
       'prompt_or_pause_below_cutoff',
     );
+    expect(summary['mapPreviewEnabled'], isTrue);
+    expect(summary['mapRouteHistorySavingEnabled'], isTrue);
+    expect(summary['mapRouteHistoryDailyBudgetMb'], 1.25);
+    expect(summary['mapRouteHistorySampleIntervalSeconds'], 45);
     expect(summary['requiresGpsConsent'], isTrue);
     expect(summary['requiresBackgroundConsent'], isTrue);
     expect(summary['requiresMotionConsent'], isTrue);
     expect(summary['requiresOrganizationSharingConsent'], isTrue);
     expect(summary['mapsRequiredForTracking'], isFalse);
+    expect(summary['mapsRequireSeparateOptIn'], isTrue);
+    expect(summary['mapRouteHistoryRequiresSeparateOptIn'], isTrue);
+    expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
+    expect(summary['freeUserControlsDailyMapStorageBudget'], isTrue);
     expect(summary['odometerRemainsCanonical'], isTrue);
     expect(summary['rawLocationIncluded'], isFalse);
+    expect(summary['rawMapRouteIncluded'], isFalse);
+    expect(summary['mapboxGeometryIncluded'], isFalse);
     expect(summary['rawSensorPayloadIncluded'], isFalse);
     expect(summary['tokensIncluded'], isFalse);
   });
@@ -108,6 +126,49 @@ void main() {
     expect(summary['lowBatteryGpsOverrideEnabled'], isFalse);
     expect(summary['lowBatteryGpsWarningDismissed'], isFalse);
     expect(summary['lowBatteryGpsChoiceCanBeChanged'], isTrue);
+    expect(summary['mapPreviewEnabled'], isFalse);
+    expect(summary['mapRouteHistorySavingEnabled'], isFalse);
+  });
+
+  test('GPS assisted tracking does not imply maps or route storage', () {
+    final gpsOnly = const TripTrackingSettings().copyWith(
+      gpsAssistedTrackingEnabled: true,
+    );
+    final routeStorageWithoutMap = gpsOnly.copyWith(
+      mapRouteHistorySavingEnabled: true,
+      mapRouteHistoryDailyBudgetMb: 1,
+    );
+    final mapPreviewOnly = gpsOnly.copyWith(mapPreviewEnabled: true);
+
+    expect(gpsOnly.gpsAssistedTrackingEnabled, isTrue);
+    expect(gpsOnly.mapPreviewEnabled, isFalse);
+    expect(gpsOnly.mapRouteHistorySavingEnabled, isFalse);
+    expect(routeStorageWithoutMap.mapRouteHistorySavingEnabled, isFalse);
+    expect(mapPreviewOnly.mapPreviewEnabled, isTrue);
+    expect(mapPreviewOnly.mapRouteHistorySavingEnabled, isFalse);
+  });
+
+  test('map route history is opt-in and bounded for daily storage', () {
+    final enabled = const TripTrackingSettings().copyWith(
+      gpsAssistedTrackingEnabled: true,
+      mapPreviewEnabled: true,
+      mapRouteHistorySavingEnabled: true,
+      mapRouteHistoryDailyBudgetMb: 9,
+      mapRouteHistorySampleIntervalSeconds: 1,
+    );
+    final restored = TripTrackingSettings.fromMap({
+      ...enabled.toMap(),
+      'mapRouteHistoryDailyBudgetMb': double.nan,
+      'mapRouteHistorySampleIntervalSeconds': 1,
+    });
+
+    expect(enabled.mapPreviewEnabled, isTrue);
+    expect(enabled.mapRouteHistorySavingEnabled, isTrue);
+    expect(enabled.mapRouteHistoryDailyBudgetMb, 2);
+    expect(enabled.mapRouteHistorySampleIntervalSeconds, 15);
+    expect(restored.mapRouteHistorySavingEnabled, isFalse);
+    expect(restored.mapRouteHistoryDailyBudgetMb, 0);
+    expect(restored.mapRouteHistorySampleIntervalSeconds, 15);
   });
 
   test(

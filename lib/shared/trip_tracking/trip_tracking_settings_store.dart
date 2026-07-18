@@ -50,11 +50,15 @@ class TripTrackingSettings {
     this.lowBatteryGpsOverrideEnabled = false,
     this.lowBatteryGpsWarningDismissed = false,
     this.odometerAnomalyAlertsEnabled = false,
+    this.mapPreviewEnabled = false,
+    this.mapRouteHistorySavingEnabled = false,
+    this.mapRouteHistoryDailyBudgetMb = 0,
+    this.mapRouteHistorySampleIntervalSeconds = 30,
     this.backupNetworkPolicy =
         TripTrackingBackupNetworkPolicy.wifiAndMobileData,
   });
 
-  static const schemaVersion = 1;
+  static const schemaVersion = 2;
 
   final bool gpsAssistedTrackingEnabled;
   final TripTrackingSamplingPreset samplingPreset;
@@ -71,6 +75,10 @@ class TripTrackingSettings {
   final bool lowBatteryGpsOverrideEnabled;
   final bool lowBatteryGpsWarningDismissed;
   final bool odometerAnomalyAlertsEnabled;
+  final bool mapPreviewEnabled;
+  final bool mapRouteHistorySavingEnabled;
+  final double mapRouteHistoryDailyBudgetMb;
+  final int mapRouteHistorySampleIntervalSeconds;
   final TripTrackingBackupNetworkPolicy backupNetworkPolicy;
 
   TripTrackingSettings copyWith({
@@ -89,6 +97,10 @@ class TripTrackingSettings {
     bool? lowBatteryGpsOverrideEnabled,
     bool? lowBatteryGpsWarningDismissed,
     bool? odometerAnomalyAlertsEnabled,
+    bool? mapPreviewEnabled,
+    bool? mapRouteHistorySavingEnabled,
+    double? mapRouteHistoryDailyBudgetMb,
+    int? mapRouteHistorySampleIntervalSeconds,
     TripTrackingBackupNetworkPolicy? backupNetworkPolicy,
   }) {
     final gpsEnabled =
@@ -131,6 +143,24 @@ class TripTrackingSettings {
       odometerAnomalyAlertsEnabled:
           gpsEnabled &&
           (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled),
+      mapPreviewEnabled:
+          gpsEnabled && (mapPreviewEnabled ?? this.mapPreviewEnabled),
+      mapRouteHistorySavingEnabled:
+          gpsEnabled &&
+          (mapPreviewEnabled ?? this.mapPreviewEnabled) &&
+          (mapRouteHistorySavingEnabled ?? this.mapRouteHistorySavingEnabled) &&
+          _validMapDailyBudgetMb(
+                mapRouteHistoryDailyBudgetMb ??
+                    this.mapRouteHistoryDailyBudgetMb,
+              ) >
+              0,
+      mapRouteHistoryDailyBudgetMb: _validMapDailyBudgetMb(
+        mapRouteHistoryDailyBudgetMb ?? this.mapRouteHistoryDailyBudgetMb,
+      ),
+      mapRouteHistorySampleIntervalSeconds: _validMapSampleInterval(
+        mapRouteHistorySampleIntervalSeconds ??
+            this.mapRouteHistorySampleIntervalSeconds,
+      ),
       backupNetworkPolicy: backupNetworkPolicy ?? this.backupNetworkPolicy,
     );
   }
@@ -152,6 +182,14 @@ class TripTrackingSettings {
     'lowBatteryGpsOverrideEnabled': lowBatteryGpsOverrideEnabled,
     'lowBatteryGpsWarningDismissed': lowBatteryGpsWarningDismissed,
     'odometerAnomalyAlertsEnabled': odometerAnomalyAlertsEnabled,
+    'mapPreviewEnabled': mapPreviewEnabled,
+    'mapRouteHistorySavingEnabled': mapRouteHistorySavingEnabled,
+    'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(
+      mapRouteHistoryDailyBudgetMb,
+    ),
+    'mapRouteHistorySampleIntervalSeconds': _validMapSampleInterval(
+      mapRouteHistorySampleIntervalSeconds,
+    ),
     'backupNetworkPolicy': backupNetworkPolicy.name,
   };
 
@@ -179,6 +217,14 @@ class TripTrackingSettings {
       'lowBatteryGpsChoiceCanBeChanged': true,
       'lowBatteryGpsDefaultAction': 'prompt_or_pause_below_cutoff',
       'odometerAnomalyAlertsEnabled': safe.odometerAnomalyAlertsEnabled,
+      'mapPreviewEnabled': safe.mapPreviewEnabled,
+      'mapRouteHistorySavingEnabled': safe.mapRouteHistorySavingEnabled,
+      'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(
+        safe.mapRouteHistoryDailyBudgetMb,
+      ),
+      'mapRouteHistorySampleIntervalSeconds': _validMapSampleInterval(
+        safe.mapRouteHistorySampleIntervalSeconds,
+      ),
       'backupNetworkPolicy': safe.backupNetworkPolicy.name,
       'requiresGpsConsent': safe.gpsAssistedTrackingEnabled,
       'requiresBackgroundConsent':
@@ -188,8 +234,14 @@ class TripTrackingSettings {
       'requiresOrganizationSharingConsent':
           safe.organizationMileageSharingEnabled,
       'mapsRequiredForTracking': false,
+      'mapsRequireSeparateOptIn': true,
+      'mapRouteHistoryRequiresSeparateOptIn': true,
+      'gpsTrackingCanRunWithoutMaps': true,
+      'freeUserControlsDailyMapStorageBudget': true,
       'odometerRemainsCanonical': true,
       'rawLocationIncluded': false,
+      'rawMapRouteIncluded': false,
+      'mapboxGeometryIncluded': false,
       'rawSensorPayloadIncluded': false,
       'tokensIncluded': false,
     };
@@ -230,6 +282,22 @@ class TripTrackingSettings {
           gpsEnabled && map['lowBatteryGpsWarningDismissed'] == true,
       odometerAnomalyAlertsEnabled:
           gpsEnabled && map['odometerAnomalyAlertsEnabled'] == true,
+      mapPreviewEnabled: gpsEnabled && map['mapPreviewEnabled'] == true,
+      mapRouteHistorySavingEnabled:
+          gpsEnabled &&
+          map['mapPreviewEnabled'] == true &&
+          map['mapRouteHistorySavingEnabled'] == true &&
+          _validMapDailyBudgetMb(
+                _safeNumber(map['mapRouteHistoryDailyBudgetMb'])?.toDouble() ??
+                    0,
+              ) >
+              0,
+      mapRouteHistoryDailyBudgetMb: _validMapDailyBudgetMb(
+        _safeNumber(map['mapRouteHistoryDailyBudgetMb'])?.toDouble() ?? 0,
+      ),
+      mapRouteHistorySampleIntervalSeconds: _validMapSampleInterval(
+        _safeNumber(map['mapRouteHistorySampleIntervalSeconds'])?.round() ?? 30,
+      ),
       backupNetworkPolicy: TripTrackingBackupNetworkPolicy.values.firstWhere(
         (value) => value.name == map['backupNetworkPolicy'],
         orElse: () => TripTrackingBackupNetworkPolicy.wifiAndMobileData,
@@ -246,6 +314,14 @@ bool _hasUnsupportedSchemaVersion(Map<dynamic, dynamic> map) {
 }
 
 int _validCustomInterval(int seconds) => seconds.clamp(3, 600);
+
+double _validMapDailyBudgetMb(double value) {
+  if (!value.isFinite || value <= 0) return 0;
+  if (value > 2) return 2;
+  return (value * 100).roundToDouble() / 100;
+}
+
+int _validMapSampleInterval(int seconds) => seconds.clamp(15, 300);
 
 num? _safeNumber(Object? value) =>
     value is num && value.isFinite ? value : null;
