@@ -149,6 +149,13 @@ class TripStopFalsePositiveGuardSummaryValidation {
     if (summary.values.any(_containsSensitivePayload)) {
       reasons.add('guard_summary_contains_sensitive_payload');
     }
+    reasons.addAll(
+      _validateGuardStatusAuthority(
+        status: status,
+        reasonCode: reasonCode,
+        canAllowReviewOpen: summary['canAllowReviewOpen'],
+      ),
+    );
 
     return TripStopFalsePositiveGuardSummaryValidation._(
       isRenderable: reasons.isEmpty,
@@ -162,6 +169,30 @@ class TripStopFalsePositiveGuardSummaryValidation {
   final bool isRenderable;
   final bool canAllowReviewOpen;
   final List<String> reasons;
+}
+
+List<String> _validateGuardStatusAuthority({
+  required TripStopFalsePositiveGuardStatus? status,
+  required Object? reasonCode,
+  required Object? canAllowReviewOpen,
+}) {
+  if (status == null || reasonCode is! String || canAllowReviewOpen is! bool) {
+    return const [];
+  }
+  if (canAllowReviewOpen &&
+      (status != TripStopFalsePositiveGuardStatus.passed ||
+          reasonCode != 'stop_false_positive_guard_passed')) {
+    return const ['guard_open_review_authority_mismatch'];
+  }
+  if (status == TripStopFalsePositiveGuardStatus.passed &&
+      reasonCode != 'stop_false_positive_guard_passed') {
+    return const ['guard_passed_reason_mismatch'];
+  }
+  if (status != TripStopFalsePositiveGuardStatus.passed &&
+      reasonCode == 'stop_false_positive_guard_passed') {
+    return const ['guard_blocked_reason_mismatch'];
+  }
+  return const [];
 }
 
 class TripStopFalsePositiveGuard {

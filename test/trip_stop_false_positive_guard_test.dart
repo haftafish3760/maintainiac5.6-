@@ -337,6 +337,29 @@ void main() {
     );
   });
 
+  test('guard summary validation rejects forged open authority', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: _observation(observedAt: observedAt),
+    );
+    final guard =
+        decision.toSafeDashboardMap()['falsePositiveGuard']
+            as Map<String, Object?>;
+
+    final validation = TripStopFalsePositiveGuardSummaryValidation.fromSummary({
+      ...guard,
+      'status': TripStopFalsePositiveGuardStatus.blockedRemoteAuthority.name,
+      'reasonCode': 'remote_stop_guard_authority',
+      'canAllowReviewOpen': true,
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('guard_open_review_authority_mismatch'),
+    );
+  });
+
   test(
     'guard summary validation rejects token and precise coordinate leaks',
     () {
