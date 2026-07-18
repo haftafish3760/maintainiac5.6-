@@ -183,6 +183,8 @@ class TripLiveCheckpointDurabilitySummaryValidation {
         summary.values.any(_looksSensitive)) {
       reasons.add('summary_contains_sensitive_checkpoint_material');
     }
+    final boundaryRisk = _checkpointStatusBoundaryRisk(summary);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
 
     return TripLiveCheckpointDurabilitySummaryValidation._(
       isRenderable: reasons.isEmpty,
@@ -360,6 +362,42 @@ TripLiveCheckpointDurabilityStatus? _safeStatus(Object? value) {
   if (value is! String) return null;
   for (final status in TripLiveCheckpointDurabilityStatus.values) {
     if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _checkpointStatusBoundaryRisk(Map<String, Object?> summary) {
+  final status = _safeStatus(summary['status']);
+  final writeLocal = summary['shouldWriteLocalCheckpointNow'];
+  final upload = summary['mayUploadBackupMirror'];
+  final retry = summary['shouldRetryBackupLater'];
+  final waitSeconds = summary['minimumNextLocalWriteSeconds'];
+  if (status == null ||
+      writeLocal is! bool ||
+      upload is! bool ||
+      retry is! bool ||
+      waitSeconds is! int) {
+    return null;
+  }
+  if (status == TripLiveCheckpointDurabilityStatus.localWriteRequired &&
+      (!writeLocal || upload || retry || waitSeconds != 0)) {
+    return 'checkpoint_status_conflicts_with_authority';
+  }
+  if (status == TripLiveCheckpointDurabilityStatus.localWriteDeferred &&
+      (writeLocal || upload || retry || waitSeconds <= 0)) {
+    return 'checkpoint_status_conflicts_with_authority';
+  }
+  if (status == TripLiveCheckpointDurabilityStatus.backupReady &&
+      (writeLocal || !upload || retry || waitSeconds != 0)) {
+    return 'checkpoint_status_conflicts_with_authority';
+  }
+  if (status == TripLiveCheckpointDurabilityStatus.blockedInvalidCheckpoint &&
+      (writeLocal || upload || retry)) {
+    return 'checkpoint_status_conflicts_with_authority';
+  }
+  if (status == TripLiveCheckpointDurabilityStatus.backupDeferred &&
+      (writeLocal || upload)) {
+    return 'checkpoint_status_conflicts_with_authority';
   }
   return null;
 }

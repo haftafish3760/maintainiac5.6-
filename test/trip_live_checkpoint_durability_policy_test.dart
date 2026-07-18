@@ -270,4 +270,35 @@ void main() {
       );
     },
   );
+
+  test('summary rejects checkpoint status authority mismatch', () {
+    final ready = evaluate().toSafeDashboardMap();
+    final deferred = evaluate(
+      lastWrite: now.subtract(const Duration(seconds: 4)),
+    ).toSafeDashboardMap();
+
+    final forgedReady =
+        TripLiveCheckpointDurabilitySummaryValidation.fromSummary({
+          ...ready,
+          'mayUploadBackupMirror': false,
+          'shouldWriteLocalCheckpointNow': true,
+        });
+    final forgedDeferred =
+        TripLiveCheckpointDurabilitySummaryValidation.fromSummary({
+          ...deferred,
+          'minimumNextLocalWriteSeconds': 0,
+          'mayUploadBackupMirror': true,
+        });
+
+    expect(forgedReady.isRenderable, isFalse);
+    expect(forgedDeferred.isRenderable, isFalse);
+    expect(
+      forgedReady.reasons,
+      contains('checkpoint_status_conflicts_with_authority'),
+    );
+    expect(
+      forgedDeferred.reasons,
+      contains('checkpoint_status_conflicts_with_authority'),
+    );
+  });
 }
