@@ -184,6 +184,11 @@ class TripStopDetectionReadiness {
     'officialStopCreated': false,
     'officialMileageSource': 'odometer',
     'odometerIsGlobalTruth': true,
+    'readinessCanSetGlobalTruth': false,
+    'readinessCanConfirmOfficialMileage': false,
+    'readinessCanChangeOfficialMileage': false,
+    'stopReviewCanSetGlobalTruth': false,
+    'stopReviewCanConfirmOfficialMileage': false,
     'readinessCanCreateCalibration': false,
     'readinessCanApplyCalibration': false,
     'calibrationRequiresTrustedGpsWindow': true,
@@ -269,6 +274,11 @@ class TripStopDetectionReadinessSummaryValidation {
     }
     for (final key in const [
       'manualFallbackCanCreateOfficialStop',
+      'readinessCanSetGlobalTruth',
+      'readinessCanConfirmOfficialMileage',
+      'readinessCanChangeOfficialMileage',
+      'stopReviewCanSetGlobalTruth',
+      'stopReviewCanConfirmOfficialMileage',
       'readinessCanCreateCalibration',
       'readinessCanApplyCalibration',
       'stopReviewCanEditOdometer',

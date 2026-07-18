@@ -35,6 +35,11 @@ void main() {
       expect(safe['officialStopCreated'], isFalse);
       expect(safe['officialMileageSource'], 'odometer');
       expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['readinessCanSetGlobalTruth'], isFalse);
+      expect(safe['readinessCanConfirmOfficialMileage'], isFalse);
+      expect(safe['readinessCanChangeOfficialMileage'], isFalse);
+      expect(safe['stopReviewCanSetGlobalTruth'], isFalse);
+      expect(safe['stopReviewCanConfirmOfficialMileage'], isFalse);
       expect(safe['currentVehicleSpeedMustAllowStopReview'], isTrue);
       expect(safe['movingVehicleCannotOpenStopReview'], isTrue);
       expect(safe['readinessCanCreateCalibration'], isFalse);
@@ -331,6 +336,11 @@ void main() {
       TripStopDetectionReadinessSummaryValidation.fromSummary({
         ...safe,
         'odometerIsGlobalTruth': false,
+        'readinessCanSetGlobalTruth': true,
+        'readinessCanConfirmOfficialMileage': true,
+        'readinessCanChangeOfficialMileage': true,
+        'stopReviewCanSetGlobalTruth': true,
+        'stopReviewCanConfirmOfficialMileage': true,
         'readinessCanCreateCalibration': true,
         'readinessCanApplyCalibration': true,
         'calibrationRequiresTrustedGpsWindow': false,
