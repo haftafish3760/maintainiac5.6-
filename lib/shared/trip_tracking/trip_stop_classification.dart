@@ -88,6 +88,19 @@ class TripStopClassifier {
             'Walking-style evidence is ignored for this equipment profile.',
       );
     }
+    if (needsWalkingReview &&
+        excludedWalkingCount > 0 &&
+        acceptedDistanceCount == 0) {
+      return const TripStopClassification(
+        signal: TripStopSignal.unsafeEvidence,
+        reasonCode: 'walking_stop_without_vehicle_movement',
+        requiresUserReview: false,
+        canSuggestStop: false,
+        actionToken: 'keep_tracking',
+        dashboardMessage:
+            'Walking evidence was ignored because no vehicle movement was accepted first.',
+      );
+    }
     if (needsWalkingReview && excludedWalkingCount > 0) {
       return TripStopClassification(
         signal: TripStopSignal.reviewOnlyStop,

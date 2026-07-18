@@ -156,6 +156,23 @@ void main() {
     expect(classification.requiresUserReview, isFalse);
   });
 
+  test('walking evidence without accepted vehicle movement fails closed', () {
+    final classification = TripStopClassifier.classify(
+      profile: TripTrackingProfile.deliveryVehicle,
+      motionState: TripMotionState.stopped,
+      needsWalkingReview: true,
+      excludedWalkingCount: 3,
+      rejectedDriftCount: 0,
+      rejectedUnsafeCount: 0,
+      acceptedDistanceCount: 0,
+    );
+
+    expect(classification.signal, TripStopSignal.unsafeEvidence);
+    expect(classification.reasonCode, 'walking_stop_without_vehicle_movement');
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.requiresUserReview, isFalse);
+  });
+
   test('safe summary never exposes route samples or geometry', () {
     final summary = TripStopClassifier.classify(
       profile: TripTrackingProfile.contractorVehicle,
