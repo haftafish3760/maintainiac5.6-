@@ -2708,6 +2708,74 @@ void main() {
     },
   );
 
+  test(
+    'direct ingest drops future activity before pending recovery save',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+
+      expect(
+        await controller.start(
+          tripId: 'trip_future_activity_direct',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.deliveryVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      final first = await controller.ingest(
+        sample(-80, 0),
+        activity: TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start.add(const Duration(minutes: 5)),
+        ),
+      );
+      final second = await controller.ingest(sample(-79.999, 20));
+
+      expect(first?.disposition, TripSampleDisposition.acceptedAnchor);
+      expect(second?.accepted, isTrue);
+      expect(controller.needsWalkingReview, isFalse);
+      expect(store.pendingSampleFor('trip_future_activity_direct'), isNull);
+    },
+  );
+
+  test('invalid activity confidence cannot break GPS ingestion', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+
+    expect(
+      await controller.start(
+        tripId: 'trip_invalid_activity_confidence',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    final first = await controller.ingest(
+      sample(-80, 0),
+      activity: TripActivityObservation(
+        activity: TripActivity.walking,
+        confidence: 101,
+        recordedAt: start,
+      ),
+    );
+    final second = await controller.ingest(sample(-79.999, 20));
+
+    expect(first?.disposition, TripSampleDisposition.acceptedAnchor);
+    expect(second?.accepted, isTrue);
+    expect(controller.needsWalkingReview, isFalse);
+    expect(controller.platformStatus, isNull);
+    expect(store.pendingSampleFor('trip_invalid_activity_confidence'), isNull);
+  });
+
   test('accepted GPS distance updates the global live odometer only', () async {
     final odometer = GlobalOdometerController(initialReading: 1000);
     var odometerNotifications = 0;

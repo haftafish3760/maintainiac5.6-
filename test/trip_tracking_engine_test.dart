@@ -272,6 +272,7 @@ void main() {
         'odometerRemainsCanonical': true,
         'preciseBatteryIncluded': false,
         'rawBatteryPayloadIncluded': false,
+        'tokensIncluded': false,
       });
       expect(blocked.isSavedBlock, isTrue);
       expect(blocked.toSafeSummary()['requiresUserChoice'], isFalse);

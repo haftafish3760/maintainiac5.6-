@@ -696,18 +696,19 @@ class TripTrackingController extends ChangeNotifier {
       return engine.reject(TripSampleDisposition.rejectedInvalid);
     }
 
+    final safeActivity = _activitySafeForSample(sample, activity);
     if (sample.mockedLocation != true) {
       await _sessionStore.savePending(
         TripTrackingPendingSample(
           sessionId: session.id,
           sample: sample,
-          activity: activity,
+          activity: safeActivity,
         ),
       );
     }
 
     final previousMotionState = engine.motionState;
-    final decision = engine.ingest(sample, activity: activity);
+    final decision = engine.ingest(sample, activity: safeActivity);
     final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
       session,
       engineSnapshot: engine.snapshot,
@@ -776,6 +777,19 @@ class TripTrackingController extends ChangeNotifier {
     }
     await _sessionStore.clearPending(session.id);
     return decision;
+  }
+
+  TripActivityObservation? _activitySafeForSample(
+    TripLocationSample sample,
+    TripActivityObservation? activity,
+  ) {
+    final evidence = activity;
+    if (evidence == null) return null;
+    if (evidence.confidence < 0 || evidence.confidence > 100) return null;
+    if (evidence.recordedAt.isAfter(sample.recordedAt)) return null;
+    final age = sample.recordedAt.difference(evidence.recordedAt);
+    if (age > _policy.walkingConfirmationWindow) return null;
+    return evidence;
   }
 
   /// Starts the platform collector only after an active trip exists. Native
