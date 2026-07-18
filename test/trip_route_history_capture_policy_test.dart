@@ -48,6 +48,10 @@ void main() {
     expect(safe['routeHistoryCannotExceedUserDailyBudget'], isTrue);
     expect(safe['routeHistoryCostCannotBeHiddenFromUser'], isTrue);
     expect(safe['routeHistoryPrepaidBudgetRequiredForPaidMaps'], isTrue);
+    expect(safe['routeHistoryCanSetGlobalTruth'], isFalse);
+    expect(safe['routeHistoryCanConfirmOfficialMileage'], isFalse);
+    expect(safe['routeHistoryCanChangeOfficialMileage'], isFalse);
+    expect(safe['routeHistoryCanConfirmOfficialStop'], isFalse);
   });
 
   test(
@@ -111,6 +115,10 @@ void main() {
     ).toSafeSummary();
 
     expect(safe['routeHistoryCanConfirmMileage'], isFalse);
+    expect(safe['routeHistoryCanSetGlobalTruth'], isFalse);
+    expect(safe['routeHistoryCanConfirmOfficialMileage'], isFalse);
+    expect(safe['routeHistoryCanChangeOfficialMileage'], isFalse);
+    expect(safe['routeHistoryCanConfirmOfficialStop'], isFalse);
     expect(safe['routeHistoryCanCreateCalibration'], isFalse);
     expect(safe['routeHistoryCanApplyCalibration'], isFalse);
     expect(safe['routeHistoryCanBecomeCalibrationProof'], isFalse);
@@ -191,6 +199,10 @@ void main() {
           'mapboxCanReplaceOdometer': true,
           'mapboxCanCreateOfficialStop': true,
           'mapboxCanReorderOfficialStops': true,
+          'routeHistoryCanSetGlobalTruth': true,
+          'routeHistoryCanConfirmOfficialMileage': true,
+          'routeHistoryCanChangeOfficialMileage': true,
+          'routeHistoryCanConfirmOfficialStop': true,
           'routeHistoryCanConfirmMileage': true,
           'routeHistoryCanCreateCalibration': true,
           'routeHistoryCanApplyCalibration': true,

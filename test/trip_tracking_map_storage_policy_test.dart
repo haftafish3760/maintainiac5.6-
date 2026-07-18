@@ -475,6 +475,10 @@ void main() {
     expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
     expect(summary['confirmedOdometerOverridesRoutePointMileage'], isTrue);
     expect(summary['routePointMileageCanOnlyAdviseReview'], isTrue);
+    expect(summary['routePointCanSetGlobalTruth'], isFalse);
+    expect(summary['routePointCanConfirmOfficialMileage'], isFalse);
+    expect(summary['routePointCanChangeOfficialMileage'], isFalse);
+    expect(summary['routePointCanConfirmOfficialStop'], isFalse);
     expect(summary['routePointCanReplaceOdometer'], isFalse);
     expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
     expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
@@ -596,6 +600,10 @@ void main() {
         expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
         expect(summary['confirmedOdometerOverridesRoutePointMileage'], isTrue);
         expect(summary['routePointMileageCanOnlyAdviseReview'], isTrue);
+        expect(summary['routePointCanSetGlobalTruth'], isFalse);
+        expect(summary['routePointCanConfirmOfficialMileage'], isFalse);
+        expect(summary['routePointCanChangeOfficialMileage'], isFalse);
+        expect(summary['routePointCanConfirmOfficialStop'], isFalse);
         expect(summary['routePointCanReplaceOdometer'], isFalse);
         expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
         expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);

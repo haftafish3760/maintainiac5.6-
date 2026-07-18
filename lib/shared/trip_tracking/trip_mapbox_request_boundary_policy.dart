@@ -67,6 +67,10 @@ class TripMapboxRequestBoundaryDecision {
     'mapboxNavigationCannotEndTrip': true,
     'mapboxMapMatchingCannotRewriteGpsTrace': true,
     'mapboxOptimizationCannotPersistStopOrderWithoutReview': true,
+    'mapboxCanSetGlobalTruth': false,
+    'mapboxCanConfirmOfficialMileage': false,
+    'mapboxCanChangeOfficialMileage': false,
+    'mapboxCanConfirmOfficialStop': false,
     'mapboxCanModifyTripLog': false,
     'mapboxCanReplaceOdometer': false,
     'mapboxCanCreateStop': false,
@@ -153,6 +157,10 @@ class TripMapboxRequestBoundarySummaryValidation {
         summary['mapboxNavigationCanOnlyGuideUser'] != true ||
         summary['mapboxNavigationCannotEndTrip'] != true ||
         summary['mapboxMapMatchingCannotRewriteGpsTrace'] != true ||
+        summary['mapboxCanSetGlobalTruth'] != false ||
+        summary['mapboxCanConfirmOfficialMileage'] != false ||
+        summary['mapboxCanChangeOfficialMileage'] != false ||
+        summary['mapboxCanConfirmOfficialStop'] != false ||
         summary['mapboxOptimizationCannotPersistStopOrderWithoutReview'] !=
             true) {
       reasons.add('mapbox_service_boundary_missing');

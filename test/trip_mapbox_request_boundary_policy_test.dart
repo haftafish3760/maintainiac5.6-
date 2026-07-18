@@ -190,6 +190,10 @@ void main() {
     expect(safe['mapboxNavigationCanOnlyGuideUser'], isTrue);
     expect(safe['mapboxNavigationCannotEndTrip'], isTrue);
     expect(safe['mapboxMapMatchingCannotRewriteGpsTrace'], isTrue);
+    expect(safe['mapboxCanSetGlobalTruth'], isFalse);
+    expect(safe['mapboxCanConfirmOfficialMileage'], isFalse);
+    expect(safe['mapboxCanChangeOfficialMileage'], isFalse);
+    expect(safe['mapboxCanConfirmOfficialStop'], isFalse);
     expect(
       safe['mapboxOptimizationCannotPersistStopOrderWithoutReview'],
       isTrue,
@@ -256,6 +260,10 @@ void main() {
           'mapboxNavigationCannotEndTrip': false,
           'mapboxMapMatchingCannotRewriteGpsTrace': false,
           'mapboxOptimizationCannotPersistStopOrderWithoutReview': false,
+          'mapboxCanSetGlobalTruth': true,
+          'mapboxCanConfirmOfficialMileage': true,
+          'mapboxCanChangeOfficialMileage': true,
+          'mapboxCanConfirmOfficialStop': true,
           'mapboxCanModifyTripLog': true,
           'mapboxCanReplaceOdometer': true,
           'mapboxCanCreateStop': true,

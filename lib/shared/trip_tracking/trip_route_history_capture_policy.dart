@@ -65,6 +65,10 @@ class TripRouteHistoryCaptureDecision {
     'mapboxCanReplaceOdometer': false,
     'mapboxCanCreateOfficialStop': false,
     'mapboxCanReorderOfficialStops': false,
+    'routeHistoryCanSetGlobalTruth': false,
+    'routeHistoryCanConfirmOfficialMileage': false,
+    'routeHistoryCanChangeOfficialMileage': false,
+    'routeHistoryCanConfirmOfficialStop': false,
     'routeHistoryCanConfirmMileage': false,
     'routeHistoryCanCreateCalibration': false,
     'routeHistoryCanApplyCalibration': false,
@@ -157,6 +161,10 @@ class TripRouteHistorySummaryValidation {
         summary['mapboxCanReplaceOdometer'] != false ||
         summary['mapboxCanCreateOfficialStop'] != false ||
         summary['mapboxCanReorderOfficialStops'] != false ||
+        summary['routeHistoryCanSetGlobalTruth'] != false ||
+        summary['routeHistoryCanConfirmOfficialMileage'] != false ||
+        summary['routeHistoryCanChangeOfficialMileage'] != false ||
+        summary['routeHistoryCanConfirmOfficialStop'] != false ||
         summary['routeHistoryCanConfirmMileage'] != false ||
         summary['routeHistoryCanCreateCalibration'] != false ||
         summary['routeHistoryCanApplyCalibration'] != false ||
