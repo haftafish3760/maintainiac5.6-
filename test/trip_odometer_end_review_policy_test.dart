@@ -146,6 +146,10 @@ void main() {
     expect(decision.status, TripOdometerEndReviewStatus.reviewRecommended);
     expect(decision.reasonCode, 'calibration_prompt_review');
     expect(safe['calibrationCanApplySilently'], isFalse);
+    expect(safe['calibrationCanCreateOfficialMileage'], isFalse);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
   });
 
@@ -268,6 +272,9 @@ void main() {
       expect(safe['routeGeometryIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
       expect(safe['confirmedMileageRequiresUserAction'], isTrue);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     },
   );
 }

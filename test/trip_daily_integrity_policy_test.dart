@@ -174,6 +174,11 @@ void main() {
     expect(safe['localDayCloseRequiresOdometerReview'], isTrue);
     expect(safe['backupMirrorOptionalForLocalClose'], isTrue);
     expect(safe['freeSyncQuotaCanDelayBackupOnly'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['dailyIntegrityCanApplyCalibration'], isFalse);
+    expect(safe['dailyIntegrityCanCreateOfficialMileage'], isFalse);
     expect(safe['dailyIntegrityCanDeleteLocalData'], isFalse);
     expect(safe['dailyIntegrityCanConfirmOdometer'], isFalse);
     expect(safe['preciseLocationIncluded'], isFalse);
