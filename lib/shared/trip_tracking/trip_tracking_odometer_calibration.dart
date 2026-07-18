@@ -429,8 +429,7 @@ bool _reviewHasTrustedCalibrationGpsWindow(
       0;
   final rejectedGap =
       diagnostics.dispositionCounts[TripSampleDisposition.rejectedGap] ?? 0;
-  final hardRejected =
-      rejectedAccuracy +
+  final criticalRejected =
       rejectedMock +
       rejectedInvalid +
       rejectedFuture +
@@ -438,6 +437,8 @@ bool _reviewHasTrustedCalibrationGpsWindow(
       rejectedImplausibleSpeed +
       rejectedSpeedConflict +
       rejectedGap;
+  if (criticalRejected > 0) return false;
+  final hardRejected = rejectedAccuracy + criticalRejected;
   if (hardRejected > 0 && hardRejected / received > .2) return false;
   return acceptanceRatio >= .65;
 }

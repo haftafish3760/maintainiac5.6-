@@ -356,6 +356,58 @@ void main() {
     expect(signal.excludedPoorGpsDayCount, 7);
     expect(signal.gpsAssistanceCalibrationMultiplier, 1);
   });
+
+  test('single critical GPS reject contaminates calibration day', () {
+    for (final criticalReject in const [
+      TripSampleDisposition.rejectedMockLocation,
+      TripSampleDisposition.rejectedFutureTimestamp,
+      TripSampleDisposition.rejectedOutOfOrder,
+      TripSampleDisposition.rejectedImplausibleSpeed,
+      TripSampleDisposition.rejectedSpeedConflict,
+      TripSampleDisposition.rejectedGap,
+    ]) {
+      final reviews = <TripTrackingReviewRecord>[
+        for (var day = 0; day < 6; day += 1)
+          _confirmedReview(
+            id: 'trusted_day_${criticalReject.name}_$day',
+            startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+            filteredGpsMiles: 110,
+            odometerMiles: 100,
+            diagnostics: _trustedDiagnostics,
+          ),
+        _confirmedReview(
+          id: 'critical_reject_${criticalReject.name}',
+          startedAt: DateTime.utc(2026, 7, 7, 8),
+          filteredGpsMiles: 110,
+          odometerMiles: 100,
+          diagnostics: TripTrackingDiagnostics(
+            receivedSamples: 100,
+            acceptedSamples: 99,
+            dispositionCounts: {
+              TripSampleDisposition.acceptedDistance: 99,
+              criticalReject: 1,
+            },
+          ),
+        ),
+      ];
+
+      final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+        reviews: reviews,
+        vehicleId: 'vehicle_1',
+        nowUtc: DateTime.utc(2026, 7, 18, 12),
+      );
+
+      expect(
+        signal.status,
+        TripOdometerCalibrationStatus.insufficientHistory,
+        reason: criticalReject.name,
+      );
+      expect(signal.eligibleSampleCount, 6, reason: criticalReject.name);
+      expect(signal.trustedGpsWindowCount, 6, reason: criticalReject.name);
+      expect(signal.excludedPoorGpsDayCount, 1, reason: criticalReject.name);
+      expect(signal.gpsAssistanceCalibrationMultiplier, 1);
+    }
+  });
 }
 
 const _trustedDiagnostics = TripTrackingDiagnostics(
