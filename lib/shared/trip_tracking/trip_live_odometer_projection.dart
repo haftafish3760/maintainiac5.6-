@@ -18,12 +18,18 @@ class TripLiveOdometerProjection {
 
   int get projectedReading => _lastProjectedReading;
 
-  int updateAcceptedMeters(double acceptedMeters) {
+  int updateAcceptedMeters(
+    double acceptedMeters, {
+    double gpsAssistanceCalibrationMultiplier = 1,
+  }) {
     if (!acceptedMeters.isFinite || acceptedMeters < 0) {
       return _lastProjectedReading;
     }
     final safeStart = _safeStartingOdometer(startingOdometer);
-    final acceptedMiles = acceptedMeters / metersPerMile;
+    final multiplier = _safeCalibrationMultiplier(
+      gpsAssistanceCalibrationMultiplier,
+    );
+    final acceptedMiles = (acceptedMeters / metersPerMile) * multiplier;
     if (!acceptedMiles.isFinite ||
         acceptedMiles > maxSupportedReading - safeStart) {
       return _lastProjectedReading;
@@ -42,6 +48,11 @@ class TripLiveOdometerProjection {
 int _safeStartingOdometer(int value) => value < 0 ? 0 : value;
 
 int _safeMaxSupportedReading(int value) => value < 0 ? 0 : value;
+
+double _safeCalibrationMultiplier(double value) {
+  if (!value.isFinite || value <= 0) return 1;
+  return value.clamp(0.8, 1.25).toDouble();
+}
 
 int _safeInitialProjection({
   required int startingOdometer,

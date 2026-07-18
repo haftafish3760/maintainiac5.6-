@@ -60,4 +60,59 @@ void main() {
     expect(projection.updateAcceptedMeters(double.maxFinite), 9999999);
     expect(projection.projectedReading, 9999999);
   });
+
+  test('advisory calibration multiplier only changes live GPS projection', () {
+    final projection = TripLiveOdometerProjection(startingOdometer: 1000);
+
+    expect(
+      projection.updateAcceptedMeters(
+        10 * metersPerMile,
+        gpsAssistanceCalibrationMultiplier: .9,
+      ),
+      1009,
+    );
+    expect(projection.projectedReading, 1009);
+  });
+
+  test(
+    'malformed calibration multipliers fail closed to uncalibrated miles',
+    () {
+      final projection = TripLiveOdometerProjection(startingOdometer: 5000);
+
+      expect(
+        projection.updateAcceptedMeters(
+          4 * metersPerMile,
+          gpsAssistanceCalibrationMultiplier: double.nan,
+        ),
+        5004,
+      );
+      expect(
+        projection.updateAcceptedMeters(
+          5 * metersPerMile,
+          gpsAssistanceCalibrationMultiplier: -1,
+        ),
+        5005,
+      );
+    },
+  );
+
+  test('calibration multipliers are bounded before odometer display math', () {
+    final low = TripLiveOdometerProjection(startingOdometer: 2000);
+    final high = TripLiveOdometerProjection(startingOdometer: 2000);
+
+    expect(
+      low.updateAcceptedMeters(
+        10 * metersPerMile,
+        gpsAssistanceCalibrationMultiplier: .1,
+      ),
+      2008,
+    );
+    expect(
+      high.updateAcceptedMeters(
+        10 * metersPerMile,
+        gpsAssistanceCalibrationMultiplier: 4,
+      ),
+      2013,
+    );
+  });
 }

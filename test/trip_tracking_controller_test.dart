@@ -2366,6 +2366,31 @@ void main() {
     expect(controller.acceptedMeters, greaterThan(0));
   });
 
+  test('accepted GPS distance can use bounded advisory calibration', () async {
+    final odometer = GlobalOdometerController(initialReading: 1000);
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+      gpsAssistanceCalibrationMultiplier: .8,
+    );
+
+    expect(
+      await controller.start(
+        tripId: 'trip_calibrated_projection',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    await controller.ingest(sample(-80, 0));
+    await controller.ingest(sample(-79.985, 60));
+
+    expect(controller.acceptedMeters, greaterThan(0));
+    expect(odometer.reading, greaterThan(1000));
+    expect(odometer.confirmedReading, 1000);
+  });
+
   test(
     'accepted GPS distance does not update live odometer before local save',
     () async {

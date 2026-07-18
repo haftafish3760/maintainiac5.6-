@@ -25,17 +25,23 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingNativeGateway? platform,
     TripTrackingPolicy policy = const TripTrackingPolicy(),
     TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
+    double gpsAssistanceCalibrationMultiplier = 1,
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
        _policy = policy,
-       _cloudMirror = cloudMirror;
+       _cloudMirror = cloudMirror,
+       _gpsAssistanceCalibrationMultiplier =
+           _safeGpsAssistanceCalibrationMultiplier(
+             gpsAssistanceCalibrationMultiplier,
+           );
 
   final TripTrackingSessionStore _sessionStore;
   final GlobalOdometerController _odometer;
   final TripTrackingNativeGateway? _platform;
   final TripTrackingPolicy _policy;
   final TripTrackingCloudMirror _cloudMirror;
+  final double _gpsAssistanceCalibrationMultiplier;
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
   TripLiveOdometerProjection? _projection;
@@ -437,6 +443,7 @@ class TripTrackingController extends ChangeNotifier {
     );
     final estimatedOdometer = projection.updateAcceptedMeters(
       session.engineSnapshot.totalAcceptedMeters,
+      gpsAssistanceCalibrationMultiplier: _gpsAssistanceCalibrationMultiplier,
     );
     if (!_odometer.beginLiveTripProjection(
       tripId: session.id,
@@ -609,6 +616,7 @@ class TripTrackingController extends ChangeNotifier {
     if (persistsRecoveryState) {
       final estimatedOdometer = projection.updateAcceptedMeters(
         decision.totalAcceptedMeters,
+        gpsAssistanceCalibrationMultiplier: _gpsAssistanceCalibrationMultiplier,
       );
       final naturalLifecycleState = _lifecycleAfterDecision(
         session.lifecycleState,
@@ -1358,6 +1366,7 @@ class TripTrackingController extends ChangeNotifier {
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer: projection.updateAcceptedMeters(
         engine.totalAcceptedMeters,
+        gpsAssistanceCalibrationMultiplier: _gpsAssistanceCalibrationMultiplier,
       ),
       profile: session.profile,
       startedAt: session.startedAt,
@@ -1422,6 +1431,11 @@ class TripTrackingController extends ChangeNotifier {
 bool _isSafeTripTrackingIdentity(String value) {
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   return clean == value && clean.isNotEmpty && clean.length <= 160;
+}
+
+double _safeGpsAssistanceCalibrationMultiplier(double value) {
+  if (!value.isFinite || value <= 0) return 1;
+  return value.clamp(0.8, 1.25).toDouble();
 }
 
 class TripTrackingScope extends InheritedNotifier<TripTrackingController> {
