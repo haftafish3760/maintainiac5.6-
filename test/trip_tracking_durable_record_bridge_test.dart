@@ -14,6 +14,12 @@ void main() {
     expect(saved.module, TripTrackingDurableRecordBridge.module);
     expect(saved.payload['durableRecordSchema'], 'trip_tracking_review_v1');
     expect(saved.payload['confirmedEndingOdometer'], 1012);
+    expect(saved.payload['hiveRemainsSourceOfTruth'], isTrue);
+    expect(saved.payload['firestoreMirrorOnly'], isTrue);
+    expect(saved.payload['remoteDataCanOverrideLocalDaytimeData'], isFalse);
+    expect(saved.payload['durableRecordRequiresConfirmedOdometer'], isTrue);
+    expect(saved.payload['confirmedOdometerRemainsCanonical'], isTrue);
+    expect(saved.payload['mapboxCanReplaceOdometer'], isFalse);
     expect(saved.payload['rawGpsIncluded'], isFalse);
     expect(saved.payload['rawMapboxGeometryIncluded'], isFalse);
     expect(saved.payload.keys, isNot(contains('lastAccepted')));
@@ -32,6 +38,20 @@ void main() {
     expect(bridge.reviewedTrips(), isEmpty);
   });
 
+  test('unsafe trip ids cannot read or write durable trip records', () async {
+    final bridge = TripTrackingDurableRecordBridge(
+      MaintainiacDurableRecordStore.memory(),
+    );
+
+    await expectLater(
+      () => bridge.saveReviewedTrip(_review(id: 'trip:../private')),
+      throwsArgumentError,
+    );
+
+    expect(bridge.reviewForTrip(' trip:../private '), isNull);
+    expect(bridge.reviewedTrips(), isEmpty);
+  });
+
   test('safe summary advertises durable local-first boundaries', () {
     final bridge = TripTrackingDurableRecordBridge(
       MaintainiacDurableRecordStore.memory(),
@@ -46,6 +66,13 @@ void main() {
       'firestoreMirrorOnly': true,
       'remoteDataCanOverrideLocalDaytimeData': false,
       'confirmedBackupCanOnlySuggestCleanup': true,
+      'durableRecordRequiresConfirmedOdometer': true,
+      'durableRecordRequiresValidTimeline': true,
+      'durableRecordRequiresSafeIds': true,
+      'backendAuthorizationRequiredForMirror': true,
+      'authenticationDoesNotImplyAuthorization': true,
+      'remotePayloadTrustedAfterValidationOnly': true,
+      'mapboxDataAdvisoryOnly': true,
       'rawGpsIncluded': false,
       'rawMapboxGeometryIncluded': false,
       'tokensIncluded': false,
@@ -53,9 +80,12 @@ void main() {
   });
 }
 
-TripTrackingReviewRecord _review({bool confirmed = true}) {
+TripTrackingReviewRecord _review({
+  bool confirmed = true,
+  String id = 'trip_1',
+}) {
   return TripTrackingReviewRecord(
-    id: 'trip_1',
+    id: id,
     vehicleId: 'vehicle_1',
     startingOdometer: 1000,
     estimatedEndingOdometer: 1012,

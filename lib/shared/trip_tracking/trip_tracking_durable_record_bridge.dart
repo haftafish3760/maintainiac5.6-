@@ -14,9 +14,13 @@ class TripTrackingDurableRecordBridge {
     DateTime? now,
   }) {
     final safeReview = _validatedReview(review);
+    final safeTripId = _safeDurableTripId(safeReview.id);
+    if (safeTripId == null) {
+      throw ArgumentError('A durable trip record requires a safe trip id.');
+    }
     return store.save(
       module: module,
-      id: safeReview.id.trim(),
+      id: safeTripId,
       payload: _payloadFor(safeReview),
       expectedRevision: expectedRevision,
       now: now,
@@ -24,7 +28,9 @@ class TripTrackingDurableRecordBridge {
   }
 
   TripTrackingReviewRecord? reviewForTrip(String tripId) {
-    final record = store.recordFor(module, tripId.trim());
+    final safeTripId = _safeDurableTripId(tripId);
+    if (safeTripId == null) return null;
+    final record = store.recordFor(module, safeTripId);
     if (record == null || record.lifecycle.isDeleted) return null;
     return _reviewFromPayload(record.payload);
   }
@@ -54,6 +60,13 @@ class TripTrackingDurableRecordBridge {
     'firestoreMirrorOnly': true,
     'remoteDataCanOverrideLocalDaytimeData': false,
     'confirmedBackupCanOnlySuggestCleanup': true,
+    'durableRecordRequiresConfirmedOdometer': true,
+    'durableRecordRequiresValidTimeline': true,
+    'durableRecordRequiresSafeIds': true,
+    'backendAuthorizationRequiredForMirror': true,
+    'authenticationDoesNotImplyAuthorization': true,
+    'remotePayloadTrustedAfterValidationOnly': true,
+    'mapboxDataAdvisoryOnly': true,
     'rawGpsIncluded': false,
     'rawMapboxGeometryIncluded': false,
     'tokensIncluded': false,
@@ -73,6 +86,13 @@ TripTrackingReviewRecord _validatedReview(TripTrackingReviewRecord review) {
   return restored;
 }
 
+String? _safeDurableTripId(Object? value) {
+  if (value is! String) return null;
+  final clean = value.trim();
+  if (clean.isEmpty || clean.length > 80) return null;
+  return RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean) ? clean : null;
+}
+
 Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   final map = Map<String, dynamic>.from(review.toMap());
   for (final forbidden in const [
@@ -88,6 +108,12 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
     map.remove(forbidden);
   }
   map['durableRecordSchema'] = 'trip_tracking_review_v1';
+  map['hiveRemainsSourceOfTruth'] = true;
+  map['firestoreMirrorOnly'] = true;
+  map['remoteDataCanOverrideLocalDaytimeData'] = false;
+  map['durableRecordRequiresConfirmedOdometer'] = true;
+  map['confirmedOdometerRemainsCanonical'] = true;
+  map['mapboxCanReplaceOdometer'] = false;
   map['rawGpsIncluded'] = false;
   map['rawMapboxGeometryIncluded'] = false;
   return map;
