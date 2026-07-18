@@ -36,7 +36,12 @@ void main() {
         'remoteRollupCanOverrideLocalTrip': true,
         'firestoreMirrorOnly': false,
         'hiveRemainsOperationalSourceOfTruth': false,
+        'odometerIsGlobalTruth': false,
         'odometerRemainsOfficialMileageTruth': false,
+        'calibrationRequiresTrustedGpsWindow': false,
+        'poorGpsDaysExcludedFromCalibration': false,
+        'dashboardRollupCanApplyCalibration': true,
+        'dashboardRollupCanCreateOfficialMileage': true,
       }),
     );
 

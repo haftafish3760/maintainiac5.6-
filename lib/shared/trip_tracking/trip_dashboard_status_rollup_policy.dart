@@ -57,7 +57,12 @@ class TripDashboardStatusRollupDecision {
     'remoteRollupCanOverrideLocalTrip': false,
     'firestoreMirrorOnly': true,
     'hiveRemainsOperationalSourceOfTruth': true,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'dashboardRollupCanApplyCalibration': false,
+    'dashboardRollupCanCreateOfficialMileage': false,
     'rawTripRecordsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -116,7 +121,12 @@ class TripDashboardStatusRollupSummaryValidation {
     if (summary['remoteRollupCanOverrideLocalTrip'] != false ||
         summary['firestoreMirrorOnly'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['dashboardRollupCanApplyCalibration'] != false ||
+        summary['dashboardRollupCanCreateOfficialMileage'] != false) {
       reasons.add('rollup_truth_boundary_missing');
     }
     if (summary['dashboardWidgetsUserCustomizable'] != true ||

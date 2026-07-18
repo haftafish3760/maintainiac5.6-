@@ -312,6 +312,11 @@ void main() {
       expect(safe['dashboardRollupRequiresOwnershipValidation'], isTrue);
       expect(safe['authenticationAloneAuthorizesRollupAccess'], isFalse);
       expect(safe['remoteRollupCanOverrideLocalTrip'], isFalse);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+      expect(safe['dashboardRollupCanApplyCalibration'], isFalse);
+      expect(safe['dashboardRollupCanCreateOfficialMileage'], isFalse);
       expect(safe['rawTripRecordsIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
       expect(safe['routeGeometryIncluded'], isFalse);
