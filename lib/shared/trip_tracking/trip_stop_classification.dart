@@ -95,6 +95,7 @@ class TripStopClassification {
       'reviewConfidenceCanReplaceOdometer': false,
       'officialStopSource': 'user_review',
       'officialMileageSource': 'odometer',
+      'odometerIsGlobalTruth': true,
       'canCreateOfficialStop': false,
       'canReplaceOdometer': false,
       'canEndTripAutomatically': false,

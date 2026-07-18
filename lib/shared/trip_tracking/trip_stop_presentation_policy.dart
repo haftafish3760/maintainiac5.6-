@@ -94,6 +94,7 @@ class TripStopPresentationDecision {
     'canReplaceOdometer': false,
     'officialStopSource': 'user_review',
     'officialMileageSource': 'odometer',
+    'odometerIsGlobalTruth': true,
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'mapsRequiredForStopPrompt': false,
     'mapboxCanShowPromptWithoutValidation': false,

@@ -287,6 +287,7 @@ void main() {
     expect(summary['malformedStopSummaryFailsSafe'], isTrue);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['officialMileageSource'], 'odometer');
+    expect(summary['odometerIsGlobalTruth'], isTrue);
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['canReplaceOdometer'], isFalse);
     expect(summary['canEndTripAutomatically'], isFalse);

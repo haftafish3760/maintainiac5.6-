@@ -39,6 +39,7 @@ class TripSourceInventoryDecision {
     'moduleBoundaryProtected': true,
     'receiptInventoryFuelExpenseModulesExcluded': true,
     'odometerTruthBoundaryTracked': true,
+    'odometerIsGlobalTruth': true,
     'calibrationProofBoundaryTracked': true,
     'inventoryCanApplyCalibration': false,
     'inventoryCanCreateOfficialMileage': false,

@@ -36,6 +36,7 @@ class TripModuleBoundaryDecision {
     'sharedDurableStorageAllowed': true,
     'sharedDeviceCapabilityAllowed': true,
     'sharedOdometerAllowed': true,
+    'odometerIsGlobalTruth': true,
     'rawFeaturePayloadIncluded': false,
     'privatePathIncluded': false,
     'tokensIncluded': false,

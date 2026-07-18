@@ -23,6 +23,7 @@ void main() {
     expect(validation.signal, TripStopSignal.reviewOnlyStop);
     expect(validation.reasonCode, 'delivery_stop_walk_review');
     expect(validation.reasons, isEmpty);
+    expect(safeDeliveryStopSummary()['odometerIsGlobalTruth'], isTrue);
   });
 
   test('remote stop payload cannot create official trip facts', () {
@@ -111,6 +112,7 @@ void main() {
         'reviewConfidence': 'certain',
         'officialStopSource': 'firestore',
         'officialMileageSource': 'gps',
+        'odometerIsGlobalTruth': false,
       });
     final validation = TripStopSummaryValidation.fromSummary(summary);
 

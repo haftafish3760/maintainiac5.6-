@@ -26,6 +26,7 @@ void main() {
     expect(safe['reviewOnly'], isTrue);
     expect(safe['canCreateOfficialStop'], isFalse);
     expect(safe['officialStopSource'], 'user_review');
+    expect(safe['odometerIsGlobalTruth'], isTrue);
   });
 
   test('sustained contractor walking can escalate to review sheet', () {
@@ -180,6 +181,7 @@ void main() {
     expect(safe['mapsRequiredForStopPrompt'], isFalse);
     expect(safe['mapboxCanCreateStop'], isFalse);
     expect(safe['firebaseCanCreateStop'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['employerCanForceStopPrompt'], isFalse);
     expect(safe['rawLocationIncluded'], isFalse);
     expect(safe['routeGeometryIncluded'], isFalse);

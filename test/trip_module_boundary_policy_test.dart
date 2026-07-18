@@ -70,6 +70,7 @@ void main() {
     expect(safe['tripTrackingMayMutateReceipts'], isFalse);
     expect(safe['tripTrackingMayMutateFuel'], isFalse);
     expect(safe['tripTrackingMayMutateMaintenance'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['rawFeaturePayloadIncluded'], isFalse);
     expect(safe['privatePathIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);

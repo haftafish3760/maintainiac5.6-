@@ -92,7 +92,8 @@ class TripStopSummaryValidation {
     if (summary['officialStopSource'] != 'user_review') {
       reasons.add('official_stop_source_not_user_review');
     }
-    if (summary['officialMileageSource'] != 'odometer') {
+    if (summary['officialMileageSource'] != 'odometer' ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('official_mileage_source_not_odometer');
     }
     if (summary['mapsRequiredForStopReview'] != false ||
