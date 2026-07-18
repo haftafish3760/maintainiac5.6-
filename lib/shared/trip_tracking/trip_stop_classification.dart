@@ -16,6 +16,7 @@ class TripStopClassification {
     required this.reasonCode,
     required this.requiresUserReview,
     required this.canSuggestStop,
+    required this.shouldSurfaceManualStopFallback,
     required this.actionToken,
     required this.dashboardMessage,
   });
@@ -24,6 +25,7 @@ class TripStopClassification {
   final String reasonCode;
   final bool requiresUserReview;
   final bool canSuggestStop;
+  final bool shouldSurfaceManualStopFallback;
   final String actionToken;
   final String dashboardMessage;
 
@@ -44,6 +46,11 @@ class TripStopClassification {
       reasonCode: safeReasonCode,
       canSuggestStop: canSuggestStop,
     );
+    final safeManualFallbackAllowed = _safeShouldSurfaceManualStopFallback(
+      signal: signal,
+      reasonCode: safeReasonCode,
+      shouldSurfaceManualStopFallback: shouldSurfaceManualStopFallback,
+    );
     return {
       'schemaVersion': 1,
       'signal': signal.name,
@@ -54,6 +61,7 @@ class TripStopClassification {
       'advisoryOnly': true,
       'gpsAssistedOnly': true,
       'manualStopFallbackAvailable': true,
+      'shouldSurfaceManualStopFallback': safeManualFallbackAllowed,
       'vehicleOnlyStopFallbackAvailable': true,
       'longTrafficLightProtected': true,
       'walkingEvidenceCanOnlySuggestReview': true,
@@ -85,6 +93,27 @@ class TripStopClassification {
       'mapboxGeometryIncluded': false,
     };
   }
+}
+
+bool _safeShouldSurfaceManualStopFallback({
+  required TripStopSignal signal,
+  required String reasonCode,
+  required bool shouldSurfaceManualStopFallback,
+}) {
+  if (!shouldSurfaceManualStopFallback) return false;
+  return switch (signal) {
+    TripStopSignal.reviewOnlyStop => _safeCanSuggestStop(
+      signal: signal,
+      reasonCode: reasonCode,
+      canSuggestStop: true,
+    ),
+    TripStopSignal.stopCandidate =>
+      reasonCode == 'stop_candidate_waiting_for_stronger_evidence' ||
+          reasonCode == 'stop_candidate_waiting_for_confirmation',
+    TripStopSignal.likelyTrafficControl =>
+      reasonCode == 'traffic_control_or_stationary_jitter',
+    _ => false,
+  };
 }
 
 bool _safeRequiresStopReview({
@@ -196,22 +225,24 @@ class TripStopClassifier {
 
     if (safeRejectedUnsafeCount >= 3 &&
         safeRejectedUnsafeCount >= safeExcludedWalkingCount) {
-      return const TripStopClassification(
+      return TripStopClassification(
         signal: TripStopSignal.unsafeEvidence,
         reasonCode: 'unsafe_stop_evidence_rejected',
         requiresUserReview: false,
         canSuggestStop: false,
+        shouldSurfaceManualStopFallback: false,
         actionToken: 'keep_tracking',
         dashboardMessage:
             'Stop evidence was ignored because the GPS provider data was not safe enough to trust.',
       );
     }
     if (!strategy.usesWalkingStopEvidence && safeExcludedWalkingCount > 0) {
-      return const TripStopClassification(
+      return TripStopClassification(
         signal: TripStopSignal.equipmentIgnored,
         reasonCode: 'equipment_walking_evidence_ignored',
         requiresUserReview: false,
         canSuggestStop: false,
+        shouldSurfaceManualStopFallback: false,
         actionToken: 'keep_tracking',
         dashboardMessage:
             'Walking-style evidence is ignored for this equipment profile.',
@@ -225,6 +256,7 @@ class TripStopClassifier {
         reasonCode: 'walking_stop_without_vehicle_movement',
         requiresUserReview: false,
         canSuggestStop: false,
+        shouldSurfaceManualStopFallback: false,
         actionToken: 'keep_tracking',
         dashboardMessage:
             'Walking evidence was ignored because no vehicle movement was accepted first.',
@@ -236,6 +268,7 @@ class TripStopClassifier {
         reasonCode: strategy.stopReviewReasonCode,
         requiresUserReview: true,
         canSuggestStop: true,
+        shouldSurfaceManualStopFallback: true,
         actionToken: _reviewActionFor(strategy.workStyle),
         dashboardMessage: _reviewMessageFor(strategy.workStyle),
       );
@@ -244,11 +277,13 @@ class TripStopClassifier {
         safeExcludedWalkingCount == 0 &&
         safeAcceptedDistanceCount > 0 &&
         motionState != TripMotionState.stopped) {
-      return const TripStopClassification(
+      return TripStopClassification(
         signal: TripStopSignal.likelyTrafficControl,
         reasonCode: 'traffic_control_or_stationary_jitter',
         requiresUserReview: false,
         canSuggestStop: false,
+        shouldSurfaceManualStopFallback:
+            strategy.vehicleOnlyStopsNeedManualFallback,
         actionToken: 'keep_tracking',
         dashboardMessage:
             'Stationary GPS jitter was treated like a traffic light or road delay, not a customer stop.',
@@ -262,6 +297,9 @@ class TripStopClassifier {
             : 'stop_candidate_waiting_for_confirmation',
         requiresUserReview: false,
         canSuggestStop: false,
+        shouldSurfaceManualStopFallback:
+            safeAcceptedDistanceCount > 0 &&
+            strategy.vehicleOnlyStopsNeedManualFallback,
         actionToken: 'continue_monitoring',
         dashboardMessage: strategy.requiresStrongerStopDebounce
             ? 'The trip may be stopped, but this profile needs stronger evidence before showing a stop review.'
@@ -273,6 +311,7 @@ class TripStopClassifier {
       reasonCode: 'no_stop_review_needed',
       requiresUserReview: false,
       canSuggestStop: false,
+      shouldSurfaceManualStopFallback: false,
       actionToken: 'keep_tracking',
       dashboardMessage: 'No stop review is needed right now.',
     );

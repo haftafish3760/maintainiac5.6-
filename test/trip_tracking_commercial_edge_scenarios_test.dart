@@ -117,8 +117,28 @@ void main() {
     expect(summary['stopSignal'], anyOf('likely_traffic_control', 'no_stop'));
     expect(summary['stopCanSuggestReview'], isFalse);
     expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['stopCanReplaceOdometer'], isFalse);
+    expect(summary['mapsRequiredForStopReview'], isFalse);
     expect(summary['simulationCanCreateOfficialStop'], isFalse);
     expect(summary['simulationCanReplaceOdometer'], isFalse);
+  });
+
+  test('two-person delivery can surface manual fallback without auto stop', () {
+    final result = replayTrip(
+      scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    if (summary['stopSignal'] == 'likely_traffic_control') {
+      expect(summary['stopShouldSurfaceManualFallback'], isTrue);
+    }
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['officialStopSource'], 'user_review');
   });
 
   test('hostile provider replay cannot become stop or mileage truth', () {
@@ -135,6 +155,7 @@ void main() {
     expect(summary['stopSignal'], 'unsafe_evidence');
     expect(summary['stopCanSuggestReview'], isFalse);
     expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['stopShouldSurfaceManualFallback'], isFalse);
     expect(summary['simulationCanCreateOfficialStop'], isFalse);
     expect(summary['simulationCanReplaceOdometer'], isFalse);
     expect(summary['officialMileageSource'], 'odometer');

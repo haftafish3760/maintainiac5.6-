@@ -88,6 +88,11 @@ class SimulatedTripResult {
       'stopClassificationReason': classification.reasonCode,
       'stopRequiresUserReview': classification.requiresUserReview,
       'stopCanSuggestReview': classification.canSuggestStop,
+      'stopShouldSurfaceManualFallback':
+          classification.shouldSurfaceManualStopFallback,
+      'stopCanCreateOfficialStop': false,
+      'stopCanReplaceOdometer': false,
+      'mapsRequiredForStopReview': false,
     };
   }
 }

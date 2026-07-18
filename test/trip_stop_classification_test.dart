@@ -291,6 +291,7 @@ void main() {
       reasonCode: 'token=pk.secret lat=35.1',
       requiresUserReview: true,
       canSuggestStop: true,
+      shouldSurfaceManualStopFallback: true,
       actionToken: 'open_private_map',
       dashboardMessage: 'driver at 35.1,-80.1 token=sk.secret',
     );
@@ -321,6 +322,7 @@ void main() {
       reasonCode: 'unsafe_stop_evidence_rejected',
       requiresUserReview: true,
       canSuggestStop: true,
+      shouldSurfaceManualStopFallback: true,
       actionToken: 'review_delivery_stop',
       dashboardMessage:
           'Walking evidence suggests a pickup or dropoff stop. Review it before it becomes official.',
@@ -331,6 +333,7 @@ void main() {
     expect(summary['reasonCode'], 'unsafe_stop_evidence_rejected');
     expect(summary['requiresUserReview'], isFalse);
     expect(summary['canSuggestStop'], isFalse);
+    expect(summary['shouldSurfaceManualStopFallback'], isFalse);
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['malformedStopSummaryFailsSafe'], isTrue);
