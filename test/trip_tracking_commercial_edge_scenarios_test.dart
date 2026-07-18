@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
+import 'support/trip_tracking_qa/trip_tracking_commercial_edge_scenarios.dart';
 import 'support/trip_tracking_qa/trip_tracking_scenarios.dart';
 import 'support/trip_tracking_qa/trip_tracking_simulator.dart';
 
 void main() {
   final start = DateTime.utc(2026, 7, 17, 12);
   final scenarios = TripTrackingScenarioLibrary(start: start);
+  final commercialScenarios = TripTrackingCommercialEdgeScenarios(start: start);
 
   TripLocationSample point(
     double longitude,
@@ -224,5 +226,61 @@ void main() {
     expect(summary['officialMileageSource'], 'odometer');
     expect(summary.toString(), isNot(contains('-79.')));
     expect(summary.toString(), isNot(contains('35.')));
+  });
+
+  test('rideshare airport queue long wait does not become auto stop', () {
+    final result = replayTrip(
+      commercialScenarios.rideshareAirportQueueLongWait(),
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['stopReviewConfidenceCanEndTripAutomatically'], isFalse);
+    expect(summary['officialStopSource'], 'user_review');
+  });
+
+  test('delivery apartment multi-door walking stays review-only', () {
+    final result = replayTrip(
+      commercialScenarios.deliveryApartmentComplexMultiDoorWalks(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isTrue);
+    expect(result.acceptedDistanceCount, greaterThanOrEqualTo(2));
+    expect(summary['stopSignal'], 'review_only_stop');
+    expect(summary['stopReviewConfidence'], 'high');
+    expect(summary['stopCanSuggestReview'], isTrue);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['stopReviewConfidenceCanCreateOfficialStop'], isFalse);
+    expect(summary['officialMileageSource'], 'odometer');
+  });
+
+  test('contractor supply and jobsite walking stays user-review gated', () {
+    final result = replayTrip(
+      commercialScenarios.contractorSupplyCounterThenJobsiteWalk(),
+      profile: TripTrackingProfile.contractorVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.contractorVehicle,
+    );
+
+    expect(result.needsWalkingReview, isTrue);
+    expect(summary['stopSignal'], 'review_only_stop');
+    expect(summary['stopReviewConfidence'], 'high');
+    expect(summary['stopCanSuggestReview'], isTrue);
+    expect(summary['stopRequiresUserReview'], isTrue);
+    expect(summary['simulationCanCreateOfficialStop'], isFalse);
+    expect(summary['simulationCanReplaceOdometer'], isFalse);
+    expect(summary['coordinatesIncluded'], isFalse);
+    expect(summary['routeGeometryIncluded'], isFalse);
   });
 }

@@ -1,0 +1,124 @@
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+
+import 'trip_tracking_simulator.dart';
+
+class TripTrackingCommercialEdgeScenarios {
+  TripTrackingCommercialEdgeScenarios({DateTime? start})
+    : start = start ?? DateTime.utc(2026, 7, 18, 8);
+
+  final DateTime start;
+
+  TripLocationSample roadPoint(
+    double longitude,
+    int seconds, {
+    double latitude = 35,
+    double accuracy = 5,
+    double? speed,
+  }) => TripLocationSample(
+    latitude: latitude,
+    longitude: longitude,
+    recordedAt: start.add(Duration(seconds: seconds)),
+    horizontalAccuracyMeters: accuracy,
+    speedMetersPerSecond: speed,
+  );
+
+  TripActivityObservation activity(
+    TripActivity activity,
+    int seconds, {
+    int confidence = 95,
+  }) => TripActivityObservation(
+    activity: activity,
+    confidence: confidence,
+    recordedAt: start.add(Duration(seconds: seconds)),
+  );
+
+  List<SimulatedTripPoint> rideshareAirportQueueLongWait() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 11)),
+      SimulatedTripPoint(roadPoint(-79.9991, 20, speed: 10)),
+      SimulatedTripPoint(roadPoint(-79.9984, 42, speed: 6)),
+    ];
+    for (var index = 0; index < 22; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9984 + ((index.isEven ? 1 : -1) * .000006),
+            60 + (index * 14),
+            speed: index % 4 == 0 ? .7 : 0,
+          ),
+          activity: activity(TripActivity.automotive, 60 + (index * 14)),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9978, 390, speed: 6)),
+      SimulatedTripPoint(roadPoint(-79.9970, 420, speed: 9)),
+    ]);
+    return points;
+  }
+
+  List<SimulatedTripPoint> deliveryApartmentComplexMultiDoorWalks() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9992, 22, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9987, 44, speed: 4)),
+    SimulatedTripPoint(
+      roadPoint(-79.99866, 62, speed: 0),
+      activity: activity(TripActivity.walking, 62),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99860, 78, speed: 0),
+      activity: activity(TripActivity.walking, 78),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99854, 96, speed: 0),
+      activity: activity(TripActivity.walking, 96),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9980, 135, speed: 5)),
+    SimulatedTripPoint(roadPoint(-79.9975, 160, speed: 5)),
+    SimulatedTripPoint(
+      roadPoint(-79.99745, 182, speed: 0),
+      activity: activity(TripActivity.walking, 182),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99739, 198, speed: 0),
+      activity: activity(TripActivity.walking, 198),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99732, 216, speed: 0),
+      activity: activity(TripActivity.walking, 216),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9967, 255, speed: 8)),
+  ];
+
+  List<SimulatedTripPoint> contractorSupplyCounterThenJobsiteWalk() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.998, 42, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99794, 63, speed: 0),
+      activity: activity(TripActivity.walking, 63),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99786, 82, speed: 0),
+      activity: activity(TripActivity.walking, 82),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99778, 101, speed: 0),
+      activity: activity(TripActivity.walking, 101),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9969, 150, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9960, 174, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99594, 198, speed: 0),
+      activity: activity(TripActivity.walking, 198),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99582, 220, speed: 0),
+      activity: activity(TripActivity.walking, 220),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99570, 242, speed: 0),
+      activity: activity(TripActivity.walking, 242),
+    ),
+  ];
+}
