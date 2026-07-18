@@ -163,6 +163,30 @@ void main() {
     expect(decision.toSafeSummary()['canFeedTripEngine'], isFalse);
   });
 
+  test('remote authority claims fail closed even when not boolean true', () {
+    for (final claim in const [
+      {'mapboxCanRepairRejectedSample': 'true'},
+      {'firestoreCanCreateOfficialStop': 1},
+      {
+        'nested': {'cloudFunctionCanConfirmMileage': 'yes'},
+      },
+    ]) {
+      final decision = TripLocationSampleIntakeGuard.evaluate(
+        payload: payload()..addAll(claim),
+        expectedOwnerUid: 'driver-1',
+        expectedSessionId: 'trip-1',
+        receivedAt: receivedAt,
+      );
+
+      expect(decision.status, TripLocationSampleIntakeStatus.rejected);
+      expect(
+        decision.reason,
+        TripLocationSampleIntakeReason.remoteAuthorityRejected,
+      );
+      expect(decision.canFeedTripEngine, isFalse);
+    }
+  });
+
   test('native payloads carrying token or coordinate strings are rejected', () {
     final token = TripLocationSampleIntakeGuard.evaluate(
       payload: payload()..addAll({'diagnosticToken': 'pk.redacted'}),

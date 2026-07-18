@@ -95,6 +95,11 @@ void main() {
       'preciseTimestampIncluded': false,
       'rawProviderPayloadIncluded': false,
       'authoritativeForMileage': false,
+      'odometerIsGlobalTruth': true,
+      'pendingSampleCanCreateCalibration': false,
+      'pendingSampleCanApplyCalibration': false,
+      'calibrationRequiresTrustedGpsWindow': true,
+      'poorGpsDaysExcludedFromCalibration': true,
       'canOverrideOdometer': false,
       'canCreateTripLogEntry': false,
     });

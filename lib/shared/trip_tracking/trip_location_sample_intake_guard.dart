@@ -523,7 +523,8 @@ bool _claimsRemoteAuthority(Object? value) {
               key.startsWith('firestore') ||
               key.startsWith('cloudFunction') ||
               key.startsWith('mapbox')) &&
-          entry.value == true) {
+          entry.value != false &&
+          entry.value != null) {
         return true;
       }
       if (_claimsRemoteAuthority(entry.value)) return true;
