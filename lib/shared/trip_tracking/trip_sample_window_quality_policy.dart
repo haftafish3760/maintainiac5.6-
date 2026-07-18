@@ -17,6 +17,11 @@ class TripSampleWindowQualityDecision {
     required this.reasonCode,
     required this.validSampleCount,
     required this.rejectedSampleCount,
+    required this.acceptedSegmentCount,
+    required this.rejectedGapSegmentCount,
+    required this.rejectedJumpSegmentCount,
+    required this.rejectedSpeedSegmentCount,
+    required this.maximumConsecutiveRejectedSegments,
     required this.acceptedDistanceMeters,
     required this.maximumGapSeconds,
     required this.canFeedLiveOdometerProjection,
@@ -27,6 +32,11 @@ class TripSampleWindowQualityDecision {
   final String reasonCode;
   final int validSampleCount;
   final int rejectedSampleCount;
+  final int acceptedSegmentCount;
+  final int rejectedGapSegmentCount;
+  final int rejectedJumpSegmentCount;
+  final int rejectedSpeedSegmentCount;
+  final int maximumConsecutiveRejectedSegments;
   final double acceptedDistanceMeters;
   final int maximumGapSeconds;
   final bool canFeedLiveOdometerProjection;
@@ -38,6 +48,13 @@ class TripSampleWindowQualityDecision {
     'reasonCode': _safeReason(reasonCode),
     'validSampleCount': _safeCount(validSampleCount),
     'rejectedSampleCount': _safeCount(rejectedSampleCount),
+    'acceptedSegmentCount': _safeCount(acceptedSegmentCount),
+    'rejectedGapSegmentCount': _safeCount(rejectedGapSegmentCount),
+    'rejectedJumpSegmentCount': _safeCount(rejectedJumpSegmentCount),
+    'rejectedSpeedSegmentCount': _safeCount(rejectedSpeedSegmentCount),
+    'maximumConsecutiveRejectedSegments': _safeCount(
+      maximumConsecutiveRejectedSegments,
+    ),
     'acceptedDistanceBucket': _distanceBucket(acceptedDistanceMeters),
     'maximumGapSeconds': _safeGap(maximumGapSeconds),
     'canFeedLiveOdometerProjection': canFeedLiveOdometerProjection,
@@ -46,6 +63,8 @@ class TripSampleWindowQualityDecision {
     'mapsRequiredForGpsTracking': false,
     'routeStorageOptional': true,
     'routeStorageCanPauseWithoutStoppingTrip': true,
+    'projectionPausesOnSparseOrBrokenWindow': true,
+    'segmentRejectionReasonsCounted': true,
     'sampleWindowCanConfirmOdometer': false,
     'sampleWindowCanCreateOfficialStop': false,
     'sampleWindowCanDeleteTripData': false,
@@ -89,6 +108,11 @@ class TripSampleWindowQualityPolicy {
         reasonCode: 'sample_window_empty',
         validSampleCount: 0,
         rejectedSampleCount: 0,
+        acceptedSegmentCount: 0,
+        rejectedGapSegmentCount: 0,
+        rejectedJumpSegmentCount: 0,
+        rejectedSpeedSegmentCount: 0,
+        maximumConsecutiveRejectedSegments: 0,
         acceptedDistanceMeters: 0,
         maximumGapSeconds: 0,
         canFeedLiveOdometerProjection: false,
@@ -101,6 +125,11 @@ class TripSampleWindowQualityPolicy {
         reasonCode: 'sample_window_needs_more_valid_points',
         validSampleCount: sorted.length,
         rejectedSampleCount: rejected,
+        acceptedSegmentCount: 0,
+        rejectedGapSegmentCount: 0,
+        rejectedJumpSegmentCount: 0,
+        rejectedSpeedSegmentCount: 0,
+        maximumConsecutiveRejectedSegments: 0,
         acceptedDistanceMeters: 0,
         maximumGapSeconds: 0,
         canFeedLiveOdometerProjection: false,
@@ -109,7 +138,13 @@ class TripSampleWindowQualityPolicy {
     }
 
     var acceptedDistance = 0.0;
+    var acceptedSegments = 0;
     var rejectedSegments = 0;
+    var rejectedGapSegments = 0;
+    var rejectedJumpSegments = 0;
+    var rejectedSpeedSegments = 0;
+    var consecutiveRejectedSegments = 0;
+    var maximumConsecutiveRejectedSegments = 0;
     var maximumGap = 0;
     for (var index = 1; index < sorted.length; index += 1) {
       final previous = sorted[index - 1];
@@ -120,13 +155,23 @@ class TripSampleWindowQualityPolicy {
           .inSeconds;
       maximumGap = math.max(maximumGap, gapSeconds);
       final distance = _distanceMeters(previous, current);
-      if (gapSeconds <= 0 ||
-          gapSeconds > safeGapLimit ||
-          distance > safeJump ||
-          _impossibleSegmentSpeed(distance, gapSeconds)) {
+      final rejectedForGap = gapSeconds <= 0 || gapSeconds > safeGapLimit;
+      final rejectedForJump = distance > safeJump;
+      final rejectedForSpeed = _impossibleSegmentSpeed(distance, gapSeconds);
+      if (rejectedForGap || rejectedForJump || rejectedForSpeed) {
         rejectedSegments += 1;
+        if (rejectedForGap) rejectedGapSegments += 1;
+        if (rejectedForJump) rejectedJumpSegments += 1;
+        if (rejectedForSpeed) rejectedSpeedSegments += 1;
+        consecutiveRejectedSegments += 1;
+        maximumConsecutiveRejectedSegments = math.max(
+          maximumConsecutiveRejectedSegments,
+          consecutiveRejectedSegments,
+        );
         continue;
       }
+      acceptedSegments += 1;
+      consecutiveRejectedSegments = 0;
       acceptedDistance += distance;
     }
 
@@ -136,6 +181,11 @@ class TripSampleWindowQualityPolicy {
         reasonCode: 'sample_window_segments_rejected',
         validSampleCount: sorted.length,
         rejectedSampleCount: rejected + rejectedSegments,
+        acceptedSegmentCount: acceptedSegments,
+        rejectedGapSegmentCount: rejectedGapSegments,
+        rejectedJumpSegmentCount: rejectedJumpSegments,
+        rejectedSpeedSegmentCount: rejectedSpeedSegments,
+        maximumConsecutiveRejectedSegments: maximumConsecutiveRejectedSegments,
         acceptedDistanceMeters: 0,
         maximumGapSeconds: maximumGap,
         canFeedLiveOdometerProjection: false,
@@ -147,32 +197,53 @@ class TripSampleWindowQualityPolicy {
       routeHistoryDecision,
       persistedRoutePointsToday,
     );
+    final projectionSafe = _canFeedProjection(
+      acceptedSegments: acceptedSegments,
+      rejectedSegments: rejectedSegments,
+      maximumConsecutiveRejectedSegments: maximumConsecutiveRejectedSegments,
+      maximumGap: maximumGap,
+      safeGapLimit: safeGapLimit,
+      acceptedDistanceMeters: acceptedDistance,
+    );
     if (!routePointAllowed && routeHistoryDecision.canCaptureRouteHistory) {
       return _decision(
         status: TripSampleWindowQualityStatus.routeStoragePaused,
         reasonCode: 'route_storage_budget_paused',
         validSampleCount: sorted.length,
         rejectedSampleCount: rejected + rejectedSegments,
+        acceptedSegmentCount: acceptedSegments,
+        rejectedGapSegmentCount: rejectedGapSegments,
+        rejectedJumpSegmentCount: rejectedJumpSegments,
+        rejectedSpeedSegmentCount: rejectedSpeedSegments,
+        maximumConsecutiveRejectedSegments: maximumConsecutiveRejectedSegments,
         acceptedDistanceMeters: acceptedDistance,
         maximumGapSeconds: maximumGap,
-        canFeedLiveOdometerProjection: acceptedDistance > 0,
+        canFeedLiveOdometerProjection: projectionSafe,
         canPersistCompactRoutePoint: false,
       );
     }
 
     final degraded = maximumGap > safeGapLimit || rejectedSegments > 0;
+    final sparseOrBroken = acceptedDistance > 0 && !projectionSafe;
     return _decision(
       status: degraded
           ? TripSampleWindowQualityStatus.degradedTrackingOnly
           : TripSampleWindowQualityStatus.usableForTracking,
-      reasonCode: degraded
+      reasonCode: sparseOrBroken
+          ? 'sample_window_projection_paused'
+          : degraded
           ? 'sample_window_degraded_but_usable'
           : 'sample_window_usable',
       validSampleCount: sorted.length,
       rejectedSampleCount: rejected + rejectedSegments,
+      acceptedSegmentCount: acceptedSegments,
+      rejectedGapSegmentCount: rejectedGapSegments,
+      rejectedJumpSegmentCount: rejectedJumpSegments,
+      rejectedSpeedSegmentCount: rejectedSpeedSegments,
+      maximumConsecutiveRejectedSegments: maximumConsecutiveRejectedSegments,
       acceptedDistanceMeters: acceptedDistance,
       maximumGapSeconds: maximumGap,
-      canFeedLiveOdometerProjection: acceptedDistance > 0,
+      canFeedLiveOdometerProjection: projectionSafe,
       canPersistCompactRoutePoint: routePointAllowed,
     );
   }
@@ -183,6 +254,11 @@ TripSampleWindowQualityDecision _decision({
   required String reasonCode,
   required int validSampleCount,
   required int rejectedSampleCount,
+  required int acceptedSegmentCount,
+  required int rejectedGapSegmentCount,
+  required int rejectedJumpSegmentCount,
+  required int rejectedSpeedSegmentCount,
+  required int maximumConsecutiveRejectedSegments,
   required double acceptedDistanceMeters,
   required int maximumGapSeconds,
   required bool canFeedLiveOdometerProjection,
@@ -193,6 +269,13 @@ TripSampleWindowQualityDecision _decision({
     reasonCode: reasonCode,
     validSampleCount: _safeCount(validSampleCount),
     rejectedSampleCount: _safeCount(rejectedSampleCount),
+    acceptedSegmentCount: _safeCount(acceptedSegmentCount),
+    rejectedGapSegmentCount: _safeCount(rejectedGapSegmentCount),
+    rejectedJumpSegmentCount: _safeCount(rejectedJumpSegmentCount),
+    rejectedSpeedSegmentCount: _safeCount(rejectedSpeedSegmentCount),
+    maximumConsecutiveRejectedSegments: _safeCount(
+      maximumConsecutiveRejectedSegments,
+    ),
     acceptedDistanceMeters: acceptedDistanceMeters.isFinite
         ? acceptedDistanceMeters.clamp(0, 1000000).toDouble()
         : 0,
@@ -200,6 +283,21 @@ TripSampleWindowQualityDecision _decision({
     canFeedLiveOdometerProjection: canFeedLiveOdometerProjection,
     canPersistCompactRoutePoint: canPersistCompactRoutePoint,
   );
+}
+
+bool _canFeedProjection({
+  required int acceptedSegments,
+  required int rejectedSegments,
+  required int maximumConsecutiveRejectedSegments,
+  required int maximumGap,
+  required int safeGapLimit,
+  required double acceptedDistanceMeters,
+}) {
+  if (acceptedDistanceMeters <= 0 || acceptedSegments <= 0) return false;
+  if (maximumGap > safeGapLimit * 3) return false;
+  if (maximumConsecutiveRejectedSegments >= 3) return false;
+  if (rejectedSegments > acceptedSegments * 2) return false;
+  return true;
 }
 
 bool _isIndividuallySafe(TripLocationSample sample, double maxAccuracy) {
@@ -277,6 +375,7 @@ String _safeReason(String value) {
     'sample_window_segments_rejected' => 'sample_window_segments_rejected',
     'route_storage_budget_paused' => 'route_storage_budget_paused',
     'sample_window_degraded_but_usable' => 'sample_window_degraded_but_usable',
+    'sample_window_projection_paused' => 'sample_window_projection_paused',
     'sample_window_usable' => 'sample_window_usable',
     _ => 'sample_window_segments_rejected',
   };
