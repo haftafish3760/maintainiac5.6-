@@ -219,13 +219,23 @@ void main() {
       ],
       'walkingEvidenceCanOnlySuggestReview': true,
       'activityRecognitionRequiresOptIn': true,
+      'activityRecognitionCanConfirmStopAutomatically': false,
+      'vehicleOnlyStopsRequireReview': false,
+      'longStoplightCanRequireReview': true,
       'gpsAssistedTrackingAvailableWithoutMaps': true,
       'mapsRequiredForTracking': false,
       'mapsCanOnlyAssistVisualization': true,
+      'mapRouteOptimizationOptional': true,
+      'mapboxCanConfirmStop': false,
+      'mapboxCanReplaceGpsDistance': false,
       'odometerRemainsCanonical': true,
+      'gpsDistanceCanOnlyAssistOdometerReview': true,
+      'calibrationRequiresMultipleReviewedTrips': true,
+      'calibrationCanAutoRewriteConfirmedOdometer': false,
       'locationSharingRequiresActiveOptIn': true,
       'employeeTrackingRequiresMutualConsent': true,
       'employerGodModeAllowed': false,
+      'authDoesNotImplyAuthorization': true,
       'rawLocationIncluded': false,
       'rawSensorPayloadIncluded': false,
     });
@@ -241,8 +251,18 @@ void main() {
       expect(profileMap['mapsRequiredForTracking'], isFalse);
       expect(profileMap['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
       expect(profileMap['mapsCanOnlyAssistVisualization'], isTrue);
+      expect(profileMap['mapRouteOptimizationOptional'], isTrue);
+      expect(profileMap['mapboxCanConfirmStop'], isFalse);
+      expect(profileMap['mapboxCanReplaceGpsDistance'], isFalse);
       expect(profileMap['walkingEvidenceCanOnlySuggestReview'], isTrue);
+      expect(
+        profileMap['activityRecognitionCanConfirmStopAutomatically'],
+        isFalse,
+      );
       expect(profileMap['odometerRemainsCanonical'], isTrue);
+      expect(profileMap['gpsDistanceCanOnlyAssistOdometerReview'], isTrue);
+      expect(profileMap['calibrationCanAutoRewriteConfirmedOdometer'], isFalse);
+      expect(profileMap['authDoesNotImplyAuthorization'], isTrue);
       expect(profileMap['rawLocationIncluded'], isFalse);
       expect(profileMap['rawSensorPayloadIncluded'], isFalse);
       expect(profileMap['driverKind'], isA<String>());
@@ -265,11 +285,19 @@ void main() {
     expect(rideshare.phoneMayStayInVehicleDuringStops, isTrue);
     expect(rideshare.vehicleOnlyStopsNeedManualFallback, isTrue);
     expect(
+      rideshare.toDashboardProfileMap()['vehicleOnlyStopsRequireReview'],
+      isTrue,
+    );
+    expect(
       rideshare.stopReviewConfidencePolicyToken,
       'strong_vehicle_only_manual_review',
     );
     expect(delivery.phoneMayStayInVehicleDuringStops, isTrue);
     expect(delivery.vehicleOnlyStopsNeedManualFallback, isTrue);
+    expect(
+      delivery.toDashboardProfileMap()['vehicleOnlyStopsRequireReview'],
+      isTrue,
+    );
     expect(
       delivery.stopReviewConfidencePolicyToken,
       'walking_assist_with_manual_fallback',

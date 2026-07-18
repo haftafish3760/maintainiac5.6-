@@ -177,10 +177,43 @@ void main() {
       expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
       expect(summary['mapsRequiredForTracking'], isFalse);
       expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['nativeCapabilitiesAreAdvisory'], isTrue);
+      expect(summary['sensorAvailabilityRequiresRuntimePermission'], isTrue);
+      expect(summary['capabilityReadDoesNotStartTracking'], isTrue);
+      expect(summary['capabilityReadDoesNotGrantAuthorization'], isTrue);
+      expect(summary['lowBatteryOverrideRequiresUserChoice'], isA<bool>());
       expect(summary['rawNativePayloadIncluded'], isFalse);
       expect(summary['rawSensorPayloadIncluded'], isFalse);
       expect(summary['preciseLocationIncluded'], isFalse);
       expect(summary['tokensIncluded'], isFalse);
     }
+  });
+
+  test('battery guard capabilities expose safe low-power dashboard policy', () {
+    final withBattery = TripTrackingCapabilityGuidance.fromCapabilities(
+      capabilities: const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: true,
+        batteryStateAvailable: true,
+        lowPowerModeAvailable: true,
+      ),
+      settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+    ).toSafeDashboardMap();
+    final withoutBattery = TripTrackingCapabilityGuidance.fromCapabilities(
+      capabilities: const TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: true,
+        batteryStateAvailable: false,
+      ),
+      settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+    ).toSafeDashboardMap();
+
+    expect(withBattery['batteryBelowTwentyDefaultsToGpsPause'], isTrue);
+    expect(withBattery['lowBatteryOverrideRequiresUserChoice'], isTrue);
+    expect(withBattery['lowBatteryWarningCanBeRestoredInSettings'], isTrue);
+    expect(withoutBattery['batteryBelowTwentyDefaultsToGpsPause'], isFalse);
+    expect(withoutBattery['lowBatteryOverrideRequiresUserChoice'], isFalse);
   });
 }

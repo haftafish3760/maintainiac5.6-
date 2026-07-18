@@ -35,6 +35,12 @@ void main() {
         'gpsCanReplaceOdometer': false,
         'mapboxCanReplaceOdometer': false,
         'remoteTotalsCanReplaceOdometer': false,
+        'anomalyAlertsRequireUserOptIn': true,
+        'calibrationAssistRequiresUserOptIn': true,
+        'calibrationRequiresMultipleReviewedTrips': true,
+        'calibrationCanAutoRewriteConfirmedOdometer': false,
+        'confirmedHistoryOnly': true,
+        'futureConfirmationsIgnored': true,
         'rawHistoryIncluded': false,
         'rawTripRecordsIncluded': false,
         'rawLocationIncluded': false,
@@ -109,6 +115,23 @@ void main() {
     expect(signal.canAutoCorrectOdometer, isFalse);
     expect(signal.toSafeDashboardMap()['currentOdometerMiles'], 0);
     expect(signal.toSafeDashboardMap()['rawHistoryIncluded'], isFalse);
+  });
+
+  test('safe anomaly maps expose calibration as review-only guidance', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 120,
+      history: _history(dailyMiles: 40),
+      vehicleId: 'vehicle_1',
+    );
+    final summary = signal.toSafeDashboardMap();
+
+    expect(summary['anomalyAlertsRequireUserOptIn'], isTrue);
+    expect(summary['calibrationAssistRequiresUserOptIn'], isTrue);
+    expect(summary['calibrationRequiresMultipleReviewedTrips'], isTrue);
+    expect(summary['calibrationCanAutoRewriteConfirmedOdometer'], isFalse);
+    expect(summary['confirmedHistoryOnly'], isTrue);
+    expect(summary['futureConfirmationsIgnored'], isTrue);
+    expect(summary['remoteTotalsCanReplaceOdometer'], isFalse);
   });
 }
 
