@@ -988,6 +988,14 @@ void main() {
         controller.advisories.single.disposition,
         TripTrackingAdvisoryDisposition.pending,
       );
+      expect(
+        controller.advisories.single.evidenceStartedAt,
+        start.add(const Duration(seconds: 30)),
+      );
+      expect(
+        controller.advisories.single.evidenceEndedAt,
+        start.add(const Duration(seconds: 135)),
+      );
 
       await controller.acknowledgeLatestStopReview();
       expect(
@@ -1054,6 +1062,66 @@ void main() {
         TripTrackingAdvisoryDisposition.confirmed,
       );
       expect(restored.needsWalkingReview, isFalse);
+    },
+  );
+
+  test(
+    'walking confirmation upgrades vehicle-only stop without losing evidence window',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_vehicle_stop_then_walk',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.rideshareVehicle,
+        startedAt: start,
+      );
+      TripActivityObservation activity(TripActivity type, int seconds) =>
+          TripActivityObservation(
+            activity: type,
+            confidence: 90,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+
+      await controller.ingest(
+        sample(-80, 0),
+        activity: activity(TripActivity.automotive, 0),
+      );
+      await controller.ingest(
+        sample(-79.9997, 15),
+        activity: activity(TripActivity.automotive, 15),
+      );
+      for (final seconds in [30, 60, 90, 135]) {
+        await controller.ingest(sample(-79.9997, seconds));
+      }
+      expect(
+        controller.advisories.single.confidence,
+        TripTrackingConfidence.medium,
+      );
+
+      for (final seconds in [150, 165, 180, 195, 210]) {
+        await controller.ingest(
+          sample(-79.9997, seconds),
+          activity: activity(TripActivity.walking, seconds),
+        );
+      }
+
+      expect(controller.advisories, hasLength(1));
+      expect(
+        controller.advisories.single.confidence,
+        TripTrackingConfidence.high,
+      );
+      expect(
+        controller.advisories.single.evidenceStartedAt,
+        start.add(const Duration(seconds: 30)),
+      );
+      expect(
+        controller.advisories.single.evidenceEndedAt,
+        start.add(const Duration(seconds: 210)),
+      );
+      expect(controller.needsWalkingReview, isTrue);
     },
   );
 

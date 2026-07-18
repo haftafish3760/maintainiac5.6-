@@ -1378,11 +1378,11 @@ class TripTrackingController extends ChangeNotifier {
       type = TripTrackingAdvisoryType.resumedMovement;
     }
     if (type == null) return session.advisories;
-    final evidenceStartedAt =
-        type == TripTrackingAdvisoryType.probableStop &&
-            engineSnapshot.walkingEvidence.isNotEmpty
-        ? engineSnapshot.walkingEvidence.first.recordedAt
-        : detectedAt;
+    final evidenceStartedAt = _advisoryEvidenceStartedAt(
+      type: type,
+      engineSnapshot: engineSnapshot,
+      detectedAt: detectedAt,
+    );
     return [
       ...session.advisories,
       TripTrackingAdvisoryEvent(
@@ -1408,6 +1408,23 @@ class TripTrackingController extends ChangeNotifier {
       state == TripMotionState.stopCandidate ||
       state == TripMotionState.stopped;
 
+  DateTime _advisoryEvidenceStartedAt({
+    required TripTrackingAdvisoryType type,
+    required TripTrackingEngineSnapshot engineSnapshot,
+    required DateTime detectedAt,
+  }) {
+    if (type != TripTrackingAdvisoryType.probableStop) return detectedAt;
+    if (engineSnapshot.walkingEvidence.isNotEmpty) {
+      return engineSnapshot.walkingEvidence.first.recordedAt;
+    }
+    final stationaryStartedAt = engineSnapshot.stationaryStartedAt;
+    if (stationaryStartedAt == null ||
+        stationaryStartedAt.isAfter(detectedAt)) {
+      return detectedAt;
+    }
+    return stationaryStartedAt;
+  }
+
   List<TripTrackingAdvisoryEvent> _upgradedStopCandidateAdvisories(
     TripTrackingSessionRecord session, {
     required DateTime detectedAt,
@@ -1415,7 +1432,8 @@ class TripTrackingController extends ChangeNotifier {
     final latestPendingStopIndex = session.advisories.lastIndexWhere(
       (event) =>
           event.type == TripTrackingAdvisoryType.probableStop &&
-          event.disposition == TripTrackingAdvisoryDisposition.pending,
+          (event.disposition == TripTrackingAdvisoryDisposition.pending ||
+              event.disposition == TripTrackingAdvisoryDisposition.confirmed),
     );
     if (latestPendingStopIndex < 0) return session.advisories;
     final advisories = [...session.advisories];
