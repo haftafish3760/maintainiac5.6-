@@ -68,6 +68,8 @@ void main() {
     expect(safe['dashboardActiveVehicleBlockUsesLiveProjection'], isTrue);
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
     expect(safe['crossDashboardLiveOdometerReady'], isTrue);
+    expect(safe['displayValueValidated'], isTrue);
+    expect(safe['confirmedDisplayValueValidated'], isTrue);
   });
 
   test('stale live projection remains display-only and review-required', () {
@@ -172,6 +174,51 @@ void main() {
     expect(broadcast.reasonCodes, contains('live_update_time_in_future'));
     expect(safe['futureProjectionBlocked'], isTrue);
     expect(safe['futureProjectionCanRender'], isFalse);
+  });
+
+  test('out-of-range odometer display is blocked before UI render', () {
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 9999998,
+      displayReading: 10000000,
+      isLive: true,
+      liveUpdatedAt: now,
+      projectionRevision: 2,
+    );
+    final broadcast = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+      snapshot,
+      now: now,
+      activeTripId: 'trip_range',
+      expectedTripId: 'trip_range',
+    );
+    final safe = broadcast.toSafeDashboardMap();
+
+    expect(broadcast.status, TripTrackingLiveOdometerBroadcastStatus.rejected);
+    expect(broadcast.reasonCodes, contains('odometer_display_out_of_range'));
+    expect(broadcast.displayValue, isNull);
+    expect(safe['odometerDisplayOutOfRangeBlocked'], isTrue);
+    expect(safe['displayValueValidated'], isTrue);
+  });
+
+  test('custom odometer display ceiling is sanitized', () {
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1002,
+      isLive: true,
+      liveUpdatedAt: now,
+      projectionRevision: 2,
+    );
+    final broadcast = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+      snapshot,
+      now: now,
+      activeTripId: 'trip_ceiling',
+      expectedTripId: 'trip_ceiling',
+      maximumRenderableOdometer: -1,
+    );
+
+    expect(
+      broadcast.status,
+      TripTrackingLiveOdometerBroadcastStatus.renderable,
+    );
   });
 
   test('impossible live projection delta is rejected as review-only data', () {

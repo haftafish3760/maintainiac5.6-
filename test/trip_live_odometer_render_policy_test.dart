@@ -61,6 +61,8 @@ void main() {
     expect(safe['vehicleProfileUsesLiveProjection'], isTrue);
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
     expect(safe['fleetDashboardUsesLiveProjection'], isTrue);
+    expect(safe['displayValueValidated'], isTrue);
+    expect(safe['confirmedDisplayValueValidated'], isTrue);
   });
 
   test(
@@ -162,6 +164,29 @@ void main() {
     expect(safe['futureProjectionBlocked'], isTrue);
     expect(safe['futureProjectionCanRender'], isFalse);
     expect(safe['writesConfirmedOdometer'], isFalse);
+  });
+
+  test('out-of-range live odometer display blocks every dashboard surface', () {
+    final decision = TripLiveOdometerRenderPolicy.evaluate(
+      snapshot: LiveOdometerDisplaySnapshot(
+        confirmedReading: 9999998,
+        displayReading: 10000000,
+        isLive: true,
+        liveUpdatedAt: now,
+        projectionRevision: 6,
+      ),
+      now: now,
+      activeTripId: 'trip_range',
+      expectedTripId: 'trip_range',
+      subscribedSurfaces: TripLiveOdometerRenderSurface.values,
+    );
+    final safe = decision.toSafeUiMap();
+
+    expect(decision.status, TripLiveOdometerRenderStatus.blocked);
+    expect(decision.shouldNotifyListeners, isFalse);
+    expect(decision.reasonCodes, contains('odometer_display_out_of_range'));
+    expect(safe['odometerDisplayOutOfRangeBlocked'], isTrue);
+    expect(safe['displayValueValidated'], isTrue);
   });
 
   test('impossible live odometer jump is blocked without repainting UI', () {

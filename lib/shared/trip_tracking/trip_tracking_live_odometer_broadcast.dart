@@ -23,16 +23,22 @@ class TripTrackingLiveOdometerBroadcast {
     required String expectedTripId,
     Duration maximumFutureSkew = const Duration(minutes: 2),
     int maximumLiveDeltaMiles = 2000,
+    int maximumRenderableOdometer = 9999999,
   }) {
     final reasons = <String>[];
     final safeFutureSkew = _safeFutureSkew(maximumFutureSkew);
     final safeMaximumDelta = _safeMaximumDelta(maximumLiveDeltaMiles);
+    final safeMaximumOdometer = _safeMaximumOdometer(maximumRenderableOdometer);
     if (!_safeTripId(expectedTripId)) reasons.add('unsafe_expected_trip_id');
     if (activeTripId != null && !_safeTripId(activeTripId)) {
       reasons.add('unsafe_active_trip_id');
     }
     if (snapshot.confirmedReading < 0) {
       reasons.add('negative_confirmed_reading');
+    }
+    if (snapshot.confirmedReading > safeMaximumOdometer ||
+        snapshot.displayReading > safeMaximumOdometer) {
+      reasons.add('odometer_display_out_of_range');
     }
     if (snapshot.displayReading < snapshot.confirmedReading) {
       reasons.add('display_below_confirmed_reading');
@@ -118,6 +124,11 @@ class TripTrackingLiveOdometerBroadcast {
     'impossibleProjectionDeltaBlocked': reasonCodes.contains(
       'live_projection_delta_too_large',
     ),
+    'odometerDisplayOutOfRangeBlocked': reasonCodes.contains(
+      'odometer_display_out_of_range',
+    ),
+    'displayValueValidated': _displayValueSafe(displayValue),
+    'confirmedDisplayValueValidated': _displayValueSafe(confirmedDisplayValue),
     'globalOdometerScopeMustNotifyListeners': true,
     'dashboardActiveVehicleBlockUsesLiveProjection': true,
     'contractorDashboardUsesLiveProjection': true,
@@ -161,3 +172,11 @@ int _safeMaximumDelta(int value) {
   if (value <= 0) return 1;
   return value > 10000 ? 10000 : value;
 }
+
+int _safeMaximumOdometer(int value) {
+  if (value <= 0) return 9999999;
+  return value > 9999999 ? 9999999 : value;
+}
+
+bool _displayValueSafe(String? value) =>
+    value == null || RegExp(r'^\d{7}$').hasMatch(value);

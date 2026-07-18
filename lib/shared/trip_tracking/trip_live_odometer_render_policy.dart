@@ -61,6 +61,13 @@ class TripLiveOdometerRenderDecision {
       'impossibleProjectionDeltaBlocked': reasonCodes.contains(
         'live_projection_delta_too_large',
       ),
+      'odometerDisplayOutOfRangeBlocked': reasonCodes.contains(
+        'odometer_display_out_of_range',
+      ),
+      'displayValueValidated': _displayValueSafe(displayValue),
+      'confirmedDisplayValueValidated': _displayValueSafe(
+        confirmedDisplayValue,
+      ),
       'liveUiMustRefreshOnProjectionChange': true,
       'allDashboardSurfacesUseSameSnapshot': true,
       'activeVehicleBlockUsesLiveProjection': true,
@@ -86,6 +93,9 @@ class TripLiveOdometerRenderDecision {
     };
   }
 }
+
+bool _displayValueSafe(String? value) =>
+    value == null || RegExp(r'^\d{7}$').hasMatch(value);
 
 class TripLiveOdometerRenderPolicy {
   const TripLiveOdometerRenderPolicy._();
