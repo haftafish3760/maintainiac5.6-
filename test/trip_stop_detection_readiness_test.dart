@@ -34,6 +34,8 @@ void main() {
       expect(safe['dashboardMaySuggestStop'], isTrue);
       expect(safe['officialStopCreated'], isFalse);
       expect(safe['officialMileageSource'], 'odometer');
+      expect(safe['validatedStopSummaryRequired'], isTrue);
+      expect(safe['localTripLogMustOwnStopReview'], isTrue);
       expect(safe['mapboxCanOpenStopReview'], isFalse);
       expect(safe['routeGeometryIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
@@ -163,5 +165,7 @@ void main() {
     );
     expect(safe['firestoreCanOpenStopReview'], isFalse);
     expect(safe['mapboxCanOpenStopReview'], isFalse);
+    expect(safe['malformedStopSummaryFailsClosed'], isTrue);
+    expect(safe['authenticationDoesNotGrantStopAuthority'], isTrue);
   });
 }

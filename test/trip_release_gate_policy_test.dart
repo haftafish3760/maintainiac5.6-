@@ -70,6 +70,7 @@ void main() {
     canRenderMapAssist: false,
     shouldUseGpsOnlyFallback: true,
     shouldRetryLater: false,
+    requestsRemainingInWindow: 10,
   );
 
   TripReleaseGateDecision evaluate({
@@ -144,7 +145,11 @@ void main() {
     expect(safe['deviceTestingRequiredBeforeProductionClaim'], isTrue);
     expect(safe['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
     expect(safe['mapsRequiredForGpsTripTracking'], isFalse);
+    expect(safe['mapboxFailureCannotBlockGpsOnlyRegression'], isTrue);
+    expect(safe['mapboxApisRemainOptionalForGpsAssistedRelease'], isTrue);
     expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(safe['authorizationRulesRequiredBeforeFleetRelease'], isTrue);
+    expect(safe['authenticatedUserStillNeedsRecordAuthorization'], isTrue);
     expect(safe['releaseGateCanConfirmOdometer'], isFalse);
     expect(safe['releaseGateCanCreateOfficialStop'], isFalse);
     expect(safe['tokensIncluded'], isFalse);

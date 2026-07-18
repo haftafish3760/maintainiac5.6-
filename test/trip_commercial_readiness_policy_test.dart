@@ -71,6 +71,7 @@ void main() {
     canRenderMapAssist: true,
     shouldUseGpsOnlyFallback: false,
     shouldRetryLater: false,
+    requestsRemainingInWindow: 10,
   );
   const mapsGpsOnly = TripMapboxRequestBoundaryDecision(
     status: TripMapboxRequestBoundaryStatus.fallbackGpsOnly,
@@ -79,6 +80,16 @@ void main() {
     canRenderMapAssist: false,
     shouldUseGpsOnlyFallback: true,
     shouldRetryLater: false,
+    requestsRemainingInWindow: 10,
+  );
+  const mapsRejected = TripMapboxRequestBoundaryDecision(
+    status: TripMapboxRequestBoundaryStatus.rejected,
+    reasonCode: 'mapbox_malformed_response',
+    canCallMapbox: false,
+    canRenderMapAssist: false,
+    shouldUseGpsOnlyFallback: true,
+    shouldRetryLater: false,
+    requestsRemainingInWindow: 0,
   );
 
   TripCommercialReadinessDecision evaluate({
@@ -128,6 +139,19 @@ void main() {
     },
   );
 
+  test('rejected map assist still leaves GPS assisted trips available', () {
+    final decision = evaluate(maps: mapsRejected);
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripCommercialReadinessStatus.limitedGpsOnly);
+    expect(decision.canStartOrContinueTrip, isTrue);
+    expect(decision.mapsOptionalAndSafe, isFalse);
+    expect(safe['mapsRequiredForTripTracking'], isFalse);
+    expect(safe['mapboxFailureCannotBlockGpsOnlyTrip'], isTrue);
+    expect(safe['mapboxCanReplaceOdometer'], isFalse);
+    expect(safe['mapboxCanCreateOfficialStop'], isFalse);
+  });
+
   test(
     'dashboard attention produces ready with review instead of auto stop',
     () {
@@ -155,12 +179,16 @@ void main() {
 
       expect(safe['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
       expect(safe['mapsRequiredForTripTracking'], isFalse);
+      expect(safe['mapboxFailureCannotBlockGpsOnlyTrip'], isTrue);
+      expect(safe['mapboxAssistRequiresExplicitOptIn'], isTrue);
       expect(safe['mapboxCanReplaceOdometer'], isFalse);
       expect(safe['mapboxCanCreateOfficialStop'], isFalse);
+      expect(safe['mapboxCanEndTrip'], isFalse);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
       expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
       expect(safe['employerGodModeAllowed'], isFalse);
       expect(safe['remoteDataCanOverrideLocalTrip'], isFalse);
+      expect(safe['authenticatedRemoteDataStillRequiresAuthorization'], isTrue);
       expect(safe['tokensIncluded'], isFalse);
     },
   );
