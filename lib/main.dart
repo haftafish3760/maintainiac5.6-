@@ -26,12 +26,14 @@ import 'shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'shared/context/operational_context_store.dart';
 import 'shared/device_capabilities/device_capabilities.dart';
 import 'shared/profiles/user_profile_store.dart';
+import 'shared/records/maintainiac_durable_record_store.dart';
 import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
 import 'shared/storage/app_storage_guard.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
+import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
@@ -123,6 +125,9 @@ Future<void> main() async {
     snapshotWriter: odometerStore.saveSnapshot,
   );
   final tripTrackingStore = await TripTrackingSessionStore.create();
+  final durableRecordStore = await MaintainiacDurableRecordStore.create(
+    'maintainiac_durable_records',
+  );
   TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror();
   DashboardFirestoreMirror? dashboardMirror;
   if (firebaseSupported && userProfiles.activeProfile.id.trim().isNotEmpty) {
@@ -174,6 +179,7 @@ Future<void> main() async {
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
     cloudMirror: cloudMirror,
+    durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
   );
   await tripTracking.restore();
   void syncTripCalibrationAssist() {

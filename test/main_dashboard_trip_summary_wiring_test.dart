@@ -23,6 +23,16 @@ void main() {
       ),
     );
     expect(mainSource, contains('DashboardFirestoreMirror? dashboardMirror'));
+    expect(
+      mainSource,
+      contains(
+        "MaintainiacDurableRecordStore.create(\n    'maintainiac_durable_records',",
+      ),
+    );
+    expect(
+      mainSource,
+      contains('durableRecordBridge: TripTrackingDurableRecordBridge('),
+    );
     expect(mainSource, contains('DashboardTripTrackingSummaryReporter('));
     expect(mainSource, contains('dashboardId: () => \'active_dashboard\''));
     expect(mainSource, contains('tripTracking: tripTracking'));
