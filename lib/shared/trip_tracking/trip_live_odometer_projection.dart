@@ -18,6 +18,21 @@ class TripLiveOdometerProjection {
 
   int get projectedReading => _lastProjectedReading;
 
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'projectedReading': projectedReading,
+    'startingOdometer': _safeStartingOdometer(startingOdometer),
+    'maxSupportedReading': maxSupportedReading,
+    'advisoryOnly': true,
+    'confirmedOdometerRemainsCanonical': true,
+    'manualConfirmationRequired': true,
+    'gpsCanReplaceOdometer': false,
+    'mapboxCanReplaceOdometer': false,
+    'rawGpsIncluded': false,
+    'preciseLocationIncluded': false,
+    'routeGeometryIncluded': false,
+  };
+
   int updateAcceptedMeters(
     double acceptedMeters, {
     double gpsAssistanceCalibrationMultiplier = 1,

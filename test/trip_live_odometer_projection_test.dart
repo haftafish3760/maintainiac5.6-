@@ -11,6 +11,20 @@ void main() {
       expect(projection.updateAcceptedMeters(700), 1000);
       expect(projection.updateAcceptedMeters(900), 1001);
       expect(projection.updateAcceptedMeters(100), 1001);
+      expect(projection.toSafeDashboardMap(), {
+        'schemaVersion': 1,
+        'projectedReading': 1001,
+        'startingOdometer': 1000,
+        'maxSupportedReading': 9999999,
+        'advisoryOnly': true,
+        'confirmedOdometerRemainsCanonical': true,
+        'manualConfirmationRequired': true,
+        'gpsCanReplaceOdometer': false,
+        'mapboxCanReplaceOdometer': false,
+        'rawGpsIncluded': false,
+        'preciseLocationIncluded': false,
+        'routeGeometryIncluded': false,
+      });
     },
   );
 
@@ -27,6 +41,7 @@ void main() {
 
     expect(projection.projectedReading, isZero);
     expect(projection.updateAcceptedMeters(1609.344), 1);
+    expect(projection.toSafeDashboardMap()['startingOdometer'], 0);
   });
 
   test('over-range live projection stays at last safe reading', () {
