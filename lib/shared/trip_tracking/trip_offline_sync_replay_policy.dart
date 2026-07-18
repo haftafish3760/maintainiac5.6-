@@ -5,6 +5,7 @@ enum TripOfflineSyncReplayStatus {
   ready,
   waitingForNetwork,
   waitingForQuota,
+  waitingForStorage,
   waitingForReservation,
   blockedInvalidRecord,
 }
@@ -104,6 +105,16 @@ class TripOfflineSyncReplayPolicy {
         consumesFreeAttempt: false,
       );
     }
+    if (attempt.status == TripTrackingSyncAttemptStatus.blockedStorage) {
+      return _decision(
+        status: TripOfflineSyncReplayStatus.waitingForStorage,
+        reasonCode: 'offline_replay_waiting_for_storage',
+        canReplayQueuedMirror: false,
+        shouldKeepLocalQueue: true,
+        shouldRetryLater: true,
+        consumesFreeAttempt: false,
+      );
+    }
     if (!reservation.canUploadAfterReservation) {
       return _decision(
         status: TripOfflineSyncReplayStatus.waitingForReservation,
@@ -153,6 +164,8 @@ String _safeReason(String value) {
     'offline_replay_waiting_for_network' =>
       'offline_replay_waiting_for_network',
     'offline_replay_waiting_for_quota' => 'offline_replay_waiting_for_quota',
+    'offline_replay_waiting_for_storage' =>
+      'offline_replay_waiting_for_storage',
     'offline_replay_reservation_retry' => 'offline_replay_reservation_retry',
     'offline_replay_reservation_blocked' =>
       'offline_replay_reservation_blocked',

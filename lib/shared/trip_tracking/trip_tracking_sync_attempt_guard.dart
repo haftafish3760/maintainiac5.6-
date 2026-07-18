@@ -46,14 +46,18 @@ class TripTrackingSyncSourceRecord {
   final String? tripDayKey;
   final double? distanceMiles;
 
-  bool get hasValidShape =>
+  bool get hasValidShape => hasValidShapeAt(receivedAtUtc: null);
+
+  bool hasValidShapeAt({DateTime? receivedAtUtc}) =>
       schemaVersion == 1 &&
       _safeIdentifier(recordId, maxLength: 96) &&
       _safeIdentifier(ownerUid, maxLength: 96) &&
       _safeIdentifier(deviceId, maxLength: 96) &&
       localRevision > 0 &&
       localPersisted &&
+      !updatedAtUtc.toUtc().isBefore(_minimumAcceptedTimestampUtc) &&
       !updatedAtUtc.toUtc().isAfter(_maximumAcceptedTimestampUtc) &&
+      _safeSourceFreshness(updatedAtUtc, receivedAtUtc) &&
       _safeTripDayKey(tripDayKey) &&
       _safeDistance(distanceMiles);
 
@@ -92,6 +96,7 @@ class TripTrackingSyncAttemptRequest {
     required this.mobileDataAvailable,
     required this.syncsUsedInWindow,
     required this.storageAvailableForSmallRecordWrite,
+    this.receivedAtUtc,
   });
 
   final TripTrackingSyncAccountTier accountTier;
@@ -102,6 +107,7 @@ class TripTrackingSyncAttemptRequest {
   final bool? mobileDataAvailable;
   final int? syncsUsedInWindow;
   final bool storageAvailableForSmallRecordWrite;
+  final DateTime? receivedAtUtc;
 }
 
 class TripTrackingSyncAttemptGuard {
@@ -110,7 +116,9 @@ class TripTrackingSyncAttemptGuard {
   static TripTrackingSyncAttemptDecision evaluate(
     TripTrackingSyncAttemptRequest request,
   ) {
-    final sourceValid = request.source.hasValidShape;
+    final sourceValid = request.source.hasValidShapeAt(
+      receivedAtUtc: request.receivedAtUtc,
+    );
     final ownerValid = request.source.ownedBy(request.authenticatedUid);
     final syncDecision = TripTrackingBackupSyncPolicy.evaluate(
       networkPolicy: request.networkPolicy,
@@ -248,6 +256,7 @@ class TripTrackingSyncAttemptDecision {
   }
 }
 
+final DateTime _minimumAcceptedTimestampUtc = DateTime.utc(2020);
 final DateTime _maximumAcceptedTimestampUtc = DateTime.utc(2100);
 final RegExp _safeIdPattern = RegExp(r'^[A-Za-z0-9_.-]+$');
 final RegExp _dayKeyPattern = RegExp(r'^\d{4}-\d{2}-\d{2}$');
@@ -281,4 +290,15 @@ bool _safeTripDayKey(String? value) {
 bool _safeDistance(double? value) {
   if (value == null) return true;
   return value.isFinite && value >= 0 && value <= 2500;
+}
+
+bool _safeSourceFreshness(DateTime updatedAtUtc, DateTime? receivedAtUtc) {
+  final received = receivedAtUtc?.toUtc();
+  if (received == null) return true;
+  final updated = updatedAtUtc.toUtc();
+  if (updated.isAfter(received.add(const Duration(minutes: 2)))) return false;
+  if (updated.isBefore(received.subtract(const Duration(days: 31)))) {
+    return false;
+  }
+  return true;
 }

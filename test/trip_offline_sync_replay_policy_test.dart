@@ -10,6 +10,7 @@ void main() {
   TripTrackingSyncAttemptDecision attempt({
     int? used = 0,
     bool wifi = true,
+    bool storageAvailable = true,
     bool localPersisted = true,
     String owner = 'owner123',
     String auth = 'owner123',
@@ -34,7 +35,7 @@ void main() {
         wifiAvailable: wifi,
         mobileDataAvailable: false,
         syncsUsedInWindow: used,
-        storageAvailableForSmallRecordWrite: true,
+        storageAvailableForSmallRecordWrite: storageAvailable,
       ),
     );
   }
@@ -102,6 +103,21 @@ void main() {
       expect(decision.shouldKeepLocalQueue, isTrue);
     },
   );
+
+  test('storage blocked replay keeps local queue for later retry', () {
+    final decision = evaluate(sync: attempt(storageAvailable: false));
+
+    expect(decision.status, TripOfflineSyncReplayStatus.waitingForStorage);
+    expect(decision.reasonCode, 'offline_replay_waiting_for_storage');
+    expect(decision.canReplayQueuedMirror, isFalse);
+    expect(decision.shouldKeepLocalQueue, isTrue);
+    expect(decision.shouldRetryLater, isTrue);
+    expect(decision.consumesFreeAttempt, isFalse);
+    expect(
+      decision.toSafeSummary()['successfulReplayCanSilentlyDeleteLocalData'],
+      isFalse,
+    );
+  });
 
   test('invalid local record or owner mismatch blocks replay closed', () {
     final missing = evaluate(exists: false);

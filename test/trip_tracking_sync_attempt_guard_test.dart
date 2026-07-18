@@ -133,6 +133,7 @@ void main() {
         validSource(tripDayKey: '2026-99-99'),
         validSource(distanceMiles: -0.1),
         validSource(distanceMiles: 2500.1),
+        validSource(updatedAtUtc: DateTime.utc(2019, 12, 31, 23, 59)),
         validSource(updatedAtUtc: DateTime.utc(2200)),
       ];
 
@@ -152,6 +153,44 @@ void main() {
       }
     },
   );
+
+  test('future and stale local mirrors are blocked before upload', () {
+    final receivedAt = DateTime.utc(2026, 7, 18, 12);
+    final future = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        source: validSource(
+          recordId: 'future-trip',
+          updatedAtUtc: receivedAt.add(const Duration(minutes: 3)),
+        ),
+        receivedAtUtc: receivedAt,
+      ),
+    );
+    final stale = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        source: validSource(
+          recordId: 'stale-trip',
+          updatedAtUtc: receivedAt.subtract(const Duration(days: 40)),
+        ),
+        receivedAtUtc: receivedAt,
+      ),
+    );
+    final recent = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        source: validSource(
+          recordId: 'recent-trip',
+          updatedAtUtc: receivedAt.subtract(const Duration(days: 3)),
+        ),
+        receivedAtUtc: receivedAt,
+      ),
+    );
+
+    expect(future.status, TripTrackingSyncAttemptStatus.blockedInvalidSource);
+    expect(stale.status, TripTrackingSyncAttemptStatus.blockedInvalidSource);
+    expect(recent.status, TripTrackingSyncAttemptStatus.ready);
+    expect(future.mayUploadMirror, isFalse);
+    expect(stale.mirrorPayload, isEmpty);
+    expect(recent.mirrorPayload['canonicalSource'], 'hive');
+  });
 
   test('storage protection blocks backup without deleting local trip data', () {
     final decision = TripTrackingSyncAttemptGuard.evaluate(
@@ -199,6 +238,7 @@ TripTrackingSyncAttemptRequest request({
   bool? mobileDataAvailable = false,
   int? syncsUsedInWindow = 0,
   bool storageAvailableForSmallRecordWrite = true,
+  DateTime? receivedAtUtc,
 }) {
   return TripTrackingSyncAttemptRequest(
     accountTier: accountTier,
@@ -209,6 +249,7 @@ TripTrackingSyncAttemptRequest request({
     mobileDataAvailable: mobileDataAvailable,
     syncsUsedInWindow: syncsUsedInWindow,
     storageAvailableForSmallRecordWrite: storageAvailableForSmallRecordWrite,
+    receivedAtUtc: receivedAtUtc,
   );
 }
 
