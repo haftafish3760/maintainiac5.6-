@@ -110,4 +110,75 @@ void main() {
       expect(serialized, isNot(contains('-80.843124')));
     },
   );
+
+  test('batch summary counts failures without raw payload leakage', () {
+    final summary = TripValidationFailureLogPolicy.summarize(
+      events: [
+        TripValidationFailureLogPolicy.classify(
+          boundary: TripValidationFailureBoundary.nativeGps,
+          reasonCode: 'invalid_coordinate',
+          operation: 'gps_sample_ingest',
+          ownerVerified: true,
+          schemaVerified: false,
+          authorizationVerified: true,
+        ),
+        TripValidationFailureLogPolicy.classify(
+          boundary: TripValidationFailureBoundary.mapbox,
+          reasonCode: 'rate_limited',
+          operation: 'route_preview',
+          ownerVerified: true,
+          schemaVerified: false,
+          authorizationVerified: true,
+          optionalMappingFeature: true,
+        ),
+        TripValidationFailureLogPolicy.classify(
+          boundary: TripValidationFailureBoundary.firestoreMirror,
+          reasonCode: 'owner_mismatch',
+          operation: 'review_mirror',
+          ownerVerified: false,
+          schemaVerified: true,
+          authorizationVerified: false,
+          sensitiveWrite: true,
+        ),
+      ],
+    );
+    final safe = summary.toSafeLogMap();
+
+    expect(safe['checkedEventCount'], 3);
+    expect((safe['byBoundary'] as Map)['nativeGps'], 1);
+    expect((safe['byBoundary'] as Map)['mapbox'], 1);
+    expect((safe['bySeverity'] as Map)['sensitiveWriteBlocked'], 1);
+    expect(safe['sensitiveWriteBlockedCount'], 1);
+    expect(safe['optionalMapFailureCount'], 1);
+    expect(safe['localTruthPreservedCount'], 1);
+    expect(safe['batchSummaryCanDeleteLocalData'], isFalse);
+    expect(safe['batchSummaryCanConfirmMileage'], isFalse);
+    expect(safe['tokensIncluded'], isFalse);
+    expect(safe.toString(), isNot(contains('35.')));
+    expect(safe.toString(), isNot(contains('pk.')));
+  });
+
+  test('batch summary truncates runaway failure bursts safely', () {
+    final summary = TripValidationFailureLogPolicy.summarize(
+      maxEvents: 2,
+      events: [
+        for (var i = 0; i < 10; i++)
+          TripValidationFailureLogPolicy.classify(
+            boundary: TripValidationFailureBoundary.nativeGps,
+            reasonCode: 'invalid_coordinate',
+            operation: 'gps_sample_ingest',
+            ownerVerified: true,
+            schemaVerified: false,
+            authorizationVerified: true,
+          ),
+      ],
+    );
+    final safe = summary.toSafeLogMap();
+
+    expect(summary.truncated, isTrue);
+    expect(safe['checkedEventCount'], 2);
+    expect((safe['byBoundary'] as Map)['nativeGps'], 2);
+    expect(safe['rawPayloadIncluded'], isFalse);
+    expect(safe['preciseTimestampIncluded'], isFalse);
+  });
 }

@@ -102,6 +102,105 @@ class TripValidationFailureLogPolicy {
       ),
     );
   }
+
+  static TripValidationFailureBatchSummary summarize({
+    required Iterable<TripValidationFailureLogEvent> events,
+    int maxEvents = 1000,
+  }) {
+    final safeMax = maxEvents <= 0
+        ? 0
+        : maxEvents > 1000
+        ? 1000
+        : maxEvents;
+    final items = events.take(safeMax).toList(growable: false);
+    final byBoundary = <String, int>{};
+    final bySeverity = <String, int>{};
+    var sensitiveWriteBlockedCount = 0;
+    var optionalMapFailureCount = 0;
+    var localTruthPreservedCount = 0;
+
+    for (final event in items) {
+      byBoundary.update(
+        event.boundary.name,
+        (value) => value + 1,
+        ifAbsent: () => 1,
+      );
+      bySeverity.update(
+        event.severity.name,
+        (value) => value + 1,
+        ifAbsent: () => 1,
+      );
+      if (event.severity ==
+          TripValidationFailureSeverity.sensitiveWriteBlocked) {
+        sensitiveWriteBlockedCount += 1;
+      }
+      if (event.boundary == TripValidationFailureBoundary.mapbox ||
+          event.recoveryAction == 'disable_optional_map_feature') {
+        optionalMapFailureCount += 1;
+      }
+      if (event.recoveryAction == 'keep_local_truth_and_retry_mirror' ||
+          event.recoveryAction == 'continue_local_trip_without_bad_sample') {
+        localTruthPreservedCount += 1;
+      }
+    }
+
+    return TripValidationFailureBatchSummary(
+      checkedEventCount: items.length,
+      truncated: events.length > safeMax,
+      byBoundary: Map.unmodifiable(byBoundary),
+      bySeverity: Map.unmodifiable(bySeverity),
+      sensitiveWriteBlockedCount: sensitiveWriteBlockedCount,
+      optionalMapFailureCount: optionalMapFailureCount,
+      localTruthPreservedCount: localTruthPreservedCount,
+    );
+  }
+}
+
+class TripValidationFailureBatchSummary {
+  const TripValidationFailureBatchSummary({
+    required this.checkedEventCount,
+    required this.truncated,
+    required this.byBoundary,
+    required this.bySeverity,
+    required this.sensitiveWriteBlockedCount,
+    required this.optionalMapFailureCount,
+    required this.localTruthPreservedCount,
+  });
+
+  final int checkedEventCount;
+  final bool truncated;
+  final Map<String, int> byBoundary;
+  final Map<String, int> bySeverity;
+  final int sensitiveWriteBlockedCount;
+  final int optionalMapFailureCount;
+  final int localTruthPreservedCount;
+
+  Map<String, Object?> toSafeLogMap() => {
+    'schemaVersion': 1,
+    'checkedEventCount': _safeCount(checkedEventCount),
+    'truncated': truncated,
+    'byBoundary': _safeCountMap(byBoundary),
+    'bySeverity': _safeCountMap(bySeverity),
+    'sensitiveWriteBlockedCount': _safeCount(sensitiveWriteBlockedCount),
+    'optionalMapFailureCount': _safeCount(optionalMapFailureCount),
+    'localTruthPreservedCount': _safeCount(localTruthPreservedCount),
+    'externalDataValidatedBeforeUse': true,
+    'authenticationDoesNotImplyAuthorization': true,
+    'failClosedForSensitiveWrites': true,
+    'failGracefullyForOptionalMaps': true,
+    'hiveRemainsOperationalSourceOfTruth': true,
+    'firestoreMirrorOnly': true,
+    'odometerRemainsOfficialMileageTruth': true,
+    'remoteTotalsCanonical': false,
+    'batchSummaryCanDeleteLocalData': false,
+    'batchSummaryCanConfirmMileage': false,
+    'batchSummaryCanCreateOfficialStop': false,
+    'rawPayloadIncluded': false,
+    'rawLocationIncluded': false,
+    'preciseTimestampIncluded': false,
+    'privateUserContentIncluded': false,
+    'tokensIncluded': false,
+  };
 }
 
 TripValidationFailureSeverity _severityFor({
@@ -182,4 +281,24 @@ bool _containsSensitiveValue(String value) {
       lower.contains('pk.') ||
       lower.contains('sk.') ||
       RegExp(r'-?\d{1,3}\.\d{4,}').hasMatch(value);
+}
+
+int _safeCount(int value) {
+  if (value <= 0) return 0;
+  return value > 1000 ? 1000 : value;
+}
+
+Map<String, int> _safeCountMap(Map<String, int> value) {
+  return Map.unmodifiable({
+    for (final entry in value.entries)
+      if (_safeSummaryKey(entry.key) != null)
+        _safeSummaryKey(entry.key)!: _safeCount(entry.value),
+  });
+}
+
+String? _safeSummaryKey(String value) {
+  final clean = value.trim();
+  if (clean.isEmpty || clean.length > 80) return null;
+  if (_containsSensitiveValue(clean)) return null;
+  return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : null;
 }
