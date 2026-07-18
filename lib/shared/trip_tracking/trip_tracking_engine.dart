@@ -46,6 +46,7 @@ class TripTrackingEngine {
     walkingReviewSuggested: _walkingReviewSuggested,
     motionState: _motionState,
     vehicleMovementObserved: _vehicleMovementObserved,
+    stationaryStartedAt: _stationaryStartedAt,
     diagnostics: _diagnostics,
   );
 
@@ -78,6 +79,7 @@ class TripTrackingEngine {
           : snapshot.motionState;
     }
     engine._vehicleMovementObserved = snapshot.vehicleMovementObserved;
+    engine._stationaryStartedAt = snapshot.stationaryStartedAt;
     engine._diagnostics = snapshot.diagnostics;
     return engine;
   }

@@ -745,6 +745,53 @@ void main() {
     expect(engine.motionState, TripMotionState.moving);
   });
 
+  test('vehicle-only stop candidate survives safe engine snapshot restore', () {
+    final engine = TripTrackingEngine(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+    for (final seconds in [30, 60, 90]) {
+      engine.ingest(sample(-79.9997, seconds));
+    }
+
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot.fromMap(engine.snapshot.toMap()),
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    restored.ingest(sample(-79.9997, 135));
+
+    expect(restored.motionState, TripMotionState.stopCandidate);
+    expect(restored.needsWalkingReview, isFalse);
+  });
+
+  test('malformed stationary restore cannot invent vehicle-only stop', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot.fromMap({
+        'lastAccepted': sample(-80, 0).toMap(),
+        'lastObservedAt': start
+            .add(const Duration(seconds: 20))
+            .toIso8601String(),
+        'totalAcceptedMeters': 0,
+        'walkingReviewSuggested': false,
+        'motionState': 'moving',
+        'vehicleMovementObserved': true,
+        'stationaryStartedAt': start
+            .add(const Duration(days: -2))
+            .toIso8601String(),
+      }),
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+
+    restored.ingest(sample(-80, 90));
+    expect(restored.motionState, isNot(TripMotionState.stopCandidate));
+  });
+
   test('road-style work profiles use conservative walking stop rules', () {
     for (final profile in const [
       TripTrackingProfile.roadVehicle,

@@ -393,6 +393,7 @@ class TripTrackingEngineSnapshot {
     required this.walkingReviewSuggested,
     this.motionState = TripMotionState.unknown,
     this.vehicleMovementObserved = false,
+    this.stationaryStartedAt,
     this.diagnostics = const TripTrackingDiagnostics(),
     this.schemaVersion = 1,
     this.algorithmVersion = 'gps-v1',
@@ -408,6 +409,7 @@ class TripTrackingEngineSnapshot {
   final bool walkingReviewSuggested;
   final TripMotionState motionState;
   final bool vehicleMovementObserved;
+  final DateTime? stationaryStartedAt;
   final TripTrackingDiagnostics diagnostics;
   final int schemaVersion;
   final String algorithmVersion;
@@ -428,6 +430,7 @@ class TripTrackingEngineSnapshot {
       ),
       'motionState': motionState.name,
       'vehicleMovementObserved': vehicleMovementObserved,
+      'stationaryStartedAt': stationaryStartedAt?.toIso8601String(),
       'diagnostics': diagnostics.toMap(),
       'schemaVersion': schemaVersion,
       'algorithmVersion': algorithmVersion,
@@ -467,6 +470,14 @@ class TripTrackingEngineSnapshot {
         orElse: () => TripMotionState.unknown,
       ),
       vehicleMovementObserved: vehicleMovementObserved,
+      stationaryStartedAt: _safeStationaryStartedAt(
+        map['stationaryStartedAt'],
+        vehicleMovementObserved: vehicleMovementObserved,
+        lastObservedAt: _safeLastObservedAt(
+          map['lastObservedAt'],
+          lastAccepted: lastAccepted,
+        ),
+      ),
       diagnostics: map['diagnostics'] is Map
           ? TripTrackingDiagnostics.fromMap(map['diagnostics'] as Map)
           : const TripTrackingDiagnostics(),
@@ -668,6 +679,20 @@ DateTime? _safeLastObservedAt(
   if (parsed.difference(lastAccepted.recordedAt) >
       _maxPersistedObservationLead) {
     return lastAccepted.recordedAt;
+  }
+  return parsed;
+}
+
+DateTime? _safeStationaryStartedAt(
+  Object? value, {
+  required bool vehicleMovementObserved,
+  required DateTime? lastObservedAt,
+}) {
+  if (!vehicleMovementObserved || lastObservedAt == null) return null;
+  final parsed = _tripTimestampFrom(value);
+  if (parsed == null || parsed.isAfter(lastObservedAt)) return null;
+  if (lastObservedAt.difference(parsed) > const Duration(hours: 8)) {
+    return null;
   }
   return parsed;
 }
