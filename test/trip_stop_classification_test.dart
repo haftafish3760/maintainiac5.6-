@@ -206,12 +206,19 @@ void main() {
     expect(summary['advisoryOnly'], isTrue);
     expect(summary['gpsAssistedOnly'], isTrue);
     expect(summary['manualStopFallbackAvailable'], isTrue);
+    expect(summary['vehicleOnlyStopFallbackAvailable'], isTrue);
+    expect(summary['longTrafficLightProtected'], isTrue);
+    expect(summary['walkingEvidenceCanOnlySuggestReview'], isTrue);
+    expect(summary['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['officialMileageSource'], 'odometer');
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['canReplaceOdometer'], isFalse);
+    expect(summary['canEndTripAutomatically'], isFalse);
+    expect(summary['stopRequiresAcceptedVehicleMovement'], isTrue);
     expect(summary['mapsRequiredForStopReview'], isFalse);
     expect(summary['mapboxCanCreateStop'], isFalse);
+    expect(summary['mapboxCanEndTrip'], isFalse);
     expect(summary['rawSamplesIncluded'], isFalse);
     expect(summary['rawMotionPayloadIncluded'], isFalse);
     expect(summary['coordinatesIncluded'], isFalse);
@@ -239,5 +246,36 @@ void main() {
     expect(summary.toString(), isNot(contains('35.1')));
     expect(summary.toString(), isNot(contains('sk.secret')));
     expect(summary['coordinatesIncluded'], isFalse);
+  });
+
+  test('traffic and vehicle-only summaries stay manual review only', () {
+    final traffic = TripStopClassifier.classify(
+      profile: TripTrackingProfile.deliveryVehicle,
+      motionState: TripMotionState.moving,
+      needsWalkingReview: false,
+      excludedWalkingCount: 0,
+      rejectedDriftCount: 6,
+      rejectedUnsafeCount: 0,
+      acceptedDistanceCount: 5,
+    ).toSafeSummary();
+    final vehicleOnly = TripStopClassifier.classify(
+      profile: TripTrackingProfile.rideshareVehicle,
+      motionState: TripMotionState.stopCandidate,
+      needsWalkingReview: false,
+      excludedWalkingCount: 0,
+      rejectedDriftCount: 0,
+      rejectedUnsafeCount: 0,
+      acceptedDistanceCount: 4,
+    ).toSafeSummary();
+
+    expect(traffic['signal'], 'likelyTrafficControl');
+    expect(traffic['longTrafficLightProtected'], isTrue);
+    expect(traffic['canCreateOfficialStop'], isFalse);
+    expect(traffic['canEndTripAutomatically'], isFalse);
+    expect(vehicleOnly['signal'], 'stopCandidate');
+    expect(vehicleOnly['vehicleOnlyStopFallbackAvailable'], isTrue);
+    expect(vehicleOnly['walkingEvidenceCanOnlySuggestReview'], isTrue);
+    expect(vehicleOnly['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(vehicleOnly['mapboxCanEndTrip'], isFalse);
   });
 }

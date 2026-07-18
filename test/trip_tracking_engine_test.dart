@@ -257,6 +257,13 @@ void main() {
         'cancelGpsActionLabel': 'Cancel GPS',
         'doNotShowAgainAvailable': true,
         'settingsReversalAvailable': true,
+        'defaultGpsPausesBelowCutoff': true,
+        'userOverrideRequiresExplicitChoice': true,
+        'batteryGuardCanBeChangedInSettings': true,
+        'gpsTrackingCanRetryWhenCharging': true,
+        'mapsRequiredForGps': false,
+        'tripDataDeletionAllowed': false,
+        'odometerRemainsCanonical': true,
         'preciseBatteryIncluded': false,
         'rawBatteryPayloadIncluded': false,
       });
