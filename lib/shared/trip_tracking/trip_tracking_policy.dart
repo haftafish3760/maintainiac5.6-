@@ -55,6 +55,7 @@ class TripGpsBatteryDecision {
       'odometerRemainsCanonical': true,
       'preciseBatteryIncluded': false,
       'rawBatteryPayloadIncluded': false,
+      'tokensIncluded': false,
     };
   }
 }
