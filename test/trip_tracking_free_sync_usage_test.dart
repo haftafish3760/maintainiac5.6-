@@ -159,6 +159,35 @@ void main() {
   });
 
   test(
+    'reservation fails closed without upload when scope is unreadable',
+    () async {
+      final usage = TripTrackingFreeSyncUsage(
+        attemptStore: CloudBackupSyncAttemptStore.memory(),
+        durableScope: 'bad:scope',
+      );
+
+      final decision = await usage.reserveAuthorizedAttempt(
+        networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+        wifiAvailable: true,
+        mobileDataAvailable: true,
+        nowUtc: DateTime.utc(2026, 7, 17, 12),
+      );
+
+      expect(decision.mayAttemptSync, isFalse);
+      expect(decision.reasonCode, 'free_sync_limit_invalid');
+      expect(
+        decision.toSafeSummary()['usageDecisionTrustedAfterValidationOnly'],
+        isTrue,
+      );
+      expect(
+        decision.toSafeSummary()['syncAttemptCanDeleteLocalData'],
+        isFalse,
+      );
+      expect(decision.toSafeSummary()['hiveRemainsSourceOfTruth'], isTrue);
+    },
+  );
+
+  test(
     'reservation refuses the seventh free sync in a rolling window',
     () async {
       final store = CloudBackupSyncAttemptStore.memory();

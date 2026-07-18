@@ -64,12 +64,22 @@ class TripTrackingFreeSyncUsage {
     required DateTime nowUtc,
   }) {
     return _enqueueReservation(() async {
-      final decision = evaluate(
-        networkPolicy: networkPolicy,
-        wifiAvailable: wifiAvailable,
-        mobileDataAvailable: mobileDataAvailable,
-        nowUtc: nowUtc,
-      );
+      final TripTrackingBackupSyncDecision decision;
+      try {
+        decision = evaluate(
+          networkPolicy: networkPolicy,
+          wifiAvailable: wifiAvailable,
+          mobileDataAvailable: mobileDataAvailable,
+          nowUtc: nowUtc,
+        );
+      } on ArgumentError {
+        return TripTrackingBackupSyncPolicy.evaluate(
+          networkPolicy: networkPolicy,
+          wifiAvailable: wifiAvailable,
+          mobileDataAvailable: mobileDataAvailable,
+          syncsUsedInWindow: -1,
+        );
+      }
       if (!decision.mayAttemptSync) return decision;
       await recordAuthorizedAttempt(nowUtc);
       return decision;
