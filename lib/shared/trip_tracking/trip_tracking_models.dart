@@ -485,12 +485,18 @@ class TripTrackingEngineSnapshot {
     final lastAccepted = map['lastAccepted'] is Map
         ? TripLocationSample.tryFromMap(map['lastAccepted'] as Map)
         : null;
+    final lastObservedAt = _safeLastObservedAt(
+      map['lastObservedAt'],
+      lastAccepted: lastAccepted,
+    );
+    final stationaryStartedAt = _safeStationaryStartedAt(
+      map['stationaryStartedAt'],
+      vehicleMovementObserved: vehicleMovementObserved,
+      lastObservedAt: lastObservedAt,
+    );
     return TripTrackingEngineSnapshot(
       lastAccepted: lastAccepted,
-      lastObservedAt: _safeLastObservedAt(
-        map['lastObservedAt'],
-        lastAccepted: lastAccepted,
-      ),
+      lastObservedAt: lastObservedAt,
       totalAcceptedMeters: _safeAcceptedMeters(map['totalAcceptedMeters']),
       walkingEvidence: walkingEvidence,
       walkingReviewSuggested: _safeWalkingReviewSuggested(
@@ -498,19 +504,14 @@ class TripTrackingEngineSnapshot {
         vehicleMovementObserved: vehicleMovementObserved,
         walkingEvidence: walkingEvidence,
       ),
-      motionState: TripMotionState.values.firstWhere(
-        (value) => value.name == map['motionState'],
-        orElse: () => TripMotionState.unknown,
+      motionState: _safeRecoveredMotionState(
+        map['motionState'],
+        vehicleMovementObserved: vehicleMovementObserved,
+        stationaryStartedAt: stationaryStartedAt,
+        walkingEvidence: walkingEvidence,
       ),
       vehicleMovementObserved: vehicleMovementObserved,
-      stationaryStartedAt: _safeStationaryStartedAt(
-        map['stationaryStartedAt'],
-        vehicleMovementObserved: vehicleMovementObserved,
-        lastObservedAt: _safeLastObservedAt(
-          map['lastObservedAt'],
-          lastAccepted: lastAccepted,
-        ),
-      ),
+      stationaryStartedAt: stationaryStartedAt,
       diagnostics: map['diagnostics'] is Map
           ? TripTrackingDiagnostics.fromMap(map['diagnostics'] as Map)
           : const TripTrackingDiagnostics(),
@@ -538,6 +539,33 @@ bool _safeWalkingReviewSuggested(
     requested &&
     vehicleMovementObserved &&
     walkingEvidence.any((item) => item.isHighConfidenceWalking);
+
+TripMotionState _safeRecoveredMotionState(
+  Object? rawValue, {
+  required bool vehicleMovementObserved,
+  required DateTime? stationaryStartedAt,
+  required Iterable<TripActivityObservation> walkingEvidence,
+}) {
+  final parsed = TripMotionState.values.firstWhere(
+    (value) => value.name == rawValue,
+    orElse: () => TripMotionState.unknown,
+  );
+  if (parsed == TripMotionState.unknown) return TripMotionState.unknown;
+  if (!vehicleMovementObserved) return TripMotionState.unknown;
+  if (parsed == TripMotionState.moving) return TripMotionState.moving;
+  if (parsed == TripMotionState.stopCandidate) {
+    return stationaryStartedAt != null ||
+            walkingEvidence.any((item) => item.isHighConfidenceWalking)
+        ? TripMotionState.stopCandidate
+        : TripMotionState.unknown;
+  }
+  if (parsed == TripMotionState.stopped) {
+    return walkingEvidence.any((item) => item.isHighConfidenceWalking)
+        ? TripMotionState.stopped
+        : TripMotionState.unknown;
+  }
+  return TripMotionState.unknown;
+}
 
 extension _TakeLastExtension<T> on List<T> {
   Iterable<T> takeLast(int maxLength) {

@@ -1112,4 +1112,56 @@ void main() {
     expect(restored.motionState, TripMotionState.unknown);
     expect(restored.snapshot.walkingEvidence, isEmpty);
   });
+
+  test('malformed recovery motion cannot invent a stopped trip', () {
+    final snapshot = TripTrackingEngineSnapshot.fromMap({
+      'totalAcceptedMeters': 0,
+      'vehicleMovementObserved': false,
+      'motionState': 'stopped',
+      'walkingReviewSuggested': true,
+      'walkingEvidence': [
+        {
+          'activity': 'walking',
+          'confidence': 95,
+          'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
+        },
+      ],
+    });
+    final restored = TripTrackingEngine.fromSnapshot(snapshot);
+
+    expect(snapshot.motionState, TripMotionState.unknown);
+    expect(snapshot.walkingReviewSuggested, isFalse);
+    expect(restored.motionState, TripMotionState.unknown);
+    expect(restored.needsWalkingReview, isFalse);
+  });
+
+  test(
+    'vehicle-only stop candidate restore needs a bounded stationary start',
+    () {
+      final withoutStationaryStart = TripTrackingEngineSnapshot.fromMap({
+        'lastAccepted': sample(-80, 0).toMap(),
+        'lastObservedAt': start
+            .add(const Duration(minutes: 2))
+            .toIso8601String(),
+        'totalAcceptedMeters': 12,
+        'vehicleMovementObserved': true,
+        'motionState': 'stopCandidate',
+      });
+      final withStationaryStart = TripTrackingEngineSnapshot.fromMap({
+        'lastAccepted': sample(-80, 0).toMap(),
+        'lastObservedAt': start
+            .add(const Duration(minutes: 2))
+            .toIso8601String(),
+        'totalAcceptedMeters': 12,
+        'vehicleMovementObserved': true,
+        'stationaryStartedAt': start
+            .add(const Duration(minutes: 2))
+            .toIso8601String(),
+        'motionState': 'stopCandidate',
+      });
+
+      expect(withoutStationaryStart.motionState, TripMotionState.unknown);
+      expect(withStationaryStart.motionState, TripMotionState.stopCandidate);
+    },
+  );
 }
