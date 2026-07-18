@@ -1,5 +1,6 @@
 import '../device_capabilities/device_capabilities.dart';
 import 'trip_tracking_capability_guidance.dart';
+import 'trip_tracking_device_profile_validator.dart';
 import 'trip_tracking_platform.dart';
 import 'trip_tracking_settings_store.dart';
 
@@ -412,27 +413,39 @@ class TripTrackingDeviceOperationalPolicy {
   };
 
   factory TripTrackingDeviceOperationalPolicy.fromDeviceProfile(
-    DeviceCapabilityProfile profile,
-  ) {
+    DeviceCapabilityProfile profile, {
+    DateTime? currentAt,
+  }) {
+    final validation = TripTrackingDeviceProfileValidation.evaluate(
+      profile,
+      currentAt: currentAt,
+    );
     final operational = profile.operationalPolicy;
     final sensors = profile.extended.sensors;
     final battery = profile.extended.battery;
-    final constrained = operational.deferNonEssentialHeavyWork;
+    final constrained =
+        operational.deferNonEssentialHeavyWork ||
+        validation.shouldDegradeToLocationOnly;
     return TripTrackingDeviceOperationalPolicy(
       platformCapabilities: TripTrackingPlatformCapabilities(
         locationAvailable: true,
-        backgroundTrackingAvailable: !constrained,
-        activityRecognitionAvailable: sensors.hasMotion,
+        backgroundTrackingAvailable:
+            !constrained && validation.trustedForGpsAssist,
+        activityRecognitionAvailable:
+            sensors.hasMotion && validation.trustedForGpsAssist,
         batteryStateAvailable: battery.levelPercent != null,
         lowPowerModeAvailable: profile.runtime.powerSaving || battery.isLow,
       ),
       recommendedSampleIntervalSeconds: operational.tripLocationIntervalSeconds
           .clamp(5, 60),
       lowBatteryGuardRecommended: true,
-      activityRecognitionRecommended: sensors.hasMotion && !constrained,
-      backgroundTrackingAllowed: !constrained,
+      activityRecognitionRecommended:
+          sensors.hasMotion && !constrained && validation.trustedForGpsAssist,
+      backgroundTrackingAllowed: !constrained && validation.trustedForGpsAssist,
       deferMapRouteHistory:
-          constrained || !operational.allowLargeNetworkTransfer,
+          constrained ||
+          !operational.allowLargeNetworkTransfer ||
+          validation.shouldDegradeToLocationOnly,
     );
   }
 }
