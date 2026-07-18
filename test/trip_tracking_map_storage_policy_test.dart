@@ -350,6 +350,7 @@ void main() {
     expect(summary['accepted'], isTrue);
     expect(summary['source'], 'gps');
     expect(summary['sequenceBucket'], 'under_1k');
+    expect(summary['orderedAfterLastPoint'], isTrue);
     expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
     expect(summary['routePointCanReplaceOdometer'], isFalse);
     expect(summary['routePointCanCreateOfficialTripLog'], isFalse);
@@ -365,6 +366,45 @@ void main() {
     expect(summary.toString(), isNot(contains('35.2271')));
     expect(summary.toString(), isNot(contains('-80.8431')));
     expect(summary.toString(), isNot(contains('trip_map_history_1')));
+  });
+
+  test('route point payload rejects duplicate or replayed sequence', () {
+    final now = DateTime.utc(2026, 7, 18, 12);
+    final duplicate = TripTrackingMapRoutePointPayloadPolicy.validate(
+      expectedTripId: 'trip_map_history_1',
+      nowUtc: now,
+      lastPersistedSequence: 42,
+      payload: {
+        'schemaVersion': 1,
+        'tripId': 'trip_map_history_1',
+        'source': 'gps',
+        'sequence': 42,
+        'latitude': 35.2271,
+        'longitude': -80.8431,
+        'recordedAt': now.toIso8601String(),
+        'horizontalAccuracyMeters': 8,
+      },
+    );
+    final next = TripTrackingMapRoutePointPayloadPolicy.validate(
+      expectedTripId: 'trip_map_history_1',
+      nowUtc: now,
+      lastPersistedSequence: 42,
+      payload: {
+        'schemaVersion': 1,
+        'tripId': 'trip_map_history_1',
+        'source': 'gps',
+        'sequence': 43,
+        'latitude': 35.2271,
+        'longitude': -80.8431,
+        'recordedAt': now.toIso8601String(),
+        'horizontalAccuracyMeters': 8,
+      },
+    );
+
+    expect(duplicate.accepted, isFalse);
+    expect(duplicate.reasonCode, 'route_point_replay_or_duplicate');
+    expect(duplicate.toSafeDashboardMap()['orderedAfterLastPoint'], isFalse);
+    expect(next.accepted, isTrue);
   });
 
   test(

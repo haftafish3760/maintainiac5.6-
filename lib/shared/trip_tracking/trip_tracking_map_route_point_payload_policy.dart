@@ -11,6 +11,7 @@ class TripTrackingMapRoutePointPayloadDecision {
     required this.hasValidCoordinate,
     required this.hasValidTimestamp,
     required this.hasValidAccuracy,
+    required this.orderedAfterLastPoint,
   });
 
   final bool accepted;
@@ -22,6 +23,7 @@ class TripTrackingMapRoutePointPayloadDecision {
   final bool hasValidCoordinate;
   final bool hasValidTimestamp;
   final bool hasValidAccuracy;
+  final bool orderedAfterLastPoint;
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': schemaVersion == 1 ? 1 : 1,
@@ -33,6 +35,7 @@ class TripTrackingMapRoutePointPayloadDecision {
     'hasValidCoordinate': hasValidCoordinate,
     'hasValidTimestamp': hasValidTimestamp,
     'hasValidAccuracy': hasValidAccuracy,
+    'orderedAfterLastPoint': orderedAfterLastPoint,
     'gpsTrackingCanContinueWithoutMaps': true,
     'routePointCanReplaceOdometer': false,
     'routePointCanCreateOfficialTripLog': false,
@@ -56,6 +59,7 @@ class TripTrackingMapRoutePointPayloadPolicy {
     required Map<dynamic, dynamic> payload,
     required String expectedTripId,
     required DateTime nowUtc,
+    int? lastPersistedSequence,
   }) {
     final schemaVersion = payload['schemaVersion'];
     final tripId = payload['tripId'];
@@ -85,6 +89,9 @@ class TripTrackingMapRoutePointPayloadPolicy {
         sequence is int &&
         sequence >= 0 &&
         sequence <= TripTrackingMapStoragePolicy.maxSafeRoutePointsPerDay;
+    final orderedAfterLastPoint =
+        lastPersistedSequence == null ||
+        (hasValidSequence && sequence > lastPersistedSequence);
     final hasValidAccuracy =
         horizontalAccuracyMeters is num &&
         horizontalAccuracyMeters.isFinite &&
@@ -108,6 +115,8 @@ class TripTrackingMapRoutePointPayloadPolicy {
         ? 'invalid_timestamp'
         : !hasValidSequence
         ? 'invalid_sequence'
+        : !orderedAfterLastPoint
+        ? 'route_point_replay_or_duplicate'
         : !hasValidAccuracy
         ? 'invalid_accuracy'
         : hasRawMapPayload
@@ -123,6 +132,7 @@ class TripTrackingMapRoutePointPayloadPolicy {
       hasValidCoordinate: hasValidCoordinate,
       hasValidTimestamp: hasValidTimestamp,
       hasValidAccuracy: hasValidAccuracy,
+      orderedAfterLastPoint: orderedAfterLastPoint,
     );
   }
 }
@@ -145,6 +155,7 @@ String _safeRoutePointPayloadReason(String value) {
     'invalid_coordinate' => 'invalid_coordinate',
     'invalid_timestamp' => 'invalid_timestamp',
     'invalid_sequence' => 'invalid_sequence',
+    'route_point_replay_or_duplicate' => 'route_point_replay_or_duplicate',
     'invalid_accuracy' => 'invalid_accuracy',
     'raw_map_payload_not_allowed' => 'raw_map_payload_not_allowed',
     _ => 'unsupported_schema',

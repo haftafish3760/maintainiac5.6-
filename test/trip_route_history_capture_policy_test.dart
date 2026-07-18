@@ -11,6 +11,7 @@ void main() {
     expect(safe['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
     expect(safe['mapsRequiredForTripTracking'], isFalse);
     expect(safe['textTripLogStillWritten'], isTrue);
+    expect(safe['textTripLogCanContinueAtLowStorage'], isTrue);
   });
 
   test('route history requires separate explicit opt in', () {
@@ -69,6 +70,12 @@ void main() {
       userOptedIntoRouteHistory: true,
       requestedDailyBudgetMb: 0.1,
     );
+    final criticalStorage = evaluate(
+      userOptedIntoMaps: true,
+      userOptedIntoRouteHistory: true,
+      availableStorageMb: 20,
+      requestedDailyBudgetMb: 2,
+    );
 
     expect(lowStorage.plan, TripRouteHistoryPlan.textOnlyAnchors);
     expect(
@@ -76,6 +83,14 @@ void main() {
       TripRouteHistoryReason.storageTooLowForRouteHistory,
     );
     expect(tinyBudget.reason, TripRouteHistoryReason.dailyBudgetTooSmall);
+    expect(
+      criticalStorage.reason,
+      TripRouteHistoryReason.storageCriticallyLowTextOnly,
+    );
+    expect(
+      criticalStorage.toSafeSummary()['criticalStorageTextOnlyFloorMb'],
+      25,
+    );
   });
 
   test('safe summary keeps route history advisory and token free', () {

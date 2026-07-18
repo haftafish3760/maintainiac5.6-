@@ -5,6 +5,7 @@ enum TripRouteHistoryReason {
   mapsDisabled,
   gpsOnlyFreeTracker,
   storageTooLowForRouteHistory,
+  storageCriticallyLowTextOnly,
   dailyBudgetTooSmall,
   compactTraceAllowed,
 }
@@ -45,6 +46,9 @@ class TripRouteHistoryCaptureDecision {
     'freeGpsTripTrackerRemainsFree': true,
     'routeHistoryCanBeDisabledWithoutStoppingTrip': true,
     'textTripLogStillWritten': true,
+    'textTripLogCanContinueAtLowStorage': true,
+    'minimumDeviceStorageMbForRouteHistory': 500,
+    'criticalStorageTextOnlyFloorMb': 25,
     'storesOnlyBoundedRoutePoints': true,
     'oneToThreeSecondRawPingStorageAllowed': false,
     'rawHighFrequencyPingsRetained': false,
@@ -82,6 +86,12 @@ class TripRouteHistoryCapturePolicy {
     }
     if (!userOptedIntoRouteHistory) {
       return _textOnly(TripRouteHistoryReason.userNotOptedIn, safeBudget);
+    }
+    if (availableStorageMb < 25) {
+      return _textOnly(
+        TripRouteHistoryReason.storageCriticallyLowTextOnly,
+        safeBudget,
+      );
     }
     if (availableStorageMb < 500) {
       return _textOnly(
