@@ -44,6 +44,8 @@ class TripOdometerCalibrationPromptDecision {
     'calibrationRequiresMultipleReviewedTrips': true,
     'calibrationRequiresReviewedLocalHistory': true,
     'calibrationRequiresVehicleMatchedHistory': true,
+    'calibrationRequiresOwnershipValidation': true,
+    'calibrationRequiresDaytimeLocalSource': true,
     'calibrationRequiresManualUserConfirmation': true,
     'calibrationAppliesToFutureGpsAssistanceOnly': true,
     'calibrationCanRewritePastTrips': false,
@@ -56,6 +58,7 @@ class TripOdometerCalibrationPromptDecision {
     'speedometerCalibrationReviewSuggested':
         reason == TripOdometerCalibrationPromptReason.tireOrSpeedometerReview,
     'remoteHistoryCanTriggerPromptWithoutLocalValidation': false,
+    'authenticationAloneAuthorizesCalibration': false,
     'firestoreCanApplyCalibration': false,
     'cloudFunctionCanApplyCalibration': false,
     'mapboxCanApplyCalibration': false,
@@ -95,6 +98,8 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'calibrationRequiresMultipleReviewedTrips',
       'calibrationRequiresReviewedLocalHistory',
       'calibrationRequiresVehicleMatchedHistory',
+      'calibrationRequiresOwnershipValidation',
+      'calibrationRequiresDaytimeLocalSource',
       'calibrationRequiresManualUserConfirmation',
       'calibrationAppliesToFutureGpsAssistanceOnly',
       'calibrationCanRewritePastTrips',
@@ -105,6 +110,7 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'tireSizeReviewSuggested',
       'speedometerCalibrationReviewSuggested',
       'remoteHistoryCanTriggerPromptWithoutLocalValidation',
+      'authenticationAloneAuthorizesCalibration',
       'firestoreCanApplyCalibration',
       'cloudFunctionCanApplyCalibration',
       'mapboxCanApplyCalibration',
@@ -125,6 +131,8 @@ class TripOdometerCalibrationPromptSummaryValidation {
         summary['calibrationRequiresMultipleReviewedTrips'] != true ||
         summary['calibrationRequiresReviewedLocalHistory'] != true ||
         summary['calibrationRequiresVehicleMatchedHistory'] != true ||
+        summary['calibrationRequiresOwnershipValidation'] != true ||
+        summary['calibrationRequiresDaytimeLocalSource'] != true ||
         summary['calibrationRequiresManualUserConfirmation'] != true ||
         summary['calibrationAppliesToFutureGpsAssistanceOnly'] != true) {
       reasons.add('calibration_review_boundary_missing');
@@ -138,6 +146,7 @@ class TripOdometerCalibrationPromptSummaryValidation {
     }
     if (summary['remoteHistoryCanTriggerPromptWithoutLocalValidation'] !=
             false ||
+        summary['authenticationAloneAuthorizesCalibration'] != false ||
         summary['firestoreCanApplyCalibration'] != false ||
         summary['cloudFunctionCanApplyCalibration'] != false ||
         summary['mapboxCanApplyCalibration'] != false ||

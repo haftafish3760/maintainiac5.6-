@@ -122,11 +122,14 @@ void main() {
     expect(safe['calibrationRequiresUserOptIn'], isTrue);
     expect(safe['calibrationRequiresReviewedLocalHistory'], isTrue);
     expect(safe['calibrationRequiresVehicleMatchedHistory'], isTrue);
+    expect(safe['calibrationRequiresOwnershipValidation'], isTrue);
+    expect(safe['calibrationRequiresDaytimeLocalSource'], isTrue);
     expect(safe['calibrationRequiresManualUserConfirmation'], isTrue);
     expect(safe['calibrationCanReplaceConfirmedOdometer'], isFalse);
     expect(safe['gpsCanReplaceOdometerSilently'], isFalse);
     expect(safe['mapboxCanReplaceOdometerSilently'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['authenticationAloneAuthorizesCalibration'], isFalse);
     expect(safe['firestoreCanApplyCalibration'], isFalse);
     expect(safe['cloudFunctionCanApplyCalibration'], isFalse);
     expect(safe['mapboxCanApplyCalibration'], isFalse);
@@ -169,6 +172,8 @@ void main() {
             'calibrationRequiresMultipleReviewedTrips': false,
             'calibrationRequiresReviewedLocalHistory': false,
             'calibrationRequiresVehicleMatchedHistory': false,
+            'calibrationRequiresOwnershipValidation': false,
+            'calibrationRequiresDaytimeLocalSource': false,
             'calibrationRequiresManualUserConfirmation': false,
             'calibrationAppliesToFutureGpsAssistanceOnly': false,
             'calibrationCanRewritePastTrips': true,
@@ -177,6 +182,7 @@ void main() {
             'mapboxCanReplaceOdometerSilently': true,
             'odometerRemainsOfficialMileageTruth': false,
             'remoteHistoryCanTriggerPromptWithoutLocalValidation': true,
+            'authenticationAloneAuthorizesCalibration': true,
             'firestoreCanApplyCalibration': true,
             'cloudFunctionCanApplyCalibration': true,
             'mapboxCanApplyCalibration': true,
@@ -197,6 +203,28 @@ void main() {
       validation.reasons,
       contains('summary_contains_sensitive_calibration_material'),
     );
+  });
+
+  test('forged prompt summaries cannot bypass local ownership validation', () {
+    final summary =
+        evaluate(
+          now: now,
+          signal: signal(
+            status: TripOdometerCalibrationStatus.reviewRecommended,
+            averageDifferencePercent: 6,
+          ),
+        ).toSafeDashboardMap()..addAll({
+          'calibrationRequiresOwnershipValidation': false,
+          'calibrationRequiresDaytimeLocalSource': false,
+          'authenticationAloneAuthorizesCalibration': true,
+        });
+
+    final validation =
+        TripOdometerCalibrationPromptSummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('calibration_review_boundary_missing'));
+    expect(validation.reasons, contains('remote_can_apply_calibration'));
   });
 }
 
