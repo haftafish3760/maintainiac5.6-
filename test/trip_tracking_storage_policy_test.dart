@@ -72,6 +72,14 @@ void main() {
       containsPair('userActionRequiredForCleanup', true),
     );
     expect(decision.toSafeSummary(), containsPair('cleanupSuggested', false));
+    expect(
+      decision.toSafeSummary(),
+      containsPair('storageDataTrustedAfterValidationOnly', true),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('remoteStorageStateCanBlockLocalTripLog', false),
+    );
   });
 
   test(
@@ -148,5 +156,44 @@ void main() {
     expect(summary['firestoreMirrorOnly'], isTrue);
     expect(summary['rawLocationIncluded'], isFalse);
     expect(summary['rawModuleDataIncluded'], isFalse);
+  });
+
+  test('safe summaries sanitize malformed direct storage fields', () {
+    const decision = TripTrackingStorageDecision(
+      action: TripTrackingStorageAction.warn,
+      storageState: 'available=35.1 token=sk.secret',
+      safeReason: 'delete_everything_now',
+      message: 'raw path /Users/private token=pk.secret',
+      availableBytes: 123456789,
+      requiredBytes: 987654321,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['storageState'], 'unknown');
+    expect(summary['safeReason'], 'storage_unknown_continue_text_records');
+    expect(summary['availableBucket'], 'red');
+    expect(summary['firebaseBackupCanOverrideStorageDecision'], isFalse);
+    expect(summary['mapboxCanOverrideStorageDecision'], isFalse);
+    expect(summary['malformedStorageStateFailsSafe'], isTrue);
+    expect(summary.toString(), isNot(contains('sk.secret')));
+    expect(summary.toString(), isNot(contains('/Users/private')));
+    expect(summary.keys, isNot(contains('message')));
+  });
+
+  test('remote storage state cannot block local GPS text logging', () {
+    const decision = TripTrackingStorageDecision(
+      action: TripTrackingStorageAction.unknown,
+      storageState: 'unknown',
+      safeReason: 'storage_unknown_continue_text_records',
+      message: 'remote storage data missing',
+      availableBytes: null,
+      requiredBytes: requiredBytes,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.canWriteTextRecord, isTrue);
+    expect(summary['remoteStorageStateCanBlockLocalTripLog'], isFalse);
+    expect(summary['localWriteMode'], 'append_only');
+    expect(summary['firestoreMirrorOnly'], isTrue);
   });
 }

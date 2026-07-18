@@ -29,8 +29,8 @@ class TripTrackingStorageDecision {
   Map<String, Object?> toSafeSummary() => {
     'schemaVersion': 1,
     'action': action.name,
-    'storageState': storageState,
-    'safeReason': safeReason,
+    'storageState': _safeStorageState(storageState),
+    'safeReason': _safeStorageReason(safeReason),
     'recordType': 'trip_text_record',
     'canWriteTextRecord': canWriteTextRecord,
     'shouldWarnUser': shouldWarnUser,
@@ -51,6 +51,11 @@ class TripTrackingStorageDecision {
     'confirmedBackupCanOnlySuggestCleanup': true,
     'userActionRequiredForCleanup': true,
     'cleanupSuggested': false,
+    'storageDataTrustedAfterValidationOnly': true,
+    'remoteStorageStateCanBlockLocalTripLog': false,
+    'firebaseBackupCanOverrideStorageDecision': false,
+    'mapboxCanOverrideStorageDecision': false,
+    'malformedStorageStateFailsSafe': true,
     'hiveRemainsSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'mapboxFailureStopsTextRecord': false,
@@ -113,4 +118,25 @@ String _bucketBytes(int? bytes) {
   if (bytes < AppStorageGuard.yellowStorageBytes) return 'orange';
   if (bytes < AppStorageGuard.greenStorageBytes) return 'yellow';
   return 'green';
+}
+
+String _safeStorageState(String value) {
+  return switch (value.trim()) {
+    'unknown' => 'unknown',
+    'blocked' => 'blocked',
+    'low_storage' => 'low_storage',
+    'text_record_safe' => 'text_record_safe',
+    _ => 'unknown',
+  };
+}
+
+String _safeStorageReason(String value) {
+  return switch (value.trim()) {
+    'storage_unknown_continue_text_records' =>
+      'storage_unknown_continue_text_records',
+    'storage_below_text_record_reserve' => 'storage_below_text_record_reserve',
+    'storage_low_text_records_allowed' => 'storage_low_text_records_allowed',
+    'storage_safe_text_records_allowed' => 'storage_safe_text_records_allowed',
+    _ => 'storage_unknown_continue_text_records',
+  };
 }
