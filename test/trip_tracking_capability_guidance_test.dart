@@ -20,6 +20,7 @@ void main() {
         lowBatteryGpsProtectionEnabled: true,
         lowBatteryGpsOverrideEnabled: true,
         lowBatteryGpsWarningDismissed: true,
+        mapRouteHistorySavingEnabled: true,
       ),
     );
 
@@ -31,6 +32,11 @@ void main() {
     expect(guidance.recommendedSettings.activityRecognitionEnabled, isFalse);
     expect(guidance.recommendedSettings.lowBatteryGpsOverrideEnabled, isFalse);
     expect(guidance.recommendedSettings.lowBatteryGpsWarningDismissed, isFalse);
+    expect(guidance.recommendedSettings.mapRouteHistorySavingEnabled, isFalse);
+    expect(
+      guidance.toSafeDashboardMap()['routeHistoryDisabledWhenGpsUnavailable'],
+      isTrue,
+    );
     expect(guidance.dashboardBadge, 'GPS unavailable');
   });
 
@@ -50,6 +56,9 @@ void main() {
           activityRecognitionEnabled: true,
           lowBatteryGpsProtectionEnabled: true,
           lowBatteryGpsOverrideEnabled: true,
+          mapRouteHistorySavingEnabled: true,
+          mapPreviewEnabled: true,
+          mapRouteHistoryDailyBudgetMb: 1,
         ),
       );
 
@@ -68,6 +77,7 @@ void main() {
         guidance.recommendedSettings.lowBatteryGpsProtectionEnabled,
         isFalse,
       );
+      expect(guidance.recommendedSettings.mapRouteHistorySavingEnabled, isTrue);
       expect(guidance.dashboardBadge, 'Foreground GPS');
     },
   );
@@ -176,6 +186,8 @@ void main() {
       expect(summary['deviceCapabilityCanReduceAccuracy'], isTrue);
       expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
       expect(summary['mapsRequiredForTracking'], isFalse);
+      expect(summary['routeHistoryRequiresLocationCapability'], isTrue);
+      expect(summary['routeHistoryDisabledWhenGpsUnavailable'], isTrue);
       expect(summary['odometerRemainsCanonical'], isTrue);
       expect(summary['nativeCapabilitiesAreAdvisory'], isTrue);
       expect(summary['sensorAvailabilityRequiresRuntimePermission'], isTrue);

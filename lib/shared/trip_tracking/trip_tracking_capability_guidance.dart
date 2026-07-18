@@ -58,6 +58,8 @@ class TripTrackingCapabilityGuidance {
     'deviceCapabilityCanReduceAccuracy': true,
     'gpsTrackingCanRunWithoutMaps': true,
     'mapsRequiredForTracking': false,
+    'routeHistoryRequiresLocationCapability': true,
+    'routeHistoryDisabledWhenGpsUnavailable': true,
     'odometerRemainsCanonical': true,
     'nativeCapabilitiesAreAdvisory': true,
     'sensorAvailabilityRequiresRuntimePermission': true,
@@ -98,6 +100,8 @@ class TripTrackingCapabilityGuidance {
           lowBatteryProtection && settings.lowBatteryGpsOverrideEnabled,
       lowBatteryGpsWarningDismissed:
           lowBatteryProtection && settings.lowBatteryGpsWarningDismissed,
+      mapRouteHistorySavingEnabled:
+          gpsEnabled && settings.mapRouteHistorySavingEnabled,
     );
     final readiness = _readinessFor(
       capabilities: capabilities,
