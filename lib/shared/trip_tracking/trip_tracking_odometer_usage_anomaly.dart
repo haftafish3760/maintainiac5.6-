@@ -67,6 +67,7 @@ class TripOdometerUsageAnomalySignal {
     int minimumReviewedDays = 7,
     double reviewMultiplier = 2.5,
     double minimumReviewBufferMiles = 50,
+    double maximumTrustedReviewedDayMiles = 1200,
   }) {
     if (!currentOdometerMiles.isFinite ||
         currentOdometerMiles < 0 ||
@@ -74,7 +75,9 @@ class TripOdometerUsageAnomalySignal {
         !reviewMultiplier.isFinite ||
         reviewMultiplier < 1 ||
         !minimumReviewBufferMiles.isFinite ||
-        minimumReviewBufferMiles < 0) {
+        minimumReviewBufferMiles < 0 ||
+        !maximumTrustedReviewedDayMiles.isFinite ||
+        maximumTrustedReviewedDayMiles <= 0) {
       return const TripOdometerUsageAnomalySignal(
         status: TripOdometerUsageAnomalyStatus.invalid,
         reviewedDayCount: 0,
@@ -104,7 +107,11 @@ class TripOdometerUsageAnomalySignal {
       }
       final miles = (review.confirmedEndingOdometer! - review.startingOdometer)
           .toDouble();
-      if (!miles.isFinite || miles < 0) continue;
+      if (!miles.isFinite ||
+          miles < 0 ||
+          miles > maximumTrustedReviewedDayMiles) {
+        continue;
+      }
       final dayKey = _usageDayKey(review.startedAt.toUtc());
       dailyMiles.update(
         dayKey,

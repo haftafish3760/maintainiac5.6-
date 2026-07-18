@@ -117,6 +117,48 @@ void main() {
     expect(signal.toSafeDashboardMap()['rawHistoryIncluded'], isFalse);
   });
 
+  test('usage anomaly ignores impossible historical mileage outliers', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 101,
+      history: [
+        ..._history(dailyMiles: 40),
+        _review(day: 9, startingOdometer: 2000, confirmedEndingOdometer: 6000),
+      ],
+      vehicleId: 'vehicle_1',
+    );
+
+    expect(signal.reviewedDayCount, 7);
+    expect(signal.averageDailyMiles, 40);
+    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+  });
+
+  test('usage anomaly rejects malformed maximum trusted day threshold', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 90,
+      history: _history(dailyMiles: 40),
+      maximumTrustedReviewedDayMiles: double.infinity,
+    );
+
+    expect(signal.status, TripOdometerUsageAnomalyStatus.invalid);
+    expect(signal.reasonCode, 'invalid_usage_anomaly_input');
+  });
+
+  test('usage anomaly combines multiple confirmed trips on the same day', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 120,
+      history: [
+        ..._history(dailyMiles: 40, days: 6),
+        _review(day: 7, startingOdometer: 2000, confirmedEndingOdometer: 2020),
+        _review(day: 7, startingOdometer: 2020, confirmedEndingOdometer: 2040),
+      ],
+      vehicleId: 'vehicle_1',
+    );
+
+    expect(signal.reviewedDayCount, 7);
+    expect(signal.averageDailyMiles, 40);
+    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+  });
+
   test('safe anomaly maps expose calibration as review-only guidance', () {
     final signal = TripOdometerUsageAnomalySignal.evaluate(
       currentOdometerMiles: 120,
