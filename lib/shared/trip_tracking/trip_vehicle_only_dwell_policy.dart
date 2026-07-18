@@ -1,5 +1,6 @@
 import 'trip_tracking_models.dart';
 import 'trip_tracking_profile_strategy.dart';
+import 'trip_tracking_signal_quality.dart';
 
 enum TripVehicleOnlyDwellStatus {
   unavailable,
@@ -106,6 +107,7 @@ class TripVehicleOnlyDwellSummaryValidation {
     'vehicle_only_dwell_not_needed_for_profile',
     'vehicle_only_dwell_waiting_for_clean_evidence',
     'vehicle_only_dwell_needs_more_drive_evidence',
+    'vehicle_only_dwell_waiting_for_trusted_gps',
     'vehicle_only_dwell_traffic_control_protected',
     'vehicle_only_dwell_manual_fallback',
     'vehicle_only_dwell_keep_tracking',
@@ -250,6 +252,7 @@ class TripVehicleOnlyDwellPolicy {
     required bool acceptedVehicleMovementObserved,
     required double speedMps,
     required double horizontalAccuracyMeters,
+    TripTrackingSignalQuality signalQuality = TripTrackingSignalQuality.healthy,
   }) {
     final strategy = TripTrackingProfileStrategy.forProfile(profile);
     final safeStationary = _safeDuration(stationaryDuration);
@@ -261,11 +264,25 @@ class TripVehicleOnlyDwellPolicy {
       strategy,
     );
 
-    if (!_safeProviderValues(speedMps, horizontalAccuracyMeters) ||
+    if (_signalQualityUnsafe(signalQuality) ||
+        !_safeProviderValues(speedMps, horizontalAccuracyMeters) ||
         stationaryDuration.isNegative) {
       return _decision(
         status: TripVehicleOnlyDwellStatus.unsafeEvidence,
         reasonCode: 'unsafe_vehicle_only_dwell_evidence',
+        minimumDwell: minimumDwell,
+        observedDwell: safeStationary,
+        acceptedDistanceCount: safeAcceptedDistanceCount,
+        rejectedDriftCount: safeRejectedDriftCount,
+        minimumAcceptedDistanceCount: minimumAcceptedDistanceCount,
+        canSurfaceManualFallback: false,
+      );
+    }
+
+    if (_signalQualityBlocksDwell(signalQuality)) {
+      return _decision(
+        status: TripVehicleOnlyDwellStatus.keepTracking,
+        reasonCode: 'vehicle_only_dwell_waiting_for_trusted_gps',
         minimumDwell: minimumDwell,
         observedDwell: safeStationary,
         acceptedDistanceCount: safeAcceptedDistanceCount,
@@ -441,6 +458,20 @@ bool _safeProviderValues(double speedMps, double horizontalAccuracyMeters) {
   return horizontalAccuracyMeters >= 0 && horizontalAccuracyMeters <= 250;
 }
 
+bool _signalQualityUnsafe(TripTrackingSignalQuality quality) =>
+    quality == TripTrackingSignalQuality.unsafe;
+
+bool _signalQualityBlocksDwell(TripTrackingSignalQuality quality) {
+  return switch (quality) {
+    TripTrackingSignalQuality.noSamples ||
+    TripTrackingSignalQuality.poor ||
+    TripTrackingSignalQuality.interrupted ||
+    TripTrackingSignalQuality.unsafe => true,
+    TripTrackingSignalQuality.healthy || TripTrackingSignalQuality.reduced =>
+      false,
+  };
+}
+
 int _safeCount(int value) {
   if (value <= 0) return 0;
   return value > 100000 ? 100000 : value;
@@ -463,6 +494,8 @@ String _safeReason(String value) {
       'vehicle_only_dwell_waiting_for_clean_evidence',
     'vehicle_only_dwell_needs_more_drive_evidence' =>
       'vehicle_only_dwell_needs_more_drive_evidence',
+    'vehicle_only_dwell_waiting_for_trusted_gps' =>
+      'vehicle_only_dwell_waiting_for_trusted_gps',
     'vehicle_only_dwell_traffic_control_protected' =>
       'vehicle_only_dwell_traffic_control_protected',
     'vehicle_only_dwell_manual_fallback' =>

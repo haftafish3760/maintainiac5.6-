@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_vehicle_only_dwell_policy.dart';
 
 void main() {
@@ -243,6 +244,54 @@ void main() {
       expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
     },
   );
+
+  test('poor or interrupted GPS suppresses vehicle-only manual fallback', () {
+    for (final quality in const [
+      TripTrackingSignalQuality.noSamples,
+      TripTrackingSignalQuality.poor,
+      TripTrackingSignalQuality.interrupted,
+    ]) {
+      final decision = TripVehicleOnlyDwellPolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        stationaryDuration: const Duration(minutes: 7),
+        walkingEvidenceCount: 0,
+        rejectedDriftCount: 0,
+        acceptedDistanceCount: 7,
+        acceptedVehicleMovementObserved: true,
+        speedMps: 0,
+        horizontalAccuracyMeters: 8,
+        signalQuality: quality,
+      );
+
+      expect(decision.status, TripVehicleOnlyDwellStatus.keepTracking);
+      expect(decision.reasonCode, 'vehicle_only_dwell_waiting_for_trusted_gps');
+      expect(decision.canSurfaceManualFallback, isFalse);
+      expect(
+        TripVehicleOnlyDwellSummaryValidation.isValid(
+          decision.toSafeDashboardMap(),
+        ),
+        isTrue,
+      );
+    }
+  });
+
+  test('unsafe GPS blocks vehicle-only dwell evidence closed', () {
+    final decision = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      stationaryDuration: const Duration(minutes: 7),
+      walkingEvidenceCount: 0,
+      rejectedDriftCount: 0,
+      acceptedDistanceCount: 7,
+      acceptedVehicleMovementObserved: true,
+      speedMps: 0,
+      horizontalAccuracyMeters: 8,
+      signalQuality: TripTrackingSignalQuality.unsafe,
+    );
+
+    expect(decision.status, TripVehicleOnlyDwellStatus.unsafeEvidence);
+    expect(decision.reasonCode, 'unsafe_vehicle_only_dwell_evidence');
+    expect(decision.canSurfaceManualFallback, isFalse);
+  });
 
   test('summary validation rejects sensitive or authoritative dwell cards', () {
     final safe = TripVehicleOnlyDwellPolicy.evaluate(

@@ -102,7 +102,12 @@ class TripStopDebounceSummaryValidation {
         summary['walkingEvidenceRequiresCurrentDeviceSensor'] != true ||
         summary['walkingEvidenceCannotBeReplayedFromCloud'] != true ||
         summary['walkingEvidenceCannotBeImportedFromFile'] != true ||
-        summary['walkingEvidenceCannotCommitStop'] != true) {
+        summary['walkingEvidenceCannotCommitStop'] != true ||
+        summary['poorGpsCannotOpenStopReview'] != true ||
+        summary['interruptedGpsCannotOpenStopReview'] != true ||
+        summary['missingGpsCannotOpenStopReview'] != true ||
+        summary['unsafeGpsCannotOpenStopReview'] != true ||
+        summary['reducedGpsCanOnlyOpenReviewWithCorroboration'] != true) {
       reasons.add('walking_evidence_not_advisory_only');
     }
     if (summary['vehicleOnlyDwellCanOnlySuggestManualFallback'] != true ||
@@ -192,6 +197,8 @@ String? _safeDebounceReason(Object? value) {
   if (value is! String) return null;
   return switch (value) {
     'unsafe_stop_debounce_evidence' => value,
+    'unsafe_gps_blocks_stop_review' => value,
+    'gps_signal_quality_blocks_stop_review' => value,
     'vehicle_movement_required_before_stop_review' => value,
     'traffic_control_debounce_protected' => value,
     'vehicle_only_dwell_traffic_control_protected' => value,

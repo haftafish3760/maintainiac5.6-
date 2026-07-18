@@ -3,6 +3,7 @@ import 'trip_stop_debounce_evidence_digest.dart';
 import 'trip_stop_false_positive_guard.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_profile_strategy.dart';
+import 'trip_tracking_signal_quality.dart';
 import 'trip_vehicle_only_dwell_policy.dart';
 import 'trip_walking_evidence_recency_guard.dart';
 
@@ -28,6 +29,7 @@ class TripStopDebounceObservation {
     required this.horizontalAccuracyMeters,
     this.latestWalkingEvidenceAt,
     this.observedAt,
+    this.signalQuality = TripTrackingSignalQuality.healthy,
   });
 
   final TripMotionState motionState;
@@ -42,6 +44,7 @@ class TripStopDebounceObservation {
   final double horizontalAccuracyMeters;
   final DateTime? latestWalkingEvidenceAt;
   final DateTime? observedAt;
+  final TripTrackingSignalQuality signalQuality;
 }
 
 class TripStopDebounceDecision {
@@ -116,6 +119,11 @@ class TripStopDebounceDecision {
     'walkingEvidenceCannotBeReplayedFromCloud': true,
     'walkingEvidenceCannotBeImportedFromFile': true,
     'walkingEvidenceCannotCommitStop': true,
+    'poorGpsCannotOpenStopReview': true,
+    'interruptedGpsCannotOpenStopReview': true,
+    'missingGpsCannotOpenStopReview': true,
+    'unsafeGpsCannotOpenStopReview': true,
+    'reducedGpsCanOnlyOpenReviewWithCorroboration': true,
     'currentVehicleSpeedMustAllowStopReview': true,
     'movingVehicleCannotOpenStopReview': true,
     'vehicleOnlyDwellCanOnlySuggestManualFallback': true,
@@ -215,14 +223,35 @@ class TripStopDebouncePolicy {
           observation.acceptedVehicleMovementObserved,
       speedMps: observation.speedMps,
       horizontalAccuracyMeters: observation.horizontalAccuracyMeters,
+      signalQuality: observation.signalQuality,
     );
 
-    if (unsafe || rejectedUnsafeCount >= 3) {
+    if (unsafe ||
+        rejectedUnsafeCount >= 3 ||
+        _signalQualityUnsafe(observation.signalQuality)) {
       return _decision(
         status: TripStopDebounceStatus.unsafeEvidence,
-        reasonCode: 'unsafe_stop_debounce_evidence',
+        reasonCode: _signalQualityUnsafe(observation.signalQuality)
+            ? 'unsafe_gps_blocks_stop_review'
+            : 'unsafe_stop_debounce_evidence',
         profile: profile,
         motionState: observation.motionState,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
+    if (_signalQualityBlocksStopReview(observation.signalQuality)) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: 'gps_signal_quality_blocks_stop_review',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
         evidenceDigest: evidenceDigest,
         needsWalkingReview: false,
         vehicleOnlyDwell: vehicleOnlyDwell,
@@ -531,9 +560,26 @@ Duration _safeDuration(Duration value) {
   return value > const Duration(hours: 24) ? const Duration(hours: 24) : value;
 }
 
+bool _signalQualityUnsafe(TripTrackingSignalQuality quality) =>
+    quality == TripTrackingSignalQuality.unsafe;
+
+bool _signalQualityBlocksStopReview(TripTrackingSignalQuality quality) {
+  return switch (quality) {
+    TripTrackingSignalQuality.noSamples ||
+    TripTrackingSignalQuality.poor ||
+    TripTrackingSignalQuality.interrupted ||
+    TripTrackingSignalQuality.unsafe => true,
+    TripTrackingSignalQuality.healthy || TripTrackingSignalQuality.reduced =>
+      false,
+  };
+}
+
 String _safeReason(String value) {
   return switch (value.trim()) {
     'unsafe_stop_debounce_evidence' => 'unsafe_stop_debounce_evidence',
+    'unsafe_gps_blocks_stop_review' => 'unsafe_gps_blocks_stop_review',
+    'gps_signal_quality_blocks_stop_review' =>
+      'gps_signal_quality_blocks_stop_review',
     'vehicle_movement_required_before_stop_review' =>
       'vehicle_movement_required_before_stop_review',
     'traffic_control_debounce_protected' =>
