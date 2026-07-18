@@ -64,6 +64,11 @@ void main() {
       expect(safe['gpsAssistedTrackingRequiresUserOptIn'], isTrue);
       expect(safe['activityRecognitionRequiresUserOptIn'], isTrue);
       expect(safe['backgroundTrackingRequiresUserOptIn'], isTrue);
+      expect(
+        safe['validatedCapabilityDoesNotReplacePlatformPermission'],
+        isTrue,
+      );
+      expect(safe['sensorConsentCanBeRevokedWithoutDeletingTripLog'], isTrue);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
     },
   );
@@ -146,6 +151,7 @@ void main() {
     ).toSafeDashboardMap();
 
     expect(safe['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
+    expect(safe['gpsOnlyModeRemainsAvailableWithoutMotionAssist'], isTrue);
     expect(safe['firebaseCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['mapboxCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['employerCanEnableTrackingWithoutEmployeeConsent'], isFalse);

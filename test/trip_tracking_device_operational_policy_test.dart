@@ -41,6 +41,11 @@ void main() {
     expect(summary['paidMapServicesCanBeDisabled'], isTrue);
     expect(summary['mapRouteHistoryIsOptional'], isTrue);
     expect(summary['deviceCapabilityTrustedAfterValidationOnly'], isTrue);
+    expect(
+      summary['validatedCapabilityDoesNotReplacePlatformPermission'],
+      isTrue,
+    );
+    expect(summary['deviceCapabilityCanOnlyRecommendSettings'], isTrue);
     expect(summary['deviceCapabilityCanDeleteLocalData'], isFalse);
     expect(summary['deviceCapabilityCanSilentlyStartTracking'], isFalse);
     expect(summary['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
@@ -243,6 +248,10 @@ void main() {
 
     expect(summary['recommendedSampleIntervalSeconds'], 5);
     expect(summary['deviceCapabilityTrustedAfterValidationOnly'], isTrue);
+    expect(
+      summary['validatedCapabilityDoesNotReplacePlatformPermission'],
+      isTrue,
+    );
     expect(summary['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
     expect(summary['firebaseDeviceProfileCanOverrideUserConsent'], isFalse);
     expect(summary['mapboxCanOverrideDevicePolicy'], isFalse);
@@ -450,6 +459,7 @@ void main() {
     ).toSafeSummary();
 
     expect(summary['employerCanEnableTrackingWithoutUserConsent'], isFalse);
+    expect(summary['deviceCapabilityCanOnlyRecommendSettings'], isTrue);
     expect(summary['deviceCapabilityCanSilentlyStartTracking'], isFalse);
     expect(summary['batteryGuardCanStopTripAutomatically'], isFalse);
     expect(summary['batteryGuardCanDeleteTripRecords'], isFalse);

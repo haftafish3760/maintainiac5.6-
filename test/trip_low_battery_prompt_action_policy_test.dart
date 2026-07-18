@@ -71,6 +71,9 @@ void main() {
       ).toSafeSummary();
 
       expect(safe['dashboardSettingsCanRestorePrompt'], isTrue);
+      expect(safe['continueGpsDoesNotConfirmMileage'], isTrue);
+      expect(safe['cancelGpsOnlyPausesGpsSampling'], isTrue);
+      expect(safe['doNotShowAgainDoesNotRemoveSettingsReversal'], isTrue);
       expect(safe['batteryActionCanDeleteTripRecords'], isFalse);
       expect(safe['batteryActionCanConfirmMileage'], isFalse);
       expect(safe['firebaseCanOverrideBatteryChoice'], isFalse);

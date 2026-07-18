@@ -24,6 +24,9 @@ void main() {
     expect(decision.shouldWriteLocalCheckpoint, isTrue);
     expect(safe['gpsPauseCanEndTripAutomatically'], isFalse);
     expect(safe['gpsPauseCanDeleteTripRecords'], isFalse);
+    expect(safe['lowBatteryPauseIsGpsOnly'], isTrue);
+    expect(safe['lowBatteryPauseRequiresLocalCheckpoint'], isTrue);
+    expect(safe['backgroundGpsCanResumeAfterUserOverride'], isTrue);
     expect(safe['manualOdometerEntryStillAllowed'], isTrue);
   });
 
