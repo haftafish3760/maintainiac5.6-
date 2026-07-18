@@ -69,10 +69,13 @@ void main() {
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['calibrationRequiresTrustedSignalDiagnostics'], isTrue);
+    expect(summary['unknownSignalDiagnosticsFailNeutralInController'], isTrue);
+    expect(summary['poorGpsDaysCannotCountAsTrustedWindow'], isTrue);
     expect(
-      summary['unknownSignalDiagnosticsFailNeutralInController'],
+      summary['unknownSignalDiagnosticsCannotCountAsTrustedWindow'],
       isTrue,
     );
+    expect(summary['excludedPoorGpsCannotBecomeCalibrationProof'], isTrue);
     expect(summary['singleDayCalibrationRejected'], isTrue);
     expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanRewritePastTrips'], isFalse);
@@ -100,10 +103,7 @@ void main() {
     expect(summary['continuousCalibrationAverageRequired'], isTrue);
     expect(summary['singleDayCalibrationRejected'], isTrue);
     expect(summary['controllerRequiresTrustedSignalDiagnostics'], isTrue);
-    expect(
-      summary['unknownSignalDiagnosticsFailNeutralInController'],
-      isTrue,
-    );
+    expect(summary['unknownSignalDiagnosticsFailNeutralInController'], isTrue);
     expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);
     expect(summary['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
     expect(summary['calibrationCanMutateTripLog'], isFalse);

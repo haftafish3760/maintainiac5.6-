@@ -757,49 +757,48 @@ void main() {
     },
   );
 
-  test(
-    'strict calibration excludes days without trusted GPS diagnostics',
-    () {
-      final confirmedAt = DateTime.utc(2026, 7, 14, 12);
-      final reviews = List.generate(
-        7,
-        (index) => TripTrackingReviewRecord(
-          id: 'trip_unknown_signal_$index',
-          vehicleId: 'vehicle_1',
-          startingOdometer: 1000 + (index * 100),
-          estimatedEndingOdometer: 1100 + (index * 100),
-          confirmedEndingOdometer: 1100 + (index * 100),
-          odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
-          profile: TripTrackingProfile.roadVehicle,
-          startedAt: DateTime.utc(2026, 7, 1 + index, 8),
-          finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
-          engineSnapshot: const TripTrackingEngineSnapshot(
-            totalAcceptedMeters: 94 * 1609.344,
-            walkingReviewSuggested: false,
-          ),
+  test('strict calibration excludes days without trusted GPS diagnostics', () {
+    final confirmedAt = DateTime.utc(2026, 7, 14, 12);
+    final reviews = List.generate(
+      7,
+      (index) => TripTrackingReviewRecord(
+        id: 'trip_unknown_signal_$index',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000 + (index * 100),
+        estimatedEndingOdometer: 1100 + (index * 100),
+        confirmedEndingOdometer: 1100 + (index * 100),
+        odometerConfirmedAt: confirmedAt.add(Duration(days: index)),
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 1 + index, 8),
+        finishedAt: DateTime.utc(2026, 7, 1 + index, 10),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 94 * 1609.344,
+          walkingReviewSuggested: false,
         ),
-      );
+      ),
+    );
 
-      final looseSignal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
-        reviews: reviews,
-      );
-      final strictSignal =
-          TripOdometerCalibrationSignal.evaluateConfirmedReviews(
-            reviews: reviews,
-            requireTrustedSignalDiagnostics: true,
-          );
+    final looseSignal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+    );
+    final strictSignal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+      requireTrustedSignalDiagnostics: true,
+    );
 
-      expect(looseSignal.status, TripOdometerCalibrationStatus.reviewRecommended);
-      expect(strictSignal.status, TripOdometerCalibrationStatus.insufficientHistory);
-      expect(strictSignal.eligibleSampleCount, 0);
-      expect(strictSignal.excludedPoorGpsDayCount, 7);
-      expect(strictSignal.reasonCode, 'needs_more_reviewed_days');
-      expect(
-        strictSignal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
-        isTrue,
-      );
-    },
-  );
+    expect(looseSignal.status, TripOdometerCalibrationStatus.reviewRecommended);
+    expect(
+      strictSignal.status,
+      TripOdometerCalibrationStatus.insufficientHistory,
+    );
+    expect(strictSignal.eligibleSampleCount, 0);
+    expect(strictSignal.excludedPoorGpsDayCount, 7);
+    expect(strictSignal.reasonCode, 'needs_more_reviewed_days');
+    expect(
+      strictSignal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
+      isTrue,
+    );
+  });
 
   test('calibration requires distinct reviewed driving days', () {
     final confirmedAt = DateTime.utc(2026, 7, 14, 12);
@@ -1285,6 +1284,9 @@ void main() {
       'calibrationRequiresTrustedGpsWindow': true,
       'controllerRequiresTrustedSignalDiagnostics': true,
       'unknownSignalDiagnosticsFailNeutralInController': true,
+      'poorGpsDaysCannotCountAsTrustedWindow': true,
+      'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
+      'excludedPoorGpsCannotBecomeCalibrationProof': true,
       'singleDayCalibrationRejected': true,
       'calibrationRequiresVehicleScopedHistory': true,
       'calibrationCanRewritePastTrips': false,
@@ -1308,6 +1310,12 @@ void main() {
       'gpsAssistanceCalibrationMultiplier': 0.9434,
       'odometerIsGlobalTruth': true,
       'odometerRemainsCanonical': true,
+      'physicalOdometerRequiredForOfficialMileage': true,
+      'confirmedOdometerOverridesExternalMileage': true,
+      'externalMileageCannotBecomeGlobalTruth': true,
+      'gpsDistanceCanOnlyAdviseMileageReview': true,
+      'mapMatchingCanOnlyAdviseMileageReview': true,
+      'optimizationCannotChangeOfficialMileage': true,
       'gpsAssistAdvisoryOnly': true,
       'mapboxAssistAdvisoryOnly': true,
       'rawReviewedTripsIncluded': false,

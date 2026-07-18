@@ -110,6 +110,9 @@ void main() {
     expect(safe['excludedPoorGpsDayCount'], 0);
     expect(safe['excludedPoorGpsDayCountIncluded'], isTrue);
     expect(safe['poorGpsExcludedDayCountTrustedAfterValidationOnly'], isTrue);
+    expect(safe['poorGpsDaysCannotCountAsTrustedWindow'], isTrue);
+    expect(safe['unknownSignalDiagnosticsCannotCountAsTrustedWindow'], isTrue);
+    expect(safe['excludedPoorGpsCannotBecomeCalibrationProof'], isTrue);
     expect(safe['singleDayCalibrationRejected'], isTrue);
     expect(safe['calibrationAverageVehicleScoped'], isTrue);
     expect(safe['calibrationRequiresOwnershipOrExplicitAccess'], isTrue);
