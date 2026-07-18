@@ -10,6 +10,7 @@ import 'trip_tracking_engine.dart';
 import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_native_error_policy.dart';
+import 'trip_tracking_native_sampling_policy.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_platform.dart';
@@ -1101,33 +1102,18 @@ class TripTrackingController extends ChangeNotifier {
     final platform = _platform;
     final session = _session;
     final current = _nativeSampling;
-    final speed = sample.speedMetersPerSecond;
-    final canDeescalatePrecision =
-        current?.mode == TripSamplingMode.precision &&
-        speed != null &&
-        speed.isFinite &&
-        speed >= 0 &&
-        speed < _policy.precisionExitSpeedMetersPerSecond;
-    if (!_adaptiveSamplingEnabled ||
-        platform == null ||
-        session == null ||
-        !_nativeTracking ||
-        decision == null ||
-        (!decision.accepted && !canDeescalatePrecision)) {
-      return;
-    }
-    final next = _policy.samplingFor(
-      speedMetersPerSecond: sample.speedMetersPerSecond,
-      vehicleMovementConfirmed:
-          decision.disposition == TripSampleDisposition.acceptedDistance,
-      profile: session.profile,
-      currentMode: _nativeSampling?.mode,
-      activeTrip: true,
+    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+      policy: _policy,
+      profile: session?.profile ?? TripTrackingProfile.roadVehicle,
+      sample: sample,
+      decision: decision,
+      current: current,
+      adaptiveSamplingEnabled: _adaptiveSamplingEnabled,
+      nativeTracking: _nativeTracking,
+      platformAvailable: platform != null,
+      sessionAvailable: session != null,
     );
-    if (current != null &&
-        current.mode == next.mode &&
-        current.interval == next.interval &&
-        current.minimumDisplacementMeters == next.minimumDisplacementMeters) {
+    if (platform == null || session == null || next == null) {
       return;
     }
     bool updated;
