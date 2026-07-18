@@ -121,12 +121,17 @@ void main() {
       expect(data['deviceCapabilityState'], 'foreground_ready');
       expect(data['sensorAssistState'], 'motion_battery_available');
       expect(data['durableRecordBackupState'], 'not_configured');
+      expect(data['usesSharedDeviceCapabilityProfile'], isTrue);
+      expect(data['usesSharedDurableTripRecordStore'], isTrue);
+      expect(data['durableTripRecordsReviewedOnly'], isTrue);
       expect(data['odometerCalibrationState'], 'disabled');
       expect(data.keys, isNot(contains('odometerCalibrationSamples')));
       expect(data['odometerUsageState'], 'disabled');
       expect(data.keys, isNot(contains('odometerUsageReviewedDays')));
       expect(data['activeVehicleId'], odometer.vehicleId);
       expect(data['locationDataIncluded'], isFalse);
+      expect(data['rawGpsIncluded'], isFalse);
+      expect(data['rawMapboxGeometryIncluded'], isFalse);
       expect(data['rawModuleDataIncluded'], isFalse);
       expect(data.keys, isNot(contains('latitude')));
       expect(data.keys, isNot(contains('route')));

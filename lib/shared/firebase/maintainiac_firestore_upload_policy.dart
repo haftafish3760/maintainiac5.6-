@@ -472,6 +472,9 @@ class MaintainiacFirestoreUploadPolicy {
       'deviceCapabilityState',
       'sensorAssistState',
       'durableRecordBackupState',
+      'usesSharedDeviceCapabilityProfile',
+      'usesSharedDurableTripRecordStore',
+      'durableTripRecordsReviewedOnly',
       'odometerCalibrationAssistEnabled',
       'odometerCalibrationState',
       'odometerCalibrationSamples',
@@ -505,6 +508,8 @@ class MaintainiacFirestoreUploadPolicy {
       'freeUserControlsDailyMapStorageBudget',
       'locationDataIncluded',
       'mapboxRouteGeometryIncluded',
+      'rawGpsIncluded',
+      'rawMapboxGeometryIncluded',
       'rawMapRouteIncluded',
       'rawModuleDataIncluded',
     };
@@ -513,6 +518,8 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['dashboardId'] == parts[3] &&
         draft.data['locationDataIncluded'] == false &&
         draft.data['mapboxRouteGeometryIncluded'] == false &&
+        draft.data['rawGpsIncluded'] == false &&
+        draft.data['rawMapboxGeometryIncluded'] == false &&
         draft.data['rawModuleDataIncluded'] == false &&
         draft.data.keys.every(allowed.contains) &&
         _isBoundedDashboardReference(draft.data['dashboardId']) &&
@@ -620,6 +627,9 @@ class MaintainiacFirestoreUploadPolicy {
           draft.data['durableRecordBackupState'],
           _allowedDurableRecordBackupStates,
         ) &&
+        draft.data['usesSharedDeviceCapabilityProfile'] is bool &&
+        draft.data['usesSharedDurableTripRecordStore'] is bool &&
+        draft.data['durableTripRecordsReviewedOnly'] is bool &&
         draft.data['odometerCalibrationAssistEnabled'] is bool &&
         _isAllowedString(
           draft.data['odometerCalibrationState'],
@@ -670,6 +680,8 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['mapRouteHistoryRequiresSeparateOptIn'] == true &&
         draft.data['gpsTrackingCanRunWithoutMaps'] == true &&
         draft.data['freeUserControlsDailyMapStorageBudget'] == true &&
+        draft.data['rawGpsIncluded'] == false &&
+        draft.data['rawMapboxGeometryIncluded'] == false &&
         draft.data['rawMapRouteIncluded'] == false;
     if (!validShape) {
       throw ArgumentError.value(

@@ -132,11 +132,28 @@ void main() {
       expect(rules, contains('request.resource.data.durableRecordBackupState'));
       expect(
         rules,
+        contains('request.resource.data.usesSharedDeviceCapabilityProfile'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.usesSharedDurableTripRecordStore'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.durableTripRecordsReviewedOnly'),
+      );
+      expect(
+        rules,
         contains('request.resource.data.mapboxRouteDistanceMiles <= 12500'),
       );
       expect(
         rules,
         contains('request.resource.data.mapboxRouteGeometryIncluded == false'),
+      );
+      expect(rules, contains('request.resource.data.rawGpsIncluded == false'));
+      expect(
+        rules,
+        contains('request.resource.data.rawMapboxGeometryIncluded == false'),
       );
       expect(
         rules,

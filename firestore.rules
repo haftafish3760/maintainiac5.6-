@@ -345,6 +345,9 @@ service cloud.firestore {
         'deviceCapabilityState',
         'sensorAssistState',
         'durableRecordBackupState',
+        'usesSharedDeviceCapabilityProfile',
+        'usesSharedDurableTripRecordStore',
+        'durableTripRecordsReviewedOnly',
         'odometerCalibrationAssistEnabled',
         'odometerCalibrationState',
         'odometerCalibrationSamples',
@@ -378,6 +381,8 @@ service cloud.firestore {
         'freeUserControlsDailyMapStorageBudget',
         'locationDataIncluded',
         'mapboxRouteGeometryIncluded',
+        'rawGpsIncluded',
+        'rawMapboxGeometryIncluded',
         'rawMapRouteIncluded',
         'rawModuleDataIncluded',
       ]);
@@ -416,6 +421,9 @@ service cloud.firestore {
         'deviceCapabilityState',
         'sensorAssistState',
         'durableRecordBackupState',
+        'usesSharedDeviceCapabilityProfile',
+        'usesSharedDurableTripRecordStore',
+        'durableTripRecordsReviewedOnly',
         'odometerCalibrationState',
         'odometerUsageState',
         'batteryGpsLimited',
@@ -870,6 +878,9 @@ service cloud.firestore {
         isAllowedDashboardDurableRecordBackupState(
           request.resource.data.durableRecordBackupState
         ) &&
+        request.resource.data.usesSharedDeviceCapabilityProfile is bool &&
+        request.resource.data.usesSharedDurableTripRecordStore is bool &&
+        request.resource.data.durableTripRecordsReviewedOnly is bool &&
         isAllowedOdometerCalibrationState(
           request.resource.data.odometerCalibrationState
         ) &&
@@ -921,6 +932,8 @@ service cloud.firestore {
         request.resource.data.gpsTrackingCanRunWithoutMaps == true &&
         request.resource.data.freeUserControlsDailyMapStorageBudget == true &&
         request.resource.data.mapboxRouteGeometryIncluded == false &&
+        request.resource.data.rawGpsIncluded == false &&
+        request.resource.data.rawMapboxGeometryIncluded == false &&
         request.resource.data.rawMapRouteIncluded == false;
     }
 

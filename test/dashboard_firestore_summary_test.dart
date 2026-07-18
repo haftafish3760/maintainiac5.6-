@@ -38,6 +38,9 @@ void main() {
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
           durableRecordBackupState: 'available',
+          usesSharedDeviceCapabilityProfile: true,
+          usesSharedDurableTripRecordStore: true,
+          durableTripRecordsReviewedOnly: true,
           odometerCalibrationAssistEnabled: true,
           odometerCalibrationState: 'review_recommended',
           odometerCalibrationSamples: 7,
@@ -99,10 +102,15 @@ void main() {
     expect(doc.data['mapRouteHistoryRequiresSeparateOptIn'], isTrue);
     expect(doc.data['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(doc.data['freeUserControlsDailyMapStorageBudget'], isTrue);
+    expect(doc.data['rawGpsIncluded'], isFalse);
+    expect(doc.data['rawMapboxGeometryIncluded'], isFalse);
     expect(doc.data['rawMapRouteIncluded'], isFalse);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['durableRecordBackupState'], 'available');
+    expect(doc.data['usesSharedDeviceCapabilityProfile'], isTrue);
+    expect(doc.data['usesSharedDurableTripRecordStore'], isTrue);
+    expect(doc.data['durableTripRecordsReviewedOnly'], isTrue);
     expect(doc.data['odometerCalibrationAssistEnabled'], isTrue);
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
     expect(doc.data['odometerCalibrationSamples'], 7);
