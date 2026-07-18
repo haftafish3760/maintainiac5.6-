@@ -219,7 +219,10 @@ class TripTrackingEngine {
       ((lastAccepted.horizontalAccuracyMeters +
                   sample.horizontalAccuracyMeters) /
               2) *
-          _safePositiveDouble(policy.accuracyEnvelopeMultiplier, fallback: 1.25),
+          _safePositiveDouble(
+            policy.accuracyEnvelopeMultiplier,
+            fallback: 1.25,
+          ),
     );
     if (distance <= accuracyEnvelope) {
       return _finish(
@@ -292,7 +295,7 @@ class TripTrackingEngine {
   }
 
   bool _isStrongWalking(TripActivityObservation? activity) =>
-      activity?.isHighConfidenceWalking ?? false;
+      activity?.canSupportStopReview ?? false;
 
   TripSampleDecision _finish(
     TripLocationSample sample,
