@@ -50,6 +50,7 @@ class TripGpsDependabilityRollupDecision {
     'poorWindowExcludesCalibrationDay': true,
     'interruptedWindowExcludesCalibrationDay': true,
     'unsafeWindowExcludesCalibrationDay': true,
+    'duplicateWindowExcludesCalibrationDay': true,
     'calibrationRequiresSustainedDailyGpsQuality': true,
     'calibrationRequiresReviewedOdometerTruth': true,
     'gpsRollupCanReplaceOdometer': false,
@@ -103,6 +104,7 @@ class TripGpsDependabilityRollupSummaryValidation {
       'poorWindowExcludesCalibrationDay',
       'interruptedWindowExcludesCalibrationDay',
       'unsafeWindowExcludesCalibrationDay',
+      'duplicateWindowExcludesCalibrationDay',
       'calibrationRequiresSustainedDailyGpsQuality',
       'calibrationRequiresReviewedOdometerTruth',
       'gpsRollupCanReplaceOdometer',
@@ -124,6 +126,7 @@ class TripGpsDependabilityRollupSummaryValidation {
         summary['poorWindowExcludesCalibrationDay'] != true ||
         summary['interruptedWindowExcludesCalibrationDay'] != true ||
         summary['unsafeWindowExcludesCalibrationDay'] != true ||
+        summary['duplicateWindowExcludesCalibrationDay'] != true ||
         summary['calibrationRequiresSustainedDailyGpsQuality'] != true ||
         summary['calibrationRequiresReviewedOdometerTruth'] != true) {
       reasons.add('gps_rollup_calibration_boundary_missing');
@@ -167,12 +170,18 @@ class TripGpsDependabilityRollupPolicy {
 
   static TripGpsDependabilityRollupDecision evaluate({
     required Iterable<TripGpsDependabilityDecision> windows,
+    Iterable<String> windowKeys = const [],
     TripTrackingProfile profile = TripTrackingProfile.roadVehicle,
     int? minimumReadyWindowsForCalibration,
     double? minimumReadyRateForCalibration,
   }) {
     final list = windows.toList(growable: false);
     final windowCount = list.length;
+    final safeKeys = windowKeys
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+    final hasDuplicateKeys = safeKeys.toSet().length != safeKeys.length;
     final ready = list
         .where(
           (window) =>
@@ -223,6 +232,20 @@ class TripGpsDependabilityRollupPolicy {
         canUseForLiveAssist: false,
         canUseForCalibrationEvidence: false,
         requiresUserReview: false,
+      );
+    }
+    if (hasDuplicateKeys) {
+      return _decision(
+        status: TripGpsDependabilityRollupStatus.unsafe,
+        reasonCode: 'gps_rollup_duplicate_window_rejected',
+        windowCount: windowCount,
+        readyWindowCount: ready,
+        reviewOnlyWindowCount: reviewOnly,
+        pausedWindowCount: paused,
+        unsafeWindowCount: unsafe,
+        canUseForLiveAssist: false,
+        canUseForCalibrationEvidence: false,
+        requiresUserReview: true,
       );
     }
     if (unsafe > 0) {
@@ -325,6 +348,8 @@ String _safeReason(String reasonCode) {
   return switch (reasonCode.trim()) {
     'gps_rollup_waiting_for_windows' => 'gps_rollup_waiting_for_windows',
     'gps_rollup_unsafe_window_present' => 'gps_rollup_unsafe_window_present',
+    'gps_rollup_duplicate_window_rejected' =>
+      'gps_rollup_duplicate_window_rejected',
     'gps_rollup_projection_paused_window_present' =>
       'gps_rollup_projection_paused_window_present',
     'gps_rollup_review_only_window_present' =>

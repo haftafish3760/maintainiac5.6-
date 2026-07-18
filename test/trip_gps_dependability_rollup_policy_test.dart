@@ -155,6 +155,51 @@ void main() {
     expect(safe.toString(), isNot(contains('-80')));
   });
 
+  test('duplicate GPS window keys are treated as replayed unsafe evidence', () {
+    final rollup = TripGpsDependabilityRollupPolicy.evaluate(
+      windows: [
+        window(TripGpsDependabilityStatus.readyForAssist),
+        window(TripGpsDependabilityStatus.readyForAssist),
+      ],
+      windowKeys: const [
+        'trip-1:2026-07-18T12:00Z',
+        'trip-1:2026-07-18T12:00Z',
+      ],
+    );
+    final safe = rollup.toSafeDashboardMap();
+
+    expect(rollup.status, TripGpsDependabilityRollupStatus.unsafe);
+    expect(rollup.reasonCode, 'gps_rollup_duplicate_window_rejected');
+    expect(rollup.canUseForLiveAssist, isFalse);
+    expect(rollup.canUseForCalibrationEvidence, isFalse);
+    expect(safe['duplicateWindowExcludesCalibrationDay'], isTrue);
+    expect(
+      TripGpsDependabilityRollupSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
+  test(
+    'blank GPS window keys are ignored instead of creating false replay',
+    () {
+      final rollup = TripGpsDependabilityRollupPolicy.evaluate(
+        windows: [
+          window(TripGpsDependabilityStatus.readyForAssist),
+          window(TripGpsDependabilityStatus.readyForAssist),
+          window(TripGpsDependabilityStatus.readyForAssist),
+          window(TripGpsDependabilityStatus.readyForAssist),
+          window(TripGpsDependabilityStatus.readyForAssist),
+        ],
+        windowKeys: const ['', '   '],
+      );
+
+      expect(rollup.status, TripGpsDependabilityRollupStatus.reliable);
+      expect(rollup.canUseForCalibrationEvidence, isTrue);
+    },
+  );
+
   test('summary validation rejects forged remote truth and sensitive data', () {
     final summary =
         TripGpsDependabilityRollupPolicy.evaluate(
@@ -168,6 +213,7 @@ void main() {
           'poorWindowExcludesCalibrationDay': false,
           'interruptedWindowExcludesCalibrationDay': false,
           'unsafeWindowExcludesCalibrationDay': false,
+          'duplicateWindowExcludesCalibrationDay': false,
           'calibrationRequiresSustainedDailyGpsQuality': false,
           'calibrationRequiresReviewedOdometerTruth': false,
           'gpsRollupCanReplaceOdometer': true,
