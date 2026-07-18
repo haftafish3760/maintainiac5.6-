@@ -22,6 +22,12 @@ void main() {
     expect(saved.payload['mapboxCanReplaceOdometer'], isFalse);
     expect(saved.payload['rawGpsIncluded'], isFalse);
     expect(saved.payload['rawMapboxGeometryIncluded'], isFalse);
+    expect((saved.payload['engineSnapshot'] as Map)['walkingEvidence'], isNull);
+    expect(
+      (saved.payload['engineSnapshot']
+          as Map)['walkingEvidencePersistedInDurableRecord'],
+      isFalse,
+    );
     expect(saved.payload.keys, isNot(contains('lastAccepted')));
     expect(bridge.reviewForTrip('trip_1')?.confirmedEndingOdometer, 1012);
   });
@@ -51,6 +57,24 @@ void main() {
     expect(bridge.reviewForTrip(' trip:../private '), isNull);
     expect(bridge.reviewedTrips(), isEmpty);
   });
+
+  test(
+    'reviewed trip vehicle filters are validated before local reads',
+    () async {
+      final bridge = TripTrackingDurableRecordBridge(
+        MaintainiacDurableRecordStore.memory(),
+      );
+
+      await bridge.saveReviewedTrip(_review(id: 'trip_vehicle_1'));
+      await bridge.saveReviewedTrip(
+        _review(id: 'trip_vehicle_2', vehicleId: 'vehicle_2'),
+      );
+
+      expect(bridge.reviewedTrips(vehicleId: ' vehicle_1 '), hasLength(1));
+      expect(bridge.reviewedTrips(vehicleId: 'vehicle_1\nvehicle_2'), isEmpty);
+      expect(bridge.reviewedTrips(vehicleId: null), hasLength(2));
+    },
+  );
 
   test('safe summary advertises durable local-first boundaries', () {
     final bridge = TripTrackingDurableRecordBridge(
@@ -83,10 +107,11 @@ void main() {
 TripTrackingReviewRecord _review({
   bool confirmed = true,
   String id = 'trip_1',
+  String vehicleId = 'vehicle_1',
 }) {
   return TripTrackingReviewRecord(
     id: id,
-    vehicleId: 'vehicle_1',
+    vehicleId: vehicleId,
     startingOdometer: 1000,
     estimatedEndingOdometer: 1012,
     confirmedEndingOdometer: confirmed ? 1012 : null,
@@ -94,9 +119,16 @@ TripTrackingReviewRecord _review({
     profile: TripTrackingProfile.deliveryVehicle,
     startedAt: DateTime.utc(2026, 7, 18, 8),
     finishedAt: DateTime.utc(2026, 7, 18, 9),
-    engineSnapshot: const TripTrackingEngineSnapshot(
+    engineSnapshot: TripTrackingEngineSnapshot(
       totalAcceptedMeters: 19312.128,
       walkingReviewSuggested: true,
+      walkingEvidence: [
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: DateTime.utc(2026, 7, 18, 8, 30),
+        ),
+      ],
     ),
   );
 }

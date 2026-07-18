@@ -36,7 +36,7 @@ class TripTrackingDurableRecordBridge {
   }
 
   List<TripTrackingReviewRecord> reviewedTrips({String? vehicleId}) {
-    final safeVehicleId = vehicleId?.trim();
+    final safeVehicleId = _safeDurableVehicleId(vehicleId);
     return store
         .recordsFor(module)
         .map((record) {
@@ -44,9 +44,7 @@ class TripTrackingDurableRecordBridge {
         })
         .whereType<TripTrackingReviewRecord>()
         .where((review) {
-          return safeVehicleId == null ||
-              safeVehicleId.isEmpty ||
-              review.vehicleId == safeVehicleId;
+          return safeVehicleId == null || review.vehicleId == safeVehicleId;
         })
         .toList(growable: false);
   }
@@ -93,8 +91,23 @@ String? _safeDurableTripId(Object? value) {
   return RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean) ? clean : null;
 }
 
+String? _safeDurableVehicleId(Object? value) {
+  if (value == null) return null;
+  if (value is! String) return '';
+  final clean = value.trim();
+  if (clean.isEmpty || clean.length > 120) return '';
+  return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : '';
+}
+
 Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   final map = Map<String, dynamic>.from(review.toMap());
+  final engineSnapshot = map['engineSnapshot'];
+  if (engineSnapshot is Map) {
+    final safeEngineSnapshot = Map<String, dynamic>.from(engineSnapshot);
+    safeEngineSnapshot.remove('walkingEvidence');
+    safeEngineSnapshot['walkingEvidencePersistedInDurableRecord'] = false;
+    map['engineSnapshot'] = safeEngineSnapshot;
+  }
   for (final forbidden in const [
     'lastAccepted',
     'walkingEvidence',
