@@ -359,6 +359,7 @@ void main() {
             'impossibleProjectionCanRender': true,
             'activeTripIdIncluded': true,
             'ownerUserIdIncluded': true,
+            'debug': 'pk.redacted 35.123456,-80.123456',
           });
       final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
         payload,
@@ -376,6 +377,7 @@ void main() {
           'unsafe_projection_can_render',
           'payload_contains_trip_owner_identifiers',
           'payload_contains_sensitive_trip_material',
+          'payload_contains_sensitive_text',
           'maps_required_for_tracking',
         ]),
       );

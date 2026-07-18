@@ -277,6 +277,9 @@ class TripLiveOdometerDashboardPayloadValidation {
         payload['tokensIncluded'] != false) {
       reasons.add('payload_contains_sensitive_trip_material');
     }
+    if (payload.values.any(_looksSensitive)) {
+      reasons.add('payload_contains_sensitive_text');
+    }
     if (payload['projectionIsMonotonic'] != true) {
       reasons.add('projection_not_marked_monotonic');
     }
@@ -339,4 +342,12 @@ int _safeInitialProjection({
   final safeStart = _safeStartingOdometer(startingOdometer);
   final safeMax = _safeMaxSupportedReading(maxSupportedReading);
   return safeStart > safeMax ? safeMax : safeStart;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
