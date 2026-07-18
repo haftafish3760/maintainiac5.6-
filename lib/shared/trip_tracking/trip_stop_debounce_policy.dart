@@ -1,5 +1,6 @@
 import 'trip_stop_classification.dart';
 import 'trip_stop_debounce_evidence_digest.dart';
+import 'trip_stop_false_positive_guard.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_profile_strategy.dart';
 import 'trip_vehicle_only_dwell_policy.dart';
@@ -73,6 +74,14 @@ class TripStopDebounceDecision {
     'classification': classification.toSafeSummary(),
     'evidenceDigest': evidenceDigest.toSafeDashboardMap(),
     'vehicleOnlyDwell': vehicleOnlyDwell?.toSafeDashboardMap(),
+    'falsePositiveGuard': TripStopFalsePositiveGuard.evaluate(
+      status: status.name,
+      classification: classification.toSafeSummary(),
+      vehicleOnlyDwell: vehicleOnlyDwell?.toSafeDashboardMap(),
+      needsWalkingReview: needsWalkingReview,
+      protectedTrafficControl: protectedTrafficControl,
+      canOpenReview: canOpenReview,
+    ).toSafeDashboardMap(),
     'needsWalkingReview': needsWalkingReview,
     'protectedTrafficControl': protectedTrafficControl,
     'shouldContinueSampling': shouldContinueSampling,
