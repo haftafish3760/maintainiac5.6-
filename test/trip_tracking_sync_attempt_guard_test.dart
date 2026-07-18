@@ -21,6 +21,16 @@ void main() {
     expect(decision.mirrorPayload['ownerValidatedBeforeMirror'], isTrue);
     expect(decision.mirrorPayload['canOverrideLocalDaytimeData'], isFalse);
     expect(decision.mirrorPayload['canDeleteLocalData'], isFalse);
+    expect(decision.mirrorPayload['odometerIsGlobalTruth'], isTrue);
+    expect(
+      decision.mirrorPayload['calibrationCanUploadAsOfficialMileage'],
+      isFalse,
+    );
+    expect(
+      decision
+          .mirrorPayload['poorGpsCalibrationDaysCanUploadAsCalibrationProof'],
+      isFalse,
+    );
     expect(decision.mirrorPayload['mapboxDataIncluded'], isFalse);
     expect(decision.mirrorPayload['rawRouteHistoryIncluded'], isFalse);
     expect(decision.toSafeSummary()['revisionFresh'], isTrue);
@@ -255,7 +265,12 @@ void main() {
     expect(summary['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(summary['firestoreMirrorOnly'], isTrue);
     expect(summary['remoteBackupCanOverrideLocalDay'], isFalse);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
     expect(summary['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['syncAttemptCanApplyCalibration'], isFalse);
+    expect(summary['syncAttemptCanCreateOfficialMileage'], isFalse);
     expect(summary['mapboxCanReplaceOdometer'], isFalse);
     expect(summary['validatedBeforeUpload'], isTrue);
     expect(summary['deviceIdMatchesLocalRecord'], isTrue);
