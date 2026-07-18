@@ -28,6 +28,16 @@ void main() {
       summary.toSafeDashboardMap()['remoteTotalsCanBecomeCanonical'],
       isFalse,
     );
+    expect(
+      summary
+          .toSafeDashboardMap()['externalDiagnosticsTrustedAfterValidationOnly'],
+      isTrue,
+    );
+    expect(
+      summary
+          .toSafeDashboardMap()['firestoreDiagnosticsCanOverrideLocalTripLog'],
+      isFalse,
+    );
     expect(summary.toSafeDashboardMap()['localTripLogProtected'], isTrue);
     expect(summary.toSafeDashboardMap()['coordinatesIncluded'], isFalse);
   });
@@ -154,9 +164,52 @@ void main() {
     final safe = summary.toSafeDashboardMap();
 
     expect(safe['reasonCode'], 'gps_signal_unsafe_provider_evidence');
+    expect(safe['receivedSamples'], 4);
+    expect(safe['acceptedSamples'], 2);
+    expect(safe['rejectedSamples'], 2);
+    expect(safe['acceptanceRate'], .5);
     expect(safe['remoteTotalsCanBecomeCanonical'], isFalse);
     expect(safe['localTripLogProtected'], isTrue);
     expect(safe.toString(), isNot(contains('35.1')));
     expect(safe.toString(), isNot(contains('sk.secret')));
+  });
+
+  test('safe signal summaries clamp malformed direct counters', () {
+    const summary = TripTrackingSignalQualitySummary(
+      quality: TripTrackingSignalQuality.poor,
+      reasonCode: 'gps_signal_poor_measurement_quality',
+      receivedSamples: -10,
+      acceptedSamples: 9999999,
+      rejectedSamples: 9999999,
+      acceptanceRate: double.infinity,
+      requiresUserReview: true,
+    );
+    final safe = summary.toSafeDashboardMap();
+
+    expect(safe['receivedSamples'], 0);
+    expect(safe['acceptedSamples'], 0);
+    expect(safe['rejectedSamples'], 0);
+    expect(safe['acceptanceRate'], 0);
+    expect(safe['malformedDiagnosticsFailClosed'], isTrue);
+    expect(safe['cloudFunctionDiagnosticsCanOverrideLocalTripLog'], isFalse);
+    expect(safe['mapboxDiagnosticsCanOverrideLocalTripLog'], isFalse);
+  });
+
+  test('restored contradictory diagnostics become poor review state', () {
+    final diagnostics = TripTrackingDiagnostics.fromMap({
+      'receivedSamples': 5,
+      'acceptedSamples': 4,
+      'dispositionCounts': {
+        'acceptedAnchor': 1,
+        'acceptedDistance': 4,
+        'rejectedMockLocation': 3,
+      },
+    });
+    final summary = TripTrackingSignalQualitySummary.evaluate(diagnostics);
+
+    expect(summary.acceptedSamples, 0);
+    expect(summary.rejectedSamples, 5);
+    expect(summary.quality, TripTrackingSignalQuality.poor);
+    expect(summary.toSafeDashboardMap()['rawSamplesIncluded'], isFalse);
   });
 }

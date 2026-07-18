@@ -44,10 +44,17 @@ class TripTrackingSignalQualitySummary {
     'schemaVersion': 1,
     'quality': quality.name,
     'reasonCode': _safeSignalReason(reasonCode),
-    'receivedSamples': receivedSamples,
-    'acceptedSamples': acceptedSamples,
-    'rejectedSamples': rejectedSamples,
-    'acceptanceRate': double.parse(acceptanceRate.toStringAsFixed(3)),
+    'receivedSamples': _safeCount(receivedSamples),
+    'acceptedSamples': _safeAccepted(
+      acceptedSamples,
+      _safeCount(receivedSamples),
+    ),
+    'rejectedSamples': _safeRejected(
+      rejectedSamples,
+      receivedSamples: receivedSamples,
+      acceptedSamples: acceptedSamples,
+    ),
+    'acceptanceRate': _safeRate(acceptanceRate),
     'requiresUserReview': requiresUserReview,
     'advisoryOnly': true,
     'officialMileageSource': 'odometer',
@@ -56,6 +63,11 @@ class TripTrackingSignalQualitySummary {
     'mapboxCanReplaceOdometer': false,
     'mapboxCanWriteConfirmedTripLog': false,
     'remoteTotalsCanBecomeCanonical': false,
+    'externalDiagnosticsTrustedAfterValidationOnly': true,
+    'firestoreDiagnosticsCanOverrideLocalTripLog': false,
+    'cloudFunctionDiagnosticsCanOverrideLocalTripLog': false,
+    'mapboxDiagnosticsCanOverrideLocalTripLog': false,
+    'malformedDiagnosticsFailClosed': true,
     'localTripLogProtected': true,
     'canUploadRawGps': false,
     'rawSamplesIncluded': false,
@@ -186,6 +198,24 @@ int _safeCount(int value) => value < 0
 int _safeAccepted(int accepted, int received) {
   final safe = _safeCount(accepted);
   return safe > received ? 0 : safe;
+}
+
+int _safeRejected(
+  int rejected, {
+  required int receivedSamples,
+  required int acceptedSamples,
+}) {
+  final received = _safeCount(receivedSamples);
+  final accepted = _safeAccepted(acceptedSamples, received);
+  final safeRejected = _safeCount(rejected);
+  return safeRejected > received - accepted
+      ? received - accepted
+      : safeRejected;
+}
+
+double _safeRate(double value) {
+  if (!value.isFinite) return 0;
+  return double.parse(value.clamp(0, 1).toStringAsFixed(3));
 }
 
 String _safeSignalReason(String value) {
