@@ -26,11 +26,11 @@ class TripTrackingMapStorageEstimate {
     'schemaVersion': 1,
     'mapStorageEnabled': enabled,
     'allowedToPersistRoute': allowedToPersistRoute,
-    'reasonCode': reasonCode,
-    'sampleIntervalSeconds': sampleIntervalSeconds,
-    'dailyBudgetMb': dailyBudgetMb,
-    'estimatedSamplesPerDay': estimatedSamplesPerDay,
-    'estimatedDailyMb': estimatedDailyMb,
+    'reasonCode': _safeMapStorageReason(reasonCode),
+    'sampleIntervalSeconds': _safeSampleIntervalSeconds(sampleIntervalSeconds),
+    'dailyBudgetMb': _safeDailyBudgetMb(dailyBudgetMb),
+    'estimatedSamplesPerDay': _safePersistedPoints(estimatedSamplesPerDay),
+    'estimatedDailyMb': _safeMb(estimatedDailyMb),
     'exceedsDailyBudget': exceedsDailyBudget,
     'gpsTrackingCanRunWithoutMaps': true,
     'mapsRequireSeparateOptIn': true,
@@ -42,6 +42,9 @@ class TripTrackingMapStorageEstimate {
     'routeStorageAdvisoryOnly': true,
     'mapPreviewCanRunWithoutRouteHistory': true,
     'mapboxResponseCanBypassBudget': false,
+    'mapboxFailureCanCorruptTripLog': false,
+    'mapboxTimeoutCanStopGpsTracking': false,
+    'mapboxRouteCanReplaceGpsDistance': false,
     'canSilentlyDeleteRouteHistory': false,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
@@ -75,12 +78,12 @@ class TripTrackingMapRoutePointDecision {
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
     'allowedToPersistPoint': allowedToPersistPoint,
-    'reasonCode': reasonCode,
-    'persistedPointsToday': persistedPointsToday,
-    'maxRoutePointsPerDay': maxRoutePointsPerDay,
-    'remainingPointsToday': remainingPointsToday,
-    'dailyBudgetMb': dailyBudgetMb,
-    'estimatedStoredMbAfterPoint': estimatedStoredMbAfterPoint,
+    'reasonCode': _safeMapStorageReason(reasonCode),
+    'persistedPointsToday': _safePersistedPoints(persistedPointsToday),
+    'maxRoutePointsPerDay': _safePersistedPoints(maxRoutePointsPerDay),
+    'remainingPointsToday': _safePersistedPoints(remainingPointsToday),
+    'dailyBudgetMb': _safeDailyBudgetMb(dailyBudgetMb),
+    'estimatedStoredMbAfterPoint': _safeMb(estimatedStoredMbAfterPoint),
     'gpsTrackingCanContinueWithoutMaps': true,
     'mapStorageFailureStopsGpsTracking': false,
     'freePlanMaxDailyBudgetMb': 2,
@@ -89,6 +92,9 @@ class TripTrackingMapRoutePointDecision {
     'routeStorageAdvisoryOnly': true,
     'mapPreviewCanRunWithoutRouteHistory': true,
     'mapboxResponseCanBypassBudget': false,
+    'mapboxFailureCanCorruptTripLog': false,
+    'mapboxTimeoutCanStopGpsTracking': false,
+    'mapboxRouteCanReplaceGpsDistance': false,
     'canSilentlyDeleteRouteHistory': false,
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
@@ -251,6 +257,11 @@ double _safeDailyBudgetMb(double value) {
 
 double _roundMb(double value) => double.parse(value.toStringAsFixed(3));
 
+double _safeMb(double value) {
+  if (!value.isFinite || value < 0) return 0;
+  return _roundMb(value > 2 ? 2 : value);
+}
+
 int _safePersistedPoints(int value) => value < 0 ? 0 : value;
 
 int _maxRoutePointsPerDay(double dailyBudgetMb, int bytesPerPoint) {
@@ -263,3 +274,19 @@ int _remainingPoints(int maxPoints, int persistedPoints) =>
 
 double _storedMb(int points, int bytesPerPoint) =>
     _roundMb(points * bytesPerPoint / (1024 * 1024));
+
+String _safeMapStorageReason(String value) {
+  return switch (value.trim()) {
+    'gps_tracking_disabled' => 'gps_tracking_disabled',
+    'maps_not_enabled' => 'maps_not_enabled',
+    'map_route_history_not_enabled' => 'map_route_history_not_enabled',
+    'map_route_history_budget_missing' => 'map_route_history_budget_missing',
+    'map_route_history_within_budget' => 'map_route_history_within_budget',
+    'map_route_history_budget_exceeded' => 'map_route_history_budget_exceeded',
+    'map_route_history_live_budget_exhausted' =>
+      'map_route_history_live_budget_exhausted',
+    'map_route_history_point_within_live_budget' =>
+      'map_route_history_point_within_live_budget',
+    _ => 'maps_not_enabled',
+  };
+}

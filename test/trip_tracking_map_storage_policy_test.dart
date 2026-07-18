@@ -23,6 +23,9 @@ void main() {
     expect(summary['routeStorageAdvisoryOnly'], isTrue);
     expect(summary['mapPreviewCanRunWithoutRouteHistory'], isTrue);
     expect(summary['mapboxResponseCanBypassBudget'], isFalse);
+    expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
+    expect(summary['mapboxTimeoutCanStopGpsTracking'], isFalse);
+    expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
     expect(summary['canSilentlyDeleteRouteHistory'], isFalse);
     expect(summary['localTripLogProtected'], isTrue);
     expect(summary['purgeRequiresConfirmedBackupOrUserAction'], isTrue);
@@ -213,5 +216,51 @@ void main() {
     expect(summary['mapPreviewCanRunWithoutRouteHistory'], isTrue);
     expect(summary['oneToThreeSecondRawPingStorageDiscouraged'], isTrue);
     expect(summary['tokensIncluded'], isFalse);
+  });
+
+  test('direct map estimate summaries sanitize malformed public fields', () {
+    const estimate = TripTrackingMapStorageEstimate(
+      enabled: true,
+      allowedToPersistRoute: true,
+      reasonCode: 'token=sk.secret lat=35.1',
+      sampleIntervalSeconds: 0,
+      dailyBudgetMb: double.infinity,
+      estimatedSamplesPerDay: -100,
+      estimatedDailyMb: double.nan,
+    );
+    final summary = estimate.toSafeDashboardMap();
+
+    expect(summary['reasonCode'], 'maps_not_enabled');
+    expect(summary['sampleIntervalSeconds'], 15);
+    expect(summary['dailyBudgetMb'], 0);
+    expect(summary['estimatedSamplesPerDay'], 0);
+    expect(summary['estimatedDailyMb'], 0);
+    expect(summary['mapboxFailureCanCorruptTripLog'], isFalse);
+    expect(summary.toString(), isNot(contains('sk.secret')));
+    expect(summary.toString(), isNot(contains('35.1')));
+  });
+
+  test('direct route point summaries clamp counters and isolate Mapbox', () {
+    const decision = TripTrackingMapRoutePointDecision(
+      allowedToPersistPoint: true,
+      reasonCode: 'mapbox_timeout_at_-80',
+      persistedPointsToday: -10,
+      maxRoutePointsPerDay: -5,
+      remainingPointsToday: -1,
+      dailyBudgetMb: 99,
+      estimatedStoredMbAfterPoint: double.infinity,
+    );
+    final summary = decision.toSafeDashboardMap();
+
+    expect(summary['reasonCode'], 'maps_not_enabled');
+    expect(summary['persistedPointsToday'], 0);
+    expect(summary['maxRoutePointsPerDay'], 0);
+    expect(summary['remainingPointsToday'], 0);
+    expect(summary['dailyBudgetMb'], 2);
+    expect(summary['estimatedStoredMbAfterPoint'], 0);
+    expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+    expect(summary['mapStorageFailureStopsGpsTracking'], isFalse);
+    expect(summary['mapboxTimeoutCanStopGpsTracking'], isFalse);
+    expect(summary['mapboxRouteCanReplaceGpsDistance'], isFalse);
   });
 }
