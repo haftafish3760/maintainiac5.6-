@@ -50,6 +50,66 @@ void main() {
     expect(validation.reasons, isEmpty);
   });
 
+  test('safe summary denies remote stop, maps, and mileage authority', () {
+    final safe = safeDebounceSummary();
+
+    expect(safe['gpsAssistedOnly'], isTrue);
+    expect(safe['firestoreCanCreateStop'], isFalse);
+    expect(safe['cloudFunctionCanCreateStop'], isFalse);
+    expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
+    expect(safe['remoteDebounceCanOpenReview'], isFalse);
+    expect(safe['remoteDebounceCanEndTrip'], isFalse);
+    expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(safe['stopEvidenceCanCreateCalibration'], isFalse);
+    expect(safe['walkingEvidenceCanCreateCalibration'], isFalse);
+    expect(safe['trafficControlCanCreateCalibration'], isFalse);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['walkingEvidenceCanOnlySuggestReview'], isTrue);
+    expect(safe['walkingEvidenceRequiresUserSensorOptIn'], isTrue);
+    expect(safe['walkingEvidenceRequiresCurrentDeviceSensor'], isTrue);
+    expect(safe['walkingEvidenceCannotBeReplayedFromCloud'], isTrue);
+    expect(safe['walkingEvidenceCannotBeImportedFromFile'], isTrue);
+    expect(safe['walkingEvidenceCannotCommitStop'], isTrue);
+    expect(safe['poorGpsCannotOpenStopReview'], isTrue);
+    expect(safe['interruptedGpsCannotOpenStopReview'], isTrue);
+    expect(safe['missingGpsCannotOpenStopReview'], isTrue);
+    expect(safe['unsafeGpsCannotOpenStopReview'], isTrue);
+    expect(safe['reducedGpsCanOnlyOpenReviewWithCorroboration'], isTrue);
+    expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
+    expect(safe['stopReviewCannotCommitWithoutUserAction'], isTrue);
+    expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
+    expect(safe['manualFallbackCannotInferAddress'], isTrue);
+    expect(safe['manualFallbackCannotConfirmMileage'], isTrue);
+    expect(safe['gridlockCannotInferAddress'], isTrue);
+    expect(safe['driverProfileThresholdsAreLocalPolicy'], isTrue);
+    expect(
+      TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
+      isTrue,
+    );
+  });
+
+  test('safe summary carries counts but never remote stop authority', () {
+    final safe = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
+      observation: observation(
+        walkingEvidenceCount: 4,
+        walkingEvidenceSpan: const Duration(seconds: 40),
+        acceptedDistanceCount: 12,
+        rejectedDriftCount: 2,
+      ),
+    ).toSafeDashboardMap();
+    final evidenceDigest = safe['evidenceDigest'] as Map<String, Object?>;
+
+    expect(evidenceDigest['acceptedDistanceCount'], 12);
+    expect(evidenceDigest['rejectedDriftCount'], 2);
+    expect(evidenceDigest['providerValuesUsable'], isTrue);
+    expect(safe['firestoreCanCreateStop'], isFalse);
+    expect(safe['cloudFunctionCanCreateStop'], isFalse);
+    expect(safe['mapboxCanConfirmStop'], isFalse);
+    expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
+  });
+
   test('mapbox, remote, and dashboard cache stop authority fails closed', () {
     final summary = safeDebounceSummary()
       ..addAll({

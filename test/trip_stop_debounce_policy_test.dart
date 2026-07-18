@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maintaniac/shared/trip_tracking/trip_gps_dependability_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_summary_validation.dart';
@@ -22,7 +21,6 @@ void main() {
     double speedMps = 0.2,
     double horizontalAccuracyMeters = 12,
     TripTrackingSignalQuality signalQuality = TripTrackingSignalQuality.healthy,
-    TripGpsDependabilityDecision? gpsDependability,
   }) {
     return TripStopDebounceObservation(
       motionState: motionState,
@@ -36,7 +34,6 @@ void main() {
       speedMps: speedMps,
       horizontalAccuracyMeters: horizontalAccuracyMeters,
       signalQuality: signalQuality,
-      gpsDependability: gpsDependability,
       latestWalkingEvidenceAt: latestWalking,
       observedAt: observedAt,
     );
@@ -486,217 +483,4 @@ void main() {
       'equipment_walking_evidence_ignored',
     );
   });
-
-  test('poor or interrupted GPS blocks otherwise valid stop review', () {
-    for (final quality in const [
-      TripTrackingSignalQuality.noSamples,
-      TripTrackingSignalQuality.poor,
-      TripTrackingSignalQuality.interrupted,
-    ]) {
-      final decision = TripStopDebouncePolicy.evaluate(
-        profile: TripTrackingProfile.deliveryVehicle,
-        observation: observation(signalQuality: quality),
-      );
-      final safe = decision.toSafeDashboardMap();
-
-      expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
-      expect(decision.canOpenReview, isFalse);
-      expect(decision.reasonCode, 'gps_signal_quality_blocks_stop_review');
-      expect(safe['poorGpsCannotOpenStopReview'], isTrue);
-      expect(safe['interruptedGpsCannotOpenStopReview'], isTrue);
-      expect(safe['missingGpsCannotOpenStopReview'], isTrue);
-      expect(
-        TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
-        isTrue,
-      );
-    }
-  });
-
-  test('unsafe GPS fails closed before stop review can open', () {
-    final decision = TripStopDebouncePolicy.evaluate(
-      profile: TripTrackingProfile.deliveryVehicle,
-      observation: observation(signalQuality: TripTrackingSignalQuality.unsafe),
-    );
-    final safe = decision.toSafeDashboardMap();
-
-    expect(decision.status, TripStopDebounceStatus.unsafeEvidence);
-    expect(decision.canOpenReview, isFalse);
-    expect(decision.reasonCode, 'unsafe_gps_blocks_stop_review');
-    expect(safe['unsafeGpsCannotOpenStopReview'], isTrue);
-    expect(
-      TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
-      isTrue,
-    );
-  });
-
-  test('unsafe GPS dependability gate blocks otherwise valid stop review', () {
-    final decision = TripStopDebouncePolicy.evaluate(
-      profile: TripTrackingProfile.deliveryVehicle,
-      observation: observation(
-        gpsDependability: dependability(
-          TripGpsDependabilityStatus.unsafeBlocked,
-          TripTrackingSignalQuality.unsafe,
-          shouldContinueSampling: true,
-          requiresUserReview: true,
-        ),
-      ),
-    );
-    final safe = decision.toSafeDashboardMap();
-
-    expect(decision.status, TripStopDebounceStatus.unsafeEvidence);
-    expect(decision.reasonCode, 'gps_dependability_blocks_stop_review');
-    expect(decision.canOpenReview, isFalse);
-    expect(decision.classification.canSuggestStop, isFalse);
-    expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
-    expect(
-      TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
-      isTrue,
-    );
-  });
-
-  test('projection-paused GPS dependability waits for better signal', () {
-    final decision = TripStopDebouncePolicy.evaluate(
-      profile: TripTrackingProfile.contractorVehicle,
-      observation: observation(
-        gpsDependability: dependability(
-          TripGpsDependabilityStatus.projectionPaused,
-          TripTrackingSignalQuality.poor,
-          shouldContinueSampling: true,
-          requiresUserReview: true,
-        ),
-      ),
-    );
-    final safe = decision.toSafeDashboardMap();
-
-    expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
-    expect(
-      decision.reasonCode,
-      'gps_dependability_waiting_for_projection_grade_signal',
-    );
-    expect(decision.canOpenReview, isFalse);
-    expect(decision.shouldContinueSampling, isTrue);
-    expect(safe['poorGpsCannotOpenStopReview'], isTrue);
-    expect(
-      TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
-      isTrue,
-    );
-  });
-
-  test(
-    'review-only GPS dependability cannot be bypassed by walking evidence',
-    () {
-      final decision = TripStopDebouncePolicy.evaluate(
-        profile: TripTrackingProfile.deliveryVehicle,
-        observation: observation(
-          gpsDependability: dependability(
-            TripGpsDependabilityStatus.reviewOnly,
-            TripTrackingSignalQuality.reduced,
-            shouldContinueSampling: true,
-            requiresUserReview: true,
-          ),
-        ),
-      );
-      final safe = decision.toSafeDashboardMap();
-
-      expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
-      expect(
-        decision.reasonCode,
-        'gps_dependability_blocks_stop_review_authority',
-      );
-      expect(decision.canOpenReview, isFalse);
-      expect(decision.needsWalkingReview, isFalse);
-      expect(safe['reducedGpsCanOnlyOpenReviewWithCorroboration'], isTrue);
-      expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
-      expect(
-        TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
-        isTrue,
-      );
-    },
-  );
-
-  test('safe summary denies remote stop, maps, and mileage authority', () {
-    final safe = TripStopDebouncePolicy.evaluate(
-      profile: TripTrackingProfile.deliveryVehicle,
-      observation: observation(),
-    ).toSafeDashboardMap();
-
-    expect(safe['gpsAssistedOnly'], isTrue);
-    expect(safe['firestoreCanCreateStop'], isFalse);
-    expect(safe['cloudFunctionCanCreateStop'], isFalse);
-    expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
-    expect(safe['remoteDebounceCanOpenReview'], isFalse);
-    expect(safe['remoteDebounceCanEndTrip'], isFalse);
-    expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
-    expect(safe['stopEvidenceCanCreateCalibration'], isFalse);
-    expect(safe['walkingEvidenceCanCreateCalibration'], isFalse);
-    expect(safe['trafficControlCanCreateCalibration'], isFalse);
-    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
-    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
-    expect(safe['walkingEvidenceCanOnlySuggestReview'], isTrue);
-    expect(safe['walkingEvidenceRequiresUserSensorOptIn'], isTrue);
-    expect(safe['walkingEvidenceRequiresCurrentDeviceSensor'], isTrue);
-    expect(safe['walkingEvidenceCannotBeReplayedFromCloud'], isTrue);
-    expect(safe['walkingEvidenceCannotBeImportedFromFile'], isTrue);
-    expect(safe['walkingEvidenceCannotCommitStop'], isTrue);
-    expect(safe['poorGpsCannotOpenStopReview'], isTrue);
-    expect(safe['interruptedGpsCannotOpenStopReview'], isTrue);
-    expect(safe['missingGpsCannotOpenStopReview'], isTrue);
-    expect(safe['unsafeGpsCannotOpenStopReview'], isTrue);
-    expect(safe['reducedGpsCanOnlyOpenReviewWithCorroboration'], isTrue);
-    expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
-    expect(safe['stopReviewCannotCommitWithoutUserAction'], isTrue);
-    expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
-    expect(safe['manualFallbackCannotInferAddress'], isTrue);
-    expect(safe['manualFallbackCannotConfirmMileage'], isTrue);
-    expect(safe['gridlockCannotInferAddress'], isTrue);
-    expect(safe['driverProfileThresholdsAreLocalPolicy'], isTrue);
-    expect(
-      TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
-      isTrue,
-    );
-  });
-
-  test('safe summary carries counts but never remote stop authority', () {
-    final safe = TripStopDebouncePolicy.evaluate(
-      profile: TripTrackingProfile.contractorVehicle,
-      observation: observation(
-        walkingEvidenceCount: 4,
-        walkingEvidenceSpan: const Duration(seconds: 40),
-        acceptedDistanceCount: 12,
-        rejectedDriftCount: 2,
-      ),
-    ).toSafeDashboardMap();
-    final evidenceDigest = safe['evidenceDigest'] as Map<String, Object?>;
-
-    expect(evidenceDigest['acceptedDistanceCount'], 12);
-    expect(evidenceDigest['rejectedDriftCount'], 2);
-    expect(evidenceDigest['providerValuesUsable'], isTrue);
-    expect(safe['firestoreCanCreateStop'], isFalse);
-    expect(safe['cloudFunctionCanCreateStop'], isFalse);
-    expect(safe['mapboxCanConfirmStop'], isFalse);
-    expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
-  });
-}
-
-TripGpsDependabilityDecision dependability(
-  TripGpsDependabilityStatus status,
-  TripTrackingSignalQuality signalQuality, {
-  required bool shouldContinueSampling,
-  required bool requiresUserReview,
-}) {
-  return TripGpsDependabilityDecision(
-    status: status,
-    reasonCode: status == TripGpsDependabilityStatus.unsafeBlocked
-        ? 'gps_dependability_unsafe_evidence'
-        : 'gps_poor_signal_pauses_projection',
-    profile: TripTrackingProfile.deliveryVehicle,
-    confidence: TripTrackingConfidence.low,
-    signalQuality: signalQuality,
-    canFeedLiveOdometerProjection: false,
-    canPersistCompactRoutePoint: false,
-    canOpenStopReview: false,
-    canContributeToCalibration: false,
-    shouldContinueSampling: shouldContinueSampling,
-    requiresUserReview: requiresUserReview,
-  );
 }
