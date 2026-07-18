@@ -5,6 +5,7 @@ enum TripBatteryGpsContinuationStatus {
   continueGps,
   promptUser,
   pauseGpsKeepTripAlive,
+  pauseForBackgroundPermission,
   blockedInvalidTrip,
 }
 
@@ -17,6 +18,9 @@ class TripBatteryGpsContinuationDecision {
     required this.shouldKeepTripSessionAlive,
     required this.shouldKeepTextTripLogWritable,
     required this.shouldWriteLocalCheckpoint,
+    required this.requiresForegroundService,
+    required this.requiresBackgroundPermission,
+    required this.canRetryWhenForeground,
   });
 
   final TripBatteryGpsContinuationStatus status;
@@ -26,6 +30,9 @@ class TripBatteryGpsContinuationDecision {
   final bool shouldKeepTripSessionAlive;
   final bool shouldKeepTextTripLogWritable;
   final bool shouldWriteLocalCheckpoint;
+  final bool requiresForegroundService;
+  final bool requiresBackgroundPermission;
+  final bool canRetryWhenForeground;
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
@@ -36,6 +43,9 @@ class TripBatteryGpsContinuationDecision {
     'shouldKeepTripSessionAlive': shouldKeepTripSessionAlive,
     'shouldKeepTextTripLogWritable': shouldKeepTextTripLogWritable,
     'shouldWriteLocalCheckpoint': shouldWriteLocalCheckpoint,
+    'requiresForegroundService': requiresForegroundService,
+    'requiresBackgroundPermission': requiresBackgroundPermission,
+    'canRetryWhenForeground': canRetryWhenForeground,
     'gpsPauseCanEndTripAutomatically': false,
     'gpsPauseCanDeleteTripRecords': false,
     'gpsPauseCanConfirmMileage': false,
@@ -45,6 +55,11 @@ class TripBatteryGpsContinuationDecision {
     'lowBatteryPauseIsGpsOnly': true,
     'lowBatteryPauseRequiresLocalCheckpoint': true,
     'backgroundGpsCanResumeAfterUserOverride': true,
+    'backgroundGpsRequiresPlatformGrant': true,
+    'foregroundLocationDoesNotGrantBackgroundGps': true,
+    'backgroundPermissionCanBeAssumed': false,
+    'backgroundPermissionCanBeProvidedByFirestore': false,
+    'backgroundPermissionCanBeProvidedByMapbox': false,
     'batteryChoiceCanBeChangedInSettings': true,
     'firebaseCanOverrideBatteryChoice': false,
     'cloudFunctionCanOverrideBatteryChoice': false,
@@ -64,6 +79,9 @@ class TripBatteryGpsContinuationPolicy {
     required TripTrackingSessionLifecycleState lifecycle,
     required bool localSessionAvailable,
     required TripGpsBatteryDecision batteryDecision,
+    bool appInBackground = false,
+    bool foregroundServiceAvailable = true,
+    bool backgroundTrackingPermissionGranted = true,
   }) {
     if (!_activeOrRecoverableLifecycle(lifecycle) || !localSessionAvailable) {
       return _decision(
@@ -74,6 +92,26 @@ class TripBatteryGpsContinuationPolicy {
         shouldKeepTripSessionAlive: false,
         shouldKeepTextTripLogWritable: false,
         shouldWriteLocalCheckpoint: false,
+        requiresForegroundService: false,
+        requiresBackgroundPermission: false,
+        canRetryWhenForeground: false,
+      );
+    }
+    if (appInBackground &&
+        (!foregroundServiceAvailable || !backgroundTrackingPermissionGranted)) {
+      return _decision(
+        status: TripBatteryGpsContinuationStatus.pauseForBackgroundPermission,
+        reasonCode: !foregroundServiceAvailable
+            ? 'foreground_service_required_for_background_gps'
+            : 'background_permission_required_for_background_gps',
+        shouldContinueGpsSampling: false,
+        shouldPromptUser: false,
+        shouldKeepTripSessionAlive: true,
+        shouldKeepTextTripLogWritable: true,
+        shouldWriteLocalCheckpoint: true,
+        requiresForegroundService: !foregroundServiceAvailable,
+        requiresBackgroundPermission: !backgroundTrackingPermissionGranted,
+        canRetryWhenForeground: true,
       );
     }
     if (batteryDecision.requiresUserChoice) {
@@ -85,6 +123,9 @@ class TripBatteryGpsContinuationPolicy {
         shouldKeepTripSessionAlive: true,
         shouldKeepTextTripLogWritable: true,
         shouldWriteLocalCheckpoint: true,
+        requiresForegroundService: appInBackground,
+        requiresBackgroundPermission: false,
+        canRetryWhenForeground: false,
       );
     }
     if (batteryDecision.isSavedBlock) {
@@ -96,6 +137,9 @@ class TripBatteryGpsContinuationPolicy {
         shouldKeepTripSessionAlive: true,
         shouldKeepTextTripLogWritable: true,
         shouldWriteLocalCheckpoint: true,
+        requiresForegroundService: appInBackground,
+        requiresBackgroundPermission: false,
+        canRetryWhenForeground: false,
       );
     }
     return _decision(
@@ -106,6 +150,9 @@ class TripBatteryGpsContinuationPolicy {
       shouldKeepTripSessionAlive: true,
       shouldKeepTextTripLogWritable: true,
       shouldWriteLocalCheckpoint: true,
+      requiresForegroundService: appInBackground,
+      requiresBackgroundPermission: false,
+      canRetryWhenForeground: false,
     );
   }
 }
@@ -118,6 +165,9 @@ TripBatteryGpsContinuationDecision _decision({
   required bool shouldKeepTripSessionAlive,
   required bool shouldKeepTextTripLogWritable,
   required bool shouldWriteLocalCheckpoint,
+  required bool requiresForegroundService,
+  required bool requiresBackgroundPermission,
+  required bool canRetryWhenForeground,
 }) {
   return TripBatteryGpsContinuationDecision(
     status: status,
@@ -127,6 +177,9 @@ TripBatteryGpsContinuationDecision _decision({
     shouldKeepTripSessionAlive: shouldKeepTripSessionAlive,
     shouldKeepTextTripLogWritable: shouldKeepTextTripLogWritable,
     shouldWriteLocalCheckpoint: shouldWriteLocalCheckpoint,
+    requiresForegroundService: requiresForegroundService,
+    requiresBackgroundPermission: requiresBackgroundPermission,
+    canRetryWhenForeground: canRetryWhenForeground,
   );
 }
 
@@ -162,6 +215,10 @@ String _safeReason(String value) {
     'battery_unknown' => 'battery_unknown',
     'invalid_trip_for_battery_gps_continuation' =>
       'invalid_trip_for_battery_gps_continuation',
+    'foreground_service_required_for_background_gps' =>
+      'foreground_service_required_for_background_gps',
+    'background_permission_required_for_background_gps' =>
+      'background_permission_required_for_background_gps',
     _ => 'battery_unknown',
   };
 }

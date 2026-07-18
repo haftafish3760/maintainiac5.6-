@@ -27,6 +27,9 @@ void main() {
     expect(safe['lowBatteryPauseIsGpsOnly'], isTrue);
     expect(safe['lowBatteryPauseRequiresLocalCheckpoint'], isTrue);
     expect(safe['backgroundGpsCanResumeAfterUserOverride'], isTrue);
+    expect(safe['backgroundGpsRequiresPlatformGrant'], isTrue);
+    expect(safe['foregroundLocationDoesNotGrantBackgroundGps'], isTrue);
+    expect(safe['backgroundPermissionCanBeAssumed'], isFalse);
     expect(safe['manualOdometerEntryStillAllowed'], isTrue);
   });
 
@@ -62,6 +65,62 @@ void main() {
     expect(decision.shouldContinueGpsSampling, isTrue);
     expect(decision.shouldWriteLocalCheckpoint, isTrue);
     expect(decision.reasonCode, 'user_override_low_battery');
+  });
+
+  test('background GPS pauses when platform permission is missing', () {
+    final decision = TripBatteryGpsContinuationPolicy.evaluate(
+      lifecycle: TripTrackingSessionLifecycleState.active,
+      localSessionAvailable: true,
+      appInBackground: true,
+      foregroundServiceAvailable: true,
+      backgroundTrackingPermissionGranted: false,
+      batteryDecision: battery(percent: 80),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(
+      decision.status,
+      TripBatteryGpsContinuationStatus.pauseForBackgroundPermission,
+    );
+    expect(
+      decision.reasonCode,
+      'background_permission_required_for_background_gps',
+    );
+    expect(decision.shouldContinueGpsSampling, isFalse);
+    expect(decision.shouldPromptUser, isFalse);
+    expect(decision.shouldKeepTripSessionAlive, isTrue);
+    expect(decision.shouldKeepTextTripLogWritable, isTrue);
+    expect(decision.shouldWriteLocalCheckpoint, isTrue);
+    expect(decision.requiresBackgroundPermission, isTrue);
+    expect(decision.canRetryWhenForeground, isTrue);
+    expect(safe['backgroundPermissionCanBeProvidedByFirestore'], isFalse);
+    expect(safe['backgroundPermissionCanBeProvidedByMapbox'], isFalse);
+    expect(safe['gpsPauseCanEndTripAutomatically'], isFalse);
+    expect(safe['gpsPauseCanDeleteTripRecords'], isFalse);
+    expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+  });
+
+  test('background GPS pauses when foreground service is unavailable', () {
+    final decision = TripBatteryGpsContinuationPolicy.evaluate(
+      lifecycle: TripTrackingSessionLifecycleState.recovering,
+      localSessionAvailable: true,
+      appInBackground: true,
+      foregroundServiceAvailable: false,
+      backgroundTrackingPermissionGranted: true,
+      batteryDecision: battery(percent: 80),
+    );
+
+    expect(
+      decision.status,
+      TripBatteryGpsContinuationStatus.pauseForBackgroundPermission,
+    );
+    expect(
+      decision.reasonCode,
+      'foreground_service_required_for_background_gps',
+    );
+    expect(decision.shouldKeepTripSessionAlive, isTrue);
+    expect(decision.requiresForegroundService, isTrue);
+    expect(decision.canRetryWhenForeground, isTrue);
   });
 
   test('invalid trip state blocks battery GPS continuation boundary', () {
@@ -114,6 +173,8 @@ void main() {
       expect(safe['firebaseCanOverrideBatteryChoice'], isFalse);
       expect(safe['cloudFunctionCanOverrideBatteryChoice'], isFalse);
       expect(safe['mapboxCanOverrideBatteryChoice'], isFalse);
+      expect(safe['backgroundPermissionCanBeProvidedByFirestore'], isFalse);
+      expect(safe['backgroundPermissionCanBeProvidedByMapbox'], isFalse);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe.toString(), isNot(contains('12')));
       expect(safe.toString(), isNot(contains('pk.')));
