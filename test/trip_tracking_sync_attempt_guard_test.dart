@@ -15,6 +15,10 @@ void main() {
     expect(decision.freeSyncsRemainingBeforeAttempt, 4);
     expect(decision.mirrorPayload['canonicalSource'], 'hive');
     expect(decision.mirrorPayload['firestoreRole'], 'mirror');
+    expect(decision.mirrorPayload['deviceIdMatchesLocalRecord'], isTrue);
+    expect(decision.mirrorPayload['tripDayKeyValidated'], isTrue);
+    expect(decision.mirrorPayload['localRevisionMonotonic'], isTrue);
+    expect(decision.mirrorPayload['ownerValidatedBeforeMirror'], isTrue);
     expect(decision.mirrorPayload['canOverrideLocalDaytimeData'], isFalse);
     expect(decision.mirrorPayload['canDeleteLocalData'], isFalse);
     expect(decision.mirrorPayload['mapboxDataIncluded'], isFalse);
@@ -254,8 +258,12 @@ void main() {
     expect(summary['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(summary['mapboxCanReplaceOdometer'], isFalse);
     expect(summary['validatedBeforeUpload'], isTrue);
+    expect(summary['deviceIdMatchesLocalRecord'], isTrue);
+    expect(summary['tripDayKeyValidated'], isTrue);
+    expect(summary['mirrorPayloadHasMonotonicLocalRevision'], isTrue);
     expect(summary['authenticatedUidMustOwnSourceRecord'], isTrue);
     expect(summary['firebaseAuthDoesNotGrantMirrorAuthority'], isTrue);
+    expect(summary['authenticationAloneAuthorizesMirrorUpload'], isFalse);
     expect(summary['mirrorPayloadRequiresLocalPersistence'], isTrue);
     expect(summary['mirrorPayloadExcludesRawRouteHistory'], isTrue);
     expect(summary['blockedAttemptConsumesFreeSync'], isFalse);
@@ -269,6 +277,21 @@ void main() {
     expect(summary['rawTripRecordsIncluded'], isFalse);
     expect(summary.toString(), isNot(contains('pk.')));
     expect(summary.toString(), isNot(contains('sk.')));
+  });
+
+  test('mirror payload explicitly prevents auth-only upload authority', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(syncsUsedInWindow: 1),
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.mayUploadMirror, isTrue);
+    expect(summary['authorizationCheckedAfterAuthentication'], isTrue);
+    expect(summary['authenticatedUidMustOwnSourceRecord'], isTrue);
+    expect(summary['firebaseAuthDoesNotGrantMirrorAuthority'], isTrue);
+    expect(summary['authenticationAloneAuthorizesMirrorUpload'], isFalse);
+    expect(decision.mirrorPayload['ownerValidatedBeforeMirror'], isTrue);
+    expect(decision.mirrorPayload['deviceIdMatchesLocalRecord'], isTrue);
   });
 }
 
