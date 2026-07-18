@@ -1,3 +1,4 @@
+import 'trip_gps_dependability_rollup_policy.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_session_store.dart';
@@ -238,6 +239,9 @@ class TripOdometerCalibrationSignal {
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
     bool requireTrustedSignalDiagnostics = true,
+    Map<String, TripGpsDependabilityRollupDecision>
+        dailyGpsDependabilityRollups =
+        const {},
   }) {
     if (maximumReviewedDays < minimumSamples) {
       return const TripOdometerCalibrationSignal(
@@ -283,6 +287,12 @@ class TripOdometerCalibrationSignal {
     final poorGpsDayKeys = <String>{};
     for (final review in confirmedReviews) {
       final dayKey = _calibrationDayKey(review.startedAt.toUtc());
+      final gpsRollup = dailyGpsDependabilityRollups[dayKey];
+      if (gpsRollup != null && !gpsRollup.canUseForCalibrationEvidence) {
+        poorGpsDayKeys.add(dayKey);
+        dailyTotals.remove(dayKey);
+        continue;
+      }
       final reconciliation = TripOdometerReconciliation.compare(
         review: review,
         confirmedEndingOdometer: review.confirmedEndingOdometer!,

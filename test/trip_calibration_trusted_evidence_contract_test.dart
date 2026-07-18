@@ -240,6 +240,48 @@ void main() {
     expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(.9091, .001));
   });
 
+  test('daily GPS rollup can exclude an otherwise trusted calibration day', () {
+    final reviews = <TripTrackingReviewRecord>[
+      for (var day = 0; day < 7; day += 1)
+        _confirmedReview(
+          id: 'trusted_day_$day',
+          startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+          filteredGpsMiles: 110,
+          odometerMiles: 100,
+          diagnostics: _trustedDiagnostics,
+        ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+      vehicleId: 'vehicle_1',
+      nowUtc: DateTime.utc(2026, 7, 18, 12),
+      dailyGpsDependabilityRollups: {
+        '2026-07-07': const TripGpsDependabilityRollupDecision(
+          status: TripGpsDependabilityRollupStatus.excludedFromCalibration,
+          reasonCode: 'gps_rollup_projection_paused_window_present',
+          windowCount: 8,
+          readyWindowCount: 7,
+          reviewOnlyWindowCount: 0,
+          pausedWindowCount: 1,
+          unsafeWindowCount: 0,
+          canUseForLiveAssist: true,
+          canUseForCalibrationEvidence: false,
+          requiresUserReview: true,
+        ),
+      },
+    );
+    final safe = signal.toSafeDashboardMap();
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.eligibleSampleCount, 6);
+    expect(signal.trustedGpsWindowCount, 6);
+    expect(signal.excludedPoorGpsDayCount, 1);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+  });
+
   test('unknown GPS diagnostics fail neutral until explicitly allowed', () {
     final reviews = <TripTrackingReviewRecord>[
       for (var day = 0; day < 7; day += 1)
