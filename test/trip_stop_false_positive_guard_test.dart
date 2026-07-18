@@ -30,8 +30,11 @@ void main() {
     expect(guard['officialStopRequiresUserAction'], isTrue);
     expect(guard['localTripLogRequiredForReview'], isTrue);
     expect(guard['ownershipValidationRequiredForReview'], isTrue);
+    expect(guard['addressRequiresUserConfirmation'], isTrue);
     expect(guard['authenticationAloneAuthorizesStopReview'], isFalse);
+    expect(guard['odometerIsGlobalTruth'], isTrue);
     expect(guard['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(guard['mapboxCanInferOfficialStopAddress'], isFalse);
   });
 
   test('long traffic light cannot open review through forged summary', () {
@@ -226,6 +229,9 @@ void main() {
       'authenticationAloneAuthorizesStopReview': true,
       'localTripLogRequiredForReview': false,
       'ownershipValidationRequiredForReview': false,
+      'addressRequiresUserConfirmation': false,
+      'odometerIsGlobalTruth': false,
+      'mapboxCanInferOfficialStopAddress': true,
     };
 
     final validation = TripStopFalsePositiveGuardSummaryValidation.fromSummary(
@@ -257,6 +263,15 @@ void main() {
     expect(
       validation.reasons,
       contains('ownershipValidationRequiredForReview_not_true'),
+    );
+    expect(
+      validation.reasons,
+      contains('addressRequiresUserConfirmation_not_true'),
+    );
+    expect(validation.reasons, contains('odometerIsGlobalTruth_not_true'));
+    expect(
+      validation.reasons,
+      contains('mapboxCanInferOfficialStopAddress_not_false'),
     );
   });
 

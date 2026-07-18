@@ -25,6 +25,12 @@ void main() {
       isTrue,
     );
     expect(decision.reviewPayload['firestoreRole'], 'mirror_after_local_write');
+    expect(decision.reviewPayload['odometerIsGlobalTruth'], isTrue);
+    expect(decision.reviewPayload['addressRequiresUserConfirmation'], isTrue);
+    expect(
+      decision.reviewPayload['mapboxCanInferOfficialStopAddress'],
+      isFalse,
+    );
     expect(decision.reviewPayload['locationDataIncluded'], isFalse);
     expect(decision.reviewPayload['rawGpsIncluded'], isFalse);
     expect(decision.reviewPayload['coordinatesIncluded'], isFalse);
@@ -33,6 +39,9 @@ void main() {
     expect(safe['remoteCanOpenStopReview'], isFalse);
     expect(safe['firestoreCanOpenStopReview'], isFalse);
     expect(safe['mapboxCanOpenStopReview'], isFalse);
+    expect(safe['mapboxCanInferOfficialStopAddress'], isFalse);
+    expect(safe['addressRequiresUserConfirmation'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(safe['employerGodModeAllowed'], isFalse);
     expect(safe['stopReviewPayloadCanExposeLiveLocation'], isFalse);

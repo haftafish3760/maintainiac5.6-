@@ -47,8 +47,17 @@ void main() {
       isTrue,
     );
     expect(decision.reviewPayload['remoteCanMarkStopOfficial'], isFalse);
+    expect(decision.reviewPayload['odometerIsGlobalTruth'], isTrue);
+    expect(decision.reviewPayload['addressRequiresUserConfirmation'], isTrue);
+    expect(
+      decision.reviewPayload['mapboxCanInferOfficialStopAddress'],
+      isFalse,
+    );
     expect(safe['firestoreCanApplyDisposition'], isFalse);
     expect(safe['mapboxCanApplyDisposition'], isFalse);
+    expect(safe['mapboxCanInferOfficialStopAddress'], isFalse);
+    expect(safe['addressRequiresUserConfirmation'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['remoteCanMarkStopOfficial'], isFalse);
     expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(safe['employerGodModeAllowed'], isFalse);
