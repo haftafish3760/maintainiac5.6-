@@ -201,6 +201,8 @@ void main() {
       expect(safe['recoveryCanDeleteLocalData'], isFalse);
       expect(safe['recoveryCanPurgeLocalDeviceData'], isFalse);
       expect(safe['recoveryCanConfirmMileage'], isFalse);
+      expect(safe['recoveryCanSetGlobalTruth'], isFalse);
+      expect(safe['recoveryCanChangeOfficialMileage'], isFalse);
       expect(safe['recoveryCanCreateOfficialStop'], isFalse);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe['rawGpsIncluded'], isFalse);
@@ -254,6 +256,8 @@ void main() {
         'recoveryCanDeleteLocalData': true,
         'recoveryCanPurgeLocalDeviceData': true,
         'recoveryCanConfirmMileage': true,
+        'recoveryCanSetGlobalTruth': true,
+        'recoveryCanChangeOfficialMileage': true,
         'recoveryCanCreateOfficialStop': true,
         'recoveryCanEndTripAutomatically': true,
         'recoveryCanReplayPendingSampleWithoutValidation': true,

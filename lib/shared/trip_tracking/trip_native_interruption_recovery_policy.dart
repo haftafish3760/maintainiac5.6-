@@ -46,6 +46,8 @@ class TripNativeInterruptionRecoveryDecision {
     'nativeInterruptionCanEndTripAutomatically': false,
     'nativeInterruptionCanDeleteLocalData': false,
     'nativeInterruptionCanConfirmOdometer': false,
+    'nativeInterruptionCanSetGlobalTruth': false,
+    'nativeInterruptionCanChangeOfficialMileage': false,
     'nativeInterruptionCanCreateOfficialStop': false,
     'nativeInterruptionCanPurgeLocalDataAfterBackup': false,
     'nativeInterruptionCanBypassLocalCheckpoint': false,
@@ -62,6 +64,8 @@ class TripNativeInterruptionRecoveryDecision {
     'pendingReplayCannotUseMockedLocation': true,
     'backupMirrorBlockedWhenUserActionRequired': true,
     'backupMirrorCannotConfirmTripTruth': true,
+    'backupMirrorCannotSetGlobalTruth': true,
+    'backupMirrorCannotChangeOfficialMileage': true,
     'authenticationAloneAuthorizesNativeRecovery': false,
     'fleetObserverCanForceNativeRecovery': false,
     'backgroundRecoveryCanRunWithoutMaps': true,
@@ -132,6 +136,8 @@ class TripNativeInterruptionRecoverySummaryValidation {
     if (summary['nativeInterruptionCanEndTripAutomatically'] != false ||
         summary['nativeInterruptionCanDeleteLocalData'] != false ||
         summary['nativeInterruptionCanConfirmOdometer'] != false ||
+        summary['nativeInterruptionCanSetGlobalTruth'] != false ||
+        summary['nativeInterruptionCanChangeOfficialMileage'] != false ||
         summary['nativeInterruptionCanCreateOfficialStop'] != false ||
         summary['nativeInterruptionCanPurgeLocalDataAfterBackup'] != false ||
         summary['nativeInterruptionCanBypassLocalCheckpoint'] != false) {
@@ -152,7 +158,9 @@ class TripNativeInterruptionRecoverySummaryValidation {
         summary['pendingReplayRequiresMatchingSession'] != true ||
         summary['pendingReplayCannotUseMockedLocation'] != true ||
         summary['backupMirrorBlockedWhenUserActionRequired'] != true ||
-        summary['backupMirrorCannotConfirmTripTruth'] != true) {
+        summary['backupMirrorCannotConfirmTripTruth'] != true ||
+        summary['backupMirrorCannotSetGlobalTruth'] != true ||
+        summary['backupMirrorCannotChangeOfficialMileage'] != true) {
       reasons.add('completed_session_resume_boundary_missing');
     }
     if (summary['authenticationAloneAuthorizesNativeRecovery'] != false ||

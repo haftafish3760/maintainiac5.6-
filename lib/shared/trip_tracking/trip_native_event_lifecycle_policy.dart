@@ -60,6 +60,8 @@ class TripNativeEventLifecycleDecision {
     'nativeEventCanForceComplete': false,
     'nativeEventCanDeleteCheckpoint': false,
     'nativeEventCanConfirmOdometer': false,
+    'nativeEventCanSetGlobalTruth': false,
+    'nativeEventCanChangeOfficialMileage': false,
     'nativeEventCanCreateOfficialStop': false,
     'mapboxEventCanForceLifecycle': false,
     'firestoreEventCanForceLifecycle': false,
@@ -129,6 +131,8 @@ class TripNativeEventLifecycleSummaryValidation {
     if (summary['nativeEventCanForceComplete'] != false ||
         summary['nativeEventCanDeleteCheckpoint'] != false ||
         summary['nativeEventCanConfirmOdometer'] != false ||
+        summary['nativeEventCanSetGlobalTruth'] != false ||
+        summary['nativeEventCanChangeOfficialMileage'] != false ||
         summary['nativeEventCanCreateOfficialStop'] != false ||
         summary['nativeEventCanPurgeLocalDataAfterBackup'] != false ||
         summary['nativeEventCanBypassLocalCheckpoint'] != false) {

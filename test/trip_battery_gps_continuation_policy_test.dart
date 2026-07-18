@@ -24,6 +24,9 @@ void main() {
     expect(decision.shouldWriteLocalCheckpoint, isTrue);
     expect(safe['gpsPauseCanEndTripAutomatically'], isFalse);
     expect(safe['gpsPauseCanDeleteTripRecords'], isFalse);
+    expect(safe['gpsPauseCanConfirmMileage'], isFalse);
+    expect(safe['gpsPauseCanSetGlobalTruth'], isFalse);
+    expect(safe['gpsPauseCanChangeOfficialMileage'], isFalse);
     expect(safe['lowBatteryPauseIsGpsOnly'], isTrue);
     expect(safe['lowBatteryPauseRequiresLocalCheckpoint'], isTrue);
     expect(safe['backgroundGpsCanResumeAfterUserOverride'], isTrue);
@@ -220,6 +223,8 @@ void main() {
       TripBatteryGpsContinuationSummaryValidation.fromSummary({
         ...safe,
         'gpsPauseCanConfirmMileage': true,
+        'gpsPauseCanSetGlobalTruth': true,
+        'gpsPauseCanChangeOfficialMileage': true,
       }).reasons,
       contains('battery_pause_claims_trip_truth'),
     );

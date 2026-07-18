@@ -62,6 +62,8 @@ class TripRecoveryResumeDecision {
     'recoveryCanDeleteLocalData': false,
     'recoveryCanPurgeLocalDeviceData': false,
     'recoveryCanConfirmMileage': false,
+    'recoveryCanSetGlobalTruth': false,
+    'recoveryCanChangeOfficialMileage': false,
     'recoveryCanCreateOfficialStop': false,
     'recoveryCanEndTripAutomatically': false,
     'recoveryCanReplayPendingSampleWithoutValidation': false,
@@ -118,6 +120,8 @@ class TripRecoveryResumeSummaryValidation {
       'recoveryCanDeleteLocalData',
       'recoveryCanPurgeLocalDeviceData',
       'recoveryCanConfirmMileage',
+      'recoveryCanSetGlobalTruth',
+      'recoveryCanChangeOfficialMileage',
       'recoveryCanCreateOfficialStop',
       'recoveryCanEndTripAutomatically',
       'recoveryCanReplayPendingSampleWithoutValidation',
@@ -154,6 +158,8 @@ class TripRecoveryResumeSummaryValidation {
     if (summary['recoveryCanDeleteLocalData'] != false ||
         summary['recoveryCanPurgeLocalDeviceData'] != false ||
         summary['recoveryCanConfirmMileage'] != false ||
+        summary['recoveryCanSetGlobalTruth'] != false ||
+        summary['recoveryCanChangeOfficialMileage'] != false ||
         summary['recoveryCanCreateOfficialStop'] != false ||
         summary['recoveryCanEndTripAutomatically'] != false ||
         summary['recoveryCanReplayPendingSampleWithoutValidation'] != false) {

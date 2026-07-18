@@ -49,6 +49,8 @@ class TripBatteryGpsContinuationDecision {
     'gpsPauseCanEndTripAutomatically': false,
     'gpsPauseCanDeleteTripRecords': false,
     'gpsPauseCanConfirmMileage': false,
+    'gpsPauseCanSetGlobalTruth': false,
+    'gpsPauseCanChangeOfficialMileage': false,
     'gpsPauseCanCreateOfficialStop': false,
     'textTripLogContinuesWithoutGps': shouldKeepTextTripLogWritable,
     'manualOdometerEntryStillAllowed': shouldKeepTextTripLogWritable,
@@ -114,6 +116,8 @@ class TripBatteryGpsContinuationSummaryValidation {
       'gpsPauseCanEndTripAutomatically',
       'gpsPauseCanDeleteTripRecords',
       'gpsPauseCanConfirmMileage',
+      'gpsPauseCanSetGlobalTruth',
+      'gpsPauseCanChangeOfficialMileage',
       'gpsPauseCanCreateOfficialStop',
       'textTripLogContinuesWithoutGps',
       'manualOdometerEntryStillAllowed',
@@ -152,6 +156,8 @@ class TripBatteryGpsContinuationSummaryValidation {
     if (summary['gpsPauseCanEndTripAutomatically'] != false ||
         summary['gpsPauseCanDeleteTripRecords'] != false ||
         summary['gpsPauseCanConfirmMileage'] != false ||
+        summary['gpsPauseCanSetGlobalTruth'] != false ||
+        summary['gpsPauseCanChangeOfficialMileage'] != false ||
         summary['gpsPauseCanCreateOfficialStop'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['odometerIsGlobalTruth'] != true ||

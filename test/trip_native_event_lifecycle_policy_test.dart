@@ -16,6 +16,8 @@ void main() {
     expect(decision.canFeedEngine, isTrue);
     expect(safe['nativeEventTrustedAfterValidationOnly'], isTrue);
     expect(safe['nativeEventCanConfirmOdometer'], isFalse);
+    expect(safe['nativeEventCanSetGlobalTruth'], isFalse);
+    expect(safe['nativeEventCanChangeOfficialMileage'], isFalse);
   });
 
   test('activity events recover lifecycle but do not feed distance engine', () {
@@ -179,6 +181,8 @@ void main() {
         'nativeEventCanForceComplete': true,
         'nativeEventCanDeleteCheckpoint': true,
         'nativeEventCanConfirmOdometer': true,
+        'nativeEventCanSetGlobalTruth': true,
+        'nativeEventCanChangeOfficialMileage': true,
         'nativeEventCanCreateOfficialStop': true,
         'nativeEventCanPurgeLocalDataAfterBackup': true,
         'nativeEventCanBypassLocalCheckpoint': true,

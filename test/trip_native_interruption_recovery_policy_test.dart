@@ -93,6 +93,8 @@ void main() {
       expect(safe['pendingReplayRequiresMatchingSession'], isTrue);
       expect(safe['pendingReplayCannotUseMockedLocation'], isTrue);
       expect(safe['backupMirrorCannotConfirmTripTruth'], isTrue);
+      expect(safe['backupMirrorCannotSetGlobalTruth'], isTrue);
+      expect(safe['backupMirrorCannotChangeOfficialMileage'], isTrue);
     },
   );
 
@@ -145,6 +147,8 @@ void main() {
       expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
       expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
       expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
+      expect(safe['nativeInterruptionCanSetGlobalTruth'], isFalse);
+      expect(safe['nativeInterruptionCanChangeOfficialMileage'], isFalse);
       expect(safe['rawNativePayloadIncluded'], isFalse);
       expect(safe['rawLocationIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
@@ -194,6 +198,8 @@ void main() {
             'nativeInterruptionCanEndTripAutomatically': true,
             'nativeInterruptionCanDeleteLocalData': true,
             'nativeInterruptionCanConfirmOdometer': true,
+            'nativeInterruptionCanSetGlobalTruth': true,
+            'nativeInterruptionCanChangeOfficialMileage': true,
             'nativeInterruptionCanCreateOfficialStop': true,
             'nativeInterruptionCanPurgeLocalDataAfterBackup': true,
             'nativeInterruptionCanBypassLocalCheckpoint': true,
@@ -210,6 +216,8 @@ void main() {
             'pendingReplayCannotUseMockedLocation': false,
             'backupMirrorBlockedWhenUserActionRequired': false,
             'backupMirrorCannotConfirmTripTruth': false,
+            'backupMirrorCannotSetGlobalTruth': false,
+            'backupMirrorCannotChangeOfficialMileage': false,
             'authenticationAloneAuthorizesNativeRecovery': true,
             'fleetObserverCanForceNativeRecovery': true,
             'backgroundRecoveryCanRunWithoutMaps': false,
