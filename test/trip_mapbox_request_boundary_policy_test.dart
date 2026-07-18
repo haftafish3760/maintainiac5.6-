@@ -167,6 +167,9 @@ void main() {
     ).toSafeDashboardMap();
 
     expect(safe['gpsTripTrackingContinuesWithoutMaps'], isTrue);
+    expect(safe['mapboxCallRequiresRequestBudget'], isTrue);
+    expect(safe['mapboxResponseValidatedBeforeUse'], isTrue);
+    expect(safe['mapboxDirectionsCanOnlyVisualize'], isTrue);
     expect(safe['mapboxCanModifyTripLog'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanCreateStop'], isFalse);

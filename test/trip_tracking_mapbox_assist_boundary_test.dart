@@ -84,6 +84,8 @@ void main() {
     expect(decision.canPersistRouteHistory, isFalse);
     expect(safe['routeDistanceMiles'], 1.123);
     expect(safe['routeHistoryRequiresSeparateOptIn'], isTrue);
+    expect(safe['mapboxAssistCannotPersistWithoutRouteHistoryOptIn'], isTrue);
+    expect(safe['mapboxResponseValidatedBeforeAssist'], isTrue);
     expect(safe['mapboxCanModifyTripLog'], isFalse);
     expect(safe['mapboxCanModifyOdometer'], isFalse);
   });
@@ -108,6 +110,24 @@ void main() {
     expect(safe['remoteRouteCanBecomeCanonical'], isFalse);
     expect(safe['mapboxCanConfirmMileage'], isFalse);
     expect(safe['mapboxCanConfirmStop'], isFalse);
+    expect(safe['mapboxMileageReviewRequiresLocalReviewRecord'], isTrue);
+  });
+
+  test('mileage mismatch cannot prompt review without local review record', () {
+    final decision = TripTrackingMapboxAssistBoundaryDecision.evaluate(
+      mapboxDecision: _routeDecision(routeMiles: 14, confirmedMiles: 10),
+      activeSession: activeSession(),
+      mapPreviewOptIn: true,
+      routeHistoryOptIn: true,
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripTrackingMapboxAssistBoundaryStatus.visualOnly);
+    expect(decision.canPromptMileageReview, isFalse);
+    expect(decision.canPersistRouteHistory, isTrue);
+    expect(safe['mapboxMileageReviewRequiresLocalReviewRecord'], isTrue);
+    expect(safe['mapboxCanConfirmMileage'], isFalse);
+    expect(safe['officialMileageSource'], 'odometer');
   });
 
   test('invalid route distance falls back without rendering map assist', () {

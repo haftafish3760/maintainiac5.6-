@@ -111,6 +111,9 @@ class TripTrackingMapboxAssistBoundaryDecision {
     'canPersistRouteHistory': canPersistRouteHistory,
     'mapPreviewRequiresSeparateOptIn': true,
     'routeHistoryRequiresSeparateOptIn': true,
+    'mapboxAssistCannotPersistWithoutRouteHistoryOptIn': true,
+    'mapboxMileageReviewRequiresLocalReviewRecord': true,
+    'mapboxResponseValidatedBeforeAssist': true,
     'gpsAssistedTrackingAvailableWithoutMaps': true,
     'fallbackMode': canRenderMapAssist ? 'map_assist' : 'gps_only',
     if (_safeMiles(routeDistanceMiles) != null)
