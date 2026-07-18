@@ -41,6 +41,11 @@ class TripLiveCheckpointMirrorDecision {
     'mirrorCanConfirmOdometer': false,
     'mirrorCanCreateStop': false,
     'mirrorCanEndTripAutomatically': false,
+    'odometerIsGlobalTruth': true,
+    'mirrorCanApplyCalibration': false,
+    'mirrorCanCreateOfficialMileage': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'backupFailureCanStopGpsTracking': false,
     'backupFailureCanDropCurrentCheckpoint': false,
     'mapboxCanCreateCheckpoint': false,
@@ -88,6 +93,11 @@ class TripLiveCheckpointMirrorSummaryValidation {
       'mirrorCanConfirmOdometer',
       'mirrorCanCreateStop',
       'mirrorCanEndTripAutomatically',
+      'odometerIsGlobalTruth',
+      'mirrorCanApplyCalibration',
+      'mirrorCanCreateOfficialMileage',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
       'backupFailureCanStopGpsTracking',
       'backupFailureCanDropCurrentCheckpoint',
       'mapboxCanCreateCheckpoint',
@@ -116,9 +126,14 @@ class TripLiveCheckpointMirrorSummaryValidation {
         summary['backupFailureCanDropCurrentCheckpoint'] != false) {
       reasons.add('checkpoint_local_truth_boundary_missing');
     }
-    if (summary['mirrorCanConfirmOdometer'] != false ||
+    if (summary['odometerIsGlobalTruth'] != true ||
+        summary['mirrorCanConfirmOdometer'] != false ||
         summary['mirrorCanCreateStop'] != false ||
         summary['mirrorCanEndTripAutomatically'] != false ||
+        summary['mirrorCanApplyCalibration'] != false ||
+        summary['mirrorCanCreateOfficialMileage'] != false ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['mapboxCanCreateCheckpoint'] != false) {
       reasons.add('checkpoint_claims_trip_authority');
     }
@@ -207,7 +222,12 @@ Map<String, Object?> _payloadFor(Map<String, Object?> source) {
     'localRevisionMonotonic': true,
     'canOverrideLocalDaytimeData': false,
     'canDeleteLocalData': false,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'mirrorCanApplyCalibration': false,
+    'mirrorCanCreateOfficialMileage': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -232,7 +252,10 @@ bool _payloadShapeSafe(Map<String, Object?> payload) {
       payload['ownerValidatedBeforeMirror'] == true &&
       payload['canOverrideLocalDaytimeData'] == false &&
       payload['canDeleteLocalData'] == false &&
+      payload['odometerIsGlobalTruth'] == true &&
       payload['odometerRemainsOfficialMileageTruth'] == true &&
+      payload['calibrationCanUploadAsOfficialMileage'] == false &&
+      payload['poorGpsCalibrationDaysCanUploadAsCalibrationProof'] == false &&
       _safeTripDayKey(payload['tripDayKey']) &&
       _safeDistance(payload['distanceMiles']);
 }

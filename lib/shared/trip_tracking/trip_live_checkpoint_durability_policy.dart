@@ -50,7 +50,12 @@ class TripLiveCheckpointDurabilityDecision {
     'lowStorageCanBlockTextCheckpointAboveReserve': false,
     'freePlanReservationRequiredBeforeUpload': true,
     'localDaytimeDataNeverSilentlyOverwritten': true,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'checkpointCanApplyCalibration': false,
+    'checkpointCanCreateOfficialMileage': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'mapboxCanCreateCheckpoint': false,
     'mapboxCanUploadBackup': false,
     'tokensIncluded': false,
@@ -91,7 +96,12 @@ class TripLiveCheckpointDurabilitySummaryValidation {
       'lowStorageCanBlockTextCheckpointAboveReserve',
       'freePlanReservationRequiredBeforeUpload',
       'localDaytimeDataNeverSilentlyOverwritten',
+      'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
+      'checkpointCanApplyCalibration',
+      'checkpointCanCreateOfficialMileage',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
       'mapboxCanCreateCheckpoint',
       'mapboxCanUploadBackup',
       'tokensIncluded',
@@ -127,7 +137,12 @@ class TripLiveCheckpointDurabilitySummaryValidation {
         summary['backupFailureCanDropCurrentCheckpoint'] != false) {
       reasons.add('remote_or_backup_can_mutate_local_trip');
     }
-    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+    if (summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['checkpointCanApplyCalibration'] != false ||
+        summary['checkpointCanCreateOfficialMileage'] != false ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['mapboxCanCreateCheckpoint'] != false ||
         summary['mapboxCanUploadBackup'] != false) {
       reasons.add('mapbox_or_gps_can_replace_odometer');

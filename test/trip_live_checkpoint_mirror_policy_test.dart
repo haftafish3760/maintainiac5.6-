@@ -32,6 +32,11 @@ void main() {
       expect(payload['localRevisionMonotonic'], isTrue);
       expect(payload['canOverrideLocalDaytimeData'], isFalse);
       expect(payload['canDeleteLocalData'], isFalse);
+      expect(payload['odometerIsGlobalTruth'], isTrue);
+      expect(payload['mirrorCanApplyCalibration'], isFalse);
+      expect(payload['mirrorCanCreateOfficialMileage'], isFalse);
+      expect(payload['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(payload['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(payload['rawGpsIncluded'], isFalse);
       expect(payload['preciseLocationIncluded'], isFalse);
       expect(payload['routeGeometryIncluded'], isFalse);
@@ -121,7 +126,12 @@ void main() {
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
     expect(safe['remoteBackupCanDeleteLocalData'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['mirrorCanConfirmOdometer'], isFalse);
+    expect(safe['mirrorCanApplyCalibration'], isFalse);
+    expect(safe['mirrorCanCreateOfficialMileage'], isFalse);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['mapboxCanCreateCheckpoint'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });
@@ -176,6 +186,11 @@ void main() {
           'mirrorCanConfirmOdometer': true,
           'mirrorCanCreateStop': true,
           'mirrorCanEndTripAutomatically': true,
+          'odometerIsGlobalTruth': false,
+          'mirrorCanApplyCalibration': true,
+          'mirrorCanCreateOfficialMileage': true,
+          'calibrationRequiresTrustedGpsWindow': false,
+          'poorGpsDaysExcludedFromCalibration': false,
           'mapboxCanCreateCheckpoint': true,
           'payloadContainsRawGps': true,
           'payloadContainsPreciseLocation': true,

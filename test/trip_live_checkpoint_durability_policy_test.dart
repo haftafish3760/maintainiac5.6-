@@ -186,6 +186,11 @@ void main() {
       expect(safe['localDaytimeDataNeverSilentlyOverwritten'], isTrue);
       expect(safe['backupMirrorRequiresMatchingLocalRevision'], isTrue);
       expect(safe['lowStorageCanBlockTextCheckpointAboveReserve'], isFalse);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['checkpointCanApplyCalibration'], isFalse);
+      expect(safe['checkpointCanCreateOfficialMileage'], isFalse);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['mapboxCanCreateCheckpoint'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
@@ -217,7 +222,12 @@ void main() {
               'checkpointPolicyCanDeleteLocalData': true,
               'backupFailureCanStopGpsTracking': true,
               'backupFailureCanDropCurrentCheckpoint': true,
+              'odometerIsGlobalTruth': false,
               'odometerRemainsOfficialMileageTruth': false,
+              'checkpointCanApplyCalibration': true,
+              'checkpointCanCreateOfficialMileage': true,
+              'calibrationRequiresTrustedGpsWindow': false,
+              'poorGpsDaysExcludedFromCalibration': false,
               'mapboxCanCreateCheckpoint': true,
               'mapboxCanUploadBackup': true,
               'tokensIncluded': true,
