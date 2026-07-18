@@ -7,7 +7,11 @@ void main() {
     final files = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
-        .where((file) => file.path.contains('trip_tracking'))
+        .where(
+          (file) =>
+              file.path.contains('trip_tracking') ||
+              file.uri.pathSegments.last.startsWith('trip_'),
+        )
         .map((file) => file.uri.pathSegments.last)
         .toList(growable: false);
     final duplicateNames = _duplicates(files);
@@ -24,7 +28,7 @@ void main() {
     final files = Directory('test')
         .listSync(recursive: true)
         .whereType<File>()
-        .where((file) => file.uri.pathSegments.last.contains('trip_tracking'))
+        .where((file) => file.uri.pathSegments.last.startsWith('trip_'))
         .map((file) => file.uri.pathSegments.last)
         .toList(growable: false);
     final duplicateNames = _duplicates(files);
