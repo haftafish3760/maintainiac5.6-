@@ -1309,18 +1309,19 @@ class TripTrackingController extends ChangeNotifier {
     };
   }
 
-  /// Persists that a driver reviewed a walking-based possible-stop cue.
-  Future<void> acknowledgeWalkingReview() async {
+  /// Persists that a driver reviewed a GPS-assisted possible-stop cue.
+  Future<void> acknowledgeLatestStopReview() async {
     final session = _session;
     final engine = _engine;
-    if (session == null || engine == null || !engine.needsWalkingReview) return;
+    if (session == null || engine == null) return;
 
-    engine.acknowledgeWalkingReview();
-    final latestPendingStopIndex = session.advisories.lastIndexWhere(
-      (event) =>
-          event.type == TripTrackingAdvisoryType.probableStop &&
-          event.disposition == TripTrackingAdvisoryDisposition.pending,
+    final reviewingWalkingStop = engine.needsWalkingReview;
+    final latestPendingStopIndex = _latestPendingStopReviewIndex(
+      session,
+      preferHighConfidence: reviewingWalkingStop,
     );
+    if (!reviewingWalkingStop && latestPendingStopIndex < 0) return;
+    if (reviewingWalkingStop) engine.acknowledgeWalkingReview();
     final reviewedAdvisories = [...session.advisories];
     if (latestPendingStopIndex >= 0) {
       reviewedAdvisories[latestPendingStopIndex] =
@@ -1335,6 +1336,26 @@ class TripTrackingController extends ChangeNotifier {
     );
     await _sessionStore.save(_session!);
     notifyListeners();
+  }
+
+  /// Backward-compatible walking stop review hook used by existing UI/tests.
+  Future<void> acknowledgeWalkingReview() => acknowledgeLatestStopReview();
+
+  int _latestPendingStopReviewIndex(
+    TripTrackingSessionRecord session, {
+    required bool preferHighConfidence,
+  }) {
+    bool matches(TripTrackingAdvisoryEvent event) =>
+        event.type == TripTrackingAdvisoryType.probableStop &&
+        event.disposition == TripTrackingAdvisoryDisposition.pending;
+    if (preferHighConfidence) {
+      final highConfidenceIndex = session.advisories.lastIndexWhere(
+        (event) =>
+            matches(event) && event.confidence == TripTrackingConfidence.high,
+      );
+      if (highConfidenceIndex >= 0) return highConfidenceIndex;
+    }
+    return session.advisories.lastIndexWhere(matches);
   }
 
   List<TripTrackingAdvisoryEvent> _advisoriesAfterMotionTransition(

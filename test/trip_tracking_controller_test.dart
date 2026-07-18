@@ -989,11 +989,71 @@ void main() {
         TripTrackingAdvisoryDisposition.pending,
       );
 
+      await controller.acknowledgeLatestStopReview();
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.confirmed,
+      );
+      expect(controller.needsWalkingReview, isFalse);
+
       await controller.ingest(sample(-79.997, 170), activity: automotive(170));
       expect(controller.advisories.map((event) => event.type), [
         TripTrackingAdvisoryType.probableStop,
         TripTrackingAdvisoryType.resumedMovement,
       ]);
+    },
+  );
+
+  test(
+    'reviewing a vehicle-only stop candidate persists across local recovery',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_reviewed_vehicle_only_stop',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.rideshareVehicle,
+        startedAt: start,
+      );
+      TripActivityObservation automotive(int seconds) =>
+          TripActivityObservation(
+            activity: TripActivity.automotive,
+            confidence: 90,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+
+      await controller.ingest(sample(-80, 0), activity: automotive(0));
+      await controller.ingest(sample(-79.9997, 15), activity: automotive(15));
+      for (final seconds in [30, 60, 90, 135]) {
+        await controller.ingest(sample(-79.9997, seconds));
+      }
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.pending,
+      );
+
+      await controller.acknowledgeLatestStopReview();
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.confirmed,
+      );
+
+      final restored = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+      );
+      expect(await restored.restore(), isTrue);
+      expect(
+        restored.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.confirmed,
+      );
+      expect(restored.needsWalkingReview, isFalse);
     },
   );
 
