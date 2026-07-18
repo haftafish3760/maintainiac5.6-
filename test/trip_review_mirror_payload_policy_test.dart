@@ -23,6 +23,9 @@ void main() {
     expect(payload['confirmedMiles'], 42);
     expect(payload['officialMileageSource'], 'odometer');
     expect(payload['odometerIsGlobalTruth'], isTrue);
+    expect(payload['mirrorCanSetGlobalTruth'], isFalse);
+    expect(payload['mirrorCanConfirmOfficialMileage'], isFalse);
+    expect(payload['mirrorCanChangeOfficialMileage'], isFalse);
     expect(payload['gpsDistanceAdvisoryOnly'], isTrue);
     expect(payload['authenticationAloneAuthorizesMirror'], isFalse);
     expect(payload['backendRulesFailClosedForMirrorWrites'], isTrue);
@@ -42,6 +45,9 @@ void main() {
     expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
     expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
     expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['mirrorCanSetGlobalTruth'], isFalse);
+    expect(safe['mirrorCanConfirmOfficialMileage'], isFalse);
+    expect(safe['mirrorCanChangeOfficialMileage'], isFalse);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['authenticationAloneAuthorizesMirror'], isFalse);
     expect(safe['backendRulesFailClosedForMirrorWrites'], isTrue);
@@ -157,6 +163,9 @@ void main() {
     expect(inbound.mayMirror, isTrue);
     expect(inbound.payload['officialMileageSource'], 'odometer');
     expect(inbound.payload['odometerIsGlobalTruth'], isTrue);
+    expect(inbound.payload['mirrorCanSetGlobalTruth'], isFalse);
+    expect(inbound.payload['mirrorCanConfirmOfficialMileage'], isFalse);
+    expect(inbound.payload['mirrorCanChangeOfficialMileage'], isFalse);
     expect(inbound.payload['authenticationAloneAuthorizesMirror'], isFalse);
     expect(inbound.payload['backendRulesFailClosedForMirrorWrites'], isTrue);
     expect(inbound.payload['routeGeometryIncluded'], isFalse);
@@ -187,6 +196,9 @@ void main() {
         'remoteTotalsCanBecomeCanonical': true,
         'officialMileageSource': 'gps',
         'odometerIsGlobalTruth': false,
+        'mirrorCanSetGlobalTruth': true,
+        'mirrorCanConfirmOfficialMileage': true,
+        'mirrorCanChangeOfficialMileage': true,
         'routeGeometryIncluded': true,
         'tokensIncluded': true,
       },

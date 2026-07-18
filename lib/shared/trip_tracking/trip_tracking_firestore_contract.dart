@@ -175,6 +175,9 @@ abstract final class TripTrackingFirestoreContract {
       'gpsDistanceCanOnlyAdviseMileageReview': true,
       'mapMatchingCanOnlyAdviseMileageReview': true,
       'optimizationCannotChangeOfficialMileage': true,
+      'firestoreMirrorCanSetGlobalTruth': false,
+      'firestoreMirrorCanConfirmOfficialMileage': false,
+      'firestoreMirrorCanChangeOfficialMileage': false,
       'rulesMustRejectRemoteCalibrationWrites': true,
       'calibrationRequiresTrustedGpsWindow': true,
       'poorGpsDaysExcludedFromCalibration': true,
@@ -229,6 +232,9 @@ abstract final class TripTrackingFirestoreContract {
         summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
         summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
         summary['optimizationCannotChangeOfficialMileage'] != true ||
+        summary['firestoreMirrorCanSetGlobalTruth'] != false ||
+        summary['firestoreMirrorCanConfirmOfficialMileage'] != false ||
+        summary['firestoreMirrorCanChangeOfficialMileage'] != false ||
         summary['rulesMustRejectRemoteCalibrationWrites'] != true ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||

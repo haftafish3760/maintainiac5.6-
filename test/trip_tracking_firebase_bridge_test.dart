@@ -1510,6 +1510,9 @@ void main() {
       expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
       expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
       expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(summary['firebaseMirrorCanSetGlobalTruth'], isFalse);
+      expect(summary['firebaseMirrorCanConfirmOfficialMileage'], isFalse);
+      expect(summary['firebaseMirrorCanChangeOfficialMileage'], isFalse);
       expect(summary['firebaseMirrorCanCreateCalibration'], isFalse);
       expect(summary['firebaseMirrorCanApplyCalibration'], isFalse);
       expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
@@ -1562,6 +1565,9 @@ void main() {
       expect(personal['rulesMustRejectClientStopWrites'], isTrue);
       expect(personal['rulesMustRejectMapboxOptimizationWrites'], isTrue);
       expect(personal['odometerIsGlobalTruth'], isTrue);
+      expect(personal['firestoreMirrorCanSetGlobalTruth'], isFalse);
+      expect(personal['firestoreMirrorCanConfirmOfficialMileage'], isFalse);
+      expect(personal['firestoreMirrorCanChangeOfficialMileage'], isFalse);
       expect(personal['rulesMustRejectRemoteCalibrationWrites'], isTrue);
       expect(personal['calibrationRequiresTrustedGpsWindow'], isTrue);
       expect(personal['poorGpsDaysExcludedFromCalibration'], isTrue);
@@ -1591,6 +1597,9 @@ void main() {
         'rulesMustRejectClientStopWrites': false,
         'rulesMustRejectMapboxOptimizationWrites': false,
         'odometerIsGlobalTruth': false,
+        'firestoreMirrorCanSetGlobalTruth': true,
+        'firestoreMirrorCanConfirmOfficialMileage': true,
+        'firestoreMirrorCanChangeOfficialMileage': true,
         'rulesMustRejectRemoteCalibrationWrites': false,
         'calibrationRequiresTrustedGpsWindow': false,
         'poorGpsDaysExcludedFromCalibration': false,
@@ -1601,6 +1610,7 @@ void main() {
       });
 
       expect(findings, contains('authorization_boundary_not_closed'));
+      expect(findings, contains('remote_authority_too_high'));
       expect(findings, contains('organization_consent_boundary_open'));
     },
   );
