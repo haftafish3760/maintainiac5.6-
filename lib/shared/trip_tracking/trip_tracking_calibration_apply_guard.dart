@@ -23,10 +23,14 @@ class TripTrackingCalibrationApplyGuard {
     required int minimumReviewedDays,
     required DateTime? latestReviewedAtUtc,
     required DateTime nowUtc,
+    Duration maximumCalibrationReviewAge = const Duration(days: 30),
   }) {
     final reasons = <String>[];
+    final now = nowUtc.toUtc();
+    final latestReviewed = latestReviewedAtUtc?.toUtc();
     if (minimumReviewedDays <= 0) reasons.add('invalid_minimum_reviewed_days');
     if (signal.eligibleSampleCount < 0) reasons.add('negative_sample_count');
+    if (signal.eligibleSampleCount > 366) reasons.add('excessive_sample_count');
     if (!signal.averageGpsToOdometerRatio.isFinite ||
         signal.averageGpsToOdometerRatio <= 0) {
       reasons.add('invalid_gps_odometer_ratio');
@@ -38,8 +42,18 @@ class TripTrackingCalibrationApplyGuard {
     if (_safeReason(signal.reasonCode) == 'unknown_calibration_state') {
       reasons.add('unknown_signal_reason');
     }
-    if (latestReviewedAtUtc != null && latestReviewedAtUtc.isAfter(nowUtc)) {
+    if (latestReviewed != null && latestReviewed.isAfter(now)) {
       reasons.add('future_review_timestamp');
+    }
+    if (signal.status == TripOdometerCalibrationStatus.reviewRecommended &&
+        latestReviewed == null) {
+      reasons.add('missing_latest_review_timestamp');
+    }
+    if (latestReviewed != null &&
+        latestReviewed.isBefore(
+          now.subtract(_safeReviewAge(maximumCalibrationReviewAge)),
+        )) {
+      reasons.add('stale_review_timestamp');
     }
     if (reasons.isNotEmpty) {
       return TripTrackingCalibrationApplyGuard._(
@@ -106,6 +120,9 @@ class TripTrackingCalibrationApplyGuard {
     'userOptInRequired': true,
     'reviewAcceptanceRequired': true,
     'requiresMultipleReviewedOdometerDays': true,
+    'latestReviewTimestampRequired': true,
+    'staleCalibrationReviewRejected': true,
+    'excessiveHistoryCountRejected': true,
     'tireOrSpeedometerReviewIsAdvisory': true,
     'odometerRemainsCanonical': true,
     'gpsEstimateRemainsNonCanonical': true,
@@ -134,4 +151,9 @@ String _safeReason(String value) {
 double _safeRoundedMultiplier(double value) {
   final safe = TripTrackingCalibrationState.safeMultiplier(value);
   return double.parse(safe.toStringAsFixed(4));
+}
+
+Duration _safeReviewAge(Duration value) {
+  if (value <= Duration.zero) return const Duration(days: 1);
+  return value > const Duration(days: 90) ? const Duration(days: 90) : value;
 }

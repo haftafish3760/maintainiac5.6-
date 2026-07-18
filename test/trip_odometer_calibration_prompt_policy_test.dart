@@ -70,6 +70,46 @@ void main() {
     expect(decision.reason, TripOdometerCalibrationPromptReason.noPromptNeeded);
   });
 
+  test('malformed calibration signal cannot surface a review banner', () {
+    final malformed = evaluate(
+      now: now,
+      signal: const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.reviewRecommended,
+        eligibleSampleCount: -1,
+        averageGpsToOdometerRatio: double.nan,
+        averageDifferencePercent: double.infinity,
+        reasonCode: 'token=sk.secret lat=35.1',
+      ),
+    );
+    final excessiveHistory = evaluate(
+      now: now,
+      signal: signal(
+        status: TripOdometerCalibrationStatus.reviewRecommended,
+        eligibleSampleCount: 500,
+      ),
+    );
+
+    expect(malformed.surface, TripOdometerCalibrationPromptSurface.hidden);
+    expect(malformed.reason, TripOdometerCalibrationPromptReason.invalidSignal);
+    expect(malformed.shouldShow, isFalse);
+    expect(
+      malformed.toSafeDashboardMap()['messageToken'],
+      'calibration_signal_invalid',
+    );
+    expect(
+      malformed.toSafeDashboardMap().toString(),
+      isNot(contains('sk.secret')),
+    );
+    expect(
+      excessiveHistory.surface,
+      TripOdometerCalibrationPromptSurface.hidden,
+    );
+    expect(
+      excessiveHistory.reason,
+      TripOdometerCalibrationPromptReason.invalidSignal,
+    );
+  });
+
   test('safe prompt summary never grants silent calibration authority', () {
     final safe = evaluate(
       now: now,

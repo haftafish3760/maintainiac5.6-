@@ -93,6 +93,54 @@ void main() {
     expect(safe['gpsEstimateRemainsNonCanonical'], isTrue);
   });
 
+  test('review calibration requires a current accepted review timestamp', () {
+    final missing = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: null,
+      nowUtc: now,
+    );
+    final stale = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now.subtract(const Duration(days: 45)),
+      nowUtc: now,
+    );
+
+    expect(missing.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(missing.reasonCodes, contains('missing_latest_review_timestamp'));
+    expect(missing.canApplyToFutureGpsProjection, isFalse);
+    expect(stale.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(stale.reasonCodes, contains('stale_review_timestamp'));
+    expect(
+      stale.toSafeDashboardMap()['staleCalibrationReviewRejected'],
+      isTrue,
+    );
+  });
+
+  test('runaway calibration history counts fail neutral before applying', () {
+    final guard = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(samples: 500),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+    );
+    final safe = guard.toSafeDashboardMap();
+
+    expect(guard.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(guard.reasonCodes, contains('excessive_sample_count'));
+    expect(guard.multiplier, 1);
+    expect(guard.canApplyToFutureGpsProjection, isFalse);
+    expect(safe['excessiveHistoryCountRejected'], isTrue);
+    expect(safe['canRewriteConfirmedOdometer'], isFalse);
+  });
+
   test('stable calibration keeps a neutral multiplier', () {
     final guard = TripTrackingCalibrationApplyGuard.evaluate(
       signal: signal(
@@ -173,5 +221,6 @@ void main() {
     expect(safe['userOptInRequired'], isTrue);
     expect(safe['reviewAcceptanceRequired'], isTrue);
     expect(safe['requiresMultipleReviewedOdometerDays'], isTrue);
+    expect(safe['latestReviewTimestampRequired'], isTrue);
   });
 }

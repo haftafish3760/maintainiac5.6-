@@ -4,6 +4,7 @@ enum TripOdometerCalibrationPromptSurface { hidden, quietChip, reviewBanner }
 
 enum TripOdometerCalibrationPromptReason {
   disabledByUser,
+  invalidSignal,
   noPromptNeeded,
   snoozed,
   needsMoreReviewedDays,
@@ -76,6 +77,12 @@ class TripOdometerCalibrationPromptPolicy {
       return _hidden(
         TripOdometerCalibrationPromptReason.disabledByUser,
         'calibration_assist_disabled',
+      );
+    }
+    if (!_safeSignal(signal)) {
+      return _hidden(
+        TripOdometerCalibrationPromptReason.invalidSignal,
+        'calibration_signal_invalid',
       );
     }
     final now = nowUtc.toUtc();
@@ -152,11 +159,38 @@ String _safeMessage(String value) {
   return switch (clean) {
     'calibration_assist_disabled' ||
     'calibration_prompt_snoozed' ||
+    'calibration_signal_invalid' ||
     'calibration_stable' ||
     'calibration_learning_more_days' ||
     'calibration_needs_more_reviewed_days' ||
     'review_tires_or_speedometer' ||
     'review_gps_assist_calibration' => clean,
     _ => 'calibration_stable',
+  };
+}
+
+bool _safeSignal(TripOdometerCalibrationSignal signal) {
+  if (signal.eligibleSampleCount < 0 || signal.eligibleSampleCount > 366) {
+    return false;
+  }
+  if (!signal.averageGpsToOdometerRatio.isFinite ||
+      signal.averageGpsToOdometerRatio <= 0) {
+    return false;
+  }
+  if (!signal.averageDifferencePercent.isFinite ||
+      signal.averageDifferencePercent < 0) {
+    return false;
+  }
+  return _safeSignalReason(signal.reasonCode) != 'unknown_calibration_state';
+}
+
+String _safeSignalReason(String value) {
+  return switch (value.trim()) {
+    'invalid_calibration_threshold' => value.trim(),
+    'needs_more_reviewed_days' => value.trim(),
+    'mixed_vehicle_calibration_history' => value.trim(),
+    'persistent_gps_odometer_drift' => value.trim(),
+    'calibration_stable' => value.trim(),
+    _ => 'unknown_calibration_state',
   };
 }
