@@ -85,6 +85,9 @@ class TripTrackingProfileStrategy {
     'quickActionTokens': List.unmodifiable(quickActionTokens),
     'mapsRequiredForTracking': false,
     'odometerRemainsCanonical': true,
+    'locationSharingRequiresActiveOptIn': true,
+    'employeeTrackingRequiresMutualConsent': true,
+    'employerGodModeAllowed': false,
     'rawLocationIncluded': false,
     'rawSensorPayloadIncluded': false,
   };
