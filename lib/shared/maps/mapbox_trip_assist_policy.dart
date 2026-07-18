@@ -36,7 +36,7 @@ class MapboxTripAssistDecision {
   Map<String, Object?> toSafeSummary() => {
     'schemaVersion': 1,
     'status': status.name,
-    'safeReason': safeReason,
+    'safeReason': _safeMapboxAssistReason(safeReason),
     'advisoryOnly': true,
     'officialMileageSource': 'odometer',
     'trustedComparisonSource': trustedMileageSource.name,
@@ -48,6 +48,11 @@ class MapboxTripAssistDecision {
       'comparisonDeltaMiles': _safeMiles(comparisonDeltaMiles),
     'canModifyTripLog': false,
     'canModifyOdometer': false,
+    'canConfirmStop': false,
+    'canReplaceGpsDistance': false,
+    'canOverrideLocalTripLog': false,
+    'localTripLogProtected': true,
+    'odometerRequiresUserConfirmation': true,
     'canPersistRawRoute': false,
     'canPersistCoordinates': false,
     'rawResponseIncluded': false,
@@ -171,4 +176,22 @@ double? _safeMiles(double? value) {
   if (value == null || !value.isFinite || value < 0) return null;
   if (value > 12500) return null;
   return (value * 1000).roundToDouble() / 1000;
+}
+
+String _safeMapboxAssistReason(String value) {
+  return switch (value.trim()) {
+    'mapbox_route_unavailable' => 'mapbox_route_unavailable',
+    'mapbox_rate_limited' => 'mapbox_rate_limited',
+    'mapbox_http_failure' => 'mapbox_http_failure',
+    'mapbox_response_not_object' => 'mapbox_response_not_object',
+    'mapbox_service_code_not_ok' => 'mapbox_service_code_not_ok',
+    'mapbox_routes_missing' => 'mapbox_routes_missing',
+    'mapbox_routes_invalid' => 'mapbox_routes_invalid',
+    'invalid_map_assist_threshold' => 'invalid_map_assist_threshold',
+    'mapbox_visual_only_no_trusted_mileage' =>
+      'mapbox_visual_only_no_trusted_mileage',
+    'mapbox_visual_assist_only' => 'mapbox_visual_assist_only',
+    'mapbox_distance_review_only' => 'mapbox_distance_review_only',
+    _ => 'mapbox_route_unavailable',
+  };
 }

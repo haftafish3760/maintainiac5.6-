@@ -25,6 +25,8 @@ void main() {
       expect(decision.toSafeSummary()['schemaVersion'], 1);
       expect(decision.toSafeSummary()['advisoryOnly'], isTrue);
       expect(decision.toSafeSummary()['officialMileageSource'], 'odometer');
+      expect(decision.toSafeSummary()['canOverrideLocalTripLog'], isFalse);
+      expect(decision.toSafeSummary()['localTripLogProtected'], isTrue);
       expect(decision.toSafeSummary()['rawGeometryIncluded'], isFalse);
     },
   );
@@ -85,6 +87,9 @@ void main() {
     expect(summary['officialMileageSource'], 'odometer');
     expect(summary['canModifyOdometer'], isFalse);
     expect(summary['canModifyTripLog'], isFalse);
+    expect(summary['canConfirmStop'], isFalse);
+    expect(summary['canReplaceGpsDistance'], isFalse);
+    expect(summary['odometerRequiresUserConfirmation'], isTrue);
   });
 
   test(
@@ -165,6 +170,23 @@ void main() {
     expect(summary['routeDistanceMiles'], isNull);
     expect(summary['canPersistRawRoute'], isFalse);
     expect(summary['canPersistCoordinates'], isFalse);
+  });
+
+  test('safe summaries sanitize direct malformed Mapbox reason text', () {
+    const decision = MapboxTripAssistDecision(
+      status: MapboxTripAssistStatus.visualOnly,
+      safeReason: 'lat=-80.1 lon=35.1 token=pk.secret',
+      routeDistanceMiles: 5,
+      comparisonDeltaMiles: 1,
+      trustedMileageSource: MapboxTrustedMileageSource.gpsAccepted,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['safeReason'], 'mapbox_route_unavailable');
+    expect(summary['canOverrideLocalTripLog'], isFalse);
+    expect(summary['localTripLogProtected'], isTrue);
+    expect(summary.toString(), isNot(contains('35.1')));
+    expect(summary.toString(), isNot(contains('pk.secret')));
   });
 }
 
