@@ -69,7 +69,12 @@ void main() {
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreCanReviveQuarantinedSession'], isFalse);
     expect(safe['mapboxCanReviveQuarantinedSession'], isFalse);
+    expect(safe['recoveryRequiresLocalCheckpointFreshness'], isTrue);
+    expect(safe['recoveryRequiresValidatedEngineSnapshot'], isTrue);
     expect(safe['canCreateConfirmedMileage'], isFalse);
+    expect(safe['recoveryCanCreateOfficialStop'], isFalse);
+    expect(safe['recoveryCanEndTripAutomatically'], isFalse);
+    expect(safe['recoveryCanReplayPendingSampleWithoutValidation'], isFalse);
     expect(safe['officialMileageSource'], 'odometer');
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['recoveryCanCreateCalibration'], isFalse);
@@ -165,6 +170,9 @@ void main() {
     );
     expect(validation.recordId, 'trip_review_recoverable');
     expect(safe['canCreateConfirmedMileage'], isFalse);
+    expect(safe['recoveryCanCreateOfficialStop'], isFalse);
+    expect(safe['recoveryCanEndTripAutomatically'], isFalse);
+    expect(safe['recoveryCanReplayPendingSampleWithoutValidation'], isFalse);
     expect(safe['officialMileageSource'], 'odometer');
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['recoveryCanCreateCalibration'], isFalse);
