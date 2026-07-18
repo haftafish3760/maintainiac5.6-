@@ -46,10 +46,17 @@ class TripMapboxRequestBoundaryDecision {
     'mapboxCallRequiresRequestBudget': true,
     'mapboxResponseValidatedBeforeUse': true,
     'mapboxDirectionsCanOnlyVisualize': true,
+    'mapboxMatrixCanOnlyEstimate': true,
+    'mapboxMapMatchingCanOnlyAssistReview': true,
+    'mapboxOptimizationCanOnlySuggestOrder': true,
+    'mapboxIsochroneCanOnlyVisualizeCoverage': true,
+    'mapboxEvChargeFinderCanOnlySuggestStops': true,
     'mapboxCanModifyTripLog': false,
     'mapboxCanReplaceOdometer': false,
     'mapboxCanCreateStop': false,
     'mapboxCanEndTrip': false,
+    'mapboxCanReorderOfficialStops': false,
+    'mapboxCanPersistRouteWithoutOptIn': false,
     'mapboxRateLimitCanStopGpsTracking': false,
     'mapboxTimeoutCanCorruptTripLog': false,
     'malformedMapboxResponseFailsGracefully': true,
@@ -60,6 +67,90 @@ class TripMapboxRequestBoundaryDecision {
     'secretTokenIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripMapboxRequestBoundarySummaryValidation {
+  const TripMapboxRequestBoundarySummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasonCode,
+    required this.reasons,
+  });
+
+  factory TripMapboxRequestBoundarySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    final reasonCode = _safeReasonObject(summary['reasonCode']);
+    final remaining = summary['requestsRemainingInWindow'];
+
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_mapbox_boundary_status');
+    if (reasonCode == null) reasons.add('invalid_mapbox_boundary_reason');
+    if (remaining is! int || remaining < 0 || remaining > 100000) {
+      reasons.add('invalid_request_window_remaining');
+    }
+    if (summary['canCallMapbox'] == true &&
+        (status != TripMapboxRequestBoundaryStatus.requestAllowed ||
+            summary['mapboxRequiresSeparateUserOptIn'] != true ||
+            summary['mapboxRequestRequiresLocalTripSource'] != true ||
+            summary['mapboxCallRequiresRequestBudget'] != true)) {
+      reasons.add('unsafe_mapbox_call_claim');
+    }
+    if (summary['canRenderMapAssist'] == true &&
+        status != TripMapboxRequestBoundaryStatus.responseAccepted) {
+      reasons.add('unsafe_map_assist_render_claim');
+    }
+    if (summary['gpsTripTrackingContinuesWithoutMaps'] != true ||
+        summary['mapboxRateLimitCanStopGpsTracking'] != false ||
+        summary['mapboxTimeoutCanCorruptTripLog'] != false ||
+        summary['malformedMapboxResponseFailsGracefully'] != true) {
+      reasons.add('gps_fallback_boundary_missing');
+    }
+    if (summary['mapboxResponseValidatedBeforeUse'] != true ||
+        summary['mapboxDirectionsCanOnlyVisualize'] != true ||
+        summary['mapboxMatrixCanOnlyEstimate'] != true ||
+        summary['mapboxMapMatchingCanOnlyAssistReview'] != true ||
+        summary['mapboxOptimizationCanOnlySuggestOrder'] != true ||
+        summary['mapboxIsochroneCanOnlyVisualizeCoverage'] != true ||
+        summary['mapboxEvChargeFinderCanOnlySuggestStops'] != true) {
+      reasons.add('mapbox_service_boundary_missing');
+    }
+    if (summary['mapboxCanModifyTripLog'] != false ||
+        summary['mapboxCanReplaceOdometer'] != false ||
+        summary['mapboxCanCreateStop'] != false ||
+        summary['mapboxCanEndTrip'] != false ||
+        summary['mapboxCanReorderOfficialStops'] != false ||
+        summary['mapboxCanPersistRouteWithoutOptIn'] != false) {
+      reasons.add('mapbox_can_mutate_trip_truth');
+    }
+    if (summary['rawMapboxResponseIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['publicTokenIncluded'] != false ||
+        summary['secretTokenIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_mapbox_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripMapboxRequestBoundarySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasonCode: reasons.isEmpty ? reasonCode : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripMapboxRequestBoundaryStatus? status;
+  final String? reasonCode;
+  final List<String> reasons;
 }
 
 class TripMapboxRequestBoundaryPolicy {
@@ -266,4 +357,25 @@ String _safeReason(String value) {
     'mapbox_distance_review_only' => 'mapbox_distance_review_only',
     _ => 'mapbox_http_failure',
   };
+}
+
+TripMapboxRequestBoundaryStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripMapboxRequestBoundaryStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReasonObject(Object? value) {
+  if (value is! String) return null;
+  return _safeReason(value);
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

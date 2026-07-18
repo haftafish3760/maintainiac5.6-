@@ -170,12 +170,107 @@ void main() {
     expect(safe['mapboxCallRequiresRequestBudget'], isTrue);
     expect(safe['mapboxResponseValidatedBeforeUse'], isTrue);
     expect(safe['mapboxDirectionsCanOnlyVisualize'], isTrue);
+    expect(safe['mapboxMatrixCanOnlyEstimate'], isTrue);
+    expect(safe['mapboxMapMatchingCanOnlyAssistReview'], isTrue);
+    expect(safe['mapboxOptimizationCanOnlySuggestOrder'], isTrue);
+    expect(safe['mapboxIsochroneCanOnlyVisualizeCoverage'], isTrue);
+    expect(safe['mapboxEvChargeFinderCanOnlySuggestStops'], isTrue);
     expect(safe['mapboxCanModifyTripLog'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanCreateStop'], isFalse);
+    expect(safe['mapboxCanReorderOfficialStops'], isFalse);
+    expect(safe['mapboxCanPersistRouteWithoutOptIn'], isFalse);
     expect(safe['routeGeometryIncluded'], isFalse);
     expect(safe['publicTokenIncluded'], isFalse);
     expect(safe['secretTokenIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
+  });
+
+  test('safe summary validates as renderable request boundary', () {
+    final validation = TripMapboxRequestBoundarySummaryValidation.fromSummary(
+      TripMapboxRequestBoundaryPolicy.beforeRequest(
+        mapPreviewOptIn: true,
+        mapboxRuntimeConfigured: true,
+        networkAvailable: true,
+        localTripSourceValidated: true,
+        requestsUsedInWindow: 2,
+      ).toSafeDashboardMap(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.status, TripMapboxRequestBoundaryStatus.requestAllowed);
+    expect(validation.reasonCode, 'mapbox_request_allowed');
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'summary validation rejects Mapbox authority and sensitive material',
+    () {
+      final validation = TripMapboxRequestBoundarySummaryValidation.fromSummary(
+        TripMapboxRequestBoundaryPolicy.beforeRequest(
+          mapPreviewOptIn: true,
+          mapboxRuntimeConfigured: true,
+          networkAvailable: true,
+          localTripSourceValidated: true,
+          requestsUsedInWindow: 0,
+        ).toSafeDashboardMap()..addAll({
+          'mapboxResponseValidatedBeforeUse': false,
+          'mapboxDirectionsCanOnlyVisualize': false,
+          'mapboxMatrixCanOnlyEstimate': false,
+          'mapboxMapMatchingCanOnlyAssistReview': false,
+          'mapboxOptimizationCanOnlySuggestOrder': false,
+          'mapboxIsochroneCanOnlyVisualizeCoverage': false,
+          'mapboxEvChargeFinderCanOnlySuggestStops': false,
+          'mapboxCanModifyTripLog': true,
+          'mapboxCanReplaceOdometer': true,
+          'mapboxCanCreateStop': true,
+          'mapboxCanEndTrip': true,
+          'mapboxCanReorderOfficialStops': true,
+          'mapboxCanPersistRouteWithoutOptIn': true,
+          'rawMapboxResponseIncluded': true,
+          'routeGeometryIncluded': true,
+          'publicTokenIncluded': true,
+          'secretTokenIncluded': true,
+          'debugPoint': '35.123456,-80.123456',
+        }),
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(validation.reasons, contains('mapbox_service_boundary_missing'));
+      expect(validation.reasons, contains('mapbox_can_mutate_trip_truth'));
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_mapbox_material'),
+      );
+      expect(validation.reasons, contains('summary_contains_sensitive_text'));
+    },
+  );
+
+  test('summary validation catches unsafe call and render claims', () {
+    final validation = TripMapboxRequestBoundarySummaryValidation.fromSummary({
+      'schemaVersion': 2,
+      'status': 'forceMap',
+      'reasonCode': 'private_reason',
+      'canCallMapbox': true,
+      'canRenderMapAssist': true,
+      'requestsRemainingInWindow': -1,
+      'gpsTripTrackingContinuesWithoutMaps': false,
+      'mapboxRateLimitCanStopGpsTracking': true,
+      'mapboxTimeoutCanCorruptTripLog': true,
+      'malformedMapboxResponseFailsGracefully': false,
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'unsupported_schema_version',
+        'invalid_mapbox_boundary_status',
+        'invalid_request_window_remaining',
+        'unsafe_mapbox_call_claim',
+        'unsafe_map_assist_render_claim',
+        'gps_fallback_boundary_missing',
+      ]),
+    );
   });
 }
