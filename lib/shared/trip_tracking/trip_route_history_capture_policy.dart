@@ -69,6 +69,12 @@ class TripRouteHistoryCaptureDecision {
     'routeHistoryCannotUploadRawPingsToFirestore': true,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
     'hiveRemainsOperationalSourceOfTruth': true,
@@ -148,6 +154,12 @@ class TripRouteHistorySummaryValidation {
         summary['routeHistoryCannotUploadRawPingsToFirestore'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true) {
       reasons.add('map_route_claims_trip_truth');

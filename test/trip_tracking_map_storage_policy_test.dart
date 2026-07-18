@@ -34,6 +34,12 @@ void main() {
     expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
     expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(summary['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(summary['routeStorageCanCreateCalibration'], isFalse);
     expect(summary['routeStorageCanApplyCalibration'], isFalse);
     expect(summary['routeStorageCanBecomeCalibrationProof'], isFalse);
@@ -258,6 +264,12 @@ void main() {
     expect(summary['remoteRouteSummaryCanOverrideLocalTrip'], isFalse);
     expect(summary['routeStorageTrustedAfterValidationOnly'], isTrue);
     expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(summary['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(summary['routeStorageCanCreateCalibration'], isFalse);
     expect(summary['routeStorageCanApplyCalibration'], isFalse);
     expect(summary['routeStorageCanBecomeCalibrationProof'], isFalse);
@@ -289,6 +301,12 @@ void main() {
     expect(summary['estimatedStoredMbAfterPoint'], 0);
     expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
     expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(summary['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['routePointCanCreateCalibration'], isFalse);
@@ -365,6 +383,12 @@ void main() {
           'routeStorageCannotDeleteTextTripLog': false,
           'routeStorageCannotUploadRawPingsToFirestore': false,
           'odometerIsGlobalTruth': false,
+          'physicalOdometerRequiredForOfficialMileage': false,
+          'confirmedOdometerOverridesExternalMileage': false,
+          'externalMileageCannotBecomeGlobalTruth': false,
+          'gpsDistanceCanOnlyAdviseMileageReview': false,
+          'mapMatchingCanOnlyAdviseMileageReview': false,
+          'optimizationCannotChangeOfficialMileage': false,
           'routeStorageCanCreateCalibration': true,
           'routeStorageCanApplyCalibration': true,
           'routeStorageCanBecomeCalibrationProof': true,
@@ -397,6 +421,12 @@ void main() {
           ).toSafeDashboardMap()
           ..remove('odometerIsGlobalTruth')
           ..remove('odometerRemainsCanonical')
+          ..remove('physicalOdometerRequiredForOfficialMileage')
+          ..remove('confirmedOdometerOverridesExternalMileage')
+          ..remove('externalMileageCannotBecomeGlobalTruth')
+          ..remove('gpsDistanceCanOnlyAdviseMileageReview')
+          ..remove('mapMatchingCanOnlyAdviseMileageReview')
+          ..remove('optimizationCannotChangeOfficialMileage')
           ..remove('routeStorageCanCreateCalibration')
           ..remove('routeStorageCanApplyCalibration')
           ..remove('routeStorageCanBecomeCalibrationProof')

@@ -173,6 +173,12 @@ void main() {
     expect(safe['mapboxCallRequiresRequestBudget'], isTrue);
     expect(safe['mapboxResponseValidatedBeforeUse'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(safe['mapboxDirectionsCanOnlyVisualize'], isTrue);
     expect(safe['mapboxMatrixCanOnlyEstimate'], isTrue);
     expect(safe['mapboxMapMatchingCanOnlyAssistReview'], isTrue);
@@ -220,6 +226,12 @@ void main() {
         ).toSafeDashboardMap()..addAll({
           'mapboxResponseValidatedBeforeUse': false,
           'odometerIsGlobalTruth': false,
+          'physicalOdometerRequiredForOfficialMileage': false,
+          'confirmedOdometerOverridesExternalMileage': false,
+          'externalMileageCannotBecomeGlobalTruth': false,
+          'gpsDistanceCanOnlyAdviseMileageReview': false,
+          'mapMatchingCanOnlyAdviseMileageReview': false,
+          'optimizationCannotChangeOfficialMileage': false,
           'mapboxRequestRequiresOwnershipValidation': false,
           'mapboxRequestRequiresDeviceLocalSource': false,
           'authenticationAloneAuthorizesMapboxRequest': true,

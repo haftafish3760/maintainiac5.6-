@@ -49,6 +49,12 @@ class TripMapboxRequestBoundaryDecision {
     'mapboxCallRequiresRequestBudget': true,
     'mapboxResponseValidatedBeforeUse': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'mapboxDirectionsCanOnlyVisualize': true,
     'mapboxMatrixCanOnlyEstimate': true,
     'mapboxMapMatchingCanOnlyAssistReview': true,
@@ -124,6 +130,12 @@ class TripMapboxRequestBoundarySummaryValidation {
     }
     if (summary['mapboxResponseValidatedBeforeUse'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['mapboxDirectionsCanOnlyVisualize'] != true ||
         summary['mapboxMatrixCanOnlyEstimate'] != true ||
         summary['mapboxMapMatchingCanOnlyAssistReview'] != true ||

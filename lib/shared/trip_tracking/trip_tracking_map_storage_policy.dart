@@ -68,6 +68,12 @@ class TripTrackingMapStorageEstimate {
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'routeStorageCanCreateCalibration': false,
     'routeStorageCanApplyCalibration': false,
     'routePointCanCreateCalibration': false,
@@ -141,6 +147,12 @@ class TripTrackingMapRoutePointDecision {
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'routeStorageCanCreateCalibration': false,
     'routeStorageCanApplyCalibration': false,
     'routePointCanCreateCalibration': false,
@@ -344,6 +356,12 @@ class TripTrackingMapStorageSummaryValidation {
       'purgeRequiresConfirmedBackupOrUserAction',
       'odometerIsGlobalTruth',
       'odometerRemainsCanonical',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'routeStorageCanCreateCalibration',
       'routeStorageCanApplyCalibration',
       'routeStorageCanBecomeCalibrationProof',
@@ -388,6 +406,12 @@ class TripTrackingMapStorageSummaryValidation {
     }
     if (summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsCanonical'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['routeStorageCanCreateCalibration'] != false ||
         summary['routeStorageCanApplyCalibration'] != false ||
         summary['routeStorageCanBecomeCalibrationProof'] != false ||

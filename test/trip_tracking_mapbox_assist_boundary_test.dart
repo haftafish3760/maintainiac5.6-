@@ -111,6 +111,12 @@ void main() {
     expect(safe['advisoryOnly'], isTrue);
     expect(safe['officialMileageSource'], 'odometer');
     expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(safe['remoteRouteCanBecomeCanonical'], isFalse);
     expect(safe['mapboxCanConfirmMileage'], isFalse);
     expect(safe['mapboxCanConfirmStop'], isFalse);
@@ -276,6 +282,12 @@ void main() {
             'firestoreCanOverrideMapAssistBoundary': true,
             'remoteRouteCanBecomeCanonical': true,
             'odometerIsGlobalTruth': false,
+            'physicalOdometerRequiredForOfficialMileage': false,
+            'confirmedOdometerOverridesExternalMileage': false,
+            'externalMileageCannotBecomeGlobalTruth': false,
+            'gpsDistanceCanOnlyAdviseMileageReview': false,
+            'mapMatchingCanOnlyAdviseMileageReview': false,
+            'optimizationCannotChangeOfficialMileage': false,
             'rawMapboxResponseIncluded': true,
             'rawGpsIncluded': true,
             'preciseLocationIncluded': true,

@@ -117,6 +117,12 @@ void main() {
     expect(safe['mapboxCanReorderOfficialStops'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['rawCoordinatesIncluded'], isFalse);
@@ -179,6 +185,12 @@ void main() {
           'routeHistoryCanApplyCalibration': true,
           'routeHistoryCanBecomeCalibrationProof': true,
           'odometerIsGlobalTruth': false,
+          'physicalOdometerRequiredForOfficialMileage': false,
+          'confirmedOdometerOverridesExternalMileage': false,
+          'externalMileageCannotBecomeGlobalTruth': false,
+          'gpsDistanceCanOnlyAdviseMileageReview': false,
+          'mapMatchingCanOnlyAdviseMileageReview': false,
+          'optimizationCannotChangeOfficialMileage': false,
           'calibrationRequiresTrustedGpsWindow': false,
           'poorGpsDaysExcludedFromCalibration': false,
           'routeHistoryCannotDeleteTextTripLog': false,
