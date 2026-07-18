@@ -44,6 +44,7 @@ void main() {
     expect(decision.requiresUserReview, isTrue);
     expect(safe['permissionLossRequiresUserReview'], isTrue);
     expect(safe['nativeEventCanForceComplete'], isFalse);
+    expect(safe['backgroundPauseRequiresRecoveryPath'], isTrue);
   });
 
   test(
