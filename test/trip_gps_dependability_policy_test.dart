@@ -316,4 +316,51 @@ void main() {
     expect(validation.reasons, contains('invalid_gps_dependability_reason'));
     expect(validation.reasons, contains('summary_contains_sensitive_text'));
   });
+
+  test('summary validation rejects status authority contradictions', () {
+    final unsafeSummary =
+        TripGpsDependabilityPolicy.evaluate(
+          profile: TripTrackingProfile.deliveryVehicle,
+          signalSummary: signal(
+            quality: TripTrackingSignalQuality.unsafe,
+            reasonCode: 'gps_signal_unsafe_provider_evidence',
+            receivedSamples: 8,
+            acceptedSamples: 1,
+            requiresUserReview: true,
+          ),
+          sampleWindow: window(signalQuality: TripTrackingSignalQuality.unsafe),
+        ).toSafeDashboardMap()..addAll({
+          'canFeedLiveOdometerProjection': true,
+          'canPersistCompactRoutePoint': true,
+          'canOpenStopReview': true,
+          'canContributeToCalibration': true,
+        });
+    final reviewOnlySummary =
+        TripGpsDependabilityPolicy.evaluate(
+          profile: TripTrackingProfile.deliveryVehicle,
+          signalSummary: signal(requiresUserReview: true),
+          sampleWindow: window(),
+        ).toSafeDashboardMap()..addAll({
+          'canOpenStopReview': true,
+          'canContributeToCalibration': true,
+        });
+
+    final unsafeValidation = TripGpsDependabilitySummaryValidation.fromSummary(
+      unsafeSummary,
+    );
+    final reviewValidation = TripGpsDependabilitySummaryValidation.fromSummary(
+      reviewOnlySummary,
+    );
+
+    expect(unsafeValidation.isRenderable, isFalse);
+    expect(reviewValidation.isRenderable, isFalse);
+    expect(
+      unsafeValidation.reasons,
+      contains('gps_dependability_status_conflicts_with_authority'),
+    );
+    expect(
+      reviewValidation.reasons,
+      contains('gps_dependability_status_conflicts_with_authority'),
+    );
+  });
 }

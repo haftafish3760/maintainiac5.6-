@@ -181,6 +181,8 @@ class TripGpsDependabilitySummaryValidation {
         summary['tokensIncluded'] != false) {
       reasons.add('summary_contains_sensitive_trip_material');
     }
+    final boundaryRisk = _decisionBoundaryRisk(summary, status: status);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     if (summary.values.any(_looksSensitive)) {
       reasons.add('summary_contains_sensitive_text');
     }
@@ -435,6 +437,49 @@ TripTrackingSignalQuality? _safeSignalQuality(Object? value) {
   if (value is! String) return null;
   for (final quality in TripTrackingSignalQuality.values) {
     if (quality.name == value) return quality;
+  }
+  return null;
+}
+
+String? _decisionBoundaryRisk(
+  Map<String, Object?> summary, {
+  required TripGpsDependabilityStatus? status,
+}) {
+  if (status == null) return null;
+  final projection = summary['canFeedLiveOdometerProjection'];
+  final persist = summary['canPersistCompactRoutePoint'];
+  final stop = summary['canOpenStopReview'];
+  final calibration = summary['canContributeToCalibration'];
+  final sampling = summary['shouldContinueSampling'];
+  final review = summary['requiresUserReview'];
+  if (projection is! bool ||
+      persist is! bool ||
+      stop is! bool ||
+      calibration is! bool ||
+      sampling is! bool ||
+      review is! bool) {
+    return null;
+  }
+  if (status == TripGpsDependabilityStatus.unsafeBlocked &&
+      (projection || persist || stop || calibration || !sampling || !review)) {
+    return 'gps_dependability_status_conflicts_with_authority';
+  }
+  if (status == TripGpsDependabilityStatus.projectionPaused &&
+      (projection || persist || stop || calibration)) {
+    return 'gps_dependability_status_conflicts_with_authority';
+  }
+  if (status == TripGpsDependabilityStatus.reviewOnly &&
+      (stop || calibration)) {
+    return 'gps_dependability_status_conflicts_with_authority';
+  }
+  if (status == TripGpsDependabilityStatus.readyForAssist &&
+      (!projection ||
+          !persist ||
+          !stop ||
+          !calibration ||
+          !sampling ||
+          review)) {
+    return 'gps_dependability_status_conflicts_with_authority';
   }
   return null;
 }
