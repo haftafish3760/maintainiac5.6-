@@ -3312,6 +3312,11 @@ void main() {
         cloudMirror: mirror,
         durableRecordBridge: durableBridge,
       );
+      expect(controller.odometerIsGlobalTruth, isTrue);
+      expect(controller.calibrationRequiresTrustedGpsWindow, isTrue);
+      expect(controller.poorGpsDaysExcludedFromCalibration, isTrue);
+      expect(controller.controllerCanCreateCalibrationWithoutReview, isFalse);
+      expect(controller.controllerCanApplyCalibrationWithoutOptIn, isFalse);
       await controller.start(
         tripId: 'trip_review',
         vehicleId: 'vehicle_1',

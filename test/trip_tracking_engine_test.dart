@@ -29,6 +29,12 @@ void main() {
   test('uses two-second precision only after vehicle speed reaches 15 mph', () {
     final engine = TripTrackingEngine();
 
+    expect(engine.odometerIsGlobalTruth, isTrue);
+    expect(engine.calibrationRequiresTrustedGpsWindow, isTrue);
+    expect(engine.poorGpsDaysExcludedFromCalibration, isTrue);
+    expect(engine.engineCanCreateCalibration, isFalse);
+    expect(engine.engineCanApplyCalibration, isFalse);
+    expect(engine.engineCanConfirmOdometer, isFalse);
     expect(
       engine
           .samplingRecommendation(

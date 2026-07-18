@@ -96,6 +96,11 @@ class TripTrackingController extends ChangeNotifier {
   String? get cloudMirrorError => _cloudMirrorError;
   String? get durableRecordError => _durableRecordError;
   bool get hasDurableRecordBridge => _durableRecordBridge != null;
+  bool get odometerIsGlobalTruth => true;
+  bool get calibrationRequiresTrustedGpsWindow => true;
+  bool get poorGpsDaysExcludedFromCalibration => true;
+  bool get controllerCanCreateCalibrationWithoutReview => false;
+  bool get controllerCanApplyCalibrationWithoutOptIn => false;
   double get gpsAssistanceCalibrationMultiplier => _calibrationState.multiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
       _lastKnownCapabilities;

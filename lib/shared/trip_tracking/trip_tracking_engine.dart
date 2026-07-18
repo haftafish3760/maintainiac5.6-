@@ -27,6 +27,12 @@ class TripTrackingEngine {
   double get totalAcceptedMeters => _totalAcceptedMeters;
   bool get needsWalkingReview => _walkingReviewSuggested;
   TripMotionState get motionState => _motionState;
+  bool get odometerIsGlobalTruth => true;
+  bool get calibrationRequiresTrustedGpsWindow => true;
+  bool get poorGpsDaysExcludedFromCalibration => true;
+  bool get engineCanCreateCalibration => false;
+  bool get engineCanApplyCalibration => false;
+  bool get engineCanConfirmOdometer => false;
 
   /// Clears a user-reviewed walking cue without changing trip distance.
   void acknowledgeWalkingReview() {
