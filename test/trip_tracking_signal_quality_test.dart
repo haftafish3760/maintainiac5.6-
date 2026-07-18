@@ -333,6 +333,14 @@ void main() {
     expect(unsafe.toSafeDashboardMap()['requiresUserReview'], isTrue);
     expect(poor.toSafeDashboardMap()['requiresUserReview'], isTrue);
     expect(
+      unsafe.toSafeDashboardMap()['stopReviewSignalQualityEligible'],
+      isFalse,
+    );
+    expect(
+      poor.toSafeDashboardMap()['stopReviewSignalQualityEligible'],
+      isFalse,
+    );
+    expect(
       unsafe.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
       isFalse,
     );

@@ -64,7 +64,11 @@ class TripTrackingSignalQualitySummary {
     'diagnosticsCanOnlyRequestReview': true,
     'diagnosticsCanEndTrip': false,
     'stopReviewRequiresTrustedGps': true,
-    'stopReviewSignalQualityEligible': _safeStopReviewEligible(quality),
+    'stopReviewSignalQualityEligible': _safeStopReviewEligible(
+      quality: quality,
+      reasonCode: reasonCode,
+      requiresUserReview: requiresUserReview,
+    ),
     'noGpsCanOpenStopReview': false,
     'poorGpsCanOpenStopReview': false,
     'interruptedGpsCanOpenStopReview': false,
@@ -310,7 +314,23 @@ bool _safeCalibrationEligible({
 
 const int _minimumAcceptedSamplesForCalibration = 5;
 
-bool _safeStopReviewEligible(TripTrackingSignalQuality quality) {
+bool _safeStopReviewEligible({
+  required TripTrackingSignalQuality quality,
+  required String reasonCode,
+  required bool requiresUserReview,
+}) {
+  if (_safeRequiresUserReview(
+    quality: quality,
+    reasonCode: reasonCode,
+    requestedReview: requiresUserReview,
+  )) {
+    return false;
+  }
+  final safeReason = _safeSignalReason(reasonCode);
+  if (safeReason != 'gps_signal_healthy' &&
+      safeReason != 'gps_signal_reduced_but_usable') {
+    return false;
+  }
   return switch (quality) {
     TripTrackingSignalQuality.healthy ||
     TripTrackingSignalQuality.reduced => true,
