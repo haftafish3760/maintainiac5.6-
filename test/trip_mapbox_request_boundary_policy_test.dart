@@ -167,6 +167,9 @@ void main() {
     ).toSafeDashboardMap();
 
     expect(safe['gpsTripTrackingContinuesWithoutMaps'], isTrue);
+    expect(safe['mapboxRequestRequiresOwnershipValidation'], isTrue);
+    expect(safe['mapboxRequestRequiresDeviceLocalSource'], isTrue);
+    expect(safe['authenticationAloneAuthorizesMapboxRequest'], isFalse);
     expect(safe['mapboxCallRequiresRequestBudget'], isTrue);
     expect(safe['mapboxResponseValidatedBeforeUse'], isTrue);
     expect(safe['mapboxDirectionsCanOnlyVisualize'], isTrue);
@@ -215,6 +218,9 @@ void main() {
           requestsUsedInWindow: 0,
         ).toSafeDashboardMap()..addAll({
           'mapboxResponseValidatedBeforeUse': false,
+          'mapboxRequestRequiresOwnershipValidation': false,
+          'mapboxRequestRequiresDeviceLocalSource': false,
+          'authenticationAloneAuthorizesMapboxRequest': true,
           'mapboxDirectionsCanOnlyVisualize': false,
           'mapboxMatrixCanOnlyEstimate': false,
           'mapboxMapMatchingCanOnlyAssistReview': false,
@@ -237,6 +243,10 @@ void main() {
 
       expect(validation.isRenderable, isFalse);
       expect(validation.reasons, contains('mapbox_service_boundary_missing'));
+      expect(
+        validation.reasons,
+        contains('mapbox_request_authorization_boundary_missing'),
+      );
       expect(validation.reasons, contains('mapbox_can_mutate_trip_truth'));
       expect(
         validation.reasons,
@@ -271,6 +281,29 @@ void main() {
         'unsafe_map_assist_render_claim',
         'gps_fallback_boundary_missing',
       ]),
+    );
+  });
+
+  test('summary validation rejects auth-only Mapbox request authority', () {
+    final validation = TripMapboxRequestBoundarySummaryValidation.fromSummary(
+      TripMapboxRequestBoundaryPolicy.beforeRequest(
+        mapPreviewOptIn: true,
+        mapboxRuntimeConfigured: true,
+        networkAvailable: true,
+        localTripSourceValidated: true,
+        requestsUsedInWindow: 1,
+      ).toSafeDashboardMap()..addAll({
+        'mapboxRequestRequiresOwnershipValidation': false,
+        'mapboxRequestRequiresDeviceLocalSource': false,
+        'authenticationAloneAuthorizesMapboxRequest': true,
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('unsafe_mapbox_call_claim'));
+    expect(
+      validation.reasons,
+      contains('mapbox_request_authorization_boundary_missing'),
     );
   });
 }

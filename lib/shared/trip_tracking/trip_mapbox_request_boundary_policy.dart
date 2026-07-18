@@ -42,6 +42,9 @@ class TripMapboxRequestBoundaryDecision {
     'gpsTripTrackingContinuesWithoutMaps': true,
     'mapboxRequiresSeparateUserOptIn': true,
     'mapboxRequestRequiresLocalTripSource': true,
+    'mapboxRequestRequiresOwnershipValidation': true,
+    'mapboxRequestRequiresDeviceLocalSource': true,
+    'authenticationAloneAuthorizesMapboxRequest': false,
     'mapboxRequestRequiresNetworkBudget': true,
     'mapboxCallRequiresRequestBudget': true,
     'mapboxResponseValidatedBeforeUse': true,
@@ -97,8 +100,16 @@ class TripMapboxRequestBoundarySummaryValidation {
         (status != TripMapboxRequestBoundaryStatus.requestAllowed ||
             summary['mapboxRequiresSeparateUserOptIn'] != true ||
             summary['mapboxRequestRequiresLocalTripSource'] != true ||
+            summary['mapboxRequestRequiresOwnershipValidation'] != true ||
+            summary['mapboxRequestRequiresDeviceLocalSource'] != true ||
+            summary['authenticationAloneAuthorizesMapboxRequest'] != false ||
             summary['mapboxCallRequiresRequestBudget'] != true)) {
       reasons.add('unsafe_mapbox_call_claim');
+    }
+    if (summary['mapboxRequestRequiresOwnershipValidation'] != true ||
+        summary['mapboxRequestRequiresDeviceLocalSource'] != true ||
+        summary['authenticationAloneAuthorizesMapboxRequest'] != false) {
+      reasons.add('mapbox_request_authorization_boundary_missing');
     }
     if (summary['canRenderMapAssist'] == true &&
         status != TripMapboxRequestBoundaryStatus.responseAccepted) {
