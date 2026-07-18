@@ -71,6 +71,11 @@ void main() {
     expect(safe['mapboxCanReviveQuarantinedSession'], isFalse);
     expect(safe['canCreateConfirmedMileage'], isFalse);
     expect(safe['officialMileageSource'], 'odometer');
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['recoveryCanCreateCalibration'], isFalse);
+    expect(safe['recoveryCanApplyCalibration'], isFalse);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['routeGeometryIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });
@@ -161,6 +166,8 @@ void main() {
     expect(validation.recordId, 'trip_review_recoverable');
     expect(safe['canCreateConfirmedMileage'], isFalse);
     expect(safe['officialMileageSource'], 'odometer');
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['recoveryCanCreateCalibration'], isFalse);
     expect(safe['cloudFunctionCanReviveQuarantinedSession'], isFalse);
   });
 

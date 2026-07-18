@@ -71,6 +71,11 @@ void main() {
       expect(safe['mapboxErrorCanOverrideRecovery'], isFalse);
       expect(safe['nativeErrorCanOverrideOdometer'], isFalse);
       expect(safe['confirmedOdometerRemainsCanonical'], isTrue);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['recoveryCanCreateCalibration'], isFalse);
+      expect(safe['recoveryCanApplyCalibration'], isFalse);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe.toString(), isNot(contains('sk.secret')));
       expect(safe.toString(), isNot(contains('35.12345')));
     },

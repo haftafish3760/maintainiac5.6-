@@ -64,6 +64,12 @@ class TripTrackingDurableRecordBridge {
     'durableRecordSharedAcrossModules': true,
     'moduleScopedDurableBucketRequired': true,
     'durableRecordRequiresConfirmedOdometer': true,
+    'odometerIsGlobalTruth': true,
+    'confirmedOdometerRemainsCanonical': true,
+    'durableRecordCanCreateCalibration': false,
+    'durableRecordCanApplyCalibration': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'durableRecordRequiresValidTimeline': true,
     'durableRecordRequiresSafeIds': true,
     'backendAuthorizationRequiredForMirror': true,
@@ -116,6 +122,12 @@ class TripTrackingDurableRecordBridgeSummaryValidation {
       reasons.add('local_day_truth_boundary_missing');
     }
     if (summary['durableRecordRequiresConfirmedOdometer'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['confirmedOdometerRemainsCanonical'] != true ||
+        summary['durableRecordCanCreateCalibration'] != false ||
+        summary['durableRecordCanApplyCalibration'] != false ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['durableRecordRequiresValidTimeline'] != true ||
         summary['durableRecordRequiresSafeIds'] != true ||
         summary['durableRecordSharedAcrossModules'] != true ||
@@ -222,8 +234,13 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   map['durableRecordSharedAcrossModules'] = true;
   map['moduleScopedDurableBucketRequired'] = true;
   map['durableRecordRequiresConfirmedOdometer'] = true;
+  map['odometerIsGlobalTruth'] = true;
   map['backendRulesMustEnforceOwnerScope'] = true;
   map['confirmedOdometerRemainsCanonical'] = true;
+  map['durableRecordCanCreateCalibration'] = false;
+  map['durableRecordCanApplyCalibration'] = false;
+  map['calibrationRequiresTrustedGpsWindow'] = true;
+  map['poorGpsDaysExcludedFromCalibration'] = true;
   map['mapboxCanReplaceOdometer'] = false;
   map['mapboxCanCreateDurableRecord'] = false;
   map['pendingSamplesPersistedInDurableRecord'] = false;

@@ -20,7 +20,12 @@ void main() {
     expect(saved.payload['remoteDataCanPurgeLocalDaytimeData'], isFalse);
     expect(saved.payload['remoteDataCanSilentlyResolveConflicts'], isFalse);
     expect(saved.payload['durableRecordRequiresConfirmedOdometer'], isTrue);
+    expect(saved.payload['odometerIsGlobalTruth'], isTrue);
     expect(saved.payload['confirmedOdometerRemainsCanonical'], isTrue);
+    expect(saved.payload['durableRecordCanCreateCalibration'], isFalse);
+    expect(saved.payload['durableRecordCanApplyCalibration'], isFalse);
+    expect(saved.payload['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(saved.payload['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(saved.payload['mapboxCanReplaceOdometer'], isFalse);
     expect(saved.payload['mapboxCanCreateDurableRecord'], isFalse);
     expect(saved.payload['pendingSamplesPersistedInDurableRecord'], isFalse);
@@ -109,6 +114,12 @@ void main() {
       'durableRecordSharedAcrossModules': true,
       'moduleScopedDurableBucketRequired': true,
       'durableRecordRequiresConfirmedOdometer': true,
+      'odometerIsGlobalTruth': true,
+      'confirmedOdometerRemainsCanonical': true,
+      'durableRecordCanCreateCalibration': false,
+      'durableRecordCanApplyCalibration': false,
+      'calibrationRequiresTrustedGpsWindow': true,
+      'poorGpsDaysExcludedFromCalibration': true,
       'durableRecordRequiresValidTimeline': true,
       'durableRecordRequiresSafeIds': true,
       'backendAuthorizationRequiredForMirror': true,
@@ -162,6 +173,12 @@ void main() {
               'confirmedBackupCannotAutoDeleteDeviceRecord': false,
               'durableRecordSharedAcrossModules': false,
               'moduleScopedDurableBucketRequired': false,
+              'odometerIsGlobalTruth': false,
+              'confirmedOdometerRemainsCanonical': false,
+              'durableRecordCanCreateCalibration': true,
+              'durableRecordCanApplyCalibration': true,
+              'calibrationRequiresTrustedGpsWindow': false,
+              'poorGpsDaysExcludedFromCalibration': false,
               'backendAuthorizationRequiredForMirror': false,
               'authenticationDoesNotImplyAuthorization': false,
               'remotePayloadTrustedAfterValidationOnly': false,
