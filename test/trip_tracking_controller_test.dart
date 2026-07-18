@@ -3232,6 +3232,41 @@ void main() {
     },
   );
 
+  test(
+    'stationary GPS speed conflicts deescalate precision sampling',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_sampling_stationary_conflict',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.rideshareVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.999, 20, speed: 8));
+      await drainNativeTripEventsUntil(
+        () =>
+            native.updatedRequest?.sampling.mode == TripSamplingMode.precision,
+      );
+      expect(native.updatedRequest?.sampling.mode, TripSamplingMode.precision);
+
+      native.addLocation(sample(-79.998, 22, speed: 0.2));
+      await drainNativeTripEventsUntil(
+        () => native.updatedRequest?.sampling.mode == TripSamplingMode.balanced,
+      );
+
+      expect(native.updatedRequest?.sampling.mode, TripSamplingMode.balanced);
+      expect(controller.acceptedMeters, lessThan(200));
+      expect(native.updateCalls, 2);
+    },
+  );
+
   test('a credible slowdown deescalates precision GPS sampling', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(

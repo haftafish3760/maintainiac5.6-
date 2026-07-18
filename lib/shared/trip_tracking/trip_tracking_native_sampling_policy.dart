@@ -33,6 +33,7 @@ class TripTrackingNativeSamplingPolicy {
     'mockedLocationCanChangeCadence': false,
     'futureSampleCanChangeCadence': false,
     'rejectedInvalidCanChangeCadence': false,
+    'stationarySpeedConflictCanOnlyDowngradePrecision': true,
     'remoteSampleCanChangeCadence': false,
     'mapboxCanChangeNativeCadence': false,
     'firestoreCanChangeNativeCadence': false,
@@ -69,14 +70,26 @@ class TripTrackingNativeSamplingPolicy {
         !sessionAvailable ||
         !nativeTracking ||
         !_safeSampleForNativeSampling(sample) ||
-        decision == null ||
-        (!isSafeDecisionForNativeSampling(decision) ||
-            !decision.accepted &&
-                !canDeescalatePrecision(
-                  policy: policy,
-                  sample: sample,
-                  current: current,
-                ))) {
+        decision == null) {
+      return null;
+    }
+    final canDowngradeForStationaryConflict =
+        decision.disposition == TripSampleDisposition.rejectedSpeedConflict &&
+        canDeescalatePrecision(
+          policy: policy,
+          sample: sample,
+          current: current,
+        );
+    if (!isSafeDecisionForNativeSampling(decision) &&
+        !canDowngradeForStationaryConflict) {
+      return null;
+    }
+    if (!decision.accepted &&
+        !canDeescalatePrecision(
+          policy: policy,
+          sample: sample,
+          current: current,
+        )) {
       return null;
     }
     final next = policy.samplingFor(
@@ -175,6 +188,7 @@ class TripTrackingNativeSamplingSummaryValidation {
       'mockedLocationCanChangeCadence',
       'futureSampleCanChangeCadence',
       'rejectedInvalidCanChangeCadence',
+      'stationarySpeedConflictCanOnlyDowngradePrecision',
       'remoteSampleCanChangeCadence',
       'mapboxCanChangeNativeCadence',
       'firestoreCanChangeNativeCadence',
@@ -213,6 +227,7 @@ class TripTrackingNativeSamplingSummaryValidation {
     if (summary['mockedLocationCanChangeCadence'] != false ||
         summary['futureSampleCanChangeCadence'] != false ||
         summary['rejectedInvalidCanChangeCadence'] != false ||
+        summary['stationarySpeedConflictCanOnlyDowngradePrecision'] != true ||
         summary['remoteSampleCanChangeCadence'] != false ||
         summary['mapboxCanChangeNativeCadence'] != false ||
         summary['firestoreCanChangeNativeCadence'] != false ||

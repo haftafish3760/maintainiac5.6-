@@ -174,7 +174,6 @@ void main() {
       TripSampleDisposition.rejectedAccuracy,
       TripSampleDisposition.rejectedOutOfOrder,
       TripSampleDisposition.rejectedImplausibleSpeed,
-      TripSampleDisposition.rejectedSpeedConflict,
       TripSampleDisposition.rejectedGap,
       TripSampleDisposition.rejectedFutureTimestamp,
     ]) {
@@ -202,6 +201,41 @@ void main() {
         reason: disposition.name,
       );
     }
+  });
+
+  test('stationary speed conflicts can only downgrade precision sampling', () {
+    const current = TripSamplingRecommendation(
+      mode: TripSamplingMode.precision,
+      interval: Duration(seconds: 2),
+      minimumDisplacementMeters: 3,
+    );
+    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+      policy: const TripTrackingPolicy(),
+      profile: TripTrackingProfile.rideshareVehicle,
+      sample: sample(seconds: 30, speed: 0.2),
+      decision: decision(TripSampleDisposition.rejectedSpeedConflict),
+      current: current,
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+
+    expect(next?.mode, TripSamplingMode.balanced);
+    expect(
+      TripTrackingNativeSamplingPolicy.nextRecommendation(
+        policy: const TripTrackingPolicy(),
+        profile: TripTrackingProfile.rideshareVehicle,
+        sample: sample(seconds: 30, speed: 8),
+        decision: decision(TripSampleDisposition.rejectedSpeedConflict),
+        current: current,
+        adaptiveSamplingEnabled: true,
+        nativeTracking: true,
+        platformAvailable: true,
+        sessionAvailable: true,
+      ),
+      isNull,
+    );
   });
 
   test(
