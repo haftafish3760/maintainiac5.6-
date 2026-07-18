@@ -28,6 +28,11 @@ void main() {
     expect(decision.reviewPayload['odometerIsGlobalTruth'], isTrue);
     expect(decision.reviewPayload['addressRequiresUserConfirmation'], isTrue);
     expect(
+      decision.reviewPayload['currentVehicleSpeedMustAllowStopReview'],
+      isTrue,
+    );
+    expect(decision.reviewPayload['movingVehicleCannotOpenStopReview'], isTrue);
+    expect(
       decision.reviewPayload['mapboxCanInferOfficialStopAddress'],
       isFalse,
     );
@@ -41,6 +46,8 @@ void main() {
     expect(safe['mapboxCanOpenStopReview'], isFalse);
     expect(safe['mapboxCanInferOfficialStopAddress'], isFalse);
     expect(safe['addressRequiresUserConfirmation'], isTrue);
+    expect(safe['currentVehicleSpeedMustAllowStopReview'], isTrue);
+    expect(safe['movingVehicleCannotOpenStopReview'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(safe['employerGodModeAllowed'], isFalse);

@@ -35,6 +35,8 @@ void main() {
       expect(safe['officialStopCreated'], isFalse);
       expect(safe['officialMileageSource'], 'odometer');
       expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['currentVehicleSpeedMustAllowStopReview'], isTrue);
+      expect(safe['movingVehicleCannotOpenStopReview'], isTrue);
       expect(safe['readinessCanCreateCalibration'], isFalse);
       expect(safe['readinessCanApplyCalibration'], isFalse);
       expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
@@ -111,6 +113,10 @@ void main() {
     expect(readiness.canOpenStopReview, isFalse);
     expect(
       readiness.toSafeDashboardMap()['requiresAcceptedVehicleMovement'],
+      isTrue,
+    );
+    expect(
+      readiness.toSafeDashboardMap()['movingVehicleCannotOpenStopReview'],
       isTrue,
     );
   });
