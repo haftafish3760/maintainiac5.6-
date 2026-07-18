@@ -209,6 +209,11 @@ void main() {
       expect(safe['dashboardCanImportModuleSummaries'], isTrue);
       expect(safe['moduleImportsCanMutateSourceModules'], isFalse);
       expect(safe['activeVehicleGearControlsPageSettings'], isTrue);
+      expect(safe['defaultSingleVehicleSupported'], isTrue);
+      expect(safe['workProfileOptionalForDefaultSetup'], isTrue);
+      expect(safe['vehicleProfileOptionalForDefaultSetup'], isTrue);
+      expect(safe['dashboardProfileCanBeChangedLater'], isTrue);
+      expect(safe['startButtonVisibleByDefault'], isTrue);
       expect(safe['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
       expect(safe['odometerRemainsCanonical'], isTrue);
       expect(safe['mapsRequiredForTracking'], isFalse);
