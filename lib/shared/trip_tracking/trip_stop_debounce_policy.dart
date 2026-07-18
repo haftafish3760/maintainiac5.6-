@@ -46,6 +46,7 @@ class TripStopDebounceDecision {
     required this.status,
     required this.classification,
     required this.reasonCode,
+    required this.evidenceDigest,
     required this.needsWalkingReview,
     required this.protectedTrafficControl,
     required this.shouldContinueSampling,
@@ -56,6 +57,7 @@ class TripStopDebounceDecision {
   final TripStopDebounceStatus status;
   final TripStopClassification classification;
   final String reasonCode;
+  final TripStopDebounceEvidenceDigest evidenceDigest;
   final bool needsWalkingReview;
   final bool protectedTrafficControl;
   final bool shouldContinueSampling;
@@ -67,6 +69,7 @@ class TripStopDebounceDecision {
     'status': status.name,
     'reasonCode': _safeReason(reasonCode),
     'classification': classification.toSafeSummary(),
+    'evidenceDigest': evidenceDigest.toSafeDashboardMap(),
     'vehicleOnlyDwell': vehicleOnlyDwell?.toSafeDashboardMap(),
     'needsWalkingReview': needsWalkingReview,
     'protectedTrafficControl': protectedTrafficControl,
@@ -92,6 +95,61 @@ class TripStopDebounceDecision {
   };
 }
 
+class TripStopDebounceEvidenceDigest {
+  const TripStopDebounceEvidenceDigest({
+    required this.profile,
+    required this.acceptedDistanceCount,
+    required this.rejectedDriftCount,
+    required this.rejectedUnsafeCount,
+    required this.walkingEvidenceCount,
+    required this.stationaryDuration,
+    required this.walkingEvidenceSpan,
+    required this.minimumStationary,
+    required this.minimumWalkingEvidenceSpacing,
+    required this.acceptedVehicleMovementObserved,
+    required this.providerValuesUsable,
+    required this.walkingBurstProtected,
+  });
+
+  final TripTrackingProfile profile;
+  final int acceptedDistanceCount;
+  final int rejectedDriftCount;
+  final int rejectedUnsafeCount;
+  final int walkingEvidenceCount;
+  final Duration stationaryDuration;
+  final Duration walkingEvidenceSpan;
+  final Duration minimumStationary;
+  final Duration minimumWalkingEvidenceSpacing;
+  final bool acceptedVehicleMovementObserved;
+  final bool providerValuesUsable;
+  final bool walkingBurstProtected;
+
+  bool get hasAcceptedVehicleMovement =>
+      acceptedVehicleMovementObserved && acceptedDistanceCount > 0;
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'profile': profile.name,
+    'acceptedDistanceCount': _safeCount(acceptedDistanceCount),
+    'rejectedDriftCount': _safeCount(rejectedDriftCount),
+    'rejectedUnsafeCount': _safeCount(rejectedUnsafeCount),
+    'walkingEvidenceCount': _safeCount(walkingEvidenceCount),
+    'stationarySeconds': _safeDuration(stationaryDuration).inSeconds,
+    'walkingEvidenceSpanSeconds': _safeDuration(walkingEvidenceSpan).inSeconds,
+    'minimumStationarySeconds': _safeDuration(minimumStationary).inSeconds,
+    'minimumWalkingEvidenceSpacingSeconds': _safeDuration(
+      minimumWalkingEvidenceSpacing,
+    ).inSeconds,
+    'hasAcceptedVehicleMovement': hasAcceptedVehicleMovement,
+    'providerValuesUsable': providerValuesUsable,
+    'walkingBurstProtected': walkingBurstProtected,
+    'rawSamplesIncluded': false,
+    'coordinatesIncluded': false,
+    'routeGeometryIncluded': false,
+    'tokensIncluded': false,
+  };
+}
+
 class TripStopDebouncePolicy {
   const TripStopDebouncePolicy._();
 
@@ -109,6 +167,27 @@ class TripStopDebouncePolicy {
     final walkingCount = _safeCount(observation.walkingEvidenceCount);
     final stationaryDuration = _safeDuration(observation.stationaryDuration);
     final walkingSpan = _safeDuration(observation.walkingEvidenceSpan);
+    final minimumStationary = _minimumStationaryFor(strategy);
+    final walkingBurstProtected = _looksLikeWalkingBurst(
+      strategy: strategy,
+      walkingCount: walkingCount,
+      walkingSpan: walkingSpan,
+    );
+    final evidenceDigest = TripStopDebounceEvidenceDigest(
+      profile: profile,
+      acceptedDistanceCount: acceptedDistanceCount,
+      rejectedDriftCount: rejectedDriftCount,
+      rejectedUnsafeCount: rejectedUnsafeCount,
+      walkingEvidenceCount: walkingCount,
+      stationaryDuration: stationaryDuration,
+      walkingEvidenceSpan: walkingSpan,
+      minimumStationary: minimumStationary,
+      minimumWalkingEvidenceSpacing: strategy.minimumWalkingEvidenceSpacing,
+      acceptedVehicleMovementObserved:
+          observation.acceptedVehicleMovementObserved,
+      providerValuesUsable: !unsafe,
+      walkingBurstProtected: walkingBurstProtected,
+    );
     final vehicleOnlyDwell = TripVehicleOnlyDwellPolicy.evaluate(
       profile: profile,
       stationaryDuration: stationaryDuration,
@@ -127,6 +206,7 @@ class TripStopDebouncePolicy {
         reasonCode: 'unsafe_stop_debounce_evidence',
         profile: profile,
         motionState: observation.motionState,
+        evidenceDigest: evidenceDigest,
         needsWalkingReview: false,
         vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
@@ -143,6 +223,7 @@ class TripStopDebouncePolicy {
         reasonCode: 'vehicle_movement_required_before_stop_review',
         profile: profile,
         motionState: observation.motionState,
+        evidenceDigest: evidenceDigest,
         needsWalkingReview: walkingCount > 0,
         vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
@@ -160,8 +241,7 @@ class TripStopDebouncePolicy {
       latestWalkingEvidenceAt: observation.latestWalkingEvidenceAt,
       walkingEvidenceSpan: walkingSpan,
     );
-    final sustainedStationary =
-        stationaryDuration >= _minimumStationaryFor(strategy);
+    final sustainedStationary = stationaryDuration >= minimumStationary;
     final trafficControlProtected = _looksLikeTrafficControl(
       strategy: strategy,
       observation: observation,
@@ -176,6 +256,7 @@ class TripStopDebouncePolicy {
         reasonCode: 'traffic_control_debounce_protected',
         profile: profile,
         motionState: observation.motionState,
+        evidenceDigest: evidenceDigest,
         needsWalkingReview: false,
         vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: 0,
@@ -192,6 +273,23 @@ class TripStopDebouncePolicy {
         reasonCode: 'vehicle_only_dwell_manual_fallback',
         profile: profile,
         motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
+    if (walkingBurstProtected) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: 'walking_burst_debounce_protected',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
         needsWalkingReview: false,
         vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
@@ -207,6 +305,7 @@ class TripStopDebouncePolicy {
         reasonCode: 'walking_stop_debounce_ready',
         profile: profile,
         motionState: observation.motionState,
+        evidenceDigest: evidenceDigest,
         needsWalkingReview: true,
         vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
@@ -226,6 +325,7 @@ class TripStopDebouncePolicy {
         reasonCode: 'stop_debounce_waiting_for_confirmation',
         profile: profile,
         motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
         needsWalkingReview: false,
         vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
@@ -240,6 +340,7 @@ class TripStopDebouncePolicy {
       reasonCode: 'stop_debounce_keep_tracking',
       profile: profile,
       motionState: observation.motionState,
+      evidenceDigest: evidenceDigest,
       needsWalkingReview: false,
       vehicleOnlyDwell: vehicleOnlyDwell,
       excludedWalkingCount: walkingCount,
@@ -255,6 +356,7 @@ TripStopDebounceDecision _decision({
   required String reasonCode,
   required TripTrackingProfile profile,
   required TripMotionState motionState,
+  required TripStopDebounceEvidenceDigest evidenceDigest,
   required bool needsWalkingReview,
   TripVehicleOnlyDwellDecision? vehicleOnlyDwell,
   required int excludedWalkingCount,
@@ -279,6 +381,7 @@ TripStopDebounceDecision _decision({
     status: status,
     classification: classification,
     reasonCode: reasonCode,
+    evidenceDigest: evidenceDigest,
     needsWalkingReview: needsWalkingReview,
     protectedTrafficControl:
         status == TripStopDebounceStatus.trafficControlProtected,
@@ -313,6 +416,16 @@ bool _looksLikeTrafficControl({
   if (stationaryDuration > _trafficControlCeilingFor(strategy)) return false;
   if (rejectedDriftCount < 4) return false;
   return observation.speedMps <= 1.2;
+}
+
+bool _looksLikeWalkingBurst({
+  required TripTrackingProfileStrategy strategy,
+  required int walkingCount,
+  required Duration walkingSpan,
+}) {
+  if (!strategy.usesWalkingStopEvidence) return false;
+  if (walkingCount < strategy.walkingConfirmationCount) return false;
+  return walkingSpan < strategy.minimumWalkingEvidenceSpacing;
 }
 
 Duration _minimumStationaryFor(TripTrackingProfileStrategy strategy) {
@@ -357,6 +470,7 @@ String _safeReason(String value) {
       'traffic_control_debounce_protected',
     'vehicle_only_dwell_manual_fallback' =>
       'vehicle_only_dwell_manual_fallback',
+    'walking_burst_debounce_protected' => 'walking_burst_debounce_protected',
     'walking_stop_debounce_ready' => 'walking_stop_debounce_ready',
     'stop_debounce_waiting_for_confirmation' =>
       'stop_debounce_waiting_for_confirmation',

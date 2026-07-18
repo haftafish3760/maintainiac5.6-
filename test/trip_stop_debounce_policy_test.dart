@@ -90,6 +90,77 @@ void main() {
     },
   );
 
+  test(
+    'walking sensor burst is protected even during stationary vehicle dwell',
+    () {
+      final decision = TripStopDebouncePolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        observation: observation(
+          stationaryDuration: const Duration(minutes: 2),
+          walkingEvidenceCount: 5,
+          walkingEvidenceSpan: const Duration(seconds: 2),
+          rejectedDriftCount: 0,
+          speedMps: 0.1,
+        ),
+      );
+      final safe = decision.toSafeDashboardMap();
+      final evidenceDigest = safe['evidenceDigest'] as Map<String, Object?>;
+
+      expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
+      expect(decision.reasonCode, 'walking_burst_debounce_protected');
+      expect(decision.canOpenReview, isFalse);
+      expect(decision.classification.signal, TripStopSignal.stopCandidate);
+      expect(evidenceDigest['walkingBurstProtected'], isTrue);
+      expect(evidenceDigest['coordinatesIncluded'], isFalse);
+      expect(evidenceDigest['rawSamplesIncluded'], isFalse);
+    },
+  );
+
+  test('well-spaced walking evidence keeps delivery review available', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: observation(
+        stationaryDuration: const Duration(minutes: 2),
+        walkingEvidenceCount: 5,
+        walkingEvidenceSpan: const Duration(seconds: 30),
+        rejectedDriftCount: 0,
+        speedMps: 0.1,
+      ),
+    );
+    final evidenceDigest =
+        decision.toSafeDashboardMap()['evidenceDigest'] as Map<String, Object?>;
+
+    expect(decision.status, TripStopDebounceStatus.readyForReview);
+    expect(decision.canOpenReview, isTrue);
+    expect(decision.classification.signal, TripStopSignal.reviewOnlyStop);
+    expect(evidenceDigest['walkingBurstProtected'], isFalse);
+    expect(evidenceDigest['hasAcceptedVehicleMovement'], isTrue);
+  });
+
+  test('profile thresholds are visible without raw GPS samples', () {
+    final delivery = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: observation(
+        walkingEvidenceCount: 3,
+        walkingEvidenceSpan: const Duration(seconds: 24),
+      ),
+    ).evidenceDigest.toSafeDashboardMap();
+    final rideshare = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      observation: observation(
+        walkingEvidenceCount: 4,
+        walkingEvidenceSpan: const Duration(seconds: 46),
+        stationaryDuration: const Duration(seconds: 50),
+      ),
+    ).evidenceDigest.toSafeDashboardMap();
+
+    expect(delivery['minimumStationarySeconds'], 20);
+    expect(rideshare['minimumStationarySeconds'], 45);
+    expect(delivery['coordinatesIncluded'], isFalse);
+    expect(rideshare['routeGeometryIncluded'], isFalse);
+    expect(delivery['tokensIncluded'], isFalse);
+  });
+
   test('long traffic light jitter is protected from false stop creation', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
@@ -207,5 +278,26 @@ void main() {
     expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
     expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
+  });
+
+  test('safe summary carries counts but never remote stop authority', () {
+    final safe = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
+      observation: observation(
+        walkingEvidenceCount: 4,
+        walkingEvidenceSpan: const Duration(seconds: 40),
+        acceptedDistanceCount: 12,
+        rejectedDriftCount: 2,
+      ),
+    ).toSafeDashboardMap();
+    final evidenceDigest = safe['evidenceDigest'] as Map<String, Object?>;
+
+    expect(evidenceDigest['acceptedDistanceCount'], 12);
+    expect(evidenceDigest['rejectedDriftCount'], 2);
+    expect(evidenceDigest['providerValuesUsable'], isTrue);
+    expect(safe['firestoreCanCreateStop'], isFalse);
+    expect(safe['cloudFunctionCanCreateStop'], isFalse);
+    expect(safe['mapboxCanConfirmStop'], isFalse);
+    expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
   });
 }
