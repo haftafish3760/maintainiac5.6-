@@ -61,7 +61,9 @@ void main() {
       expect(summary.advisoryEstimatedMiles, 8);
       expect(summary.hasUnconfirmedMileage, isTrue);
       expect(safe['derivedFromValidatedLocalReviewRecords'], isTrue);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
       expect(safe['officialMileageSource'], 'confirmed_odometer');
+      expect(safe['gpsAssistanceCannotCreateOfficialMileage'], isTrue);
       expect(safe['unconfirmedMileageIsAdvisory'], isTrue);
     },
   );
@@ -83,6 +85,10 @@ void main() {
     expect(summary['notificationsUseRemoteTotals'], isFalse);
     expect(summary['exportsUseRemoteTotals'], isFalse);
     expect(summary['invoicesUseRemoteTotals'], isFalse);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['gpsAssistanceCannotCreateOfficialMileage'], isTrue);
     expect(summary['rawGpsIncluded'], isFalse);
     expect(summary['preciseLocationIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
