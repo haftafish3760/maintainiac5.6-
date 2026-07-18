@@ -60,6 +60,26 @@ void main() {
     expect(signal.reasonCode, 'odometer_usage_within_review_threshold');
   });
 
+  test('unusually low odometer delta recommends review without correction', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 20,
+      history: _history(dailyMiles: 100),
+      vehicleId: 'vehicle_1',
+    );
+    final summary = signal.toSafeDashboardMap();
+
+    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+    expect(signal.shouldPromptUser, isTrue);
+    expect(signal.reasonCode, 'unusually_low_odometer_delta');
+    expect(signal.reviewThresholdMiles, 40);
+    expect(signal.canAutoCorrectOdometer, isFalse);
+    expect(summary['reasonCode'], 'unusually_low_odometer_delta');
+    expect(summary['manualReviewRequiredBeforeChange'], isTrue);
+    expect(summary['canAutoCorrectOdometer'], isFalse);
+    expect(summary['odometerRemainsCanonical'], isTrue);
+    expect(summary['remoteTotalsCanReplaceOdometer'], isFalse);
+  });
+
   test('usage anomaly waits for enough confirmed reviewed days', () {
     final signal = TripOdometerUsageAnomalySignal.evaluate(
       currentOdometerMiles: 200,

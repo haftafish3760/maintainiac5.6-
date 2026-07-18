@@ -140,20 +140,43 @@ class TripOdometerUsageAnomalySignal {
       average * reviewMultiplier,
       average + minimumReviewBufferMiles,
     );
-    final shouldReview = currentOdometerMiles > threshold;
+    final lowThreshold = _lowUsageReviewThreshold(
+      averageDailyMiles: average,
+      reviewMultiplier: reviewMultiplier,
+      minimumReviewBufferMiles: minimumReviewBufferMiles,
+    );
+    final shouldReviewHigh = currentOdometerMiles > threshold;
+    final shouldReviewLow = currentOdometerMiles < lowThreshold;
     return TripOdometerUsageAnomalySignal(
-      status: shouldReview
+      status: shouldReviewHigh || shouldReviewLow
           ? TripOdometerUsageAnomalyStatus.reviewRecommended
           : TripOdometerUsageAnomalyStatus.normal,
       reviewedDayCount: dailyMiles.length,
       currentOdometerMiles: currentOdometerMiles,
       averageDailyMiles: average,
-      reviewThresholdMiles: threshold,
-      reasonCode: shouldReview
+      reviewThresholdMiles: shouldReviewLow ? lowThreshold : threshold,
+      reasonCode: shouldReviewHigh
           ? 'unusually_high_odometer_delta'
+          : shouldReviewLow
+          ? 'unusually_low_odometer_delta'
           : 'odometer_usage_within_review_threshold',
     );
   }
+}
+
+double _lowUsageReviewThreshold({
+  required double averageDailyMiles,
+  required double reviewMultiplier,
+  required double minimumReviewBufferMiles,
+}) {
+  if (averageDailyMiles <= minimumReviewBufferMiles) return 0;
+  return math
+      .min(
+        averageDailyMiles / reviewMultiplier,
+        averageDailyMiles - minimumReviewBufferMiles,
+      )
+      .clamp(0, double.infinity)
+      .toDouble();
 }
 
 String _usageDayKey(DateTime utc) =>
@@ -171,6 +194,7 @@ String _safeUsageReason(String value) {
     'invalid_usage_anomaly_input' => value,
     'needs_more_reviewed_days_for_usage_anomaly' => value,
     'unusually_high_odometer_delta' => value,
+    'unusually_low_odometer_delta' => value,
     'odometer_usage_within_review_threshold' => value,
     _ => 'invalid_usage_anomaly_input',
   };
