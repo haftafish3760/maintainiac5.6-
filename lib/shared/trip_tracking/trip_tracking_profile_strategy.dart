@@ -144,6 +144,9 @@ class TripTrackingProfileStrategy {
     'profileStrategyCanEndTripAutomatically': false,
     'rawLocationIncluded': false,
     'rawSensorPayloadIncluded': false,
+    'preciseLocationIncluded': false,
+    'routeGeometryIncluded': false,
+    'tokensIncluded': false,
   };
 
   bool hasWalkingStopEvidence({
@@ -303,6 +306,134 @@ class TripTrackingProfileStrategy {
   }
 }
 
+class TripTrackingProfileStrategySummaryValidation {
+  const TripTrackingProfileStrategySummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingProfileStrategySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeProfile(summary['profile']) == null) {
+      reasons.add('invalid_profile');
+    }
+    if (_safeWorkStyle(summary['workStyle']) == null) {
+      reasons.add('invalid_work_style');
+    }
+    if (summary['dashboardMode'] !=
+        _safeDashboardModeToken('${summary['dashboardMode'] ?? ''}')) {
+      reasons.add('invalid_dashboard_mode');
+    }
+    for (final key in const [
+      'recommendedActivityRecognition',
+      'usesWalkingStopEvidence',
+      'requiresStrongerStopDebounce',
+      'phoneMayStayInVehicleDuringStops',
+      'vehicleOnlyStopsNeedManualFallback',
+      'defaultSingleVehicleSupported',
+      'workProfileOptionalForDefaultSetup',
+      'vehicleProfileOptionalForDefaultSetup',
+      'dashboardCustomizationSupported',
+      'profileCanBeChangedLater',
+      'walkingEvidenceCanOnlySuggestReview',
+      'activityRecognitionRequiresOptIn',
+      'activityRecognitionCanConfirmStopAutomatically',
+      'vehicleOnlyStopsRequireReview',
+      'longStoplightCanRequireReview',
+      'gpsAssistedTrackingAvailableWithoutMaps',
+      'mapsRequiredForTracking',
+      'mapsCanOnlyAssistVisualization',
+      'mapRouteOptimizationOptional',
+      'mapboxCanConfirmStop',
+      'mapboxCanReplaceGpsDistance',
+      'odometerRemainsCanonical',
+      'gpsDistanceCanOnlyAssistOdometerReview',
+      'calibrationRequiresMultipleReviewedTrips',
+      'calibrationCanAutoRewriteConfirmedOdometer',
+      'locationSharingRequiresActiveOptIn',
+      'employeeTrackingRequiresMutualConsent',
+      'employerGodModeAllowed',
+      'authDoesNotImplyAuthorization',
+      'profileDataTrustedAfterValidationOnly',
+      'remoteProfileCanEnableEmployeeTracking',
+      'remoteProfileCanEnableMapRouteStorage',
+      'remoteProfileCanChangeConfirmedMileage',
+      'firestoreProfileCanOverrideUserConsent',
+      'cloudFunctionProfileCanOverrideUserConsent',
+      'mapboxProfileCanOverrideStopPolicy',
+      'profileStrategyCanDeleteTripData',
+      'profileStrategyCanEndTripAutomatically',
+      'rawLocationIncluded',
+      'rawSensorPayloadIncluded',
+      'preciseLocationIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['walkingEvidenceCanOnlySuggestReview'] != true ||
+        summary['activityRecognitionRequiresOptIn'] !=
+            summary['recommendedActivityRecognition'] ||
+        summary['activityRecognitionCanConfirmStopAutomatically'] != false ||
+        summary['vehicleOnlyStopsRequireReview'] !=
+            summary['vehicleOnlyStopsNeedManualFallback'] ||
+        summary['longStoplightCanRequireReview'] != true) {
+      reasons.add('stop_review_boundary_missing');
+    }
+    if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
+        summary['mapsRequiredForTracking'] != false ||
+        summary['mapsCanOnlyAssistVisualization'] != true ||
+        summary['mapboxCanConfirmStop'] != false ||
+        summary['mapboxCanReplaceGpsDistance'] != false ||
+        summary['mapboxProfileCanOverrideStopPolicy'] != false) {
+      reasons.add('mapbox_can_control_profile_strategy');
+    }
+    if (summary['odometerRemainsCanonical'] != true ||
+        summary['gpsDistanceCanOnlyAssistOdometerReview'] != true ||
+        summary['calibrationRequiresMultipleReviewedTrips'] != true ||
+        summary['calibrationCanAutoRewriteConfirmedOdometer'] != false) {
+      reasons.add('odometer_or_calibration_boundary_missing');
+    }
+    if (summary['locationSharingRequiresActiveOptIn'] != true ||
+        summary['employeeTrackingRequiresMutualConsent'] != true ||
+        summary['employerGodModeAllowed'] != false ||
+        summary['authDoesNotImplyAuthorization'] != true ||
+        summary['profileDataTrustedAfterValidationOnly'] != true ||
+        summary['remoteProfileCanEnableEmployeeTracking'] != false ||
+        summary['firestoreProfileCanOverrideUserConsent'] != false ||
+        summary['cloudFunctionProfileCanOverrideUserConsent'] != false) {
+      reasons.add('tracking_consent_boundary_missing');
+    }
+    if (summary['remoteProfileCanEnableMapRouteStorage'] != false ||
+        summary['remoteProfileCanChangeConfirmedMileage'] != false ||
+        summary['profileStrategyCanDeleteTripData'] != false ||
+        summary['profileStrategyCanEndTripAutomatically'] != false) {
+      reasons.add('remote_profile_can_mutate_trip_truth');
+    }
+    if (summary['rawLocationIncluded'] != false ||
+        summary['rawSensorPayloadIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_profile_material');
+    }
+
+    return TripTrackingProfileStrategySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
+}
+
 int _safePositiveInt(int value, {required int fallback}) =>
     value > 0 ? value : fallback;
 
@@ -373,4 +504,32 @@ String _safeQuickActionToken(String value) {
     'maintenance_log' => 'maintenance_log',
     _ => 'review_mileage',
   };
+}
+
+TripTrackingProfile? _safeProfile(Object? value) {
+  if (value is! String) return null;
+  for (final profile in TripTrackingProfile.values) {
+    if (profile.name == value) return profile;
+  }
+  return null;
+}
+
+String? _safeWorkStyle(Object? value) {
+  if (value is! String) return null;
+  return switch (value) {
+    'general_road' ||
+    'rideshare' ||
+    'delivery' ||
+    'contractor' ||
+    'equipment' => value,
+    _ => null,
+  };
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

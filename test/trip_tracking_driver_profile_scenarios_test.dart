@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_profile_strategy.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_scenarios.dart';
 import 'support/trip_tracking_qa/trip_tracking_simulator.dart';
@@ -134,6 +135,73 @@ void main() {
     expect(result.count(TripSampleDisposition.rejectedGap), 1);
     expect(result.count(TripSampleDisposition.rejectedInvalid), 1);
     expect(result.count(TripSampleDisposition.rejectedMockLocation), 1);
+  });
+
+  test('driver profile strategy summaries validate privacy and authority', () {
+    for (final profile in TripTrackingProfile.values) {
+      final strategy = TripTrackingProfileStrategy.forProfile(profile);
+      final summary = strategy.toDashboardProfileMap();
+      final validation =
+          TripTrackingProfileStrategySummaryValidation.fromSummary(summary);
+
+      expect(validation.isRenderable, isTrue, reason: profile.name);
+      expect(summary['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
+      expect(summary['mapsRequiredForTracking'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['employeeTrackingRequiresMutualConsent'], isTrue);
+      expect(summary['employerGodModeAllowed'], isFalse);
+      expect(summary['rawLocationIncluded'], isFalse);
+      expect(summary['tokensIncluded'], isFalse);
+    }
+  });
+
+  test('forged driver profile summaries cannot grant tracking authority', () {
+    final validation = TripTrackingProfileStrategySummaryValidation.fromSummary(
+      TripTrackingProfileStrategy.forProfile(
+        TripTrackingProfile.deliveryVehicle,
+      ).toDashboardProfileMap()..addAll({
+        'walkingEvidenceCanOnlySuggestReview': false,
+        'activityRecognitionRequiresOptIn': false,
+        'activityRecognitionCanConfirmStopAutomatically': true,
+        'vehicleOnlyStopsRequireReview': false,
+        'mapsRequiredForTracking': true,
+        'mapboxCanConfirmStop': true,
+        'mapboxCanReplaceGpsDistance': true,
+        'mapboxProfileCanOverrideStopPolicy': true,
+        'odometerRemainsCanonical': false,
+        'calibrationCanAutoRewriteConfirmedOdometer': true,
+        'locationSharingRequiresActiveOptIn': false,
+        'employeeTrackingRequiresMutualConsent': false,
+        'employerGodModeAllowed': true,
+        'remoteProfileCanEnableEmployeeTracking': true,
+        'firestoreProfileCanOverrideUserConsent': true,
+        'remoteProfileCanChangeConfirmedMileage': true,
+        'profileStrategyCanDeleteTripData': true,
+        'profileStrategyCanEndTripAutomatically': true,
+        'rawLocationIncluded': true,
+        'preciseLocationIncluded': true,
+        'routeGeometryIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'pk.public 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('stop_review_boundary_missing'));
+    expect(validation.reasons, contains('mapbox_can_control_profile_strategy'));
+    expect(
+      validation.reasons,
+      contains('odometer_or_calibration_boundary_missing'),
+    );
+    expect(validation.reasons, contains('tracking_consent_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('remote_profile_can_mutate_trip_truth'),
+    );
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_profile_material'),
+    );
   });
 
   test('high-confidence walking at vehicle speed remains vehicle mileage', () {

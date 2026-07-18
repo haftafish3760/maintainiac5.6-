@@ -253,6 +253,9 @@ void main() {
       'profileStrategyCanEndTripAutomatically': false,
       'rawLocationIncluded': false,
       'rawSensorPayloadIncluded': false,
+      'preciseLocationIncluded': false,
+      'routeGeometryIncluded': false,
+      'tokensIncluded': false,
     });
   });
 
@@ -289,6 +292,9 @@ void main() {
       expect(profileMap['profileStrategyCanEndTripAutomatically'], isFalse);
       expect(profileMap['rawLocationIncluded'], isFalse);
       expect(profileMap['rawSensorPayloadIncluded'], isFalse);
+      expect(profileMap['preciseLocationIncluded'], isFalse);
+      expect(profileMap['routeGeometryIncluded'], isFalse);
+      expect(profileMap['tokensIncluded'], isFalse);
       expect(profileMap['driverKind'], isA<String>());
       expect(profileMap['stopEvidenceTier'], isA<String>());
       expect(profileMap['stopReviewConfidencePolicy'], isA<String>());
