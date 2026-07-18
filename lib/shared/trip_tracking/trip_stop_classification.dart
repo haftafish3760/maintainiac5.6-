@@ -104,6 +104,7 @@ class TripStopClassification {
       'coordinatesIncluded': false,
       'routeGeometryIncluded': false,
       'mapboxGeometryIncluded': false,
+      'tokensIncluded': false,
     };
   }
 }

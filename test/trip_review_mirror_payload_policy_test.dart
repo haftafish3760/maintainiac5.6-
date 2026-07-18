@@ -126,6 +126,62 @@ void main() {
     expect(decision.status, TripReviewMirrorPayloadStatus.blockedInvalidReview);
     expect(decision.payload, isEmpty);
   });
+
+  test('inbound mirror payload is revalidated before dashboard use', () {
+    final outbound = TripReviewMirrorPayloadPolicy.build(
+      review: review().copyWith(
+        confirmedEndingOdometer: 1042,
+        odometerConfirmedAt: DateTime.utc(2026, 7, 18, 10, 5),
+      ),
+      ownerUid: 'driver_1',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+    final inbound = TripReviewMirrorPayloadPolicy.validateInbound(
+      payload: outbound.payload,
+      scopeSummary: outbound.scopeSummary,
+    );
+
+    expect(inbound.status, TripReviewMirrorPayloadStatus.ready);
+    expect(inbound.mayMirror, isTrue);
+    expect(inbound.payload['officialMileageSource'], 'odometer');
+    expect(inbound.payload['routeGeometryIncluded'], isFalse);
+    expect(
+      inbound.toSafeDashboardMap()['remoteTotalsCanBecomeCanonical'],
+      isFalse,
+    );
+  });
+
+  test('inbound mirror payload rejects authority and sensitive material', () {
+    final outbound = TripReviewMirrorPayloadPolicy.build(
+      review: review().copyWith(
+        confirmedEndingOdometer: 1042,
+        odometerConfirmedAt: DateTime.utc(2026, 7, 18, 10, 5),
+      ),
+      ownerUid: 'driver_1',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+    final hostile = TripReviewMirrorPayloadPolicy.validateInbound(
+      payload: {
+        ...outbound.payload,
+        'tripId': 'sk.secret',
+        'remoteTotalsCanBecomeCanonical': true,
+        'officialMileageSource': 'gps',
+        'routeGeometryIncluded': true,
+        'tokensIncluded': true,
+      },
+      scopeSummary: outbound.scopeSummary,
+    );
+
+    expect(hostile.status, TripReviewMirrorPayloadStatus.blockedInvalidPayload);
+    expect(hostile.reasonCode, 'invalid_review_mirror_payload');
+    expect(hostile.payload, isEmpty);
+    expect(
+      hostile.toSafeDashboardMap().toString(),
+      isNot(contains('sk.secret')),
+    );
+  });
 }
 
 TripTrackingReviewRecord review() {

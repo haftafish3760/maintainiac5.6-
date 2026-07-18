@@ -88,8 +88,12 @@ class TripStopSummaryValidation {
         summary['rawMotionPayloadIncluded'] != false ||
         summary['coordinatesIncluded'] != false ||
         summary['routeGeometryIncluded'] != false ||
-        summary['mapboxGeometryIncluded'] != false) {
+        summary['mapboxGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
       reasons.add('summary_contains_sensitive_route_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
     }
 
     return TripStopSummaryValidation._(
@@ -104,6 +108,14 @@ class TripStopSummaryValidation {
   final TripStopSignal? signal;
   final String? reasonCode;
   final List<String> reasons;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
 
 TripStopSignal? _safeSignal(Object? value) {

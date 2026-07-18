@@ -80,6 +80,7 @@ void main() {
           'coordinatesIncluded': true,
           'routeGeometryIncluded': true,
           'mapboxGeometryIncluded': true,
+          'tokensIncluded': true,
         });
       final validation = TripStopSummaryValidation.fromSummary(summary);
 
@@ -120,5 +121,17 @@ void main() {
         'official_mileage_source_not_odometer',
       ]),
     );
+  });
+
+  test('stop summary rejects leaked tokens and precise location text', () {
+    final summary = safeDeliveryStopSummary()
+      ..addAll({
+        'actionToken': 'pk.public-token',
+        'dashboardMessage': 'Stopped near 35.123456,-80.987654',
+      });
+    final validation = TripStopSummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('summary_contains_sensitive_text'));
   });
 }

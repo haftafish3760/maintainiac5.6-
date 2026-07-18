@@ -1,4 +1,5 @@
 import 'trip_tracking_backup_scope_policy.dart';
+import 'trip_tracking_models.dart';
 import 'trip_tracking_session_store.dart';
 
 enum TripReviewMirrorPayloadStatus {
@@ -7,6 +8,7 @@ enum TripReviewMirrorPayloadStatus {
   blockedUnconfirmedOdometer,
   blockedScope,
   blockedOwner,
+  blockedInvalidPayload,
 }
 
 class TripReviewMirrorPayloadDecision {
@@ -100,6 +102,78 @@ class TripReviewMirrorPayloadPolicy {
       status: TripReviewMirrorPayloadStatus.ready,
       reasonCode: 'review_mirror_payload_ready',
       payload: _payloadFor(boundReview),
+      scopeSummary: scopeSummary,
+    );
+  }
+
+  static TripReviewMirrorPayloadDecision validateInbound({
+    required Map<String, Object?> payload,
+    required Map<String, Object?> scopeSummary,
+  }) {
+    final reasons = <String>[];
+    if (payload['schemaVersion'] != 1 ||
+        payload['schema'] != 'trip_review_mileage_mirror_v1') {
+      reasons.add('invalid_payload_schema');
+    }
+    if (!_safeMirrorToken(payload['tripId']) ||
+        !_safeMirrorToken(payload['vehicleId'])) {
+      reasons.add('invalid_payload_identity');
+    }
+    if (!_safeProfile(payload['profile'])) {
+      reasons.add('invalid_payload_profile');
+    }
+    final starting = _safeMileage(payload['startingOdometer']);
+    final ending = _safeMileage(payload['confirmedEndingOdometer']);
+    final miles = _safeMileage(payload['confirmedMiles']);
+    final estimated = _safeMileage(payload['estimatedEndingOdometer']);
+    if (starting == null ||
+        ending == null ||
+        miles == null ||
+        estimated == null) {
+      reasons.add('invalid_payload_mileage');
+    } else if (ending < starting || miles < 0 || estimated < starting) {
+      reasons.add('payload_mileage_regresses');
+    }
+    final startedAt = _safeTimestamp(payload['startedAtUtc']);
+    final finishedAt = _safeTimestamp(payload['finishedAtUtc']);
+    final confirmedAt = _safeTimestamp(payload['confirmedAtUtc']);
+    if (startedAt == null || finishedAt == null || confirmedAt == null) {
+      reasons.add('invalid_payload_timestamps');
+    } else if (finishedAt.isBefore(startedAt) ||
+        confirmedAt.isBefore(finishedAt)) {
+      reasons.add('payload_timeline_regresses');
+    }
+    if (payload['source'] != 'validated_local_review' ||
+        payload['hiveSourceOfTruth'] != true ||
+        payload['firestoreRole'] != 'mirror_after_local_write') {
+      reasons.add('payload_source_not_local_review');
+    }
+    if (payload['remoteCanOverrideLocalTripLog'] != false ||
+        payload['remoteTotalsCanBecomeCanonical'] != false ||
+        payload['mirrorCanDeleteLocalTripLog'] != false ||
+        payload['officialMileageSource'] != 'odometer' ||
+        payload['gpsDistanceAdvisoryOnly'] != true ||
+        payload['mapboxDistanceAdvisoryOnly'] != true) {
+      reasons.add('payload_claims_trip_authority');
+    }
+    if (payload['rawGpsIncluded'] != false ||
+        payload['routeGeometryIncluded'] != false ||
+        payload['mapboxGeometryIncluded'] != false ||
+        payload['preciseCoordinatesIncluded'] != false ||
+        payload['tokensIncluded'] != false) {
+      reasons.add('payload_contains_sensitive_material');
+    }
+    if (reasons.isNotEmpty) {
+      return _decision(
+        status: TripReviewMirrorPayloadStatus.blockedInvalidPayload,
+        reasonCode: 'invalid_review_mirror_payload',
+        scopeSummary: scopeSummary,
+      );
+    }
+    return _decision(
+      status: TripReviewMirrorPayloadStatus.ready,
+      reasonCode: 'review_mirror_payload_ready',
+      payload: _redactedInboundPayload(payload),
       scopeSummary: scopeSummary,
     );
   }
@@ -197,6 +271,76 @@ String _safeReason(String value) {
     'mirror_organization_missing' => 'mirror_organization_missing',
     'mirror_scope_mismatch' => 'mirror_scope_mismatch',
     'review_mirror_payload_ready' => 'review_mirror_payload_ready',
+    'invalid_review_mirror_payload' => 'invalid_review_mirror_payload',
     _ => 'invalid_review_mirror_record',
   };
+}
+
+bool _safeMirrorToken(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.isNotEmpty &&
+      clean.length <= 160 &&
+      !clean.contains(RegExp(r'[\x00-\x1F\x7F]')) &&
+      !clean.startsWith('pk.') &&
+      !clean.startsWith('sk.');
+}
+
+bool _safeProfile(Object? value) {
+  if (value is! String) return false;
+  for (final profile in TripTrackingProfile.values) {
+    if (profile.name == value) return true;
+  }
+  return false;
+}
+
+double? _safeMileage(Object? value) {
+  if (value is! num || !value.isFinite || value < 0 || value > 9999999) {
+    return null;
+  }
+  return value.toDouble();
+}
+
+DateTime? _safeTimestamp(Object? value) {
+  if (value is! String) return null;
+  final parsed = DateTime.tryParse(value);
+  return parsed?.toUtc();
+}
+
+Map<String, Object?> _redactedInboundPayload(Map<String, Object?> payload) {
+  return Map.unmodifiable({
+    'schemaVersion': 1,
+    'schema': 'trip_review_mileage_mirror_v1',
+    'tripId': payload['tripId'],
+    'vehicleId': payload['vehicleId'],
+    'profile': payload['profile'],
+    'startedAtUtc': payload['startedAtUtc'],
+    'finishedAtUtc': payload['finishedAtUtc'],
+    'confirmedAtUtc': payload['confirmedAtUtc'],
+    'startingOdometer': payload['startingOdometer'],
+    'confirmedEndingOdometer': payload['confirmedEndingOdometer'],
+    'confirmedMiles': payload['confirmedMiles'],
+    'estimatedEndingOdometer': payload['estimatedEndingOdometer'],
+    'gpsAcceptedMetersRounded': _roundedMeters(
+      payload['gpsAcceptedMetersRounded'] is num
+          ? (payload['gpsAcceptedMetersRounded'] as num).toDouble()
+          : 0,
+    ),
+    'cloudBackupScope': payload['cloudBackupScope'],
+    'cloudOrganizationBound': payload['cloudOrganizationBound'] == true,
+    'source': 'validated_local_review',
+    'hiveSourceOfTruth': true,
+    'firestoreRole': 'mirror_after_local_write',
+    'remoteCanOverrideLocalTripLog': false,
+    'remoteTotalsCanBecomeCanonical': false,
+    'mirrorCanDeleteLocalTripLog': false,
+    'officialMileageSource': 'odometer',
+    'gpsDistanceAdvisoryOnly': true,
+    'mapboxDistanceAdvisoryOnly': true,
+    'rawGpsIncluded': false,
+    'routeGeometryIncluded': false,
+    'mapboxGeometryIncluded': false,
+    'preciseCoordinatesIncluded': false,
+    'tokensIncluded': false,
+  });
 }
