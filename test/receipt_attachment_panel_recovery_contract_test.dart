@@ -61,7 +61,11 @@ void main() {
     expect(ocrSource, contains('recoveryAdvice.primaryAction'));
     expect(ocrSource, contains('recoveryAdvice.shortAction'));
     expect(ocrSource, contains('editable receipt details could not open'));
-    expect(ocrSource, contains('widget.onReceiptReadFinished?.call(false)'));
+    expect(ocrSource, contains('_notifyReceiptReadFinished(false)'));
+    expect(
+      ocrSource,
+      contains('widget.onReceiptReadFinished?.call(succeeded)'),
+    );
     expect(panelSource, contains('_ReceiptInterruptedCaptureBanner'));
     expect(panelSource, contains('_loadRecoverableNativeCaptures'));
     expect(panelSource, contains('recoverableNativeCaptures()'));
