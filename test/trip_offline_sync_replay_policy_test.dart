@@ -137,6 +137,9 @@ void main() {
     expect(safe['replayRequiresValidatedLocalRecord'], isTrue);
     expect(safe['failedReplayCanDeleteLocalQueue'], isFalse);
     expect(safe['successfulReplayCanSilentlyDeleteLocalData'], isFalse);
+    expect(safe['replaySuccessRequiresExplicitQueueCleanup'], isTrue);
+    expect(safe['replayCannotUploadIfLocalRecordDisappears'], isTrue);
+    expect(safe['replayCannotUploadAfterBackupOptOut'], isTrue);
     expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['rawTripPayloadIncluded'], isFalse);

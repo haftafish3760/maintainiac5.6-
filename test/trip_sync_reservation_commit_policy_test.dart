@@ -59,6 +59,9 @@ void main() {
     expect(safe['freePlanSyncLimitPer24Hours'], 6);
     expect(safe['blockedAttemptConsumesFreeSync'], isFalse);
     expect(safe['uploadWithoutReservationAllowed'], isFalse);
+    expect(safe['reservationMustCommitBeforeNetworkUpload'], isTrue);
+    expect(safe['reservationFailureKeepsLocalQueue'], isTrue);
+    expect(safe['reservationSuccessDoesNotConfirmRemoteBackup'], isTrue);
     expect(safe['reservationCanDeleteLocalData'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
