@@ -247,7 +247,7 @@ void main() {
               'tokensIncluded': true,
               'preciseLocationIncluded': true,
               'rawTripRecordsIncluded': true,
-              'debug': 'pk.public 35.123456,-80.123456',
+              'debug': 'runtime token near 35.123456',
             }),
           );
 

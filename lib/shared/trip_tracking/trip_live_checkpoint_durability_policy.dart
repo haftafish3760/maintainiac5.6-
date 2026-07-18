@@ -407,5 +407,6 @@ bool _looksSensitive(Object? value) {
   final clean = value.trim();
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
+      clean.toLowerCase().contains('token') ||
       clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
