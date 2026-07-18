@@ -230,6 +230,10 @@ void main() {
       expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
       expect(safe['activityRecognitionCanConfirmVehicleOnlyStop'], isFalse);
       expect(safe['walkingEvidenceCanBeReplayedFromCloud'], isFalse);
+      expect(safe['dwellEvidenceCanCreateCalibration'], isFalse);
+      expect(safe['dwellEvidenceCanApplyCalibration'], isFalse);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['twoPersonDeliveryRequiresManualConfirmation'], isTrue);
       expect(safe['manualFallbackCanBackdateWithoutReview'], isFalse);
       expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);

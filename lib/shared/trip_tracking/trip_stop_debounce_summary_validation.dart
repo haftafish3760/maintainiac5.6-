@@ -85,6 +85,13 @@ class TripStopDebounceSummaryValidation {
         summary['vehicleOnlyDwellCanCreateOfficialStop'] != false) {
       reasons.add('advisory_evidence_can_create_stop');
     }
+    if (summary['stopEvidenceCanCreateCalibration'] != false ||
+        summary['walkingEvidenceCanCreateCalibration'] != false ||
+        summary['trafficControlCanCreateCalibration'] != false ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true) {
+      reasons.add('stop_evidence_can_create_calibration');
+    }
     if (summary['walkingEvidenceCanOnlySuggestReview'] != true ||
         summary['walkingEvidenceRequiresCurrentDeviceSensor'] != true ||
         summary['walkingEvidenceCannotBeReplayedFromCloud'] != true ||

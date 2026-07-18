@@ -412,6 +412,11 @@ void main() {
     expect(safe['remoteDebounceCanOpenReview'], isFalse);
     expect(safe['remoteDebounceCanEndTrip'], isFalse);
     expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(safe['stopEvidenceCanCreateCalibration'], isFalse);
+    expect(safe['walkingEvidenceCanCreateCalibration'], isFalse);
+    expect(safe['trafficControlCanCreateCalibration'], isFalse);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['walkingEvidenceCanOnlySuggestReview'], isTrue);
     expect(safe['walkingEvidenceRequiresCurrentDeviceSensor'], isTrue);
     expect(safe['walkingEvidenceCannotBeReplayedFromCloud'], isTrue);

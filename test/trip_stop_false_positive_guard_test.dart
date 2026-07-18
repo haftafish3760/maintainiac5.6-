@@ -34,6 +34,10 @@ void main() {
     expect(guard['authenticationAloneAuthorizesStopReview'], isFalse);
     expect(guard['odometerIsGlobalTruth'], isTrue);
     expect(guard['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(guard['stopEvidenceCanCreateCalibration'], isFalse);
+    expect(guard['stopEvidenceCanApplyCalibration'], isFalse);
+    expect(guard['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(guard['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(guard['mapboxCanInferOfficialStopAddress'], isFalse);
   });
 

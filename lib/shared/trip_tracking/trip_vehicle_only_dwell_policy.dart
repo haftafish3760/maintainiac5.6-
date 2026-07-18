@@ -64,6 +64,10 @@ class TripVehicleOnlyDwellDecision {
     'dashboardCacheCanSurfaceManualFallback': false,
     'odometerRemainsOfficialMileageTruth': true,
     'odometerIsGlobalTruth': true,
+    'dwellEvidenceCanCreateCalibration': false,
+    'dwellEvidenceCanApplyCalibration': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
     'mapsRequiredForVehicleOnlyDwell': false,
     'longTrafficLightProtected':
         status == TripVehicleOnlyDwellStatus.trafficControlProtected,
@@ -156,6 +160,12 @@ class TripVehicleOnlyDwellSummaryValidation {
     if (!_trueFlag(summary, 'odometerIsGlobalTruth')) {
       return false;
     }
+    if (!_falseFlag(summary, 'dwellEvidenceCanCreateCalibration')) return false;
+    if (!_falseFlag(summary, 'dwellEvidenceCanApplyCalibration')) return false;
+    if (!_trueFlag(summary, 'calibrationRequiresTrustedGpsWindow')) {
+      return false;
+    }
+    if (!_trueFlag(summary, 'poorGpsDaysExcludedFromCalibration')) return false;
     if (!_falseFlag(summary, 'mapsRequiredForVehicleOnlyDwell')) return false;
     if (summary['longTrafficLightProtected'] is! bool) return false;
     if (!_falseFlag(summary, 'trafficControlCanSurfaceManualFallback')) {

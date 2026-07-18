@@ -107,6 +107,11 @@ void main() {
         'driverProfileThresholdsAreLocalPolicy': false,
         'activityRecognitionCanCreateOfficialStop': true,
         'vehicleOnlyDwellCanCreateOfficialStop': true,
+        'stopEvidenceCanCreateCalibration': true,
+        'walkingEvidenceCanCreateCalibration': true,
+        'trafficControlCanCreateCalibration': true,
+        'calibrationRequiresTrustedGpsWindow': false,
+        'poorGpsDaysExcludedFromCalibration': false,
         'odometerRemainsOfficialMileageTruth': false,
       });
     final validation = TripStopDebounceSummaryValidation.fromDashboardMap(
@@ -126,6 +131,7 @@ void main() {
         'malformed_debounce_not_fail_closed',
         'stop_review_not_user_action_gated',
         'advisory_evidence_can_create_stop',
+        'stop_evidence_can_create_calibration',
         'walking_evidence_not_advisory_only',
         'vehicle_only_dwell_not_manual_only',
         'odometer_not_official_truth',
