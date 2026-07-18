@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_commercial_readiness_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_dashboard_status_rollup_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_gps_dependability_rollup_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_lifecycle_supervisor_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_location_visibility_consent_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_mapbox_request_boundary_policy.dart';
@@ -98,6 +99,7 @@ void main() {
     TripLifecycleSupervisorDecision lifecycle = lifecycleContinue,
     TripLocationVisibilityConsentDecision visibility = privateVisible,
     TripMapboxRequestBoundaryDecision maps = mapsAccepted,
+    TripGpsDependabilityRollupDecision? gpsDependabilityRollup,
   }) {
     return TripCommercialReadinessPolicy.evaluate(
       profileStrategy: TripTrackingProfileStrategy.forProfile(profile),
@@ -105,6 +107,7 @@ void main() {
       lifecycleSupervisor: lifecycle,
       visibilityConsent: visibility,
       mapboxBoundary: maps,
+      gpsDependabilityRollup: gpsDependabilityRollup,
     );
   }
 
@@ -162,6 +165,46 @@ void main() {
     },
   );
 
+  test('weak GPS dependability rollup forces commercial manual review', () {
+    final decision = evaluate(
+      gpsDependabilityRollup: rollup(
+        TripGpsDependabilityRollupStatus.excludedFromCalibration,
+        canUseForLiveAssist: true,
+        canUseForCalibrationEvidence: false,
+        requiresUserReview: true,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripCommercialReadinessStatus.readyWithReview);
+    expect(decision.canStartOrContinueTrip, isTrue);
+    expect(decision.manualReviewRecommended, isTrue);
+    expect(safe['gpsDependabilityRollupCheckedWhenAvailable'], isTrue);
+    expect(safe['weakGpsDependabilityForcesManualReview'], isTrue);
+  });
+
+  test('unsafe GPS dependability blocks commercial readiness closed', () {
+    final decision = evaluate(
+      gpsDependabilityRollup: rollup(
+        TripGpsDependabilityRollupStatus.unsafe,
+        canUseForLiveAssist: false,
+        canUseForCalibrationEvidence: false,
+        requiresUserReview: true,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripCommercialReadinessStatus.blocked);
+    expect(decision.reasonCode, 'gps_dependability_unsafe_blocked');
+    expect(decision.canStartOrContinueTrip, isFalse);
+    expect(decision.manualReviewRecommended, isTrue);
+    expect(safe['unsafeGpsDependabilityBlocksCommercialReadiness'], isTrue);
+    expect(
+      TripCommercialReadinessSummaryValidation.fromSummary(safe).isRenderable,
+      isTrue,
+    );
+  });
+
   test('permission or privacy blocks commercial trip readiness closed', () {
     final permission = evaluate(lifecycle: lifecyclePrompt);
     final privacy = evaluate(visibility: privacyBlocked);
@@ -216,6 +259,9 @@ void main() {
       final validation = TripCommercialReadinessSummaryValidation.fromSummary({
         ...safe,
         'commercialReadyDoesNotMeanProductionReady': false,
+        'gpsDependabilityRollupCheckedWhenAvailable': false,
+        'unsafeGpsDependabilityBlocksCommercialReadiness': false,
+        'weakGpsDependabilityForcesManualReview': false,
         'realDeviceEvidenceRequiredForDependabilityClaim': false,
         'poorGpsCalibrationProofRequired': false,
         'calibrationRequiresTrustedGpsWindow': false,
@@ -232,6 +278,10 @@ void main() {
       });
 
       expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('gps_dependability_boundary_missing'),
+      );
       expect(
         validation.reasons,
         contains('commercial_evidence_boundary_missing'),
@@ -253,5 +303,31 @@ void main() {
         contains('summary_contains_sensitive_commercial_material'),
       );
     },
+  );
+}
+
+TripGpsDependabilityRollupDecision rollup(
+  TripGpsDependabilityRollupStatus status, {
+  required bool canUseForLiveAssist,
+  required bool canUseForCalibrationEvidence,
+  required bool requiresUserReview,
+}) {
+  return TripGpsDependabilityRollupDecision(
+    status: status,
+    reasonCode: status == TripGpsDependabilityRollupStatus.unsafe
+        ? 'gps_rollup_unsafe_window_present'
+        : 'gps_rollup_projection_paused_window_present',
+    windowCount: 8,
+    readyWindowCount: status == TripGpsDependabilityRollupStatus.unsafe ? 7 : 6,
+    reviewOnlyWindowCount: 0,
+    pausedWindowCount: status == TripGpsDependabilityRollupStatus.unsafe
+        ? 0
+        : 2,
+    unsafeWindowCount: status == TripGpsDependabilityRollupStatus.unsafe
+        ? 1
+        : 0,
+    canUseForLiveAssist: canUseForLiveAssist,
+    canUseForCalibrationEvidence: canUseForCalibrationEvidence,
+    requiresUserReview: requiresUserReview,
   );
 }

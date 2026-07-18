@@ -1,4 +1,5 @@
 import 'trip_dashboard_status_rollup_policy.dart';
+import 'trip_gps_dependability_rollup_policy.dart';
 import 'trip_lifecycle_supervisor_policy.dart';
 import 'trip_location_visibility_consent_policy.dart';
 import 'trip_mapbox_request_boundary_policy.dart';
@@ -59,6 +60,9 @@ class TripCommercialReadinessDecision {
     'gpsAccuracyStillRequiresFieldProof': true,
     'commercialReadyDoesNotMeanProductionReady': true,
     'limitedGpsOnlyCanStartWithoutMaps': true,
+    'gpsDependabilityRollupCheckedWhenAvailable': true,
+    'unsafeGpsDependabilityBlocksCommercialReadiness': true,
+    'weakGpsDependabilityForcesManualReview': true,
     'realDeviceEvidenceRequiredForDependabilityClaim': true,
     'stopReviewRequiredBeforeOfficialStop': true,
     'confirmedMileageRequiresUserAction': true,
@@ -122,6 +126,9 @@ class TripCommercialReadinessSummaryValidation {
       'gpsAccuracyStillRequiresFieldProof',
       'commercialReadyDoesNotMeanProductionReady',
       'limitedGpsOnlyCanStartWithoutMaps',
+      'gpsDependabilityRollupCheckedWhenAvailable',
+      'unsafeGpsDependabilityBlocksCommercialReadiness',
+      'weakGpsDependabilityForcesManualReview',
       'realDeviceEvidenceRequiredForDependabilityClaim',
       'stopReviewRequiredBeforeOfficialStop',
       'confirmedMileageRequiresUserAction',
@@ -153,6 +160,11 @@ class TripCommercialReadinessSummaryValidation {
         summary['mapboxAssistRequiresExplicitOptIn'] != true ||
         summary['limitedGpsOnlyCanStartWithoutMaps'] != true) {
       reasons.add('maps_optional_boundary_missing');
+    }
+    if (summary['gpsDependabilityRollupCheckedWhenAvailable'] != true ||
+        summary['unsafeGpsDependabilityBlocksCommercialReadiness'] != true ||
+        summary['weakGpsDependabilityForcesManualReview'] != true) {
+      reasons.add('gps_dependability_boundary_missing');
     }
     if (summary['mapboxCanReplaceOdometer'] != false ||
         summary['mapboxCanCreateOfficialStop'] != false ||
@@ -213,6 +225,7 @@ class TripCommercialReadinessPolicy {
     required TripLifecycleSupervisorDecision lifecycleSupervisor,
     required TripLocationVisibilityConsentDecision visibilityConsent,
     required TripMapboxRequestBoundaryDecision mapboxBoundary,
+    TripGpsDependabilityRollupDecision? gpsDependabilityRollup,
   }) {
     final scenario = _scenarioFor(profileStrategy.workStyle);
     final privacySafe = _privacySafe(visibilityConsent);
@@ -245,6 +258,19 @@ class TripCommercialReadinessPolicy {
       );
     }
 
+    if (gpsDependabilityRollup?.status ==
+        TripGpsDependabilityRollupStatus.unsafe) {
+      return _decision(
+        status: TripCommercialReadinessStatus.blocked,
+        scenario: scenario,
+        reasonCode: 'gps_dependability_unsafe_blocked',
+        canStartOrContinueTrip: false,
+        manualReviewRecommended: true,
+        mapsOptionalAndSafe: mapsSafe,
+        employeePrivacySafe: true,
+      );
+    }
+
     if (!mapsSafe || !mapboxBoundary.canRenderMapAssist) {
       return _decision(
         status: TripCommercialReadinessStatus.limitedGpsOnly,
@@ -255,6 +281,7 @@ class TripCommercialReadinessPolicy {
           dashboardRollup,
           lifecycleSupervisor,
           profileStrategy,
+          gpsDependabilityRollup,
         ),
         mapsOptionalAndSafe: mapsSafe,
         employeePrivacySafe: true,
@@ -265,6 +292,7 @@ class TripCommercialReadinessPolicy {
       dashboardRollup,
       lifecycleSupervisor,
       profileStrategy,
+      gpsDependabilityRollup,
     );
     return _decision(
       status: reviewNeeded
@@ -325,7 +353,13 @@ bool _manualReviewNeeded(
   TripDashboardStatusRollupDecision dashboard,
   TripLifecycleSupervisorDecision lifecycle,
   TripTrackingProfileStrategy profile,
+  TripGpsDependabilityRollupDecision? gpsDependabilityRollup,
 ) {
+  if (gpsDependabilityRollup != null &&
+      gpsDependabilityRollup.status !=
+          TripGpsDependabilityRollupStatus.reliable) {
+    return true;
+  }
   if (dashboard.severity == TripDashboardStatusRollupSeverity.attention) {
     return true;
   }
@@ -358,6 +392,7 @@ String _safeReason(String value) {
     'platform_permission_blocked' => 'platform_permission_blocked',
     'local_lifecycle_blocked' => 'local_lifecycle_blocked',
     'dashboard_status_blocked' => 'dashboard_status_blocked',
+    'gps_dependability_unsafe_blocked' => 'gps_dependability_unsafe_blocked',
     'commercial_tracking_blocked' => 'commercial_tracking_blocked',
     'gps_only_commercial_mode' => 'gps_only_commercial_mode',
     'commercial_ready_with_review' => 'commercial_ready_with_review',
