@@ -492,6 +492,28 @@ void main() {
     expect(engine.totalAcceptedMeters, 0);
   });
 
+  test(
+    'rejects stationary provider jitter without adding odometer mileage',
+    () {
+      final engine = TripTrackingEngine();
+      engine.ingest(sample(-80, 0, speedMetersPerSecond: 0));
+
+      final jitter = engine.ingest(
+        sample(-79.999, 20, speedMetersPerSecond: 0.2),
+      );
+
+      expect(jitter.disposition, TripSampleDisposition.rejectedSpeedConflict);
+      expect(jitter.addedMeters, 0);
+      expect(engine.totalAcceptedMeters, 0);
+
+      final resumed = engine.ingest(
+        sample(-79.998, 40, speedMetersPerSecond: 4.6),
+      );
+      expect(resumed.disposition, TripSampleDisposition.acceptedDistance);
+      expect(resumed.addedMeters, greaterThan(75));
+    },
+  );
+
   test('rejected jumps cannot accumulate walking stop evidence', () {
     final engine = TripTrackingEngine();
     engine.ingest(sample(-80, 0));

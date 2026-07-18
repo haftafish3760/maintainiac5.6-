@@ -233,6 +233,21 @@ class TripTrackingEngine {
             fallback: 1.25,
           ),
     );
+    if (_stationaryProviderContradictsDistance(
+      reportedSpeed: reportedSpeed,
+      distance: distance,
+      accuracyEnvelope: accuracyEnvelope,
+    )) {
+      // Some providers briefly jump coordinates while still reporting
+      // near-zero speed after a vehicle stops. Re-anchor to prevent repeat
+      // bridges, but never add that contradiction to odometer mileage.
+      _lastAccepted = sample;
+      return _finish(
+        sample,
+        activityForMileage,
+        TripSampleDisposition.rejectedSpeedConflict,
+      );
+    }
     if (distance <= accuracyEnvelope) {
       return _finish(
         sample,
@@ -311,6 +326,19 @@ class TripTrackingEngine {
 
   bool _isStrongWalking(TripActivityObservation? activity) =>
       activity?.canSupportStopReview ?? false;
+
+  bool _stationaryProviderContradictsDistance({
+    required double? reportedSpeed,
+    required double distance,
+    required double accuracyEnvelope,
+  }) {
+    if (reportedSpeed == null || !reportedSpeed.isFinite || reportedSpeed < 0) {
+      return false;
+    }
+    if (reportedSpeed > 0.5) return false;
+    final minimumContradictoryDistance = math.max(75.0, accuracyEnvelope * 2);
+    return distance >= minimumContradictoryDistance;
+  }
 
   TripSampleDecision _finish(
     TripLocationSample sample,
