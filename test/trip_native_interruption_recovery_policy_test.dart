@@ -111,6 +111,39 @@ void main() {
     expect(decision.canUploadBackupMirror, isFalse);
   });
 
+  test('ignored native noise does not require local checkpoint recovery', () {
+    for (final ignored in [
+      nativeDecision(
+        current: TripTrackingSessionLifecycleState.completed,
+        event: locationEvent(),
+      ),
+      nativeDecision(event: statusEvent('stopped')),
+    ]) {
+      final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+        nativeDecision: ignored,
+        supervisorDecision: supervisorDecision(),
+        localCheckpointAvailable: false,
+      );
+      final safe = decision.toSafeDashboardMap();
+
+      expect(
+        decision.status,
+        TripNativeInterruptionRecoveryStatus.ignoreSafely,
+      );
+      expect(decision.canFeedEngine, isFalse);
+      expect(decision.canReplayPendingSample, isFalse);
+      expect(decision.canUploadBackupMirror, isFalse);
+      expect(safe['nativeInterruptionCanDeleteLocalData'], isFalse);
+      expect(safe['nativeStoppedStatusCannotCompleteTrip'], isTrue);
+      expect(
+        TripNativeInterruptionRecoverySummaryValidation.fromSummary(
+          safe,
+        ).isRenderable,
+        isTrue,
+      );
+    }
+  });
+
   test('missing local checkpoint blocks recovery from native events', () {
     final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
       nativeDecision: nativeDecision(

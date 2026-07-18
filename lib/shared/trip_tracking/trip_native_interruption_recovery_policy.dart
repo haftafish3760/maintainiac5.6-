@@ -204,6 +204,19 @@ class TripNativeInterruptionRecoveryPolicy {
     required TripLifecycleSupervisorDecision supervisorDecision,
     required bool localCheckpointAvailable,
   }) {
+    if (nativeDecision.action == TripNativeEventLifecycleAction.ignoreEvent) {
+      return _decision(
+        status: TripNativeInterruptionRecoveryStatus.ignoreSafely,
+        reasonCode: _nativeReason(nativeDecision),
+        nextLifecycle: nativeDecision.to,
+        canFeedEngine: false,
+        shouldKeepForegroundServiceAlive: false,
+        shouldRequestUserAction: nativeDecision.requiresUserReview,
+        canReplayPendingSample: false,
+        canUploadBackupMirror: false,
+      );
+    }
+
     if (!nativeDecision.transitionAllowed || !localCheckpointAvailable) {
       return _decision(
         status: TripNativeInterruptionRecoveryStatus.blocked,
@@ -214,19 +227,6 @@ class TripNativeInterruptionRecoveryPolicy {
         canFeedEngine: false,
         shouldKeepForegroundServiceAlive: false,
         shouldRequestUserAction: true,
-        canReplayPendingSample: false,
-        canUploadBackupMirror: false,
-      );
-    }
-
-    if (nativeDecision.action == TripNativeEventLifecycleAction.ignoreEvent) {
-      return _decision(
-        status: TripNativeInterruptionRecoveryStatus.ignoreSafely,
-        reasonCode: _nativeReason(nativeDecision),
-        nextLifecycle: nativeDecision.to,
-        canFeedEngine: false,
-        shouldKeepForegroundServiceAlive: false,
-        shouldRequestUserAction: nativeDecision.requiresUserReview,
         canReplayPendingSample: false,
         canUploadBackupMirror: false,
       );
