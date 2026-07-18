@@ -90,6 +90,9 @@ class TripLocationSampleIntakeDecision {
     'remoteSampleCanMasqueradeAsNative': false,
     'sampleCanCreateOfficialStop': false,
     'sampleCanConfirmMileage': false,
+    'sampleCanSetGlobalTruth': false,
+    'sampleCanConfirmOfficialMileage': false,
+    'sampleCanChangeOfficialMileage': false,
     'sampleCanAdvanceOdometerWithoutWindowQuality': false,
     'sampleCanBypassStopDebounce': false,
     'odometerRemainsOfficialMileageTruth': true,
@@ -187,6 +190,9 @@ class TripLocationSampleIntakeSummaryValidation {
         summary['remoteSampleCanMasqueradeAsNative'] != false ||
         summary['sampleCanCreateOfficialStop'] != false ||
         summary['sampleCanConfirmMileage'] != false ||
+        summary['sampleCanSetGlobalTruth'] != false ||
+        summary['sampleCanConfirmOfficialMileage'] != false ||
+        summary['sampleCanChangeOfficialMileage'] != false ||
         summary['sampleCanAdvanceOdometerWithoutWindowQuality'] != false ||
         summary['sampleCanBypassStopDebounce'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||

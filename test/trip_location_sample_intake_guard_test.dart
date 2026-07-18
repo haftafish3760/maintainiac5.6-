@@ -45,6 +45,9 @@ void main() {
     expect(summary['simulatorHarnessCanFeedTripEngine'], isFalse);
     expect(summary['simulatorHarnessCannotWriteProductionHistory'], isTrue);
     expect(summary['remoteSampleCanMasqueradeAsNative'], isFalse);
+    expect(summary['sampleCanSetGlobalTruth'], isFalse);
+    expect(summary['sampleCanConfirmOfficialMileage'], isFalse);
+    expect(summary['sampleCanChangeOfficialMileage'], isFalse);
     expect(validation.isRenderable, isTrue);
     expect(validation.status, TripLocationSampleIntakeStatus.accepted);
     expect(
@@ -256,6 +259,9 @@ void main() {
             'remoteSampleCanMasqueradeAsNative': true,
             'sampleCanCreateOfficialStop': true,
             'sampleCanConfirmMileage': true,
+            'sampleCanSetGlobalTruth': true,
+            'sampleCanConfirmOfficialMileage': true,
+            'sampleCanChangeOfficialMileage': true,
             'odometerRemainsOfficialMileageTruth': false,
             'mockLocationAccepted': true,
           });
