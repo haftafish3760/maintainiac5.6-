@@ -149,12 +149,17 @@ class TripTrackingPlatformCapabilities {
 
   /// Safe for diagnostics: no device model, identity, or raw sensor payloads.
   Map<String, Object> toSafeLogMap() => {
+    'schemaVersion': 1,
     'locationAvailable': locationAvailable,
     'backgroundTrackingAvailable': backgroundTrackingAvailable,
     'activityRecognitionAvailable': activityRecognitionAvailable,
     'batteryStateAvailable': batteryStateAvailable,
     'lowPowerModeAvailable': lowPowerModeAvailable,
     'deviceTier': deviceTier.name,
+    'deviceModelIncluded': false,
+    'rawSensorPayloadIncluded': false,
+    'preciseLocationIncluded': false,
+    'tokensIncluded': false,
   };
 
   factory TripTrackingPlatformCapabilities.fromMap(Map<dynamic, dynamic> map) {
@@ -194,9 +199,12 @@ class TripTrackingBatterySnapshot {
 
   /// Buckets battery state without creating a precise telemetry trail.
   Map<String, Object?> toSafeLogMap() => {
+    'schemaVersion': 1,
     'batteryPercentBucket': _batteryBucket(batteryPercent),
     'isCharging': isCharging,
     'lowPowerModeEnabled': lowPowerModeEnabled,
+    'preciseBatteryIncluded': false,
+    'rawBatteryPayloadIncluded': false,
   };
 
   factory TripTrackingBatterySnapshot.fromMap(Map<dynamic, dynamic> map) {
@@ -241,10 +249,14 @@ class TripTrackingAuthorization {
       state == TripTrackingAuthorizationState.always;
 
   Map<String, Object> toSafeLogMap() => {
+    'schemaVersion': 1,
     'state': state.name,
     'preciseLocation': preciseLocation,
     'canTrack': canTrack,
     'canTrackInBackground': canTrackInBackground,
+    'authorizationDoesNotImplyOwnership': true,
+    'backgroundTrackingRequiresOptIn': true,
+    'rawAuthorizationPayloadIncluded': false,
   };
 
   factory TripTrackingAuthorization.fromMap(Map<dynamic, dynamic> map) {
@@ -291,10 +303,16 @@ class TripTrackingPlatformEvent {
   /// Boundary-safe diagnostics for native/Mapbox/GPS event handling.
   Map<String, Object?> toSafeLogMap() {
     final result = <String, Object?>{
+      'schemaVersion': 1,
       'type': type.name,
       'hasLocation': location != null,
       'hasActivity': activity != null,
       'hasAuthorization': authorization != null,
+      'externalNativeInput': true,
+      'rawNativePayloadIncluded': false,
+      'preciseLocationIncluded': false,
+      'rawSensorPayloadIncluded': false,
+      'tokensIncluded': false,
     };
     final sample = location;
     if (sample != null) {
@@ -307,7 +325,16 @@ class TripTrackingPlatformEvent {
     }
     final observation = activity;
     if (observation != null) {
-      result.addAll({...observation.toSafeSummary()});
+      final summary = observation.toSafeSummary();
+      result.addAll({
+        'activity': summary['activity'],
+        'activityConfidenceBucket': _diagnosticActivityConfidenceBucket(
+          observation.confidence,
+        ),
+        'activityCanSupportStopReview': summary['canSupportStopReview'],
+        'rawSensorPayloadIncluded': summary['rawSensorPayloadIncluded'],
+        'preciseTimestampIncluded': summary['preciseTimestampIncluded'],
+      });
     }
     final permission = authorization;
     if (permission != null) {
@@ -476,6 +503,14 @@ String _batteryBucket(int? percent) {
   if (percent < 40) return 'low';
   if (percent < 80) return 'normal';
   return 'high';
+}
+
+String _diagnosticActivityConfidenceBucket(int confidence) {
+  if (confidence < 0 || confidence > 100) return 'unknown';
+  if (confidence >= 85) return 'high';
+  if (confidence >= 40) return 'medium';
+  if (confidence >= 10) return 'low';
+  return 'veryLow';
 }
 
 String _accuracyBucket(double? meters) {

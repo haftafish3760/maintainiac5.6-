@@ -118,6 +118,12 @@ void main() {
       TripTrackingDeviceCapabilityTier.motionAndBatteryAssist,
     );
     expect(richer.lowPowerModeAvailable, isTrue);
+    expect(richer.toSafeLogMap()['schemaVersion'], 1);
+    expect(richer.toSafeLogMap()['deviceTier'], 'motionAndBatteryAssist');
+    expect(richer.toSafeLogMap()['deviceModelIncluded'], isFalse);
+    expect(richer.toSafeLogMap()['rawSensorPayloadIncluded'], isFalse);
+    expect(richer.toSafeLogMap()['preciseLocationIncluded'], isFalse);
+    expect(richer.toSafeLogMap()['tokensIncluded'], isFalse);
   });
 
   test('malformed native capability values are not trusted', () {
@@ -175,6 +181,10 @@ void main() {
     expect(valid.batteryPercent, 19);
     expect(valid.isCharging, isTrue);
     expect(valid.lowPowerModeEnabled, isTrue);
+    expect(valid.toSafeLogMap()['schemaVersion'], 1);
+    expect(valid.toSafeLogMap()['batteryPercentBucket'], 'critical');
+    expect(valid.toSafeLogMap()['preciseBatteryIncluded'], isFalse);
+    expect(valid.toSafeLogMap()['rawBatteryPayloadIncluded'], isFalse);
     expect(invalid.batteryPercent, isNull);
     expect(invalid.isCharging, isFalse);
     expect(invalid.lowPowerModeEnabled, isFalse);
@@ -194,6 +204,10 @@ void main() {
     expect(malformed.preciseLocation, isFalse);
     expect(malformed.canTrackPrecisely, isFalse);
     expect(valid.canTrackPrecisely, isTrue);
+    expect(valid.toSafeLogMap()['schemaVersion'], 1);
+    expect(valid.toSafeLogMap()['authorizationDoesNotImplyOwnership'], isTrue);
+    expect(valid.toSafeLogMap()['backgroundTrackingRequiresOptIn'], isTrue);
+    expect(valid.toSafeLogMap()['rawAuthorizationPayloadIncluded'], isFalse);
   });
 
   test('malformed authorization events fail closed at the boundary', () {
@@ -256,6 +270,12 @@ void main() {
         event.errorMessage,
         'Ignored malformed native trip tracking event.',
       );
+      expect(event.toSafeLogMap()['schemaVersion'], 1);
+      expect(event.toSafeLogMap()['externalNativeInput'], isTrue);
+      expect(event.toSafeLogMap()['rawNativePayloadIncluded'], isFalse);
+      expect(event.toSafeLogMap()['preciseLocationIncluded'], isFalse);
+      expect(event.toSafeLogMap()['rawSensorPayloadIncluded'], isFalse);
+      expect(event.toSafeLogMap()['tokensIncluded'], isFalse);
     }
   });
 
@@ -485,8 +505,8 @@ void main() {
     final summary = event.toSafeLogMap();
 
     expect(summary['activity'], 'walking');
-    expect(summary['confidenceBucket'], 'high');
-    expect(summary['canSupportStopReview'], isTrue);
+    expect(summary['activityConfidenceBucket'], 'high');
+    expect(summary['activityCanSupportStopReview'], isTrue);
     expect(summary['rawSensorPayloadIncluded'], isFalse);
     expect(summary['preciseTimestampIncluded'], isFalse);
     expect(summary.toString(), isNot(contains('2026-07-13T12:00:00')));

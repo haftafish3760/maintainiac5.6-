@@ -47,9 +47,12 @@ void main() {
           lowPowerModeEnabled: true,
         ).toSafeLogMap(),
         {
+          'schemaVersion': 1,
           'batteryPercentBucket': 'critical',
           'isCharging': false,
           'lowPowerModeEnabled': true,
+          'preciseBatteryIncluded': false,
+          'rawBatteryPayloadIncluded': false,
         },
       );
       expect(
@@ -205,10 +208,14 @@ void main() {
       expect(log['type'], 'authorization');
       expect(log['hasAuthorization'], isTrue);
       expect(log['authorization'], {
+        'schemaVersion': 1,
         'state': 'whileInUse',
         'preciseLocation': true,
         'canTrack': true,
         'canTrackInBackground': false,
+        'authorizationDoesNotImplyOwnership': true,
+        'backgroundTrackingRequiresOptIn': true,
+        'rawAuthorizationPayloadIncluded': false,
       });
       expect(log.containsKey('firebaseUid'), isFalse);
     },
