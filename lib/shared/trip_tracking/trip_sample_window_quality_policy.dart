@@ -75,6 +75,8 @@ class TripSampleWindowQualityDecision {
     'simulatorWindowCannotWriteProductionHistory': true,
     'authenticationAloneAuthorizesWindowUse': false,
     'sampleWindowCanConfirmOdometer': false,
+    'sampleWindowCanSetGlobalTruth': false,
+    'sampleWindowCanChangeOfficialMileage': false,
     'sampleWindowCanCreateOfficialStop': false,
     'sampleWindowCanBypassStopDebounce': false,
     'sampleWindowCanAutocorrectCalibration': false,
@@ -168,6 +170,14 @@ class TripSampleWindowQualitySummaryValidation {
       'sampleWindowRequiresPermissionContinuity',
       'simulatorWindowRequiresExplicitTestHarness',
       'simulatorWindowCannotWriteProductionHistory',
+      'authenticationAloneAuthorizesWindowUse',
+      'sampleWindowCanConfirmOdometer',
+      'sampleWindowCanSetGlobalTruth',
+      'sampleWindowCanChangeOfficialMileage',
+      'sampleWindowCanCreateOfficialStop',
+      'sampleWindowCanBypassStopDebounce',
+      'sampleWindowCanAutocorrectCalibration',
+      'sampleWindowCanDeleteTripData',
     ]) {
       if (summary[key] is! bool) reasons.add('${key}_not_bool');
     }
@@ -189,6 +199,8 @@ class TripSampleWindowQualitySummaryValidation {
       reasons.add('sample_window_authorization_boundary_missing');
     }
     if (summary['sampleWindowCanConfirmOdometer'] != false ||
+        summary['sampleWindowCanSetGlobalTruth'] != false ||
+        summary['sampleWindowCanChangeOfficialMileage'] != false ||
         summary['sampleWindowCanCreateOfficialStop'] != false ||
         summary['sampleWindowCanBypassStopDebounce'] != false ||
         summary['sampleWindowCanAutocorrectCalibration'] != false ||

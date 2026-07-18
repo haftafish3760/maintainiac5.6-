@@ -38,6 +38,8 @@ class TripTrackingNativeSamplingPolicy {
     'firestoreCanChangeNativeCadence': false,
     'cloudFunctionCanChangeNativeCadence': false,
     'nativeSamplingCanConfirmOdometer': false,
+    'nativeSamplingCanSetGlobalTruth': false,
+    'nativeSamplingCanChangeOfficialMileage': false,
     'nativeSamplingCanCreateOfficialStop': false,
     'nativeSamplingCanDeleteLocalData': false,
     'odometerRemainsOfficialMileageTruth': true,
@@ -178,6 +180,8 @@ class TripTrackingNativeSamplingSummaryValidation {
       'firestoreCanChangeNativeCadence',
       'cloudFunctionCanChangeNativeCadence',
       'nativeSamplingCanConfirmOdometer',
+      'nativeSamplingCanSetGlobalTruth',
+      'nativeSamplingCanChangeOfficialMileage',
       'nativeSamplingCanCreateOfficialStop',
       'nativeSamplingCanDeleteLocalData',
       'odometerRemainsOfficialMileageTruth',
@@ -216,6 +220,8 @@ class TripTrackingNativeSamplingSummaryValidation {
       reasons.add('external_or_unsafe_sample_can_change_cadence');
     }
     if (summary['nativeSamplingCanConfirmOdometer'] != false ||
+        summary['nativeSamplingCanSetGlobalTruth'] != false ||
+        summary['nativeSamplingCanChangeOfficialMileage'] != false ||
         summary['nativeSamplingCanCreateOfficialStop'] != false ||
         summary['nativeSamplingCanDeleteLocalData'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||

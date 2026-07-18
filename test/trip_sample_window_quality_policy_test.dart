@@ -73,6 +73,8 @@ void main() {
     expect(decision.canPersistCompactRoutePoint, isFalse);
     expect(safe['routeStorageCanPauseWithoutStoppingTrip'], isTrue);
     expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
+    expect(safe['sampleWindowCanSetGlobalTruth'], isFalse);
+    expect(safe['sampleWindowCanChangeOfficialMileage'], isFalse);
     expect(safe['sampleWindowRequiresLocalDeviceSource'], isTrue);
     expect(safe['sampleWindowRequiresOwnershipValidation'], isTrue);
     expect(safe['sampleWindowRequiresIntakeGuardBeforeEvaluation'], isTrue);
@@ -355,6 +357,8 @@ void main() {
             routeHistoryDecision: routeDecision(),
           ).toSafeDashboardMap()..addAll({
             'sampleWindowCanConfirmOdometer': true,
+            'sampleWindowCanSetGlobalTruth': true,
+            'sampleWindowCanChangeOfficialMileage': true,
             'sampleWindowCanCreateOfficialStop': true,
             'sampleWindowCanBypassStopDebounce': true,
             'sampleWindowCanAutocorrectCalibration': true,

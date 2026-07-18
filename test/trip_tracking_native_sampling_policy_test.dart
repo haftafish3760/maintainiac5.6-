@@ -78,6 +78,8 @@ void main() {
     expect(summary['validatedSampleRequired'], isTrue);
     expect(summary['mapboxCanChangeNativeCadence'], isFalse);
     expect(summary['nativeSamplingCanConfirmOdometer'], isFalse);
+    expect(summary['nativeSamplingCanSetGlobalTruth'], isFalse);
+    expect(summary['nativeSamplingCanChangeOfficialMileage'], isFalse);
     expect(validation.isRenderable, isTrue);
     expect(validation.canUpdateNativeCadence, isTrue);
   });
@@ -324,6 +326,8 @@ void main() {
       TripTrackingNativeSamplingSummaryValidation.fromSummary({
         ...summary,
         'nativeSamplingCanConfirmOdometer': true,
+        'nativeSamplingCanSetGlobalTruth': true,
+        'nativeSamplingCanChangeOfficialMileage': true,
       }).reasons,
       contains('native_sampling_claims_trip_truth'),
     );

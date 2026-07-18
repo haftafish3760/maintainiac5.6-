@@ -97,6 +97,8 @@ class TripLiveOdometerRenderDecision {
       'writesConfirmedOdometer': false,
       'gpsCanReplaceOdometer': false,
       'mapboxCanReplaceOdometer': false,
+      'liveRenderCanSetGlobalTruth': false,
+      'liveRenderCanChangeOfficialMileage': false,
       'mapboxCanIncreaseLiveMileage': false,
       'firestoreCanOverrideLiveDisplay': false,
       'remoteDisplayCanOverrideLocalTrip': false,
@@ -208,6 +210,8 @@ class TripLiveOdometerRenderSummaryValidation {
       'writesConfirmedOdometer',
       'gpsCanReplaceOdometer',
       'mapboxCanReplaceOdometer',
+      'liveRenderCanSetGlobalTruth',
+      'liveRenderCanChangeOfficialMileage',
       'mapboxCanIncreaseLiveMileage',
       'firestoreCanOverrideLiveDisplay',
       'remoteDisplayCanOverrideLocalTrip',
@@ -260,6 +264,8 @@ class TripLiveOdometerRenderSummaryValidation {
     if (summary['writesConfirmedOdometer'] != false ||
         summary['gpsCanReplaceOdometer'] != false ||
         summary['mapboxCanReplaceOdometer'] != false ||
+        summary['liveRenderCanSetGlobalTruth'] != false ||
+        summary['liveRenderCanChangeOfficialMileage'] != false ||
         summary['mapboxCanIncreaseLiveMileage'] != false ||
         summary['confirmedOdometerRemainsCanonical'] != true ||
         summary['odometerIsGlobalTruth'] != true ||

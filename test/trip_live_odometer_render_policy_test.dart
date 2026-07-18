@@ -122,6 +122,8 @@ void main() {
       expect(safe['odometerIsGlobalTruth'], isTrue);
       expect(safe['writesConfirmedOdometer'], isFalse);
       expect(safe['gpsCanReplaceOdometer'], isFalse);
+      expect(safe['liveRenderCanSetGlobalTruth'], isFalse);
+      expect(safe['liveRenderCanChangeOfficialMileage'], isFalse);
       expect(safe['staleProjectionCanCommitMileage'], isFalse);
       expect(safe['staleProjectionCanNotifyAsFresh'], isFalse);
     },
@@ -306,6 +308,7 @@ void main() {
       expect(safe['routeGeometryIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
       expect(safe['mapboxCanReplaceOdometer'], isFalse);
+      expect(safe['liveRenderCanSetGlobalTruth'], isFalse);
       expect(safe['mapboxCanIncreaseLiveMileage'], isFalse);
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));

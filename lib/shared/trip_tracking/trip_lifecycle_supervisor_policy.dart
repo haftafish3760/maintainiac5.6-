@@ -41,6 +41,8 @@ class TripLifecycleSupervisorDecision {
     'canUploadBackupMirror': canUploadBackupMirror,
     'supervisorCanDeleteLocalData': false,
     'supervisorCanConfirmOdometer': false,
+    'supervisorCanSetGlobalTruth': false,
+    'supervisorCanChangeOfficialMileage': false,
     'supervisorCanCreateOfficialStop': false,
     'remoteSupervisorCanOverrideLocalTrip': false,
     'firestoreCanOverrideLifecycle': false,
@@ -182,6 +184,8 @@ class TripLifecycleSupervisorSummaryValidation {
       'canUploadBackupMirror',
       'supervisorCanDeleteLocalData',
       'supervisorCanConfirmOdometer',
+      'supervisorCanSetGlobalTruth',
+      'supervisorCanChangeOfficialMileage',
       'supervisorCanCreateOfficialStop',
       'remoteSupervisorCanOverrideLocalTrip',
       'firestoreCanOverrideLifecycle',
@@ -213,6 +217,8 @@ class TripLifecycleSupervisorSummaryValidation {
     }
     if (summary['supervisorCanDeleteLocalData'] != false ||
         summary['supervisorCanConfirmOdometer'] != false ||
+        summary['supervisorCanSetGlobalTruth'] != false ||
+        summary['supervisorCanChangeOfficialMileage'] != false ||
         summary['supervisorCanCreateOfficialStop'] != false ||
         summary['malformedNativePayloadCanEndTrip'] != false) {
       reasons.add('supervisor_can_create_trip_truth');

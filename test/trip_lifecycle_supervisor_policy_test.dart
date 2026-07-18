@@ -307,6 +307,8 @@ void main() {
         ).toSafeDashboardMap()..addAll({
           'supervisorCanDeleteLocalData': true,
           'supervisorCanConfirmOdometer': true,
+          'supervisorCanSetGlobalTruth': true,
+          'supervisorCanChangeOfficialMileage': true,
           'supervisorCanCreateOfficialStop': true,
           'malformedNativePayloadCanEndTrip': true,
           'remoteSupervisorCanOverrideLocalTrip': true,

@@ -54,6 +54,8 @@ class TripTrackingHeartbeatWatchdogDecision {
     'heartbeatGapCanCreateMileage': false,
     'heartbeatGapCanCreateOfficialStop': false,
     'heartbeatGapCanConfirmOdometer': false,
+    'heartbeatGapCanSetGlobalTruth': false,
+    'heartbeatGapCanChangeOfficialMileage': false,
     'heartbeatGapCanReplayPendingSample': false,
     'heartbeatGapRequiresLifecycleSupervisor': true,
     'heartbeatGapRequiresLocalCheckpoint': true,
@@ -110,6 +112,8 @@ class TripTrackingHeartbeatWatchdogSummaryValidation {
       'heartbeatGapCanCreateMileage',
       'heartbeatGapCanCreateOfficialStop',
       'heartbeatGapCanConfirmOdometer',
+      'heartbeatGapCanSetGlobalTruth',
+      'heartbeatGapCanChangeOfficialMileage',
       'heartbeatGapCanReplayPendingSample',
       'heartbeatGapRequiresLifecycleSupervisor',
       'heartbeatGapRequiresLocalCheckpoint',
@@ -134,6 +138,8 @@ class TripTrackingHeartbeatWatchdogSummaryValidation {
         summary['heartbeatGapCanCreateMileage'] != false ||
         summary['heartbeatGapCanCreateOfficialStop'] != false ||
         summary['heartbeatGapCanConfirmOdometer'] != false ||
+        summary['heartbeatGapCanSetGlobalTruth'] != false ||
+        summary['heartbeatGapCanChangeOfficialMileage'] != false ||
         summary['heartbeatGapCanReplayPendingSample'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['odometerIsGlobalTruth'] != true) {

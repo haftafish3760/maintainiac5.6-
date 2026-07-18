@@ -142,6 +142,8 @@ void main() {
     expect(safe['androidSleepCanDeleteCheckpoint'], isFalse);
     expect(safe['iosBackgroundPauseCanDeleteCheckpoint'], isFalse);
     expect(safe['heartbeatGapCanConfirmOdometer'], isFalse);
+    expect(safe['heartbeatGapCanSetGlobalTruth'], isFalse);
+    expect(safe['heartbeatGapCanChangeOfficialMileage'], isFalse);
     expect(safe['heartbeatGapCanCreateOfficialStop'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
