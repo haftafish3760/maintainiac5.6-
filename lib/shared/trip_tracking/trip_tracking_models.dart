@@ -326,7 +326,7 @@ class TripActivityObservation {
   final DateTime recordedAt;
 
   bool get isHighConfidenceWalking =>
-      activity == TripActivity.walking && confidence >= 70;
+      activity == TripActivity.walking && confidence >= 70 && confidence <= 100;
 
   bool get canSupportStopReview =>
       isHighConfidenceWalking && recordedAt.isAfter(_minimumTrustedSensorTime);
