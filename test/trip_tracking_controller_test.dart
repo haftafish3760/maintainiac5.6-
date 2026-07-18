@@ -2877,6 +2877,68 @@ void main() {
   );
 
   test(
+    'durable review backup failure is retryable without changing odometer truth',
+    () async {
+      var durableStorageAvailable = false;
+      final durableStore = MaintainiacDurableRecordStore.memory(
+        storageCheck: () async => AppStorageCheck(
+          availableBytes: durableStorageAvailable ? 4096 : 0,
+          operationBytes: 1,
+          requiredBytes: 2,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+      final durableBridge = TripTrackingDurableRecordBridge(durableStore);
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        durableRecordBridge: durableBridge,
+      );
+      await controller.start(
+        tripId: 'trip_durable_retry',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      await controller.ingest(sample(-80, 0));
+      await controller.ingest(sample(-79.985, 60));
+
+      final review = await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 2)),
+      );
+      expect(review, isNotNull);
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: 'trip_durable_retry',
+          confirmedEndingOdometer: 1002,
+          confirmedAt: start.add(const Duration(minutes: 3)),
+        ),
+        isTrue,
+      );
+
+      expect(odometer.confirmedReading, 1002);
+      expect(
+        store.reviewForTrip('trip_durable_retry')?.isOdometerConfirmed,
+        isTrue,
+      );
+      expect(durableBridge.reviewForTrip('trip_durable_retry'), isNull);
+      expect(controller.durableRecordError, contains('pending retry'));
+
+      durableStorageAvailable = true;
+      await controller.retryCloudBackup();
+
+      expect(odometer.confirmedReading, 1002);
+      expect(durableBridge.reviewForTrip('trip_durable_retry'), isNotNull);
+      expect(controller.durableRecordError, isNull);
+    },
+  );
+
+  test(
     'finish refuses inverted timelines without dropping the active trip',
     () async {
       final store = TripTrackingSessionStore.memory();
