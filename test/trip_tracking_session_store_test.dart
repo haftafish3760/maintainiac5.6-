@@ -835,6 +835,33 @@ void main() {
     expect(unsafe.cloudOrganizationId, isNull);
   });
 
+  test('review cloud sync errors redact tokens and coordinates', () {
+    final review = TripTrackingReviewRecord(
+      id: 'trip_sync_error_redaction',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+      cloudSyncError:
+          'Mapbox failed token=sk.secret at 35.12345,-80.98765 pk.public',
+    );
+
+    final restored = TripTrackingReviewRecord.fromMap(review.toMap());
+
+    expect(restored.cloudSyncError, contains('token=[redacted]'));
+    expect(restored.cloudSyncError, contains('[redacted_coordinates]'));
+    expect(restored.cloudSyncError, contains('[redacted_token]'));
+    expect(restored.cloudSyncError, isNot(contains('sk.secret')));
+    expect(restored.cloudSyncError, isNot(contains('pk.public')));
+    expect(restored.cloudSyncError, isNot(contains('35.12345')));
+  });
+
   test('unknown persisted cloud backup scope is not trusted', () {
     final review = TripTrackingReviewRecord(
       id: 'trip_unknown_scope',

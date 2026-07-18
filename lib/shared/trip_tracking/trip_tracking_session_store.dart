@@ -260,7 +260,7 @@ class TripTrackingReviewRecord {
       cloudOrganizationId: effectiveOrganizationId,
       cloudSyncError: clearCloudSyncError
           ? null
-          : _optionalSafeText(
+          : _optionalSafeCloudSyncError(
               cloudSyncError ?? this.cloudSyncError,
               maxLength: 240,
             ),
@@ -288,8 +288,11 @@ class TripTrackingReviewRecord {
     if (cloudBackupScope != null) 'cloudBackupScope': cloudBackupScope!.name,
     if (_optionalSafeCloudToken(cloudOrganizationId) != null)
       'cloudOrganizationId': _optionalSafeCloudToken(cloudOrganizationId),
-    if (_optionalSafeText(cloudSyncError, maxLength: 240) != null)
-      'cloudSyncError': _optionalSafeText(cloudSyncError, maxLength: 240),
+    if (_optionalSafeCloudSyncError(cloudSyncError, maxLength: 240) != null)
+      'cloudSyncError': _optionalSafeCloudSyncError(
+        cloudSyncError,
+        maxLength: 240,
+      ),
     if (cloudSyncedAt != null)
       'cloudSyncedAt': cloudSyncedAt!.toUtc().toIso8601String(),
     if (_optionalPersistedOdometerValue(confirmedEndingOdometer) != null)
@@ -373,7 +376,10 @@ class TripTrackingReviewRecord {
           cloudBackupScope == TripTrackingCloudBackupScope.organization
           ? _optionalSafeCloudToken(map['cloudOrganizationId'])
           : null,
-      cloudSyncError: _optionalSafeText(map['cloudSyncError'], maxLength: 240),
+      cloudSyncError: _optionalSafeCloudSyncError(
+        map['cloudSyncError'],
+        maxLength: 240,
+      ),
       cloudSyncedAt: cloudSyncedAt,
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
       hasValidTimeline:
@@ -475,6 +481,27 @@ String? _optionalSafeText(Object? value, {required int maxLength}) {
   final clean = '$value'.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   if (clean.isEmpty) return null;
   return clean.length > maxLength ? clean.substring(0, maxLength) : clean;
+}
+
+String? _optionalSafeCloudSyncError(Object? value, {required int maxLength}) {
+  final clean = _optionalSafeText(value, maxLength: maxLength * 2);
+  if (clean == null) return null;
+  final redacted = clean
+      .replaceAll(RegExp(r'\b[ps]k\.[A-Za-z0-9._-]+'), '[redacted_token]')
+      .replaceAllMapped(
+        RegExp(
+          r'\b(token|access[_ -]?token|secret)\s*[:=]\s*\S+',
+          caseSensitive: false,
+        ),
+        (match) => '${match.group(1)}=[redacted]',
+      )
+      .replaceAll(
+        RegExp(r'\b-?\d{1,3}\.\d{3,}\s*,\s*-?\d{1,3}\.\d{3,}\b'),
+        '[redacted_coordinates]',
+      );
+  return redacted.length > maxLength
+      ? redacted.substring(0, maxLength)
+      : redacted;
 }
 
 String? _optionalSafeCloudToken(Object? value) {
