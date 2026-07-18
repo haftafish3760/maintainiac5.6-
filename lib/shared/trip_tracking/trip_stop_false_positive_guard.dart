@@ -47,6 +47,9 @@ class TripStopFalsePositiveGuardDecision {
     'firestoreCanOverrideFalsePositiveGuard': false,
     'cloudFunctionCanOverrideFalsePositiveGuard': false,
     'activityRecognitionCanBypassUserReview': false,
+    'authenticationAloneAuthorizesStopReview': false,
+    'localTripLogRequiredForReview': true,
+    'ownershipValidationRequiredForReview': true,
     'odometerRemainsOfficialMileageTruth': true,
     'officialStopRequiresUserAction': true,
     'rawSamplesIncluded': false,
@@ -54,6 +57,81 @@ class TripStopFalsePositiveGuardDecision {
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripStopFalsePositiveGuardSummaryValidation {
+  const TripStopFalsePositiveGuardSummaryValidation._({
+    required this.isRenderable,
+    required this.canAllowReviewOpen,
+    required this.reasons,
+  });
+
+  factory TripStopFalsePositiveGuardSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeGuardStatus(summary['status']);
+    final reasonCode = summary['reasonCode'];
+
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_guard_status');
+    if (reasonCode is! String || _safeReason(reasonCode) != reasonCode) {
+      reasons.add('invalid_guard_reason');
+    }
+    if (summary['profile'] != null && summary['profile'] is! String) {
+      reasons.add('invalid_guard_profile');
+    }
+    if (summary['canAllowReviewOpen'] is! bool) {
+      reasons.add('review_open_not_bool');
+    }
+    if (summary['driverProfileBoundaryValidated'] != true) {
+      reasons.add('profile_boundary_missing');
+    }
+    for (final key in const [
+      'guardsLongTrafficLight',
+      'guardsVehicleOnlyDwell',
+      'guardsWalkingBeforeVehicleMovement',
+      'guardsRemoteStopAuthority',
+      'guardsSensitiveLocationPayloads',
+      'odometerRemainsOfficialMileageTruth',
+      'officialStopRequiresUserAction',
+      'localTripLogRequiredForReview',
+      'ownershipValidationRequiredForReview',
+    ]) {
+      if (summary[key] != true) reasons.add('${key}_not_true');
+    }
+    for (final key in const [
+      'mapsRequiredForFalsePositiveGuard',
+      'mapboxCanOverrideFalsePositiveGuard',
+      'firestoreCanOverrideFalsePositiveGuard',
+      'cloudFunctionCanOverrideFalsePositiveGuard',
+      'activityRecognitionCanBypassUserReview',
+      'authenticationAloneAuthorizesStopReview',
+      'rawSamplesIncluded',
+      'coordinatesIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] != false) reasons.add('${key}_not_false');
+    }
+    if (summary.values.any(_containsSensitivePayload)) {
+      reasons.add('guard_summary_contains_sensitive_payload');
+    }
+
+    return TripStopFalsePositiveGuardSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      canAllowReviewOpen: reasons.isEmpty
+          ? summary['canAllowReviewOpen'] as bool
+          : false,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final bool canAllowReviewOpen;
+  final List<String> reasons;
 }
 
 class TripStopFalsePositiveGuard {
@@ -147,6 +225,14 @@ bool _safeStatus(String value) {
     'trafficControlProtected',
     'unsafeEvidence',
   }.contains(value.trim());
+}
+
+TripStopFalsePositiveGuardStatus? _safeGuardStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripStopFalsePositiveGuardStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
 }
 
 bool _safeClassification(Map<String, Object?> value) {

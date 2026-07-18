@@ -28,6 +28,9 @@ void main() {
     expect(guard['status'], TripStopFalsePositiveGuardStatus.passed.name);
     expect(guard['canAllowReviewOpen'], isTrue);
     expect(guard['officialStopRequiresUserAction'], isTrue);
+    expect(guard['localTripLogRequiredForReview'], isTrue);
+    expect(guard['ownershipValidationRequiredForReview'], isTrue);
+    expect(guard['authenticationAloneAuthorizesStopReview'], isFalse);
     expect(guard['odometerRemainsOfficialMileageTruth'], isTrue);
   });
 
@@ -183,6 +186,106 @@ void main() {
     );
     expect(malformed.canAllowReviewOpen, isFalse);
   });
+
+  test('guard summary validation accepts safe review-only guard maps', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
+      observation: _observation(
+        observedAt: observedAt,
+        latestWalkingEvidenceAt: observedAt.subtract(
+          const Duration(seconds: 20),
+        ),
+      ),
+    );
+    final guard =
+        decision.toSafeDashboardMap()['falsePositiveGuard']
+            as Map<String, Object?>;
+
+    final validation = TripStopFalsePositiveGuardSummaryValidation.fromSummary(
+      guard,
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.canAllowReviewOpen, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('guard summary validation rejects remote and auth-only authority', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: _observation(observedAt: observedAt),
+    );
+    final guard =
+        decision.toSafeDashboardMap()['falsePositiveGuard']
+            as Map<String, Object?>;
+    final forged = {
+      ...guard,
+      'firestoreCanOverrideFalsePositiveGuard': true,
+      'mapboxCanOverrideFalsePositiveGuard': true,
+      'activityRecognitionCanBypassUserReview': true,
+      'authenticationAloneAuthorizesStopReview': true,
+      'localTripLogRequiredForReview': false,
+      'ownershipValidationRequiredForReview': false,
+    };
+
+    final validation = TripStopFalsePositiveGuardSummaryValidation.fromSummary(
+      forged,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.canAllowReviewOpen, isFalse);
+    expect(
+      validation.reasons,
+      contains('firestoreCanOverrideFalsePositiveGuard_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('mapboxCanOverrideFalsePositiveGuard_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('activityRecognitionCanBypassUserReview_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('authenticationAloneAuthorizesStopReview_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('localTripLogRequiredForReview_not_true'),
+    );
+    expect(
+      validation.reasons,
+      contains('ownershipValidationRequiredForReview_not_true'),
+    );
+  });
+
+  test(
+    'guard summary validation rejects token and precise coordinate leaks',
+    () {
+      final decision = TripStopDebouncePolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        observation: _observation(observedAt: observedAt),
+      );
+      final guard =
+          decision.toSafeDashboardMap()['falsePositiveGuard']
+              as Map<String, Object?>;
+      final forged = {
+        ...guard,
+        'debugCoordinates': '35.123456,-80.123456',
+        'debugToken': 'pk.redacted',
+      };
+
+      final validation =
+          TripStopFalsePositiveGuardSummaryValidation.fromSummary(forged);
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('guard_summary_contains_sensitive_payload'),
+      );
+    },
+  );
 }
 
 TripStopDebounceObservation _observation({
