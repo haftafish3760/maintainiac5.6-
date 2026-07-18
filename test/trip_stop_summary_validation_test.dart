@@ -52,6 +52,21 @@ void main() {
     );
   });
 
+  test('manual fallback policy must remain advisory and signal bounded', () {
+    final summary = safeDeliveryStopSummary()
+      ..addAll({
+        'signal': 'unsafeEvidence',
+        'shouldSurfaceManualStopFallback': true,
+      });
+    final validation = TripStopSummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('manual_stop_fallback_on_unsafe_signal'),
+    );
+  });
+
   test(
     'mapbox and route material cannot ride through stop summary boundary',
     () {

@@ -107,6 +107,36 @@ void main() {
     expect(readiness.canOpenStopReview, isFalse);
   });
 
+  test('vehicle-only stop candidate may surface manual fallback only', () {
+    final candidate = TripStopClassifier.classify(
+      profile: TripTrackingProfile.rideshareVehicle,
+      motionState: TripMotionState.stopCandidate,
+      needsWalkingReview: false,
+      excludedWalkingCount: 0,
+      rejectedDriftCount: 0,
+      rejectedUnsafeCount: 0,
+      acceptedDistanceCount: 5,
+    ).toSafeSummary();
+    final readiness = TripStopDetectionReadiness.fromSummary(
+      candidate,
+      activeTrip: true,
+      localSessionAvailable: true,
+      acceptedVehicleMovementObserved: true,
+    );
+    final safe = readiness.toSafeDashboardMap();
+
+    expect(
+      readiness.status,
+      TripStopDetectionReadinessStatus.waitForMoreEvidence,
+    );
+    expect(readiness.canOpenStopReview, isFalse);
+    expect(readiness.reasons, contains('manual_stop_fallback_available'));
+    expect(safe['dashboardMaySuggestStop'], isFalse);
+    expect(safe['dashboardMaySuggestManualFallback'], isTrue);
+    expect(safe['manualFallbackCanCreateOfficialStop'], isFalse);
+    expect(safe['manualFallbackRequiresUserAction'], isTrue);
+  });
+
   test('forged mapbox or firestore stop readiness is blocked', () {
     final forged = reviewOnlyStopSummary()
       ..addAll({

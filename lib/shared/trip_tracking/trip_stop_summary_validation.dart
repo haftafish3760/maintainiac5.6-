@@ -43,6 +43,16 @@ class TripStopSummaryValidation {
     if (summary['walkingEvidenceCanOnlySuggestReview'] != true) {
       reasons.add('walking_evidence_can_create_stop');
     }
+    if (summary['vehicleOnlyStopFallbackAvailable'] != true ||
+        summary['manualStopFallbackAvailable'] != true) {
+      reasons.add('manual_stop_fallback_policy_missing');
+    }
+    if (summary['shouldSurfaceManualStopFallback'] == true &&
+        signal != TripStopSignal.reviewOnlyStop &&
+        signal != TripStopSignal.stopCandidate &&
+        signal != TripStopSignal.likelyTrafficControl) {
+      reasons.add('manual_stop_fallback_on_unsafe_signal');
+    }
     if (summary['activityRecognitionCanCreateOfficialStop'] != false) {
       reasons.add('activity_recognition_can_create_stop');
     }

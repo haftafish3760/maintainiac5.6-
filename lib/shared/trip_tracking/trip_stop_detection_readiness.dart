@@ -70,11 +70,15 @@ class TripStopDetectionReadiness {
     }
 
     if (signal == TripStopSignal.stopCandidate) {
+      final reasons = <String>['stronger_stop_evidence_required'];
+      if (summary['shouldSurfaceManualStopFallback'] == true) {
+        reasons.add('manual_stop_fallback_available');
+      }
       return TripStopDetectionReadiness._(
         status: TripStopDetectionReadinessStatus.waitForMoreEvidence,
         actionToken: _safeReadinessAction(summary['actionToken']),
         reasonCode: validation.reasonCode ?? 'stop_review_waiting',
-        reasons: const ['stronger_stop_evidence_required'],
+        reasons: List.unmodifiable(reasons),
       );
     }
 
@@ -101,6 +105,11 @@ class TripStopDetectionReadiness {
     'reasonCode': reasonCode,
     'canOpenStopReview': canOpenStopReview,
     'dashboardMaySuggestStop': canOpenStopReview,
+    'dashboardMaySuggestManualFallback': reasons.contains(
+      'manual_stop_fallback_available',
+    ),
+    'manualFallbackCanCreateOfficialStop': false,
+    'manualFallbackRequiresUserAction': true,
     'officialStopCreated': false,
     'officialMileageSource': 'odometer',
     'requiresLocalTripLog': true,
