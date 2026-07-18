@@ -389,4 +389,50 @@ void main() {
     expect(validation.isRenderable, isFalse);
     expect(validation.reasons, contains('unsafe_native_cadence_update_claim'));
   });
+
+  test('summary rejects contradictory recommendation shape', () {
+    final empty = TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+      recommendation: null,
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+    final populated =
+        TripTrackingNativeSamplingPolicy.safeRecommendationSummary(
+          recommendation: const TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 5),
+            minimumDisplacementMeters: 5,
+          ),
+          adaptiveSamplingEnabled: true,
+          nativeTracking: true,
+          platformAvailable: true,
+          sessionAvailable: true,
+        );
+
+    final forgedEmpty =
+        TripTrackingNativeSamplingSummaryValidation.fromSummary({
+          ...empty,
+          'mode': TripSamplingMode.precision.name,
+          'intervalSeconds': 1,
+          'minimumDisplacementMeters': 1,
+        });
+    final forgedPopulated =
+        TripTrackingNativeSamplingSummaryValidation.fromSummary({
+          ...populated,
+          'mode': null,
+        });
+
+    expect(forgedEmpty.isRenderable, isFalse);
+    expect(forgedPopulated.isRenderable, isFalse);
+    expect(
+      forgedEmpty.reasons,
+      contains('native_sampling_recommendation_shape_mismatch'),
+    );
+    expect(
+      forgedPopulated.reasons,
+      contains('native_sampling_recommendation_shape_mismatch'),
+    );
+  });
 }

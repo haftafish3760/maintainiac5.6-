@@ -218,6 +218,18 @@ class TripTrackingNativeSamplingSummaryValidation {
             summary['sessionAvailable'] != true)) {
       reasons.add('unsafe_native_cadence_update_claim');
     }
+    if (hasRecommendation == false &&
+        (summary['mode'] != null ||
+            summary['intervalSeconds'] != null ||
+            summary['minimumDisplacementMeters'] != null)) {
+      reasons.add('native_sampling_recommendation_shape_mismatch');
+    }
+    if (hasRecommendation == true &&
+        (summary['mode'] == null ||
+            summary['intervalSeconds'] == null ||
+            summary['minimumDisplacementMeters'] == null)) {
+      reasons.add('native_sampling_recommendation_shape_mismatch');
+    }
     if (summary['validatedSampleRequired'] != true ||
         summary['safeDecisionRequired'] != true ||
         summary['localSessionRequired'] != true ||
