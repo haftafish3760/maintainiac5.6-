@@ -132,6 +132,13 @@ class TripStopDebounceSummaryValidation {
         summary['tokensIncluded'] != false) {
       reasons.add('debounce_contains_sensitive_route_material');
     }
+    reasons.addAll(
+      _validateDebounceStatusAuthority(
+        summary: summary,
+        status: status,
+        reasonCode: reasonCode,
+      ),
+    );
     if (summary.values.any(_looksSensitive)) {
       reasons.add('debounce_contains_sensitive_text');
     }
@@ -181,6 +188,56 @@ List<String> _validateEvidenceDigest(Map<String, Object?> digest) {
   }
   if (digest.values.any(_looksSensitive)) {
     reasons.add('evidence_digest_contains_sensitive_text');
+  }
+  return reasons;
+}
+
+List<String> _validateDebounceStatusAuthority({
+  required Map<String, Object?> summary,
+  required TripStopDebounceStatus? status,
+  required String? reasonCode,
+}) {
+  if (status == null || reasonCode == null) return const [];
+  final canOpenReview = summary['canOpenReview'];
+  final needsWalkingReview = summary['needsWalkingReview'];
+  final protectedTrafficControl = summary['protectedTrafficControl'];
+  final shouldContinueSampling = summary['shouldContinueSampling'];
+  if (canOpenReview is! bool ||
+      needsWalkingReview is! bool ||
+      protectedTrafficControl is! bool ||
+      shouldContinueSampling is! bool) {
+    return const ['invalid_debounce_authority_boolean'];
+  }
+  final reasons = <String>[];
+  if (canOpenReview &&
+      (status != TripStopDebounceStatus.readyForReview ||
+          reasonCode != 'walking_stop_debounce_ready' ||
+          !needsWalkingReview ||
+          protectedTrafficControl ||
+          shouldContinueSampling)) {
+    reasons.add('debounce_open_review_authority_mismatch');
+  }
+  if (status == TripStopDebounceStatus.trafficControlProtected &&
+      (!protectedTrafficControl ||
+          canOpenReview ||
+          !shouldContinueSampling ||
+          (reasonCode != 'traffic_control_debounce_protected' &&
+              reasonCode != 'vehicle_only_dwell_traffic_control_protected'))) {
+    reasons.add('traffic_control_debounce_authority_mismatch');
+  }
+  if (status == TripStopDebounceStatus.unsafeEvidence &&
+      (canOpenReview ||
+          !shouldContinueSampling ||
+          protectedTrafficControl ||
+          reasonCode == 'walking_stop_debounce_ready')) {
+    reasons.add('unsafe_debounce_authority_mismatch');
+  }
+  if (status == TripStopDebounceStatus.waitingForEvidence && canOpenReview) {
+    reasons.add('waiting_debounce_open_review_mismatch');
+  }
+  if (status == TripStopDebounceStatus.keepTracking &&
+      (canOpenReview || protectedTrafficControl || needsWalkingReview)) {
+    reasons.add('keep_tracking_debounce_authority_mismatch');
   }
   return reasons;
 }

@@ -179,6 +179,28 @@ void main() {
     );
   });
 
+  test('forged debounce review authority fails closed', () {
+    final validation = TripStopDebounceSummaryValidation.fromDashboardMap(
+      safeDebounceSummary()..addAll({
+        'status': TripStopDebounceStatus.trafficControlProtected.name,
+        'reasonCode': 'traffic_control_debounce_protected',
+        'canOpenReview': true,
+        'needsWalkingReview': true,
+        'protectedTrafficControl': false,
+        'shouldContinueSampling': false,
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'debounce_open_review_authority_mismatch',
+        'traffic_control_debounce_authority_mismatch',
+      ]),
+    );
+  });
+
   test(
     'tokens and precise coordinate strings cannot render in debounce cards',
     () {
