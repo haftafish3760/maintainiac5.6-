@@ -103,6 +103,60 @@ void main() {
   );
 
   test(
+    'controller ignores poor GPS days when refreshing calibration',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+
+      for (var day = 0; day < 7; day += 1) {
+        await store.saveReview(
+          _confirmedReview(
+            id: 'poor_signal_calibration_$day',
+            startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+            filteredGpsMiles: 110,
+            odometerMiles: 100,
+            diagnostics: day == 0
+                ? const TripTrackingDiagnostics(
+                    receivedSamples: 100,
+                    acceptedSamples: 50,
+                    dispositionCounts: {
+                      TripSampleDisposition.acceptedDistance: 50,
+                      TripSampleDisposition.rejectedAccuracy: 50,
+                    },
+                  )
+                : const TripTrackingDiagnostics(
+                    receivedSamples: 100,
+                    acceptedSamples: 90,
+                    dispositionCounts: {
+                      TripSampleDisposition.acceptedDistance: 90,
+                      TripSampleDisposition.rejectedAccuracy: 10,
+                    },
+                  ),
+          ),
+        );
+      }
+
+      controller.refreshGpsAssistanceCalibration(enabled: true);
+
+      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
+      expect(
+        controller.odometerCalibrationSignal().reasonCode,
+        'needs_more_reviewed_days',
+      );
+      expect(controller.odometerCalibrationSignal().eligibleSampleCount, 6);
+    },
+  );
+
+  test(
     'mid-trip calibration refresh waits for the next trip projection',
     () async {
       final store = TripTrackingSessionStore.memory();
@@ -185,6 +239,7 @@ TripTrackingReviewRecord _confirmedReview({
   int startingOdometer = 1000,
   required double filteredGpsMiles,
   required int odometerMiles,
+  TripTrackingDiagnostics diagnostics = const TripTrackingDiagnostics(),
 }) {
   return TripTrackingReviewRecord(
     id: id,
@@ -199,6 +254,7 @@ TripTrackingReviewRecord _confirmedReview({
     engineSnapshot: TripTrackingEngineSnapshot(
       totalAcceptedMeters: filteredGpsMiles * 1609.344,
       walkingReviewSuggested: false,
+      diagnostics: diagnostics,
     ),
   );
 }
