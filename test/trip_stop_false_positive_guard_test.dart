@@ -34,6 +34,12 @@ void main() {
     expect(guard['authenticationAloneAuthorizesStopReview'], isFalse);
     expect(guard['odometerIsGlobalTruth'], isTrue);
     expect(guard['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(guard['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(guard['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(guard['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(guard['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(guard['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(guard['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(guard['stopEvidenceCanCreateCalibration'], isFalse);
     expect(guard['stopEvidenceCanApplyCalibration'], isFalse);
     expect(guard['calibrationRequiresTrustedGpsWindow'], isTrue);

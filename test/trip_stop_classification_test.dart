@@ -298,6 +298,12 @@ void main() {
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['officialMileageSource'], 'odometer');
     expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(summary['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(summary['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['canReplaceOdometer'], isFalse);
     expect(summary['canEndTripAutomatically'], isFalse);

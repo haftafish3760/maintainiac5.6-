@@ -24,6 +24,18 @@ void main() {
     expect(validation.reasonCode, 'delivery_stop_walk_review');
     expect(validation.reasons, isEmpty);
     expect(safeDeliveryStopSummary()['odometerIsGlobalTruth'], isTrue);
+    expect(
+      safeDeliveryStopSummary()['physicalOdometerRequiredForOfficialMileage'],
+      isTrue,
+    );
+    expect(
+      safeDeliveryStopSummary()['confirmedOdometerOverridesExternalMileage'],
+      isTrue,
+    );
+    expect(
+      safeDeliveryStopSummary()['externalMileageCannotBecomeGlobalTruth'],
+      isTrue,
+    );
   });
 
   test('remote stop payload cannot create official trip facts', () {
