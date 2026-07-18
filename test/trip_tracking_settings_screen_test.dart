@@ -45,6 +45,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Use motion activity for walking review'), findsOneWidget);
+    expect(find.text('Show optional maps'), findsOneWidget);
+    expect(find.text('Save optional map route history'), findsOneWidget);
     expect(find.text('Profile-specific stop detection'), findsOneWidget);
     expect(find.text('Odometer anomaly alerts'), findsOneWidget);
     expect(find.text('Protect GPS below 20% battery'), findsOneWidget);
@@ -55,6 +57,21 @@ void main() {
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
+    expect(settings.settings.mapPreviewEnabled, isFalse);
+    expect(settings.settings.mapRouteHistorySavingEnabled, isFalse);
+    await tester.ensureVisible(find.text('Show optional maps'));
+    await tester.pump();
+    final disabledMapRow = find
+        .ancestor(
+          of: find.text('Show optional maps'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: disabledMapRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.mapPreviewEnabled, isFalse);
     await tester.ensureVisible(find.text('Odometer anomaly alerts'));
     await tester.pump();
     final disabledAnomalyRow = find
@@ -114,6 +131,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.settings.activityRecognitionEnabled, isTrue);
     expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
+    await tester.ensureVisible(find.text('Show optional maps'));
+    await tester.pump();
+    final enabledMapRow = find
+        .ancestor(
+          of: find.text('Show optional maps'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: enabledMapRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.mapPreviewEnabled, isTrue);
+    expect(settings.settings.mapRouteHistorySavingEnabled, isFalse);
+    await tester.ensureVisible(find.text('Save optional map route history'));
+    await tester.pump();
+    final routeHistoryRow = find
+        .ancestor(
+          of: find.text('Save optional map route history'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: routeHistoryRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.mapRouteHistorySavingEnabled, isTrue);
+    expect(settings.settings.mapRouteHistoryDailyBudgetMb, 1);
+    expect(settings.settings.mapRouteHistorySampleIntervalSeconds, 30);
+    expect(find.text('Map route storage limits'), findsOneWidget);
     await tester.ensureVisible(find.text('Odometer anomaly alerts'));
     await tester.pump();
     final enabledAnomalyRow = find

@@ -264,6 +264,44 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 onChanged(settings.copyWith(gpsAssistedTrackingEnabled: value)),
           ),
           _switch(
+            title: 'Show optional maps',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'Separate opt-in. GPS-assisted trip tracking still works without maps, route drawing, or map storage.'
+                : 'Enable GPS-assisted tracking first. Maps are optional and never required for mileage tracking.',
+            value: settings.mapPreviewEnabled,
+            onChanged: settings.gpsAssistedTrackingEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(
+                      mapPreviewEnabled: value,
+                      mapRouteHistorySavingEnabled: value
+                          ? settings.mapRouteHistorySavingEnabled
+                          : false,
+                    ),
+                  )
+                : null,
+          ),
+          _switch(
+            title: 'Save optional map route history',
+            detail: settings.mapPreviewEnabled
+                ? 'Separate opt-in. Saves a bounded route preview for the day; odometer readings remain the official mileage truth.'
+                : 'Turn on optional maps first. Route history is never enabled by GPS alone.',
+            value: settings.mapRouteHistorySavingEnabled,
+            onChanged: settings.mapPreviewEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(
+                      mapRouteHistorySavingEnabled: value,
+                      mapRouteHistoryDailyBudgetMb: value
+                          ? _defaultMapBudgetMb(settings)
+                          : settings.mapRouteHistoryDailyBudgetMb,
+                      mapRouteHistorySampleIntervalSeconds: value
+                          ? _defaultMapSampleIntervalSeconds(settings)
+                          : settings.mapRouteHistorySampleIntervalSeconds,
+                    ),
+                  )
+                : null,
+          ),
+          if (settings.mapPreviewEnabled) _mapRouteHistoryControls(settings),
+          _switch(
             title: 'Continue during an active background trip',
             detail: settings.gpsAssistedTrackingEnabled
                 ? 'Off by default. Without it, GPS stops when the app is backgrounded. Requests the extra location permission only when you start a trip with this enabled.'
@@ -493,7 +531,106 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
       ),
     ),
   );
+
+  Widget _mapRouteHistoryControls(TripTrackingSettings settings) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Container(
+      padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+      decoration: _rowDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SettingText(
+            title: 'Map route storage limits',
+            detail:
+                'Free users choose how much optional route preview data to keep. Raw route geometry is not mirrored in dashboard summaries.',
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _smallNumberField(
+                  key: const Key('mapRouteHistoryDailyBudgetMb'),
+                  label: 'Daily MB',
+                  initialValue: _formatMapBudget(_defaultMapBudgetMb(settings)),
+                  onSubmitted: (value) {
+                    final mb = double.tryParse(value);
+                    if (mb != null) {
+                      onChanged(
+                        settings.copyWith(mapRouteHistoryDailyBudgetMb: mb),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _smallNumberField(
+                  key: const Key('mapRouteHistorySampleIntervalSeconds'),
+                  label: 'Sample seconds',
+                  initialValue: '${_defaultMapSampleIntervalSeconds(settings)}',
+                  onSubmitted: (value) {
+                    final seconds = int.tryParse(value);
+                    if (seconds != null) {
+                      onChanged(
+                        settings.copyWith(
+                          mapRouteHistorySampleIntervalSeconds: seconds,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Widget _smallNumberField({
+    required Key key,
+    required String label,
+    required String initialValue,
+    required ValueChanged<String> onSubmitted,
+  }) => TextFormField(
+    key: key,
+    initialValue: initialValue,
+    keyboardType: TextInputType.number,
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(
+        color: Color(0xFFCAD2D5),
+        fontWeight: FontWeight.w800,
+      ),
+      isDense: true,
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFF445158)),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFFE2E8EA)),
+      ),
+    ),
+    style: const TextStyle(
+      color: Color(0xFFE2E8EA),
+      fontWeight: FontWeight.w800,
+    ),
+    onFieldSubmitted: onSubmitted,
+  );
 }
+
+double _defaultMapBudgetMb(TripTrackingSettings settings) =>
+    settings.mapRouteHistoryDailyBudgetMb > 0
+    ? settings.mapRouteHistoryDailyBudgetMb
+    : 1;
+
+int _defaultMapSampleIntervalSeconds(TripTrackingSettings settings) =>
+    settings.mapRouteHistorySampleIntervalSeconds < 15
+    ? 30
+    : settings.mapRouteHistorySampleIntervalSeconds;
+
+String _formatMapBudget(double value) =>
+    value == value.roundToDouble() ? value.toStringAsFixed(0) : '$value';
 
 const _rowDecoration = BoxDecoration(
   color: Color(0xFF202A2E),
