@@ -379,6 +379,72 @@ void main() {
         usage.toSafeSummary(now)['blockedAttemptConsumesFreeSync'],
         isFalse,
       );
+      expect(
+        usage.toSafeSummary(now)['freeSyncLimitMatchesHostedPolicy'],
+        isTrue,
+      );
+      expect(
+        usage.toSafeSummary(now)['remoteQuotaResetCanOverrideLocalWindow'],
+        isFalse,
+      );
+      expect(
+        usage.toSafeSummary(now)['cloudFunctionCanGrantExtraFreeSyncs'],
+        isFalse,
+      );
+      expect(
+        usage.toSafeSummary(now)['firestoreCounterCanConsumeFreeSync'],
+        isFalse,
+      );
     },
   );
+
+  test('free sync usage summary validates as local-ledger only', () async {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'trip-dashboard-validate-device',
+    );
+    final now = DateTime.utc(2026, 7, 17, 12);
+    await usage.recordAuthorizedAttempt(now);
+
+    final validation = TripTrackingFreeSyncUsageSummaryValidation.fromSummary(
+      usage.toSafeSummary(now),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('free sync usage summary rejects remote quota authority drift', () {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'trip-dashboard-drift-device',
+    );
+    final validation = TripTrackingFreeSyncUsageSummaryValidation.fromSummary(
+      usage.toSafeSummary(DateTime.utc(2026, 7, 17, 12))..addAll({
+        'freeSyncLimitPerWindow': 99,
+        'freeSyncLimitMatchesHostedPolicy': false,
+        'remoteCountersCanOverrideLocalUsage': true,
+        'remoteQuotaResetCanOverrideLocalWindow': true,
+        'cloudFunctionCanGrantExtraFreeSyncs': true,
+        'firestoreCounterCanConsumeFreeSync': true,
+        'blockedAttemptConsumesFreeSync': true,
+        'failedPreflightConsumesFreeSync': true,
+        'quotaScopeIncludesDeviceId': false,
+        'hiveRemainsSourceOfTruth': false,
+        'tokensIncluded': true,
+        'debug': 'sk.secret 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('free_sync_limit_contract_mismatch'));
+    expect(validation.reasons, contains('remote_quota_authority_claimed'));
+    expect(validation.reasons, contains('reservation_boundary_missing'));
+    expect(validation.reasons, contains('quota_scope_boundary_missing'));
+    expect(validation.reasons, contains('source_of_truth_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_quota_material'),
+    );
+  });
 }

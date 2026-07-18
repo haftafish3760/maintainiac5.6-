@@ -259,6 +259,11 @@ void main() {
     expect(summary['mirrorPayloadRequiresLocalPersistence'], isTrue);
     expect(summary['mirrorPayloadExcludesRawRouteHistory'], isTrue);
     expect(summary['blockedAttemptConsumesFreeSync'], isFalse);
+    expect(summary['remoteQuotaCountersCanOverrideLocalLedger'], isFalse);
+    expect(summary['cloudFunctionCanGrantExtraFreeSyncs'], isFalse);
+    expect(summary['firestoreCounterCanConsumeFreeSync'], isFalse);
+    expect(summary['quotaReservationMustPrecedeNetworkUpload'], isTrue);
+    expect(summary['quotaScopeMustIncludeAccountDeviceAndModule'], isTrue);
     expect(summary['tokensIncluded'], isFalse);
     expect(summary['preciseLocationIncluded'], isFalse);
     expect(summary['rawTripRecordsIncluded'], isFalse);

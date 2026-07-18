@@ -276,6 +276,12 @@ class TripTrackingSyncAttemptDecision {
       'mirrorPayloadRequiresLocalPersistence': true,
       'mirrorPayloadExcludesRawRouteHistory': true,
       'blockedAttemptConsumesFreeSync': false,
+      'remoteQuotaCountersCanOverrideLocalLedger': false,
+      'cloudFunctionCanGrantExtraFreeSyncs': false,
+      'firestoreCounterCanConsumeFreeSync': false,
+      'quotaReservationMustPrecedeNetworkUpload':
+          mustReserveFreeAttemptBeforeUpload,
+      'quotaScopeMustIncludeAccountDeviceAndModule': true,
       'tokensIncluded': false,
       'preciseLocationIncluded': false,
       'rawTripRecordsIncluded': false,

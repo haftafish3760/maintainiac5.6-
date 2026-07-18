@@ -1,4 +1,5 @@
 import '../backup/cloud_backup_sync_attempt_store.dart';
+import '../firebase/hosted_usage_limits.dart';
 import 'trip_tracking_settings_store.dart';
 import 'trip_tracking_sync_policy.dart';
 
@@ -123,6 +124,16 @@ class TripTrackingFreeSyncUsage {
       'reservationSerializedBeforeUpload': true,
       'blockedAttemptConsumesFreeSync': false,
       'freeSyncQuotaAppliesToTripBackups': true,
+      'freeSyncLimitMatchesHostedPolicy':
+          HostedUsageLimits.freeUserSyncsPer24HourWindow == 6,
+      'remoteQuotaResetCanOverrideLocalWindow': false,
+      'cloudFunctionCanGrantExtraFreeSyncs': false,
+      'firestoreCounterCanConsumeFreeSync': false,
+      'failedNetworkUploadConsumesFreeSyncAfterReservation': true,
+      'failedPreflightConsumesFreeSync': false,
+      'quotaScopeIncludesDeviceId': true,
+      'quotaScopeIncludesAccountUid': true,
+      'quotaScopeIncludesModuleToken': true,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'tokensIncluded': false,
@@ -136,6 +147,61 @@ class TripTrackingFreeSyncUsage {
     _reservationTail = result.then<void>((_) {}, onError: (_) {});
     return result;
   }
+}
+
+class TripTrackingFreeSyncUsageSummaryValidation {
+  const TripTrackingFreeSyncUsageSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingFreeSyncUsageSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (summary['rollingWindowHours'] != 24 ||
+        summary['freeSyncLimitPerWindow'] != 6 ||
+        summary['freeSyncLimitMatchesHostedPolicy'] != true) {
+      reasons.add('free_sync_limit_contract_mismatch');
+    }
+    if (summary['localAttemptLedgerIsCanonical'] != true ||
+        summary['remoteCountersCanOverrideLocalUsage'] != false ||
+        summary['remoteQuotaResetCanOverrideLocalWindow'] != false ||
+        summary['cloudFunctionCanGrantExtraFreeSyncs'] != false ||
+        summary['firestoreCounterCanConsumeFreeSync'] != false) {
+      reasons.add('remote_quota_authority_claimed');
+    }
+    if (summary['uploadMustReserveBeforeNetwork'] != true ||
+        summary['reservationSerializedBeforeUpload'] != true ||
+        summary['blockedAttemptConsumesFreeSync'] != false ||
+        summary['failedPreflightConsumesFreeSync'] != false) {
+      reasons.add('reservation_boundary_missing');
+    }
+    if (summary['quotaScopeIncludesDeviceId'] != true ||
+        summary['quotaScopeIncludesAccountUid'] != true ||
+        summary['quotaScopeIncludesModuleToken'] != true ||
+        summary['accountScopeMustBeDeviceLocal'] != true) {
+      reasons.add('quota_scope_boundary_missing');
+    }
+    if (summary['hiveRemainsSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true) {
+      reasons.add('source_of_truth_boundary_missing');
+    }
+    if (summary['tokensIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['rawTripPayloadIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_quota_material');
+    }
+    return TripTrackingFreeSyncUsageSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 String _safeScopeForSummary(String value) {
@@ -169,4 +235,12 @@ bool _looksLikeCredential(String value) {
       lower.contains('secret') ||
       lower.startsWith('pk.') ||
       lower.startsWith('sk.');
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
