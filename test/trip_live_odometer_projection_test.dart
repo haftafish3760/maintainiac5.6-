@@ -19,6 +19,10 @@ void main() {
       isTrue,
     );
     expect(
+      projection.toSafeDashboardMap()['projectionRejectsImpossibleTripMileage'],
+      isTrue,
+    );
+    expect(
       projection.toSafeDashboardMap()['liveUiMustRefreshOnProjectionChange'],
       isTrue,
     );
@@ -176,6 +180,32 @@ void main() {
     expect(projection.toSafeDashboardMap()['rawGpsIncluded'], isFalse);
   });
 
+  test('impossible active-trip mileage jump cannot render live projection', () {
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: 1000,
+      maxProjectedTripMiles: 300,
+    );
+
+    expect(projection.updateAcceptedMeters(250 * metersPerMile), 1250);
+    expect(projection.lastUpdateExceededMax, isFalse);
+    expect(projection.updateAcceptedMeters(301 * metersPerMile), 1250);
+    expect(projection.lastUpdateExceededMax, isTrue);
+    expect(
+      projection.toSafeDashboardMap()['maxProjectedTripMilesBucket'],
+      'up_to_500_miles',
+    );
+    expect(
+      projection.toSafeDashboardMap()['projectionRejectsImpossibleTripMileage'],
+      isTrue,
+    );
+    expect(
+      TripLiveOdometerDashboardPayloadValidation.fromPayload(
+        projection.toSafeDashboardMap(),
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
   test('calibration assistance is clamped and cannot reverse projection', () {
     final projection = TripLiveOdometerProjection(startingOdometer: 1000);
 
@@ -267,6 +297,7 @@ void main() {
           'remoteDisplayCanOverrideLocalTrip': true,
           'importedDisplayCanOverrideLocalTrip': true,
           'dashboardCacheCanOverrideLocalTrip': true,
+          'projectionRejectsImpossibleTripMileage': false,
           'mapboxCanOverrideLiveProjection': true,
           'mapboxCanIncreaseLiveMileage': true,
           'liveProjectionCanSetGlobalTruth': true,

@@ -6,7 +6,11 @@ class TripLiveOdometerProjection {
   TripLiveOdometerProjection({
     required this.startingOdometer,
     int maxSupportedReading = 9999999,
+    double maxProjectedTripMiles = 1500,
   }) : maxSupportedReading = _safeMaxSupportedReading(maxSupportedReading),
+       maxProjectedTripMiles = _safeMaxProjectedTripMiles(
+         maxProjectedTripMiles,
+       ),
        _lastProjectedReading = _safeInitialProjection(
          startingOdometer: startingOdometer,
          maxSupportedReading: maxSupportedReading,
@@ -14,6 +18,7 @@ class TripLiveOdometerProjection {
 
   final int startingOdometer;
   final int maxSupportedReading;
+  final double maxProjectedTripMiles;
   int _lastProjectedReading;
   var _lastUpdateExceededMax = false;
 
@@ -25,6 +30,7 @@ class TripLiveOdometerProjection {
     'projectedReading': projectedReading,
     'startingOdometer': _safeStartingOdometer(startingOdometer),
     'maxSupportedReading': maxSupportedReading,
+    'maxProjectedTripMilesBucket': _tripMilesBucket(maxProjectedTripMiles),
     'lastUpdateExceededMax': lastUpdateExceededMax,
     'projectionExceededSupportedRange': lastUpdateExceededMax,
     'projectionIsMonotonic': true,
@@ -44,6 +50,7 @@ class TripLiveOdometerProjection {
     'liveProjectionCanConfirmOfficialMileage': false,
     'displayOnlyMileageSource': 'gps_assisted_projection',
     'externalDistanceValidatedBeforeProjection': true,
+    'projectionRejectsImpossibleTripMileage': true,
     'projectionTrustedAfterValidationOnly': true,
     'remoteProjectionRequiresMatchingTripId': true,
     'matchingActiveTripRequired': true,
@@ -110,6 +117,7 @@ class TripLiveOdometerProjection {
     );
     final acceptedMiles = (acceptedMeters / metersPerMile) * multiplier;
     if (!acceptedMiles.isFinite ||
+        acceptedMiles > maxProjectedTripMiles ||
         acceptedMiles > maxSupportedReading - safeStart) {
       _lastUpdateExceededMax = acceptedMiles.isFinite;
       return _lastProjectedReading;
@@ -185,7 +193,8 @@ class TripLiveOdometerDashboardPayloadValidation {
       reasons.add('invalid_display_only_mileage_source');
     }
     if (payload['externalDistanceValidatedBeforeProjection'] != true ||
-        payload['projectionTrustedAfterValidationOnly'] != true) {
+        payload['projectionTrustedAfterValidationOnly'] != true ||
+        payload['projectionRejectsImpossibleTripMileage'] != true) {
       reasons.add('external_distance_validation_contract_missing');
     }
     if (payload['confirmedOdometerRemainsCanonical'] != true ||
@@ -293,6 +302,18 @@ class TripLiveOdometerDashboardPayloadValidation {
 int _safeStartingOdometer(int value) => value < 0 ? 0 : value;
 
 int _safeMaxSupportedReading(int value) => value < 0 ? 0 : value;
+
+double _safeMaxProjectedTripMiles(double value) {
+  if (!value.isFinite || value <= 0) return 1500;
+  return value.clamp(100, 5000).toDouble();
+}
+
+String _tripMilesBucket(double miles) {
+  if (!miles.isFinite || miles <= 0) return 'default';
+  if (miles <= 500) return 'up_to_500_miles';
+  if (miles <= 1500) return 'up_to_1500_miles';
+  return 'over_1500_miles';
+}
 
 double _safeCalibrationMultiplier(double value) {
   if (!value.isFinite || value <= 0) return 1;
