@@ -260,8 +260,10 @@ service cloud.firestore {
         isAllowedTripMotionState(request.resource.data.motionState) &&
         request.resource.data.receivedSampleCount is int &&
         request.resource.data.receivedSampleCount >= 0 &&
+        request.resource.data.receivedSampleCount <= 999999 &&
         request.resource.data.acceptedSampleCount is int &&
         request.resource.data.acceptedSampleCount >= 0 &&
+        request.resource.data.acceptedSampleCount <= 999999 &&
         request.resource.data.acceptedSampleCount <=
           request.resource.data.receivedSampleCount;
     }

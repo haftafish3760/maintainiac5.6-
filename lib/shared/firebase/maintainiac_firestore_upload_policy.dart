@@ -799,8 +799,8 @@ class MaintainiacFirestoreUploadPolicy {
         _isNonNegativeFiniteNumber(acceptedMiles) &&
         draft.data['walkingReviewSuggested'] is bool &&
         _isAllowedString(draft.data['motionState'], _allowedTripMotionStates) &&
-        _isNonNegativeInt(receivedSampleCount) &&
-        _isNonNegativeInt(acceptedSampleCount) &&
+        _isBoundedTripSampleCount(receivedSampleCount) &&
+        _isBoundedTripSampleCount(acceptedSampleCount) &&
         (acceptedSampleCount as int) <= (receivedSampleCount as int);
     if (!valid) {
       throw ArgumentError.value(
@@ -931,6 +931,9 @@ class MaintainiacFirestoreUploadPolicy {
   }
 
   static bool _isNonNegativeInt(Object? value) => value is int && value >= 0;
+
+  static bool _isBoundedTripSampleCount(Object? value) =>
+      value is int && value >= 0 && value <= 999999;
 
   static bool _isNonNegativeFiniteNumber(Object? value) =>
       value is num && value.isFinite && value >= 0;

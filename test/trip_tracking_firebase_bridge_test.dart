@@ -521,6 +521,8 @@ void main() {
       expect(valueCheck, contains('odometerConfirmedAt >='));
       expect(valueCheck, contains('acceptedMeters >= 0'));
       expect(valueCheck, contains('acceptedSampleCount <='));
+      expect(valueCheck, contains('receivedSampleCount <= 999999'));
+      expect(valueCheck, contains('acceptedSampleCount <= 999999'));
       for (final forbiddenRouteField in const [
         'mapboxRoute',
         'mapboxGeometry',
@@ -671,6 +673,12 @@ void main() {
       },
       {...doc.data, 'finishedAt': 'not-a-date'},
       {...doc.data, 'acceptedSampleCount': 999},
+      {...doc.data, 'receivedSampleCount': 1000000},
+      {
+        ...doc.data,
+        'receivedSampleCount': 1000000,
+        'acceptedSampleCount': 1000000,
+      },
       {...doc.data, 'vehicleId': ''},
       {...doc.data, 'createdAt': 'not-a-date'},
       {...doc.data, 'updatedAt': 'not-a-date'},
