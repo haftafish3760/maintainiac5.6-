@@ -194,6 +194,10 @@ void main() {
       expect(summary['sensorAvailabilityRequiresRuntimePermission'], isTrue);
       expect(summary['capabilityReadDoesNotStartTracking'], isTrue);
       expect(summary['capabilityReadDoesNotGrantAuthorization'], isTrue);
+      expect(summary['capabilityReadDoesNotGrantPlatformPermission'], isTrue);
+      expect(summary['capabilityReadDoesNotGrantEmployerVisibility'], isTrue);
+      expect(summary['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
+      expect(summary['deviceModelCanBeUsedAsSensorProof'], isFalse);
       expect(summary['lowBatteryOverrideRequiresUserChoice'], isA<bool>());
       expect(summary['rawNativePayloadIncluded'], isFalse);
       expect(summary['rawSensorPayloadIncluded'], isFalse);
@@ -228,5 +232,85 @@ void main() {
     expect(withBattery['lowBatteryWarningCanBeRestoredInSettings'], isTrue);
     expect(withoutBattery['batteryBelowTwentyDefaultsToGpsPause'], isFalse);
     expect(withoutBattery['lowBatteryOverrideRequiresUserChoice'], isFalse);
+  });
+
+  test('safe capability guidance summary validates as renderable', () {
+    final validation =
+        TripTrackingCapabilityGuidanceSummaryValidation.fromSummary(
+          TripTrackingCapabilityGuidance.fromCapabilities(
+            capabilities: const TripTrackingPlatformCapabilities(
+              locationAvailable: true,
+              backgroundTrackingAvailable: true,
+              activityRecognitionAvailable: true,
+              batteryStateAvailable: true,
+              lowPowerModeAvailable: true,
+            ),
+            settings: const TripTrackingSettings(
+              gpsAssistedTrackingEnabled: true,
+              activityRecognitionEnabled: true,
+              lowBatteryGpsProtectionEnabled: true,
+            ),
+          ).toSafeDashboardMap(),
+        );
+
+    expect(validation.isRenderable, isTrue);
+    expect(
+      validation.readiness,
+      TripTrackingCapabilityReadiness.fullSafetyAssist,
+    );
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('capability summary rejects tracking enable and sensitive claims', () {
+    final validation =
+        TripTrackingCapabilityGuidanceSummaryValidation.fromSummary(
+          TripTrackingCapabilityGuidance.fromCapabilities(
+            capabilities: const TripTrackingPlatformCapabilities(
+              locationAvailable: true,
+              backgroundTrackingAvailable: true,
+              activityRecognitionAvailable: true,
+              batteryStateAvailable: true,
+            ),
+            settings: const TripTrackingSettings(
+              gpsAssistedTrackingEnabled: true,
+            ),
+          ).toSafeDashboardMap()..addAll({
+            'gpsAssistRequiresOptIn': false,
+            'backgroundTrackingRequiresOptIn': false,
+            'activityRecognitionRequiresOptIn': false,
+            'batteryGuardRequiresOptIn': false,
+            'sensorAvailabilityRequiresRuntimePermission': false,
+            'capabilityReadDoesNotGrantPlatformPermission': false,
+            'capabilityReadDoesNotStartTracking': false,
+            'capabilityReadDoesNotGrantAuthorization': false,
+            'capabilityReadDoesNotGrantEmployerVisibility': false,
+            'remoteCapabilityCanEnableSensorsWithoutOptIn': true,
+            'deviceModelCanBeUsedAsSensorProof': true,
+            'gpsTrackingCanRunWithoutMaps': false,
+            'mapsRequiredForTracking': true,
+            'odometerRemainsCanonical': false,
+            'nativeCapabilitiesAreAdvisory': false,
+            'deviceCapabilityCanReduceAccuracy': false,
+            'rawNativePayloadIncluded': true,
+            'rawSensorPayloadIncluded': true,
+            'preciseLocationIncluded': true,
+            'tokensIncluded': true,
+            'safeStatus': 'token=pk.public lat=35.123456',
+          }),
+        );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('capability_permission_boundary_missing'),
+    );
+    expect(validation.reasons, contains('capability_can_enable_tracking'));
+    expect(validation.reasons, contains('map_tracking_boundary_missing'));
+    expect(validation.reasons, contains('capability_truth_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_capability_material'),
+    );
+    expect(validation.reasons, contains('invalid_capability_display_text'));
   });
 }

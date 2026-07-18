@@ -155,11 +155,89 @@ void main() {
     expect(safe['firebaseCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['mapboxCanEnableTrackingWithoutConsent'], isFalse);
     expect(safe['employerCanEnableTrackingWithoutEmployeeConsent'], isFalse);
+    expect(safe['deviceCapabilityCanEnableTrackingWithoutConsent'], isFalse);
+    expect(safe['backgroundPermissionCanBeAssumedFromForeground'], isFalse);
+    expect(safe['activityPermissionCanBeAssumedFromLocation'], isFalse);
+    expect(safe['sensorConsentCanBypassPlatformPermission'], isFalse);
     expect(safe['gpsCanReplaceOdometer'], isFalse);
     expect(safe['mapboxCanReplaceOdometer'], isFalse);
     expect(safe['deviceModelIncluded'], isFalse);
     expect(safe['rawSensorPayloadIncluded'], isFalse);
     expect(safe['preciseLocationIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
+  });
+
+  test('safe sensor consent summary validates as renderable', () {
+    final validation = TripTrackingSensorConsentSummaryValidation.fromSummary(
+      TripTrackingSensorConsentBoundary.evaluate(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+        ),
+        devicePolicy: capablePolicy,
+        platformLocationPermissionGranted: true,
+        platformActivityPermissionGranted: true,
+        platformBackgroundPermissionGranted: false,
+      ).toSafeDashboardMap(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(
+      validation.status,
+      TripTrackingSensorConsentStatus.motionAssistAllowed,
+    );
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('sensor consent summary rejects remote enable and truth claims', () {
+    final validation = TripTrackingSensorConsentSummaryValidation.fromSummary(
+      TripTrackingSensorConsentBoundary.evaluate(
+        settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+        devicePolicy: capablePolicy,
+        platformLocationPermissionGranted: true,
+        platformActivityPermissionGranted: true,
+        platformBackgroundPermissionGranted: true,
+      ).toSafeDashboardMap()..addAll({
+        'sensorConsentCanBypassPlatformPermission': true,
+        'backgroundPermissionCanBeAssumedFromForeground': true,
+        'activityPermissionCanBeAssumedFromLocation': true,
+        'remoteCapabilityCanEnableSensorsWithoutOptIn': true,
+        'firebaseCanEnableTrackingWithoutConsent': true,
+        'mapboxCanEnableTrackingWithoutConsent': true,
+        'deviceCapabilityCanEnableTrackingWithoutConsent': true,
+        'employerCanEnableTrackingWithoutEmployeeConsent': true,
+        'sensorConsentCanBeRevokedWithoutDeletingTripLog': false,
+        'localTripLogProtected': false,
+        'activityRecognitionCanCreateOfficialStop': true,
+        'activityRecognitionCanOnlySuggestReview': false,
+        'gpsCanReplaceOdometer': true,
+        'mapboxCanReplaceOdometer': true,
+        'deviceModelIncluded': true,
+        'rawSensorPayloadIncluded': true,
+        'preciseLocationIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'sk.secret 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('platform_permission_boundary_missing'),
+    );
+    expect(
+      validation.reasons,
+      contains('remote_or_employer_can_enable_sensors'),
+    );
+    expect(
+      validation.reasons,
+      contains('consent_revocation_can_harm_trip_log'),
+    );
+    expect(validation.reasons, contains('sensor_can_create_trip_truth'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_sensor_material'),
+    );
+    expect(validation.reasons, contains('summary_contains_sensitive_text'));
   });
 }

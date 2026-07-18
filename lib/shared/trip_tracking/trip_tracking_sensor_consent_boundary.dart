@@ -101,6 +101,10 @@ class TripTrackingSensorConsentBoundary {
     'firebaseCanEnableTrackingWithoutConsent': false,
     'mapboxCanEnableTrackingWithoutConsent': false,
     'employerCanEnableTrackingWithoutEmployeeConsent': false,
+    'deviceCapabilityCanEnableTrackingWithoutConsent': false,
+    'backgroundPermissionCanBeAssumedFromForeground': false,
+    'activityPermissionCanBeAssumedFromLocation': false,
+    'sensorConsentCanBypassPlatformPermission': false,
     'activityRecognitionCanCreateOfficialStop': false,
     'activityRecognitionCanOnlySuggestReview': true,
     'gpsCanReplaceOdometer': false,
@@ -111,6 +115,90 @@ class TripTrackingSensorConsentBoundary {
     'preciseLocationIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripTrackingSensorConsentSummaryValidation {
+  const TripTrackingSensorConsentSummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasons,
+  });
+
+  factory TripTrackingSensorConsentSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_sensor_consent_status');
+    final gpsAllowed = summary['gpsAllowed'];
+    final activityAllowed = summary['activityRecognitionAllowed'];
+    final backgroundAllowed = summary['backgroundTrackingAllowed'];
+    if (gpsAllowed is! bool ||
+        activityAllowed is! bool ||
+        backgroundAllowed is! bool) {
+      reasons.add('invalid_sensor_flags');
+    }
+    final reasonCodes = summary['reasonCodes'];
+    if (reasonCodes is! List ||
+        reasonCodes.any((reason) => _safeReason(reason) == null)) {
+      reasons.add('invalid_sensor_reason_codes');
+    }
+    if ((activityAllowed == true || backgroundAllowed == true) &&
+        gpsAllowed != true) {
+      reasons.add('assist_enabled_without_gps');
+    }
+    if (summary['gpsAssistedTrackingRequiresUserOptIn'] != true ||
+        summary['activityRecognitionRequiresUserOptIn'] != true ||
+        summary['backgroundTrackingRequiresUserOptIn'] != true ||
+        summary['platformPermissionRequired'] != true ||
+        summary['validatedCapabilityDoesNotReplacePlatformPermission'] !=
+            true ||
+        summary['sensorConsentCanBypassPlatformPermission'] != false ||
+        summary['backgroundPermissionCanBeAssumedFromForeground'] != false ||
+        summary['activityPermissionCanBeAssumedFromLocation'] != false) {
+      reasons.add('platform_permission_boundary_missing');
+    }
+    if (summary['deviceCapabilityTrustedAfterValidationOnly'] != true ||
+        summary['remoteCapabilityCanEnableSensorsWithoutOptIn'] != false ||
+        summary['firebaseCanEnableTrackingWithoutConsent'] != false ||
+        summary['mapboxCanEnableTrackingWithoutConsent'] != false ||
+        summary['deviceCapabilityCanEnableTrackingWithoutConsent'] != false ||
+        summary['employerCanEnableTrackingWithoutEmployeeConsent'] != false) {
+      reasons.add('remote_or_employer_can_enable_sensors');
+    }
+    if (summary['sensorConsentCanBeRevokedWithoutDeletingTripLog'] != true ||
+        summary['localTripLogProtected'] != true) {
+      reasons.add('consent_revocation_can_harm_trip_log');
+    }
+    if (summary['activityRecognitionCanCreateOfficialStop'] != false ||
+        summary['activityRecognitionCanOnlySuggestReview'] != true ||
+        summary['gpsCanReplaceOdometer'] != false ||
+        summary['mapboxCanReplaceOdometer'] != false) {
+      reasons.add('sensor_can_create_trip_truth');
+    }
+    if (summary['deviceModelIncluded'] != false ||
+        summary['rawSensorPayloadIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_sensor_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripTrackingSensorConsentSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripTrackingSensorConsentStatus? status;
+  final List<String> reasons;
 }
 
 TripTrackingSensorConsentStatus _statusFor({
@@ -129,4 +217,32 @@ TripTrackingSensorConsentStatus _statusFor({
     return TripTrackingSensorConsentStatus.motionAssistAllowed;
   }
   return TripTrackingSensorConsentStatus.gpsOnly;
+}
+
+TripTrackingSensorConsentStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripTrackingSensorConsentStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReason(Object? value) {
+  if (value is! String) return null;
+  return switch (value) {
+    'gps_assist_user_disabled' => value,
+    'location_permission_or_capability_required' => value,
+    'activity_recognition_not_available_or_not_permitted' => value,
+    'background_tracking_not_available_or_not_permitted' => value,
+    'gps_assist_allowed' => value,
+    _ => null,
+  };
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
