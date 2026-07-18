@@ -406,4 +406,31 @@ void main() {
       );
     },
   );
+
+  test(
+    'dashboard payload validator rejects stale live UI projection claims',
+    () {
+      final payload =
+          TripLiveOdometerProjection(
+            startingOdometer: 1000,
+          ).toSafeDashboardMap()..addAll({
+            'dashboardLiveUpdateReady': false,
+            'liveUiMustRefreshOnProjectionChange': false,
+            'globalOdometerScopeMustNotifyListeners': false,
+            'dashboardActiveVehicleBlockUsesLiveProjection': false,
+            'contractorDashboardUsesLiveProjection': false,
+            'crossDashboardLiveOdometerReady': false,
+          });
+
+      final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
+        payload,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('live_dashboard_update_contract_missing'),
+      );
+    },
+  );
 }

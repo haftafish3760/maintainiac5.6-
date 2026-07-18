@@ -186,6 +186,10 @@ class TripLiveOdometerDashboardPayloadValidation {
     if (safeProjected != null && safeMax != null && safeProjected > safeMax) {
       reasons.add('projection_above_supported_odometer');
     }
+    if (projectedReading is int &&
+        projectedReading != _safeStartingOdometer(projectedReading)) {
+      reasons.add('projected_reading_not_sanitized');
+    }
     if (payload['writesConfirmedOdometer'] != false) {
       reasons.add('payload_can_write_confirmed_odometer');
     }
@@ -275,6 +279,14 @@ class TripLiveOdometerDashboardPayloadValidation {
     }
     if (payload['projectionIsMonotonic'] != true) {
       reasons.add('projection_not_marked_monotonic');
+    }
+    if (payload['dashboardLiveUpdateReady'] != true ||
+        payload['liveUiMustRefreshOnProjectionChange'] != true ||
+        payload['globalOdometerScopeMustNotifyListeners'] != true ||
+        payload['dashboardActiveVehicleBlockUsesLiveProjection'] != true ||
+        payload['contractorDashboardUsesLiveProjection'] != true ||
+        payload['crossDashboardLiveOdometerReady'] != true) {
+      reasons.add('live_dashboard_update_contract_missing');
     }
     if (payload['activeVehicleBlockMustNotCacheProjection'] != true ||
         payload['allDashboardSurfacesUseSameProjectionRevision'] != true) {
