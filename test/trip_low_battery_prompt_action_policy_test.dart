@@ -49,6 +49,7 @@ void main() {
     expect(restore.nextWarningDismissed, isFalse);
     expect(restore.nextOverrideEnabled, isFalse);
     expect(restore.settingsReversalAvailable, isTrue);
+    expect(restore.toSafeSummary()['settingsGearCanReverseChoice'], isTrue);
   });
 
   test('actions are blocked when there is no active low battery prompt', () {
@@ -74,6 +75,10 @@ void main() {
       expect(safe['continueGpsDoesNotConfirmMileage'], isTrue);
       expect(safe['cancelGpsOnlyPausesGpsSampling'], isTrue);
       expect(safe['doNotShowAgainDoesNotRemoveSettingsReversal'], isTrue);
+      expect(safe['doNotShowAgainStoredInLocalSettingsOnly'], isTrue);
+      expect(safe['settingsGearCanReverseChoice'], isTrue);
+      expect(safe['activeTripRemainsWritableAfterCancelGps'], isTrue);
+      expect(safe['localCheckpointRequiredBeforeGpsPause'], isTrue);
       expect(safe['batteryActionCanDeleteTripRecords'], isFalse);
       expect(safe['batteryActionCanConfirmMileage'], isFalse);
       expect(safe['firebaseCanOverrideBatteryChoice'], isFalse);
@@ -86,8 +91,50 @@ void main() {
       expect(safe.toString(), isNot(contains('19')));
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));
+      expect(
+        TripLowBatteryPromptActionSummaryValidation.fromSummary(
+          safe,
+        ).isRenderable,
+        isTrue,
+      );
     },
   );
+
+  test('prompt action summary rejects forged authority and secrets', () {
+    final safe = TripLowBatteryPromptActionPolicy.evaluate(
+      currentDecision: promptDecision(),
+      action: TripLowBatteryPromptAction.cancelGpsDoNotShowAgain,
+    ).toSafeSummary();
+
+    expect(
+      TripLowBatteryPromptActionSummaryValidation.fromSummary({
+        ...safe,
+        'settingsGearCanReverseChoice': false,
+      }).reasons,
+      contains('battery_settings_reversal_boundary_missing'),
+    );
+    expect(
+      TripLowBatteryPromptActionSummaryValidation.fromSummary({
+        ...safe,
+        'batteryActionCanConfirmMileage': true,
+      }).reasons,
+      contains('battery_action_claims_trip_truth'),
+    );
+    expect(
+      TripLowBatteryPromptActionSummaryValidation.fromSummary({
+        ...safe,
+        'firebaseCanOverrideBatteryChoice': true,
+      }).reasons,
+      contains('remote_can_override_battery_action'),
+    );
+    expect(
+      TripLowBatteryPromptActionSummaryValidation.fromSummary({
+        ...safe,
+        'debug': 'battery 12% token=sk.secret',
+      }).reasons,
+      contains('summary_contains_sensitive_battery_action_material'),
+    );
+  });
 }
 
 TripGpsBatteryDecision promptDecision() {

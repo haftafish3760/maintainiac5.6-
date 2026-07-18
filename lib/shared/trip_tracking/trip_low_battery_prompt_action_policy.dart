@@ -48,6 +48,10 @@ class TripLowBatteryPromptActionDecision {
     'continueGpsDoesNotConfirmMileage': true,
     'cancelGpsOnlyPausesGpsSampling': true,
     'doNotShowAgainDoesNotRemoveSettingsReversal': true,
+    'doNotShowAgainStoredInLocalSettingsOnly': true,
+    'settingsGearCanReverseChoice': true,
+    'activeTripRemainsWritableAfterCancelGps': true,
+    'localCheckpointRequiredBeforeGpsPause': true,
     'lowBatteryCanStopTextTripLog': false,
     'batteryActionCanDeleteTripRecords': false,
     'batteryActionCanConfirmMileage': false,
@@ -61,6 +65,104 @@ class TripLowBatteryPromptActionDecision {
     'rawBatteryPayloadIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripLowBatteryPromptActionSummaryValidation {
+  const TripLowBatteryPromptActionSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripLowBatteryPromptActionSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_battery_action_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_battery_action_reason');
+    }
+    for (final key in const [
+      'allowsGps',
+      'nextOverrideEnabled',
+      'nextWarningDismissed',
+      'settingsReversalAvailable',
+      'requiresActivePrompt',
+      'doNotShowAgainAvailable',
+      'dashboardSettingsCanRestorePrompt',
+      'defaultGpsPausesBelowCutoff',
+      'userOverrideRequiresExplicitChoice',
+      'continueGpsDoesNotConfirmMileage',
+      'cancelGpsOnlyPausesGpsSampling',
+      'doNotShowAgainDoesNotRemoveSettingsReversal',
+      'doNotShowAgainStoredInLocalSettingsOnly',
+      'settingsGearCanReverseChoice',
+      'activeTripRemainsWritableAfterCancelGps',
+      'localCheckpointRequiredBeforeGpsPause',
+      'lowBatteryCanStopTextTripLog',
+      'batteryActionCanDeleteTripRecords',
+      'batteryActionCanConfirmMileage',
+      'batteryActionCanCreateOfficialStop',
+      'firebaseCanOverrideBatteryChoice',
+      'mapboxCanOverrideBatteryChoice',
+      'hiveRemainsOperationalSourceOfTruth',
+      'odometerRemainsOfficialMileageTruth',
+      'mapsRequiredForGps',
+      'preciseBatteryIncluded',
+      'rawBatteryPayloadIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['continueGpsActionLabel'] != 'Continue with GPS' ||
+        summary['cancelGpsActionLabel'] != 'Cancel GPS') {
+      reasons.add('invalid_action_labels');
+    }
+    if (summary['status'] == 'blocked' && summary['allowsGps'] != false) {
+      reasons.add('blocked_action_allows_gps');
+    }
+    if (summary['dashboardSettingsCanRestorePrompt'] != true ||
+        summary['settingsReversalAvailable'] != true ||
+        summary['doNotShowAgainDoesNotRemoveSettingsReversal'] != true ||
+        summary['doNotShowAgainStoredInLocalSettingsOnly'] != true ||
+        summary['settingsGearCanReverseChoice'] != true ||
+        summary['userOverrideRequiresExplicitChoice'] != true) {
+      reasons.add('battery_settings_reversal_boundary_missing');
+    }
+    if (summary['continueGpsDoesNotConfirmMileage'] != true ||
+        summary['cancelGpsOnlyPausesGpsSampling'] != true ||
+        summary['activeTripRemainsWritableAfterCancelGps'] != true ||
+        summary['localCheckpointRequiredBeforeGpsPause'] != true ||
+        summary['lowBatteryCanStopTextTripLog'] != false ||
+        summary['batteryActionCanDeleteTripRecords'] != false ||
+        summary['batteryActionCanConfirmMileage'] != false ||
+        summary['batteryActionCanCreateOfficialStop'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('battery_action_claims_trip_truth');
+    }
+    if (summary['firebaseCanOverrideBatteryChoice'] != false ||
+        summary['mapboxCanOverrideBatteryChoice'] != false ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true) {
+      reasons.add('remote_can_override_battery_action');
+    }
+    if (summary['mapsRequiredForGps'] != false ||
+        summary['preciseBatteryIncluded'] != false ||
+        summary['rawBatteryPayloadIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_battery_action_material');
+    }
+    return TripLowBatteryPromptActionSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripLowBatteryPromptActionPolicy {
@@ -151,4 +253,21 @@ String _safeReason(String value) {
     'cancel_gps_and_remember_low_battery_choice' => clean,
     _ => 'active_battery_prompt_required',
   };
+}
+
+TripLowBatteryPromptActionStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripLowBatteryPromptActionStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains('token=') ||
+      RegExp(r'\b\d{1,3}%\b').hasMatch(clean);
 }
