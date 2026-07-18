@@ -134,6 +134,43 @@ void main() {
     );
   });
 
+  test('unsafe trip ids cannot authorize a live odometer render', () {
+    for (final unsafeTripId in const [
+      'pk.public',
+      'sk.secret',
+      'trip token',
+      'trip/1',
+      ' trip_1',
+    ]) {
+      final broadcast = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+        LiveOdometerDisplaySnapshot(
+          confirmedReading: 1000,
+          displayReading: 1001,
+          isLive: true,
+          liveUpdatedAt: now,
+          projectionRevision: 1,
+        ),
+        now: now,
+        activeTripId: unsafeTripId,
+        expectedTripId: unsafeTripId,
+      );
+
+      expect(
+        broadcast.status,
+        TripTrackingLiveOdometerBroadcastStatus.rejected,
+      );
+      expect(broadcast.shouldNotifyDashboard, isFalse);
+      expect(broadcast.displayValue, isNull);
+      expect(
+        broadcast.reasonCodes,
+        anyOf(
+          contains('unsafe_expected_trip_id'),
+          contains('unsafe_active_trip_id'),
+        ),
+      );
+    }
+  });
+
   test(
     'malformed live odometer display cannot roll back confirmed reading',
     () {

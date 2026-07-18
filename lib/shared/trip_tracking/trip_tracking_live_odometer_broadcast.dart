@@ -262,6 +262,9 @@ bool _safeTripId(String value) =>
     value.trim() == value &&
     value.isNotEmpty &&
     value.length <= 160 &&
+    !value.startsWith('pk.') &&
+    !value.startsWith('sk.') &&
+    !value.toLowerCase().contains('token') &&
     RegExp(r'^[A-Za-z0-9._:-]+$').hasMatch(value);
 
 Duration _safeFutureSkew(Duration value) {
