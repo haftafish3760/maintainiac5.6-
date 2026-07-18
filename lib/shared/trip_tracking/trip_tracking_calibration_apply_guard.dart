@@ -9,6 +9,15 @@ enum TripTrackingCalibrationApplyStatus {
   rejected,
 }
 
+enum TripTrackingCalibrationHistorySource {
+  localReviewedOdometerHistory,
+  firestoreMirror,
+  cloudFunction,
+  importedFile,
+  mapbox,
+  dashboardCache,
+}
+
 class TripTrackingCalibrationApplyGuard {
   const TripTrackingCalibrationApplyGuard._({
     required this.status,
@@ -26,6 +35,12 @@ class TripTrackingCalibrationApplyGuard {
     String? activeVehicleId,
     String? reviewedVehicleId,
     Iterable<String> reviewedVehicleIds = const <String>[],
+    String? currentUserId,
+    String? calibrationOwnerUserId,
+    bool explicitSharedVehicleAccess = false,
+    bool fleetObserverMode = false,
+    TripTrackingCalibrationHistorySource historySource =
+        TripTrackingCalibrationHistorySource.localReviewedOdometerHistory,
     Duration maximumCalibrationReviewAge = const Duration(days: 30),
   }) {
     final reasons = <String>[];
@@ -33,6 +48,8 @@ class TripTrackingCalibrationApplyGuard {
     final latestReviewed = latestReviewedAtUtc?.toUtc();
     final activeVehicle = activeVehicleId?.trim();
     final reviewedVehicle = reviewedVehicleId?.trim();
+    final currentUser = _safeUserToken(currentUserId);
+    final calibrationOwner = _safeUserToken(calibrationOwnerUserId);
     final reviewedVehicles = reviewedVehicleIds
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
@@ -50,6 +67,23 @@ class TripTrackingCalibrationApplyGuard {
     }
     if (_safeReason(signal.reasonCode) == 'unknown_calibration_state') {
       reasons.add('unknown_signal_reason');
+    }
+    if (historySource !=
+        TripTrackingCalibrationHistorySource.localReviewedOdometerHistory) {
+      reasons.add('local_reviewed_odometer_history_required');
+    }
+    if (fleetObserverMode) reasons.add('fleet_observer_read_only');
+    if (currentUserId != null && currentUser == null) {
+      reasons.add('unsafe_current_user_id');
+    }
+    if (calibrationOwnerUserId != null && calibrationOwner == null) {
+      reasons.add('unsafe_calibration_owner_user_id');
+    }
+    if (currentUser != null &&
+        calibrationOwner != null &&
+        currentUser != calibrationOwner &&
+        !explicitSharedVehicleAccess) {
+      reasons.add('calibration_owner_or_explicit_access_required');
     }
     if (latestReviewed != null && latestReviewed.isAfter(now)) {
       reasons.add('future_review_timestamp');
@@ -154,6 +188,9 @@ class TripTrackingCalibrationApplyGuard {
     'calibrationCanBypassVehicleProfile': false,
     'calibrationCanApplyAcrossVehicles': false,
     'calibrationRequiresSingleVehicleHistory': true,
+    'calibrationRequiresLocalReviewedOdometerHistory': true,
+    'calibrationRequiresOwnershipOrExplicitAccess': true,
+    'fleetObserverCanApplyCalibration': false,
     'calibrationVehicleIdIncluded': false,
     'rawVehicleIdsIncluded': false,
     'remoteCalibrationCanRewritePastTrips': false,
@@ -171,6 +208,8 @@ class TripTrackingCalibrationApplyGuard {
     'firestoreCanApplyCalibration': false,
     'mapboxCanApplyCalibration': false,
     'cloudFunctionCanApplyCalibration': false,
+    'importedFileCanApplyCalibration': false,
+    'dashboardCacheCanApplyCalibration': false,
     'rawReviewedTripsIncluded': false,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
@@ -219,6 +258,9 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['calibrationCanBypassVehicleProfile'] != false ||
         summary['calibrationCanApplyAcrossVehicles'] != false ||
         summary['calibrationRequiresSingleVehicleHistory'] != true ||
+        summary['calibrationRequiresLocalReviewedOdometerHistory'] != true ||
+        summary['calibrationRequiresOwnershipOrExplicitAccess'] != true ||
+        summary['fleetObserverCanApplyCalibration'] != false ||
         summary['remoteCalibrationCanRewritePastTrips'] != false) {
       reasons.add('calibration_can_mutate_trip_truth');
     }
@@ -226,6 +268,8 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['firestoreCanApplyCalibration'] != false ||
         summary['mapboxCanApplyCalibration'] != false ||
         summary['cloudFunctionCanApplyCalibration'] != false ||
+        summary['importedFileCanApplyCalibration'] != false ||
+        summary['dashboardCacheCanApplyCalibration'] != false ||
         summary['remoteCalibrationCanOverrideLocalState'] != false) {
       reasons.add('remote_or_map_can_apply_calibration');
     }
@@ -307,6 +351,11 @@ String? _safeApplyReason(Object? value) {
     'future_review_timestamp' => value,
     'missing_latest_review_timestamp' => value,
     'stale_review_timestamp' => value,
+    'local_reviewed_odometer_history_required' => value,
+    'fleet_observer_read_only' => value,
+    'unsafe_current_user_id' => value,
+    'unsafe_calibration_owner_user_id' => value,
+    'calibration_owner_or_explicit_access_required' => value,
     'unsafe_active_vehicle_id' => value,
     'unsafe_reviewed_vehicle_id' => value,
     'mixed_vehicle_calibration_history' => value,
@@ -333,4 +382,12 @@ bool _isSafeVehicleToken(String value) {
   return clean.isNotEmpty &&
       clean.length <= 120 &&
       RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean);
+}
+
+String? _safeUserToken(String? value) {
+  final clean = value?.trim();
+  if (clean == null || clean.isEmpty || clean.length > 128) return null;
+  if (clean.startsWith('pk.') || clean.startsWith('sk.')) return null;
+  if (!RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean)) return null;
+  return clean;
 }

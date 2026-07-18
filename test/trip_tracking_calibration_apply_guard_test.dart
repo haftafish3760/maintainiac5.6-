@@ -98,6 +98,9 @@ void main() {
     expect(safe['calibrationCanBypassVehicleProfile'], isFalse);
     expect(safe['calibrationCanApplyAcrossVehicles'], isFalse);
     expect(safe['calibrationRequiresSingleVehicleHistory'], isTrue);
+    expect(safe['calibrationRequiresLocalReviewedOdometerHistory'], isTrue);
+    expect(safe['calibrationRequiresOwnershipOrExplicitAccess'], isTrue);
+    expect(safe['fleetObserverCanApplyCalibration'], isFalse);
     expect(safe['calibrationVehicleIdIncluded'], isFalse);
     expect(safe['rawVehicleIdsIncluded'], isFalse);
     expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
@@ -259,6 +262,8 @@ void main() {
     expect(safe['firestoreCanApplyCalibration'], isFalse);
     expect(safe['mapboxCanApplyCalibration'], isFalse);
     expect(safe['cloudFunctionCanApplyCalibration'], isFalse);
+    expect(safe['importedFileCanApplyCalibration'], isFalse);
+    expect(safe['dashboardCacheCanApplyCalibration'], isFalse);
     expect(safe.toString(), isNot(contains('pk.secret')));
     expect(safe.toString(), isNot(contains('35.1')));
   });
@@ -286,8 +291,111 @@ void main() {
     expect(safe['requiresMultipleReviewedOdometerDays'], isTrue);
     expect(safe['latestReviewTimestampRequired'], isTrue);
     expect(safe['calibrationRequiresSingleVehicleHistory'], isTrue);
+    expect(safe['calibrationRequiresLocalReviewedOdometerHistory'], isTrue);
+    expect(safe['calibrationRequiresOwnershipOrExplicitAccess'], isTrue);
     expect(safe['calibrationVehicleIdIncluded'], isFalse);
     expect(safe['rawVehicleIdsIncluded'], isFalse);
+  });
+
+  test('remote calibration history cannot apply even when reviewed', () {
+    final firestore = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      currentUserId: 'driver_1',
+      calibrationOwnerUserId: 'driver_1',
+      historySource: TripTrackingCalibrationHistorySource.firestoreMirror,
+    );
+    final mapbox = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      currentUserId: 'driver_1',
+      calibrationOwnerUserId: 'driver_1',
+      historySource: TripTrackingCalibrationHistorySource.mapbox,
+    );
+
+    expect(firestore.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(
+      firestore.reasonCodes,
+      contains('local_reviewed_odometer_history_required'),
+    );
+    expect(mapbox.canApplyToFutureGpsProjection, isFalse);
+    expect(
+      mapbox.reasonCodes,
+      contains('local_reviewed_odometer_history_required'),
+    );
+  });
+
+  test('calibration owner mismatch and fleet observer mode fail closed', () {
+    final mismatch = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      currentUserId: 'manager_1',
+      calibrationOwnerUserId: 'driver_1',
+    );
+    final shared = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      currentUserId: 'manager_1',
+      calibrationOwnerUserId: 'driver_1',
+      explicitSharedVehicleAccess: true,
+    );
+    final observer = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      currentUserId: 'manager_1',
+      calibrationOwnerUserId: 'driver_1',
+      explicitSharedVehicleAccess: true,
+      fleetObserverMode: true,
+    );
+
+    expect(mismatch.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(
+      mismatch.reasonCodes,
+      contains('calibration_owner_or_explicit_access_required'),
+    );
+    expect(
+      shared.status,
+      TripTrackingCalibrationApplyStatus.readyForFutureProjection,
+    );
+    expect(observer.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(observer.reasonCodes, contains('fleet_observer_read_only'));
+  });
+
+  test('unsafe user ids are rejected without leaking tokens', () {
+    final guard = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      currentUserId: 'pk.public-token',
+      calibrationOwnerUserId: 'driver_1',
+    );
+
+    expect(guard.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(guard.reasonCodes, contains('unsafe_current_user_id'));
+    expect(guard.toSafeDashboardMap().toString(), isNot(contains('pk.')));
   });
 
   test('safe calibration apply summary validates as renderable', () {
@@ -333,6 +441,9 @@ void main() {
               'calibrationCanBypassVehicleProfile': true,
               'calibrationCanApplyAcrossVehicles': true,
               'calibrationRequiresSingleVehicleHistory': false,
+              'calibrationRequiresLocalReviewedOdometerHistory': false,
+              'calibrationRequiresOwnershipOrExplicitAccess': false,
+              'fleetObserverCanApplyCalibration': true,
               'calibrationVehicleIdIncluded': true,
               'rawVehicleIdsIncluded': true,
               'remoteCalibrationCanRewritePastTrips': true,
@@ -340,6 +451,8 @@ void main() {
               'firestoreCanApplyCalibration': true,
               'mapboxCanApplyCalibration': true,
               'cloudFunctionCanApplyCalibration': true,
+              'importedFileCanApplyCalibration': true,
+              'dashboardCacheCanApplyCalibration': true,
               'remoteCalibrationCanOverrideLocalState': true,
               'rawReviewedTripsIncluded': true,
               'rawGpsIncluded': true,
