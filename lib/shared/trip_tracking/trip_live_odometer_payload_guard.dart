@@ -198,14 +198,15 @@ String _safeReason(String value) {
 
 bool _containsSensitivePayload(Object? value) {
   if (value is String) {
-    return value.startsWith('pk.') ||
-        value.startsWith('sk.') ||
-        RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(value);
+    final clean = value.trim();
+    return clean.startsWith('pk.') ||
+        clean.startsWith('sk.') ||
+        clean.toLowerCase().contains('token') ||
+        RegExp(r'-?\d{1,3}\.\d{5,}').hasMatch(clean);
   }
   if (value is Map) {
     for (final entry in value.entries) {
-      if (_containsSensitivePayload(entry.key) ||
-          _containsSensitivePayload(entry.value)) {
+      if (_containsSensitivePayload(entry.value)) {
         return true;
       }
     }

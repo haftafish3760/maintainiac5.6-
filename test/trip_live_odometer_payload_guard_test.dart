@@ -119,8 +119,19 @@ void main() {
         name: 'sensitive payload',
         payload: {
           ...clean,
-          'debug': '35.123456,-80.123456',
-          'tokenEcho': 'pk.redacted',
+          'debug': 'near 35.123456',
+          'tokenEcho': 'runtime token hidden',
+        },
+        status: TripLiveOdometerPayloadGuardStatus.blockedSensitivePayload,
+        reason: 'payload_contains_sensitive_trip_material',
+      ),
+      _GuardCase(
+        name: 'nested sensitive payload',
+        payload: {
+          ...clean,
+          'nested': {
+            'route': ['sk.redacted'],
+          },
         },
         status: TripLiveOdometerPayloadGuardStatus.blockedSensitivePayload,
         reason: 'payload_contains_sensitive_trip_material',
