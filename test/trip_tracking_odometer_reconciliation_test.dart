@@ -56,10 +56,13 @@ void main() {
         'calibrationCanApplySilently': false,
         'externalMileageTrustedAfterValidationOnly': true,
         'remoteTotalsCanBecomeCanonical': false,
+        'remoteTotalsCanConfirmOdometer': false,
+        'mapboxRouteCanConfirmOdometer': false,
         'firestoreCanOverrideOdometerTruth': false,
         'mapboxCanOverrideOdometerTruth': false,
         'rawLocationIncluded': false,
         'rawTripRecordsIncluded': false,
+        'tokensIncluded': false,
       });
     },
   );
@@ -258,8 +261,11 @@ void main() {
       'continuityTrustedAfterValidationOnly': true,
       'firestoreCanOverrideContinuity': false,
       'mapboxCanOverrideContinuity': false,
+      'remoteContinuityCanConfirmOdometer': false,
+      'userReviewRequiredBeforeGapAcceptance': true,
       'rawTripRecordsIncluded': false,
       'rawLocationIncluded': false,
+      'tokensIncluded': false,
     });
   });
 
@@ -1135,6 +1141,10 @@ void main() {
       'calibrationRequiresMultipleReviewedTrips': true,
       'calibrationCanRewritePastTrips': false,
       'canApplySilently': false,
+      'gpsAssistCanOnlyScaleFutureProjectionAfterOptIn': true,
+      'calibrationCanChangeDisplayedConfirmedMiles': false,
+      'calibrationCanMutateTripLog': false,
+      'mapboxRouteDistanceCanBecomeOfficial': false,
       'calibrationTrustedAfterReviewedHistoryOnly': true,
       'remoteHistoryCanCreateCalibration': false,
       'remoteCalibrationCanApplySilently': false,

@@ -42,6 +42,9 @@ class TripOdometerCalibrationPromptDecision {
     'messageToken': _safeMessage(messageToken),
     'calibrationRequiresUserOptIn': true,
     'calibrationRequiresMultipleReviewedTrips': true,
+    'calibrationRequiresReviewedLocalHistory': true,
+    'calibrationRequiresVehicleMatchedHistory': true,
+    'calibrationRequiresManualUserConfirmation': true,
     'calibrationAppliesToFutureGpsAssistanceOnly': true,
     'calibrationCanRewritePastTrips': false,
     'calibrationCanReplaceConfirmedOdometer': false,
@@ -54,12 +57,109 @@ class TripOdometerCalibrationPromptDecision {
         reason == TripOdometerCalibrationPromptReason.tireOrSpeedometerReview,
     'remoteHistoryCanTriggerPromptWithoutLocalValidation': false,
     'firestoreCanApplyCalibration': false,
+    'cloudFunctionCanApplyCalibration': false,
     'mapboxCanApplyCalibration': false,
+    'importedFileCanApplyCalibration': false,
     'rawReviewedTripsIncluded': false,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripOdometerCalibrationPromptSummaryValidation {
+  const TripOdometerCalibrationPromptSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripOdometerCalibrationPromptSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeSurface(summary['surface']) == null) {
+      reasons.add('invalid_prompt_surface');
+    }
+    if (_safePromptReason(summary['reason']) == null) {
+      reasons.add('invalid_prompt_reason');
+    }
+    for (final key in const [
+      'shouldShow',
+      'canApplyAutomatically',
+      'canSnooze',
+      'canDisable',
+      'calibrationRequiresUserOptIn',
+      'calibrationRequiresMultipleReviewedTrips',
+      'calibrationRequiresReviewedLocalHistory',
+      'calibrationRequiresVehicleMatchedHistory',
+      'calibrationRequiresManualUserConfirmation',
+      'calibrationAppliesToFutureGpsAssistanceOnly',
+      'calibrationCanRewritePastTrips',
+      'calibrationCanReplaceConfirmedOdometer',
+      'gpsCanReplaceOdometerSilently',
+      'mapboxCanReplaceOdometerSilently',
+      'odometerRemainsOfficialMileageTruth',
+      'tireSizeReviewSuggested',
+      'speedometerCalibrationReviewSuggested',
+      'remoteHistoryCanTriggerPromptWithoutLocalValidation',
+      'firestoreCanApplyCalibration',
+      'cloudFunctionCanApplyCalibration',
+      'mapboxCanApplyCalibration',
+      'importedFileCanApplyCalibration',
+      'rawReviewedTripsIncluded',
+      'rawGpsIncluded',
+      'preciseLocationIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (_safeMessage(summary['messageToken']?.toString() ?? '') !=
+        summary['messageToken']) {
+      reasons.add('invalid_prompt_message');
+    }
+    if (summary['canApplyAutomatically'] != false ||
+        summary['calibrationRequiresUserOptIn'] != true ||
+        summary['calibrationRequiresMultipleReviewedTrips'] != true ||
+        summary['calibrationRequiresReviewedLocalHistory'] != true ||
+        summary['calibrationRequiresVehicleMatchedHistory'] != true ||
+        summary['calibrationRequiresManualUserConfirmation'] != true ||
+        summary['calibrationAppliesToFutureGpsAssistanceOnly'] != true) {
+      reasons.add('calibration_review_boundary_missing');
+    }
+    if (summary['calibrationCanRewritePastTrips'] != false ||
+        summary['calibrationCanReplaceConfirmedOdometer'] != false ||
+        summary['gpsCanReplaceOdometerSilently'] != false ||
+        summary['mapboxCanReplaceOdometerSilently'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('calibration_can_replace_odometer');
+    }
+    if (summary['remoteHistoryCanTriggerPromptWithoutLocalValidation'] !=
+            false ||
+        summary['firestoreCanApplyCalibration'] != false ||
+        summary['cloudFunctionCanApplyCalibration'] != false ||
+        summary['mapboxCanApplyCalibration'] != false ||
+        summary['importedFileCanApplyCalibration'] != false) {
+      reasons.add('remote_can_apply_calibration');
+    }
+    if (summary['rawReviewedTripsIncluded'] != false ||
+        summary['rawGpsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_calibration_material');
+    }
+
+    return TripOdometerCalibrationPromptSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripOdometerCalibrationPromptPolicy {
@@ -193,4 +293,28 @@ String _safeSignalReason(String value) {
     'calibration_stable' => value.trim(),
     _ => 'unknown_calibration_state',
   };
+}
+
+TripOdometerCalibrationPromptSurface? _safeSurface(Object? value) {
+  if (value is! String) return null;
+  for (final surface in TripOdometerCalibrationPromptSurface.values) {
+    if (surface.name == value) return surface;
+  }
+  return null;
+}
+
+TripOdometerCalibrationPromptReason? _safePromptReason(Object? value) {
+  if (value is! String) return null;
+  for (final reason in TripOdometerCalibrationPromptReason.values) {
+    if (reason.name == value) return reason;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

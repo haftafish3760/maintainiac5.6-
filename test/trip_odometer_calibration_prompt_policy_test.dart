@@ -120,17 +120,83 @@ void main() {
     ).toSafeDashboardMap();
 
     expect(safe['calibrationRequiresUserOptIn'], isTrue);
+    expect(safe['calibrationRequiresReviewedLocalHistory'], isTrue);
+    expect(safe['calibrationRequiresVehicleMatchedHistory'], isTrue);
+    expect(safe['calibrationRequiresManualUserConfirmation'], isTrue);
     expect(safe['calibrationCanReplaceConfirmedOdometer'], isFalse);
     expect(safe['gpsCanReplaceOdometerSilently'], isFalse);
     expect(safe['mapboxCanReplaceOdometerSilently'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(safe['firestoreCanApplyCalibration'], isFalse);
+    expect(safe['cloudFunctionCanApplyCalibration'], isFalse);
     expect(safe['mapboxCanApplyCalibration'], isFalse);
+    expect(safe['importedFileCanApplyCalibration'], isFalse);
     expect(safe['rawReviewedTripsIncluded'], isFalse);
     expect(safe['preciseLocationIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
     expect(safe.toString(), isNot(contains('pk.')));
     expect(safe.toString(), isNot(contains('sk.')));
+  });
+
+  test('safe prompt summary validates local reviewed-history boundary', () {
+    final validation =
+        TripOdometerCalibrationPromptSummaryValidation.fromSummary(
+          evaluate(
+            now: now,
+            signal: signal(
+              status: TripOdometerCalibrationStatus.reviewRecommended,
+              averageDifferencePercent: 6,
+            ),
+          ).toSafeDashboardMap(),
+        );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged prompt summaries cannot grant calibration authority', () {
+    final validation =
+        TripOdometerCalibrationPromptSummaryValidation.fromSummary(
+          evaluate(
+            now: now,
+            signal: signal(
+              status: TripOdometerCalibrationStatus.reviewRecommended,
+              averageDifferencePercent: 6,
+            ),
+          ).toSafeDashboardMap()..addAll({
+            'canApplyAutomatically': true,
+            'calibrationRequiresUserOptIn': false,
+            'calibrationRequiresMultipleReviewedTrips': false,
+            'calibrationRequiresReviewedLocalHistory': false,
+            'calibrationRequiresVehicleMatchedHistory': false,
+            'calibrationRequiresManualUserConfirmation': false,
+            'calibrationAppliesToFutureGpsAssistanceOnly': false,
+            'calibrationCanRewritePastTrips': true,
+            'calibrationCanReplaceConfirmedOdometer': true,
+            'gpsCanReplaceOdometerSilently': true,
+            'mapboxCanReplaceOdometerSilently': true,
+            'odometerRemainsOfficialMileageTruth': false,
+            'remoteHistoryCanTriggerPromptWithoutLocalValidation': true,
+            'firestoreCanApplyCalibration': true,
+            'cloudFunctionCanApplyCalibration': true,
+            'mapboxCanApplyCalibration': true,
+            'importedFileCanApplyCalibration': true,
+            'rawReviewedTripsIncluded': true,
+            'rawGpsIncluded': true,
+            'preciseLocationIncluded': true,
+            'tokensIncluded': true,
+            'debug': 'sk.secret 35.123456,-80.123456',
+          }),
+        );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('calibration_review_boundary_missing'));
+    expect(validation.reasons, contains('calibration_can_replace_odometer'));
+    expect(validation.reasons, contains('remote_can_apply_calibration'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_calibration_material'),
+    );
   });
 }
 
