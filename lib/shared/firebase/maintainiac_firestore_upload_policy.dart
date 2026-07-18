@@ -275,6 +275,12 @@ class MaintainiacFirestoreUploadPolicy {
     'motion_battery_available',
   };
 
+  static const _allowedDurableRecordBackupStates = <String>{
+    'not_configured',
+    'available',
+    'pending_retry',
+  };
+
   static const _allowedOdometerCalibrationStates = <String>{
     'unknown',
     'disabled',
@@ -465,6 +471,7 @@ class MaintainiacFirestoreUploadPolicy {
       'storageState',
       'deviceCapabilityState',
       'sensorAssistState',
+      'durableRecordBackupState',
       'odometerCalibrationAssistEnabled',
       'odometerCalibrationState',
       'odometerCalibrationSamples',
@@ -608,6 +615,10 @@ class MaintainiacFirestoreUploadPolicy {
         _isAllowedString(
           draft.data['sensorAssistState'],
           _allowedSensorAssistStates,
+        ) &&
+        _isAllowedString(
+          draft.data['durableRecordBackupState'],
+          _allowedDurableRecordBackupStates,
         ) &&
         draft.data['odometerCalibrationAssistEnabled'] is bool &&
         _isAllowedString(

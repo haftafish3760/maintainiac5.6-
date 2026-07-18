@@ -131,6 +131,7 @@ void main() {
       ),
       nativeTracking: true,
       storageState: 'text_record_safe',
+      durableRecordBackupState: 'available',
       wifiAvailable: true,
       mobileDataAvailable: false,
       syncsUsedInWindow: 2,
@@ -175,6 +176,7 @@ void main() {
     expect(data['storageState'], 'text_record_safe');
     expect(data['deviceCapabilityState'], 'unknown');
     expect(data['sensorAssistState'], 'unknown');
+    expect(data['durableRecordBackupState'], 'available');
     expect(data['odometerCalibrationState'], 'disabled');
     expect(data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(data.keys, isNot(contains('odometerCalibrationMultiplier')));

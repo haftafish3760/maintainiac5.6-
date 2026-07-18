@@ -37,6 +37,7 @@ void main() {
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
+          durableRecordBackupState: 'available',
           odometerCalibrationAssistEnabled: true,
           odometerCalibrationState: 'review_recommended',
           odometerCalibrationSamples: 7,
@@ -101,6 +102,7 @@ void main() {
     expect(doc.data['rawMapRouteIncluded'], isFalse);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
+    expect(doc.data['durableRecordBackupState'], 'available');
     expect(doc.data['odometerCalibrationAssistEnabled'], isTrue);
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
     expect(doc.data['odometerCalibrationSamples'], 7);
@@ -354,6 +356,7 @@ void main() {
       'storageState': 'remote_authoritative',
       'deviceCapabilityState': 'precise_location_history',
       'sensorAssistState': 'raw_motion_payload',
+      'durableRecordBackupState': 'raw_backup_payload',
       'odometerCalibrationState': 'raw_drift_payload',
       'odometerUsageState': 'raw_average_payload',
     }.entries) {
@@ -391,6 +394,7 @@ void main() {
       'storageState': ' unknown ',
       'deviceCapabilityState': ' unknown ',
       'sensorAssistState': ' unknown ',
+      'durableRecordBackupState': ' available ',
       'odometerCalibrationState': ' unknown ',
       'odometerUsageState': ' unknown ',
     }.entries) {
@@ -449,6 +453,7 @@ void main() {
       'storageState': 'remote_authoritative',
       'deviceCapabilityState': 'precise_location_history',
       'sensorAssistState': 'raw_motion_payload',
+      'durableRecordBackupState': 'raw_backup_payload',
       'odometerCalibrationState': 'raw_drift_payload',
       'odometerUsageState': 'raw_average_payload',
     }.entries) {
@@ -492,6 +497,9 @@ void main() {
               sensorAssistState: entry.key == 'sensorAssistState'
                   ? entry.value
                   : 'unknown',
+              durableRecordBackupState: entry.key == 'durableRecordBackupState'
+                  ? entry.value
+                  : 'not_configured',
               odometerCalibrationState: entry.key == 'odometerCalibrationState'
                   ? entry.value
                   : 'unknown',

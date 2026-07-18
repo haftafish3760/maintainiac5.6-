@@ -344,6 +344,7 @@ service cloud.firestore {
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
+        'durableRecordBackupState',
         'odometerCalibrationAssistEnabled',
         'odometerCalibrationState',
         'odometerCalibrationSamples',
@@ -414,6 +415,7 @@ service cloud.firestore {
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
+        'durableRecordBackupState',
         'odometerCalibrationState',
         'odometerUsageState',
         'batteryGpsLimited',
@@ -717,6 +719,14 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function isAllowedDashboardDurableRecordBackupState(value) {
+      return [
+        'not_configured',
+        'available',
+        'pending_retry'
+      ].hasAny([value]);
+    }
+
     function isAllowedOdometerCalibrationState(value) {
       return [
         'unknown',
@@ -856,6 +866,9 @@ service cloud.firestore {
         ) &&
         isAllowedDashboardSensorAssistState(
           request.resource.data.sensorAssistState
+        ) &&
+        isAllowedDashboardDurableRecordBackupState(
+          request.resource.data.durableRecordBackupState
         ) &&
         isAllowedOdometerCalibrationState(
           request.resource.data.odometerCalibrationState

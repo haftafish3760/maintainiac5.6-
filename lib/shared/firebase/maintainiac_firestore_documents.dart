@@ -381,6 +381,7 @@ class MaintainiacFirestoreDocumentBuilder {
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
+    String durableRecordBackupState = 'not_configured',
     bool odometerCalibrationAssistEnabled = false,
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
@@ -567,6 +568,11 @@ class MaintainiacFirestoreDocumentBuilder {
           sensorAssistState,
           'sensorAssistState',
           _allowedDashboardSensorAssistStates,
+        ),
+        'durableRecordBackupState': _requiredDashboardSummaryToken(
+          durableRecordBackupState,
+          'durableRecordBackupState',
+          _allowedDashboardDurableRecordBackupStates,
         ),
         'odometerCalibrationAssistEnabled': odometerCalibrationAssistEnabled,
         'odometerCalibrationState': _requiredDashboardSummaryToken(
@@ -860,6 +866,12 @@ const _allowedDashboardSensorAssistStates = <String>{
   'battery_available',
   'motion_available',
   'motion_battery_available',
+};
+
+const _allowedDashboardDurableRecordBackupStates = <String>{
+  'not_configured',
+  'available',
+  'pending_retry',
 };
 
 const _allowedOdometerCalibrationStates = <String>{

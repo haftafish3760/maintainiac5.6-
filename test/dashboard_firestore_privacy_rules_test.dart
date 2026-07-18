@@ -79,6 +79,10 @@ void main() {
       expect(rules, contains('function isAllowedDashboardMode'));
       expect(rules, contains('function isAllowedDashboardSyncMode'));
       expect(rules, contains('function isAllowedGpsAssistState'));
+      expect(
+        rules,
+        contains('function isAllowedDashboardDurableRecordBackupState'),
+      );
       expect(rules, contains('function isAllowedOdometerUsageState'));
       expect(rules, contains('function hasValidDashboardSummaryStrings'));
       expect(
@@ -125,6 +129,7 @@ void main() {
         rules,
         contains('request.resource.data.mapboxTrustedMileageSource'),
       );
+      expect(rules, contains('request.resource.data.durableRecordBackupState'));
       expect(
         rules,
         contains('request.resource.data.mapboxRouteDistanceMiles <= 12500'),

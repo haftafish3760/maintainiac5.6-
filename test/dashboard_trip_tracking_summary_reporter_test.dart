@@ -118,6 +118,7 @@ void main() {
       expect(data['freeSyncsRemaining'], 4);
       expect(data['deviceCapabilityState'], 'foreground_ready');
       expect(data['sensorAssistState'], 'motion_battery_available');
+      expect(data['durableRecordBackupState'], 'not_configured');
       expect(data['odometerCalibrationState'], 'disabled');
       expect(data.keys, isNot(contains('odometerCalibrationSamples')));
       expect(data['odometerUsageState'], 'disabled');
