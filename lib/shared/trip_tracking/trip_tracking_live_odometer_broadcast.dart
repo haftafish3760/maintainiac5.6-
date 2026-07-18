@@ -21,8 +21,12 @@ class TripTrackingLiveOdometerBroadcast {
     required DateTime now,
     required String? activeTripId,
     required String expectedTripId,
+    Duration maximumFutureSkew = const Duration(minutes: 2),
+    int maximumLiveDeltaMiles = 2000,
   }) {
     final reasons = <String>[];
+    final safeFutureSkew = _safeFutureSkew(maximumFutureSkew);
+    final safeMaximumDelta = _safeMaximumDelta(maximumLiveDeltaMiles);
     if (!_safeTripId(expectedTripId)) reasons.add('unsafe_expected_trip_id');
     if (activeTripId != null && !_safeTripId(activeTripId)) {
       reasons.add('unsafe_active_trip_id');
@@ -41,6 +45,16 @@ class TripTrackingLiveOdometerBroadcast {
     }
     if (snapshot.isLive && snapshot.liveUpdatedAt == null) {
       reasons.add('missing_live_update_time');
+    }
+    if (snapshot.isLive &&
+        snapshot.liveUpdatedAt != null &&
+        snapshot.liveUpdatedAt!.toUtc().isAfter(
+          now.toUtc().add(safeFutureSkew),
+        )) {
+      reasons.add('live_update_time_in_future');
+    }
+    if (snapshot.isLive && snapshot.deltaMiles > safeMaximumDelta) {
+      reasons.add('live_projection_delta_too_large');
     }
     if (reasons.isNotEmpty) {
       return TripTrackingLiveOdometerBroadcast._(
@@ -98,6 +112,12 @@ class TripTrackingLiveOdometerBroadcast {
     'reasonCodes': reasonCodes,
     'shouldNotifyDashboard': shouldNotifyDashboard,
     'reviewRequired': reviewRequired,
+    'futureProjectionBlocked': reasonCodes.contains(
+      'live_update_time_in_future',
+    ),
+    'impossibleProjectionDeltaBlocked': reasonCodes.contains(
+      'live_projection_delta_too_large',
+    ),
     'globalOdometerScopeMustNotifyListeners': true,
     'dashboardActiveVehicleBlockUsesLiveProjection': true,
     'contractorDashboardUsesLiveProjection': true,
@@ -114,6 +134,8 @@ class TripTrackingLiveOdometerBroadcast {
     'firestoreCanOverrideLiveDisplay': false,
     'remoteDisplayCanOverrideLocalTrip': false,
     'staleProjectionCanCommitMileage': false,
+    'futureProjectionCanRender': false,
+    'impossibleProjectionCanRender': false,
     'localTripLogProtected': true,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
@@ -127,3 +149,15 @@ bool _safeTripId(String value) =>
     value.isNotEmpty &&
     value.length <= 160 &&
     RegExp(r'^[A-Za-z0-9._:-]+$').hasMatch(value);
+
+Duration _safeFutureSkew(Duration value) {
+  if (value <= Duration.zero) return Duration.zero;
+  return value > const Duration(minutes: 10)
+      ? const Duration(minutes: 10)
+      : value;
+}
+
+int _safeMaximumDelta(int value) {
+  if (value <= 0) return 1;
+  return value > 10000 ? 10000 : value;
+}

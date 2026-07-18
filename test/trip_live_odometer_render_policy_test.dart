@@ -139,6 +139,58 @@ void main() {
     expect(decision.reasonCodes, contains('missing_live_update_time'));
   });
 
+  test('future live update is blocked across every dashboard surface', () {
+    final decision = TripLiveOdometerRenderPolicy.evaluate(
+      snapshot: LiveOdometerDisplaySnapshot(
+        confirmedReading: 1000,
+        displayReading: 1006,
+        isLive: true,
+        liveUpdatedAt: now.add(const Duration(minutes: 4)),
+        projectionRevision: 5,
+      ),
+      now: now,
+      activeTripId: 'trip_future',
+      expectedTripId: 'trip_future',
+      subscribedSurfaces: TripLiveOdometerRenderSurface.values,
+    );
+    final safe = decision.toSafeUiMap();
+
+    expect(decision.status, TripLiveOdometerRenderStatus.blocked);
+    expect(decision.shouldRender, isFalse);
+    expect(decision.displayValue, isNull);
+    expect(decision.reasonCodes, contains('live_update_time_in_future'));
+    expect(safe['futureProjectionBlocked'], isTrue);
+    expect(safe['futureProjectionCanRender'], isFalse);
+    expect(safe['writesConfirmedOdometer'], isFalse);
+  });
+
+  test('impossible live odometer jump is blocked without repainting UI', () {
+    final decision = TripLiveOdometerRenderPolicy.evaluate(
+      snapshot: LiveOdometerDisplaySnapshot(
+        confirmedReading: 1000,
+        displayReading: 5000,
+        isLive: true,
+        liveUpdatedAt: now,
+        projectionRevision: 6,
+      ),
+      now: now,
+      activeTripId: 'trip_jump',
+      expectedTripId: 'trip_jump',
+      subscribedSurfaces: const {
+        TripLiveOdometerRenderSurface.dashboard,
+        TripLiveOdometerRenderSurface.activeVehicleBlock,
+      },
+    );
+    final safe = decision.toSafeUiMap();
+
+    expect(decision.status, TripLiveOdometerRenderStatus.blocked);
+    expect(decision.shouldNotifyListeners, isFalse);
+    expect(decision.reasonCodes, contains('live_projection_delta_too_large'));
+    expect(safe['impossibleProjectionDeltaBlocked'], isTrue);
+    expect(safe['impossibleProjectionCanRender'], isFalse);
+    expect(safe['confirmedOdometerRemainsCanonical'], isTrue);
+  });
+
   test(
     'no subscribed surface keeps snapshot safe but avoids redundant repaint',
     () {

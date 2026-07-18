@@ -55,6 +55,12 @@ class TripLiveOdometerRenderDecision {
       'shouldRender': shouldRender,
       'shouldNotifyListeners': shouldNotifyListeners,
       'reviewRequired': reviewRequired,
+      'futureProjectionBlocked': reasonCodes.contains(
+        'live_update_time_in_future',
+      ),
+      'impossibleProjectionDeltaBlocked': reasonCodes.contains(
+        'live_projection_delta_too_large',
+      ),
       'liveUiMustRefreshOnProjectionChange': true,
       'allDashboardSurfacesUseSameSnapshot': true,
       'activeVehicleBlockUsesLiveProjection': true,
@@ -71,6 +77,8 @@ class TripLiveOdometerRenderDecision {
       'mapboxCanReplaceOdometer': false,
       'firestoreCanOverrideLiveDisplay': false,
       'remoteDisplayCanOverrideLocalTrip': false,
+      'futureProjectionCanRender': false,
+      'impossibleProjectionCanRender': false,
       'rawGpsIncluded': false,
       'preciseLocationIncluded': false,
       'routeGeometryIncluded': false,

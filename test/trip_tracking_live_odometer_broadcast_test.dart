@@ -151,6 +151,53 @@ void main() {
     },
   );
 
+  test('future live projection timestamp is rejected before UI render', () {
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 1005,
+      isLive: true,
+      liveUpdatedAt: now.add(const Duration(minutes: 5)),
+      projectionRevision: 2,
+    );
+    final broadcast = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+      snapshot,
+      now: now,
+      activeTripId: 'trip_future',
+      expectedTripId: 'trip_future',
+    );
+    final safe = broadcast.toSafeDashboardMap();
+
+    expect(broadcast.status, TripTrackingLiveOdometerBroadcastStatus.rejected);
+    expect(broadcast.shouldNotifyDashboard, isFalse);
+    expect(broadcast.reasonCodes, contains('live_update_time_in_future'));
+    expect(safe['futureProjectionBlocked'], isTrue);
+    expect(safe['futureProjectionCanRender'], isFalse);
+  });
+
+  test('impossible live projection delta is rejected as review-only data', () {
+    final snapshot = LiveOdometerDisplaySnapshot(
+      confirmedReading: 1000,
+      displayReading: 4000,
+      isLive: true,
+      liveUpdatedAt: now,
+      projectionRevision: 3,
+    );
+    final broadcast = TripTrackingLiveOdometerBroadcast.fromSnapshot(
+      snapshot,
+      now: now,
+      activeTripId: 'trip_jump',
+      expectedTripId: 'trip_jump',
+    );
+    final safe = broadcast.toSafeDashboardMap();
+
+    expect(broadcast.status, TripTrackingLiveOdometerBroadcastStatus.rejected);
+    expect(broadcast.reasonCodes, contains('live_projection_delta_too_large'));
+    expect(broadcast.displayValue, isNull);
+    expect(safe['impossibleProjectionDeltaBlocked'], isTrue);
+    expect(safe['impossibleProjectionCanRender'], isFalse);
+    expect(safe['writesConfirmedOdometer'], isFalse);
+  });
+
   test('safe broadcast summaries never expose GPS, routes, or tokens', () {
     final safe = TripTrackingLiveOdometerBroadcast.fromSnapshot(
       LiveOdometerDisplaySnapshot(
