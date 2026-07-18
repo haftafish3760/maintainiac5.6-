@@ -317,6 +317,9 @@ void main() {
           'sampleWindowRequiresLocalDeviceSource': false,
           'sampleWindowRequiresOwnershipValidation': false,
           'sampleWindowRequiresIntakeGuardBeforeEvaluation': false,
+          'sampleWindowRequiresDeviceCapabilityContext': false,
+          'sampleWindowRequiresMonotonicSampleOrder': false,
+          'sampleWindowRequiresPermissionContinuity': false,
           'simulatorWindowRequiresExplicitTestHarness': false,
           'simulatorWindowCannotWriteProductionHistory': false,
           'authenticationAloneAuthorizesWindowUse': true,
@@ -324,6 +327,8 @@ void main() {
           'firestoreCanOverrideWindowQuality': true,
           'remoteWindowCanOverrideLocalTrip': true,
           'remoteWindowCanRepairInvalidSamples': true,
+          'mapboxCanFillSampleGaps': true,
+          'cloudFunctionCanRepairSampleWindow': true,
         });
 
     final validation = TripSampleWindowQualitySummaryValidation.fromSummary(
@@ -351,6 +356,8 @@ void main() {
           ).toSafeDashboardMap()..addAll({
             'sampleWindowCanConfirmOdometer': true,
             'sampleWindowCanCreateOfficialStop': true,
+            'sampleWindowCanBypassStopDebounce': true,
+            'sampleWindowCanAutocorrectCalibration': true,
             'sampleWindowCanDeleteTripData': true,
             'duplicateOrOutOfOrderSegmentsRejected': false,
             'odometerRemainsOfficialMileageTruth': false,

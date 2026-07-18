@@ -68,16 +68,23 @@ class TripSampleWindowQualityDecision {
     'sampleWindowRequiresLocalDeviceSource': true,
     'sampleWindowRequiresOwnershipValidation': true,
     'sampleWindowRequiresIntakeGuardBeforeEvaluation': true,
+    'sampleWindowRequiresDeviceCapabilityContext': true,
+    'sampleWindowRequiresMonotonicSampleOrder': true,
+    'sampleWindowRequiresPermissionContinuity': true,
     'simulatorWindowRequiresExplicitTestHarness': true,
     'simulatorWindowCannotWriteProductionHistory': true,
     'authenticationAloneAuthorizesWindowUse': false,
     'sampleWindowCanConfirmOdometer': false,
     'sampleWindowCanCreateOfficialStop': false,
+    'sampleWindowCanBypassStopDebounce': false,
+    'sampleWindowCanAutocorrectCalibration': false,
     'sampleWindowCanDeleteTripData': false,
     'mapboxCanOverrideWindowQuality': false,
     'firestoreCanOverrideWindowQuality': false,
     'remoteWindowCanOverrideLocalTrip': false,
     'remoteWindowCanRepairInvalidSamples': false,
+    'mapboxCanFillSampleGaps': false,
+    'cloudFunctionCanRepairSampleWindow': false,
     'odometerRemainsOfficialMileageTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'sampleTimestampsValidated': true,
@@ -154,6 +161,9 @@ class TripSampleWindowQualitySummaryValidation {
       'sampleWindowRequiresLocalDeviceSource',
       'sampleWindowRequiresOwnershipValidation',
       'sampleWindowRequiresIntakeGuardBeforeEvaluation',
+      'sampleWindowRequiresDeviceCapabilityContext',
+      'sampleWindowRequiresMonotonicSampleOrder',
+      'sampleWindowRequiresPermissionContinuity',
       'simulatorWindowRequiresExplicitTestHarness',
       'simulatorWindowCannotWriteProductionHistory',
     ]) {
@@ -168,6 +178,9 @@ class TripSampleWindowQualitySummaryValidation {
     if (summary['sampleWindowRequiresLocalDeviceSource'] != true ||
         summary['sampleWindowRequiresOwnershipValidation'] != true ||
         summary['sampleWindowRequiresIntakeGuardBeforeEvaluation'] != true ||
+        summary['sampleWindowRequiresDeviceCapabilityContext'] != true ||
+        summary['sampleWindowRequiresMonotonicSampleOrder'] != true ||
+        summary['sampleWindowRequiresPermissionContinuity'] != true ||
         summary['simulatorWindowRequiresExplicitTestHarness'] != true ||
         summary['simulatorWindowCannotWriteProductionHistory'] != true ||
         summary['authenticationAloneAuthorizesWindowUse'] != false) {
@@ -175,6 +188,8 @@ class TripSampleWindowQualitySummaryValidation {
     }
     if (summary['sampleWindowCanConfirmOdometer'] != false ||
         summary['sampleWindowCanCreateOfficialStop'] != false ||
+        summary['sampleWindowCanBypassStopDebounce'] != false ||
+        summary['sampleWindowCanAutocorrectCalibration'] != false ||
         summary['sampleWindowCanDeleteTripData'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('sample_window_claims_trip_truth_authority');
@@ -182,7 +197,9 @@ class TripSampleWindowQualitySummaryValidation {
     if (summary['mapboxCanOverrideWindowQuality'] != false ||
         summary['firestoreCanOverrideWindowQuality'] != false ||
         summary['remoteWindowCanOverrideLocalTrip'] != false ||
-        summary['remoteWindowCanRepairInvalidSamples'] != false) {
+        summary['remoteWindowCanRepairInvalidSamples'] != false ||
+        summary['mapboxCanFillSampleGaps'] != false ||
+        summary['cloudFunctionCanRepairSampleWindow'] != false) {
       reasons.add('remote_can_override_sample_window');
     }
     if (summary['duplicateOrOutOfOrderSegmentsRejected'] != true ||

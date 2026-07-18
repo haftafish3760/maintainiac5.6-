@@ -69,6 +69,9 @@ class TripLocationSampleIntakeDecision {
     'authDoesNotImplyAuthorization': true,
     'localTripSessionRequired': true,
     'nativeLocationSourceRequired': true,
+    'sampleRequiresDeviceCapabilityTier': true,
+    'sampleRequiresForegroundOrBackgroundPermission': true,
+    'sampleRequiresMonotonicDeviceClock': true,
     'simulatorSampleRequiresExplicitTestHarness': true,
     'simulatorHarnessCanFeedTripEngine': simulatorHarnessVerified,
     'simulatorHarnessCannotWriteProductionHistory': true,
@@ -78,6 +81,8 @@ class TripLocationSampleIntakeDecision {
     'mapboxDirectionsCanSupplyOfficialSample': false,
     'mapboxMapMatchingCanReplaceSample': false,
     'mapboxOptimizationCanCreateMileage': false,
+    'mapboxCanRepairRejectedSample': false,
+    'mapboxCanInferMissingSample': false,
     'publicMapboxTokenIncluded': false,
     'secretMapboxTokenIncluded': false,
     'authenticatedUserStillNeedsAuthorization': true,
@@ -85,6 +90,8 @@ class TripLocationSampleIntakeDecision {
     'remoteSampleCanMasqueradeAsNative': false,
     'sampleCanCreateOfficialStop': false,
     'sampleCanConfirmMileage': false,
+    'sampleCanAdvanceOdometerWithoutWindowQuality': false,
+    'sampleCanBypassStopDebounce': false,
     'odometerRemainsOfficialMileageTruth': true,
     'mockLocationAccepted': false,
     'malformedPayloadFailsClosed': true,
@@ -130,6 +137,9 @@ class TripLocationSampleIntakeSummaryValidation {
       'authenticatedUserStillNeedsAuthorization',
       'localTripSessionRequired',
       'nativeLocationSourceRequired',
+      'sampleRequiresDeviceCapabilityTier',
+      'sampleRequiresForegroundOrBackgroundPermission',
+      'sampleRequiresMonotonicDeviceClock',
       'simulatorSampleRequiresExplicitTestHarness',
       'simulatorHarnessCanFeedTripEngine',
       'simulatorHarnessCannotWriteProductionHistory',
@@ -153,6 +163,9 @@ class TripLocationSampleIntakeSummaryValidation {
         summary['authenticatedUserStillNeedsAuthorization'] != true ||
         summary['localTripSessionRequired'] != true ||
         summary['nativeLocationSourceRequired'] != true ||
+        summary['sampleRequiresDeviceCapabilityTier'] != true ||
+        summary['sampleRequiresForegroundOrBackgroundPermission'] != true ||
+        summary['sampleRequiresMonotonicDeviceClock'] != true ||
         summary['simulatorSampleRequiresExplicitTestHarness'] != true ||
         summary['simulatorHarnessCannotWriteProductionHistory'] != true) {
       reasons.add('authorization_boundary_missing');
@@ -164,13 +177,17 @@ class TripLocationSampleIntakeSummaryValidation {
     if (summary['mapboxResponsesTreatedAsExternalInput'] != true ||
         summary['mapboxDirectionsCanSupplyOfficialSample'] != false ||
         summary['mapboxMapMatchingCanReplaceSample'] != false ||
-        summary['mapboxOptimizationCanCreateMileage'] != false) {
+        summary['mapboxOptimizationCanCreateMileage'] != false ||
+        summary['mapboxCanRepairRejectedSample'] != false ||
+        summary['mapboxCanInferMissingSample'] != false) {
       reasons.add('mapbox_can_control_sample_truth');
     }
     if (summary['remoteSampleCanOverrideLocalTruth'] != false ||
         summary['remoteSampleCanMasqueradeAsNative'] != false ||
         summary['sampleCanCreateOfficialStop'] != false ||
         summary['sampleCanConfirmMileage'] != false ||
+        summary['sampleCanAdvanceOdometerWithoutWindowQuality'] != false ||
+        summary['sampleCanBypassStopDebounce'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['mockLocationAccepted'] != false) {
       reasons.add('sample_can_create_trip_truth');
