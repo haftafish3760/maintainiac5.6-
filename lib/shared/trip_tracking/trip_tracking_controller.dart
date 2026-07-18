@@ -58,6 +58,7 @@ class TripTrackingController extends ChangeNotifier {
   String? _platformStatus;
   String? _platformError;
   String? _cloudMirrorError;
+  bool _gpsAssistanceCalibrationEnabled = false;
   TripActivityObservation? _latestActivity;
   TripTrackingPlatformCapabilities? _lastKnownCapabilities;
 
@@ -107,6 +108,7 @@ class TripTrackingController extends ChangeNotifier {
   );
 
   void refreshGpsAssistanceCalibration({required bool enabled}) {
+    _gpsAssistanceCalibrationEnabled = enabled;
     final next = enabled
         ? odometerCalibrationSignal().gpsAssistanceCalibrationMultiplier
         : 1.0;
@@ -218,6 +220,12 @@ class TripTrackingController extends ChangeNotifier {
     if (_platformStatus == 'review_confirmation_save_failed') {
       _platformStatus = null;
       _platformError = null;
+    }
+    if (_gpsAssistanceCalibrationEnabled) {
+      _gpsAssistanceCalibrationMultiplier =
+          _safeGpsAssistanceCalibrationMultiplier(
+            odometerCalibrationSignal().gpsAssistanceCalibrationMultiplier,
+          );
     }
     final reconciliation = TripOdometerReconciliation.compare(
       review: review,
