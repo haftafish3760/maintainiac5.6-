@@ -137,7 +137,12 @@ class TripStopClassifier {
     int acceptedDistanceCount = 0,
   }) {
     final strategy = TripTrackingProfileStrategy.forProfile(profile);
-    if (rejectedUnsafeCount >= 3 && acceptedDistanceCount == 0) {
+    final safeExcludedWalkingCount = _safeEvidenceCount(excludedWalkingCount);
+    final safeRejectedDriftCount = _safeEvidenceCount(rejectedDriftCount);
+    final safeRejectedUnsafeCount = _safeEvidenceCount(rejectedUnsafeCount);
+    final safeAcceptedDistanceCount = _safeEvidenceCount(acceptedDistanceCount);
+
+    if (safeRejectedUnsafeCount >= 3 && safeAcceptedDistanceCount == 0) {
       return const TripStopClassification(
         signal: TripStopSignal.unsafeEvidence,
         reasonCode: 'unsafe_stop_evidence_rejected',
@@ -148,7 +153,7 @@ class TripStopClassifier {
             'Stop evidence was ignored because the GPS provider data was not safe enough to trust.',
       );
     }
-    if (!strategy.usesWalkingStopEvidence && excludedWalkingCount > 0) {
+    if (!strategy.usesWalkingStopEvidence && safeExcludedWalkingCount > 0) {
       return const TripStopClassification(
         signal: TripStopSignal.equipmentIgnored,
         reasonCode: 'equipment_walking_evidence_ignored',
@@ -160,8 +165,8 @@ class TripStopClassifier {
       );
     }
     if (needsWalkingReview &&
-        excludedWalkingCount > 0 &&
-        acceptedDistanceCount == 0) {
+        safeExcludedWalkingCount > 0 &&
+        safeAcceptedDistanceCount == 0) {
       return const TripStopClassification(
         signal: TripStopSignal.unsafeEvidence,
         reasonCode: 'walking_stop_without_vehicle_movement',
@@ -172,7 +177,7 @@ class TripStopClassifier {
             'Walking evidence was ignored because no vehicle movement was accepted first.',
       );
     }
-    if (needsWalkingReview && excludedWalkingCount > 0) {
+    if (needsWalkingReview && safeExcludedWalkingCount > 0) {
       return TripStopClassification(
         signal: TripStopSignal.reviewOnlyStop,
         reasonCode: strategy.stopReviewReasonCode,
@@ -180,6 +185,20 @@ class TripStopClassifier {
         canSuggestStop: true,
         actionToken: _reviewActionFor(strategy.workStyle),
         dashboardMessage: _reviewMessageFor(strategy.workStyle),
+      );
+    }
+    if (safeRejectedDriftCount >= 6 &&
+        safeExcludedWalkingCount == 0 &&
+        safeAcceptedDistanceCount > 0 &&
+        motionState != TripMotionState.stopped) {
+      return const TripStopClassification(
+        signal: TripStopSignal.likelyTrafficControl,
+        reasonCode: 'traffic_control_or_stationary_jitter',
+        requiresUserReview: false,
+        canSuggestStop: false,
+        actionToken: 'keep_tracking',
+        dashboardMessage:
+            'Stationary GPS jitter was treated like a traffic light or road delay, not a customer stop.',
       );
     }
     if (motionState == TripMotionState.stopCandidate) {
@@ -194,19 +213,6 @@ class TripStopClassifier {
         dashboardMessage: strategy.requiresStrongerStopDebounce
             ? 'The trip may be stopped, but this profile needs stronger evidence before showing a stop review.'
             : 'The trip may be stopped; Maintainiac is waiting for confirmation before suggesting a review.',
-      );
-    }
-    if (rejectedDriftCount >= 6 &&
-        excludedWalkingCount == 0 &&
-        motionState == TripMotionState.moving) {
-      return const TripStopClassification(
-        signal: TripStopSignal.likelyTrafficControl,
-        reasonCode: 'traffic_control_or_stationary_jitter',
-        requiresUserReview: false,
-        canSuggestStop: false,
-        actionToken: 'keep_tracking',
-        dashboardMessage:
-            'Stationary GPS jitter was treated like a traffic light or road delay, not a customer stop.',
       );
     }
     return const TripStopClassification(
@@ -228,6 +234,11 @@ String _reviewActionFor(TripTrackingWorkStyle workStyle) {
     TripTrackingWorkStyle.generalRoad => 'review_trip_stop',
     TripTrackingWorkStyle.equipment => 'keep_tracking',
   };
+}
+
+int _safeEvidenceCount(int value) {
+  if (value <= 0) return 0;
+  return value > 100000 ? 100000 : value;
 }
 
 String _reviewMessageFor(TripTrackingWorkStyle workStyle) {

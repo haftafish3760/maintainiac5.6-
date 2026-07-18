@@ -326,4 +326,40 @@ void main() {
     expect(vehicleOnly['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(vehicleOnly['mapboxCanEndTrip'], isFalse);
   });
+
+  test('malformed evidence counters fail into safe no-stop behavior', () {
+    final classification = TripStopClassifier.classify(
+      profile: TripTrackingProfile.deliveryVehicle,
+      motionState: TripMotionState.moving,
+      needsWalkingReview: true,
+      excludedWalkingCount: -20,
+      rejectedDriftCount: -5,
+      rejectedUnsafeCount: -3,
+      acceptedDistanceCount: -1,
+    );
+    final summary = classification.toSafeSummary();
+
+    expect(classification.signal, TripStopSignal.noStop);
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.requiresUserReview, isFalse);
+    expect(summary['officialStopSource'], 'user_review');
+    expect(summary['canCreateOfficialStop'], isFalse);
+  });
+
+  test('long stationary jitter outranks vehicle-only stop candidate', () {
+    final classification = TripStopClassifier.classify(
+      profile: TripTrackingProfile.deliveryVehicle,
+      motionState: TripMotionState.stopCandidate,
+      needsWalkingReview: false,
+      excludedWalkingCount: 0,
+      rejectedDriftCount: 8,
+      rejectedUnsafeCount: 0,
+      acceptedDistanceCount: 5,
+    );
+
+    expect(classification.signal, TripStopSignal.likelyTrafficControl);
+    expect(classification.actionToken, 'keep_tracking');
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.dashboardMessage, contains('traffic light'));
+  });
 }
