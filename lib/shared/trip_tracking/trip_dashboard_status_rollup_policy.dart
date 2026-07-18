@@ -48,6 +48,10 @@ class TripDashboardStatusRollupDecision {
     'dashboardRollupCanEndTripAutomatically': false,
     'dashboardRollupCanPurgeLocalDataAfterBackup': false,
     'dashboardRollupCanImportWithoutValidation': false,
+    'dashboardRollupRequiresLocalTripLog': true,
+    'dashboardRollupRequiresOwnershipValidation': true,
+    'authenticationAloneAuthorizesRollupAccess': false,
+    'importedRollupCanOpenSensitiveReview': false,
     'dashboardWidgetsUserCustomizable': true,
     'activeVehicleGearControlsPageSettings': true,
     'remoteRollupCanOverrideLocalTrip': false,
@@ -100,8 +104,14 @@ class TripDashboardStatusRollupSummaryValidation {
         summary['dashboardRollupCanDeleteLocalData'] != false ||
         summary['dashboardRollupCanEndTripAutomatically'] != false ||
         summary['dashboardRollupCanPurgeLocalDataAfterBackup'] != false ||
-        summary['dashboardRollupCanImportWithoutValidation'] != false) {
+        summary['dashboardRollupCanImportWithoutValidation'] != false ||
+        summary['importedRollupCanOpenSensitiveReview'] != false) {
       reasons.add('rollup_can_mutate_trip_truth');
+    }
+    if (summary['dashboardRollupRequiresLocalTripLog'] != true ||
+        summary['dashboardRollupRequiresOwnershipValidation'] != true ||
+        summary['authenticationAloneAuthorizesRollupAccess'] != false) {
+      reasons.add('rollup_authorization_boundary_missing');
     }
     if (summary['remoteRollupCanOverrideLocalTrip'] != false ||
         summary['firestoreMirrorOnly'] != true ||

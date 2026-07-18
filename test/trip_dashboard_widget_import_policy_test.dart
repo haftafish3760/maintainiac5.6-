@@ -12,6 +12,8 @@ void main() {
     expect(safe['summaryOnlyImport'], isTrue);
     expect(safe['tripTrackingStartButtonShouldRemainPrimary'], isTrue);
     expect(safe['mapsRequiredForDashboardWidget'], isFalse);
+    expect(safe['sourceModuleOwnershipValidated'], isTrue);
+    expect(safe['authenticationAloneAuthorizesWidgetAccess'], isFalse);
   });
 
   test(
@@ -77,6 +79,9 @@ void main() {
     expect(safe['moduleImportsCanMutateExpenses'], isFalse);
     expect(safe['moduleImportsCanMutateMaterials'], isFalse);
     expect(safe['moduleImportsCanMutateMaintenance'], isFalse);
+    expect(safe['importedWidgetCanConfirmOdometer'], isFalse);
+    expect(safe['importedWidgetCanCreateOfficialStop'], isFalse);
+    expect(safe['importedWidgetCanDeleteLocalData'], isFalse);
     expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['remoteTotalsCanonical'], isFalse);
@@ -103,6 +108,104 @@ void main() {
     expect(safe.toString(), isNot(contains('pk.secret')));
     expect(safe.toString(), isNot(contains('sk.secret')));
     expect(safe.toString(), isNot(contains('35.12345')));
+  });
+
+  test('valid import summary passes the dashboard trust boundary', () {
+    final summary = TripDashboardWidgetImportPolicy.evaluate(
+      descriptor(sourceModule: TripDashboardWidgetSourceModule.maintenance),
+    ).toSafeDashboardMap();
+
+    final validation = TripDashboardWidgetImportSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(
+      validation.sourceModule,
+      TripDashboardWidgetSourceModule.maintenance,
+    );
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'import summary rejects auth-only access and source mutation authority',
+    () {
+      final summary =
+          TripDashboardWidgetImportPolicy.evaluate(
+            descriptor(sourceModule: TripDashboardWidgetSourceModule.expenses),
+          ).toSafeDashboardMap()..addAll({
+            'sourceModuleOwnershipValidated': false,
+            'authenticationAloneAuthorizesWidgetAccess': true,
+            'dashboardCanMutateSourceModule': true,
+            'importedWidgetCanConfirmOdometer': true,
+            'importedWidgetCanCreateOfficialStop': true,
+            'importedWidgetCanDeleteLocalData': true,
+          });
+
+      final validation = TripDashboardWidgetImportSummaryValidation.fromSummary(
+        summary,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('sourceModuleOwnershipValidated_not_true'),
+      );
+      expect(
+        validation.reasons,
+        contains('authenticationAloneAuthorizesWidgetAccess_not_false'),
+      );
+      expect(
+        validation.reasons,
+        contains('dashboardCanMutateSourceModule_not_false'),
+      );
+      expect(
+        validation.reasons,
+        contains('importedWidgetCanConfirmOdometer_not_false'),
+      );
+      expect(
+        validation.reasons,
+        contains('importedWidgetCanCreateOfficialStop_not_false'),
+      );
+      expect(
+        validation.reasons,
+        contains('importedWidgetCanDeleteLocalData_not_false'),
+      );
+    },
+  );
+
+  test('import summary rejects malformed shape and sensitive text', () {
+    final summary =
+        TripDashboardWidgetImportPolicy.evaluate(
+          descriptor(
+            sourceModule: TripDashboardWidgetSourceModule.tripTracking,
+          ),
+        ).toSafeDashboardMap()..addAll({
+          'schemaVersion': 2,
+          'status': 'trusted_admin',
+          'reason': 'remoteOverride',
+          'sourceModule': 'fleetSpy',
+          'widgetId': 'route_35.12345',
+          'renderToken': 'summary_token',
+        });
+
+    final validation = TripDashboardWidgetImportSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'unsupported_schema_version',
+        'invalid_import_status',
+        'invalid_import_reason',
+        'invalid_source_module',
+        'invalid_widget_id',
+        'invalid_render_token',
+        'summary_contains_sensitive_text',
+      ]),
+    );
   });
 }
 

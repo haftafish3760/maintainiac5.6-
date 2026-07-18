@@ -7,7 +7,10 @@ import 'package:maintaniac/shared/trip_tracking/trip_odometer_end_review_policy.
 import 'package:maintaniac/shared/trip_tracking/trip_sample_window_quality_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_evidence_digest.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_walking_evidence_recency_guard.dart';
 
 void main() {
   const timer = TripActiveDayTimerDecision(
@@ -17,8 +20,32 @@ void main() {
     shouldTickLive: true,
     requiresUserReview: false,
   );
+  const evidenceDigest = TripStopDebounceEvidenceDigest(
+    profile: TripTrackingProfile.deliveryVehicle,
+    acceptedDistanceCount: 3,
+    rejectedDriftCount: 0,
+    rejectedUnsafeCount: 0,
+    walkingEvidenceCount: 0,
+    stationaryDuration: Duration.zero,
+    walkingEvidenceSpan: Duration.zero,
+    minimumStationary: Duration(minutes: 2),
+    minimumWalkingEvidenceSpacing: Duration(seconds: 20),
+    acceptedVehicleMovementObserved: true,
+    providerValuesUsable: true,
+    walkingBurstProtected: false,
+    walkingEvidenceCurrent: true,
+    walkingEvidenceRecency: TripWalkingEvidenceRecencyDecision(
+      usable: true,
+      reasonCode: 'no_walking_evidence',
+      walkingEvidenceCount: 0,
+      walkingEvidenceSpan: Duration.zero,
+      latestEvidenceAge: null,
+      maximumEvidenceAge: Duration(minutes: 10),
+    ),
+  );
   const stop = TripStopDebounceDecision(
     status: TripStopDebounceStatus.keepTracking,
+    profile: TripTrackingProfile.deliveryVehicle,
     classification: TripStopClassification(
       signal: TripStopSignal.noStop,
       reviewConfidence: TripStopReviewConfidence.none,
@@ -30,6 +57,7 @@ void main() {
       dashboardMessage: 'No stop review is needed right now.',
     ),
     reasonCode: 'stop_debounce_keep_tracking',
+    evidenceDigest: evidenceDigest,
     needsWalkingReview: false,
     protectedTrafficControl: false,
     shouldContinueSampling: true,
@@ -78,6 +106,11 @@ void main() {
     reasonCode: 'sample_window_usable',
     validSampleCount: 3,
     rejectedSampleCount: 0,
+    acceptedSegmentCount: 2,
+    rejectedGapSegmentCount: 0,
+    rejectedJumpSegmentCount: 0,
+    rejectedSpeedSegmentCount: 0,
+    maximumConsecutiveRejectedSegments: 0,
     acceptedDistanceMeters: 120,
     maximumGapSeconds: 15,
     canFeedLiveOdometerProjection: true,
@@ -113,11 +146,15 @@ void main() {
     expect(safe['startButtonEnabled'], isTrue);
     expect(safe['liveTimerVisible'], isFalse);
     expect(safe['mapsRequiredForTripDashboard'], isFalse);
+    expect(safe['dashboardRollupRequiresLocalTripLog'], isTrue);
+    expect(safe['dashboardRollupRequiresOwnershipValidation'], isTrue);
+    expect(safe['authenticationAloneAuthorizesRollupAccess'], isFalse);
   });
 
   test('stop review gets attention without creating official stop', () {
     const reviewStop = TripStopDebounceDecision(
       status: TripStopDebounceStatus.readyForReview,
+      profile: TripTrackingProfile.deliveryVehicle,
       classification: TripStopClassification(
         signal: TripStopSignal.reviewOnlyStop,
         reviewConfidence: TripStopReviewConfidence.high,
@@ -130,6 +167,29 @@ void main() {
             'Walking evidence suggests a pickup or dropoff stop. Review it before it becomes official.',
       ),
       reasonCode: 'walking_stop_debounce_ready',
+      evidenceDigest: TripStopDebounceEvidenceDigest(
+        profile: TripTrackingProfile.deliveryVehicle,
+        acceptedDistanceCount: 2,
+        rejectedDriftCount: 0,
+        rejectedUnsafeCount: 0,
+        walkingEvidenceCount: 3,
+        stationaryDuration: Duration(minutes: 3),
+        walkingEvidenceSpan: Duration(minutes: 1),
+        minimumStationary: Duration(minutes: 2),
+        minimumWalkingEvidenceSpacing: Duration(seconds: 20),
+        acceptedVehicleMovementObserved: true,
+        providerValuesUsable: true,
+        walkingBurstProtected: false,
+        walkingEvidenceCurrent: true,
+        walkingEvidenceRecency: TripWalkingEvidenceRecencyDecision(
+          usable: true,
+          reasonCode: 'walking_evidence_current',
+          walkingEvidenceCount: 3,
+          walkingEvidenceSpan: Duration(minutes: 1),
+          latestEvidenceAge: Duration(seconds: 20),
+          maximumEvidenceAge: Duration(minutes: 10),
+        ),
+      ),
       needsWalkingReview: true,
       protectedTrafficControl: false,
       shouldContinueSampling: false,
@@ -209,6 +269,11 @@ void main() {
       reasonCode: 'route_storage_budget_paused',
       validSampleCount: 3,
       rejectedSampleCount: 0,
+      acceptedSegmentCount: 2,
+      rejectedGapSegmentCount: 0,
+      rejectedJumpSegmentCount: 0,
+      rejectedSpeedSegmentCount: 0,
+      maximumConsecutiveRejectedSegments: 0,
       acceptedDistanceMeters: 120,
       maximumGapSeconds: 15,
       canFeedLiveOdometerProjection: true,
@@ -242,6 +307,10 @@ void main() {
       ).toSafeDashboardMap();
 
       expect(safe['dashboardRollupCanConfirmOdometer'], isFalse);
+      expect(safe['importedRollupCanOpenSensitiveReview'], isFalse);
+      expect(safe['dashboardRollupRequiresLocalTripLog'], isTrue);
+      expect(safe['dashboardRollupRequiresOwnershipValidation'], isTrue);
+      expect(safe['authenticationAloneAuthorizesRollupAccess'], isFalse);
       expect(safe['remoteRollupCanOverrideLocalTrip'], isFalse);
       expect(safe['rawTripRecordsIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
@@ -249,4 +318,55 @@ void main() {
       expect(safe['tokensIncluded'], isFalse);
     },
   );
+
+  test(
+    'rollup validation rejects missing local trip and ownership boundary',
+    () {
+      final summary =
+          TripDashboardStatusRollupPolicy.evaluate(
+            timer: timer,
+            stopDebounce: stop,
+            odometerReview: odometer,
+            checkpoint: checkpoint,
+            sampleWindow: samples,
+            gpsAssistedTrackingEnabled: true,
+          ).toSafeDashboardMap()..addAll({
+            'dashboardRollupRequiresLocalTripLog': false,
+            'dashboardRollupRequiresOwnershipValidation': false,
+            'authenticationAloneAuthorizesRollupAccess': true,
+          });
+
+      final validation = TripDashboardStatusRollupSummaryValidation.fromSummary(
+        summary,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('rollup_authorization_boundary_missing'),
+      );
+    },
+  );
+
+  test('rollup validation rejects imported review or mutation authority', () {
+    final summary =
+        TripDashboardStatusRollupPolicy.evaluate(
+          timer: timer,
+          stopDebounce: stop,
+          odometerReview: odometer,
+          checkpoint: checkpoint,
+          sampleWindow: samples,
+          gpsAssistedTrackingEnabled: true,
+        ).toSafeDashboardMap()..addAll({
+          'importedRollupCanOpenSensitiveReview': true,
+          'dashboardRollupCanCreateOfficialStop': true,
+        });
+
+    final validation = TripDashboardStatusRollupSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('rollup_can_mutate_trip_truth'));
+  });
 }
