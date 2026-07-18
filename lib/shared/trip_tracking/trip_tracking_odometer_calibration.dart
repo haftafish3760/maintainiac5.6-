@@ -53,12 +53,22 @@ class TripOdometerCalibrationSignal {
     'maySuggestTireOrSpeedometerReview':
         _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
         maySuggestTireOrSpeedometerReview,
+    'tireSizeReviewSuggested':
+        _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
+        maySuggestTireOrSpeedometerReview,
+    'speedometerCalibrationReviewSuggested':
+        _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
+        maySuggestTireOrSpeedometerReview,
     'canOverwriteConfirmedOdometer': false,
     'calibrationRequiresUserOptIn': true,
+    'calibrationRequiresMultipleReviewedTrips': true,
+    'calibrationCanRewritePastTrips': false,
     'canApplySilently': false,
     'calibrationTrustedAfterReviewedHistoryOnly': true,
+    'remoteHistoryCanCreateCalibration': false,
     'remoteCalibrationCanApplySilently': false,
     'firestoreCanOverrideCalibration': false,
+    'mapboxRouteCanCreateCalibration': false,
     'mapboxCanOverrideCalibration': false,
     'gpsAssistanceCalibrationMultiplier': _safeRoundedMultiplier(
       gpsAssistanceCalibrationMultiplier,
@@ -68,6 +78,7 @@ class TripOdometerCalibrationSignal {
     'mapboxAssistAdvisoryOnly': true,
     'rawReviewedTripsIncluded': false,
     'rawLocationIncluded': false,
+    'tokensIncluded': false,
   };
 
   double get gpsAssistanceCalibrationMultiplier {

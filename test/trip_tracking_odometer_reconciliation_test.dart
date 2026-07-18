@@ -505,13 +505,35 @@ void main() {
         signal.toSafeDashboardMap()['calibrationRequiresUserOptIn'],
         isTrue,
       );
+      expect(
+        signal.toSafeDashboardMap()['calibrationRequiresMultipleReviewedTrips'],
+        isTrue,
+      );
+      expect(
+        signal.toSafeDashboardMap()['calibrationCanRewritePastTrips'],
+        isFalse,
+      );
       expect(signal.toSafeDashboardMap()['canApplySilently'], isFalse);
+      expect(signal.toSafeDashboardMap()['tireSizeReviewSuggested'], isTrue);
+      expect(
+        signal.toSafeDashboardMap()['speedometerCalibrationReviewSuggested'],
+        isTrue,
+      );
+      expect(
+        signal.toSafeDashboardMap()['remoteHistoryCanCreateCalibration'],
+        isFalse,
+      );
+      expect(
+        signal.toSafeDashboardMap()['mapboxRouteCanCreateCalibration'],
+        isFalse,
+      );
       expect(
         signal.toSafeDashboardMap()['gpsAssistanceCalibrationMultiplier'],
         1.0638,
       );
       expect(signal.toSafeDashboardMap()['odometerRemainsCanonical'], isTrue);
       expect(signal.toSafeDashboardMap()['rawLocationIncluded'], isFalse);
+      expect(signal.toSafeDashboardMap()['tokensIncluded'], isFalse);
     },
   );
 
@@ -1106,12 +1128,18 @@ void main() {
       'reasonCode': 'persistent_gps_odometer_drift',
       'shouldPromptUser': true,
       'maySuggestTireOrSpeedometerReview': true,
+      'tireSizeReviewSuggested': true,
+      'speedometerCalibrationReviewSuggested': true,
       'canOverwriteConfirmedOdometer': false,
       'calibrationRequiresUserOptIn': true,
+      'calibrationRequiresMultipleReviewedTrips': true,
+      'calibrationCanRewritePastTrips': false,
       'canApplySilently': false,
       'calibrationTrustedAfterReviewedHistoryOnly': true,
+      'remoteHistoryCanCreateCalibration': false,
       'remoteCalibrationCanApplySilently': false,
       'firestoreCanOverrideCalibration': false,
+      'mapboxRouteCanCreateCalibration': false,
       'mapboxCanOverrideCalibration': false,
       'gpsAssistanceCalibrationMultiplier': 0.9434,
       'odometerRemainsCanonical': true,
@@ -1119,6 +1147,7 @@ void main() {
       'mapboxAssistAdvisoryOnly': true,
       'rawReviewedTripsIncluded': false,
       'rawLocationIncluded': false,
+      'tokensIncluded': false,
     });
   });
 
