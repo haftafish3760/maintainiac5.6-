@@ -62,6 +62,36 @@ class TripTrackingDashboardGuidance {
     return badges;
   }
 
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'enabled': enabled,
+    'profileLabel': profileLabel,
+    'modeToken': modeToken,
+    'primaryStatus': primaryStatus,
+    'safetyStatus': safetyStatus,
+    'syncStatus': syncStatus,
+    'syncReason': syncReason,
+    'mapStatus': mapStatus,
+    'stopDetectionStatus': stopDetectionStatus,
+    'odometerStatus': odometerStatus,
+    'dashboardBadges': List.unmodifiable(dashboardBadges),
+    'shouldShowActivityRecognitionRecommendation':
+        shouldShowActivityRecognitionRecommendation,
+    'shouldShowBatterySafety': shouldShowBatterySafety,
+    'shouldShowOdometerReview': shouldShowOdometerReview,
+    'advisoryOnly': true,
+    'odometerRemainsCanonical': true,
+    'mapsRequiredForTracking': false,
+    'locationSharingRequiresActiveOptIn': true,
+    'employeeTrackingRequiresMutualConsent': true,
+    'employerGodModeAllowed': false,
+    'tokensIncluded': false,
+    'preciseLocationIncluded': false,
+    'rawLocationIncluded': false,
+    'rawSensorPayloadIncluded': false,
+    'rawModuleDataIncluded': false,
+  };
+
   static TripTrackingDashboardGuidance fromSettings(
     TripTrackingSettings settings,
   ) => fromSettingsWithSyncContext(settings);

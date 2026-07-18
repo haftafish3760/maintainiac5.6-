@@ -70,6 +70,7 @@ void main() {
       expect(decision.freeSyncsRemaining, isNull);
       expect(decision.reasonCode, 'free_sync_limit_invalid');
       expect(decision.userFacingReason, contains('could not be verified'));
+      expect(decision.dashboardLabel, contains('unverified'));
       expect(decision.toSafeSummary()['freeSyncsRemaining'], isNull);
     }
   });

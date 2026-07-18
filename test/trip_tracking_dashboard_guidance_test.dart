@@ -186,4 +186,34 @@ void main() {
       contains('Odometer calibration assist on'),
     );
   });
+
+  test(
+    'dashboard guidance safe map contains no raw location or sensor data',
+    () {
+      final guidance =
+          TripTrackingDashboardGuidance.fromSettingsWithSyncContext(
+            const TripTrackingSettings(
+              gpsAssistedTrackingEnabled: true,
+              defaultProfile: TripTrackingProfile.deliveryVehicle,
+            ),
+            wifiAvailable: true,
+            mobileDataAvailable: true,
+            syncsUsedInWindow: 1000,
+          );
+      final safe = guidance.toSafeDashboardMap();
+
+      expect(safe['syncStatus'], contains('unverified'));
+      expect(safe['advisoryOnly'], isTrue);
+      expect(safe['odometerRemainsCanonical'], isTrue);
+      expect(safe['mapsRequiredForTracking'], isFalse);
+      expect(safe['locationSharingRequiresActiveOptIn'], isTrue);
+      expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
+      expect(safe['employerGodModeAllowed'], isFalse);
+      expect(safe['tokensIncluded'], isFalse);
+      expect(safe['preciseLocationIncluded'], isFalse);
+      expect(safe['rawLocationIncluded'], isFalse);
+      expect(safe['rawSensorPayloadIncluded'], isFalse);
+      expect(safe['rawModuleDataIncluded'], isFalse);
+    },
+  );
 }

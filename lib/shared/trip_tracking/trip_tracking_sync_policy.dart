@@ -165,11 +165,17 @@ class TripTrackingBackupSyncDecision {
   }
 
   String get dashboardLabel {
-    final remaining = freeSyncsRemaining;
-    final freeLabel = remaining == null
-        ? 'free sync usage pending'
-        : '$remaining free sync${remaining == 1 ? '' : 's'} left';
+    final freeLabel = _freeSyncLabel;
     return 'Sync: $networkLabel; $freeLabel';
+  }
+
+  String get _freeSyncLabel {
+    if (reasonCode == 'free_sync_limit_invalid') {
+      return 'free sync usage unverified';
+    }
+    final remaining = freeSyncsRemaining;
+    if (remaining == null) return 'free sync usage pending';
+    return '$remaining free sync${remaining == 1 ? '' : 's'} left';
   }
 
   Map<String, Object?> toSafeSummary() => {
