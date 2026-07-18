@@ -331,7 +331,7 @@ double? _tripSpeedFrom(Object? rawSpeed) {
 }
 
 const _maximumNativeHorizontalAccuracyMeters = 10000.0;
-const _maximumNativeReportedSpeedMetersPerSecond = 75.0;
+const _maximumNativeReportedSpeedMetersPerSecond = 70.0;
 
 double? _tripNumberFrom(Object? value) {
   if (value is! num || !value.isFinite) return null;

@@ -335,7 +335,7 @@ void main() {
   );
 
   test('rejects malformed reported speeds before they can affect mileage', () {
-    for (final speed in const [-0.1, double.nan, double.infinity, 80.0]) {
+    for (final speed in const [-0.1, double.nan, double.infinity, 70.1]) {
       final engine = TripTrackingEngine();
       engine.ingest(sample(-80, 0));
 
@@ -352,6 +352,28 @@ void main() {
       expect(decision.disposition, TripSampleDisposition.rejectedInvalid);
       expect(engine.totalAcceptedMeters, 0);
     }
+  });
+
+  test('allows maximum bounded reported speed through validation only', () {
+    final engine = TripTrackingEngine(
+      policy: const TripTrackingPolicy(
+        maximumPlausibleSpeedMetersPerSecond: 100,
+        maximumReportedSpeedDisagreementMetersPerSecond: 100,
+      ),
+    );
+    engine.ingest(sample(-80, 0));
+
+    final decision = engine.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -79.99,
+        recordedAt: start.add(const Duration(seconds: 20)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 70,
+      ),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
   });
 
   test('rejects out-of-range coordinates and non-positive accuracy', () {
