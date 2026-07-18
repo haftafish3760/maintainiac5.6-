@@ -60,6 +60,9 @@ class TripStopClassification {
       'activityRecognitionCanCreateOfficialStop': false,
       'externalMotionDataValidatedBeforeUse': true,
       'stopEvidenceTrustedAfterValidationOnly': true,
+      'unsafeEvidenceCanCreateStop': false,
+      'unsafeEvidenceSuppressesStopReview':
+          signal == TripStopSignal.unsafeEvidence,
       'remoteStopSummaryCanOverrideLocalTrip': false,
       'firestoreCanCreateOfficialStop': false,
       'cloudFunctionCanCreateOfficialStop': false,
@@ -191,7 +194,8 @@ class TripStopClassifier {
     final safeRejectedUnsafeCount = _safeEvidenceCount(rejectedUnsafeCount);
     final safeAcceptedDistanceCount = _safeEvidenceCount(acceptedDistanceCount);
 
-    if (safeRejectedUnsafeCount >= 3 && safeAcceptedDistanceCount == 0) {
+    if (safeRejectedUnsafeCount >= 3 &&
+        safeRejectedUnsafeCount >= safeExcludedWalkingCount) {
       return const TripStopClassification(
         signal: TripStopSignal.unsafeEvidence,
         reasonCode: 'unsafe_stop_evidence_rejected',

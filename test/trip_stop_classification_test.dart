@@ -209,15 +209,18 @@ void main() {
     expect(classification.canSuggestStop, isFalse);
   });
 
-  test('unsafe provider evidence fails closed without a stop suggestion', () {
+  test('unsafe provider evidence fails closed as unusable stop evidence', () {
     final classification = classifyScenario(
       scenarios.hostileProviderReplay(),
       TripTrackingProfile.deliveryVehicle,
     );
+    final summary = classification.toSafeSummary();
 
-    expect(classification.signal, TripStopSignal.noStop);
+    expect(classification.signal, TripStopSignal.unsafeEvidence);
     expect(classification.canSuggestStop, isFalse);
     expect(classification.requiresUserReview, isFalse);
+    expect(summary['unsafeEvidenceSuppressesStopReview'], isTrue);
+    expect(summary['canCreateOfficialStop'], isFalse);
   });
 
   test('walking evidence without accepted vehicle movement fails closed', () {
@@ -258,6 +261,8 @@ void main() {
     expect(summary['longTrafficLightProtected'], isTrue);
     expect(summary['walkingEvidenceCanOnlySuggestReview'], isTrue);
     expect(summary['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(summary['unsafeEvidenceCanCreateStop'], isFalse);
+    expect(summary['unsafeEvidenceSuppressesStopReview'], isFalse);
     expect(summary['externalMotionDataValidatedBeforeUse'], isTrue);
     expect(summary['stopEvidenceTrustedAfterValidationOnly'], isTrue);
     expect(summary['remoteStopSummaryCanOverrideLocalTrip'], isFalse);
@@ -381,6 +386,29 @@ void main() {
     expect(classification.requiresUserReview, isFalse);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['canCreateOfficialStop'], isFalse);
+  });
+
+  test('unsafe provider evidence outranks walking stop suggestions', () {
+    final classification = TripStopClassifier.classify(
+      profile: TripTrackingProfile.deliveryVehicle,
+      motionState: TripMotionState.stopped,
+      needsWalkingReview: true,
+      excludedWalkingCount: 3,
+      rejectedDriftCount: 0,
+      rejectedUnsafeCount: 3,
+      acceptedDistanceCount: 8,
+    );
+    final summary = classification.toSafeSummary();
+
+    expect(classification.signal, TripStopSignal.unsafeEvidence);
+    expect(classification.requiresUserReview, isFalse);
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.reasonCode, 'unsafe_stop_evidence_rejected');
+    expect(summary['unsafeEvidenceCanCreateStop'], isFalse);
+    expect(summary['unsafeEvidenceSuppressesStopReview'], isTrue);
+    expect(summary['canCreateOfficialStop'], isFalse);
+    expect(summary['mapboxCanCreateStop'], isFalse);
+    expect(summary['firestoreCanCreateOfficialStop'], isFalse);
   });
 
   test('long stationary jitter outranks vehicle-only stop candidate', () {

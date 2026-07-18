@@ -502,6 +502,30 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
   });
 
+  test('unsafe walking jump bursts cannot create a later stop review', () {
+    final engine = TripTrackingEngine();
+    engine.ingest(sample(-80, 0));
+    engine.ingest(sample(-79.9998, 20));
+
+    for (final seconds in const [22, 24, 26, 28]) {
+      final rejected = engine.ingest(
+        sample(-79.5 + (seconds * .01), seconds, speedMetersPerSecond: 0),
+        activity: walking(seconds),
+      );
+      expect(
+        rejected.disposition,
+        TripSampleDisposition.rejectedImplausibleSpeed,
+      );
+      expect(rejected.walkingReviewSuggested, isFalse);
+      expect(rejected.motionState, isNot(TripMotionState.stopped));
+    }
+
+    final resumed = engine.ingest(sample(-79.9996, 60));
+
+    expect(resumed.walkingReviewSuggested, isFalse);
+    expect(engine.needsWalkingReview, isFalse);
+  });
+
   test(
     'an impossible jump is re-anchored and cannot create a delayed bridge',
     () {
