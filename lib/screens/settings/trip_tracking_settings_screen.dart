@@ -270,6 +270,20 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 : null,
           ),
           _switch(
+            title: 'Odometer calibration assist',
+            detail: settings.odometerAnomalyAlertsEnabled
+                ? 'Separate opt-in. Uses reviewed patterns to tune future GPS estimates only; it cannot change confirmed odometer records.'
+                : 'Enable odometer anomaly alerts first. Calibration assist stays off until you opt in.',
+            value: settings.gpsOdometerCalibrationAssistEnabled,
+            onChanged: settings.odometerAnomalyAlertsEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(
+                      gpsOdometerCalibrationAssistEnabled: value,
+                    ),
+                  )
+                : null,
+          ),
+          _switch(
             title: 'Recognize a linked vehicle by Bluetooth',
             detail:
                 'Uses only Bluetooth devices you explicitly link to a vehicle on this device.',

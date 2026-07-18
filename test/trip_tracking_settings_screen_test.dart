@@ -49,6 +49,7 @@ void main() {
     expect(find.text('Save optional map route history'), findsOneWidget);
     expect(find.text('Profile-specific stop detection'), findsOneWidget);
     expect(find.text('Odometer anomaly alerts'), findsOneWidget);
+    expect(find.text('Odometer calibration assist'), findsOneWidget);
     expect(find.text('Protect GPS below 20% battery'), findsOneWidget);
     expect(find.text('Allow GPS below 20% battery'), findsOneWidget);
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
@@ -56,6 +57,7 @@ void main() {
     expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
+    expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isFalse);
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
     expect(settings.settings.mapPreviewEnabled, isFalse);
     expect(settings.settings.mapRouteHistorySavingEnabled, isFalse);
@@ -174,6 +176,19 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(settings.settings.odometerAnomalyAlertsEnabled, isTrue);
+    await tester.ensureVisible(find.text('Odometer calibration assist'));
+    await tester.pump();
+    final calibrationRow = find
+        .ancestor(
+          of: find.text('Odometer calibration assist'),
+          matching: find.byType(Row),
+        )
+        .first;
+    await tester.tap(
+      find.descendant(of: calibrationRow, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isTrue);
     expect(find.text('Back up reviewed mileage'), findsOneWidget);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
     expect(find.text('Firebase backup account'), findsNothing);

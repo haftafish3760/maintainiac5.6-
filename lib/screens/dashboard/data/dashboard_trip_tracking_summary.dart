@@ -56,6 +56,7 @@ class DashboardTripTrackingSummary {
     required this.storageState,
     required this.deviceCapabilityState,
     required this.sensorAssistState,
+    required this.odometerCalibrationAssistEnabled,
     required this.odometerCalibrationState,
     required this.odometerCalibrationSamples,
     required this.odometerCalibrationMultiplier,
@@ -106,6 +107,7 @@ class DashboardTripTrackingSummary {
   final String storageState;
   final String deviceCapabilityState;
   final String sensorAssistState;
+  final bool odometerCalibrationAssistEnabled;
   final String odometerCalibrationState;
   final int? odometerCalibrationSamples;
   final double? odometerCalibrationMultiplier;
@@ -133,6 +135,7 @@ class DashboardTripTrackingSummary {
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
+    bool odometerCalibrationAssistEnabled = false,
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
     double? odometerCalibrationMultiplier,
@@ -244,6 +247,9 @@ class DashboardTripTrackingSummary {
       storageState: _safeStorageState(storageState),
       deviceCapabilityState: _safeDeviceCapabilityState(deviceCapabilityState),
       sensorAssistState: _safeSensorAssistState(sensorAssistState),
+      odometerCalibrationAssistEnabled:
+          odometerCalibrationAssistEnabled &&
+          settings.odometerAnomalyAlertsEnabled,
       odometerCalibrationState: _safeOdometerCalibrationState(
         odometerCalibrationState,
       ),
@@ -334,6 +340,8 @@ class DashboardTripTrackingSummary {
       storageState: _storageStateFor(storageCheck),
       deviceCapabilityState: _deviceCapabilityStateFor(capabilityGuidance),
       sensorAssistState: _sensorAssistStateFor(capabilityGuidance),
+      odometerCalibrationAssistEnabled:
+          settings.gpsOdometerCalibrationAssistEnabled,
       odometerCalibrationState: _calibrationStateFor(calibrationSignal),
       odometerCalibrationSamples: calibrationSignal?.eligibleSampleCount,
       odometerCalibrationMultiplier:

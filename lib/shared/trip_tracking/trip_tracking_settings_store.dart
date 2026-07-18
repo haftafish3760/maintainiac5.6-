@@ -50,6 +50,7 @@ class TripTrackingSettings {
     this.lowBatteryGpsOverrideEnabled = false,
     this.lowBatteryGpsWarningDismissed = false,
     this.odometerAnomalyAlertsEnabled = false,
+    this.gpsOdometerCalibrationAssistEnabled = false,
     this.mapPreviewEnabled = false,
     this.mapRouteHistorySavingEnabled = false,
     this.mapRouteHistoryDailyBudgetMb = 0,
@@ -75,6 +76,7 @@ class TripTrackingSettings {
   final bool lowBatteryGpsOverrideEnabled;
   final bool lowBatteryGpsWarningDismissed;
   final bool odometerAnomalyAlertsEnabled;
+  final bool gpsOdometerCalibrationAssistEnabled;
   final bool mapPreviewEnabled;
   final bool mapRouteHistorySavingEnabled;
   final double mapRouteHistoryDailyBudgetMb;
@@ -97,6 +99,7 @@ class TripTrackingSettings {
     bool? lowBatteryGpsOverrideEnabled,
     bool? lowBatteryGpsWarningDismissed,
     bool? odometerAnomalyAlertsEnabled,
+    bool? gpsOdometerCalibrationAssistEnabled,
     bool? mapPreviewEnabled,
     bool? mapRouteHistorySavingEnabled,
     double? mapRouteHistoryDailyBudgetMb,
@@ -110,6 +113,9 @@ class TripTrackingSettings {
         this.bluetoothVehicleRecognitionEnabled;
     final automaticSwitch =
         automaticVehicleSwitchEnabled ?? this.automaticVehicleSwitchEnabled;
+    final odometerAlerts =
+        gpsEnabled &&
+        (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled);
     return TripTrackingSettings(
       gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: samplingPreset ?? this.samplingPreset,
@@ -140,9 +146,11 @@ class TripTrackingSettings {
       lowBatteryGpsWarningDismissed:
           gpsEnabled &&
           (lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed),
-      odometerAnomalyAlertsEnabled:
-          gpsEnabled &&
-          (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled),
+      odometerAnomalyAlertsEnabled: odometerAlerts,
+      gpsOdometerCalibrationAssistEnabled:
+          odometerAlerts &&
+          (gpsOdometerCalibrationAssistEnabled ??
+              this.gpsOdometerCalibrationAssistEnabled),
       mapPreviewEnabled:
           gpsEnabled && (mapPreviewEnabled ?? this.mapPreviewEnabled),
       mapRouteHistorySavingEnabled:
@@ -182,6 +190,7 @@ class TripTrackingSettings {
     'lowBatteryGpsOverrideEnabled': lowBatteryGpsOverrideEnabled,
     'lowBatteryGpsWarningDismissed': lowBatteryGpsWarningDismissed,
     'odometerAnomalyAlertsEnabled': odometerAnomalyAlertsEnabled,
+    'gpsOdometerCalibrationAssistEnabled': gpsOdometerCalibrationAssistEnabled,
     'mapPreviewEnabled': mapPreviewEnabled,
     'mapRouteHistorySavingEnabled': mapRouteHistorySavingEnabled,
     'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(
@@ -217,6 +226,10 @@ class TripTrackingSettings {
       'lowBatteryGpsChoiceCanBeChanged': true,
       'lowBatteryGpsDefaultAction': 'prompt_or_pause_below_cutoff',
       'odometerAnomalyAlertsEnabled': safe.odometerAnomalyAlertsEnabled,
+      'gpsOdometerCalibrationAssistEnabled':
+          safe.gpsOdometerCalibrationAssistEnabled,
+      'gpsOdometerCalibrationRequiresUserOptIn': true,
+      'gpsOdometerCalibrationCanOverwriteConfirmedOdometer': false,
       'mapPreviewEnabled': safe.mapPreviewEnabled,
       'mapRouteHistorySavingEnabled': safe.mapRouteHistorySavingEnabled,
       'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(
@@ -255,6 +268,8 @@ class TripTrackingSettings {
         map.containsKey('defaultProfile') && defaultProfile == null;
     final gpsEnabled =
         !hasInvalidDefaultProfile && map['gpsAssistedTrackingEnabled'] == true;
+    final odometerAlerts =
+        gpsEnabled && map['odometerAnomalyAlertsEnabled'] == true;
     return TripTrackingSettings(
       gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: _presetFromMap(map),
@@ -280,8 +295,9 @@ class TripTrackingSettings {
           gpsEnabled && map['lowBatteryGpsOverrideEnabled'] == true,
       lowBatteryGpsWarningDismissed:
           gpsEnabled && map['lowBatteryGpsWarningDismissed'] == true,
-      odometerAnomalyAlertsEnabled:
-          gpsEnabled && map['odometerAnomalyAlertsEnabled'] == true,
+      odometerAnomalyAlertsEnabled: odometerAlerts,
+      gpsOdometerCalibrationAssistEnabled:
+          odometerAlerts && map['gpsOdometerCalibrationAssistEnabled'] == true,
       mapPreviewEnabled: gpsEnabled && map['mapPreviewEnabled'] == true,
       mapRouteHistorySavingEnabled:
           gpsEnabled &&

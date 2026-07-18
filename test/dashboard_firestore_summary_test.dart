@@ -37,6 +37,7 @@ void main() {
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
+          odometerCalibrationAssistEnabled: true,
           odometerCalibrationState: 'review_recommended',
           odometerCalibrationSamples: 7,
           odometerCalibrationMultiplier: .9090909,
@@ -98,6 +99,7 @@ void main() {
     expect(doc.data['rawMapRouteIncluded'], isFalse);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
+    expect(doc.data['odometerCalibrationAssistEnabled'], isTrue);
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
     expect(doc.data['odometerCalibrationSamples'], 7);
     expect(doc.data['odometerCalibrationMultiplier'], .9091);

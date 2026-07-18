@@ -342,6 +342,7 @@ service cloud.firestore {
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
+        'odometerCalibrationAssistEnabled',
         'odometerCalibrationState',
         'odometerCalibrationSamples',
         'odometerCalibrationMultiplier',
@@ -880,6 +881,7 @@ service cloud.firestore {
             request.resource.data.odometerUsageReviewThresholdMiles >= 0 &&
             request.resource.data.odometerUsageReviewThresholdMiles <= 12500)) &&
         hasValidDashboardTokenLists() &&
+        request.resource.data.odometerCalibrationAssistEnabled is bool &&
         request.resource.data.batteryGpsLimited is bool &&
         request.resource.data.reviewRequired is bool &&
         request.resource.data.authorizationRequired == true &&

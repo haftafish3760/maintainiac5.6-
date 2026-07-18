@@ -464,6 +464,7 @@ class MaintainiacFirestoreUploadPolicy {
       'storageState',
       'deviceCapabilityState',
       'sensorAssistState',
+      'odometerCalibrationAssistEnabled',
       'odometerCalibrationState',
       'odometerCalibrationSamples',
       'odometerCalibrationMultiplier',
@@ -605,6 +606,7 @@ class MaintainiacFirestoreUploadPolicy {
           draft.data['sensorAssistState'],
           _allowedSensorAssistStates,
         ) &&
+        draft.data['odometerCalibrationAssistEnabled'] is bool &&
         _isAllowedString(
           draft.data['odometerCalibrationState'],
           _allowedOdometerCalibrationStates,

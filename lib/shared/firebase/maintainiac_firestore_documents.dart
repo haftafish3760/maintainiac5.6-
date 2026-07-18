@@ -381,6 +381,7 @@ class MaintainiacFirestoreDocumentBuilder {
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
+    bool odometerCalibrationAssistEnabled = false,
     String odometerCalibrationState = 'disabled',
     int? odometerCalibrationSamples,
     double? odometerCalibrationMultiplier,
@@ -567,6 +568,7 @@ class MaintainiacFirestoreDocumentBuilder {
           'sensorAssistState',
           _allowedDashboardSensorAssistStates,
         ),
+        'odometerCalibrationAssistEnabled': odometerCalibrationAssistEnabled,
         'odometerCalibrationState': _requiredDashboardSummaryToken(
           odometerCalibrationState,
           'odometerCalibrationState',

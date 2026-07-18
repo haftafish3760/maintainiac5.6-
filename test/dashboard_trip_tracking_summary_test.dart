@@ -120,6 +120,7 @@ void main() {
       storageState: 'low_storage',
       deviceCapabilityState: 'full_safety_assist',
       sensorAssistState: 'motion_battery_available',
+      odometerCalibrationAssistEnabled: true,
       odometerCalibrationState: 'review_recommended',
       odometerCalibrationSamples: 7,
       odometerCalibrationMultiplier: 1.063829787,
@@ -142,6 +143,7 @@ void main() {
     expect(summary.storageState, 'low_storage');
     expect(summary.deviceCapabilityState, 'full_safety_assist');
     expect(summary.sensorAssistState, 'motion_battery_available');
+    expect(summary.odometerCalibrationAssistEnabled, isFalse);
     expect(summary.odometerCalibrationState, 'review_recommended');
     expect(summary.odometerCalibrationSamples, 7);
     expect(summary.odometerCalibrationMultiplier, 1.0638);
@@ -415,11 +417,13 @@ void main() {
         settings: const TripTrackingSettings(
           gpsAssistedTrackingEnabled: true,
           odometerAnomalyAlertsEnabled: true,
+          gpsOdometerCalibrationAssistEnabled: true,
         ),
         tripTracking: controller,
       );
 
       expect(summary.odometerCalibrationState, 'review_recommended');
+      expect(summary.odometerCalibrationAssistEnabled, isTrue);
       expect(summary.odometerCalibrationSamples, 7);
       expect(summary.odometerCalibrationMultiplier, closeTo(.9091, .0001));
       expect(

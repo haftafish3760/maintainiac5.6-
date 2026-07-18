@@ -20,6 +20,7 @@ class TripTrackingDashboardGuidance {
     required this.backgroundTrackingActive,
     required this.lowBatteryProtectionActive,
     required this.odometerAnomalyAlertsActive,
+    required this.gpsOdometerCalibrationAssistActive,
   });
 
   final bool enabled;
@@ -37,6 +38,7 @@ class TripTrackingDashboardGuidance {
   final bool backgroundTrackingActive;
   final bool lowBatteryProtectionActive;
   final bool odometerAnomalyAlertsActive;
+  final bool gpsOdometerCalibrationAssistActive;
 
   bool get shouldShowActivityRecognitionRecommendation =>
       enabled && recommendsActivityRecognition && !activityRecognitionActive;
@@ -52,6 +54,9 @@ class TripTrackingDashboardGuidance {
     if (backgroundTrackingActive) badges.add('Background GPS on');
     if (lowBatteryProtectionActive) badges.add('Battery guard on');
     if (odometerAnomalyAlertsActive) badges.add('Odometer alerts on');
+    if (gpsOdometerCalibrationAssistActive) {
+      badges.add('Odometer calibration assist on');
+    }
     if (mapStatus == 'Map preview on') badges.add('Map preview on');
     if (mapStatus == 'Map route history on') badges.add('Map route history on');
     return badges;
@@ -83,6 +88,8 @@ class TripTrackingDashboardGuidance {
         strategy.recommendedActivityRecognition;
     final backgroundActive = enabled && settings.backgroundTrackingEnabled;
     final odometerAlerts = enabled && settings.odometerAnomalyAlertsEnabled;
+    final calibrationAssist =
+        odometerAlerts && settings.gpsOdometerCalibrationAssistEnabled;
     final profileLabel = _profileLabel(settings.defaultProfile);
     return TripTrackingDashboardGuidance(
       enabled: enabled,
@@ -100,16 +107,31 @@ class TripTrackingDashboardGuidance {
       syncReason: syncDecision.userFacingReason,
       mapStatus: _mapStatus(settings),
       stopDetectionStatus: strategy.stopDetectionSummary,
-      odometerStatus: odometerAlerts
-          ? 'Odometer anomaly review is on. GPS remains advisory and will not replace confirmed odometer readings.'
-          : 'Odometer remains the mileage truth. Optional anomaly alerts can warn about unusual mileage swings.',
+      odometerStatus: _odometerStatus(
+        odometerAlerts: odometerAlerts,
+        calibrationAssist: calibrationAssist,
+      ),
       recommendsActivityRecognition: strategy.recommendedActivityRecognition,
       activityRecognitionActive: activityActive,
       backgroundTrackingActive: backgroundActive,
       lowBatteryProtectionActive: settings.lowBatteryGpsProtectionEnabled,
       odometerAnomalyAlertsActive: odometerAlerts,
+      gpsOdometerCalibrationAssistActive: calibrationAssist,
     );
   }
+}
+
+String _odometerStatus({
+  required bool odometerAlerts,
+  required bool calibrationAssist,
+}) {
+  if (calibrationAssist) {
+    return 'Odometer calibration assist is on. It can tune future GPS estimates after reviewed patterns, but cannot replace confirmed odometer readings.';
+  }
+  if (odometerAlerts) {
+    return 'Odometer anomaly review is on. GPS remains advisory and will not replace confirmed odometer readings.';
+  }
+  return 'Odometer remains the mileage truth. Optional anomaly alerts can warn about unusual mileage swings.';
 }
 
 String _mapStatus(TripTrackingSettings settings) {

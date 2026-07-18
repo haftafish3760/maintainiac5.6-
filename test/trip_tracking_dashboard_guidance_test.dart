@@ -168,4 +168,22 @@ void main() {
     expect(routeHistory.mapStatus, 'Map route history on');
     expect(routeHistory.dashboardBadges, contains('Map route history on'));
   });
+
+  test('dashboard guidance labels odometer calibration assist as advisory', () {
+    final guidance = TripTrackingDashboardGuidance.fromSettings(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        odometerAnomalyAlertsEnabled: true,
+        gpsOdometerCalibrationAssistEnabled: true,
+      ),
+    );
+
+    expect(guidance.gpsOdometerCalibrationAssistActive, isTrue);
+    expect(guidance.odometerStatus, contains('tune future GPS estimates'));
+    expect(guidance.odometerStatus, contains('cannot replace confirmed'));
+    expect(
+      guidance.dashboardBadges,
+      contains('Odometer calibration assist on'),
+    );
+  });
 }
