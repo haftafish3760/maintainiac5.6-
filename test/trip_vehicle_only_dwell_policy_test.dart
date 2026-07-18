@@ -24,8 +24,11 @@ void main() {
     expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
     expect(safe['gpsCanConfirmVehicleOnlyStop'], isFalse);
     expect(safe['mapboxCanConfirmVehicleOnlyStop'], isFalse);
+    expect(safe['mapboxCanInferVehicleOnlyStopAddress'], isFalse);
     expect(safe['firestoreCanCreateVehicleOnlyStop'], isFalse);
+    expect(safe['remoteDwellCanSurfaceManualFallback'], isFalse);
     expect(safe['mapsRequiredForVehicleOnlyDwell'], isFalse);
+    expect(safe['manualFallbackCannotInferJobsiteAddress'], isTrue);
     expect(safe['hasEnoughCleanDriveEvidence'], isTrue);
     expect(safe['manualFallbackRequiresActiveLocalTrip'], isTrue);
     expect(safe['manualFallbackRequiresUserAction'], isTrue);
@@ -226,6 +229,8 @@ void main() {
       expect(safe['manualFallbackRequiresUserAction'], isTrue);
       expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
       expect(safe['activityRecognitionCanConfirmVehicleOnlyStop'], isFalse);
+      expect(safe['walkingEvidenceCanBeReplayedFromCloud'], isFalse);
+      expect(safe['twoPersonDeliveryRequiresManualConfirmation'], isTrue);
       expect(safe['manualFallbackCanBackdateWithoutReview'], isFalse);
       expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
     },
@@ -247,6 +252,7 @@ void main() {
       TripVehicleOnlyDwellSummaryValidation.isValid({
         ...safe,
         'vehicleOnlyDwellCanCreateOfficialStop': true,
+        'mapboxCanInferVehicleOnlyStopAddress': true,
       }),
       isFalse,
     );
@@ -261,6 +267,13 @@ void main() {
       TripVehicleOnlyDwellSummaryValidation.isValid({
         ...safe,
         'debugText': 'latitude=35 longitude=-80 token=sk.secret',
+      }),
+      isFalse,
+    );
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid({
+        ...safe,
+        'remoteDwellCanSurfaceManualFallback': true,
       }),
       isFalse,
     );

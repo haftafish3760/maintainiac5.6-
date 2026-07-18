@@ -251,6 +251,14 @@ void main() {
     expect(decision.canOpenReview, isFalse);
     expect(decision.classification.signal, TripStopSignal.likelyTrafficControl);
     expect(summary['longTrafficLightProtected'], isTrue);
+    expect(
+      decision.toSafeDashboardMap()['mapboxTrafficSignalCanCreateStop'],
+      isFalse,
+    );
+    expect(
+      decision.toSafeDashboardMap()['longStoplightCannotCreateOfficialStop'],
+      isTrue,
+    );
   });
 
   test('long rideshare vehicle-only dwell surfaces manual fallback only', () {
@@ -273,6 +281,8 @@ void main() {
     expect(decision.classification.signal, TripStopSignal.stopCandidate);
     expect(decision.classification.shouldSurfaceManualStopFallback, isTrue);
     expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
+    expect(safe['vehicleOnlyDwellCannotInferAddress'], isTrue);
+    expect(safe['twoPersonDeliveryRequiresManualConfirmation'], isTrue);
     expect(
       (safe['vehicleOnlyDwell']
           as Map<String, Object?>)['mapboxCanConfirmVehicleOnlyStop'],
@@ -375,9 +385,14 @@ void main() {
     expect(safe['remoteDebounceCanOpenReview'], isFalse);
     expect(safe['remoteDebounceCanEndTrip'], isFalse);
     expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(safe['walkingEvidenceCanOnlySuggestReview'], isTrue);
+    expect(safe['walkingEvidenceRequiresCurrentDeviceSensor'], isTrue);
+    expect(safe['walkingEvidenceCannotBeReplayedFromCloud'], isTrue);
+    expect(safe['walkingEvidenceCannotCommitStop'], isTrue);
     expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
     expect(safe['stopReviewCannotCommitWithoutUserAction'], isTrue);
     expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
+    expect(safe['driverProfileThresholdsAreLocalPolicy'], isTrue);
   });
 
   test('safe summary carries counts but never remote stop authority', () {

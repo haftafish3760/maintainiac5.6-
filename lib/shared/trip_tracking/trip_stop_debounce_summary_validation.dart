@@ -54,7 +54,9 @@ class TripStopDebounceSummaryValidation {
         summary['mapboxDirectionsCanConfirmStop'] != false ||
         summary['mapboxMatrixCanConfirmStop'] != false ||
         summary['mapboxMapMatchingCanReplaceMileage'] != false ||
-        summary['mapboxOptimizationCanCreateStopOrder'] != false) {
+        summary['mapboxOptimizationCanCreateStopOrder'] != false ||
+        summary['mapboxTrafficSignalCanCreateStop'] != false ||
+        summary['mapboxGeocodeCanConfirmStopAddress'] != false) {
       reasons.add('mapbox_can_control_stop_debounce');
     }
     if (summary['firestoreCanCreateStop'] != false ||
@@ -82,6 +84,20 @@ class TripStopDebounceSummaryValidation {
     if (summary['activityRecognitionCanCreateOfficialStop'] != false ||
         summary['vehicleOnlyDwellCanCreateOfficialStop'] != false) {
       reasons.add('advisory_evidence_can_create_stop');
+    }
+    if (summary['walkingEvidenceCanOnlySuggestReview'] != true ||
+        summary['walkingEvidenceRequiresCurrentDeviceSensor'] != true ||
+        summary['walkingEvidenceCannotBeReplayedFromCloud'] != true ||
+        summary['walkingEvidenceCannotCommitStop'] != true) {
+      reasons.add('walking_evidence_not_advisory_only');
+    }
+    if (summary['vehicleOnlyDwellCanOnlySuggestManualFallback'] != true ||
+        summary['vehicleOnlyDwellCannotInferAddress'] != true ||
+        summary['longStoplightCannotCreateOfficialStop'] != true ||
+        summary['gridlockCannotCreateOfficialStop'] != true ||
+        summary['twoPersonDeliveryRequiresManualConfirmation'] != true ||
+        summary['driverProfileThresholdsAreLocalPolicy'] != true) {
+      reasons.add('vehicle_only_dwell_not_manual_only');
     }
     if (summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('odometer_not_official_truth');

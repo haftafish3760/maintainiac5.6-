@@ -55,13 +55,20 @@ class TripVehicleOnlyDwellDecision {
     'vehicleOnlyDwellCanEndTripAutomatically': false,
     'gpsCanConfirmVehicleOnlyStop': false,
     'mapboxCanConfirmVehicleOnlyStop': false,
+    'mapboxCanInferVehicleOnlyStopAddress': false,
     'activityRecognitionCanConfirmVehicleOnlyStop': false,
+    'walkingEvidenceCanBeReplayedFromCloud': false,
     'firestoreCanCreateVehicleOnlyStop': false,
     'cloudFunctionCanCreateVehicleOnlyStop': false,
+    'remoteDwellCanSurfaceManualFallback': false,
+    'dashboardCacheCanSurfaceManualFallback': false,
     'odometerRemainsOfficialMileageTruth': true,
     'mapsRequiredForVehicleOnlyDwell': false,
     'longTrafficLightProtected':
         status == TripVehicleOnlyDwellStatus.trafficControlProtected,
+    'gridlockRequiresManualConfirmation': true,
+    'twoPersonDeliveryRequiresManualConfirmation': true,
+    'manualFallbackCannotInferJobsiteAddress': true,
     'rawSamplesIncluded': false,
     'rawMotionPayloadIncluded': false,
     'coordinatesIncluded': false,
@@ -120,11 +127,23 @@ class TripVehicleOnlyDwellSummaryValidation {
     }
     if (!_falseFlag(summary, 'gpsCanConfirmVehicleOnlyStop')) return false;
     if (!_falseFlag(summary, 'mapboxCanConfirmVehicleOnlyStop')) return false;
+    if (!_falseFlag(summary, 'mapboxCanInferVehicleOnlyStopAddress')) {
+      return false;
+    }
     if (!_falseFlag(summary, 'activityRecognitionCanConfirmVehicleOnlyStop')) {
+      return false;
+    }
+    if (!_falseFlag(summary, 'walkingEvidenceCanBeReplayedFromCloud')) {
       return false;
     }
     if (!_falseFlag(summary, 'firestoreCanCreateVehicleOnlyStop')) return false;
     if (!_falseFlag(summary, 'cloudFunctionCanCreateVehicleOnlyStop')) {
+      return false;
+    }
+    if (!_falseFlag(summary, 'remoteDwellCanSurfaceManualFallback')) {
+      return false;
+    }
+    if (!_falseFlag(summary, 'dashboardCacheCanSurfaceManualFallback')) {
       return false;
     }
     if (!_trueFlag(summary, 'odometerRemainsOfficialMileageTruth')) {
@@ -132,6 +151,15 @@ class TripVehicleOnlyDwellSummaryValidation {
     }
     if (!_falseFlag(summary, 'mapsRequiredForVehicleOnlyDwell')) return false;
     if (summary['longTrafficLightProtected'] is! bool) return false;
+    if (!_trueFlag(summary, 'gridlockRequiresManualConfirmation')) {
+      return false;
+    }
+    if (!_trueFlag(summary, 'twoPersonDeliveryRequiresManualConfirmation')) {
+      return false;
+    }
+    if (!_trueFlag(summary, 'manualFallbackCannotInferJobsiteAddress')) {
+      return false;
+    }
     if (!_falseFlag(summary, 'rawSamplesIncluded')) return false;
     if (!_falseFlag(summary, 'rawMotionPayloadIncluded')) return false;
     if (!_falseFlag(summary, 'coordinatesIncluded')) return false;
