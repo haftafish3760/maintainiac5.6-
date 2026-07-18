@@ -1,4 +1,5 @@
 import 'trip_tracking_profile_strategy.dart';
+import 'trip_tracking_odometer_truth_policy.dart';
 
 class TripWalkingEvidenceRecencyDecision {
   const TripWalkingEvidenceRecencyDecision({
@@ -21,6 +22,7 @@ class TripWalkingEvidenceRecencyDecision {
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
+    ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'usable': usable,
     'reasonCode': reasonCode,
     'walkingEvidenceCount': walkingEvidenceCount,

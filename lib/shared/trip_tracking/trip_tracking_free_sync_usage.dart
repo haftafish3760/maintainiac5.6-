@@ -1,5 +1,6 @@
 import '../backup/cloud_backup_sync_attempt_store.dart';
 import '../firebase/hosted_usage_limits.dart';
+import 'trip_tracking_odometer_truth_policy.dart';
 import 'trip_tracking_settings_store.dart';
 import 'trip_tracking_sync_policy.dart';
 
@@ -110,6 +111,7 @@ class TripTrackingFreeSyncUsage {
     final usageVerified = used != null;
     return {
       'schemaVersion': 1,
+      ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
       'durableScope': _safeScopeForSummary(_durableScope),
       'usedInWindow': used,
       'usageVerified': usageVerified,

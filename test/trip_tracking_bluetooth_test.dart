@@ -92,15 +92,16 @@ void main() {
     expect(decision.canSwitchVehicle, isTrue);
     expect(decision.requiresUserConfirmation, isFalse);
     expect(decision.safeReason, 'bluetooth_vehicle_auto_switch_allowed');
-    expect(decision.toSafeSummary(), {
-      'disposition': 'automaticSwitchAllowed',
-      'vehicleId': 'vehicle_1',
-      'safeReason': 'bluetooth_vehicle_auto_switch_allowed',
-      'canSwitchVehicle': true,
-      'requiresUserConfirmation': false,
-      'deviceIdIncluded': false,
-      'rawBluetoothPayloadIncluded': false,
-    });
+    final safe = decision.toSafeSummary();
+    expect(safe['disposition'], 'automaticSwitchAllowed');
+    expect(safe['vehicleId'], 'vehicle_1');
+    expect(safe['safeReason'], 'bluetooth_vehicle_auto_switch_allowed');
+    expect(safe['canSwitchVehicle'], isTrue);
+    expect(safe['requiresUserConfirmation'], isFalse);
+    expect(safe['deviceIdIncluded'], isFalse);
+    expect(safe['rawBluetoothPayloadIncluded'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['gpsCanOverrideOdometer'], isFalse);
     expect(
       decision.toSafeSummary().toString(),
       isNot(contains('opaque-device-id')),
@@ -180,13 +181,14 @@ void main() {
     expect(map['vehicleId'], isNot(contains('\t')));
     expect(map['displayName'], isNot(contains('\n')));
     expect(link.isValid, isTrue);
-    expect(link.toSafeSummary(), {
-      'hasDeviceLink': true,
-      'vehicleId': map['vehicleId'],
-      'hasDisplayName': true,
-      'deviceIdIncluded': false,
-      'rawBluetoothPayloadIncluded': false,
-    });
+    final safe = link.toSafeSummary();
+    expect(safe['hasDeviceLink'], isTrue);
+    expect(safe['vehicleId'], map['vehicleId']);
+    expect(safe['hasDisplayName'], isTrue);
+    expect(safe['deviceIdIncluded'], isFalse);
+    expect(safe['rawBluetoothPayloadIncluded'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['gpsCanOverrideOdometer'], isFalse);
     expect(link.toSafeSummary().toString(), isNot(contains(map['deviceId'])));
   });
 

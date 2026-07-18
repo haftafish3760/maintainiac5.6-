@@ -1,3 +1,4 @@
+import 'trip_tracking_odometer_truth_policy.dart';
 import 'trip_tracking_session_store.dart';
 
 enum TripTrackingBackupScopeFailure {
@@ -36,6 +37,7 @@ class TripTrackingBackupScopeDecision {
         );
     return {
       'schemaVersion': 1,
+      ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
       'canQueue': safeCanQueue,
       'scope': safeCanQueue ? scope?.name ?? 'unbound' : 'unbound',
       'failure': failure?.name,

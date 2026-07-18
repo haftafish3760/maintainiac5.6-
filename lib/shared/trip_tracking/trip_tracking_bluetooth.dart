@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'trip_tracking_odometer_truth_policy.dart';
 import 'trip_tracking_settings_store.dart';
 
 /// A user-approved Bluetooth identity. Device labels are display-only; the
@@ -33,6 +34,7 @@ class TripTrackingBluetoothVehicleLink {
   };
 
   Map<String, Object?> toSafeSummary() => {
+    ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'hasDeviceLink': isValid,
     'vehicleId': _safeId(vehicleId),
     'hasDisplayName': _safeDisplayName(displayName).isNotEmpty,
@@ -167,6 +169,7 @@ class BluetoothVehicleMatchDecision {
       disposition == BluetoothVehicleMatchDisposition.requiresUserConfirmation;
 
   Map<String, Object?> toSafeSummary() => {
+    ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'disposition': disposition.name,
     'vehicleId': vehicleId,
     'safeReason': safeReason,

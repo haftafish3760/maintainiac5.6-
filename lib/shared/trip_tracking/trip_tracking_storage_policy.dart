@@ -1,5 +1,7 @@
 import '../storage/app_storage_guard.dart';
 
+import 'trip_tracking_odometer_truth_policy.dart';
+
 enum TripTrackingStorageAction { allow, warn, block, unknown }
 
 enum TripTrackingLocalRetentionStatus {
@@ -30,6 +32,7 @@ class TripTrackingLocalRetentionDecision {
 
   Map<String, Object?> toSafeSummary() => {
     'schemaVersion': 1,
+    ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'status': status.name,
     'reasonCode': _safeRetentionReason(reasonCode),
     'localTextRecordRetained': localTextRecordRetained,
@@ -126,6 +129,7 @@ class TripTrackingStorageDecision {
 
   Map<String, Object?> toSafeSummary() => {
     'schemaVersion': 1,
+    ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'action': action.name,
     'storageState': _safeStorageState(storageState),
     'safeReason': _safeStorageReason(safeReason),
