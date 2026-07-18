@@ -16,6 +16,7 @@ import 'trip_tracking_policy.dart';
 import 'trip_tracking_recovery_policy.dart';
 import 'trip_tracking_session_store.dart';
 import 'trip_tracking_state_machine.dart';
+import 'trip_stop_advisory_reviewer.dart';
 
 /// Owns one active GPS-assisted trip. Platform adapters feed it samples; this
 /// controller keeps the UI, local recovery record, and live odometer aligned.
@@ -677,7 +678,7 @@ class TripTrackingController extends ChangeNotifier {
 
     final previousMotionState = engine.motionState;
     final decision = engine.ingest(sample, activity: activity);
-    final advisories = _advisoriesAfterMotionTransition(
+    final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
       session,
       engineSnapshot: engine.snapshot,
       previousMotionState: previousMotionState,
@@ -1316,16 +1317,19 @@ class TripTrackingController extends ChangeNotifier {
   Future<void> reviewLatestStopAdvisory(
     TripTrackingAdvisoryDisposition disposition,
   ) async {
-    if (!_isFinalStopReviewDisposition(disposition)) return;
+    if (!TripStopAdvisoryReviewer.isFinalReviewDisposition(disposition)) {
+      return;
+    }
     final session = _session;
     final engine = _engine;
     if (session == null || engine == null) return;
 
     final reviewingWalkingStop = engine.needsWalkingReview;
-    final latestPendingStopIndex = _latestPendingStopReviewIndex(
-      session,
-      preferHighConfidence: reviewingWalkingStop,
-    );
+    final latestPendingStopIndex =
+        TripStopAdvisoryReviewer.latestPendingStopReviewIndex(
+          session,
+          preferHighConfidence: reviewingWalkingStop,
+        );
     if (!reviewingWalkingStop && latestPendingStopIndex < 0) return;
     if (reviewingWalkingStop) engine.acknowledgeWalkingReview();
     final reviewedAdvisories = [...session.advisories];
@@ -1346,134 +1350,6 @@ class TripTrackingController extends ChangeNotifier {
 
   /// Backward-compatible walking stop review hook used by existing UI/tests.
   Future<void> acknowledgeWalkingReview() => acknowledgeLatestStopReview();
-
-  bool _isFinalStopReviewDisposition(
-    TripTrackingAdvisoryDisposition disposition,
-  ) =>
-      disposition == TripTrackingAdvisoryDisposition.confirmed ||
-      disposition == TripTrackingAdvisoryDisposition.rejected ||
-      disposition == TripTrackingAdvisoryDisposition.corrected ||
-      disposition == TripTrackingAdvisoryDisposition.dismissed;
-
-  int _latestPendingStopReviewIndex(
-    TripTrackingSessionRecord session, {
-    required bool preferHighConfidence,
-  }) {
-    bool matches(TripTrackingAdvisoryEvent event) =>
-        event.type == TripTrackingAdvisoryType.probableStop &&
-        event.disposition == TripTrackingAdvisoryDisposition.pending;
-    if (preferHighConfidence) {
-      final highConfidenceIndex = session.advisories.lastIndexWhere(
-        (event) =>
-            matches(event) && event.confidence == TripTrackingConfidence.high,
-      );
-      if (highConfidenceIndex >= 0) return highConfidenceIndex;
-    }
-    return session.advisories.lastIndexWhere(matches);
-  }
-
-  List<TripTrackingAdvisoryEvent> _advisoriesAfterMotionTransition(
-    TripTrackingSessionRecord session, {
-    required TripTrackingEngineSnapshot engineSnapshot,
-    required TripMotionState previousMotionState,
-    required TripMotionState currentMotionState,
-    required DateTime detectedAt,
-  }) {
-    if (previousMotionState == TripMotionState.stopCandidate &&
-        currentMotionState == TripMotionState.stopped) {
-      return _upgradedStopCandidateAdvisories(session, detectedAt: detectedAt);
-    }
-    TripTrackingAdvisoryType? type;
-    if (!_isStopLikeMotion(previousMotionState) &&
-        _isStopLikeMotion(currentMotionState)) {
-      type = TripTrackingAdvisoryType.probableStop;
-    } else if (_isStopLikeMotion(previousMotionState) &&
-        currentMotionState == TripMotionState.moving) {
-      type = TripTrackingAdvisoryType.resumedMovement;
-    }
-    if (type == null) return session.advisories;
-    if (type == TripTrackingAdvisoryType.resumedMovement &&
-        !_hasActiveStopReview(session)) {
-      return session.advisories;
-    }
-    final evidenceStartedAt = _advisoryEvidenceStartedAt(
-      type: type,
-      engineSnapshot: engineSnapshot,
-      detectedAt: detectedAt,
-    );
-    return [
-      ...session.advisories,
-      TripTrackingAdvisoryEvent(
-        id: '${session.id}:${type.name}:${detectedAt.microsecondsSinceEpoch}',
-        type: type,
-        sessionId: session.id,
-        vehicleId: session.vehicleId,
-        profile: session.profile,
-        detectedAt: detectedAt,
-        evidenceStartedAt: evidenceStartedAt,
-        evidenceEndedAt: detectedAt,
-        confidence: currentMotionState == TripMotionState.stopped
-            ? TripTrackingConfidence.high
-            : TripTrackingConfidence.medium,
-        suggestedAction: type == TripTrackingAdvisoryType.probableStop
-            ? 'reviewStop'
-            : 'reviewResumedMovement',
-      ),
-    ];
-  }
-
-  bool _isStopLikeMotion(TripMotionState state) =>
-      state == TripMotionState.stopCandidate ||
-      state == TripMotionState.stopped;
-
-  bool _hasActiveStopReview(TripTrackingSessionRecord session) {
-    final latestStopIndex = session.advisories.lastIndexWhere(
-      (event) => event.type == TripTrackingAdvisoryType.probableStop,
-    );
-    if (latestStopIndex < 0) return false;
-    return switch (session.advisories[latestStopIndex].disposition) {
-      TripTrackingAdvisoryDisposition.rejected ||
-      TripTrackingAdvisoryDisposition.dismissed => false,
-      _ => true,
-    };
-  }
-
-  DateTime _advisoryEvidenceStartedAt({
-    required TripTrackingAdvisoryType type,
-    required TripTrackingEngineSnapshot engineSnapshot,
-    required DateTime detectedAt,
-  }) {
-    if (type != TripTrackingAdvisoryType.probableStop) return detectedAt;
-    if (engineSnapshot.walkingEvidence.isNotEmpty) {
-      return engineSnapshot.walkingEvidence.first.recordedAt;
-    }
-    final stationaryStartedAt = engineSnapshot.stationaryStartedAt;
-    if (stationaryStartedAt == null ||
-        stationaryStartedAt.isAfter(detectedAt)) {
-      return detectedAt;
-    }
-    return stationaryStartedAt;
-  }
-
-  List<TripTrackingAdvisoryEvent> _upgradedStopCandidateAdvisories(
-    TripTrackingSessionRecord session, {
-    required DateTime detectedAt,
-  }) {
-    final latestPendingStopIndex = session.advisories.lastIndexWhere(
-      (event) =>
-          event.type == TripTrackingAdvisoryType.probableStop &&
-          (event.disposition == TripTrackingAdvisoryDisposition.pending ||
-              event.disposition == TripTrackingAdvisoryDisposition.confirmed),
-    );
-    if (latestPendingStopIndex < 0) return session.advisories;
-    final advisories = [...session.advisories];
-    advisories[latestPendingStopIndex] = advisories[latestPendingStopIndex]
-        .copyWith(
-          evidenceEndedAt: detectedAt,
-          confidence: TripTrackingConfidence.high,
-        );
-    return advisories;
-  }
 
   /// Drops a just-created trip only when it has not accepted any distance.
   /// This is used after permission or hardware startup fails so the global
