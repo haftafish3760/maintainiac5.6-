@@ -17,6 +17,16 @@ void main() {
     await usage.recordAuthorizedAttempt(now.subtract(const Duration(hours: 1)));
 
     expect(usage.usedInWindowAt(now), 2);
+    expect(usage.toSafeSummary(now)['usedInWindow'], 2);
+    expect(usage.toSafeSummary(now)['localAttemptLedgerIsCanonical'], isTrue);
+    expect(
+      usage.toSafeSummary(now)['remoteCountersCanOverrideLocalUsage'],
+      isFalse,
+    );
+    expect(
+      usage.toSafeSummary(now)['reservationSerializedBeforeUpload'],
+      isTrue,
+    );
     expect(
       usage
           .evaluate(
@@ -166,6 +176,51 @@ void main() {
       expect(
         usage.usedInWindowAt(now.add(const Duration(hours: 1))),
         HostedUsageLimits.freeUserSyncsPer24HourWindow,
+      );
+    },
+  );
+
+  test(
+    'concurrent free sync reservations are serialized before upload',
+    () async {
+      final store = CloudBackupSyncAttemptStore.memory();
+      final now = DateTime.utc(2026, 7, 17, 12);
+      final usage = TripTrackingFreeSyncUsage(
+        attemptStore: store,
+        durableScope: 'trip-dashboard-concurrent-device',
+      );
+
+      final decisions = await Future.wait([
+        for (
+          var index = 0;
+          index < HostedUsageLimits.freeUserSyncsPer24HourWindow + 3;
+          index += 1
+        )
+          usage.reserveAuthorizedAttempt(
+            networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+            wifiAvailable: true,
+            mobileDataAvailable: true,
+            nowUtc: now.add(Duration(seconds: index)),
+          ),
+      ]);
+
+      expect(
+        decisions.where((decision) => decision.mayAttemptSync),
+        hasLength(6),
+      );
+      expect(
+        decisions.where(
+          (decision) => decision.reasonCode == 'free_sync_limit_reached',
+        ),
+        hasLength(3),
+      );
+      expect(
+        usage.usedInWindowAt(now.add(const Duration(minutes: 1))),
+        HostedUsageLimits.freeUserSyncsPer24HourWindow,
+      );
+      expect(
+        usage.toSafeSummary(now)['blockedAttemptConsumesFreeSync'],
+        isFalse,
       );
     },
   );

@@ -9,7 +9,7 @@ import 'trip_tracking_sync_policy.dart';
 /// rolling 24-hour window, and records an authorized attempt before uploads
 /// leave the device. It never accepts remote counters as canonical local truth.
 class TripTrackingFreeSyncUsage {
-  const TripTrackingFreeSyncUsage({
+  TripTrackingFreeSyncUsage({
     required CloudBackupSyncAttemptStore attemptStore,
     required String durableScope,
   }) : _attemptStore = attemptStore,
@@ -17,6 +17,7 @@ class TripTrackingFreeSyncUsage {
 
   final CloudBackupSyncAttemptStore _attemptStore;
   final String _durableScope;
+  Future<void> _reservationTail = Future<void>.value();
 
   int usedInWindowAt(DateTime nowUtc) {
     return _attemptStore.attemptsFor(_durableScope, now: nowUtc.toUtc()).length;
@@ -53,15 +54,47 @@ class TripTrackingFreeSyncUsage {
     bool? wifiAvailable,
     bool? mobileDataAvailable,
     required DateTime nowUtc,
-  }) async {
-    final decision = evaluate(
-      networkPolicy: networkPolicy,
-      wifiAvailable: wifiAvailable,
-      mobileDataAvailable: mobileDataAvailable,
-      nowUtc: nowUtc,
-    );
-    if (!decision.mayAttemptSync) return decision;
-    await recordAuthorizedAttempt(nowUtc);
-    return decision;
+  }) {
+    return _enqueueReservation(() async {
+      final decision = evaluate(
+        networkPolicy: networkPolicy,
+        wifiAvailable: wifiAvailable,
+        mobileDataAvailable: mobileDataAvailable,
+        nowUtc: nowUtc,
+      );
+      if (!decision.mayAttemptSync) return decision;
+      await recordAuthorizedAttempt(nowUtc);
+      return decision;
+    });
   }
+
+  Map<String, Object?> toSafeSummary(DateTime nowUtc) => {
+    'schemaVersion': 1,
+    'durableScope': _safeScopeForSummary(_durableScope),
+    'usedInWindow': usedInWindowAt(nowUtc),
+    'rollingWindowHours': 24,
+    'freeSyncLimitPerWindow': 6,
+    'localAttemptLedgerIsCanonical': true,
+    'remoteCountersCanOverrideLocalUsage': false,
+    'reservationSerializedBeforeUpload': true,
+    'blockedAttemptConsumesFreeSync': false,
+    'freeSyncQuotaAppliesToTripBackups': true,
+    'hiveRemainsSourceOfTruth': true,
+    'firestoreMirrorOnly': true,
+    'tokensIncluded': false,
+    'preciseLocationIncluded': false,
+    'rawTripPayloadIncluded': false,
+  };
+
+  Future<T> _enqueueReservation<T>(Future<T> Function() task) {
+    final result = _reservationTail.then((_) => task());
+    _reservationTail = result.then<void>((_) {}, onError: (_) {});
+    return result;
+  }
+}
+
+String _safeScopeForSummary(String value) {
+  final clean = value.trim();
+  if (clean.isEmpty || clean.contains(':')) return 'invalid_scope';
+  return clean.length <= 80 ? clean : '${clean.substring(0, 77)}...';
 }
