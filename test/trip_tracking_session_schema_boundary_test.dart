@@ -219,7 +219,10 @@ void main() {
       expect(summary['remoteTotalsCanBecomeCanonical'], isFalse);
       expect(summary['mapsRequiredForTracking'], isFalse);
       expect(summary['mapboxCanOverrideOdometer'], isFalse);
+      expect(summary['odometerIsGlobalTruth'], isTrue);
       expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(summary['preciseLocationIncluded'], isFalse);
       expect(summary['preciseTimestampIncluded'], isFalse);
       expect(summary['rawEngineSnapshotIncluded'], isFalse);
@@ -273,7 +276,10 @@ void main() {
       expect(summary['cloudMirrorCanDeleteLocalTripLog'], isFalse);
       expect(summary['mapsRequiredForReview'], isFalse);
       expect(summary['mapboxCanOverrideOdometer'], isFalse);
+      expect(summary['odometerIsGlobalTruth'], isTrue);
       expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(summary['authorizationRequiredBeforeCloudWrite'], isTrue);
       expect(summary['authenticationImpliesAuthorization'], isFalse);
       expect(summary['preciseLocationIncluded'], isFalse);

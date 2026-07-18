@@ -76,6 +76,10 @@ void main() {
     expect(safe['inventoryCanModifyFiles'], isFalse);
     expect(safe['inventoryCanDeleteFiles'], isFalse);
     expect(safe['receiptInventoryFuelExpenseModulesExcluded'], isTrue);
+    expect(safe['odometerTruthBoundaryTracked'], isTrue);
+    expect(safe['calibrationProofBoundaryTracked'], isTrue);
+    expect(safe['inventoryCanApplyCalibration'], isFalse);
+    expect(safe['inventoryCanCreateOfficialMileage'], isFalse);
     expect(safe['rawSourceIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });
