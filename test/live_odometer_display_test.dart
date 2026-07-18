@@ -33,6 +33,13 @@ void main() {
       'advisoryOnly': true,
       'dashboardLiveUpdateReady': true,
       'displayCanUpdateBeforeReview': false,
+      'displayOnlyMileageSource': 'confirmed_odometer',
+      'externalDistanceValidatedBeforeDisplay': true,
+      'liveDisplayTrustedAfterValidationOnly': true,
+      'remoteDisplayCanOverrideLocalTrip': false,
+      'firestoreCanOverrideLiveDisplay': false,
+      'mapboxCanOverrideLiveDisplay': false,
+      'malformedDisplayPayloadFailsSafe': true,
       'writesConfirmedOdometer': false,
       'manualConfirmationRequired': false,
       'gpsCanReplaceOdometer': false,
@@ -122,6 +129,13 @@ void main() {
       'advisoryOnly': true,
       'dashboardLiveUpdateReady': true,
       'displayCanUpdateBeforeReview': true,
+      'displayOnlyMileageSource': 'gps_assisted_projection',
+      'externalDistanceValidatedBeforeDisplay': true,
+      'liveDisplayTrustedAfterValidationOnly': true,
+      'remoteDisplayCanOverrideLocalTrip': false,
+      'firestoreCanOverrideLiveDisplay': false,
+      'mapboxCanOverrideLiveDisplay': false,
+      'malformedDisplayPayloadFailsSafe': true,
       'writesConfirmedOdometer': false,
       'manualConfirmationRequired': true,
       'gpsCanReplaceOdometer': false,
@@ -163,6 +177,12 @@ void main() {
         DateTime.utc(2026),
       )['displayCanUpdateBeforeReview'],
       isTrue,
+    );
+    expect(
+      snapshot.toSafeDashboardMap(
+        DateTime.utc(2026),
+      )['remoteDisplayCanOverrideLocalTrip'],
+      isFalse,
     );
     expect(
       snapshot.toSafeDashboardMap(

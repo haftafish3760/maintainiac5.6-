@@ -10,6 +10,19 @@ void main() {
     expect(projection.projectedReading, 1010);
     expect(projection.toSafeDashboardMap()['writesConfirmedOdometer'], isFalse);
     expect(
+      projection.toSafeDashboardMap()['displayOnlyMileageSource'],
+      'gps_assisted_projection',
+    );
+    expect(
+      projection
+          .toSafeDashboardMap()['externalDistanceValidatedBeforeProjection'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['remoteProjectionCanOverrideLocalTrip'],
+      isFalse,
+    );
+    expect(
       projection.toSafeDashboardMap()['confirmedOdometerRemainsCanonical'],
       isTrue,
     );
@@ -35,6 +48,10 @@ void main() {
     expect(projection.updateAcceptedMeters(3 * metersPerMile), 999998);
     expect(projection.lastUpdateExceededMax, isTrue);
     expect(projection.toSafeDashboardMap()['lastUpdateExceededMax'], isTrue);
+    expect(
+      projection.toSafeDashboardMap()['malformedProjectionPayloadFailsSafe'],
+      isTrue,
+    );
     expect(
       projection.toSafeDashboardMap()['projectionExceededSupportedRange'],
       isTrue,
@@ -98,5 +115,13 @@ void main() {
     expect(projection.updateAcceptedMeters(0), 0);
     expect(projection.toSafeDashboardMap()['startingOdometer'], 0);
     expect(projection.toSafeDashboardMap()['maxSupportedReading'], 0);
+    expect(
+      projection.toSafeDashboardMap()['firestoreCanOverrideLiveProjection'],
+      isFalse,
+    );
+    expect(
+      projection.toSafeDashboardMap()['mapboxCanOverrideLiveProjection'],
+      isFalse,
+    );
   });
 }
