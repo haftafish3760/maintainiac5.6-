@@ -184,12 +184,22 @@ void main() {
         scenarios.walkingSensorMisclassifiedAtVehicleSpeed(),
         TripTrackingProfile.deliveryVehicle,
       );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
 
       expect(result.needsWalkingReview, isFalse);
       expect(result.count(TripSampleDisposition.excludedWalking), 0);
       expect(result.acceptedDistanceCount, greaterThanOrEqualTo(3));
       expect(classification.signal, TripStopSignal.noStop);
       expect(classification.canSuggestStop, isFalse);
+      expect(summary['stopCanSuggestReview'], isFalse);
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+      expect(summary['stopCanReplaceOdometer'], isFalse);
+      expect(
+        (summary['falsePositiveGuard'] as Map<String, Object?>)['status'],
+        'passed',
+      );
     },
   );
 

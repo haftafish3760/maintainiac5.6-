@@ -419,6 +419,31 @@ void main() {
   });
 
   test(
+    'high-confidence walking activity at vehicle speed cannot create stop review',
+    () {
+      final result = replayTrip(
+        scenarios.walkingSensorMisclassifiedAtVehicleSpeed(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final classification =
+          summary['stopClassification'] as Map<String, Object?>;
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.excludedWalkingCount, 0);
+      expect(result.acceptedDistanceCount, greaterThanOrEqualTo(3));
+      expect(summary['stopSignal'], 'no_stop');
+      expect(summary['stopCanSuggestReview'], isFalse);
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+      expect(classification['activityRecognitionCanCreateOfficialStop'], isFalse);
+      expect(classification['canCreateOfficialStop'], isFalse);
+      expect(classification['odometerIsGlobalTruth'], isTrue);
+    },
+  );
+
+  test(
     'a mixed hostile sensor replay never turns stale or degraded fixes into miles',
     () {
       final result = replayTrip([
