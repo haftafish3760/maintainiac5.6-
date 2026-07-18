@@ -419,12 +419,25 @@ bool _reviewHasTrustedCalibrationGpsWindow(
   final rejectedOutOfOrder =
       diagnostics.dispositionCounts[TripSampleDisposition.rejectedOutOfOrder] ??
       0;
+  final rejectedImplausibleSpeed =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedImplausibleSpeed] ??
+      0;
+  final rejectedSpeedConflict =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedSpeedConflict] ??
+      0;
+  final rejectedGap =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedGap] ?? 0;
   final hardRejected =
       rejectedAccuracy +
       rejectedMock +
       rejectedInvalid +
       rejectedFuture +
-      rejectedOutOfOrder;
+      rejectedOutOfOrder +
+      rejectedImplausibleSpeed +
+      rejectedSpeedConflict +
+      rejectedGap;
   if (hardRejected > 0 && hardRejected / received > .2) return false;
   return acceptanceRatio >= .65;
 }

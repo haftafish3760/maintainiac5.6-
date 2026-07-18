@@ -324,6 +324,38 @@ void main() {
       closeTo(.9091, .001),
     );
   });
+
+  test('speed conflict GPS days cannot become calibration evidence', () {
+    final reviews = <TripTrackingReviewRecord>[
+      for (var day = 0; day < 7; day += 1)
+        _confirmedReview(
+          id: 'conflicted_signal_day_$day',
+          startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+          filteredGpsMiles: 110,
+          odometerMiles: 100,
+          diagnostics: const TripTrackingDiagnostics(
+            receivedSamples: 100,
+            acceptedSamples: 70,
+            dispositionCounts: {
+              TripSampleDisposition.acceptedDistance: 70,
+              TripSampleDisposition.rejectedSpeedConflict: 30,
+            },
+          ),
+        ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+      vehicleId: 'vehicle_1',
+      nowUtc: DateTime.utc(2026, 7, 18, 12),
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.eligibleSampleCount, 0);
+    expect(signal.trustedGpsWindowCount, 0);
+    expect(signal.excludedPoorGpsDayCount, 7);
+    expect(signal.gpsAssistanceCalibrationMultiplier, 1);
+  });
 }
 
 const _trustedDiagnostics = TripTrackingDiagnostics(
