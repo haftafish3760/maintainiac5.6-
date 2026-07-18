@@ -129,13 +129,15 @@ class TripTrackingAdvisoryEvent {
     final detectedAt =
         _safeAdvisoryTimestamp(map['detectedAt']) ??
         _safeAdvisoryFallbackTimestamp();
-    final evidenceStartedAt =
-        _safeAdvisoryTimestamp(map['evidenceStartedAt']) ?? detectedAt;
-    final parsedEvidenceEndedAt =
-        _safeAdvisoryTimestamp(map['evidenceEndedAt']) ?? detectedAt;
-    final evidenceEndedAt = parsedEvidenceEndedAt.isBefore(evidenceStartedAt)
-        ? evidenceStartedAt
-        : parsedEvidenceEndedAt;
+    final evidenceStartedAt = _safeAdvisoryEvidenceStartedAt(
+      map['evidenceStartedAt'],
+      detectedAt: detectedAt,
+    );
+    final evidenceEndedAt = _safeAdvisoryEvidenceEndedAt(
+      map['evidenceEndedAt'],
+      evidenceStartedAt: evidenceStartedAt,
+      detectedAt: detectedAt,
+    );
     return TripTrackingAdvisoryEvent(
       id: _safeText(map['id'], maxLength: 160),
       type: TripTrackingAdvisoryType.values.firstWhere(
@@ -179,6 +181,34 @@ DateTime? _safeAdvisoryTimestamp(Object? value) {
   if (value == null) return null;
   if (value is num) return _tripTimestampFrom(value);
   return DateTime.tryParse('$value');
+}
+
+DateTime _safeAdvisoryEvidenceStartedAt(
+  Object? value, {
+  required DateTime detectedAt,
+}) {
+  final parsed = _safeAdvisoryTimestamp(value);
+  if (parsed == null || parsed.isAfter(detectedAt)) return detectedAt;
+  if (detectedAt.difference(parsed) > const Duration(hours: 24)) {
+    return detectedAt;
+  }
+  return parsed;
+}
+
+DateTime _safeAdvisoryEvidenceEndedAt(
+  Object? value, {
+  required DateTime evidenceStartedAt,
+  required DateTime detectedAt,
+}) {
+  final parsed = _safeAdvisoryTimestamp(value);
+  if (parsed == null) return detectedAt;
+  if (parsed.isBefore(evidenceStartedAt)) return evidenceStartedAt;
+  if (parsed.difference(evidenceStartedAt) > const Duration(hours: 24)) {
+    return detectedAt.isBefore(evidenceStartedAt)
+        ? evidenceStartedAt
+        : detectedAt;
+  }
+  return parsed;
 }
 
 String _safeText(

@@ -1092,6 +1092,73 @@ void main() {
     );
   });
 
+  test('persisted GPS advisory evidence windows are bounded', () {
+    final detectedAt = DateTime.utc(2026, 7, 14, 12);
+    final advisory = TripTrackingAdvisoryEvent.fromMap({
+      'id': 'advisory_extreme_window',
+      'type': 'probableStop',
+      'sessionId': 'trip_extreme_window',
+      'vehicleId': 'vehicle_1',
+      'profile': 'roadVehicle',
+      'detectedAt': detectedAt.toIso8601String(),
+      'evidenceStartedAt': detectedAt
+          .subtract(const Duration(days: 3))
+          .toIso8601String(),
+      'evidenceEndedAt': detectedAt
+          .add(const Duration(days: 3))
+          .toIso8601String(),
+      'confidence': 'medium',
+      'suggestedAction': 'review',
+    });
+
+    expect(advisory.evidenceStartedAt, detectedAt);
+    expect(advisory.evidenceEndedAt, detectedAt);
+  });
+
+  test(
+    'persisted GPS advisory review dispositions survive session restore',
+    () {
+      for (final disposition in [
+        TripTrackingAdvisoryDisposition.confirmed,
+        TripTrackingAdvisoryDisposition.rejected,
+        TripTrackingAdvisoryDisposition.corrected,
+        TripTrackingAdvisoryDisposition.dismissed,
+      ]) {
+        final session = TripTrackingSessionRecord(
+          id: 'trip_${disposition.name}',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          profile: TripTrackingProfile.rideshareVehicle,
+          startedAt: DateTime.utc(2026, 7, 14, 12),
+          updatedAt: DateTime.utc(2026, 7, 14, 13),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ),
+          advisories: [
+            TripTrackingAdvisoryEvent(
+              id: 'advisory_${disposition.name}',
+              type: TripTrackingAdvisoryType.probableStop,
+              sessionId: 'trip_${disposition.name}',
+              vehicleId: 'vehicle_1',
+              profile: TripTrackingProfile.rideshareVehicle,
+              detectedAt: DateTime.utc(2026, 7, 14, 12, 5),
+              evidenceStartedAt: DateTime.utc(2026, 7, 14, 12, 3),
+              evidenceEndedAt: DateTime.utc(2026, 7, 14, 12, 5),
+              confidence: TripTrackingConfidence.medium,
+              suggestedAction: 'reviewStop',
+              disposition: disposition,
+            ),
+          ],
+        );
+
+        final restored = TripTrackingSessionRecord.fromMap(session.toMap());
+
+        expect(restored.advisories.single.disposition, disposition);
+      }
+    },
+  );
+
   test('persisted GPS advisories keep only a bounded recent window', () {
     final session = TripTrackingSessionRecord(
       id: 'trip_many_advisories',
