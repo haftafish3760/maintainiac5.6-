@@ -101,6 +101,99 @@ void main() {
     }
   });
 
+  test('forged native payloads with remote authority are rejected', () {
+    final decision = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload()
+        ..addAll({
+          'remoteSampleCanOverrideLocalTruth': true,
+          'firestoreCanCreateOfficialStop': true,
+          'cloudFunctionCanConfirmMileage': true,
+          'mapboxMapMatchingCanReplaceSample': true,
+        }),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+    );
+
+    expect(decision.status, TripLocationSampleIntakeStatus.rejected);
+    expect(
+      decision.reason,
+      TripLocationSampleIntakeReason.remoteAuthorityRejected,
+    );
+    expect(decision.canFeedTripEngine, isFalse);
+    expect(decision.toSafeSummary()['canFeedTripEngine'], isFalse);
+  });
+
+  test('native payloads carrying token or coordinate strings are rejected', () {
+    final token = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload()..addAll({'diagnosticToken': 'pk.redacted'}),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+    );
+    final coordinateText = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload(
+        sample: {
+          'latitude': 35.123456,
+          'longitude': -80.123456,
+          'recordedAt': receivedAt.subtract(const Duration(seconds: 8)),
+          'horizontalAccuracyMeters': 8,
+          'debugText': 'near 35.123456,-80.123456',
+        },
+      ),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+    );
+
+    expect(token.status, TripLocationSampleIntakeStatus.rejected);
+    expect(
+      token.reason,
+      TripLocationSampleIntakeReason.sensitivePayloadRejected,
+    );
+    expect(coordinateText.status, TripLocationSampleIntakeStatus.rejected);
+    expect(
+      coordinateText.reason,
+      TripLocationSampleIntakeReason.sensitivePayloadRejected,
+    );
+  });
+
+  test('malformed intake time windows fall back to safe defaults', () {
+    final accepted = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload(
+        sample: {
+          'latitude': 35.123456,
+          'longitude': -80.123456,
+          'recordedAt': receivedAt.add(const Duration(seconds: 30)),
+          'horizontalAccuracyMeters': 8,
+        },
+      ),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+      maximumFutureSkew: Duration.zero,
+      maximumStaleAge: Duration.zero,
+    );
+    final future = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload(
+        sample: {
+          'latitude': 35.123456,
+          'longitude': -80.123456,
+          'recordedAt': receivedAt.add(const Duration(minutes: 3)),
+          'horizontalAccuracyMeters': 8,
+        },
+      ),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+      maximumFutureSkew: Duration.zero,
+    );
+
+    expect(accepted.status, TripLocationSampleIntakeStatus.accepted);
+    expect(future.status, TripLocationSampleIntakeStatus.rejected);
+    expect(future.reason, TripLocationSampleIntakeReason.futureTimestamp);
+  });
+
   test(
     'summary validation rejects remote authority and odometer truth claims',
     () {

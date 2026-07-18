@@ -17,6 +17,8 @@ enum TripLocationSampleIntakeReason {
   staleTimestamp,
   duplicateTimestamp,
   outOfOrderTimestamp,
+  remoteAuthorityRejected,
+  sensitivePayloadRejected,
   mockedLocationRejected,
   invalidReportedSpeed,
   impossibleReportedSpeed,
@@ -214,7 +216,6 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
       );
     }
-
     final ownerVerified = _verifiedToken(payload['ownerUid'], expectedOwnerUid);
     if (!ownerVerified) {
       return _rejected(
@@ -246,6 +247,24 @@ class TripLocationSampleIntakeGuard {
         ownerVerified: true,
         sessionVerified: true,
         sourceVerified: false,
+      );
+    }
+    if (_containsSensitivePayload(payload)) {
+      return _rejected(
+        TripLocationSampleIntakeReason.sensitivePayloadRejected,
+        schemaVersion: schemaVersion,
+        ownerVerified: true,
+        sessionVerified: true,
+        sourceVerified: true,
+      );
+    }
+    if (_claimsRemoteAuthority(payload)) {
+      return _rejected(
+        TripLocationSampleIntakeReason.remoteAuthorityRejected,
+        schemaVersion: schemaVersion,
+        ownerVerified: true,
+        sessionVerified: true,
+        sourceVerified: true,
       );
     }
 
@@ -292,7 +311,15 @@ class TripLocationSampleIntakeGuard {
 
     final recordedAt = sample.recordedAt.toUtc();
     final received = receivedAt.toUtc();
-    if (recordedAt.isAfter(received.add(maximumFutureSkew))) {
+    final futureSkew = _safePositiveDuration(
+      maximumFutureSkew,
+      const Duration(minutes: 2),
+    );
+    final staleAge = _safePositiveDuration(
+      maximumStaleAge,
+      const Duration(hours: 18),
+    );
+    if (recordedAt.isAfter(received.add(futureSkew))) {
       return _rejected(
         TripLocationSampleIntakeReason.futureTimestamp,
         schemaVersion: schemaVersion,
@@ -302,7 +329,7 @@ class TripLocationSampleIntakeGuard {
         acceptedClockSkew: recordedAt.difference(received),
       );
     }
-    if (recordedAt.isBefore(received.subtract(maximumStaleAge))) {
+    if (recordedAt.isBefore(received.subtract(staleAge))) {
       return _rejected(
         TripLocationSampleIntakeReason.staleTimestamp,
         schemaVersion: schemaVersion,
@@ -433,6 +460,51 @@ TripLocationSampleIntakeReason? _reportedSpeedFailureReason(
 
 bool _hasKeys(Map<dynamic, dynamic> map, List<String> keys) {
   return keys.every(map.containsKey);
+}
+
+Duration _safePositiveDuration(Duration value, Duration fallback) {
+  if (value <= Duration.zero) return fallback;
+  return value;
+}
+
+bool _claimsRemoteAuthority(Object? value) {
+  if (value is Map) {
+    for (final entry in value.entries) {
+      final key = entry.key.toString();
+      if ((key.startsWith('remote') ||
+              key.startsWith('firestore') ||
+              key.startsWith('cloudFunction') ||
+              key.startsWith('mapbox')) &&
+          entry.value == true) {
+        return true;
+      }
+      if (_claimsRemoteAuthority(entry.value)) return true;
+    }
+  }
+  if (value is Iterable) {
+    for (final item in value) {
+      if (_claimsRemoteAuthority(item)) return true;
+    }
+  }
+  return false;
+}
+
+bool _containsSensitivePayload(Object? value) {
+  if (value is String) return _looksSensitive(value);
+  if (value is Map) {
+    for (final entry in value.entries) {
+      if (_containsSensitivePayload(entry.key) ||
+          _containsSensitivePayload(entry.value)) {
+        return true;
+      }
+    }
+  }
+  if (value is Iterable) {
+    for (final item in value) {
+      if (_containsSensitivePayload(item)) return true;
+    }
+  }
+  return false;
 }
 
 int _schemaVersion(Object? raw) {
