@@ -43,6 +43,7 @@ class TripLiveCheckpointMirrorDecision {
     'mirrorCanEndTripAutomatically': false,
     'odometerIsGlobalTruth': true,
     'mirrorCanApplyCalibration': false,
+    'mirrorCanCreateCalibrationProof': false,
     'mirrorCanCreateOfficialMileage': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
@@ -95,6 +96,7 @@ class TripLiveCheckpointMirrorSummaryValidation {
       'mirrorCanEndTripAutomatically',
       'odometerIsGlobalTruth',
       'mirrorCanApplyCalibration',
+      'mirrorCanCreateCalibrationProof',
       'mirrorCanCreateOfficialMileage',
       'calibrationRequiresTrustedGpsWindow',
       'poorGpsDaysExcludedFromCalibration',
@@ -131,6 +133,7 @@ class TripLiveCheckpointMirrorSummaryValidation {
         summary['mirrorCanCreateStop'] != false ||
         summary['mirrorCanEndTripAutomatically'] != false ||
         summary['mirrorCanApplyCalibration'] != false ||
+        summary['mirrorCanCreateCalibrationProof'] != false ||
         summary['mirrorCanCreateOfficialMileage'] != false ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
@@ -225,9 +228,11 @@ Map<String, Object?> _payloadFor(Map<String, Object?> source) {
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'mirrorCanApplyCalibration': false,
+    'mirrorCanCreateCalibrationProof': false,
     'mirrorCanCreateOfficialMileage': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
+    'poorGpsCalibrationDaysCanUploadAsCalibrationProof': false,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,

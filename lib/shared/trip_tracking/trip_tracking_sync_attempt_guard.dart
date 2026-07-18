@@ -277,6 +277,7 @@ class TripTrackingSyncAttemptDecision {
       'odometerRemainsOfficialMileageTruth': true,
       'calibrationRequiresTrustedGpsWindow': true,
       'poorGpsDaysExcludedFromCalibration': true,
+      'syncAttemptCanCreateCalibration': false,
       'syncAttemptCanApplyCalibration': false,
       'syncAttemptCanCreateOfficialMileage': false,
       'mapboxCanReplaceOdometer': false,

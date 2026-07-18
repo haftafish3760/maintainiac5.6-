@@ -34,9 +34,14 @@ void main() {
       expect(payload['canDeleteLocalData'], isFalse);
       expect(payload['odometerIsGlobalTruth'], isTrue);
       expect(payload['mirrorCanApplyCalibration'], isFalse);
+      expect(payload['mirrorCanCreateCalibrationProof'], isFalse);
       expect(payload['mirrorCanCreateOfficialMileage'], isFalse);
       expect(payload['calibrationRequiresTrustedGpsWindow'], isTrue);
       expect(payload['poorGpsDaysExcludedFromCalibration'], isTrue);
+      expect(
+        payload['poorGpsCalibrationDaysCanUploadAsCalibrationProof'],
+        isFalse,
+      );
       expect(payload['rawGpsIncluded'], isFalse);
       expect(payload['preciseLocationIncluded'], isFalse);
       expect(payload['routeGeometryIncluded'], isFalse);
@@ -129,6 +134,7 @@ void main() {
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['mirrorCanConfirmOdometer'], isFalse);
     expect(safe['mirrorCanApplyCalibration'], isFalse);
+    expect(safe['mirrorCanCreateCalibrationProof'], isFalse);
     expect(safe['mirrorCanCreateOfficialMileage'], isFalse);
     expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
@@ -188,6 +194,7 @@ void main() {
           'mirrorCanEndTripAutomatically': true,
           'odometerIsGlobalTruth': false,
           'mirrorCanApplyCalibration': true,
+          'mirrorCanCreateCalibrationProof': true,
           'mirrorCanCreateOfficialMileage': true,
           'calibrationRequiresTrustedGpsWindow': false,
           'poorGpsDaysExcludedFromCalibration': false,

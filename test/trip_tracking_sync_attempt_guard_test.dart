@@ -269,6 +269,7 @@ void main() {
     expect(summary['odometerRemainsOfficialMileageTruth'], isTrue);
     expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['syncAttemptCanCreateCalibration'], isFalse);
     expect(summary['syncAttemptCanApplyCalibration'], isFalse);
     expect(summary['syncAttemptCanCreateOfficialMileage'], isFalse);
     expect(summary['mapboxCanReplaceOdometer'], isFalse);
