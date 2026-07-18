@@ -67,6 +67,7 @@ class TripTrackingHeartbeatWatchdogDecision {
     'mapboxCanFillHeartbeatGap': false,
     'cloudFunctionCanFillHeartbeatGap': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawLocationIncluded': false,
     'preciseTimestampIncluded': false,
     'tokensIncluded': false,
@@ -122,6 +123,7 @@ class TripTrackingHeartbeatWatchdogSummaryValidation {
       'mapboxCanFillHeartbeatGap',
       'cloudFunctionCanFillHeartbeatGap',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'rawLocationIncluded',
       'preciseTimestampIncluded',
       'tokensIncluded',
@@ -133,7 +135,8 @@ class TripTrackingHeartbeatWatchdogSummaryValidation {
         summary['heartbeatGapCanCreateOfficialStop'] != false ||
         summary['heartbeatGapCanConfirmOdometer'] != false ||
         summary['heartbeatGapCanReplayPendingSample'] != false ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('heartbeat_claims_trip_truth');
     }
     if (summary['androidSleepCanDeleteCheckpoint'] != false ||

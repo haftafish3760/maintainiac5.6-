@@ -61,6 +61,7 @@ class TripLifecycleSupervisorDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawNativePayloadIncluded': false,
     'rawTripRecordsIncluded': false,
     'preciseLocationIncluded': false,
@@ -200,6 +201,7 @@ class TripLifecycleSupervisorSummaryValidation {
       'hiveRemainsOperationalSourceOfTruth',
       'firestoreMirrorOnly',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'rawNativePayloadIncluded',
       'rawTripRecordsIncluded',
       'preciseLocationIncluded',
@@ -238,7 +240,8 @@ class TripLifecycleSupervisorSummaryValidation {
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('recovery_source_of_truth_boundary_missing');
     }
     if (summary['rawNativePayloadIncluded'] != false ||

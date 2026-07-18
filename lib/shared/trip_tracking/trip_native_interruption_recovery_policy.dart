@@ -71,6 +71,7 @@ class TripNativeInterruptionRecoveryDecision {
     'mapboxCanForceRecovery': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawNativePayloadIncluded': false,
     'rawLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -112,7 +113,8 @@ class TripNativeInterruptionRecoverySummaryValidation {
     }
     if (summary['localCheckpointRequiredForRecovery'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('local_recovery_truth_boundary_missing');
     }
     if (summary['nativeInterruptionCanEndTripAutomatically'] != false ||

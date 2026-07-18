@@ -86,6 +86,7 @@ class TripSampleWindowQualityDecision {
     'mapboxCanFillSampleGaps': false,
     'cloudFunctionCanRepairSampleWindow': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'sampleTimestampsValidated': true,
     'duplicateOrOutOfOrderSegmentsRejected': true,
@@ -153,6 +154,7 @@ class TripSampleWindowQualitySummaryValidation {
       'projectionPausesOnSparseOrBrokenWindow',
       'segmentRejectionReasonsCounted',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'hiveRemainsOperationalSourceOfTruth',
       'sampleTimestampsValidated',
       'duplicateOrOutOfOrderSegmentsRejected',
@@ -191,7 +193,8 @@ class TripSampleWindowQualitySummaryValidation {
         summary['sampleWindowCanBypassStopDebounce'] != false ||
         summary['sampleWindowCanAutocorrectCalibration'] != false ||
         summary['sampleWindowCanDeleteTripData'] != false ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('sample_window_claims_trip_truth_authority');
     }
     if (summary['mapboxCanOverrideWindowQuality'] != false ||

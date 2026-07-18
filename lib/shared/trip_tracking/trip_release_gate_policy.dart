@@ -49,6 +49,7 @@ class TripReleaseGateDecision {
     'authorizationRulesRequiredBeforeFleetRelease': true,
     'authenticatedUserStillNeedsRecordAuthorization': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'releaseGateCanDeleteLocalData': false,
@@ -131,6 +132,7 @@ class TripReleaseGateSummaryValidation {
       reasons.add('mapbox_release_sequence_boundary_missing');
     }
     if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
         summary['releaseGateCanDeleteLocalData'] != false ||

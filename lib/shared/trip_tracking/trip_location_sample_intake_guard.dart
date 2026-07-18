@@ -93,6 +93,7 @@ class TripLocationSampleIntakeDecision {
     'sampleCanAdvanceOdometerWithoutWindowQuality': false,
     'sampleCanBypassStopDebounce': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'mockLocationAccepted': false,
     'malformedPayloadFailsClosed': true,
     'rawLocationIncluded': false,
@@ -189,6 +190,7 @@ class TripLocationSampleIntakeSummaryValidation {
         summary['sampleCanAdvanceOdometerWithoutWindowQuality'] != false ||
         summary['sampleCanBypassStopDebounce'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['mockLocationAccepted'] != false) {
       reasons.add('sample_can_create_trip_truth');
     }

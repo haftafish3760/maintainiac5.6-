@@ -93,6 +93,7 @@ class TripDashboardWidgetImportDecision {
     'moduleImportsCanMutateMaterials': false,
     'moduleImportsCanMutateMaintenance': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawModulePayloadIncluded': false,
     'rawReceiptPayloadIncluded': false,
     'rawLocationIncluded': false,
@@ -170,7 +171,8 @@ class TripDashboardWidgetImportSummaryValidation {
     ]) {
       if (summary[key] != false) reasons.add('${key}_not_false');
     }
-    if (summary['odometerRemainsOfficialMileageTruth'] != true) {
+    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('odometer_truth_boundary_missing');
     }
     if (summary.values.any(_looksSensitive)) {

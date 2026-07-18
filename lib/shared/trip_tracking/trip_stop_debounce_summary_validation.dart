@@ -99,7 +99,8 @@ class TripStopDebounceSummaryValidation {
         summary['driverProfileThresholdsAreLocalPolicy'] != true) {
       reasons.add('vehicle_only_dwell_not_manual_only');
     }
-    if (summary['odometerRemainsOfficialMileageTruth'] != true) {
+    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('odometer_not_official_truth');
     }
     if (summary['rawSamplesIncluded'] != false ||

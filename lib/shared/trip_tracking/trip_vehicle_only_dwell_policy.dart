@@ -63,6 +63,7 @@ class TripVehicleOnlyDwellDecision {
     'remoteDwellCanSurfaceManualFallback': false,
     'dashboardCacheCanSurfaceManualFallback': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'mapsRequiredForVehicleOnlyDwell': false,
     'longTrafficLightProtected':
         status == TripVehicleOnlyDwellStatus.trafficControlProtected,
@@ -147,6 +148,9 @@ class TripVehicleOnlyDwellSummaryValidation {
       return false;
     }
     if (!_trueFlag(summary, 'odometerRemainsOfficialMileageTruth')) {
+      return false;
+    }
+    if (!_trueFlag(summary, 'odometerIsGlobalTruth')) {
       return false;
     }
     if (!_falseFlag(summary, 'mapsRequiredForVehicleOnlyDwell')) return false;

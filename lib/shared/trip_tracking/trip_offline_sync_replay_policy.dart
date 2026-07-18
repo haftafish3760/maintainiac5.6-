@@ -60,6 +60,7 @@ class TripOfflineSyncReplayDecision {
     'firestoreMirrorOnly': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'mapboxCanReplaySyncQueue': false,
     'mapboxCanRepairReplayRecords': false,
     'mapboxCanFillReplayGaps': false,
@@ -207,6 +208,7 @@ class TripOfflineSyncReplaySummaryValidation {
       'firestoreMirrorOnly',
       'hiveRemainsOperationalSourceOfTruth',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'mapboxCanReplaySyncQueue',
       'mapboxCanRepairReplayRecords',
       'mapboxCanFillReplayGaps',
@@ -247,6 +249,7 @@ class TripOfflineSyncReplaySummaryValidation {
     if (summary['firestoreMirrorOnly'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['mapboxCanReplaySyncQueue'] != false ||
         summary['mapboxCanRepairReplayRecords'] != false ||
         summary['mapboxCanFillReplayGaps'] != false ||

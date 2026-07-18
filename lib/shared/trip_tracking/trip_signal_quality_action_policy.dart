@@ -45,6 +45,7 @@ class TripSignalQualityActionDecision {
     'mapboxCanOverrideSignalAction': false,
     'remoteDiagnosticsCanOverrideSignalAction': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'mapsRequiredForSignalRecovery': false,
     'rawSamplesIncluded': false,
     'coordinatesIncluded': false,

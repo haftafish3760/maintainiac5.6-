@@ -93,6 +93,7 @@ class TripTrackingDeviceConsentDecision {
     'lowBatteryDefaultGpsPausePercent': 20,
     'lowBatteryPauseCanBeOverriddenByUser': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawSensorPayloadIncluded': false,
     'preciseLocationIncluded': false,
     'deviceModelIncluded': false,

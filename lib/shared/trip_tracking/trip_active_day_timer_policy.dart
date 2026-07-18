@@ -43,6 +43,7 @@ class TripActiveDayTimerDecision {
     'firestoreMirrorOnly': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawSessionIncluded': false,
     'preciseTimestampIncluded': false,
     'preciseLocationIncluded': false,

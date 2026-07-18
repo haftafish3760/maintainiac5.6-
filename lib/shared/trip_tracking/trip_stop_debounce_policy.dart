@@ -124,6 +124,7 @@ class TripStopDebounceDecision {
     'activityRecognitionCanCreateOfficialStop': false,
     'stopReviewRequiredForOfficialStop': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawSamplesIncluded': false,
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,

@@ -62,6 +62,7 @@ class TripLocationVisibilityConsentDecision {
     'liveSharingCanConfirmOdometer': false,
     'liveSharingCanDeleteLocalData': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,

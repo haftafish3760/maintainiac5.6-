@@ -62,6 +62,7 @@ class TripSyncReservationCommitDecision {
     'remoteBackupCanOverrideLocalDay': false,
     'remoteBackupCanPurgeLocalRecordsSilently': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawTripPayloadIncluded': false,
     'preciseLocationIncluded': false,
     'tokensIncluded': false,
@@ -125,6 +126,7 @@ class TripSyncReservationCommitSummaryValidation {
       'remoteBackupCanOverrideLocalDay',
       'remoteBackupCanPurgeLocalRecordsSilently',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'rawTripPayloadIncluded',
       'preciseLocationIncluded',
       'tokensIncluded',
@@ -161,7 +163,8 @@ class TripSyncReservationCommitSummaryValidation {
         summary['remoteReservationCanOverrideLocalUsage'] != false ||
         summary['remoteBackupCanOverrideLocalDay'] != false ||
         summary['remoteBackupCanPurgeLocalRecordsSilently'] != false ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('reservation_local_truth_boundary_missing');
     }
     if (summary['rawTripPayloadIncluded'] != false ||

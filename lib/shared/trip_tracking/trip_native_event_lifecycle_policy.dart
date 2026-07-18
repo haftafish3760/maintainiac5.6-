@@ -79,6 +79,7 @@ class TripNativeEventLifecycleDecision {
     'permissionLossRequiresUserReview': true,
     'completedSessionCanResume': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawNativePayloadIncluded': false,
     'rawLocationIncluded': false,
     'preciseTimestampIncluded': false,
@@ -147,7 +148,8 @@ class TripNativeEventLifecycleSummaryValidation {
         summary['completedSessionCanResume'] != false) {
       reasons.add('interruption_recovery_boundary_missing');
     }
-    if (summary['odometerRemainsOfficialMileageTruth'] != true) {
+    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('odometer_truth_boundary_missing');
     }
     if (summary['rawNativePayloadIncluded'] != false ||
