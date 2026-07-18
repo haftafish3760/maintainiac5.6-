@@ -94,6 +94,8 @@ void main() {
       expect(decision.shouldRequestUserAction, isTrue);
       expect(decision.canUploadBackupMirror, isFalse);
       expect(safe['localCheckpointPreservedUntilReview'], isTrue);
+      expect(safe['backgroundRecoveryRequiresLocalCheckpoint'], isTrue);
+      expect(safe['backupMirrorBlockedWhenUserActionRequired'], isTrue);
     },
   );
 
@@ -189,6 +191,10 @@ void main() {
       expect(safe['remoteSupervisorCanOverrideLocalTrip'], isFalse);
       expect(safe['firestoreCanOverrideLifecycle'], isFalse);
       expect(safe['mapboxCanOverrideLifecycle'], isFalse);
+      expect(
+        safe['foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip'],
+        isTrue,
+      );
       expect(safe['rawNativePayloadIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);

@@ -62,6 +62,11 @@ void main() {
       );
       expect(decision.to, TripTrackingSessionLifecycleState.interrupted);
       expect(decision.requiresUserReview, isTrue);
+      expect(
+        decision
+            .toSafeSummary()['backgroundRestrictionCanOnlyInterruptRecoverably'],
+        isTrue,
+      );
     },
   );
 
@@ -76,6 +81,8 @@ void main() {
     expect(decision.to, TripTrackingSessionLifecycleState.active);
     expect(decision.requiresUserReview, isTrue);
     expect(safe['nativeEventCanForceComplete'], isFalse);
+    expect(safe['lateNativeStoppedStatusCannotEndTrip'], isTrue);
+    expect(safe['nativeStatusRequiresLocalStateMachineTransition'], isTrue);
   });
 
   test('completed sessions cannot resume from late native events', () {
