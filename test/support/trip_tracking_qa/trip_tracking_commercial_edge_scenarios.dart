@@ -182,4 +182,96 @@ class TripTrackingCommercialEdgeScenarios {
     SimulatedTripPoint(roadPoint(-79.9982, 62, speed: 8)),
     SimulatedTripPoint(roadPoint(-79.9974, 84, speed: 8)),
   ];
+
+  List<SimulatedTripPoint> deliveryDriveThruQueueThenDoorWalk() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
+      SimulatedTripPoint(roadPoint(-79.9993, 22, speed: 7)),
+    ];
+    for (var index = 0; index < 14; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9993 + (.000018 * index),
+            45 + (index * 18),
+            speed: index.isEven ? .9 : .2,
+          ),
+          activity: activity(TripActivity.automotive, 45 + (index * 18)),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9984, 320, speed: 8)),
+      SimulatedTripPoint(roadPoint(-79.9978, 345, speed: 7)),
+      SimulatedTripPoint(
+        roadPoint(-79.99774, 368, speed: 0),
+        activity: activity(TripActivity.walking, 368),
+      ),
+      SimulatedTripPoint(
+        roadPoint(-79.99768, 386, speed: 0),
+        activity: activity(TripActivity.walking, 386),
+      ),
+      SimulatedTripPoint(
+        roadPoint(-79.99762, 405, speed: 0),
+        activity: activity(TripActivity.walking, 405),
+      ),
+    ]);
+    return points;
+  }
+
+  List<SimulatedTripPoint> ridesharePassengerSwapNoDriverWalk() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
+      SimulatedTripPoint(roadPoint(-79.9990, 22, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9983, 45, speed: 5)),
+    ];
+    for (var index = 0; index < 12; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9983 + ((index.isEven ? 1 : -1) * .000004),
+            70 + (index * 16),
+            speed: index % 3 == 0 ? .4 : 0,
+          ),
+          activity: activity(TripActivity.automotive, 70 + (index * 16)),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9976, 290, speed: 8)),
+      SimulatedTripPoint(roadPoint(-79.9969, 315, speed: 8)),
+    ]);
+    return points;
+  }
+
+  List<SimulatedTripPoint> contractorBackToBackShortJobs() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9991, 22, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99904, 45, speed: 0),
+      activity: activity(TripActivity.walking, 45),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99898, 64, speed: 0),
+      activity: activity(TripActivity.walking, 64),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99892, 84, speed: 0),
+      activity: activity(TripActivity.walking, 84),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9980, 135, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9971, 160, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99704, 184, speed: 0),
+      activity: activity(TripActivity.walking, 184),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99696, 205, speed: 0),
+      activity: activity(TripActivity.walking, 205),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99688, 226, speed: 0),
+      activity: activity(TripActivity.walking, 226),
+    ),
+  ];
 }

@@ -367,6 +367,63 @@ void main() {
     },
   );
 
+  test('delivery drive-thru queue waits for real door-walk review', () {
+    final result = replayTrip(
+      commercialScenarios.deliveryDriveThruQueueThenDoorWalk(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isTrue);
+    expect(result.acceptedDistanceCount, greaterThanOrEqualTo(3));
+    expect(result.count(TripSampleDisposition.rejectedDrift), greaterThan(5));
+    expect(summary['stopSignal'], 'review_only_stop');
+    expect(summary['stopCanSuggestReview'], isTrue);
+    expect(summary['stopRequiresUserReview'], isTrue);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['officialMileageSource'], 'odometer');
+    expect(summary['mapsRequiredForStopReview'], isFalse);
+  });
+
+  test('rideshare passenger swap without driver walk never auto-stops', () {
+    final result = replayTrip(
+      commercialScenarios.ridesharePassengerSwapNoDriverWalk(),
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.acceptedMeters, greaterThan(200));
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['stopReviewConfidenceCanEndTripAutomatically'], isFalse);
+    expect(summary['officialStopSource'], 'user_review');
+  });
+
+  test('contractor back-to-back short jobs remain review-only', () {
+    final result = replayTrip(
+      commercialScenarios.contractorBackToBackShortJobs(),
+      profile: TripTrackingProfile.contractorVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.contractorVehicle,
+    );
+
+    expect(result.needsWalkingReview, isTrue);
+    expect(result.acceptedDistanceCount, greaterThanOrEqualTo(2));
+    expect(summary['stopSignal'], 'review_only_stop');
+    expect(summary['stopReviewConfidence'], 'high');
+    expect(summary['stopCanSuggestReview'], isTrue);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['simulationCanReplaceOdometer'], isFalse);
+    expect(summary['routeGeometryIncluded'], isFalse);
+  });
+
   test(
     'commercial replay quality rejects stale and future samples before maps',
     () {
