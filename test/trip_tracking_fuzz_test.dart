@@ -90,4 +90,65 @@ void main() {
       expect(engine.totalAcceptedMeters, lessThan(30000));
     },
   );
+
+  test('seeded mixed motion never creates review before vehicle evidence', () {
+    for (final seed in List<int>.generate(64, (index) => 12000 + index)) {
+      final random = Random(seed);
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      var longitude = -80.0;
+      var seconds = 0;
+      var acceptedDistanceSeen = false;
+
+      for (var index = 0; index < 180; index += 1) {
+        seconds += 5 + random.nextInt(25);
+        final kind = random.nextInt(12);
+        final activityKind = random.nextInt(7);
+        longitude += kind == 0
+            ? (random.nextBool() ? .015 : -.015)
+            : (random.nextDouble() - .35) * .00035;
+        final sample = TripLocationSample(
+          latitude: kind == 1 ? double.nan : 35,
+          longitude: longitude,
+          recordedAt: start.add(
+            Duration(seconds: kind == 2 ? seconds - 90 : seconds),
+          ),
+          horizontalAccuracyMeters: kind == 3
+              ? 120 + random.nextDouble() * 80
+              : 3 + random.nextDouble() * 16,
+          speedMetersPerSecond: kind == 4
+              ? 0
+              : kind == 5
+              ? double.infinity
+              : random.nextDouble() * 14,
+          mockedLocation: kind == 6,
+        );
+        final activity = activityKind == 0 || activityKind == 1
+            ? TripActivityObservation(
+                activity: activityKind == 0
+                    ? TripActivity.walking
+                    : TripActivity.automotive,
+                confidence: activityKind == 0 ? 90 : 95,
+                recordedAt: start.add(Duration(seconds: seconds)),
+              )
+            : null;
+
+        final decision = engine.ingest(sample, activity: activity);
+        acceptedDistanceSeen =
+            acceptedDistanceSeen ||
+            decision.disposition == TripSampleDisposition.acceptedDistance;
+
+        expect(decision.totalAcceptedMeters.isFinite, isTrue, reason: '$seed');
+        expect(decision.totalAcceptedMeters, greaterThanOrEqualTo(0));
+        if (decision.walkingReviewSuggested) {
+          expect(acceptedDistanceSeen, isTrue, reason: '$seed');
+        }
+        if (decision.disposition ==
+            TripSampleDisposition.rejectedMockLocation) {
+          expect(decision.addedMeters, 0);
+        }
+      }
+    }
+  });
 }
