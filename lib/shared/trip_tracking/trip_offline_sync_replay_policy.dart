@@ -144,6 +144,94 @@ class TripOfflineSyncReplayPolicy {
   }
 }
 
+class TripOfflineSyncReplaySummaryValidation {
+  const TripOfflineSyncReplaySummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripOfflineSyncReplaySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_replay_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_replay_reason');
+    }
+    for (final key in const [
+      'canReplayQueuedMirror',
+      'shouldKeepLocalQueue',
+      'shouldRetryLater',
+      'consumesFreeAttempt',
+      'replayRequiresValidatedLocalRecord',
+      'replayRequiresOwnershipCheck',
+      'freeReplayRequiresReservationBeforeUpload',
+      'failedReplayCanDeleteLocalQueue',
+      'successfulReplayCanSilentlyDeleteLocalData',
+      'successfulReplayCanPurgeLocalDaytimeData',
+      'remoteConflictCanSilentlyWin',
+      'replaySuccessRequiresExplicitQueueCleanup',
+      'replayCannotUploadIfLocalRecordDisappears',
+      'replayCannotUploadAfterBackupOptOut',
+      'remoteBackupCanOverrideLocalDay',
+      'firestoreMirrorOnly',
+      'hiveRemainsOperationalSourceOfTruth',
+      'odometerRemainsOfficialMileageTruth',
+      'mapboxCanReplaySyncQueue',
+      'mapboxCanRepairReplayRecords',
+      'rawTripPayloadIncluded',
+      'preciseLocationIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['replayRequiresValidatedLocalRecord'] != true ||
+        summary['replayRequiresOwnershipCheck'] != true ||
+        summary['freeReplayRequiresReservationBeforeUpload'] != true ||
+        summary['replayCannotUploadIfLocalRecordDisappears'] != true ||
+        summary['replayCannotUploadAfterBackupOptOut'] != true) {
+      reasons.add('replay_upload_boundary_missing');
+    }
+    if (summary['failedReplayCanDeleteLocalQueue'] != false ||
+        summary['successfulReplayCanSilentlyDeleteLocalData'] != false ||
+        summary['successfulReplayCanPurgeLocalDaytimeData'] != false ||
+        summary['remoteConflictCanSilentlyWin'] != false ||
+        summary['replaySuccessRequiresExplicitQueueCleanup'] != true ||
+        summary['remoteBackupCanOverrideLocalDay'] != false) {
+      reasons.add('remote_replay_can_mutate_local_data');
+    }
+    if (summary['firestoreMirrorOnly'] != true ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['mapboxCanReplaySyncQueue'] != false ||
+        summary['mapboxCanRepairReplayRecords'] != false) {
+      reasons.add('source_of_truth_boundary_missing');
+    }
+    if (summary['rawTripPayloadIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_replay_material');
+    }
+
+    return TripOfflineSyncReplaySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
+}
+
 TripOfflineSyncReplayDecision _decision({
   required TripOfflineSyncReplayStatus status,
   required String reasonCode,
@@ -178,4 +266,20 @@ String _safeReason(String value) {
     'offline_replay_ready' => 'offline_replay_ready',
     _ => 'offline_replay_invalid_local_record',
   };
+}
+
+TripOfflineSyncReplayStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripOfflineSyncReplayStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

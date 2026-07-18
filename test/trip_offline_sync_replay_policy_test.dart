@@ -145,4 +145,50 @@ void main() {
     expect(safe['rawTripPayloadIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });
+
+  test('safe replay summary validates local-first replay boundary', () {
+    final validation = TripOfflineSyncReplaySummaryValidation.fromSummary(
+      evaluate().toSafeSummary(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged replay summaries cannot delete, override, or leak data', () {
+    final validation = TripOfflineSyncReplaySummaryValidation.fromSummary(
+      evaluate().toSafeSummary()..addAll({
+        'replayRequiresValidatedLocalRecord': false,
+        'replayRequiresOwnershipCheck': false,
+        'freeReplayRequiresReservationBeforeUpload': false,
+        'replayCannotUploadIfLocalRecordDisappears': false,
+        'replayCannotUploadAfterBackupOptOut': false,
+        'failedReplayCanDeleteLocalQueue': true,
+        'successfulReplayCanSilentlyDeleteLocalData': true,
+        'successfulReplayCanPurgeLocalDaytimeData': true,
+        'remoteConflictCanSilentlyWin': true,
+        'replaySuccessRequiresExplicitQueueCleanup': false,
+        'remoteBackupCanOverrideLocalDay': true,
+        'firestoreMirrorOnly': false,
+        'hiveRemainsOperationalSourceOfTruth': false,
+        'odometerRemainsOfficialMileageTruth': false,
+        'mapboxCanReplaySyncQueue': true,
+        'mapboxCanRepairReplayRecords': true,
+        'rawTripPayloadIncluded': true,
+        'preciseLocationIncluded': true,
+        'routeGeometryIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'sk.secret 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('replay_upload_boundary_missing'));
+    expect(validation.reasons, contains('remote_replay_can_mutate_local_data'));
+    expect(validation.reasons, contains('source_of_truth_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_replay_material'),
+    );
+  });
 }
