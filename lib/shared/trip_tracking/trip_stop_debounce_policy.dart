@@ -263,6 +263,22 @@ class TripStopDebouncePolicy {
       );
     }
 
+    if (gpsDependability != null && !gpsDependability.canOpenStopReview) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: 'gps_dependability_blocks_stop_review_authority',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
     if (unsafe ||
         rejectedUnsafeCount >= 3 ||
         _signalQualityUnsafe(observation.signalQuality)) {

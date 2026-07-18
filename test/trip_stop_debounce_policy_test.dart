@@ -582,6 +582,38 @@ void main() {
     );
   });
 
+  test(
+    'review-only GPS dependability cannot be bypassed by walking evidence',
+    () {
+      final decision = TripStopDebouncePolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        observation: observation(
+          gpsDependability: dependability(
+            TripGpsDependabilityStatus.reviewOnly,
+            TripTrackingSignalQuality.reduced,
+            shouldContinueSampling: true,
+            requiresUserReview: true,
+          ),
+        ),
+      );
+      final safe = decision.toSafeDashboardMap();
+
+      expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
+      expect(
+        decision.reasonCode,
+        'gps_dependability_blocks_stop_review_authority',
+      );
+      expect(decision.canOpenReview, isFalse);
+      expect(decision.needsWalkingReview, isFalse);
+      expect(safe['reducedGpsCanOnlyOpenReviewWithCorroboration'], isTrue);
+      expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
+      expect(
+        TripStopDebounceSummaryValidation.fromDashboardMap(safe).isRenderable,
+        isTrue,
+      );
+    },
+  );
+
   test('safe summary denies remote stop, maps, and mileage authority', () {
     final safe = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
