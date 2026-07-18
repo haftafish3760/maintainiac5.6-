@@ -72,6 +72,90 @@ void main() {
     expect(result.status, TripOdometerReconciliationStatus.invalid);
   });
 
+  test(
+    'live odometer entry validation blocks impossible decreasing entries',
+    () {
+      final validation = TripOdometerEntryValidation.validate(
+        startingOdometer: 1020,
+        endingOdometer: 1019,
+        previousConfirmedEndingOdometer: 1010,
+        averageDailyMiles: 40,
+      );
+      final summary = validation.toSafeDashboardMap();
+
+      expect(validation.status, TripOdometerEntryValidationStatus.invalid);
+      expect(validation.shouldBlockConfirmation, isTrue);
+      expect(validation.reasonCode, 'ending_odometer_below_starting_odometer');
+      expect(summary['reasonCode'], 'ending_odometer_below_starting_odometer');
+      expect(summary['shouldBlockConfirmation'], isTrue);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['gpsCanCorrectEntryAutomatically'], isFalse);
+      expect(summary['mapboxCanCorrectEntryAutomatically'], isFalse);
+      expect(summary['remoteBackupCanCorrectEntryAutomatically'], isFalse);
+    },
+  );
+
+  test('live odometer entry validation blocks rollback from prior day', () {
+    final validation = TripOdometerEntryValidation.validate(
+      startingOdometer: 1019,
+      endingOdometer: 1030,
+      previousConfirmedEndingOdometer: 1020,
+    );
+
+    expect(validation.status, TripOdometerEntryValidationStatus.invalid);
+    expect(validation.shouldPromptUser, isTrue);
+    expect(
+      validation.reasonCode,
+      'starting_odometer_below_previous_confirmed_ending',
+    );
+    expect(validation.toSafeDashboardMap()['rawTripRecordsIncluded'], isFalse);
+  });
+
+  test('live odometer entry validation reviews large gaps and anomalies', () {
+    final gap = TripOdometerEntryValidation.validate(
+      startingOdometer: 1100,
+      endingOdometer: 1120,
+      previousConfirmedEndingOdometer: 1020,
+      averageDailyMiles: 40,
+    );
+    final high = TripOdometerEntryValidation.validate(
+      startingOdometer: 1020,
+      endingOdometer: 1200,
+      previousConfirmedEndingOdometer: 1020,
+      averageDailyMiles: 40,
+    );
+    final low = TripOdometerEntryValidation.validate(
+      startingOdometer: 1020,
+      endingOdometer: 1040,
+      previousConfirmedEndingOdometer: 1020,
+      averageDailyMiles: 100,
+    );
+
+    expect(gap.status, TripOdometerEntryValidationStatus.reviewRecommended);
+    expect(gap.reasonCode, 'large_untracked_odometer_gap');
+    expect(high.status, TripOdometerEntryValidationStatus.reviewRecommended);
+    expect(high.reasonCode, 'unusually_high_odometer_delta');
+    expect(low.status, TripOdometerEntryValidationStatus.reviewRecommended);
+    expect(low.reasonCode, 'unusually_low_odometer_delta');
+    expect(high.shouldBlockConfirmation, isFalse);
+    expect(low.toSafeDashboardMap()['manualReviewRequired'], isTrue);
+  });
+
+  test('live odometer entry validation accepts ordinary entries', () {
+    final validation = TripOdometerEntryValidation.validate(
+      startingOdometer: 1020,
+      endingOdometer: 1060,
+      previousConfirmedEndingOdometer: 1020,
+      averageDailyMiles: 40,
+    );
+
+    expect(validation.status, TripOdometerEntryValidationStatus.valid);
+    expect(validation.shouldPromptUser, isFalse);
+    expect(validation.deltaMiles, 40);
+    expect(validation.reasonCode, 'odometer_entry_validated');
+    expect(validation.toSafeDashboardMap()['rawLocationIncluded'], isFalse);
+  });
+
   test('non-finite reconciliation thresholds fail closed', () {
     final result = TripOdometerReconciliation.compare(
       review: review,

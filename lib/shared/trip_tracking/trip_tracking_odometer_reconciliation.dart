@@ -15,6 +15,8 @@ enum TripOdometerContinuityStatus {
   invalid,
 }
 
+enum TripOdometerEntryValidationStatus { valid, reviewRecommended, invalid }
+
 /// Explicit comparison only: confirmed odometer mileage remains authoritative.
 /// This object never writes an odometer, TripLog, or recap record.
 class TripOdometerReconciliation {
@@ -192,6 +194,155 @@ class TripOdometerContinuityCheck {
       status: TripOdometerContinuityStatus.aligned,
       odometerGapMiles: gap,
       reasonCode: 'odometer_continuity_aligned',
+    );
+  }
+}
+
+class TripOdometerEntryValidation {
+  const TripOdometerEntryValidation({
+    required this.status,
+    required this.startingOdometer,
+    required this.endingOdometer,
+    required this.previousConfirmedEndingOdometer,
+    required this.deltaMiles,
+    required this.reasonCode,
+  });
+
+  final TripOdometerEntryValidationStatus status;
+  final int startingOdometer;
+  final int endingOdometer;
+  final int? previousConfirmedEndingOdometer;
+  final int deltaMiles;
+  final String reasonCode;
+
+  bool get shouldBlockConfirmation =>
+      status == TripOdometerEntryValidationStatus.invalid;
+
+  bool get shouldPromptUser =>
+      status == TripOdometerEntryValidationStatus.reviewRecommended ||
+      shouldBlockConfirmation;
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'deltaMiles': deltaMiles < 0 ? 0 : deltaMiles,
+    'previousConfirmedEndingPresent':
+        previousConfirmedEndingOdometer != null &&
+        previousConfirmedEndingOdometer! >= 0,
+    'reasonCode': _safeEntryValidationReason(reasonCode),
+    'shouldBlockConfirmation': shouldBlockConfirmation,
+    'shouldPromptUser': shouldPromptUser,
+    'manualReviewRequired': shouldPromptUser,
+    'odometerRemainsCanonical': true,
+    'gpsCanCorrectEntryAutomatically': false,
+    'mapboxCanCorrectEntryAutomatically': false,
+    'remoteBackupCanCorrectEntryAutomatically': false,
+    'entryTrustedAfterLocalValidationOnly': true,
+    'firestoreCanOverrideEntryValidation': false,
+    'cloudFunctionCanOverrideEntryValidation': false,
+    'rawTripRecordsIncluded': false,
+    'rawLocationIncluded': false,
+  };
+
+  static TripOdometerEntryValidation validate({
+    required int startingOdometer,
+    required int endingOdometer,
+    int? previousConfirmedEndingOdometer,
+    double? averageDailyMiles,
+    int materialUntrackedGapMiles = 50,
+    double highMileageMultiplier = 2.5,
+    double minimumReviewBufferMiles = 50,
+  }) {
+    if (startingOdometer < 0 ||
+        endingOdometer < 0 ||
+        (previousConfirmedEndingOdometer != null &&
+            previousConfirmedEndingOdometer < 0) ||
+        materialUntrackedGapMiles < 0 ||
+        !highMileageMultiplier.isFinite ||
+        highMileageMultiplier < 1 ||
+        !minimumReviewBufferMiles.isFinite ||
+        minimumReviewBufferMiles < 0 ||
+        (averageDailyMiles != null &&
+            (!averageDailyMiles.isFinite || averageDailyMiles < 0))) {
+      return _entryValidation(
+        status: TripOdometerEntryValidationStatus.invalid,
+        startingOdometer: startingOdometer,
+        endingOdometer: endingOdometer,
+        previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+        reasonCode: 'invalid_odometer_entry_input',
+      );
+    }
+    if (endingOdometer < startingOdometer) {
+      return _entryValidation(
+        status: TripOdometerEntryValidationStatus.invalid,
+        startingOdometer: startingOdometer,
+        endingOdometer: endingOdometer,
+        previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+        reasonCode: 'ending_odometer_below_starting_odometer',
+      );
+    }
+    if (previousConfirmedEndingOdometer != null &&
+        startingOdometer < previousConfirmedEndingOdometer) {
+      return _entryValidation(
+        status: TripOdometerEntryValidationStatus.invalid,
+        startingOdometer: startingOdometer,
+        endingOdometer: endingOdometer,
+        previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+        reasonCode: 'starting_odometer_below_previous_confirmed_ending',
+      );
+    }
+
+    final previousGap = previousConfirmedEndingOdometer == null
+        ? 0
+        : startingOdometer - previousConfirmedEndingOdometer;
+    if (previousGap > materialUntrackedGapMiles) {
+      return _entryValidation(
+        status: TripOdometerEntryValidationStatus.reviewRecommended,
+        startingOdometer: startingOdometer,
+        endingOdometer: endingOdometer,
+        previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+        reasonCode: 'large_untracked_odometer_gap',
+      );
+    }
+
+    final deltaMiles = endingOdometer - startingOdometer;
+    final average = averageDailyMiles ?? 0;
+    if (average > 0) {
+      final highThreshold =
+          average * highMileageMultiplier > average + minimumReviewBufferMiles
+          ? average * highMileageMultiplier
+          : average + minimumReviewBufferMiles;
+      final lowThreshold = _lowEntryReviewThreshold(
+        averageDailyMiles: average,
+        highMileageMultiplier: highMileageMultiplier,
+        minimumReviewBufferMiles: minimumReviewBufferMiles,
+      );
+      if (deltaMiles > highThreshold) {
+        return _entryValidation(
+          status: TripOdometerEntryValidationStatus.reviewRecommended,
+          startingOdometer: startingOdometer,
+          endingOdometer: endingOdometer,
+          previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+          reasonCode: 'unusually_high_odometer_delta',
+        );
+      }
+      if (deltaMiles < lowThreshold) {
+        return _entryValidation(
+          status: TripOdometerEntryValidationStatus.reviewRecommended,
+          startingOdometer: startingOdometer,
+          endingOdometer: endingOdometer,
+          previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+          reasonCode: 'unusually_low_odometer_delta',
+        );
+      }
+    }
+
+    return _entryValidation(
+      status: TripOdometerEntryValidationStatus.valid,
+      startingOdometer: startingOdometer,
+      endingOdometer: endingOdometer,
+      previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+      reasonCode: 'odometer_entry_validated',
     );
   }
 }
@@ -463,6 +614,52 @@ bool _safeCalibrationShouldPrompt({
 }) =>
     status == TripOdometerCalibrationStatus.reviewRecommended &&
     _safeCalibrationReason(reasonCode) == 'persistent_gps_odometer_drift';
+
+TripOdometerEntryValidation _entryValidation({
+  required TripOdometerEntryValidationStatus status,
+  required int startingOdometer,
+  required int endingOdometer,
+  required int? previousConfirmedEndingOdometer,
+  required String reasonCode,
+}) {
+  final delta = endingOdometer - startingOdometer;
+  return TripOdometerEntryValidation(
+    status: status,
+    startingOdometer: startingOdometer,
+    endingOdometer: endingOdometer,
+    previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+    deltaMiles: delta < 0 ? 0 : delta,
+    reasonCode: reasonCode,
+  );
+}
+
+double _lowEntryReviewThreshold({
+  required double averageDailyMiles,
+  required double highMileageMultiplier,
+  required double minimumReviewBufferMiles,
+}) {
+  if (averageDailyMiles <= minimumReviewBufferMiles) return 0;
+  return (averageDailyMiles / highMileageMultiplier <
+              averageDailyMiles - minimumReviewBufferMiles
+          ? averageDailyMiles / highMileageMultiplier
+          : averageDailyMiles - minimumReviewBufferMiles)
+      .clamp(0, double.infinity)
+      .toDouble();
+}
+
+String _safeEntryValidationReason(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'invalid_odometer_entry_input' => clean,
+    'ending_odometer_below_starting_odometer' => clean,
+    'starting_odometer_below_previous_confirmed_ending' => clean,
+    'large_untracked_odometer_gap' => clean,
+    'unusually_high_odometer_delta' => clean,
+    'unusually_low_odometer_delta' => clean,
+    'odometer_entry_validated' => clean,
+    _ => 'invalid_odometer_entry_input',
+  };
+}
 
 String _safeContinuityReason(String value) {
   final clean = value.trim();
