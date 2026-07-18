@@ -140,6 +140,10 @@ void main() {
     );
     expect(decision.canReplayPendingSample, isTrue);
     expect(decision.canUploadBackupMirror, isTrue);
+    final safe = decision.toSafeDashboardMap();
+    expect(safe['pendingReplayRequiresValidatedLocalSample'], isTrue);
+    expect(safe['pendingReplayRequiresMatchingSession'], isTrue);
+    expect(safe['recoveryCannotReplayMockedLocation'], isTrue);
   });
 
   test('malformed native payload continues offline from local checkpoint', () {
@@ -156,6 +160,10 @@ void main() {
     expect(decision.status, TripLifecycleSupervisorStatus.recoverInBackground);
     expect(decision.reasonCode, 'continue_offline_from_checkpoint');
     expect(decision.shouldRequestUserAction, isFalse);
+    expect(
+      decision.toSafeDashboardMap()['malformedNativePayloadCanEndTrip'],
+      isFalse,
+    );
   });
 
   test('missing local checkpoint fails closed at supervisor boundary', () {
@@ -198,6 +206,9 @@ void main() {
       expect(safe['rawNativePayloadIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
+      expect(safe['permissionRequiredCannotUploadBackup'], isTrue);
+      expect(safe['fleetObserverCanRecoverTrip'], isFalse);
+      expect(safe['authenticationAloneAuthorizesRecovery'], isFalse);
     },
   );
 
@@ -244,6 +255,12 @@ void main() {
           'backgroundRecoveryRequiresLocalCheckpoint': false,
           'foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip': false,
           'backupMirrorBlockedWhenUserActionRequired': false,
+          'pendingReplayRequiresValidatedLocalSample': false,
+          'pendingReplayRequiresMatchingSession': false,
+          'recoveryCannotReplayMockedLocation': false,
+          'permissionRequiredCannotUploadBackup': false,
+          'fleetObserverCanRecoverTrip': true,
+          'authenticationAloneAuthorizesRecovery': true,
           'hiveRemainsOperationalSourceOfTruth': false,
           'firestoreMirrorOnly': false,
           'odometerRemainsOfficialMileageTruth': false,
@@ -265,11 +282,43 @@ void main() {
       );
       expect(
         validation.reasons,
+        contains('recovery_authorization_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
         contains('recovery_source_of_truth_boundary_missing'),
       );
       expect(
         validation.reasons,
         contains('summary_contains_sensitive_recovery_material'),
+      );
+    },
+  );
+
+  test(
+    'permission lifecycle never uploads backup or replays pending sample',
+    () {
+      final decision = TripLifecycleSupervisorPolicy.evaluate(
+        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        dashboardRollup: normalRollup,
+        errorRecoveryPlan: recoveryPlan(
+          'trip_tracking_location_denied',
+          settings: true,
+        ),
+        recoveryDecision: recoveryReady,
+        localCheckpointAvailable: true,
+        nativeTrackingAvailable: false,
+        backupMirrorReady: true,
+      );
+      final safe = decision.toSafeDashboardMap();
+
+      expect(decision.status, TripLifecycleSupervisorStatus.promptUser);
+      expect(decision.canReplayPendingSample, isFalse);
+      expect(decision.canUploadBackupMirror, isFalse);
+      expect(safe['permissionRequiredCannotUploadBackup'], isTrue);
+      expect(
+        TripLifecycleSupervisorSummaryValidation.fromSummary(safe).isRenderable,
+        isTrue,
       );
     },
   );

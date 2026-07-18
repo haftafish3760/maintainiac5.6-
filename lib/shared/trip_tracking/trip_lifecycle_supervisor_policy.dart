@@ -52,6 +52,12 @@ class TripLifecycleSupervisorDecision {
     'backgroundRecoveryRequiresLocalCheckpoint': true,
     'foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip': true,
     'backupMirrorBlockedWhenUserActionRequired': true,
+    'pendingReplayRequiresValidatedLocalSample': true,
+    'pendingReplayRequiresMatchingSession': true,
+    'recoveryCannotReplayMockedLocation': true,
+    'permissionRequiredCannotUploadBackup': true,
+    'fleetObserverCanRecoverTrip': false,
+    'authenticationAloneAuthorizesRecovery': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'odometerRemainsOfficialMileageTruth': true,
@@ -185,6 +191,12 @@ class TripLifecycleSupervisorSummaryValidation {
       'backgroundRecoveryRequiresLocalCheckpoint',
       'foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip',
       'backupMirrorBlockedWhenUserActionRequired',
+      'pendingReplayRequiresValidatedLocalSample',
+      'pendingReplayRequiresMatchingSession',
+      'recoveryCannotReplayMockedLocation',
+      'permissionRequiredCannotUploadBackup',
+      'fleetObserverCanRecoverTrip',
+      'authenticationAloneAuthorizesRecovery',
       'hiveRemainsOperationalSourceOfTruth',
       'firestoreMirrorOnly',
       'odometerRemainsOfficialMileageTruth',
@@ -213,8 +225,16 @@ class TripLifecycleSupervisorSummaryValidation {
         summary['backgroundRecoveryRequiresLocalCheckpoint'] != true ||
         summary['foregroundServiceCanOnlyStayAliveForRecoverableLocalTrip'] !=
             true ||
-        summary['backupMirrorBlockedWhenUserActionRequired'] != true) {
+        summary['backupMirrorBlockedWhenUserActionRequired'] != true ||
+        summary['pendingReplayRequiresValidatedLocalSample'] != true ||
+        summary['pendingReplayRequiresMatchingSession'] != true ||
+        summary['recoveryCannotReplayMockedLocation'] != true ||
+        summary['permissionRequiredCannotUploadBackup'] != true) {
       reasons.add('recovery_checkpoint_boundary_missing');
+    }
+    if (summary['fleetObserverCanRecoverTrip'] != false ||
+        summary['authenticationAloneAuthorizesRecovery'] != false) {
+      reasons.add('recovery_authorization_boundary_missing');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
