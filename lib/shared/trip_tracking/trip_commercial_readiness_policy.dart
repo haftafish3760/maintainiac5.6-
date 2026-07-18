@@ -62,7 +62,12 @@ class TripCommercialReadinessDecision {
     'realDeviceEvidenceRequiredForDependabilityClaim': true,
     'stopReviewRequiredBeforeOfficialStop': true,
     'confirmedMileageRequiresUserAction': true,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'poorGpsCalibrationProofRequired': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'calibrationCanCreateOfficialMileage': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'employeeTrackingRequiresMutualConsent': true,
@@ -118,7 +123,12 @@ class TripCommercialReadinessSummaryValidation {
       'realDeviceEvidenceRequiredForDependabilityClaim',
       'stopReviewRequiredBeforeOfficialStop',
       'confirmedMileageRequiresUserAction',
+      'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
+      'poorGpsCalibrationProofRequired',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
+      'calibrationCanCreateOfficialMileage',
       'hiveRemainsOperationalSourceOfTruth',
       'firestoreMirrorOnly',
       'employeeTrackingRequiresMutualConsent',
@@ -147,12 +157,17 @@ class TripCommercialReadinessSummaryValidation {
         summary['activityRecognitionCanCreateOfficialStop'] != false ||
         summary['stopReviewRequiredBeforeOfficialStop'] != true ||
         summary['confirmedMileageRequiresUserAction'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('commercial_claims_trip_truth_authority');
     }
     if (summary['gpsAccuracyStillRequiresFieldProof'] != true ||
         summary['commercialReadyDoesNotMeanProductionReady'] != true ||
-        summary['realDeviceEvidenceRequiredForDependabilityClaim'] != true) {
+        summary['realDeviceEvidenceRequiredForDependabilityClaim'] != true ||
+        summary['poorGpsCalibrationProofRequired'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['calibrationCanCreateOfficialMileage'] != false) {
       reasons.add('commercial_evidence_boundary_missing');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
