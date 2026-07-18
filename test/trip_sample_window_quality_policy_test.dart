@@ -529,4 +529,43 @@ void main() {
       );
     },
   );
+
+  test('sample window validation rejects status authority mismatch', () {
+    final usable = TripSampleWindowQualityPolicy.evaluate(
+      samples: [sample(0, 35.0000, -80.0000), sample(15, 35.0002, -80.0000)],
+      routeHistoryDecision: routeDecision(),
+    ).toSafeDashboardMap();
+    final degraded = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000),
+        sample(20, 35.0002, -80.0000),
+        sample(500, 36.0000, -81.0000),
+      ],
+      routeHistoryDecision: routeDecision(),
+      maximumAcceptedGapSeconds: 60,
+    ).toSafeDashboardMap();
+
+    final forgedUsable = TripSampleWindowQualitySummaryValidation.fromSummary({
+      ...usable,
+      'canFeedLiveOdometerProjection': false,
+      'acceptedSegmentCount': 0,
+    });
+    final forgedDegraded =
+        TripSampleWindowQualitySummaryValidation.fromSummary({
+          ...degraded,
+          'canFeedLiveOdometerProjection': true,
+          'canPersistCompactRoutePoint': true,
+        });
+
+    expect(forgedUsable.isRenderable, isFalse);
+    expect(forgedDegraded.isRenderable, isFalse);
+    expect(
+      forgedUsable.reasons,
+      contains('sample_window_status_conflicts_with_authority'),
+    );
+    expect(
+      forgedDegraded.reasons,
+      contains('sample_window_status_conflicts_with_authority'),
+    );
+  });
 }

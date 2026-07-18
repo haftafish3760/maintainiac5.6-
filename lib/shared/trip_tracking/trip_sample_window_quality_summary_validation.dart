@@ -97,6 +97,8 @@ class TripSampleWindowQualitySummaryValidation {
         summary['unsafeGpsBlocksSampleWindow'] != true) {
       reasons.add('sample_window_gps_quality_boundary_missing');
     }
+    final boundaryRisk = _sampleWindowStatusBoundaryRisk(summary, status);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     if (summary['sampleWindowRequiresLocalDeviceSource'] != true ||
         summary['sampleWindowRequiresOwnershipValidation'] != true ||
         summary['sampleWindowRequiresIntakeGuardBeforeEvaluation'] != true ||
@@ -170,6 +172,43 @@ String _safeReason(String value) {
     'sample_window_usable' => 'sample_window_usable',
     _ => 'sample_window_segments_rejected',
   };
+}
+
+String? _sampleWindowStatusBoundaryRisk(
+  Map<String, Object?> summary,
+  TripSampleWindowQualityStatus? status,
+) {
+  final project = summary['canFeedLiveOdometerProjection'];
+  final persist = summary['canPersistCompactRoutePoint'];
+  final validSamples = summary['validSampleCount'];
+  final acceptedSegments = summary['acceptedSegmentCount'];
+  final rejectedGap = summary['rejectedGapSegmentCount'];
+  final rejectedJump = summary['rejectedJumpSegmentCount'];
+  final rejectedSpeed = summary['rejectedSpeedSegmentCount'];
+  final reason = summary['reasonCode'];
+  if (status == null ||
+      project is! bool ||
+      persist is! bool ||
+      validSamples is! int ||
+      acceptedSegments is! int ||
+      rejectedGap is! int ||
+      rejectedJump is! int ||
+      rejectedSpeed is! int) {
+    return null;
+  }
+  final anyRejected = rejectedGap > 0 || rejectedJump > 0 || rejectedSpeed > 0;
+  final invalid = switch (status) {
+    TripSampleWindowQualityStatus.noSamples =>
+      project || persist || validSamples != 0 || acceptedSegments != 0,
+    TripSampleWindowQualityStatus.unsafeRejected => project || persist,
+    TripSampleWindowQualityStatus.routeStoragePaused => !project || persist,
+    TripSampleWindowQualityStatus.degradedTrackingOnly => project || persist,
+    TripSampleWindowQualityStatus.usableForTracking =>
+      acceptedSegments <= 0 ||
+          (!project && reason != 'sample_window_projection_paused') ||
+          (anyRejected && persist),
+  };
+  return invalid ? 'sample_window_status_conflicts_with_authority' : null;
 }
 
 bool _looksSensitive(Object? value) {
