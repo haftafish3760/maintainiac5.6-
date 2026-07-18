@@ -102,6 +102,41 @@ void main() {
     expect(estimate.toSafeDashboardMap()['exceedsDailyBudget'], isTrue);
   });
 
+  test(
+    'direct settings values cannot create invalid route budget summaries',
+    () {
+      final malformed = TripTrackingMapStoragePolicy.estimate(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          mapPreviewEnabled: true,
+          mapRouteHistorySavingEnabled: true,
+          mapRouteHistoryDailyBudgetMb: double.nan,
+          mapRouteHistorySampleIntervalSeconds: 0,
+        ),
+      );
+      final oversized = TripTrackingMapStoragePolicy.estimate(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          mapPreviewEnabled: true,
+          mapRouteHistorySavingEnabled: true,
+          mapRouteHistoryDailyBudgetMb: 99,
+          mapRouteHistorySampleIntervalSeconds: 1,
+        ),
+        drivingSecondsPerDay: 60,
+        bytesPerPoint: 32,
+      );
+
+      expect(malformed.allowedToPersistRoute, isFalse);
+      expect(malformed.reasonCode, 'map_route_history_budget_missing');
+      expect(malformed.dailyBudgetMb, 0);
+      expect(malformed.sampleIntervalSeconds, 15);
+      expect(malformed.toSafeDashboardMap().toString(), isNot(contains('NaN')));
+      expect(oversized.dailyBudgetMb, 2);
+      expect(oversized.sampleIntervalSeconds, 15);
+      expect(oversized.allowedToPersistRoute, isTrue);
+    },
+  );
+
   test('live route point persistence stops at the user daily budget', () {
     final settings = const TripTrackingSettings().copyWith(
       gpsAssistedTrackingEnabled: true,

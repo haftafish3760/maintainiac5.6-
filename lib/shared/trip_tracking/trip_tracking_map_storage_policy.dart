@@ -94,7 +94,12 @@ class TripTrackingMapStoragePolicy {
   }) {
     final safeDrivingSeconds = _safeDrivingSeconds(drivingSecondsPerDay);
     final safeBytesPerPoint = _safeBytesPerPoint(bytesPerPoint);
-    final sampleInterval = settings.mapRouteHistorySampleIntervalSeconds;
+    final sampleInterval = _safeSampleIntervalSeconds(
+      settings.mapRouteHistorySampleIntervalSeconds,
+    );
+    final dailyBudgetMb = _safeDailyBudgetMb(
+      settings.mapRouteHistoryDailyBudgetMb,
+    );
     final samples = (safeDrivingSeconds / sampleInterval).ceil();
     final estimatedMb = _roundMb(samples * safeBytesPerPoint / (1024 * 1024));
     if (!settings.gpsAssistedTrackingEnabled) {
@@ -103,7 +108,7 @@ class TripTrackingMapStoragePolicy {
         allowedToPersistRoute: false,
         reasonCode: 'gps_tracking_disabled',
         sampleIntervalSeconds: sampleInterval,
-        dailyBudgetMb: settings.mapRouteHistoryDailyBudgetMb,
+        dailyBudgetMb: dailyBudgetMb,
         estimatedSamplesPerDay: samples,
         estimatedDailyMb: estimatedMb,
       );
@@ -114,7 +119,7 @@ class TripTrackingMapStoragePolicy {
         allowedToPersistRoute: false,
         reasonCode: 'maps_not_enabled',
         sampleIntervalSeconds: sampleInterval,
-        dailyBudgetMb: settings.mapRouteHistoryDailyBudgetMb,
+        dailyBudgetMb: dailyBudgetMb,
         estimatedSamplesPerDay: samples,
         estimatedDailyMb: estimatedMb,
       );
@@ -125,12 +130,12 @@ class TripTrackingMapStoragePolicy {
         allowedToPersistRoute: false,
         reasonCode: 'map_route_history_not_enabled',
         sampleIntervalSeconds: sampleInterval,
-        dailyBudgetMb: settings.mapRouteHistoryDailyBudgetMb,
+        dailyBudgetMb: dailyBudgetMb,
         estimatedSamplesPerDay: samples,
         estimatedDailyMb: estimatedMb,
       );
     }
-    if (settings.mapRouteHistoryDailyBudgetMb <= 0) {
+    if (dailyBudgetMb <= 0) {
       return TripTrackingMapStorageEstimate(
         enabled: true,
         allowedToPersistRoute: false,
@@ -143,13 +148,12 @@ class TripTrackingMapStoragePolicy {
     }
     return TripTrackingMapStorageEstimate(
       enabled: true,
-      allowedToPersistRoute:
-          estimatedMb <= settings.mapRouteHistoryDailyBudgetMb,
-      reasonCode: estimatedMb <= settings.mapRouteHistoryDailyBudgetMb
+      allowedToPersistRoute: estimatedMb <= dailyBudgetMb,
+      reasonCode: estimatedMb <= dailyBudgetMb
           ? 'map_route_history_within_budget'
           : 'map_route_history_budget_exceeded',
       sampleIntervalSeconds: sampleInterval,
-      dailyBudgetMb: settings.mapRouteHistoryDailyBudgetMb,
+      dailyBudgetMb: dailyBudgetMb,
       estimatedSamplesPerDay: samples,
       estimatedDailyMb: estimatedMb,
     );
@@ -219,6 +223,13 @@ class TripTrackingMapStoragePolicy {
 int _safeDrivingSeconds(int value) => value.clamp(60, 24 * 60 * 60);
 
 int _safeBytesPerPoint(int value) => value.clamp(32, 512);
+
+int _safeSampleIntervalSeconds(int value) => value.clamp(15, 300);
+
+double _safeDailyBudgetMb(double value) {
+  if (!value.isFinite || value <= 0) return 0;
+  return value > 2 ? 2 : _roundMb(value);
+}
 
 double _roundMb(double value) => double.parse(value.toStringAsFixed(3));
 
