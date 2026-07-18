@@ -418,7 +418,9 @@ class TripTrackingPlatformEvent {
       (value) => value.name == map['type'],
       orElse: () => TripTrackingPlatformEventType.error,
     );
-    final location = declaredType == TripTrackingPlatformEventType.location
+    final location =
+        declaredType == TripTrackingPlatformEventType.location &&
+            !_hasInvalidNativeReportedSpeed(map)
         ? TripLocationSample.tryFromMap(map)
         : null;
     final activity = declaredType == TripTrackingPlatformEventType.activity
@@ -538,6 +540,15 @@ String? _safePlatformStatus(Object? value) {
     'stopped' => clean,
     _ => null,
   };
+}
+
+bool _hasInvalidNativeReportedSpeed(Map<dynamic, dynamic> map) {
+  if (!map.containsKey('speedMetersPerSecond') ||
+      map['speedMetersPerSecond'] == null) {
+    return false;
+  }
+  final speed = map['speedMetersPerSecond'];
+  return speed is! num || !speed.isFinite || speed < 0 || speed > 70;
 }
 
 String? _safePlatformMessage(Object? value) {

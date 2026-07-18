@@ -524,8 +524,8 @@ void main() {
     expect(event.errorCode, 'invalidLocationPayload');
   });
 
-  test('untrusted native speed is sanitized without dropping a valid fix', () {
-    for (final speed in [double.nan, double.infinity, -1.0, 76.0]) {
+  test('untrusted native speed fails closed before reaching the engine', () {
+    for (final speed in [double.nan, double.infinity, -1.0, 70.1]) {
       final event = TripTrackingPlatformEvent.fromMap({
         'type': 'location',
         'latitude': 35.2,
@@ -535,8 +535,9 @@ void main() {
         'speedMetersPerSecond': speed,
       });
 
-      expect(event.type, TripTrackingPlatformEventType.location);
-      expect(event.location?.speedMetersPerSecond, isNull);
+      expect(event.type, TripTrackingPlatformEventType.error);
+      expect(event.location, isNull);
+      expect(event.errorCode, 'invalidLocationPayload');
     }
   });
 
