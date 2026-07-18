@@ -91,6 +91,14 @@ class TripTrackingCommandDecision {
     'dashboardStartButtonVisible': dashboardStartButtonVisible,
     'localTextRecordWillBeWritten': localTextRecordWillBeWritten,
     'gpsTrackingRequested': gpsTrackingRequested,
+    'gpsStartRequiresLocalUserConfirmation':
+        command == TripTrackingDashboardCommand.startGpsTrip,
+    'gpsStartRequiresValidatedPlatformGrant':
+        command == TripTrackingDashboardCommand.startGpsTrip,
+    'gpsStartRequiresCurrentDeviceConsent':
+        command == TripTrackingDashboardCommand.startGpsTrip,
+    'manualStartCanRunWithoutGps':
+        command == TripTrackingDashboardCommand.startManualDay,
     'gpsTrackingCanRunWithoutMaps': true,
     'mapsRequired': false,
     'mapsRequiredForCommand': false,
@@ -131,6 +139,116 @@ class TripTrackingCommandDecision {
     if (parts.length == 2 && parts.first == 'profile') return parts.last;
     return 'validated_trip_tracking_profile';
   }
+}
+
+class TripTrackingCommandSummaryValidation {
+  const TripTrackingCommandSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingCommandSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeCommand(summary['command']) == null) {
+      reasons.add('invalid_trip_command');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_command_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_command_reason');
+    }
+    for (final key in const [
+      'dashboardStartButtonVisible',
+      'localTextRecordWillBeWritten',
+      'gpsTrackingRequested',
+      'gpsStartRequiresLocalUserConfirmation',
+      'gpsStartRequiresValidatedPlatformGrant',
+      'gpsStartRequiresCurrentDeviceConsent',
+      'manualStartCanRunWithoutGps',
+      'gpsTrackingCanRunWithoutMaps',
+      'mapsRequired',
+      'mapsRequiredForCommand',
+      'mapboxCanStartTracking',
+      'firebaseCanStartTracking',
+      'cloudFunctionCanStartTracking',
+      'remoteMirrorCanStartTracking',
+      'employerCanStartTracking',
+      'employerCanTrackWithoutMutualConsent',
+      'mutualFleetTrackingConsentRequired',
+      'createsOfficialStop',
+      'walkingEvidenceCanOnlySuggestReview',
+      'requiresStopReview',
+      'requiresOdometerReview',
+      'odometerRemainsOfficialMileageTruth',
+      'gpsDistanceCanReplaceOdometerSilently',
+      'mapRouteCanReplaceOdometerSilently',
+      'localSessionRequired',
+      'canUploadMirror',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'remoteTotalsCanonical',
+      'canDeleteLocalData',
+      'canPurgeLocalDataSilently',
+      'durableStorageIsSharedAcrossModules',
+      'rawLocationIncluded',
+      'preciseRouteIncluded',
+      'rawSensorPayloadIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['mapboxCanStartTracking'] != false ||
+        summary['firebaseCanStartTracking'] != false ||
+        summary['cloudFunctionCanStartTracking'] != false ||
+        summary['remoteMirrorCanStartTracking'] != false ||
+        summary['employerCanStartTracking'] != false ||
+        summary['employerCanTrackWithoutMutualConsent'] != false ||
+        summary['mutualFleetTrackingConsentRequired'] != true) {
+      reasons.add('remote_or_employer_can_start_tracking');
+    }
+    if (summary['mapsRequired'] != false ||
+        summary['mapsRequiredForCommand'] != false ||
+        summary['gpsTrackingCanRunWithoutMaps'] != true) {
+      reasons.add('maps_required_for_trip_command');
+    }
+    if (summary['createsOfficialStop'] != false ||
+        summary['walkingEvidenceCanOnlySuggestReview'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['gpsDistanceCanReplaceOdometerSilently'] != false ||
+        summary['mapRouteCanReplaceOdometerSilently'] != false) {
+      reasons.add('command_can_create_trip_truth');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteTotalsCanonical'] != false ||
+        summary['canDeleteLocalData'] != false ||
+        summary['canPurgeLocalDataSilently'] != false ||
+        summary['durableStorageIsSharedAcrossModules'] != true) {
+      reasons.add('command_storage_boundary_missing');
+    }
+    if (summary['rawLocationIncluded'] != false ||
+        summary['preciseRouteIncluded'] != false ||
+        summary['rawSensorPayloadIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_command_material');
+    }
+
+    return TripTrackingCommandSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripTrackingCommandPolicy {
@@ -353,4 +471,28 @@ String _safeReason(String value) {
     'finish_trip_before_mileage_review' => clean,
     _ => 'trip_command_not_authorized',
   };
+}
+
+TripTrackingDashboardCommand? _safeCommand(Object? value) {
+  if (value is! String) return null;
+  for (final command in TripTrackingDashboardCommand.values) {
+    if (command.name == value) return command;
+  }
+  return null;
+}
+
+TripTrackingCommandStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripTrackingCommandStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

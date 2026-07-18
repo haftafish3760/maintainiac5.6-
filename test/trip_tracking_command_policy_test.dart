@@ -36,6 +36,21 @@ void main() {
     expect(blocked.reasonCode, 'gps_tracking_not_ready_or_consented');
     expect(allowed.status, TripTrackingCommandStatus.allowed);
     expect(allowed.reasonCode, 'gps_trip_start_ready');
+    expect(
+      allowed
+          .toSafeDashboardCommandMap()['gpsStartRequiresLocalUserConfirmation'],
+      isTrue,
+    );
+    expect(
+      allowed
+          .toSafeDashboardCommandMap()['gpsStartRequiresValidatedPlatformGrant'],
+      isTrue,
+    );
+    expect(
+      allowed
+          .toSafeDashboardCommandMap()['gpsStartRequiresCurrentDeviceConsent'],
+      isTrue,
+    );
   });
 
   test(
@@ -202,6 +217,67 @@ void main() {
       expect(safe.toString(), isNot(contains('sk.')));
     },
   );
+
+  test('safe command summary validates start and storage boundaries', () {
+    final validation = TripTrackingCommandSummaryValidation.fromSummary(
+      TripTrackingCommandPolicy.evaluate(
+        context(
+          command: TripTrackingDashboardCommand.startGpsTrip,
+          deviceConsentDecision: deviceConsent(ready: true),
+        ),
+      ).toSafeDashboardCommandMap(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged command summaries cannot start tracking remotely', () {
+    final validation = TripTrackingCommandSummaryValidation.fromSummary(
+      TripTrackingCommandPolicy.evaluate(context()).toSafeDashboardCommandMap()
+        ..addAll({
+          'mapboxCanStartTracking': true,
+          'firebaseCanStartTracking': true,
+          'cloudFunctionCanStartTracking': true,
+          'remoteMirrorCanStartTracking': true,
+          'employerCanStartTracking': true,
+          'employerCanTrackWithoutMutualConsent': true,
+          'mutualFleetTrackingConsentRequired': false,
+          'mapsRequired': true,
+          'mapsRequiredForCommand': true,
+          'gpsTrackingCanRunWithoutMaps': false,
+          'createsOfficialStop': true,
+          'walkingEvidenceCanOnlySuggestReview': false,
+          'odometerRemainsOfficialMileageTruth': false,
+          'gpsDistanceCanReplaceOdometerSilently': true,
+          'mapRouteCanReplaceOdometerSilently': true,
+          'hiveRemainsOperationalSourceOfTruth': false,
+          'firestoreMirrorOnly': false,
+          'remoteTotalsCanonical': true,
+          'canDeleteLocalData': true,
+          'canPurgeLocalDataSilently': true,
+          'durableStorageIsSharedAcrossModules': false,
+          'rawLocationIncluded': true,
+          'preciseRouteIncluded': true,
+          'rawSensorPayloadIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'sk.secret 35.123456,-80.123456',
+        }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('remote_or_employer_can_start_tracking'),
+    );
+    expect(validation.reasons, contains('maps_required_for_trip_command'));
+    expect(validation.reasons, contains('command_can_create_trip_truth'));
+    expect(validation.reasons, contains('command_storage_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_command_material'),
+    );
+  });
 }
 
 TripTrackingCommandContext context({
