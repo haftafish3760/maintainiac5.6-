@@ -20,6 +20,7 @@ enum TripLocationSampleIntakeReason {
   remoteAuthorityRejected,
   sensitivePayloadRejected,
   mockedLocationRejected,
+  simulatorHarnessRequired,
   invalidReportedSpeed,
   impossibleReportedSpeed,
 }
@@ -33,6 +34,7 @@ class TripLocationSampleIntakeDecision {
     required this.ownerVerified,
     required this.sessionVerified,
     required this.sourceVerified,
+    required this.simulatorHarnessVerified,
     required this.acceptedClockSkew,
   });
 
@@ -43,6 +45,7 @@ class TripLocationSampleIntakeDecision {
   final bool ownerVerified;
   final bool sessionVerified;
   final bool sourceVerified;
+  final bool simulatorHarnessVerified;
   final Duration acceptedClockSkew;
 
   bool get canFeedTripEngine =>
@@ -57,6 +60,7 @@ class TripLocationSampleIntakeDecision {
     'ownerVerified': ownerVerified,
     'sessionVerified': sessionVerified,
     'sourceVerified': sourceVerified,
+    'simulatorHarnessVerified': simulatorHarnessVerified,
     'acceptedClockSkewBucket': _clockSkewBucket(acceptedClockSkew),
     'orderedAfterAcceptedSample':
         reason != TripLocationSampleIntakeReason.duplicateTimestamp &&
@@ -66,6 +70,8 @@ class TripLocationSampleIntakeDecision {
     'localTripSessionRequired': true,
     'nativeLocationSourceRequired': true,
     'simulatorSampleRequiresExplicitTestHarness': true,
+    'simulatorHarnessCanFeedTripEngine': simulatorHarnessVerified,
+    'simulatorHarnessCannotWriteProductionHistory': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'mapboxResponsesTreatedAsExternalInput': true,
@@ -118,12 +124,15 @@ class TripLocationSampleIntakeSummaryValidation {
       'ownerVerified',
       'sessionVerified',
       'sourceVerified',
+      'simulatorHarnessVerified',
       'validatedBeforeUse',
       'authDoesNotImplyAuthorization',
       'authenticatedUserStillNeedsAuthorization',
       'localTripSessionRequired',
       'nativeLocationSourceRequired',
       'simulatorSampleRequiresExplicitTestHarness',
+      'simulatorHarnessCanFeedTripEngine',
+      'simulatorHarnessCannotWriteProductionHistory',
     ]) {
       if (summary[key] is! bool) reasons.add('${key}_not_bool');
     }
@@ -135,12 +144,17 @@ class TripLocationSampleIntakeSummaryValidation {
             summary['sourceVerified'] != true)) {
       reasons.add('unsafe_engine_feed_claim');
     }
+    if (summary['simulatorHarnessVerified'] == true &&
+        summary['simulatorHarnessCanFeedTripEngine'] != true) {
+      reasons.add('simulator_harness_claim_inconsistent');
+    }
     if (summary['validatedBeforeUse'] != true ||
         summary['authDoesNotImplyAuthorization'] != true ||
         summary['authenticatedUserStillNeedsAuthorization'] != true ||
         summary['localTripSessionRequired'] != true ||
         summary['nativeLocationSourceRequired'] != true ||
-        summary['simulatorSampleRequiresExplicitTestHarness'] != true) {
+        summary['simulatorSampleRequiresExplicitTestHarness'] != true ||
+        summary['simulatorHarnessCannotWriteProductionHistory'] != true) {
       reasons.add('authorization_boundary_missing');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
@@ -202,6 +216,7 @@ class TripLocationSampleIntakeGuard {
     Duration maximumFutureSkew = const Duration(minutes: 2),
     Duration maximumStaleAge = const Duration(hours: 18),
     DateTime? latestAcceptedRecordedAt,
+    bool allowExplicitSimulatorHarness = false,
   }) {
     if (payload is! Map) {
       return _rejected(
@@ -237,12 +252,16 @@ class TripLocationSampleIntakeGuard {
         sessionVerified: false,
       );
     }
+    final simulatorSource = payload['source'] == 'simulated_native_location';
     final sourceVerified =
         payload['source'] == 'native_location' ||
-        payload['source'] == 'validated_native_location';
+        payload['source'] == 'validated_native_location' ||
+        (simulatorSource && allowExplicitSimulatorHarness);
     if (!sourceVerified) {
       return _rejected(
-        TripLocationSampleIntakeReason.sourceMismatch,
+        simulatorSource
+            ? TripLocationSampleIntakeReason.simulatorHarnessRequired
+            : TripLocationSampleIntakeReason.sourceMismatch,
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
@@ -381,6 +400,8 @@ class TripLocationSampleIntakeGuard {
       ownerVerified: true,
       sessionVerified: true,
       sourceVerified: true,
+      simulatorHarnessVerified:
+          simulatorSource && allowExplicitSimulatorHarness,
       acceptedClockSkew: received.difference(recordedAt).abs(),
     );
   }
@@ -392,6 +413,7 @@ TripLocationSampleIntakeDecision _rejected(
   bool ownerVerified = false,
   bool sessionVerified = false,
   bool sourceVerified = false,
+  bool simulatorHarnessVerified = false,
   Duration acceptedClockSkew = Duration.zero,
 }) {
   return TripLocationSampleIntakeDecision(
@@ -402,6 +424,7 @@ TripLocationSampleIntakeDecision _rejected(
     ownerVerified: ownerVerified,
     sessionVerified: sessionVerified,
     sourceVerified: sourceVerified,
+    simulatorHarnessVerified: simulatorHarnessVerified,
     acceptedClockSkew: acceptedClockSkew,
   );
 }

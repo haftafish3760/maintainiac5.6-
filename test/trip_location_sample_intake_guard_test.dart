@@ -39,8 +39,11 @@ void main() {
 
     expect(decision.canFeedTripEngine, isTrue);
     expect(summary['sourceVerified'], isTrue);
+    expect(summary['simulatorHarnessVerified'], isFalse);
     expect(summary['nativeLocationSourceRequired'], isTrue);
     expect(summary['simulatorSampleRequiresExplicitTestHarness'], isTrue);
+    expect(summary['simulatorHarnessCanFeedTripEngine'], isFalse);
+    expect(summary['simulatorHarnessCannotWriteProductionHistory'], isTrue);
     expect(summary['remoteSampleCanMasqueradeAsNative'], isFalse);
     expect(validation.isRenderable, isTrue);
     expect(validation.status, TripLocationSampleIntakeStatus.accepted);
@@ -99,6 +102,39 @@ void main() {
       expect(decision.canFeedTripEngine, isFalse);
       expect(decision.toSafeSummary()['sourceVerified'], isFalse);
     }
+  });
+
+  test('simulated trip samples require explicit test harness opt-in', () {
+    final blocked = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload()..['source'] = 'simulated_native_location',
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+    );
+    final accepted = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload()..['source'] = 'simulated_native_location',
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+      allowExplicitSimulatorHarness: true,
+    );
+    final summary = accepted.toSafeSummary();
+    final validation = TripLocationSampleIntakeSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(blocked.status, TripLocationSampleIntakeStatus.rejected);
+    expect(
+      blocked.reason,
+      TripLocationSampleIntakeReason.simulatorHarnessRequired,
+    );
+    expect(blocked.canFeedTripEngine, isFalse);
+    expect(accepted.status, TripLocationSampleIntakeStatus.accepted);
+    expect(accepted.canFeedTripEngine, isTrue);
+    expect(summary['simulatorHarnessVerified'], isTrue);
+    expect(summary['simulatorHarnessCanFeedTripEngine'], isTrue);
+    expect(summary['simulatorHarnessCannotWriteProductionHistory'], isTrue);
+    expect(validation.isRenderable, isTrue);
   });
 
   test('forged native payloads with remote authority are rejected', () {
@@ -208,6 +244,9 @@ void main() {
             'ownerVerified': false,
             'sessionVerified': false,
             'sourceVerified': false,
+            'simulatorHarnessVerified': true,
+            'simulatorHarnessCanFeedTripEngine': false,
+            'simulatorHarnessCannotWriteProductionHistory': false,
             'validatedBeforeUse': false,
             'authDoesNotImplyAuthorization': false,
             'authenticatedUserStillNeedsAuthorization': false,
@@ -230,6 +269,7 @@ void main() {
         containsAll([
           'unsafe_engine_feed_claim',
           'authorization_boundary_missing',
+          'simulator_harness_claim_inconsistent',
           'local_truth_boundary_missing',
           'sample_can_create_trip_truth',
         ]),
