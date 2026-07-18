@@ -1584,6 +1584,56 @@ void main() {
   });
 
   test(
+    'recovery ignores malformed pending samples without moving odometer',
+    () async {
+      final store = await _storeWithRawTripTrackingData(
+        tempPrefix: 'trip_tracking_malformed_pending_',
+        activeSession: {
+          'id': 'trip_malformed_pending_replay',
+          'vehicleId': 'vehicle_1',
+          'startingOdometer': 1000,
+          'profile': 'roadVehicle',
+          'startedAt': start.toIso8601String(),
+          'updatedAt': start.toIso8601String(),
+          'engineSnapshot': const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ).toMap(),
+        },
+        pending: {
+          'sessionId': 'trip_malformed_pending_replay',
+          'sample': {
+            'latitude': 35,
+            'longitude': -80,
+            'recordedAt': start.add(const Duration(hours: 2)).toIso8601String(),
+            'horizontalAccuracyMeters': 5,
+          },
+          'activity': {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': start.toIso8601String(),
+          },
+        },
+      );
+
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final recovered = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+
+      expect(await recovered.restore(), isTrue);
+      expect(store.pendingSampleFor('trip_malformed_pending_replay'), isNull);
+      expect(recovered.acceptedMeters, 0);
+      expect(odometer.confirmedReading, 1000);
+      expect(odometer.reading, 1000);
+    },
+  );
+
+  test(
     'GPS health degrades on poor fixes and recovers only on credible data',
     () async {
       final native = _FakeTripTrackingPlatform();
@@ -4116,6 +4166,7 @@ Future<TripTrackingSessionStore> _storeWithRawTripTrackingData({
   required String tempPrefix,
   required Map<String, Object?> activeSession,
   Map<String, Object?>? review,
+  Map<String, Object?>? pending,
 }) async {
   final hiveDirectory = await Directory.systemTemp.createTemp(tempPrefix);
   Hive.init(hiveDirectory.path);
@@ -4124,6 +4175,10 @@ Future<TripTrackingSessionStore> _storeWithRawTripTrackingData({
   final reviewId = review?['id'];
   if (reviewId is String) {
     await box.put('review:$reviewId', review);
+  }
+  final pendingSessionId = pending?['sessionId'];
+  if (pendingSessionId is String) {
+    await box.put('pending:$pendingSessionId', pending);
   }
   final store = await TripTrackingSessionStore.create();
   addTearDown(() async {

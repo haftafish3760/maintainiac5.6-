@@ -501,7 +501,15 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return true;
     }
-    if (pending != null && pending.sessionId == session.id) {
+    final pendingRecovery = TripTrackingRecoveryPolicy.evaluate(
+      session: session,
+      currentVehicleId: _odometer.vehicleId,
+      currentConfirmedOdometer: session.startingOdometer,
+      pendingSample: pending,
+    );
+    if (pendingRecovery.status ==
+            TripTrackingRecoveryStatus.pendingReplayReady &&
+        pending != null) {
       try {
         await ingest(pending.sample, activity: pending.activity);
         await _sessionStore.clearPending(session.id);
@@ -512,6 +520,15 @@ class TripTrackingController extends ChangeNotifier {
         // forward instead of failing the whole restore.
         _platformStatus = 'pending_replay_failed';
         _platformError = 'Could not replay the last pending GPS sample.';
+        notifyListeners();
+        return true;
+      }
+    } else if (pending != null && pending.sessionId == session.id) {
+      try {
+        await _sessionStore.clearPending(session.id);
+      } catch (_) {
+        _platformStatus = 'pending_cleanup_failed';
+        _platformError = 'Could not clear stale GPS recovery data.';
         notifyListeners();
         return true;
       }
