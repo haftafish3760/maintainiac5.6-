@@ -23,6 +23,14 @@ class TripTrackingFreeSyncUsage {
     return _attemptStore.attemptsFor(_durableScope, now: nowUtc.toUtc()).length;
   }
 
+  int? safeUsedInWindowAt(DateTime nowUtc) {
+    try {
+      return usedInWindowAt(nowUtc);
+    } on ArgumentError {
+      return null;
+    }
+  }
+
   Future<void> recordAuthorizedAttempt(DateTime nowUtc) {
     return _attemptStore.recordAttempt(_durableScope, at: nowUtc.toUtc());
   }
@@ -68,23 +76,29 @@ class TripTrackingFreeSyncUsage {
     });
   }
 
-  Map<String, Object?> toSafeSummary(DateTime nowUtc) => {
-    'schemaVersion': 1,
-    'durableScope': _safeScopeForSummary(_durableScope),
-    'usedInWindow': usedInWindowAt(nowUtc),
-    'rollingWindowHours': 24,
-    'freeSyncLimitPerWindow': 6,
-    'localAttemptLedgerIsCanonical': true,
-    'remoteCountersCanOverrideLocalUsage': false,
-    'reservationSerializedBeforeUpload': true,
-    'blockedAttemptConsumesFreeSync': false,
-    'freeSyncQuotaAppliesToTripBackups': true,
-    'hiveRemainsSourceOfTruth': true,
-    'firestoreMirrorOnly': true,
-    'tokensIncluded': false,
-    'preciseLocationIncluded': false,
-    'rawTripPayloadIncluded': false,
-  };
+  Map<String, Object?> toSafeSummary(DateTime nowUtc) {
+    final used = safeUsedInWindowAt(nowUtc);
+    final usageVerified = used != null;
+    return {
+      'schemaVersion': 1,
+      'durableScope': _safeScopeForSummary(_durableScope),
+      'usedInWindow': used,
+      'usageVerified': usageVerified,
+      'usageFailureFailsClosed': !usageVerified,
+      'rollingWindowHours': 24,
+      'freeSyncLimitPerWindow': 6,
+      'localAttemptLedgerIsCanonical': true,
+      'remoteCountersCanOverrideLocalUsage': false,
+      'reservationSerializedBeforeUpload': true,
+      'blockedAttemptConsumesFreeSync': false,
+      'freeSyncQuotaAppliesToTripBackups': true,
+      'hiveRemainsSourceOfTruth': true,
+      'firestoreMirrorOnly': true,
+      'tokensIncluded': false,
+      'preciseLocationIncluded': false,
+      'rawTripPayloadIncluded': false,
+    };
+  }
 
   Future<T> _enqueueReservation<T>(Future<T> Function() task) {
     final result = _reservationTail.then((_) => task());

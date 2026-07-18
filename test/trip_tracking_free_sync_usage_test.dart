@@ -100,6 +100,24 @@ void main() {
     },
   );
 
+  test('safe free sync summary fails closed for unreadable scope', () {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'bad:scope',
+    );
+    final summary = usage.toSafeSummary(DateTime.utc(2026, 7, 17, 12));
+
+    expect(usage.safeUsedInWindowAt(DateTime.utc(2026, 7, 17, 12)), isNull);
+    expect(summary['durableScope'], 'invalid_scope');
+    expect(summary['usedInWindow'], isNull);
+    expect(summary['usageVerified'], isFalse);
+    expect(summary['usageFailureFailsClosed'], isTrue);
+    expect(summary['remoteCountersCanOverrideLocalUsage'], isFalse);
+    expect(summary['hiveRemainsSourceOfTruth'], isTrue);
+    expect(summary['firestoreMirrorOnly'], isTrue);
+    expect(summary['rawTripPayloadIncluded'], isFalse);
+  });
+
   test('authorized reservation records exactly one local attempt', () async {
     final store = CloudBackupSyncAttemptStore.memory();
     final now = DateTime.utc(2026, 7, 17, 12);
