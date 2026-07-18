@@ -319,6 +319,51 @@ void main() {
       isTrue,
     );
   });
+
+  test('native recovery summary rejects status authority mismatch', () {
+    final feed = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(
+        current: TripTrackingSessionLifecycleState.starting,
+        event: locationEvent(),
+      ),
+      supervisorDecision: supervisorDecision(
+        lifecycle: TripTrackingSessionLifecycleState.starting,
+      ),
+      localCheckpointAvailable: true,
+    ).toSafeDashboardMap();
+    final prompt = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(event: statusEvent('permissionRequired')),
+      supervisorDecision: supervisorDecision(
+        lifecycle: TripTrackingSessionLifecycleState.permissionRequired,
+        nativeTrackingAvailable: false,
+      ),
+      localCheckpointAvailable: true,
+    ).toSafeDashboardMap();
+
+    final forgedFeed =
+        TripNativeInterruptionRecoverySummaryValidation.fromSummary({
+          ...feed,
+          'canFeedEngine': false,
+          'shouldRequestUserAction': true,
+        });
+    final forgedPrompt =
+        TripNativeInterruptionRecoverySummaryValidation.fromSummary({
+          ...prompt,
+          'canUploadBackupMirror': true,
+          'canReplayPendingSample': true,
+        });
+
+    expect(forgedFeed.isRenderable, isFalse);
+    expect(forgedPrompt.isRenderable, isFalse);
+    expect(
+      forgedFeed.reasons,
+      contains('native_recovery_status_conflicts_with_authority'),
+    );
+    expect(
+      forgedPrompt.reasons,
+      contains('native_recovery_status_conflicts_with_authority'),
+    );
+  });
 }
 
 const normalRollup = TripDashboardStatusRollupDecision(

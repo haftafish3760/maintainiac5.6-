@@ -174,6 +174,8 @@ class TripNativeInterruptionRecoverySummaryValidation {
         summary['mapboxCanForceRecovery'] != false) {
       reasons.add('remote_or_map_can_force_recovery');
     }
+    final boundaryRisk = _recoveryStatusBoundaryRisk(summary, status);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     if (summary['rawNativePayloadIncluded'] != false ||
         summary['rawLocationIncluded'] != false ||
         summary['routeGeometryIncluded'] != false ||
@@ -401,6 +403,35 @@ TripTrackingSessionLifecycleState? _safeLifecycleState(Object? value) {
     if (state.name == value) return state;
   }
   return null;
+}
+
+String? _recoveryStatusBoundaryRisk(
+  Map<String, Object?> summary,
+  TripNativeInterruptionRecoveryStatus? status,
+) {
+  final canFeed = summary['canFeedEngine'];
+  final userAction = summary['shouldRequestUserAction'];
+  final replay = summary['canReplayPendingSample'];
+  final backup = summary['canUploadBackupMirror'];
+  if (status == null ||
+      canFeed is! bool ||
+      userAction is! bool ||
+      replay is! bool ||
+      backup is! bool) {
+    return null;
+  }
+  final invalid = switch (status) {
+    TripNativeInterruptionRecoveryStatus.feedEngine =>
+      !canFeed || userAction || replay,
+    TripNativeInterruptionRecoveryStatus.recoverInBackground =>
+      canFeed || userAction,
+    TripNativeInterruptionRecoveryStatus.promptUser ||
+    TripNativeInterruptionRecoveryStatus.pauseForReview =>
+      canFeed || !userAction || replay || backup,
+    TripNativeInterruptionRecoveryStatus.ignoreSafely ||
+    TripNativeInterruptionRecoveryStatus.blocked => canFeed || replay || backup,
+  };
+  return invalid ? 'native_recovery_status_conflicts_with_authority' : null;
 }
 
 bool _looksSensitive(Object? value) {
