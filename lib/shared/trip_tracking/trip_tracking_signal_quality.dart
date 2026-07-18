@@ -64,8 +64,21 @@ class TripTrackingSignalQualitySummary {
     'diagnosticsCanOnlyRequestReview': true,
     'diagnosticsCanEndTrip': false,
     'officialMileageSource': 'odometer',
+    'odometerIsGlobalTruth': true,
     'canReplaceOdometer': false,
     'gpsCanWriteConfirmedTripLog': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'signalQualityEligibleForCalibration': _safeCalibrationEligible(
+      quality: quality,
+      reasonCode: reasonCode,
+      receivedSamples: receivedSamples,
+      acceptedSamples: acceptedSamples,
+      acceptanceRate: acceptanceRate,
+    ),
+    'signalQualityCanCreateCalibration': false,
+    'signalQualityCanApplyCalibration': false,
+    'signalQualityCanOverrideCalibration': false,
     'mapboxCanReplaceOdometer': false,
     'mapboxCanWriteConfirmedTripLog': false,
     'remoteTotalsCanBecomeCanonical': false,
@@ -255,4 +268,26 @@ bool _safeRequiresUserReview({
     return true;
   }
   return requestedReview && quality != TripTrackingSignalQuality.noSamples;
+}
+
+bool _safeCalibrationEligible({
+  required TripTrackingSignalQuality quality,
+  required String reasonCode,
+  required int receivedSamples,
+  required int acceptedSamples,
+  required double acceptanceRate,
+}) {
+  final safeReason = _safeSignalReason(reasonCode);
+  if (quality != TripTrackingSignalQuality.healthy &&
+      quality != TripTrackingSignalQuality.reduced) {
+    return false;
+  }
+  if (safeReason != 'gps_signal_healthy' &&
+      safeReason != 'gps_signal_reduced_but_usable') {
+    return false;
+  }
+  final received = _safeCount(receivedSamples);
+  final accepted = _safeAccepted(acceptedSamples, received);
+  if (received <= 0 || accepted <= 0) return false;
+  return _safeRate(acceptanceRate) >= .65;
 }

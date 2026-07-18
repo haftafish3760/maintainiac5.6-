@@ -19,7 +19,24 @@ void main() {
     );
     expect(summary.toSafeDashboardMap()['diagnosticsCanEndTrip'], isFalse);
     expect(summary.toSafeDashboardMap()['officialMileageSource'], 'odometer');
+    expect(summary.toSafeDashboardMap()['odometerIsGlobalTruth'], isTrue);
     expect(summary.toSafeDashboardMap()['canReplaceOdometer'], isFalse);
+    expect(
+      summary.toSafeDashboardMap()['calibrationRequiresTrustedGpsWindow'],
+      isTrue,
+    );
+    expect(
+      summary.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
+      isTrue,
+    );
+    expect(
+      summary.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isFalse,
+    );
+    expect(
+      summary.toSafeDashboardMap()['signalQualityCanCreateCalibration'],
+      isFalse,
+    );
     expect(
       summary.toSafeDashboardMap()['gpsCanWriteConfirmedTripLog'],
       isFalse,
@@ -63,6 +80,10 @@ void main() {
     expect(summary.reasonCode, 'gps_signal_healthy');
     expect(summary.acceptanceRate, 1);
     expect(summary.healthState, TripTrackingHealthState.healthy);
+    expect(
+      summary.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isTrue,
+    );
   });
 
   test('normal drift is reduced but does not force review by itself', () {
@@ -81,6 +102,10 @@ void main() {
     expect(summary.quality, TripTrackingSignalQuality.reduced);
     expect(summary.requiresUserReview, isFalse);
     expect(summary.healthState, TripTrackingHealthState.reduced);
+    expect(
+      summary.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isTrue,
+    );
   });
 
   test('repeated poor measurements recommend review', () {
@@ -100,6 +125,10 @@ void main() {
     expect(summary.quality, TripTrackingSignalQuality.poor);
     expect(summary.requiresUserReview, isTrue);
     expect(summary.healthState, TripTrackingHealthState.poor);
+    expect(
+      summary.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isFalse,
+    );
   });
 
   test('provider gaps become interrupted signal quality', () {
@@ -142,6 +171,8 @@ void main() {
     expect(safe['rawSamplesIncluded'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
     expect(safe['canUploadRawGps'], isFalse);
+    expect(safe['signalQualityCanApplyCalibration'], isFalse);
+    expect(safe['signalQualityEligibleForCalibration'], isFalse);
     expect(safe['mapboxGeometryIncluded'], isFalse);
     expect(safe.toString(), isNot(contains('-79.')));
   });
@@ -199,6 +230,7 @@ void main() {
     expect(safe['rejectedSamples'], 0);
     expect(safe['acceptanceRate'], 0);
     expect(safe['malformedDiagnosticsFailClosed'], isTrue);
+    expect(safe['signalQualityEligibleForCalibration'], isFalse);
     expect(safe['cloudFunctionDiagnosticsCanOverrideLocalTripLog'], isFalse);
     expect(safe['mapboxDiagnosticsCanOverrideLocalTripLog'], isFalse);
   });
@@ -225,6 +257,14 @@ void main() {
 
     expect(unsafe.toSafeDashboardMap()['requiresUserReview'], isTrue);
     expect(poor.toSafeDashboardMap()['requiresUserReview'], isTrue);
+    expect(
+      unsafe.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isFalse,
+    );
+    expect(
+      poor.toSafeDashboardMap()['signalQualityEligibleForCalibration'],
+      isFalse,
+    );
     expect(unsafe.toSafeDashboardMap()['gpsCanWriteConfirmedTripLog'], isFalse);
     expect(poor.toSafeDashboardMap()['diagnosticsCanEndTrip'], isFalse);
   });

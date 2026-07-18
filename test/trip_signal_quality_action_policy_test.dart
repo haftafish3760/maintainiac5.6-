@@ -93,6 +93,12 @@ void main() {
     expect(safe['mapboxCanOverrideSignalAction'], isFalse);
     expect(safe['remoteDiagnosticsCanOverrideSignalAction'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['signalActionCanCreateCalibration'], isFalse);
+    expect(safe['signalActionCanApplyCalibration'], isFalse);
+    expect(safe['signalActionCanOverrideCalibration'], isFalse);
     expect(safe['mapsRequiredForSignalRecovery'], isFalse);
     expect(safe['rawSamplesIncluded'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
