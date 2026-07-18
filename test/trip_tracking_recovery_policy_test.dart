@@ -65,6 +65,9 @@ void main() {
     expect(summary['manualReviewRequiredBeforeConfirmation'], isFalse);
     expect(summary['requiresSameVehicle'], isTrue);
     expect(summary['requiresSameConfirmedOdometer'], isTrue);
+    expect(summary['estimatedOdometerTrustedAfterValidationOnly'], isTrue);
+    expect(summary['invalidEstimatedOdometerCanRestore'], isFalse);
+    expect(summary['remotePendingSampleCanReplayWithoutValidation'], isFalse);
     expect(summary['rawLocationIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
     expect(summary['pendingSampleIncluded'], isFalse);
@@ -259,5 +262,38 @@ void main() {
     expect(summary['mapboxCanModifyRecoveredOdometer'], isFalse);
     expect(summary.toString(), isNot(contains('35.1')));
     expect(summary.toString(), isNot(contains('sk.secret')));
+  });
+
+  test('safe recovery summaries drop impossible direct odometer estimates', () {
+    const negative = TripTrackingRecoveryDecision(
+      status: TripTrackingRecoveryStatus.ready,
+      safeReason: 'trip_recovery_ready',
+      canRestore: true,
+      requiresUserAction: false,
+      estimatedOdometer: -1,
+      pendingSampleQueued: false,
+    );
+    const overrange = TripTrackingRecoveryDecision(
+      status: TripTrackingRecoveryStatus.ready,
+      safeReason: 'trip_recovery_ready',
+      canRestore: true,
+      requiresUserAction: false,
+      estimatedOdometer: 10000000,
+      pendingSampleQueued: false,
+    );
+
+    expect(negative.toSafeSummary().keys, isNot(contains('estimatedOdometer')));
+    expect(
+      overrange.toSafeSummary().keys,
+      isNot(contains('estimatedOdometer')),
+    );
+    expect(
+      overrange.toSafeSummary()['estimatedOdometerTrustedAfterValidationOnly'],
+      isTrue,
+    );
+    expect(
+      overrange.toSafeSummary()['invalidEstimatedOdometerCanRestore'],
+      isFalse,
+    );
   });
 }

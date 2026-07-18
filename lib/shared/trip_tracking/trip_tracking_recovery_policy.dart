@@ -38,7 +38,8 @@ class TripTrackingRecoveryDecision {
     'canRestore': canRestore,
     'requiresUserAction': requiresUserAction,
     'pendingSampleQueued': pendingSampleQueued,
-    if (estimatedOdometer != null) 'estimatedOdometer': estimatedOdometer,
+    if (_safeEstimatedOdometer(estimatedOdometer) != null)
+      'estimatedOdometer': _safeEstimatedOdometer(estimatedOdometer),
     'localRecoveryAuthoritative': true,
     'firestoreCanOverrideLocalRecovery': false,
     'cloudMirrorCanDeleteLocalRecovery': false,
@@ -49,6 +50,9 @@ class TripTrackingRecoveryDecision {
     'manualReviewRequiredBeforeConfirmation': requiresUserAction,
     'requiresSameVehicle': true,
     'requiresSameConfirmedOdometer': true,
+    'estimatedOdometerTrustedAfterValidationOnly': true,
+    'invalidEstimatedOdometerCanRestore': false,
+    'remotePendingSampleCanReplayWithoutValidation': false,
     'rawLocationIncluded': false,
     'routeGeometryIncluded': false,
     'pendingSampleIncluded': false,
@@ -215,4 +219,9 @@ String _safeRecoveryReason(String value) {
       'trip_recovery_odometer_projection_invalid',
     _ => 'trip_recovery_invalid_session',
   };
+}
+
+int? _safeEstimatedOdometer(int? value) {
+  if (value == null || value < 0 || value > 9999999) return null;
+  return value;
 }
