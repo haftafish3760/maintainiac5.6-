@@ -40,9 +40,15 @@ class TripLiveOdometerProjection {
     'externalDistanceValidatedBeforeProjection': true,
     'projectionTrustedAfterValidationOnly': true,
     'remoteProjectionRequiresMatchingTripId': true,
+    'matchingActiveTripRequired': true,
+    'authenticationDoesNotGrantDisplayAuthority': true,
     'staleProjectionCanCommitMileage': false,
     'remoteProjectionCanOverrideLocalTrip': false,
     'firestoreCanOverrideLiveProjection': false,
+    'firestoreCanOverrideLiveDisplay': false,
+    'remoteDisplayCanOverrideLocalTrip': false,
+    'importedDisplayCanOverrideLocalTrip': false,
+    'dashboardCacheCanOverrideLocalTrip': false,
     'mapboxCanOverrideLiveProjection': false,
     'malformedProjectionPayloadFailsSafe': true,
     'writesConfirmedOdometer': false,
@@ -53,6 +59,10 @@ class TripLiveOdometerProjection {
     'mapsRequiredForTracking': false,
     'mapboxCanChangeProjection': false,
     'localTripLogProtected': true,
+    'futureProjectionCanRender': false,
+    'impossibleProjectionCanRender': false,
+    'activeTripIdIncluded': false,
+    'ownerUserIdIncluded': false,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -144,8 +154,24 @@ class TripLiveOdometerDashboardPayloadValidation {
     if (payload['writesConfirmedOdometer'] != false) {
       reasons.add('payload_can_write_confirmed_odometer');
     }
+    if (payload['displayOnlyMileageSource'] != 'gps_assisted_projection') {
+      reasons.add('invalid_display_only_mileage_source');
+    }
+    if (payload['externalDistanceValidatedBeforeProjection'] != true ||
+        payload['projectionTrustedAfterValidationOnly'] != true) {
+      reasons.add('external_distance_validation_contract_missing');
+    }
     if (payload['confirmedOdometerRemainsCanonical'] != true) {
       reasons.add('confirmed_odometer_not_marked_canonical');
+    }
+    if (payload['manualConfirmationRequired'] != true) {
+      reasons.add('manual_confirmation_not_required');
+    }
+    if (payload['matchingActiveTripRequired'] != true ||
+        payload['remoteProjectionRequiresMatchingTripId'] != true ||
+        payload['localTripLogProtected'] != true ||
+        payload['authenticationDoesNotGrantDisplayAuthority'] != true) {
+      reasons.add('live_projection_local_authorization_contract_missing');
     }
     if (payload['remoteProjectionCanOverrideLocalTrip'] != false) {
       reasons.add('remote_projection_can_override_local_trip');
@@ -153,8 +179,22 @@ class TripLiveOdometerDashboardPayloadValidation {
     if (payload['firestoreCanOverrideLiveProjection'] != false) {
       reasons.add('firestore_can_override_live_projection');
     }
+    if (payload['firestoreCanOverrideLiveDisplay'] != false ||
+        payload['remoteDisplayCanOverrideLocalTrip'] != false ||
+        payload['importedDisplayCanOverrideLocalTrip'] != false ||
+        payload['dashboardCacheCanOverrideLocalTrip'] != false) {
+      reasons.add('remote_display_can_override_local_trip');
+    }
     if (payload['mapboxCanOverrideLiveProjection'] != false) {
       reasons.add('mapbox_can_override_live_projection');
+    }
+    if (payload['futureProjectionCanRender'] != false ||
+        payload['impossibleProjectionCanRender'] != false) {
+      reasons.add('unsafe_projection_can_render');
+    }
+    if (payload['activeTripIdIncluded'] != false ||
+        payload['ownerUserIdIncluded'] != false) {
+      reasons.add('payload_contains_trip_owner_identifiers');
     }
     if (payload['rawGpsIncluded'] != false ||
         payload['preciseLocationIncluded'] != false ||

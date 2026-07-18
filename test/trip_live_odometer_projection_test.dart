@@ -44,6 +44,15 @@ void main() {
       isTrue,
     );
     expect(
+      projection.toSafeDashboardMap()['matchingActiveTripRequired'],
+      isTrue,
+    );
+    expect(
+      projection
+          .toSafeDashboardMap()['authenticationDoesNotGrantDisplayAuthority'],
+      isTrue,
+    );
+    expect(
       projection.toSafeDashboardMap()['staleProjectionCanCommitMileage'],
       isFalse,
     );
@@ -55,6 +64,8 @@ void main() {
       projection.toSafeDashboardMap()['confirmedOdometerRemainsCanonical'],
       isTrue,
     );
+    expect(projection.toSafeDashboardMap()['activeTripIdIncluded'], isFalse);
+    expect(projection.toSafeDashboardMap()['ownerUserIdIncluded'], isFalse);
     expect(projection.toSafeDashboardMap()['projectionIsMonotonic'], isTrue);
     expect(projection.toSafeDashboardMap()['tokensIncluded'], isFalse);
   });
@@ -176,6 +187,10 @@ void main() {
         )..addAll({
           'remoteProjectionCanOverrideLocalTrip': true,
           'firestoreCanOverrideLiveProjection': true,
+          'firestoreCanOverrideLiveDisplay': true,
+          'remoteDisplayCanOverrideLocalTrip': true,
+          'importedDisplayCanOverrideLocalTrip': true,
+          'dashboardCacheCanOverrideLocalTrip': true,
           'mapboxCanOverrideLiveProjection': true,
           'writesConfirmedOdometer': true,
         });
@@ -191,6 +206,7 @@ void main() {
         'payload_can_write_confirmed_odometer',
         'remote_projection_can_override_local_trip',
         'firestore_can_override_live_projection',
+        'remote_display_can_override_local_trip',
         'mapbox_can_override_live_projection',
       ]),
     );
@@ -211,6 +227,14 @@ void main() {
             'routeGeometryIncluded': true,
             'tokensIncluded': true,
             'mapsRequiredForTracking': true,
+            'matchingActiveTripRequired': false,
+            'remoteProjectionRequiresMatchingTripId': false,
+            'localTripLogProtected': false,
+            'authenticationDoesNotGrantDisplayAuthority': false,
+            'futureProjectionCanRender': true,
+            'impossibleProjectionCanRender': true,
+            'activeTripIdIncluded': true,
+            'ownerUserIdIncluded': true,
           });
       final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
         payload,
@@ -223,6 +247,9 @@ void main() {
         containsAll([
           'unsupported_schema_version',
           'projection_below_starting_odometer',
+          'live_projection_local_authorization_contract_missing',
+          'unsafe_projection_can_render',
+          'payload_contains_trip_owner_identifiers',
           'payload_contains_sensitive_trip_material',
           'maps_required_for_tracking',
         ]),
