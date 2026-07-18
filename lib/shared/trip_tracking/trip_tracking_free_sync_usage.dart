@@ -47,4 +47,21 @@ class TripTrackingFreeSyncUsage {
       syncsUsedInWindow: usedInWindowAt(nowUtc),
     );
   }
+
+  Future<TripTrackingBackupSyncDecision> reserveAuthorizedAttempt({
+    required TripTrackingBackupNetworkPolicy networkPolicy,
+    bool? wifiAvailable,
+    bool? mobileDataAvailable,
+    required DateTime nowUtc,
+  }) async {
+    final decision = evaluate(
+      networkPolicy: networkPolicy,
+      wifiAvailable: wifiAvailable,
+      mobileDataAvailable: mobileDataAvailable,
+      nowUtc: nowUtc,
+    );
+    if (!decision.mayAttemptSync) return decision;
+    await recordAuthorizedAttempt(nowUtc);
+    return decision;
+  }
 }
