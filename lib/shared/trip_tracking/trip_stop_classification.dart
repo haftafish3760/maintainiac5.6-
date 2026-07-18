@@ -34,7 +34,7 @@ class TripStopClassification {
   Map<String, Object?> toSafeSummary() => {
     'schemaVersion': 1,
     'signal': signal.name,
-    'reasonCode': reasonCode,
+    'reasonCode': _safeStopReason(reasonCode),
     'requiresUserReview': requiresUserReview,
     'canSuggestStop': canSuggestStop,
     'reviewOnly': true,
@@ -43,13 +43,73 @@ class TripStopClassification {
     'officialMileageSource': 'odometer',
     'canCreateOfficialStop': false,
     'canReplaceOdometer': false,
-    'actionToken': actionToken,
-    'dashboardMessage': dashboardMessage,
+    'actionToken': _safeStopAction(actionToken),
+    'dashboardMessage': _safeStopMessage(dashboardMessage),
     'rawSamplesIncluded': false,
     'rawMotionPayloadIncluded': false,
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'mapboxGeometryIncluded': false,
+  };
+}
+
+String _safeStopReason(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'unsafe_stop_evidence_rejected' => clean,
+    'equipment_walking_evidence_ignored' => clean,
+    'walking_stop_without_vehicle_movement' => clean,
+    'delivery_stop_walk_review' => clean,
+    'contractor_stop_walk_review' => clean,
+    'rideshare_stop_requires_extra_evidence' => clean,
+    'road_vehicle_stop_walk_review' => clean,
+    'stop_candidate_waiting_for_stronger_evidence' => clean,
+    'stop_candidate_waiting_for_confirmation' => clean,
+    'traffic_control_or_stationary_jitter' => clean,
+    'no_stop_review_needed' => clean,
+    _ => 'unsafe_stop_evidence_rejected',
+  };
+}
+
+String _safeStopAction(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'keep_tracking' => clean,
+    'continue_monitoring' => clean,
+    'review_delivery_stop' => clean,
+    'review_jobsite_stop' => clean,
+    'review_shift_stop' => clean,
+    'review_trip_stop' => clean,
+    _ => 'keep_tracking',
+  };
+}
+
+String _safeStopMessage(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'Stop evidence was ignored because the GPS provider data was not safe enough to trust.' =>
+      clean,
+    'Walking-style evidence is ignored for this equipment profile.' => clean,
+    'Walking evidence was ignored because no vehicle movement was accepted first.' =>
+      clean,
+    'The trip may be stopped, but this profile needs stronger evidence before showing a stop review.' =>
+      clean,
+    'The trip may be stopped; Maintainiac is waiting for confirmation before suggesting a review.' =>
+      clean,
+    'Stationary GPS jitter was treated like a traffic light or road delay, not a customer stop.' =>
+      clean,
+    'No stop review is needed right now.' => clean,
+    'Walking evidence suggests a pickup or dropoff stop. Review it before it becomes official.' =>
+      clean,
+    'Walking evidence suggests a job-site stop. Review it before it becomes official.' =>
+      clean,
+    'Sustained walking evidence suggests the driver may have ended or paused the shift.' =>
+      clean,
+    'Walking evidence suggests a stop. Review it before it becomes official.' =>
+      clean,
+    'No stop review is needed for this equipment profile.' => clean,
+    _ =>
+      'Stop evidence is unavailable. Keep tracking and review mileage later.',
   };
 }
 

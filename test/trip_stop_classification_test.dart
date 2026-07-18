@@ -198,4 +198,26 @@ void main() {
     expect(summary['routeGeometryIncluded'], isFalse);
     expect(summary['mapboxGeometryIncluded'], isFalse);
   });
+
+  test('safe summary sanitizes direct malformed public fields', () {
+    const classification = TripStopClassification(
+      signal: TripStopSignal.reviewOnlyStop,
+      reasonCode: 'token=pk.secret lat=35.1',
+      requiresUserReview: true,
+      canSuggestStop: true,
+      actionToken: 'open_private_map',
+      dashboardMessage: 'driver at 35.1,-80.1 token=sk.secret',
+    );
+    final summary = classification.toSafeSummary();
+
+    expect(summary['reasonCode'], 'unsafe_stop_evidence_rejected');
+    expect(summary['actionToken'], 'keep_tracking');
+    expect(
+      summary['dashboardMessage'],
+      'Stop evidence is unavailable. Keep tracking and review mileage later.',
+    );
+    expect(summary.toString(), isNot(contains('35.1')));
+    expect(summary.toString(), isNot(contains('sk.secret')));
+    expect(summary['coordinatesIncluded'], isFalse);
+  });
 }

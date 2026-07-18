@@ -216,6 +216,9 @@ void main() {
       ],
       'mapsRequiredForTracking': false,
       'odometerRemainsCanonical': true,
+      'locationSharingRequiresActiveOptIn': true,
+      'employeeTrackingRequiresMutualConsent': true,
+      'employerGodModeAllowed': false,
       'rawLocationIncluded': false,
       'rawSensorPayloadIncluded': false,
     });
