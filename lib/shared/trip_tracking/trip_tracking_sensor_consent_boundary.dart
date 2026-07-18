@@ -117,6 +117,9 @@ class TripTrackingSensorConsentBoundary {
     'sensorConsentCanBypassPlatformPermission': false,
     'activityRecognitionCanCreateOfficialStop': false,
     'activityRecognitionCanOnlySuggestReview': true,
+    'activityRecognitionCanSetGlobalTruth': false,
+    'activityRecognitionCanConfirmOfficialMileage': false,
+    'activityRecognitionCanChangeOfficialMileage': false,
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'physicalOdometerRequiredForOfficialMileage': true,
@@ -129,6 +132,9 @@ class TripTrackingSensorConsentBoundary {
     'poorGpsDaysExcludedFromCalibration': true,
     'sensorConsentCanCreateCalibration': false,
     'sensorConsentCanApplyCalibration': false,
+    'sensorConsentCanSetGlobalTruth': false,
+    'sensorConsentCanConfirmOfficialMileage': false,
+    'sensorConsentCanChangeOfficialMileage': false,
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
     'localTripLogProtected': true,
@@ -207,6 +213,9 @@ class TripTrackingSensorConsentSummaryValidation {
     }
     if (summary['activityRecognitionCanCreateOfficialStop'] != false ||
         summary['activityRecognitionCanOnlySuggestReview'] != true ||
+        summary['activityRecognitionCanSetGlobalTruth'] != false ||
+        summary['activityRecognitionCanConfirmOfficialMileage'] != false ||
+        summary['activityRecognitionCanChangeOfficialMileage'] != false ||
         summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['physicalOdometerRequiredForOfficialMileage'] != true ||
@@ -219,6 +228,9 @@ class TripTrackingSensorConsentSummaryValidation {
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['sensorConsentCanCreateCalibration'] != false ||
         summary['sensorConsentCanApplyCalibration'] != false ||
+        summary['sensorConsentCanSetGlobalTruth'] != false ||
+        summary['sensorConsentCanConfirmOfficialMileage'] != false ||
+        summary['sensorConsentCanChangeOfficialMileage'] != false ||
         summary['gpsCanReplaceOdometer'] != false ||
         summary['mapboxCanReplaceOdometer'] != false) {
       reasons.add('sensor_can_create_trip_truth');

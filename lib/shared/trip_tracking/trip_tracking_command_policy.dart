@@ -123,6 +123,8 @@ class TripTrackingCommandDecision {
     'poorGpsDaysExcludedFromCalibration': true,
     'commandCanApplyCalibration': false,
     'commandCanCreateOfficialMileage': false,
+    'commandCanSetGlobalTruth': false,
+    'commandCanChangeOfficialMileage': false,
     'localSessionRequired': _requiresLocalSession(command),
     'canUploadMirror': canUploadMirror,
     'hiveRemainsOperationalSourceOfTruth': true,
@@ -199,6 +201,8 @@ class TripTrackingCommandSummaryValidation {
       'poorGpsDaysExcludedFromCalibration',
       'commandCanApplyCalibration',
       'commandCanCreateOfficialMileage',
+      'commandCanSetGlobalTruth',
+      'commandCanChangeOfficialMileage',
       'localSessionRequired',
       'canUploadMirror',
       'hiveRemainsOperationalSourceOfTruth',
@@ -237,7 +241,9 @@ class TripTrackingCommandSummaryValidation {
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['commandCanApplyCalibration'] != false ||
-        summary['commandCanCreateOfficialMileage'] != false) {
+        summary['commandCanCreateOfficialMileage'] != false ||
+        summary['commandCanSetGlobalTruth'] != false ||
+        summary['commandCanChangeOfficialMileage'] != false) {
       reasons.add('command_can_create_trip_truth');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||

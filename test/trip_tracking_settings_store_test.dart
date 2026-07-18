@@ -105,6 +105,8 @@ void main() {
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['settingsCanApplyCalibration'], isFalse);
     expect(summary['settingsCanCreateOfficialMileage'], isFalse);
+    expect(summary['settingsCanSetGlobalTruth'], isFalse);
+    expect(summary['settingsCanChangeOfficialMileage'], isFalse);
     expect(summary['rawLocationIncluded'], isFalse);
     expect(summary['rawMapRouteIncluded'], isFalse);
     expect(summary['mapboxGeometryIncluded'], isFalse);

@@ -153,6 +153,8 @@ void main() {
     expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(safe['commandCanApplyCalibration'], isFalse);
     expect(safe['commandCanCreateOfficialMileage'], isFalse);
+    expect(safe['commandCanSetGlobalTruth'], isFalse);
+    expect(safe['commandCanChangeOfficialMileage'], isFalse);
   });
 
   test(
@@ -261,6 +263,8 @@ void main() {
           'poorGpsDaysExcludedFromCalibration': false,
           'commandCanApplyCalibration': true,
           'commandCanCreateOfficialMileage': true,
+          'commandCanSetGlobalTruth': true,
+          'commandCanChangeOfficialMileage': true,
           'hiveRemainsOperationalSourceOfTruth': false,
           'firestoreMirrorOnly': false,
           'remoteTotalsCanonical': true,

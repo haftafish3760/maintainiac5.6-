@@ -235,6 +235,8 @@ class TripTrackingSettings {
       'poorGpsDaysExcludedFromCalibration': true,
       'settingsCanApplyCalibration': false,
       'settingsCanCreateOfficialMileage': false,
+      'settingsCanSetGlobalTruth': false,
+      'settingsCanChangeOfficialMileage': false,
       'mapPreviewEnabled': safe.mapPreviewEnabled,
       'mapRouteHistorySavingEnabled': safe.mapRouteHistorySavingEnabled,
       'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(

@@ -78,6 +78,9 @@ void main() {
       expect(safe['backgroundTrackingRequiresSeparatePlatformGrant'], isTrue);
       expect(safe['foregroundLocationDoesNotGrantBackgroundTracking'], isTrue);
       expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
+      expect(safe['activityRecognitionCanSetGlobalTruth'], isFalse);
+      expect(safe['activityRecognitionCanConfirmOfficialMileage'], isFalse);
+      expect(safe['activityRecognitionCanChangeOfficialMileage'], isFalse);
       expect(safe['odometerIsGlobalTruth'], isTrue);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
@@ -90,6 +93,9 @@ void main() {
       expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['sensorConsentCanCreateCalibration'], isFalse);
       expect(safe['sensorConsentCanApplyCalibration'], isFalse);
+      expect(safe['sensorConsentCanSetGlobalTruth'], isFalse);
+      expect(safe['sensorConsentCanConfirmOfficialMileage'], isFalse);
+      expect(safe['sensorConsentCanChangeOfficialMileage'], isFalse);
     },
   );
 
@@ -244,6 +250,9 @@ void main() {
         'localTripLogProtected': false,
         'activityRecognitionCanCreateOfficialStop': true,
         'activityRecognitionCanOnlySuggestReview': false,
+        'activityRecognitionCanSetGlobalTruth': true,
+        'activityRecognitionCanConfirmOfficialMileage': true,
+        'activityRecognitionCanChangeOfficialMileage': true,
         'odometerIsGlobalTruth': false,
         'odometerRemainsOfficialMileageTruth': false,
         'physicalOdometerRequiredForOfficialMileage': false,
@@ -256,6 +265,9 @@ void main() {
         'poorGpsDaysExcludedFromCalibration': false,
         'sensorConsentCanCreateCalibration': true,
         'sensorConsentCanApplyCalibration': true,
+        'sensorConsentCanSetGlobalTruth': true,
+        'sensorConsentCanConfirmOfficialMileage': true,
+        'sensorConsentCanChangeOfficialMileage': true,
         'gpsCanReplaceOdometer': true,
         'mapboxCanReplaceOdometer': true,
         'deviceModelIncluded': true,
