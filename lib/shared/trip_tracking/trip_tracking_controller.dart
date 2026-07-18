@@ -696,6 +696,12 @@ class TripTrackingController extends ChangeNotifier {
       return engine.reject(TripSampleDisposition.rejectedInvalid);
     }
 
+    final lastObservedAt = engine.snapshot.lastObservedAt?.toUtc();
+    if (lastObservedAt != null &&
+        !sample.recordedAt.toUtc().isAfter(lastObservedAt)) {
+      return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
+    }
+
     final safeActivity = _activitySafeForSample(sample, activity);
     if (sample.mockedLocation != true) {
       await _sessionStore.savePending(

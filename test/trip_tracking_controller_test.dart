@@ -2053,6 +2053,64 @@ void main() {
     },
   );
 
+  test('controller rejects replayed samples before pending storage', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_replay_pre_save',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    final first = await controller.ingest(sample(-80, 0));
+    final second = await controller.ingest(sample(-79.999, 30));
+    final replay = await controller.ingest(sample(-79.9995, 20));
+
+    expect(first?.accepted, isTrue);
+    expect(second?.accepted, isTrue);
+    expect(replay?.disposition, TripSampleDisposition.rejectedOutOfOrder);
+    expect(store.pendingSampleFor('trip_replay_pre_save'), isNull);
+    expect(
+      store.activeSession?.updatedAt,
+      start.add(const Duration(seconds: 30)),
+    );
+    expect(
+      store.activeSession?.engineSnapshot.lastObservedAt,
+      start.add(const Duration(seconds: 30)),
+    );
+    expect(controller.acceptedMeters, greaterThan(0));
+  });
+
+  test(
+    'duplicate native timestamps cannot overwrite pending recovery sample',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_duplicate_pre_save',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final first = await controller.ingest(sample(-80, 0));
+      final duplicate = await controller.ingest(sample(-79.9999, 0));
+
+      expect(first?.accepted, isTrue);
+      expect(duplicate?.disposition, TripSampleDisposition.rejectedOutOfOrder);
+      expect(store.pendingSampleFor('trip_duplicate_pre_save'), isNull);
+      expect(store.activeSession?.updatedAt, start);
+      expect(store.activeSession?.engineSnapshot.lastAccepted?.longitude, -80);
+    },
+  );
+
   test(
     'a closed native GPS stream stops tracking instead of leaving it stuck',
     () async {
