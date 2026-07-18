@@ -13,6 +13,11 @@ void main() {
     expect(summary.requiresUserReview, isFalse);
     expect(summary.toSafeDashboardMap()['schemaVersion'], 1);
     expect(summary.toSafeDashboardMap()['advisoryOnly'], isTrue);
+    expect(
+      summary.toSafeDashboardMap()['diagnosticsCanOnlyRequestReview'],
+      isTrue,
+    );
+    expect(summary.toSafeDashboardMap()['diagnosticsCanEndTrip'], isFalse);
     expect(summary.toSafeDashboardMap()['officialMileageSource'], 'odometer');
     expect(summary.toSafeDashboardMap()['canReplaceOdometer'], isFalse);
     expect(
@@ -164,10 +169,13 @@ void main() {
     final safe = summary.toSafeDashboardMap();
 
     expect(safe['reasonCode'], 'gps_signal_unsafe_provider_evidence');
+    expect(safe['requiresUserReview'], isTrue);
     expect(safe['receivedSamples'], 4);
     expect(safe['acceptedSamples'], 2);
     expect(safe['rejectedSamples'], 2);
     expect(safe['acceptanceRate'], .5);
+    expect(safe['diagnosticsCanOnlyRequestReview'], isTrue);
+    expect(safe['diagnosticsCanEndTrip'], isFalse);
     expect(safe['remoteTotalsCanBecomeCanonical'], isFalse);
     expect(safe['localTripLogProtected'], isTrue);
     expect(safe.toString(), isNot(contains('35.1')));
@@ -193,6 +201,32 @@ void main() {
     expect(safe['malformedDiagnosticsFailClosed'], isTrue);
     expect(safe['cloudFunctionDiagnosticsCanOverrideLocalTripLog'], isFalse);
     expect(safe['mapboxDiagnosticsCanOverrideLocalTripLog'], isFalse);
+  });
+
+  test('direct contradictory signal summaries cannot suppress review', () {
+    const unsafe = TripTrackingSignalQualitySummary(
+      quality: TripTrackingSignalQuality.healthy,
+      reasonCode: 'gps_signal_unsafe_provider_evidence',
+      receivedSamples: 10,
+      acceptedSamples: 10,
+      rejectedSamples: 0,
+      acceptanceRate: 1,
+      requiresUserReview: false,
+    );
+    const poor = TripTrackingSignalQualitySummary(
+      quality: TripTrackingSignalQuality.poor,
+      reasonCode: 'gps_signal_healthy',
+      receivedSamples: 10,
+      acceptedSamples: 10,
+      rejectedSamples: 0,
+      acceptanceRate: 1,
+      requiresUserReview: false,
+    );
+
+    expect(unsafe.toSafeDashboardMap()['requiresUserReview'], isTrue);
+    expect(poor.toSafeDashboardMap()['requiresUserReview'], isTrue);
+    expect(unsafe.toSafeDashboardMap()['gpsCanWriteConfirmedTripLog'], isFalse);
+    expect(poor.toSafeDashboardMap()['diagnosticsCanEndTrip'], isFalse);
   });
 
   test('restored contradictory diagnostics become poor review state', () {

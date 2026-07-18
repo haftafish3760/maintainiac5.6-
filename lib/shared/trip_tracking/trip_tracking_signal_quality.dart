@@ -55,8 +55,14 @@ class TripTrackingSignalQualitySummary {
       acceptedSamples: acceptedSamples,
     ),
     'acceptanceRate': _safeRate(acceptanceRate),
-    'requiresUserReview': requiresUserReview,
+    'requiresUserReview': _safeRequiresUserReview(
+      quality: quality,
+      reasonCode: reasonCode,
+      requestedReview: requiresUserReview,
+    ),
     'advisoryOnly': true,
+    'diagnosticsCanOnlyRequestReview': true,
+    'diagnosticsCanEndTrip': false,
     'officialMileageSource': 'odometer',
     'canReplaceOdometer': false,
     'gpsCanWriteConfirmedTripLog': false,
@@ -230,4 +236,23 @@ String _safeSignalReason(String value) {
       'gps_signal_unsafe_provider_evidence',
     _ => 'gps_signal_unsafe_provider_evidence',
   };
+}
+
+bool _safeRequiresUserReview({
+  required TripTrackingSignalQuality quality,
+  required String reasonCode,
+  required bool requestedReview,
+}) {
+  final safeReason = _safeSignalReason(reasonCode);
+  if (safeReason == 'gps_signal_unsafe_provider_evidence' ||
+      safeReason == 'gps_signal_interrupted_by_gap' ||
+      quality == TripTrackingSignalQuality.unsafe ||
+      quality == TripTrackingSignalQuality.interrupted) {
+    return true;
+  }
+  if (safeReason == 'gps_signal_poor_measurement_quality' ||
+      quality == TripTrackingSignalQuality.poor) {
+    return true;
+  }
+  return requestedReview && quality != TripTrackingSignalQuality.noSamples;
 }
