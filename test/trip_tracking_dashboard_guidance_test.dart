@@ -204,9 +204,16 @@ void main() {
 
       expect(safe['syncStatus'], contains('unverified'));
       expect(safe['advisoryOnly'], isTrue);
+      expect(safe['startActionShouldRemainPrimary'], isTrue);
+      expect(safe['dashboardWidgetsUserCustomizable'], isTrue);
+      expect(safe['dashboardCanImportModuleSummaries'], isTrue);
+      expect(safe['moduleImportsCanMutateSourceModules'], isFalse);
+      expect(safe['activeVehicleGearControlsPageSettings'], isTrue);
       expect(safe['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
       expect(safe['odometerRemainsCanonical'], isTrue);
       expect(safe['mapsRequiredForTracking'], isFalse);
+      expect(safe['mapPreviewRequiresSeparateOptIn'], isTrue);
+      expect(safe['routeHistoryRequiresSeparateOptIn'], isTrue);
       expect(safe['mapboxCanReplaceOdometer'], isFalse);
       expect(safe['mapboxCanWriteConfirmedTripLog'], isFalse);
       expect(safe['remoteTotalsCanBecomeCanonical'], isFalse);
