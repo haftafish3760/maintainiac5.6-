@@ -69,6 +69,21 @@ class TripTrackingProfileStrategy {
     return 'walking_assisted_review';
   }
 
+  bool get phoneMayStayInVehicleDuringStops =>
+      workStyle == TripTrackingWorkStyle.rideshare ||
+      workStyle == TripTrackingWorkStyle.delivery;
+
+  bool get vehicleOnlyStopsNeedManualFallback =>
+      phoneMayStayInVehicleDuringStops || !usesWalkingStopEvidence;
+
+  String get stopReviewConfidencePolicyToken => switch (workStyle) {
+    TripTrackingWorkStyle.rideshare => 'strong_vehicle_only_manual_review',
+    TripTrackingWorkStyle.delivery => 'walking_assist_with_manual_fallback',
+    TripTrackingWorkStyle.contractor => 'walking_assist_jobsite_review',
+    TripTrackingWorkStyle.equipment => 'gps_only_manual_review',
+    TripTrackingWorkStyle.generalRoad => 'conservative_manual_review',
+  };
+
   Map<String, Object?> toDashboardProfileMap() => {
     'schemaVersion': 1,
     'profile': profile.name,
@@ -80,10 +95,17 @@ class TripTrackingProfileStrategy {
     'recommendedActivityRecognition': recommendedActivityRecognition,
     'usesWalkingStopEvidence': usesWalkingStopEvidence,
     'requiresStrongerStopDebounce': requiresStrongerStopDebounce,
+    'phoneMayStayInVehicleDuringStops': phoneMayStayInVehicleDuringStops,
+    'vehicleOnlyStopsNeedManualFallback': vehicleOnlyStopsNeedManualFallback,
+    'stopReviewConfidencePolicy': stopReviewConfidencePolicyToken,
     'stopReviewReasonCode': stopReviewReasonCode,
     'dashboardWidgetTokens': List.unmodifiable(dashboardWidgetTokens),
     'quickActionTokens': List.unmodifiable(quickActionTokens),
+    'walkingEvidenceCanOnlySuggestReview': true,
+    'activityRecognitionRequiresOptIn': recommendedActivityRecognition,
+    'gpsAssistedTrackingAvailableWithoutMaps': true,
     'mapsRequiredForTracking': false,
+    'mapsCanOnlyAssistVisualization': true,
     'odometerRemainsCanonical': true,
     'locationSharingRequiresActiveOptIn': true,
     'employeeTrackingRequiresMutualConsent': true,

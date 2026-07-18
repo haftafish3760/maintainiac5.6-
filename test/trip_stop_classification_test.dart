@@ -204,10 +204,14 @@ void main() {
     expect(summary['signal'], 'reviewOnlyStop');
     expect(summary['reviewOnly'], isTrue);
     expect(summary['advisoryOnly'], isTrue);
+    expect(summary['gpsAssistedOnly'], isTrue);
+    expect(summary['manualStopFallbackAvailable'], isTrue);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['officialMileageSource'], 'odometer');
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['canReplaceOdometer'], isFalse);
+    expect(summary['mapsRequiredForStopReview'], isFalse);
+    expect(summary['mapboxCanCreateStop'], isFalse);
     expect(summary['rawSamplesIncluded'], isFalse);
     expect(summary['rawMotionPayloadIncluded'], isFalse);
     expect(summary['coordinatesIncluded'], isFalse);

@@ -197,6 +197,9 @@ void main() {
       'recommendedActivityRecognition': true,
       'usesWalkingStopEvidence': true,
       'requiresStrongerStopDebounce': false,
+      'phoneMayStayInVehicleDuringStops': false,
+      'vehicleOnlyStopsNeedManualFallback': false,
+      'stopReviewConfidencePolicy': 'walking_assist_jobsite_review',
       'stopReviewReasonCode': 'contractor_stop_walk_review',
       'dashboardWidgetTokens': [
         'start_day',
@@ -214,7 +217,11 @@ void main() {
         'record_payment',
         'review_mileage',
       ],
+      'walkingEvidenceCanOnlySuggestReview': true,
+      'activityRecognitionRequiresOptIn': true,
+      'gpsAssistedTrackingAvailableWithoutMaps': true,
       'mapsRequiredForTracking': false,
+      'mapsCanOnlyAssistVisualization': true,
       'odometerRemainsCanonical': true,
       'locationSharingRequiresActiveOptIn': true,
       'employeeTrackingRequiresMutualConsent': true,
@@ -232,12 +239,43 @@ void main() {
 
       expect(profileMap['schemaVersion'], 1);
       expect(profileMap['mapsRequiredForTracking'], isFalse);
+      expect(profileMap['gpsAssistedTrackingAvailableWithoutMaps'], isTrue);
+      expect(profileMap['mapsCanOnlyAssistVisualization'], isTrue);
+      expect(profileMap['walkingEvidenceCanOnlySuggestReview'], isTrue);
       expect(profileMap['odometerRemainsCanonical'], isTrue);
       expect(profileMap['rawLocationIncluded'], isFalse);
       expect(profileMap['rawSensorPayloadIncluded'], isFalse);
       expect(profileMap['driverKind'], isA<String>());
       expect(profileMap['stopEvidenceTier'], isA<String>());
+      expect(profileMap['stopReviewConfidencePolicy'], isA<String>());
     }
+  });
+
+  test('vehicle-only stop profiles expose manual fallback policy', () {
+    final rideshare = TripTrackingProfileStrategy.forProfile(
+      TripTrackingProfile.rideshareVehicle,
+    );
+    final delivery = TripTrackingProfileStrategy.forProfile(
+      TripTrackingProfile.deliveryVehicle,
+    );
+    final equipment = TripTrackingProfileStrategy.forProfile(
+      TripTrackingProfile.lowSpeedEquipment,
+    );
+
+    expect(rideshare.phoneMayStayInVehicleDuringStops, isTrue);
+    expect(rideshare.vehicleOnlyStopsNeedManualFallback, isTrue);
+    expect(
+      rideshare.stopReviewConfidencePolicyToken,
+      'strong_vehicle_only_manual_review',
+    );
+    expect(delivery.phoneMayStayInVehicleDuringStops, isTrue);
+    expect(delivery.vehicleOnlyStopsNeedManualFallback, isTrue);
+    expect(
+      delivery.stopReviewConfidencePolicyToken,
+      'walking_assist_with_manual_fallback',
+    );
+    expect(equipment.vehicleOnlyStopsNeedManualFallback, isTrue);
+    expect(equipment.stopReviewConfidencePolicyToken, 'gps_only_manual_review');
   });
 
   test('profile strategy clamps malformed walking thresholds safely', () {
