@@ -57,16 +57,21 @@ void main() {
   });
 
   test('malformed free sync counter fails closed', () {
-    final decision = TripTrackingBackupSyncPolicy.evaluate(
-      networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
-      wifiAvailable: true,
-      mobileDataAvailable: true,
-      syncsUsedInWindow: -1,
-    );
+    for (final used in const [-1, 1000]) {
+      final decision = TripTrackingBackupSyncPolicy.evaluate(
+        networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+        wifiAvailable: true,
+        mobileDataAvailable: true,
+        syncsUsedInWindow: used,
+      );
 
-    expect(decision.mayAttemptSync, isFalse);
-    expect(decision.reasonCode, 'free_sync_limit_invalid');
-    expect(decision.userFacingReason, contains('could not be verified'));
+      expect(decision.mayAttemptSync, isFalse);
+      expect(decision.freeSyncAllowed, isFalse);
+      expect(decision.freeSyncsRemaining, isNull);
+      expect(decision.reasonCode, 'free_sync_limit_invalid');
+      expect(decision.userFacingReason, contains('could not be verified'));
+      expect(decision.toSafeSummary()['freeSyncsRemaining'], isNull);
+    }
   });
 
   test('wifi only policy waits on mobile data', () {

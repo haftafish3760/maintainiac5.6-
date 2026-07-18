@@ -21,14 +21,15 @@ class TripTrackingBackupSyncPolicy {
             mobileDataAvailable: mobileDataAvailable,
           )
         : false;
-    final remaining = syncsUsedInWindow == null
+    final safeSyncsUsed = _verifiableSyncsUsedInWindow(syncsUsedInWindow);
+    final remaining = safeSyncsUsed == null
         ? null
         : HostedUsageLimits.freeSyncsRemaining(
-            syncsUsedInWindow: syncsUsedInWindow,
+            syncsUsedInWindow: safeSyncsUsed,
           );
     final freeSyncAllowed =
-        syncsUsedInWindow != null &&
-        HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: syncsUsedInWindow);
+        safeSyncsUsed != null &&
+        HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: safeSyncsUsed);
     final reasonCode = _reasonCode(
       networkKnown: networkKnown,
       networkAllowed: networkAllowed,
@@ -212,9 +213,23 @@ String _reasonCode({
   if (syncsUsedInWindow != null && syncsUsedInWindow < 0) {
     return 'free_sync_limit_invalid';
   }
+  if (syncsUsedInWindow != null &&
+      syncsUsedInWindow >
+          TripTrackingBackupSyncPolicy.maximumVerifiableSyncsUsedInWindow) {
+    return 'free_sync_limit_invalid';
+  }
   if (!networkKnown) return 'network_unknown';
   if (!networkAllowed) return 'network_policy_blocked';
   if (syncsUsedInWindow == null) return 'free_sync_limit_unknown';
   if (!freeSyncAllowed) return 'free_sync_limit_reached';
   return 'sync_ready';
+}
+
+int? _verifiableSyncsUsedInWindow(int? value) {
+  if (value == null) return null;
+  if (value < 0 ||
+      value > TripTrackingBackupSyncPolicy.maximumVerifiableSyncsUsedInWindow) {
+    return null;
+  }
+  return value;
 }
