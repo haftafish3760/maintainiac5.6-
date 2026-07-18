@@ -124,6 +124,68 @@ void main() {
     expect(summary['simulationCanReplaceOdometer'], isFalse);
   });
 
+  test(
+    'multi-stop delivery route stays review-only and never auto-commits',
+    () {
+      final result = replayTrip(
+        scenarios.deliveryMultiStopRouteWithWalkingProof(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+
+      expect(result.needsWalkingReview, isTrue);
+      expect(summary['stopSignal'], 'review_only_stop');
+      expect(summary['stopReviewConfidence'], 'high');
+      expect(summary['stopCanSuggestReview'], isTrue);
+      expect(summary['stopRequiresUserReview'], isTrue);
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+      expect(summary['stopReviewConfidenceCanCreateOfficialStop'], isFalse);
+      expect(summary['stopReviewConfidenceCanEndTripAutomatically'], isFalse);
+      expect(summary['officialStopSource'], 'user_review');
+      expect(summary['officialMileageSource'], 'odometer');
+    },
+  );
+
+  test(
+    'rideshare pickup queue creeping traffic stays manual fallback only',
+    () {
+      final result = replayTrip(
+        scenarios.ridesharePickupQueueCreepingTraffic(),
+        profile: TripTrackingProfile.rideshareVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.rideshareVehicle,
+      );
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(summary['stopCanSuggestReview'], isFalse);
+      expect(summary['stopRequiresUserReview'], isFalse);
+      expect(summary['stopShouldSurfaceManualFallback'], isTrue);
+      expect(summary['stopReviewConfidence'], 'low');
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+      expect(summary['mapsRequiredForStopReview'], isFalse);
+    },
+  );
+
+  test('weak walking false positives cannot surface a stop review', () {
+    final result = replayTrip(
+      scenarios.weakWalkingFalsePositiveWhileDriving(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.acceptedDistanceCount, greaterThan(2));
+    expect(result.excludedWalkingCount, isZero);
+    expect(summary['stopReviewConfidence'], 'none');
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+  });
+
   test('two-person delivery can surface manual fallback without auto stop', () {
     final result = replayTrip(
       scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
@@ -153,6 +215,7 @@ void main() {
     expect(result.needsWalkingReview, isFalse);
     expect(result.acceptedMiles, lessThan(.1));
     expect(summary['stopSignal'], 'unsafe_evidence');
+    expect(summary['stopReviewConfidence'], 'none');
     expect(summary['stopCanSuggestReview'], isFalse);
     expect(summary['stopRequiresUserReview'], isFalse);
     expect(summary['stopShouldSurfaceManualFallback'], isFalse);

@@ -16,6 +16,12 @@ void main() {
     expect(result.needsWalkingReview, isTrue);
     expect(result.motionState, TripMotionState.moving);
     expect(
+      result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      )['stopReviewConfidence'],
+      'high',
+    );
+    expect(
       result.count(TripSampleDisposition.excludedWalking),
       greaterThanOrEqualTo(4),
     );
@@ -31,6 +37,12 @@ void main() {
 
     expect(result.needsWalkingReview, isFalse);
     expect(result.motionState, TripMotionState.moving);
+    expect(
+      result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.rideshareVehicle,
+      )['stopCanSuggestReview'],
+      isFalse,
+    );
     expect(result.count(TripSampleDisposition.excludedWalking), isZero);
     expect(
       result.count(TripSampleDisposition.rejectedDrift),
@@ -49,6 +61,12 @@ void main() {
     expect(result.needsWalkingReview, isTrue);
     expect(result.motionState, TripMotionState.stopped);
     expect(
+      result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.rideshareVehicle,
+      )['stopReviewConfidence'],
+      'medium',
+    );
+    expect(
       result.count(TripSampleDisposition.excludedWalking),
       greaterThanOrEqualTo(2),
     );
@@ -64,6 +82,12 @@ void main() {
 
     expect(result.needsWalkingReview, isTrue);
     expect(result.motionState, TripMotionState.moving);
+    expect(
+      result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.contractorVehicle,
+      )['stopReviewConfidence'],
+      'high',
+    );
     expect(
       result.count(TripSampleDisposition.excludedWalking),
       greaterThanOrEqualTo(4),
@@ -84,6 +108,12 @@ void main() {
 
     expect(result.needsWalkingReview, isFalse);
     expect(result.motionState, TripMotionState.moving);
+    expect(
+      result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      )['stopReviewConfidence'],
+      'low',
+    );
     expect(result.count(TripSampleDisposition.excludedWalking), isZero);
     expect(
       result.count(TripSampleDisposition.rejectedDrift),

@@ -85,6 +85,7 @@ class SimulatedTripResult {
       'profile': profile.name,
       'stopSignal': _dashboardStopSignal(classification.signal),
       'stopActionToken': classification.actionToken,
+      'stopReviewConfidence': classification.reviewConfidence.name,
       'stopClassificationReason': classification.reasonCode,
       'stopRequiresUserReview': classification.requiresUserReview,
       'stopCanSuggestReview': classification.canSuggestStop,
@@ -92,6 +93,9 @@ class SimulatedTripResult {
           classification.shouldSurfaceManualStopFallback,
       'stopCanCreateOfficialStop': false,
       'stopCanReplaceOdometer': false,
+      'stopReviewConfidenceCanCreateOfficialStop': false,
+      'stopReviewConfidenceCanReplaceOdometer': false,
+      'stopReviewConfidenceCanEndTripAutomatically': false,
       'mapsRequiredForStopReview': false,
     };
   }

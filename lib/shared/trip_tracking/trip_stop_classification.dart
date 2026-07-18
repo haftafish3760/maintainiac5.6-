@@ -10,9 +10,12 @@ enum TripStopSignal {
   unsafeEvidence,
 }
 
+enum TripStopReviewConfidence { none, low, medium, high }
+
 class TripStopClassification {
   const TripStopClassification({
     required this.signal,
+    required this.reviewConfidence,
     required this.reasonCode,
     required this.requiresUserReview,
     required this.canSuggestStop,
@@ -22,6 +25,7 @@ class TripStopClassification {
   });
 
   final TripStopSignal signal;
+  final TripStopReviewConfidence reviewConfidence;
   final String reasonCode;
   final bool requiresUserReview;
   final bool canSuggestStop;
@@ -54,6 +58,12 @@ class TripStopClassification {
     return {
       'schemaVersion': 1,
       'signal': signal.name,
+      'reviewConfidence': _safeReviewConfidence(
+        reviewConfidence,
+        signal: signal,
+        reasonCode: safeReasonCode,
+        canSuggestStop: safeSuggestionAllowed,
+      ).name,
       'reasonCode': safeReasonCode,
       'requiresUserReview': safeReviewAllowed,
       'canSuggestStop': safeSuggestionAllowed,
@@ -75,6 +85,9 @@ class TripStopClassification {
       'firestoreCanCreateOfficialStop': false,
       'cloudFunctionCanCreateOfficialStop': false,
       'malformedStopSummaryFailsSafe': true,
+      'reviewConfidenceCanCreateOfficialStop': false,
+      'reviewConfidenceCanEndTripAutomatically': false,
+      'reviewConfidenceCanReplaceOdometer': false,
       'officialStopSource': 'user_review',
       'officialMileageSource': 'odometer',
       'canCreateOfficialStop': false,
@@ -93,6 +106,43 @@ class TripStopClassification {
       'mapboxGeometryIncluded': false,
     };
   }
+}
+
+TripStopReviewConfidence _safeReviewConfidence(
+  TripStopReviewConfidence value, {
+  required TripStopSignal signal,
+  required String reasonCode,
+  required bool canSuggestStop,
+}) {
+  if (signal == TripStopSignal.unsafeEvidence ||
+      signal == TripStopSignal.equipmentIgnored ||
+      signal == TripStopSignal.noStop) {
+    return TripStopReviewConfidence.none;
+  }
+  if (signal == TripStopSignal.likelyTrafficControl) {
+    return TripStopReviewConfidence.low;
+  }
+  if (signal == TripStopSignal.stopCandidate) {
+    return value == TripStopReviewConfidence.none
+        ? TripStopReviewConfidence.low
+        : value;
+  }
+  if (!canSuggestStop) return TripStopReviewConfidence.none;
+  return switch (reasonCode) {
+    'delivery_stop_walk_review' || 'contractor_stop_walk_review' =>
+      value == TripStopReviewConfidence.high
+          ? value
+          : TripStopReviewConfidence.medium,
+    'rideshare_stop_requires_extra_evidence' =>
+      value == TripStopReviewConfidence.high
+          ? TripStopReviewConfidence.medium
+          : value,
+    'road_vehicle_stop_walk_review' =>
+      value == TripStopReviewConfidence.none
+          ? TripStopReviewConfidence.low
+          : value,
+    _ => TripStopReviewConfidence.none,
+  };
 }
 
 bool _safeShouldSurfaceManualStopFallback({
@@ -227,6 +277,7 @@ class TripStopClassifier {
         safeRejectedUnsafeCount >= safeExcludedWalkingCount) {
       return TripStopClassification(
         signal: TripStopSignal.unsafeEvidence,
+        reviewConfidence: TripStopReviewConfidence.none,
         reasonCode: 'unsafe_stop_evidence_rejected',
         requiresUserReview: false,
         canSuggestStop: false,
@@ -239,6 +290,7 @@ class TripStopClassifier {
     if (!strategy.usesWalkingStopEvidence && safeExcludedWalkingCount > 0) {
       return TripStopClassification(
         signal: TripStopSignal.equipmentIgnored,
+        reviewConfidence: TripStopReviewConfidence.none,
         reasonCode: 'equipment_walking_evidence_ignored',
         requiresUserReview: false,
         canSuggestStop: false,
@@ -253,6 +305,7 @@ class TripStopClassifier {
         safeAcceptedDistanceCount == 0) {
       return const TripStopClassification(
         signal: TripStopSignal.unsafeEvidence,
+        reviewConfidence: TripStopReviewConfidence.none,
         reasonCode: 'walking_stop_without_vehicle_movement',
         requiresUserReview: false,
         canSuggestStop: false,
@@ -265,6 +318,7 @@ class TripStopClassifier {
     if (needsWalkingReview && safeExcludedWalkingCount > 0) {
       return TripStopClassification(
         signal: TripStopSignal.reviewOnlyStop,
+        reviewConfidence: _reviewConfidenceFor(strategy.workStyle),
         reasonCode: strategy.stopReviewReasonCode,
         requiresUserReview: true,
         canSuggestStop: true,
@@ -279,6 +333,7 @@ class TripStopClassifier {
         motionState != TripMotionState.stopped) {
       return TripStopClassification(
         signal: TripStopSignal.likelyTrafficControl,
+        reviewConfidence: TripStopReviewConfidence.low,
         reasonCode: 'traffic_control_or_stationary_jitter',
         requiresUserReview: false,
         canSuggestStop: false,
@@ -292,6 +347,9 @@ class TripStopClassifier {
     if (motionState == TripMotionState.stopCandidate) {
       return TripStopClassification(
         signal: TripStopSignal.stopCandidate,
+        reviewConfidence: strategy.vehicleOnlyStopsNeedManualFallback
+            ? TripStopReviewConfidence.low
+            : TripStopReviewConfidence.none,
         reasonCode: strategy.requiresStrongerStopDebounce
             ? 'stop_candidate_waiting_for_stronger_evidence'
             : 'stop_candidate_waiting_for_confirmation',
@@ -308,6 +366,7 @@ class TripStopClassifier {
     }
     return const TripStopClassification(
       signal: TripStopSignal.noStop,
+      reviewConfidence: TripStopReviewConfidence.none,
       reasonCode: 'no_stop_review_needed',
       requiresUserReview: false,
       canSuggestStop: false,
@@ -325,6 +384,16 @@ String _reviewActionFor(TripTrackingWorkStyle workStyle) {
     TripTrackingWorkStyle.rideshare => 'review_shift_stop',
     TripTrackingWorkStyle.generalRoad => 'review_trip_stop',
     TripTrackingWorkStyle.equipment => 'keep_tracking',
+  };
+}
+
+TripStopReviewConfidence _reviewConfidenceFor(TripTrackingWorkStyle workStyle) {
+  return switch (workStyle) {
+    TripTrackingWorkStyle.delivery => TripStopReviewConfidence.high,
+    TripTrackingWorkStyle.contractor => TripStopReviewConfidence.high,
+    TripTrackingWorkStyle.rideshare => TripStopReviewConfidence.medium,
+    TripTrackingWorkStyle.generalRoad => TripStopReviewConfidence.low,
+    TripTrackingWorkStyle.equipment => TripStopReviewConfidence.none,
   };
 }
 
