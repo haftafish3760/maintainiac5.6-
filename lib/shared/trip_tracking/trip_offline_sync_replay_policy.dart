@@ -40,12 +40,19 @@ class TripOfflineSyncReplayDecision {
     'replayRequiresDeviceMatch': true,
     'replayRequiresDayKeyMatch': true,
     'replayRequiresMonotonicLocalRevision': true,
+    'replayRequiresLocalDurableCheckpoint': true,
+    'replayRequiresSameBackupPreference': true,
+    'replayRequiresFreshReservationAttempt': true,
     'authenticationAloneAuthorizesReplay': false,
     'freeReplayRequiresReservationBeforeUpload': true,
     'failedReplayCanDeleteLocalQueue': false,
     'successfulReplayCanSilentlyDeleteLocalData': false,
     'successfulReplayCanPurgeLocalDaytimeData': false,
     'remoteConflictCanSilentlyWin': false,
+    'remoteReplayCanReviveDeletedLocalTrip': false,
+    'remoteReplayCanAdvanceLocalRevision': false,
+    'remoteReplayCanChangeOdometer': false,
+    'remoteReplayCanCreateStops': false,
     'replaySuccessRequiresExplicitQueueCleanup': true,
     'replayCannotUploadIfLocalRecordDisappears': true,
     'replayCannotUploadAfterBackupOptOut': true,
@@ -55,6 +62,8 @@ class TripOfflineSyncReplayDecision {
     'odometerRemainsOfficialMileageTruth': true,
     'mapboxCanReplaySyncQueue': false,
     'mapboxCanRepairReplayRecords': false,
+    'mapboxCanFillReplayGaps': false,
+    'cloudFunctionCanReplayWithoutLocalQueue': false,
     'rawTripPayloadIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -178,12 +187,19 @@ class TripOfflineSyncReplaySummaryValidation {
       'replayRequiresDeviceMatch',
       'replayRequiresDayKeyMatch',
       'replayRequiresMonotonicLocalRevision',
+      'replayRequiresLocalDurableCheckpoint',
+      'replayRequiresSameBackupPreference',
+      'replayRequiresFreshReservationAttempt',
       'authenticationAloneAuthorizesReplay',
       'freeReplayRequiresReservationBeforeUpload',
       'failedReplayCanDeleteLocalQueue',
       'successfulReplayCanSilentlyDeleteLocalData',
       'successfulReplayCanPurgeLocalDaytimeData',
       'remoteConflictCanSilentlyWin',
+      'remoteReplayCanReviveDeletedLocalTrip',
+      'remoteReplayCanAdvanceLocalRevision',
+      'remoteReplayCanChangeOdometer',
+      'remoteReplayCanCreateStops',
       'replaySuccessRequiresExplicitQueueCleanup',
       'replayCannotUploadIfLocalRecordDisappears',
       'replayCannotUploadAfterBackupOptOut',
@@ -193,6 +209,8 @@ class TripOfflineSyncReplaySummaryValidation {
       'odometerRemainsOfficialMileageTruth',
       'mapboxCanReplaySyncQueue',
       'mapboxCanRepairReplayRecords',
+      'mapboxCanFillReplayGaps',
+      'cloudFunctionCanReplayWithoutLocalQueue',
       'rawTripPayloadIncluded',
       'preciseLocationIncluded',
       'routeGeometryIncluded',
@@ -205,6 +223,9 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['replayRequiresDeviceMatch'] != true ||
         summary['replayRequiresDayKeyMatch'] != true ||
         summary['replayRequiresMonotonicLocalRevision'] != true ||
+        summary['replayRequiresLocalDurableCheckpoint'] != true ||
+        summary['replayRequiresSameBackupPreference'] != true ||
+        summary['replayRequiresFreshReservationAttempt'] != true ||
         summary['authenticationAloneAuthorizesReplay'] != false ||
         summary['freeReplayRequiresReservationBeforeUpload'] != true ||
         summary['replayCannotUploadIfLocalRecordDisappears'] != true ||
@@ -215,6 +236,10 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['successfulReplayCanSilentlyDeleteLocalData'] != false ||
         summary['successfulReplayCanPurgeLocalDaytimeData'] != false ||
         summary['remoteConflictCanSilentlyWin'] != false ||
+        summary['remoteReplayCanReviveDeletedLocalTrip'] != false ||
+        summary['remoteReplayCanAdvanceLocalRevision'] != false ||
+        summary['remoteReplayCanChangeOdometer'] != false ||
+        summary['remoteReplayCanCreateStops'] != false ||
         summary['replaySuccessRequiresExplicitQueueCleanup'] != true ||
         summary['remoteBackupCanOverrideLocalDay'] != false) {
       reasons.add('remote_replay_can_mutate_local_data');
@@ -223,7 +248,9 @@ class TripOfflineSyncReplaySummaryValidation {
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
         summary['mapboxCanReplaySyncQueue'] != false ||
-        summary['mapboxCanRepairReplayRecords'] != false) {
+        summary['mapboxCanRepairReplayRecords'] != false ||
+        summary['mapboxCanFillReplayGaps'] != false ||
+        summary['cloudFunctionCanReplayWithoutLocalQueue'] != false) {
       reasons.add('source_of_truth_boundary_missing');
     }
     if (summary['rawTripPayloadIncluded'] != false ||

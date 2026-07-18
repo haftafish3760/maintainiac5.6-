@@ -60,17 +60,24 @@ class TripTrackingDurableRecordBridge {
     'remoteDataCanPurgeLocalDaytimeData': false,
     'remoteDataCanSilentlyResolveConflicts': false,
     'confirmedBackupCanOnlySuggestCleanup': true,
+    'confirmedBackupCannotAutoDeleteDeviceRecord': true,
+    'durableRecordSharedAcrossModules': true,
+    'moduleScopedDurableBucketRequired': true,
     'durableRecordRequiresConfirmedOdometer': true,
     'durableRecordRequiresValidTimeline': true,
     'durableRecordRequiresSafeIds': true,
     'backendAuthorizationRequiredForMirror': true,
     'authenticationDoesNotImplyAuthorization': true,
     'remotePayloadTrustedAfterValidationOnly': true,
+    'backendRulesMustEnforceOwnerScope': true,
     'mapboxDataAdvisoryOnly': true,
     'mapboxCanCreateDurableRecord': false,
     'mapboxCanReplaceDurableMileage': false,
     'pendingSamplesPersistedInDurableRecord': false,
     'activityWalkingEvidencePersistedInDurableRecord': false,
+    'routeHistoryPersistedInDurableRecord': false,
+    'freeSyncQuotaCanDeleteDurableRecord': false,
+    'storagePressureCanDeleteDurableRecord': false,
     'durableRecordCanDeleteLocalTrip': false,
     'durableRecordCanPurgeLocalDeviceData': false,
     'rawGpsIncluded': false,
@@ -104,17 +111,21 @@ class TripTrackingDurableRecordBridgeSummaryValidation {
         summary['remoteDataCanOverrideLocalDaytimeData'] != false ||
         summary['remoteDataCanPurgeLocalDaytimeData'] != false ||
         summary['remoteDataCanSilentlyResolveConflicts'] != false ||
-        summary['confirmedBackupCanOnlySuggestCleanup'] != true) {
+        summary['confirmedBackupCanOnlySuggestCleanup'] != true ||
+        summary['confirmedBackupCannotAutoDeleteDeviceRecord'] != true) {
       reasons.add('local_day_truth_boundary_missing');
     }
     if (summary['durableRecordRequiresConfirmedOdometer'] != true ||
         summary['durableRecordRequiresValidTimeline'] != true ||
-        summary['durableRecordRequiresSafeIds'] != true) {
+        summary['durableRecordRequiresSafeIds'] != true ||
+        summary['durableRecordSharedAcrossModules'] != true ||
+        summary['moduleScopedDurableBucketRequired'] != true) {
       reasons.add('durable_record_requirements_missing');
     }
     if (summary['backendAuthorizationRequiredForMirror'] != true ||
         summary['authenticationDoesNotImplyAuthorization'] != true ||
-        summary['remotePayloadTrustedAfterValidationOnly'] != true) {
+        summary['remotePayloadTrustedAfterValidationOnly'] != true ||
+        summary['backendRulesMustEnforceOwnerScope'] != true) {
       reasons.add('authorization_boundary_missing');
     }
     if (summary['mapboxDataAdvisoryOnly'] != true ||
@@ -124,6 +135,9 @@ class TripTrackingDurableRecordBridgeSummaryValidation {
     }
     if (summary['pendingSamplesPersistedInDurableRecord'] != false ||
         summary['activityWalkingEvidencePersistedInDurableRecord'] != false ||
+        summary['routeHistoryPersistedInDurableRecord'] != false ||
+        summary['freeSyncQuotaCanDeleteDurableRecord'] != false ||
+        summary['storagePressureCanDeleteDurableRecord'] != false ||
         summary['durableRecordCanDeleteLocalTrip'] != false ||
         summary['durableRecordCanPurgeLocalDeviceData'] != false) {
       reasons.add('durable_record_can_persist_operational_or_delete_data');
@@ -204,12 +218,19 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   map['remoteDataCanOverrideLocalDaytimeData'] = false;
   map['remoteDataCanPurgeLocalDaytimeData'] = false;
   map['remoteDataCanSilentlyResolveConflicts'] = false;
+  map['confirmedBackupCannotAutoDeleteDeviceRecord'] = true;
+  map['durableRecordSharedAcrossModules'] = true;
+  map['moduleScopedDurableBucketRequired'] = true;
   map['durableRecordRequiresConfirmedOdometer'] = true;
+  map['backendRulesMustEnforceOwnerScope'] = true;
   map['confirmedOdometerRemainsCanonical'] = true;
   map['mapboxCanReplaceOdometer'] = false;
   map['mapboxCanCreateDurableRecord'] = false;
   map['pendingSamplesPersistedInDurableRecord'] = false;
   map['activityWalkingEvidencePersistedInDurableRecord'] = false;
+  map['routeHistoryPersistedInDurableRecord'] = false;
+  map['freeSyncQuotaCanDeleteDurableRecord'] = false;
+  map['storagePressureCanDeleteDurableRecord'] = false;
   map['durableRecordCanDeleteLocalTrip'] = false;
   map['durableRecordCanPurgeLocalDeviceData'] = false;
   map['rawGpsIncluded'] = false;

@@ -138,6 +138,9 @@ void main() {
     expect(safe['replayRequiresDeviceMatch'], isTrue);
     expect(safe['replayRequiresDayKeyMatch'], isTrue);
     expect(safe['replayRequiresMonotonicLocalRevision'], isTrue);
+    expect(safe['replayRequiresLocalDurableCheckpoint'], isTrue);
+    expect(safe['replayRequiresSameBackupPreference'], isTrue);
+    expect(safe['replayRequiresFreshReservationAttempt'], isTrue);
     expect(safe['authenticationAloneAuthorizesReplay'], isFalse);
     expect(safe['failedReplayCanDeleteLocalQueue'], isFalse);
     expect(safe['successfulReplayCanSilentlyDeleteLocalData'], isFalse);
@@ -145,6 +148,11 @@ void main() {
     expect(safe['replayCannotUploadIfLocalRecordDisappears'], isTrue);
     expect(safe['replayCannotUploadAfterBackupOptOut'], isTrue);
     expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
+    expect(safe['remoteReplayCanReviveDeletedLocalTrip'], isFalse);
+    expect(safe['remoteReplayCanAdvanceLocalRevision'], isFalse);
+    expect(safe['remoteReplayCanChangeOdometer'], isFalse);
+    expect(safe['remoteReplayCanCreateStops'], isFalse);
+    expect(safe['cloudFunctionCanReplayWithoutLocalQueue'], isFalse);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['rawTripPayloadIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
@@ -167,6 +175,9 @@ void main() {
         'replayRequiresDeviceMatch': false,
         'replayRequiresDayKeyMatch': false,
         'replayRequiresMonotonicLocalRevision': false,
+        'replayRequiresLocalDurableCheckpoint': false,
+        'replayRequiresSameBackupPreference': false,
+        'replayRequiresFreshReservationAttempt': false,
         'authenticationAloneAuthorizesReplay': true,
         'freeReplayRequiresReservationBeforeUpload': false,
         'replayCannotUploadIfLocalRecordDisappears': false,
@@ -175,6 +186,10 @@ void main() {
         'successfulReplayCanSilentlyDeleteLocalData': true,
         'successfulReplayCanPurgeLocalDaytimeData': true,
         'remoteConflictCanSilentlyWin': true,
+        'remoteReplayCanReviveDeletedLocalTrip': true,
+        'remoteReplayCanAdvanceLocalRevision': true,
+        'remoteReplayCanChangeOdometer': true,
+        'remoteReplayCanCreateStops': true,
         'replaySuccessRequiresExplicitQueueCleanup': false,
         'remoteBackupCanOverrideLocalDay': true,
         'firestoreMirrorOnly': false,
@@ -182,6 +197,8 @@ void main() {
         'odometerRemainsOfficialMileageTruth': false,
         'mapboxCanReplaySyncQueue': true,
         'mapboxCanRepairReplayRecords': true,
+        'mapboxCanFillReplayGaps': true,
+        'cloudFunctionCanReplayWithoutLocalQueue': true,
         'rawTripPayloadIncluded': true,
         'preciseLocationIncluded': true,
         'routeGeometryIncluded': true,
