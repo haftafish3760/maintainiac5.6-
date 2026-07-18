@@ -290,6 +290,38 @@ void main() {
       contains('route_history_opt_in_boundary_missing'),
     );
   });
+
+  test('route history validation rejects plan authority mismatch', () {
+    final textOnly = evaluate(userOptedIntoMaps: false).toSafeSummary();
+    final trace = evaluate(
+      userOptedIntoMaps: true,
+      userOptedIntoRouteHistory: true,
+      requestedDailyBudgetMb: 1,
+    ).toSafeSummary();
+
+    final forgedText = TripRouteHistorySummaryValidation.fromSummary({
+      ...textOnly,
+      'canUseMapbox': true,
+      'canCaptureRouteHistory': true,
+      'maximumRetainedPointsPerDay': 25,
+    });
+    final forgedTrace = TripRouteHistorySummaryValidation.fromSummary({
+      ...trace,
+      'canCaptureRouteHistory': false,
+      'maximumRetainedPointsPerDay': 0,
+    });
+
+    expect(forgedText.isRenderable, isFalse);
+    expect(forgedTrace.isRenderable, isFalse);
+    expect(
+      forgedText.reasons,
+      contains('route_history_plan_conflicts_with_authority'),
+    );
+    expect(
+      forgedTrace.reasons,
+      contains('route_history_plan_conflicts_with_authority'),
+    );
+  });
 }
 
 TripRouteHistoryCaptureDecision evaluate({

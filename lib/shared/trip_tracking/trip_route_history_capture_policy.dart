@@ -129,6 +129,8 @@ class TripRouteHistorySummaryValidation {
         plan != TripRouteHistoryPlan.compactGpsTrace) {
       reasons.add('capture_enabled_for_non_trace_plan');
     }
+    final boundaryRisk = _routeHistoryPlanBoundaryRisk(summary, plan);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
         summary['mapsRequiredForTripTracking'] != false ||
         summary['freeGpsTripTrackerRemainsFree'] != true ||
@@ -375,6 +377,39 @@ TripRouteHistoryReason? _safeReason(Object? value) {
   if (value is! String) return null;
   for (final reason in TripRouteHistoryReason.values) {
     if (reason.name == value) return reason;
+  }
+  return null;
+}
+
+String? _routeHistoryPlanBoundaryRisk(
+  Map<String, Object?> summary,
+  TripRouteHistoryPlan? plan,
+) {
+  final canMapbox = summary['canUseMapbox'];
+  final capture = summary['canCaptureRouteHistory'];
+  final interval = summary['recommendedSampleIntervalSeconds'];
+  final cap = summary['maximumRetainedPointsPerDay'];
+  if (plan == null ||
+      canMapbox is! bool ||
+      capture is! bool ||
+      interval is! int ||
+      cap is! int) {
+    return null;
+  }
+  if (plan == TripRouteHistoryPlan.compactGpsTrace) {
+    if (!canMapbox || !capture || interval < 5 || cap <= 0) {
+      return 'route_history_plan_conflicts_with_authority';
+    }
+    return null;
+  }
+  if (canMapbox || capture || cap != 0) {
+    return 'route_history_plan_conflicts_with_authority';
+  }
+  if (plan == TripRouteHistoryPlan.disabled && interval != 0) {
+    return 'route_history_plan_conflicts_with_authority';
+  }
+  if (plan == TripRouteHistoryPlan.textOnlyAnchors && interval <= 0) {
+    return 'route_history_plan_conflicts_with_authority';
   }
   return null;
 }
