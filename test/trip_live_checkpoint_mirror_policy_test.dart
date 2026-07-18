@@ -130,6 +130,30 @@ void main() {
     expect(decision.payload, isEmpty);
   });
 
+  test('mirror payload rejects malformed updated timestamps', () {
+    final base = syncAttempt(now: now).mirrorPayload;
+    final sync = TripTrackingSyncAttemptDecision(
+      status: TripTrackingSyncAttemptStatus.ready,
+      accountTier: TripTrackingSyncAccountTier.paid,
+      sourceValid: true,
+      ownerValid: true,
+      revisionFresh: true,
+      syncDecision: syncAttempt(now: now).syncDecision,
+      freeSyncsRemainingBeforeAttempt: null,
+      mirrorPayload: {
+        ...base,
+        'updatedAtUtc': 'tomorrow near 35.123456,-80.123456',
+      },
+    );
+    final decision = TripLiveCheckpointMirrorPolicy.evaluate(
+      durability: durabilityDecision(now: now, sync: sync),
+      syncAttempt: sync,
+    );
+
+    expect(decision.status, TripLiveCheckpointMirrorStatus.blockedPayloadShape);
+    expect(decision.payload, isEmpty);
+  });
+
   test('safe dashboard summary denies remote checkpoint authority', () {
     final sync = syncAttempt(now: now);
     final safe = TripLiveCheckpointMirrorPolicy.evaluate(
@@ -244,6 +268,41 @@ void main() {
     expect(
       validation.reasons,
       contains('summary_contains_sensitive_checkpoint_material'),
+    );
+  });
+
+  test('checkpoint mirror summary rejects status authority mismatch', () {
+    final sync = syncAttempt(now: now);
+    final ready = TripLiveCheckpointMirrorPolicy.evaluate(
+      durability: durabilityDecision(now: now, sync: sync),
+      syncAttempt: sync,
+    ).toSafeDashboardMap();
+    final blocked = TripLiveCheckpointMirrorPolicy.evaluate(
+      durability: durabilityDecision(
+        now: now,
+        sync: sync,
+        localWriteSucceeded: false,
+      ),
+      syncAttempt: sync,
+    ).toSafeDashboardMap();
+
+    final forgedReady = TripLiveCheckpointMirrorSummaryValidation.fromSummary({
+      ...ready,
+      'mayMirrorLiveCheckpoint': false,
+    });
+    final forgedBlocked = TripLiveCheckpointMirrorSummaryValidation.fromSummary(
+      {...blocked, 'mayMirrorLiveCheckpoint': true},
+    );
+
+    expect(forgedReady.isRenderable, isFalse);
+    expect(forgedBlocked.isRenderable, isFalse);
+    expect(
+      forgedReady.reasons,
+      contains('checkpoint_mirror_status_conflicts_with_authority'),
+    );
+    expect(
+      forgedBlocked.reasons,
+      contains('checkpoint_mirror_status_conflicts_with_authority'),
     );
   });
 }

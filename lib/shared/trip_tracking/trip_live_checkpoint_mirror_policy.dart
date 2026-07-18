@@ -181,6 +181,8 @@ class TripLiveCheckpointMirrorSummaryValidation {
         summary.values.any(_looksSensitive)) {
       reasons.add('summary_contains_sensitive_checkpoint_material');
     }
+    final boundaryRisk = _mirrorStatusBoundaryRisk(summary);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
 
     return TripLiveCheckpointMirrorSummaryValidation._(
       isRenderable: reasons.isEmpty,
@@ -291,7 +293,7 @@ bool _payloadShapeSafe(Map<String, Object?> payload) {
   return payload['schemaVersion'] == 1 &&
       _safeIdentifier(payload['recordId'], maxLength: 96) &&
       _safeKnownKind(payload['kind']) &&
-      payload['updatedAtUtc'] is String &&
+      _safeUtcTimestamp(payload['updatedAtUtc']) &&
       payload['localRevision'] is int &&
       (payload['localRevision'] as int) > 0 &&
       payload['localPersisted'] == true &&
@@ -330,6 +332,19 @@ bool _looksSensitive(Object? value) {
       RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
 
+String? _mirrorStatusBoundaryRisk(Map<String, Object?> summary) {
+  final status = _safeStatus(summary['status']);
+  final mayMirror = summary['mayMirrorLiveCheckpoint'];
+  if (status == null || mayMirror is! bool) return null;
+  if (status == TripLiveCheckpointMirrorStatus.ready && !mayMirror) {
+    return 'checkpoint_mirror_status_conflicts_with_authority';
+  }
+  if (status != TripLiveCheckpointMirrorStatus.ready && mayMirror) {
+    return 'checkpoint_mirror_status_conflicts_with_authority';
+  }
+  return null;
+}
+
 bool _safeKnownKind(Object? value) {
   return value == TripTrackingSyncSourceKind.liveTrip.name ||
       value == TripTrackingSyncSourceKind.reviewedMileage.name ||
@@ -347,6 +362,18 @@ bool _safeIdentifier(Object? value, {required int maxLength}) {
     return false;
   }
   return RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean);
+}
+
+bool _safeUtcTimestamp(Object? value) {
+  if (value is! String || value.trim() != value || value.length > 32) {
+    return false;
+  }
+  final utcShape = RegExp(
+    r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$',
+  );
+  if (!utcShape.hasMatch(value)) return false;
+  final parsed = DateTime.tryParse(value);
+  return parsed != null && parsed.isUtc;
 }
 
 bool _safeTripDayKey(Object? value) {
