@@ -1,3 +1,4 @@
+import 'trip_gps_dependability_rollup_policy.dart';
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_odometer_calibration.dart';
 import 'trip_tracking_odometer_truth_policy.dart';
@@ -42,6 +43,7 @@ class TripTrackingCalibrationApplyGuard {
     String? calibrationOwnerUserId,
     bool explicitSharedVehicleAccess = false,
     bool fleetObserverMode = false,
+    TripGpsDependabilityRollupDecision? gpsDependabilityRollup,
     TripTrackingCalibrationHistorySource historySource =
         TripTrackingCalibrationHistorySource.localReviewedOdometerHistory,
     Duration maximumCalibrationReviewAge = const Duration(days: 30),
@@ -91,6 +93,10 @@ class TripTrackingCalibrationApplyGuard {
     if (historySource !=
         TripTrackingCalibrationHistorySource.localReviewedOdometerHistory) {
       reasons.add('local_reviewed_odometer_history_required');
+    }
+    if (gpsDependabilityRollup != null &&
+        !gpsDependabilityRollup.canUseForCalibrationEvidence) {
+      reasons.add('gps_dependability_rollup_required_for_calibration');
     }
     if (fleetObserverMode) reasons.add('fleet_observer_read_only');
     if (currentUserId != null && currentUser == null) {
@@ -256,6 +262,11 @@ class TripTrackingCalibrationApplyGuard {
     'excludedPoorGpsDayCount': excludedPoorGpsDayCount,
     'excludedPoorGpsDayCountIncluded': true,
     'poorGpsExcludedDayCountTrustedAfterValidationOnly': true,
+    'gpsDependabilityRollupRequiredForCalibration': true,
+    'oneGoodGpsWindowCannotClearBadCalibrationDay': true,
+    'poorGpsWindowExcludesCalibrationDay': true,
+    'interruptedGpsWindowExcludesCalibrationDay': true,
+    'unsafeGpsWindowExcludesCalibrationDay': true,
     'poorGpsDaysCannotCountAsTrustedWindow': true,
     'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
     'unknownSignalDiagnosticsExcludedByDefault': true,
@@ -368,6 +379,11 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['excludedPoorGpsDayCountIncluded'] != true ||
         summary['poorGpsExcludedDayCountTrustedAfterValidationOnly'] != true ||
+        summary['gpsDependabilityRollupRequiredForCalibration'] != true ||
+        summary['oneGoodGpsWindowCannotClearBadCalibrationDay'] != true ||
+        summary['poorGpsWindowExcludesCalibrationDay'] != true ||
+        summary['interruptedGpsWindowExcludesCalibrationDay'] != true ||
+        summary['unsafeGpsWindowExcludesCalibrationDay'] != true ||
         summary['poorGpsDaysCannotCountAsTrustedWindow'] != true ||
         summary['unknownSignalDiagnosticsCannotCountAsTrustedWindow'] != true ||
         summary['unknownSignalDiagnosticsExcludedByDefault'] != true ||
@@ -482,6 +498,7 @@ String? _safeApplyReason(Object? value) {
     'missing_latest_review_timestamp' => value,
     'stale_review_timestamp' => value,
     'local_reviewed_odometer_history_required' => value,
+    'gps_dependability_rollup_required_for_calibration' => value,
     'fleet_observer_read_only' => value,
     'unsafe_current_user_id' => value,
     'unsafe_calibration_owner_user_id' => value,

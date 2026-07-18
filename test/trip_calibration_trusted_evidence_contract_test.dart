@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_gps_dependability_rollup_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_calibration_apply_guard.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_odometer_calibration.dart';
@@ -61,6 +62,8 @@ void main() {
       expect(safe['excludedPoorGpsDayCount'], 2);
       expect(safe['excludedPoorGpsDayCountIncluded'], isTrue);
       expect(safe['poorGpsExcludedDayCountTrustedAfterValidationOnly'], isTrue);
+      expect(safe['gpsDependabilityRollupRequiredForCalibration'], isTrue);
+      expect(safe['oneGoodGpsWindowCannotClearBadCalibrationDay'], isTrue);
       expect(safe['calibrationCanMutateTripLog'], isFalse);
       expect(safe['canRewriteConfirmedOdometer'], isFalse);
       expect(safe['odometerIsGlobalTruth'], isTrue);
@@ -101,6 +104,56 @@ void main() {
     expect(validation.reasons, contains('invalid_trusted_gps_window_count'));
     expect(validation.reasons, contains('invalid_excluded_poor_gps_day_count'));
     expect(validation.reasons, contains('calibration_can_mutate_trip_truth'));
+  });
+
+  test('apply guard rejects calibration when GPS rollup excludes the day', () {
+    final guard = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.reviewRecommended,
+        eligibleSampleCount: 7,
+        trustedGpsWindowCount: 7,
+        excludedPoorGpsDayCount: 1,
+        averageGpsToOdometerRatio: .94,
+        averageDifferencePercent: 6,
+        reasonCode: 'persistent_gps_odometer_drift',
+      ),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      activeVehicleId: 'vehicle_1',
+      reviewedVehicleId: 'vehicle_1',
+      reviewedVehicleIds: const ['vehicle_1'],
+      gpsDependabilityRollup: const TripGpsDependabilityRollupDecision(
+        status: TripGpsDependabilityRollupStatus.excludedFromCalibration,
+        reasonCode: 'gps_rollup_projection_paused_window_present',
+        windowCount: 8,
+        readyWindowCount: 7,
+        reviewOnlyWindowCount: 0,
+        pausedWindowCount: 1,
+        unsafeWindowCount: 0,
+        canUseForLiveAssist: true,
+        canUseForCalibrationEvidence: false,
+        requiresUserReview: true,
+      ),
+    );
+    final safe = guard.toSafeDashboardMap();
+
+    expect(guard.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(
+      guard.reasonCodes,
+      contains('gps_dependability_rollup_required_for_calibration'),
+    );
+    expect(safe['poorGpsWindowExcludesCalibrationDay'], isTrue);
+    expect(safe['interruptedGpsWindowExcludesCalibrationDay'], isTrue);
+    expect(safe['unsafeGpsWindowExcludesCalibrationDay'], isTrue);
+    expect(
+      TripTrackingCalibrationApplySummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
   });
 
   test('poor GPS day is excluded instead of averaged into calibration', () {
