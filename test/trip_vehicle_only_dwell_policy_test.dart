@@ -27,6 +27,10 @@ void main() {
     expect(safe['firestoreCanCreateVehicleOnlyStop'], isFalse);
     expect(safe['mapsRequiredForVehicleOnlyDwell'], isFalse);
     expect(safe['hasEnoughCleanDriveEvidence'], isTrue);
+    expect(safe['manualFallbackRequiresActiveLocalTrip'], isTrue);
+    expect(safe['manualFallbackRequiresUserAction'], isTrue);
+    expect(safe['manualFallbackCanEditOdometer'], isFalse);
+    expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
   });
 
   test(
@@ -52,6 +56,12 @@ void main() {
         decision.toSafeDashboardMap()['longTrafficLightProtected'],
         isTrue,
       );
+      expect(
+        TripVehicleOnlyDwellSummaryValidation.isValid(
+          decision.toSafeDashboardMap(),
+        ),
+        isTrue,
+      );
     },
   );
 
@@ -69,6 +79,10 @@ void main() {
 
     expect(decision.status, TripVehicleOnlyDwellStatus.trafficControlProtected);
     expect(decision.canSurfaceManualFallback, isFalse);
+    expect(
+      decision.toSafeDashboardMap()['manualFallbackRequiresUserAction'],
+      isTrue,
+    );
   });
 
   test('manual fallback requires enough clean drive evidence first', () {
@@ -89,6 +103,7 @@ void main() {
     expect(decision.canSurfaceManualFallback, isFalse);
     expect(safe['hasEnoughCleanDriveEvidence'], isFalse);
     expect(safe['minimumAcceptedDistanceCount'], 4);
+    expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
   });
 
   test(
@@ -111,6 +126,12 @@ void main() {
         'vehicle_only_dwell_waiting_for_clean_evidence',
       );
       expect(decision.canSurfaceManualFallback, isFalse);
+      expect(
+        TripVehicleOnlyDwellSummaryValidation.isValid(
+          decision.toSafeDashboardMap(),
+        ),
+        isTrue,
+      );
     },
   );
 
@@ -128,6 +149,12 @@ void main() {
 
     expect(decision.status, TripVehicleOnlyDwellStatus.keepTracking);
     expect(decision.canSurfaceManualFallback, isFalse);
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid(
+        decision.toSafeDashboardMap(),
+      ),
+      isTrue,
+    );
   });
 
   test('unsafe provider values fail closed and expose no private data', () {
@@ -150,6 +177,7 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
     expect(safe['acceptedDistanceCount'], 8);
     expect(safe['minimumAcceptedDistanceCount'], 3);
+    expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
   });
 
   test(
@@ -174,4 +202,67 @@ void main() {
       expect(decision.canSurfaceManualFallback, isTrue);
     },
   );
+
+  test(
+    'two-person delivery vehicle-only dwell can suggest manual fallback only',
+    () {
+      final decision = TripVehicleOnlyDwellPolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        stationaryDuration: const Duration(minutes: 7),
+        walkingEvidenceCount: 0,
+        rejectedDriftCount: 0,
+        acceptedDistanceCount: 7,
+        acceptedVehicleMovementObserved: true,
+        speedMps: 0,
+        horizontalAccuracyMeters: 8,
+      );
+      final safe = decision.toSafeDashboardMap();
+
+      expect(
+        decision.status,
+        TripVehicleOnlyDwellStatus.manualFallbackRecommended,
+      );
+      expect(decision.canSurfaceManualFallback, isTrue);
+      expect(safe['manualFallbackRequiresUserAction'], isTrue);
+      expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
+      expect(safe['activityRecognitionCanConfirmVehicleOnlyStop'], isFalse);
+      expect(safe['manualFallbackCanBackdateWithoutReview'], isFalse);
+      expect(TripVehicleOnlyDwellSummaryValidation.isValid(safe), isTrue);
+    },
+  );
+
+  test('summary validation rejects sensitive or authoritative dwell cards', () {
+    final safe = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      stationaryDuration: const Duration(minutes: 7),
+      walkingEvidenceCount: 0,
+      rejectedDriftCount: 0,
+      acceptedDistanceCount: 7,
+      acceptedVehicleMovementObserved: true,
+      speedMps: 0,
+      horizontalAccuracyMeters: 8,
+    ).toSafeDashboardMap();
+
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid({
+        ...safe,
+        'vehicleOnlyDwellCanCreateOfficialStop': true,
+      }),
+      isFalse,
+    );
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid({
+        ...safe,
+        'manualFallbackCanEditOdometer': true,
+      }),
+      isFalse,
+    );
+    expect(
+      TripVehicleOnlyDwellSummaryValidation.isValid({
+        ...safe,
+        'debugText': 'latitude=35 longitude=-80 token=sk.secret',
+      }),
+      isFalse,
+    );
+  });
 }
