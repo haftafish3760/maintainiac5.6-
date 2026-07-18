@@ -57,6 +57,8 @@ class TripTrackingDurableRecordBridge {
     'hiveRemainsSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'remoteDataCanOverrideLocalDaytimeData': false,
+    'remoteDataCanPurgeLocalDaytimeData': false,
+    'remoteDataCanSilentlyResolveConflicts': false,
     'confirmedBackupCanOnlySuggestCleanup': true,
     'durableRecordRequiresConfirmedOdometer': true,
     'durableRecordRequiresValidTimeline': true,
@@ -65,10 +67,72 @@ class TripTrackingDurableRecordBridge {
     'authenticationDoesNotImplyAuthorization': true,
     'remotePayloadTrustedAfterValidationOnly': true,
     'mapboxDataAdvisoryOnly': true,
+    'mapboxCanCreateDurableRecord': false,
+    'mapboxCanReplaceDurableMileage': false,
     'rawGpsIncluded': false,
     'rawMapboxGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripTrackingDurableRecordBridgeSummaryValidation {
+  const TripTrackingDurableRecordBridgeSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingDurableRecordBridgeSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (summary['module'] != TripTrackingDurableRecordBridge.module ||
+        summary['usesSharedDurableRecordStore'] != true ||
+        summary['storesReviewedTripsOnly'] != true) {
+      reasons.add('invalid_durable_bridge_scope');
+    }
+    if (summary['hiveRemainsSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['remoteDataCanOverrideLocalDaytimeData'] != false ||
+        summary['remoteDataCanPurgeLocalDaytimeData'] != false ||
+        summary['remoteDataCanSilentlyResolveConflicts'] != false ||
+        summary['confirmedBackupCanOnlySuggestCleanup'] != true) {
+      reasons.add('local_day_truth_boundary_missing');
+    }
+    if (summary['durableRecordRequiresConfirmedOdometer'] != true ||
+        summary['durableRecordRequiresValidTimeline'] != true ||
+        summary['durableRecordRequiresSafeIds'] != true) {
+      reasons.add('durable_record_requirements_missing');
+    }
+    if (summary['backendAuthorizationRequiredForMirror'] != true ||
+        summary['authenticationDoesNotImplyAuthorization'] != true ||
+        summary['remotePayloadTrustedAfterValidationOnly'] != true) {
+      reasons.add('authorization_boundary_missing');
+    }
+    if (summary['mapboxDataAdvisoryOnly'] != true ||
+        summary['mapboxCanCreateDurableRecord'] != false ||
+        summary['mapboxCanReplaceDurableMileage'] != false) {
+      reasons.add('mapbox_can_control_durable_record');
+    }
+    if (summary['rawGpsIncluded'] != false ||
+        summary['rawMapboxGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripTrackingDurableRecordBridgeSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 TripTrackingReviewRecord _validatedReview(TripTrackingReviewRecord review) {
@@ -124,9 +188,12 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   map['hiveRemainsSourceOfTruth'] = true;
   map['firestoreMirrorOnly'] = true;
   map['remoteDataCanOverrideLocalDaytimeData'] = false;
+  map['remoteDataCanPurgeLocalDaytimeData'] = false;
+  map['remoteDataCanSilentlyResolveConflicts'] = false;
   map['durableRecordRequiresConfirmedOdometer'] = true;
   map['confirmedOdometerRemainsCanonical'] = true;
   map['mapboxCanReplaceOdometer'] = false;
+  map['mapboxCanCreateDurableRecord'] = false;
   map['rawGpsIncluded'] = false;
   map['rawMapboxGeometryIncluded'] = false;
   return map;
@@ -137,4 +204,12 @@ TripTrackingReviewRecord? _reviewFromPayload(Map<String, dynamic> payload) {
   final review = TripTrackingReviewRecord.fromMap(payload);
   if (!review.isOdometerConfirmed || !review.hasValidTimeline) return null;
   return review;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }

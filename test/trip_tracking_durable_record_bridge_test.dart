@@ -17,9 +17,12 @@ void main() {
     expect(saved.payload['hiveRemainsSourceOfTruth'], isTrue);
     expect(saved.payload['firestoreMirrorOnly'], isTrue);
     expect(saved.payload['remoteDataCanOverrideLocalDaytimeData'], isFalse);
+    expect(saved.payload['remoteDataCanPurgeLocalDaytimeData'], isFalse);
+    expect(saved.payload['remoteDataCanSilentlyResolveConflicts'], isFalse);
     expect(saved.payload['durableRecordRequiresConfirmedOdometer'], isTrue);
     expect(saved.payload['confirmedOdometerRemainsCanonical'], isTrue);
     expect(saved.payload['mapboxCanReplaceOdometer'], isFalse);
+    expect(saved.payload['mapboxCanCreateDurableRecord'], isFalse);
     expect(saved.payload['rawGpsIncluded'], isFalse);
     expect(saved.payload['rawMapboxGeometryIncluded'], isFalse);
     expect((saved.payload['engineSnapshot'] as Map)['walkingEvidence'], isNull);
@@ -89,6 +92,8 @@ void main() {
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'remoteDataCanOverrideLocalDaytimeData': false,
+      'remoteDataCanPurgeLocalDaytimeData': false,
+      'remoteDataCanSilentlyResolveConflicts': false,
       'confirmedBackupCanOnlySuggestCleanup': true,
       'durableRecordRequiresConfirmedOdometer': true,
       'durableRecordRequiresValidTimeline': true,
@@ -97,11 +102,64 @@ void main() {
       'authenticationDoesNotImplyAuthorization': true,
       'remotePayloadTrustedAfterValidationOnly': true,
       'mapboxDataAdvisoryOnly': true,
+      'mapboxCanCreateDurableRecord': false,
+      'mapboxCanReplaceDurableMileage': false,
       'rawGpsIncluded': false,
       'rawMapboxGeometryIncluded': false,
       'tokensIncluded': false,
     });
   });
+
+  test('safe summary validates local durable bridge boundaries', () {
+    final bridge = TripTrackingDurableRecordBridge(
+      MaintainiacDurableRecordStore.memory(),
+    );
+    final validation =
+        TripTrackingDurableRecordBridgeSummaryValidation.fromSummary(
+          bridge.toSafeSummary(),
+        );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'durable bridge summary rejects remote, Mapbox, and token authority',
+    () {
+      final bridge = TripTrackingDurableRecordBridge(
+        MaintainiacDurableRecordStore.memory(),
+      );
+      final validation =
+          TripTrackingDurableRecordBridgeSummaryValidation.fromSummary(
+            Map<String, Object?>.from(bridge.toSafeSummary())..addAll({
+              'remoteDataCanOverrideLocalDaytimeData': true,
+              'remoteDataCanPurgeLocalDaytimeData': true,
+              'remoteDataCanSilentlyResolveConflicts': true,
+              'confirmedBackupCanOnlySuggestCleanup': false,
+              'backendAuthorizationRequiredForMirror': false,
+              'authenticationDoesNotImplyAuthorization': false,
+              'remotePayloadTrustedAfterValidationOnly': false,
+              'mapboxDataAdvisoryOnly': false,
+              'mapboxCanCreateDurableRecord': true,
+              'mapboxCanReplaceDurableMileage': true,
+              'rawGpsIncluded': true,
+              'rawMapboxGeometryIncluded': true,
+              'tokensIncluded': true,
+              'debug': 'sk.secret 35.123456,-80.123456',
+            }),
+          );
+
+      expect(validation.isRenderable, isFalse);
+      expect(validation.reasons, contains('local_day_truth_boundary_missing'));
+      expect(validation.reasons, contains('authorization_boundary_missing'));
+      expect(validation.reasons, contains('mapbox_can_control_durable_record'));
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_trip_material'),
+      );
+      expect(validation.reasons, contains('summary_contains_sensitive_text'));
+    },
+  );
 }
 
 TripTrackingReviewRecord _review({
