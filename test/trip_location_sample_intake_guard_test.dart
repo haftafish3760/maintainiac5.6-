@@ -13,6 +13,7 @@ void main() {
     'schemaVersion': schemaVersion,
     'ownerUid': ownerUid,
     'sessionId': sessionId,
+    'source': 'native_location',
     'sample':
         sample ??
         {
@@ -37,6 +38,10 @@ void main() {
     );
 
     expect(decision.canFeedTripEngine, isTrue);
+    expect(summary['sourceVerified'], isTrue);
+    expect(summary['nativeLocationSourceRequired'], isTrue);
+    expect(summary['simulatorSampleRequiresExplicitTestHarness'], isTrue);
+    expect(summary['remoteSampleCanMasqueradeAsNative'], isFalse);
     expect(validation.isRenderable, isTrue);
     expect(validation.status, TripLocationSampleIntakeStatus.accepted);
     expect(
@@ -74,6 +79,28 @@ void main() {
     },
   );
 
+  test('remote or Mapbox source cannot feed native trip engine', () {
+    for (final source in const [
+      'firestore_mirror',
+      'mapbox_map_matching',
+      'cloud_function',
+      'imported_file',
+    ]) {
+      final badPayload = payload()..['source'] = source;
+      final decision = TripLocationSampleIntakeGuard.evaluate(
+        payload: badPayload,
+        expectedOwnerUid: 'driver-1',
+        expectedSessionId: 'trip-1',
+        receivedAt: receivedAt,
+      );
+
+      expect(decision.status, TripLocationSampleIntakeStatus.rejected);
+      expect(decision.reason, TripLocationSampleIntakeReason.sourceMismatch);
+      expect(decision.canFeedTripEngine, isFalse);
+      expect(decision.toSafeSummary()['sourceVerified'], isFalse);
+    }
+  });
+
   test(
     'summary validation rejects remote authority and odometer truth claims',
     () {
@@ -87,12 +114,14 @@ void main() {
             'canFeedTripEngine': true,
             'ownerVerified': false,
             'sessionVerified': false,
+            'sourceVerified': false,
             'validatedBeforeUse': false,
             'authDoesNotImplyAuthorization': false,
             'authenticatedUserStillNeedsAuthorization': false,
             'hiveRemainsOperationalSourceOfTruth': false,
             'firestoreMirrorOnly': false,
             'remoteSampleCanOverrideLocalTruth': true,
+            'remoteSampleCanMasqueradeAsNative': true,
             'sampleCanCreateOfficialStop': true,
             'sampleCanConfirmMileage': true,
             'odometerRemainsOfficialMileageTruth': false,

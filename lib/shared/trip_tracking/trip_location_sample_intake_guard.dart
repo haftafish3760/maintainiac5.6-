@@ -8,6 +8,7 @@ enum TripLocationSampleIntakeReason {
   schemaVersionUnsupported,
   ownerMismatch,
   sessionMismatch,
+  sourceMismatch,
   missingRequiredFields,
   invalidCoordinate,
   invalidAccuracy,
@@ -29,6 +30,7 @@ class TripLocationSampleIntakeDecision {
     required this.schemaVersion,
     required this.ownerVerified,
     required this.sessionVerified,
+    required this.sourceVerified,
     required this.acceptedClockSkew,
   });
 
@@ -38,6 +40,7 @@ class TripLocationSampleIntakeDecision {
   final int schemaVersion;
   final bool ownerVerified;
   final bool sessionVerified;
+  final bool sourceVerified;
   final Duration acceptedClockSkew;
 
   bool get canFeedTripEngine =>
@@ -51,6 +54,7 @@ class TripLocationSampleIntakeDecision {
     'canFeedTripEngine': canFeedTripEngine,
     'ownerVerified': ownerVerified,
     'sessionVerified': sessionVerified,
+    'sourceVerified': sourceVerified,
     'acceptedClockSkewBucket': _clockSkewBucket(acceptedClockSkew),
     'orderedAfterAcceptedSample':
         reason != TripLocationSampleIntakeReason.duplicateTimestamp &&
@@ -58,6 +62,8 @@ class TripLocationSampleIntakeDecision {
     'validatedBeforeUse': true,
     'authDoesNotImplyAuthorization': true,
     'localTripSessionRequired': true,
+    'nativeLocationSourceRequired': true,
+    'simulatorSampleRequiresExplicitTestHarness': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'mapboxResponsesTreatedAsExternalInput': true,
@@ -68,6 +74,7 @@ class TripLocationSampleIntakeDecision {
     'secretMapboxTokenIncluded': false,
     'authenticatedUserStillNeedsAuthorization': true,
     'remoteSampleCanOverrideLocalTruth': false,
+    'remoteSampleCanMasqueradeAsNative': false,
     'sampleCanCreateOfficialStop': false,
     'sampleCanConfirmMileage': false,
     'odometerRemainsOfficialMileageTruth': true,
@@ -104,17 +111,34 @@ class TripLocationSampleIntakeSummaryValidation {
     if (summary['payloadSchemaVersion'] is! int) {
       reasons.add('invalid_payload_schema_version');
     }
+    for (final key in const [
+      'canFeedTripEngine',
+      'ownerVerified',
+      'sessionVerified',
+      'sourceVerified',
+      'validatedBeforeUse',
+      'authDoesNotImplyAuthorization',
+      'authenticatedUserStillNeedsAuthorization',
+      'localTripSessionRequired',
+      'nativeLocationSourceRequired',
+      'simulatorSampleRequiresExplicitTestHarness',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
     if (summary['canFeedTripEngine'] == true &&
         (status != TripLocationSampleIntakeStatus.accepted ||
             reason != TripLocationSampleIntakeReason.acceptedNativeSample ||
             summary['ownerVerified'] != true ||
-            summary['sessionVerified'] != true)) {
+            summary['sessionVerified'] != true ||
+            summary['sourceVerified'] != true)) {
       reasons.add('unsafe_engine_feed_claim');
     }
     if (summary['validatedBeforeUse'] != true ||
         summary['authDoesNotImplyAuthorization'] != true ||
         summary['authenticatedUserStillNeedsAuthorization'] != true ||
-        summary['localTripSessionRequired'] != true) {
+        summary['localTripSessionRequired'] != true ||
+        summary['nativeLocationSourceRequired'] != true ||
+        summary['simulatorSampleRequiresExplicitTestHarness'] != true) {
       reasons.add('authorization_boundary_missing');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
@@ -128,6 +152,7 @@ class TripLocationSampleIntakeSummaryValidation {
       reasons.add('mapbox_can_control_sample_truth');
     }
     if (summary['remoteSampleCanOverrideLocalTruth'] != false ||
+        summary['remoteSampleCanMasqueradeAsNative'] != false ||
         summary['sampleCanCreateOfficialStop'] != false ||
         summary['sampleCanConfirmMileage'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
@@ -211,6 +236,18 @@ class TripLocationSampleIntakeGuard {
         sessionVerified: false,
       );
     }
+    final sourceVerified =
+        payload['source'] == 'native_location' ||
+        payload['source'] == 'validated_native_location';
+    if (!sourceVerified) {
+      return _rejected(
+        TripLocationSampleIntakeReason.sourceMismatch,
+        schemaVersion: schemaVersion,
+        ownerVerified: true,
+        sessionVerified: true,
+        sourceVerified: false,
+      );
+    }
 
     final samplePayload = payload['sample'];
     if (samplePayload is! Map) {
@@ -219,6 +256,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
       );
     }
     if (samplePayload['mockedLocation'] == true) {
@@ -227,6 +265,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
       );
     }
     final reportedSpeedFailure = _reportedSpeedFailureReason(samplePayload);
@@ -236,6 +275,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
       );
     }
 
@@ -246,6 +286,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
       );
     }
 
@@ -257,6 +298,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
         acceptedClockSkew: recordedAt.difference(received),
       );
     }
@@ -266,6 +308,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
         acceptedClockSkew: received.difference(recordedAt),
       );
     }
@@ -277,6 +320,7 @@ class TripLocationSampleIntakeGuard {
           schemaVersion: schemaVersion,
           ownerVerified: true,
           sessionVerified: true,
+          sourceVerified: true,
           acceptedClockSkew: Duration.zero,
         );
       }
@@ -286,6 +330,7 @@ class TripLocationSampleIntakeGuard {
           schemaVersion: schemaVersion,
           ownerVerified: true,
           sessionVerified: true,
+          sourceVerified: true,
           acceptedClockSkew: latestAccepted.difference(recordedAt),
         );
       }
@@ -296,6 +341,7 @@ class TripLocationSampleIntakeGuard {
         schemaVersion: schemaVersion,
         ownerVerified: true,
         sessionVerified: true,
+        sourceVerified: true,
         acceptedClockSkew: _durationAbs(received.difference(recordedAt)),
       );
     }
@@ -307,6 +353,7 @@ class TripLocationSampleIntakeGuard {
       schemaVersion: schemaVersion,
       ownerVerified: true,
       sessionVerified: true,
+      sourceVerified: true,
       acceptedClockSkew: received.difference(recordedAt).abs(),
     );
   }
@@ -317,6 +364,7 @@ TripLocationSampleIntakeDecision _rejected(
   required int schemaVersion,
   bool ownerVerified = false,
   bool sessionVerified = false,
+  bool sourceVerified = false,
   Duration acceptedClockSkew = Duration.zero,
 }) {
   return TripLocationSampleIntakeDecision(
@@ -326,6 +374,7 @@ TripLocationSampleIntakeDecision _rejected(
     schemaVersion: schemaVersion,
     ownerVerified: ownerVerified,
     sessionVerified: sessionVerified,
+    sourceVerified: sourceVerified,
     acceptedClockSkew: acceptedClockSkew,
   );
 }
