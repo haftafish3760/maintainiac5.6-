@@ -225,7 +225,7 @@ void main() {
     expect(decision.status, TripSampleWindowQualityStatus.degradedTrackingOnly);
     expect(decision.rejectedGapSegmentCount, 1);
     expect(decision.acceptedSegmentCount, 1);
-    expect(decision.canFeedLiveOdometerProjection, isTrue);
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
     expect(safe['duplicateOrOutOfOrderSegmentsRejected'], isTrue);
     expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
   });
@@ -343,10 +343,30 @@ void main() {
     expect(decision.acceptedSegmentCount, 1);
     expect(decision.rejectedJumpSegmentCount, 1);
     expect(decision.rejectedSpeedSegmentCount, 1);
-    expect(decision.canFeedLiveOdometerProjection, isTrue);
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
     expect(safe['rejectedJumpSegmentCount'], 1);
     expect(safe['rejectedSpeedSegmentCount'], 1);
     expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
+  });
+
+  test('equal accepted and rejected segment counts pause live projection', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000),
+        sample(20, 35.0002, -80.0000),
+        sample(40, 35.7000, -80.7000),
+        sample(60, 36.0000, -81.0000),
+        sample(80, 36.0002, -81.0000),
+      ],
+      routeHistoryDecision: routeDecision(),
+      maximumPointJumpMeters: 1000,
+    );
+
+    expect(decision.status, TripSampleWindowQualityStatus.degradedTrackingOnly);
+    expect(decision.acceptedSegmentCount, 2);
+    expect(decision.rejectedJumpSegmentCount, 2);
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
+    expect(decision.reasonCode, 'sample_window_projection_paused');
   });
 
   test('safe dashboard map never exposes raw route or token data', () {

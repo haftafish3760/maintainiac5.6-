@@ -377,6 +377,8 @@ bool _canFeedProjection({
   if (acceptedDistanceMeters <= 0 || acceptedSegments <= 0) return false;
   if (maximumGap > safeGapLimit * 3) return false;
   if (maximumConsecutiveRejectedSegments >= 3) return false;
+  if (acceptedSegments < 2 && rejectedSegments > 0) return false;
+  if (rejectedSegments >= acceptedSegments) return false;
   if (rejectedSegments > acceptedSegments * 2) return false;
   return true;
 }
