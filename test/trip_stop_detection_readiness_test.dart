@@ -407,4 +407,40 @@ void main() {
       isFalse,
     );
   });
+
+  test('readiness summary validation rejects status authority mismatch', () {
+    final ready = TripStopDetectionReadiness.fromSummary(
+      reviewOnlyStopSummary(),
+      activeTrip: true,
+      localSessionAvailable: true,
+      acceptedVehicleMovementObserved: true,
+    ).toSafeDashboardMap();
+    final tracking = TripStopDetectionReadiness.fromSummary(
+      reviewOnlyStopSummary(),
+      activeTrip: false,
+      localSessionAvailable: true,
+      acceptedVehicleMovementObserved: true,
+    ).toSafeDashboardMap();
+
+    final forgedTracking =
+        TripStopDetectionReadinessSummaryValidation.fromSummary({
+          ...tracking,
+          'canOpenStopReview': true,
+          'dashboardMaySuggestStop': true,
+        });
+    final forgedReady = TripStopDetectionReadinessSummaryValidation.fromSummary(
+      {...ready, 'canOpenStopReview': false, 'dashboardMaySuggestStop': false},
+    );
+
+    expect(forgedTracking.isRenderable, isFalse);
+    expect(forgedReady.isRenderable, isFalse);
+    expect(
+      forgedTracking.reasons,
+      contains('readiness_status_conflicts_with_authority'),
+    );
+    expect(
+      forgedReady.reasons,
+      contains('readiness_status_conflicts_with_authority'),
+    );
+  });
 }

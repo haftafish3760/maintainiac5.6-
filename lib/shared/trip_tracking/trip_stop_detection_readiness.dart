@@ -324,6 +324,8 @@ class TripStopDetectionReadinessSummaryValidation {
         summary['poorGpsDaysExcludedFromCalibration'] != true) {
       reasons.add('odometer_not_official_source');
     }
+    final boundaryRisk = _readinessStatusBoundaryRisk(summary);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     final safeReasons = summary['reasons'];
     if (safeReasons is! List ||
         safeReasons.any((entry) => entry is! String || _sensitiveText(entry))) {
@@ -351,6 +353,36 @@ String? _safeUserId(String? value) {
   if (clean.startsWith('pk.') || clean.startsWith('sk.')) return null;
   if (!RegExp(r'^[A-Za-z0-9._:-]+$').hasMatch(clean)) return null;
   return clean;
+}
+
+String? _readinessStatusBoundaryRisk(Map<String, Object?> summary) {
+  final status = summary['status'];
+  final canOpen = summary['canOpenStopReview'];
+  final suggestStop = summary['dashboardMaySuggestStop'];
+  final suggestManual = summary['dashboardMaySuggestManualFallback'];
+  final action = summary['actionToken'];
+  if (status is! String ||
+      canOpen is! bool ||
+      suggestStop is! bool ||
+      suggestManual is! bool ||
+      action is! String) {
+    return null;
+  }
+  if (status == 'readyForUserReview') {
+    if (!canOpen || !suggestStop || suggestManual) {
+      return 'readiness_status_conflicts_with_authority';
+    }
+    return null;
+  }
+  if (canOpen || suggestStop) {
+    return 'readiness_status_conflicts_with_authority';
+  }
+  if (status == 'waitForMoreEvidence') return null;
+  if (suggestManual) return 'readiness_status_conflicts_with_authority';
+  if (action != 'keep_tracking') {
+    return 'readiness_status_conflicts_with_authority';
+  }
+  return null;
 }
 
 String _safeReadinessAction(Object? value) {
