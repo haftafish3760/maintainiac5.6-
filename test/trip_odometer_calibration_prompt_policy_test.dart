@@ -137,6 +137,12 @@ void main() {
     expect(safe['mapboxCanReplaceOdometerSilently'], isFalse);
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(safe['tirePromptIsAdvisoryOnly'], isTrue);
     expect(safe['tirePromptDoesNotCreateMaintenanceEntry'], isTrue);
     expect(safe['authenticationAloneAuthorizesCalibration'], isFalse);
@@ -203,6 +209,12 @@ void main() {
             'mapboxCanReplaceOdometerSilently': true,
             'odometerIsGlobalTruth': false,
             'odometerRemainsOfficialMileageTruth': false,
+            'physicalOdometerRequiredForOfficialMileage': false,
+            'confirmedOdometerOverridesExternalMileage': false,
+            'externalMileageCannotBecomeGlobalTruth': false,
+            'gpsDistanceCanOnlyAdviseMileageReview': false,
+            'mapMatchingCanOnlyAdviseMileageReview': false,
+            'optimizationCannotChangeOfficialMileage': false,
             'tirePromptIsAdvisoryOnly': false,
             'tirePromptDoesNotCreateMaintenanceEntry': false,
             'remoteHistoryCanTriggerPromptWithoutLocalValidation': true,

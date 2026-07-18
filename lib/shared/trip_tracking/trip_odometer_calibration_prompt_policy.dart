@@ -61,6 +61,12 @@ class TripOdometerCalibrationPromptDecision {
     'mapboxCanReplaceOdometerSilently': false,
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'tirePromptIsAdvisoryOnly': true,
     'tirePromptDoesNotCreateMaintenanceEntry': true,
     'tireSizeReviewSuggested':
@@ -129,6 +135,12 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'mapboxCanReplaceOdometerSilently',
       'odometerIsGlobalTruth',
       'odometerRemainsOfficialMileageTruth',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'tirePromptIsAdvisoryOnly',
       'tirePromptDoesNotCreateMaintenanceEntry',
       'tireSizeReviewSuggested',
@@ -178,6 +190,12 @@ class TripOdometerCalibrationPromptSummaryValidation {
         summary['mapboxCanReplaceOdometerSilently'] != false ||
         summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['tirePromptIsAdvisoryOnly'] != true ||
         summary['tirePromptDoesNotCreateMaintenanceEntry'] != true) {
       reasons.add('calibration_can_replace_odometer');

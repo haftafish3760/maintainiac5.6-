@@ -32,31 +32,48 @@ void main() {
     }
   });
 
-  test('safe summary claims lock GPS, Mapbox, cloud, and cache as advisory', () {
-    final summary = <String, Object?>{
-      ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
-      'officialMileageSource': 'physicalOdometer',
-    };
-    final validation = TripTrackingOdometerTruthPolicy.validateSummary(summary);
+  test(
+    'safe summary claims lock GPS, Mapbox, cloud, and cache as advisory',
+    () {
+      final summary = <String, Object?>{
+        ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
+        'officialMileageSource': 'physicalOdometer',
+      };
+      final validation = TripTrackingOdometerTruthPolicy.validateSummary(
+        summary,
+      );
 
-    expect(validation.isValid, isTrue);
-    expect(summary['odometerIsGlobalTruth'], isTrue);
-    expect(summary['physicalOdometerIsCanonical'], isTrue);
-    expect(summary['gpsCanOverrideOdometer'], isFalse);
-    expect(summary['mapboxCanOverrideOdometer'], isFalse);
-    expect(summary['firebaseMirrorCanOverrideOdometer'], isFalse);
-    expect(summary['cloudFunctionCanOverrideOdometer'], isFalse);
-    expect(summary['importedFileCanOverrideOdometer'], isFalse);
-    expect(summary['localCacheCanOverrideOdometer'], isFalse);
-    expect(summary['sensorFusionCanOverrideOdometer'], isFalse);
-    expect(summary['calibrationCanRewriteConfirmedOdometer'], isFalse);
-    expect(summary['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
-  });
+      expect(validation.isValid, isTrue);
+      expect(summary['odometerIsGlobalTruth'], isTrue);
+      expect(summary['physicalOdometerIsCanonical'], isTrue);
+      expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
+      expect(summary['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+      expect(summary['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+      expect(summary['optimizationCannotChangeOfficialMileage'], isTrue);
+      expect(summary['gpsCanOverrideOdometer'], isFalse);
+      expect(summary['mapboxCanOverrideOdometer'], isFalse);
+      expect(summary['firebaseMirrorCanOverrideOdometer'], isFalse);
+      expect(summary['cloudFunctionCanOverrideOdometer'], isFalse);
+      expect(summary['importedFileCanOverrideOdometer'], isFalse);
+      expect(summary['localCacheCanOverrideOdometer'], isFalse);
+      expect(summary['sensorFusionCanOverrideOdometer'], isFalse);
+      expect(summary['calibrationCanRewriteConfirmedOdometer'], isFalse);
+      expect(summary['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
+    },
+  );
 
   test('summary validation rejects remote truth and sensitive leakage', () {
     final unsafe = <String, Object?>{
       ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
       'officialMileageSource': 'mapbox',
+      'physicalOdometerRequiredForOfficialMileage': false,
+      'confirmedOdometerOverridesExternalMileage': false,
+      'externalMileageCannotBecomeGlobalTruth': false,
+      'gpsDistanceCanOnlyAdviseMileageReview': false,
+      'mapMatchingCanOnlyAdviseMileageReview': false,
+      'optimizationCannotChangeOfficialMileage': false,
       'gpsCanOverrideOdometer': true,
       'debugToken': 'sk.do-not-log',
     };
@@ -66,6 +83,10 @@ void main() {
     expect(
       validation.reasons,
       contains('missing_or_invalid_gpsCanOverrideOdometer'),
+    );
+    expect(
+      validation.reasons,
+      contains('missing_or_invalid_physicalOdometerRequiredForOfficialMileage'),
     );
     expect(validation.reasons, contains('invalid_official_mileage_source'));
     expect(

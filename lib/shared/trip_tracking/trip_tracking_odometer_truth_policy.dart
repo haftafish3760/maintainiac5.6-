@@ -1,7 +1,4 @@
-enum TripTrackingOdometerTruthSource {
-  physicalOdometer,
-  userConfirmedReview,
-}
+enum TripTrackingOdometerTruthSource { physicalOdometer, userConfirmedReview }
 
 enum TripTrackingMileageAssistSource {
   gps,
@@ -23,7 +20,13 @@ class TripTrackingOdometerTruthPolicy {
     'odometerIsGlobalTruth': true,
     'odometerRemainsCanonical': true,
     'physicalOdometerIsCanonical': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
     'userConfirmedOdometerReviewCanSetTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'gpsEstimateRemainsNonCanonical': true,
     'mapboxAssistAdvisoryOnly': true,
     'firebaseMirrorCanOverrideOdometer': false,
