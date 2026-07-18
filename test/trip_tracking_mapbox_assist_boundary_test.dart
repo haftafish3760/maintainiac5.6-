@@ -84,6 +84,9 @@ void main() {
     expect(decision.canPersistRouteHistory, isFalse);
     expect(safe['routeDistanceMiles'], 1.123);
     expect(safe['routeHistoryRequiresSeparateOptIn'], isTrue);
+    expect(safe['mapboxAssistRequiresOwnershipValidation'], isTrue);
+    expect(safe['mapboxAssistRequiresDeviceLocalSource'], isTrue);
+    expect(safe['authenticationAloneAuthorizesMapAssist'], isFalse);
     expect(safe['mapboxAssistCannotPersistWithoutRouteHistoryOptIn'], isTrue);
     expect(safe['mapboxResponseValidatedBeforeAssist'], isTrue);
     expect(safe['mapboxCanModifyTripLog'], isFalse);
@@ -205,6 +208,94 @@ void main() {
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));
       expect(safe.toString(), isNot(contains('35.')));
+    },
+  );
+
+  test('safe Mapbox assist summary validates as advisory only', () {
+    final summary = TripTrackingMapboxAssistBoundaryDecision.evaluate(
+      mapboxDecision: _routeDecision(routeMiles: 1, gpsMiles: 1),
+      activeSession: activeSession(),
+      mapPreviewOptIn: true,
+      routeHistoryOptIn: true,
+    ).toSafeDashboardMap();
+
+    final validation =
+        TripTrackingMapboxAssistBoundarySummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isTrue);
+    expect(
+      validation.status,
+      TripTrackingMapboxAssistBoundaryStatus.visualOnly,
+    );
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('Mapbox assist summary rejects auth-only source authority', () {
+    final summary =
+        TripTrackingMapboxAssistBoundaryDecision.evaluate(
+          mapboxDecision: _routeDecision(routeMiles: 1, gpsMiles: 1),
+          activeSession: activeSession(),
+          mapPreviewOptIn: true,
+          routeHistoryOptIn: true,
+        ).toSafeDashboardMap()..addAll({
+          'mapboxAssistRequiresOwnershipValidation': false,
+          'mapboxAssistRequiresDeviceLocalSource': false,
+          'authenticationAloneAuthorizesMapAssist': true,
+        });
+
+    final validation =
+        TripTrackingMapboxAssistBoundarySummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('mapbox_assist_authorization_boundary_missing'),
+    );
+  });
+
+  test(
+    'Mapbox assist summary rejects route authority and sensitive material',
+    () {
+      final summary =
+          TripTrackingMapboxAssistBoundaryDecision.evaluate(
+            mapboxDecision: _routeDecision(routeMiles: 14, confirmedMiles: 10),
+            reviewRecord: reviewRecord(),
+            mapPreviewOptIn: true,
+            routeHistoryOptIn: true,
+          ).toSafeDashboardMap()..addAll({
+            'mapboxCanModifyTripLog': true,
+            'mapboxCanModifyOdometer': true,
+            'mapboxCanCreateStop': true,
+            'mapboxCanEndTrip': true,
+            'mapboxCanOverrideLocalTrip': true,
+            'mapboxCanReorderOfficialStops': true,
+            'mapboxCanPersistRouteWithoutOptIn': true,
+            'mapboxCanConfirmMileage': true,
+            'mapboxCanConfirmStop': true,
+            'firestoreCanOverrideMapAssistBoundary': true,
+            'remoteRouteCanBecomeCanonical': true,
+            'rawMapboxResponseIncluded': true,
+            'rawGpsIncluded': true,
+            'preciseLocationIncluded': true,
+            'routeGeometryIncluded': true,
+            'tokensIncluded': true,
+            'debug': 'sk.secret 35.123456,-80.123456',
+          });
+
+      final validation =
+          TripTrackingMapboxAssistBoundarySummaryValidation.fromSummary(
+            summary,
+          );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('mapbox_assist_claims_trip_authority'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_mapbox_assist_material'),
+      );
     },
   );
 }

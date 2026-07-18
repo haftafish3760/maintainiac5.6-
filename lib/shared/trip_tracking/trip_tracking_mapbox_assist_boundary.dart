@@ -111,6 +111,9 @@ class TripTrackingMapboxAssistBoundaryDecision {
     'canPersistRouteHistory': canPersistRouteHistory,
     'mapPreviewRequiresSeparateOptIn': true,
     'routeHistoryRequiresSeparateOptIn': true,
+    'mapboxAssistRequiresOwnershipValidation': true,
+    'mapboxAssistRequiresDeviceLocalSource': true,
+    'authenticationAloneAuthorizesMapAssist': false,
     'mapboxAssistCannotPersistWithoutRouteHistoryOptIn': true,
     'mapboxMileageReviewRequiresLocalReviewRecord': true,
     'mapboxResponseValidatedBeforeAssist': true,
@@ -149,6 +152,99 @@ class TripTrackingMapboxAssistBoundaryDecision {
   };
 }
 
+class TripTrackingMapboxAssistBoundarySummaryValidation {
+  const TripTrackingMapboxAssistBoundarySummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasons,
+  });
+
+  factory TripTrackingMapboxAssistBoundarySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    final fallbackMode = summary['fallbackMode'];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_mapbox_assist_status');
+    if (_safeReason(summary['safeReason']?.toString() ?? '') !=
+        summary['safeReason']) {
+      reasons.add('invalid_mapbox_assist_reason');
+    }
+    if (fallbackMode != 'map_assist' && fallbackMode != 'gps_only') {
+      reasons.add('invalid_fallback_mode');
+    }
+    if (summary['canRenderMapAssist'] is! bool ||
+        summary['canPromptMileageReview'] is! bool ||
+        summary['canPersistRouteHistory'] is! bool) {
+      reasons.add('invalid_mapbox_assist_flags');
+    }
+    if (summary['canPromptMileageReview'] == true &&
+        status != TripTrackingMapboxAssistBoundaryStatus.mileageReviewOnly) {
+      reasons.add('unsafe_mileage_review_claim');
+    }
+    if (summary['canPersistRouteHistory'] == true &&
+        summary['routeHistoryRequiresSeparateOptIn'] != true) {
+      reasons.add('route_history_opt_in_boundary_missing');
+    }
+    if (summary['mapPreviewRequiresSeparateOptIn'] != true ||
+        summary['mapboxAssistRequiresOwnershipValidation'] != true ||
+        summary['mapboxAssistRequiresDeviceLocalSource'] != true ||
+        summary['authenticationAloneAuthorizesMapAssist'] != false ||
+        summary['mapboxMileageReviewRequiresLocalReviewRecord'] != true ||
+        summary['mapboxResponseValidatedBeforeAssist'] != true) {
+      reasons.add('mapbox_assist_authorization_boundary_missing');
+    }
+    if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
+        summary['advisoryOnly'] != true ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['localTripLogProtected'] != true ||
+        summary['officialMileageSource'] != 'odometer') {
+      reasons.add('mapbox_assist_truth_boundary_missing');
+    }
+    if (summary['mapboxCanModifyTripLog'] != false ||
+        summary['mapboxCanModifyOdometer'] != false ||
+        summary['mapboxCanCreateStop'] != false ||
+        summary['mapboxCanEndTrip'] != false ||
+        summary['mapboxCanOverrideLocalTrip'] != false ||
+        summary['mapboxCanReorderOfficialStops'] != false ||
+        summary['mapboxCanPersistRouteWithoutOptIn'] != false ||
+        summary['mapboxCanConfirmMileage'] != false ||
+        summary['mapboxCanConfirmStop'] != false ||
+        summary['firestoreCanOverrideMapAssistBoundary'] != false ||
+        summary['remoteRouteCanBecomeCanonical'] != false) {
+      reasons.add('mapbox_assist_claims_trip_authority');
+    }
+    if (summary['mapboxDirectionsCanOnlyVisualize'] != true ||
+        summary['mapboxMatrixCanOnlyEstimate'] != true ||
+        summary['mapboxMapMatchingCanOnlyAssistReview'] != true ||
+        summary['mapboxOptimizationCanOnlySuggestOrder'] != true ||
+        summary['mapboxIsochroneCanOnlyVisualizeCoverage'] != true ||
+        summary['mapboxEvChargeFinderCanOnlySuggestStops'] != true) {
+      reasons.add('mapbox_service_boundary_missing');
+    }
+    if (summary['rawMapboxResponseIncluded'] != false ||
+        summary['rawGpsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_mapbox_assist_material');
+    }
+    return TripTrackingMapboxAssistBoundarySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripTrackingMapboxAssistBoundaryStatus? status;
+  final List<String> reasons;
+}
+
 bool _hasSafeLocalSource({
   required TripTrackingSessionRecord? activeSession,
   required TripTrackingReviewRecord? reviewRecord,
@@ -164,6 +260,22 @@ bool _hasSafeLocalSource({
     ).isRecoverable;
   }
   return false;
+}
+
+TripTrackingMapboxAssistBoundaryStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripTrackingMapboxAssistBoundaryStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
 
 double? _safeMiles(double? value) {
