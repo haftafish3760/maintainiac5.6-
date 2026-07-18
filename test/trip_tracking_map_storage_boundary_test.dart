@@ -25,6 +25,12 @@ void main() {
     expect(safe['userCanDisableRouteHistoryWithoutDisablingGps'], isTrue);
     expect(safe['mapboxResponseCanBypassBudget'], isFalse);
     expect(safe['canSilentlyDeleteRouteHistory'], isFalse);
+
+    final validation = TripTrackingMapStorageSummaryValidation.fromSummary(
+      safe,
+    );
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
   });
 
   test('live point budget exhaustion only pauses route persistence', () {
@@ -48,5 +54,58 @@ void main() {
     expect(safe['storageBudgetExhaustionCanOnlyPauseRouteHistory'], isTrue);
     expect(safe['localTripLogProtected'], isTrue);
     expect(safe['purgeRequiresConfirmedBackupOrUserAction'], isTrue);
+
+    final validation = TripTrackingMapStorageSummaryValidation.fromSummary(
+      safe,
+    );
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged map storage summaries cannot override trip truth', () {
+    final safe = TripTrackingMapStoragePolicy.estimate(
+      settings: const TripTrackingSettings().copyWith(
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1,
+      ),
+    ).toSafeDashboardMap();
+    final validation = TripTrackingMapStorageSummaryValidation.fromSummary(
+      safe..addAll({
+        'gpsTrackingCanRunWithoutMaps': false,
+        'routeStorageAdvisoryOnly': false,
+        'routeStorageCanPauseWithoutStoppingGps': false,
+        'storageBudgetExhaustionCanOnlyPauseRouteHistory': false,
+        'userCanDisableRouteHistoryWithoutDisablingGps': false,
+        'localTripLogProtected': false,
+        'mapboxResponseCanBypassBudget': true,
+        'mapboxFailureCanCorruptTripLog': true,
+        'mapboxTimeoutCanStopGpsTracking': true,
+        'mapboxRouteCanReplaceGpsDistance': true,
+        'mapboxCanOverrideRouteBudget': true,
+        'remoteRouteSummaryCanOverrideLocalTrip': true,
+        'canSilentlyDeleteRouteHistory': true,
+        'purgeRequiresConfirmedBackupOrUserAction': false,
+        'odometerRemainsCanonical': false,
+        'rawCoordinatesIncluded': true,
+        'routeGeometryIncluded': true,
+        'mapboxGeometryIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'pk.public 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('map_storage_blocks_gps_trip_log'));
+    expect(validation.reasons, contains('mapbox_or_remote_can_override_trip'));
+    expect(
+      validation.reasons,
+      contains('route_history_can_be_silently_deleted'),
+    );
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_map_material'),
+    );
   });
 }

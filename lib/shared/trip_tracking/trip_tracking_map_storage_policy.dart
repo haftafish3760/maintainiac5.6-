@@ -270,6 +270,98 @@ class TripTrackingMapStoragePolicy {
   }
 }
 
+class TripTrackingMapStorageSummaryValidation {
+  const TripTrackingMapStorageSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripTrackingMapStorageSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    final reasonCode = _safeMapStorageReason(
+      summary['reasonCode']?.toString() ?? '',
+    );
+    if (summary['reasonCode'] != reasonCode) {
+      reasons.add('invalid_map_storage_reason');
+    }
+    for (final key in const [
+      'gpsTrackingCanRunWithoutMaps',
+      'gpsTrackingCanContinueWithoutMaps',
+      'mapsRequireSeparateOptIn',
+      'routeHistoryRequiresSeparateOptIn',
+      'userControlsDailyBudget',
+      'oneToThreeSecondRawPingStorageDiscouraged',
+      'routeStorageAdvisoryOnly',
+      'mapPreviewCanRunWithoutRouteHistory',
+      'routeStorageCanPauseWithoutStoppingGps',
+      'storageBudgetExhaustionCanOnlyPauseRouteHistory',
+      'userCanDisableRouteHistoryWithoutDisablingGps',
+      'mapboxResponseCanBypassBudget',
+      'mapboxFailureCanCorruptTripLog',
+      'mapboxTimeoutCanStopGpsTracking',
+      'mapboxRouteCanReplaceGpsDistance',
+      'mapboxCanOverrideRouteBudget',
+      'remoteRouteSummaryCanOverrideLocalTrip',
+      'routeStorageTrustedAfterValidationOnly',
+      'malformedRouteStoragePayloadFailsSafe',
+      'canSilentlyDeleteRouteHistory',
+      'localTripLogProtected',
+      'purgeRequiresConfirmedBackupOrUserAction',
+      'odometerRemainsCanonical',
+      'rawCoordinatesIncluded',
+      'routeGeometryIncluded',
+      'mapboxGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary.containsKey(key) && summary[key] is! bool) {
+        reasons.add('${key}_not_bool');
+      }
+    }
+    if ((summary['gpsTrackingCanRunWithoutMaps'] == false) ||
+        (summary['gpsTrackingCanContinueWithoutMaps'] == false) ||
+        summary['routeStorageAdvisoryOnly'] != true ||
+        summary['routeStorageCanPauseWithoutStoppingGps'] != true ||
+        summary['storageBudgetExhaustionCanOnlyPauseRouteHistory'] != true ||
+        summary['userCanDisableRouteHistoryWithoutDisablingGps'] != true ||
+        summary['localTripLogProtected'] != true) {
+      reasons.add('map_storage_blocks_gps_trip_log');
+    }
+    if (summary['mapboxResponseCanBypassBudget'] != false ||
+        summary['mapboxFailureCanCorruptTripLog'] != false ||
+        summary['mapboxTimeoutCanStopGpsTracking'] != false ||
+        summary['mapboxRouteCanReplaceGpsDistance'] != false ||
+        summary['mapboxCanOverrideRouteBudget'] != false ||
+        summary['remoteRouteSummaryCanOverrideLocalTrip'] != false) {
+      reasons.add('mapbox_or_remote_can_override_trip');
+    }
+    if (summary['canSilentlyDeleteRouteHistory'] != false ||
+        summary['purgeRequiresConfirmedBackupOrUserAction'] != true) {
+      reasons.add('route_history_can_be_silently_deleted');
+    }
+    if ((summary['odometerRemainsCanonical'] == false) ||
+        summary['rawCoordinatesIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['mapboxGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_map_material');
+    }
+
+    return TripTrackingMapStorageSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
+}
+
 int _safeDrivingSeconds(int value) => value.clamp(60, 24 * 60 * 60);
 
 int _safeBytesPerPoint(int value) => value.clamp(32, 512);
@@ -352,4 +444,12 @@ String _safeMapStorageReason(String value) {
       'map_route_history_point_within_live_budget',
     _ => 'maps_not_enabled',
   };
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
