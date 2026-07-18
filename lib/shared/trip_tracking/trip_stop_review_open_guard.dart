@@ -198,6 +198,8 @@ extension on TripStopDetectionReadiness {
         'Maintainiac is waiting for stronger stop evidence.',
       TripStopDetectionReadinessStatus.unsafeBoundary =>
         'Stop evidence could not be safely verified.',
+      TripStopDetectionReadinessStatus.unauthorizedBoundary =>
+        'Stop review is waiting for trip access verification.',
     };
   }
 }

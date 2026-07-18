@@ -21,6 +21,7 @@ void main() {
     expect(decision.status, TripStopReviewDispositionStatus.ready);
     expect(decision.mayApplyDisposition, isTrue);
     expect(decision.reviewIndex, 0);
+    expect(decision.localCommitBoundaryValid, isTrue);
     expect(
       decision.updatedAdvisories.single.disposition,
       TripTrackingAdvisoryDisposition.confirmed,
@@ -35,8 +36,20 @@ void main() {
       decision.reviewPayload['remoteCanOverrideLocalDisposition'],
       isFalse,
     );
+    expect(decision.reviewPayload['localSessionRevision'], 1);
+    expect(decision.reviewPayload['dispositionSource'], 'local_user_review');
+    expect(
+      decision.reviewPayload['officialStopWriteRequiresLocalTripLog'],
+      isTrue,
+    );
+    expect(
+      decision.reviewPayload['officialStopWriteRequiresUserConfirmation'],
+      isTrue,
+    );
+    expect(decision.reviewPayload['remoteCanMarkStopOfficial'], isFalse);
     expect(safe['firestoreCanApplyDisposition'], isFalse);
     expect(safe['mapboxCanApplyDisposition'], isFalse);
+    expect(safe['remoteCanMarkStopOfficial'], isFalse);
     expect(safe['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(safe['employerGodModeAllowed'], isFalse);
     expect(safe['dispositionPayloadCanExposeLiveLocation'], isFalse);
@@ -89,6 +102,35 @@ void main() {
     expect(decision.status, TripStopReviewDispositionStatus.blockedSession);
     expect(decision.sessionValid, isFalse);
     expect(decision.reviewPayload, isEmpty);
+  });
+
+  test('remote or nonlocal sources cannot commit a stop disposition', () {
+    final invalidRequests = [
+      request(localSessionRevision: 0),
+      request(localSessionAvailable: false),
+      request(acceptedVehicleMovementObserved: false),
+      request(localUserReviewConfirmed: false),
+      request(dispositionSource: 'firestore_mirror'),
+      request(dispositionSource: 'mapbox_route_match'),
+      request(dispositionSource: 'activity_recognition'),
+      request(dispositionSource: 'cloud_function'),
+    ];
+
+    for (final invalid in invalidRequests) {
+      final decision = TripStopReviewDispositionGuard.evaluate(invalid);
+
+      expect(
+        decision.status,
+        TripStopReviewDispositionStatus.blockedLocalCommitBoundary,
+      );
+      expect(decision.localCommitBoundaryValid, isFalse);
+      expect(decision.mayApplyDisposition, isFalse);
+      expect(decision.reviewPayload, isEmpty);
+      expect(
+        decision.updatedAdvisories.single.disposition,
+        TripTrackingAdvisoryDisposition.pending,
+      );
+    }
   });
 
   test('unknown review id cannot mutate another advisory', () {
@@ -162,6 +204,7 @@ void main() {
     expect(payload['employerGodModeAllowed'], isFalse);
     expect(payload['dispositionPayloadCanExposeLiveLocation'], isFalse);
     expect(payload['coordinatesIncluded'], isFalse);
+    expect(payload['remoteCanMarkStopOfficial'], isFalse);
   });
 }
 
@@ -174,6 +217,11 @@ TripStopReviewDispositionRequest request({
       TripTrackingAdvisoryDisposition.rejected,
   DateTime? reviewedAtUtc,
   DateTime? nowUtc,
+  int localSessionRevision = 1,
+  bool localSessionAvailable = true,
+  bool acceptedVehicleMovementObserved = true,
+  bool localUserReviewConfirmed = true,
+  String dispositionSource = 'local_user_review',
   String? tripLogReference,
 }) {
   final activeSession = session ?? sessionWith();
@@ -185,6 +233,11 @@ TripStopReviewDispositionRequest request({
     disposition: disposition,
     reviewedAtUtc: reviewedAtUtc ?? DateTime.utc(2026, 7, 18, 9),
     nowUtc: nowUtc ?? DateTime.utc(2026, 7, 18, 9),
+    localSessionRevision: localSessionRevision,
+    localSessionAvailable: localSessionAvailable,
+    acceptedVehicleMovementObserved: acceptedVehicleMovementObserved,
+    localUserReviewConfirmed: localUserReviewConfirmed,
+    dispositionSource: dispositionSource,
     tripLogReference: tripLogReference,
   );
 }

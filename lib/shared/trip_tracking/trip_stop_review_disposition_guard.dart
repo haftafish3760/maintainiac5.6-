@@ -7,6 +7,7 @@ enum TripStopReviewDispositionStatus {
   blockedDisposition,
   blockedOwner,
   blockedSession,
+  blockedLocalCommitBoundary,
   blockedReview,
   blockedFinalized,
   blockedClock,
@@ -21,6 +22,11 @@ class TripStopReviewDispositionRequest {
     required this.disposition,
     required this.reviewedAtUtc,
     required this.nowUtc,
+    required this.localSessionRevision,
+    required this.localSessionAvailable,
+    required this.acceptedVehicleMovementObserved,
+    required this.localUserReviewConfirmed,
+    this.dispositionSource = 'local_user_review',
     this.tripLogReference,
   });
 
@@ -31,6 +37,11 @@ class TripStopReviewDispositionRequest {
   final TripTrackingAdvisoryDisposition disposition;
   final DateTime reviewedAtUtc;
   final DateTime nowUtc;
+  final int localSessionRevision;
+  final bool localSessionAvailable;
+  final bool acceptedVehicleMovementObserved;
+  final bool localUserReviewConfirmed;
+  final String dispositionSource;
   final String? tripLogReference;
 }
 
@@ -40,6 +51,7 @@ class TripStopReviewDispositionDecision {
     required this.reviewIndex,
     required this.ownerValid,
     required this.sessionValid,
+    required this.localCommitBoundaryValid,
     required this.clockValid,
     required this.mayApplyDisposition,
     required this.updatedAdvisories,
@@ -50,6 +62,7 @@ class TripStopReviewDispositionDecision {
   final int reviewIndex;
   final bool ownerValid;
   final bool sessionValid;
+  final bool localCommitBoundaryValid;
   final bool clockValid;
   final bool mayApplyDisposition;
   final List<TripTrackingAdvisoryEvent> updatedAdvisories;
@@ -61,18 +74,24 @@ class TripStopReviewDispositionDecision {
     'reviewIndex': reviewIndex < 0 ? null : reviewIndex,
     'ownerValid': ownerValid,
     'sessionValid': sessionValid,
+    'localCommitBoundaryValid': localCommitBoundaryValid,
     'clockValid': clockValid,
     'mayApplyDisposition': mayApplyDisposition,
     'requiresAuthenticatedOwner': true,
     'requiresLocalSessionRevision': true,
+    'requiresLocalSessionAvailable': true,
+    'requiresAcceptedVehicleMovement': true,
     'requiresPendingReview': true,
     'requiresFinalUserDisposition': true,
+    'requiresLocalUserReviewConfirmation': true,
+    'requiresLocalUserReviewSource': true,
     'createsOfficialStop': false,
     'confirmedDispositionCanCreateStopAfterUserAcceptance': true,
     'rejectedOrDismissedCreatesStop': false,
     'correctedRequiresSeparateUserEditedTripLog': true,
     'officialStopSource': 'user_review_after_acceptance',
     'officialMileageSource': 'odometer',
+    'remoteCanMarkStopOfficial': false,
     'remoteCanApplyDisposition': false,
     'firestoreCanApplyDisposition': false,
     'cloudFunctionCanApplyDisposition': false,
@@ -103,6 +122,7 @@ class TripStopReviewDispositionGuard {
         _safeIdentifier(request.authenticatedUid, maxLength: 96) &&
         request.authenticatedUid == request.sessionOwnerUid;
     final sessionValid = _sessionValid(request.session);
+    final localCommitBoundaryValid = _localCommitBoundaryValid(request);
     final clockValid = _clockValid(
       reviewedAtUtc: request.reviewedAtUtc,
       nowUtc: request.nowUtc,
@@ -125,6 +145,7 @@ class TripStopReviewDispositionGuard {
       dispositionValid: dispositionValid,
       ownerValid: ownerValid,
       sessionValid: sessionValid,
+      localCommitBoundaryValid: localCommitBoundaryValid,
       reviewIndex: reviewIndex,
       alreadyFinalized: alreadyFinalized,
       clockValid: clockValid,
@@ -143,6 +164,7 @@ class TripStopReviewDispositionGuard {
       reviewIndex: reviewIndex,
       ownerValid: ownerValid,
       sessionValid: sessionValid,
+      localCommitBoundaryValid: localCommitBoundaryValid,
       clockValid: clockValid,
       mayApplyDisposition: mayApply,
       updatedAdvisories: List.unmodifiable(updated),
@@ -162,6 +184,7 @@ TripStopReviewDispositionStatus _statusFor({
   required bool dispositionValid,
   required bool ownerValid,
   required bool sessionValid,
+  required bool localCommitBoundaryValid,
   required int reviewIndex,
   required bool alreadyFinalized,
   required bool clockValid,
@@ -171,6 +194,9 @@ TripStopReviewDispositionStatus _statusFor({
   }
   if (!ownerValid) return TripStopReviewDispositionStatus.blockedOwner;
   if (!sessionValid) return TripStopReviewDispositionStatus.blockedSession;
+  if (!localCommitBoundaryValid) {
+    return TripStopReviewDispositionStatus.blockedLocalCommitBoundary;
+  }
   if (reviewIndex < 0) return TripStopReviewDispositionStatus.blockedReview;
   if (alreadyFinalized) return TripStopReviewDispositionStatus.blockedFinalized;
   if (!clockValid) return TripStopReviewDispositionStatus.blockedClock;
@@ -202,10 +228,12 @@ Map<String, Object?> _payloadFor({
     'vehicleId': request.session.vehicleId,
     'ownerUid': request.sessionOwnerUid,
     'updatedByUid': request.sessionOwnerUid,
+    'localSessionRevision': request.localSessionRevision,
     'disposition': request.disposition.name,
     'reviewedAtUtc': request.reviewedAtUtc.toUtc().toIso8601String(),
     'tripLogReference': tripLogReference,
     'source': 'validated_local_user_review_disposition',
+    'dispositionSource': 'local_user_review',
     'firestoreRole': 'mirror_after_local_write',
     'remoteCanOverrideLocalDisposition': false,
     'employeeTrackingRequiresMutualConsent': true,
@@ -213,6 +241,9 @@ Map<String, Object?> _payloadFor({
     'dispositionPayloadCanExposeLiveLocation': false,
     'createsOfficialStop': false,
     'officialStopRequiresUserAcceptance': true,
+    'officialStopWriteRequiresLocalTripLog': true,
+    'officialStopWriteRequiresUserConfirmation': true,
+    'remoteCanMarkStopOfficial': false,
     'officialMileageSource': 'odometer',
     'canEndTripAutomatically': false,
     'canReplaceOdometer': false,
@@ -222,6 +253,14 @@ Map<String, Object?> _payloadFor({
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+bool _localCommitBoundaryValid(TripStopReviewDispositionRequest request) {
+  return request.localSessionRevision > 0 &&
+      request.localSessionAvailable &&
+      request.acceptedVehicleMovementObserved &&
+      request.localUserReviewConfirmed &&
+      request.dispositionSource == 'local_user_review';
 }
 
 bool _sessionValid(TripTrackingSessionRecord session) {
