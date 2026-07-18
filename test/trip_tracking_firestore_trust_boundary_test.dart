@@ -26,6 +26,9 @@ void main() {
     expect(personal['authenticationImpliesAuthorization'], isFalse);
     expect(personal['hiveRemainsSourceOfTruth'], isTrue);
     expect(personal['firestoreMirrorOnly'], isTrue);
+    expect(personal['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(personal['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(personal['externalMileageCannotBecomeGlobalTruth'], isTrue);
     expect(personal['remoteCanConfirmOdometer'], isFalse);
     expect(personal['remoteCanCreateOfficialStop'], isFalse);
     expect(personal['remoteCanPurgeLocalTripData'], isFalse);

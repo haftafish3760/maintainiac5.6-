@@ -33,6 +33,9 @@ void main() {
       expect(payload['canOverrideLocalDaytimeData'], isFalse);
       expect(payload['canDeleteLocalData'], isFalse);
       expect(payload['odometerIsGlobalTruth'], isTrue);
+      expect(payload['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(payload['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(payload['externalMileageCannotBecomeGlobalTruth'], isTrue);
       expect(payload['mirrorCanApplyCalibration'], isFalse);
       expect(payload['mirrorCanCreateCalibrationProof'], isFalse);
       expect(payload['mirrorCanCreateOfficialMileage'], isFalse);

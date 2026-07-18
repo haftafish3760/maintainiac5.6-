@@ -1507,6 +1507,9 @@ void main() {
       expect(summary['requiresConfirmedOdometer'], isTrue);
       expect(summary['odometerIsGlobalTruth'], isTrue);
       expect(summary['confirmedOdometerRemainsCanonical'], isTrue);
+      expect(summary['physicalOdometerRequiredForOfficialMileage'], isTrue);
+      expect(summary['confirmedOdometerOverridesExternalMileage'], isTrue);
+      expect(summary['externalMileageCannotBecomeGlobalTruth'], isTrue);
       expect(summary['firebaseMirrorCanCreateCalibration'], isFalse);
       expect(summary['firebaseMirrorCanApplyCalibration'], isFalse);
       expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);

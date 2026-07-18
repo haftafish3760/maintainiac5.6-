@@ -66,6 +66,12 @@ class TripTrackingDurableRecordBridge {
     'durableRecordRequiresConfirmedOdometer': true,
     'odometerIsGlobalTruth': true,
     'confirmedOdometerRemainsCanonical': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'durableRecordCanCreateCalibration': false,
     'durableRecordCanApplyCalibration': false,
     'calibrationRequiresTrustedGpsWindow': true,
@@ -124,6 +130,12 @@ class TripTrackingDurableRecordBridgeSummaryValidation {
     if (summary['durableRecordRequiresConfirmedOdometer'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
         summary['confirmedOdometerRemainsCanonical'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['durableRecordCanCreateCalibration'] != false ||
         summary['durableRecordCanApplyCalibration'] != false ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
@@ -237,6 +249,12 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
   map['odometerIsGlobalTruth'] = true;
   map['backendRulesMustEnforceOwnerScope'] = true;
   map['confirmedOdometerRemainsCanonical'] = true;
+  map['physicalOdometerRequiredForOfficialMileage'] = true;
+  map['confirmedOdometerOverridesExternalMileage'] = true;
+  map['externalMileageCannotBecomeGlobalTruth'] = true;
+  map['gpsDistanceCanOnlyAdviseMileageReview'] = true;
+  map['mapMatchingCanOnlyAdviseMileageReview'] = true;
+  map['optimizationCannotChangeOfficialMileage'] = true;
   map['durableRecordCanCreateCalibration'] = false;
   map['durableRecordCanApplyCalibration'] = false;
   map['calibrationRequiresTrustedGpsWindow'] = true;

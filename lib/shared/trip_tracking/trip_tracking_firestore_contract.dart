@@ -169,6 +169,12 @@ abstract final class TripTrackingFirestoreContract {
       'rulesMustRejectCrossUserReplay': true,
       'rulesMustRejectOrgWritesWithoutConsent': organizationScoped,
       'odometerIsGlobalTruth': true,
+      'physicalOdometerRequiredForOfficialMileage': true,
+      'confirmedOdometerOverridesExternalMileage': true,
+      'externalMileageCannotBecomeGlobalTruth': true,
+      'gpsDistanceCanOnlyAdviseMileageReview': true,
+      'mapMatchingCanOnlyAdviseMileageReview': true,
+      'optimizationCannotChangeOfficialMileage': true,
       'rulesMustRejectRemoteCalibrationWrites': true,
       'calibrationRequiresTrustedGpsWindow': true,
       'poorGpsDaysExcludedFromCalibration': true,
@@ -217,6 +223,12 @@ abstract final class TripTrackingFirestoreContract {
     if (summary['hiveRemainsSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['rulesMustRejectRemoteCalibrationWrites'] != true ||
         summary['calibrationRequiresTrustedGpsWindow'] != true ||
         summary['poorGpsDaysExcludedFromCalibration'] != true ||

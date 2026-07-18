@@ -22,6 +22,9 @@ void main() {
     expect(saved.payload['durableRecordRequiresConfirmedOdometer'], isTrue);
     expect(saved.payload['odometerIsGlobalTruth'], isTrue);
     expect(saved.payload['confirmedOdometerRemainsCanonical'], isTrue);
+    expect(saved.payload['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(saved.payload['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(saved.payload['externalMileageCannotBecomeGlobalTruth'], isTrue);
     expect(saved.payload['durableRecordCanCreateCalibration'], isFalse);
     expect(saved.payload['durableRecordCanApplyCalibration'], isFalse);
     expect(saved.payload['calibrationRequiresTrustedGpsWindow'], isTrue);
@@ -116,6 +119,12 @@ void main() {
       'durableRecordRequiresConfirmedOdometer': true,
       'odometerIsGlobalTruth': true,
       'confirmedOdometerRemainsCanonical': true,
+      'physicalOdometerRequiredForOfficialMileage': true,
+      'confirmedOdometerOverridesExternalMileage': true,
+      'externalMileageCannotBecomeGlobalTruth': true,
+      'gpsDistanceCanOnlyAdviseMileageReview': true,
+      'mapMatchingCanOnlyAdviseMileageReview': true,
+      'optimizationCannotChangeOfficialMileage': true,
       'durableRecordCanCreateCalibration': false,
       'durableRecordCanApplyCalibration': false,
       'calibrationRequiresTrustedGpsWindow': true,

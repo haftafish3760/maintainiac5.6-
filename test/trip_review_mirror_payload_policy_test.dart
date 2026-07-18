@@ -39,6 +39,9 @@ void main() {
     expect(payload.values, isNot(contains('driver_1')));
     expect(safe['hiveRemainsSourceOfTruth'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
     expect(safe['authenticationAloneAuthorizesMirror'], isFalse);
     expect(safe['backendRulesFailClosedForMirrorWrites'], isTrue);

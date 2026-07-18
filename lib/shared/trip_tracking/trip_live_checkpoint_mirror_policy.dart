@@ -42,6 +42,12 @@ class TripLiveCheckpointMirrorDecision {
     'mirrorCanCreateStop': false,
     'mirrorCanEndTripAutomatically': false,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'mirrorCanApplyCalibration': false,
     'mirrorCanCreateCalibrationProof': false,
     'mirrorCanCreateOfficialMileage': false,
@@ -129,6 +135,12 @@ class TripLiveCheckpointMirrorSummaryValidation {
       reasons.add('checkpoint_local_truth_boundary_missing');
     }
     if (summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['mirrorCanConfirmOdometer'] != false ||
         summary['mirrorCanCreateStop'] != false ||
         summary['mirrorCanEndTripAutomatically'] != false ||
@@ -227,6 +239,12 @@ Map<String, Object?> _payloadFor(Map<String, Object?> source) {
     'canDeleteLocalData': false,
     'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'mirrorCanApplyCalibration': false,
     'mirrorCanCreateCalibrationProof': false,
     'mirrorCanCreateOfficialMileage': false,
