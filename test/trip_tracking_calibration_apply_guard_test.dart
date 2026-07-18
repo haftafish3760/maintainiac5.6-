@@ -122,6 +122,15 @@ void main() {
     expect(safe['settingsCanResetCalibrationPrompt'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['odometerRemainsCanonical'], isTrue);
+    expect(safe['physicalOdometerIsCanonical'], isTrue);
+    expect(safe['gpsCanOverrideOdometer'], isFalse);
+    expect(safe['mapboxCanOverrideOdometer'], isFalse);
+    expect(safe['firebaseMirrorCanOverrideOdometer'], isFalse);
+    expect(safe['cloudFunctionCanOverrideOdometer'], isFalse);
+    expect(safe['importedFileCanOverrideOdometer'], isFalse);
+    expect(safe['localCacheCanOverrideOdometer'], isFalse);
+    expect(safe['sensorFusionCanOverrideOdometer'], isFalse);
+    expect(safe['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
     expect(safe['gpsEstimateRemainsNonCanonical'], isTrue);
   });
 
@@ -532,6 +541,15 @@ void main() {
               'mapboxCanTriggerTirePrompt': true,
               'gpsCanAutoApplyCalibration': true,
               'odometerIsGlobalTruth': false,
+              'physicalOdometerIsCanonical': false,
+              'gpsCanOverrideOdometer': true,
+              'mapboxCanOverrideOdometer': true,
+              'firebaseMirrorCanOverrideOdometer': true,
+              'cloudFunctionCanOverrideOdometer': true,
+              'importedFileCanOverrideOdometer': true,
+              'localCacheCanOverrideOdometer': true,
+              'sensorFusionCanOverrideOdometer': true,
+              'calibrationAppliesToFutureGpsProjectionOnly': false,
               'tireChangeDoesNotCreateMaintenanceEntry': false,
               'calibrationCanLowerConfirmedOdometer': true,
               'calibrationCanCreateMaintenanceRecord': true,

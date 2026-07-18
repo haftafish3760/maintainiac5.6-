@@ -1,5 +1,6 @@
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_odometer_calibration.dart';
+import 'trip_tracking_odometer_truth_policy.dart';
 
 enum TripTrackingCalibrationApplyStatus {
   disabled,
@@ -224,6 +225,7 @@ class TripTrackingCalibrationApplyGuard {
     'status': status.name,
     'multiplier': _safeRoundedMultiplier(multiplier),
     'reasonCodes': reasonCodes,
+    ...TripTrackingOdometerTruthPolicy.safeSummaryClaims,
     'canApplyToFutureGpsProjection': canApplyToFutureGpsProjection,
     'appliesToPastTrips': false,
     'canRewriteConfirmedOdometer': false,
@@ -260,8 +262,6 @@ class TripTrackingCalibrationApplyGuard {
     'tireChangeDoesNotCreateMaintenanceEntry': true,
     'settingsCanDisableCalibrationAssist': true,
     'settingsCanResetCalibrationPrompt': true,
-    'odometerIsGlobalTruth': true,
-    'odometerRemainsCanonical': true,
     'gpsEstimateRemainsNonCanonical': true,
     'remoteCalibrationCanOverrideLocalState': false,
     'firestoreCanApplyCalibration': false,
@@ -369,6 +369,17 @@ class TripTrackingCalibrationApplySummaryValidation {
     }
     if (summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsCanonical'] != true ||
+        summary['physicalOdometerIsCanonical'] != true ||
+        summary['userConfirmedOdometerReviewCanSetTruth'] != true ||
+        summary['firebaseMirrorCanOverrideOdometer'] != false ||
+        summary['cloudFunctionCanOverrideOdometer'] != false ||
+        summary['mapboxCanOverrideOdometer'] != false ||
+        summary['gpsCanOverrideOdometer'] != false ||
+        summary['importedFileCanOverrideOdometer'] != false ||
+        summary['localCacheCanOverrideOdometer'] != false ||
+        summary['sensorFusionCanOverrideOdometer'] != false ||
+        summary['calibrationAppliesToFutureGpsProjectionOnly'] != true ||
+        summary['calibrationRequiresAcceptedReview'] != true ||
         summary['gpsEstimateRemainsNonCanonical'] != true ||
         summary['tireOrSpeedometerReviewIsAdvisory'] != true ||
         summary['tireChangeDoesNotCreateMaintenanceEntry'] != true ||
@@ -376,6 +387,10 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['calibrationCanCreateMaintenanceRecord'] != false) {
       reasons.add('odometer_truth_boundary_missing');
     }
+    final truthValidation = TripTrackingOdometerTruthPolicy.validateSummary(
+      summary,
+    );
+    reasons.addAll(truthValidation.reasons);
     if (summary['remoteCalibrationCanEnableSetting'] != false ||
         summary['remoteCalibrationCanResetPrompt'] != false ||
         summary['mapboxCanTriggerTirePrompt'] != false ||
