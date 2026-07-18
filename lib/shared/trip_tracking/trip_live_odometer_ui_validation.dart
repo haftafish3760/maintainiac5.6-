@@ -138,7 +138,13 @@ List<String> _validateSharedPayload(
     reasons.add('live_odometer_surface_contract_missing');
   }
   if (payload['confirmedOdometerRemainsCanonical'] != true ||
-      payload['odometerIsGlobalTruth'] != true) {
+      payload['odometerIsGlobalTruth'] != true ||
+      payload['physicalOdometerRequiredForOfficialMileage'] != true ||
+      payload['confirmedOdometerOverridesExternalMileage'] != true ||
+      payload['externalMileageCannotBecomeGlobalTruth'] != true ||
+      payload['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+      payload['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+      payload['optimizationCannotChangeOfficialMileage'] != true) {
     reasons.add('confirmed_odometer_not_canonical');
   }
   if (payload['writesConfirmedOdometer'] != false ||
@@ -189,6 +195,12 @@ List<String> _validateSharedPayload(
         payloadGuard['liveUiMayCommitMileage'] != false ||
         payloadGuard['confirmedOdometerRemainsCanonical'] != true ||
         payloadGuard['odometerIsGlobalTruth'] != true ||
+        payloadGuard['physicalOdometerRequiredForOfficialMileage'] != true ||
+        payloadGuard['confirmedOdometerOverridesExternalMileage'] != true ||
+        payloadGuard['externalMileageCannotBecomeGlobalTruth'] != true ||
+        payloadGuard['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        payloadGuard['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        payloadGuard['optimizationCannotChangeOfficialMileage'] != true ||
         payloadGuard['remotePayloadCanConfirmOdometer'] != false ||
         payloadGuard['remotePayloadCanAdvanceProjectionRevision'] == true ||
         payloadGuard['mapboxCanRenderWithoutLocalTrip'] != false ||

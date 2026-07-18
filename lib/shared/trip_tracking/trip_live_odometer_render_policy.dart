@@ -83,6 +83,12 @@ class TripLiveOdometerRenderDecision {
       'advisoryOnly': true,
       'confirmedOdometerRemainsCanonical': true,
       'odometerIsGlobalTruth': true,
+      'physicalOdometerRequiredForOfficialMileage': true,
+      'confirmedOdometerOverridesExternalMileage': true,
+      'externalMileageCannotBecomeGlobalTruth': true,
+      'gpsDistanceCanOnlyAdviseMileageReview': true,
+      'mapMatchingCanOnlyAdviseMileageReview': true,
+      'optimizationCannotChangeOfficialMileage': true,
       'manualConfirmationRequired':
           status != TripLiveOdometerRenderStatus.confirmedOnly,
       'writesConfirmedOdometer': false,
@@ -186,6 +192,12 @@ class TripLiveOdometerRenderSummaryValidation {
       'advisoryOnly',
       'confirmedOdometerRemainsCanonical',
       'odometerIsGlobalTruth',
+      'physicalOdometerRequiredForOfficialMileage',
+      'confirmedOdometerOverridesExternalMileage',
+      'externalMileageCannotBecomeGlobalTruth',
+      'gpsDistanceCanOnlyAdviseMileageReview',
+      'mapMatchingCanOnlyAdviseMileageReview',
+      'optimizationCannotChangeOfficialMileage',
       'manualConfirmationRequired',
       'writesConfirmedOdometer',
       'gpsCanReplaceOdometer',
@@ -245,6 +257,12 @@ class TripLiveOdometerRenderSummaryValidation {
         summary['mapboxCanIncreaseLiveMileage'] != false ||
         summary['confirmedOdometerRemainsCanonical'] != true ||
         summary['odometerIsGlobalTruth'] != true ||
+        summary['physicalOdometerRequiredForOfficialMileage'] != true ||
+        summary['confirmedOdometerOverridesExternalMileage'] != true ||
+        summary['externalMileageCannotBecomeGlobalTruth'] != true ||
+        summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        summary['optimizationCannotChangeOfficialMileage'] != true ||
         summary['calendarCanRewriteConfirmedTruth'] != false ||
         summary['calibrationCanCommitWithoutReview'] != false ||
         summary['calibrationCanDecreaseLiveProjection'] != false ||

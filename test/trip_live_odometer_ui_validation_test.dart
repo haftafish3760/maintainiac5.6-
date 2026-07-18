@@ -45,6 +45,18 @@ void main() {
     expect(validation.displayValue, '0001203');
     expect(validation.reasons, isEmpty);
     expect(safeBroadcastMap()['odometerIsGlobalTruth'], isTrue);
+    expect(
+      safeBroadcastMap()['physicalOdometerRequiredForOfficialMileage'],
+      isTrue,
+    );
+    expect(
+      safeBroadcastMap()['confirmedOdometerOverridesExternalMileage'],
+      isTrue,
+    );
+    expect(
+      safeBroadcastMap()['externalMileageCannotBecomeGlobalTruth'],
+      isTrue,
+    );
   });
 
   test('render map validates across subscribed dashboard surfaces', () {
@@ -57,6 +69,15 @@ void main() {
     expect(validation.displayValue, '0001203');
     expect(validation.reasons, isEmpty);
     expect(safeRenderMap()['odometerIsGlobalTruth'], isTrue);
+    expect(
+      safeRenderMap()['physicalOdometerRequiredForOfficialMileage'],
+      isTrue,
+    );
+    expect(
+      safeRenderMap()['confirmedOdometerOverridesExternalMileage'],
+      isTrue,
+    );
+    expect(safeRenderMap()['externalMileageCannotBecomeGlobalTruth'], isTrue);
   });
 
   test('remote authority and odometer replacement claims fail closed', () {
@@ -70,6 +91,12 @@ void main() {
         'importedDisplayCanOverrideLocalTrip': true,
         'dashboardCacheCanOverrideLocalTrip': true,
         'odometerIsGlobalTruth': false,
+        'physicalOdometerRequiredForOfficialMileage': false,
+        'confirmedOdometerOverridesExternalMileage': false,
+        'externalMileageCannotBecomeGlobalTruth': false,
+        'gpsDistanceCanOnlyAdviseMileageReview': false,
+        'mapMatchingCanOnlyAdviseMileageReview': false,
+        'optimizationCannotChangeOfficialMileage': false,
         'authenticationDoesNotGrantDisplayAuthority': false,
         'matchingActiveTripRequired': false,
       }),
@@ -105,6 +132,12 @@ void main() {
           'standardDashboardUsesLiveProjection': false,
           'calendarReviewUsesConfirmedTruth': false,
           'odometerIsGlobalTruth': false,
+          'physicalOdometerRequiredForOfficialMileage': false,
+          'confirmedOdometerOverridesExternalMileage': false,
+          'externalMileageCannotBecomeGlobalTruth': false,
+          'gpsDistanceCanOnlyAdviseMileageReview': false,
+          'mapMatchingCanOnlyAdviseMileageReview': false,
+          'optimizationCannotChangeOfficialMileage': false,
         }),
       );
 

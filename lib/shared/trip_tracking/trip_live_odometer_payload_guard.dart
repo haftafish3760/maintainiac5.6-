@@ -27,6 +27,12 @@ class TripLiveOdometerPayloadGuardDecision {
     'liveUiMayCommitMileage': false,
     'confirmedOdometerRemainsCanonical': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'manualConfirmationRequiredBeforeOfficialMileage': true,
     'activeTripMatchRequired': true,
     'localTripLogRequired': true,
@@ -75,6 +81,12 @@ class TripLiveOdometerPayloadGuard {
     if (payload['advisoryOnly'] != true ||
         payload['confirmedOdometerRemainsCanonical'] != true ||
         payload['odometerIsGlobalTruth'] != true ||
+        payload['physicalOdometerRequiredForOfficialMileage'] != true ||
+        payload['confirmedOdometerOverridesExternalMileage'] != true ||
+        payload['externalMileageCannotBecomeGlobalTruth'] != true ||
+        payload['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        payload['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        payload['optimizationCannotChangeOfficialMileage'] != true ||
         payload['displayOnlyMileageSource'] is! String) {
       reasons.add('missing_advisory_display_contract');
     }

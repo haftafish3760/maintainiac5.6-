@@ -64,6 +64,12 @@ class TripLiveOdometerProjection {
     'writesConfirmedOdometer': false,
     'confirmedOdometerRemainsCanonical': true,
     'odometerIsGlobalTruth': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
     'manualConfirmationRequired': true,
     'gpsCanReplaceOdometer': false,
     'mapboxCanReplaceOdometer': false,
@@ -175,7 +181,13 @@ class TripLiveOdometerDashboardPayloadValidation {
       reasons.add('external_distance_validation_contract_missing');
     }
     if (payload['confirmedOdometerRemainsCanonical'] != true ||
-        payload['odometerIsGlobalTruth'] != true) {
+        payload['odometerIsGlobalTruth'] != true ||
+        payload['physicalOdometerRequiredForOfficialMileage'] != true ||
+        payload['confirmedOdometerOverridesExternalMileage'] != true ||
+        payload['externalMileageCannotBecomeGlobalTruth'] != true ||
+        payload['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
+        payload['mapMatchingCanOnlyAdviseMileageReview'] != true ||
+        payload['optimizationCannotChangeOfficialMileage'] != true) {
       reasons.add('confirmed_odometer_not_marked_canonical');
     }
     if (payload['manualConfirmationRequired'] != true) {

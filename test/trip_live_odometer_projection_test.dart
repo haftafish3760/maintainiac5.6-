@@ -106,6 +106,20 @@ void main() {
     );
     expect(projection.toSafeDashboardMap()['odometerIsGlobalTruth'], isTrue);
     expect(
+      projection
+          .toSafeDashboardMap()['physicalOdometerRequiredForOfficialMileage'],
+      isTrue,
+    );
+    expect(
+      projection
+          .toSafeDashboardMap()['confirmedOdometerOverridesExternalMileage'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['externalMileageCannotBecomeGlobalTruth'],
+      isTrue,
+    );
+    expect(
       projection.toSafeDashboardMap()['calibrationCanCommitWithoutReview'],
       isFalse,
     );

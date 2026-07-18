@@ -34,6 +34,12 @@ void main() {
     expect(guard['liveUiMayCommitMileage'], isFalse);
     expect(guard['manualConfirmationRequiredBeforeOfficialMileage'], isTrue);
     expect(guard['odometerIsGlobalTruth'], isTrue);
+    expect(guard['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(guard['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(guard['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(guard['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(guard['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(guard['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(guard['liveProjectionRequiresOwnershipValidation'], isTrue);
     expect(guard['liveProjectionRequiresDeviceLocalSource'], isTrue);
     expect(guard['projectionCannotOutliveActiveDay'], isTrue);
@@ -88,6 +94,12 @@ void main() {
           ...clean,
           'advisoryOnly': false,
           'odometerIsGlobalTruth': false,
+          'physicalOdometerRequiredForOfficialMileage': false,
+          'confirmedOdometerOverridesExternalMileage': false,
+          'externalMileageCannotBecomeGlobalTruth': false,
+          'gpsDistanceCanOnlyAdviseMileageReview': false,
+          'mapMatchingCanOnlyAdviseMileageReview': false,
+          'optimizationCannotChangeOfficialMileage': false,
         },
         status: TripLiveOdometerPayloadGuardStatus.blockedMalformedPayload,
         reason: 'missing_advisory_display_contract',

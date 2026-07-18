@@ -77,6 +77,12 @@ void main() {
     expect(safe['liveProjectionRequiresDeviceLocalSource'], isTrue);
     expect(safe['liveProjectionRequiresOwnershipValidation'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(safe['physicalOdometerRequiredForOfficialMileage'], isTrue);
+    expect(safe['confirmedOdometerOverridesExternalMileage'], isTrue);
+    expect(safe['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safe['gpsDistanceCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['mapMatchingCanOnlyAdviseMileageReview'], isTrue);
+    expect(safe['optimizationCannotChangeOfficialMileage'], isTrue);
     expect(safe['matchingVehicleProfileRequired'], isTrue);
     expect(safe['projectionRevisionMustIncrease'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
