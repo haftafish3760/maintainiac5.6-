@@ -276,6 +276,23 @@ class TripStopDebouncePolicy {
     }
 
     if (vehicleOnlyDwell.status ==
+        TripVehicleOnlyDwellStatus.trafficControlProtected) {
+      return _decision(
+        status: TripStopDebounceStatus.trafficControlProtected,
+        reasonCode: 'vehicle_only_dwell_traffic_control_protected',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        evidenceDigest: evidenceDigest,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: 0,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
+    if (vehicleOnlyDwell.status ==
         TripVehicleOnlyDwellStatus.manualFallbackRecommended) {
       return _decision(
         status: TripStopDebounceStatus.waitingForEvidence,

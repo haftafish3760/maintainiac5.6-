@@ -67,6 +67,9 @@ class TripVehicleOnlyDwellDecision {
     'mapsRequiredForVehicleOnlyDwell': false,
     'longTrafficLightProtected':
         status == TripVehicleOnlyDwellStatus.trafficControlProtected,
+    'trafficControlCanSurfaceManualFallback': false,
+    'trafficControlCanInferStopAddress': false,
+    'gridlockCanCreateOfficialStop': false,
     'gridlockRequiresManualConfirmation': true,
     'twoPersonDeliveryRequiresManualConfirmation': true,
     'manualFallbackCannotInferJobsiteAddress': true,
@@ -155,6 +158,13 @@ class TripVehicleOnlyDwellSummaryValidation {
     }
     if (!_falseFlag(summary, 'mapsRequiredForVehicleOnlyDwell')) return false;
     if (summary['longTrafficLightProtected'] is! bool) return false;
+    if (!_falseFlag(summary, 'trafficControlCanSurfaceManualFallback')) {
+      return false;
+    }
+    if (!_falseFlag(summary, 'trafficControlCanInferStopAddress')) {
+      return false;
+    }
+    if (!_falseFlag(summary, 'gridlockCanCreateOfficialStop')) return false;
     if (!_trueFlag(summary, 'gridlockRequiresManualConfirmation')) {
       return false;
     }

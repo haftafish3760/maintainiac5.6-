@@ -290,6 +290,33 @@ void main() {
     );
   });
 
+  test(
+    'extended delivery gridlock stays traffic protected without fallback',
+    () {
+      final decision = TripStopDebouncePolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        observation: observation(
+          stationaryDuration: const Duration(minutes: 5, seconds: 30),
+          walkingEvidenceCount: 0,
+          walkingEvidenceSpan: Duration.zero,
+          rejectedDriftCount: 9,
+          speedMps: 0.3,
+        ),
+      );
+      final vehicleOnly =
+          decision.toSafeDashboardMap()['vehicleOnlyDwell']
+              as Map<String, Object?>;
+
+      expect(decision.status, TripStopDebounceStatus.trafficControlProtected);
+      expect(decision.canOpenReview, isFalse);
+      expect(vehicleOnly['longTrafficLightProtected'], isTrue);
+      expect(vehicleOnly['trafficControlCanSurfaceManualFallback'], isFalse);
+      expect(vehicleOnly['trafficControlCanInferStopAddress'], isFalse);
+      expect(vehicleOnly['gridlockCanCreateOfficialStop'], isFalse);
+      expect(vehicleOnly['gridlockRequiresManualConfirmation'], isTrue);
+    },
+  );
+
   test('walking evidence before accepted vehicle movement fails closed', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
