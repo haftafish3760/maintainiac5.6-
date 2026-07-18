@@ -20,6 +20,9 @@ class TripTrackingCapabilityGuidance {
     required this.canUseLowPowerGuard,
     required this.safeStatus,
     required this.dashboardBadge,
+    required this.degradationMode,
+    required this.stopDetectionAssistMode,
+    required this.requiresManualStopReviewFallback,
     required this.recommendedSettings,
   });
 
@@ -31,6 +34,9 @@ class TripTrackingCapabilityGuidance {
   final bool canUseLowPowerGuard;
   final String safeStatus;
   final String dashboardBadge;
+  final String degradationMode;
+  final String stopDetectionAssistMode;
+  final bool requiresManualStopReviewFallback;
   final TripTrackingSettings recommendedSettings;
 
   bool get gpsUnavailable =>
@@ -51,11 +57,17 @@ class TripTrackingCapabilityGuidance {
     'hasSafetySensors': hasSafetySensors,
     'safeStatus': safeStatus,
     'dashboardBadge': dashboardBadge,
+    'degradationMode': degradationMode,
+    'stopDetectionAssistMode': stopDetectionAssistMode,
+    'requiresManualStopReviewFallback': requiresManualStopReviewFallback,
     'gpsAssistRequiresOptIn': true,
     'backgroundTrackingRequiresOptIn': true,
     'activityRecognitionRequiresOptIn': true,
     'batteryGuardRequiresOptIn': true,
     'deviceCapabilityCanReduceAccuracy': true,
+    'deviceCapabilityControlsSamplingTier': true,
+    'deviceCapabilityControlsStopAssistTier': true,
+    'locationOnlyModeRequiresMoreUserReview': requiresManualStopReviewFallback,
     'gpsTrackingCanRunWithoutMaps': true,
     'mapsRequiredForTracking': false,
     'routeHistoryRequiresLocationCapability': true,
@@ -122,6 +134,9 @@ class TripTrackingCapabilityGuidance {
       canUseLowPowerGuard: capabilities.lowPowerModeAvailable,
       safeStatus: _safeStatus(readiness),
       dashboardBadge: _dashboardBadge(readiness),
+      degradationMode: _degradationMode(readiness),
+      stopDetectionAssistMode: _stopDetectionAssistMode(readiness),
+      requiresManualStopReviewFallback: _manualFallbackRequired(readiness),
       recommendedSettings: recommended,
     );
   }
@@ -151,11 +166,14 @@ class TripTrackingCapabilityGuidanceSummaryValidation {
       'canUseLowPowerGuard',
       'gpsUnavailable',
       'hasSafetySensors',
+      'requiresManualStopReviewFallback',
     ]) {
       if (summary[key] is! bool) reasons.add('${key}_not_bool');
     }
     if (!_safeText(summary['safeStatus']) ||
-        !_safeText(summary['dashboardBadge'], maxLength: 80)) {
+        !_safeText(summary['dashboardBadge'], maxLength: 80) ||
+        !_safeText(summary['degradationMode'], maxLength: 80) ||
+        !_safeText(summary['stopDetectionAssistMode'], maxLength: 80)) {
       reasons.add('invalid_capability_display_text');
     }
     if (summary['gpsAssistRequiresOptIn'] != true ||
@@ -181,7 +199,10 @@ class TripTrackingCapabilityGuidanceSummaryValidation {
     }
     if (summary['odometerRemainsCanonical'] != true ||
         summary['nativeCapabilitiesAreAdvisory'] != true ||
-        summary['deviceCapabilityCanReduceAccuracy'] != true) {
+        summary['deviceCapabilityCanReduceAccuracy'] != true ||
+        summary['deviceCapabilityControlsSamplingTier'] != true ||
+        summary['deviceCapabilityControlsStopAssistTier'] != true ||
+        summary['locationOnlyModeRequiresMoreUserReview'] is! bool) {
       reasons.add('capability_truth_boundary_missing');
     }
     if (summary['rawNativePayloadIncluded'] != false ||
@@ -282,5 +303,44 @@ String _dashboardBadge(TripTrackingCapabilityReadiness readiness) {
     TripTrackingCapabilityReadiness.backgroundReady => 'Background capable',
     TripTrackingCapabilityReadiness.motionReady => 'Motion capable',
     TripTrackingCapabilityReadiness.fullSafetyAssist => 'Motion + battery',
+  };
+}
+
+String _degradationMode(TripTrackingCapabilityReadiness readiness) {
+  return switch (readiness) {
+    TripTrackingCapabilityReadiness.unavailable => 'tracking_unavailable',
+    TripTrackingCapabilityReadiness.locationOnly ||
+    TripTrackingCapabilityReadiness.foregroundReady =>
+      'foreground_location_only',
+    TripTrackingCapabilityReadiness.backgroundReady =>
+      'background_location_without_motion',
+    TripTrackingCapabilityReadiness.motionReady =>
+      'motion_assisted_foreground_tracking',
+    TripTrackingCapabilityReadiness.fullSafetyAssist =>
+      'full_safety_assisted_tracking',
+  };
+}
+
+String _stopDetectionAssistMode(TripTrackingCapabilityReadiness readiness) {
+  return switch (readiness) {
+    TripTrackingCapabilityReadiness.unavailable => 'manual_only',
+    TripTrackingCapabilityReadiness.locationOnly ||
+    TripTrackingCapabilityReadiness.foregroundReady ||
+    TripTrackingCapabilityReadiness.backgroundReady =>
+      'gps_dwell_review_required',
+    TripTrackingCapabilityReadiness.motionReady ||
+    TripTrackingCapabilityReadiness.fullSafetyAssist =>
+      'gps_plus_motion_review_assist',
+  };
+}
+
+bool _manualFallbackRequired(TripTrackingCapabilityReadiness readiness) {
+  return switch (readiness) {
+    TripTrackingCapabilityReadiness.unavailable ||
+    TripTrackingCapabilityReadiness.locationOnly ||
+    TripTrackingCapabilityReadiness.foregroundReady ||
+    TripTrackingCapabilityReadiness.backgroundReady => true,
+    TripTrackingCapabilityReadiness.motionReady ||
+    TripTrackingCapabilityReadiness.fullSafetyAssist => false,
   };
 }

@@ -34,6 +34,9 @@ void main() {
     expect(guidance.recommendedSettings.lowBatteryGpsOverrideEnabled, isFalse);
     expect(guidance.recommendedSettings.lowBatteryGpsWarningDismissed, isFalse);
     expect(guidance.recommendedSettings.mapRouteHistorySavingEnabled, isFalse);
+    expect(guidance.degradationMode, 'tracking_unavailable');
+    expect(guidance.stopDetectionAssistMode, 'manual_only');
+    expect(guidance.requiresManualStopReviewFallback, isTrue);
     expect(
       guidance.toSafeDashboardMap()['routeHistoryDisabledWhenGpsUnavailable'],
       isTrue,
@@ -71,6 +74,9 @@ void main() {
       expect(guidance.canStartBackgroundGps, isFalse);
       expect(guidance.canUseActivityRecognition, isFalse);
       expect(guidance.canUseBatteryGuard, isFalse);
+      expect(guidance.degradationMode, 'foreground_location_only');
+      expect(guidance.stopDetectionAssistMode, 'gps_dwell_review_required');
+      expect(guidance.requiresManualStopReviewFallback, isTrue);
       expect(guidance.recommendedSettings.gpsAssistedTrackingEnabled, isTrue);
       expect(guidance.recommendedSettings.backgroundTrackingEnabled, isFalse);
       expect(guidance.recommendedSettings.activityRecognitionEnabled, isFalse);
@@ -102,6 +108,9 @@ void main() {
     expect(guidance.readiness, TripTrackingCapabilityReadiness.backgroundReady);
     expect(guidance.canStartBackgroundGps, isTrue);
     expect(guidance.canUseActivityRecognition, isFalse);
+    expect(guidance.degradationMode, 'background_location_without_motion');
+    expect(guidance.stopDetectionAssistMode, 'gps_dwell_review_required');
+    expect(guidance.requiresManualStopReviewFallback, isTrue);
     expect(guidance.recommendedSettings.backgroundTrackingEnabled, isTrue);
     expect(guidance.recommendedSettings.activityRecognitionEnabled, isFalse);
     expect(guidance.recommendedSettings.lowBatteryGpsProtectionEnabled, isTrue);
@@ -134,6 +143,9 @@ void main() {
     expect(guidance.canUseActivityRecognition, isTrue);
     expect(guidance.canUseBatteryGuard, isTrue);
     expect(guidance.canUseLowPowerGuard, isTrue);
+    expect(guidance.degradationMode, 'full_safety_assisted_tracking');
+    expect(guidance.stopDetectionAssistMode, 'gps_plus_motion_review_assist');
+    expect(guidance.requiresManualStopReviewFallback, isFalse);
     expect(guidance.recommendedSettings.activityRecognitionEnabled, isTrue);
     expect(guidance.recommendedSettings.lowBatteryGpsOverrideEnabled, isTrue);
     expect(guidance.recommendedSettings.lowBatteryGpsWarningDismissed, isTrue);
@@ -181,10 +193,16 @@ void main() {
       expect(guidance.safeStatus, isNot(contains('token')));
       final summary = guidance.toSafeDashboardMap();
       expect(summary['schemaVersion'], 1);
+      expect(summary['degradationMode'], isA<String>());
+      expect(summary['stopDetectionAssistMode'], isA<String>());
+      expect(summary['requiresManualStopReviewFallback'], isA<bool>());
       expect(summary['gpsAssistRequiresOptIn'], isTrue);
       expect(summary['activityRecognitionRequiresOptIn'], isTrue);
       expect(summary['backgroundTrackingRequiresOptIn'], isTrue);
       expect(summary['deviceCapabilityCanReduceAccuracy'], isTrue);
+      expect(summary['deviceCapabilityControlsSamplingTier'], isTrue);
+      expect(summary['deviceCapabilityControlsStopAssistTier'], isTrue);
+      expect(summary['locationOnlyModeRequiresMoreUserReview'], isA<bool>());
       expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
       expect(summary['mapsRequiredForTracking'], isFalse);
       expect(summary['routeHistoryRequiresLocationCapability'], isTrue);
@@ -291,6 +309,9 @@ void main() {
             'odometerRemainsCanonical': false,
             'nativeCapabilitiesAreAdvisory': false,
             'deviceCapabilityCanReduceAccuracy': false,
+            'deviceCapabilityControlsSamplingTier': false,
+            'deviceCapabilityControlsStopAssistTier': false,
+            'locationOnlyModeRequiresMoreUserReview': 'yes',
             'rawNativePayloadIncluded': true,
             'rawSensorPayloadIncluded': true,
             'preciseLocationIncluded': true,
