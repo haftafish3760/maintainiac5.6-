@@ -119,6 +119,12 @@ class TripTrackingFreeSyncUsage {
 
 String _safeScopeForSummary(String value) {
   final clean = value.trim();
-  if (clean.isEmpty || clean.contains(':')) return 'invalid_scope';
+  if (clean.isEmpty ||
+      clean.contains(':') ||
+      !_safeScopePattern.hasMatch(clean)) {
+    return 'invalid_scope';
+  }
   return clean.length <= 80 ? clean : '${clean.substring(0, 77)}...';
 }
+
+final RegExp _safeScopePattern = RegExp(r'^[A-Za-z0-9_.-]+$');

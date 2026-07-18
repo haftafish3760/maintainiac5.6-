@@ -302,4 +302,26 @@ void main() {
     expect(estimate.toSafeDashboardMap()['allowedToPersistRoute'], isFalse);
     expect(decision.toSafeDashboardMap()['allowedToPersistPoint'], isFalse);
   });
+
+  test('route point counters are capped before storage math', () {
+    final decision = TripTrackingMapStoragePolicy.canPersistNextRoutePoint(
+      settings: const TripTrackingSettings().copyWith(
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 2,
+        mapRouteHistorySampleIntervalSeconds: 60,
+      ),
+      persistedPointsToday: 999999999999,
+      bytesPerPoint: 512,
+    );
+    final summary = decision.toSafeDashboardMap();
+
+    expect(decision.persistedPointsToday, 1000000);
+    expect(summary['persistedPointsToday'], 1000000);
+    expect(summary['allowedToPersistPoint'], isFalse);
+    expect(summary['mapStorageFailureStopsGpsTracking'], isFalse);
+    expect(summary['mapboxResponseCanBypassBudget'], isFalse);
+    expect(summary['localTripLogProtected'], isTrue);
+  });
 }

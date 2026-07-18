@@ -129,6 +129,7 @@ class TripTrackingMapStoragePolicy {
 
   static const defaultDrivingSecondsPerDay = 8 * 60 * 60;
   static const compactBytesPerPoint = 96;
+  static const maxSafeRoutePointsPerDay = 1000000;
 
   static TripTrackingMapStorageEstimate estimate({
     required TripTrackingSettings settings,
@@ -281,7 +282,13 @@ double _safeMb(double value) {
   return _roundMb(value > 2 ? 2 : value);
 }
 
-int _safePersistedPoints(int value) => value < 0 ? 0 : value;
+int _safePersistedPoints(int value) {
+  if (value < 0) return 0;
+  if (value > TripTrackingMapStoragePolicy.maxSafeRoutePointsPerDay) {
+    return TripTrackingMapStoragePolicy.maxSafeRoutePointsPerDay;
+  }
+  return value;
+}
 
 int _maxRoutePointsPerDay(double dailyBudgetMb, int bytesPerPoint) {
   if (!dailyBudgetMb.isFinite || dailyBudgetMb <= 0) return 0;

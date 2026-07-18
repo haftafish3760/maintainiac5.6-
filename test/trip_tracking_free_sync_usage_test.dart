@@ -118,6 +118,19 @@ void main() {
     expect(summary['rawTripPayloadIncluded'], isFalse);
   });
 
+  test('safe free sync summary rejects token-like durable scopes', () {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'trip_scope_token=sk.secret',
+    );
+    final summary = usage.toSafeSummary(DateTime.utc(2026, 7, 17, 12));
+
+    expect(summary['durableScope'], 'invalid_scope');
+    expect(summary.toString(), isNot(contains('sk.secret')));
+    expect(summary['tokensIncluded'], isFalse);
+    expect(summary['remoteCountersCanOverrideLocalUsage'], isFalse);
+  });
+
   test('authorized reservation records exactly one local attempt', () async {
     final store = CloudBackupSyncAttemptStore.memory();
     final now = DateTime.utc(2026, 7, 17, 12);
