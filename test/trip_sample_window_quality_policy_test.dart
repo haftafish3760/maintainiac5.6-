@@ -60,6 +60,26 @@ void main() {
     expect(decision.acceptedDistanceMeters, greaterThan(50));
   });
 
+  test('stationary speed reports pause GPS jitter projection', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000, speed: 0),
+        sample(15, 35.0004, -80.0000, speed: 0.2),
+        sample(30, 35.0008, -80.0000, speed: 0.1),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripSampleWindowQualityStatus.usableForTracking);
+    expect(decision.reasonCode, 'sample_window_projection_paused');
+    expect(decision.acceptedDistanceMeters, greaterThan(75));
+    expect(decision.canFeedLiveOdometerProjection, isFalse);
+    expect(decision.canPersistCompactRoutePoint, isFalse);
+    expect(safe['sampleWindowRequiresMovementCorroboration'], isTrue);
+    expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
+  });
+
   test('route storage can pause without stopping GPS tracking', () {
     final history = routeDecision(budgetMb: 0.25);
     final decision = TripSampleWindowQualityPolicy.evaluate(

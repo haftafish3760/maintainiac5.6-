@@ -76,6 +76,7 @@ class TripSampleWindowQualityDecision {
     'sampleWindowRequiresIntakeGuardBeforeEvaluation': true,
     'sampleWindowRequiresDeviceCapabilityContext': true,
     'sampleWindowRequiresMonotonicSampleOrder': true,
+    'sampleWindowRequiresMovementCorroboration': true,
     'sampleWindowRequiresPermissionContinuity': true,
     'simulatorWindowRequiresExplicitTestHarness': true,
     'simulatorWindowCannotWriteProductionHistory': true,
@@ -178,6 +179,7 @@ class TripSampleWindowQualitySummaryValidation {
       'sampleWindowRequiresIntakeGuardBeforeEvaluation',
       'sampleWindowRequiresDeviceCapabilityContext',
       'sampleWindowRequiresMonotonicSampleOrder',
+      'sampleWindowRequiresMovementCorroboration',
       'sampleWindowRequiresPermissionContinuity',
       'simulatorWindowRequiresExplicitTestHarness',
       'simulatorWindowCannotWriteProductionHistory',
@@ -210,6 +212,7 @@ class TripSampleWindowQualitySummaryValidation {
         summary['sampleWindowRequiresIntakeGuardBeforeEvaluation'] != true ||
         summary['sampleWindowRequiresDeviceCapabilityContext'] != true ||
         summary['sampleWindowRequiresMonotonicSampleOrder'] != true ||
+        summary['sampleWindowRequiresMovementCorroboration'] != true ||
         summary['sampleWindowRequiresPermissionContinuity'] != true ||
         summary['simulatorWindowRequiresExplicitTestHarness'] != true ||
         summary['simulatorWindowCannotWriteProductionHistory'] != true ||
@@ -412,6 +415,10 @@ class TripSampleWindowQualityPolicy {
       routeHistoryDecision,
       persistedRoutePointsToday,
     );
+    final stationaryContradiction = _reportedStationaryContradictsDistance(
+      sorted,
+      acceptedDistance,
+    );
     final projectionSafe =
         _canFeedProjection(
           acceptedSegments: acceptedSegments,
@@ -422,6 +429,7 @@ class TripSampleWindowQualityPolicy {
           safeGapLimit: safeGapLimit,
           acceptedDistanceMeters: acceptedDistance,
         ) &&
+        !stationaryContradiction &&
         trustedSignal;
     if (!routePointAllowed && routeHistoryDecision.canCaptureRouteHistory) {
       return _decision(
@@ -450,6 +458,8 @@ class TripSampleWindowQualityPolicy {
           : TripSampleWindowQualityStatus.usableForTracking,
       reasonCode: sparseOrBroken
           ? 'sample_window_projection_paused'
+          : stationaryContradiction
+          ? 'sample_window_projection_paused'
           : degraded
           ? 'sample_window_degraded_but_usable'
           : 'sample_window_usable',
@@ -463,7 +473,8 @@ class TripSampleWindowQualityPolicy {
       acceptedDistanceMeters: acceptedDistance,
       maximumGapSeconds: maximumGap,
       canFeedLiveOdometerProjection: projectionSafe,
-      canPersistCompactRoutePoint: routePointAllowed && trustedSignal,
+      canPersistCompactRoutePoint:
+          routePointAllowed && trustedSignal && !stationaryContradiction,
     );
   }
 }
@@ -517,6 +528,20 @@ bool _canFeedProjection({
   if (maximumConsecutiveRejectedSegments >= 3) return false;
   if (rejectedSegments > acceptedSegments * 2) return false;
   return true;
+}
+
+bool _reportedStationaryContradictsDistance(
+  List<TripLocationSample> samples,
+  double acceptedDistanceMeters,
+) {
+  if (acceptedDistanceMeters < 75 || samples.length < 2) return false;
+  final reportedSpeeds = samples
+      .map((sample) => sample.speedMetersPerSecond)
+      .whereType<double>()
+      .where((speed) => speed.isFinite)
+      .toList(growable: false);
+  if (reportedSpeeds.length < samples.length) return false;
+  return reportedSpeeds.every((speed) => speed <= 0.5);
 }
 
 bool _isIndividuallySafe(
