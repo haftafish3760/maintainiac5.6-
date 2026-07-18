@@ -40,6 +40,10 @@ void main() {
     expect(summary.mapboxTrustedMileageSource, 'none');
     expect(summary.mapboxRouteDistanceMiles, isNull);
     expect(summary.mapboxRouteDeltaMiles, isNull);
+    expect(summary.mapPreviewEnabled, isFalse);
+    expect(summary.mapRouteHistorySavingEnabled, isFalse);
+    expect(summary.mapRouteHistoryDailyBudgetMb, 0);
+    expect(summary.mapRouteHistorySampleIntervalSeconds, 30);
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
@@ -59,6 +63,10 @@ void main() {
     final summary = DashboardTripTrackingSummary.fromSettings(
       settings: const TripTrackingSettings(
         gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1.5,
+        mapRouteHistorySampleIntervalSeconds: 60,
         defaultProfile: TripTrackingProfile.deliveryVehicle,
         backupNetworkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
       ),
@@ -83,6 +91,10 @@ void main() {
     expect(summary.syncMode, 'wifi_only');
     expect(summary.gpsAssistState, 'on');
     expect(summary.storageState, 'text_record_safe');
+    expect(summary.mapPreviewEnabled, isTrue);
+    expect(summary.mapRouteHistorySavingEnabled, isTrue);
+    expect(summary.mapRouteHistoryDailyBudgetMb, 1.5);
+    expect(summary.mapRouteHistorySampleIntervalSeconds, 60);
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
     expect(summary.freeSyncsRemaining, 4);

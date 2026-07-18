@@ -44,6 +44,10 @@ class DashboardTripTrackingSummary {
     required this.mapboxTrustedMileageSource,
     required this.mapboxRouteDistanceMiles,
     required this.mapboxRouteDeltaMiles,
+    required this.mapPreviewEnabled,
+    required this.mapRouteHistorySavingEnabled,
+    required this.mapRouteHistoryDailyBudgetMb,
+    required this.mapRouteHistorySampleIntervalSeconds,
     required this.storageState,
     required this.deviceCapabilityState,
     required this.sensorAssistState,
@@ -87,6 +91,10 @@ class DashboardTripTrackingSummary {
   final String mapboxTrustedMileageSource;
   final double? mapboxRouteDistanceMiles;
   final double? mapboxRouteDeltaMiles;
+  final bool mapPreviewEnabled;
+  final bool mapRouteHistorySavingEnabled;
+  final double mapRouteHistoryDailyBudgetMb;
+  final int mapRouteHistorySampleIntervalSeconds;
   final String storageState;
   final String deviceCapabilityState;
   final String sensorAssistState;
@@ -210,6 +218,14 @@ class DashboardTripTrackingSummary {
       mapboxTrustedMileageSource: mapboxSummary.trustedMileageSource,
       mapboxRouteDistanceMiles: mapboxSummary.routeDistanceMiles,
       mapboxRouteDeltaMiles: mapboxSummary.routeDeltaMiles,
+      mapPreviewEnabled: settings.mapPreviewEnabled,
+      mapRouteHistorySavingEnabled: settings.mapRouteHistorySavingEnabled,
+      mapRouteHistoryDailyBudgetMb: _safeMapRouteHistoryBudget(
+        settings.mapRouteHistoryDailyBudgetMb,
+      ),
+      mapRouteHistorySampleIntervalSeconds: _safeMapRouteHistoryInterval(
+        settings.mapRouteHistorySampleIntervalSeconds,
+      ),
       storageState: _safeStorageState(storageState),
       deviceCapabilityState: _safeDeviceCapabilityState(deviceCapabilityState),
       sensorAssistState: _safeSensorAssistState(sensorAssistState),

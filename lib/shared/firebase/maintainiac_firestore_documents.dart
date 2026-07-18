@@ -371,6 +371,10 @@ class MaintainiacFirestoreDocumentBuilder {
     String mapboxTrustedMileageSource = 'none',
     double? mapboxRouteDistanceMiles,
     double? mapboxRouteDeltaMiles,
+    bool mapPreviewEnabled = false,
+    bool mapRouteHistorySavingEnabled = false,
+    double mapRouteHistoryDailyBudgetMb = 0,
+    int mapRouteHistorySampleIntervalSeconds = 30,
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
@@ -524,6 +528,15 @@ class MaintainiacFirestoreDocumentBuilder {
             mapboxRouteDeltaMiles,
             'mapboxRouteDeltaMiles',
           ),
+        'mapPreviewEnabled': mapPreviewEnabled,
+        'mapRouteHistorySavingEnabled': mapRouteHistorySavingEnabled,
+        'mapRouteHistoryDailyBudgetMb': _optionalDashboardMapRouteBudget(
+          mapRouteHistoryDailyBudgetMb,
+        ),
+        'mapRouteHistorySampleIntervalSeconds':
+            _optionalDashboardMapRouteInterval(
+              mapRouteHistorySampleIntervalSeconds,
+            ),
         'storageState': _requiredDashboardSummaryToken(
           storageState,
           'storageState',
@@ -616,8 +629,14 @@ class MaintainiacFirestoreDocumentBuilder {
         'externalServiceWritesAllowed': false,
         'mapboxCanModifyTripLog': false,
         'mapboxCanModifyOdometer': false,
+        'mapsRequiredForTracking': false,
+        'mapsRequireSeparateOptIn': true,
+        'mapRouteHistoryRequiresSeparateOptIn': true,
+        'gpsTrackingCanRunWithoutMaps': true,
+        'freeUserControlsDailyMapStorageBudget': true,
         'locationDataIncluded': false,
         'mapboxRouteGeometryIncluded': false,
+        'rawMapRouteIncluded': false,
         'rawModuleDataIncluded': false,
       }),
     );
@@ -854,6 +873,28 @@ double _optionalDashboardMapboxMiles(double value, String fieldName) {
     );
   }
   return double.parse(value.toStringAsFixed(3));
+}
+
+double _optionalDashboardMapRouteBudget(double value) {
+  if (!value.isFinite || value < 0 || value > 2) {
+    throw ArgumentError.value(
+      value,
+      'mapRouteHistoryDailyBudgetMb',
+      'Dashboard map route history budget must be explicit and bounded.',
+    );
+  }
+  return double.parse(value.toStringAsFixed(2));
+}
+
+int _optionalDashboardMapRouteInterval(int value) {
+  if (value < 15 || value > 300) {
+    throw ArgumentError.value(
+      value,
+      'mapRouteHistorySampleIntervalSeconds',
+      'Dashboard map route history sample interval must stay bounded.',
+    );
+  }
+  return value;
 }
 
 const _allowedDashboardWidgetTokens = <String>{

@@ -447,6 +447,10 @@ class MaintainiacFirestoreUploadPolicy {
       'mapboxTrustedMileageSource',
       'mapboxRouteDistanceMiles',
       'mapboxRouteDeltaMiles',
+      'mapPreviewEnabled',
+      'mapRouteHistorySavingEnabled',
+      'mapRouteHistoryDailyBudgetMb',
+      'mapRouteHistorySampleIntervalSeconds',
       'storageState',
       'deviceCapabilityState',
       'sensorAssistState',
@@ -473,8 +477,14 @@ class MaintainiacFirestoreUploadPolicy {
       'externalServiceWritesAllowed',
       'mapboxCanModifyTripLog',
       'mapboxCanModifyOdometer',
+      'mapsRequiredForTracking',
+      'mapsRequireSeparateOptIn',
+      'mapRouteHistoryRequiresSeparateOptIn',
+      'gpsTrackingCanRunWithoutMaps',
+      'freeUserControlsDailyMapStorageBudget',
       'locationDataIncluded',
       'mapboxRouteGeometryIncluded',
+      'rawMapRouteIncluded',
       'rawModuleDataIncluded',
     };
     final validShape =
@@ -558,6 +568,14 @@ class MaintainiacFirestoreUploadPolicy {
         ) &&
         _isValidDashboardMapboxMiles(draft.data['mapboxRouteDistanceMiles']) &&
         _isValidDashboardMapboxMiles(draft.data['mapboxRouteDeltaMiles']) &&
+        draft.data['mapPreviewEnabled'] is bool &&
+        draft.data['mapRouteHistorySavingEnabled'] is bool &&
+        _isValidDashboardMapRouteBudget(
+          draft.data['mapRouteHistoryDailyBudgetMb'],
+        ) &&
+        _isValidDashboardMapRouteInterval(
+          draft.data['mapRouteHistorySampleIntervalSeconds'],
+        ) &&
         _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
         _isAllowedString(
           draft.data['deviceCapabilityState'],
@@ -608,7 +626,13 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['odometerRemainsCanonical'] == true &&
         draft.data['externalServiceWritesAllowed'] == false &&
         draft.data['mapboxCanModifyTripLog'] == false &&
-        draft.data['mapboxCanModifyOdometer'] == false;
+        draft.data['mapboxCanModifyOdometer'] == false &&
+        draft.data['mapsRequiredForTracking'] == false &&
+        draft.data['mapsRequireSeparateOptIn'] == true &&
+        draft.data['mapRouteHistoryRequiresSeparateOptIn'] == true &&
+        draft.data['gpsTrackingCanRunWithoutMaps'] == true &&
+        draft.data['freeUserControlsDailyMapStorageBudget'] == true &&
+        draft.data['rawMapRouteIncluded'] == false;
     if (!validShape) {
       throw ArgumentError.value(
         draft.path,
@@ -851,6 +875,12 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isValidDashboardMapboxMiles(Object? value) =>
       value == null || (value is num && value >= 0 && value <= 12500);
+
+  static bool _isValidDashboardMapRouteBudget(Object? value) =>
+      value is num && value >= 0 && value <= 2;
+
+  static bool _isValidDashboardMapRouteInterval(Object? value) =>
+      value is int && value >= 15 && value <= 300;
 
   static bool _hasValidDashboardTokenList(Object? value, Set<String> allowed) {
     if (value == null) return true;

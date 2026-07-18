@@ -27,6 +27,10 @@ void main() {
           mapboxTrustedMileageSource: 'odometer',
           mapboxRouteDistanceMiles: 12.34567,
           mapboxRouteDeltaMiles: 2.34567,
+          mapPreviewEnabled: true,
+          mapRouteHistorySavingEnabled: true,
+          mapRouteHistoryDailyBudgetMb: 1.25,
+          mapRouteHistorySampleIntervalSeconds: 45,
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
@@ -66,6 +70,10 @@ void main() {
     expect(doc.data['mapboxTrustedMileageSource'], 'odometer');
     expect(doc.data['mapboxRouteDistanceMiles'], 12.346);
     expect(doc.data['mapboxRouteDeltaMiles'], 2.346);
+    expect(doc.data['mapPreviewEnabled'], isTrue);
+    expect(doc.data['mapRouteHistorySavingEnabled'], isTrue);
+    expect(doc.data['mapRouteHistoryDailyBudgetMb'], 1.25);
+    expect(doc.data['mapRouteHistorySampleIntervalSeconds'], 45);
     expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
     expect(doc.data['authorizationRequired'], isTrue);
     expect(doc.data['authenticationImpliesAuthorization'], isFalse);
@@ -76,6 +84,12 @@ void main() {
     expect(doc.data['externalServiceWritesAllowed'], isFalse);
     expect(doc.data['mapboxCanModifyTripLog'], isFalse);
     expect(doc.data['mapboxCanModifyOdometer'], isFalse);
+    expect(doc.data['mapsRequiredForTracking'], isFalse);
+    expect(doc.data['mapsRequireSeparateOptIn'], isTrue);
+    expect(doc.data['mapRouteHistoryRequiresSeparateOptIn'], isTrue);
+    expect(doc.data['gpsTrackingCanRunWithoutMaps'], isTrue);
+    expect(doc.data['freeUserControlsDailyMapStorageBudget'], isTrue);
+    expect(doc.data['rawMapRouteIncluded'], isFalse);
     expect(doc.data['deviceCapabilityState'], 'full_safety_assist');
     expect(doc.data['sensorAssistState'], 'motion_battery_available');
     expect(doc.data['odometerCalibrationState'], 'review_recommended');
@@ -119,6 +133,10 @@ void main() {
     expect(doc.data['mapboxTrustedMileageSource'], 'none');
     expect(doc.data.keys, isNot(contains('mapboxRouteDistanceMiles')));
     expect(doc.data.keys, isNot(contains('mapboxRouteDeltaMiles')));
+    expect(doc.data['mapPreviewEnabled'], isFalse);
+    expect(doc.data['mapRouteHistorySavingEnabled'], isFalse);
+    expect(doc.data['mapRouteHistoryDailyBudgetMb'], 0);
+    expect(doc.data['mapRouteHistorySampleIntervalSeconds'], 30);
     expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
     expect(doc.data['authorizationRequired'], isTrue);
     expect(doc.data['authenticationImpliesAuthorization'], isFalse);
@@ -129,6 +147,12 @@ void main() {
     expect(doc.data['externalServiceWritesAllowed'], isFalse);
     expect(doc.data['mapboxCanModifyTripLog'], isFalse);
     expect(doc.data['mapboxCanModifyOdometer'], isFalse);
+    expect(doc.data['mapsRequiredForTracking'], isFalse);
+    expect(doc.data['mapsRequireSeparateOptIn'], isTrue);
+    expect(doc.data['mapRouteHistoryRequiresSeparateOptIn'], isTrue);
+    expect(doc.data['gpsTrackingCanRunWithoutMaps'], isTrue);
+    expect(doc.data['freeUserControlsDailyMapStorageBudget'], isTrue);
+    expect(doc.data['rawMapRouteIncluded'], isFalse);
     expect(doc.data['odometerUsageState'], 'disabled');
     expect(doc.data.keys, isNot(contains('odometerCalibrationSamples')));
     expect(doc.data.keys, isNot(contains('odometerCalibrationMultiplier')));

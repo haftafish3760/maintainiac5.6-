@@ -77,6 +77,12 @@ void main() {
       'externalServiceWritesAllowed',
       'mapboxCanModifyTripLog',
       'mapboxCanModifyOdometer',
+      'mapsRequiredForTracking',
+      'mapsRequireSeparateOptIn',
+      'mapRouteHistoryRequiresSeparateOptIn',
+      'gpsTrackingCanRunWithoutMaps',
+      'freeUserControlsDailyMapStorageBudget',
+      'rawMapRouteIncluded',
     ]) {
       expect(
         rules,
@@ -100,6 +106,12 @@ void main() {
       'request.resource.data.externalServiceWritesAllowed == false',
       'request.resource.data.mapboxCanModifyTripLog == false',
       'request.resource.data.mapboxCanModifyOdometer == false',
+      'request.resource.data.mapsRequiredForTracking == false',
+      'request.resource.data.mapsRequireSeparateOptIn == true',
+      'request.resource.data.mapRouteHistoryRequiresSeparateOptIn == true',
+      'request.resource.data.gpsTrackingCanRunWithoutMaps == true',
+      'request.resource.data.freeUserControlsDailyMapStorageBudget == true',
+      'request.resource.data.rawMapRouteIncluded == false',
     ]) {
       expect(
         rules,

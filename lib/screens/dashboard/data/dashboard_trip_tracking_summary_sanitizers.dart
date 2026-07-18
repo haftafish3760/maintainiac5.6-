@@ -151,6 +151,14 @@ double? _safeMapboxMiles(double? value) {
   return double.parse(value.toStringAsFixed(3));
 }
 
+double _safeMapRouteHistoryBudget(double value) {
+  if (!value.isFinite || value <= 0) return 0;
+  if (value > 2) return 2;
+  return double.parse(value.toStringAsFixed(2));
+}
+
+int _safeMapRouteHistoryInterval(int value) => value.clamp(15, 300);
+
 String _safeRecoveryState(String value) {
   return switch (value.trim()) {
     'none' => 'none',

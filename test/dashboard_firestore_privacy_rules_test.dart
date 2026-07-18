@@ -147,6 +147,34 @@ void main() {
       );
       expect(
         rules,
+        contains('request.resource.data.mapsRequiredForTracking == false'),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.mapsRequireSeparateOptIn == true'),
+      );
+      expect(
+        rules,
+        contains(
+          'request.resource.data.mapRouteHistoryRequiresSeparateOptIn == true',
+        ),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.gpsTrackingCanRunWithoutMaps == true'),
+      );
+      expect(
+        rules,
+        contains(
+          'request.resource.data.freeUserControlsDailyMapStorageBudget == true',
+        ),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.rawMapRouteIncluded == false'),
+      );
+      expect(
+        rules,
         contains('request.resource.data.odometerCalibrationMultiplier <= 1.25'),
       );
       expect(
