@@ -38,6 +38,25 @@ class TripTrackingCalibrationState {
     return refresh(enabled: true, signal: signal);
   }
 
+  Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
+    'enabled': enabled,
+    'multiplier': multiplier,
+    'advisoryOnly': true,
+    'requiresReviewedOdometerHistory': true,
+    'calibrationCanReplaceConfirmedOdometer': false,
+    'calibrationCanRewritePastTrips': false,
+    'calibrationAppliesToFutureGpsProjectionOnly': true,
+    'gpsEstimateRemainsNonCanonical': true,
+    'odometerRemainsCanonical': true,
+    'remoteCalibrationCanOverrideLocalState': false,
+    'mapboxCanOverrideCalibration': false,
+    'malformedCalibrationSignalFailsNeutral': true,
+    'rawGpsIncluded': false,
+    'preciseLocationIncluded': false,
+    'tokensIncluded': false,
+  };
+
   static double safeMultiplier(double value) {
     if (!value.isFinite || value <= 0) return 1;
     return value.clamp(0.8, 1.25).toDouble();

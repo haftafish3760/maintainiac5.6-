@@ -15,10 +15,18 @@ void main() {
       );
 
   test('initial calibration multiplier is bounded and advisory only', () {
-    expect(TripTrackingCalibrationState.initial(double.nan).multiplier, 1);
+    final initial = TripTrackingCalibrationState.initial(double.nan);
+
+    expect(initial.multiplier, 1);
     expect(TripTrackingCalibrationState.initial(-2).multiplier, 1);
     expect(TripTrackingCalibrationState.initial(.1).multiplier, .8);
     expect(TripTrackingCalibrationState.initial(9).multiplier, 1.25);
+    expect(initial.toSafeSummary()['advisoryOnly'], isTrue);
+    expect(
+      initial.toSafeSummary()['calibrationCanReplaceConfirmedOdometer'],
+      isFalse,
+    );
+    expect(initial.toSafeSummary()['odometerRemainsCanonical'], isTrue);
   });
 
   test('disabled calibration always uses neutral multiplier', () {
@@ -47,5 +55,24 @@ void main() {
     final state = TripTrackingCalibrationState.initial(.9);
 
     expect(state.refreshEnabled(signal(.8)), same(state));
+  });
+
+  test('calibration summary keeps remote and map data advisory-only', () {
+    final state = TripTrackingCalibrationState.initial(
+      1,
+    ).refresh(enabled: true, signal: signal(.9));
+    final summary = state.toSafeSummary();
+
+    expect(summary['enabled'], isTrue);
+    expect(summary['requiresReviewedOdometerHistory'], isTrue);
+    expect(summary['calibrationCanRewritePastTrips'], isFalse);
+    expect(summary['calibrationAppliesToFutureGpsProjectionOnly'], isTrue);
+    expect(summary['gpsEstimateRemainsNonCanonical'], isTrue);
+    expect(summary['remoteCalibrationCanOverrideLocalState'], isFalse);
+    expect(summary['mapboxCanOverrideCalibration'], isFalse);
+    expect(summary['malformedCalibrationSignalFailsNeutral'], isTrue);
+    expect(summary['rawGpsIncluded'], isFalse);
+    expect(summary['preciseLocationIncluded'], isFalse);
+    expect(summary['tokensIncluded'], isFalse);
   });
 }
