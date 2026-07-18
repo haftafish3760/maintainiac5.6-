@@ -103,6 +103,7 @@ void main() {
     expect(allowed['cloudMirrorCanDeleteLocalTripLog'], isFalse);
     expect(allowed['queuedWriteCanContainRawGps'], isFalse);
     expect(allowed['queuedWriteCanContainMapboxGeometry'], isFalse);
+    expect(allowed['rawReviewIncluded'], isFalse);
     expect(allowed['employeeTrackingRequiresMutualConsent'], isTrue);
     expect(allowed['preciseLocationIncluded'], isFalse);
     expect(allowed['accountIdIncluded'], isFalse);

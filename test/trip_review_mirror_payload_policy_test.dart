@@ -1,0 +1,145 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_review_mirror_payload_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+
+void main() {
+  test('confirmed personal review produces redacted mirror payload only', () {
+    final decision = TripReviewMirrorPayloadPolicy.build(
+      review: review().copyWith(
+        confirmedEndingOdometer: 1042,
+        odometerConfirmedAt: DateTime.utc(2026, 7, 18, 10, 5),
+      ),
+      ownerUid: 'driver_1',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+    final payload = decision.payload;
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripReviewMirrorPayloadStatus.ready);
+    expect(decision.mayMirror, isTrue);
+    expect(payload['schema'], 'trip_review_mileage_mirror_v1');
+    expect(payload['confirmedMiles'], 42);
+    expect(payload['officialMileageSource'], 'odometer');
+    expect(payload['gpsDistanceAdvisoryOnly'], isTrue);
+    expect(payload['remoteCanOverrideLocalTripLog'], isFalse);
+    expect(payload['remoteTotalsCanBecomeCanonical'], isFalse);
+    expect(payload['mirrorCanDeleteLocalTripLog'], isFalse);
+    expect(payload['rawGpsIncluded'], isFalse);
+    expect(payload['routeGeometryIncluded'], isFalse);
+    expect(payload['mapboxGeometryIncluded'], isFalse);
+    expect(payload['preciseCoordinatesIncluded'], isFalse);
+    expect(payload['tokensIncluded'], isFalse);
+    expect(payload.values, isNot(contains('driver_1')));
+    expect(safe['hiveRemainsSourceOfTruth'], isTrue);
+    expect(safe['firestoreMirrorOnly'], isTrue);
+  });
+
+  test('unconfirmed odometer blocks mirror even when scope is valid', () {
+    final decision = TripReviewMirrorPayloadPolicy.build(
+      review: review(),
+      ownerUid: 'driver_1',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+
+    expect(
+      decision.status,
+      TripReviewMirrorPayloadStatus.blockedUnconfirmedOdometer,
+    );
+    expect(decision.reasonCode, 'unconfirmed_odometer_blocks_mirror');
+    expect(decision.mayMirror, isFalse);
+    expect(decision.payload, isEmpty);
+  });
+
+  test('organization mirror requires matching safe organization scope', () {
+    final confirmed = review().copyWith(
+      confirmedEndingOdometer: 1042,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 18, 10, 5),
+    );
+    final missing = TripReviewMirrorPayloadPolicy.build(
+      review: confirmed,
+      ownerUid: 'driver_1',
+      personalBackup: false,
+      organizationSharingEnabled: true,
+    );
+    final ready = TripReviewMirrorPayloadPolicy.build(
+      review: confirmed,
+      ownerUid: 'driver_1',
+      personalBackup: false,
+      organizationSharingEnabled: true,
+      organizationId: 'org_1',
+    );
+
+    expect(missing.status, TripReviewMirrorPayloadStatus.blockedScope);
+    expect(missing.reasonCode, 'mirror_organization_missing');
+    expect(ready.status, TripReviewMirrorPayloadStatus.ready);
+    expect(ready.payload['cloudBackupScope'], 'organization');
+    expect(ready.payload['cloudOrganizationBound'], isTrue);
+    expect(ready.scopeSummary.values, isNot(contains('org_1')));
+  });
+
+  test('unsafe or mismatched owner blocks mirror payload', () {
+    final confirmed = review().copyWith(
+      cloudAccountUid: 'driver_1',
+      confirmedEndingOdometer: 1042,
+      odometerConfirmedAt: DateTime.utc(2026, 7, 18, 10, 5),
+    );
+    final unsafe = TripReviewMirrorPayloadPolicy.build(
+      review: confirmed,
+      ownerUid: 'sk.secret',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+    final mismatch = TripReviewMirrorPayloadPolicy.build(
+      review: confirmed,
+      ownerUid: 'driver_2',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+
+    expect(unsafe.status, TripReviewMirrorPayloadStatus.blockedOwner);
+    expect(unsafe.reasonCode, 'unsafe_mirror_owner');
+    expect(mismatch.status, TripReviewMirrorPayloadStatus.blockedOwner);
+    expect(mismatch.reasonCode, 'mirror_owner_mismatch');
+    expect(
+      unsafe.toSafeDashboardMap().toString(),
+      isNot(contains('sk.secret')),
+    );
+  });
+
+  test('invalid review timeline blocks mirror payload', () {
+    final invalid = TripTrackingReviewRecord.fromMap({
+      ...review().toMap(),
+      'finishedAt': '2026-07-18T07:00:00.000Z',
+      'confirmedEndingOdometer': 1042,
+      'odometerConfirmedAt': '2026-07-18T10:05:00.000Z',
+    });
+    final decision = TripReviewMirrorPayloadPolicy.build(
+      review: invalid,
+      ownerUid: 'driver_1',
+      personalBackup: true,
+      organizationSharingEnabled: false,
+    );
+
+    expect(decision.status, TripReviewMirrorPayloadStatus.blockedInvalidReview);
+    expect(decision.payload, isEmpty);
+  });
+}
+
+TripTrackingReviewRecord review() {
+  return TripTrackingReviewRecord(
+    id: 'trip_1',
+    vehicleId: 'vehicle_1',
+    startingOdometer: 1000,
+    estimatedEndingOdometer: 1041,
+    profile: TripTrackingProfile.deliveryVehicle,
+    startedAt: DateTime.utc(2026, 7, 18, 8),
+    finishedAt: DateTime.utc(2026, 7, 18, 10),
+    engineSnapshot: const TripTrackingEngineSnapshot(
+      totalAcceptedMeters: 67592.4,
+      walkingReviewSuggested: false,
+    ),
+  );
+}
