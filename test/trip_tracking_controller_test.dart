@@ -834,6 +834,38 @@ void main() {
     },
   );
 
+  test('live odometer timestamps follow validated GPS sample time', () async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+    );
+
+    expect(
+      await controller.start(
+        tripId: 'trip_live_odometer_sample_clock',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    expect(odometer.liveTripUpdatedAt, start);
+
+    await controller.ingest(sample(-80, 0), referenceTime: start);
+    await controller.ingest(
+      sample(-79.985, 60),
+      referenceTime: start.add(const Duration(seconds: 60)),
+    );
+
+    expect(odometer.reading, greaterThan(1000));
+    expect(odometer.confirmedReading, 1000);
+    expect(odometer.liveTripUpdatedAt, start.add(const Duration(seconds: 60)));
+  });
+
   test(
     'finishing a trip drains queued native GPS events into the review',
     () async {

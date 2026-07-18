@@ -412,6 +412,7 @@ class TripTrackingController extends ChangeNotifier {
     if (!_odometer.beginLiveTripProjection(
       tripId: tripId,
       startingOdometer: startingOdometer,
+      observedAtUtc: started,
     )) {
       return false;
     }
@@ -537,6 +538,7 @@ class TripTrackingController extends ChangeNotifier {
     if (!_odometer.beginLiveTripProjection(
       tripId: session.id,
       startingOdometer: session.startingOdometer,
+      observedAtUtc: session.startedAt,
     )) {
       return false;
     }
@@ -544,6 +546,8 @@ class TripTrackingController extends ChangeNotifier {
         !_odometer.updateLiveTripProjection(
           tripId: session.id,
           estimatedOdometer: estimatedOdometer,
+          observedAtUtc: session.updatedAt,
+          receivedAtUtc: session.updatedAt,
         )) {
       _odometer.clearLiveTripProjection(tripId: session.id);
       _platformStatus = 'odometer_projection_invalid';
@@ -746,6 +750,8 @@ class TripTrackingController extends ChangeNotifier {
       final liveProjectionUpdated = _odometer.updateLiveTripProjection(
         tripId: session.id,
         estimatedOdometer: estimatedOdometer,
+        observedAtUtc: sample.recordedAt,
+        receivedAtUtc: referenceTime ?? sample.recordedAt,
       );
       final liveProjectionFailed =
           decision.accepted &&
