@@ -41,7 +41,10 @@ class SimulatedTripResult {
       count(TripSampleDisposition.rejectedInvalid) +
       count(TripSampleDisposition.rejectedMockLocation) +
       count(TripSampleDisposition.rejectedAccuracy) +
-      count(TripSampleDisposition.rejectedOutOfOrder);
+      count(TripSampleDisposition.rejectedOutOfOrder) +
+      count(TripSampleDisposition.rejectedImplausibleSpeed) +
+      count(TripSampleDisposition.rejectedSpeedConflict) +
+      count(TripSampleDisposition.rejectedGap);
 
   int get rejectedGpsJumpCount =>
       count(TripSampleDisposition.rejectedImplausibleSpeed) +

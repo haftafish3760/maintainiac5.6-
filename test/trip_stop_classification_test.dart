@@ -19,11 +19,7 @@ void main() {
       needsWalkingReview: result.needsWalkingReview,
       excludedWalkingCount: result.count(TripSampleDisposition.excludedWalking),
       rejectedDriftCount: result.count(TripSampleDisposition.rejectedDrift),
-      rejectedUnsafeCount:
-          result.count(TripSampleDisposition.rejectedInvalid) +
-          result.count(TripSampleDisposition.rejectedMockLocation) +
-          result.count(TripSampleDisposition.rejectedAccuracy) +
-          result.count(TripSampleDisposition.rejectedOutOfOrder),
+      rejectedUnsafeCount: result.rejectedUnsafeCount,
       acceptedDistanceCount: result.acceptedDistanceCount,
     );
   }
@@ -177,6 +173,26 @@ void main() {
     expect(classification.signal, isNot(TripStopSignal.reviewOnlyStop));
   });
 
+  test(
+    'walking classification at vehicle speed is treated as sensor noise',
+    () {
+      final result = replayTrip(
+        scenarios.walkingSensorMisclassifiedAtVehicleSpeed(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final classification = classifyScenario(
+        scenarios.walkingSensorMisclassifiedAtVehicleSpeed(),
+        TripTrackingProfile.deliveryVehicle,
+      );
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.count(TripSampleDisposition.excludedWalking), 0);
+      expect(result.acceptedDistanceCount, greaterThanOrEqualTo(3));
+      expect(classification.signal, TripStopSignal.noStop);
+      expect(classification.canSuggestStop, isFalse);
+    },
+  );
+
   test('well-spaced delivery walking evidence becomes review-only stop', () {
     final result = replayTrip(
       scenarios.deliveryStopWithWellSpacedWalkingEvidence(),
@@ -288,6 +304,7 @@ void main() {
   test('safe summary sanitizes direct malformed public fields', () {
     const classification = TripStopClassification(
       signal: TripStopSignal.reviewOnlyStop,
+      reviewConfidence: TripStopReviewConfidence.high,
       reasonCode: 'token=pk.secret lat=35.1',
       requiresUserReview: true,
       canSuggestStop: true,
@@ -319,6 +336,7 @@ void main() {
   test('direct stop summary cannot claim review for unsafe reasons', () {
     const forged = TripStopClassification(
       signal: TripStopSignal.noStop,
+      reviewConfidence: TripStopReviewConfidence.high,
       reasonCode: 'unsafe_stop_evidence_rejected',
       requiresUserReview: true,
       canSuggestStop: true,
@@ -412,6 +430,18 @@ void main() {
     expect(summary['canCreateOfficialStop'], isFalse);
     expect(summary['mapboxCanCreateStop'], isFalse);
     expect(summary['firestoreCanCreateOfficialStop'], isFalse);
+  });
+
+  test('GPS jump and gap evidence are unsafe for stop suggestions', () {
+    final classification = classifyScenario(
+      scenarios.gpsJumpAndGapMasqueradingAsStop(),
+      TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(classification.signal, TripStopSignal.unsafeEvidence);
+    expect(classification.reasonCode, 'unsafe_stop_evidence_rejected');
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.requiresUserReview, isFalse);
   });
 
   test('long stationary jitter outranks vehicle-only stop candidate', () {

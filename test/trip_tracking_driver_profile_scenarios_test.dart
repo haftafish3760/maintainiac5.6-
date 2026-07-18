@@ -135,4 +135,36 @@ void main() {
     expect(result.count(TripSampleDisposition.rejectedInvalid), 1);
     expect(result.count(TripSampleDisposition.rejectedMockLocation), 1);
   });
+
+  test('high-confidence walking at vehicle speed remains vehicle mileage', () {
+    final result = replayTrip(
+      scenarios.walkingSensorMisclassifiedAtVehicleSpeed(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.count(TripSampleDisposition.excludedWalking), 0);
+    expect(result.acceptedDistanceCount, greaterThanOrEqualTo(3));
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+  });
+
+  test('implausible GPS jump and gap cannot masquerade as a stop', () {
+    final result = replayTrip(
+      scenarios.gpsJumpAndGapMasqueradingAsStop(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.rejectedUnsafeCount, greaterThanOrEqualTo(3));
+    expect(summary['stopSignal'], 'unsafe_evidence');
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+  });
 }

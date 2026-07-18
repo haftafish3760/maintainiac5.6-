@@ -270,6 +270,43 @@ class TripTrackingScenarioLibrary {
     SimulatedTripPoint(roadPoint(-79.997, 90, speed: 9)),
   ];
 
+  List<SimulatedTripPoint> walkingSensorMisclassifiedAtVehicleSpeed() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
+    SimulatedTripPoint(
+      roadPoint(-79.999, 20, speed: 10),
+      activity: activity(TripActivity.walking, 20, confidence: 96),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.998, 40, speed: 10),
+      activity: activity(TripActivity.walking, 40, confidence: 98),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.997, 60, speed: 10),
+      activity: activity(TripActivity.walking, 60, confidence: 97),
+    ),
+    SimulatedTripPoint(roadPoint(-79.996, 80, speed: 10)),
+  ];
+
+  List<SimulatedTripPoint> gpsJumpAndGapMasqueradingAsStop() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.970, 21, speed: 0)),
+    SimulatedTripPoint(roadPoint(-79.969, 210, speed: 0)),
+    SimulatedTripPoint(roadPoint(-79.940, 211, speed: 0)),
+    SimulatedTripPoint(
+      roadPoint(-79.93995, 230),
+      activity: activity(TripActivity.walking, 230),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.93990, 248),
+      activity: activity(TripActivity.walking, 248),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.93985, 266),
+      activity: activity(TripActivity.walking, 266),
+    ),
+  ];
+
   List<SimulatedTripPoint> deliveryStopWithWellSpacedWalkingEvidence() => [
     SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
     SimulatedTripPoint(roadPoint(-79.999, 20, speed: 9)),
