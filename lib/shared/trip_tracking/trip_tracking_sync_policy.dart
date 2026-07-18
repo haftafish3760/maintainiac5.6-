@@ -6,6 +6,7 @@ class TripTrackingBackupSyncPolicy {
 
   static const int freeSyncsPerWindow =
       HostedUsageLimits.freeUserSyncsPer24HourWindow;
+  static const int maximumVerifiableSyncsUsedInWindow = 999;
 
   static TripTrackingBackupSyncDecision evaluate({
     required TripTrackingBackupNetworkPolicy networkPolicy,
@@ -68,16 +69,22 @@ class TripTrackingFreeSyncWindowCounter {
         syncsUsed: 1,
       );
     }
+    if (_hasInvalidUsageCount) {
+      return TripTrackingFreeSyncWindowCounter(
+        windowStartedAtUtc: windowStartedAtUtc.toUtc(),
+        syncsUsed: -1,
+      );
+    }
     return TripTrackingFreeSyncWindowCounter(
       windowStartedAtUtc: windowStartedAtUtc.toUtc(),
-      syncsUsed: syncsUsed < 0 ? 1 : syncsUsed + 1,
+      syncsUsed: syncsUsed + 1,
     );
   }
 
   int usedInWindowAt(DateTime nowUtc) {
     if (_clockMovedBeforeWindow(nowUtc.toUtc())) return -1;
     if (!_sameWindow(nowUtc.toUtc())) return 0;
-    if (syncsUsed < 0) return -1;
+    if (_hasInvalidUsageCount) return -1;
     return syncsUsed;
   }
 
@@ -121,6 +128,11 @@ class TripTrackingFreeSyncWindowCounter {
 
   bool _clockMovedBeforeWindow(DateTime nowUtc) =>
       nowUtc.toUtc().isBefore(windowStartedAtUtc.toUtc());
+
+  bool get _hasInvalidUsageCount =>
+      syncsUsed < 0 ||
+      syncsUsed >
+          TripTrackingBackupSyncPolicy.maximumVerifiableSyncsUsedInWindow;
 }
 
 class TripTrackingBackupSyncDecision {

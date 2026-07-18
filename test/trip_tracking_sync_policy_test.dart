@@ -192,6 +192,10 @@ void main() {
     );
 
     expect(counter.usedInWindowAt(started.add(const Duration(hours: 1))), -1);
+    expect(
+      counter.recordAttempt(started.add(const Duration(hours: 2))).syncsUsed,
+      -1,
+    );
     expect(counter.toSafeSummary(started.add(const Duration(hours: 1))), {
       'schemaVersion': 1,
       'windowState': 'invalid',
@@ -214,6 +218,22 @@ void main() {
       ).reasonCode,
       'free_sync_limit_invalid',
     );
+  });
+
+  test('overrange free sync counters fail closed until the next window', () {
+    final started = DateTime.utc(2026, 7, 17, 8);
+    final counter = TripTrackingFreeSyncWindowCounter(
+      windowStartedAtUtc: started,
+      syncsUsed:
+          TripTrackingBackupSyncPolicy.maximumVerifiableSyncsUsedInWindow + 1,
+    );
+    final sameWindow = started.add(const Duration(hours: 1));
+    final nextWindow = started.add(const Duration(hours: 24, minutes: 1));
+
+    expect(counter.usedInWindowAt(sameWindow), -1);
+    expect(counter.recordAttempt(sameWindow).syncsUsed, -1);
+    expect(counter.toSafeSummary(sameWindow)['windowState'], 'invalid');
+    expect(counter.recordAttempt(nextWindow).syncsUsed, 1);
   });
 
   test('free sync window counter fails closed on device clock rollback', () {
