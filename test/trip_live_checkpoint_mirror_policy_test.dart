@@ -130,6 +130,44 @@ void main() {
     expect(decision.payload, isEmpty);
   });
 
+  test('mirror payload rejects token-like ids and hidden route material', () {
+    for (final patch in [
+      {'recordId': 'pk.public'},
+      {'recordId': 'trip-token'},
+      {'debug': 'runtime token near 35.123456'},
+      {'rawGpsIncluded': true},
+      {
+        'nested': {
+          'route': ['sk.redacted'],
+        },
+      },
+    ]) {
+      final sync = TripTrackingSyncAttemptDecision(
+        status: TripTrackingSyncAttemptStatus.ready,
+        accountTier: TripTrackingSyncAccountTier.paid,
+        sourceValid: true,
+        ownerValid: true,
+        revisionFresh: true,
+        syncDecision: syncAttempt(now: now).syncDecision,
+        freeSyncsRemainingBeforeAttempt: null,
+        mirrorPayload: {
+          ...syncAttempt(now: now).mirrorPayload,
+          ...patch,
+        },
+      );
+      final decision = TripLiveCheckpointMirrorPolicy.evaluate(
+        durability: durabilityDecision(now: now, sync: sync),
+        syncAttempt: sync,
+      );
+
+      expect(
+        decision.status,
+        TripLiveCheckpointMirrorStatus.blockedPayloadShape,
+      );
+      expect(decision.payload, isEmpty);
+    }
+  });
+
   test('mirror payload rejects malformed updated timestamps', () {
     final base = syncAttempt(now: now).mirrorPayload;
     final sync = TripTrackingSyncAttemptDecision(
@@ -252,7 +290,7 @@ void main() {
           'payloadContainsRouteGeometry': true,
           'payloadContainsMapboxData': true,
           'tokensIncluded': true,
-          'debug': 'sk.secret 35.123456,-80.123456',
+          'debug': 'runtime token near 35.123456',
         });
 
     final validation = TripLiveCheckpointMirrorSummaryValidation.fromSummary(

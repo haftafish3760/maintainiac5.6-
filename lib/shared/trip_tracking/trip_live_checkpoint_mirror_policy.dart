@@ -313,7 +313,8 @@ bool _payloadShapeSafe(Map<String, Object?> payload) {
       payload['mirrorCanApplyCalibrationAsGlobalTruth'] != true &&
       payload['poorGpsCalibrationDaysCanUploadAsCalibrationProof'] == false &&
       _safeTripDayKey(payload['tripDayKey']) &&
-      _safeDistance(payload['distanceMiles']);
+      _safeDistance(payload['distanceMiles']) &&
+      !_payloadHasForbiddenMaterial(payload);
 }
 
 TripLiveCheckpointMirrorStatus? _safeStatus(Object? value) {
@@ -329,7 +330,8 @@ bool _looksSensitive(Object? value) {
   final clean = value.trim();
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
-      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
+      clean.toLowerCase().contains('token') ||
+      RegExp(r'-?\d{1,3}\.\d{5,}').hasMatch(clean);
 }
 
 String? _mirrorStatusBoundaryRisk(Map<String, Object?> summary) {
@@ -358,7 +360,10 @@ bool _safeIdentifier(Object? value, {required int maxLength}) {
   if (clean.isEmpty ||
       clean != value ||
       clean.length > maxLength ||
-      clean.contains(':')) {
+      clean.contains(':') ||
+      clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.toLowerCase().contains('token')) {
     return false;
   }
   return RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean);
@@ -385,6 +390,33 @@ bool _safeDistance(Object? value) {
   if (value == null) return true;
   if (value is! num || !value.isFinite) return false;
   return value >= 0 && value <= 2500;
+}
+
+bool _payloadHasForbiddenMaterial(Object? value) {
+  if (value is String) return _looksSensitive(value);
+  if (value is Map) {
+    for (final entry in value.entries) {
+      final key = entry.key.toString();
+      if (const {
+            'rawGpsIncluded',
+            'preciseLocationIncluded',
+            'routeGeometryIncluded',
+            'mapboxDataIncluded',
+            'tokensIncluded',
+          }.contains(key) &&
+          entry.value != false &&
+          entry.value != null) {
+        return true;
+      }
+      if (_payloadHasForbiddenMaterial(entry.value)) return true;
+    }
+  }
+  if (value is Iterable) {
+    for (final item in value) {
+      if (_payloadHasForbiddenMaterial(item)) return true;
+    }
+  }
+  return false;
 }
 
 String _safeReason(String value) {
