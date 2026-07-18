@@ -10,6 +10,8 @@ enum MapboxExternalFailureCode {
   invalidCoordinate,
   invalidDistance,
   invalidDuration,
+  invalidMatrixShape,
+  noReachableMatrixCells,
 }
 
 class MapboxExternalValidationFailure {
@@ -79,6 +81,56 @@ class MapboxRouteValidationResult {
   final List<MapboxExternalValidationFailure> failures;
 
   bool get isAccepted => candidates.isNotEmpty && failures.isEmpty;
+}
+
+class MapboxValidatedMatrixCell {
+  const MapboxValidatedMatrixCell({
+    required this.row,
+    required this.column,
+    required this.durationSeconds,
+    required this.distanceMeters,
+  });
+
+  final int row;
+  final int column;
+  final double? durationSeconds;
+  final double? distanceMeters;
+
+  bool get isReachable => durationSeconds != null;
+}
+
+class MapboxMatrixValidationResult {
+  const MapboxMatrixValidationResult._({
+    required this.cells,
+    required this.failures,
+  });
+
+  factory MapboxMatrixValidationResult.accepted(
+    List<MapboxValidatedMatrixCell> cells,
+  ) => MapboxMatrixValidationResult._(
+    cells: List.unmodifiable(cells),
+    failures: const [],
+  );
+
+  factory MapboxMatrixValidationResult.rejected(
+    MapboxExternalValidationFailure failure,
+  ) => MapboxMatrixValidationResult._(cells: const [], failures: [failure]);
+
+  final List<MapboxValidatedMatrixCell> cells;
+  final List<MapboxExternalValidationFailure> failures;
+
+  bool get isAccepted => cells.isNotEmpty && failures.isEmpty;
+  int get reachableCellCount => cells.where((cell) => cell.isReachable).length;
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'accepted': isAccepted,
+    'reachableCellCount': reachableCellCount,
+    'cellCount': cells.length,
+    'coordinatesIncluded': false,
+    'tokensIncluded': false,
+    'odometerAuthoritative': false,
+  };
 }
 
 class MapboxExternalRouteValidator {
@@ -240,6 +292,181 @@ class MapboxExternalRouteValidator {
     return reportedDistanceMeters >= lowerBound &&
         reportedDistanceMeters <= upperBound;
   }
+}
+
+class MapboxExternalMatrixValidator {
+  const MapboxExternalMatrixValidator._();
+
+  static const int maximumMatrixRows = 25;
+  static const int maximumMatrixColumns = 25;
+
+  static MapboxMatrixValidationResult validateMatrixLikeResponse({
+    required int httpStatus,
+    required Object? decodedBody,
+  }) {
+    final commonFailure = _validateCommonMapboxEnvelope(
+      httpStatus: httpStatus,
+      decodedBody: decodedBody,
+    );
+    if (commonFailure != null) {
+      return MapboxMatrixValidationResult.rejected(commonFailure);
+    }
+    final body = decodedBody as Map;
+    final durations = body['durations'];
+    if (durations is! List || durations.isEmpty) {
+      return MapboxMatrixValidationResult.rejected(
+        const MapboxExternalValidationFailure(
+          MapboxExternalFailureCode.invalidMatrixShape,
+          'mapbox_matrix_durations_missing',
+        ),
+      );
+    }
+    if (durations.length > maximumMatrixRows) {
+      return MapboxMatrixValidationResult.rejected(
+        const MapboxExternalValidationFailure(
+          MapboxExternalFailureCode.invalidMatrixShape,
+          'mapbox_matrix_rows_exceeded',
+        ),
+      );
+    }
+    final distances = body['distances'];
+    if (distances != null &&
+        (distances is! List || distances.length != durations.length)) {
+      return MapboxMatrixValidationResult.rejected(
+        const MapboxExternalValidationFailure(
+          MapboxExternalFailureCode.invalidMatrixShape,
+          'mapbox_matrix_distance_shape_invalid',
+        ),
+      );
+    }
+    final cells = <MapboxValidatedMatrixCell>[];
+    int? expectedColumns;
+    var reachableCells = 0;
+    for (var rowIndex = 0; rowIndex < durations.length; rowIndex += 1) {
+      final durationRow = durations[rowIndex];
+      if (durationRow is! List || durationRow.isEmpty) {
+        return MapboxMatrixValidationResult.rejected(
+          const MapboxExternalValidationFailure(
+            MapboxExternalFailureCode.invalidMatrixShape,
+            'mapbox_matrix_duration_row_invalid',
+          ),
+        );
+      }
+      expectedColumns ??= durationRow.length;
+      if (durationRow.length != expectedColumns ||
+          durationRow.length > maximumMatrixColumns) {
+        return MapboxMatrixValidationResult.rejected(
+          const MapboxExternalValidationFailure(
+            MapboxExternalFailureCode.invalidMatrixShape,
+            'mapbox_matrix_columns_invalid',
+          ),
+        );
+      }
+      final distanceRow = distances == null ? null : distances[rowIndex];
+      if (distanceRow != null &&
+          (distanceRow is! List || distanceRow.length != durationRow.length)) {
+        return MapboxMatrixValidationResult.rejected(
+          const MapboxExternalValidationFailure(
+            MapboxExternalFailureCode.invalidMatrixShape,
+            'mapbox_matrix_distance_row_invalid',
+          ),
+        );
+      }
+      for (
+        var columnIndex = 0;
+        columnIndex < durationRow.length;
+        columnIndex += 1
+      ) {
+        final duration = _nullableBoundedNumber(
+          durationRow[columnIndex],
+          maximum: MapboxExternalRouteValidator.maximumReasonableRouteSeconds,
+        );
+        if (duration == _invalidNullableNumber) {
+          return MapboxMatrixValidationResult.rejected(
+            const MapboxExternalValidationFailure(
+              MapboxExternalFailureCode.invalidDuration,
+              'mapbox_matrix_duration_invalid',
+            ),
+          );
+        }
+        final distance = distanceRow == null
+            ? null
+            : _nullableBoundedNumber(
+                distanceRow[columnIndex],
+                maximum:
+                    MapboxExternalRouteValidator.maximumReasonableRouteMeters,
+              );
+        if (distance == _invalidNullableNumber) {
+          return MapboxMatrixValidationResult.rejected(
+            const MapboxExternalValidationFailure(
+              MapboxExternalFailureCode.invalidDistance,
+              'mapbox_matrix_distance_invalid',
+            ),
+          );
+        }
+        if (duration != null) reachableCells += 1;
+        cells.add(
+          MapboxValidatedMatrixCell(
+            row: rowIndex,
+            column: columnIndex,
+            durationSeconds: duration,
+            distanceMeters: distance,
+          ),
+        );
+      }
+    }
+    if (reachableCells == 0) {
+      return MapboxMatrixValidationResult.rejected(
+        const MapboxExternalValidationFailure(
+          MapboxExternalFailureCode.noReachableMatrixCells,
+          'mapbox_matrix_no_reachable_cells',
+        ),
+      );
+    }
+    return MapboxMatrixValidationResult.accepted(cells);
+  }
+}
+
+MapboxExternalValidationFailure? _validateCommonMapboxEnvelope({
+  required int httpStatus,
+  required Object? decodedBody,
+}) {
+  if (httpStatus == MapboxExternalRouteValidator.rateLimitStatus) {
+    return const MapboxExternalValidationFailure(
+      MapboxExternalFailureCode.rateLimited,
+      'mapbox_rate_limited',
+    );
+  }
+  if (httpStatus < MapboxExternalRouteValidator.minimumHttpStatus ||
+      httpStatus > MapboxExternalRouteValidator.maximumHttpStatus) {
+    return const MapboxExternalValidationFailure(
+      MapboxExternalFailureCode.httpFailure,
+      'mapbox_http_failure',
+    );
+  }
+  if (decodedBody is! Map) {
+    return const MapboxExternalValidationFailure(
+      MapboxExternalFailureCode.malformedResponse,
+      'mapbox_response_not_object',
+    );
+  }
+  if (decodedBody['code'] != 'Ok') {
+    return const MapboxExternalValidationFailure(
+      MapboxExternalFailureCode.malformedResponse,
+      'mapbox_service_code_not_ok',
+    );
+  }
+  return null;
+}
+
+const _invalidNullableNumber = -1.0;
+
+double? _nullableBoundedNumber(Object? value, {required double maximum}) {
+  if (value == null) return null;
+  if (value is! num || !value.isFinite || value < 0 || value > maximum) {
+    return _invalidNullableNumber;
+  }
+  return value.toDouble();
 }
 
 double _distanceMeters(
