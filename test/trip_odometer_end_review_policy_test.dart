@@ -283,6 +283,8 @@ TripOdometerUsageAnomalySignal usageSignal({
     currentOdometerMiles: 180,
     averageDailyMiles: 40,
     reviewThresholdMiles: 100,
+    ignoredHistoryRecordCount: 0,
+    anomalyAlertsEnabled: true,
     reasonCode: reasonCode,
   );
 }

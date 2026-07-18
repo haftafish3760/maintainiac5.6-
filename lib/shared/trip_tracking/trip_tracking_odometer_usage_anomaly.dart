@@ -16,6 +16,8 @@ class TripOdometerUsageAnomalySignal {
     required this.currentOdometerMiles,
     required this.averageDailyMiles,
     required this.reviewThresholdMiles,
+    required this.ignoredHistoryRecordCount,
+    required this.anomalyAlertsEnabled,
     required this.reasonCode,
   });
 
@@ -24,6 +26,8 @@ class TripOdometerUsageAnomalySignal {
   final double currentOdometerMiles;
   final double averageDailyMiles;
   final double reviewThresholdMiles;
+  final int ignoredHistoryRecordCount;
+  final bool anomalyAlertsEnabled;
   final String reasonCode;
 
   /// This signal can prompt a driver to review a surprising mileage entry, but
@@ -37,12 +41,16 @@ class TripOdometerUsageAnomalySignal {
     'schemaVersion': 1,
     'status': status.name,
     'reviewedDayCount': reviewedDayCount < 0 ? 0 : reviewedDayCount,
+    'ignoredHistoryRecordCount': ignoredHistoryRecordCount < 0
+        ? 0
+        : ignoredHistoryRecordCount,
     'currentOdometerMiles': _safeRoundedMiles(currentOdometerMiles),
     'averageDailyMiles': _safeRoundedMiles(averageDailyMiles),
     'reviewThresholdMiles': _safeRoundedMiles(reviewThresholdMiles),
     'reasonCode': _safeUsageReason(reasonCode),
     'shouldPromptUser': shouldPromptUser,
     'canAutoCorrectOdometer': false,
+    'anomalyAlertsEnabled': anomalyAlertsEnabled,
     'manualReviewRequiredBeforeChange': shouldPromptUser,
     'odometerRemainsCanonical': true,
     'gpsCanReplaceOdometer': false,
@@ -57,6 +65,7 @@ class TripOdometerUsageAnomalySignal {
     'rawHistoryIncluded': false,
     'rawTripRecordsIncluded': false,
     'rawLocationIncluded': false,
+    'tokensIncluded': false,
   };
 
   static TripOdometerUsageAnomalySignal evaluate({
@@ -68,6 +77,8 @@ class TripOdometerUsageAnomalySignal {
     double reviewMultiplier = 2.5,
     double minimumReviewBufferMiles = 50,
     double maximumTrustedReviewedDayMiles = 1200,
+    int maximumHistoryRecords = 366,
+    bool anomalyAlertsEnabled = true,
   }) {
     if (!currentOdometerMiles.isFinite ||
         currentOdometerMiles < 0 ||
@@ -77,25 +88,49 @@ class TripOdometerUsageAnomalySignal {
         !minimumReviewBufferMiles.isFinite ||
         minimumReviewBufferMiles < 0 ||
         !maximumTrustedReviewedDayMiles.isFinite ||
-        maximumTrustedReviewedDayMiles <= 0) {
-      return const TripOdometerUsageAnomalySignal(
+        maximumTrustedReviewedDayMiles <= 0 ||
+        maximumHistoryRecords <= 0) {
+      return TripOdometerUsageAnomalySignal(
         status: TripOdometerUsageAnomalyStatus.invalid,
         reviewedDayCount: 0,
         currentOdometerMiles: 0,
         averageDailyMiles: 0,
         reviewThresholdMiles: 0,
+        ignoredHistoryRecordCount: 0,
+        anomalyAlertsEnabled: anomalyAlertsEnabled,
         reasonCode: 'invalid_usage_anomaly_input',
+      );
+    }
+
+    if (!anomalyAlertsEnabled) {
+      return TripOdometerUsageAnomalySignal(
+        status: TripOdometerUsageAnomalyStatus.normal,
+        reviewedDayCount: 0,
+        currentOdometerMiles: currentOdometerMiles,
+        averageDailyMiles: 0,
+        reviewThresholdMiles: 0,
+        ignoredHistoryRecordCount: 0,
+        anomalyAlertsEnabled: false,
+        reasonCode: 'odometer_anomaly_alerts_disabled',
       );
     }
 
     final requestedVehicleId = vehicleId?.trim();
     final trustedNowUtc = nowUtc?.toUtc();
     final dailyMiles = <String, double>{};
+    var inspectedRecords = 0;
+    var ignoredRecords = 0;
     for (final review in history) {
+      if (inspectedRecords >= maximumHistoryRecords) {
+        ignoredRecords += 1;
+        continue;
+      }
+      inspectedRecords += 1;
       if (!review.isOdometerConfirmed ||
           !review.hasValidTimeline ||
           (trustedNowUtc != null &&
               review.odometerConfirmedAt!.toUtc().isAfter(trustedNowUtc))) {
+        ignoredRecords += 1;
         continue;
       }
       final reviewVehicleId = review.vehicleId.trim();
@@ -103,6 +138,7 @@ class TripOdometerUsageAnomalySignal {
           (requestedVehicleId != null &&
               requestedVehicleId.isNotEmpty &&
               reviewVehicleId != requestedVehicleId)) {
+        ignoredRecords += 1;
         continue;
       }
       final miles = (review.confirmedEndingOdometer! - review.startingOdometer)
@@ -110,6 +146,7 @@ class TripOdometerUsageAnomalySignal {
       if (!miles.isFinite ||
           miles < 0 ||
           miles > maximumTrustedReviewedDayMiles) {
+        ignoredRecords += 1;
         continue;
       }
       final dayKey = _usageDayKey(review.startedAt.toUtc());
@@ -127,6 +164,8 @@ class TripOdometerUsageAnomalySignal {
         currentOdometerMiles: currentOdometerMiles,
         averageDailyMiles: 0,
         reviewThresholdMiles: 0,
+        ignoredHistoryRecordCount: ignoredRecords,
+        anomalyAlertsEnabled: true,
         reasonCode: 'needs_more_reviewed_days_for_usage_anomaly',
       );
     }
@@ -155,6 +194,8 @@ class TripOdometerUsageAnomalySignal {
       currentOdometerMiles: currentOdometerMiles,
       averageDailyMiles: average,
       reviewThresholdMiles: shouldReviewLow ? lowThreshold : threshold,
+      ignoredHistoryRecordCount: ignoredRecords,
+      anomalyAlertsEnabled: true,
       reasonCode: shouldReviewHigh
           ? 'unusually_high_odometer_delta'
           : shouldReviewLow
@@ -193,6 +234,7 @@ String _safeUsageReason(String value) {
   return switch (value) {
     'invalid_usage_anomaly_input' => value,
     'needs_more_reviewed_days_for_usage_anomaly' => value,
+    'odometer_anomaly_alerts_disabled' => value,
     'unusually_high_odometer_delta' => value,
     'unusually_low_odometer_delta' => value,
     'odometer_usage_within_review_threshold' => value,

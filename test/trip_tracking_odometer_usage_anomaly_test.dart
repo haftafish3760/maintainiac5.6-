@@ -24,12 +24,14 @@ void main() {
         'schemaVersion': 1,
         'status': 'reviewRecommended',
         'reviewedDayCount': 7,
+        'ignoredHistoryRecordCount': 0,
         'currentOdometerMiles': 180.0,
         'averageDailyMiles': 40.0,
         'reviewThresholdMiles': 100.0,
         'reasonCode': 'unusually_high_odometer_delta',
         'shouldPromptUser': true,
         'canAutoCorrectOdometer': false,
+        'anomalyAlertsEnabled': true,
         'manualReviewRequiredBeforeChange': true,
         'odometerRemainsCanonical': true,
         'gpsCanReplaceOdometer': false,
@@ -44,6 +46,7 @@ void main() {
         'rawHistoryIncluded': false,
         'rawTripRecordsIncluded': false,
         'rawLocationIncluded': false,
+        'tokensIncluded': false,
       });
     },
   );
@@ -78,6 +81,22 @@ void main() {
     expect(summary['canAutoCorrectOdometer'], isFalse);
     expect(summary['odometerRemainsCanonical'], isTrue);
     expect(summary['remoteTotalsCanReplaceOdometer'], isFalse);
+  });
+
+  test('usage anomaly respects user opt-in before prompting', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 180,
+      history: _history(dailyMiles: 40),
+      vehicleId: 'vehicle_1',
+      anomalyAlertsEnabled: false,
+    );
+    final summary = signal.toSafeDashboardMap();
+
+    expect(signal.status, TripOdometerUsageAnomalyStatus.normal);
+    expect(signal.shouldPromptUser, isFalse);
+    expect(signal.reasonCode, 'odometer_anomaly_alerts_disabled');
+    expect(summary['anomalyAlertsEnabled'], isFalse);
+    expect(summary['manualReviewRequiredBeforeChange'], isFalse);
   });
 
   test('usage anomaly waits for enough confirmed reviewed days', () {
@@ -119,6 +138,7 @@ void main() {
     );
 
     expect(signal.reviewedDayCount, 7);
+    expect(signal.ignoredHistoryRecordCount, 2);
     expect(signal.averageDailyMiles, 40);
     expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
   });
@@ -148,6 +168,7 @@ void main() {
     );
 
     expect(signal.reviewedDayCount, 7);
+    expect(signal.ignoredHistoryRecordCount, 1);
     expect(signal.averageDailyMiles, 40);
     expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
   });
@@ -176,6 +197,19 @@ void main() {
 
     expect(signal.reviewedDayCount, 7);
     expect(signal.averageDailyMiles, 40);
+    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+  });
+
+  test('usage anomaly bounds oversized imported history', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 400,
+      history: _history(dailyMiles: 40, days: 14),
+      vehicleId: 'vehicle_1',
+      maximumHistoryRecords: 7,
+    );
+
+    expect(signal.reviewedDayCount, 7);
+    expect(signal.ignoredHistoryRecordCount, 7);
     expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
   });
 
