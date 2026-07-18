@@ -226,6 +226,41 @@ void main() {
       contains('summary_contains_sensitive_heartbeat_material'),
     );
   });
+
+  test('heartbeat summary validation rejects status action mismatch', () {
+    final stale = evaluate(
+      now,
+      lastHeartbeatUtc: now.subtract(const Duration(minutes: 4)),
+    ).toSafeSummary();
+    final interrupted = evaluate(
+      now,
+      lastHeartbeatUtc: now.subtract(const Duration(minutes: 12)),
+    ).toSafeSummary();
+
+    final forgedStale =
+        TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
+          ...stale,
+          'action': TripTrackingHeartbeatWatchdogAction.continueTracking.name,
+          'shouldRetryNativeTracking': false,
+        });
+    final forgedInterrupted =
+        TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
+          ...interrupted,
+          'requiresUserReview': false,
+          'targetLifecycle': TripTrackingSessionLifecycleState.active.name,
+        });
+
+    expect(forgedStale.isRenderable, isFalse);
+    expect(forgedInterrupted.isRenderable, isFalse);
+    expect(
+      forgedStale.reasons,
+      contains('heartbeat_status_conflicts_with_action'),
+    );
+    expect(
+      forgedInterrupted.reasons,
+      contains('heartbeat_status_conflicts_with_action'),
+    );
+  });
 }
 
 TripTrackingHeartbeatWatchdogDecision evaluate(

@@ -165,6 +165,8 @@ class TripTrackingHeartbeatWatchdogSummaryValidation {
         summary['cloudFunctionCanFillHeartbeatGap'] != false) {
       reasons.add('remote_can_control_heartbeat_gap');
     }
+    final boundaryRisk = _heartbeatStatusBoundaryRisk(summary);
+    if (boundaryRisk != null) reasons.add(boundaryRisk);
     if (summary['rawLocationIncluded'] != false ||
         summary['preciseTimestampIncluded'] != false ||
         summary['tokensIncluded'] != false ||
@@ -329,6 +331,48 @@ TripTrackingSessionLifecycleState? _safeLifecycle(Object? value) {
     if (lifecycle.name == value) return lifecycle;
   }
   return null;
+}
+
+String? _heartbeatStatusBoundaryRisk(Map<String, Object?> summary) {
+  final status = _safeStatus(summary['status']);
+  final action = _safeAction(summary['action']);
+  final lifecycle = _safeLifecycle(summary['targetLifecycle']);
+  final retry = summary['shouldRetryNativeTracking'];
+  final review = summary['requiresUserReview'];
+  if (status == null ||
+      action == null ||
+      lifecycle == null ||
+      retry is! bool ||
+      review is! bool) {
+    return null;
+  }
+  final invalid = switch (status) {
+    TripTrackingHeartbeatWatchdogStatus.healthy =>
+      action != TripTrackingHeartbeatWatchdogAction.continueTracking ||
+          retry ||
+          review,
+    TripTrackingHeartbeatWatchdogStatus.staleButRecoverable =>
+      action != TripTrackingHeartbeatWatchdogAction.markDegraded ||
+          lifecycle != TripTrackingSessionLifecycleState.degraded ||
+          !retry ||
+          review,
+    TripTrackingHeartbeatWatchdogStatus.interruptedNeedsRecovery =>
+      action != TripTrackingHeartbeatWatchdogAction.markInterrupted ||
+          lifecycle != TripTrackingSessionLifecycleState.interrupted ||
+          !retry ||
+          !review,
+    TripTrackingHeartbeatWatchdogStatus.pausedNoop =>
+      action != TripTrackingHeartbeatWatchdogAction.preservePaused ||
+          lifecycle != TripTrackingSessionLifecycleState.paused ||
+          retry,
+    TripTrackingHeartbeatWatchdogStatus.terminalProtected =>
+      action != TripTrackingHeartbeatWatchdogAction.protectTerminal || retry,
+    TripTrackingHeartbeatWatchdogStatus.blockedInvalidClock =>
+      action != TripTrackingHeartbeatWatchdogAction.ignoreInvalidClock ||
+          retry ||
+          !review,
+  };
+  return invalid ? 'heartbeat_status_conflicts_with_action' : null;
 }
 
 bool _looksSensitive(Object? value) {
