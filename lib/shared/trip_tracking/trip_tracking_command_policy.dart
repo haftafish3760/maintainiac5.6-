@@ -116,8 +116,13 @@ class TripTrackingCommandDecision {
         reasonCode == 'stop_review_pending',
     'requiresOdometerReview': requiresOdometerReview,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'gpsDistanceCanReplaceOdometerSilently': false,
     'mapRouteCanReplaceOdometerSilently': false,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'commandCanApplyCalibration': false,
+    'commandCanCreateOfficialMileage': false,
     'localSessionRequired': _requiresLocalSession(command),
     'canUploadMirror': canUploadMirror,
     'hiveRemainsOperationalSourceOfTruth': true,
@@ -187,8 +192,13 @@ class TripTrackingCommandSummaryValidation {
       'requiresStopReview',
       'requiresOdometerReview',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'gpsDistanceCanReplaceOdometerSilently',
       'mapRouteCanReplaceOdometerSilently',
+      'calibrationRequiresTrustedGpsWindow',
+      'poorGpsDaysExcludedFromCalibration',
+      'commandCanApplyCalibration',
+      'commandCanCreateOfficialMileage',
       'localSessionRequired',
       'canUploadMirror',
       'hiveRemainsOperationalSourceOfTruth',
@@ -221,8 +231,13 @@ class TripTrackingCommandSummaryValidation {
     if (summary['createsOfficialStop'] != false ||
         summary['walkingEvidenceCanOnlySuggestReview'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['gpsDistanceCanReplaceOdometerSilently'] != false ||
-        summary['mapRouteCanReplaceOdometerSilently'] != false) {
+        summary['mapRouteCanReplaceOdometerSilently'] != false ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['commandCanApplyCalibration'] != false ||
+        summary['commandCanCreateOfficialMileage'] != false) {
       reasons.add('command_can_create_trip_truth');
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||

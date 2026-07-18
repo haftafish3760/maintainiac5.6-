@@ -230,6 +230,11 @@ class TripTrackingSettings {
           safe.gpsOdometerCalibrationAssistEnabled,
       'gpsOdometerCalibrationRequiresUserOptIn': true,
       'gpsOdometerCalibrationCanOverwriteConfirmedOdometer': false,
+      'odometerIsGlobalTruth': true,
+      'calibrationRequiresTrustedGpsWindow': true,
+      'poorGpsDaysExcludedFromCalibration': true,
+      'settingsCanApplyCalibration': false,
+      'settingsCanCreateOfficialMileage': false,
       'mapPreviewEnabled': safe.mapPreviewEnabled,
       'mapRouteHistorySavingEnabled': safe.mapRouteHistorySavingEnabled,
       'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(

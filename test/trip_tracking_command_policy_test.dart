@@ -146,8 +146,13 @@ void main() {
     expect(decision.isAllowed, isTrue);
     expect(decision.requiresOdometerReview, isTrue);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['gpsDistanceCanReplaceOdometerSilently'], isFalse);
     expect(safe['mapRouteCanReplaceOdometerSilently'], isFalse);
+    expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(safe['commandCanApplyCalibration'], isFalse);
+    expect(safe['commandCanCreateOfficialMileage'], isFalse);
   });
 
   test(
@@ -249,8 +254,13 @@ void main() {
           'createsOfficialStop': true,
           'walkingEvidenceCanOnlySuggestReview': false,
           'odometerRemainsOfficialMileageTruth': false,
+          'odometerIsGlobalTruth': false,
           'gpsDistanceCanReplaceOdometerSilently': true,
           'mapRouteCanReplaceOdometerSilently': true,
+          'calibrationRequiresTrustedGpsWindow': false,
+          'poorGpsDaysExcludedFromCalibration': false,
+          'commandCanApplyCalibration': true,
+          'commandCanCreateOfficialMileage': true,
           'hiveRemainsOperationalSourceOfTruth': false,
           'firestoreMirrorOnly': false,
           'remoteTotalsCanonical': true,

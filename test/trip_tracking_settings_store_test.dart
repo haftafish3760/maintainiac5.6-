@@ -100,6 +100,11 @@ void main() {
     expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(summary['freeUserControlsDailyMapStorageBudget'], isTrue);
     expect(summary['odometerRemainsCanonical'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['settingsCanApplyCalibration'], isFalse);
+    expect(summary['settingsCanCreateOfficialMileage'], isFalse);
     expect(summary['rawLocationIncluded'], isFalse);
     expect(summary['rawMapRouteIncluded'], isFalse);
     expect(summary['mapboxGeometryIncluded'], isFalse);
