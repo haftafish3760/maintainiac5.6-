@@ -167,4 +167,64 @@ void main() {
     expect(summary['stopRequiresUserReview'], isFalse);
     expect(summary['stopCanCreateOfficialStop'], isFalse);
   });
+
+  test('partner delivery with phone in vehicle stays manual vehicle-only', () {
+    final result = replayTrip(
+      scenarios.deliveryPartnerWalksWhilePhoneStaysInVehicle(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.count(TripSampleDisposition.excludedWalking), isZero);
+    expect(result.count(TripSampleDisposition.rejectedDrift), greaterThan(6));
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['stopShouldSurfaceManualFallback'], isTrue);
+    expect(summary['mapsRequiredForStopReview'], isFalse);
+  });
+
+  test('fast door drop waits for stronger walking evidence', () {
+    final result = replayTrip(
+      scenarios.fastDoorDropWithTooLittleWalkingEvidence(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.count(TripSampleDisposition.excludedWalking), lessThan(3));
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopCanCreateOfficialStop'], isFalse);
+    expect(summary['officialMileageSource'], 'odometer');
+  });
+
+  test(
+    'contractor long jobsite walk remains review-only and odometer-safe',
+    () {
+      final result = replayTrip(
+        scenarios.contractorLongJobsiteWalkThenDriveAway(),
+        profile: TripTrackingProfile.contractorVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.contractorVehicle,
+      );
+
+      expect(result.needsWalkingReview, isTrue);
+      expect(
+        result.count(TripSampleDisposition.excludedWalking),
+        greaterThan(3),
+      );
+      expect(summary['stopSignal'], 'review_only_stop');
+      expect(summary['stopCanSuggestReview'], isTrue);
+      expect(summary['stopRequiresUserReview'], isTrue);
+      expect(summary['stopCanCreateOfficialStop'], isFalse);
+      expect(summary['officialStopSource'], 'user_review');
+      expect(summary['officialMileageSource'], 'odometer');
+      expect(summary['mapsRequiredForStopReview'], isFalse);
+    },
+  );
 }

@@ -209,6 +209,78 @@ class TripTrackingScenarioLibrary {
     return points;
   }
 
+  List<SimulatedTripPoint> deliveryPartnerWalksWhilePhoneStaysInVehicle() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9992, 22, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9984, 44, speed: 8)),
+    ];
+    for (var index = 0; index < 12; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9984 + ((index.isEven ? 1 : -1) * .000004),
+            62 + (index * 10),
+            speed: 0,
+          ),
+          activity: activity(TripActivity.automotive, 62 + (index * 10)),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9975, 205, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9967, 228, speed: 9)),
+    ]);
+    return points;
+  }
+
+  List<SimulatedTripPoint> fastDoorDropWithTooLittleWalkingEvidence() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9992, 22, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.9984, 44, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99836, 54, speed: 0),
+      activity: activity(TripActivity.walking, 54),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99832, 58, speed: 0),
+      activity: activity(TripActivity.walking, 58),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9974, 82, speed: 9)),
+  ];
+
+  List<SimulatedTripPoint> contractorLongJobsiteWalkThenDriveAway() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.999, 20, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.998, 40, speed: 8)),
+    SimulatedTripPoint(
+      roadPoint(-79.99795, 60),
+      activity: activity(TripActivity.walking, 60),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99784, 80),
+      activity: activity(TripActivity.walking, 80),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99772, 100),
+      activity: activity(TripActivity.walking, 100),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99755, 120),
+      activity: activity(TripActivity.walking, 120),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99744, 145),
+      activity: activity(TripActivity.walking, 145),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.99730, 170),
+      activity: activity(TripActivity.walking, 170),
+    ),
+    SimulatedTripPoint(roadPoint(-79.9968, 210, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.9958, 234, speed: 8)),
+  ];
+
   List<SimulatedTripPoint> weakWalkingFalsePositiveWhileDriving() => [
     SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
     SimulatedTripPoint(roadPoint(-79.999, 20, speed: 10)),
