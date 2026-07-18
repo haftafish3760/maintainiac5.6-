@@ -65,8 +65,16 @@ void main() {
     );
     expect(broadcast.displayValue, '0001003');
     expect(safe['globalOdometerScopeMustNotifyListeners'], isTrue);
+    expect(safe['liveUiMustRefreshOnProjectionChange'], isTrue);
+    expect(safe['singleLiveOdometerSnapshotRequired'], isTrue);
+    expect(safe['allDashboardSurfacesUseSameSnapshot'], isTrue);
+    expect(safe['surfaceSpecificMileageCalculationAllowed'], isFalse);
     expect(safe['dashboardActiveVehicleBlockUsesLiveProjection'], isTrue);
+    expect(safe['activeVehicleBlockUsesLiveProjection'], isTrue);
+    expect(safe['vehicleProfileUsesLiveProjection'], isTrue);
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
+    expect(safe['fleetDashboardUsesLiveProjection'], isTrue);
+    expect(safe['standardDashboardUsesLiveProjection'], isTrue);
     expect(safe['crossDashboardLiveOdometerReady'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
     expect(safe['confirmedDisplayValueValidated'], isTrue);

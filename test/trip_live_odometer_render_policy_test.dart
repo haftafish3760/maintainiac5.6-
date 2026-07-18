@@ -56,11 +56,14 @@ void main() {
     expect(decision.shouldNotifyListeners, isTrue);
     expect(decision.displayValue, '0001003');
     expect(safe['liveUiMustRefreshOnProjectionChange'], isTrue);
+    expect(safe['singleLiveOdometerSnapshotRequired'], isTrue);
     expect(safe['allDashboardSurfacesUseSameSnapshot'], isTrue);
+    expect(safe['surfaceSpecificMileageCalculationAllowed'], isFalse);
     expect(safe['activeVehicleBlockUsesLiveProjection'], isTrue);
     expect(safe['vehicleProfileUsesLiveProjection'], isTrue);
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
     expect(safe['fleetDashboardUsesLiveProjection'], isTrue);
+    expect(safe['standardDashboardUsesLiveProjection'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
     expect(safe['confirmedDisplayValueValidated'], isTrue);
   });

@@ -123,6 +123,18 @@ List<String> _validateSharedPayload(
   if (payload['advisoryOnly'] != true) {
     reasons.add('live_odometer_not_advisory_only');
   }
+  if (payload['liveUiMustRefreshOnProjectionChange'] != true ||
+      payload['singleLiveOdometerSnapshotRequired'] != true ||
+      payload['allDashboardSurfacesUseSameSnapshot'] != true ||
+      payload['surfaceSpecificMileageCalculationAllowed'] != false ||
+      payload['activeVehicleBlockUsesLiveProjection'] != true ||
+      payload['vehicleProfileUsesLiveProjection'] != true ||
+      payload['contractorDashboardUsesLiveProjection'] != true ||
+      payload['fleetDashboardUsesLiveProjection'] != true ||
+      payload['standardDashboardUsesLiveProjection'] != true ||
+      payload['calendarReviewUsesConfirmedTruth'] != true) {
+    reasons.add('live_odometer_surface_contract_missing');
+  }
   if (payload['confirmedOdometerRemainsCanonical'] != true) {
     reasons.add('confirmed_odometer_not_canonical');
   }

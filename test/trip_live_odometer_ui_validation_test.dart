@@ -85,6 +85,32 @@ void main() {
   });
 
   test(
+    'surface-specific odometer math and stale surface contracts fail closed',
+    () {
+      final validation = TripLiveOdometerUiValidation.fromRenderMap(
+        safeRenderMap()..addAll({
+          'liveUiMustRefreshOnProjectionChange': false,
+          'singleLiveOdometerSnapshotRequired': false,
+          'allDashboardSurfacesUseSameSnapshot': false,
+          'surfaceSpecificMileageCalculationAllowed': true,
+          'activeVehicleBlockUsesLiveProjection': false,
+          'vehicleProfileUsesLiveProjection': false,
+          'contractorDashboardUsesLiveProjection': false,
+          'fleetDashboardUsesLiveProjection': false,
+          'standardDashboardUsesLiveProjection': false,
+          'calendarReviewUsesConfirmedTruth': false,
+        }),
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('live_odometer_surface_contract_missing'),
+      );
+    },
+  );
+
+  test(
     'identifiers, sensitive material, and unsafe rendering flags are blocked',
     () {
       final validation = TripLiveOdometerUiValidation.fromRenderMap(
