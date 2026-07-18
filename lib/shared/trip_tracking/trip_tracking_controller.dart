@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
+import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_firebase_bridge.dart';
@@ -37,10 +38,9 @@ class TripTrackingController extends ChangeNotifier {
        _policy = policy,
        _cloudMirror = cloudMirror,
        _durableRecordBridge = durableRecordBridge,
-       _gpsAssistanceCalibrationMultiplier =
-           _safeGpsAssistanceCalibrationMultiplier(
-             gpsAssistanceCalibrationMultiplier,
-           );
+       _calibrationState = TripTrackingCalibrationState.initial(
+         gpsAssistanceCalibrationMultiplier,
+       );
 
   final TripTrackingSessionStore _sessionStore;
   final GlobalOdometerController _odometer;
@@ -48,7 +48,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingPolicy _policy;
   final TripTrackingCloudMirror _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
-  double _gpsAssistanceCalibrationMultiplier;
+  TripTrackingCalibrationState _calibrationState;
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
   TripLiveOdometerProjection? _projection;
@@ -66,7 +66,6 @@ class TripTrackingController extends ChangeNotifier {
   String? _platformError;
   String? _cloudMirrorError;
   String? _durableRecordError;
-  bool _gpsAssistanceCalibrationEnabled = false;
   TripActivityObservation? _latestActivity;
   TripTrackingPlatformCapabilities? _lastKnownCapabilities;
 
@@ -95,8 +94,7 @@ class TripTrackingController extends ChangeNotifier {
   String? get cloudMirrorError => _cloudMirrorError;
   String? get durableRecordError => _durableRecordError;
   bool get hasDurableRecordBridge => _durableRecordBridge != null;
-  double get gpsAssistanceCalibrationMultiplier =>
-      _gpsAssistanceCalibrationMultiplier;
+  double get gpsAssistanceCalibrationMultiplier => _calibrationState.multiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
       _lastKnownCapabilities;
   TripTrackingReviewRecord? get latestReview =>
@@ -118,13 +116,12 @@ class TripTrackingController extends ChangeNotifier {
   );
 
   void refreshGpsAssistanceCalibration({required bool enabled}) {
-    _gpsAssistanceCalibrationEnabled = enabled;
-    final next = enabled
-        ? odometerCalibrationSignal().gpsAssistanceCalibrationMultiplier
-        : 1.0;
-    final safeNext = _safeGpsAssistanceCalibrationMultiplier(next);
-    if (safeNext == _gpsAssistanceCalibrationMultiplier) return;
-    _gpsAssistanceCalibrationMultiplier = safeNext;
+    final next = _calibrationState.refresh(
+      enabled: enabled,
+      signal: odometerCalibrationSignal(),
+    );
+    if (identical(next, _calibrationState)) return;
+    _calibrationState = next;
     notifyListeners();
   }
 
@@ -232,12 +229,9 @@ class TripTrackingController extends ChangeNotifier {
       _platformError = null;
     }
     await _saveDurableReviewedTrip(confirmedReview);
-    if (_gpsAssistanceCalibrationEnabled) {
-      _gpsAssistanceCalibrationMultiplier =
-          _safeGpsAssistanceCalibrationMultiplier(
-            odometerCalibrationSignal().gpsAssistanceCalibrationMultiplier,
-          );
-    }
+    _calibrationState = _calibrationState.refreshEnabled(
+      odometerCalibrationSignal(),
+    );
     final reconciliation = TripOdometerReconciliation.compare(
       review: review,
       confirmedEndingOdometer: confirmedEndingOdometer,
@@ -509,7 +503,7 @@ class TripTrackingController extends ChangeNotifier {
     );
     final estimatedOdometer = projection.updateAcceptedMeters(
       session.engineSnapshot.totalAcceptedMeters,
-      gpsAssistanceCalibrationMultiplier: _gpsAssistanceCalibrationMultiplier,
+      gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
     );
     if (!_odometer.beginLiveTripProjection(
       tripId: session.id,
@@ -700,7 +694,7 @@ class TripTrackingController extends ChangeNotifier {
     if (persistsRecoveryState) {
       final estimatedOdometer = projection.updateAcceptedMeters(
         decision.totalAcceptedMeters,
-        gpsAssistanceCalibrationMultiplier: _gpsAssistanceCalibrationMultiplier,
+        gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       );
       final naturalLifecycleState = _lifecycleAfterDecision(
         session.lifecycleState,
@@ -1382,7 +1376,7 @@ class TripTrackingController extends ChangeNotifier {
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer: projection.updateAcceptedMeters(
         engine.totalAcceptedMeters,
-        gpsAssistanceCalibrationMultiplier: _gpsAssistanceCalibrationMultiplier,
+        gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       ),
       profile: session.profile,
       startedAt: session.startedAt,
@@ -1447,11 +1441,6 @@ class TripTrackingController extends ChangeNotifier {
 bool _isSafeTripTrackingIdentity(String value) {
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   return clean == value && clean.isNotEmpty && clean.length <= 160;
-}
-
-double _safeGpsAssistanceCalibrationMultiplier(double value) {
-  if (!value.isFinite || value <= 0) return 1;
-  return value.clamp(0.8, 1.25).toDouble();
 }
 
 class TripTrackingScope extends InheritedNotifier<TripTrackingController> {
