@@ -42,17 +42,24 @@ class TripOdometerCalibrationPromptDecision {
     'messageToken': _safeMessage(messageToken),
     'calibrationRequiresUserOptIn': true,
     'calibrationRequiresMultipleReviewedTrips': true,
+    'continuousCalibrationAverageRequired': true,
+    'singleDayCalibrationRejected': true,
     'calibrationRequiresReviewedLocalHistory': true,
     'calibrationRequiresVehicleMatchedHistory': true,
     'calibrationRequiresOwnershipValidation': true,
     'calibrationRequiresDaytimeLocalSource': true,
     'calibrationRequiresManualUserConfirmation': true,
+    'calibrationPromptRequiresFreshLocalEvaluation': true,
     'calibrationAppliesToFutureGpsAssistanceOnly': true,
     'calibrationCanRewritePastTrips': false,
     'calibrationCanReplaceConfirmedOdometer': false,
+    'calibrationCanLowerConfirmedOdometer': false,
+    'calibrationCanCreateMaintenanceRecord': false,
     'gpsCanReplaceOdometerSilently': false,
     'mapboxCanReplaceOdometerSilently': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'tirePromptIsAdvisoryOnly': true,
+    'tirePromptDoesNotCreateMaintenanceEntry': true,
     'tireSizeReviewSuggested':
         reason == TripOdometerCalibrationPromptReason.tireOrSpeedometerReview,
     'speedometerCalibrationReviewSuggested':
@@ -63,6 +70,10 @@ class TripOdometerCalibrationPromptDecision {
     'cloudFunctionCanApplyCalibration': false,
     'mapboxCanApplyCalibration': false,
     'importedFileCanApplyCalibration': false,
+    'remoteCalibrationCanEnableSetting': false,
+    'remoteCalibrationCanResetPrompt': false,
+    'mapboxCanTriggerTirePrompt': false,
+    'gpsCanAutoApplyCalibration': false,
     'rawReviewedTripsIncluded': false,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
@@ -96,17 +107,24 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'canDisable',
       'calibrationRequiresUserOptIn',
       'calibrationRequiresMultipleReviewedTrips',
+      'continuousCalibrationAverageRequired',
+      'singleDayCalibrationRejected',
       'calibrationRequiresReviewedLocalHistory',
       'calibrationRequiresVehicleMatchedHistory',
       'calibrationRequiresOwnershipValidation',
       'calibrationRequiresDaytimeLocalSource',
       'calibrationRequiresManualUserConfirmation',
+      'calibrationPromptRequiresFreshLocalEvaluation',
       'calibrationAppliesToFutureGpsAssistanceOnly',
       'calibrationCanRewritePastTrips',
       'calibrationCanReplaceConfirmedOdometer',
+      'calibrationCanLowerConfirmedOdometer',
+      'calibrationCanCreateMaintenanceRecord',
       'gpsCanReplaceOdometerSilently',
       'mapboxCanReplaceOdometerSilently',
       'odometerRemainsOfficialMileageTruth',
+      'tirePromptIsAdvisoryOnly',
+      'tirePromptDoesNotCreateMaintenanceEntry',
       'tireSizeReviewSuggested',
       'speedometerCalibrationReviewSuggested',
       'remoteHistoryCanTriggerPromptWithoutLocalValidation',
@@ -115,6 +133,10 @@ class TripOdometerCalibrationPromptSummaryValidation {
       'cloudFunctionCanApplyCalibration',
       'mapboxCanApplyCalibration',
       'importedFileCanApplyCalibration',
+      'remoteCalibrationCanEnableSetting',
+      'remoteCalibrationCanResetPrompt',
+      'mapboxCanTriggerTirePrompt',
+      'gpsCanAutoApplyCalibration',
       'rawReviewedTripsIncluded',
       'rawGpsIncluded',
       'preciseLocationIncluded',
@@ -129,19 +151,26 @@ class TripOdometerCalibrationPromptSummaryValidation {
     if (summary['canApplyAutomatically'] != false ||
         summary['calibrationRequiresUserOptIn'] != true ||
         summary['calibrationRequiresMultipleReviewedTrips'] != true ||
+        summary['continuousCalibrationAverageRequired'] != true ||
+        summary['singleDayCalibrationRejected'] != true ||
         summary['calibrationRequiresReviewedLocalHistory'] != true ||
         summary['calibrationRequiresVehicleMatchedHistory'] != true ||
         summary['calibrationRequiresOwnershipValidation'] != true ||
         summary['calibrationRequiresDaytimeLocalSource'] != true ||
         summary['calibrationRequiresManualUserConfirmation'] != true ||
+        summary['calibrationPromptRequiresFreshLocalEvaluation'] != true ||
         summary['calibrationAppliesToFutureGpsAssistanceOnly'] != true) {
       reasons.add('calibration_review_boundary_missing');
     }
     if (summary['calibrationCanRewritePastTrips'] != false ||
         summary['calibrationCanReplaceConfirmedOdometer'] != false ||
+        summary['calibrationCanLowerConfirmedOdometer'] != false ||
+        summary['calibrationCanCreateMaintenanceRecord'] != false ||
         summary['gpsCanReplaceOdometerSilently'] != false ||
         summary['mapboxCanReplaceOdometerSilently'] != false ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['tirePromptIsAdvisoryOnly'] != true ||
+        summary['tirePromptDoesNotCreateMaintenanceEntry'] != true) {
       reasons.add('calibration_can_replace_odometer');
     }
     if (summary['remoteHistoryCanTriggerPromptWithoutLocalValidation'] !=
@@ -150,7 +179,11 @@ class TripOdometerCalibrationPromptSummaryValidation {
         summary['firestoreCanApplyCalibration'] != false ||
         summary['cloudFunctionCanApplyCalibration'] != false ||
         summary['mapboxCanApplyCalibration'] != false ||
-        summary['importedFileCanApplyCalibration'] != false) {
+        summary['importedFileCanApplyCalibration'] != false ||
+        summary['remoteCalibrationCanEnableSetting'] != false ||
+        summary['remoteCalibrationCanResetPrompt'] != false ||
+        summary['mapboxCanTriggerTirePrompt'] != false ||
+        summary['gpsCanAutoApplyCalibration'] != false) {
       reasons.add('remote_can_apply_calibration');
     }
     if (summary['rawReviewedTripsIncluded'] != false ||
@@ -182,6 +215,7 @@ class TripOdometerCalibrationPromptPolicy {
     required DateTime nowUtc,
     int quietChipMinimumSamples = 3,
   }) {
+    final safeQuietChipMinimumSamples = quietChipMinimumSamples.clamp(1, 30);
     if (!userEnabledCalibrationAssist) {
       return _hidden(
         TripOdometerCalibrationPromptReason.disabledByUser,
@@ -210,7 +244,7 @@ class TripOdometerCalibrationPromptPolicy {
       );
     }
     if (signal.status == TripOdometerCalibrationStatus.insufficientHistory) {
-      if (signal.eligibleSampleCount >= quietChipMinimumSamples) {
+      if (signal.eligibleSampleCount >= safeQuietChipMinimumSamples) {
         return const TripOdometerCalibrationPromptDecision(
           surface: TripOdometerCalibrationPromptSurface.quietChip,
           reason: TripOdometerCalibrationPromptReason.needsMoreReviewedDays,

@@ -120,20 +120,31 @@ void main() {
     ).toSafeDashboardMap();
 
     expect(safe['calibrationRequiresUserOptIn'], isTrue);
+    expect(safe['continuousCalibrationAverageRequired'], isTrue);
+    expect(safe['singleDayCalibrationRejected'], isTrue);
     expect(safe['calibrationRequiresReviewedLocalHistory'], isTrue);
     expect(safe['calibrationRequiresVehicleMatchedHistory'], isTrue);
     expect(safe['calibrationRequiresOwnershipValidation'], isTrue);
     expect(safe['calibrationRequiresDaytimeLocalSource'], isTrue);
     expect(safe['calibrationRequiresManualUserConfirmation'], isTrue);
+    expect(safe['calibrationPromptRequiresFreshLocalEvaluation'], isTrue);
     expect(safe['calibrationCanReplaceConfirmedOdometer'], isFalse);
+    expect(safe['calibrationCanLowerConfirmedOdometer'], isFalse);
+    expect(safe['calibrationCanCreateMaintenanceRecord'], isFalse);
     expect(safe['gpsCanReplaceOdometerSilently'], isFalse);
     expect(safe['mapboxCanReplaceOdometerSilently'], isFalse);
     expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(safe['tirePromptIsAdvisoryOnly'], isTrue);
+    expect(safe['tirePromptDoesNotCreateMaintenanceEntry'], isTrue);
     expect(safe['authenticationAloneAuthorizesCalibration'], isFalse);
     expect(safe['firestoreCanApplyCalibration'], isFalse);
     expect(safe['cloudFunctionCanApplyCalibration'], isFalse);
     expect(safe['mapboxCanApplyCalibration'], isFalse);
     expect(safe['importedFileCanApplyCalibration'], isFalse);
+    expect(safe['remoteCalibrationCanEnableSetting'], isFalse);
+    expect(safe['remoteCalibrationCanResetPrompt'], isFalse);
+    expect(safe['mapboxCanTriggerTirePrompt'], isFalse);
+    expect(safe['gpsCanAutoApplyCalibration'], isFalse);
     expect(safe['rawReviewedTripsIncluded'], isFalse);
     expect(safe['preciseLocationIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
@@ -170,23 +181,34 @@ void main() {
             'canApplyAutomatically': true,
             'calibrationRequiresUserOptIn': false,
             'calibrationRequiresMultipleReviewedTrips': false,
+            'continuousCalibrationAverageRequired': false,
+            'singleDayCalibrationRejected': false,
             'calibrationRequiresReviewedLocalHistory': false,
             'calibrationRequiresVehicleMatchedHistory': false,
             'calibrationRequiresOwnershipValidation': false,
             'calibrationRequiresDaytimeLocalSource': false,
             'calibrationRequiresManualUserConfirmation': false,
+            'calibrationPromptRequiresFreshLocalEvaluation': false,
             'calibrationAppliesToFutureGpsAssistanceOnly': false,
             'calibrationCanRewritePastTrips': true,
             'calibrationCanReplaceConfirmedOdometer': true,
+            'calibrationCanLowerConfirmedOdometer': true,
+            'calibrationCanCreateMaintenanceRecord': true,
             'gpsCanReplaceOdometerSilently': true,
             'mapboxCanReplaceOdometerSilently': true,
             'odometerRemainsOfficialMileageTruth': false,
+            'tirePromptIsAdvisoryOnly': false,
+            'tirePromptDoesNotCreateMaintenanceEntry': false,
             'remoteHistoryCanTriggerPromptWithoutLocalValidation': true,
             'authenticationAloneAuthorizesCalibration': true,
             'firestoreCanApplyCalibration': true,
             'cloudFunctionCanApplyCalibration': true,
             'mapboxCanApplyCalibration': true,
             'importedFileCanApplyCalibration': true,
+            'remoteCalibrationCanEnableSetting': true,
+            'remoteCalibrationCanResetPrompt': true,
+            'mapboxCanTriggerTirePrompt': true,
+            'gpsCanAutoApplyCalibration': true,
             'rawReviewedTripsIncluded': true,
             'rawGpsIncluded': true,
             'preciseLocationIncluded': true,
