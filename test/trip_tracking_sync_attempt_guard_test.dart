@@ -1,0 +1,239 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_sync_attempt_guard.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_sync_policy.dart';
+
+void main() {
+  test('free users may mirror validated local trip records within quota', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(syncsUsedInWindow: 2),
+    );
+
+    expect(decision.mayUploadMirror, isTrue);
+    expect(decision.mustReserveFreeAttemptBeforeUpload, isTrue);
+    expect(decision.consumesFreeAttempt, isTrue);
+    expect(decision.freeSyncsRemainingBeforeAttempt, 4);
+    expect(decision.mirrorPayload['canonicalSource'], 'hive');
+    expect(decision.mirrorPayload['firestoreRole'], 'mirror');
+    expect(decision.mirrorPayload['canOverrideLocalDaytimeData'], isFalse);
+    expect(decision.mirrorPayload['canDeleteLocalData'], isFalse);
+    expect(decision.toSafeSummary()['firestoreMirrorOnly'], isTrue);
+    expect(
+      decision.toSafeSummary()['remoteBackupCanPurgeLocalRecordsSilently'],
+      isFalse,
+    );
+    expect(decision.toSafeSummary()['tokensIncluded'], isFalse);
+    expect(decision.toSafeSummary()['preciseLocationIncluded'], isFalse);
+    expect(decision.toSafeSummary()['rawTripRecordsIncluded'], isFalse);
+  });
+
+  test('free users are blocked after six syncs in the rolling window', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        syncsUsedInWindow: TripTrackingBackupSyncPolicy.freeSyncsPerWindow,
+      ),
+    );
+
+    expect(decision.status, TripTrackingSyncAttemptStatus.blockedQuota);
+    expect(decision.mayUploadMirror, isFalse);
+    expect(decision.mustReserveFreeAttemptBeforeUpload, isFalse);
+    expect(decision.consumesFreeAttempt, isFalse);
+    expect(decision.freeSyncsRemainingBeforeAttempt, 0);
+    expect(decision.mirrorPayload, isEmpty);
+    expect(decision.userFacingReason, contains('24-hour window'));
+  });
+
+  test('network policy blocks without consuming a free sync attempt', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(
+        networkPolicy: TripTrackingBackupNetworkPolicy.wifiOnly,
+        wifiAvailable: false,
+        mobileDataAvailable: true,
+        syncsUsedInWindow: 0,
+      ),
+    );
+
+    expect(decision.status, TripTrackingSyncAttemptStatus.blockedNetwork);
+    expect(decision.mayUploadMirror, isFalse);
+    expect(decision.mustReserveFreeAttemptBeforeUpload, isFalse);
+    expect(decision.consumesFreeAttempt, isFalse);
+    expect(decision.freeSyncsRemainingBeforeAttempt, 6);
+    expect(decision.toSafeSummary()['syncAttemptCanDeleteLocalData'], isFalse);
+  });
+
+  test('unknown or malformed free usage fails closed before upload', () {
+    for (final used in const <int?>[null, -1, 1000]) {
+      final decision = TripTrackingSyncAttemptGuard.evaluate(
+        request(syncsUsedInWindow: used),
+      );
+
+      expect(
+        decision.status,
+        TripTrackingSyncAttemptStatus.blockedUnverifiedUsage,
+        reason: 'used=$used',
+      );
+      expect(decision.mayUploadMirror, isFalse);
+      expect(decision.consumesFreeAttempt, isFalse);
+      expect(decision.mirrorPayload, isEmpty);
+      expect(
+        decision.toSafeSummary()['remoteBackupCanOverrideLocalDay'],
+        isFalse,
+      );
+    }
+  });
+
+  test(
+    'paid users bypass free quota but still obey source and network gates',
+    () {
+      final decision = TripTrackingSyncAttemptGuard.evaluate(
+        request(
+          accountTier: TripTrackingSyncAccountTier.paid,
+          syncsUsedInWindow: 900,
+        ),
+      );
+
+      expect(decision.status, TripTrackingSyncAttemptStatus.ready);
+      expect(decision.mayUploadMirror, isTrue);
+      expect(decision.mustReserveFreeAttemptBeforeUpload, isFalse);
+      expect(decision.consumesFreeAttempt, isFalse);
+      expect(decision.freeSyncsRemainingBeforeAttempt, isNull);
+      expect(decision.mirrorPayload['canonicalSource'], 'hive');
+      expect(
+        decision.toSafeSummary()['odometerRemainsOfficialMileageTruth'],
+        isTrue,
+      );
+    },
+  );
+
+  test('authentication never implies authorization for trip mirrors', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(authenticatedUid: 'otherUser', syncsUsedInWindow: 0),
+    );
+
+    expect(decision.status, TripTrackingSyncAttemptStatus.blockedInvalidOwner);
+    expect(decision.ownerValid, isFalse);
+    expect(decision.mayUploadMirror, isFalse);
+    expect(decision.mirrorPayload, isEmpty);
+    expect(
+      decision.toSafeSummary()['authorizationCheckedAfterAuthentication'],
+      isTrue,
+    );
+  });
+
+  test(
+    'invalid local source records never become Firestore mirror payloads',
+    () {
+      final invalidSources = [
+        validSource(recordId: 'bad:id'),
+        validSource(ownerUid: 'sk.secret'),
+        validSource(deviceId: 'device token'),
+        validSource(schemaVersion: 0),
+        validSource(localRevision: 0),
+        validSource(localPersisted: false),
+        validSource(tripDayKey: '2026-99-99'),
+        validSource(distanceMiles: -0.1),
+        validSource(distanceMiles: 2500.1),
+        validSource(updatedAtUtc: DateTime.utc(2200)),
+      ];
+
+      for (final source in invalidSources) {
+        final decision = TripTrackingSyncAttemptGuard.evaluate(
+          request(source: source, syncsUsedInWindow: 0),
+        );
+
+        expect(
+          decision.status,
+          TripTrackingSyncAttemptStatus.blockedInvalidSource,
+          reason: source.toSafeSyncMirrorPayload().toString(),
+        );
+        expect(decision.sourceValid, isFalse);
+        expect(decision.mayUploadMirror, isFalse);
+        expect(decision.mirrorPayload, isEmpty);
+      }
+    },
+  );
+
+  test('storage protection blocks backup without deleting local trip data', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(storageAvailableForSmallRecordWrite: false, syncsUsedInWindow: 0),
+    );
+
+    expect(decision.status, TripTrackingSyncAttemptStatus.blockedStorage);
+    expect(decision.mayUploadMirror, isFalse);
+    expect(decision.consumesFreeAttempt, isFalse);
+    expect(decision.mirrorPayload, isEmpty);
+    expect(decision.userFacingReason, contains('safe local storage'));
+    expect(
+      decision.toSafeSummary()['remoteBackupCanPurgeLocalRecordsSilently'],
+      isFalse,
+    );
+  });
+
+  test('safe summary keeps Mapbox and odometer trust boundaries explicit', () {
+    final decision = TripTrackingSyncAttemptGuard.evaluate(
+      request(syncsUsedInWindow: 1),
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['hiveRemainsOperationalSourceOfTruth'], isTrue);
+    expect(summary['firestoreMirrorOnly'], isTrue);
+    expect(summary['remoteBackupCanOverrideLocalDay'], isFalse);
+    expect(summary['odometerRemainsOfficialMileageTruth'], isTrue);
+    expect(summary['mapboxCanReplaceOdometer'], isFalse);
+    expect(summary['validatedBeforeUpload'], isTrue);
+    expect(summary['tokensIncluded'], isFalse);
+    expect(summary['preciseLocationIncluded'], isFalse);
+    expect(summary['rawTripRecordsIncluded'], isFalse);
+    expect(summary.toString(), isNot(contains('pk.')));
+    expect(summary.toString(), isNot(contains('sk.')));
+  });
+}
+
+TripTrackingSyncAttemptRequest request({
+  TripTrackingSyncAccountTier accountTier = TripTrackingSyncAccountTier.free,
+  String authenticatedUid = 'userA',
+  TripTrackingSyncSourceRecord? source,
+  TripTrackingBackupNetworkPolicy networkPolicy =
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+  bool? wifiAvailable = true,
+  bool? mobileDataAvailable = false,
+  int? syncsUsedInWindow = 0,
+  bool storageAvailableForSmallRecordWrite = true,
+}) {
+  return TripTrackingSyncAttemptRequest(
+    accountTier: accountTier,
+    authenticatedUid: authenticatedUid,
+    source: source ?? validSource(),
+    networkPolicy: networkPolicy,
+    wifiAvailable: wifiAvailable,
+    mobileDataAvailable: mobileDataAvailable,
+    syncsUsedInWindow: syncsUsedInWindow,
+    storageAvailableForSmallRecordWrite: storageAvailableForSmallRecordWrite,
+  );
+}
+
+TripTrackingSyncSourceRecord validSource({
+  int schemaVersion = 1,
+  String recordId = 'trip-20260717-001',
+  String ownerUid = 'userA',
+  String deviceId = 'deviceA',
+  TripTrackingSyncSourceKind kind = TripTrackingSyncSourceKind.liveTrip,
+  DateTime? updatedAtUtc,
+  int localRevision = 1,
+  bool localPersisted = true,
+  String? tripDayKey = '2026-07-17',
+  double? distanceMiles = 12.4,
+}) {
+  return TripTrackingSyncSourceRecord(
+    schemaVersion: schemaVersion,
+    recordId: recordId,
+    ownerUid: ownerUid,
+    deviceId: deviceId,
+    kind: kind,
+    updatedAtUtc: updatedAtUtc ?? DateTime.utc(2026, 7, 17, 18),
+    localRevision: localRevision,
+    localPersisted: localPersisted,
+    tripDayKey: tripDayKey,
+    distanceMiles: distanceMiles,
+  );
+}
