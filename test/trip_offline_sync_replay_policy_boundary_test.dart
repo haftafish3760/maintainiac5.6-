@@ -60,6 +60,10 @@ void main() {
       expect(safe['successfulReplayCanPurgeLocalDaytimeData'], isFalse);
       expect(safe['remoteConflictCanSilentlyWin'], isFalse);
       expect(safe['remoteBackupCanOverrideLocalDay'], isFalse);
+      expect(safe['replayRequiresDeviceMatch'], isTrue);
+      expect(safe['replayRequiresDayKeyMatch'], isTrue);
+      expect(safe['replayRequiresMonotonicLocalRevision'], isTrue);
+      expect(safe['authenticationAloneAuthorizesReplay'], isFalse);
       expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
       expect(safe['mapboxCanRepairReplayRecords'], isFalse);
     },

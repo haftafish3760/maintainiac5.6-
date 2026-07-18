@@ -135,6 +135,10 @@ void main() {
     final safe = evaluate().toSafeSummary();
 
     expect(safe['replayRequiresValidatedLocalRecord'], isTrue);
+    expect(safe['replayRequiresDeviceMatch'], isTrue);
+    expect(safe['replayRequiresDayKeyMatch'], isTrue);
+    expect(safe['replayRequiresMonotonicLocalRevision'], isTrue);
+    expect(safe['authenticationAloneAuthorizesReplay'], isFalse);
     expect(safe['failedReplayCanDeleteLocalQueue'], isFalse);
     expect(safe['successfulReplayCanSilentlyDeleteLocalData'], isFalse);
     expect(safe['replaySuccessRequiresExplicitQueueCleanup'], isTrue);
@@ -160,6 +164,10 @@ void main() {
       evaluate().toSafeSummary()..addAll({
         'replayRequiresValidatedLocalRecord': false,
         'replayRequiresOwnershipCheck': false,
+        'replayRequiresDeviceMatch': false,
+        'replayRequiresDayKeyMatch': false,
+        'replayRequiresMonotonicLocalRevision': false,
+        'authenticationAloneAuthorizesReplay': true,
         'freeReplayRequiresReservationBeforeUpload': false,
         'replayCannotUploadIfLocalRecordDisappears': false,
         'replayCannotUploadAfterBackupOptOut': false,
@@ -190,5 +198,22 @@ void main() {
       validation.reasons,
       contains('summary_contains_sensitive_replay_material'),
     );
+  });
+
+  test('forged replay summaries cannot use auth-only replay authority', () {
+    final summary = evaluate().toSafeSummary()
+      ..addAll({
+        'replayRequiresDeviceMatch': false,
+        'replayRequiresDayKeyMatch': false,
+        'replayRequiresMonotonicLocalRevision': false,
+        'authenticationAloneAuthorizesReplay': true,
+      });
+
+    final validation = TripOfflineSyncReplaySummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('replay_upload_boundary_missing'));
   });
 }

@@ -37,6 +37,10 @@ class TripOfflineSyncReplayDecision {
     'consumesFreeAttempt': consumesFreeAttempt,
     'replayRequiresValidatedLocalRecord': true,
     'replayRequiresOwnershipCheck': true,
+    'replayRequiresDeviceMatch': true,
+    'replayRequiresDayKeyMatch': true,
+    'replayRequiresMonotonicLocalRevision': true,
+    'authenticationAloneAuthorizesReplay': false,
     'freeReplayRequiresReservationBeforeUpload': true,
     'failedReplayCanDeleteLocalQueue': false,
     'successfulReplayCanSilentlyDeleteLocalData': false,
@@ -171,6 +175,10 @@ class TripOfflineSyncReplaySummaryValidation {
       'consumesFreeAttempt',
       'replayRequiresValidatedLocalRecord',
       'replayRequiresOwnershipCheck',
+      'replayRequiresDeviceMatch',
+      'replayRequiresDayKeyMatch',
+      'replayRequiresMonotonicLocalRevision',
+      'authenticationAloneAuthorizesReplay',
       'freeReplayRequiresReservationBeforeUpload',
       'failedReplayCanDeleteLocalQueue',
       'successfulReplayCanSilentlyDeleteLocalData',
@@ -194,6 +202,10 @@ class TripOfflineSyncReplaySummaryValidation {
     }
     if (summary['replayRequiresValidatedLocalRecord'] != true ||
         summary['replayRequiresOwnershipCheck'] != true ||
+        summary['replayRequiresDeviceMatch'] != true ||
+        summary['replayRequiresDayKeyMatch'] != true ||
+        summary['replayRequiresMonotonicLocalRevision'] != true ||
+        summary['authenticationAloneAuthorizesReplay'] != false ||
         summary['freeReplayRequiresReservationBeforeUpload'] != true ||
         summary['replayCannotUploadIfLocalRecordDisappears'] != true ||
         summary['replayCannotUploadAfterBackupOptOut'] != true) {
