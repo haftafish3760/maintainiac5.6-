@@ -62,6 +62,19 @@ class TripStopSummaryValidation {
     if (summary['remoteStopSummaryCanOverrideLocalTrip'] != false) {
       reasons.add('remote_summary_can_override_local_trip');
     }
+    if (summary['remoteDashboardCanOpenStopReview'] != false ||
+        summary['importedStopSummaryCanOpenStopReview'] != false) {
+      reasons.add('remote_summary_can_open_stop_review');
+    }
+    if (summary['localTripLogRequiredForReview'] != true) {
+      reasons.add('local_trip_log_not_required_for_review');
+    }
+    if (summary['authenticatedUserStillNeedsAuthorization'] != true) {
+      reasons.add('authentication_treated_as_authorization');
+    }
+    if (summary['fleetObserverCanCreateStop'] != false) {
+      reasons.add('fleet_observer_can_create_stop');
+    }
     if (summary['firestoreCanCreateOfficialStop'] != false) {
       reasons.add('firestore_can_create_stop');
     }
@@ -81,7 +94,11 @@ class TripStopSummaryValidation {
     }
     if (summary['mapsRequiredForStopReview'] != false ||
         summary['mapboxCanCreateStop'] != false ||
-        summary['mapboxCanEndTrip'] != false) {
+        summary['mapboxCanEndTrip'] != false ||
+        summary['mapboxDirectionsCanCreateStop'] != false ||
+        summary['mapboxMatrixCanCreateStop'] != false ||
+        summary['mapboxMapMatchingCanReplaceMileage'] != false ||
+        summary['mapboxOptimizationCanReorderOfficialStops'] != false) {
       reasons.add('mapbox_can_control_stop_review');
     }
     if (summary['rawSamplesIncluded'] != false ||

@@ -6,6 +6,61 @@ enum TripStopDetectionReadinessStatus {
   keepTracking,
   waitForMoreEvidence,
   unsafeBoundary,
+  unauthorizedBoundary,
+}
+
+enum TripStopReviewBoundarySource {
+  localTripLog,
+  firestoreMirror,
+  cloudFunction,
+  importedFile,
+  mapbox,
+  dashboardCache,
+}
+
+class TripStopReviewAuthorization {
+  const TripStopReviewAuthorization._({
+    required this.allowed,
+    required this.reasonCode,
+    required this.reasons,
+  });
+
+  factory TripStopReviewAuthorization.fromBoundary({
+    required String? currentUserId,
+    required String? tripOwnerUserId,
+    required TripStopReviewBoundarySource source,
+    bool explicitSharedTripAccess = false,
+    bool fleetObserverMode = false,
+  }) {
+    final reasons = <String>[];
+    final safeCurrentUserId = _safeUserId(currentUserId);
+    final safeTripOwnerUserId = _safeUserId(tripOwnerUserId);
+
+    if (safeCurrentUserId == null) reasons.add('current_user_required');
+    if (safeTripOwnerUserId == null) reasons.add('trip_owner_required');
+    if (source != TripStopReviewBoundarySource.localTripLog) {
+      reasons.add('local_trip_log_boundary_required');
+    }
+    if (fleetObserverMode) reasons.add('fleet_observer_read_only');
+    if (safeCurrentUserId != null &&
+        safeTripOwnerUserId != null &&
+        safeCurrentUserId != safeTripOwnerUserId &&
+        !explicitSharedTripAccess) {
+      reasons.add('trip_owner_or_explicit_access_required');
+    }
+
+    return TripStopReviewAuthorization._(
+      allowed: reasons.isEmpty,
+      reasonCode: reasons.isEmpty
+          ? 'authorized_for_local_stop_review'
+          : 'unauthorized_stop_review_boundary',
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool allowed;
+  final String reasonCode;
+  final List<String> reasons;
 }
 
 class TripStopDetectionReadiness {
@@ -21,6 +76,7 @@ class TripStopDetectionReadiness {
     required bool activeTrip,
     required bool localSessionAvailable,
     required bool acceptedVehicleMovementObserved,
+    TripStopReviewAuthorization? authorization,
   }) {
     final validation = TripStopSummaryValidation.fromSummary(summary);
     if (!validation.isRenderable) {
@@ -37,6 +93,21 @@ class TripStopDetectionReadiness {
         actionToken: 'keep_tracking',
         reasonCode: 'no_active_trip_for_stop_review',
         reasons: ['active_trip_required'],
+      );
+    }
+    final safeAuthorization =
+        authorization ??
+        TripStopReviewAuthorization.fromBoundary(
+          currentUserId: 'local_user',
+          tripOwnerUserId: 'local_user',
+          source: TripStopReviewBoundarySource.localTripLog,
+        );
+    if (!safeAuthorization.allowed) {
+      return TripStopDetectionReadiness._(
+        status: TripStopDetectionReadinessStatus.unauthorizedBoundary,
+        actionToken: 'keep_tracking',
+        reasonCode: safeAuthorization.reasonCode,
+        reasons: safeAuthorization.reasons,
       );
     }
     if (!localSessionAvailable) {
@@ -120,6 +191,10 @@ class TripStopDetectionReadiness {
     'malformedStopSummaryFailsClosed': true,
     'authenticationDoesNotGrantStopAuthority': true,
     'localTripLogMustOwnStopReview': true,
+    'currentUserMustOwnOrAccessTrip': true,
+    'fleetObserverCanOpenStopReview': false,
+    'remoteDashboardCanOpenStopReview': false,
+    'importedSummaryCanOpenStopReview': false,
     'firestoreCanOpenStopReview': false,
     'cloudFunctionCanOpenStopReview': false,
     'mapboxCanOpenStopReview': false,
@@ -130,6 +205,15 @@ class TripStopDetectionReadiness {
     'tokensIncluded': false,
     'reasons': reasons,
   };
+}
+
+String? _safeUserId(String? value) {
+  final clean = value?.trim();
+  if (clean == null || clean.isEmpty) return null;
+  if (clean.length > 128) return null;
+  if (clean.startsWith('pk.') || clean.startsWith('sk.')) return null;
+  if (!RegExp(r'^[A-Za-z0-9._:-]+$').hasMatch(clean)) return null;
+  return clean;
 }
 
 String _safeReadinessAction(Object? value) {
