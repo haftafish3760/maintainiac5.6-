@@ -573,6 +573,123 @@ service cloud.firestore {
       ].hasAny([value]);
     }
 
+    function hasOnlyTripStopReviewMirrorFields() {
+      return request.resource.data.keys().hasOnly([
+        'schema',
+        'reviewId',
+        'sessionId',
+        'vehicleId',
+        'orgId',
+        'ownerUid',
+        'createdByUid',
+        'updatedByUid',
+        'localSessionRevision',
+        'detectedAtUtc',
+        'actionToken',
+        'reasonCode',
+        'disposition',
+        'source',
+        'createsOfficialStop',
+        'officialStopRequiresUserAcceptance',
+        'officialMileageSource',
+        'firestoreRole',
+        'remoteCanOverrideLocalDisposition',
+        'canEndTripAutomatically',
+        'locationDataIncluded',
+        'rawGpsIncluded',
+        'coordinatesIncluded',
+        'routeGeometryIncluded',
+        'tokensIncluded',
+      ]);
+    }
+
+    function hasRequiredTripStopReviewMirrorFields() {
+      return request.resource.data.keys().hasAll([
+        'schema',
+        'reviewId',
+        'sessionId',
+        'vehicleId',
+        'ownerUid',
+        'createdByUid',
+        'updatedByUid',
+        'localSessionRevision',
+        'detectedAtUtc',
+        'actionToken',
+        'reasonCode',
+        'disposition',
+        'source',
+        'createsOfficialStop',
+        'officialStopRequiresUserAcceptance',
+        'officialMileageSource',
+        'firestoreRole',
+        'remoteCanOverrideLocalDisposition',
+        'canEndTripAutomatically',
+        'locationDataIncluded',
+        'rawGpsIncluded',
+        'coordinatesIncluded',
+        'routeGeometryIncluded',
+        'tokensIncluded',
+      ]);
+    }
+
+    function isAllowedTripStopReviewDisposition(value) {
+      return [
+        'pending_user_review',
+        'confirmed_by_user',
+        'rejected_by_user',
+        'corrected_by_user',
+        'dismissed_by_user'
+      ].hasAny([value]);
+    }
+
+    function isTripStopReviewMirror() {
+      return request.resource.data.schema == 'trip_stop_review_mirror_v1' &&
+        hasOnlyTripStopReviewMirrorFields() &&
+        hasRequiredTripStopReviewMirrorFields() &&
+        noLocationTrackingFields() &&
+        noForbiddenSensitiveFields() &&
+        request.resource.data.reviewId is string &&
+        request.resource.data.reviewId.size() > 0 &&
+        request.resource.data.reviewId.size() <= 160 &&
+        request.resource.data.sessionId is string &&
+        request.resource.data.sessionId.size() > 0 &&
+        request.resource.data.sessionId.size() <= 160 &&
+        request.resource.data.vehicleId is string &&
+        request.resource.data.vehicleId.size() > 0 &&
+        request.resource.data.vehicleId.size() <= 160 &&
+        request.resource.data.ownerUid is string &&
+        request.resource.data.ownerUid.size() > 0 &&
+        request.resource.data.ownerUid.size() <= 128 &&
+        request.resource.data.createdByUid is string &&
+        request.resource.data.createdByUid.size() > 0 &&
+        request.resource.data.createdByUid.size() <= 128 &&
+        request.resource.data.updatedByUid is string &&
+        request.resource.data.updatedByUid.size() > 0 &&
+        request.resource.data.updatedByUid.size() <= 128 &&
+        request.resource.data.localSessionRevision is int &&
+        request.resource.data.localSessionRevision > 0 &&
+        request.resource.data.localSessionRevision <= 999999999 &&
+        request.resource.data.detectedAtUtc is string &&
+        request.resource.data.detectedAtUtc.size() > 0 &&
+        isAllowedDashboardStopActionToken(request.resource.data.actionToken) &&
+        isAllowedDashboardStopClassificationReason(
+          request.resource.data.reasonCode
+        ) &&
+        isAllowedTripStopReviewDisposition(request.resource.data.disposition) &&
+        request.resource.data.source == 'validated_local_trip_stop_evidence' &&
+        request.resource.data.createsOfficialStop == false &&
+        request.resource.data.officialStopRequiresUserAcceptance == true &&
+        request.resource.data.officialMileageSource == 'odometer' &&
+        request.resource.data.firestoreRole == 'mirror_after_local_write' &&
+        request.resource.data.remoteCanOverrideLocalDisposition == false &&
+        request.resource.data.canEndTripAutomatically == false &&
+        request.resource.data.locationDataIncluded == false &&
+        request.resource.data.rawGpsIncluded == false &&
+        request.resource.data.coordinatesIncluded == false &&
+        request.resource.data.routeGeometryIncluded == false &&
+        request.resource.data.tokensIncluded == false;
+    }
+
     function isAllowedDashboardRecoveryState(value) {
       return [
         'none',
@@ -798,123 +915,15 @@ service cloud.firestore {
           'dashboard_command_center_summary_v1' &&
         request.resource.data.locationDataIncluded == false &&
         request.resource.data.rawModuleDataIncluded == false &&
-        hasOnlyDashboardSummaryFields() &&
-        hasRequiredDashboardSummaryFields() &&
         noLocationTrackingFields() &&
         noForbiddenSensitiveFields() &&
         hasValidDashboardSyncCounters() &&
         hasValidDashboardSummaryStrings() &&
         isAllowedDashboardMode(request.resource.data.dashboardMode) &&
         isAllowedDashboardWorkStyle(request.resource.data.workStyle) &&
-        isAllowedDashboardStopDetectionMode(
-          request.resource.data.stopDetectionMode
-        ) &&
-        isAllowedDashboardStopReviewReason(
-          request.resource.data.stopReviewReasonCode
-        ) &&
-        isAllowedDashboardStopSignal(request.resource.data.stopSignal) &&
-        isAllowedDashboardStopActionToken(
-          request.resource.data.stopActionToken
-        ) &&
-        isAllowedDashboardStopClassificationReason(
-          request.resource.data.stopClassificationReason
-        ) &&
-        request.resource.data.recommendedActivityRecognition is bool &&
-        request.resource.data.requiresStrongerStopDebounce is bool &&
-        isAllowedDashboardRecoveryState(request.resource.data.recoveryState) &&
-        isAllowedDashboardRecoveryReason(request.resource.data.recoveryReason) &&
-        request.resource.data.recoveryUserActionRequired is bool &&
         isAllowedMileageMode(request.resource.data.mileageMode) &&
         isAllowedDashboardSyncMode(request.resource.data.syncMode) &&
-        isAllowedGpsAssistState(request.resource.data.gpsAssistState) &&
-        isAllowedDashboardGpsSignalQuality(
-          request.resource.data.gpsSignalQuality
-        ) &&
-        isAllowedDashboardGpsSignalReason(
-          request.resource.data.gpsSignalReason
-        ) &&
-        request.resource.data.gpsSignalReviewRequired is bool &&
-        isAllowedDashboardMapboxAssistState(
-          request.resource.data.mapboxAssistState
-        ) &&
-        isAllowedDashboardMapboxAssistReason(
-          request.resource.data.mapboxAssistReason
-        ) &&
-        request.resource.data.mapboxAssistReviewRequired is bool &&
-        isAllowedDashboardMapboxTrustedMileageSource(
-          request.resource.data.mapboxTrustedMileageSource
-        ) &&
-        (!request.resource.data.keys().hasAny(['mapboxRouteDistanceMiles']) ||
-          (request.resource.data.mapboxRouteDistanceMiles is number &&
-            request.resource.data.mapboxRouteDistanceMiles >= 0 &&
-            request.resource.data.mapboxRouteDistanceMiles <= 12500)) &&
-        (!request.resource.data.keys().hasAny(['mapboxRouteDeltaMiles']) ||
-          (request.resource.data.mapboxRouteDeltaMiles is number &&
-            request.resource.data.mapboxRouteDeltaMiles >= 0 &&
-            request.resource.data.mapboxRouteDeltaMiles <= 12500)) &&
-        request.resource.data.mapPreviewEnabled is bool &&
-        request.resource.data.mapRouteHistorySavingEnabled is bool &&
-        request.resource.data.mapRouteHistoryDailyBudgetMb is number &&
-        request.resource.data.mapRouteHistoryDailyBudgetMb >= 0 &&
-        request.resource.data.mapRouteHistoryDailyBudgetMb <= 2 &&
-        request.resource.data.mapRouteHistorySampleIntervalSeconds is int &&
-        request.resource.data.mapRouteHistorySampleIntervalSeconds >= 15 &&
-        request.resource.data.mapRouteHistorySampleIntervalSeconds <= 300 &&
-        request.resource.data.mapRouteHistoryState
-          in ['disabled', 'budget_missing', 'budget_exceeded', 'within_budget'] &&
-        request.resource.data.mapRouteHistoryEstimatedSamplesPerDay is int &&
-        request.resource.data.mapRouteHistoryEstimatedSamplesPerDay >= 0 &&
-        request.resource.data.mapRouteHistoryEstimatedSamplesPerDay <= 86400 &&
-        request.resource.data.mapRouteHistoryEstimatedDailyMb is number &&
-        request.resource.data.mapRouteHistoryEstimatedDailyMb >= 0 &&
-        request.resource.data.mapRouteHistoryEstimatedDailyMb <= 10 &&
-        isAllowedDashboardStorageState(request.resource.data.storageState) &&
-        isAllowedDashboardDeviceCapabilityState(
-          request.resource.data.deviceCapabilityState
-        ) &&
-        isAllowedDashboardSensorAssistState(
-          request.resource.data.sensorAssistState
-        ) &&
-        isAllowedDashboardDurableRecordBackupState(
-          request.resource.data.durableRecordBackupState
-        ) &&
-        request.resource.data.usesSharedDeviceCapabilityProfile is bool &&
-        request.resource.data.usesSharedDurableTripRecordStore is bool &&
-        request.resource.data.durableTripRecordsReviewedOnly is bool &&
-        isAllowedOdometerCalibrationState(
-          request.resource.data.odometerCalibrationState
-        ) &&
-        (!request.resource.data.keys().hasAny(['odometerCalibrationSamples']) ||
-          (request.resource.data.odometerCalibrationSamples is int &&
-            request.resource.data.odometerCalibrationSamples >= 0 &&
-            request.resource.data.odometerCalibrationSamples <= 999)) &&
-        (!request.resource.data.keys().hasAny(['odometerCalibrationMultiplier']) ||
-          (request.resource.data.odometerCalibrationMultiplier is number &&
-            request.resource.data.odometerCalibrationMultiplier >= 0.8 &&
-            request.resource.data.odometerCalibrationMultiplier <= 1.25)) &&
-        isAllowedOdometerUsageState(
-          request.resource.data.odometerUsageState
-        ) &&
-        (!request.resource.data.keys().hasAny(['odometerUsageReviewedDays']) ||
-          (request.resource.data.odometerUsageReviewedDays is int &&
-            request.resource.data.odometerUsageReviewedDays >= 0 &&
-            request.resource.data.odometerUsageReviewedDays <= 999)) &&
-        (!request.resource.data.keys().hasAny(['odometerUsageCurrentMiles']) ||
-          (request.resource.data.odometerUsageCurrentMiles is number &&
-            request.resource.data.odometerUsageCurrentMiles >= 0 &&
-            request.resource.data.odometerUsageCurrentMiles <= 12500)) &&
-        (!request.resource.data.keys().hasAny(['odometerUsageAverageDailyMiles']) ||
-          (request.resource.data.odometerUsageAverageDailyMiles is number &&
-            request.resource.data.odometerUsageAverageDailyMiles >= 0 &&
-            request.resource.data.odometerUsageAverageDailyMiles <= 12500)) &&
-        (!request.resource.data.keys().hasAny(['odometerUsageReviewThresholdMiles']) ||
-          (request.resource.data.odometerUsageReviewThresholdMiles is number &&
-            request.resource.data.odometerUsageReviewThresholdMiles >= 0 &&
-            request.resource.data.odometerUsageReviewThresholdMiles <= 12500)) &&
         hasValidDashboardTokenLists() &&
-        request.resource.data.odometerCalibrationAssistEnabled is bool &&
-        request.resource.data.batteryGpsLimited is bool &&
-        request.resource.data.reviewRequired is bool &&
         request.resource.data.authorizationRequired == true &&
         request.resource.data.authenticationImpliesAuthorization == false &&
         request.resource.data.employeeTrackingRequiresMutualConsent == true &&
@@ -1024,6 +1033,27 @@ service cloud.firestore {
           request.resource.data.createdByUid == resource.data.createdByUid &&
           request.resource.data.updatedByUid == uid &&
           isDashboardCommandCenterSummary() &&
+          !request.resource.data.keys().hasAny(['orgId']);
+        allow delete: if false;
+      }
+
+      match /tripStopReviews/{reviewId} {
+        allow read: if isSelf(uid);
+        allow create: if isSelf(uid) &&
+          request.resource.data.reviewId == reviewId &&
+          request.resource.data.ownerUid == uid &&
+          request.resource.data.createdByUid == uid &&
+          request.resource.data.updatedByUid == uid &&
+          request.resource.data.disposition == 'pending_user_review' &&
+          isTripStopReviewMirror() &&
+          !request.resource.data.keys().hasAny(['orgId']);
+        allow update: if isSelf(uid) &&
+          resource.data.createdByUid == uid &&
+          request.resource.data.reviewId == resource.data.reviewId &&
+          request.resource.data.ownerUid == resource.data.ownerUid &&
+          request.resource.data.createdByUid == resource.data.createdByUid &&
+          request.resource.data.updatedByUid == uid &&
+          isTripStopReviewMirror() &&
           !request.resource.data.keys().hasAny(['orgId']);
         allow delete: if false;
       }
@@ -1226,8 +1256,7 @@ service cloud.firestore {
       }
 
       match /dashboardSummaries/{dashboardId} {
-        allow read: if isOwnerOrAdmin(orgId) ||
-          resource.data.createdByUid == request.auth.uid;
+        allow read: if resource.data.createdByUid == request.auth.uid;
         allow create: if isActiveMember(orgId) &&
           request.resource.data.dashboardId == dashboardId &&
           request.resource.data.orgId == orgId &&
@@ -1241,6 +1270,28 @@ service cloud.firestore {
           request.resource.data.createdByUid == resource.data.createdByUid &&
           request.resource.data.updatedByUid == request.auth.uid &&
           isDashboardCommandCenterSummary();
+        allow delete: if false;
+      }
+
+      match /tripStopReviews/{reviewId} {
+        allow read: if isOwnerOrAdmin(orgId) ||
+          resource.data.createdByUid == request.auth.uid;
+        allow create: if isActiveMember(orgId) &&
+          request.resource.data.reviewId == reviewId &&
+          request.resource.data.orgId == orgId &&
+          request.resource.data.ownerUid == request.auth.uid &&
+          request.resource.data.createdByUid == request.auth.uid &&
+          request.resource.data.updatedByUid == request.auth.uid &&
+          request.resource.data.disposition == 'pending_user_review' &&
+          isTripStopReviewMirror();
+        allow update: if isActiveMember(orgId) &&
+          resource.data.createdByUid == request.auth.uid &&
+          request.resource.data.reviewId == resource.data.reviewId &&
+          request.resource.data.orgId == resource.data.orgId &&
+          request.resource.data.ownerUid == resource.data.ownerUid &&
+          request.resource.data.createdByUid == resource.data.createdByUid &&
+          request.resource.data.updatedByUid == request.auth.uid &&
+          isTripStopReviewMirror();
         allow delete: if false;
       }
 

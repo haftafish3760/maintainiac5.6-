@@ -460,6 +460,87 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
+  test('trip stop review mirrors are owner-scoped and location-free', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    const outsider = dbFor('outsiderUid');
+    const soloReview = tripStopReview({
+      reviewId: 'soloReview1',
+      ownerUid: 'ownerUid',
+      createdByUid: 'ownerUid',
+      updatedByUid: 'ownerUid',
+    });
+    const orgReview = tripStopReview({
+      reviewId: 'orgReview1',
+      orgId: 'orgA',
+      ownerUid: 'helperUid',
+      createdByUid: 'helperUid',
+      updatedByUid: 'helperUid',
+    });
+
+    await assertSucceeds(
+      setDoc(doc(owner, 'users/ownerUid/tripStopReviews/soloReview1'), soloReview),
+    );
+    await assertSucceeds(
+      updateDoc(doc(owner, 'users/ownerUid/tripStopReviews/soloReview1'), {
+        ...soloReview,
+        disposition: 'confirmed_by_user',
+      }),
+    );
+    await assertFails(
+      getDoc(doc(outsider, 'users/ownerUid/tripStopReviews/soloReview1')),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/tripStopReviews/badLocation'), {
+        ...soloReview,
+        reviewId: 'badLocation',
+        coordinates: { latitude: 35, longitude: -80 },
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/tripStopReviews/badAuto'), {
+        ...soloReview,
+        reviewId: 'badAuto',
+        createsOfficialStop: true,
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/tripStopReviews/badOrg'), {
+        ...soloReview,
+        reviewId: 'badOrg',
+        orgId: 'orgA',
+      }),
+    );
+
+    await assertSucceeds(
+      setDoc(doc(helper, 'orgs/orgA/tripStopReviews/orgReview1'), orgReview),
+    );
+    await assertSucceeds(
+      getDoc(doc(helper, 'orgs/orgA/tripStopReviews/orgReview1')),
+    );
+    await assertSucceeds(
+      getDoc(doc(owner, 'orgs/orgA/tripStopReviews/orgReview1')),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/tripStopReviews/badOwner'), {
+        ...orgReview,
+        reviewId: 'badOwner',
+        createdByUid: 'ownerUid',
+        updatedByUid: 'ownerUid',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(helper, 'orgs/orgA/tripStopReviews/badRoute'), {
+        ...orgReview,
+        reviewId: 'badRoute',
+        mapboxGeometry: 'hidden-route',
+      }),
+    );
+    await assertFails(
+      deleteDoc(doc(helper, 'orgs/orgA/tripStopReviews/orgReview1')),
+    );
+  });
+
   test('jobs and generic records reject passenger and patient fields', async () => {
     const owner = dbFor('ownerUid');
 
@@ -627,16 +708,102 @@ function dashboardSummary(overrides = {}) {
     activeWorkdayId: 'workday1',
     activeWorkProfileId: 'profile1',
     dashboardMode: 'gig_driver',
+    workStyle: 'delivery',
+    stopDetectionMode: 'walking_assisted',
+    stopReviewReasonCode: 'delivery_stop_walk_review',
+    stopSignal: 'review_only_stop',
+    stopActionToken: 'review_delivery_stop',
+    stopClassificationReason: 'delivery_stop_walk_review',
+    recommendedActivityRecognition: true,
+    requiresStrongerStopDebounce: false,
+    recoveryState: 'none',
+    recoveryReason: 'trip_recovery_none',
+    recoveryUserActionRequired: false,
     mileageMode: 'gps_assisted',
     syncMode: 'wifi_only',
     gpsAssistState: 'battery_limited',
+    gpsSignalQuality: 'healthy',
+    gpsSignalReason: 'gps_signal_healthy',
+    gpsSignalReviewRequired: false,
+    mapboxAssistState: 'disabled',
+    mapboxAssistReason: 'mapbox_assist_disabled',
+    mapboxAssistReviewRequired: false,
+    mapboxTrustedMileageSource: 'none',
+    mapPreviewEnabled: false,
+    mapRouteHistorySavingEnabled: false,
+    mapRouteHistoryDailyBudgetMb: 0,
+    mapRouteHistorySampleIntervalSeconds: 30,
+    mapRouteHistoryState: 'disabled',
+    mapRouteHistoryEstimatedSamplesPerDay: 0,
+    mapRouteHistoryEstimatedDailyMb: 0,
     storageState: 'text_record_safe',
+    deviceCapabilityState: 'full_safety_assist',
+    sensorAssistState: 'motion_battery_available',
+    durableRecordBackupState: 'available',
+    usesSharedDeviceCapabilityProfile: true,
+    usesSharedDurableTripRecordStore: true,
+    durableTripRecordsReviewedOnly: true,
+    odometerCalibrationAssistEnabled: false,
+    odometerCalibrationState: 'disabled',
+    odometerUsageState: 'disabled',
+    dashboardWidgetTokens: ['start_day', 'live_odometer', 'stops'],
+    quickActionTokens: ['start_trip', 'end_trip', 'add_stop'],
     freeSyncsRemaining: 5,
     syncsUsedInWindow: 1,
     batteryGpsLimited: true,
     reviewRequired: false,
+    authorizationRequired: true,
+    authenticationImpliesAuthorization: false,
+    employeeTrackingRequiresMutualConsent: true,
+    locationSharingRequiresActiveOptIn: true,
+    employerGodModeAllowed: false,
+    preciseLocationIncluded: false,
+    externalRoutesCanonical: false,
+    odometerRemainsCanonical: true,
+    externalServiceWritesAllowed: false,
+    mapboxCanModifyTripLog: false,
+    mapboxCanModifyOdometer: false,
+    mapsRequiredForTracking: false,
+    mapsRequireSeparateOptIn: true,
+    mapRouteHistoryRequiresSeparateOptIn: true,
+    gpsTrackingCanRunWithoutMaps: true,
+    freeUserControlsDailyMapStorageBudget: true,
     locationDataIncluded: false,
+    mapboxRouteGeometryIncluded: false,
+    rawGpsIncluded: false,
+    rawMapboxGeometryIncluded: false,
+    rawMapRouteIncluded: false,
     rawModuleDataIncluded: false,
+    ...overrides,
+  };
+}
+
+function tripStopReview(overrides = {}) {
+  return {
+    schema: 'trip_stop_review_mirror_v1',
+    reviewId: 'review1',
+    sessionId: 'session1',
+    vehicleId: 'truck1',
+    ownerUid: 'ownerUid',
+    createdByUid: 'ownerUid',
+    updatedByUid: 'ownerUid',
+    localSessionRevision: 1,
+    detectedAtUtc: '2026-07-16T12:05:00.000Z',
+    actionToken: 'review_delivery_stop',
+    reasonCode: 'delivery_stop_walk_review',
+    disposition: 'pending_user_review',
+    source: 'validated_local_trip_stop_evidence',
+    createsOfficialStop: false,
+    officialStopRequiresUserAcceptance: true,
+    officialMileageSource: 'odometer',
+    firestoreRole: 'mirror_after_local_write',
+    remoteCanOverrideLocalDisposition: false,
+    canEndTripAutomatically: false,
+    locationDataIncluded: false,
+    rawGpsIncluded: false,
+    coordinatesIncluded: false,
+    routeGeometryIncluded: false,
+    tokensIncluded: false,
     ...overrides,
   };
 }
