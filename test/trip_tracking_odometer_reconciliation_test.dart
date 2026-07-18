@@ -40,6 +40,20 @@ void main() {
       expect(result.status, TripOdometerReconciliationStatus.reviewRecommended);
       expect(result.confirmedOdometerDeltaMiles, 35);
       expect(result.filteredGpsMiles, closeTo(20, .001));
+      expect(result.toSafeDashboardMap(), {
+        'schemaVersion': 1,
+        'status': 'reviewRecommended',
+        'confirmedOdometerDeltaMiles': 35.0,
+        'filteredGpsMiles': 20.0,
+        'absoluteDifferenceMiles': 15.0,
+        'differencePercent': 42.9,
+        'shouldPromptUser': true,
+        'odometerRemainsCanonical': true,
+        'gpsCanReplaceOdometer': false,
+        'mapboxCanReplaceOdometer': false,
+        'rawLocationIncluded': false,
+        'rawTripRecordsIncluded': false,
+      });
     },
   );
 
@@ -138,6 +152,19 @@ void main() {
       check.reasonCode,
       'starting_odometer_below_previous_confirmed_ending',
     );
+    expect(check.toSafeDashboardMap(), {
+      'schemaVersion': 1,
+      'status': 'invalid',
+      'odometerGapMiles': -1,
+      'reasonCode': 'starting_odometer_below_previous_confirmed_ending',
+      'shouldBlockConfirmation': true,
+      'shouldPromptUser': true,
+      'odometerRemainsCanonical': true,
+      'gpsCanFillGapAutomatically': false,
+      'mapboxCanFillGapAutomatically': false,
+      'rawTripRecordsIncluded': false,
+      'rawLocationIncluded': false,
+    });
   });
 
   test('a large untracked same-vehicle odometer gap recommends review', () {
@@ -904,6 +931,7 @@ void main() {
     expect(signal.userReviewPrompt, contains('speedometer calibration'));
     expect(signal.userReviewPrompt, contains('advisory calibration'));
     expect(signal.toSafeDashboardMap(), {
+      'schemaVersion': 1,
       'status': 'reviewRecommended',
       'eligibleSampleCount': 7,
       'averageDifferencePercent': 6.2,
@@ -911,6 +939,11 @@ void main() {
       'shouldPromptUser': true,
       'maySuggestTireOrSpeedometerReview': true,
       'canOverwriteConfirmedOdometer': false,
+      'odometerRemainsCanonical': true,
+      'gpsAssistAdvisoryOnly': true,
+      'mapboxAssistAdvisoryOnly': true,
+      'rawReviewedTripsIncluded': false,
+      'rawLocationIncluded': false,
     });
   });
 
@@ -932,5 +965,32 @@ void main() {
     expect(summary['reasonCode'], 'unknown_calibration_state');
     expect(summary.toString(), isNot(contains('pk.secret')));
     expect(summary.toString(), isNot(contains('35.1')));
+  });
+
+  test('safe odometer summaries sanitize malformed public fields', () {
+    const reconciliation = TripOdometerReconciliation(
+      status: TripOdometerReconciliationStatus.reviewRecommended,
+      confirmedOdometerDeltaMiles: double.nan,
+      filteredGpsMiles: double.infinity,
+      absoluteDifferenceMiles: -1,
+      differencePercent: double.nan,
+    );
+    const continuity = TripOdometerContinuityCheck(
+      status: TripOdometerContinuityStatus.reviewRecommended,
+      odometerGapMiles: 75,
+      reasonCode: 'token=pk.secret latitude=35.1',
+    );
+
+    expect(reconciliation.toSafeDashboardMap()['filteredGpsMiles'], 0);
+    expect(reconciliation.toSafeDashboardMap()['differencePercent'], 0);
+    expect(
+      continuity.toSafeDashboardMap()['reasonCode'],
+      'invalid_odometer_continuity_input',
+    );
+    expect(
+      continuity.toSafeDashboardMap().toString(),
+      isNot(contains('pk.secret')),
+    );
+    expect(continuity.toSafeDashboardMap()['rawLocationIncluded'], isFalse);
   });
 }

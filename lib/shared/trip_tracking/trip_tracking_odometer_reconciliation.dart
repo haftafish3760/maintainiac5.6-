@@ -32,6 +32,26 @@ class TripOdometerReconciliation {
   final double absoluteDifferenceMiles;
   final double differencePercent;
 
+  bool get shouldPromptUser =>
+      status == TripOdometerReconciliationStatus.reviewRecommended;
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'confirmedOdometerDeltaMiles': _safeRoundedMiles(
+      confirmedOdometerDeltaMiles,
+    ),
+    'filteredGpsMiles': _safeRoundedMiles(filteredGpsMiles),
+    'absoluteDifferenceMiles': _safeRoundedMiles(absoluteDifferenceMiles),
+    'differencePercent': _safeRoundedPercent(differencePercent),
+    'shouldPromptUser': shouldPromptUser,
+    'odometerRemainsCanonical': true,
+    'gpsCanReplaceOdometer': false,
+    'mapboxCanReplaceOdometer': false,
+    'rawLocationIncluded': false,
+    'rawTripRecordsIncluded': false,
+  };
+
   static TripOdometerReconciliation compare({
     required TripTrackingReviewRecord review,
     required int confirmedEndingOdometer,
@@ -89,6 +109,24 @@ class TripOdometerContinuityCheck {
 
   bool get shouldBlockConfirmation =>
       status == TripOdometerContinuityStatus.invalid;
+
+  bool get shouldPromptUser =>
+      status == TripOdometerContinuityStatus.reviewRecommended ||
+      status == TripOdometerContinuityStatus.invalid;
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'odometerGapMiles': odometerGapMiles,
+    'reasonCode': _safeContinuityReason(reasonCode),
+    'shouldBlockConfirmation': shouldBlockConfirmation,
+    'shouldPromptUser': shouldPromptUser,
+    'odometerRemainsCanonical': true,
+    'gpsCanFillGapAutomatically': false,
+    'mapboxCanFillGapAutomatically': false,
+    'rawTripRecordsIncluded': false,
+    'rawLocationIncluded': false,
+  };
 
   static TripOdometerContinuityCheck betweenReviews({
     required TripTrackingReviewRecord previous,
@@ -183,6 +221,7 @@ class TripOdometerCalibrationSignal {
   }
 
   Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
     'status': status.name,
     'eligibleSampleCount': eligibleSampleCount < 0 ? 0 : eligibleSampleCount,
     'averageDifferencePercent': _safeRoundedPercent(averageDifferencePercent),
@@ -190,6 +229,11 @@ class TripOdometerCalibrationSignal {
     'shouldPromptUser': shouldPromptUser,
     'maySuggestTireOrSpeedometerReview': maySuggestTireOrSpeedometerReview,
     'canOverwriteConfirmedOdometer': false,
+    'odometerRemainsCanonical': true,
+    'gpsAssistAdvisoryOnly': true,
+    'mapboxAssistAdvisoryOnly': true,
+    'rawReviewedTripsIncluded': false,
+    'rawLocationIncluded': false,
   };
 
   /// Multiplier future GPS assistance may apply to its estimated distance when
@@ -366,6 +410,11 @@ double _safeRoundedPercent(double value) {
   return (value * 10).round() / 10;
 }
 
+double _safeRoundedMiles(double value) {
+  if (!value.isFinite || value < 0) return 0;
+  return (value * 10).round() / 10;
+}
+
 String _safeCalibrationReason(String value) {
   final clean = value.trim();
   return switch (clean) {
@@ -375,6 +424,18 @@ String _safeCalibrationReason(String value) {
     'persistent_gps_odometer_drift' => clean,
     'calibration_stable' => clean,
     _ => 'unknown_calibration_state',
+  };
+}
+
+String _safeContinuityReason(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'missing_same_vehicle_confirmed_history' => clean,
+    'invalid_odometer_continuity_input' => clean,
+    'starting_odometer_below_previous_confirmed_ending' => clean,
+    'large_untracked_odometer_gap' => clean,
+    'odometer_continuity_aligned' => clean,
+    _ => 'invalid_odometer_continuity_input',
   };
 }
 
