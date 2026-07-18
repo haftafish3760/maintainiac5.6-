@@ -79,8 +79,14 @@ void main() {
     expect(denied['nativeErrorCode'], 'trip_tracking_location_denied');
     expect(denied['recoverable'], isTrue);
     expect(denied['requiresUserAction'], isTrue);
+    expect(denied['externalNativeErrorTrustedAfterValidationOnly'], isTrue);
+    expect(denied['nativeErrorCanDeleteLocalTripData'], isFalse);
+    expect(denied['nativeErrorCanOverrideOdometer'], isFalse);
     expect(malformed['ignorableMalformedPayload'], isTrue);
     expect(malformed['gpsCanContinueOffline'], isTrue);
+    expect(malformed['firestoreErrorCanOverrideGpsState'], isFalse);
+    expect(malformed['mapboxServiceFailureStopsGpsTracking'], isFalse);
+    expect(malformed['malformedNativeErrorFailsSafe'], isTrue);
     expect(malformed['malformedPayloadCanStopTrip'], isFalse);
     expect(unknown['nativeErrorCode'], 'unknown_native_gps_error');
     expect(unknown['rawNativePayloadIncluded'], isFalse);
