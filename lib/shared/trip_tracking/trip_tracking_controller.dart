@@ -395,6 +395,7 @@ class TripTrackingController extends ChangeNotifier {
     _engine = TripTrackingEngine(policy: _policy, profile: profile);
     _projection = TripLiveOdometerProjection(
       startingOdometer: startingOdometer,
+      maxSupportedReading: _odometer.maxSupportedReading,
     );
     _session = TripTrackingSessionRecord(
       id: tripId,
@@ -501,6 +502,7 @@ class TripTrackingController extends ChangeNotifier {
     }
     final projection = TripLiveOdometerProjection(
       startingOdometer: session.startingOdometer,
+      maxSupportedReading: _odometer.maxSupportedReading,
     );
     final estimatedOdometer = projection.updateAcceptedMeters(
       session.engineSnapshot.totalAcceptedMeters,
@@ -512,10 +514,11 @@ class TripTrackingController extends ChangeNotifier {
     )) {
       return false;
     }
-    if (!_odometer.updateLiveTripProjection(
-      tripId: session.id,
-      estimatedOdometer: estimatedOdometer,
-    )) {
+    if (projection.lastUpdateExceededMax ||
+        !_odometer.updateLiveTripProjection(
+          tripId: session.id,
+          estimatedOdometer: estimatedOdometer,
+        )) {
       _odometer.clearLiveTripProjection(tripId: session.id);
       _platformStatus = 'odometer_projection_invalid';
       _platformError =
@@ -718,7 +721,9 @@ class TripTrackingController extends ChangeNotifier {
         tripId: session.id,
         estimatedOdometer: estimatedOdometer,
       );
-      final liveProjectionFailed = decision.accepted && !liveProjectionUpdated;
+      final liveProjectionFailed =
+          decision.accepted &&
+          (projection.lastUpdateExceededMax || !liveProjectionUpdated);
       if (liveProjectionFailed) {
         _platformStatus = 'odometer_projection_invalid';
         _platformError =

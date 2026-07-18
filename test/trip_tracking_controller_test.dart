@@ -2560,6 +2560,41 @@ void main() {
   );
 
   test(
+    'live GPS projection fails closed at active validation ceiling',
+    () async {
+      final odometer = GlobalOdometerController(
+        initialReading: 1000,
+        validationPolicy: const OdometerValidationPolicy(
+          maxSupportedReading: 1002,
+        ),
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        policy: const TripTrackingPolicy(
+          maximumPlausibleSpeedMetersPerSecond: 1000,
+        ),
+      );
+
+      expect(
+        await controller.start(
+          tripId: 'trip_projection_uses_validation_limit',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await controller.ingest(sample(-80, 0));
+      await controller.ingest(sample(-79.96, 60));
+
+      expect(odometer.reading, 1000);
+      expect(controller.platformStatus, 'odometer_projection_invalid');
+      expect(controller.acceptedMeters, greaterThan(0));
+    },
+  );
+
+  test(
     'native future timestamps are rejected without changing GPS distance',
     () async {
       final store = TripTrackingSessionStore.memory();

@@ -58,9 +58,27 @@ void main() {
     );
 
     expect(projection.updateAcceptedMeters(1609.344), 2000);
+    expect(projection.lastUpdateExceededMax, isFalse);
     expect(projection.updateAcceptedMeters(3218.688), 2000);
+    expect(projection.lastUpdateExceededMax, isTrue);
     expect(projection.projectedReading, 2000);
   });
+
+  test(
+    'over-range projection attempts are explicit for controller fail-close',
+    () {
+      final projection = TripLiveOdometerProjection(
+        startingOdometer: 1000,
+        maxSupportedReading: 1001,
+      );
+
+      expect(projection.lastUpdateExceededMax, isFalse);
+      expect(projection.updateAcceptedMeters(4 * metersPerMile), 1000);
+      expect(projection.lastUpdateExceededMax, isTrue);
+      expect(projection.updateAcceptedMeters(metersPerMile), 1001);
+      expect(projection.lastUpdateExceededMax, isFalse);
+    },
+  );
 
   test('over-range starting baseline is bounded before display', () {
     final projection = TripLiveOdometerProjection(

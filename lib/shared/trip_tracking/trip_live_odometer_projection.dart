@@ -15,8 +15,10 @@ class TripLiveOdometerProjection {
   final int startingOdometer;
   final int maxSupportedReading;
   int _lastProjectedReading;
+  var _lastUpdateExceededMax = false;
 
   int get projectedReading => _lastProjectedReading;
+  bool get lastUpdateExceededMax => _lastUpdateExceededMax;
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
@@ -43,6 +45,7 @@ class TripLiveOdometerProjection {
     double acceptedMeters, {
     double gpsAssistanceCalibrationMultiplier = 1,
   }) {
+    _lastUpdateExceededMax = false;
     if (!acceptedMeters.isFinite || acceptedMeters < 0) {
       return _lastProjectedReading;
     }
@@ -53,10 +56,12 @@ class TripLiveOdometerProjection {
     final acceptedMiles = (acceptedMeters / metersPerMile) * multiplier;
     if (!acceptedMiles.isFinite ||
         acceptedMiles > maxSupportedReading - safeStart) {
+      _lastUpdateExceededMax = acceptedMiles.isFinite;
       return _lastProjectedReading;
     }
     final estimated = safeStart + acceptedMiles.round();
     if (estimated > maxSupportedReading) {
+      _lastUpdateExceededMax = true;
       return _lastProjectedReading;
     }
     if (estimated > _lastProjectedReading) {

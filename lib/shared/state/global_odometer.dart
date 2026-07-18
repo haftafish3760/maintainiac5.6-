@@ -61,6 +61,7 @@ class GlobalOdometerController extends ChangeNotifier {
   int get reading => _liveTripEstimatedReading ?? _reading;
   int get confirmedReading => _reading;
   String get vehicleId => _vehicleId;
+  int get maxSupportedReading => _validationPolicy.maxSupportedReading;
   bool get hasLiveTripProjection => _liveTripId != null;
   DateTime? get liveTripUpdatedAt => _liveTripUpdatedAt;
   int get liveTripDeltaMiles => hasLiveTripProjection ? reading - _reading : 0;
