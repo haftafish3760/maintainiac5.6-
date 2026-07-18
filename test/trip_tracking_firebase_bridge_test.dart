@@ -1549,6 +1549,12 @@ void main() {
       expect(personal['rulesMustRejectClientManagedServerFields'], isTrue);
       expect(personal['rulesMustRejectLocationArrays'], isTrue);
       expect(personal['rulesMustRejectCrossUserReplay'], isTrue);
+      expect(personal['odometerIsGlobalTruth'], isTrue);
+      expect(personal['rulesMustRejectRemoteCalibrationWrites'], isTrue);
+      expect(personal['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(personal['poorGpsDaysExcludedFromCalibration'], isTrue);
+      expect(personal['firestoreCanCreateCalibration'], isFalse);
+      expect(personal['firestoreCanApplyCalibration'], isFalse);
       expect(organization['rulesMustRejectOrgWritesWithoutConsent'], isTrue);
       expect(
         organization['organizationWriteRequiresExplicitSharingConsent'],
@@ -1569,6 +1575,12 @@ void main() {
         'rulesMustRejectClientManagedServerFields': false,
         'rulesMustRejectLocationArrays': false,
         'rulesMustRejectCrossUserReplay': false,
+        'odometerIsGlobalTruth': false,
+        'rulesMustRejectRemoteCalibrationWrites': false,
+        'calibrationRequiresTrustedGpsWindow': false,
+        'poorGpsDaysExcludedFromCalibration': false,
+        'firestoreCanCreateCalibration': true,
+        'firestoreCanApplyCalibration': true,
         'rulesMustRejectOrgWritesWithoutConsent': false,
         'organizationWriteRequiresExplicitSharingConsent': false,
       });

@@ -288,6 +288,11 @@ void main() {
     expect(summary['dailyBudgetMb'], 2);
     expect(summary['estimatedStoredMbAfterPoint'], 0);
     expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+    expect(summary['odometerIsGlobalTruth'], isTrue);
+    expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
+    expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
+    expect(summary['routePointCanCreateCalibration'], isFalse);
+    expect(summary['routePointCanApplyCalibration'], isFalse);
     expect(summary['mapStorageFailureStopsGpsTracking'], isFalse);
     expect(summary['freePlanBudgetCannotBeRaisedRemotely'], isTrue);
     expect(summary['mapboxTimeoutCanStopGpsTracking'], isFalse);

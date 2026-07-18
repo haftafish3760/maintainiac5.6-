@@ -165,6 +165,12 @@ abstract final class TripTrackingFirestoreContract {
       'rulesAllowOnlyIdempotentCreatorReplay': true,
       'rulesMustRejectCrossUserReplay': true,
       'rulesMustRejectOrgWritesWithoutConsent': organizationScoped,
+      'odometerIsGlobalTruth': true,
+      'rulesMustRejectRemoteCalibrationWrites': true,
+      'calibrationRequiresTrustedGpsWindow': true,
+      'poorGpsDaysExcludedFromCalibration': true,
+      'firestoreCanCreateCalibration': false,
+      'firestoreCanApplyCalibration': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'remoteCanOverrideLocalTripLog': false,
@@ -207,6 +213,12 @@ abstract final class TripTrackingFirestoreContract {
     }
     if (summary['hiveRemainsSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
+        summary['rulesMustRejectRemoteCalibrationWrites'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
+        summary['firestoreCanCreateCalibration'] != false ||
+        summary['firestoreCanApplyCalibration'] != false ||
         summary['remoteCanOverrideLocalTripLog'] != false ||
         summary['remoteCanConfirmOdometer'] != false ||
         summary['remoteCanCreateOfficialStop'] != false ||
