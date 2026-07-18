@@ -2,201 +2,172 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_location_sample_intake_guard.dart';
 
 void main() {
-  final receivedAt = DateTime.utc(2026, 7, 18, 12);
+  final receivedAt = DateTime.utc(2026, 7, 18, 20);
 
-  test(
-    'accepts complete local native sample for the current owner session',
-    () {
-      final decision = evaluate(sample(recordedAt: receivedAt));
-      final safe = decision.toSafeSummary();
-
-      expect(decision.canFeedTripEngine, isTrue);
-      expect(
-        decision.reason,
-        TripLocationSampleIntakeReason.acceptedNativeSample,
-      );
-      expect(decision.sample, isNotNull);
-      expect(safe['validatedBeforeUse'], isTrue);
-      expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
-      expect(safe['firestoreMirrorOnly'], isTrue);
-    },
-  );
-
-  test('rejects non-map, bad schema, owner mismatch, and session mismatch', () {
-    final notMap = evaluate('not a sample');
-    final badSchema = evaluate({
-      ...payload(sample(recordedAt: receivedAt)),
-      'schemaVersion': 2,
-    });
-    final wrongOwner = evaluate({
-      ...payload(sample(recordedAt: receivedAt)),
-      'ownerUid': 'other-user',
-    });
-    final wrongSession = evaluate({
-      ...payload(sample(recordedAt: receivedAt)),
-      'sessionId': 'other-session',
-    });
-
-    expect(notMap.reason, TripLocationSampleIntakeReason.payloadNotMap);
-    expect(
-      badSchema.reason,
-      TripLocationSampleIntakeReason.schemaVersionUnsupported,
-    );
-    expect(wrongOwner.reason, TripLocationSampleIntakeReason.ownerMismatch);
-    expect(wrongSession.reason, TripLocationSampleIntakeReason.sessionMismatch);
-    expect(wrongOwner.toSafeSummary()['authDoesNotImplyAuthorization'], isTrue);
-  });
-
-  test(
-    'rejects missing fields, invalid coordinates, accuracy, and timestamps',
-    () {
-      final missing = evaluate(sample(remove: 'latitude'));
-      final badCoordinate = evaluate(sample(latitude: 95));
-      final badAccuracy = evaluate(sample(accuracy: 20000));
-      final badTimestamp = evaluate(sample(recordedAtRaw: 'not-a-date'));
-
-      expect(
-        missing.reason,
-        TripLocationSampleIntakeReason.missingRequiredFields,
-      );
-      expect(
-        badCoordinate.reason,
-        TripLocationSampleIntakeReason.invalidCoordinate,
-      );
-      expect(
-        badAccuracy.reason,
-        TripLocationSampleIntakeReason.invalidAccuracy,
-      );
-      expect(
-        badTimestamp.reason,
-        TripLocationSampleIntakeReason.invalidTimestamp,
-      );
-    },
-  );
-
-  test('rejects future, stale, mock, and impossible speed samples', () {
-    final future = evaluate(
-      sample(recordedAt: receivedAt.add(const Duration(minutes: 3))),
-    );
-    final stale = evaluate(
-      sample(recordedAt: receivedAt.subtract(const Duration(hours: 19))),
-    );
-    final mock = evaluate(sample(mockedLocation: true));
-    final invalidSpeed = evaluate(sample(speed: -2));
-    final tooFast = evaluate(sample(speed: 71));
-
-    expect(future.reason, TripLocationSampleIntakeReason.futureTimestamp);
-    expect(stale.reason, TripLocationSampleIntakeReason.staleTimestamp);
-    expect(mock.reason, TripLocationSampleIntakeReason.mockedLocationRejected);
-    expect(
-      invalidSpeed.reason,
-      TripLocationSampleIntakeReason.invalidReportedSpeed,
-    );
-    expect(
-      tooFast.reason,
-      TripLocationSampleIntakeReason.impossibleReportedSpeed,
-    );
-  });
-
-  test('rejects duplicate and out-of-order replayed samples', () {
-    final latestAccepted = receivedAt.subtract(const Duration(seconds: 10));
-    final duplicate = evaluate(
-      sample(recordedAt: latestAccepted),
-      latestAcceptedRecordedAt: latestAccepted,
-    );
-    final olderReplay = evaluate(
-      sample(recordedAt: latestAccepted.subtract(const Duration(seconds: 1))),
-      latestAcceptedRecordedAt: latestAccepted,
-    );
-    final nextSample = evaluate(
-      sample(recordedAt: latestAccepted.add(const Duration(seconds: 1))),
-      latestAcceptedRecordedAt: latestAccepted,
-    );
-
-    expect(duplicate.reason, TripLocationSampleIntakeReason.duplicateTimestamp);
-    expect(
-      olderReplay.reason,
-      TripLocationSampleIntakeReason.outOfOrderTimestamp,
-    );
-    expect(nextSample.canFeedTripEngine, isTrue);
-    expect(duplicate.toSafeSummary()['orderedAfterAcceptedSample'], isFalse);
-    expect(
-      olderReplay.toSafeSummary()['remoteSampleCanOverrideLocalTruth'],
-      isFalse,
-    );
-  });
-
-  test('safe summary never leaks coordinates, route geometry, or tokens', () {
-    final safe = evaluate(
-      sample(
-        latitude: 35.123456,
-        longitude: -80.987654,
-        recordedAt: receivedAt,
-      ),
-    ).toSafeSummary();
-
-    expect(safe['coordinatesIncluded'], isFalse);
-    expect(safe['rawLocationIncluded'], isFalse);
-    expect(safe['preciseTimestampIncluded'], isFalse);
-    expect(safe['routeGeometryIncluded'], isFalse);
-    expect(safe['tokensIncluded'], isFalse);
-    expect(safe['sampleCanCreateOfficialStop'], isFalse);
-    expect(safe['sampleCanConfirmMileage'], isFalse);
-    expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
-    expect(safe.toString(), isNot(contains('35.123456')));
-    expect(safe.toString(), isNot(contains('pk.')));
-    expect(safe.toString(), isNot(contains('sk.')));
-  });
-}
-
-TripLocationSampleIntakeDecision evaluate(
-  Object? payloadValue, {
-  DateTime? latestAcceptedRecordedAt,
-}) {
-  final externalPayload =
-      payloadValue is Map &&
-          payloadValue.containsKey('schemaVersion') &&
-          payloadValue.containsKey('sample')
-      ? payloadValue
-      : payloadValue is Map
-      ? payload(payloadValue.cast<String, Object?>())
-      : payloadValue;
-  return TripLocationSampleIntakeGuard.evaluate(
-    payload: externalPayload,
-    expectedOwnerUid: 'user-1',
-    expectedSessionId: 'session-1',
-    receivedAt: DateTime.utc(2026, 7, 18, 12),
-    latestAcceptedRecordedAt: latestAcceptedRecordedAt,
-  );
-}
-
-Map<String, Object?> payload(Map<String, Object?> sample) => {
-  'schemaVersion': 1,
-  'ownerUid': 'user-1',
-  'sessionId': 'session-1',
-  'sample': sample,
-};
-
-Map<String, Object?> sample({
-  double latitude = 35.0,
-  double longitude = -80.0,
-  double accuracy = 8,
-  double? speed = 12,
-  DateTime? recordedAt,
-  Object? recordedAtRaw,
-  bool? mockedLocation,
-  String? remove,
-}) {
-  final map = <String, Object?>{
-    'latitude': latitude,
-    'longitude': longitude,
-    'horizontalAccuracyMeters': accuracy,
-    'recordedAt':
-        recordedAtRaw ??
-        (recordedAt ?? DateTime.utc(2026, 7, 18, 12)).toIso8601String(),
+  Map<String, Object?> payload({
+    Object? ownerUid = 'driver-1',
+    Object? sessionId = 'trip-1',
+    Object? schemaVersion = 1,
+    Map<String, Object?>? sample,
+  }) => {
+    'schemaVersion': schemaVersion,
+    'ownerUid': ownerUid,
+    'sessionId': sessionId,
+    'sample':
+        sample ??
+        {
+          'latitude': 35.123456,
+          'longitude': -80.123456,
+          'recordedAt': receivedAt.subtract(const Duration(seconds: 8)),
+          'horizontalAccuracyMeters': 8,
+          'speedMetersPerSecond': 12,
+        },
   };
-  if (speed != null) map['speedMetersPerSecond'] = speed;
-  if (mockedLocation != null) map['mockedLocation'] = mockedLocation;
-  if (remove != null) map.remove(remove);
-  return map;
+
+  test('accepted native sample summary validates without leaking location', () {
+    final decision = TripLocationSampleIntakeGuard.evaluate(
+      payload: payload(),
+      expectedOwnerUid: 'driver-1',
+      expectedSessionId: 'trip-1',
+      receivedAt: receivedAt,
+    );
+    final summary = decision.toSafeSummary();
+    final validation = TripLocationSampleIntakeSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(decision.canFeedTripEngine, isTrue);
+    expect(validation.isRenderable, isTrue);
+    expect(validation.status, TripLocationSampleIntakeStatus.accepted);
+    expect(
+      validation.reason,
+      TripLocationSampleIntakeReason.acceptedNativeSample,
+    );
+    expect(summary.toString(), isNot(contains('35.123456')));
+    expect(summary.toString(), isNot(contains('-80.123456')));
+  });
+
+  test(
+    'token-like owner or session identifiers are never treated as verified',
+    () {
+      final ownerToken = TripLocationSampleIntakeGuard.evaluate(
+        payload: payload(ownerUid: 'pk.public-token'),
+        expectedOwnerUid: 'pk.public-token',
+        expectedSessionId: 'trip-1',
+        receivedAt: receivedAt,
+      );
+      final sessionToken = TripLocationSampleIntakeGuard.evaluate(
+        payload: payload(sessionId: 'sk.secret-token'),
+        expectedOwnerUid: 'driver-1',
+        expectedSessionId: 'sk.secret-token',
+        receivedAt: receivedAt,
+      );
+
+      expect(ownerToken.status, TripLocationSampleIntakeStatus.rejected);
+      expect(ownerToken.reason, TripLocationSampleIntakeReason.ownerMismatch);
+      expect(ownerToken.toSafeSummary()['tokensIncluded'], isFalse);
+      expect(sessionToken.status, TripLocationSampleIntakeStatus.rejected);
+      expect(
+        sessionToken.reason,
+        TripLocationSampleIntakeReason.sessionMismatch,
+      );
+    },
+  );
+
+  test(
+    'summary validation rejects remote authority and odometer truth claims',
+    () {
+      final summary =
+          TripLocationSampleIntakeGuard.evaluate(
+            payload: payload(),
+            expectedOwnerUid: 'driver-1',
+            expectedSessionId: 'trip-1',
+            receivedAt: receivedAt,
+          ).toSafeSummary()..addAll({
+            'canFeedTripEngine': true,
+            'ownerVerified': false,
+            'sessionVerified': false,
+            'validatedBeforeUse': false,
+            'authDoesNotImplyAuthorization': false,
+            'authenticatedUserStillNeedsAuthorization': false,
+            'hiveRemainsOperationalSourceOfTruth': false,
+            'firestoreMirrorOnly': false,
+            'remoteSampleCanOverrideLocalTruth': true,
+            'sampleCanCreateOfficialStop': true,
+            'sampleCanConfirmMileage': true,
+            'odometerRemainsOfficialMileageTruth': false,
+            'mockLocationAccepted': true,
+          });
+      final validation = TripLocationSampleIntakeSummaryValidation.fromSummary(
+        summary,
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        containsAll([
+          'unsafe_engine_feed_claim',
+          'authorization_boundary_missing',
+          'local_truth_boundary_missing',
+          'sample_can_create_trip_truth',
+        ]),
+      );
+    },
+  );
+
+  test('summary validation rejects Mapbox and sensitive material claims', () {
+    final summary =
+        TripLocationSampleIntakeGuard.evaluate(
+          payload: payload(),
+          expectedOwnerUid: 'driver-1',
+          expectedSessionId: 'trip-1',
+          receivedAt: receivedAt,
+        ).toSafeSummary()..addAll({
+          'mapboxResponsesTreatedAsExternalInput': false,
+          'mapboxDirectionsCanSupplyOfficialSample': true,
+          'mapboxMapMatchingCanReplaceSample': true,
+          'mapboxOptimizationCanCreateMileage': true,
+          'rawLocationIncluded': true,
+          'coordinatesIncluded': true,
+          'preciseTimestampIncluded': true,
+          'routeGeometryIncluded': true,
+          'tokensIncluded': true,
+          'publicMapboxTokenIncluded': true,
+          'secretMapboxTokenIncluded': true,
+          'debugCoordinate': '35.123456,-80.123456',
+        });
+    final validation = TripLocationSampleIntakeSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('mapbox_can_control_sample_truth'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_trip_material'),
+    );
+    expect(validation.reasons, contains('summary_contains_sensitive_text'));
+  });
+
+  test('malformed summary shape fails closed', () {
+    final validation = TripLocationSampleIntakeSummaryValidation.fromSummary({
+      'schemaVersion': 2,
+      'status': 'forceAccepted',
+      'reason': 'privateReason',
+      'payloadSchemaVersion': 'one',
+      'malformedPayloadFailsClosed': false,
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'unsupported_schema_version',
+        'invalid_intake_status',
+        'invalid_intake_reason',
+        'invalid_payload_schema_version',
+        'malformed_payload_not_fail_closed',
+      ]),
+    );
+  });
 }

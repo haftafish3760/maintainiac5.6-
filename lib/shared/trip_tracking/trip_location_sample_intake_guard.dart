@@ -61,6 +61,12 @@ class TripLocationSampleIntakeDecision {
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'mapboxResponsesTreatedAsExternalInput': true,
+    'mapboxDirectionsCanSupplyOfficialSample': false,
+    'mapboxMapMatchingCanReplaceSample': false,
+    'mapboxOptimizationCanCreateMileage': false,
+    'publicMapboxTokenIncluded': false,
+    'secretMapboxTokenIncluded': false,
+    'authenticatedUserStillNeedsAuthorization': true,
     'remoteSampleCanOverrideLocalTruth': false,
     'sampleCanCreateOfficialStop': false,
     'sampleCanConfirmMileage': false,
@@ -73,6 +79,89 @@ class TripLocationSampleIntakeDecision {
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripLocationSampleIntakeSummaryValidation {
+  const TripLocationSampleIntakeSummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reason,
+    required this.reasons,
+  });
+
+  factory TripLocationSampleIntakeSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeIntakeStatus(summary['status']);
+    final reason = _safeIntakeReason(summary['reason']);
+
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_intake_status');
+    if (reason == null) reasons.add('invalid_intake_reason');
+    if (summary['payloadSchemaVersion'] is! int) {
+      reasons.add('invalid_payload_schema_version');
+    }
+    if (summary['canFeedTripEngine'] == true &&
+        (status != TripLocationSampleIntakeStatus.accepted ||
+            reason != TripLocationSampleIntakeReason.acceptedNativeSample ||
+            summary['ownerVerified'] != true ||
+            summary['sessionVerified'] != true)) {
+      reasons.add('unsafe_engine_feed_claim');
+    }
+    if (summary['validatedBeforeUse'] != true ||
+        summary['authDoesNotImplyAuthorization'] != true ||
+        summary['authenticatedUserStillNeedsAuthorization'] != true ||
+        summary['localTripSessionRequired'] != true) {
+      reasons.add('authorization_boundary_missing');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true) {
+      reasons.add('local_truth_boundary_missing');
+    }
+    if (summary['mapboxResponsesTreatedAsExternalInput'] != true ||
+        summary['mapboxDirectionsCanSupplyOfficialSample'] != false ||
+        summary['mapboxMapMatchingCanReplaceSample'] != false ||
+        summary['mapboxOptimizationCanCreateMileage'] != false) {
+      reasons.add('mapbox_can_control_sample_truth');
+    }
+    if (summary['remoteSampleCanOverrideLocalTruth'] != false ||
+        summary['sampleCanCreateOfficialStop'] != false ||
+        summary['sampleCanConfirmMileage'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['mockLocationAccepted'] != false) {
+      reasons.add('sample_can_create_trip_truth');
+    }
+    if (summary['malformedPayloadFailsClosed'] != true) {
+      reasons.add('malformed_payload_not_fail_closed');
+    }
+    if (summary['rawLocationIncluded'] != false ||
+        summary['coordinatesIncluded'] != false ||
+        summary['preciseTimestampIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary['publicMapboxTokenIncluded'] != false ||
+        summary['secretMapboxTokenIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripLocationSampleIntakeSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reason: reasons.isEmpty ? reason : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripLocationSampleIntakeStatus? status;
+  final TripLocationSampleIntakeReason? reason;
+  final List<String> reasons;
 }
 
 class TripLocationSampleIntakeGuard {
@@ -101,8 +190,7 @@ class TripLocationSampleIntakeGuard {
       );
     }
 
-    final ownerVerified =
-        _safeToken(payload['ownerUid']) == _safeToken(expectedOwnerUid);
+    final ownerVerified = _verifiedToken(payload['ownerUid'], expectedOwnerUid);
     if (!ownerVerified) {
       return _rejected(
         TripLocationSampleIntakeReason.ownerMismatch,
@@ -111,8 +199,10 @@ class TripLocationSampleIntakeGuard {
       );
     }
 
-    final sessionVerified =
-        _safeToken(payload['sessionId']) == _safeToken(expectedSessionId);
+    final sessionVerified = _verifiedToken(
+      payload['sessionId'],
+      expectedSessionId,
+    );
     if (!sessionVerified) {
       return _rejected(
         TripLocationSampleIntakeReason.sessionMismatch,
@@ -307,7 +397,15 @@ String _safeToken(Object? raw) {
       .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '')
       .trim();
   if (clean.isEmpty || clean.length > 160) return '';
+  if (clean.startsWith('pk.') || clean.startsWith('sk.')) return '';
+  if (clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'))) return '';
   return clean;
+}
+
+bool _verifiedToken(Object? raw, String expected) {
+  final actual = _safeToken(raw);
+  final safeExpected = _safeToken(expected);
+  return actual.isNotEmpty && safeExpected.isNotEmpty && actual == safeExpected;
 }
 
 String _clockSkewBucket(Duration skew) {
@@ -319,3 +417,27 @@ String _clockSkewBucket(Duration skew) {
 }
 
 Duration _durationAbs(Duration value) => value.isNegative ? -value : value;
+
+TripLocationSampleIntakeStatus? _safeIntakeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripLocationSampleIntakeStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+TripLocationSampleIntakeReason? _safeIntakeReason(Object? value) {
+  if (value is! String) return null;
+  for (final reason in TripLocationSampleIntakeReason.values) {
+    if (reason.name == value) return reason;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
+}
