@@ -1,10 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_live_odometer_projection.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
+  final driveStart = DateTime.utc(2026, 7, 12, 8);
+
+  TripLocationSample sample(double longitude, int seconds) =>
+      TripLocationSample(
+        latitude: 35,
+        longitude: longitude,
+        recordedAt: driveStart.add(Duration(seconds: seconds)),
+        horizontalAccuracyMeters: 5,
+      );
+
   test(
     'controller refreshes opt-in calibration from reviewed history',
     () async {
@@ -88,6 +99,82 @@ void main() {
         controller.gpsAssistanceCalibrationMultiplier,
         closeTo(.8974, .001),
       );
+    },
+  );
+
+  test(
+    'mid-trip calibration refresh waits for the next trip projection',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+
+      final started = await controller.start(
+        tripId: 'trip_calibration_freeze',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: driveStart,
+      );
+      expect(started, isTrue);
+      expect(await controller.ingest(sample(-80, 0)), isNotNull);
+      expect(await controller.ingest(sample(-79.985, 60)), isNotNull);
+      expect(await controller.ingest(sample(-79.97, 120)), isNotNull);
+      expect(await controller.ingest(sample(-79.955, 180)), isNotNull);
+      final readingBeforeRefresh = odometer.reading;
+
+      for (var day = 0; day < 7; day += 1) {
+        await store.saveReview(
+          _confirmedReview(
+            id: 'active_freeze_calibration_$day',
+            startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+            filteredGpsMiles: 110,
+            odometerMiles: 100,
+          ),
+        );
+      }
+      controller.refreshGpsAssistanceCalibration(enabled: true);
+      expect(
+        controller.gpsAssistanceCalibrationMultiplier,
+        closeTo(.9091, .001),
+      );
+
+      expect(await controller.ingest(sample(-79.94, 240)), isNotNull);
+      expect(await controller.ingest(sample(-79.925, 300)), isNotNull);
+      expect(await controller.ingest(sample(-79.91, 360)), isNotNull);
+      expect(await controller.ingest(sample(-79.895, 420)), isNotNull);
+      final acceptedMeters = controller.acceptedMeters;
+      final neutralProjection = TripLiveOdometerProjection(
+        startingOdometer: 1000,
+      );
+      final recalibratedProjection = TripLiveOdometerProjection(
+        startingOdometer: 1000,
+      );
+      final neutralReading = neutralProjection.updateAcceptedMeters(
+        acceptedMeters,
+      );
+      final recalibratedReading = recalibratedProjection.updateAcceptedMeters(
+        acceptedMeters,
+        gpsAssistanceCalibrationMultiplier:
+            controller.gpsAssistanceCalibrationMultiplier,
+      );
+
+      expect(odometer.reading, greaterThan(readingBeforeRefresh));
+      expect(odometer.reading, neutralReading);
+      expect(odometer.reading, isNot(recalibratedReading));
+      final review = await controller.finishForReview(
+        finishedAt: driveStart.add(const Duration(minutes: 25)),
+      );
+      expect(review, isNotNull);
+      expect(review!.estimatedEndingOdometer, neutralReading);
+      expect(odometer.confirmedReading, 1000);
     },
   );
 }

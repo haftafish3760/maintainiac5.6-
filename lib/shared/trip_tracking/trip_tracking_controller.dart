@@ -52,6 +52,7 @@ class TripTrackingController extends ChangeNotifier {
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
   TripLiveOdometerProjection? _projection;
+  double _activeTripCalibrationMultiplier = 1;
   StreamSubscription<TripTrackingPlatformEvent>? _platformSubscription;
   Future<void> _platformEventQueue = Future<void>.value();
   Future<void> _ingestionQueue = Future<void>.value();
@@ -394,6 +395,7 @@ class TripTrackingController extends ChangeNotifier {
       startingOdometer: startingOdometer,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
+    _activeTripCalibrationMultiplier = gpsAssistanceCalibrationMultiplier;
     _session = TripTrackingSessionRecord(
       id: tripId,
       vehicleId: vehicleId,
@@ -419,6 +421,7 @@ class TripTrackingController extends ChangeNotifier {
       _session = null;
       _engine = null;
       _projection = null;
+      _activeTripCalibrationMultiplier = 1;
       _platformStatus = 'storage_failed';
       _platformError = 'Could not save the trip locally.';
       notifyListeners();
@@ -501,9 +504,10 @@ class TripTrackingController extends ChangeNotifier {
       startingOdometer: session.startingOdometer,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
+    _activeTripCalibrationMultiplier = gpsAssistanceCalibrationMultiplier;
     final estimatedOdometer = projection.updateAcceptedMeters(
       session.engineSnapshot.totalAcceptedMeters,
-      gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
+      gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
     );
     if (!_odometer.beginLiveTripProjection(
       tripId: session.id,
@@ -694,7 +698,7 @@ class TripTrackingController extends ChangeNotifier {
     if (persistsRecoveryState) {
       final estimatedOdometer = projection.updateAcceptedMeters(
         decision.totalAcceptedMeters,
-        gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
+        gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
       );
       final naturalLifecycleState = _lifecycleAfterDecision(
         session.lifecycleState,
@@ -1333,6 +1337,7 @@ class TripTrackingController extends ChangeNotifier {
     _session = null;
     _engine = null;
     _projection = null;
+    _activeTripCalibrationMultiplier = 1;
     notifyListeners();
     return true;
   }
@@ -1376,7 +1381,7 @@ class TripTrackingController extends ChangeNotifier {
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer: projection.updateAcceptedMeters(
         engine.totalAcceptedMeters,
-        gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
+        gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
       ),
       profile: session.profile,
       startedAt: session.startedAt,
@@ -1420,6 +1425,7 @@ class TripTrackingController extends ChangeNotifier {
     _session = null;
     _engine = null;
     _projection = null;
+    _activeTripCalibrationMultiplier = 1;
     notifyListeners();
     return review;
   }
