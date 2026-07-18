@@ -107,9 +107,82 @@ void main() {
     expect(safe['rawCoordinatesIncluded'], isFalse);
     expect(safe['routeGeometryIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
+    expect(safe['durableStorageRemainsSharedAcrossModules'], isTrue);
+    expect(safe['routeHistoryCleanupRequiresExplicitUserAction'], isTrue);
+    expect(safe['mapboxFailureStopsTextTripLog'], isFalse);
+    expect(safe['firestoreCanEnableMapsWithoutUserOptIn'], isFalse);
+    expect(safe['remoteConfigCanIncreaseSamplingCadence'], isFalse);
+    expect(safe['remoteConfigCanExceedDailyBudget'], isFalse);
     expect(safe.toString(), isNot(contains('pk.')));
     expect(safe.toString(), isNot(contains('sk.')));
   });
+
+  test('route history summary validates only bounded advisory payloads', () {
+    final validation = TripRouteHistorySummaryValidation.fromSummary(
+      evaluate(
+        accountTier: TripRouteHistoryAccountTier.beta,
+        userOptedIntoMaps: true,
+        userOptedIntoRouteHistory: true,
+        requestedDailyBudgetMb: 1,
+      ).toSafeSummary(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.plan, TripRouteHistoryPlan.compactGpsTrace);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'route history summary rejects map, remote, and storage authority drift',
+    () {
+      final validation = TripRouteHistorySummaryValidation.fromSummary(
+        evaluate(
+          accountTier: TripRouteHistoryAccountTier.beta,
+          userOptedIntoMaps: true,
+          userOptedIntoRouteHistory: true,
+          requestedDailyBudgetMb: 1,
+        ).toSafeSummary()..addAll({
+          'mapsRequiredForTripTracking': true,
+          'freeGpsTripTrackerRemainsFree': false,
+          'mapboxFailureStopsTextTripLog': true,
+          'firestoreCanEnableMapsWithoutUserOptIn': true,
+          'userCanDisableMapRouteHistoryAnytime': false,
+          'oneToThreeSecondRawPingStorageAllowed': true,
+          'remoteConfigCanIncreaseSamplingCadence': true,
+          'remoteConfigCanExceedDailyBudget': true,
+          'mapboxCanReplaceTripLog': true,
+          'mapboxCanReplaceOdometer': true,
+          'routeHistoryCanConfirmMileage': true,
+          'durableStorageRemainsSharedAcrossModules': false,
+          'routeHistoryCleanupRequiresExplicitUserAction': false,
+          'rawCoordinatesIncluded': true,
+          'routeGeometryIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'pk.token 35.123456,-80.123456',
+        }),
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(validation.reasons, contains('gps_text_log_boundary_missing'));
+      expect(
+        validation.reasons,
+        contains('route_history_opt_in_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('route_history_budget_boundary_missing'),
+      );
+      expect(validation.reasons, contains('map_route_claims_trip_truth'));
+      expect(
+        validation.reasons,
+        contains('storage_authority_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_route_material'),
+      );
+    },
+  );
 }
 
 TripRouteHistoryCaptureDecision evaluate({

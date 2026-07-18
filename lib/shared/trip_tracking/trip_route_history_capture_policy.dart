@@ -58,10 +58,91 @@ class TripRouteHistoryCaptureDecision {
     'odometerRemainsOfficialMileageTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'firestoreMirrorOnly': true,
+    'durableStorageRemainsSharedAcrossModules': true,
+    'routeHistoryCleanupRequiresExplicitUserAction': true,
+    'mapboxFailureStopsTextTripLog': false,
+    'firestoreCanEnableMapsWithoutUserOptIn': false,
+    'remoteConfigCanIncreaseSamplingCadence': false,
+    'remoteConfigCanExceedDailyBudget': false,
+    'backgroundTrackingRequiresPlatformPermission': true,
+    'userCanDisableMapRouteHistoryAnytime': true,
     'rawCoordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripRouteHistorySummaryValidation {
+  const TripRouteHistorySummaryValidation._({
+    required this.isRenderable,
+    required this.plan,
+    required this.reasons,
+  });
+
+  factory TripRouteHistorySummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final plan = _safePlan(summary['plan']);
+    final reason = _safeReason(summary['reason']);
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (plan == null) reasons.add('invalid_route_history_plan');
+    if (reason == null) reasons.add('invalid_route_history_reason');
+    if (summary['recommendedSampleIntervalSeconds'] is! int ||
+        summary['maximumRetainedPointsPerDay'] is! int) {
+      reasons.add('invalid_route_history_cadence');
+    }
+    if (summary['canCaptureRouteHistory'] == true &&
+        plan != TripRouteHistoryPlan.compactGpsTrace) {
+      reasons.add('capture_enabled_for_non_trace_plan');
+    }
+    if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
+        summary['mapsRequiredForTripTracking'] != false ||
+        summary['freeGpsTripTrackerRemainsFree'] != true ||
+        summary['textTripLogStillWritten'] != true ||
+        summary['mapboxFailureStopsTextTripLog'] != false) {
+      reasons.add('gps_text_log_boundary_missing');
+    }
+    if (summary['mapRouteHistoryRequiresSeparateOptIn'] != true ||
+        summary['userCanDisableMapRouteHistoryAnytime'] != true ||
+        summary['firestoreCanEnableMapsWithoutUserOptIn'] != false) {
+      reasons.add('route_history_opt_in_boundary_missing');
+    }
+    if (summary['storesOnlyBoundedRoutePoints'] != true ||
+        summary['oneToThreeSecondRawPingStorageAllowed'] != false ||
+        summary['rawHighFrequencyPingsRetained'] != false ||
+        summary['remoteConfigCanIncreaseSamplingCadence'] != false ||
+        summary['remoteConfigCanExceedDailyBudget'] != false) {
+      reasons.add('route_history_budget_boundary_missing');
+    }
+    if (summary['mapboxCanReplaceTripLog'] != false ||
+        summary['mapboxCanReplaceOdometer'] != false ||
+        summary['routeHistoryCanConfirmMileage'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('map_route_claims_trip_truth');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['durableStorageRemainsSharedAcrossModules'] != true ||
+        summary['routeHistoryCleanupRequiresExplicitUserAction'] != true) {
+      reasons.add('storage_authority_boundary_missing');
+    }
+    if (summary['rawCoordinatesIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_route_material');
+    }
+    return TripRouteHistorySummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      plan: reasons.isEmpty ? plan : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripRouteHistoryPlan? plan;
+  final List<String> reasons;
 }
 
 class TripRouteHistoryCapturePolicy {
@@ -204,4 +285,28 @@ String _dailyBudgetBucket(double value) {
   if (value < 2) return 'half_to_two_mb';
   if (value < 10) return 'two_to_ten_mb';
   return 'ten_to_twenty_five_mb';
+}
+
+TripRouteHistoryPlan? _safePlan(Object? value) {
+  if (value is! String) return null;
+  for (final plan in TripRouteHistoryPlan.values) {
+    if (plan.name == value) return plan;
+  }
+  return null;
+}
+
+TripRouteHistoryReason? _safeReason(Object? value) {
+  if (value is! String) return null;
+  for (final reason in TripRouteHistoryReason.values) {
+    if (reason.name == value) return reason;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      RegExp(r'-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}').hasMatch(clean);
 }
