@@ -191,15 +191,93 @@ void main() {
 
       expect(safe['localRecoveryValidationRequired'], isTrue);
       expect(safe['hiveRemainsOperationalSourceOfTruth'], isTrue);
+      expect(safe['firestoreMirrorOnly'], isTrue);
+      expect(safe['backgroundRecoveryCanRunWithoutMaps'], isTrue);
+      expect(safe['mapsRequiredForRecoveryResume'], isFalse);
       expect(safe['firestoreCanReviveQuarantinedSession'], isFalse);
+      expect(safe['firestoreCanForceResume'], isFalse);
+      expect(safe['mapboxCanForceResume'], isFalse);
       expect(safe['remoteCheckpointCanOverrideLocalRecovery'], isFalse);
+      expect(safe['recoveryCanDeleteLocalData'], isFalse);
+      expect(safe['recoveryCanPurgeLocalDeviceData'], isFalse);
       expect(safe['recoveryCanConfirmMileage'], isFalse);
+      expect(safe['recoveryCanCreateOfficialStop'], isFalse);
       expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
       expect(safe['rawGpsIncluded'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
     },
   );
+
+  test('safe recovery resume summary validates local-only boundaries', () {
+    final validation = TripRecoveryResumeSummaryValidation.fromSummary(
+      TripRecoveryResumePolicy.evaluate(
+        validation: TripTrackingSessionRecoveryValidation.activeSession(
+          session(),
+        ),
+        currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        currentVehicleId: 'vehicle_1',
+        expectedVehicleId: 'vehicle_1',
+        currentConfirmedOdometer: 999,
+        startingOdometer: 1000,
+      ).toSafeSummary(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test('forged recovery resume summaries cannot mutate or leak trip data', () {
+    final validation = TripRecoveryResumeSummaryValidation.fromSummary(
+      TripRecoveryResumePolicy.evaluate(
+        validation: TripTrackingSessionRecoveryValidation.activeSession(
+          session(),
+        ),
+        currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        currentVehicleId: 'vehicle_1',
+        expectedVehicleId: 'vehicle_1',
+        currentConfirmedOdometer: 999,
+        startingOdometer: 1000,
+      ).toSafeSummary()..addAll({
+        'backgroundRecoveryCanRunWithoutMaps': false,
+        'mapsRequiredForRecoveryResume': true,
+        'hiveRemainsOperationalSourceOfTruth': false,
+        'firestoreMirrorOnly': false,
+        'odometerRemainsOfficialMileageTruth': false,
+        'firestoreCanReviveQuarantinedSession': true,
+        'mapboxCanReviveQuarantinedSession': true,
+        'cloudFunctionCanReviveQuarantinedSession': true,
+        'firestoreCanForceResume': true,
+        'mapboxCanForceResume': true,
+        'cloudFunctionCanForceResume': true,
+        'remoteCheckpointCanOverrideLocalRecovery': true,
+        'recoveryCanDeleteLocalData': true,
+        'recoveryCanPurgeLocalDeviceData': true,
+        'recoveryCanConfirmMileage': true,
+        'recoveryCanCreateOfficialStop': true,
+        'recoveryCanEndTripAutomatically': true,
+        'recoveryCanReplayPendingSampleWithoutValidation': true,
+        'rawGpsIncluded': true,
+        'preciseLocationIncluded': true,
+        'routeGeometryIncluded': true,
+        'tokensIncluded': true,
+        'debug': 'sk.secret 35.123456,-80.123456',
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('recovery_resume_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('recovery_source_of_truth_boundary_missing'),
+    );
+    expect(validation.reasons, contains('remote_or_map_can_force_resume'));
+    expect(validation.reasons, contains('recovery_can_mutate_trip_truth'));
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_recovery_material'),
+    );
+  });
 }
 
 TripTrackingSessionRecord session({String id = 'session_1'}) {

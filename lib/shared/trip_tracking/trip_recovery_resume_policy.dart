@@ -44,24 +44,134 @@ class TripRecoveryResumeDecision {
     'requiresUserReview': requiresUserReview,
     'localRecoveryValidationRequired': true,
     'localLifecycleAuthoritative': true,
+    'backgroundRecoveryCanRunWithoutMaps': true,
+    'mapsRequiredForRecoveryResume': false,
     'vehicleBoundaryValidated':
         reason != TripRecoveryResumeReason.unsafeVehicleBoundary,
     'odometerBoundaryValidated':
         reason != TripRecoveryResumeReason.invalidOdometerBoundary,
     'hiveRemainsOperationalSourceOfTruth': true,
+    'firestoreMirrorOnly': true,
     'firestoreCanReviveQuarantinedSession': false,
     'mapboxCanReviveQuarantinedSession': false,
     'cloudFunctionCanReviveQuarantinedSession': false,
+    'firestoreCanForceResume': false,
+    'mapboxCanForceResume': false,
+    'cloudFunctionCanForceResume': false,
     'remoteCheckpointCanOverrideLocalRecovery': false,
     'recoveryCanDeleteLocalData': false,
+    'recoveryCanPurgeLocalDeviceData': false,
     'recoveryCanConfirmMileage': false,
     'recoveryCanCreateOfficialStop': false,
+    'recoveryCanEndTripAutomatically': false,
+    'recoveryCanReplayPendingSampleWithoutValidation': false,
     'odometerRemainsOfficialMileageTruth': true,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripRecoveryResumeSummaryValidation {
+  const TripRecoveryResumeSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripRecoveryResumeSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_resume_status');
+    }
+    if (_safeReason(summary['reason']) == null) {
+      reasons.add('invalid_resume_reason');
+    }
+    if (_safeLifecycle(summary['targetLifecycle']) == null) {
+      reasons.add('invalid_target_lifecycle');
+    }
+    for (final key in const [
+      'canResumeNativeTracking',
+      'canOpenReview',
+      'requiresUserReview',
+      'localRecoveryValidationRequired',
+      'localLifecycleAuthoritative',
+      'backgroundRecoveryCanRunWithoutMaps',
+      'mapsRequiredForRecoveryResume',
+      'vehicleBoundaryValidated',
+      'odometerBoundaryValidated',
+      'hiveRemainsOperationalSourceOfTruth',
+      'firestoreMirrorOnly',
+      'firestoreCanReviveQuarantinedSession',
+      'mapboxCanReviveQuarantinedSession',
+      'cloudFunctionCanReviveQuarantinedSession',
+      'firestoreCanForceResume',
+      'mapboxCanForceResume',
+      'cloudFunctionCanForceResume',
+      'remoteCheckpointCanOverrideLocalRecovery',
+      'recoveryCanDeleteLocalData',
+      'recoveryCanPurgeLocalDeviceData',
+      'recoveryCanConfirmMileage',
+      'recoveryCanCreateOfficialStop',
+      'recoveryCanEndTripAutomatically',
+      'recoveryCanReplayPendingSampleWithoutValidation',
+      'odometerRemainsOfficialMileageTruth',
+      'rawGpsIncluded',
+      'preciseLocationIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['localRecoveryValidationRequired'] != true ||
+        summary['localLifecycleAuthoritative'] != true ||
+        summary['backgroundRecoveryCanRunWithoutMaps'] != true ||
+        summary['mapsRequiredForRecoveryResume'] != false) {
+      reasons.add('recovery_resume_boundary_missing');
+    }
+    if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('recovery_source_of_truth_boundary_missing');
+    }
+    if (summary['firestoreCanReviveQuarantinedSession'] != false ||
+        summary['mapboxCanReviveQuarantinedSession'] != false ||
+        summary['cloudFunctionCanReviveQuarantinedSession'] != false ||
+        summary['firestoreCanForceResume'] != false ||
+        summary['mapboxCanForceResume'] != false ||
+        summary['cloudFunctionCanForceResume'] != false ||
+        summary['remoteCheckpointCanOverrideLocalRecovery'] != false) {
+      reasons.add('remote_or_map_can_force_resume');
+    }
+    if (summary['recoveryCanDeleteLocalData'] != false ||
+        summary['recoveryCanPurgeLocalDeviceData'] != false ||
+        summary['recoveryCanConfirmMileage'] != false ||
+        summary['recoveryCanCreateOfficialStop'] != false ||
+        summary['recoveryCanEndTripAutomatically'] != false ||
+        summary['recoveryCanReplayPendingSampleWithoutValidation'] != false) {
+      reasons.add('recovery_can_mutate_trip_truth');
+    }
+    if (summary['rawGpsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_recovery_material');
+    }
+
+    return TripRecoveryResumeSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripRecoveryResumePolicy {
@@ -158,4 +268,36 @@ TripRecoveryResumeDecision _blocked(
     canOpenReview: false,
     requiresUserReview: true,
   );
+}
+
+TripRecoveryResumeStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripRecoveryResumeStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+TripRecoveryResumeReason? _safeReason(Object? value) {
+  if (value is! String) return null;
+  for (final reason in TripRecoveryResumeReason.values) {
+    if (reason.name == value) return reason;
+  }
+  return null;
+}
+
+TripTrackingSessionLifecycleState? _safeLifecycle(Object? value) {
+  if (value is! String) return null;
+  for (final lifecycle in TripTrackingSessionLifecycleState.values) {
+    if (lifecycle.name == value) return lifecycle;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
