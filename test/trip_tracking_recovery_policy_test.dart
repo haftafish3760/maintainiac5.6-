@@ -90,6 +90,60 @@ void main() {
     expect(decision.toSafeSummary()['pendingSampleIncluded'], isFalse);
   });
 
+  test('unsafe pending sample evidence is ignored during recovery', () {
+    final impossibleCoordinate = TripTrackingPendingSample(
+      sessionId: 'trip_recovery_1',
+      sample: TripLocationSample(
+        latitude: 999,
+        longitude: -80,
+        recordedAt: startedAt.add(const Duration(minutes: 1)),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+    final staleSensorEvidence = TripTrackingPendingSample(
+      sessionId: 'trip_recovery_1',
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: startedAt.add(const Duration(minutes: 5)),
+        horizontalAccuracyMeters: 5,
+      ),
+      activity: TripActivityObservation(
+        activity: TripActivity.walking,
+        confidence: 95,
+        recordedAt: startedAt,
+      ),
+    );
+    final futureReplay = TripTrackingPendingSample(
+      sessionId: 'trip_recovery_1',
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: startedAt.add(const Duration(hours: 2)),
+        horizontalAccuracyMeters: 5,
+      ),
+    );
+
+    for (final pending in [
+      impossibleCoordinate,
+      staleSensorEvidence,
+      futureReplay,
+    ]) {
+      final decision = TripTrackingRecoveryPolicy.evaluate(
+        session: session(),
+        currentVehicleId: 'vehicle_1',
+        currentConfirmedOdometer: 1000,
+        pendingSample: pending,
+      );
+
+      expect(decision.status, TripTrackingRecoveryStatus.ready);
+      expect(decision.canRestore, isTrue);
+      expect(decision.pendingSampleQueued, isFalse);
+      expect(decision.toSafeSummary()['pendingSampleQueued'], isFalse);
+      expect(decision.toSafeSummary()['pendingSampleIncluded'], isFalse);
+    }
+  });
+
   test('invalid or already-reviewed recovery records fail closed', () {
     final invalidSession = TripTrackingRecoveryPolicy.evaluate(
       session: session(valid: false),

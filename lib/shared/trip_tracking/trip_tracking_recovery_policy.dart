@@ -116,7 +116,10 @@ class TripTrackingRecoveryPolicy {
         userAction: true,
       );
     }
-    final hasPending = pendingSample?.sessionId == session.id;
+    final hasPending = _hasRecoverablePendingSample(
+      session: session,
+      pendingSample: pendingSample,
+    );
     return TripTrackingRecoveryDecision(
       status: hasPending
           ? TripTrackingRecoveryStatus.pendingReplayReady
@@ -130,6 +133,30 @@ class TripTrackingRecoveryPolicy {
       pendingSampleQueued: hasPending,
     );
   }
+}
+
+bool _hasRecoverablePendingSample({
+  required TripTrackingSessionRecord session,
+  required TripTrackingPendingSample? pendingSample,
+}) {
+  final pending = pendingSample;
+  if (pending == null || pending.sessionId != session.id) return false;
+  if (!pending.sample.hasValidCoordinate || !pending.sample.hasValidAccuracy) {
+    return false;
+  }
+  if (pending.sample.recordedAt.isBefore(session.startedAt)) return false;
+  final replayWindowEnd = session.updatedAt.add(const Duration(minutes: 5));
+  if (pending.sample.recordedAt.isAfter(replayWindowEnd)) return false;
+  final activity = pending.activity;
+  if (activity != null) {
+    if (activity.confidence < 0 || activity.confidence > 100) return false;
+    if (pending.sample.recordedAt.isBefore(activity.recordedAt)) return false;
+    if (pending.sample.recordedAt.difference(activity.recordedAt) >
+        const Duration(seconds: 90)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 TripTrackingRecoveryDecision _decision(
