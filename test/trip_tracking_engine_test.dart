@@ -334,6 +334,26 @@ void main() {
     },
   );
 
+  test('rejects malformed reported speeds before they can affect mileage', () {
+    for (final speed in const [-0.1, double.nan, double.infinity, 80.0]) {
+      final engine = TripTrackingEngine();
+      engine.ingest(sample(-80, 0));
+
+      final decision = engine.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -79.999,
+          recordedAt: start.add(const Duration(seconds: 20)),
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: speed,
+        ),
+      );
+
+      expect(decision.disposition, TripSampleDisposition.rejectedInvalid);
+      expect(engine.totalAcceptedMeters, 0);
+    }
+  });
+
   test('rejects out-of-range coordinates and non-positive accuracy', () {
     final engine = TripTrackingEngine();
     final invalidSamples = [

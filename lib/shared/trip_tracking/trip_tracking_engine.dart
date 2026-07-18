@@ -111,6 +111,9 @@ class TripTrackingEngine {
     if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
       return _decision(TripSampleDisposition.rejectedInvalid);
     }
+    if (!sample.hasValidReportedSpeed) {
+      return _decision(TripSampleDisposition.rejectedInvalid);
+    }
     if (sample.mockedLocation == true) {
       return _decision(TripSampleDisposition.rejectedMockLocation);
     }

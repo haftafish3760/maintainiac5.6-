@@ -274,6 +274,12 @@ class TripLocationSample {
       horizontalAccuracyMeters > 0 &&
       horizontalAccuracyMeters <= _maximumNativeHorizontalAccuracyMeters;
 
+  bool get hasValidReportedSpeed =>
+      speedMetersPerSecond == null ||
+      (speedMetersPerSecond!.isFinite &&
+          speedMetersPerSecond! >= 0 &&
+          speedMetersPerSecond! <= _maximumNativeReportedSpeedMetersPerSecond);
+
   Map<String, Object?> toMap() => {
     'latitude': latitude,
     'longitude': longitude,

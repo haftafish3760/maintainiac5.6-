@@ -3094,6 +3094,38 @@ void main() {
   );
 
   test(
+    'malformed reported speeds are rejected before durable pending recovery',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_invalid_speed_pending',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final decision = await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: start,
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: double.infinity,
+        ),
+      );
+
+      expect(decision?.disposition, TripSampleDisposition.rejectedInvalid);
+      expect(controller.acceptedMeters, 0);
+      expect(store.pendingSampleFor('trip_invalid_speed_pending'), isNull);
+      expect(store.activeSession?.updatedAt, start);
+    },
+  );
+
+  test(
     'near-future native timestamps stay within clock-skew tolerance',
     () async {
       final store = TripTrackingSessionStore.memory();

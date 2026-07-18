@@ -701,6 +701,9 @@ class TripTrackingController extends ChangeNotifier {
     if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
       return engine.reject(TripSampleDisposition.rejectedInvalid);
     }
+    if (!sample.hasValidReportedSpeed) {
+      return engine.reject(TripSampleDisposition.rejectedInvalid);
+    }
 
     final lastObservedAt = engine.snapshot.lastObservedAt?.toUtc();
     if (lastObservedAt != null &&
