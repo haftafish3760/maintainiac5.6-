@@ -67,6 +67,101 @@ class TripGpsDependabilityRollupDecision {
   };
 }
 
+class TripGpsDependabilityRollupSummaryValidation {
+  const TripGpsDependabilityRollupSummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasons,
+  });
+
+  factory TripGpsDependabilityRollupSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (status == null) reasons.add('invalid_gps_rollup_status');
+    if (_safeReasonValue(summary['reasonCode']) == null) {
+      reasons.add('invalid_gps_rollup_reason');
+    }
+    for (final key in const [
+      'windowCount',
+      'readyWindowCount',
+      'reviewOnlyWindowCount',
+      'pausedWindowCount',
+      'unsafeWindowCount',
+    ]) {
+      if (summary[key] is! int || (summary[key] as int) < 0) {
+        reasons.add('${key}_invalid');
+      }
+    }
+    for (final key in const [
+      'canUseForLiveAssist',
+      'canUseForCalibrationEvidence',
+      'requiresUserReview',
+      'oneGoodWindowCannotClearBadDay',
+      'poorWindowExcludesCalibrationDay',
+      'interruptedWindowExcludesCalibrationDay',
+      'unsafeWindowExcludesCalibrationDay',
+      'calibrationRequiresSustainedDailyGpsQuality',
+      'calibrationRequiresReviewedOdometerTruth',
+      'gpsRollupCanReplaceOdometer',
+      'gpsRollupCanConfirmOfficialMileage',
+      'gpsRollupCanCreateOfficialStop',
+      'mapboxCanOverrideGpsRollup',
+      'firestoreCanOverrideGpsRollup',
+      'cloudFunctionCanOverrideGpsRollup',
+      'hiveRemainsOperationalSourceOfTruth',
+      'odometerIsGlobalTruth',
+      'rawSamplesIncluded',
+      'coordinatesIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['oneGoodWindowCannotClearBadDay'] != true ||
+        summary['poorWindowExcludesCalibrationDay'] != true ||
+        summary['interruptedWindowExcludesCalibrationDay'] != true ||
+        summary['unsafeWindowExcludesCalibrationDay'] != true ||
+        summary['calibrationRequiresSustainedDailyGpsQuality'] != true ||
+        summary['calibrationRequiresReviewedOdometerTruth'] != true) {
+      reasons.add('gps_rollup_calibration_boundary_missing');
+    }
+    if (summary['gpsRollupCanReplaceOdometer'] != false ||
+        summary['gpsRollupCanConfirmOfficialMileage'] != false ||
+        summary['gpsRollupCanCreateOfficialStop'] != false ||
+        summary['odometerIsGlobalTruth'] != true) {
+      reasons.add('gps_rollup_can_create_trip_truth');
+    }
+    if (summary['mapboxCanOverrideGpsRollup'] != false ||
+        summary['firestoreCanOverrideGpsRollup'] != false ||
+        summary['cloudFunctionCanOverrideGpsRollup'] != false ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true) {
+      reasons.add('remote_can_override_gps_rollup');
+    }
+    if (summary['rawSamplesIncluded'] != false ||
+        summary['coordinatesIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripGpsDependabilityRollupSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripGpsDependabilityRollupStatus? status;
+  final List<String> reasons;
+}
+
 class TripGpsDependabilityRollupPolicy {
   const TripGpsDependabilityRollupPolicy._();
 
@@ -239,6 +334,27 @@ String _safeReason(String reasonCode) {
       'gps_rollup_needs_more_ready_windows',
     _ => 'gps_rollup_unsafe_window_present',
   };
+}
+
+TripGpsDependabilityRollupStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripGpsDependabilityRollupStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReasonValue(Object? value) {
+  if (value is! String) return null;
+  final safe = _safeReason(value);
+  return safe == value ? safe : null;
+}
+
+bool _looksSensitive(Object? value) {
+  final text = '$value'.toLowerCase();
+  if (text.contains('pk.') || text.contains('sk.')) return true;
+  if (RegExp(r'-?\d{1,3}\.\d{4,}').hasMatch(text)) return true;
+  return false;
 }
 
 int _minimumReadyWindowsFor(TripTrackingProfile profile) {

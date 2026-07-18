@@ -15,6 +15,12 @@ void main() {
     expect(safe['odometerIsGlobalTruth'], isTrue);
     expect(safe['gpsRollupCanReplaceOdometer'], isFalse);
     expect(safe['gpsRollupCanCreateOfficialStop'], isFalse);
+    expect(
+      TripGpsDependabilityRollupSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
   });
 
   test('sustained ready windows become calibration-eligible evidence', () {
@@ -147,6 +153,55 @@ void main() {
     expect(safe['cloudFunctionCanOverrideGpsRollup'], isFalse);
     expect(safe['coordinatesIncluded'], isFalse);
     expect(safe.toString(), isNot(contains('-80')));
+  });
+
+  test('summary validation rejects forged remote truth and sensitive data', () {
+    final summary =
+        TripGpsDependabilityRollupPolicy.evaluate(
+          windows: [window(TripGpsDependabilityStatus.readyForAssist)],
+        ).toSafeDashboardMap()..addAll({
+          'schemaVersion': 2,
+          'status': 'godMode',
+          'reasonCode': 'pk.secret -80.123456',
+          'windowCount': -1,
+          'oneGoodWindowCannotClearBadDay': false,
+          'poorWindowExcludesCalibrationDay': false,
+          'interruptedWindowExcludesCalibrationDay': false,
+          'unsafeWindowExcludesCalibrationDay': false,
+          'calibrationRequiresSustainedDailyGpsQuality': false,
+          'calibrationRequiresReviewedOdometerTruth': false,
+          'gpsRollupCanReplaceOdometer': true,
+          'gpsRollupCanConfirmOfficialMileage': true,
+          'gpsRollupCanCreateOfficialStop': true,
+          'mapboxCanOverrideGpsRollup': true,
+          'firestoreCanOverrideGpsRollup': true,
+          'cloudFunctionCanOverrideGpsRollup': true,
+          'hiveRemainsOperationalSourceOfTruth': false,
+          'odometerIsGlobalTruth': false,
+          'rawSamplesIncluded': true,
+          'coordinatesIncluded': true,
+          'routeGeometryIncluded': true,
+          'tokensIncluded': true,
+        });
+    final validation = TripGpsDependabilityRollupSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      containsAll([
+        'unsupported_schema',
+        'invalid_gps_rollup_status',
+        'invalid_gps_rollup_reason',
+        'windowCount_invalid',
+        'gps_rollup_calibration_boundary_missing',
+        'gps_rollup_can_create_trip_truth',
+        'remote_can_override_gps_rollup',
+        'summary_contains_sensitive_trip_material',
+        'summary_contains_sensitive_text',
+      ]),
+    );
   });
 }
 
