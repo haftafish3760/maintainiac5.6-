@@ -19,6 +19,24 @@ class TripTrackingFreeSyncUsage {
   final String _durableScope;
   Future<void> _reservationTail = Future<void>.value();
 
+  static String durableScopeForDevice({
+    required String accountUid,
+    required String deviceId,
+    String moduleToken = 'trip-dashboard',
+  }) {
+    final safeModule = _safeScopeComponent(moduleToken, maxLength: 40);
+    final safeAccount = _safeScopeComponent(accountUid, maxLength: 80);
+    final safeDevice = _safeScopeComponent(deviceId, maxLength: 80);
+    if (safeModule == null || safeAccount == null || safeDevice == null) {
+      throw ArgumentError.value(
+        'redacted',
+        'scope',
+        'Trip backup free-sync scope requires safe module, account, and device ids.',
+      );
+    }
+    return '$safeModule.$safeAccount.$safeDevice';
+  }
+
   int usedInWindowAt(DateTime nowUtc) {
     return _attemptStore.attemptsFor(_durableScope, now: nowUtc.toUtc()).length;
   }
@@ -128,3 +146,24 @@ String _safeScopeForSummary(String value) {
 }
 
 final RegExp _safeScopePattern = RegExp(r'^[A-Za-z0-9_.-]+$');
+
+String? _safeScopeComponent(String value, {required int maxLength}) {
+  final clean = value.trim();
+  if (clean.isEmpty ||
+      clean != value ||
+      clean.contains(':') ||
+      clean.length > maxLength ||
+      !_safeScopePattern.hasMatch(clean) ||
+      _looksLikeCredential(clean)) {
+    return null;
+  }
+  return clean;
+}
+
+bool _looksLikeCredential(String value) {
+  final lower = value.toLowerCase();
+  return lower.contains('token') ||
+      lower.contains('secret') ||
+      lower.startsWith('pk.') ||
+      lower.startsWith('sk.');
+}

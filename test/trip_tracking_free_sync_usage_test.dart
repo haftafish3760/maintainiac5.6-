@@ -131,6 +131,93 @@ void main() {
     expect(summary['remoteCountersCanOverrideLocalUsage'], isFalse);
   });
 
+  test(
+    'free sync durable scope builder requires safe account and device ids',
+    () {
+      final scope = TripTrackingFreeSyncUsage.durableScopeForDevice(
+        accountUid: 'firebaseUid_1',
+        deviceId: 'device-local-1',
+      );
+
+      expect(scope, 'trip-dashboard.firebaseUid_1.device-local-1');
+      expect(
+        TripTrackingFreeSyncUsage(
+          attemptStore: CloudBackupSyncAttemptStore.memory(),
+          durableScope: scope,
+        ).toSafeSummary(DateTime.utc(2026, 7, 17, 12))['durableScope'],
+        scope,
+      );
+      for (final value in const [
+        '',
+        ' firebaseUid_1',
+        'firebase:uid',
+        'token=sk.secret',
+        'sk.secret',
+        'pk.public',
+        'account/../other',
+      ]) {
+        expect(
+          () => TripTrackingFreeSyncUsage.durableScopeForDevice(
+            accountUid: value,
+            deviceId: 'device-local-1',
+          ),
+          throwsArgumentError,
+          reason: value,
+        );
+        expect(
+          () => TripTrackingFreeSyncUsage.durableScopeForDevice(
+            accountUid: 'firebaseUid_1',
+            deviceId: value,
+          ),
+          throwsArgumentError,
+          reason: value,
+        );
+      }
+    },
+  );
+
+  test(
+    'free sync durable scope does not trust remote account strings',
+    () async {
+      final localScope = TripTrackingFreeSyncUsage.durableScopeForDevice(
+        accountUid: 'localUid',
+        deviceId: 'localDevice',
+      );
+      final remoteScope = TripTrackingFreeSyncUsage.durableScopeForDevice(
+        accountUid: 'remoteUid',
+        deviceId: 'localDevice',
+      );
+      final store = CloudBackupSyncAttemptStore.memory();
+      final localUsage = TripTrackingFreeSyncUsage(
+        attemptStore: store,
+        durableScope: localScope,
+      );
+      final remoteUsage = TripTrackingFreeSyncUsage(
+        attemptStore: store,
+        durableScope: remoteScope,
+      );
+      final now = DateTime.utc(2026, 7, 17, 12);
+
+      await localUsage.reserveAuthorizedAttempt(
+        networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+        wifiAvailable: true,
+        mobileDataAvailable: true,
+        nowUtc: now,
+      );
+
+      expect(localUsage.usedInWindowAt(now), 1);
+      expect(remoteUsage.usedInWindowAt(now), 0);
+      expect(
+        localUsage.toSafeSummary(now)['remoteCountersCanOverrideLocalUsage'],
+        isFalse,
+      );
+      expect(
+        localUsage.toSafeSummary(now)['localAttemptLedgerIsCanonical'],
+        isTrue,
+      );
+    },
+  );
+
   test('authorized reservation records exactly one local attempt', () async {
     final store = CloudBackupSyncAttemptStore.memory();
     final now = DateTime.utc(2026, 7, 17, 12);
