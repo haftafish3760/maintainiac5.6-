@@ -1,4 +1,5 @@
 import '../odometer/live_odometer_display.dart';
+import 'trip_live_odometer_payload_guard.dart';
 
 enum TripTrackingLiveOdometerBroadcastStatus {
   inactive,
@@ -129,6 +130,33 @@ class TripTrackingLiveOdometerBroadcast {
     ),
     'displayValueValidated': _displayValueSafe(displayValue),
     'confirmedDisplayValueValidated': _displayValueSafe(confirmedDisplayValue),
+    'payloadGuard': TripLiveOdometerPayloadGuard.evaluate({
+      'schemaVersion': 1,
+      'advisoryOnly': true,
+      'displayOnlyMileageSource': status.name == 'inactive'
+          ? 'confirmed_odometer'
+          : 'gps_assisted_projection',
+      'confirmedOdometerRemainsCanonical': true,
+      'writesConfirmedOdometer': false,
+      'gpsCanReplaceOdometer': false,
+      'mapboxCanReplaceOdometer': false,
+      'staleProjectionCanCommitMileage': false,
+      'firestoreCanOverrideLiveDisplay': false,
+      'remoteDisplayCanOverrideLocalTrip': false,
+      'dashboardCacheCanOverrideLocalTrip': false,
+      'importedDisplayCanOverrideLocalTrip': false,
+      'authenticationDoesNotGrantDisplayAuthority': true,
+      'matchingActiveTripRequired': true,
+      'localTripLogProtected': true,
+      'futureProjectionCanRender': false,
+      'impossibleProjectionCanRender': false,
+      'activeTripIdIncluded': false,
+      'ownerUserIdIncluded': false,
+      'rawGpsIncluded': false,
+      'preciseLocationIncluded': false,
+      'routeGeometryIncluded': false,
+      'tokensIncluded': false,
+    }).toSafeDashboardMap(),
     'globalOdometerScopeMustNotifyListeners': true,
     'dashboardActiveVehicleBlockUsesLiveProjection': true,
     'contractorDashboardUsesLiveProjection': true,

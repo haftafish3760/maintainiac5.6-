@@ -1,4 +1,5 @@
 import 'trip_live_odometer_render_policy.dart';
+import 'trip_live_odometer_payload_guard.dart';
 import 'trip_tracking_live_odometer_broadcast.dart';
 
 /// Validates live-odometer UI payloads before widgets render them.
@@ -23,6 +24,7 @@ class TripLiveOdometerUiValidation {
       _validateSharedPayload(
         payload,
         statusName: status?.name,
+        requirePayloadGuard: true,
         acceptedStatusNames: TripTrackingLiveOdometerBroadcastStatus.values
             .map((status) => status.name)
             .toSet(),
@@ -53,6 +55,7 @@ class TripLiveOdometerUiValidation {
       _validateSharedPayload(
         payload,
         statusName: status?.name,
+        requirePayloadGuard: false,
         acceptedStatusNames: TripLiveOdometerRenderStatus.values
             .map((status) => status.name)
             .toSet(),
@@ -86,12 +89,14 @@ class TripLiveOdometerUiValidation {
 List<String> _validateSharedPayload(
   Map<String, Object?> payload, {
   required String? statusName,
+  required bool requirePayloadGuard,
   required Set<String> acceptedStatusNames,
 }) {
   final reasons = <String>[];
   final displayValue = payload['displayValue'];
   final confirmedDisplayValue = payload['confirmedDisplayValue'];
   final reasonCodes = payload['reasonCodes'];
+  final payloadGuard = payload['payloadGuard'];
 
   if (payload['schemaVersion'] != 1) reasons.add('unsupported_schema_version');
   if (displayValue != null && !_displayValueSafe(displayValue)) {
@@ -152,6 +157,24 @@ List<String> _validateSharedPayload(
       payload['tokensIncluded'] != false) {
     reasons.add('payload_contains_sensitive_trip_material');
   }
+  if (payloadGuard is Map<String, Object?>) {
+    final guardValidation = TripLiveOdometerPayloadGuard.evaluate(payload);
+    if (!guardValidation.canRenderAdvisoryLiveOdometer) {
+      reasons.add('payload_guard_rejected_live_odometer');
+    }
+    if (payloadGuard['canRenderAdvisoryLiveOdometer'] != true ||
+        payloadGuard['liveUiMayCommitMileage'] != false ||
+        payloadGuard['confirmedOdometerRemainsCanonical'] != true ||
+        payloadGuard['remotePayloadCanConfirmOdometer'] != false ||
+        payloadGuard['mapboxCanRenderWithoutLocalTrip'] != false ||
+        payloadGuard['firestoreCanOverrideLiveDisplay'] != false) {
+      reasons.add('payload_guard_boundary_missing');
+    }
+  } else if (requirePayloadGuard &&
+      statusName != null &&
+      statusName != 'blocked') {
+    reasons.add('payload_guard_missing');
+  }
   if (payload.values.any(_looksSensitive)) {
     reasons.add('payload_contains_sensitive_text');
   }
@@ -201,6 +224,7 @@ String? _safeReason(Object? value) {
     'missing_live_update_time' => value,
     'live_update_time_in_future' => value,
     'live_projection_delta_too_large' => value,
+    'live_odometer_payload_guard_passed' => value,
     'no_dashboard_surface_subscribed' => value,
     'live_odometer_render_blocked' => value,
     _ => null,
