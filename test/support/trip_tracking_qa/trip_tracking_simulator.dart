@@ -35,15 +35,34 @@ class SimulatedTripResult {
       )
       .length;
 
+  int get excludedWalkingCount => count(TripSampleDisposition.excludedWalking);
+
+  int get rejectedUnsafeCount =>
+      count(TripSampleDisposition.rejectedInvalid) +
+      count(TripSampleDisposition.rejectedMockLocation) +
+      count(TripSampleDisposition.rejectedAccuracy) +
+      count(TripSampleDisposition.rejectedOutOfOrder);
+
+  int get rejectedGpsJumpCount =>
+      count(TripSampleDisposition.rejectedImplausibleSpeed) +
+      count(TripSampleDisposition.rejectedSpeedConflict);
+
   int count(TripSampleDisposition disposition) =>
       dispositions.where((value) => value == disposition).length;
 
   Map<String, Object?> toSafeSummary() => {
     'acceptedMiles': double.parse(acceptedMiles.toStringAsFixed(3)),
     'acceptedDistanceCount': acceptedDistanceCount,
+    'excludedWalkingCount': excludedWalkingCount,
     'rejectedCount': rejectedCount,
+    'rejectedUnsafeCount': rejectedUnsafeCount,
+    'rejectedGpsJumpCount': rejectedGpsJumpCount,
     'needsWalkingReview': needsWalkingReview,
     'motionState': motionState.name,
+    'simulationCanCreateOfficialStop': false,
+    'simulationCanReplaceOdometer': false,
+    'officialMileageSource': 'odometer',
+    'officialStopSource': 'user_review',
     'rawSamplesIncluded': false,
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
@@ -58,11 +77,7 @@ class SimulatedTripResult {
       needsWalkingReview: needsWalkingReview,
       excludedWalkingCount: count(TripSampleDisposition.excludedWalking),
       rejectedDriftCount: count(TripSampleDisposition.rejectedDrift),
-      rejectedUnsafeCount:
-          count(TripSampleDisposition.rejectedInvalid) +
-          count(TripSampleDisposition.rejectedMockLocation) +
-          count(TripSampleDisposition.rejectedAccuracy) +
-          count(TripSampleDisposition.rejectedOutOfOrder),
+      rejectedUnsafeCount: rejectedUnsafeCount,
       acceptedDistanceCount: acceptedDistanceCount,
     );
     return {

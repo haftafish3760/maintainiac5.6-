@@ -16,8 +16,15 @@ void main() {
     expect(summary['needsWalkingReview'], isTrue);
     expect(summary['motionState'], 'moving');
     expect(summary['acceptedDistanceCount'], greaterThanOrEqualTo(3));
+    expect(summary['excludedWalkingCount'], greaterThanOrEqualTo(3));
     expect(summary['rejectedCount'], greaterThanOrEqualTo(4));
+    expect(summary['rejectedUnsafeCount'], 0);
+    expect(summary['rejectedGpsJumpCount'], 0);
     expect(summary['acceptedMiles'], isA<double>());
+    expect(summary['simulationCanCreateOfficialStop'], isFalse);
+    expect(summary['simulationCanReplaceOdometer'], isFalse);
+    expect(summary['officialMileageSource'], 'odometer');
+    expect(summary['officialStopSource'], 'user_review');
     expect(summary['rawSamplesIncluded'], isFalse);
     expect(summary['coordinatesIncluded'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);
@@ -35,6 +42,9 @@ void main() {
 
       expect(summary['acceptedMiles'], lessThan(.1));
       expect(summary['rejectedCount'], greaterThanOrEqualTo(6));
+      expect(summary['rejectedUnsafeCount'], greaterThanOrEqualTo(5));
+      expect(summary['simulationCanCreateOfficialStop'], isFalse);
+      expect(summary['simulationCanReplaceOdometer'], isFalse);
       expect(summary.toString(), isNot(contains('-79.')));
       expect(summary.toString(), isNot(contains('35.')));
     },

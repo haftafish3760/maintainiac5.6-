@@ -103,4 +103,42 @@ void main() {
     expect(result.motionState, TripMotionState.moving);
     expect(result.acceptedDistanceCount, greaterThan(1));
   });
+
+  test('two-person delivery with phone in vehicle remains vehicle-only', () {
+    final result = replayTrip(
+      scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(summary['stopSignal'], anyOf('likely_traffic_control', 'no_stop'));
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['simulationCanCreateOfficialStop'], isFalse);
+    expect(summary['simulationCanReplaceOdometer'], isFalse);
+  });
+
+  test('hostile provider replay cannot become stop or mileage truth', () {
+    final result = replayTrip(
+      scenarios.hostileProviderReplay(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final summary = result.toSafeDashboardSummary(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(result.acceptedMiles, lessThan(.1));
+    expect(summary['stopSignal'], 'unsafe_evidence');
+    expect(summary['stopCanSuggestReview'], isFalse);
+    expect(summary['stopRequiresUserReview'], isFalse);
+    expect(summary['simulationCanCreateOfficialStop'], isFalse);
+    expect(summary['simulationCanReplaceOdometer'], isFalse);
+    expect(summary['officialMileageSource'], 'odometer');
+    expect(summary.toString(), isNot(contains('-79.')));
+    expect(summary.toString(), isNot(contains('35.')));
+  });
 }
