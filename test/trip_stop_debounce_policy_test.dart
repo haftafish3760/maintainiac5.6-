@@ -111,6 +111,33 @@ void main() {
     expect(summary['longTrafficLightProtected'], isTrue);
   });
 
+  test('long rideshare vehicle-only dwell surfaces manual fallback only', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
+      observation: observation(
+        stationaryDuration: const Duration(minutes: 9),
+        walkingEvidenceCount: 0,
+        walkingEvidenceSpan: Duration.zero,
+        rejectedDriftCount: 0,
+        speedMps: 0.1,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
+    expect(decision.reasonCode, 'vehicle_only_dwell_manual_fallback');
+    expect(decision.canOpenReview, isFalse);
+    expect(decision.shouldContinueSampling, isTrue);
+    expect(decision.classification.signal, TripStopSignal.stopCandidate);
+    expect(decision.classification.shouldSurfaceManualStopFallback, isTrue);
+    expect(safe['vehicleOnlyDwellCanCreateOfficialStop'], isFalse);
+    expect(
+      (safe['vehicleOnlyDwell']
+          as Map<String, Object?>)['mapboxCanConfirmVehicleOnlyStop'],
+      isFalse,
+    );
+  });
+
   test('walking evidence before accepted vehicle movement fails closed', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
@@ -179,5 +206,6 @@ void main() {
     expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
     expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
+    expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
   });
 }

@@ -1,6 +1,7 @@
 import 'trip_stop_classification.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_profile_strategy.dart';
+import 'trip_vehicle_only_dwell_policy.dart';
 
 enum TripStopDebounceStatus {
   keepTracking,
@@ -49,6 +50,7 @@ class TripStopDebounceDecision {
     required this.protectedTrafficControl,
     required this.shouldContinueSampling,
     required this.canOpenReview,
+    this.vehicleOnlyDwell,
   });
 
   final TripStopDebounceStatus status;
@@ -58,12 +60,14 @@ class TripStopDebounceDecision {
   final bool protectedTrafficControl;
   final bool shouldContinueSampling;
   final bool canOpenReview;
+  final TripVehicleOnlyDwellDecision? vehicleOnlyDwell;
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
     'status': status.name,
     'reasonCode': _safeReason(reasonCode),
     'classification': classification.toSafeSummary(),
+    'vehicleOnlyDwell': vehicleOnlyDwell?.toSafeDashboardMap(),
     'needsWalkingReview': needsWalkingReview,
     'protectedTrafficControl': protectedTrafficControl,
     'shouldContinueSampling': shouldContinueSampling,
@@ -76,6 +80,8 @@ class TripStopDebounceDecision {
     'cloudFunctionCanCreateStop': false,
     'remoteDebounceCanOverrideLocalTrip': false,
     'walkingEvidenceCanOnlySuggestReview': true,
+    'vehicleOnlyDwellCanOnlySuggestManualFallback': true,
+    'vehicleOnlyDwellCanCreateOfficialStop': false,
     'activityRecognitionCanCreateOfficialStop': false,
     'stopReviewRequiredForOfficialStop': true,
     'odometerRemainsOfficialMileageTruth': true,
@@ -103,6 +109,17 @@ class TripStopDebouncePolicy {
     final walkingCount = _safeCount(observation.walkingEvidenceCount);
     final stationaryDuration = _safeDuration(observation.stationaryDuration);
     final walkingSpan = _safeDuration(observation.walkingEvidenceSpan);
+    final vehicleOnlyDwell = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: profile,
+      stationaryDuration: stationaryDuration,
+      walkingEvidenceCount: walkingCount,
+      rejectedDriftCount: rejectedDriftCount,
+      acceptedDistanceCount: acceptedDistanceCount,
+      acceptedVehicleMovementObserved:
+          observation.acceptedVehicleMovementObserved,
+      speedMps: observation.speedMps,
+      horizontalAccuracyMeters: observation.horizontalAccuracyMeters,
+    );
 
     if (unsafe || rejectedUnsafeCount >= 3) {
       return _decision(
@@ -111,6 +128,7 @@ class TripStopDebouncePolicy {
         profile: profile,
         motionState: observation.motionState,
         needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
         rejectedDriftCount: rejectedDriftCount,
         rejectedUnsafeCount: rejectedUnsafeCount,
@@ -126,6 +144,7 @@ class TripStopDebouncePolicy {
         profile: profile,
         motionState: observation.motionState,
         needsWalkingReview: walkingCount > 0,
+        vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
         rejectedDriftCount: rejectedDriftCount,
         rejectedUnsafeCount: rejectedUnsafeCount,
@@ -158,7 +177,24 @@ class TripStopDebouncePolicy {
         profile: profile,
         motionState: observation.motionState,
         needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: 0,
+        rejectedDriftCount: rejectedDriftCount,
+        rejectedUnsafeCount: rejectedUnsafeCount,
+        acceptedDistanceCount: acceptedDistanceCount,
+      );
+    }
+
+    if (vehicleOnlyDwell.status ==
+        TripVehicleOnlyDwellStatus.manualFallbackRecommended) {
+      return _decision(
+        status: TripStopDebounceStatus.waitingForEvidence,
+        reasonCode: 'vehicle_only_dwell_manual_fallback',
+        profile: profile,
+        motionState: TripMotionState.stopCandidate,
+        needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
+        excludedWalkingCount: walkingCount,
         rejectedDriftCount: rejectedDriftCount,
         rejectedUnsafeCount: rejectedUnsafeCount,
         acceptedDistanceCount: acceptedDistanceCount,
@@ -172,6 +208,7 @@ class TripStopDebouncePolicy {
         profile: profile,
         motionState: observation.motionState,
         needsWalkingReview: true,
+        vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
         rejectedDriftCount: rejectedDriftCount,
         rejectedUnsafeCount: rejectedUnsafeCount,
@@ -190,6 +227,7 @@ class TripStopDebouncePolicy {
         profile: profile,
         motionState: TripMotionState.stopCandidate,
         needsWalkingReview: false,
+        vehicleOnlyDwell: vehicleOnlyDwell,
         excludedWalkingCount: walkingCount,
         rejectedDriftCount: rejectedDriftCount,
         rejectedUnsafeCount: rejectedUnsafeCount,
@@ -203,6 +241,7 @@ class TripStopDebouncePolicy {
       profile: profile,
       motionState: observation.motionState,
       needsWalkingReview: false,
+      vehicleOnlyDwell: vehicleOnlyDwell,
       excludedWalkingCount: walkingCount,
       rejectedDriftCount: rejectedDriftCount,
       rejectedUnsafeCount: rejectedUnsafeCount,
@@ -217,6 +256,7 @@ TripStopDebounceDecision _decision({
   required TripTrackingProfile profile,
   required TripMotionState motionState,
   required bool needsWalkingReview,
+  TripVehicleOnlyDwellDecision? vehicleOnlyDwell,
   required int excludedWalkingCount,
   required int rejectedDriftCount,
   required int rejectedUnsafeCount,
@@ -244,6 +284,7 @@ TripStopDebounceDecision _decision({
         status == TripStopDebounceStatus.trafficControlProtected,
     shouldContinueSampling: !canOpenReview,
     canOpenReview: canOpenReview,
+    vehicleOnlyDwell: vehicleOnlyDwell,
   );
 }
 
@@ -314,6 +355,8 @@ String _safeReason(String value) {
       'vehicle_movement_required_before_stop_review',
     'traffic_control_debounce_protected' =>
       'traffic_control_debounce_protected',
+    'vehicle_only_dwell_manual_fallback' =>
+      'vehicle_only_dwell_manual_fallback',
     'walking_stop_debounce_ready' => 'walking_stop_debounce_ready',
     'stop_debounce_waiting_for_confirmation' =>
       'stop_debounce_waiting_for_confirmation',
