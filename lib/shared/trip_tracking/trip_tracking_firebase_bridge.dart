@@ -237,6 +237,35 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     }
   }
 
+  Map<String, Object?> toSafeSummary() {
+    final uid = _currentUid?.trim();
+    final hasSafeAccount = uid != null && _isSafeFirestoreUid(uid);
+    return {
+      'schemaVersion': 1,
+      'backupEnabled': _isBackupEnabled,
+      'personalBackup': personal || !_usesOrganizationBackup,
+      'organizationSharingEnabled': _usesOrganizationBackup,
+      'hasSafeAuthenticatedAccount': hasSafeAccount,
+      'hasUsableOrganizationId': _hasUsableOrganizationId,
+      'queuesReviewedMileageOnly': true,
+      'requiresConfirmedOdometer': true,
+      'requiresValidTimeline': true,
+      'requiresSafeAccountBinding': true,
+      'authenticationDoesNotImplyAuthorization': true,
+      'hiveRemainsSourceOfTruth': true,
+      'firestoreMirrorOnly': true,
+      'remoteDataCanOverrideLocalDaytimeData': false,
+      'withdrawalKeepsLocalReviews': true,
+      'withdrawalDeletesLocalTripData': false,
+      'flushSerialized': _flushInFlight != null,
+      'rawGpsIncluded': false,
+      'routeGeometryIncluded': false,
+      'mapboxDataIncluded': false,
+      'tokensIncluded': false,
+      'uidIncluded': false,
+    };
+  }
+
   Future<void> _flushPending() async {
     if (!_isBackupEnabled) {
       // A settings change may race a scheduled/auth-triggered flush. Treat

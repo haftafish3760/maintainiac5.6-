@@ -1428,6 +1428,48 @@ void main() {
     },
   );
 
+  test(
+    'Firebase mirror safe summary exposes consent boundaries only',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: _RecordingSink(),
+          uploadEnabled: true,
+        ),
+        localStore: TripTrackingSessionStore.memory(),
+        personal: false,
+        orgId: 'orgA',
+        createdByUid: 'firebaseUid-1',
+        backupEnabled: () => true,
+        organizationSharingEnabled: () => true,
+      );
+      final summary = mirror.toSafeSummary();
+
+      expect(summary['backupEnabled'], isTrue);
+      expect(summary['personalBackup'], isFalse);
+      expect(summary['organizationSharingEnabled'], isTrue);
+      expect(summary['hasSafeAuthenticatedAccount'], isTrue);
+      expect(summary['hasUsableOrganizationId'], isTrue);
+      expect(summary['queuesReviewedMileageOnly'], isTrue);
+      expect(summary['requiresConfirmedOdometer'], isTrue);
+      expect(summary['authenticationDoesNotImplyAuthorization'], isTrue);
+      expect(summary['hiveRemainsSourceOfTruth'], isTrue);
+      expect(summary['firestoreMirrorOnly'], isTrue);
+      expect(summary['remoteDataCanOverrideLocalDaytimeData'], isFalse);
+      expect(summary['withdrawalKeepsLocalReviews'], isTrue);
+      expect(summary['withdrawalDeletesLocalTripData'], isFalse);
+      expect(summary['rawGpsIncluded'], isFalse);
+      expect(summary['routeGeometryIncluded'], isFalse);
+      expect(summary['mapboxDataIncluded'], isFalse);
+      expect(summary['tokensIncluded'], isFalse);
+      expect(summary['uidIncluded'], isFalse);
+      expect(summary.toString(), isNot(contains('firebaseUid-1')));
+    },
+  );
+
   test('revoking backup consent removes an unsent mileage summary', () async {
     final localStore = TripTrackingSessionStore.memory();
     final queue = await MaintainiacFirestoreUploadQueueStore.create();
