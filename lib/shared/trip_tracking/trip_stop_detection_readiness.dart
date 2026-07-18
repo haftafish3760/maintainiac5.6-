@@ -383,7 +383,7 @@ const _allowedActions = {
   'review_trip_stop',
 };
 
-const _maximumStopReviewSpeedMps = 2.0;
+const _maximumStopReviewSpeedMps = 1.4;
 
 bool _containsSensitivePayload(Map<String, Object?> summary) {
   for (final entry in summary.entries) {

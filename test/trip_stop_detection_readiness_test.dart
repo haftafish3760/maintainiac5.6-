@@ -127,6 +127,13 @@ void main() {
   });
 
   test('stale walking stop cannot open review while vehicle is moving', () {
+    final creeping = TripStopDetectionReadiness.fromSummary(
+      reviewOnlyStopSummary(),
+      activeTrip: true,
+      localSessionAvailable: true,
+      acceptedVehicleMovementObserved: true,
+      currentVehicleSpeedMps: 1.5,
+    );
     final moving = TripStopDetectionReadiness.fromSummary(
       reviewOnlyStopSummary(),
       activeTrip: true,
@@ -142,6 +149,11 @@ void main() {
       currentVehicleSpeedMps: double.nan,
     );
 
+    expect(
+      creeping.status,
+      TripStopDetectionReadinessStatus.waitForMoreEvidence,
+    );
+    expect(creeping.canOpenStopReview, isFalse);
     expect(moving.status, TripStopDetectionReadinessStatus.waitForMoreEvidence);
     expect(moving.canOpenStopReview, isFalse);
     expect(moving.actionToken, 'continue_monitoring');

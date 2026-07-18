@@ -19,7 +19,7 @@ class TripStopReviewOpenRequest {
     required this.activeTrip,
     required this.localSessionAvailable,
     required this.acceptedVehicleMovementObserved,
-    this.currentVehicleSpeedMps,
+    required this.currentVehicleSpeedMps,
     required this.detectedAtUtc,
     required this.nowUtc,
     required this.existingPendingReviewIds,
@@ -34,7 +34,7 @@ class TripStopReviewOpenRequest {
   final bool activeTrip;
   final bool localSessionAvailable;
   final bool acceptedVehicleMovementObserved;
-  final double? currentVehicleSpeedMps;
+  final double currentVehicleSpeedMps;
   final DateTime detectedAtUtc;
   final DateTime nowUtc;
   final List<String> existingPendingReviewIds;

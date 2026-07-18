@@ -225,7 +225,7 @@ TripStopReviewOpenRequest request({
   bool activeTrip = true,
   bool localSessionAvailable = true,
   bool acceptedVehicleMovementObserved = true,
-  double? currentVehicleSpeedMps,
+  double currentVehicleSpeedMps = 0.0,
   DateTime? detectedAtUtc,
   DateTime? nowUtc,
   List<String> existingPendingReviewIds = const [],
