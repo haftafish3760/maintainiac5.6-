@@ -153,12 +153,18 @@ abstract final class TripTrackingFirestoreContract {
       'rulesMustValidateValueTypes': true,
       'rulesMustValidateOdometerDoesNotRegress': true,
       'rulesMustValidateDistanceMatchesOdometerWindow': true,
+      'rulesMustValidateCreatedByMatchesAuthUid': true,
+      'rulesMustRejectOwnerUidChanges': true,
+      'rulesMustRejectClientManagedServerFields': true,
+      'rulesMustRejectLocationArrays': true,
       'rulesMustRejectRawGps': true,
       'rulesMustRejectMapboxGeometry': true,
       'rulesMustRejectTokens': true,
       'rulesMustRejectServerManagedSpoofing': true,
       'rulesMustRejectDeletes': true,
       'rulesAllowOnlyIdempotentCreatorReplay': true,
+      'rulesMustRejectCrossUserReplay': true,
+      'rulesMustRejectOrgWritesWithoutConsent': organizationScoped,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'remoteCanOverrideLocalTripLog': false,
@@ -169,6 +175,7 @@ abstract final class TripTrackingFirestoreContract {
       'mapboxCanReplaceOdometer': false,
       'organizationMembershipRequired': organizationScoped,
       'organizationSharingConsentRequired': organizationScoped,
+      'organizationWriteRequiresExplicitSharingConsent': organizationScoped,
       'fleetReadRequiresConsent': organizationScoped,
       'employeeTrackingRequiresMutualConsent': organizationScoped,
       'publicTokenAllowedInPayload': false,
@@ -190,6 +197,11 @@ abstract final class TripTrackingFirestoreContract {
         summary['rulesMustValidateAllowedFields'] != true ||
         summary['rulesMustValidateRequiredFields'] != true ||
         summary['rulesMustValidateValueTypes'] != true ||
+        summary['rulesMustValidateCreatedByMatchesAuthUid'] != true ||
+        summary['rulesMustRejectOwnerUidChanges'] != true ||
+        summary['rulesMustRejectClientManagedServerFields'] != true ||
+        summary['rulesMustRejectLocationArrays'] != true ||
+        summary['rulesMustRejectCrossUserReplay'] != true ||
         summary['rulesMustRejectDeletes'] != true) {
       findings.add('authorization_boundary_not_closed');
     }
@@ -217,6 +229,9 @@ abstract final class TripTrackingFirestoreContract {
     if (organizationScoped &&
         (summary['organizationMembershipRequired'] != true ||
             summary['organizationSharingConsentRequired'] != true ||
+            summary['organizationWriteRequiresExplicitSharingConsent'] !=
+                true ||
+            summary['rulesMustRejectOrgWritesWithoutConsent'] != true ||
             summary['fleetReadRequiresConsent'] != true ||
             summary['employeeTrackingRequiresMutualConsent'] != true)) {
       findings.add('organization_consent_boundary_open');

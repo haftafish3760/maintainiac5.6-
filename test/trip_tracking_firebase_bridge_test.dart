@@ -1505,10 +1505,16 @@ void main() {
       expect(summary['hasUsableOrganizationId'], isTrue);
       expect(summary['queuesReviewedMileageOnly'], isTrue);
       expect(summary['requiresConfirmedOdometer'], isTrue);
+      expect(summary['requiresAuthUidToMatchCreatedByUid'], isTrue);
+      expect(summary['requiresLocalReviewBeforeFlush'], isTrue);
+      expect(summary['requiresOrganizationConsentForOrgMirror'], isTrue);
+      expect(summary['crossUserReplayBlocked'], isTrue);
       expect(summary['authenticationDoesNotImplyAuthorization'], isTrue);
       expect(summary['hiveRemainsSourceOfTruth'], isTrue);
       expect(summary['firestoreMirrorOnly'], isTrue);
       expect(summary['remoteDataCanOverrideLocalDaytimeData'], isFalse);
+      expect(summary['remoteDataCanReviveDeletedLocalTrip'], isFalse);
+      expect(summary['remoteDataCanModifyConfirmedMileage'], isFalse);
       expect(summary['withdrawalKeepsLocalReviews'], isTrue);
       expect(summary['withdrawalDeletesLocalTripData'], isFalse);
       expect(summary['rawGpsIncluded'], isFalse);
@@ -1517,6 +1523,58 @@ void main() {
       expect(summary['tokensIncluded'], isFalse);
       expect(summary['uidIncluded'], isFalse);
       expect(summary.toString(), isNot(contains('firebaseUid-1')));
+    },
+  );
+
+  test(
+    'Firestore trust boundary requires owner, consent, and no raw location',
+    () {
+      final personal = TripTrackingFirestoreContract.trustBoundarySummary(
+        organizationScoped: false,
+      );
+      final organization = TripTrackingFirestoreContract.trustBoundarySummary(
+        organizationScoped: true,
+      );
+
+      expect(
+        TripTrackingFirestoreContract.isTrustBoundaryClosed(personal),
+        isTrue,
+      );
+      expect(
+        TripTrackingFirestoreContract.isTrustBoundaryClosed(organization),
+        isTrue,
+      );
+      expect(personal['rulesMustValidateCreatedByMatchesAuthUid'], isTrue);
+      expect(personal['rulesMustRejectOwnerUidChanges'], isTrue);
+      expect(personal['rulesMustRejectClientManagedServerFields'], isTrue);
+      expect(personal['rulesMustRejectLocationArrays'], isTrue);
+      expect(personal['rulesMustRejectCrossUserReplay'], isTrue);
+      expect(organization['rulesMustRejectOrgWritesWithoutConsent'], isTrue);
+      expect(
+        organization['organizationWriteRequiresExplicitSharingConsent'],
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'Firestore trust boundary validation rejects owner and consent shortcuts',
+    () {
+      final findings = TripTrackingFirestoreContract.trustBoundaryFindings({
+        ...TripTrackingFirestoreContract.trustBoundarySummary(
+          organizationScoped: true,
+        ),
+        'rulesMustValidateCreatedByMatchesAuthUid': false,
+        'rulesMustRejectOwnerUidChanges': false,
+        'rulesMustRejectClientManagedServerFields': false,
+        'rulesMustRejectLocationArrays': false,
+        'rulesMustRejectCrossUserReplay': false,
+        'rulesMustRejectOrgWritesWithoutConsent': false,
+        'organizationWriteRequiresExplicitSharingConsent': false,
+      });
+
+      expect(findings, contains('authorization_boundary_not_closed'));
+      expect(findings, contains('organization_consent_boundary_open'));
     },
   );
 
