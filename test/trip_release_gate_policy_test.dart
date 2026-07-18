@@ -152,6 +152,74 @@ void main() {
     expect(safe['authenticatedUserStillNeedsRecordAuthorization'], isTrue);
     expect(safe['releaseGateCanConfirmOdometer'], isFalse);
     expect(safe['releaseGateCanCreateOfficialStop'], isFalse);
+    expect(safe['commercialClaimRequiresSeparateLaunchAudit'], isTrue);
+    expect(safe['limitedFieldTrialRequiresRealDeviceEvidence'], isTrue);
+    expect(safe['betaEvidenceMustRemainRedacted'], isTrue);
     expect(safe['tokensIncluded'], isFalse);
   });
+
+  test('safe release gate summary validates as renderable', () {
+    final validation = TripReleaseGateSummaryValidation.fromSummary(
+      evaluate(deviceProof: true).toSafeDashboardMap(),
+    );
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.status, TripReleaseGateStatus.fieldTrialReady);
+    expect(validation.reasons, isEmpty);
+  });
+
+  test(
+    'release gate summary rejects commercial, privacy, and truth claims',
+    () {
+      final validation = TripReleaseGateSummaryValidation.fromSummary(
+        evaluate(deviceProof: true).toSafeDashboardMap()..addAll({
+          'commercialClaimRequiresSeparateLaunchAudit': false,
+          'limitedFieldTrialRequiresRealDeviceEvidence': false,
+          'syntheticGreenIsNotCommercialProof': false,
+          'deviceTestingRequiredBeforeProductionClaim': false,
+          'betaEvidenceMustRemainRedacted': false,
+          'gpsAssistedTrackingAvailableWithoutMaps': false,
+          'mapsRequiredForGpsTripTracking': true,
+          'mapboxFailureBlocksGpsTracking': true,
+          'privacyConsentRequiredBeforeFleetTrial': false,
+          'employeeTrackingRequiresMutualConsent': false,
+          'employerGodModeAllowed': true,
+          'authorizationRulesRequiredBeforeFleetRelease': false,
+          'odometerRemainsOfficialMileageTruth': false,
+          'hiveRemainsOperationalSourceOfTruth': false,
+          'firestoreMirrorOnly': false,
+          'releaseGateCanDeleteLocalData': true,
+          'releaseGateCanConfirmOdometer': true,
+          'releaseGateCanCreateOfficialStop': true,
+          'rawTripRecordsIncluded': true,
+          'preciseLocationIncluded': true,
+          'routeGeometryIncluded': true,
+          'tokensIncluded': true,
+          'debug': 'pk.public 35.123456,-80.123456',
+        }),
+      );
+
+      expect(validation.isRenderable, isFalse);
+      expect(
+        validation.reasons,
+        contains('field_trial_device_evidence_missing'),
+      );
+      expect(validation.reasons, contains('commercial_claim_audit_missing'));
+      expect(validation.reasons, contains('evidence_boundary_missing'));
+      expect(validation.reasons, contains('maps_not_optional_for_gps_release'));
+      expect(
+        validation.reasons,
+        contains('privacy_authorization_boundary_missing'),
+      );
+      expect(
+        validation.reasons,
+        contains('release_gate_can_mutate_trip_truth'),
+      );
+      expect(
+        validation.reasons,
+        contains('summary_contains_sensitive_trip_material'),
+      );
+      expect(validation.reasons, contains('summary_contains_sensitive_text'));
+    },
+  );
 }

@@ -98,6 +98,11 @@ void main() {
 
       expect(safe['fieldTrialEvidenceRequiresRealDeviceRun'], isTrue);
       expect(safe['syntheticOnlyEvidenceCanSupportCommercialClaim'], isFalse);
+      expect(safe['commercialClaimRequiresSeparateLaunchAudit'], isTrue);
+      expect(safe['limitedFieldTrialRequiresRedactedEvidence'], isTrue);
+      expect(safe['limitedFieldTrialRequiresPrivacyConsent'], isTrue);
+      expect(safe['limitedFieldTrialRequiresOdometerReview'], isTrue);
+      expect(safe['limitedFieldTrialRequiresStopDisposition'], isTrue);
       expect(safe['evidenceCanConfirmOdometer'], isFalse);
       expect(safe['evidenceCanCreateOfficialStop'], isFalse);
       expect(safe['preciseLocationIncluded'], isFalse);

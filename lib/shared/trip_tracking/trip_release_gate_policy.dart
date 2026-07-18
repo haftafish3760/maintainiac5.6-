@@ -54,11 +54,90 @@ class TripReleaseGateDecision {
     'releaseGateCanDeleteLocalData': false,
     'releaseGateCanConfirmOdometer': false,
     'releaseGateCanCreateOfficialStop': false,
+    'commercialClaimRequiresSeparateLaunchAudit': true,
+    'limitedFieldTrialRequiresRealDeviceEvidence': true,
+    'betaEvidenceMustRemainRedacted': true,
     'rawTripRecordsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripReleaseGateSummaryValidation {
+  const TripReleaseGateSummaryValidation._({
+    required this.isRenderable,
+    required this.status,
+    required this.reasons,
+  });
+
+  factory TripReleaseGateSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    final status = _safeStatus(summary['status']);
+    if (summary['schemaVersion'] != 1) {
+      reasons.add('unsupported_schema_version');
+    }
+    if (status == null) reasons.add('invalid_release_gate_status');
+    if (_safeReasonObject(summary['reasonCode']) == null) {
+      reasons.add('invalid_release_gate_reason');
+    }
+    if (summary['canStartLimitedFieldTrial'] == true &&
+        summary['limitedFieldTrialRequiresRealDeviceEvidence'] != true) {
+      reasons.add('field_trial_device_evidence_missing');
+    }
+    if (summary['blocksCommercialClaim'] == false &&
+        summary['commercialClaimRequiresSeparateLaunchAudit'] != true) {
+      reasons.add('commercial_claim_audit_missing');
+    }
+    if (summary['syntheticGreenIsNotCommercialProof'] != true ||
+        summary['deviceTestingRequiredBeforeProductionClaim'] != true ||
+        summary['betaEvidenceMustRemainRedacted'] != true) {
+      reasons.add('evidence_boundary_missing');
+    }
+    if (summary['gpsAssistedTrackingAvailableWithoutMaps'] != true ||
+        summary['mapsRequiredForGpsTripTracking'] != false ||
+        summary['mapboxFailureBlocksGpsTracking'] != false ||
+        summary['mapboxFailureCannotBlockGpsOnlyRegression'] != true ||
+        summary['mapboxApisRemainOptionalForGpsAssistedRelease'] != true) {
+      reasons.add('maps_not_optional_for_gps_release');
+    }
+    if (summary['privacyConsentRequiredBeforeFleetTrial'] != true ||
+        summary['employeeTrackingRequiresMutualConsent'] != true ||
+        summary['employerGodModeAllowed'] != false ||
+        summary['authorizationRulesRequiredBeforeFleetRelease'] != true ||
+        summary['authenticatedUserStillNeedsRecordAuthorization'] != true) {
+      reasons.add('privacy_authorization_boundary_missing');
+    }
+    if (summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true ||
+        summary['firestoreMirrorOnly'] != true ||
+        summary['releaseGateCanDeleteLocalData'] != false ||
+        summary['releaseGateCanConfirmOdometer'] != false ||
+        summary['releaseGateCanCreateOfficialStop'] != false) {
+      reasons.add('release_gate_can_mutate_trip_truth');
+    }
+    if (summary['rawTripRecordsIncluded'] != false ||
+        summary['preciseLocationIncluded'] != false ||
+        summary['routeGeometryIncluded'] != false ||
+        summary['tokensIncluded'] != false) {
+      reasons.add('summary_contains_sensitive_trip_material');
+    }
+    if (summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_text');
+    }
+
+    return TripReleaseGateSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      status: reasons.isEmpty ? status : null,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final TripReleaseGateStatus? status;
+  final List<String> reasons;
 }
 
 class TripReleaseGatePolicy {
@@ -205,4 +284,25 @@ String _safeReason(String value) {
     'release_gate_field_trial_ready' => 'release_gate_field_trial_ready',
     _ => 'release_gate_runtime_boundary_blocked',
   };
+}
+
+TripReleaseGateStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripReleaseGateStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+String? _safeReasonObject(Object? value) {
+  if (value is! String) return null;
+  return _safeReason(value);
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
 }
