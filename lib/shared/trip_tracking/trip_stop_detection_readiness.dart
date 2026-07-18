@@ -186,6 +186,11 @@ class TripStopDetectionReadiness {
     'requiresLocalTripLog': true,
     'requiresActiveTrip': true,
     'requiresAcceptedVehicleMovement': true,
+    'requiresOwnershipOrExplicitAccess': true,
+    'requiresFreshLocalStopSummary': true,
+    'requiresReviewBeforeCommit': true,
+    'stopReviewCanEditOdometer': false,
+    'stopReviewCanBackdateWithoutReview': false,
     'remoteReadinessCanOverrideLocalTrip': false,
     'validatedStopSummaryRequired': true,
     'malformedStopSummaryFailsClosed': true,
@@ -205,6 +210,95 @@ class TripStopDetectionReadiness {
     'tokensIncluded': false,
     'reasons': reasons,
   };
+}
+
+class TripStopDetectionReadinessSummaryValidation {
+  const TripStopDetectionReadinessSummaryValidation._({
+    required this.isRenderable,
+    required this.canOpenStopReview,
+    required this.reasons,
+  });
+
+  factory TripStopDetectionReadinessSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (!_allowedStatuses.contains(summary['status'])) {
+      reasons.add('invalid_readiness_status');
+    }
+    if (!_allowedActions.contains(summary['actionToken'])) {
+      reasons.add('invalid_readiness_action');
+    }
+    final reasonCode = summary['reasonCode'];
+    if (reasonCode is! String || reasonCode.trim().isEmpty) {
+      reasons.add('invalid_readiness_reason');
+    }
+    final canOpen = summary['canOpenStopReview'];
+    if (canOpen is! bool) reasons.add('can_open_not_bool');
+    if (summary['dashboardMaySuggestStop'] is! bool) {
+      reasons.add('dashboard_suggest_stop_not_bool');
+    }
+    if (summary['dashboardMaySuggestManualFallback'] is! bool) {
+      reasons.add('dashboard_manual_fallback_not_bool');
+    }
+    for (final key in const [
+      'manualFallbackRequiresUserAction',
+      'requiresLocalTripLog',
+      'requiresActiveTrip',
+      'requiresAcceptedVehicleMovement',
+      'requiresOwnershipOrExplicitAccess',
+      'requiresFreshLocalStopSummary',
+      'requiresReviewBeforeCommit',
+      'validatedStopSummaryRequired',
+      'malformedStopSummaryFailsClosed',
+      'authenticationDoesNotGrantStopAuthority',
+      'localTripLogMustOwnStopReview',
+      'currentUserMustOwnOrAccessTrip',
+    ]) {
+      if (summary[key] != true) reasons.add('${key}_not_true');
+    }
+    for (final key in const [
+      'manualFallbackCanCreateOfficialStop',
+      'stopReviewCanEditOdometer',
+      'stopReviewCanBackdateWithoutReview',
+      'officialStopCreated',
+      'remoteReadinessCanOverrideLocalTrip',
+      'fleetObserverCanOpenStopReview',
+      'remoteDashboardCanOpenStopReview',
+      'importedSummaryCanOpenStopReview',
+      'firestoreCanOpenStopReview',
+      'cloudFunctionCanOpenStopReview',
+      'mapboxCanOpenStopReview',
+      'mapsRequiredForStopReview',
+      'rawSamplesIncluded',
+      'coordinatesIncluded',
+      'routeGeometryIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] != false) reasons.add('${key}_not_false');
+    }
+    if (summary['officialMileageSource'] != 'odometer') {
+      reasons.add('odometer_not_official_source');
+    }
+    final safeReasons = summary['reasons'];
+    if (safeReasons is! List ||
+        safeReasons.any((entry) => entry is! String || _sensitiveText(entry))) {
+      reasons.add('invalid_reason_list');
+    }
+    if (_containsSensitivePayload(summary)) {
+      reasons.add('readiness_contains_sensitive_payload');
+    }
+    return TripStopDetectionReadinessSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      canOpenStopReview: reasons.isEmpty && canOpen == true,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final bool canOpenStopReview;
+  final List<String> reasons;
 }
 
 String? _safeUserId(String? value) {
@@ -227,4 +321,52 @@ String _safeReadinessAction(Object? value) {
     'review_trip_stop' => value,
     _ => 'keep_tracking',
   };
+}
+
+const _allowedStatuses = {
+  'readyForUserReview',
+  'keepTracking',
+  'waitForMoreEvidence',
+  'unsafeBoundary',
+  'unauthorizedBoundary',
+};
+
+const _allowedActions = {
+  'keep_tracking',
+  'continue_monitoring',
+  'review_delivery_stop',
+  'review_jobsite_stop',
+  'review_shift_stop',
+  'review_trip_stop',
+};
+
+bool _containsSensitivePayload(Map<String, Object?> summary) {
+  for (final entry in summary.entries) {
+    if (_sensitiveText(entry.key)) return true;
+    final value = entry.value;
+    if (value is Map || value is Iterable && entry.key != 'reasons') {
+      return true;
+    }
+    if (value is String && _sensitiveText(value)) return true;
+  }
+  return false;
+}
+
+bool _sensitiveText(String value) {
+  final normalized = value.toLowerCase();
+  if (normalized == 'coordinatesincluded' ||
+      normalized == 'routegeometryincluded' ||
+      normalized == 'tokensincluded') {
+    return false;
+  }
+  return normalized.contains('pk.') ||
+      normalized.contains('sk.') ||
+      normalized.contains('token=') ||
+      normalized.contains('latitude') ||
+      normalized.contains('longitude') ||
+      normalized.contains('coordinate=') ||
+      normalized.contains('geometry') ||
+      normalized.contains('polyline') ||
+      normalized.contains('gps trace') ||
+      RegExp(r'-?\d{2,3}\.\d{4,}\s*,\s*-?\d{2,3}\.\d{4,}').hasMatch(normalized);
 }
