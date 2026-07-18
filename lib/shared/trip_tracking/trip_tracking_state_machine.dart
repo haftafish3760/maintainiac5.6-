@@ -20,6 +20,23 @@ class TripTrackingSessionStateMachine {
     }
   }
 
+  static TripTrackingLifecycleTransitionDecision evaluateTransition(
+    TripTrackingSessionLifecycleState from,
+    TripTrackingSessionLifecycleState to,
+  ) {
+    final allowed = canTransition(from, to);
+    return TripTrackingLifecycleTransitionDecision(
+      from: from,
+      to: to,
+      allowed: allowed,
+      reasonCode: allowed
+          ? 'gps_session_transition_allowed'
+          : _rejectedReason(from, to),
+      requiresUserReview:
+          !allowed || to == TripTrackingSessionLifecycleState.awaitingReview,
+    );
+  }
+
   static const _legalTransitions =
       <
         TripTrackingSessionLifecycleState,
@@ -93,4 +110,69 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.disabled,
         },
       };
+}
+
+class TripTrackingLifecycleTransitionDecision {
+  const TripTrackingLifecycleTransitionDecision({
+    required this.from,
+    required this.to,
+    required this.allowed,
+    required this.reasonCode,
+    required this.requiresUserReview,
+  });
+
+  final TripTrackingSessionLifecycleState from;
+  final TripTrackingSessionLifecycleState to;
+  final bool allowed;
+  final String reasonCode;
+  final bool requiresUserReview;
+
+  Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
+    'from': from.name,
+    'to': to.name,
+    'allowed': allowed,
+    'reasonCode': _safeTransitionReason(reasonCode),
+    'requiresUserReview': requiresUserReview,
+    'localLifecycleAuthoritative': true,
+    'nativeEventCanForceComplete': false,
+    'mapboxEventCanForceComplete': false,
+    'remoteEventCanForceComplete': false,
+    'completedSessionCanResume': false,
+    'failedTerminalRequiresFreshOptIn': true,
+    'recoveryRequiresLocalCheckpoint': true,
+    'odometerRemainsCanonical': true,
+    'rawNativePayloadIncluded': false,
+    'rawLocationIncluded': false,
+    'rawMapboxPayloadIncluded': false,
+  };
+}
+
+String _rejectedReason(
+  TripTrackingSessionLifecycleState from,
+  TripTrackingSessionLifecycleState to,
+) {
+  if (from == TripTrackingSessionLifecycleState.completed) {
+    return 'completed_session_cannot_resume';
+  }
+  if (from == TripTrackingSessionLifecycleState.awaitingReview &&
+      to != TripTrackingSessionLifecycleState.completed) {
+    return 'review_required_before_transition';
+  }
+  if (from == TripTrackingSessionLifecycleState.failedTerminal &&
+      to != TripTrackingSessionLifecycleState.disabled) {
+    return 'terminal_failure_requires_fresh_opt_in';
+  }
+  return 'illegal_gps_session_transition';
+}
+
+String _safeTransitionReason(String value) {
+  return switch (value) {
+    'gps_session_transition_allowed' => value,
+    'completed_session_cannot_resume' => value,
+    'review_required_before_transition' => value,
+    'terminal_failure_requires_fresh_opt_in' => value,
+    'illegal_gps_session_transition' => value,
+    _ => 'illegal_gps_session_transition',
+  };
 }
