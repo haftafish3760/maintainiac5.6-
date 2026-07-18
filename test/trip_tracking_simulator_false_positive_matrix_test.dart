@@ -126,6 +126,7 @@ void main() {
     };
 
     final remote = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
       status: 'readyForReview',
       classification: classification,
       vehicleOnlyDwell: null,
@@ -134,6 +135,7 @@ void main() {
       canOpenReview: true,
     );
     final noWalking = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
       status: 'readyForReview',
       classification: {...classification, 'mapboxCanCreateStop': false},
       vehicleOnlyDwell: null,
@@ -142,6 +144,7 @@ void main() {
       canOpenReview: true,
     );
     final traffic = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
       status: 'trafficControlProtected',
       classification: {...classification, 'mapboxCanCreateStop': false},
       vehicleOnlyDwell: null,

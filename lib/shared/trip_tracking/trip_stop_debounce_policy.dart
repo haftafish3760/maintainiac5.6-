@@ -47,6 +47,7 @@ class TripStopDebounceObservation {
 class TripStopDebounceDecision {
   const TripStopDebounceDecision({
     required this.status,
+    required this.profile,
     required this.classification,
     required this.reasonCode,
     required this.evidenceDigest,
@@ -58,6 +59,7 @@ class TripStopDebounceDecision {
   });
 
   final TripStopDebounceStatus status;
+  final TripTrackingProfile profile;
   final TripStopClassification classification;
   final String reasonCode;
   final TripStopDebounceEvidenceDigest evidenceDigest;
@@ -75,6 +77,7 @@ class TripStopDebounceDecision {
     'evidenceDigest': evidenceDigest.toSafeDashboardMap(),
     'vehicleOnlyDwell': vehicleOnlyDwell?.toSafeDashboardMap(),
     'falsePositiveGuard': TripStopFalsePositiveGuard.evaluate(
+      profile: profile,
       status: status.name,
       classification: classification.toSafeSummary(),
       vehicleOnlyDwell: vehicleOnlyDwell?.toSafeDashboardMap(),
@@ -374,6 +377,7 @@ TripStopDebounceDecision _decision({
       classification.canSuggestStop;
   return TripStopDebounceDecision(
     status: status,
+    profile: profile,
     classification: classification,
     reasonCode: reasonCode,
     evidenceDigest: evidenceDigest,

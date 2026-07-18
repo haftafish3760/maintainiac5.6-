@@ -1,3 +1,5 @@
+import 'trip_tracking_models.dart';
+
 enum TripStopFalsePositiveGuardStatus {
   passed,
   blockedTrafficControlReview,
@@ -12,18 +14,29 @@ class TripStopFalsePositiveGuardDecision {
   const TripStopFalsePositiveGuardDecision({
     required this.status,
     required this.reasonCode,
+    required this.profile,
     required this.canAllowReviewOpen,
   });
 
   final TripStopFalsePositiveGuardStatus status;
   final String reasonCode;
+  final TripTrackingProfile? profile;
   final bool canAllowReviewOpen;
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
     'status': status.name,
     'reasonCode': _safeReason(reasonCode),
+    'profile': profile?.name,
     'canAllowReviewOpen': canAllowReviewOpen,
+    'driverProfileBoundaryValidated': profile != null,
+    'rideshareVehicleOnlyStopRequiresManualFallback':
+        profile == TripTrackingProfile.rideshareVehicle,
+    'deliveryAndContractorWalkingStopsMayOpenReview':
+        profile == TripTrackingProfile.deliveryVehicle ||
+        profile == TripTrackingProfile.contractorVehicle,
+    'genericRoadVehicleRequiresUserReview':
+        profile == TripTrackingProfile.roadVehicle,
     'guardsLongTrafficLight': true,
     'guardsVehicleOnlyDwell': true,
     'guardsWalkingBeforeVehicleMovement': true,
@@ -47,6 +60,7 @@ class TripStopFalsePositiveGuard {
   const TripStopFalsePositiveGuard._();
 
   static TripStopFalsePositiveGuardDecision evaluate({
+    required TripTrackingProfile profile,
     required String status,
     required Map<String, Object?> classification,
     required Map<String, Object?>? vehicleOnlyDwell,
@@ -58,6 +72,7 @@ class TripStopFalsePositiveGuard {
       return _decision(
         TripStopFalsePositiveGuardStatus.blockedMalformedSummary,
         'malformed_stop_guard_summary',
+        profile: profile,
       );
     }
     if (_containsSensitivePayload(classification) ||
@@ -65,6 +80,7 @@ class TripStopFalsePositiveGuard {
       return _decision(
         TripStopFalsePositiveGuardStatus.blockedSensitivePayload,
         'sensitive_stop_guard_payload',
+        profile: profile,
       );
     }
     if (_claimsRemoteAuthority(classification) ||
@@ -72,6 +88,7 @@ class TripStopFalsePositiveGuard {
       return _decision(
         TripStopFalsePositiveGuardStatus.blockedRemoteAuthority,
         'remote_stop_guard_authority',
+        profile: profile,
       );
     }
     if (canOpenReview &&
@@ -82,6 +99,7 @@ class TripStopFalsePositiveGuard {
       return _decision(
         TripStopFalsePositiveGuardStatus.blockedTrafficControlReview,
         'traffic_control_review_blocked',
+        profile: profile,
       );
     }
     if (canOpenReview &&
@@ -89,17 +107,20 @@ class TripStopFalsePositiveGuard {
       return _decision(
         TripStopFalsePositiveGuardStatus.blockedVehicleOnlyAutoReview,
         'vehicle_only_auto_review_blocked',
+        profile: profile,
       );
     }
     if (canOpenReview && !needsWalkingReview) {
       return _decision(
         TripStopFalsePositiveGuardStatus.blockedReviewWithoutWalkingEvidence,
         'review_without_walking_evidence_blocked',
+        profile: profile,
       );
     }
-    return const TripStopFalsePositiveGuardDecision(
+    return TripStopFalsePositiveGuardDecision(
       status: TripStopFalsePositiveGuardStatus.passed,
       reasonCode: 'stop_false_positive_guard_passed',
+      profile: profile,
       canAllowReviewOpen: true,
     );
   }
@@ -107,11 +128,13 @@ class TripStopFalsePositiveGuard {
 
 TripStopFalsePositiveGuardDecision _decision(
   TripStopFalsePositiveGuardStatus status,
-  String reasonCode,
-) {
+  String reasonCode, {
+  required TripTrackingProfile profile,
+}) {
   return TripStopFalsePositiveGuardDecision(
     status: status,
     reasonCode: _safeReason(reasonCode),
+    profile: profile,
     canAllowReviewOpen: false,
   );
 }

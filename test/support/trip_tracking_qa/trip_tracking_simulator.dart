@@ -88,6 +88,7 @@ class SimulatedTripResult {
     final stopCanOpenReview =
         classification.requiresUserReview && classification.canSuggestStop;
     final falsePositiveGuard = TripStopFalsePositiveGuard.evaluate(
+      profile: profile,
       status: _dashboardDebounceStatus(classification.signal),
       classification: classificationSummary,
       vehicleOnlyDwell: null,

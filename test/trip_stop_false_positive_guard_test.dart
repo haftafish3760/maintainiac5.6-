@@ -21,6 +21,10 @@ void main() {
 
     expect(decision.canOpenReview, isTrue);
     expect(decision.needsWalkingReview, isTrue);
+    expect(guard['profile'], TripTrackingProfile.deliveryVehicle.name);
+    expect(guard['driverProfileBoundaryValidated'], isTrue);
+    expect(guard['deliveryAndContractorWalkingStopsMayOpenReview'], isTrue);
+    expect(guard['rideshareVehicleOnlyStopRequiresManualFallback'], isFalse);
     expect(guard['status'], TripStopFalsePositiveGuardStatus.passed.name);
     expect(guard['canAllowReviewOpen'], isTrue);
     expect(guard['officialStopRequiresUserAction'], isTrue);
@@ -39,6 +43,7 @@ void main() {
       ),
     );
     final forged = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
       status: decision.status.name,
       classification: decision.classification.toSafeSummary(),
       vehicleOnlyDwell: decision.vehicleOnlyDwell?.toSafeDashboardMap(),
@@ -66,6 +71,7 @@ void main() {
       ),
     );
     final forged = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.rideshareVehicle,
       status: decision.status.name,
       classification: decision.classification.toSafeSummary(),
       vehicleOnlyDwell: decision.vehicleOnlyDwell?.toSafeDashboardMap(),
@@ -75,6 +81,11 @@ void main() {
     );
 
     expect(decision.reasonCode, 'vehicle_only_dwell_manual_fallback');
+    expect(
+      forged
+          .toSafeDashboardMap()['rideshareVehicleOnlyStopRequiresManualFallback'],
+      isTrue,
+    );
     expect(
       forged.status,
       TripStopFalsePositiveGuardStatus.blockedVehicleOnlyAutoReview,
@@ -94,6 +105,7 @@ void main() {
     final base = decision.classification.toSafeSummary();
 
     final remote = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
       status: decision.status.name,
       classification: {...base, 'firestoreCanCreateOfficialStop': true},
       vehicleOnlyDwell: decision.vehicleOnlyDwell?.toSafeDashboardMap(),
@@ -102,6 +114,7 @@ void main() {
       canOpenReview: true,
     );
     final sensitive = TripStopFalsePositiveGuard.evaluate(
+      profile: TripTrackingProfile.contractorVehicle,
       status: decision.status.name,
       classification: {
         ...base,
