@@ -68,6 +68,40 @@ void main() {
           'odometer truth.',
     );
   });
+
+  test('no advisory trip boundary can claim global odometer truth authority', () {
+    final tripDir = Directory('lib/shared/trip_tracking');
+    final violations = <String>[];
+    final unsafeClaims = RegExp(
+      r'(gps|mapbox|firebase|firestore|cloudFunction|importedFile|localCache|'
+      r'sensorFusion|mirror|projection|calibration|route|optimization)'
+      r"""[A-Za-z0-9_]*(CanSetGlobalTruth|CanConfirmOfficialMileage|CanChangeOfficialMileage)['"]?\s*[:,=>]\s*true""",
+      caseSensitive: false,
+    );
+
+    final candidates =
+        tripDir
+            .listSync(recursive: false)
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.dart'))
+            .toList()
+          ..sort((a, b) => a.path.compareTo(b.path));
+
+    for (final file in candidates) {
+      final source = file.readAsStringSync();
+      if (unsafeClaims.hasMatch(source)) violations.add(file.path);
+    }
+
+    expect(
+      violations,
+      isEmpty,
+      reason:
+          'Advisory GPS, Mapbox, Firebase/Firestore mirrors, route history, '
+          'live projections, optimization, and calibration boundaries must not '
+          'claim authority to set global truth, confirm official mileage, or '
+          'change official mileage.',
+    );
+  });
 }
 
 bool _touchesOdometerTruth(String source) {
