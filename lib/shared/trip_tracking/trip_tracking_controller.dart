@@ -1310,7 +1310,13 @@ class TripTrackingController extends ChangeNotifier {
   }
 
   /// Persists that a driver reviewed a GPS-assisted possible-stop cue.
-  Future<void> acknowledgeLatestStopReview() async {
+  Future<void> acknowledgeLatestStopReview() =>
+      reviewLatestStopAdvisory(TripTrackingAdvisoryDisposition.confirmed);
+
+  Future<void> reviewLatestStopAdvisory(
+    TripTrackingAdvisoryDisposition disposition,
+  ) async {
+    if (!_isFinalStopReviewDisposition(disposition)) return;
     final session = _session;
     final engine = _engine;
     if (session == null || engine == null) return;
@@ -1326,7 +1332,7 @@ class TripTrackingController extends ChangeNotifier {
     if (latestPendingStopIndex >= 0) {
       reviewedAdvisories[latestPendingStopIndex] =
           reviewedAdvisories[latestPendingStopIndex].copyWith(
-            disposition: TripTrackingAdvisoryDisposition.confirmed,
+            disposition: disposition,
           );
     }
     _session = session.copyWith(
@@ -1340,6 +1346,14 @@ class TripTrackingController extends ChangeNotifier {
 
   /// Backward-compatible walking stop review hook used by existing UI/tests.
   Future<void> acknowledgeWalkingReview() => acknowledgeLatestStopReview();
+
+  bool _isFinalStopReviewDisposition(
+    TripTrackingAdvisoryDisposition disposition,
+  ) =>
+      disposition == TripTrackingAdvisoryDisposition.confirmed ||
+      disposition == TripTrackingAdvisoryDisposition.rejected ||
+      disposition == TripTrackingAdvisoryDisposition.corrected ||
+      disposition == TripTrackingAdvisoryDisposition.dismissed;
 
   int _latestPendingStopReviewIndex(
     TripTrackingSessionRecord session, {
@@ -1378,6 +1392,10 @@ class TripTrackingController extends ChangeNotifier {
       type = TripTrackingAdvisoryType.resumedMovement;
     }
     if (type == null) return session.advisories;
+    if (type == TripTrackingAdvisoryType.resumedMovement &&
+        !_hasActiveStopReview(session)) {
+      return session.advisories;
+    }
     final evidenceStartedAt = _advisoryEvidenceStartedAt(
       type: type,
       engineSnapshot: engineSnapshot,
@@ -1407,6 +1425,18 @@ class TripTrackingController extends ChangeNotifier {
   bool _isStopLikeMotion(TripMotionState state) =>
       state == TripMotionState.stopCandidate ||
       state == TripMotionState.stopped;
+
+  bool _hasActiveStopReview(TripTrackingSessionRecord session) {
+    final latestStopIndex = session.advisories.lastIndexWhere(
+      (event) => event.type == TripTrackingAdvisoryType.probableStop,
+    );
+    if (latestStopIndex < 0) return false;
+    return switch (session.advisories[latestStopIndex].disposition) {
+      TripTrackingAdvisoryDisposition.rejected ||
+      TripTrackingAdvisoryDisposition.dismissed => false,
+      _ => true,
+    };
+  }
 
   DateTime _advisoryEvidenceStartedAt({
     required TripTrackingAdvisoryType type,

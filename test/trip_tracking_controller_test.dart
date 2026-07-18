@@ -1125,6 +1125,94 @@ void main() {
     },
   );
 
+  test(
+    'rejected vehicle-only stop does not create a resume advisory',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_rejected_vehicle_stop',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.rideshareVehicle,
+        startedAt: start,
+      );
+      TripActivityObservation automotive(int seconds) =>
+          TripActivityObservation(
+            activity: TripActivity.automotive,
+            confidence: 90,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+
+      await controller.ingest(sample(-80, 0), activity: automotive(0));
+      await controller.ingest(sample(-79.9997, 15), activity: automotive(15));
+      for (final seconds in [30, 60, 90, 135]) {
+        await controller.ingest(sample(-79.9997, seconds));
+      }
+      expect(controller.advisories, hasLength(1));
+
+      await controller.reviewLatestStopAdvisory(
+        TripTrackingAdvisoryDisposition.rejected,
+      );
+      await controller.ingest(sample(-79.997, 170), activity: automotive(170));
+
+      expect(controller.advisories, hasLength(1));
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.rejected,
+      );
+    },
+  );
+
+  test(
+    'dismissed walking stop review clears the walking review state',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_dismissed_walking_stop',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      TripActivityObservation activity(TripActivity type, int seconds) =>
+          TripActivityObservation(
+            activity: type,
+            confidence: 90,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+
+      await controller.ingest(
+        sample(-80, 0),
+        activity: activity(TripActivity.automotive, 0),
+      );
+      await controller.ingest(
+        sample(-79.9997, 15),
+        activity: activity(TripActivity.automotive, 15),
+      );
+      for (final seconds in [30, 45, 60]) {
+        await controller.ingest(
+          sample(-79.9997, seconds),
+          activity: activity(TripActivity.walking, seconds),
+        );
+      }
+      expect(controller.needsWalkingReview, isTrue);
+
+      await controller.reviewLatestStopAdvisory(
+        TripTrackingAdvisoryDisposition.dismissed,
+      );
+
+      expect(controller.needsWalkingReview, isFalse);
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.dismissed,
+      );
+    },
+  );
+
   test('overlapping native start and stop requests are serialized', () async {
     final startGate = Completer<void>();
     final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
