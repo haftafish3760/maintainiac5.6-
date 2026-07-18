@@ -360,6 +360,8 @@ service cloud.firestore {
         'authorizationRequired',
         'authenticationImpliesAuthorization',
         'employeeTrackingRequiresMutualConsent',
+        'locationSharingRequiresActiveOptIn',
+        'employerGodModeAllowed',
         'preciseLocationIncluded',
         'externalRoutesCanonical',
         'odometerRemainsCanonical',
@@ -417,6 +419,8 @@ service cloud.firestore {
         'authorizationRequired',
         'authenticationImpliesAuthorization',
         'employeeTrackingRequiresMutualConsent',
+        'locationSharingRequiresActiveOptIn',
+        'employerGodModeAllowed',
         'preciseLocationIncluded',
         'externalRoutesCanonical',
         'odometerRemainsCanonical',
@@ -887,6 +891,8 @@ service cloud.firestore {
         request.resource.data.authorizationRequired == true &&
         request.resource.data.authenticationImpliesAuthorization == false &&
         request.resource.data.employeeTrackingRequiresMutualConsent == true &&
+        request.resource.data.locationSharingRequiresActiveOptIn == true &&
+        request.resource.data.employerGodModeAllowed == false &&
         request.resource.data.preciseLocationIncluded == false &&
         request.resource.data.externalRoutesCanonical == false &&
         request.resource.data.odometerRemainsCanonical == true &&

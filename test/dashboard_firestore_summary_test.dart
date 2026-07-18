@@ -85,6 +85,8 @@ void main() {
     expect(doc.data['authorizationRequired'], isTrue);
     expect(doc.data['authenticationImpliesAuthorization'], isFalse);
     expect(doc.data['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(doc.data['locationSharingRequiresActiveOptIn'], isTrue);
+    expect(doc.data['employerGodModeAllowed'], isFalse);
     expect(doc.data['preciseLocationIncluded'], isFalse);
     expect(doc.data['externalRoutesCanonical'], isFalse);
     expect(doc.data['odometerRemainsCanonical'], isTrue);
@@ -152,6 +154,8 @@ void main() {
     expect(doc.data['authorizationRequired'], isTrue);
     expect(doc.data['authenticationImpliesAuthorization'], isFalse);
     expect(doc.data['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(doc.data['locationSharingRequiresActiveOptIn'], isTrue);
+    expect(doc.data['employerGodModeAllowed'], isFalse);
     expect(doc.data['preciseLocationIncluded'], isFalse);
     expect(doc.data['externalRoutesCanonical'], isFalse);
     expect(doc.data['odometerRemainsCanonical'], isTrue);

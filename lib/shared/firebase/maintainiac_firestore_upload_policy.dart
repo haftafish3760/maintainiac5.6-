@@ -482,6 +482,8 @@ class MaintainiacFirestoreUploadPolicy {
       'authorizationRequired',
       'authenticationImpliesAuthorization',
       'employeeTrackingRequiresMutualConsent',
+      'locationSharingRequiresActiveOptIn',
+      'employerGodModeAllowed',
       'preciseLocationIncluded',
       'externalRoutesCanonical',
       'odometerRemainsCanonical',
@@ -643,6 +645,8 @@ class MaintainiacFirestoreUploadPolicy {
         draft.data['authorizationRequired'] == true &&
         draft.data['authenticationImpliesAuthorization'] == false &&
         draft.data['employeeTrackingRequiresMutualConsent'] == true &&
+        draft.data['locationSharingRequiresActiveOptIn'] == true &&
+        draft.data['employerGodModeAllowed'] == false &&
         draft.data['preciseLocationIncluded'] == false &&
         draft.data['externalRoutesCanonical'] == false &&
         draft.data['odometerRemainsCanonical'] == true &&

@@ -171,6 +171,16 @@ void main() {
       );
       expect(
         rules,
+        contains(
+          'request.resource.data.locationSharingRequiresActiveOptIn == true',
+        ),
+      );
+      expect(
+        rules,
+        contains('request.resource.data.employerGodModeAllowed == false'),
+      );
+      expect(
+        rules,
         contains('request.resource.data.rawMapRouteIncluded == false'),
       );
       expect(

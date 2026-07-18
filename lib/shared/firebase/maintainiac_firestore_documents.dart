@@ -640,6 +640,8 @@ class MaintainiacFirestoreDocumentBuilder {
         'authorizationRequired': true,
         'authenticationImpliesAuthorization': false,
         'employeeTrackingRequiresMutualConsent': true,
+        'locationSharingRequiresActiveOptIn': true,
+        'employerGodModeAllowed': false,
         'preciseLocationIncluded': false,
         'externalRoutesCanonical': false,
         'odometerRemainsCanonical': true,
