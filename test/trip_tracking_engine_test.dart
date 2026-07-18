@@ -805,6 +805,40 @@ void main() {
     expect(engine.motionState, TripMotionState.moving);
   });
 
+  test('stationary GPS conflicts can support vehicle-only stop candidate', () {
+    final engine = TripTrackingEngine(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+    final drivenMeters = engine.totalAcceptedMeters;
+
+    for (final entry in const [
+      (30, -79.9987),
+      (60, -79.9977),
+      (90, -79.9967),
+    ]) {
+      final decision = engine.ingest(
+        sample(entry.$2, entry.$1, speedMetersPerSecond: 0.2),
+      );
+      expect(decision.disposition, TripSampleDisposition.rejectedSpeedConflict);
+      expect(engine.motionState, isNot(TripMotionState.stopCandidate));
+    }
+
+    final stopped = engine.ingest(
+      sample(-79.9957, 135, speedMetersPerSecond: 0.2),
+    );
+    expect(stopped.disposition, TripSampleDisposition.rejectedSpeedConflict);
+    expect(engine.motionState, TripMotionState.stopCandidate);
+    expect(engine.totalAcceptedMeters, drivenMeters);
+    expect(engine.needsWalkingReview, isFalse);
+  });
+
   test('vehicle-only stop candidate survives safe engine snapshot restore', () {
     final engine = TripTrackingEngine(
       profile: TripTrackingProfile.rideshareVehicle,

@@ -332,13 +332,16 @@ class TripTrackingEngine {
     required double distance,
     required double accuracyEnvelope,
   }) {
-    if (reportedSpeed == null || !reportedSpeed.isFinite || reportedSpeed < 0) {
-      return false;
-    }
-    if (reportedSpeed > 0.5) return false;
+    if (!_isStationaryReportedSpeed(reportedSpeed)) return false;
     final minimumContradictoryDistance = math.max(75.0, accuracyEnvelope * 2);
     return distance >= minimumContradictoryDistance;
   }
+
+  bool _isStationaryReportedSpeed(double? reportedSpeed) =>
+      reportedSpeed != null &&
+      reportedSpeed.isFinite &&
+      reportedSpeed >= 0 &&
+      reportedSpeed <= 0.5;
 
   TripSampleDecision _finish(
     TripLocationSample sample,
@@ -359,6 +362,10 @@ class TripTrackingEngine {
     final walking = _isStrongWalking(activity);
     final credibleMovement =
         disposition == TripSampleDisposition.acceptedDistance && !walking;
+    final stationaryConflict =
+        disposition == TripSampleDisposition.rejectedSpeedConflict &&
+        _isStationaryReportedSpeed(sample.speedMetersPerSecond) &&
+        !walking;
     if (automotive || credibleMovement) {
       if (credibleMovement && !_vehicleMovementObserved) {
         _walkingEvidence.clear();
@@ -369,9 +376,9 @@ class TripTrackingEngine {
       return;
     }
 
-    if (disposition == TripSampleDisposition.rejectedDrift &&
-        _vehicleMovementObserved &&
-        !walking) {
+    if ((disposition == TripSampleDisposition.rejectedDrift ||
+            stationaryConflict) &&
+        _vehicleMovementObserved) {
       _stationaryStartedAt ??= sample.recordedAt;
       if (_hasVehicleOnlyStopCandidate(sample.recordedAt)) {
         _motionState = TripMotionState.stopCandidate;
