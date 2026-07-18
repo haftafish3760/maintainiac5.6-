@@ -10,6 +10,10 @@ void main() {
 
     expect(decision.status, TripStopReviewOpenStatus.ready);
     expect(decision.mayOpenReview, isTrue);
+    expect(decision.reviewPayload['schema'], 'trip_stop_review_mirror_v1');
+    expect(decision.reviewPayload['ownerUid'], 'userA');
+    expect(decision.reviewPayload['createdByUid'], 'userA');
+    expect(decision.reviewPayload['updatedByUid'], 'userA');
     expect(decision.reviewPayload['disposition'], 'pending_user_review');
     expect(
       decision.reviewPayload['source'],
@@ -21,6 +25,11 @@ void main() {
       isTrue,
     );
     expect(decision.reviewPayload['firestoreRole'], 'mirror_after_local_write');
+    expect(decision.reviewPayload['locationDataIncluded'], isFalse);
+    expect(decision.reviewPayload['rawGpsIncluded'], isFalse);
+    expect(decision.reviewPayload['coordinatesIncluded'], isFalse);
+    expect(decision.reviewPayload['routeGeometryIncluded'], isFalse);
+    expect(decision.reviewPayload['tokensIncluded'], isFalse);
     expect(safe['remoteCanOpenStopReview'], isFalse);
     expect(safe['firestoreCanOpenStopReview'], isFalse);
     expect(safe['mapboxCanOpenStopReview'], isFalse);

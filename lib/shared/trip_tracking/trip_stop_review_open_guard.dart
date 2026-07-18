@@ -206,10 +206,13 @@ Map<String, Object?> _payloadFor({
 }) {
   return {
     'schemaVersion': 1,
+    'schema': 'trip_stop_review_mirror_v1',
     'reviewId': reviewId,
     'sessionId': request.sessionId,
     'vehicleId': request.vehicleId,
     'ownerUid': request.sessionOwnerUid,
+    'createdByUid': request.sessionOwnerUid,
+    'updatedByUid': request.sessionOwnerUid,
     'localSessionRevision': request.localSessionRevision,
     'detectedAtUtc': request.detectedAtUtc.toUtc().toIso8601String(),
     'actionToken': readiness.actionToken,
@@ -222,6 +225,11 @@ Map<String, Object?> _payloadFor({
     'firestoreRole': 'mirror_after_local_write',
     'remoteCanOverrideLocalDisposition': false,
     'canEndTripAutomatically': false,
+    'locationDataIncluded': false,
+    'rawGpsIncluded': false,
+    'coordinatesIncluded': false,
+    'routeGeometryIncluded': false,
+    'tokensIncluded': false,
   };
 }
 
