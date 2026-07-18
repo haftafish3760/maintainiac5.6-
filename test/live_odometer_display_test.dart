@@ -31,9 +31,14 @@ void main() {
       'truthLabel': 'Confirmed odometer',
       'confirmedReadingIsCanonical': true,
       'advisoryOnly': true,
+      'dashboardLiveUpdateReady': true,
+      'displayCanUpdateBeforeReview': false,
+      'writesConfirmedOdometer': false,
       'manualConfirmationRequired': false,
       'gpsCanReplaceOdometer': false,
       'mapsRequiredForTracking': false,
+      'mapboxCanChangeDisplay': false,
+      'localTripLogProtected': true,
       'preciseLocationIncluded': false,
       'rawGpsIncluded': false,
       'routeGeometryIncluded': false,
@@ -115,9 +120,14 @@ void main() {
           'Confirmed odometer remains the mileage truth until trip review.',
       'confirmedReadingIsCanonical': true,
       'advisoryOnly': true,
+      'dashboardLiveUpdateReady': true,
+      'displayCanUpdateBeforeReview': true,
+      'writesConfirmedOdometer': false,
       'manualConfirmationRequired': true,
       'gpsCanReplaceOdometer': false,
       'mapsRequiredForTracking': false,
+      'mapboxCanChangeDisplay': false,
+      'localTripLogProtected': true,
       'preciseLocationIncluded': false,
       'rawGpsIncluded': false,
       'routeGeometryIncluded': false,
@@ -148,6 +158,18 @@ void main() {
     expect(snapshot.rawGpsIncluded, isFalse);
     expect(snapshot.routeGeometryIncluded, isFalse);
     expect(snapshot.mapboxMayOverrideOdometer, isFalse);
+    expect(
+      snapshot.toSafeDashboardMap(
+        DateTime.utc(2026),
+      )['displayCanUpdateBeforeReview'],
+      isTrue,
+    );
+    expect(
+      snapshot.toSafeDashboardMap(
+        DateTime.utc(2026),
+      )['writesConfirmedOdometer'],
+      isFalse,
+    );
     expect(
       snapshot.advisoryLabel,
       'GPS-assisted odometer is live; confirmed mileage has not changed.',

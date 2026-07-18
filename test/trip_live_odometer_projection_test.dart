@@ -17,10 +17,16 @@ void main() {
         'startingOdometer': 1000,
         'maxSupportedReading': 9999999,
         'advisoryOnly': true,
+        'dashboardLiveUpdateReady': true,
+        'displayCanUpdateBeforeReview': true,
+        'writesConfirmedOdometer': false,
         'confirmedOdometerRemainsCanonical': true,
         'manualConfirmationRequired': true,
         'gpsCanReplaceOdometer': false,
         'mapboxCanReplaceOdometer': false,
+        'mapsRequiredForTracking': false,
+        'mapboxCanChangeProjection': false,
+        'localTripLogProtected': true,
         'rawGpsIncluded': false,
         'preciseLocationIncluded': false,
         'routeGeometryIncluded': false,
@@ -42,6 +48,7 @@ void main() {
     expect(projection.projectedReading, isZero);
     expect(projection.updateAcceptedMeters(1609.344), 1);
     expect(projection.toSafeDashboardMap()['startingOdometer'], 0);
+    expect(projection.toSafeDashboardMap()['writesConfirmedOdometer'], isFalse);
   });
 
   test('over-range live projection stays at last safe reading', () {
@@ -130,4 +137,20 @@ void main() {
       2013,
     );
   });
+
+  test(
+    'live projection summary keeps maps optional and local trip log safe',
+    () {
+      final projection = TripLiveOdometerProjection(startingOdometer: 3000);
+      projection.updateAcceptedMeters(2 * metersPerMile);
+      final summary = projection.toSafeDashboardMap();
+
+      expect(summary['dashboardLiveUpdateReady'], isTrue);
+      expect(summary['displayCanUpdateBeforeReview'], isTrue);
+      expect(summary['writesConfirmedOdometer'], isFalse);
+      expect(summary['mapsRequiredForTracking'], isFalse);
+      expect(summary['mapboxCanChangeProjection'], isFalse);
+      expect(summary['localTripLogProtected'], isTrue);
+    },
+  );
 }
