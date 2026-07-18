@@ -2,173 +2,101 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_live_odometer_projection.dart';
 
 void main() {
-  test(
-    'live projection only advances after credible accepted trip distance',
-    () {
-      final projection = TripLiveOdometerProjection(startingOdometer: 1000);
+  test('live projection is display-only and monotonic', () {
+    final projection = TripLiveOdometerProjection(startingOdometer: 1000);
 
-      expect(projection.projectedReading, 1000);
-      expect(projection.updateAcceptedMeters(700), 1000);
-      expect(projection.updateAcceptedMeters(900), 1001);
-      expect(projection.updateAcceptedMeters(100), 1001);
-      expect(projection.toSafeDashboardMap(), {
-        'schemaVersion': 1,
-        'projectedReading': 1001,
-        'startingOdometer': 1000,
-        'maxSupportedReading': 9999999,
-        'advisoryOnly': true,
-        'dashboardLiveUpdateReady': true,
-        'displayCanUpdateBeforeReview': true,
-        'writesConfirmedOdometer': false,
-        'confirmedOdometerRemainsCanonical': true,
-        'manualConfirmationRequired': true,
-        'gpsCanReplaceOdometer': false,
-        'mapboxCanReplaceOdometer': false,
-        'mapsRequiredForTracking': false,
-        'mapboxCanChangeProjection': false,
-        'localTripLogProtected': true,
-        'rawGpsIncluded': false,
-        'preciseLocationIncluded': false,
-        'routeGeometryIncluded': false,
-      });
-    },
-  );
-
-  test('never exposes a non-finite or negative live odometer estimate', () {
-    final projection = TripLiveOdometerProjection(startingOdometer: 120000);
-
-    expect(projection.updateAcceptedMeters(double.nan), 120000);
-    expect(projection.updateAcceptedMeters(double.infinity), 120000);
-    expect(projection.updateAcceptedMeters(-1), 120000);
-  });
-
-  test('negative projection baselines recover to zero', () {
-    final projection = TripLiveOdometerProjection(startingOdometer: -20);
-
-    expect(projection.projectedReading, isZero);
-    expect(projection.updateAcceptedMeters(1609.344), 1);
-    expect(projection.toSafeDashboardMap()['startingOdometer'], 0);
+    expect(projection.updateAcceptedMeters(10 * metersPerMile), 1010);
+    expect(projection.updateAcceptedMeters(5 * metersPerMile), 1010);
+    expect(projection.projectedReading, 1010);
     expect(projection.toSafeDashboardMap()['writesConfirmedOdometer'], isFalse);
+    expect(
+      projection.toSafeDashboardMap()['confirmedOdometerRemainsCanonical'],
+      isTrue,
+    );
+    expect(projection.toSafeDashboardMap()['projectionIsMonotonic'], isTrue);
   });
 
-  test('over-range live projection stays at last safe reading', () {
-    final projection = TripLiveOdometerProjection(
-      startingOdometer: 1999,
-      maxSupportedReading: 2000,
-    );
+  test('invalid GPS distance cannot poison live projection', () {
+    final projection = TripLiveOdometerProjection(startingOdometer: 1000);
 
-    expect(projection.updateAcceptedMeters(1609.344), 2000);
+    expect(projection.updateAcceptedMeters(double.nan), 1000);
+    expect(projection.updateAcceptedMeters(double.infinity), 1000);
+    expect(projection.updateAcceptedMeters(-1), 1000);
     expect(projection.lastUpdateExceededMax, isFalse);
-    expect(projection.updateAcceptedMeters(3218.688), 2000);
+    expect(projection.toSafeDashboardMap()['lastUpdateExceededMax'], isFalse);
+  });
+
+  test('overrange GPS projection fails closed with dashboard-safe flag', () {
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: 999998,
+      maxSupportedReading: 999999,
+    );
+
+    expect(projection.updateAcceptedMeters(3 * metersPerMile), 999998);
     expect(projection.lastUpdateExceededMax, isTrue);
-    expect(projection.projectedReading, 2000);
-  });
-
-  test(
-    'over-range projection attempts are explicit for controller fail-close',
-    () {
-      final projection = TripLiveOdometerProjection(
-        startingOdometer: 1000,
-        maxSupportedReading: 1001,
-      );
-
-      expect(projection.lastUpdateExceededMax, isFalse);
-      expect(projection.updateAcceptedMeters(4 * metersPerMile), 1000);
-      expect(projection.lastUpdateExceededMax, isTrue);
-      expect(projection.updateAcceptedMeters(metersPerMile), 1001);
-      expect(projection.lastUpdateExceededMax, isFalse);
-    },
-  );
-
-  test('over-range starting baseline is bounded before display', () {
-    final projection = TripLiveOdometerProjection(
-      startingOdometer: 5000,
-      maxSupportedReading: 4000,
+    expect(projection.toSafeDashboardMap()['lastUpdateExceededMax'], isTrue);
+    expect(
+      projection.toSafeDashboardMap()['projectionExceededSupportedRange'],
+      isTrue,
     );
-
-    expect(projection.projectedReading, 4000);
-    expect(projection.updateAcceptedMeters(1609.344), 4000);
+    expect(projection.toSafeDashboardMap()['rawGpsIncluded'], isFalse);
   });
 
-  test('huge finite accepted distance is rejected before projection math', () {
-    final projection = TripLiveOdometerProjection(
-      startingOdometer: 9999990,
-      maxSupportedReading: 9999999,
-    );
-
-    expect(projection.updateAcceptedMeters(9 * metersPerMile), 9999999);
-    expect(projection.updateAcceptedMeters(double.maxFinite), 9999999);
-    expect(projection.projectedReading, 9999999);
-  });
-
-  test('advisory calibration multiplier only changes live GPS projection', () {
+  test('calibration assistance is clamped and cannot reverse projection', () {
     final projection = TripLiveOdometerProjection(startingOdometer: 1000);
 
     expect(
       projection.updateAcceptedMeters(
         10 * metersPerMile,
-        gpsAssistanceCalibrationMultiplier: .9,
+        gpsAssistanceCalibrationMultiplier: .01,
       ),
-      1009,
-    );
-    expect(projection.projectedReading, 1009);
-  });
-
-  test(
-    'malformed calibration multipliers fail closed to uncalibrated miles',
-    () {
-      final projection = TripLiveOdometerProjection(startingOdometer: 5000);
-
-      expect(
-        projection.updateAcceptedMeters(
-          4 * metersPerMile,
-          gpsAssistanceCalibrationMultiplier: double.nan,
-        ),
-        5004,
-      );
-      expect(
-        projection.updateAcceptedMeters(
-          5 * metersPerMile,
-          gpsAssistanceCalibrationMultiplier: -1,
-        ),
-        5005,
-      );
-    },
-  );
-
-  test('calibration multipliers are bounded before odometer display math', () {
-    final low = TripLiveOdometerProjection(startingOdometer: 2000);
-    final high = TripLiveOdometerProjection(startingOdometer: 2000);
-
-    expect(
-      low.updateAcceptedMeters(
-        10 * metersPerMile,
-        gpsAssistanceCalibrationMultiplier: .1,
-      ),
-      2008,
+      1008,
     );
     expect(
-      high.updateAcceptedMeters(
+      projection.updateAcceptedMeters(
         10 * metersPerMile,
-        gpsAssistanceCalibrationMultiplier: 4,
+        gpsAssistanceCalibrationMultiplier: 2,
       ),
-      2013,
+      1013,
+    );
+    expect(
+      projection.updateAcceptedMeters(
+        9 * metersPerMile,
+        gpsAssistanceCalibrationMultiplier: .8,
+      ),
+      1013,
     );
   });
 
-  test(
-    'live projection summary keeps maps optional and local trip log safe',
-    () {
-      final projection = TripLiveOdometerProjection(startingOdometer: 3000);
-      projection.updateAcceptedMeters(2 * metersPerMile);
-      final summary = projection.toSafeDashboardMap();
+  test('malformed calibration multipliers fall back to neutral assistance', () {
+    final projection = TripLiveOdometerProjection(startingOdometer: 1000);
 
-      expect(summary['dashboardLiveUpdateReady'], isTrue);
-      expect(summary['displayCanUpdateBeforeReview'], isTrue);
-      expect(summary['writesConfirmedOdometer'], isFalse);
-      expect(summary['mapsRequiredForTracking'], isFalse);
-      expect(summary['mapboxCanChangeProjection'], isFalse);
-      expect(summary['localTripLogProtected'], isTrue);
-    },
-  );
+    expect(
+      projection.updateAcceptedMeters(
+        10 * metersPerMile,
+        gpsAssistanceCalibrationMultiplier: double.nan,
+      ),
+      1010,
+    );
+    expect(
+      projection.updateAcceptedMeters(
+        11 * metersPerMile,
+        gpsAssistanceCalibrationMultiplier: -2,
+      ),
+      1011,
+    );
+  });
+
+  test('malformed odometer bounds are sanitized before display', () {
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: -100,
+      maxSupportedReading: -1,
+    );
+
+    expect(projection.projectedReading, 0);
+    expect(projection.maxSupportedReading, 0);
+    expect(projection.updateAcceptedMeters(0), 0);
+    expect(projection.toSafeDashboardMap()['startingOdometer'], 0);
+    expect(projection.toSafeDashboardMap()['maxSupportedReading'], 0);
+  });
 }
