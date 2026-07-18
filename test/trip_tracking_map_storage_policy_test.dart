@@ -17,6 +17,12 @@ void main() {
     expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(summary['mapsRequireSeparateOptIn'], isTrue);
     expect(summary['routeHistoryRequiresSeparateOptIn'], isTrue);
+    expect(summary['freePlanMaxDailyBudgetMb'], 2);
+    expect(summary['compactRoutePointBytes'], 96);
+    expect(summary['oneToThreeSecondRawPingStorageDiscouraged'], isTrue);
+    expect(summary['routeStorageAdvisoryOnly'], isTrue);
+    expect(summary['mapPreviewCanRunWithoutRouteHistory'], isTrue);
+    expect(summary['mapboxResponseCanBypassBudget'], isFalse);
     expect(summary['canSilentlyDeleteRouteHistory'], isFalse);
     expect(summary['localTripLogProtected'], isTrue);
     expect(summary['purgeRequiresConfirmedBackupOrUserAction'], isTrue);
@@ -135,6 +141,7 @@ void main() {
       expect(malformed.sampleIntervalSeconds, 15);
       expect(malformed.toSafeDashboardMap().toString(), isNot(contains('NaN')));
       expect(oversized.dailyBudgetMb, 2);
+      expect(oversized.toSafeDashboardMap()['freePlanMaxDailyBudgetMb'], 2);
       expect(oversized.sampleIntervalSeconds, 15);
       expect(oversized.allowedToPersistRoute, isTrue);
     },
@@ -175,6 +182,11 @@ void main() {
     );
     expect(exhausted.toSafeDashboardMap()['localTripLogProtected'], isTrue);
     expect(
+      exhausted.toSafeDashboardMap()['mapboxResponseCanBypassBudget'],
+      isFalse,
+    );
+    expect(exhausted.toSafeDashboardMap()['routeStorageAdvisoryOnly'], isTrue);
+    expect(
       exhausted
           .toSafeDashboardMap()['purgeRequiresConfirmedBackupOrUserAction'],
       isTrue,
@@ -198,6 +210,8 @@ void main() {
     expect(decision.persistedPointsToday, 0);
     expect(decision.reasonCode, 'maps_not_enabled');
     expect(summary['gpsTrackingCanContinueWithoutMaps'], isTrue);
+    expect(summary['mapPreviewCanRunWithoutRouteHistory'], isTrue);
+    expect(summary['oneToThreeSecondRawPingStorageDiscouraged'], isTrue);
     expect(summary['tokensIncluded'], isFalse);
   });
 }
