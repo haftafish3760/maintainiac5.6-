@@ -30,7 +30,18 @@ void main() {
     expect(safe['backgroundGpsRequiresPlatformGrant'], isTrue);
     expect(safe['foregroundLocationDoesNotGrantBackgroundGps'], isTrue);
     expect(safe['backgroundPermissionCanBeAssumed'], isFalse);
+    expect(safe['lowBatteryChoiceRequiresLocalSettings'], isTrue);
+    expect(safe['lowBatteryPromptMustBeReversible'], isTrue);
+    expect(safe['batteryPauseCannotUploadBackupByItself'], isTrue);
+    expect(safe['batteryPauseCannotPurgeLocalDataAfterBackup'], isTrue);
+    expect(safe['gpsContinuationRequiresActiveLocalTrip'], isTrue);
     expect(safe['manualOdometerEntryStillAllowed'], isTrue);
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
   });
 
   test('saved cancel choice pauses GPS without stopping trip records', () {
@@ -179,8 +190,58 @@ void main() {
       expect(safe.toString(), isNot(contains('12')));
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));
+      expect(
+        TripBatteryGpsContinuationSummaryValidation.fromSummary(
+          safe,
+        ).isRenderable,
+        isTrue,
+      );
     },
   );
+
+  test('battery continuation summary rejects forged trip authority', () {
+    final safe = TripBatteryGpsContinuationPolicy.evaluate(
+      lifecycle: TripTrackingSessionLifecycleState.active,
+      localSessionAvailable: true,
+      batteryDecision: battery(percent: 12, warningDismissed: true),
+    ).toSafeDashboardMap();
+
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary({
+        ...safe,
+        'gpsPauseCanConfirmMileage': true,
+      }).reasons,
+      contains('battery_pause_claims_trip_truth'),
+    );
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary({
+        ...safe,
+        'lowBatteryPromptMustBeReversible': false,
+      }).reasons,
+      contains('battery_local_trip_boundary_missing'),
+    );
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary({
+        ...safe,
+        'backgroundPermissionCanBeAssumed': true,
+      }).reasons,
+      contains('background_permission_boundary_missing'),
+    );
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary({
+        ...safe,
+        'firebaseCanOverrideBatteryChoice': true,
+      }).reasons,
+      contains('remote_can_override_battery_choice'),
+    );
+    expect(
+      TripBatteryGpsContinuationSummaryValidation.fromSummary({
+        ...safe,
+        'debug': 'battery 12% token=sk.secret',
+      }).reasons,
+      contains('summary_contains_sensitive_battery_material'),
+    );
+  });
 }
 
 TripGpsBatteryDecision battery({

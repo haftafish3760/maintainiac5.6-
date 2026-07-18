@@ -60,6 +60,11 @@ class TripBatteryGpsContinuationDecision {
     'backgroundPermissionCanBeAssumed': false,
     'backgroundPermissionCanBeProvidedByFirestore': false,
     'backgroundPermissionCanBeProvidedByMapbox': false,
+    'lowBatteryChoiceRequiresLocalSettings': true,
+    'lowBatteryPromptMustBeReversible': true,
+    'batteryPauseCannotUploadBackupByItself': true,
+    'batteryPauseCannotPurgeLocalDataAfterBackup': true,
+    'gpsContinuationRequiresActiveLocalTrip': true,
     'batteryChoiceCanBeChangedInSettings': true,
     'firebaseCanOverrideBatteryChoice': false,
     'cloudFunctionCanOverrideBatteryChoice': false,
@@ -70,6 +75,113 @@ class TripBatteryGpsContinuationDecision {
     'rawBatteryPayloadIncluded': false,
     'tokensIncluded': false,
   };
+}
+
+class TripBatteryGpsContinuationSummaryValidation {
+  const TripBatteryGpsContinuationSummaryValidation._({
+    required this.isRenderable,
+    required this.reasons,
+  });
+
+  factory TripBatteryGpsContinuationSummaryValidation.fromSummary(
+    Map<String, Object?> summary,
+  ) {
+    final reasons = <String>[];
+    if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
+    if (_safeStatus(summary['status']) == null) {
+      reasons.add('invalid_battery_gps_status');
+    }
+    if (_safeReason(summary['reasonCode']?.toString() ?? '') !=
+        summary['reasonCode']) {
+      reasons.add('invalid_battery_gps_reason');
+    }
+    for (final key in const [
+      'shouldContinueGpsSampling',
+      'shouldPromptUser',
+      'shouldKeepTripSessionAlive',
+      'shouldKeepTextTripLogWritable',
+      'shouldWriteLocalCheckpoint',
+      'requiresForegroundService',
+      'requiresBackgroundPermission',
+      'canRetryWhenForeground',
+      'gpsPauseCanEndTripAutomatically',
+      'gpsPauseCanDeleteTripRecords',
+      'gpsPauseCanConfirmMileage',
+      'gpsPauseCanCreateOfficialStop',
+      'textTripLogContinuesWithoutGps',
+      'manualOdometerEntryStillAllowed',
+      'lowBatteryPauseIsGpsOnly',
+      'lowBatteryPauseRequiresLocalCheckpoint',
+      'backgroundGpsCanResumeAfterUserOverride',
+      'backgroundGpsRequiresPlatformGrant',
+      'foregroundLocationDoesNotGrantBackgroundGps',
+      'backgroundPermissionCanBeAssumed',
+      'backgroundPermissionCanBeProvidedByFirestore',
+      'backgroundPermissionCanBeProvidedByMapbox',
+      'lowBatteryChoiceRequiresLocalSettings',
+      'lowBatteryPromptMustBeReversible',
+      'batteryPauseCannotUploadBackupByItself',
+      'batteryPauseCannotPurgeLocalDataAfterBackup',
+      'gpsContinuationRequiresActiveLocalTrip',
+      'batteryChoiceCanBeChangedInSettings',
+      'firebaseCanOverrideBatteryChoice',
+      'cloudFunctionCanOverrideBatteryChoice',
+      'mapboxCanOverrideBatteryChoice',
+      'hiveRemainsOperationalSourceOfTruth',
+      'odometerRemainsOfficialMileageTruth',
+      'preciseBatteryIncluded',
+      'rawBatteryPayloadIncluded',
+      'tokensIncluded',
+    ]) {
+      if (summary[key] is! bool) reasons.add('${key}_not_bool');
+    }
+    if (summary['gpsPauseCanEndTripAutomatically'] != false ||
+        summary['gpsPauseCanDeleteTripRecords'] != false ||
+        summary['gpsPauseCanConfirmMileage'] != false ||
+        summary['gpsPauseCanCreateOfficialStop'] != false ||
+        summary['odometerRemainsOfficialMileageTruth'] != true) {
+      reasons.add('battery_pause_claims_trip_truth');
+    }
+    if (summary['textTripLogContinuesWithoutGps'] !=
+            summary['shouldKeepTextTripLogWritable'] ||
+        summary['manualOdometerEntryStillAllowed'] !=
+            summary['shouldKeepTextTripLogWritable'] ||
+        summary['lowBatteryPauseIsGpsOnly'] != true ||
+        summary['lowBatteryPauseRequiresLocalCheckpoint'] != true ||
+        summary['lowBatteryChoiceRequiresLocalSettings'] != true ||
+        summary['lowBatteryPromptMustBeReversible'] != true ||
+        summary['batteryPauseCannotUploadBackupByItself'] != true ||
+        summary['batteryPauseCannotPurgeLocalDataAfterBackup'] != true ||
+        summary['gpsContinuationRequiresActiveLocalTrip'] != true) {
+      reasons.add('battery_local_trip_boundary_missing');
+    }
+    if (summary['backgroundGpsRequiresPlatformGrant'] != true ||
+        summary['foregroundLocationDoesNotGrantBackgroundGps'] != true ||
+        summary['backgroundPermissionCanBeAssumed'] != false ||
+        summary['backgroundPermissionCanBeProvidedByFirestore'] != false ||
+        summary['backgroundPermissionCanBeProvidedByMapbox'] != false) {
+      reasons.add('background_permission_boundary_missing');
+    }
+    if (summary['firebaseCanOverrideBatteryChoice'] != false ||
+        summary['cloudFunctionCanOverrideBatteryChoice'] != false ||
+        summary['mapboxCanOverrideBatteryChoice'] != false ||
+        summary['hiveRemainsOperationalSourceOfTruth'] != true) {
+      reasons.add('remote_can_override_battery_choice');
+    }
+    if (summary['preciseBatteryIncluded'] != false ||
+        summary['rawBatteryPayloadIncluded'] != false ||
+        summary['tokensIncluded'] != false ||
+        summary.values.any(_looksSensitive)) {
+      reasons.add('summary_contains_sensitive_battery_material');
+    }
+    return TripBatteryGpsContinuationSummaryValidation._(
+      isRenderable: reasons.isEmpty,
+      reasons: List.unmodifiable(reasons),
+    );
+  }
+
+  final bool isRenderable;
+  final List<String> reasons;
 }
 
 class TripBatteryGpsContinuationPolicy {
@@ -221,4 +333,21 @@ String _safeReason(String value) {
       'background_permission_required_for_background_gps',
     _ => 'battery_unknown',
   };
+}
+
+TripBatteryGpsContinuationStatus? _safeStatus(Object? value) {
+  if (value is! String) return null;
+  for (final status in TripBatteryGpsContinuationStatus.values) {
+    if (status.name == value) return status;
+  }
+  return null;
+}
+
+bool _looksSensitive(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.startsWith('pk.') ||
+      clean.startsWith('sk.') ||
+      clean.contains('token=') ||
+      RegExp(r'\b\d{1,3}%\b').hasMatch(clean);
 }
