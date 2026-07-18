@@ -108,6 +108,11 @@ void main() {
 
       expect(safe['simulationCanCreateOfficialStop'], isFalse);
       expect(safe['simulationCanConfirmOdometer'], isFalse);
+      expect(safe['odometerIsGlobalTruth'], isTrue);
+      expect(safe['odometerRemainsOfficialMileageTruth'], isTrue);
+      expect(safe['poorGpsCalibrationScenarioRequired'], isTrue);
+      expect(safe['calibrationRequiresTrustedGpsWindow'], isTrue);
+      expect(safe['poorGpsDaysExcludedFromCalibration'], isTrue);
       expect(safe['deviceTestingStillRequiredBeforeCommercialClaim'], isTrue);
       expect(safe['mapsRequiredForSimulation'], isFalse);
       expect(safe['rawSamplesIncluded'], isFalse);

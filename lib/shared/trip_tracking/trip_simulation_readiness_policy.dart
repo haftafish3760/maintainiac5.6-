@@ -52,6 +52,10 @@ class TripSimulationReadinessDecision {
     'contractorStopRequiresWalkingOrManualReviewEvidence': true,
     'rideshareVehicleOnlyStopsStayManualFallback': true,
     'trafficControlMustStayOutOfStopReview': true,
+    'poorGpsCalibrationScenarioRequired': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'odometerIsGlobalTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
     'rawSamplesIncluded': false,
     'preciseLocationIncluded': false,
@@ -89,6 +93,7 @@ class TripSimulationReadinessSummaryValidation {
     if (summary['simulationCanCreateOfficialStop'] != false ||
         summary['simulationCanConfirmOdometer'] != false ||
         summary['simulationCanDeleteLocalData'] != false ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true) {
       reasons.add('simulation_can_create_official_truth');
     }
@@ -104,7 +109,10 @@ class TripSimulationReadinessSummaryValidation {
         summary['contractorStopRequiresWalkingOrManualReviewEvidence'] !=
             true ||
         summary['rideshareVehicleOnlyStopsStayManualFallback'] != true ||
-        summary['trafficControlMustStayOutOfStopReview'] != true) {
+        summary['trafficControlMustStayOutOfStopReview'] != true ||
+        summary['poorGpsCalibrationScenarioRequired'] != true ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true) {
       reasons.add('profile_expectation_boundary_missing');
     }
     if (summary['rawSamplesIncluded'] != false ||
