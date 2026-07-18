@@ -41,7 +41,9 @@ class TripTrackingDeviceOperationalPolicy {
     'schemaVersion': 1,
     'usesSharedDeviceCapabilityProfile': true,
     'deviceTier': platformCapabilities.deviceTier.name,
-    'recommendedSampleIntervalSeconds': recommendedSampleIntervalSeconds,
+    'recommendedSampleIntervalSeconds': _safeSampleIntervalSeconds(
+      recommendedSampleIntervalSeconds,
+    ),
     'lowBatteryGuardRecommended': lowBatteryGuardRecommended,
     'activityRecognitionRecommended': activityRecognitionRecommended,
     'backgroundTrackingAllowed': backgroundTrackingAllowed,
@@ -51,6 +53,11 @@ class TripTrackingDeviceOperationalPolicy {
     'gpsTextTripLogCanContinueWithLowStorage': true,
     'mapRouteHistoryIsOptional': true,
     'mapRouteHistoryDeferBelowDeviceBudget': true,
+    'deviceCapabilityTrustedAfterValidationOnly': true,
+    'remoteCapabilityCanEnableSensorsWithoutOptIn': false,
+    'firebaseDeviceProfileCanOverrideUserConsent': false,
+    'mapboxCanOverrideDevicePolicy': false,
+    'malformedCapabilityPayloadFailsSafe': true,
     'lowBatteryDefaultGpsPausePercent': 20,
     'lowBatteryPauseCanBeOverriddenByUser': true,
     'activityRecognitionRequiresOptIn': true,
@@ -86,3 +93,5 @@ class TripTrackingDeviceOperationalPolicy {
     );
   }
 }
+
+int _safeSampleIntervalSeconds(int value) => value.clamp(5, 60).toInt();

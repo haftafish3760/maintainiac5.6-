@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/device_capabilities/device_capabilities.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_device_operational_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
@@ -37,6 +38,11 @@ void main() {
     expect(summary['gpsTrackingCanRunWithoutMaps'], isTrue);
     expect(summary['mapsRequiredForTracking'], isFalse);
     expect(summary['mapRouteHistoryIsOptional'], isTrue);
+    expect(summary['deviceCapabilityTrustedAfterValidationOnly'], isTrue);
+    expect(summary['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
+    expect(summary['firebaseDeviceProfileCanOverrideUserConsent'], isFalse);
+    expect(summary['mapboxCanOverrideDevicePolicy'], isFalse);
+    expect(summary['malformedCapabilityPayloadFailsSafe'], isTrue);
     expect(summary['activityRecognitionRequiresOptIn'], isTrue);
     expect(summary['backgroundTrackingRequiresPlatformPermission'], isTrue);
     expect(summary['deviceModelIncluded'], isFalse);
@@ -145,5 +151,31 @@ void main() {
     expect(summary['lowBatteryDefaultGpsPausePercent'], 20);
     expect(summary['lowBatteryPauseCanBeOverriddenByUser'], isTrue);
     expect(summary['tokensIncluded'], isFalse);
+  });
+
+  test('direct device policy summaries clamp malformed sample intervals', () {
+    const policy = TripTrackingDeviceOperationalPolicy(
+      platformCapabilities: TripTrackingPlatformCapabilities(
+        locationAvailable: true,
+        backgroundTrackingAvailable: true,
+        activityRecognitionAvailable: true,
+      ),
+      recommendedSampleIntervalSeconds: -999,
+      lowBatteryGuardRecommended: true,
+      activityRecognitionRecommended: true,
+      backgroundTrackingAllowed: true,
+      deferMapRouteHistory: false,
+    );
+
+    final summary = policy.toSafeSummary();
+
+    expect(summary['recommendedSampleIntervalSeconds'], 5);
+    expect(summary['deviceCapabilityTrustedAfterValidationOnly'], isTrue);
+    expect(summary['remoteCapabilityCanEnableSensorsWithoutOptIn'], isFalse);
+    expect(summary['firebaseDeviceProfileCanOverrideUserConsent'], isFalse);
+    expect(summary['mapboxCanOverrideDevicePolicy'], isFalse);
+    expect(summary['malformedCapabilityPayloadFailsSafe'], isTrue);
+    expect(summary['deviceModelIncluded'], isFalse);
+    expect(summary['rawSensorPayloadIncluded'], isFalse);
   });
 }
