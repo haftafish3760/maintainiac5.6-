@@ -57,6 +57,13 @@ class TripNativeInterruptionRecoveryDecision {
     'backgroundRestrictionRequiresRecoverableInterruption': true,
     'foregroundServiceLossRequiresCheckpointRecovery': true,
     'recoveryCanDegradeToUserReviewWithoutDataLoss': true,
+    'pendingReplayRequiresValidatedLocalSample': true,
+    'pendingReplayRequiresMatchingSession': true,
+    'pendingReplayCannotUseMockedLocation': true,
+    'backupMirrorBlockedWhenUserActionRequired': true,
+    'backupMirrorCannotConfirmTripTruth': true,
+    'authenticationAloneAuthorizesNativeRecovery': false,
+    'fleetObserverCanForceNativeRecovery': false,
     'backgroundRecoveryCanRunWithoutMaps': true,
     'mapsRequiredForRecovery': false,
     'firestoreCanForceRecovery': false,
@@ -126,8 +133,17 @@ class TripNativeInterruptionRecoverySummaryValidation {
         summary['backgroundRestrictionRequiresRecoverableInterruption'] !=
             true ||
         summary['foregroundServiceLossRequiresCheckpointRecovery'] != true ||
-        summary['recoveryCanDegradeToUserReviewWithoutDataLoss'] != true) {
+        summary['recoveryCanDegradeToUserReviewWithoutDataLoss'] != true ||
+        summary['pendingReplayRequiresValidatedLocalSample'] != true ||
+        summary['pendingReplayRequiresMatchingSession'] != true ||
+        summary['pendingReplayCannotUseMockedLocation'] != true ||
+        summary['backupMirrorBlockedWhenUserActionRequired'] != true ||
+        summary['backupMirrorCannotConfirmTripTruth'] != true) {
       reasons.add('completed_session_resume_boundary_missing');
+    }
+    if (summary['authenticationAloneAuthorizesNativeRecovery'] != false ||
+        summary['fleetObserverCanForceNativeRecovery'] != false) {
+      reasons.add('native_recovery_authorization_boundary_missing');
     }
     if (summary['backgroundRecoveryCanRunWithoutMaps'] != true ||
         summary['mapsRequiredForRecovery'] != false ||

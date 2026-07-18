@@ -88,6 +88,11 @@ void main() {
       expect(decision.reasonCode, 'replay_pending_sample_after_restore');
       expect(decision.canReplayPendingSample, isTrue);
       expect(decision.canUploadBackupMirror, isTrue);
+      final safe = decision.toSafeDashboardMap();
+      expect(safe['pendingReplayRequiresValidatedLocalSample'], isTrue);
+      expect(safe['pendingReplayRequiresMatchingSession'], isTrue);
+      expect(safe['pendingReplayCannotUseMockedLocation'], isTrue);
+      expect(safe['backupMirrorCannotConfirmTripTruth'], isTrue);
     },
   );
 
@@ -146,6 +151,9 @@ void main() {
       );
       expect(safe['foregroundServiceLossRequiresCheckpointRecovery'], isTrue);
       expect(safe['recoveryCanDegradeToUserReviewWithoutDataLoss'], isTrue);
+      expect(safe['backupMirrorBlockedWhenUserActionRequired'], isTrue);
+      expect(safe['authenticationAloneAuthorizesNativeRecovery'], isFalse);
+      expect(safe['fleetObserverCanForceNativeRecovery'], isFalse);
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));
     },
@@ -191,6 +199,13 @@ void main() {
             'backgroundRestrictionRequiresRecoverableInterruption': false,
             'foregroundServiceLossRequiresCheckpointRecovery': false,
             'recoveryCanDegradeToUserReviewWithoutDataLoss': false,
+            'pendingReplayRequiresValidatedLocalSample': false,
+            'pendingReplayRequiresMatchingSession': false,
+            'pendingReplayCannotUseMockedLocation': false,
+            'backupMirrorBlockedWhenUserActionRequired': false,
+            'backupMirrorCannotConfirmTripTruth': false,
+            'authenticationAloneAuthorizesNativeRecovery': true,
+            'fleetObserverCanForceNativeRecovery': true,
             'backgroundRecoveryCanRunWithoutMaps': false,
             'mapsRequiredForRecovery': true,
             'firestoreCanForceRecovery': true,
@@ -214,12 +229,48 @@ void main() {
       validation.reasons,
       contains('completed_session_resume_boundary_missing'),
     );
+    expect(
+      validation.reasons,
+      contains('native_recovery_authorization_boundary_missing'),
+    );
     expect(validation.reasons, contains('remote_or_map_can_force_recovery'));
     expect(
       validation.reasons,
       contains('summary_contains_sensitive_recovery_material'),
     );
     expect(validation.reasons, contains('summary_contains_sensitive_text'));
+  });
+
+  test('user-action recovery blocks replay and backup mirror', () {
+    final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(event: statusEvent('permissionRequired')),
+      supervisorDecision: supervisorDecision(
+        lifecycle: TripTrackingSessionLifecycleState.permissionRequired,
+        nativeTrackingAvailable: false,
+        backupMirrorReady: true,
+        recovery: const TripTrackingRecoveryDecision(
+          status: TripTrackingRecoveryStatus.pendingReplayReady,
+          safeReason: 'trip_recovery_pending_replay_ready',
+          canRestore: true,
+          requiresUserAction: true,
+          estimatedOdometer: 1120,
+          pendingSampleQueued: true,
+        ),
+      ),
+      localCheckpointAvailable: true,
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.shouldRequestUserAction, isTrue);
+    expect(decision.canReplayPendingSample, isFalse);
+    expect(decision.canUploadBackupMirror, isFalse);
+    expect(safe['backupMirrorBlockedWhenUserActionRequired'], isTrue);
+    expect(
+      TripNativeInterruptionRecoverySummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
   });
 }
 
