@@ -132,6 +132,11 @@ class TripTrackingProfileStrategy {
     'remoteProfileCanEnableEmployeeTracking': false,
     'remoteProfileCanEnableMapRouteStorage': false,
     'remoteProfileCanChangeConfirmedMileage': false,
+    'firestoreProfileCanOverrideUserConsent': false,
+    'cloudFunctionProfileCanOverrideUserConsent': false,
+    'mapboxProfileCanOverrideStopPolicy': false,
+    'profileStrategyCanDeleteTripData': false,
+    'profileStrategyCanEndTripAutomatically': false,
     'rawLocationIncluded': false,
     'rawSensorPayloadIncluded': false,
   };

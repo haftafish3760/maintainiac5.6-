@@ -69,6 +69,10 @@ void main() {
       expect(allowed['allowed'], isTrue);
       expect(allowed['requiresUserReview'], isTrue);
       expect(allowed['localLifecycleAuthoritative'], isTrue);
+      expect(allowed['transitionTrustedAfterValidationOnly'], isTrue);
+      expect(allowed['remoteLifecycleCanOverrideLocalCheckpoint'], isFalse);
+      expect(allowed['firestoreCanForceLifecycleTransition'], isFalse);
+      expect(allowed['cloudFunctionCanForceLifecycleTransition'], isFalse);
       expect(allowed['nativeEventCanForceComplete'], isFalse);
       expect(allowed['mapboxEventCanForceComplete'], isFalse);
       expect(allowed['remoteEventCanForceComplete'], isFalse);
@@ -92,7 +96,26 @@ void main() {
     final summary = decision.toSafeSummary();
 
     expect(summary['reasonCode'], 'illegal_gps_session_transition');
+    expect(summary['allowed'], isFalse);
+    expect(summary['requiresUserReview'], isTrue);
     expect(summary.toString(), isNot(contains('pk.secret')));
     expect(summary.toString(), isNot(contains('35.1')));
+  });
+
+  test('direct lifecycle summaries cannot forge illegal transitions', () {
+    const decision = TripTrackingLifecycleTransitionDecision(
+      from: TripTrackingSessionLifecycleState.completed,
+      to: TripTrackingSessionLifecycleState.active,
+      allowed: true,
+      reasonCode: 'gps_session_transition_allowed',
+      requiresUserReview: false,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['allowed'], isFalse);
+    expect(summary['requiresUserReview'], isTrue);
+    expect(summary['completedSessionCanResume'], isFalse);
+    expect(summary['remoteLifecycleCanOverrideLocalCheckpoint'], isFalse);
+    expect(summary['firestoreCanForceLifecycleTransition'], isFalse);
   });
 }

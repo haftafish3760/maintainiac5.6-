@@ -241,6 +241,11 @@ void main() {
       'remoteProfileCanEnableEmployeeTracking': false,
       'remoteProfileCanEnableMapRouteStorage': false,
       'remoteProfileCanChangeConfirmedMileage': false,
+      'firestoreProfileCanOverrideUserConsent': false,
+      'cloudFunctionProfileCanOverrideUserConsent': false,
+      'mapboxProfileCanOverrideStopPolicy': false,
+      'profileStrategyCanDeleteTripData': false,
+      'profileStrategyCanEndTripAutomatically': false,
       'rawLocationIncluded': false,
       'rawSensorPayloadIncluded': false,
     });
@@ -272,6 +277,11 @@ void main() {
       expect(profileMap['remoteProfileCanEnableEmployeeTracking'], isFalse);
       expect(profileMap['remoteProfileCanEnableMapRouteStorage'], isFalse);
       expect(profileMap['remoteProfileCanChangeConfirmedMileage'], isFalse);
+      expect(profileMap['firestoreProfileCanOverrideUserConsent'], isFalse);
+      expect(profileMap['cloudFunctionProfileCanOverrideUserConsent'], isFalse);
+      expect(profileMap['mapboxProfileCanOverrideStopPolicy'], isFalse);
+      expect(profileMap['profileStrategyCanDeleteTripData'], isFalse);
+      expect(profileMap['profileStrategyCanEndTripAutomatically'], isFalse);
       expect(profileMap['rawLocationIncluded'], isFalse);
       expect(profileMap['rawSensorPayloadIncluded'], isFalse);
       expect(profileMap['driverKind'], isA<String>());

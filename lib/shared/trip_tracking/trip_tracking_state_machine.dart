@@ -131,10 +131,25 @@ class TripTrackingLifecycleTransitionDecision {
     'schemaVersion': 1,
     'from': from.name,
     'to': to.name,
-    'allowed': allowed,
+    'allowed': _safeTransitionAllowed(
+      from: from,
+      to: to,
+      allowed: allowed,
+      reasonCode: reasonCode,
+    ),
     'reasonCode': _safeTransitionReason(reasonCode),
-    'requiresUserReview': requiresUserReview,
+    'requiresUserReview': _safeRequiresTransitionReview(
+      from: from,
+      to: to,
+      allowed: allowed,
+      reasonCode: reasonCode,
+      requiresUserReview: requiresUserReview,
+    ),
     'localLifecycleAuthoritative': true,
+    'transitionTrustedAfterValidationOnly': true,
+    'remoteLifecycleCanOverrideLocalCheckpoint': false,
+    'firestoreCanForceLifecycleTransition': false,
+    'cloudFunctionCanForceLifecycleTransition': false,
     'nativeEventCanForceComplete': false,
     'mapboxEventCanForceComplete': false,
     'remoteEventCanForceComplete': false,
@@ -175,4 +190,33 @@ String _safeTransitionReason(String value) {
     'illegal_gps_session_transition' => value,
     _ => 'illegal_gps_session_transition',
   };
+}
+
+bool _safeTransitionAllowed({
+  required TripTrackingSessionLifecycleState from,
+  required TripTrackingSessionLifecycleState to,
+  required bool allowed,
+  required String reasonCode,
+}) =>
+    allowed &&
+    _safeTransitionReason(reasonCode) == 'gps_session_transition_allowed' &&
+    TripTrackingSessionStateMachine.canTransition(from, to);
+
+bool _safeRequiresTransitionReview({
+  required TripTrackingSessionLifecycleState from,
+  required TripTrackingSessionLifecycleState to,
+  required bool allowed,
+  required String reasonCode,
+  required bool requiresUserReview,
+}) {
+  if (_safeTransitionAllowed(
+    from: from,
+    to: to,
+    allowed: allowed,
+    reasonCode: reasonCode,
+  )) {
+    return requiresUserReview ||
+        to == TripTrackingSessionLifecycleState.awaitingReview;
+  }
+  return true;
 }
