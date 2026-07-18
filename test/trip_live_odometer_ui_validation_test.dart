@@ -57,6 +57,12 @@ void main() {
       safeBroadcastMap()['externalMileageCannotBecomeGlobalTruth'],
       isTrue,
     );
+    expect(safeBroadcastMap()['displayProjectionIsNotOfficialMileage'], isTrue);
+    expect(safeBroadcastMap()['liveProjectionCanSetGlobalTruth'], isFalse);
+    expect(
+      safeBroadcastMap()['liveProjectionCanConfirmOfficialMileage'],
+      isFalse,
+    );
   });
 
   test('render map validates across subscribed dashboard surfaces', () {
@@ -78,6 +84,9 @@ void main() {
       isTrue,
     );
     expect(safeRenderMap()['externalMileageCannotBecomeGlobalTruth'], isTrue);
+    expect(safeRenderMap()['displayProjectionIsNotOfficialMileage'], isTrue);
+    expect(safeRenderMap()['liveProjectionCanSetGlobalTruth'], isFalse);
+    expect(safeRenderMap()['liveProjectionCanConfirmOfficialMileage'], isFalse);
   });
 
   test('remote authority and odometer replacement claims fail closed', () {
@@ -97,6 +106,9 @@ void main() {
         'gpsDistanceCanOnlyAdviseMileageReview': false,
         'mapMatchingCanOnlyAdviseMileageReview': false,
         'optimizationCannotChangeOfficialMileage': false,
+        'displayProjectionIsNotOfficialMileage': false,
+        'liveProjectionCanSetGlobalTruth': true,
+        'liveProjectionCanConfirmOfficialMileage': true,
         'authenticationDoesNotGrantDisplayAuthority': false,
         'matchingActiveTripRequired': false,
       }),
@@ -107,6 +119,7 @@ void main() {
       validation.reasons,
       containsAll([
         'payload_can_replace_odometer',
+        'live_projection_claims_global_truth',
         'remote_display_can_override_local_trip',
         'authentication_treated_as_display_authority',
         'matching_active_trip_not_required',
@@ -138,6 +151,9 @@ void main() {
           'gpsDistanceCanOnlyAdviseMileageReview': false,
           'mapMatchingCanOnlyAdviseMileageReview': false,
           'optimizationCannotChangeOfficialMileage': false,
+          'displayProjectionIsNotOfficialMileage': false,
+          'liveProjectionCanSetGlobalTruth': true,
+          'liveProjectionCanConfirmOfficialMileage': true,
         }),
       );
 
@@ -238,6 +254,8 @@ void main() {
         'projectionRevisionMustIncrease': false,
         'sameOrOlderProjectionRevisionCanNotify': true,
         'mapboxCanIncreaseLiveMileage': true,
+        'liveProjectionCanSetGlobalTruth': true,
+        'liveProjectionCanConfirmOfficialMileage': true,
         'calibrationCanDecreaseLiveProjection': true,
       }),
     );

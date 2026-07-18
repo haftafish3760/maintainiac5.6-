@@ -89,6 +89,9 @@ class TripLiveOdometerRenderDecision {
       'gpsDistanceCanOnlyAdviseMileageReview': true,
       'mapMatchingCanOnlyAdviseMileageReview': true,
       'optimizationCannotChangeOfficialMileage': true,
+      'displayProjectionIsNotOfficialMileage': true,
+      'liveProjectionCanSetGlobalTruth': false,
+      'liveProjectionCanConfirmOfficialMileage': false,
       'manualConfirmationRequired':
           status != TripLiveOdometerRenderStatus.confirmedOnly,
       'writesConfirmedOdometer': false,
@@ -198,6 +201,9 @@ class TripLiveOdometerRenderSummaryValidation {
       'gpsDistanceCanOnlyAdviseMileageReview',
       'mapMatchingCanOnlyAdviseMileageReview',
       'optimizationCannotChangeOfficialMileage',
+      'displayProjectionIsNotOfficialMileage',
+      'liveProjectionCanSetGlobalTruth',
+      'liveProjectionCanConfirmOfficialMileage',
       'manualConfirmationRequired',
       'writesConfirmedOdometer',
       'gpsCanReplaceOdometer',
@@ -263,6 +269,9 @@ class TripLiveOdometerRenderSummaryValidation {
         summary['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
         summary['mapMatchingCanOnlyAdviseMileageReview'] != true ||
         summary['optimizationCannotChangeOfficialMileage'] != true ||
+        summary['displayProjectionIsNotOfficialMileage'] != true ||
+        summary['liveProjectionCanSetGlobalTruth'] != false ||
+        summary['liveProjectionCanConfirmOfficialMileage'] != false ||
         summary['calendarCanRewriteConfirmedTruth'] != false ||
         summary['calibrationCanCommitWithoutReview'] != false ||
         summary['calibrationCanDecreaseLiveProjection'] != false ||

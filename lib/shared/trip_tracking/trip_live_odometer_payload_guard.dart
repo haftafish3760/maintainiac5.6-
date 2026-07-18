@@ -25,6 +25,9 @@ class TripLiveOdometerPayloadGuardDecision {
     'canRenderAdvisoryLiveOdometer': canRenderAdvisoryLiveOdometer,
     'liveUiMayRefresh': canRenderAdvisoryLiveOdometer,
     'liveUiMayCommitMileage': false,
+    'displayProjectionIsNotOfficialMileage': true,
+    'liveProjectionCanSetGlobalTruth': false,
+    'liveProjectionCanConfirmOfficialMileage': false,
     'confirmedOdometerRemainsCanonical': true,
     'odometerIsGlobalTruth': true,
     'physicalOdometerRequiredForOfficialMileage': true,
@@ -94,6 +97,9 @@ class TripLiveOdometerPayloadGuard {
         payload['gpsCanReplaceOdometer'] != false ||
         payload['mapboxCanReplaceOdometer'] != false ||
         payload['mapboxCanIncreaseLiveMileage'] == true ||
+        payload['displayProjectionIsNotOfficialMileage'] != true ||
+        payload['liveProjectionCanSetGlobalTruth'] == true ||
+        payload['liveProjectionCanConfirmOfficialMileage'] == true ||
         payload['staleProjectionCanCommitMileage'] != false ||
         payload['staleProjectionCanNotifyAsFresh'] == true ||
         payload['remoteProjectionCanReviveEndedTrip'] == true ||

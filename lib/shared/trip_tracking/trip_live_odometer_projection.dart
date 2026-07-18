@@ -38,6 +38,9 @@ class TripLiveOdometerProjection {
     'contractorDashboardUsesLiveProjection': true,
     'crossDashboardLiveOdometerReady': true,
     'displayCanUpdateBeforeReview': true,
+    'displayProjectionIsNotOfficialMileage': true,
+    'liveProjectionCanSetGlobalTruth': false,
+    'liveProjectionCanConfirmOfficialMileage': false,
     'displayOnlyMileageSource': 'gps_assisted_projection',
     'externalDistanceValidatedBeforeProjection': true,
     'projectionTrustedAfterValidationOnly': true,
@@ -189,6 +192,11 @@ class TripLiveOdometerDashboardPayloadValidation {
         payload['mapMatchingCanOnlyAdviseMileageReview'] != true ||
         payload['optimizationCannotChangeOfficialMileage'] != true) {
       reasons.add('confirmed_odometer_not_marked_canonical');
+    }
+    if (payload['displayProjectionIsNotOfficialMileage'] != true ||
+        payload['liveProjectionCanSetGlobalTruth'] != false ||
+        payload['liveProjectionCanConfirmOfficialMileage'] != false) {
+      reasons.add('live_projection_claims_global_truth');
     }
     if (payload['manualConfirmationRequired'] != true) {
       reasons.add('manual_confirmation_not_required');

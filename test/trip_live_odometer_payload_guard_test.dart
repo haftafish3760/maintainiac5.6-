@@ -32,6 +32,9 @@ void main() {
     expect(guard['canRenderAdvisoryLiveOdometer'], isTrue);
     expect(guard['liveUiMayRefresh'], isTrue);
     expect(guard['liveUiMayCommitMileage'], isFalse);
+    expect(guard['displayProjectionIsNotOfficialMileage'], isTrue);
+    expect(guard['liveProjectionCanSetGlobalTruth'], isFalse);
+    expect(guard['liveProjectionCanConfirmOfficialMileage'], isFalse);
     expect(guard['manualConfirmationRequiredBeforeOfficialMileage'], isTrue);
     expect(guard['odometerIsGlobalTruth'], isTrue);
     expect(guard['physicalOdometerRequiredForOfficialMileage'], isTrue);
@@ -71,6 +74,8 @@ void main() {
         payload: {
           ...clean,
           'writesConfirmedOdometer': true,
+          'liveProjectionCanSetGlobalTruth': true,
+          'liveProjectionCanConfirmOfficialMileage': true,
           'remoteProjectionCanReviveEndedTrip': true,
           'staleProjectionCanNotifyAsFresh': true,
           'calibrationCanCommitWithoutReview': true,
@@ -176,6 +181,8 @@ void main() {
           expectedTripId: 'trip_live',
         ).toSafeDashboardMap()..addAll({
           'writesConfirmedOdometer': true,
+          'liveProjectionCanSetGlobalTruth': true,
+          'liveProjectionCanConfirmOfficialMileage': true,
           'payloadGuard': const TripLiveOdometerPayloadGuardDecision(
             status: TripLiveOdometerPayloadGuardStatus.passed,
             reasonCodes: ['live_odometer_payload_guard_passed'],
@@ -186,6 +193,7 @@ void main() {
 
     expect(validation.isRenderable, isFalse);
     expect(validation.reasons, contains('payload_can_replace_odometer'));
+    expect(validation.reasons, contains('live_projection_claims_global_truth'));
     expect(
       validation.reasons,
       contains('payload_guard_rejected_live_odometer'),

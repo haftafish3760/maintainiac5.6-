@@ -4,6 +4,7 @@ import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
 import 'package:maintaniac/shared/odometer/odometer_validation.dart';
 import 'package:maintaniac/shared/odometer/odometer_vehicle_snapshot.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_live_odometer_projection.dart';
 
 void main() {
   test('rejects empty and non-numeric odometer input', () {
@@ -833,6 +834,31 @@ void main() {
       expect(controller.liveTripUpdatedAt, isNull);
     },
   );
+
+  test('live projection payload cannot claim global odometer truth', () {
+    final projection = TripLiveOdometerProjection(startingOdometer: 1000)
+      ..updateAcceptedMeters(1609.344 * 4);
+    final safe = projection.toSafeDashboardMap();
+    final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
+      safe,
+    );
+    final forged = TripLiveOdometerDashboardPayloadValidation.fromPayload({
+      ...safe,
+      'displayProjectionIsNotOfficialMileage': false,
+      'liveProjectionCanSetGlobalTruth': true,
+      'liveProjectionCanConfirmOfficialMileage': true,
+    });
+
+    expect(validation.isRenderable, isTrue);
+    expect(safe['projectedReading'], 1004);
+    expect(safe['displayProjectionIsNotOfficialMileage'], isTrue);
+    expect(safe['liveProjectionCanSetGlobalTruth'], isFalse);
+    expect(safe['liveProjectionCanConfirmOfficialMileage'], isFalse);
+    expect(safe['writesConfirmedOdometer'], isFalse);
+    expect(safe['odometerIsGlobalTruth'], isTrue);
+    expect(forged.isRenderable, isFalse);
+    expect(forged.reasons, contains('live_projection_claims_global_truth'));
+  });
 
   test('live GPS trip projection rejects unsafe trip ids', () {
     final controller = GlobalOdometerController(initialReading: 1000);

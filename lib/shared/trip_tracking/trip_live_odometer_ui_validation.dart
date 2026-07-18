@@ -147,9 +147,16 @@ List<String> _validateSharedPayload(
       payload['optimizationCannotChangeOfficialMileage'] != true) {
     reasons.add('confirmed_odometer_not_canonical');
   }
+  if (payload['displayProjectionIsNotOfficialMileage'] != true ||
+      payload['liveProjectionCanSetGlobalTruth'] != false ||
+      payload['liveProjectionCanConfirmOfficialMileage'] != false) {
+    reasons.add('live_projection_claims_global_truth');
+  }
   if (payload['writesConfirmedOdometer'] != false ||
       payload['gpsCanReplaceOdometer'] != false ||
       payload['mapboxCanReplaceOdometer'] != false ||
+      payload['liveProjectionCanSetGlobalTruth'] == true ||
+      payload['liveProjectionCanConfirmOfficialMileage'] == true ||
       payload['mapboxCanIncreaseLiveMileage'] == true ||
       payload['calibrationCanCommitWithoutReview'] == true ||
       payload['calibrationCanDecreaseLiveProjection'] == true) {
@@ -201,6 +208,9 @@ List<String> _validateSharedPayload(
         payloadGuard['gpsDistanceCanOnlyAdviseMileageReview'] != true ||
         payloadGuard['mapMatchingCanOnlyAdviseMileageReview'] != true ||
         payloadGuard['optimizationCannotChangeOfficialMileage'] != true ||
+        payloadGuard['displayProjectionIsNotOfficialMileage'] != true ||
+        payloadGuard['liveProjectionCanSetGlobalTruth'] != false ||
+        payloadGuard['liveProjectionCanConfirmOfficialMileage'] != false ||
         payloadGuard['remotePayloadCanConfirmOdometer'] != false ||
         payloadGuard['remotePayloadCanAdvanceProjectionRevision'] == true ||
         payloadGuard['mapboxCanRenderWithoutLocalTrip'] != false ||
