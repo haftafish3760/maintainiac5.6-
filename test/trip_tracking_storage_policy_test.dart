@@ -80,6 +80,18 @@ void main() {
       decision.toSafeSummary(),
       containsPair('remoteStorageStateCanBlockLocalTripLog', false),
     );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('storageStateCanSetGlobalTruth', false),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('storageStateCanConfirmOfficialMileage', false),
+    );
+    expect(
+      decision.toSafeSummary(),
+      containsPair('storageStateCanChangeOfficialMileage', false),
+    );
   });
 
   test(
@@ -255,6 +267,9 @@ void main() {
     expect(decision.cleanupSuggested, isFalse);
     expect(decision.userCanReviewCleanup, isFalse);
     expect(summary['remoteMirrorCanReplaceLocalTruth'], isFalse);
+    expect(summary['storageStateCanSetGlobalTruth'], isFalse);
+    expect(summary['storageStateCanConfirmOfficialMileage'], isFalse);
+    expect(summary['storageStateCanChangeOfficialMileage'], isFalse);
     expect(summary['hiveRemainsOperationalSourceOfTruth'], isTrue);
     expect(summary['firestoreMirrorOnly'], isTrue);
     expect(summary['durableStorageIsSharedAcrossModules'], isTrue);

@@ -76,6 +76,9 @@ void main() {
     expect(summary['hiveRemainsSourceOfTruth'], isTrue);
     expect(summary['remoteDataCanOverrideLocalTripLog'], isFalse);
     expect(summary['remoteTotalsCanBecomeCanonical'], isFalse);
+    expect(summary['backupScopeCanSetGlobalTruth'], isFalse);
+    expect(summary['backupScopeCanConfirmOfficialMileage'], isFalse);
+    expect(summary['backupScopeCanChangeOfficialMileage'], isFalse);
     expect(summary['cloudMirrorCanDeleteLocalTripLog'], isFalse);
     expect(summary['queuedWriteCanContainRawGps'], isFalse);
     expect(summary['queuedWriteCanContainMapboxGeometry'], isFalse);

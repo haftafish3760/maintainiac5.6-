@@ -142,6 +142,8 @@ class TripTrackingFreeSyncUsage {
       'failedMirrorWriteRequiresRetryNotQuotaRefund': true,
       'syncReservationCannotCreateStops': true,
       'syncReservationCannotConfirmMileage': true,
+      'syncReservationCannotSetGlobalTruth': true,
+      'syncReservationCannotChangeOfficialMileage': true,
       'syncReservationCannotPurgeLocalQueue': true,
       'syncReservationCannotUploadRawGpsPings': true,
       'remoteQuotaResetCanOverrideLocalWindow': false,
@@ -202,6 +204,8 @@ class TripTrackingFreeSyncUsageSummaryValidation {
         summary['failedMirrorWriteRequiresRetryNotQuotaRefund'] != true ||
         summary['syncReservationCannotCreateStops'] != true ||
         summary['syncReservationCannotConfirmMileage'] != true ||
+        summary['syncReservationCannotSetGlobalTruth'] != true ||
+        summary['syncReservationCannotChangeOfficialMileage'] != true ||
         summary['syncReservationCannotPurgeLocalQueue'] != true ||
         summary['syncReservationCannotUploadRawGpsPings'] != true) {
       reasons.add('reservation_boundary_missing');
@@ -224,6 +228,10 @@ class TripTrackingFreeSyncUsageSummaryValidation {
         summary['firestoreMirrorOnly'] != true) {
       reasons.add('source_of_truth_boundary_missing');
     }
+    final truthValidation = TripTrackingOdometerTruthPolicy.validateSummary(
+      summary,
+    );
+    reasons.addAll(truthValidation.reasons);
     if (summary['tokensIncluded'] != false ||
         summary['preciseLocationIncluded'] != false ||
         summary['rawTripPayloadIncluded'] != false ||

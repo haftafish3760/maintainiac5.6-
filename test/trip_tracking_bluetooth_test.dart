@@ -98,6 +98,9 @@ void main() {
     expect(safe['safeReason'], 'bluetooth_vehicle_auto_switch_allowed');
     expect(safe['canSwitchVehicle'], isTrue);
     expect(safe['requiresUserConfirmation'], isFalse);
+    expect(safe['bluetoothDecisionCanSetGlobalTruth'], isFalse);
+    expect(safe['bluetoothDecisionCanConfirmOfficialMileage'], isFalse);
+    expect(safe['bluetoothDecisionCanChangeOfficialMileage'], isFalse);
     expect(safe['deviceIdIncluded'], isFalse);
     expect(safe['rawBluetoothPayloadIncluded'], isFalse);
     expect(safe['odometerIsGlobalTruth'], isTrue);
@@ -185,6 +188,9 @@ void main() {
     expect(safe['hasDeviceLink'], isTrue);
     expect(safe['vehicleId'], map['vehicleId']);
     expect(safe['hasDisplayName'], isTrue);
+    expect(safe['bluetoothLinkCanSetGlobalTruth'], isFalse);
+    expect(safe['bluetoothLinkCanConfirmOfficialMileage'], isFalse);
+    expect(safe['bluetoothLinkCanChangeOfficialMileage'], isFalse);
     expect(safe['deviceIdIncluded'], isFalse);
     expect(safe['rawBluetoothPayloadIncluded'], isFalse);
     expect(safe['odometerIsGlobalTruth'], isTrue);

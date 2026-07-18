@@ -38,6 +38,9 @@ class TripTrackingBluetoothVehicleLink {
     'hasDeviceLink': isValid,
     'vehicleId': _safeId(vehicleId),
     'hasDisplayName': _safeDisplayName(displayName).isNotEmpty,
+    'bluetoothLinkCanSetGlobalTruth': false,
+    'bluetoothLinkCanConfirmOfficialMileage': false,
+    'bluetoothLinkCanChangeOfficialMileage': false,
     'deviceIdIncluded': false,
     'rawBluetoothPayloadIncluded': false,
   };
@@ -175,6 +178,9 @@ class BluetoothVehicleMatchDecision {
     'safeReason': safeReason,
     'canSwitchVehicle': canSwitchVehicle,
     'requiresUserConfirmation': requiresUserConfirmation,
+    'bluetoothDecisionCanSetGlobalTruth': false,
+    'bluetoothDecisionCanConfirmOfficialMileage': false,
+    'bluetoothDecisionCanChangeOfficialMileage': false,
     'deviceIdIncluded': false,
     'rawBluetoothPayloadIncluded': false,
   };

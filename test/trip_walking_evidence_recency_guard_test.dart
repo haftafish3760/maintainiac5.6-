@@ -31,6 +31,9 @@ void main() {
     expect(decision.usable, isTrue);
     expect(decision.walkingEvidenceCount, 4);
     expect(decision.reasonCode, 'walking_evidence_current');
+    expect(safe['walkingEvidenceCanSetGlobalTruth'], isFalse);
+    expect(safe['walkingEvidenceCanConfirmOfficialMileage'], isFalse);
+    expect(safe['walkingEvidenceCanChangeOfficialMileage'], isFalse);
     expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(safe['firestoreCanRefreshWalkingEvidence'], isFalse);
     expect(safe['cloudFunctionCanRefreshWalkingEvidence'], isFalse);

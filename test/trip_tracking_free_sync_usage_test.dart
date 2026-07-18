@@ -452,6 +452,8 @@ void main() {
     expect(summary['failedMirrorWriteRequiresRetryNotQuotaRefund'], isTrue);
     expect(summary['syncReservationCannotCreateStops'], isTrue);
     expect(summary['syncReservationCannotConfirmMileage'], isTrue);
+    expect(summary['syncReservationCannotSetGlobalTruth'], isTrue);
+    expect(summary['syncReservationCannotChangeOfficialMileage'], isTrue);
     expect(summary['syncReservationCannotPurgeLocalQueue'], isTrue);
     expect(summary['syncReservationCannotUploadRawGpsPings'], isTrue);
 
@@ -460,6 +462,8 @@ void main() {
         'reservationRequiresFreshLocalPreflight': false,
         'syncReservationCannotCreateStops': false,
         'syncReservationCannotConfirmMileage': false,
+        'syncReservationCannotSetGlobalTruth': false,
+        'syncReservationCannotChangeOfficialMileage': false,
       }),
     );
 
@@ -496,6 +500,8 @@ void main() {
         'remoteQuotaResetCanOverrideLocalWindow': true,
         'cloudFunctionCanGrantExtraFreeSyncs': true,
         'firestoreCounterCanConsumeFreeSync': true,
+        'mapboxCanSetGlobalTruth': true,
+        'globalTruthSource': 'remote_quota_counter',
         'freeSyncLimitIsLocalRollingWindow': false,
         'freeSyncLimitCannotBeRaisedRemotely': false,
         'syncUsageCannotBeResetByFirestore': false,
@@ -524,6 +530,11 @@ void main() {
     expect(validation.reasons, contains('reservation_boundary_missing'));
     expect(validation.reasons, contains('quota_scope_boundary_missing'));
     expect(validation.reasons, contains('source_of_truth_boundary_missing'));
+    expect(
+      validation.reasons,
+      contains('missing_or_invalid_mapboxCanSetGlobalTruth'),
+    );
+    expect(validation.reasons, contains('invalid_global_truth_source'));
     expect(
       validation.reasons,
       contains('summary_contains_sensitive_quota_material'),
