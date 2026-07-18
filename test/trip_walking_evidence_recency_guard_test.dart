@@ -89,4 +89,41 @@ void main() {
     expect(decision.reasonCode, 'undated_walking_evidence_rejected');
     expect(decision.walkingEvidenceCount, 0);
   });
+
+  test('negative walking spans are sanitized before safe summaries', () {
+    final decision = evaluate(
+      walkingEvidenceCount: 5,
+      walkingEvidenceSpan: const Duration(seconds: -30),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.usable, isTrue);
+    expect(decision.walkingEvidenceSpan, Duration.zero);
+    expect(safe['negativeWalkingSpanSanitized'], isTrue);
+    expect(safe['malformedWalkingEvidenceFailsClosed'], isTrue);
+    expect(safe['remoteWalkingEvidenceCanOverrideLocalTrip'], isFalse);
+  });
+
+  test(
+    'safe summary identifies undated evidence rejection without raw sensors',
+    () {
+      final decision = TripWalkingEvidenceRecencyGuard.evaluate(
+        strategy: TripTrackingProfileStrategy.forProfile(
+          TripTrackingProfile.deliveryVehicle,
+        ),
+        walkingEvidenceCount: 3,
+        walkingEvidenceSpan: const Duration(seconds: 30),
+        observedAt: null,
+        latestWalkingEvidenceAt: observedAt,
+      );
+      final safe = decision.toSafeDashboardMap();
+
+      expect(decision.rejected, isTrue);
+      expect(decision.reasonCode, 'undated_walking_evidence_rejected');
+      expect(safe['undatedEvidenceRejected'], isTrue);
+      expect(safe['rawSensorPayloadIncluded'], isFalse);
+      expect(safe['coordinatesIncluded'], isFalse);
+      expect(safe['tokensIncluded'], isFalse);
+    },
+  );
 }

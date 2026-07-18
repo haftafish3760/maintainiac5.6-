@@ -29,6 +29,10 @@ class TripWalkingEvidenceRecencyDecision {
     'maximumEvidenceAgeSeconds': maximumEvidenceAge.inSeconds,
     'futureEvidenceRejected': reasonCode == 'future_walking_evidence_rejected',
     'staleEvidenceRejected': reasonCode == 'stale_walking_evidence_rejected',
+    'undatedEvidenceRejected':
+        reasonCode == 'undated_walking_evidence_rejected',
+    'malformedWalkingEvidenceFailsClosed': true,
+    'negativeWalkingSpanSanitized': true,
     'walkingEvidenceCanOnlySuggestReview': true,
     'activityRecognitionCanCreateOfficialStop': false,
     'mapboxCanRefreshWalkingEvidence': false,

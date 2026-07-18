@@ -318,6 +318,32 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
   });
 
+  test('malformed observation fails closed without opening review', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: observation(
+        stationaryDuration: const Duration(seconds: -5),
+        walkingEvidenceSpan: const Duration(seconds: -2),
+        walkingEvidenceCount: 500000,
+        acceptedDistanceCount: 500000,
+        rejectedUnsafeCount: 500000,
+        speedMps: double.infinity,
+        horizontalAccuracyMeters: -1,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+    final evidenceDigest = safe['evidenceDigest'] as Map<String, Object?>;
+
+    expect(decision.status, TripStopDebounceStatus.unsafeEvidence);
+    expect(decision.canOpenReview, isFalse);
+    expect(decision.needsWalkingReview, isFalse);
+    expect(decision.classification.signal, TripStopSignal.unsafeEvidence);
+    expect(safe['malformedStopDebounceObservationFailsClosed'], isTrue);
+    expect(safe['remoteDebounceCanOpenReview'], isFalse);
+    expect(safe['remoteDebounceCanEndTrip'], isFalse);
+    expect(evidenceDigest['providerValuesUsable'], isFalse);
+  });
+
   test('equipment profile ignores walking-style stops', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.lowSpeedEquipment,
@@ -346,8 +372,11 @@ void main() {
     expect(safe['firestoreCanCreateStop'], isFalse);
     expect(safe['cloudFunctionCanCreateStop'], isFalse);
     expect(safe['remoteDebounceCanOverrideLocalTrip'], isFalse);
+    expect(safe['remoteDebounceCanOpenReview'], isFalse);
+    expect(safe['remoteDebounceCanEndTrip'], isFalse);
     expect(safe['activityRecognitionCanCreateOfficialStop'], isFalse);
     expect(safe['stopReviewRequiredForOfficialStop'], isTrue);
+    expect(safe['stopReviewCannotCommitWithoutUserAction'], isTrue);
     expect(safe['vehicleOnlyDwellCanOnlySuggestManualFallback'], isTrue);
   });
 
