@@ -1525,7 +1525,7 @@ void main() {
   });
 
   test(
-    'backup withdrawal ignores unsafe legacy org paths without keeping cloud eligibility',
+    'unsafe legacy org scope cannot be saved as cloud-eligible mileage',
     () async {
       final localStore = TripTrackingSessionStore.memory();
       final legacyReview = review().copyWith(
@@ -1534,28 +1534,12 @@ void main() {
         cloudOrganizationId: ' /// ',
         cloudSyncState: TripTrackingCloudSyncState.queued,
       );
-      await localStore.saveReview(legacyReview);
-      final queue = await MaintainiacFirestoreUploadQueueStore.create();
-      final mirror = TripTrackingFirebaseMirror(
-        queueStore: queue,
-        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
-          queue: queue,
-          sink: _RecordingSink(),
-          uploadEnabled: true,
-        ),
-        localStore: localStore,
-        orgId: 'org-1',
-        createdByUid: 'firebaseUid-1',
-      );
 
-      await mirror.withdrawBackupConsent();
-
-      expect(queue.pendingRecords, isEmpty);
-      expect(
-        localStore.reviewForTrip('trip 1')?.cloudSyncState,
-        TripTrackingCloudSyncState.localOnly,
+      await expectLater(
+        localStore.saveReview(legacyReview),
+        throwsArgumentError,
       );
-      expect(localStore.reviewForTrip('trip 1')?.cloudSyncError, isNull);
+      expect(localStore.reviewForTrip('trip 1'), isNull);
     },
   );
 

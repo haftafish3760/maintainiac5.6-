@@ -50,6 +50,27 @@ void main() {
     );
   });
 
+  test('backup scope summaries do not grant employer tracking authority', () {
+    final decision = TripTrackingBackupScopePolicy.bindForQueue(
+      review: _review(),
+      createdByUid: 'firebaseUid-1',
+      personalBackup: false,
+      organizationSharingEnabled: true,
+      orgId: 'org_1',
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['authorizationRequired'], isTrue);
+    expect(summary['authenticationImpliesAuthorization'], isFalse);
+    expect(summary['employeeTrackingRequiresMutualConsent'], isTrue);
+    expect(summary['locationSharingRequiresActiveOptIn'], isTrue);
+    expect(summary['employerGodModeAllowed'], isFalse);
+    expect(summary['preciseLocationIncluded'], isFalse);
+    expect(summary['accountIdIncluded'], isFalse);
+    expect(summary['organizationIdIncluded'], isFalse);
+    expect(summary['rawReviewIncluded'], isFalse);
+  });
+
   test('already-bound reviews cannot be adopted by another account or org', () {
     final accountMismatch = TripTrackingBackupScopePolicy.bindForQueue(
       review: _review().copyWith(cloudAccountUid: 'original_uid'),

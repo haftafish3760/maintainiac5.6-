@@ -47,6 +47,8 @@ class TripTrackingBackupScopeDecision {
       'authorizationRequired': true,
       'authenticationImpliesAuthorization': false,
       'employeeTrackingRequiresMutualConsent': true,
+      'locationSharingRequiresActiveOptIn': true,
+      'employerGodModeAllowed': false,
       'preciseLocationIncluded': false,
       'accountIdIncluded': false,
       'organizationIdIncluded': false,
