@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_gps_dependability_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_signal_quality_action_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 
 void main() {
@@ -104,6 +106,75 @@ void main() {
     expect(safe['coordinatesIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
   });
+
+  test('dependability gate can pause action before raw signal fallback', () {
+    final decision = TripSignalQualityActionPolicy.evaluate(
+      signal: signal(TripTrackingSignalQuality.healthy),
+      activeTripHasLocalCheckpoint: true,
+      userCanReviewNow: true,
+      dependability: dependability(
+        status: TripGpsDependabilityStatus.unsafeBlocked,
+        reasonCode: 'gps_dependability_unsafe_evidence',
+        signalQuality: TripTrackingSignalQuality.unsafe,
+        shouldContinueSampling: true,
+        requiresUserReview: true,
+      ),
+    );
+    final safe = decision.toSafeDashboardMap();
+
+    expect(decision.action, TripSignalQualityAction.pauseGpsUntilReview);
+    expect(decision.reasonCode, 'dependability_unsafe_paused_until_review');
+    expect(decision.canContinueGps, isFalse);
+    expect(decision.shouldOpenReview, isTrue);
+    expect(safe['signalActionCanConfirmMileage'], isFalse);
+    expect(safe['signalActionCanCreateOfficialStop'], isFalse);
+  });
+
+  test('projection-paused dependability preserves sampling when safe', () {
+    final decision = TripSignalQualityActionPolicy.evaluate(
+      signal: signal(TripTrackingSignalQuality.healthy),
+      activeTripHasLocalCheckpoint: true,
+      userCanReviewNow: false,
+      dependability: dependability(
+        status: TripGpsDependabilityStatus.projectionPaused,
+        reasonCode: 'gps_poor_signal_pauses_projection',
+        signalQuality: TripTrackingSignalQuality.poor,
+        shouldContinueSampling: true,
+        requiresUserReview: true,
+      ),
+    );
+
+    expect(decision.action, TripSignalQualityAction.promptSignalReview);
+    expect(
+      decision.reasonCode,
+      'dependability_projection_paused_continue_sampling',
+    );
+    expect(decision.canContinueGps, isTrue);
+    expect(decision.shouldShowBanner, isTrue);
+    expect(decision.shouldOpenReview, isFalse);
+  });
+}
+
+TripGpsDependabilityDecision dependability({
+  required TripGpsDependabilityStatus status,
+  required String reasonCode,
+  required TripTrackingSignalQuality signalQuality,
+  required bool shouldContinueSampling,
+  required bool requiresUserReview,
+}) {
+  return TripGpsDependabilityDecision(
+    status: status,
+    reasonCode: reasonCode,
+    profile: TripTrackingProfile.deliveryVehicle,
+    confidence: TripTrackingConfidence.low,
+    signalQuality: signalQuality,
+    canFeedLiveOdometerProjection: false,
+    canPersistCompactRoutePoint: false,
+    canOpenStopReview: false,
+    canContributeToCalibration: false,
+    shouldContinueSampling: shouldContinueSampling,
+    requiresUserReview: requiresUserReview,
+  );
 }
 
 TripTrackingSignalQualitySummary signal(TripTrackingSignalQuality quality) {

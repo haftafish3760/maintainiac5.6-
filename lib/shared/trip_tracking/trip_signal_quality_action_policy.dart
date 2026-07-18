@@ -1,3 +1,4 @@
+import 'trip_gps_dependability_policy.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_signal_quality.dart';
 
@@ -66,7 +67,14 @@ class TripSignalQualityActionPolicy {
     required TripTrackingSignalQualitySummary signal,
     required bool activeTripHasLocalCheckpoint,
     required bool userCanReviewNow,
+    TripGpsDependabilityDecision? dependability,
   }) {
+    final dependabilityDecision = _dependabilityAction(
+      dependability,
+      userCanReviewNow: userCanReviewNow,
+    );
+    if (dependabilityDecision != null) return dependabilityDecision;
+
     return switch (signal.quality) {
       TripTrackingSignalQuality.noSamples => _decision(
         TripSignalQualityAction.waitForSamples,
@@ -113,6 +121,49 @@ class TripSignalQualityActionPolicy {
   }
 }
 
+TripSignalQualityActionDecision? _dependabilityAction(
+  TripGpsDependabilityDecision? dependability, {
+  required bool userCanReviewNow,
+}) {
+  if (dependability == null) return null;
+  return switch (dependability.status) {
+    TripGpsDependabilityStatus.readyForAssist ||
+    TripGpsDependabilityStatus.reviewOnly => null,
+    TripGpsDependabilityStatus.unsafeBlocked => _decision(
+      TripSignalQualityAction.pauseGpsUntilReview,
+      'dependability_unsafe_paused_until_review',
+      TripTrackingHealthState.unavailable,
+      canContinueGps: false,
+      shouldShowBanner: true,
+      shouldOpenReview: userCanReviewNow,
+    ),
+    TripGpsDependabilityStatus.projectionPaused => _decision(
+      dependability.shouldContinueSampling
+          ? TripSignalQualityAction.promptSignalReview
+          : TripSignalQualityAction.pauseGpsUntilReview,
+      dependability.shouldContinueSampling
+          ? 'dependability_projection_paused_continue_sampling'
+          : 'dependability_device_policy_paused',
+      _healthStateFor(dependability.signalQuality),
+      canContinueGps: dependability.shouldContinueSampling,
+      shouldShowBanner: dependability.requiresUserReview,
+      shouldOpenReview: dependability.requiresUserReview && userCanReviewNow,
+    ),
+  };
+}
+
+TripTrackingHealthState _healthStateFor(TripTrackingSignalQuality quality) {
+  return switch (quality) {
+    TripTrackingSignalQuality.noSamples => TripTrackingHealthState.reduced,
+    TripTrackingSignalQuality.healthy => TripTrackingHealthState.healthy,
+    TripTrackingSignalQuality.reduced => TripTrackingHealthState.reduced,
+    TripTrackingSignalQuality.poor => TripTrackingHealthState.poor,
+    TripTrackingSignalQuality.interrupted =>
+      TripTrackingHealthState.interrupted,
+    TripTrackingSignalQuality.unsafe => TripTrackingHealthState.unavailable,
+  };
+}
+
 TripSignalQualityActionDecision _decision(
   TripSignalQualityAction action,
   String reasonCode,
@@ -139,7 +190,10 @@ String _safeReason(String value) {
     'signal_reduced_continue_with_guardrails' ||
     'signal_poor_review_recommended' ||
     'signal_interrupted_recovery_review' ||
-    'unsafe_signal_paused_until_review' => clean,
+    'unsafe_signal_paused_until_review' ||
+    'dependability_projection_paused_continue_sampling' ||
+    'dependability_device_policy_paused' ||
+    'dependability_unsafe_paused_until_review' => clean,
     _ => 'unsafe_signal_paused_until_review',
   };
 }
