@@ -257,6 +257,9 @@ void main() {
     final summary = decision.toSafeSummary();
 
     expect(summary['safeReason'], 'trip_recovery_invalid_session');
+    expect(summary['canRestore'], isFalse);
+    expect(summary['requiresUserAction'], isTrue);
+    expect(summary['manualReviewRequiredBeforeConfirmation'], isTrue);
     expect(summary['cloudMirrorCanDeleteLocalRecovery'], isFalse);
     expect(summary['recoveryNeverDeletesTripData'], isTrue);
     expect(summary['mapboxCanModifyRecoveredOdometer'], isFalse);
@@ -283,10 +286,13 @@ void main() {
     );
 
     expect(negative.toSafeSummary().keys, isNot(contains('estimatedOdometer')));
+    expect(negative.toSafeSummary()['canRestore'], isFalse);
+    expect(negative.toSafeSummary()['requiresUserAction'], isTrue);
     expect(
       overrange.toSafeSummary().keys,
       isNot(contains('estimatedOdometer')),
     );
+    expect(overrange.toSafeSummary()['canRestore'], isFalse);
     expect(
       overrange.toSafeSummary()['estimatedOdometerTrustedAfterValidationOnly'],
       isTrue,
@@ -295,5 +301,23 @@ void main() {
       overrange.toSafeSummary()['invalidEstimatedOdometerCanRestore'],
       isFalse,
     );
+  });
+
+  test('direct recovery summaries cannot forge pending replay readiness', () {
+    const forged = TripTrackingRecoveryDecision(
+      status: TripTrackingRecoveryStatus.ready,
+      safeReason: 'trip_recovery_pending_replay_ready',
+      canRestore: true,
+      requiresUserAction: false,
+      estimatedOdometer: 1001,
+      pendingSampleQueued: true,
+    );
+    final summary = forged.toSafeSummary();
+
+    expect(summary['canRestore'], isFalse);
+    expect(summary['requiresUserAction'], isTrue);
+    expect(summary['pendingSampleQueued'], isFalse);
+    expect(summary['remotePendingSampleCanReplayWithoutValidation'], isFalse);
+    expect(summary['pendingSampleIncluded'], isFalse);
   });
 }

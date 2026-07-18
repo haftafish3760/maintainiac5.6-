@@ -35,9 +35,26 @@ class TripTrackingRecoveryDecision {
     'schemaVersion': 1,
     'status': status.name,
     'safeReason': _safeRecoveryReason(safeReason),
-    'canRestore': canRestore,
-    'requiresUserAction': requiresUserAction,
-    'pendingSampleQueued': pendingSampleQueued,
+    'canRestore': _safeCanRestore(
+      status: status,
+      reason: safeReason,
+      canRestore: canRestore,
+      estimatedOdometer: estimatedOdometer,
+    ),
+    'requiresUserAction': _safeRequiresUserAction(
+      status: status,
+      reason: safeReason,
+      requiresUserAction: requiresUserAction,
+      canRestore: canRestore,
+      estimatedOdometer: estimatedOdometer,
+    ),
+    'pendingSampleQueued': _safePendingSampleQueued(
+      status: status,
+      reason: safeReason,
+      pendingSampleQueued: pendingSampleQueued,
+      canRestore: canRestore,
+      estimatedOdometer: estimatedOdometer,
+    ),
     if (_safeEstimatedOdometer(estimatedOdometer) != null)
       'estimatedOdometer': _safeEstimatedOdometer(estimatedOdometer),
     'localRecoveryAuthoritative': true,
@@ -47,7 +64,13 @@ class TripTrackingRecoveryDecision {
     'odometerRemainsCanonical': true,
     'mapboxCanRestoreTrip': false,
     'mapboxCanModifyRecoveredOdometer': false,
-    'manualReviewRequiredBeforeConfirmation': requiresUserAction,
+    'manualReviewRequiredBeforeConfirmation': _safeRequiresUserAction(
+      status: status,
+      reason: safeReason,
+      requiresUserAction: requiresUserAction,
+      canRestore: canRestore,
+      estimatedOdometer: estimatedOdometer,
+    ),
     'requiresSameVehicle': true,
     'requiresSameConfirmedOdometer': true,
     'estimatedOdometerTrustedAfterValidationOnly': true,
@@ -224,4 +247,61 @@ String _safeRecoveryReason(String value) {
 int? _safeEstimatedOdometer(int? value) {
   if (value == null || value < 0 || value > 9999999) return null;
   return value;
+}
+
+bool _safeCanRestore({
+  required TripTrackingRecoveryStatus status,
+  required String reason,
+  required bool canRestore,
+  required int? estimatedOdometer,
+}) {
+  if (!canRestore || _safeEstimatedOdometer(estimatedOdometer) == null) {
+    return false;
+  }
+  return switch ((_safeRecoveryReason(reason), status)) {
+    ('trip_recovery_ready', TripTrackingRecoveryStatus.ready) => true,
+    (
+      'trip_recovery_pending_replay_ready',
+      TripTrackingRecoveryStatus.pendingReplayReady,
+    ) =>
+      true,
+    _ => false,
+  };
+}
+
+bool _safeRequiresUserAction({
+  required TripTrackingRecoveryStatus status,
+  required String reason,
+  required bool requiresUserAction,
+  required bool canRestore,
+  required int? estimatedOdometer,
+}) {
+  if (_safeCanRestore(
+    status: status,
+    reason: reason,
+    canRestore: canRestore,
+    estimatedOdometer: estimatedOdometer,
+  )) {
+    return false;
+  }
+  return status != TripTrackingRecoveryStatus.noRecoverableTrip ||
+      _safeRecoveryReason(reason) == 'trip_recovery_invalid_session' ||
+      requiresUserAction;
+}
+
+bool _safePendingSampleQueued({
+  required TripTrackingRecoveryStatus status,
+  required String reason,
+  required bool pendingSampleQueued,
+  required bool canRestore,
+  required int? estimatedOdometer,
+}) {
+  return pendingSampleQueued &&
+      _safeCanRestore(
+        status: status,
+        reason: reason,
+        canRestore: canRestore,
+        estimatedOdometer: estimatedOdometer,
+      ) &&
+      _safeRecoveryReason(reason) == 'trip_recovery_pending_replay_ready';
 }
