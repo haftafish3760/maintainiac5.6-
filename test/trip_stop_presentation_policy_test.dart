@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_presentation_policy.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_stop_presentation_summary_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 void main() {
@@ -189,6 +190,40 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
     expect(safe.toString(), isNot(contains('pk.')));
     expect(safe.toString(), isNot(contains('sk.')));
+    expect(
+      TripStopPresentationSummaryValidation.fromSummary(safe).isRenderable,
+      isTrue,
+    );
+  });
+
+  test('presentation summary rejects forged review and remote authority', () {
+    final safe = TripStopPresentationPolicy.evaluate(
+      context(activeTripInProgress: false, localSessionAvailable: false),
+    ).toSafeDashboardMap();
+    final validation = TripStopPresentationSummaryValidation.fromSummary({
+      ...safe,
+      'surface': TripStopPresentationSurface.none.name,
+      'canShowReviewPrompt': true,
+      'requiresUserReview': true,
+      'mapboxCanCreateStop': true,
+      'remoteMirrorCanShowPromptWithoutLocalState': true,
+      'debug': '35.123456,-80.123456 sk.secret',
+    });
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('mapboxCanCreateStop_not_false'));
+    expect(
+      validation.reasons,
+      contains('remoteMirrorCanShowPromptWithoutLocalState_not_false'),
+    );
+    expect(
+      validation.reasons,
+      contains('presentation_review_surface_mismatch'),
+    );
+    expect(
+      validation.reasons,
+      contains('presentation_contains_sensitive_text'),
+    );
   });
 }
 
