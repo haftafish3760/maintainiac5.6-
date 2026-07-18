@@ -219,4 +219,82 @@ void main() {
     expect(summary['localWriteMode'], 'append_only');
     expect(summary['firestoreMirrorOnly'], isTrue);
   });
+
+  test('local trip text records are retained while backup is pending', () {
+    final notWritten = TripTrackingLocalRetentionPolicy.evaluate(
+      localTextRecordWritten: false,
+      remoteBackupConfirmed: true,
+      userApprovedCleanupReview: true,
+    );
+    final pending = TripTrackingLocalRetentionPolicy.evaluate(
+      localTextRecordWritten: true,
+      remoteBackupConfirmed: false,
+      userApprovedCleanupReview: true,
+    );
+
+    expect(notWritten.status, TripTrackingLocalRetentionStatus.backupPending);
+    expect(notWritten.localTextRecordRetained, isFalse);
+    expect(notWritten.canDeleteLocalDataSilently, isFalse);
+    expect(pending.status, TripTrackingLocalRetentionStatus.backupPending);
+    expect(pending.localTextRecordRetained, isTrue);
+    expect(pending.cleanupSuggested, isFalse);
+    expect(pending.toSafeSummary()['backupCanDeleteLocalData'], isFalse);
+    expect(pending.toSafeSummary()['firebaseCanDeleteLocalData'], isFalse);
+  });
+
+  test('confirmed backup keeps local trip records by default', () {
+    final decision = TripTrackingLocalRetentionPolicy.evaluate(
+      localTextRecordWritten: true,
+      remoteBackupConfirmed: true,
+      userApprovedCleanupReview: false,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(decision.status, TripTrackingLocalRetentionStatus.keepLocal);
+    expect(decision.localTextRecordRetained, isTrue);
+    expect(decision.cleanupSuggested, isFalse);
+    expect(decision.userCanReviewCleanup, isFalse);
+    expect(summary['remoteMirrorCanReplaceLocalTruth'], isFalse);
+    expect(summary['hiveRemainsOperationalSourceOfTruth'], isTrue);
+    expect(summary['firestoreMirrorOnly'], isTrue);
+    expect(summary['durableStorageIsSharedAcrossModules'], isTrue);
+  });
+
+  test('cleanup review is explicit and still cannot silently purge', () {
+    final decision = TripTrackingLocalRetentionPolicy.evaluate(
+      localTextRecordWritten: true,
+      remoteBackupConfirmed: true,
+      userApprovedCleanupReview: true,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(
+      decision.status,
+      TripTrackingLocalRetentionStatus.cleanupReviewAvailable,
+    );
+    expect(decision.cleanupSuggested, isTrue);
+    expect(decision.userCanReviewCleanup, isTrue);
+    expect(summary['cleanupRequiresExplicitUserAction'], isTrue);
+    expect(summary['cleanupRequiresConfirmedBackup'], isTrue);
+    expect(summary['canPurgeLocalTripRecordsSilently'], isFalse);
+    expect(summary['mapboxCanDeleteLocalData'], isFalse);
+    expect(summary['tokensIncluded'], isFalse);
+    expect(summary['preciseFilePathIncluded'], isFalse);
+  });
+
+  test('malformed retention summaries fail to keep-local posture', () {
+    const decision = TripTrackingLocalRetentionDecision(
+      status: TripTrackingLocalRetentionStatus.cleanupReviewAvailable,
+      reasonCode: 'delete_all_local_records_token=sk.secret',
+      localTextRecordRetained: true,
+      remoteBackupConfirmed: true,
+      cleanupSuggested: true,
+    );
+    final summary = decision.toSafeSummary();
+
+    expect(summary['reasonCode'], 'remote_backup_not_confirmed');
+    expect(summary['canDeleteLocalDataSilently'], isFalse);
+    expect(summary['backupCanDeleteLocalData'], isFalse);
+    expect(summary.toString(), isNot(contains('sk.secret')));
+  });
 }

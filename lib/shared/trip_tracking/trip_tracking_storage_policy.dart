@@ -2,6 +2,104 @@ import '../storage/app_storage_guard.dart';
 
 enum TripTrackingStorageAction { allow, warn, block, unknown }
 
+enum TripTrackingLocalRetentionStatus {
+  keepLocal,
+  backupPending,
+  cleanupReviewAvailable,
+}
+
+class TripTrackingLocalRetentionDecision {
+  const TripTrackingLocalRetentionDecision({
+    required this.status,
+    required this.reasonCode,
+    required this.localTextRecordRetained,
+    required this.remoteBackupConfirmed,
+    required this.cleanupSuggested,
+  });
+
+  final TripTrackingLocalRetentionStatus status;
+  final String reasonCode;
+  final bool localTextRecordRetained;
+  final bool remoteBackupConfirmed;
+  final bool cleanupSuggested;
+
+  bool get canDeleteLocalDataSilently => false;
+
+  bool get userCanReviewCleanup =>
+      status == TripTrackingLocalRetentionStatus.cleanupReviewAvailable;
+
+  Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'reasonCode': _safeRetentionReason(reasonCode),
+    'localTextRecordRetained': localTextRecordRetained,
+    'remoteBackupConfirmed': remoteBackupConfirmed,
+    'cleanupSuggested': cleanupSuggested,
+    'userCanReviewCleanup': userCanReviewCleanup,
+    'canDeleteLocalDataSilently': false,
+    'canPurgeLocalTripRecordsSilently': false,
+    'backupCanDeleteLocalData': false,
+    'firebaseCanDeleteLocalData': false,
+    'mapboxCanDeleteLocalData': false,
+    'remoteMirrorCanReplaceLocalTruth': false,
+    'hiveRemainsOperationalSourceOfTruth': true,
+    'firestoreMirrorOnly': true,
+    'durableStorageIsSharedAcrossModules': true,
+    'tripTextRecordsAreCheap': true,
+    'receiptPhotosHandledElsewhere': true,
+    'cleanupRequiresExplicitUserAction': true,
+    'cleanupRequiresConfirmedBackup': true,
+    'rawLocationIncluded': false,
+    'preciseFilePathIncluded': false,
+    'tokensIncluded': false,
+  };
+}
+
+class TripTrackingLocalRetentionPolicy {
+  const TripTrackingLocalRetentionPolicy._();
+
+  static TripTrackingLocalRetentionDecision evaluate({
+    required bool localTextRecordWritten,
+    required bool remoteBackupConfirmed,
+    required bool userApprovedCleanupReview,
+  }) {
+    if (!localTextRecordWritten) {
+      return const TripTrackingLocalRetentionDecision(
+        status: TripTrackingLocalRetentionStatus.backupPending,
+        reasonCode: 'local_text_record_not_yet_written',
+        localTextRecordRetained: false,
+        remoteBackupConfirmed: false,
+        cleanupSuggested: false,
+      );
+    }
+    if (!remoteBackupConfirmed) {
+      return const TripTrackingLocalRetentionDecision(
+        status: TripTrackingLocalRetentionStatus.backupPending,
+        reasonCode: 'remote_backup_not_confirmed',
+        localTextRecordRetained: true,
+        remoteBackupConfirmed: false,
+        cleanupSuggested: false,
+      );
+    }
+    if (userApprovedCleanupReview) {
+      return const TripTrackingLocalRetentionDecision(
+        status: TripTrackingLocalRetentionStatus.cleanupReviewAvailable,
+        reasonCode: 'confirmed_backup_user_cleanup_review_available',
+        localTextRecordRetained: true,
+        remoteBackupConfirmed: true,
+        cleanupSuggested: true,
+      );
+    }
+    return const TripTrackingLocalRetentionDecision(
+      status: TripTrackingLocalRetentionStatus.keepLocal,
+      reasonCode: 'confirmed_backup_keep_local_by_default',
+      localTextRecordRetained: true,
+      remoteBackupConfirmed: true,
+      cleanupSuggested: false,
+    );
+  }
+}
+
 class TripTrackingStorageDecision {
   const TripTrackingStorageDecision({
     required this.action,
@@ -150,6 +248,18 @@ String _safeStorageReason(String value) {
     'storage_low_text_records_allowed' => 'storage_low_text_records_allowed',
     'storage_safe_text_records_allowed' => 'storage_safe_text_records_allowed',
     _ => 'storage_unknown_continue_text_records',
+  };
+}
+
+String _safeRetentionReason(String value) {
+  return switch (value.trim()) {
+    'local_text_record_not_yet_written' => 'local_text_record_not_yet_written',
+    'remote_backup_not_confirmed' => 'remote_backup_not_confirmed',
+    'confirmed_backup_keep_local_by_default' =>
+      'confirmed_backup_keep_local_by_default',
+    'confirmed_backup_user_cleanup_review_available' =>
+      'confirmed_backup_user_cleanup_review_available',
+    _ => 'remote_backup_not_confirmed',
   };
 }
 
