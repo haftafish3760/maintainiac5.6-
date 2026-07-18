@@ -71,8 +71,10 @@ class TripLiveOdometerRenderDecision {
       'liveUiMustRefreshOnProjectionChange': true,
       'singleLiveOdometerSnapshotRequired': true,
       'allDashboardSurfacesUseSameSnapshot': true,
+      'allDashboardSurfacesUseSameProjectionRevision': true,
       'surfaceSpecificMileageCalculationAllowed': false,
       'activeVehicleBlockUsesLiveProjection': true,
+      'activeVehicleBlockMustNotCacheProjection': true,
       'vehicleProfileUsesLiveProjection': true,
       'contractorDashboardUsesLiveProjection': true,
       'fleetDashboardUsesLiveProjection': true,
@@ -85,12 +87,15 @@ class TripLiveOdometerRenderDecision {
       'writesConfirmedOdometer': false,
       'gpsCanReplaceOdometer': false,
       'mapboxCanReplaceOdometer': false,
+      'mapboxCanIncreaseLiveMileage': false,
       'firestoreCanOverrideLiveDisplay': false,
       'remoteDisplayCanOverrideLocalTrip': false,
       'importedDisplayCanOverrideLocalTrip': false,
       'dashboardCacheCanOverrideLocalTrip': false,
       'authenticationDoesNotGrantDisplayAuthority': true,
       'matchingActiveTripRequired': true,
+      'matchingVehicleProfileRequired': true,
+      'projectionRevisionMustIncrease': true,
       'singleSnapshotMustDriveEverySubscribedSurface': true,
       'surfaceSubscriptionRequiredForNotify': true,
       'blockedProjectionSuppressesNotify': true,
@@ -105,8 +110,11 @@ class TripLiveOdometerRenderDecision {
       'futureProjectionCanRender': false,
       'impossibleProjectionCanRender': false,
       'staleProjectionCanCommitMileage': false,
+      'staleProjectionCanNotifyAsFresh': false,
       'remoteProjectionCanReviveEndedTrip': false,
       'calendarCanRewriteConfirmedTruth': false,
+      'calibrationCanCommitWithoutReview': false,
+      'calibrationCanDecreaseLiveProjection': false,
       'rawGpsIncluded': false,
       'preciseLocationIncluded': false,
       'routeGeometryIncluded': false,
@@ -164,8 +172,10 @@ class TripLiveOdometerRenderSummaryValidation {
       'liveUiMustRefreshOnProjectionChange',
       'singleLiveOdometerSnapshotRequired',
       'allDashboardSurfacesUseSameSnapshot',
+      'allDashboardSurfacesUseSameProjectionRevision',
       'surfaceSpecificMileageCalculationAllowed',
       'activeVehicleBlockUsesLiveProjection',
+      'activeVehicleBlockMustNotCacheProjection',
       'vehicleProfileUsesLiveProjection',
       'contractorDashboardUsesLiveProjection',
       'fleetDashboardUsesLiveProjection',
@@ -177,12 +187,15 @@ class TripLiveOdometerRenderSummaryValidation {
       'writesConfirmedOdometer',
       'gpsCanReplaceOdometer',
       'mapboxCanReplaceOdometer',
+      'mapboxCanIncreaseLiveMileage',
       'firestoreCanOverrideLiveDisplay',
       'remoteDisplayCanOverrideLocalTrip',
       'importedDisplayCanOverrideLocalTrip',
       'dashboardCacheCanOverrideLocalTrip',
       'authenticationDoesNotGrantDisplayAuthority',
       'matchingActiveTripRequired',
+      'matchingVehicleProfileRequired',
+      'projectionRevisionMustIncrease',
       'singleSnapshotMustDriveEverySubscribedSurface',
       'surfaceSubscriptionRequiredForNotify',
       'blockedProjectionSuppressesNotify',
@@ -197,8 +210,11 @@ class TripLiveOdometerRenderSummaryValidation {
       'futureProjectionCanRender',
       'impossibleProjectionCanRender',
       'staleProjectionCanCommitMileage',
+      'staleProjectionCanNotifyAsFresh',
       'remoteProjectionCanReviveEndedTrip',
       'calendarCanRewriteConfirmedTruth',
+      'calibrationCanCommitWithoutReview',
+      'calibrationCanDecreaseLiveProjection',
       'rawGpsIncluded',
       'preciseLocationIncluded',
       'routeGeometryIncluded',
@@ -212,7 +228,9 @@ class TripLiveOdometerRenderSummaryValidation {
     }
     if (summary['singleLiveOdometerSnapshotRequired'] != true ||
         summary['allDashboardSurfacesUseSameSnapshot'] != true ||
+        summary['allDashboardSurfacesUseSameProjectionRevision'] != true ||
         summary['singleSnapshotMustDriveEverySubscribedSurface'] != true ||
+        summary['activeVehicleBlockMustNotCacheProjection'] != true ||
         summary['surfaceSpecificMileageCalculationAllowed'] != false ||
         summary['surfaceSpecificTripIdsAllowed'] != false) {
       reasons.add('single_snapshot_boundary_missing');
@@ -220,14 +238,20 @@ class TripLiveOdometerRenderSummaryValidation {
     if (summary['writesConfirmedOdometer'] != false ||
         summary['gpsCanReplaceOdometer'] != false ||
         summary['mapboxCanReplaceOdometer'] != false ||
+        summary['mapboxCanIncreaseLiveMileage'] != false ||
         summary['confirmedOdometerRemainsCanonical'] != true ||
-        summary['calendarCanRewriteConfirmedTruth'] != false) {
+        summary['calendarCanRewriteConfirmedTruth'] != false ||
+        summary['calibrationCanCommitWithoutReview'] != false ||
+        summary['calibrationCanDecreaseLiveProjection'] != false ||
+        summary['staleProjectionCanNotifyAsFresh'] != false) {
       reasons.add('odometer_truth_boundary_missing');
     }
     if (summary['firestoreCanOverrideLiveDisplay'] != false ||
         summary['remoteDisplayCanOverrideLocalTrip'] != false ||
         summary['importedDisplayCanOverrideLocalTrip'] != false ||
         summary['dashboardCacheCanOverrideLocalTrip'] != false ||
+        summary['matchingVehicleProfileRequired'] != true ||
+        summary['projectionRevisionMustIncrease'] != true ||
         summary['authenticationDoesNotGrantDisplayAuthority'] != true) {
       reasons.add('remote_display_boundary_missing');
     }

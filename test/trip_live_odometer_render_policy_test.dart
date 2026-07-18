@@ -63,8 +63,10 @@ void main() {
     expect(safe['liveUiMustRefreshOnProjectionChange'], isTrue);
     expect(safe['singleLiveOdometerSnapshotRequired'], isTrue);
     expect(safe['allDashboardSurfacesUseSameSnapshot'], isTrue);
+    expect(safe['allDashboardSurfacesUseSameProjectionRevision'], isTrue);
     expect(safe['surfaceSpecificMileageCalculationAllowed'], isFalse);
     expect(safe['activeVehicleBlockUsesLiveProjection'], isTrue);
+    expect(safe['activeVehicleBlockMustNotCacheProjection'], isTrue);
     expect(safe['vehicleProfileUsesLiveProjection'], isTrue);
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
     expect(safe['fleetDashboardUsesLiveProjection'], isTrue);
@@ -73,6 +75,8 @@ void main() {
     expect(safe['surfaceSpecificTripIdsAllowed'], isFalse);
     expect(safe['liveProjectionRequiresDeviceLocalSource'], isTrue);
     expect(safe['liveProjectionRequiresOwnershipValidation'], isTrue);
+    expect(safe['matchingVehicleProfileRequired'], isTrue);
+    expect(safe['projectionRevisionMustIncrease'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
     expect(safe['confirmedDisplayValueValidated'], isTrue);
     final validation = TripLiveOdometerRenderSummaryValidation.fromSummary(
@@ -110,6 +114,7 @@ void main() {
       expect(safe['writesConfirmedOdometer'], isFalse);
       expect(safe['gpsCanReplaceOdometer'], isFalse);
       expect(safe['staleProjectionCanCommitMileage'], isFalse);
+      expect(safe['staleProjectionCanNotifyAsFresh'], isFalse);
     },
   );
 
@@ -291,6 +296,7 @@ void main() {
       expect(safe['routeGeometryIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
       expect(safe['mapboxCanReplaceOdometer'], isFalse);
+      expect(safe['mapboxCanIncreaseLiveMileage'], isFalse);
       expect(safe.toString(), isNot(contains('pk.')));
       expect(safe.toString(), isNot(contains('sk.')));
     },
@@ -316,6 +322,8 @@ void main() {
         TripLiveOdometerRenderSummaryValidation.fromSummary({
           ...safe,
           'surfaceSpecificMileageCalculationAllowed': true,
+          'activeVehicleBlockMustNotCacheProjection': false,
+          'allDashboardSurfacesUseSameProjectionRevision': false,
         }).isRenderable,
         isFalse,
       );
@@ -323,6 +331,9 @@ void main() {
         TripLiveOdometerRenderSummaryValidation.fromSummary({
           ...safe,
           'writesConfirmedOdometer': true,
+          'mapboxCanIncreaseLiveMileage': true,
+          'calibrationCanCommitWithoutReview': true,
+          'staleProjectionCanNotifyAsFresh': true,
         }).isRenderable,
         isFalse,
       );

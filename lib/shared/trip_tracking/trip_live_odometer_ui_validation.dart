@@ -126,8 +126,10 @@ List<String> _validateSharedPayload(
   if (payload['liveUiMustRefreshOnProjectionChange'] != true ||
       payload['singleLiveOdometerSnapshotRequired'] != true ||
       payload['allDashboardSurfacesUseSameSnapshot'] != true ||
+      payload['allDashboardSurfacesUseSameProjectionRevision'] != true ||
       payload['surfaceSpecificMileageCalculationAllowed'] != false ||
       payload['activeVehicleBlockUsesLiveProjection'] != true ||
+      payload['activeVehicleBlockMustNotCacheProjection'] != true ||
       payload['vehicleProfileUsesLiveProjection'] != true ||
       payload['contractorDashboardUsesLiveProjection'] != true ||
       payload['fleetDashboardUsesLiveProjection'] != true ||
@@ -140,7 +142,10 @@ List<String> _validateSharedPayload(
   }
   if (payload['writesConfirmedOdometer'] != false ||
       payload['gpsCanReplaceOdometer'] != false ||
-      payload['mapboxCanReplaceOdometer'] != false) {
+      payload['mapboxCanReplaceOdometer'] != false ||
+      payload['mapboxCanIncreaseLiveMileage'] == true ||
+      payload['calibrationCanCommitWithoutReview'] == true ||
+      payload['calibrationCanDecreaseLiveProjection'] == true) {
     reasons.add('payload_can_replace_odometer');
   }
   if (payload['firestoreCanOverrideLiveDisplay'] != false ||
@@ -154,6 +159,10 @@ List<String> _validateSharedPayload(
   }
   if (payload['matchingActiveTripRequired'] != true) {
     reasons.add('matching_active_trip_not_required');
+  }
+  if (payload['matchingVehicleProfileRequired'] == false ||
+      payload['projectionRevisionMustIncrease'] == false) {
+    reasons.add('live_projection_revision_boundary_missing');
   }
   if (payload['activeTripIdIncluded'] != false ||
       payload['ownerUserIdIncluded'] != false) {
@@ -178,7 +187,9 @@ List<String> _validateSharedPayload(
         payloadGuard['liveUiMayCommitMileage'] != false ||
         payloadGuard['confirmedOdometerRemainsCanonical'] != true ||
         payloadGuard['remotePayloadCanConfirmOdometer'] != false ||
+        payloadGuard['remotePayloadCanAdvanceProjectionRevision'] == true ||
         payloadGuard['mapboxCanRenderWithoutLocalTrip'] != false ||
+        payloadGuard['mapboxCanIncreaseLiveMileage'] == true ||
         payloadGuard['firestoreCanOverrideLiveDisplay'] != false) {
       reasons.add('payload_guard_boundary_missing');
     }

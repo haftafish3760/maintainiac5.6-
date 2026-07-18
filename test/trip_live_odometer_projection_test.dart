@@ -32,6 +32,16 @@ void main() {
       isTrue,
     );
     expect(
+      projection
+          .toSafeDashboardMap()['activeVehicleBlockMustNotCacheProjection'],
+      isTrue,
+    );
+    expect(
+      projection
+          .toSafeDashboardMap()['allDashboardSurfacesUseSameProjectionRevision'],
+      isTrue,
+    );
+    expect(
       projection.toSafeDashboardMap()['contractorDashboardUsesLiveProjection'],
       isTrue,
     );
@@ -45,6 +55,14 @@ void main() {
     );
     expect(
       projection.toSafeDashboardMap()['matchingActiveTripRequired'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['matchingVehicleProfileRequired'],
+      isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['projectionRevisionMustIncrease'],
       isTrue,
     );
     expect(
@@ -75,12 +93,24 @@ void main() {
       isFalse,
     );
     expect(
+      projection.toSafeDashboardMap()['staleProjectionCanNotifyAsFresh'],
+      isFalse,
+    );
+    expect(
       projection.toSafeDashboardMap()['remoteProjectionCanOverrideLocalTrip'],
       isFalse,
     );
     expect(
       projection.toSafeDashboardMap()['confirmedOdometerRemainsCanonical'],
       isTrue,
+    );
+    expect(
+      projection.toSafeDashboardMap()['calibrationCanCommitWithoutReview'],
+      isFalse,
+    );
+    expect(
+      projection.toSafeDashboardMap()['calibrationCanDecreaseLiveProjection'],
+      isFalse,
     );
     expect(projection.toSafeDashboardMap()['activeTripIdIncluded'], isFalse);
     expect(projection.toSafeDashboardMap()['ownerUserIdIncluded'], isFalse);
@@ -210,6 +240,10 @@ void main() {
           'importedDisplayCanOverrideLocalTrip': true,
           'dashboardCacheCanOverrideLocalTrip': true,
           'mapboxCanOverrideLiveProjection': true,
+          'mapboxCanIncreaseLiveMileage': true,
+          'staleProjectionCanNotifyAsFresh': true,
+          'calibrationCanCommitWithoutReview': true,
+          'calibrationCanDecreaseLiveProjection': true,
           'writesConfirmedOdometer': true,
         });
     final validation = TripLiveOdometerDashboardPayloadValidation.fromPayload(
@@ -246,11 +280,15 @@ void main() {
             'tokensIncluded': true,
             'mapsRequiredForTracking': true,
             'matchingActiveTripRequired': false,
+            'matchingVehicleProfileRequired': false,
+            'projectionRevisionMustIncrease': false,
             'remoteProjectionRequiresMatchingTripId': false,
             'liveProjectionRequiresOwnershipValidation': false,
             'liveProjectionRequiresDeviceLocalSource': false,
             'projectionCannotOutliveActiveDay': false,
             'localTripLogProtected': false,
+            'activeVehicleBlockMustNotCacheProjection': false,
+            'allDashboardSurfacesUseSameProjectionRevision': false,
             'authenticationDoesNotGrantDisplayAuthority': false,
             'remoteProjectionCanReviveEndedTrip': true,
             'futureProjectionCanRender': true,

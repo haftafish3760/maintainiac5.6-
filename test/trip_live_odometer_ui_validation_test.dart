@@ -92,8 +92,10 @@ void main() {
           'liveUiMustRefreshOnProjectionChange': false,
           'singleLiveOdometerSnapshotRequired': false,
           'allDashboardSurfacesUseSameSnapshot': false,
+          'allDashboardSurfacesUseSameProjectionRevision': false,
           'surfaceSpecificMileageCalculationAllowed': true,
           'activeVehicleBlockUsesLiveProjection': false,
+          'activeVehicleBlockMustNotCacheProjection': false,
           'vehicleProfileUsesLiveProjection': false,
           'contractorDashboardUsesLiveProjection': false,
           'fleetDashboardUsesLiveProjection': false,
@@ -190,5 +192,23 @@ void main() {
     expect(validation.reasons, contains('invalid_review_required_flag'));
     expect(validation.reasons, contains('invalid_live_broadcast_status'));
     expect(validation.reasons, contains('invalid_reason_codes'));
+  });
+
+  test('vehicle and projection revision boundaries fail closed', () {
+    final validation = TripLiveOdometerUiValidation.fromBroadcastMap(
+      safeBroadcastMap()..addAll({
+        'matchingVehicleProfileRequired': false,
+        'projectionRevisionMustIncrease': false,
+        'mapboxCanIncreaseLiveMileage': true,
+        'calibrationCanDecreaseLiveProjection': true,
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('live_projection_revision_boundary_missing'),
+    );
+    expect(validation.reasons, contains('payload_can_replace_odometer'));
   });
 }

@@ -68,9 +68,11 @@ void main() {
     expect(safe['liveUiMustRefreshOnProjectionChange'], isTrue);
     expect(safe['singleLiveOdometerSnapshotRequired'], isTrue);
     expect(safe['allDashboardSurfacesUseSameSnapshot'], isTrue);
+    expect(safe['allDashboardSurfacesUseSameProjectionRevision'], isTrue);
     expect(safe['surfaceSpecificMileageCalculationAllowed'], isFalse);
     expect(safe['dashboardActiveVehicleBlockUsesLiveProjection'], isTrue);
     expect(safe['activeVehicleBlockUsesLiveProjection'], isTrue);
+    expect(safe['activeVehicleBlockMustNotCacheProjection'], isTrue);
     expect(safe['vehicleProfileUsesLiveProjection'], isTrue);
     expect(safe['contractorDashboardUsesLiveProjection'], isTrue);
     expect(safe['fleetDashboardUsesLiveProjection'], isTrue);
@@ -78,6 +80,8 @@ void main() {
     expect(safe['crossDashboardLiveOdometerReady'], isTrue);
     expect(safe['displayValueValidated'], isTrue);
     expect(safe['confirmedDisplayValueValidated'], isTrue);
+    expect(safe['matchingVehicleProfileRequired'], isTrue);
+    expect(safe['projectionRevisionMustIncrease'], isTrue);
   });
 
   test('stale live projection remains display-only and review-required', () {
@@ -102,6 +106,7 @@ void main() {
     );
     expect(broadcast.reviewRequired, isTrue);
     expect(safe['staleProjectionCanCommitMileage'], isFalse);
+    expect(safe['staleProjectionCanNotifyAsFresh'], isFalse);
     expect(safe['confirmedOdometerRemainsCanonical'], isTrue);
   });
 

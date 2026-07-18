@@ -39,12 +39,17 @@ class TripLiveOdometerPayloadGuardDecision {
     'remoteProjectionCanReviveEndedTrip': false,
     'remotePayloadCanConfirmOdometer': false,
     'remotePayloadCanEndTrip': false,
+    'remotePayloadCanAdvanceProjectionRevision': false,
     'dashboardCacheCanOverrideLocalTrip': false,
     'mapboxCanReplaceOdometer': false,
     'mapboxCanRenderWithoutLocalTrip': false,
+    'mapboxCanIncreaseLiveMileage': false,
     'cloudFunctionCanConfirmOdometer': false,
     'firestoreCanOverrideLiveDisplay': false,
     'staleProjectionCanCommitMileage': false,
+    'staleProjectionCanNotifyAsFresh': false,
+    'calibrationCanCommitWithoutReview': false,
+    'calibrationCanDecreaseLiveProjection': false,
     'futureProjectionCanRender': false,
     'impossibleProjectionCanRender': false,
     'activeTripIdIncluded': false,
@@ -74,8 +79,12 @@ class TripLiveOdometerPayloadGuard {
     if (payload['writesConfirmedOdometer'] != false ||
         payload['gpsCanReplaceOdometer'] != false ||
         payload['mapboxCanReplaceOdometer'] != false ||
+        payload['mapboxCanIncreaseLiveMileage'] == true ||
         payload['staleProjectionCanCommitMileage'] != false ||
-        payload['remoteProjectionCanReviveEndedTrip'] == true) {
+        payload['staleProjectionCanNotifyAsFresh'] == true ||
+        payload['remoteProjectionCanReviveEndedTrip'] == true ||
+        payload['calibrationCanCommitWithoutReview'] == true ||
+        payload['calibrationCanDecreaseLiveProjection'] == true) {
       reasons.add('payload_claims_odometer_authority');
     }
     if (payload['firestoreCanOverrideLiveDisplay'] != false ||
@@ -84,12 +93,15 @@ class TripLiveOdometerPayloadGuard {
         payload['remoteProjectionCanOverrideLocalTrip'] == true ||
         payload['dashboardCacheCanOverrideLocalTrip'] != false ||
         payload['importedDisplayCanOverrideLocalTrip'] != false ||
+        payload['remotePayloadCanAdvanceProjectionRevision'] == true ||
         payload['mapboxCanChangeProjection'] == true ||
         payload['mapboxCanOverrideLiveProjection'] == true) {
       reasons.add('payload_claims_remote_display_authority');
     }
     if (payload['authenticationDoesNotGrantDisplayAuthority'] != true ||
         payload['matchingActiveTripRequired'] != true ||
+        payload['matchingVehicleProfileRequired'] == false ||
+        payload['projectionRevisionMustIncrease'] == false ||
         payload['liveProjectionRequiresOwnershipValidation'] != true ||
         payload['liveProjectionRequiresDeviceLocalSource'] != true ||
         payload['projectionCannotOutliveActiveDay'] != true ||

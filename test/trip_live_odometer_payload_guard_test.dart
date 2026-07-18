@@ -39,7 +39,9 @@ void main() {
     expect(guard['hiveRemainsSourceOfTruth'], isTrue);
     expect(guard['firestoreMirrorOnly'], isTrue);
     expect(guard['remotePayloadCanConfirmOdometer'], isFalse);
+    expect(guard['remotePayloadCanAdvanceProjectionRevision'], isFalse);
     expect(guard['mapboxCanRenderWithoutLocalTrip'], isFalse);
+    expect(guard['mapboxCanIncreaseLiveMileage'], isFalse);
     expect(validation.isRenderable, isTrue);
   });
 
@@ -63,13 +65,19 @@ void main() {
           ...clean,
           'writesConfirmedOdometer': true,
           'remoteProjectionCanReviveEndedTrip': true,
+          'staleProjectionCanNotifyAsFresh': true,
+          'calibrationCanCommitWithoutReview': true,
         },
         status: TripLiveOdometerPayloadGuardStatus.blockedOdometerAuthority,
         reason: 'payload_claims_odometer_authority',
       ),
       _GuardCase(
         name: 'remote authority',
-        payload: {...clean, 'remoteDisplayCanOverrideLocalTrip': true},
+        payload: {
+          ...clean,
+          'remoteDisplayCanOverrideLocalTrip': true,
+          'remotePayloadCanAdvanceProjectionRevision': true,
+        },
         status: TripLiveOdometerPayloadGuardStatus.blockedRemoteAuthority,
         reason: 'payload_claims_remote_display_authority',
       ),
@@ -121,6 +129,8 @@ void main() {
       'liveProjectionRequiresDeviceLocalSource': false,
       'projectionCannotOutliveActiveDay': false,
       'authenticationDoesNotGrantDisplayAuthority': false,
+      'matchingVehicleProfileRequired': false,
+      'projectionRevisionMustIncrease': false,
     });
 
     expect(
