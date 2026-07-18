@@ -1276,6 +1276,95 @@ void main() {
     expect(restored.advisories.first.id, 'advisory_16');
   });
 
+  test('persisted GPS advisories must belong to the restored session', () {
+    final startedAt = DateTime.utc(2026, 7, 14, 12);
+    final base = TripTrackingSessionRecord(
+      id: 'trip_owner',
+      vehicleId: 'vehicle_owner',
+      startingOdometer: 1000,
+      profile: TripTrackingProfile.deliveryVehicle,
+      startedAt: startedAt,
+      updatedAt: startedAt.add(const Duration(hours: 1)),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    ).toMap();
+
+    Map<String, Object?> advisory({
+      required String id,
+      required String sessionId,
+      required String vehicleId,
+      required TripTrackingProfile profile,
+      required DateTime detectedAt,
+    }) => {
+      'id': id,
+      'type': 'probableStop',
+      'sessionId': sessionId,
+      'vehicleId': vehicleId,
+      'profile': profile.name,
+      'detectedAt': detectedAt.toIso8601String(),
+      'evidenceStartedAt': detectedAt.toIso8601String(),
+      'evidenceEndedAt': detectedAt.toIso8601String(),
+      'confidence': 'medium',
+      'suggestedAction': 'reviewStop',
+    };
+
+    final restored = TripTrackingSessionRecord.fromMap({
+      ...base,
+      'advisories': [
+        advisory(
+          id: 'wrong_trip',
+          sessionId: 'trip_other',
+          vehicleId: 'vehicle_owner',
+          profile: TripTrackingProfile.deliveryVehicle,
+          detectedAt: startedAt.add(const Duration(minutes: 5)),
+        ),
+        advisory(
+          id: 'wrong_vehicle',
+          sessionId: 'trip_owner',
+          vehicleId: 'vehicle_other',
+          profile: TripTrackingProfile.deliveryVehicle,
+          detectedAt: startedAt.add(const Duration(minutes: 6)),
+        ),
+        advisory(
+          id: 'wrong_profile',
+          sessionId: 'trip_owner',
+          vehicleId: 'vehicle_owner',
+          profile: TripTrackingProfile.rideshareVehicle,
+          detectedAt: startedAt.add(const Duration(minutes: 7)),
+        ),
+        advisory(
+          id: 'before_trip',
+          sessionId: 'trip_owner',
+          vehicleId: 'vehicle_owner',
+          profile: TripTrackingProfile.deliveryVehicle,
+          detectedAt: startedAt.subtract(const Duration(seconds: 1)),
+        ),
+        advisory(
+          id: 'after_supported_window',
+          sessionId: 'trip_owner',
+          vehicleId: 'vehicle_owner',
+          profile: TripTrackingProfile.deliveryVehicle,
+          detectedAt: startedAt.add(const Duration(days: 31)),
+        ),
+        advisory(
+          id: 'valid_stop',
+          sessionId: 'trip_owner',
+          vehicleId: 'vehicle_owner',
+          profile: TripTrackingProfile.deliveryVehicle,
+          detectedAt: startedAt.add(const Duration(minutes: 8)),
+        ),
+      ],
+    });
+
+    expect(restored.advisories, hasLength(1));
+    expect(restored.advisories.single.id, 'valid_stop');
+    expect(restored.advisories.single.sessionId, restored.id);
+    expect(restored.advisories.single.vehicleId, restored.vehicleId);
+    expect(restored.advisories.single.profile, restored.profile);
+  });
+
   test('persisted review identity and odometer ranges are validated', () {
     final base = TripTrackingReviewRecord(
       id: 'trip_review_identity',

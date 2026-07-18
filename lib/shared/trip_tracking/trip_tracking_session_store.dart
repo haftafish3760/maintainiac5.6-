@@ -97,16 +97,20 @@ class TripTrackingSessionRecord {
       map,
       'schemaVersion',
     );
+    final safeId = _safeIdentifier(map['id']);
+    final safeVehicleId = _safeIdentifier(map['vehicleId']);
+    final safeProfile = TripTrackingProfile.values.firstWhere(
+      (value) => value.name == map['profile'],
+      orElse: () => TripTrackingProfile.roadVehicle,
+    );
+    final safeStartedAt =
+        startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     return TripTrackingSessionRecord(
-      id: _safeIdentifier(map['id']),
-      vehicleId: _safeIdentifier(map['vehicleId']),
+      id: safeId,
+      vehicleId: safeVehicleId,
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
-      profile: TripTrackingProfile.values.firstWhere(
-        (value) => value.name == map['profile'],
-        orElse: () => TripTrackingProfile.roadVehicle,
-      ),
-      startedAt:
-          startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      profile: safeProfile,
+      startedAt: safeStartedAt,
       updatedAt:
           updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       engineSnapshot: map['engineSnapshot'] is Map
@@ -115,7 +119,13 @@ class TripTrackingSessionRecord {
               totalAcceptedMeters: 0,
               walkingReviewSuggested: false,
             ),
-      advisories: _advisoriesFromMapValue(map['advisories']),
+      advisories: _advisoriesFromMapValue(
+        map['advisories'],
+        sessionId: safeId,
+        vehicleId: safeVehicleId,
+        profile: safeProfile,
+        startedAt: safeStartedAt,
+      ),
       lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
         (value) => value.name == map['lifecycleState'],
         orElse: () => TripTrackingSessionLifecycleState.ready,
@@ -147,14 +157,47 @@ Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
   return items.takeLast(_maxPersistedAdvisories);
 }
 
-List<TripTrackingAdvisoryEvent> _advisoriesFromMapValue(Object? value) {
+List<TripTrackingAdvisoryEvent> _advisoriesFromMapValue(
+  Object? value, {
+  required String sessionId,
+  required String vehicleId,
+  required TripTrackingProfile profile,
+  required DateTime startedAt,
+}) {
   if (value is! Iterable) return const [];
   return value
       .whereType<Map>()
       .map(TripTrackingAdvisoryEvent.fromMap)
+      .where(
+        (event) => _advisoryBelongsToSession(
+          event,
+          sessionId: sessionId,
+          vehicleId: vehicleId,
+          profile: profile,
+          startedAt: startedAt,
+        ),
+      )
       .toList(growable: false)
       .takeLast(_maxPersistedAdvisories)
       .toList(growable: false);
+}
+
+bool _advisoryBelongsToSession(
+  TripTrackingAdvisoryEvent event, {
+  required String sessionId,
+  required String vehicleId,
+  required TripTrackingProfile profile,
+  required DateTime startedAt,
+}) {
+  if (event.sessionId != sessionId ||
+      event.vehicleId != vehicleId ||
+      event.profile != profile) {
+    return false;
+  }
+  final tripStart = startedAt.toUtc();
+  final detectedAt = event.detectedAt.toUtc();
+  if (detectedAt.isBefore(tripStart)) return false;
+  return !detectedAt.isAfter(tripStart.add(const Duration(days: 30)));
 }
 
 extension _TakeLastExtension<T> on List<T> {
