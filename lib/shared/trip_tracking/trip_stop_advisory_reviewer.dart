@@ -36,6 +36,7 @@ class TripStopAdvisoryReviewer {
     required TripMotionState currentMotionState,
     required DateTime detectedAt,
   }) {
+    if (!_canCreateAdvisoryForSession(session)) return session.advisories;
     final safeDetectedAt = _safeDetectedAt(session, detectedAt);
     if (previousMotionState == TripMotionState.stopCandidate &&
         currentMotionState == TripMotionState.stopped) {
@@ -99,6 +100,7 @@ class TripStopAdvisoryReviewer {
     TripTrackingSessionRecord session, {
     required DateTime detectedAt,
   }) {
+    if (!_canCreateAdvisoryForSession(session)) return session.advisories;
     final latestPendingStopIndex = session.advisories.lastIndexWhere(
       (event) =>
           event.type == TripTrackingAdvisoryType.probableStop &&
@@ -197,5 +199,20 @@ class TripStopAdvisoryReviewer {
     if (clean.isBefore(tripStart)) return session.startedAt;
     if (clean.isAfter(detectedAt.toUtc())) return detectedAt;
     return evidenceStartedAt;
+  }
+
+  static bool _canCreateAdvisoryForSession(TripTrackingSessionRecord session) {
+    return _safeAdvisoryToken(session.id) &&
+        _safeAdvisoryToken(session.vehicleId) &&
+        session.schemaVersion >= 1 &&
+        !session.updatedAt.isBefore(session.startedAt);
+  }
+
+  static bool _safeAdvisoryToken(String value) {
+    final clean = value.trim();
+    if (clean.isEmpty || clean != value || clean.length > 96) return false;
+    if (clean.startsWith('pk.') || clean.startsWith('sk.')) return false;
+    if (clean.toLowerCase().contains('token')) return false;
+    return RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(clean);
   }
 }

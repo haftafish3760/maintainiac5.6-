@@ -27,10 +27,12 @@ void main() {
   );
 
   TripTrackingSessionRecord sessionWith(
-    List<TripTrackingAdvisoryEvent> advisories,
-  ) => TripTrackingSessionRecord(
-    id: 'trip_1',
-    vehicleId: 'vehicle_1',
+    List<TripTrackingAdvisoryEvent> advisories, {
+    String id = 'trip_1',
+    String vehicleId = 'vehicle_1',
+  }) => TripTrackingSessionRecord(
+    id: id,
+    vehicleId: vehicleId,
     startingOdometer: 1000,
     profile: TripTrackingProfile.rideshareVehicle,
     startedAt: start,
@@ -241,4 +243,41 @@ void main() {
       );
     },
   );
+
+  test('unsafe session identifiers cannot create advisory records', () {
+    for (final session in [
+      sessionWith(const [], id: 'sk.secret'),
+      sessionWith(const [], vehicleId: 'vehicle:raw'),
+      sessionWith(const [], id: 'trip token leak'),
+    ]) {
+      final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
+        session,
+        engineSnapshot: TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+          motionState: TripMotionState.stopCandidate,
+          vehicleMovementObserved: true,
+          stationaryStartedAt: start.add(const Duration(minutes: 1)),
+        ),
+        previousMotionState: TripMotionState.moving,
+        currentMotionState: TripMotionState.stopCandidate,
+        detectedAt: start.add(const Duration(minutes: 5)),
+      );
+
+      expect(advisories, isEmpty);
+    }
+  });
+
+  test('unsafe session identifiers cannot upgrade stop advisories', () {
+    final pending = stop(
+      id: 'review_1',
+      detectedAt: start.add(const Duration(minutes: 1)),
+    );
+    final advisories = TripStopAdvisoryReviewer.upgradedStopCandidateAdvisories(
+      sessionWith([pending], id: 'pk.public'),
+      detectedAt: start.add(const Duration(minutes: 2)),
+    );
+
+    expect(advisories.single.confidence, TripTrackingConfidence.medium);
+  });
 }
