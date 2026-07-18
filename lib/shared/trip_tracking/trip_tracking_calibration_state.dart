@@ -51,6 +51,7 @@ class TripTrackingCalibrationState {
     'unknownSignalDiagnosticsFailNeutralInController': true,
     'poorGpsDaysCannotCountAsTrustedWindow': true,
     'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
+    'unknownSignalDiagnosticsExcludedByDefault': true,
     'excludedPoorGpsCannotBecomeCalibrationProof': true,
     'singleDayCalibrationRejected': true,
     'calibrationRequiresVehicleScopedHistory': true,

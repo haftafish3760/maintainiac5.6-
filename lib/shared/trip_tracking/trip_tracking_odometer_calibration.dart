@@ -78,6 +78,7 @@ class TripOdometerCalibrationSignal {
     'unknownSignalDiagnosticsFailNeutralInController': true,
     'poorGpsDaysCannotCountAsTrustedWindow': true,
     'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
+    'unknownSignalDiagnosticsExcludedByDefault': true,
     'excludedPoorGpsCannotBecomeCalibrationProof': true,
     'singleDayCalibrationRejected': true,
     'calibrationRequiresVehicleScopedHistory': true,
@@ -233,7 +234,7 @@ class TripOdometerCalibrationSignal {
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
-    bool requireTrustedSignalDiagnostics = false,
+    bool requireTrustedSignalDiagnostics = true,
   }) {
     if (maximumReviewedDays < minimumSamples) {
       return const TripOdometerCalibrationSignal(

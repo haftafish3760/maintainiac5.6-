@@ -255,6 +255,7 @@ class TripTrackingCalibrationApplyGuard {
     'poorGpsExcludedDayCountTrustedAfterValidationOnly': true,
     'poorGpsDaysCannotCountAsTrustedWindow': true,
     'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
+    'unknownSignalDiagnosticsExcludedByDefault': true,
     'excludedPoorGpsCannotBecomeCalibrationProof': true,
     'singleDayCalibrationRejected': true,
     'calibrationAverageVehicleScoped': true,
@@ -363,6 +364,7 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['poorGpsExcludedDayCountTrustedAfterValidationOnly'] != true ||
         summary['poorGpsDaysCannotCountAsTrustedWindow'] != true ||
         summary['unknownSignalDiagnosticsCannotCountAsTrustedWindow'] != true ||
+        summary['unknownSignalDiagnosticsExcludedByDefault'] != true ||
         summary['excludedPoorGpsCannotBecomeCalibrationProof'] != true ||
         summary['singleDayCalibrationRejected'] != true ||
         summary['calibrationAverageVehicleScoped'] != true ||

@@ -75,6 +75,7 @@ void main() {
       summary['unknownSignalDiagnosticsCannotCountAsTrustedWindow'],
       isTrue,
     );
+    expect(summary['unknownSignalDiagnosticsExcludedByDefault'], isTrue);
     expect(summary['excludedPoorGpsCannotBecomeCalibrationProof'], isTrue);
     expect(summary['singleDayCalibrationRejected'], isTrue);
     expect(summary['calibrationRequiresVehicleScopedHistory'], isTrue);

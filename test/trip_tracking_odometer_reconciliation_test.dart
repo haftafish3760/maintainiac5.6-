@@ -613,6 +613,7 @@ void main() {
 
     final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
       reviews: reviews,
+      requireTrustedSignalDiagnostics: false,
     );
 
     expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
@@ -748,6 +749,7 @@ void main() {
       final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
         reviews: reviews,
         nowUtc: now,
+        requireTrustedSignalDiagnostics: false,
       );
 
       expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
@@ -778,24 +780,33 @@ void main() {
       ),
     );
 
-    final looseSignal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+    final legacySignal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
       reviews: reviews,
+      requireTrustedSignalDiagnostics: false,
     );
-    final strictSignal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
-      reviews: reviews,
-      requireTrustedSignalDiagnostics: true,
-    );
+    final defaultSignal =
+        TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+          reviews: reviews,
+        );
 
-    expect(looseSignal.status, TripOdometerCalibrationStatus.reviewRecommended);
     expect(
-      strictSignal.status,
+      legacySignal.status,
+      TripOdometerCalibrationStatus.reviewRecommended,
+    );
+    expect(
+      defaultSignal.status,
       TripOdometerCalibrationStatus.insufficientHistory,
     );
-    expect(strictSignal.eligibleSampleCount, 0);
-    expect(strictSignal.excludedPoorGpsDayCount, 7);
-    expect(strictSignal.reasonCode, 'needs_more_reviewed_days');
+    expect(defaultSignal.eligibleSampleCount, 0);
+    expect(defaultSignal.excludedPoorGpsDayCount, 7);
+    expect(defaultSignal.reasonCode, 'needs_more_reviewed_days');
     expect(
-      strictSignal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
+      defaultSignal.toSafeDashboardMap()['poorGpsDaysExcludedFromCalibration'],
+      isTrue,
+    );
+    expect(
+      defaultSignal
+          .toSafeDashboardMap()['unknownSignalDiagnosticsExcludedByDefault'],
       isTrue,
     );
   });
@@ -823,6 +834,7 @@ void main() {
 
     final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
       reviews: reviews,
+      requireTrustedSignalDiagnostics: false,
     );
 
     expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
@@ -854,6 +866,7 @@ void main() {
 
     final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
       reviews: reviews,
+      requireTrustedSignalDiagnostics: false,
     );
 
     expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
@@ -904,6 +917,7 @@ void main() {
     final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
       reviews: [...olderOppositeDrift, ...recentNewTires],
       maximumReviewedDays: 7,
+      requireTrustedSignalDiagnostics: false,
     );
 
     expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
@@ -945,6 +959,7 @@ void main() {
             reviews: reviews,
             vehicleId: 'vehicle_1',
             minimumSamples: 6,
+            requireTrustedSignalDiagnostics: false,
           );
 
       expect(
@@ -1003,6 +1018,7 @@ void main() {
 
       final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
         reviews: reviews,
+        requireTrustedSignalDiagnostics: false,
       );
 
       expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
@@ -1244,6 +1260,7 @@ void main() {
     final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
       reviews: reviews,
       vehicleId: ' vehicle_1 ',
+      requireTrustedSignalDiagnostics: false,
     );
 
     expect(signal.status, TripOdometerCalibrationStatus.reviewRecommended);
@@ -1286,6 +1303,7 @@ void main() {
       'unknownSignalDiagnosticsFailNeutralInController': true,
       'poorGpsDaysCannotCountAsTrustedWindow': true,
       'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
+      'unknownSignalDiagnosticsExcludedByDefault': true,
       'excludedPoorGpsCannotBecomeCalibrationProof': true,
       'singleDayCalibrationRejected': true,
       'calibrationRequiresVehicleScopedHistory': true,
