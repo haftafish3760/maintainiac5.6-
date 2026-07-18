@@ -185,6 +185,30 @@ class TripTrackingScenarioLibrary {
     SimulatedTripPoint(roadPoint(-79.9948, 264, speed: 9)),
   ];
 
+  List<SimulatedTripPoint> deliveryPhoneStaysInVehicleAtCustomerStop() {
+    final points = <SimulatedTripPoint>[
+      SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9992, 22, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9984, 44, speed: 8)),
+    ];
+    for (var index = 0; index < 10; index += 1) {
+      points.add(
+        SimulatedTripPoint(
+          roadPoint(
+            -79.9984 + ((index.isEven ? 1 : -1) * .000006),
+            64 + (index * 12),
+            speed: 0,
+          ),
+        ),
+      );
+    }
+    points.addAll([
+      SimulatedTripPoint(roadPoint(-79.9975, 205, speed: 9)),
+      SimulatedTripPoint(roadPoint(-79.9967, 228, speed: 9)),
+    ]);
+    return points;
+  }
+
   List<SimulatedTripPoint> weakWalkingFalsePositiveWhileDriving() => [
     SimulatedTripPoint(roadPoint(-80, 0, speed: 10)),
     SimulatedTripPoint(roadPoint(-79.999, 20, speed: 10)),

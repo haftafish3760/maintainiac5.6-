@@ -117,6 +117,22 @@ void main() {
     expect(summary['routeGeometryIncluded'], isFalse);
   });
 
+  test('two-person delivery stop without phone walking stays vehicle-only', () {
+    final result = replayTrip(
+      scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final classification = classifyScenario(
+      scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
+      TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(result.needsWalkingReview, isFalse);
+    expect(classification.canSuggestStop, isFalse);
+    expect(classification.requiresUserReview, isFalse);
+    expect(classification.signal, isNot(TripStopSignal.reviewOnlyStop));
+  });
+
   test('weak walking false positives while driving do not create stops', () {
     final result = replayTrip(
       scenarios.weakWalkingFalsePositiveWhileDriving(),

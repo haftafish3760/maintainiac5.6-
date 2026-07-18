@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
+import 'support/trip_tracking_qa/trip_tracking_scenarios.dart';
 import 'support/trip_tracking_qa/trip_tracking_simulator.dart';
 
 void main() {
   final start = DateTime.utc(2026, 7, 13, 12);
+  final scenarios = TripTrackingScenarioLibrary(start: start);
 
   TripLocationSample point(
     double longitude,
@@ -300,6 +302,31 @@ void main() {
       );
       expect(result.acceptedMeters, greaterThan(250));
       expect(result.acceptedMeters, lessThan(500));
+    },
+  );
+
+  test(
+    'two-person delivery with phone left in vehicle does not invent a stop',
+    () {
+      final result = replayTrip(
+        scenarios.deliveryPhoneStaysInVehicleAtCustomerStop(),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final summary = result.toSafeDashboardSummary(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.count(TripSampleDisposition.excludedWalking), isZero);
+      expect(
+        result.count(TripSampleDisposition.rejectedDrift),
+        greaterThanOrEqualTo(8),
+      );
+      expect(summary['stopCanSuggestReview'], isFalse);
+      expect(summary['stopRequiresUserReview'], isFalse);
+      expect(summary['coordinatesIncluded'], isFalse);
+      expect(result.acceptedMeters, greaterThan(200));
+      expect(result.acceptedMeters, lessThan(450));
     },
   );
 
