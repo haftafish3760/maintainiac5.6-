@@ -66,6 +66,7 @@ class TripRecoveryResumeDecision {
     'recoveryCanEndTripAutomatically': false,
     'recoveryCanReplayPendingSampleWithoutValidation': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'rawGpsIncluded': false,
     'preciseLocationIncluded': false,
     'routeGeometryIncluded': false,
@@ -121,6 +122,7 @@ class TripRecoveryResumeSummaryValidation {
       'recoveryCanEndTripAutomatically',
       'recoveryCanReplayPendingSampleWithoutValidation',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'rawGpsIncluded',
       'preciseLocationIncluded',
       'routeGeometryIncluded',
@@ -136,7 +138,8 @@ class TripRecoveryResumeSummaryValidation {
     }
     if (summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['firestoreMirrorOnly'] != true ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('recovery_source_of_truth_boundary_missing');
     }
     if (summary['firestoreCanReviveQuarantinedSession'] != false ||

@@ -60,6 +60,7 @@ class TripLowBatteryPromptActionDecision {
     'mapboxCanOverrideBatteryChoice': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'mapsRequiredForGps': false,
     'preciseBatteryIncluded': false,
     'rawBatteryPayloadIncluded': false,
@@ -110,6 +111,7 @@ class TripLowBatteryPromptActionSummaryValidation {
       'mapboxCanOverrideBatteryChoice',
       'hiveRemainsOperationalSourceOfTruth',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'mapsRequiredForGps',
       'preciseBatteryIncluded',
       'rawBatteryPayloadIncluded',
@@ -140,7 +142,8 @@ class TripLowBatteryPromptActionSummaryValidation {
         summary['batteryActionCanDeleteTripRecords'] != false ||
         summary['batteryActionCanConfirmMileage'] != false ||
         summary['batteryActionCanCreateOfficialStop'] != false ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('battery_action_claims_trip_truth');
     }
     if (summary['firebaseCanOverrideBatteryChoice'] != false ||

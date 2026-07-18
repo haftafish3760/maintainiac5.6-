@@ -71,6 +71,7 @@ class TripBatteryGpsContinuationDecision {
     'mapboxCanOverrideBatteryChoice': false,
     'hiveRemainsOperationalSourceOfTruth': true,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'preciseBatteryIncluded': false,
     'rawBatteryPayloadIncluded': false,
     'tokensIncluded': false,
@@ -129,6 +130,7 @@ class TripBatteryGpsContinuationSummaryValidation {
       'mapboxCanOverrideBatteryChoice',
       'hiveRemainsOperationalSourceOfTruth',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'preciseBatteryIncluded',
       'rawBatteryPayloadIncluded',
       'tokensIncluded',
@@ -139,7 +141,8 @@ class TripBatteryGpsContinuationSummaryValidation {
         summary['gpsPauseCanDeleteTripRecords'] != false ||
         summary['gpsPauseCanConfirmMileage'] != false ||
         summary['gpsPauseCanCreateOfficialStop'] != false ||
-        summary['odometerRemainsOfficialMileageTruth'] != true) {
+        summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true) {
       reasons.add('battery_pause_claims_trip_truth');
     }
     if (summary['textTripLogContinuesWithoutGps'] !=

@@ -41,6 +41,7 @@ class TripTrackingNativeSamplingPolicy {
     'nativeSamplingCanCreateOfficialStop': false,
     'nativeSamplingCanDeleteLocalData': false,
     'odometerRemainsOfficialMileageTruth': true,
+    'odometerIsGlobalTruth': true,
     'hiveRemainsOperationalSourceOfTruth': true,
     'mapsRequiredForNativeSampling': false,
     'rawLocationIncluded': false,
@@ -180,6 +181,7 @@ class TripTrackingNativeSamplingSummaryValidation {
       'nativeSamplingCanCreateOfficialStop',
       'nativeSamplingCanDeleteLocalData',
       'odometerRemainsOfficialMileageTruth',
+      'odometerIsGlobalTruth',
       'hiveRemainsOperationalSourceOfTruth',
       'mapsRequiredForNativeSampling',
       'rawLocationIncluded',
@@ -217,6 +219,7 @@ class TripTrackingNativeSamplingSummaryValidation {
         summary['nativeSamplingCanCreateOfficialStop'] != false ||
         summary['nativeSamplingCanDeleteLocalData'] != false ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
+        summary['odometerIsGlobalTruth'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true) {
       reasons.add('native_sampling_claims_trip_truth');
     }
