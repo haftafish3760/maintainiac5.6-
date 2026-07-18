@@ -175,6 +175,15 @@ Future<void> main() async {
     cloudMirror: cloudMirror,
   );
   await tripTracking.restore();
+  void syncTripCalibrationAssist() {
+    tripTracking.refreshGpsAssistanceCalibration(
+      enabled:
+          tripTrackingSettings.settings.gpsOdometerCalibrationAssistEnabled,
+    );
+  }
+
+  syncTripCalibrationAssist();
+  tripTrackingSettings.addListener(syncTripCalibrationAssist);
   final activeDashboardMirror = dashboardMirror;
   if (activeDashboardMirror != null) {
     final dashboardReporter = DashboardTripTrackingSummaryReporter(

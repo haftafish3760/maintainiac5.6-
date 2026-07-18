@@ -41,7 +41,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingNativeGateway? _platform;
   final TripTrackingPolicy _policy;
   final TripTrackingCloudMirror _cloudMirror;
-  final double _gpsAssistanceCalibrationMultiplier;
+  double _gpsAssistanceCalibrationMultiplier;
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
   TripLiveOdometerProjection? _projection;
@@ -84,6 +84,8 @@ class TripTrackingController extends ChangeNotifier {
   String? get platformStatus => _platformStatus;
   String? get platformError => _platformError;
   String? get cloudMirrorError => _cloudMirrorError;
+  double get gpsAssistanceCalibrationMultiplier =>
+      _gpsAssistanceCalibrationMultiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
       _lastKnownCapabilities;
   TripTrackingReviewRecord? get latestReview =>
@@ -103,6 +105,16 @@ class TripTrackingController extends ChangeNotifier {
     vehicleId: vehicleId ?? _odometer.vehicleId,
     nowUtc: nowUtc,
   );
+
+  void refreshGpsAssistanceCalibration({required bool enabled}) {
+    final next = enabled
+        ? odometerCalibrationSignal().gpsAssistanceCalibrationMultiplier
+        : 1.0;
+    final safeNext = _safeGpsAssistanceCalibrationMultiplier(next);
+    if (safeNext == _gpsAssistanceCalibrationMultiplier) return;
+    _gpsAssistanceCalibrationMultiplier = safeNext;
+    notifyListeners();
+  }
 
   TripOdometerUsageAnomalySignal odometerUsageAnomalySignal({
     required double currentOdometerMiles,
