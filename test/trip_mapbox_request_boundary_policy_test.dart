@@ -72,7 +72,30 @@ void main() {
 
     expect(decision.status, TripMapboxRequestBoundaryStatus.requestAllowed);
     expect(decision.canCallMapbox, isTrue);
+    expect(decision.requestsRemainingInWindow, 97);
+    expect(decision.toSafeDashboardMap()['requestsRemainingInWindow'], 97);
   });
+
+  test(
+    'malformed request budgets fail closed without tokens or coordinates',
+    () {
+      final decision = TripMapboxRequestBoundaryPolicy.beforeRequest(
+        mapPreviewOptIn: true,
+        mapboxRuntimeConfigured: true,
+        networkAvailable: true,
+        localTripSourceValidated: true,
+        requestsUsedInWindow: -1,
+        maxRequestsPerWindow: 100,
+      );
+      final safe = decision.toSafeDashboardMap();
+
+      expect(decision.status, TripMapboxRequestBoundaryStatus.rateLimited);
+      expect(decision.canCallMapbox, isFalse);
+      expect(decision.requestsRemainingInWindow, 0);
+      expect(safe['tokensIncluded'], isFalse);
+      expect(safe['preciseLocationIncluded'], isFalse);
+    },
+  );
 
   test('valid directions response may render visual assist only', () {
     final decision = TripMapboxRequestBoundaryPolicy.afterDirectionsResponse(

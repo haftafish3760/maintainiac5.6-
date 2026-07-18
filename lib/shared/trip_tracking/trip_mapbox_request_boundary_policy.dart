@@ -19,6 +19,7 @@ class TripMapboxRequestBoundaryDecision {
     required this.canRenderMapAssist,
     required this.shouldUseGpsOnlyFallback,
     required this.shouldRetryLater,
+    required this.requestsRemainingInWindow,
   });
 
   final TripMapboxRequestBoundaryStatus status;
@@ -27,6 +28,7 @@ class TripMapboxRequestBoundaryDecision {
   final bool canRenderMapAssist;
   final bool shouldUseGpsOnlyFallback;
   final bool shouldRetryLater;
+  final int requestsRemainingInWindow;
 
   Map<String, Object?> toSafeDashboardMap() => {
     'schemaVersion': 1,
@@ -36,6 +38,7 @@ class TripMapboxRequestBoundaryDecision {
     'canRenderMapAssist': canRenderMapAssist,
     'shouldUseGpsOnlyFallback': shouldUseGpsOnlyFallback,
     'shouldRetryLater': shouldRetryLater,
+    'requestsRemainingInWindow': requestsRemainingInWindow,
     'gpsTripTrackingContinuesWithoutMaps': true,
     'mapboxRequiresSeparateUserOptIn': true,
     'mapboxRequestRequiresLocalTripSource': true,
@@ -75,6 +78,10 @@ class TripMapboxRequestBoundaryPolicy {
         canRenderMapAssist: false,
         shouldUseGpsOnlyFallback: true,
         shouldRetryLater: false,
+        requestsRemainingInWindow: _remainingRequests(
+          requestsUsedInWindow,
+          maxRequestsPerWindow,
+        ),
       );
     }
     if (!mapboxRuntimeConfigured ||
@@ -91,6 +98,10 @@ class TripMapboxRequestBoundaryPolicy {
         canRenderMapAssist: false,
         shouldUseGpsOnlyFallback: true,
         shouldRetryLater: networkAvailable == false,
+        requestsRemainingInWindow: _remainingRequests(
+          requestsUsedInWindow,
+          maxRequestsPerWindow,
+        ),
       );
     }
     if (!_withinRequestBudget(requestsUsedInWindow, maxRequestsPerWindow)) {
@@ -101,6 +112,7 @@ class TripMapboxRequestBoundaryPolicy {
         canRenderMapAssist: false,
         shouldUseGpsOnlyFallback: true,
         shouldRetryLater: true,
+        requestsRemainingInWindow: 0,
       );
     }
     return _decision(
@@ -110,6 +122,10 @@ class TripMapboxRequestBoundaryPolicy {
       canRenderMapAssist: false,
       shouldUseGpsOnlyFallback: false,
       shouldRetryLater: false,
+      requestsRemainingInWindow: _remainingRequests(
+        requestsUsedInWindow,
+        maxRequestsPerWindow,
+      ),
     );
   }
 
@@ -137,6 +153,7 @@ class TripMapboxRequestBoundaryPolicy {
         canRenderMapAssist: false,
         shouldUseGpsOnlyFallback: true,
         shouldRetryLater: true,
+        requestsRemainingInWindow: 0,
       );
     }
     if (!assist.shouldShowRoute) {
@@ -149,6 +166,7 @@ class TripMapboxRequestBoundaryPolicy {
         canRenderMapAssist: false,
         shouldUseGpsOnlyFallback: true,
         shouldRetryLater: false,
+        requestsRemainingInWindow: 0,
       );
     }
     return _decision(
@@ -158,6 +176,7 @@ class TripMapboxRequestBoundaryPolicy {
       canRenderMapAssist: true,
       shouldUseGpsOnlyFallback: false,
       shouldRetryLater: false,
+      requestsRemainingInWindow: 0,
     );
   }
 
@@ -172,6 +191,7 @@ class TripMapboxRequestBoundaryPolicy {
         canRenderMapAssist: false,
         shouldUseGpsOnlyFallback: true,
         shouldRetryLater: boundary.safeReason == 'mapbox_rate_limited',
+        requestsRemainingInWindow: 0,
       );
     }
     return _decision(
@@ -181,6 +201,7 @@ class TripMapboxRequestBoundaryPolicy {
       canRenderMapAssist: true,
       shouldUseGpsOnlyFallback: false,
       shouldRetryLater: false,
+      requestsRemainingInWindow: 0,
     );
   }
 }
@@ -192,6 +213,7 @@ TripMapboxRequestBoundaryDecision _decision({
   required bool canRenderMapAssist,
   required bool shouldUseGpsOnlyFallback,
   required bool shouldRetryLater,
+  required int requestsRemainingInWindow,
 }) {
   return TripMapboxRequestBoundaryDecision(
     status: status,
@@ -200,12 +222,22 @@ TripMapboxRequestBoundaryDecision _decision({
     canRenderMapAssist: canRenderMapAssist,
     shouldUseGpsOnlyFallback: shouldUseGpsOnlyFallback,
     shouldRetryLater: shouldRetryLater,
+    requestsRemainingInWindow: requestsRemainingInWindow < 0
+        ? 0
+        : requestsRemainingInWindow,
   );
 }
 
 bool _withinRequestBudget(int used, int max) {
   if (used < 0 || max <= 0 || max > 100000) return false;
   return used < max;
+}
+
+int _remainingRequests(int used, int max) {
+  if (used < 0 || max <= 0 || max > 100000) return 0;
+  final remaining = max - used;
+  if (remaining <= 0) return 0;
+  return remaining > 100000 ? 100000 : remaining;
 }
 
 String _safeReason(String value) {
@@ -226,6 +258,7 @@ String _safeReason(String value) {
     'mapbox_routes_invalid' => 'mapbox_routes_invalid',
     'mapbox_visual_only_no_trusted_mileage' =>
       'mapbox_visual_only_no_trusted_mileage',
+    'invalid_mapbox_route_distance' => 'invalid_mapbox_route_distance',
     'mapbox_visual_assist_only' => 'mapbox_visual_assist_only',
     'mapbox_distance_review_only' => 'mapbox_distance_review_only',
     _ => 'mapbox_http_failure',

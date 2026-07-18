@@ -66,6 +66,18 @@ class TripTrackingMapboxAssistBoundaryDecision {
         comparisonDeltaMiles: null,
       );
     }
+    final routeDistanceMiles = _safeMiles(mapboxDecision.routeDistanceMiles);
+    if (routeDistanceMiles == null) {
+      return const TripTrackingMapboxAssistBoundaryDecision._(
+        status: TripTrackingMapboxAssistBoundaryStatus.gpsOnlyFallback,
+        safeReason: 'invalid_mapbox_route_distance',
+        canRenderMapAssist: false,
+        canPromptMileageReview: false,
+        canPersistRouteHistory: false,
+        routeDistanceMiles: null,
+        comparisonDeltaMiles: null,
+      );
+    }
 
     final reviewReady =
         mapboxDecision.shouldPromptReview && reviewRecord != null;
@@ -77,8 +89,8 @@ class TripTrackingMapboxAssistBoundaryDecision {
       canRenderMapAssist: true,
       canPromptMileageReview: reviewReady,
       canPersistRouteHistory: routeHistoryOptIn,
-      routeDistanceMiles: mapboxDecision.routeDistanceMiles,
-      comparisonDeltaMiles: mapboxDecision.comparisonDeltaMiles,
+      routeDistanceMiles: routeDistanceMiles,
+      comparisonDeltaMiles: _safeMiles(mapboxDecision.comparisonDeltaMiles),
     );
   }
 
@@ -114,6 +126,8 @@ class TripTrackingMapboxAssistBoundaryDecision {
     'mapboxCanCreateStop': false,
     'mapboxCanEndTrip': false,
     'mapboxCanOverrideLocalTrip': false,
+    'mapboxCanConfirmMileage': false,
+    'mapboxCanConfirmStop': false,
     'firestoreCanOverrideMapAssistBoundary': false,
     'remoteRouteCanBecomeCanonical': false,
     'rawMapboxResponseIncluded': false,
@@ -161,6 +175,7 @@ String _safeReason(String value) {
     'mapbox_routes_missing' => 'mapbox_routes_missing',
     'mapbox_routes_invalid' => 'mapbox_routes_invalid',
     'invalid_map_assist_threshold' => 'invalid_map_assist_threshold',
+    'invalid_mapbox_route_distance' => 'invalid_mapbox_route_distance',
     'mapbox_visual_only_no_trusted_mileage' =>
       'mapbox_visual_only_no_trusted_mileage',
     'mapbox_visual_assist_only' => 'mapbox_visual_assist_only',

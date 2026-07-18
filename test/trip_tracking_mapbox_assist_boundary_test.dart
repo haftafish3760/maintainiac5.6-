@@ -106,6 +106,31 @@ void main() {
     expect(safe['advisoryOnly'], isTrue);
     expect(safe['officialMileageSource'], 'odometer');
     expect(safe['remoteRouteCanBecomeCanonical'], isFalse);
+    expect(safe['mapboxCanConfirmMileage'], isFalse);
+    expect(safe['mapboxCanConfirmStop'], isFalse);
+  });
+
+  test('invalid route distance falls back without rendering map assist', () {
+    final decision = TripTrackingMapboxAssistBoundaryDecision.evaluate(
+      mapboxDecision: const MapboxTripAssistDecision(
+        status: MapboxTripAssistStatus.visualOnly,
+        safeReason: 'mapbox_visual_assist_only',
+        routeDistanceMiles: double.infinity,
+        comparisonDeltaMiles: null,
+        trustedMileageSource: MapboxTrustedMileageSource.none,
+      ),
+      activeSession: activeSession(),
+      mapPreviewOptIn: true,
+      routeHistoryOptIn: true,
+    );
+
+    expect(
+      decision.status,
+      TripTrackingMapboxAssistBoundaryStatus.gpsOnlyFallback,
+    );
+    expect(decision.safeReason, 'invalid_mapbox_route_distance');
+    expect(decision.canRenderMapAssist, isFalse);
+    expect(decision.canPersistRouteHistory, isFalse);
   });
 
   test('rate limits and malformed routes fall back to GPS-only safely', () {
