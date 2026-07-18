@@ -77,6 +77,9 @@ void main() {
       minimumReviewedDays: 7,
       latestReviewedAtUtc: now,
       nowUtc: now,
+      activeVehicleId: 'vehicle_1',
+      reviewedVehicleId: 'vehicle_1',
+      reviewedVehicleIds: const ['vehicle_1'],
     );
     final safe = guard.toSafeDashboardMap();
 
@@ -94,6 +97,9 @@ void main() {
     expect(safe['calibrationCanPurgeLocalDataAfterBackup'], isFalse);
     expect(safe['calibrationCanBypassVehicleProfile'], isFalse);
     expect(safe['calibrationCanApplyAcrossVehicles'], isFalse);
+    expect(safe['calibrationRequiresSingleVehicleHistory'], isTrue);
+    expect(safe['calibrationVehicleIdIncluded'], isFalse);
+    expect(safe['rawVehicleIdsIncluded'], isFalse);
     expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
     expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
     expect(safe['odometerRemainsCanonical'], isTrue);
@@ -146,6 +152,52 @@ void main() {
     expect(guard.canApplyToFutureGpsProjection, isFalse);
     expect(safe['excessiveHistoryCountRejected'], isTrue);
     expect(safe['canRewriteConfirmedOdometer'], isFalse);
+  });
+
+  test('calibration rejects mixed or mismatched vehicle history', () {
+    final mixed = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      activeVehicleId: 'vehicle_1',
+      reviewedVehicleIds: const ['vehicle_1', 'vehicle_2'],
+    );
+    final mismatch = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      activeVehicleId: 'vehicle_1',
+      reviewedVehicleId: 'vehicle_2',
+    );
+    final unsafe = TripTrackingCalibrationApplyGuard.evaluate(
+      signal: signal(),
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+      minimumReviewedDays: 7,
+      latestReviewedAtUtc: now,
+      nowUtc: now,
+      activeVehicleId: 'vehicle/../2',
+      reviewedVehicleIds: const ['vehicle_1'],
+    );
+
+    expect(mixed.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(mixed.reasonCodes, contains('mixed_vehicle_calibration_history'));
+    expect(mismatch.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(mismatch.reasonCodes, contains('calibration_vehicle_mismatch'));
+    expect(unsafe.status, TripTrackingCalibrationApplyStatus.rejected);
+    expect(unsafe.reasonCodes, contains('unsafe_active_vehicle_id'));
+    expect(mixed.multiplier, 1);
+    expect(mismatch.canApplyToFutureGpsProjection, isFalse);
+    expect(
+      unsafe.toSafeDashboardMap()['calibrationCanApplyAcrossVehicles'],
+      isFalse,
+    );
   });
 
   test('stable calibration keeps a neutral multiplier', () {
@@ -233,6 +285,9 @@ void main() {
     expect(safe['mapboxRouteDistanceCanBecomeOfficial'], isFalse);
     expect(safe['requiresMultipleReviewedOdometerDays'], isTrue);
     expect(safe['latestReviewTimestampRequired'], isTrue);
+    expect(safe['calibrationRequiresSingleVehicleHistory'], isTrue);
+    expect(safe['calibrationVehicleIdIncluded'], isFalse);
+    expect(safe['rawVehicleIdsIncluded'], isFalse);
   });
 
   test('safe calibration apply summary validates as renderable', () {
@@ -277,6 +332,9 @@ void main() {
               'calibrationCanPurgeLocalDataAfterBackup': true,
               'calibrationCanBypassVehicleProfile': true,
               'calibrationCanApplyAcrossVehicles': true,
+              'calibrationRequiresSingleVehicleHistory': false,
+              'calibrationVehicleIdIncluded': true,
+              'rawVehicleIdsIncluded': true,
               'remoteCalibrationCanRewritePastTrips': true,
               'mapboxRouteDistanceCanBecomeOfficial': true,
               'firestoreCanApplyCalibration': true,

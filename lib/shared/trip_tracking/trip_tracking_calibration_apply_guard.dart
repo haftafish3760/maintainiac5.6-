@@ -23,11 +23,20 @@ class TripTrackingCalibrationApplyGuard {
     required int minimumReviewedDays,
     required DateTime? latestReviewedAtUtc,
     required DateTime nowUtc,
+    String? activeVehicleId,
+    String? reviewedVehicleId,
+    Iterable<String> reviewedVehicleIds = const <String>[],
     Duration maximumCalibrationReviewAge = const Duration(days: 30),
   }) {
     final reasons = <String>[];
     final now = nowUtc.toUtc();
     final latestReviewed = latestReviewedAtUtc?.toUtc();
+    final activeVehicle = activeVehicleId?.trim();
+    final reviewedVehicle = reviewedVehicleId?.trim();
+    final reviewedVehicles = reviewedVehicleIds
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet();
     if (minimumReviewedDays <= 0) reasons.add('invalid_minimum_reviewed_days');
     if (signal.eligibleSampleCount < 0) reasons.add('negative_sample_count');
     if (signal.eligibleSampleCount > 366) reasons.add('excessive_sample_count');
@@ -54,6 +63,28 @@ class TripTrackingCalibrationApplyGuard {
           now.subtract(_safeReviewAge(maximumCalibrationReviewAge)),
         )) {
       reasons.add('stale_review_timestamp');
+    }
+    if (activeVehicle != null && !_isSafeVehicleToken(activeVehicle)) {
+      reasons.add('unsafe_active_vehicle_id');
+    }
+    if (reviewedVehicle != null && !_isSafeVehicleToken(reviewedVehicle)) {
+      reasons.add('unsafe_reviewed_vehicle_id');
+    }
+    if (reviewedVehicles.any((value) => !_isSafeVehicleToken(value))) {
+      reasons.add('unsafe_reviewed_vehicle_id');
+    }
+    if (reviewedVehicles.length > 1) {
+      reasons.add('mixed_vehicle_calibration_history');
+    }
+    if (activeVehicle != null &&
+        reviewedVehicle != null &&
+        activeVehicle != reviewedVehicle) {
+      reasons.add('calibration_vehicle_mismatch');
+    }
+    if (activeVehicle != null &&
+        reviewedVehicles.isNotEmpty &&
+        !reviewedVehicles.contains(activeVehicle)) {
+      reasons.add('calibration_vehicle_mismatch');
     }
     if (reasons.isNotEmpty) {
       return TripTrackingCalibrationApplyGuard._(
@@ -122,6 +153,9 @@ class TripTrackingCalibrationApplyGuard {
     'calibrationCanPurgeLocalDataAfterBackup': false,
     'calibrationCanBypassVehicleProfile': false,
     'calibrationCanApplyAcrossVehicles': false,
+    'calibrationRequiresSingleVehicleHistory': true,
+    'calibrationVehicleIdIncluded': false,
+    'rawVehicleIdsIncluded': false,
     'remoteCalibrationCanRewritePastTrips': false,
     'mapboxRouteDistanceCanBecomeOfficial': false,
     'userOptInRequired': true,
@@ -184,6 +218,7 @@ class TripTrackingCalibrationApplySummaryValidation {
         summary['calibrationCanPurgeLocalDataAfterBackup'] != false ||
         summary['calibrationCanBypassVehicleProfile'] != false ||
         summary['calibrationCanApplyAcrossVehicles'] != false ||
+        summary['calibrationRequiresSingleVehicleHistory'] != true ||
         summary['remoteCalibrationCanRewritePastTrips'] != false) {
       reasons.add('calibration_can_mutate_trip_truth');
     }
@@ -209,6 +244,8 @@ class TripTrackingCalibrationApplySummaryValidation {
     }
     if (summary['rawReviewedTripsIncluded'] != false ||
         summary['rawGpsIncluded'] != false ||
+        summary['calibrationVehicleIdIncluded'] != false ||
+        summary['rawVehicleIdsIncluded'] != false ||
         summary['preciseLocationIncluded'] != false ||
         summary['tokensIncluded'] != false) {
       reasons.add('summary_contains_sensitive_calibration_material');
@@ -270,6 +307,10 @@ String? _safeApplyReason(Object? value) {
     'future_review_timestamp' => value,
     'missing_latest_review_timestamp' => value,
     'stale_review_timestamp' => value,
+    'unsafe_active_vehicle_id' => value,
+    'unsafe_reviewed_vehicle_id' => value,
+    'mixed_vehicle_calibration_history' => value,
+    'calibration_vehicle_mismatch' => value,
     'calibration_user_opt_in_required' => value,
     'more_reviewed_odometer_days_required' => value,
     'user_must_accept_calibration_review' => value,
@@ -285,4 +326,11 @@ bool _looksSensitive(Object? value) {
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
       clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
+}
+
+bool _isSafeVehicleToken(String value) {
+  final clean = value.trim();
+  return clean.isNotEmpty &&
+      clean.length <= 120 &&
+      RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean);
 }
