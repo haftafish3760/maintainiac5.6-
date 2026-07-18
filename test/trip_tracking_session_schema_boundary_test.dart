@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_boundary_summary.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
@@ -195,4 +196,125 @@ void main() {
     expect(valid.hasValidTimeline, isTrue);
     expect(valid.isOdometerConfirmed, isTrue);
   });
+
+  test(
+    'active trip boundary summary exposes no raw route or identity data',
+    () {
+      final session = TripTrackingSessionRecord.fromMap({
+        ...sessionMap(),
+        'id': 'trip_safe_summary',
+        'vehicleId': 'vehicle_safe_summary',
+        'startingOdometer': 120001,
+      });
+
+      final summary = session.toBoundarySummary();
+
+      expect(summary['recordType'], 'activeSession');
+      expect(summary['hasSafeTripId'], isTrue);
+      expect(summary['hasSafeVehicleId'], isTrue);
+      expect(summary['odometerBucket'], '100k_1m');
+      expect(summary['storedAsDurableCheckpoint'], isTrue);
+      expect(summary['hiveRemainsSourceOfTruth'], isTrue);
+      expect(summary['remoteDataCanOverrideLocalTripLog'], isFalse);
+      expect(summary['remoteTotalsCanBecomeCanonical'], isFalse);
+      expect(summary['mapsRequiredForTracking'], isFalse);
+      expect(summary['mapboxCanOverrideOdometer'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['preciseLocationIncluded'], isFalse);
+      expect(summary['preciseTimestampIncluded'], isFalse);
+      expect(summary['rawEngineSnapshotIncluded'], isFalse);
+      expect(summary['rawAdvisoriesIncluded'], isFalse);
+      expect(summary['tokensIncluded'], isFalse);
+      expect(summary['canCreateOfficialMileage'], isFalse);
+      expect(summary.toString(), isNot(contains('trip_safe_summary')));
+      expect(summary.toString(), isNot(contains('vehicle_safe_summary')));
+      expect(summary.toString(), isNot(contains('120001')));
+    },
+  );
+
+  test(
+    'review boundary summary keeps cloud mirror and odometer advisory only',
+    () {
+      final review = TripTrackingReviewRecord.fromMap(
+        reviewMap(
+          cloudSyncState: TripTrackingCloudSyncState.synced.name,
+          cloudSyncedAt: finishedAt
+              .add(const Duration(seconds: 5))
+              .toIso8601String(),
+          cloudBackupScope: TripTrackingCloudBackupScope.organization.name,
+          cloudOrganizationId: 'org_123',
+          confirmedEndingOdometer: 1002,
+          odometerConfirmedAt: finishedAt
+              .add(const Duration(seconds: 10))
+              .toIso8601String(),
+        ),
+      ).copyWith(cloudAccountUid: 'firebaseUid_1');
+
+      final summary = review.toBoundarySummary();
+
+      expect(summary['recordType'], 'review');
+      expect(summary['hasValidTimeline'], isTrue);
+      expect(summary['startingOdometerBucket'], '1k_10k');
+      expect(summary['estimatedEndingOdometerBucket'], '1k_10k');
+      expect(summary['confirmedEndingOdometerBucket'], '1k_10k');
+      expect(summary['isOdometerConfirmed'], isTrue);
+      expect(summary['cloudSyncState'], TripTrackingCloudSyncState.synced.name);
+      expect(
+        summary['cloudBackupScope'],
+        TripTrackingCloudBackupScope.organization.name,
+      );
+      expect(summary['hasCloudAccountBinding'], isTrue);
+      expect(summary['hasOrganizationBinding'], isTrue);
+      expect(summary['cloudSyncTimestampPresent'], isTrue);
+      expect(summary['hiveRemainsSourceOfTruth'], isTrue);
+      expect(summary['firestoreMirrorOnly'], isTrue);
+      expect(summary['remoteDataCanOverrideLocalTripLog'], isFalse);
+      expect(summary['remoteTotalsCanBecomeCanonical'], isFalse);
+      expect(summary['cloudMirrorCanDeleteLocalTripLog'], isFalse);
+      expect(summary['mapsRequiredForReview'], isFalse);
+      expect(summary['mapboxCanOverrideOdometer'], isFalse);
+      expect(summary['odometerRemainsCanonical'], isTrue);
+      expect(summary['authorizationRequiredBeforeCloudWrite'], isTrue);
+      expect(summary['authenticationImpliesAuthorization'], isFalse);
+      expect(summary['preciseLocationIncluded'], isFalse);
+      expect(summary['preciseTimestampIncluded'], isFalse);
+      expect(summary['accountIdIncluded'], isFalse);
+      expect(summary['organizationIdIncluded'], isFalse);
+      expect(summary['rawReviewIncluded'], isFalse);
+      expect(summary['tokensIncluded'], isFalse);
+      expect(summary['canOverrideOdometer'], isFalse);
+      expect(summary.toString(), isNot(contains('firebaseUid_1')));
+      expect(summary.toString(), isNot(contains('org_123')));
+    },
+  );
+
+  test(
+    'review boundary summary sanitizes malformed persisted cloud metadata',
+    () {
+      final review =
+          TripTrackingReviewRecord.fromMap(
+            reviewMap(
+              cloudSyncState: TripTrackingCloudSyncState.failed.name,
+              cloudBackupScope: TripTrackingCloudBackupScope.organization.name,
+              cloudOrganizationId: 'org id/../unsafe',
+            ),
+          ).copyWith(
+            cloudAccountUid: 'token=sk.secret',
+            cloudSyncError: 'Mapbox failed at 35.12345,-80.98765 pk.public',
+          );
+
+      final summary = review.toBoundarySummary();
+
+      expect(summary['hasValidTimeline'], isFalse);
+      expect(summary['hasCloudAccountBinding'], isFalse);
+      expect(summary['hasOrganizationBinding'], isFalse);
+      expect(summary['hasCloudSyncError'], isTrue);
+      expect(summary['accountIdIncluded'], isFalse);
+      expect(summary['organizationIdIncluded'], isFalse);
+      expect(summary.toString(), isNot(contains('sk.secret')));
+      expect(summary.toString(), isNot(contains('pk.public')));
+      expect(summary.toString(), isNot(contains('35.12345')));
+      expect(summary.toString(), isNot(contains('-80.98765')));
+    },
+  );
 }
