@@ -49,6 +49,10 @@ class TripRouteHistoryCaptureDecision {
     'authenticationAloneAuthorizesRouteHistory': false,
     'freeGpsTripTrackerRemainsFree': true,
     'freeTierRouteHistoryBudgetCapped': true,
+    'routeHistoryRequiresUserDailyBudget': true,
+    'routeHistoryCannotExceedUserDailyBudget': true,
+    'routeHistoryCostCannotBeHiddenFromUser': true,
+    'routeHistoryPrepaidBudgetRequiredForPaidMaps': true,
     'routeHistoryCanBeDisabledWithoutStoppingTrip': true,
     'textTripLogStillWritten': true,
     'textTripLogCanContinueAtLowStorage': true,
@@ -81,6 +85,9 @@ class TripRouteHistoryCaptureDecision {
     'firestoreMirrorOnly': true,
     'durableStorageRemainsSharedAcrossModules': true,
     'routeHistoryCleanupRequiresExplicitUserAction': true,
+    'routeHistoryCleanupCannotRunSilently': true,
+    'routeHistoryDeletionRequiresUserConfirmation': true,
+    'routeHistoryRetentionRequiresLocalSettings': true,
     'mapboxFailureStopsTextTripLog': false,
     'firestoreCanEnableMapsWithoutUserOptIn': false,
     'firestoreCanRestoreDeletedRouteHistory': false,
@@ -138,6 +145,10 @@ class TripRouteHistorySummaryValidation {
         summary['oneToThreeSecondRawPingStorageAllowed'] != false ||
         summary['rawHighFrequencyPingsRetained'] != false ||
         summary['freeTierRouteHistoryBudgetCapped'] != true ||
+        summary['routeHistoryRequiresUserDailyBudget'] != true ||
+        summary['routeHistoryCannotExceedUserDailyBudget'] != true ||
+        summary['routeHistoryCostCannotBeHiddenFromUser'] != true ||
+        summary['routeHistoryPrepaidBudgetRequiredForPaidMaps'] != true ||
         summary['remoteConfigCanIncreaseSamplingCadence'] != false ||
         summary['remoteConfigCanExceedDailyBudget'] != false) {
       reasons.add('route_history_budget_boundary_missing');
@@ -168,7 +179,10 @@ class TripRouteHistorySummaryValidation {
         summary['firestoreMirrorOnly'] != true ||
         summary['durableStorageRemainsSharedAcrossModules'] != true ||
         summary['firestoreCanRestoreDeletedRouteHistory'] != false ||
-        summary['routeHistoryCleanupRequiresExplicitUserAction'] != true) {
+        summary['routeHistoryCleanupRequiresExplicitUserAction'] != true ||
+        summary['routeHistoryCleanupCannotRunSilently'] != true ||
+        summary['routeHistoryDeletionRequiresUserConfirmation'] != true ||
+        summary['routeHistoryRetentionRequiresLocalSettings'] != true) {
       reasons.add('storage_authority_boundary_missing');
     }
     if (summary['rawCoordinatesIncluded'] != false ||

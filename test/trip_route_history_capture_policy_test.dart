@@ -44,6 +44,10 @@ void main() {
     expect(safe['oneToThreeSecondRawPingStorageAllowed'], isFalse);
     expect(safe['rawHighFrequencyPingsRetained'], isFalse);
     expect(safe['freeTierRouteHistoryBudgetCapped'], isTrue);
+    expect(safe['routeHistoryRequiresUserDailyBudget'], isTrue);
+    expect(safe['routeHistoryCannotExceedUserDailyBudget'], isTrue);
+    expect(safe['routeHistoryCostCannotBeHiddenFromUser'], isTrue);
+    expect(safe['routeHistoryPrepaidBudgetRequiredForPaidMaps'], isTrue);
   });
 
   test(
@@ -130,6 +134,9 @@ void main() {
     expect(safe['tokensIncluded'], isFalse);
     expect(safe['durableStorageRemainsSharedAcrossModules'], isTrue);
     expect(safe['routeHistoryCleanupRequiresExplicitUserAction'], isTrue);
+    expect(safe['routeHistoryCleanupCannotRunSilently'], isTrue);
+    expect(safe['routeHistoryDeletionRequiresUserConfirmation'], isTrue);
+    expect(safe['routeHistoryRetentionRequiresLocalSettings'], isTrue);
     expect(safe['mapboxFailureStopsTextTripLog'], isFalse);
     expect(safe['firestoreCanEnableMapsWithoutUserOptIn'], isFalse);
     expect(safe['firestoreCanRestoreDeletedRouteHistory'], isFalse);
@@ -174,6 +181,10 @@ void main() {
           'userCanDisableMapRouteHistoryAnytime': false,
           'oneToThreeSecondRawPingStorageAllowed': true,
           'freeTierRouteHistoryBudgetCapped': false,
+          'routeHistoryRequiresUserDailyBudget': false,
+          'routeHistoryCannotExceedUserDailyBudget': false,
+          'routeHistoryCostCannotBeHiddenFromUser': false,
+          'routeHistoryPrepaidBudgetRequiredForPaidMaps': false,
           'remoteConfigCanIncreaseSamplingCadence': true,
           'remoteConfigCanExceedDailyBudget': true,
           'mapboxCanReplaceTripLog': true,
@@ -198,6 +209,9 @@ void main() {
           'durableStorageRemainsSharedAcrossModules': false,
           'firestoreCanRestoreDeletedRouteHistory': true,
           'routeHistoryCleanupRequiresExplicitUserAction': false,
+          'routeHistoryCleanupCannotRunSilently': false,
+          'routeHistoryDeletionRequiresUserConfirmation': false,
+          'routeHistoryRetentionRequiresLocalSettings': false,
           'rawCoordinatesIncluded': true,
           'routeGeometryIncluded': true,
           'tokensIncluded': true,

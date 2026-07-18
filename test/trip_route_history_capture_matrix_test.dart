@@ -97,6 +97,8 @@ void main() {
       expect(safe['mapboxFailureStopsTextTripLog'], isFalse);
       expect(safe['mapboxCanReplaceOdometer'], isFalse);
       expect(safe['routeHistoryCanConfirmMileage'], isFalse);
+      expect(safe['routeHistoryCannotExceedUserDailyBudget'], isTrue);
+      expect(safe['routeHistoryCleanupCannotRunSilently'], isTrue);
       expect(safe['firestoreMirrorOnly'], isTrue);
       expect(safe['rawCoordinatesIncluded'], isFalse);
       expect(safe['tokensIncluded'], isFalse);
