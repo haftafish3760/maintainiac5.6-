@@ -136,6 +136,7 @@ class TripTrackingMapRoutePointDecision {
     'localTripLogProtected': true,
     'purgeRequiresConfirmedBackupOrUserAction': true,
     'odometerIsGlobalTruth': true,
+    'odometerRemainsCanonical': true,
     'routeStorageCanBecomeCalibrationProof': false,
     'calibrationRequiresTrustedGpsWindow': true,
     'poorGpsDaysExcludedFromCalibration': true,
@@ -375,11 +376,11 @@ class TripTrackingMapStorageSummaryValidation {
     if (summary['freePlanBudgetCannotBeRaisedRemotely'] == false) {
       reasons.add('free_plan_budget_boundary_missing');
     }
-    if ((summary['odometerIsGlobalTruth'] == false) ||
-        (summary['odometerRemainsCanonical'] == false) ||
-        summary['routeStorageCanBecomeCalibrationProof'] == true ||
-        summary['calibrationRequiresTrustedGpsWindow'] == false ||
-        summary['poorGpsDaysExcludedFromCalibration'] == false ||
+    if (summary['odometerIsGlobalTruth'] != true ||
+        summary['odometerRemainsCanonical'] != true ||
+        summary['routeStorageCanBecomeCalibrationProof'] != false ||
+        summary['calibrationRequiresTrustedGpsWindow'] != true ||
+        summary['poorGpsDaysExcludedFromCalibration'] != true ||
         summary['rawCoordinatesIncluded'] != false ||
         summary['routeGeometryIncluded'] != false ||
         summary['mapboxGeometryIncluded'] != false ||

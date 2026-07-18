@@ -374,6 +374,33 @@ void main() {
     expect(validation.reasons, contains('free_plan_budget_boundary_missing'));
   });
 
+  test('map storage validation rejects missing truth boundary flags', () {
+    final summary =
+        TripTrackingMapStoragePolicy.estimate(
+            settings: const TripTrackingSettings().copyWith(
+              gpsAssistedTrackingEnabled: true,
+              mapPreviewEnabled: true,
+              mapRouteHistorySavingEnabled: true,
+              mapRouteHistoryDailyBudgetMb: 1,
+            ),
+          ).toSafeDashboardMap()
+          ..remove('odometerIsGlobalTruth')
+          ..remove('odometerRemainsCanonical')
+          ..remove('routeStorageCanBecomeCalibrationProof')
+          ..remove('calibrationRequiresTrustedGpsWindow')
+          ..remove('poorGpsDaysExcludedFromCalibration');
+
+    final validation = TripTrackingMapStorageSummaryValidation.fromSummary(
+      summary,
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(
+      validation.reasons,
+      contains('summary_contains_sensitive_map_material'),
+    );
+  });
+
   test('route point payload validation accepts compact GPS history only', () {
     final now = DateTime.utc(2026, 7, 18, 12);
     final decision = TripTrackingMapRoutePointPayloadPolicy.validate(
