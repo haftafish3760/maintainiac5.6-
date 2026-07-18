@@ -54,8 +54,13 @@ void main() {
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'networkPolicyRequiresVerification': true,
+      'usageDecisionTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageDecisionFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
       'syncAttemptCanDeleteLocalData': false,
       'syncAttemptCanOverrideLocalDaytimeData': false,
+      'firestoreCanDeleteLocalTripData': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'canOverrideLocalDaytimeData': false,
@@ -172,7 +177,12 @@ void main() {
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
+      'usageWindowTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageCounterFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
       'syncAttemptCanDeleteLocalData': false,
+      'firestoreCanDeleteLocalTripData': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'canOverrideLocalDaytimeData': false,
@@ -207,7 +217,12 @@ void main() {
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
+      'usageWindowTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageCounterFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
       'syncAttemptCanDeleteLocalData': false,
+      'firestoreCanDeleteLocalTripData': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'canOverrideLocalDaytimeData': false,
@@ -241,7 +256,12 @@ void main() {
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
+      'usageWindowTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageCounterFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
       'syncAttemptCanDeleteLocalData': false,
+      'firestoreCanDeleteLocalTripData': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'canOverrideLocalDaytimeData': false,
@@ -300,7 +320,12 @@ void main() {
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
+      'usageWindowTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageCounterFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
       'syncAttemptCanDeleteLocalData': false,
+      'firestoreCanDeleteLocalTripData': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'canOverrideLocalDaytimeData': false,
@@ -318,5 +343,30 @@ void main() {
       ).mayAttemptSync,
       isFalse,
     );
+  });
+
+  test('direct malformed sync decisions fail closed in safe summaries', () {
+    const forged = TripTrackingBackupSyncDecision(
+      networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+      networkKnown: true,
+      networkAllowed: true,
+      freeSyncAllowed: true,
+      freeSyncsRemaining: 999,
+      reasonCode: 'sync_ready token=sk.secret',
+    );
+
+    final summary = forged.toSafeSummary();
+
+    expect(summary['networkAllowed'], isTrue);
+    expect(summary['freeSyncAllowed'], isFalse);
+    expect(summary['freeSyncsRemaining'], isNull);
+    expect(summary['mayAttemptSync'], isFalse);
+    expect(summary['reasonCode'], 'free_sync_limit_invalid');
+    expect(summary['label'], contains('unverified'));
+    expect(summary['usageDecisionTrustedAfterValidationOnly'], isTrue);
+    expect(summary['remoteUsageCounterCanAuthorizeSync'], isFalse);
+    expect(summary['malformedUsageDecisionFailsClosed'], isTrue);
+    expect(summary['firestoreCanDeleteLocalTripData'], isFalse);
+    expect(summary.toString(), isNot(contains('sk.secret')));
   });
 }

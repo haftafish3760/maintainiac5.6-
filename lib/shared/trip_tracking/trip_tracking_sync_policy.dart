@@ -119,7 +119,12 @@ class TripTrackingFreeSyncWindowCounter {
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
+      'usageWindowTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageCounterFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
       'syncAttemptCanDeleteLocalData': false,
+      'firestoreCanDeleteLocalTripData': false,
       'hiveRemainsSourceOfTruth': true,
       'firestoreMirrorOnly': true,
       'canOverrideLocalDaytimeData': false,
@@ -187,30 +192,50 @@ class TripTrackingBackupSyncDecision {
     return '$remaining free sync${remaining == 1 ? '' : 's'} left';
   }
 
-  Map<String, Object?> toSafeSummary() => {
-    'schemaVersion': 1,
-    'networkPolicy': networkPolicy.name,
-    'networkKnown': networkKnown,
-    'networkAllowed': networkAllowed,
-    'freeSyncAllowed': freeSyncAllowed,
-    'freeSyncsRemaining': freeSyncsRemaining,
-    'mayAttemptSync': mayAttemptSync,
-    'reasonCode': reasonCode,
-    'label': dashboardLabel,
-    'freePlanSyncLimit': TripTrackingBackupSyncPolicy.freeSyncsPerWindow,
-    'freePlanWindowHours': 24,
-    'freePlanUsageMustBeVerified': true,
-    'networkPolicyRequiresVerification': true,
-    'syncAttemptCanDeleteLocalData': false,
-    'syncAttemptCanOverrideLocalDaytimeData': false,
-    'hiveRemainsSourceOfTruth': true,
-    'firestoreMirrorOnly': true,
-    'canOverrideLocalDaytimeData': false,
-    'canUploadRawGps': false,
-    'tokensIncluded': false,
-    'locationDataIncluded': false,
-    'rawModuleDataIncluded': false,
-  };
+  Map<String, Object?> toSafeSummary() {
+    final safeReasonCode = _safeSyncReasonCode(reasonCode);
+    final safeRemaining = _safeFreeSyncsRemaining(freeSyncsRemaining);
+    final safeNetworkAllowed = networkKnown && networkAllowed;
+    final safeFreeSyncAllowed =
+        freeSyncAllowed &&
+        safeReasonCode == 'sync_ready' &&
+        safeRemaining != null;
+    final safeMayAttemptSync =
+        safeNetworkAllowed && safeFreeSyncAllowed && safeRemaining > 0;
+    return {
+      'schemaVersion': 1,
+      'networkPolicy': networkPolicy.name,
+      'networkKnown': networkKnown,
+      'networkAllowed': safeNetworkAllowed,
+      'freeSyncAllowed': safeFreeSyncAllowed,
+      'freeSyncsRemaining': safeRemaining,
+      'mayAttemptSync': safeMayAttemptSync,
+      'reasonCode': safeReasonCode,
+      'label': _safeDashboardLabel(
+        networkLabel: networkLabel,
+        reasonCode: safeReasonCode,
+        freeSyncsRemaining: safeRemaining,
+      ),
+      'freePlanSyncLimit': TripTrackingBackupSyncPolicy.freeSyncsPerWindow,
+      'freePlanWindowHours': 24,
+      'freePlanUsageMustBeVerified': true,
+      'networkPolicyRequiresVerification': true,
+      'usageDecisionTrustedAfterValidationOnly': true,
+      'remoteUsageCounterCanAuthorizeSync': false,
+      'malformedUsageDecisionFailsClosed': true,
+      'freeUserReservedAttemptRequired': true,
+      'syncAttemptCanDeleteLocalData': false,
+      'syncAttemptCanOverrideLocalDaytimeData': false,
+      'firestoreCanDeleteLocalTripData': false,
+      'hiveRemainsSourceOfTruth': true,
+      'firestoreMirrorOnly': true,
+      'canOverrideLocalDaytimeData': false,
+      'canUploadRawGps': false,
+      'tokensIncluded': false,
+      'locationDataIncluded': false,
+      'rawModuleDataIncluded': false,
+    };
+  }
 
   String get userFacingReason {
     return switch (reasonCode) {
@@ -257,4 +282,37 @@ int? _verifiableSyncsUsedInWindow(int? value) {
     return null;
   }
   return value;
+}
+
+String _safeSyncReasonCode(String reasonCode) {
+  return switch (reasonCode.trim()) {
+    'sync_ready' => 'sync_ready',
+    'network_unknown' => 'network_unknown',
+    'network_policy_blocked' => 'network_policy_blocked',
+    'free_sync_limit_invalid' => 'free_sync_limit_invalid',
+    'free_sync_limit_unknown' => 'free_sync_limit_unknown',
+    'free_sync_limit_reached' => 'free_sync_limit_reached',
+    _ => 'free_sync_limit_invalid',
+  };
+}
+
+int? _safeFreeSyncsRemaining(int? value) {
+  if (value == null || value < 0) return null;
+  if (value > TripTrackingBackupSyncPolicy.freeSyncsPerWindow) return null;
+  return value;
+}
+
+String _safeDashboardLabel({
+  required String networkLabel,
+  required String reasonCode,
+  required int? freeSyncsRemaining,
+}) {
+  if (reasonCode == 'free_sync_limit_invalid') {
+    return 'Sync: $networkLabel; free sync usage unverified';
+  }
+  final remaining = freeSyncsRemaining;
+  if (remaining == null) {
+    return 'Sync: $networkLabel; free sync usage pending';
+  }
+  return 'Sync: $networkLabel; $remaining free sync${remaining == 1 ? '' : 's'} left';
 }
