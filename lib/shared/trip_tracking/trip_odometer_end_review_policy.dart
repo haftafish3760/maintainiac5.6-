@@ -1,4 +1,5 @@
 import 'trip_odometer_calibration_prompt_policy.dart';
+import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
 
 enum TripOdometerEndReviewStatus {
@@ -14,6 +15,7 @@ class TripOdometerEndReviewDecision {
     required this.entryValidation,
     required this.reconciliation,
     required this.calibrationPrompt,
+    this.usageAnomaly,
     required this.canConfirmOdometer,
     required this.shouldShowReviewBeforeConfirm,
   });
@@ -23,6 +25,7 @@ class TripOdometerEndReviewDecision {
   final TripOdometerEntryValidation entryValidation;
   final TripOdometerReconciliation reconciliation;
   final TripOdometerCalibrationPromptDecision calibrationPrompt;
+  final TripOdometerUsageAnomalySignal? usageAnomaly;
   final bool canConfirmOdometer;
   final bool shouldShowReviewBeforeConfirm;
 
@@ -35,6 +38,7 @@ class TripOdometerEndReviewDecision {
     'entryValidation': entryValidation.toSafeDashboardMap(),
     'reconciliation': reconciliation.toSafeDashboardMap(),
     'calibrationPrompt': calibrationPrompt.toSafeDashboardMap(),
+    'usageAnomaly': usageAnomaly?.toSafeDashboardMap(),
     'odometerRemainsOfficialMileageTruth': true,
     'gpsCanSuggestReviewOnly': true,
     'gpsCanConfirmOdometer': false,
@@ -44,6 +48,11 @@ class TripOdometerEndReviewDecision {
     'remoteTotalsCanBecomeCanonical': false,
     'calibrationCanApplySilently': false,
     'confirmedMileageRequiresUserAction': true,
+    'usageAnomalyCanConfirmOdometer': false,
+    'usageAnomalyCanCorrectOdometer': false,
+    'usageAnomalyRequiresOptIn': true,
+    'usageAnomalyReviewRequiresUserAction':
+        usageAnomaly?.shouldPromptUser ?? false,
     'invalidEntryFailsClosed': true,
     'dashboardMayShowLiveProjection': true,
     'dashboardProjectionIsNotOfficialMileage': true,
@@ -61,27 +70,36 @@ class TripOdometerEndReviewPolicy {
     required TripOdometerEntryValidation entryValidation,
     required TripOdometerReconciliation reconciliation,
     required TripOdometerCalibrationPromptDecision calibrationPrompt,
+    TripOdometerUsageAnomalySignal? usageAnomaly,
     bool userAcknowledgedReviewPrompt = false,
+    bool userAcknowledgedUsageAnomaly = false,
   }) {
     if (entryValidation.shouldBlockConfirmation ||
-        reconciliation.status == TripOdometerReconciliationStatus.invalid) {
+        reconciliation.status == TripOdometerReconciliationStatus.invalid ||
+        usageAnomaly?.status == TripOdometerUsageAnomalyStatus.invalid) {
       return _decision(
         status: TripOdometerEndReviewStatus.blockedInvalidEntry,
-        reasonCode: entryValidation.shouldBlockConfirmation
-            ? entryValidation.reasonCode
-            : 'invalid_gps_odometer_reconciliation',
+        reasonCode: _blockedReason(
+          entryValidation: entryValidation,
+          reconciliation: reconciliation,
+          usageAnomaly: usageAnomaly,
+        ),
         entryValidation: entryValidation,
         reconciliation: reconciliation,
         calibrationPrompt: calibrationPrompt,
+        usageAnomaly: usageAnomaly,
         canConfirmOdometer: false,
         shouldShowReviewBeforeConfirm: true,
       );
     }
 
+    final usageReviewNeeded =
+        usageAnomaly?.shouldPromptUser == true && !userAcknowledgedUsageAnomaly;
     final reviewNeeded =
         entryValidation.shouldPromptUser ||
         reconciliation.shouldPromptUser ||
-        calibrationPrompt.shouldShow;
+        calibrationPrompt.shouldShow ||
+        usageReviewNeeded;
     if (reviewNeeded && !userAcknowledgedReviewPrompt) {
       return _decision(
         status: TripOdometerEndReviewStatus.reviewRecommended,
@@ -89,10 +107,13 @@ class TripOdometerEndReviewPolicy {
           entryValidation,
           reconciliation,
           calibrationPrompt,
+          usageAnomaly,
+          usageReviewNeeded,
         ),
         entryValidation: entryValidation,
         reconciliation: reconciliation,
         calibrationPrompt: calibrationPrompt,
+        usageAnomaly: usageAnomaly,
         canConfirmOdometer: true,
         shouldShowReviewBeforeConfirm: true,
       );
@@ -106,6 +127,7 @@ class TripOdometerEndReviewPolicy {
       entryValidation: entryValidation,
       reconciliation: reconciliation,
       calibrationPrompt: calibrationPrompt,
+      usageAnomaly: usageAnomaly,
       canConfirmOdometer: true,
       shouldShowReviewBeforeConfirm: false,
     );
@@ -118,6 +140,7 @@ TripOdometerEndReviewDecision _decision({
   required TripOdometerEntryValidation entryValidation,
   required TripOdometerReconciliation reconciliation,
   required TripOdometerCalibrationPromptDecision calibrationPrompt,
+  TripOdometerUsageAnomalySignal? usageAnomaly,
   required bool canConfirmOdometer,
   required bool shouldShowReviewBeforeConfirm,
 }) {
@@ -127,17 +150,42 @@ TripOdometerEndReviewDecision _decision({
     entryValidation: entryValidation,
     reconciliation: reconciliation,
     calibrationPrompt: calibrationPrompt,
+    usageAnomaly: usageAnomaly,
     canConfirmOdometer: canConfirmOdometer,
     shouldShowReviewBeforeConfirm: shouldShowReviewBeforeConfirm,
   );
+}
+
+String _blockedReason({
+  required TripOdometerEntryValidation entryValidation,
+  required TripOdometerReconciliation reconciliation,
+  TripOdometerUsageAnomalySignal? usageAnomaly,
+}) {
+  if (entryValidation.shouldBlockConfirmation) {
+    return entryValidation.reasonCode;
+  }
+  if (reconciliation.status == TripOdometerReconciliationStatus.invalid) {
+    return 'invalid_gps_odometer_reconciliation';
+  }
+  if (usageAnomaly?.status == TripOdometerUsageAnomalyStatus.invalid) {
+    return 'invalid_usage_anomaly_input';
+  }
+  return 'invalid_odometer_entry_input';
 }
 
 String _reviewReason(
   TripOdometerEntryValidation entryValidation,
   TripOdometerReconciliation reconciliation,
   TripOdometerCalibrationPromptDecision calibrationPrompt,
+  TripOdometerUsageAnomalySignal? usageAnomaly,
+  bool usageReviewNeeded,
 ) {
-  if (entryValidation.shouldPromptUser) return entryValidation.reasonCode;
+  if (entryValidation.shouldPromptUser) {
+    return entryValidation.reasonCode;
+  }
+  if (usageReviewNeeded && usageAnomaly != null) {
+    return usageAnomaly.reasonCode;
+  }
   if (reconciliation.shouldPromptUser) {
     return 'gps_odometer_difference_review';
   }
@@ -155,6 +203,11 @@ String _safeReason(String value) {
     'large_untracked_odometer_gap' => 'large_untracked_odometer_gap',
     'unusually_high_odometer_delta' => 'unusually_high_odometer_delta',
     'unusually_low_odometer_delta' => 'unusually_low_odometer_delta',
+    'invalid_usage_anomaly_input' => 'invalid_usage_anomaly_input',
+    'needs_more_reviewed_days_for_usage_anomaly' =>
+      'needs_more_reviewed_days_for_usage_anomaly',
+    'odometer_usage_within_review_threshold' =>
+      'odometer_usage_within_review_threshold',
     'gps_odometer_difference_review' => 'gps_odometer_difference_review',
     'calibration_prompt_review' => 'calibration_prompt_review',
     'invalid_gps_odometer_reconciliation' =>
