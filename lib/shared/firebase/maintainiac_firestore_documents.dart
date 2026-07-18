@@ -375,6 +375,9 @@ class MaintainiacFirestoreDocumentBuilder {
     bool mapRouteHistorySavingEnabled = false,
     double mapRouteHistoryDailyBudgetMb = 0,
     int mapRouteHistorySampleIntervalSeconds = 30,
+    String mapRouteHistoryState = 'disabled',
+    int mapRouteHistoryEstimatedSamplesPerDay = 0,
+    double mapRouteHistoryEstimatedDailyMb = 0,
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
@@ -537,6 +540,18 @@ class MaintainiacFirestoreDocumentBuilder {
             _optionalDashboardMapRouteInterval(
               mapRouteHistorySampleIntervalSeconds,
             ),
+        'mapRouteHistoryState': _requiredDashboardSummaryToken(
+          mapRouteHistoryState,
+          'mapRouteHistoryState',
+          _allowedDashboardMapRouteHistoryStates,
+        ),
+        'mapRouteHistoryEstimatedSamplesPerDay':
+            _optionalDashboardMapRouteSamples(
+              mapRouteHistoryEstimatedSamplesPerDay,
+            ),
+        'mapRouteHistoryEstimatedDailyMb': _optionalDashboardMapRouteEstimateMb(
+          mapRouteHistoryEstimatedDailyMb,
+        ),
         'storageState': _requiredDashboardSummaryToken(
           storageState,
           'storageState',
@@ -807,6 +822,13 @@ const _allowedDashboardMapboxTrustedMileageSources = <String>{
   'gps_accepted',
 };
 
+const _allowedDashboardMapRouteHistoryStates = <String>{
+  'disabled',
+  'budget_missing',
+  'budget_exceeded',
+  'within_budget',
+};
+
 const _allowedDashboardStorageStates = <String>{
   'unknown',
   'green',
@@ -895,6 +917,28 @@ int _optionalDashboardMapRouteInterval(int value) {
     );
   }
   return value;
+}
+
+int _optionalDashboardMapRouteSamples(int value) {
+  if (value < 0 || value > 86400) {
+    throw ArgumentError.value(
+      value,
+      'mapRouteHistoryEstimatedSamplesPerDay',
+      'Dashboard map route history sample count must stay bounded.',
+    );
+  }
+  return value;
+}
+
+double _optionalDashboardMapRouteEstimateMb(double value) {
+  if (!value.isFinite || value < 0 || value > 10) {
+    throw ArgumentError.value(
+      value,
+      'mapRouteHistoryEstimatedDailyMb',
+      'Dashboard map route history estimate must stay bounded.',
+    );
+  }
+  return double.parse(value.toStringAsFixed(3));
 }
 
 const _allowedDashboardWidgetTokens = <String>{

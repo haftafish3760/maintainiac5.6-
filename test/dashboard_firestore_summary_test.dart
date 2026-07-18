@@ -31,6 +31,9 @@ void main() {
           mapRouteHistorySavingEnabled: true,
           mapRouteHistoryDailyBudgetMb: 1.25,
           mapRouteHistorySampleIntervalSeconds: 45,
+          mapRouteHistoryState: 'within_budget',
+          mapRouteHistoryEstimatedSamplesPerDay: 640,
+          mapRouteHistoryEstimatedDailyMb: 0.059,
           storageState: 'text_record_safe',
           deviceCapabilityState: 'full_safety_assist',
           sensorAssistState: 'motion_battery_available',
@@ -74,6 +77,9 @@ void main() {
     expect(doc.data['mapRouteHistorySavingEnabled'], isTrue);
     expect(doc.data['mapRouteHistoryDailyBudgetMb'], 1.25);
     expect(doc.data['mapRouteHistorySampleIntervalSeconds'], 45);
+    expect(doc.data['mapRouteHistoryState'], 'within_budget');
+    expect(doc.data['mapRouteHistoryEstimatedSamplesPerDay'], 640);
+    expect(doc.data['mapRouteHistoryEstimatedDailyMb'], 0.059);
     expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
     expect(doc.data['authorizationRequired'], isTrue);
     expect(doc.data['authenticationImpliesAuthorization'], isFalse);
@@ -137,6 +143,9 @@ void main() {
     expect(doc.data['mapRouteHistorySavingEnabled'], isFalse);
     expect(doc.data['mapRouteHistoryDailyBudgetMb'], 0);
     expect(doc.data['mapRouteHistorySampleIntervalSeconds'], 30);
+    expect(doc.data['mapRouteHistoryState'], 'disabled');
+    expect(doc.data['mapRouteHistoryEstimatedSamplesPerDay'], 0);
+    expect(doc.data['mapRouteHistoryEstimatedDailyMb'], 0);
     expect(doc.data['mapboxRouteGeometryIncluded'], isFalse);
     expect(doc.data['authorizationRequired'], isTrue);
     expect(doc.data['authenticationImpliesAuthorization'], isFalse);

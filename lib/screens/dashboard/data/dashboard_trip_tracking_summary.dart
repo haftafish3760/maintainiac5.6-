@@ -3,6 +3,7 @@ import '../../../shared/maps/mapbox_trip_assist_policy.dart';
 import '../../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
+import '../../../shared/trip_tracking/trip_tracking_map_storage_policy.dart';
 import '../../../shared/trip_tracking/trip_stop_classification.dart';
 import '../../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../../shared/trip_tracking/trip_tracking_odometer_reconciliation.dart';
@@ -48,6 +49,9 @@ class DashboardTripTrackingSummary {
     required this.mapRouteHistorySavingEnabled,
     required this.mapRouteHistoryDailyBudgetMb,
     required this.mapRouteHistorySampleIntervalSeconds,
+    required this.mapRouteHistoryState,
+    required this.mapRouteHistoryEstimatedSamplesPerDay,
+    required this.mapRouteHistoryEstimatedDailyMb,
     required this.storageState,
     required this.deviceCapabilityState,
     required this.sensorAssistState,
@@ -95,6 +99,9 @@ class DashboardTripTrackingSummary {
   final bool mapRouteHistorySavingEnabled;
   final double mapRouteHistoryDailyBudgetMb;
   final int mapRouteHistorySampleIntervalSeconds;
+  final String mapRouteHistoryState;
+  final int mapRouteHistoryEstimatedSamplesPerDay;
+  final double mapRouteHistoryEstimatedDailyMb;
   final String storageState;
   final String deviceCapabilityState;
   final String sensorAssistState;
@@ -180,6 +187,9 @@ class DashboardTripTrackingSummary {
       fallbackRouteDistanceMiles: mapboxRouteDistanceMiles,
       fallbackRouteDeltaMiles: mapboxRouteDeltaMiles,
     );
+    final mapStorageEstimate = TripTrackingMapStoragePolicy.estimate(
+      settings: settings,
+    );
     return DashboardTripTrackingSummary(
       dashboardMode: guidance.modeToken,
       workStyle: _safeWorkStyle(strategy.workStyleToken),
@@ -226,6 +236,10 @@ class DashboardTripTrackingSummary {
       mapRouteHistorySampleIntervalSeconds: _safeMapRouteHistoryInterval(
         settings.mapRouteHistorySampleIntervalSeconds,
       ),
+      mapRouteHistoryState: _mapRouteHistoryState(mapStorageEstimate),
+      mapRouteHistoryEstimatedSamplesPerDay:
+          mapStorageEstimate.estimatedSamplesPerDay,
+      mapRouteHistoryEstimatedDailyMb: mapStorageEstimate.estimatedDailyMb,
       storageState: _safeStorageState(storageState),
       deviceCapabilityState: _safeDeviceCapabilityState(deviceCapabilityState),
       sensorAssistState: _safeSensorAssistState(sensorAssistState),

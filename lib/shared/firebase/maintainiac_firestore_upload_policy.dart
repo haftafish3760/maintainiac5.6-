@@ -239,6 +239,13 @@ class MaintainiacFirestoreUploadPolicy {
     'gps_accepted',
   };
 
+  static const _allowedDashboardMapRouteHistoryStates = <String>{
+    'disabled',
+    'budget_missing',
+    'budget_exceeded',
+    'within_budget',
+  };
+
   static const _allowedStorageStates = <String>{
     'unknown',
     'green',
@@ -451,6 +458,9 @@ class MaintainiacFirestoreUploadPolicy {
       'mapRouteHistorySavingEnabled',
       'mapRouteHistoryDailyBudgetMb',
       'mapRouteHistorySampleIntervalSeconds',
+      'mapRouteHistoryState',
+      'mapRouteHistoryEstimatedSamplesPerDay',
+      'mapRouteHistoryEstimatedDailyMb',
       'storageState',
       'deviceCapabilityState',
       'sensorAssistState',
@@ -575,6 +585,16 @@ class MaintainiacFirestoreUploadPolicy {
         ) &&
         _isValidDashboardMapRouteInterval(
           draft.data['mapRouteHistorySampleIntervalSeconds'],
+        ) &&
+        _isAllowedString(
+          draft.data['mapRouteHistoryState'],
+          _allowedDashboardMapRouteHistoryStates,
+        ) &&
+        _isValidDashboardMapRouteSamples(
+          draft.data['mapRouteHistoryEstimatedSamplesPerDay'],
+        ) &&
+        _isValidDashboardMapRouteEstimateMb(
+          draft.data['mapRouteHistoryEstimatedDailyMb'],
         ) &&
         _isAllowedString(draft.data['storageState'], _allowedStorageStates) &&
         _isAllowedString(
@@ -881,6 +901,12 @@ class MaintainiacFirestoreUploadPolicy {
 
   static bool _isValidDashboardMapRouteInterval(Object? value) =>
       value is int && value >= 15 && value <= 300;
+
+  static bool _isValidDashboardMapRouteSamples(Object? value) =>
+      value is int && value >= 0 && value <= 86400;
+
+  static bool _isValidDashboardMapRouteEstimateMb(Object? value) =>
+      value is num && value >= 0 && value <= 10;
 
   static bool _hasValidDashboardTokenList(Object? value, Set<String> allowed) {
     if (value == null) return true;

@@ -159,6 +159,15 @@ double _safeMapRouteHistoryBudget(double value) {
 
 int _safeMapRouteHistoryInterval(int value) => value.clamp(15, 300);
 
+String _mapRouteHistoryState(TripTrackingMapStorageEstimate estimate) {
+  if (!estimate.enabled) return 'disabled';
+  if (!estimate.allowedToPersistRoute && estimate.dailyBudgetMb <= 0) {
+    return 'budget_missing';
+  }
+  if (estimate.exceedsDailyBudget) return 'budget_exceeded';
+  return 'within_budget';
+}
+
 String _safeRecoveryState(String value) {
   return switch (value.trim()) {
     'none' => 'none',

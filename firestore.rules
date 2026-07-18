@@ -336,6 +336,9 @@ service cloud.firestore {
         'mapRouteHistorySavingEnabled',
         'mapRouteHistoryDailyBudgetMb',
         'mapRouteHistorySampleIntervalSeconds',
+        'mapRouteHistoryState',
+        'mapRouteHistoryEstimatedSamplesPerDay',
+        'mapRouteHistoryEstimatedDailyMb',
         'storageState',
         'deviceCapabilityState',
         'sensorAssistState',
@@ -831,6 +834,14 @@ service cloud.firestore {
         request.resource.data.mapRouteHistorySampleIntervalSeconds is int &&
         request.resource.data.mapRouteHistorySampleIntervalSeconds >= 15 &&
         request.resource.data.mapRouteHistorySampleIntervalSeconds <= 300 &&
+        request.resource.data.mapRouteHistoryState
+          in ['disabled', 'budget_missing', 'budget_exceeded', 'within_budget'] &&
+        request.resource.data.mapRouteHistoryEstimatedSamplesPerDay is int &&
+        request.resource.data.mapRouteHistoryEstimatedSamplesPerDay >= 0 &&
+        request.resource.data.mapRouteHistoryEstimatedSamplesPerDay <= 86400 &&
+        request.resource.data.mapRouteHistoryEstimatedDailyMb is number &&
+        request.resource.data.mapRouteHistoryEstimatedDailyMb >= 0 &&
+        request.resource.data.mapRouteHistoryEstimatedDailyMb <= 10 &&
         isAllowedDashboardStorageState(request.resource.data.storageState) &&
         isAllowedDashboardDeviceCapabilityState(
           request.resource.data.deviceCapabilityState

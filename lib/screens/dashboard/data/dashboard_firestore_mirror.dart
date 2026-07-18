@@ -54,6 +54,9 @@ class DashboardFirestoreMirror {
     bool mapRouteHistorySavingEnabled = false,
     double mapRouteHistoryDailyBudgetMb = 0,
     int mapRouteHistorySampleIntervalSeconds = 30,
+    String mapRouteHistoryState = 'disabled',
+    int mapRouteHistoryEstimatedSamplesPerDay = 0,
+    double mapRouteHistoryEstimatedDailyMb = 0,
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
@@ -123,6 +126,10 @@ class DashboardFirestoreMirror {
           mapRouteHistoryDailyBudgetMb: mapRouteHistoryDailyBudgetMb,
           mapRouteHistorySampleIntervalSeconds:
               mapRouteHistorySampleIntervalSeconds,
+          mapRouteHistoryState: mapRouteHistoryState,
+          mapRouteHistoryEstimatedSamplesPerDay:
+              mapRouteHistoryEstimatedSamplesPerDay,
+          mapRouteHistoryEstimatedDailyMb: mapRouteHistoryEstimatedDailyMb,
           storageState: storageState,
           deviceCapabilityState: deviceCapabilityState,
           sensorAssistState: sensorAssistState,
@@ -168,6 +175,9 @@ class DashboardFirestoreMirror {
     bool mapRouteHistorySavingEnabled = false,
     double mapRouteHistoryDailyBudgetMb = 0,
     int mapRouteHistorySampleIntervalSeconds = 30,
+    String mapRouteHistoryState = 'disabled',
+    int mapRouteHistoryEstimatedSamplesPerDay = 0,
+    double mapRouteHistoryEstimatedDailyMb = 0,
     String storageState = 'unknown',
     String deviceCapabilityState = 'unknown',
     String sensorAssistState = 'unknown',
@@ -223,6 +233,10 @@ class DashboardFirestoreMirror {
       mapRouteHistoryDailyBudgetMb: mapRouteHistoryDailyBudgetMb,
       mapRouteHistorySampleIntervalSeconds:
           mapRouteHistorySampleIntervalSeconds,
+      mapRouteHistoryState: mapRouteHistoryState,
+      mapRouteHistoryEstimatedSamplesPerDay:
+          mapRouteHistoryEstimatedSamplesPerDay,
+      mapRouteHistoryEstimatedDailyMb: mapRouteHistoryEstimatedDailyMb,
       storageState: storageState,
       deviceCapabilityState: deviceCapabilityState,
       sensorAssistState: sensorAssistState,
@@ -291,6 +305,11 @@ class DashboardFirestoreMirror {
       mapRouteHistoryDailyBudgetMb: tripTracking.mapRouteHistoryDailyBudgetMb,
       mapRouteHistorySampleIntervalSeconds:
           tripTracking.mapRouteHistorySampleIntervalSeconds,
+      mapRouteHistoryState: tripTracking.mapRouteHistoryState,
+      mapRouteHistoryEstimatedSamplesPerDay:
+          tripTracking.mapRouteHistoryEstimatedSamplesPerDay,
+      mapRouteHistoryEstimatedDailyMb:
+          tripTracking.mapRouteHistoryEstimatedDailyMb,
       storageState: tripTracking.storageState,
       deviceCapabilityState: tripTracking.deviceCapabilityState,
       sensorAssistState: tripTracking.sensorAssistState,

@@ -44,6 +44,9 @@ void main() {
     expect(summary.mapRouteHistorySavingEnabled, isFalse);
     expect(summary.mapRouteHistoryDailyBudgetMb, 0);
     expect(summary.mapRouteHistorySampleIntervalSeconds, 30);
+    expect(summary.mapRouteHistoryState, 'disabled');
+    expect(summary.mapRouteHistoryEstimatedSamplesPerDay, 960);
+    expect(summary.mapRouteHistoryEstimatedDailyMb, 0.088);
     expect(summary.storageState, 'unknown');
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
@@ -95,6 +98,9 @@ void main() {
     expect(summary.mapRouteHistorySavingEnabled, isTrue);
     expect(summary.mapRouteHistoryDailyBudgetMb, 1.5);
     expect(summary.mapRouteHistorySampleIntervalSeconds, 60);
+    expect(summary.mapRouteHistoryState, 'within_budget');
+    expect(summary.mapRouteHistoryEstimatedSamplesPerDay, 480);
+    expect(summary.mapRouteHistoryEstimatedDailyMb, 0.044);
     expect(summary.deviceCapabilityState, 'unknown');
     expect(summary.sensorAssistState, 'unknown');
     expect(summary.freeSyncsRemaining, 4);
