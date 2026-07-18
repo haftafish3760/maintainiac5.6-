@@ -9,9 +9,11 @@ import 'package:maintaniac/screens/dashboard/data/dashboard_summary_trust_bounda
 import 'package:maintaniac/screens/dashboard/data/dashboard_trip_tracking_summary_reporter.dart';
 import 'package:maintaniac/shared/device_capabilities/device_capabilities.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
+import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -128,6 +130,86 @@ void main() {
       expect(data['rawModuleDataIncluded'], isFalse);
       expect(data.keys, isNot(contains('latitude')));
       expect(data.keys, isNot(contains('route')));
+    },
+  );
+
+  test(
+    'queues durable trip backup pending state without exposing trip payloads',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final tripTracking = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        durableRecordBridge: TripTrackingDurableRecordBridge(
+          MaintainiacDurableRecordStore.memory(
+            storageCheck: () async => const AppStorageCheck(
+              availableBytes: 0,
+              operationBytes: 1,
+              requiredBytes: 2,
+              purpose: AppStoragePurpose.smallRecordWrite,
+            ),
+          ),
+        ),
+      );
+      addTearDown(tripTracking.dispose);
+      addTearDown(odometer.dispose);
+      expect(
+        await tripTracking.start(
+          tripId: 'dashboard_durable_pending',
+          vehicleId: odometer.vehicleId,
+          profile: TripTrackingProfile.deliveryVehicle,
+          startedAt: DateTime.utc(2026, 7, 17, 8),
+        ),
+        isTrue,
+      );
+      final review = await tripTracking.finishForReview(
+        finishedAt: DateTime.utc(2026, 7, 17, 9),
+      );
+      expect(review, isNotNull);
+      expect(
+        await tripTracking.confirmOdometerReview(
+          reviewId: 'dashboard_durable_pending',
+          confirmedEndingOdometer: 1000,
+          confirmedAt: DateTime.utc(2026, 7, 17, 10),
+        ),
+        isTrue,
+      );
+      expect(tripTracking.durableRecordError, contains('pending retry'));
+
+      final reporter = DashboardTripTrackingSummaryReporter(
+        mirror: DashboardFirestoreMirror(
+          queueStore: queue,
+          uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+            queue: queue,
+            sink: _RecordingSink(),
+            uploadEnabled: true,
+          ),
+        ),
+        settingsController: TripTrackingSettingsController.memory(
+          const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+        ),
+        uid: () => 'firebaseUid-1',
+        dashboardId: () => 'today',
+        activeVehicleId: () => odometer.vehicleId,
+        tripTracking: tripTracking,
+        clock: () => DateTime.utc(2026, 7, 17, 11),
+      );
+
+      final report = await reporter.queueNow();
+
+      expect(report.queued, isTrue);
+      expect(report.summary?.durableRecordBackupState, 'pending_retry');
+      final data = queue.pendingRecords.single.data;
+      expect(data['durableRecordBackupState'], 'pending_retry');
+      expect(data['locationDataIncluded'], isFalse);
+      expect(data['rawModuleDataIncluded'], isFalse);
+      expect(data.keys, isNot(contains('engineSnapshot')));
+      expect(data.keys, isNot(contains('confirmedEndingOdometer')));
+      expect(data.keys, isNot(contains('latitude')));
     },
   );
 
