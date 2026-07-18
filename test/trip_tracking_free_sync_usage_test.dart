@@ -28,6 +28,15 @@ void main() {
       isTrue,
     );
     expect(usage.toSafeSummary(now)['accountScopeMustBeDeviceLocal'], isTrue);
+    expect(
+      usage.toSafeSummary(now)['scopeRequiresValidatedAccountUid'],
+      isTrue,
+    );
+    expect(usage.toSafeSummary(now)['scopeRequiresValidatedDeviceId'], isTrue);
+    expect(
+      usage.toSafeSummary(now)['authenticationAloneAuthorizesQuotaScope'],
+      isFalse,
+    );
     expect(usage.toSafeSummary(now)['uploadMustReserveBeforeNetwork'], isTrue);
     expect(
       usage.toSafeSummary(now)['reservationSerializedBeforeUpload'],
@@ -430,6 +439,9 @@ void main() {
         'blockedAttemptConsumesFreeSync': true,
         'failedPreflightConsumesFreeSync': true,
         'quotaScopeIncludesDeviceId': false,
+        'scopeRequiresValidatedAccountUid': false,
+        'scopeRequiresValidatedDeviceId': false,
+        'authenticationAloneAuthorizesQuotaScope': true,
         'hiveRemainsSourceOfTruth': false,
         'tokensIncluded': true,
         'debug': 'sk.secret 35.123456,-80.123456',
@@ -446,5 +458,22 @@ void main() {
       validation.reasons,
       contains('summary_contains_sensitive_quota_material'),
     );
+  });
+
+  test('free sync usage summary rejects auth-only quota scope authority', () {
+    final usage = TripTrackingFreeSyncUsage(
+      attemptStore: CloudBackupSyncAttemptStore.memory(),
+      durableScope: 'trip-dashboard-authonly-device',
+    );
+    final validation = TripTrackingFreeSyncUsageSummaryValidation.fromSummary(
+      usage.toSafeSummary(DateTime.utc(2026, 7, 17, 12))..addAll({
+        'scopeRequiresValidatedAccountUid': false,
+        'scopeRequiresValidatedDeviceId': false,
+        'authenticationAloneAuthorizesQuotaScope': true,
+      }),
+    );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('quota_scope_boundary_missing'));
   });
 }

@@ -120,6 +120,9 @@ class TripTrackingFreeSyncUsage {
       'remoteCountersCanOverrideLocalUsage': false,
       'firebaseAuthDoesNotSupplyUsageCounter': true,
       'accountScopeMustBeDeviceLocal': true,
+      'scopeRequiresValidatedAccountUid': true,
+      'scopeRequiresValidatedDeviceId': true,
+      'authenticationAloneAuthorizesQuotaScope': false,
       'uploadMustReserveBeforeNetwork': true,
       'reservationSerializedBeforeUpload': true,
       'blockedAttemptConsumesFreeSync': false,
@@ -181,7 +184,10 @@ class TripTrackingFreeSyncUsageSummaryValidation {
     if (summary['quotaScopeIncludesDeviceId'] != true ||
         summary['quotaScopeIncludesAccountUid'] != true ||
         summary['quotaScopeIncludesModuleToken'] != true ||
-        summary['accountScopeMustBeDeviceLocal'] != true) {
+        summary['accountScopeMustBeDeviceLocal'] != true ||
+        summary['scopeRequiresValidatedAccountUid'] != true ||
+        summary['scopeRequiresValidatedDeviceId'] != true ||
+        summary['authenticationAloneAuthorizesQuotaScope'] != false) {
       reasons.add('quota_scope_boundary_missing');
     }
     if (summary['hiveRemainsSourceOfTruth'] != true ||
