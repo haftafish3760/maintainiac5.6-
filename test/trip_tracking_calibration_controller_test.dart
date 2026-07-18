@@ -239,7 +239,14 @@ TripTrackingReviewRecord _confirmedReview({
   int startingOdometer = 1000,
   required double filteredGpsMiles,
   required int odometerMiles,
-  TripTrackingDiagnostics diagnostics = const TripTrackingDiagnostics(),
+  TripTrackingDiagnostics diagnostics = const TripTrackingDiagnostics(
+    receivedSamples: 100,
+    acceptedSamples: 90,
+    dispositionCounts: {
+      TripSampleDisposition.acceptedDistance: 90,
+      TripSampleDisposition.rejectedAccuracy: 10,
+    },
+  ),
 }) {
   return TripTrackingReviewRecord(
     id: id,
@@ -277,6 +284,14 @@ TripTrackingReviewRecord _unconfirmedReview({
     engineSnapshot: TripTrackingEngineSnapshot(
       totalAcceptedMeters: filteredGpsMiles * 1609.344,
       walkingReviewSuggested: false,
+      diagnostics: const TripTrackingDiagnostics(
+        receivedSamples: 100,
+        acceptedSamples: 90,
+        dispositionCounts: {
+          TripSampleDisposition.acceptedDistance: 90,
+          TripSampleDisposition.rejectedAccuracy: 10,
+        },
+      ),
     ),
   );
 }

@@ -222,6 +222,7 @@ class TripOdometerCalibrationSignal {
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
+    bool requireTrustedSignalDiagnostics = false,
   }) {
     if (maximumReviewedDays < minimumSamples) {
       return const TripOdometerCalibrationSignal(
@@ -274,7 +275,11 @@ class TripOdometerCalibrationSignal {
       if (reconciliation.status == TripOdometerReconciliationStatus.invalid) {
         continue;
       }
-      if (!_reviewHasTrustedCalibrationGpsWindow(review, reconciliation)) {
+      if (!_reviewHasTrustedCalibrationGpsWindow(
+        review,
+        reconciliation,
+        requireTrustedSignalDiagnostics: requireTrustedSignalDiagnostics,
+      )) {
         poorGpsDayKeys.add(dayKey);
         dailyTotals.remove(dayKey);
         continue;
@@ -359,8 +364,9 @@ bool _safeCalibrationShouldPrompt({
 
 bool _reviewHasTrustedCalibrationGpsWindow(
   TripTrackingReviewRecord review,
-  TripOdometerReconciliation reconciliation,
-) {
+  TripOdometerReconciliation reconciliation, {
+  required bool requireTrustedSignalDiagnostics,
+}) {
   if (!TripOdometerCalibrationSignal.isTrustedCalibrationGpsWindow(
     reconciliation,
   )) {
@@ -369,7 +375,7 @@ bool _reviewHasTrustedCalibrationGpsWindow(
   final diagnostics = review.engineSnapshot.diagnostics;
   final received = diagnostics.receivedSamples;
   final accepted = diagnostics.acceptedSamples;
-  if (received <= 0) return true;
+  if (received <= 0) return !requireTrustedSignalDiagnostics;
   if (accepted <= 0 || accepted > received) return false;
   final acceptanceRatio = accepted / received;
   final rejectedAccuracy =

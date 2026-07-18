@@ -120,6 +120,7 @@ class TripTrackingController extends ChangeNotifier {
     reviews: _sessionStore.pendingReviews,
     vehicleId: vehicleId ?? _odometer.vehicleId,
     nowUtc: nowUtc,
+    requireTrustedSignalDiagnostics: true,
   );
 
   void refreshGpsAssistanceCalibration({required bool enabled}) {
