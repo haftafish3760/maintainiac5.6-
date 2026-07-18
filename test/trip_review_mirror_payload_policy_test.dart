@@ -23,6 +23,10 @@ void main() {
     expect(payload['confirmedMiles'], 42);
     expect(payload['officialMileageSource'], 'odometer');
     expect(payload['gpsDistanceAdvisoryOnly'], isTrue);
+    expect(payload['authenticationAloneAuthorizesMirror'], isFalse);
+    expect(payload['backendRulesFailClosedForMirrorWrites'], isTrue);
+    expect(payload['mirrorRequiresConfirmedLocalReview'], isTrue);
+    expect(payload['mirrorRequiresOwnerScopeDayValidation'], isTrue);
     expect(payload['remoteCanOverrideLocalTripLog'], isFalse);
     expect(payload['remoteTotalsCanBecomeCanonical'], isFalse);
     expect(payload['mirrorCanDeleteLocalTripLog'], isFalse);
@@ -34,6 +38,8 @@ void main() {
     expect(payload.values, isNot(contains('driver_1')));
     expect(safe['hiveRemainsSourceOfTruth'], isTrue);
     expect(safe['firestoreMirrorOnly'], isTrue);
+    expect(safe['authenticationAloneAuthorizesMirror'], isFalse);
+    expect(safe['backendRulesFailClosedForMirrorWrites'], isTrue);
   });
 
   test('unconfirmed odometer blocks mirror even when scope is valid', () {
@@ -145,6 +151,8 @@ void main() {
     expect(inbound.status, TripReviewMirrorPayloadStatus.ready);
     expect(inbound.mayMirror, isTrue);
     expect(inbound.payload['officialMileageSource'], 'odometer');
+    expect(inbound.payload['authenticationAloneAuthorizesMirror'], isFalse);
+    expect(inbound.payload['backendRulesFailClosedForMirrorWrites'], isTrue);
     expect(inbound.payload['routeGeometryIncluded'], isFalse);
     expect(
       inbound.toSafeDashboardMap()['remoteTotalsCanBecomeCanonical'],
@@ -166,6 +174,10 @@ void main() {
       payload: {
         ...outbound.payload,
         'tripId': 'sk.secret',
+        'authenticationAloneAuthorizesMirror': true,
+        'backendRulesFailClosedForMirrorWrites': false,
+        'mirrorRequiresConfirmedLocalReview': false,
+        'mirrorRequiresOwnerScopeDayValidation': false,
         'remoteTotalsCanBecomeCanonical': true,
         'officialMileageSource': 'gps',
         'routeGeometryIncluded': true,
@@ -182,6 +194,38 @@ void main() {
       isNot(contains('sk.secret')),
     );
   });
+
+  test(
+    'inbound mirror payload rejects missing backend fail-closed contract',
+    () {
+      final outbound = TripReviewMirrorPayloadPolicy.build(
+        review: review().copyWith(
+          confirmedEndingOdometer: 1042,
+          odometerConfirmedAt: DateTime.utc(2026, 7, 18, 10, 5),
+        ),
+        ownerUid: 'driver_1',
+        personalBackup: true,
+        organizationSharingEnabled: false,
+      );
+      final forged = TripReviewMirrorPayloadPolicy.validateInbound(
+        payload: {
+          ...outbound.payload,
+          'authenticationAloneAuthorizesMirror': true,
+          'backendRulesFailClosedForMirrorWrites': false,
+          'mirrorRequiresConfirmedLocalReview': false,
+          'mirrorRequiresOwnerScopeDayValidation': false,
+        },
+        scopeSummary: outbound.scopeSummary,
+      );
+
+      expect(
+        forged.status,
+        TripReviewMirrorPayloadStatus.blockedInvalidPayload,
+      );
+      expect(forged.mayMirror, isFalse);
+      expect(forged.payload, isEmpty);
+    },
+  );
 }
 
 TripTrackingReviewRecord review() {

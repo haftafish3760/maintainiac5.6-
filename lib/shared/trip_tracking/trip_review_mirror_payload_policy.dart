@@ -36,6 +36,10 @@ class TripReviewMirrorPayloadDecision {
     'requiresConfirmedOdometer': true,
     'requiresOwnerBinding': true,
     'requiresScopeBinding': true,
+    'authenticationAloneAuthorizesMirror': false,
+    'backendRulesFailClosedForMirrorWrites': true,
+    'mirrorRequiresConfirmedLocalReview': true,
+    'mirrorRequiresOwnerScopeDayValidation': true,
     'hiveRemainsSourceOfTruth': true,
     'firestoreMirrorOnly': true,
     'cloudFunctionMirrorOnly': true,
@@ -154,7 +158,11 @@ class TripReviewMirrorPayloadPolicy {
     }
     if (payload['source'] != 'validated_local_review' ||
         payload['hiveSourceOfTruth'] != true ||
-        payload['firestoreRole'] != 'mirror_after_local_write') {
+        payload['firestoreRole'] != 'mirror_after_local_write' ||
+        payload['authenticationAloneAuthorizesMirror'] != false ||
+        payload['backendRulesFailClosedForMirrorWrites'] != true ||
+        payload['mirrorRequiresConfirmedLocalReview'] != true ||
+        payload['mirrorRequiresOwnerScopeDayValidation'] != true) {
       reasons.add('payload_source_not_local_review');
     }
     if (payload['remoteCanOverrideLocalTripLog'] != false ||
@@ -246,6 +254,10 @@ Map<String, Object?> _payloadFor(TripTrackingReviewRecord review) {
     'source': 'validated_local_review',
     'hiveSourceOfTruth': true,
     'firestoreRole': 'mirror_after_local_write',
+    'authenticationAloneAuthorizesMirror': false,
+    'backendRulesFailClosedForMirrorWrites': true,
+    'mirrorRequiresConfirmedLocalReview': true,
+    'mirrorRequiresOwnerScopeDayValidation': true,
     'remoteCanOverrideLocalTripLog': false,
     'remoteTotalsCanBecomeCanonical': false,
     'mirrorCanDeleteLocalTripLog': false,
@@ -368,6 +380,10 @@ Map<String, Object?> _redactedInboundPayload(Map<String, Object?> payload) {
     'source': 'validated_local_review',
     'hiveSourceOfTruth': true,
     'firestoreRole': 'mirror_after_local_write',
+    'authenticationAloneAuthorizesMirror': false,
+    'backendRulesFailClosedForMirrorWrites': true,
+    'mirrorRequiresConfirmedLocalReview': true,
+    'mirrorRequiresOwnerScopeDayValidation': true,
     'remoteCanOverrideLocalTripLog': false,
     'remoteTotalsCanBecomeCanonical': false,
     'mirrorCanDeleteLocalTripLog': false,
