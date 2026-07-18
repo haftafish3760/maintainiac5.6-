@@ -223,7 +223,7 @@ List<String> _validateSharedPayload(
       statusName != 'blocked') {
     reasons.add('payload_guard_missing');
   }
-  if (payload.values.any(_looksSensitive)) {
+  if (_containsSensitiveText(payload)) {
     reasons.add('payload_contains_sensitive_text');
   }
   if (statusName != null && !acceptedStatusNames.contains(statusName)) {
@@ -289,5 +289,21 @@ bool _looksSensitive(Object? value) {
   final clean = value.trim();
   return clean.startsWith('pk.') ||
       clean.startsWith('sk.') ||
+      clean.toLowerCase().contains('token') ||
       clean.contains(RegExp(r'-?\d{1,3}\.\d{5,}'));
+}
+
+bool _containsSensitiveText(Object? value) {
+  if (value is String) return _looksSensitive(value);
+  if (value is Map) {
+    for (final item in value.values) {
+      if (_containsSensitiveText(item)) return true;
+    }
+  }
+  if (value is Iterable) {
+    for (final item in value) {
+      if (_containsSensitiveText(item)) return true;
+    }
+  }
+  return false;
 }

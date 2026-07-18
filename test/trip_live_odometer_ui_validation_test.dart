@@ -182,7 +182,10 @@ void main() {
           'preciseLocationIncluded': true,
           'routeGeometryIncluded': true,
           'tokensIncluded': true,
-          'debugLocation': '35.123456,-80.987654',
+          'debugLocation': 'diagnostic token near 35.123456',
+          'nested': {
+            'route': ['sk.redacted'],
+          },
         }),
       );
 
