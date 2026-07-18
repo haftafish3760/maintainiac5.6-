@@ -258,6 +258,12 @@ void main() {
     expect(summary['longTrafficLightProtected'], isTrue);
     expect(summary['walkingEvidenceCanOnlySuggestReview'], isTrue);
     expect(summary['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(summary['externalMotionDataValidatedBeforeUse'], isTrue);
+    expect(summary['stopEvidenceTrustedAfterValidationOnly'], isTrue);
+    expect(summary['remoteStopSummaryCanOverrideLocalTrip'], isFalse);
+    expect(summary['firestoreCanCreateOfficialStop'], isFalse);
+    expect(summary['cloudFunctionCanCreateOfficialStop'], isFalse);
+    expect(summary['malformedStopSummaryFailsSafe'], isTrue);
     expect(summary['officialStopSource'], 'user_review');
     expect(summary['officialMileageSource'], 'odometer');
     expect(summary['canCreateOfficialStop'], isFalse);
@@ -286,14 +292,43 @@ void main() {
     final summary = classification.toSafeSummary();
 
     expect(summary['reasonCode'], 'unsafe_stop_evidence_rejected');
+    expect(summary['requiresUserReview'], isFalse);
+    expect(summary['canSuggestStop'], isFalse);
     expect(summary['actionToken'], 'keep_tracking');
     expect(
       summary['dashboardMessage'],
       'Stop evidence is unavailable. Keep tracking and review mileage later.',
     );
+    expect(summary['externalMotionDataValidatedBeforeUse'], isTrue);
+    expect(summary['stopEvidenceTrustedAfterValidationOnly'], isTrue);
+    expect(summary['remoteStopSummaryCanOverrideLocalTrip'], isFalse);
+    expect(summary['firestoreCanCreateOfficialStop'], isFalse);
+    expect(summary['cloudFunctionCanCreateOfficialStop'], isFalse);
+    expect(summary['malformedStopSummaryFailsSafe'], isTrue);
     expect(summary.toString(), isNot(contains('35.1')));
     expect(summary.toString(), isNot(contains('sk.secret')));
     expect(summary['coordinatesIncluded'], isFalse);
+  });
+
+  test('direct stop summary cannot claim review for unsafe reasons', () {
+    const forged = TripStopClassification(
+      signal: TripStopSignal.noStop,
+      reasonCode: 'unsafe_stop_evidence_rejected',
+      requiresUserReview: true,
+      canSuggestStop: true,
+      actionToken: 'review_delivery_stop',
+      dashboardMessage:
+          'Walking evidence suggests a pickup or dropoff stop. Review it before it becomes official.',
+    );
+    final summary = forged.toSafeSummary();
+
+    expect(summary['signal'], 'noStop');
+    expect(summary['reasonCode'], 'unsafe_stop_evidence_rejected');
+    expect(summary['requiresUserReview'], isFalse);
+    expect(summary['canSuggestStop'], isFalse);
+    expect(summary['canCreateOfficialStop'], isFalse);
+    expect(summary['officialStopSource'], 'user_review');
+    expect(summary['malformedStopSummaryFailsSafe'], isTrue);
   });
 
   test('traffic and vehicle-only summaries stay manual review only', () {
@@ -320,10 +355,12 @@ void main() {
     expect(traffic['longTrafficLightProtected'], isTrue);
     expect(traffic['canCreateOfficialStop'], isFalse);
     expect(traffic['canEndTripAutomatically'], isFalse);
+    expect(traffic['remoteStopSummaryCanOverrideLocalTrip'], isFalse);
     expect(vehicleOnly['signal'], 'stopCandidate');
     expect(vehicleOnly['vehicleOnlyStopFallbackAvailable'], isTrue);
     expect(vehicleOnly['walkingEvidenceCanOnlySuggestReview'], isTrue);
     expect(vehicleOnly['activityRecognitionCanCreateOfficialStop'], isFalse);
+    expect(vehicleOnly['firestoreCanCreateOfficialStop'], isFalse);
     expect(vehicleOnly['mapboxCanEndTrip'], isFalse);
   });
 

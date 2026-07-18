@@ -31,36 +31,85 @@ class TripStopClassification {
       signal == TripStopSignal.stopCandidate ||
       signal == TripStopSignal.reviewOnlyStop;
 
-  Map<String, Object?> toSafeSummary() => {
-    'schemaVersion': 1,
-    'signal': signal.name,
-    'reasonCode': _safeStopReason(reasonCode),
-    'requiresUserReview': requiresUserReview,
-    'canSuggestStop': canSuggestStop,
-    'reviewOnly': true,
-    'advisoryOnly': true,
-    'gpsAssistedOnly': true,
-    'manualStopFallbackAvailable': true,
-    'vehicleOnlyStopFallbackAvailable': true,
-    'longTrafficLightProtected': true,
-    'walkingEvidenceCanOnlySuggestReview': true,
-    'activityRecognitionCanCreateOfficialStop': false,
-    'officialStopSource': 'user_review',
-    'officialMileageSource': 'odometer',
-    'canCreateOfficialStop': false,
-    'canReplaceOdometer': false,
-    'canEndTripAutomatically': false,
-    'stopRequiresAcceptedVehicleMovement': true,
-    'actionToken': _safeStopAction(actionToken),
-    'dashboardMessage': _safeStopMessage(dashboardMessage),
-    'mapsRequiredForStopReview': false,
-    'mapboxCanCreateStop': false,
-    'mapboxCanEndTrip': false,
-    'rawSamplesIncluded': false,
-    'rawMotionPayloadIncluded': false,
-    'coordinatesIncluded': false,
-    'routeGeometryIncluded': false,
-    'mapboxGeometryIncluded': false,
+  Map<String, Object?> toSafeSummary() {
+    final safeReasonCode = _safeStopReason(reasonCode);
+    final safeReviewAllowed = _safeRequiresStopReview(
+      signal: signal,
+      reasonCode: safeReasonCode,
+      requiresUserReview: requiresUserReview,
+      canSuggestStop: canSuggestStop,
+    );
+    final safeSuggestionAllowed = _safeCanSuggestStop(
+      signal: signal,
+      reasonCode: safeReasonCode,
+      canSuggestStop: canSuggestStop,
+    );
+    return {
+      'schemaVersion': 1,
+      'signal': signal.name,
+      'reasonCode': safeReasonCode,
+      'requiresUserReview': safeReviewAllowed,
+      'canSuggestStop': safeSuggestionAllowed,
+      'reviewOnly': true,
+      'advisoryOnly': true,
+      'gpsAssistedOnly': true,
+      'manualStopFallbackAvailable': true,
+      'vehicleOnlyStopFallbackAvailable': true,
+      'longTrafficLightProtected': true,
+      'walkingEvidenceCanOnlySuggestReview': true,
+      'activityRecognitionCanCreateOfficialStop': false,
+      'externalMotionDataValidatedBeforeUse': true,
+      'stopEvidenceTrustedAfterValidationOnly': true,
+      'remoteStopSummaryCanOverrideLocalTrip': false,
+      'firestoreCanCreateOfficialStop': false,
+      'cloudFunctionCanCreateOfficialStop': false,
+      'malformedStopSummaryFailsSafe': true,
+      'officialStopSource': 'user_review',
+      'officialMileageSource': 'odometer',
+      'canCreateOfficialStop': false,
+      'canReplaceOdometer': false,
+      'canEndTripAutomatically': false,
+      'stopRequiresAcceptedVehicleMovement': true,
+      'actionToken': _safeStopAction(actionToken),
+      'dashboardMessage': _safeStopMessage(dashboardMessage),
+      'mapsRequiredForStopReview': false,
+      'mapboxCanCreateStop': false,
+      'mapboxCanEndTrip': false,
+      'rawSamplesIncluded': false,
+      'rawMotionPayloadIncluded': false,
+      'coordinatesIncluded': false,
+      'routeGeometryIncluded': false,
+      'mapboxGeometryIncluded': false,
+    };
+  }
+}
+
+bool _safeRequiresStopReview({
+  required TripStopSignal signal,
+  required String reasonCode,
+  required bool requiresUserReview,
+  required bool canSuggestStop,
+}) {
+  return requiresUserReview &&
+      _safeCanSuggestStop(
+        signal: signal,
+        reasonCode: reasonCode,
+        canSuggestStop: canSuggestStop,
+      );
+}
+
+bool _safeCanSuggestStop({
+  required TripStopSignal signal,
+  required String reasonCode,
+  required bool canSuggestStop,
+}) {
+  if (!canSuggestStop || signal != TripStopSignal.reviewOnlyStop) return false;
+  return switch (reasonCode) {
+    'delivery_stop_walk_review' ||
+    'contractor_stop_walk_review' ||
+    'rideshare_stop_requires_extra_evidence' ||
+    'road_vehicle_stop_walk_review' => true,
+    _ => false,
   };
 }
 
