@@ -118,6 +118,23 @@ void main() {
   });
 
   test(
+    'contradictory healthy signal requiring review cannot open stop review',
+    () {
+      final decision = TripGpsDependabilityPolicy.evaluate(
+        profile: TripTrackingProfile.deliveryVehicle,
+        signalSummary: signal(requiresUserReview: true),
+        sampleWindow: window(),
+      );
+
+      expect(decision.status, TripGpsDependabilityStatus.reviewOnly);
+      expect(decision.canFeedLiveOdometerProjection, isTrue);
+      expect(decision.canOpenStopReview, isFalse);
+      expect(decision.canContributeToCalibration, isFalse);
+      expect(decision.requiresUserReview, isTrue);
+    },
+  );
+
+  test(
     'poor or interrupted GPS pauses projection but keeps sampling alive',
     () {
       for (final entry in [

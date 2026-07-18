@@ -214,6 +214,7 @@ class TripGpsDependabilityPolicy {
     final signalQuality = _safeSignal(signalSummary.quality);
     final signalCalibrationEligible =
         safeSignal['signalQualityEligibleForCalibration'] == true;
+    final signalRequiresReview = safeSignal['requiresUserReview'] == true;
     final sampleCanProject = sampleWindow.canFeedLiveOdometerProjection;
     final sampleCanPersist = sampleWindow.canPersistCompactRoutePoint;
     final sampleUnsafe =
@@ -293,6 +294,21 @@ class TripGpsDependabilityPolicy {
         canContributeToCalibration: signalCalibrationEligible,
         shouldContinueSampling: true,
         requiresUserReview: signalSummary.requiresUserReview,
+      );
+    }
+    if (signalRequiresReview) {
+      return _decision(
+        status: TripGpsDependabilityStatus.reviewOnly,
+        reasonCode: 'gps_reduced_review_only_assist',
+        profile: profile,
+        confidence: TripTrackingConfidence.medium,
+        signalQuality: signalQuality,
+        canFeedLiveOdometerProjection: true,
+        canPersistCompactRoutePoint: sampleCanPersist,
+        canOpenStopReview: false,
+        canContributeToCalibration: false,
+        shouldContinueSampling: true,
+        requiresUserReview: true,
       );
     }
 
