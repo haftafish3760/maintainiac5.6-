@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
-import '../../shared/widgets/flow_placeholder_screen.dart';
+import '../expenses/profiles/expense_work_profile_screen.dart';
 import 'vehicle_profile_flow.dart';
 import 'vehicle_profile_widgets.dart';
 
@@ -127,22 +127,9 @@ class _WorkProfileDrawer extends StatelessWidget {
   }
 
   void _openWorkProfiles(BuildContext context) {
-    Navigator.of(context).push(
-      appNativeRoute<void>(
-        context,
-        const FlowPlaceholderScreen(
-          title: 'Work Profiles',
-          icon: Icons.work_rounded,
-          summary:
-              'Work profiles will let users keep jobs, contracts, or business lines separated without forcing everyone to use that workflow.',
-          details: [
-            'Default users can ignore this and keep one simple work profile.',
-            'Users with multiple jobs can create separate profiles for clean reporting.',
-            'This screen will also control whether the work profile selector is shown on the dashboard.',
-          ],
-        ),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(appNativeRoute<void>(context, const ExpenseWorkProfileScreen()));
   }
 }
 

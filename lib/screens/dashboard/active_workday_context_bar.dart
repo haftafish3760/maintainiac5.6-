@@ -68,13 +68,8 @@ class _WorkProfilePanel extends StatelessWidget {
   }
 
   void _openWorkProfiles(BuildContext context) {
-    _openFlow(
+    Navigator.of(
       context,
-      title: 'Work Profiles',
-      icon: Icons.work_rounded,
-      summary:
-          'Work profiles keep jobs, contracts, or business lines separated while preserving the active day workflow.',
-      requiresOdometer: false,
-    );
+    ).push(appNativeRoute<void>(context, const ExpenseWorkProfileScreen()));
   }
 }

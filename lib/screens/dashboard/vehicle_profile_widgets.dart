@@ -5,6 +5,7 @@ import '../../shared/widgets/structural_border_label.dart';
 
 class VehicleProfilePreview {
   const VehicleProfilePreview({
+    this.id = '',
     required this.nickname,
     required this.year,
     required this.make,
@@ -14,6 +15,7 @@ class VehicleProfilePreview {
     this.usage = VehicleUsage.businessPersonal,
   });
 
+  final String id;
   final String nickname;
   final String year;
   final String make;

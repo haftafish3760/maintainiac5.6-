@@ -9,7 +9,6 @@ import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
-import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
@@ -450,7 +449,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     }
     final started = await tripTracking.startNativeTracking(
       allowBackground: settings.backgroundTrackingEnabled,
-      samplingOverride: _samplingForPreset(settings),
+      samplingPreset: settings.samplingPreset,
+      customIntervalSeconds: settings.customIntervalSeconds,
       adaptiveSamplingEnabled: settings.adaptiveSamplingEnabled,
       activityRecognitionEnabled: settings.activityRecognitionEnabled,
       lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
@@ -475,7 +475,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         if (choice.continueGps) {
           final retryStarted = await tripTracking.startNativeTracking(
             allowBackground: settings.backgroundTrackingEnabled,
-            samplingOverride: _samplingForPreset(settings),
+            samplingPreset: settings.samplingPreset,
+            customIntervalSeconds: settings.customIntervalSeconds,
             adaptiveSamplingEnabled: settings.adaptiveSamplingEnabled,
             activityRecognitionEnabled: settings.activityRecognitionEnabled,
             lowBatteryProtectionEnabled:
@@ -1088,40 +1089,3 @@ class _LowBatteryGpsChoice {
   final bool continueGps;
   final bool rememberChoice;
 }
-
-TripSamplingRecommendation _samplingForPreset(
-  TripTrackingSettings settings,
-) => switch (settings.samplingPreset) {
-  TripTrackingSamplingPreset.highAccuracy => const TripSamplingRecommendation(
-    mode: TripSamplingMode.precision,
-    interval: Duration(seconds: 3),
-    minimumDisplacementMeters: 3,
-  ),
-  TripTrackingSamplingPreset.enhancedAccuracy =>
-    const TripSamplingRecommendation(
-      mode: TripSamplingMode.balanced,
-      interval: Duration(seconds: 8),
-      minimumDisplacementMeters: 5,
-    ),
-  TripTrackingSamplingPreset.balanced => const TripSamplingRecommendation(
-    mode: TripSamplingMode.balanced,
-    interval: Duration(seconds: 15),
-    minimumDisplacementMeters: 8,
-  ),
-  TripTrackingSamplingPreset.batterySaver => const TripSamplingRecommendation(
-    mode: TripSamplingMode.economy,
-    interval: Duration(seconds: 30),
-    minimumDisplacementMeters: 20,
-  ),
-  TripTrackingSamplingPreset.extremeOptimized =>
-    const TripSamplingRecommendation(
-      mode: TripSamplingMode.economy,
-      interval: Duration(seconds: 60),
-      minimumDisplacementMeters: 30,
-    ),
-  TripTrackingSamplingPreset.custom => TripSamplingRecommendation(
-    mode: TripSamplingMode.balanced,
-    interval: Duration(seconds: settings.customIntervalSeconds),
-    minimumDisplacementMeters: 8,
-  ),
-};
