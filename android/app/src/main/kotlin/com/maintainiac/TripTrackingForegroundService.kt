@@ -12,6 +12,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
@@ -26,11 +27,22 @@ class TripTrackingForegroundService : Service(), LocationListener {
         private const val stopAction = "com.maintainiac.trip_tracking.STOP"
         private const val notificationChannelId = "maintainiac_trip_tracking"
         private const val notificationId = 7313
+        private const val heartbeatIntervalMillis = 60_000L
         var isRunning = false
             private set
     }
 
     private lateinit var locationManager: LocationManager
+    private val heartbeatHandler = Handler(Looper.getMainLooper())
+    private val heartbeatRunnable = object : Runnable {
+        override fun run() {
+            if (!isRunning) return
+            // Liveness only: no coordinates, mileage, stop evidence, or
+            // identity crosses this status boundary.
+            TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
+            heartbeatHandler.postDelayed(this, heartbeatIntervalMillis)
+        }
+    }
     private val activityPendingIntent by lazy {
         PendingIntent.getBroadcast(
             this,
@@ -60,8 +72,8 @@ class TripTrackingForegroundService : Service(), LocationListener {
             return START_NOT_STICKY
         }
         val interval = intent?.getLongExtra(intervalMillisExtra, 5000L)?.coerceIn(1000L, 60000L) ?: 5000L
-        val displacement = intent?.getFloatExtra(minimumDisplacementExtra, 5f)?.coerceIn(0f, 100f) ?: 5f
-        val activityEnabled = intent?.getBooleanExtra(activityRecognitionEnabledExtra, true) == true
+        val displacement = intent?.getFloatExtra(minimumDisplacementExtra, 5f)?.coerceIn(1f, 100f) ?: 5f
+        val activityEnabled = intent?.getBooleanExtra(activityRecognitionEnabledExtra, false) == true
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_gps_unavailable", "errorMessage" to "GPS is unavailable. Turn on device location to continue tracking."))
@@ -92,14 +104,25 @@ class TripTrackingForegroundService : Service(), LocationListener {
                 .addOnFailureListener { error ->
                     TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_activity_unavailable", "errorMessage" to "Activity recognition is unavailable: ${error.message ?: "request failed"}"))
                 }
+        } else {
+            // Sampling updates can revoke motion assistance while the trip
+            // remains active. Stop the sensor immediately; location tracking
+            // must never keep collecting activity data after that opt-out.
+            try {
+                ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
+            } catch (_: Exception) {
+                // Location cleanup and the explicit opt-out remain authoritative
+                // if Play Services is temporarily unavailable.
+            }
         }
         isRunning = true
         TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
+        startHeartbeat()
         return START_NOT_STICKY
     }
 
     override fun onLocationChanged(location: Location) {
-        if (!location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
+        if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "location",
@@ -122,6 +145,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
     }
 
     override fun onDestroy() {
+        stopHeartbeat()
         if (::locationManager.isInitialized) locationManager.removeUpdates(this)
         try {
             ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
@@ -134,6 +158,15 @@ class TripTrackingForegroundService : Service(), LocationListener {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun startHeartbeat() {
+        heartbeatHandler.removeCallbacks(heartbeatRunnable)
+        heartbeatHandler.postDelayed(heartbeatRunnable, heartbeatIntervalMillis)
+    }
+
+    private fun stopHeartbeat() {
+        heartbeatHandler.removeCallbacks(heartbeatRunnable)
+    }
 
     private fun notification(): android.app.Notification {
         val stopIntent = PendingIntent.getService(

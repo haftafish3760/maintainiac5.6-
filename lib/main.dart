@@ -191,6 +191,13 @@ Future<void> main() async {
 
   syncTripCalibrationAssist();
   tripTrackingSettings.addListener(syncTripCalibrationAssist);
+  void syncTripActivityRecognitionConsent() {
+    if (!tripTrackingSettings.settings.activityRecognitionEnabled) {
+      unawaited(tripTracking.disableActivityRecognition());
+    }
+  }
+
+  tripTrackingSettings.addListener(syncTripActivityRecognitionConsent);
   final activeDashboardMirror = dashboardMirror;
   if (activeDashboardMirror != null) {
     final dashboardReporter = DashboardTripTrackingSummaryReporter(

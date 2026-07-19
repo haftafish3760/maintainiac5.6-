@@ -16,10 +16,18 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private var requestedBackgroundAuthorization = false
   private var backgroundAuthorizationRequested = false
   private var tracking = false
+  private var activityRecognitionEnabled = false
+  private var heartbeatTimer: Timer?
 
   override init() {
     super.init()
     locationManager.delegate = self
+  }
+
+  deinit {
+    // The timer captures this bridge weakly, but explicit teardown keeps the
+    // native liveness loop bounded if Flutter replaces the engine/plugin.
+    stopHeartbeat()
   }
 
   func register(with pluginRegistry: FlutterPluginRegistry) {
@@ -56,8 +64,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
     let state = authorization["state"] as? String
     if tracking && (state == "denied" || state == "restricted") {
+      stopHeartbeat()
       locationManager.stopUpdatingLocation()
-      motionManager.stopActivityUpdates()
+      setActivityRecognitionEnabled(false)
       tracking = false
       emit([
         "type": "error",
@@ -100,9 +109,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    if let locationError = error as? CLError, locationError.code == .locationUnknown {
+      // Core Location documents this as transient and will keep trying. Do
+      // not manufacture a platform error, interruption, or UI alarm from a
+      // normal recovery path. The validated next fix remains the evidence.
+      return
+    }
     if let locationError = error as? CLError, locationError.code == .denied {
+      stopHeartbeat()
       locationManager.stopUpdatingLocation()
-      motionManager.stopActivityUpdates()
+      setActivityRecognitionEnabled(false)
       tracking = false
       emit([
         "type": "error",
@@ -111,10 +127,18 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       ])
       return
     }
+    // Any other Core Location failure leaves the current fix stream
+    // indeterminate. End native collection and let the Dart lifecycle keep
+    // the local trip recoverable rather than silently continuing with stale
+    // state. This never creates mileage, a stop, or an odometer update.
+    stopHeartbeat()
+    locationManager.stopUpdatingLocation()
+    setActivityRecognitionEnabled(false)
+    tracking = false
     emit([
       "type": "error",
       "errorCode": "trip_tracking_location_error",
-      "errorMessage": error.localizedDescription,
+      "errorMessage": "Core Location could not continue trip tracking.",
     ])
   }
 
@@ -131,8 +155,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     case "update":
       update(call, result: result)
     case "stop":
+      stopHeartbeat()
       locationManager.stopUpdatingLocation()
-      motionManager.stopActivityUpdates()
+      setActivityRecognitionEnabled(false)
       tracking = false
       emit(["type": "status", "status": "stopped"])
       result(nil)
@@ -181,6 +206,11 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     }
     let arguments = call.arguments as? [String: Any]
     let profile = arguments?["profile"] as? String
+    let allowBackground = arguments?["allowBackground"] as? Bool ?? false
+    guard state == "always" || (!allowBackground && state == "whileInUse") else {
+      result(FlutterError(code: "trip_tracking_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
+      return
+    }
     let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
     let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
@@ -188,25 +218,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     locationManager.activityType = isRoadStyleProfile(profile) ? .automotiveNavigation : .otherNavigation
     locationManager.pausesLocationUpdatesAutomatically = false
     if #available(iOS 9.0, *) {
-      locationManager.allowsBackgroundLocationUpdates = state == "always"
+      locationManager.allowsBackgroundLocationUpdates = allowBackground && state == "always"
     }
     if #available(iOS 11.0, *) {
-      locationManager.showsBackgroundLocationIndicator = state == "always"
+      locationManager.showsBackgroundLocationIndicator = allowBackground && state == "always"
     }
     locationManager.startUpdatingLocation()
-    if activityEnabled && CMMotionActivityManager.isActivityAvailable() {
-      motionManager.startActivityUpdates(to: .main) { [weak self] motion in
-        guard let self, let motion else { return }
-        self.emit([
-          "type": "activity",
-          "activity": self.tripActivity(for: motion),
-          "confidence": self.confidence(for: motion.confidence),
-          "recordedAt": ISO8601DateFormatter().string(from: motion.startDate),
-        ])
-      }
-    }
+    setActivityRecognitionEnabled(activityEnabled)
     tracking = true
     emit(["type": "status", "status": "tracking"])
+    startHeartbeat()
     result(true)
   }
 
@@ -218,8 +239,32 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let arguments = call.arguments as? [String: Any]
     let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
+    let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
     applySampling(intervalMillis: intervalMillis, displacement: displacement)
+    setActivityRecognitionEnabled(activityEnabled)
     result(true)
+  }
+
+  /// Motion assistance is optional stop evidence, never a reason to keep a
+  /// sensor live after the driver turns it off. This remains independent from
+  /// GPS collection so a privacy opt-out cannot accidentally end a trip.
+  private func setActivityRecognitionEnabled(_ enabled: Bool) {
+    let shouldEnable = enabled && CMMotionActivityManager.isActivityAvailable()
+    guard shouldEnable != activityRecognitionEnabled else { return }
+    activityRecognitionEnabled = shouldEnable
+    guard shouldEnable else {
+      motionManager.stopActivityUpdates()
+      return
+    }
+    motionManager.startActivityUpdates(to: .main) { [weak self] motion in
+      guard let self, self.activityRecognitionEnabled, let motion else { return }
+      self.emit([
+        "type": "activity",
+        "activity": self.tripActivity(for: motion),
+        "confidence": self.confidence(for: motion.confidence),
+        "recordedAt": ISO8601DateFormatter().string(from: motion.startDate),
+      ])
+    }
   }
 
   private func isRoadStyleProfile(_ profile: String?) -> Bool {
@@ -245,6 +290,21 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
     }
     locationManager.distanceFilter = min(max(1, displacement), 100)
+  }
+
+  private func startHeartbeat() {
+    heartbeatTimer?.invalidate()
+    heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+      guard let self, self.tracking else { return }
+      // Liveness only. No coordinates, sensor evidence, stops, or mileage
+      // leave the native bridge in this status event.
+      self.emit(["type": "status", "status": "tracking"])
+    }
+  }
+
+  private func stopHeartbeat() {
+    heartbeatTimer?.invalidate()
+    heartbeatTimer = nil
   }
 
   private func capabilities() -> [String: Any] {

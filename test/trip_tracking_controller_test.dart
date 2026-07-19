@@ -752,6 +752,57 @@ void main() {
     },
   );
 
+  test(
+    'native start fails closed when background consent cannot persist',
+    () async {
+      var storageChecks = 0;
+      final store = TripTrackingSessionStore.memory(
+        storageCheck: () async {
+          storageChecks += 1;
+          final available = storageChecks == 3 ? 0 : 1024 * 1024;
+          return AppStorageCheck(
+            availableBytes: available,
+            operationBytes: 1024,
+            requiredBytes: 1024,
+            purpose: AppStoragePurpose.mileageTracking,
+          );
+        },
+      );
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_background_consent_storage_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isFalse,
+      );
+      expect(native.requestAuthorizationCalls, 1);
+      expect(native.startCalls, 0);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        contains('background tracking permission locally'),
+      );
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+    },
+  );
+
   test('native samples are serialized through the trip controller', () async {
     final native = _FakeTripTrackingPlatform();
     final odometer = GlobalOdometerController(initialReading: 1000);
@@ -1362,6 +1413,40 @@ void main() {
   );
 
   test(
+    'a stale UI background preference cannot keep foreground GPS running',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_stale_background_preference',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      await controller.handleAppLifecycleState(
+        AppLifecycleState.paused,
+        backgroundTrackingAllowed: true,
+      );
+
+      expect(native.stopCalls, 1);
+      expect(controller.nativeTracking, isFalse);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.paused,
+      );
+    },
+  );
+
+  test(
     'backgrounding during foreground-only startup stops GPS after it starts',
     () async {
       final startGate = Completer<void>();
@@ -1575,6 +1660,48 @@ void main() {
     expect(controller.platformError, contains('could not be registered'));
     expect(native.stopCalls, 1);
   });
+
+  test(
+    'a terminal Core Location failure preserves a recoverable local trip',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_core_location_error',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addPlatformError(
+        code: 'trip_tracking_location_error',
+        message: 'Core Location could not continue trip tracking.',
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(
+        controller.platformError,
+        'The device could not continue GPS trip tracking.',
+      );
+      expect(native.stopCalls, 1);
+    },
+  );
 
   test(
     'native platform errors do not surface raw tokens or coordinates',
@@ -2166,6 +2293,16 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(native.hasEventListener, isFalse);
       expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(controller.healthState, TripTrackingHealthState.interrupted);
+      expect(controller.platformStatus, 'interrupted');
+      expect(
+        controller.platformError,
+        'GPS updates stopped unexpectedly. Your local trip is preserved for review.',
+      );
+      expect(
         await controller.startNativeTracking(allowBackground: false),
         isTrue,
       );
@@ -2196,10 +2333,10 @@ void main() {
 
       expect(controller.nativeTracking, isFalse);
       expect(native.stopCalls, 0);
-      expect(controller.platformStatus, 'stopped');
+      expect(controller.platformStatus, 'interrupted');
       expect(
         controller.platformError,
-        'Could not detach GPS event listener cleanly.',
+        'GPS updates stopped unexpectedly. Your local trip is preserved for review.',
       );
 
       native.addLocation(sample(-80, 0, speed: 8));
@@ -2272,11 +2409,12 @@ void main() {
   );
 
   test(
-    'disposing the controller detaches its native GPS event listener',
+    'disposing the controller stops collection without a durable Dart consumer',
     () async {
       final native = _FakeTripTrackingPlatform();
+      final store = TripTrackingSessionStore.memory();
       final controller = TripTrackingController(
-        sessionStore: TripTrackingSessionStore.memory(),
+        sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
       );
@@ -2291,9 +2429,15 @@ void main() {
 
       controller.dispose();
       await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
       expect(native.hasEventListener, isFalse);
-      expect(native.stopCalls, 0);
+      expect(native.stopCalls, 1);
+      expect(await native.isTracking, isFalse);
+      expect(
+        store.activeSession?.lifecycleState,
+        TripTrackingSessionLifecycleState.paused,
+      );
     },
   );
 
@@ -2353,6 +2497,9 @@ void main() {
         startedAt: start,
       );
       await initial.ingest(sample(-80, 0, speed: 8));
+      await store.save(
+        store.activeSession!.copyWith(backgroundTrackingAllowed: true),
+      );
 
       final native = _FakeTripTrackingPlatform();
       await native.start(
@@ -2380,6 +2527,48 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
       expect(restored.acceptedMeters, greaterThan(0));
+    },
+  );
+
+  test(
+    'restore stops a surviving collector without durable background consent',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final initial = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await initial.start(
+        tripId: 'trip_restore_without_background_consent',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      final native = _FakeTripTrackingPlatform();
+      await native.start(
+        const TripTrackingNativeRequest(
+          profile: TripTrackingProfile.roadVehicle,
+          sampling: TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 5),
+            minimumDisplacementMeters: 5,
+          ),
+        ),
+      );
+      final restored = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+
+      expect(await restored.restore(), isTrue);
+      expect(restored.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(restored.platformStatus, 'background_consent_required');
+      expect(restored.platformError, contains('not previously authorized'));
     },
   );
 
@@ -2491,6 +2680,64 @@ void main() {
       expect(controller.needsWalkingReview, isFalse);
     },
   );
+
+  test('disabling motion assistance updates the active native collector', () async {
+    final native = _FakeTripTrackingPlatform(activityRecognitionAvailable: true);
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_disable_motion_assistance',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(
+      await controller.startNativeTracking(
+        allowBackground: true,
+        activityRecognitionEnabled: true,
+      ),
+      isTrue,
+    );
+
+    await controller.disableActivityRecognition();
+
+    expect(native.updateCalls, 1);
+    expect(native.updatedRequest?.activityRecognitionEnabled, isFalse);
+    expect(native.updatedRequest?.allowBackground, isTrue);
+    expect(controller.nativeTracking, isTrue);
+  });
+
+  test('a failed motion-assistance withdrawal stops GPS rather than retaining sensor access', () async {
+    final native = _FakeTripTrackingPlatform(
+      activityRecognitionAvailable: true,
+      updateSucceeds: false,
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_failed_motion_withdrawal',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await controller.startNativeTracking(
+      allowBackground: false,
+      activityRecognitionEnabled: true,
+    );
+
+    await controller.disableActivityRecognition();
+
+    expect(native.updateCalls, 1);
+    expect(native.stopCalls, 1);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.platformError, contains('Motion activity was disabled'));
+  });
 
   test(
     'a long paused GPS gap is not converted into live odometer miles',
@@ -3028,6 +3275,91 @@ void main() {
   );
 
   test(
+    'direct ingest rejects future timestamps using the controller clock',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final now = start.add(const Duration(minutes: 10));
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_future_direct_timestamp',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      expect(
+        (await controller.ingest(sample(-80, 0)))?.disposition,
+        TripSampleDisposition.acceptedAnchor,
+      );
+
+      final future = await controller.ingest(sample(-79.99, 800));
+
+      expect(
+        future?.disposition,
+        TripSampleDisposition.rejectedFutureTimestamp,
+      );
+      expect(controller.acceptedMeters, 0);
+      expect(store.pendingSampleFor('trip_future_direct_timestamp'), isNull);
+      expect(store.activeSession?.updatedAt, start);
+    },
+  );
+
+  test(
+    'recovery cannot replay a future pending sample without native events',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final now = start.add(const Duration(minutes: 10));
+      final original = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        clockNow: () => now,
+      );
+      addTearDown(original.dispose);
+      expect(
+        await original.start(
+          tripId: 'trip_future_pending_recovery',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await original.ingest(sample(-80, 0));
+      await store.savePending(
+        TripTrackingPendingSample(
+          sessionId: 'trip_future_pending_recovery',
+          sample: sample(-79.98, 800),
+        ),
+      );
+
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final recovered = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        clockNow: () => now,
+      );
+      addTearDown(recovered.dispose);
+      addTearDown(odometer.dispose);
+
+      expect(await recovered.restore(), isTrue);
+      expect(recovered.acceptedMeters, 0);
+      expect(odometer.reading, 1000);
+      expect(store.pendingSampleFor('trip_future_pending_recovery'), isNull);
+    },
+  );
+
+  test(
     'mocked GPS fixes are rejected without durable pending recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
@@ -3429,6 +3761,47 @@ void main() {
       expect(durableReview?.confirmedEndingOdometer, 1002);
       expect(durableReview?.isOdometerConfirmed, isTrue);
       expect(controller.durableRecordError, isNull);
+    },
+  );
+
+  test(
+    'concurrent finish requests cannot create duplicate trip reviews',
+    () async {
+      final store = _DelayedReviewSaveStore();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      expect(
+        await controller.start(
+          tripId: 'trip_concurrent_finish',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      await controller.ingest(sample(-80, 0));
+
+      final first = controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 10)),
+      );
+      await store.reviewSaveStarted.future;
+      final second = await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 10)),
+      );
+      store.allowReviewSave.complete();
+      final firstReview = await first;
+
+      expect(firstReview, isNotNull);
+      expect(second, isNull);
+      expect(store.reviewSaveCalls, 1);
+      expect(store.pendingReviews, hasLength(1));
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
     },
   );
 
@@ -4312,6 +4685,59 @@ void main() {
     expect(mirror.reviews, isEmpty);
   });
 
+  test('concurrent odometer confirmations commit one durable review', () async {
+    final store = _DelayedConfirmationSaveStore();
+    final review = TripTrackingReviewRecord(
+      id: 'trip_concurrent_confirmation',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+      finishedAt: start.add(const Duration(minutes: 1)),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 100,
+        walkingReviewSuggested: false,
+      ),
+    );
+    await store.saveReview(review);
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+      clockNow: () => start.add(const Duration(minutes: 3)),
+    );
+    addTearDown(controller.dispose);
+    addTearDown(odometer.dispose);
+    store.delayWrites = true;
+
+    final first = controller.confirmOdometerReview(
+      reviewId: review.id,
+      confirmedEndingOdometer: 1001,
+      confirmedAt: start.add(const Duration(minutes: 2)),
+    );
+    await store.confirmationSaveStarted.future;
+    final second = await controller.confirmOdometerReview(
+      reviewId: review.id,
+      confirmedEndingOdometer: 1001,
+      confirmedAt: start.add(const Duration(minutes: 2)),
+    );
+    store.allowConfirmationSave.complete();
+
+    expect(await first, isTrue);
+    expect(second, isFalse);
+    expect(store.delayedSaveCalls, 1);
+    expect(store.reviewForTrip(review.id)?.isOdometerConfirmed, isTrue);
+    expect(odometer.confirmedReading, 1001);
+    expect(
+      odometer.history.where((entry) => entry.sourceId == review.id),
+      hasLength(1),
+    );
+  });
+
   test('a trip review cannot confirm before the trip has finished', () async {
     final store = TripTrackingSessionStore.memory();
     final review = TripTrackingReviewRecord(
@@ -4682,6 +5108,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.throwOnReadBatterySnapshot = false,
     this.batteryStateAvailable = true,
     this.lowPowerModeAvailable = true,
+    this.activityRecognitionAvailable = false,
+    this.updateSucceeds = true,
     this.startFailureMessage = 'native start fault',
     this.batterySnapshot = const TripTrackingBatterySnapshot(
       batteryPercent: 100,
@@ -4707,6 +5135,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool throwOnReadBatterySnapshot;
   final bool batteryStateAvailable;
   final bool lowPowerModeAvailable;
+  final bool activityRecognitionAvailable;
+  final bool updateSucceeds;
   final String startFailureMessage;
   final TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
@@ -4776,7 +5206,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     return TripTrackingPlatformCapabilities(
       locationAvailable: true,
       backgroundTrackingAvailable: true,
-      activityRecognitionAvailable: false,
+      activityRecognitionAvailable: activityRecognitionAvailable,
       batteryStateAvailable: batteryStateAvailable,
       lowPowerModeAvailable: lowPowerModeAvailable,
     );
@@ -4811,7 +5241,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   Future<bool> update(TripTrackingNativeRequest request) async {
     updateCalls += 1;
     updatedRequest = request;
-    return true;
+    return updateSucceeds;
   }
 
   @override
@@ -4880,6 +5310,40 @@ Future<TripTrackingSessionStore> _storeWithRawTripTrackingData({
     }
   });
   return store;
+}
+
+class _DelayedReviewSaveStore extends TripTrackingSessionStore {
+  _DelayedReviewSaveStore() : super.memory();
+
+  final reviewSaveStarted = Completer<void>();
+  final allowReviewSave = Completer<void>();
+  var reviewSaveCalls = 0;
+
+  @override
+  Future<void> saveReview(TripTrackingReviewRecord review) async {
+    reviewSaveCalls += 1;
+    reviewSaveStarted.complete();
+    await allowReviewSave.future;
+    await super.saveReview(review);
+  }
+}
+
+class _DelayedConfirmationSaveStore extends TripTrackingSessionStore {
+  _DelayedConfirmationSaveStore() : super.memory();
+
+  final confirmationSaveStarted = Completer<void>();
+  final allowConfirmationSave = Completer<void>();
+  var delayWrites = false;
+  var delayedSaveCalls = 0;
+
+  @override
+  Future<void> saveReview(TripTrackingReviewRecord review) async {
+    if (!delayWrites) return super.saveReview(review);
+    delayedSaveCalls += 1;
+    confirmationSaveStarted.complete();
+    await allowConfirmationSave.future;
+    await super.saveReview(review);
+  }
 }
 
 class _FailingAfterInitialSessionSaveStore extends TripTrackingSessionStore {

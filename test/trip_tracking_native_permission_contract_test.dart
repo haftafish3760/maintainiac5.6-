@@ -47,27 +47,65 @@ void main() {
     );
   });
 
-  test(
-    'iOS escalates location authorization only after foreground approval',
-    () {
-      final source = File(
-        'ios/Runner/TripTrackingNativeBridge.swift',
-      ).readAsStringSync();
-      final plist = File('ios/Runner/Info.plist').readAsStringSync();
+  test('iOS escalates location authorization only after foreground approval', () {
+    final source = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+    final plist = File('ios/Runner/Info.plist').readAsStringSync();
 
-      expect(source, contains('state == "whileInUse" && allowBackground'));
-      expect(
-        source,
-        contains('locationManager.requestWhenInUseAuthorization()'),
-      );
-      expect(source, contains('locationManager.requestAlwaysAuthorization()'));
-      expect(
-        source,
-        contains('arguments?["activityRecognitionEnabled"] as? Bool ?? false'),
-      );
-      expect(plist, contains('NSMotionUsageDescription'));
-    },
-  );
+    expect(source, contains('state == "whileInUse" && allowBackground'));
+    expect(source, contains('locationManager.requestWhenInUseAuthorization()'));
+    expect(source, contains('locationManager.requestAlwaysAuthorization()'));
+    expect(
+      source,
+      contains(
+        'locationManager.allowsBackgroundLocationUpdates = allowBackground && state == "always"',
+      ),
+    );
+    expect(
+      source,
+      contains(
+        'locationManager.showsBackgroundLocationIndicator = allowBackground && state == "always"',
+      ),
+    );
+    expect(
+      source,
+      contains(
+        'let allowBackground = arguments?["allowBackground"] as? Bool ?? false',
+      ),
+    );
+    expect(
+      source,
+      contains(
+        'Background location permission is required for this tracking mode.',
+      ),
+    );
+    expect(
+      source,
+      contains('arguments?["activityRecognitionEnabled"] as? Bool ?? false'),
+    );
+    expect(plist, contains('NSLocationWhenInUseUsageDescription'));
+    expect(plist, contains('NSLocationAlwaysAndWhenInUseUsageDescription'));
+    expect(plist, contains('NSMotionUsageDescription'));
+    expect(plist, contains('<key>UIBackgroundModes</key>'));
+    expect(plist, contains('<string>location</string>'));
+  });
+
+  test('Android declares only the permissions and service type GPS needs', () {
+    final manifest = File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsStringSync();
+
+    expect(manifest, contains('android.permission.ACCESS_FINE_LOCATION'));
+    expect(manifest, contains('android.permission.ACCESS_BACKGROUND_LOCATION'));
+    expect(manifest, contains('android.permission.FOREGROUND_SERVICE'));
+    expect(
+      manifest,
+      contains('android.permission.FOREGROUND_SERVICE_LOCATION'),
+    );
+    expect(manifest, contains('android.permission.ACTIVITY_RECOGNITION'));
+    expect(manifest, contains('android:foregroundServiceType="location"'));
+  });
 
   test('native bridges preserve the evidence needed for safe GPS filtering', () {
     final android = File(
@@ -91,6 +129,7 @@ void main() {
     expect(android, contains('trip_tracking_foreground_service_denied'));
     expect(androidBridge, contains('catch (error: IllegalStateException)'));
     expect(android, contains('trip_tracking_location_registration_failed'));
+    expect(android, contains('coerceIn(1f, 100f)'));
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
     expect(ios, contains('"recordedAt": ISO8601DateFormatter()'));
@@ -187,7 +226,37 @@ void main() {
     expect(ios, contains('"errorCode": "trip_tracking_location_denied"'));
     expect(ios, contains('trip_tracking_location_error'));
     expect(ios, contains('locationError.code == .denied'));
+    expect(ios, contains('locationError.code == .locationUnknown'));
+    expect(
+      ios,
+      contains(
+        'tracking = false\n    emit([\n      "type": "error",\n      "errorCode": "trip_tracking_location_error"',
+      ),
+    );
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
+  });
+
+  test('motion collection stops when optional activity assistance is disabled',
+      () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(
+      android,
+      contains(
+        'ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)',
+      ),
+    );
+    expect(android, contains('if (!isRunning || !location.hasAccuracy()'));
+    expect(ios, contains('private var activityRecognitionEnabled = false'));
+    expect(ios, contains('private func setActivityRecognitionEnabled'));
+    expect(ios, contains('setActivityRecognitionEnabled(activityEnabled)'));
+    expect(ios, contains('self.activityRecognitionEnabled, let motion'));
+    expect(ios, contains('motionManager.stopActivityUpdates()'));
   });
 
   test(
@@ -211,6 +280,67 @@ void main() {
 
     expect(android, contains('coerceIn(1f, 100f)'));
     expect(android, isNot(contains('coerceIn(0f, 100f)')));
+    expect(android, contains('trip_tracking_sampling_update_failed'));
+    expect(
+      android,
+      contains('Android could not apply the GPS sampling update'),
+    );
+  });
+
+  test('native collectors emit coordinate-free liveness heartbeats', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(
+      android,
+      contains('private const val heartbeatIntervalMillis = 60_000L'),
+    );
+    expect(
+      android,
+      contains('private val heartbeatRunnable = object : Runnable'),
+    );
+    expect(
+      android,
+      contains('heartbeatHandler.postDelayed(this, heartbeatIntervalMillis)'),
+    );
+    expect(android, contains('private fun startHeartbeat()'));
+    expect(android, contains('private fun stopHeartbeat()'));
+    expect(ios, contains('private var heartbeatTimer: Timer?'));
+    expect(
+      ios,
+      contains('Timer.scheduledTimer(withTimeInterval: 60, repeats: true)'),
+    );
+    expect(ios, contains('private func startHeartbeat()'));
+    expect(ios, contains('private func stopHeartbeat()'));
+    expect(ios, contains('deinit {'));
+    expect(ios, contains('No coordinates, sensor evidence, stops, or mileage'));
+  });
+
+  test('native start rejects background collection without native permission', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+
+    expect(
+      android,
+      contains(
+        'val allowBackground = call.argument<Boolean>("allowBackground") == true',
+      ),
+    );
+    expect(
+      android,
+      contains('if (allowBackground && !hasBackgroundLocation())'),
+    );
+    expect(
+      android,
+      contains(
+        'Background location permission is required for this tracking mode.',
+      ),
+    );
   });
 
   test('iOS native sampling never requests zero displacement', () {

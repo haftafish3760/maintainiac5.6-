@@ -8,6 +8,7 @@ import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
+import 'trip_tracking_heartbeat_watchdog_policy.dart';
 import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_native_error_policy.dart';
@@ -18,7 +19,9 @@ import 'trip_tracking_odometer_usage_anomaly.dart';
 import 'trip_tracking_platform.dart';
 import 'trip_tracking_policy.dart';
 import 'trip_tracking_recovery_policy.dart';
+import 'trip_tracking_sampling_preset_policy.dart';
 import 'trip_tracking_session_store.dart';
+import 'trip_tracking_settings_store.dart';
 import 'trip_tracking_state_machine.dart';
 import 'trip_stop_advisory_reviewer.dart';
 
@@ -33,6 +36,8 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
     TripTrackingDurableRecordBridge? durableRecordBridge,
     double gpsAssistanceCalibrationMultiplier = 1,
+    DateTime Function()? clockNow,
+    DateTime Function()? heartbeatNow,
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
@@ -41,7 +46,8 @@ class TripTrackingController extends ChangeNotifier {
        _durableRecordBridge = durableRecordBridge,
        _calibrationState = TripTrackingCalibrationState.initial(
          gpsAssistanceCalibrationMultiplier,
-       );
+       ),
+       _clockNow = clockNow ?? heartbeatNow ?? DateTime.now;
 
   final TripTrackingSessionStore _sessionStore;
   final GlobalOdometerController _odometer;
@@ -49,6 +55,12 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingPolicy _policy;
   final TripTrackingCloudMirror _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
+
+  /// One wall-clock authority for native timestamps, recovery, and review
+  /// validation. Keeping these checks on the same clock prevents a delayed or
+  /// future-dated provider sample from entering a restored trip merely because
+  /// a different code path happened to omit its received-time reference.
+  final DateTime Function() _clockNow;
   TripTrackingCalibrationState _calibrationState;
   TripTrackingSessionRecord? _session;
   TripTrackingEngine? _engine;
@@ -59,9 +71,21 @@ class TripTrackingController extends ChangeNotifier {
   Future<void> _ingestionQueue = Future<void>.value();
   Future<void> _nativeLifecycleQueue = Future<void>.value();
   bool _isDisposed = false;
+  // Starting, restoring, discarding, and finishing all replace the same
+  // durable active-trip checkpoint. A second tap must fail closed instead of
+  // interleaving with the first operation and producing a duplicate review or
+  // releasing the live odometer projection mid-write.
+  bool _sessionOperationInProgress = false;
   bool _nativeTracking = false;
+  // Distinguishes a driver/app-requested shutdown from a collector that
+  // stopped on its own. An unexpected stop must remain recoverable evidence,
+  // not be silently presented as a normal paused trip.
+  bool _nativeStopRequested = false;
   bool _nativeInterruptionPending = false;
   TripSamplingRecommendation? _nativeSampling;
+  TripTrackingSamplingPlan? _nativeSamplingPlan;
+  DateTime? _lastNativeHeartbeatUtc;
+  bool _backgroundTrackingAllowed = false;
   bool _activityRecognitionEnabled = false;
   bool _adaptiveSamplingEnabled = true;
   String? _platformStatus;
@@ -163,6 +187,19 @@ class TripTrackingController extends ChangeNotifier {
     required String reviewId,
     required int confirmedEndingOdometer,
     DateTime? confirmedAt,
+  }) => _runExclusiveSessionOperation(
+    false,
+    () => _confirmOdometerReview(
+      reviewId: reviewId,
+      confirmedEndingOdometer: confirmedEndingOdometer,
+      confirmedAt: confirmedAt,
+    ),
+  );
+
+  Future<bool> _confirmOdometerReview({
+    required String reviewId,
+    required int confirmedEndingOdometer,
+    DateTime? confirmedAt,
   }) async {
     final review = _sessionStore.reviewForTrip(reviewId);
     if (review == null ||
@@ -175,10 +212,10 @@ class TripTrackingController extends ChangeNotifier {
         confirmedEndingOdometer < review.startingOdometer) {
       return false;
     }
-    final confirmationTime = confirmedAt ?? DateTime.now();
+    final confirmationTime = confirmedAt ?? _clockNow();
     if (confirmationTime.isBefore(review.finishedAt)) return false;
     if (confirmationTime.toUtc().isAfter(
-      DateTime.now().toUtc().add(_policy.maximumFutureSampleSkew),
+      _clockNow().toUtc().add(_policy.maximumFutureSampleSkew),
     )) {
       _platformStatus = 'odometer_confirmation_time_invalid';
       _platformError =
@@ -359,9 +396,17 @@ class TripTrackingController extends ChangeNotifier {
 
   @override
   void dispose() {
+    // A detached Dart controller has no safe path to persist native events.
+    // Stop collection rather than leaving a foreground service running with
+    // no local consumer. Normal background tracking keeps this controller
+    // alive; a later restore can resume from the durable local checkpoint.
+    if (_nativeTracking) {
+      unawaited(_stopNativeTracking());
+    } else {
+      unawaited(_platformSubscription?.cancel());
+      _platformSubscription = null;
+    }
     _isDisposed = true;
-    unawaited(_platformSubscription?.cancel());
-    _platformSubscription = null;
     _cloudMirror.dispose();
     super.dispose();
   }
@@ -371,7 +416,35 @@ class TripTrackingController extends ChangeNotifier {
     if (!_isDisposed) super.notifyListeners();
   }
 
+  Future<T> _runExclusiveSessionOperation<T>(
+    T busyValue,
+    Future<T> Function() operation,
+  ) async {
+    if (_isDisposed || _sessionOperationInProgress) return busyValue;
+    _sessionOperationInProgress = true;
+    try {
+      return await operation();
+    } finally {
+      _sessionOperationInProgress = false;
+    }
+  }
+
   Future<bool> start({
+    required String tripId,
+    required String vehicleId,
+    required TripTrackingProfile profile,
+    DateTime? startedAt,
+  }) => _runExclusiveSessionOperation(
+    false,
+    () => _start(
+      tripId: tripId,
+      vehicleId: vehicleId,
+      profile: profile,
+      startedAt: startedAt,
+    ),
+  );
+
+  Future<bool> _start({
     required String tripId,
     required String vehicleId,
     required TripTrackingProfile profile,
@@ -404,7 +477,7 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    final now = DateTime.now();
+    final now = _clockNow();
     final started = startedAt ?? now;
     if (started.toUtc().isAfter(
       now.toUtc().add(_policy.maximumFutureSampleSkew),
@@ -466,7 +539,9 @@ class TripTrackingController extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> restore() async {
+  Future<bool> restore() => _runExclusiveSessionOperation(false, _restore);
+
+  Future<bool> _restore() async {
     if (_isDisposed || isTracking) return false;
     TripTrackingSessionRecord? session;
     try {
@@ -618,9 +693,27 @@ class TripTrackingController extends ChangeNotifier {
     if (platform != null) {
       try {
         if (await platform.isTracking) {
-          _nativeTracking = true;
-          _platformStatus = 'tracking';
-          _platformSubscription = _listenToPlatformEvents(platform);
+          if (!session.backgroundTrackingAllowed) {
+            // A collector that outlives this process cannot continue from
+            // missing or foreground-only consent. Keep the local trip for an
+            // explicit driver restart instead of silently tracking.
+            try {
+              await platform.stop();
+              _platformStatus = 'background_consent_required';
+              _platformError =
+                  'GPS recovery was paused because background tracking was not previously authorized.';
+            } catch (_) {
+              _platformStatus = 'recoverable';
+              _platformError =
+                  'Could not stop GPS recovery without confirmed background permission.';
+            }
+          } else {
+            _nativeTracking = true;
+            _backgroundTrackingAllowed = true;
+            _lastNativeHeartbeatUtc = _clockNow().toUtc();
+            _platformStatus = 'tracking';
+            _platformSubscription = _listenToPlatformEvents(platform);
+          }
         }
       } catch (error) {
         _platformError = 'Could not restore the GPS connection.';
@@ -691,10 +784,15 @@ class TripTrackingController extends ChangeNotifier {
       return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
     }
 
-    if (referenceTime != null &&
-        sample.recordedAt.toUtc().isAfter(
-          referenceTime.toUtc().add(engine.policy.maximumFutureSampleSkew),
-        )) {
+    // A caller may supply the native receipt time for a platform event. Direct
+    // ingestion still uses the controller clock as a mandatory future-date
+    // guard, while the odometer projection keeps its historical sample time
+    // when no distinct receipt time is available.
+    final receivedAt = (referenceTime ?? _clockNow()).toUtc();
+    final projectionReceivedAt = (referenceTime ?? sample.recordedAt).toUtc();
+    if (sample.recordedAt.toUtc().isAfter(
+      receivedAt.add(engine.policy.maximumFutureSampleSkew),
+    )) {
       return engine.reject(TripSampleDisposition.rejectedFutureTimestamp);
     }
 
@@ -768,7 +866,7 @@ class TripTrackingController extends ChangeNotifier {
         tripId: session.id,
         estimatedOdometer: estimatedOdometer,
         observedAtUtc: sample.recordedAt,
-        receivedAtUtc: referenceTime ?? sample.recordedAt,
+        receivedAtUtc: projectionReceivedAt,
       );
       final liveProjectionFailed =
           decision.accepted &&
@@ -815,6 +913,8 @@ class TripTrackingController extends ChangeNotifier {
     double? observedSpeedMetersPerSecond,
     bool vehicleMovementConfirmed = false,
     TripSamplingRecommendation? samplingOverride,
+    TripTrackingSamplingPreset? samplingPreset,
+    int customIntervalSeconds = 15,
     bool activityRecognitionEnabled = false,
     bool adaptiveSamplingEnabled = true,
     bool lowBatteryProtectionEnabled = true,
@@ -826,6 +926,8 @@ class TripTrackingController extends ChangeNotifier {
       observedSpeedMetersPerSecond: observedSpeedMetersPerSecond,
       vehicleMovementConfirmed: vehicleMovementConfirmed,
       samplingOverride: samplingOverride,
+      samplingPreset: samplingPreset,
+      customIntervalSeconds: customIntervalSeconds,
       activityRecognitionEnabled: activityRecognitionEnabled,
       adaptiveSamplingEnabled: adaptiveSamplingEnabled,
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
@@ -839,6 +941,8 @@ class TripTrackingController extends ChangeNotifier {
     double? observedSpeedMetersPerSecond,
     bool vehicleMovementConfirmed = false,
     TripSamplingRecommendation? samplingOverride,
+    TripTrackingSamplingPreset? samplingPreset,
+    int customIntervalSeconds = 15,
     bool activityRecognitionEnabled = false,
     bool adaptiveSamplingEnabled = true,
     bool lowBatteryProtectionEnabled = true,
@@ -952,12 +1056,29 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (!await _persistBackgroundTrackingPreference(allowBackground)) {
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      return false;
+    }
+    session = _session;
+    if (session == null) return false;
     _latestActivity = null;
     _platformSubscription = _listenToPlatformEvents(platform);
+    final samplingPlan = samplingOverride == null && samplingPreset != null
+        ? TripTrackingSamplingPresetPolicy.planFor(
+            preset: samplingPreset,
+            customIntervalSeconds: customIntervalSeconds,
+            capabilities: capabilities,
+          )
+        : null;
     final request = TripTrackingNativeRequest(
       profile: session.profile,
       sampling:
           samplingOverride ??
+          samplingPlan?.sampling ??
           _policy.samplingFor(
             speedMetersPerSecond: observedSpeedMetersPerSecond,
             vehicleMovementConfirmed: vehicleMovementConfirmed,
@@ -965,6 +1086,7 @@ class TripTrackingController extends ChangeNotifier {
             activeTrip: true,
           ),
       activityRecognitionEnabled: requestedActivityRecognition,
+      allowBackground: allowBackground,
     );
     bool started;
     try {
@@ -993,6 +1115,9 @@ class TripTrackingController extends ChangeNotifier {
     }
     _nativeTracking = true;
     _nativeSampling = request.sampling;
+    _nativeSamplingPlan = samplingPlan;
+    _lastNativeHeartbeatUtc = _clockNow().toUtc();
+    _backgroundTrackingAllowed = allowBackground;
     _activityRecognitionEnabled = requestedActivityRecognition;
     _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
     _platformError = null;
@@ -1011,6 +1136,9 @@ class TripTrackingController extends ChangeNotifier {
       _platformSubscription = null;
       _nativeTracking = false;
       _nativeSampling = null;
+      _nativeSamplingPlan = null;
+      _lastNativeHeartbeatUtc = null;
+      _backgroundTrackingAllowed = false;
       return false;
     }
     notifyListeners();
@@ -1061,7 +1189,7 @@ class TripTrackingController extends ChangeNotifier {
         );
       }
       notifyListeners();
-      await stopNativeTracking();
+      await _stopNativeTracking(interrupted: true);
     } finally {
       _nativeInterruptionPending = false;
     }
@@ -1074,6 +1202,9 @@ class TripTrackingController extends ChangeNotifier {
           if (event.type == TripTrackingPlatformEventType.location &&
               event.location != null) {
             if (!_nativeTracking) return;
+            // A received provider event is a runtime heartbeat. Deliberately
+            // use receive time, not the untrusted payload timestamp.
+            _lastNativeHeartbeatUtc = _clockNow().toUtc();
             final activity = _latestActivity;
             final decision = await ingest(
               event.location!,
@@ -1088,29 +1219,73 @@ class TripTrackingController extends ChangeNotifier {
                           const Duration(seconds: 90)
                   ? activity
                   : null,
-              referenceTime: DateTime.now().toUtc(),
+              referenceTime: _clockNow().toUtc(),
             );
             await _maybeUpdateNativeSampling(event.location!, decision);
           } else if (event.activity != null) {
-            if (!_nativeTracking) return;
+            // Native event streams are external input. Ignore motion evidence
+            // unless this tracking session both asked for it and the platform
+            // confirmed that the device can provide it.
+            if (!_nativeTracking || !_activityRecognitionEnabled) return;
             _latestActivity = event.activity;
+          } else if (event.type ==
+                  TripTrackingPlatformEventType.authorization &&
+              event.authorization != null) {
+            if (!_nativeTracking) return;
+            final authorization = event.authorization!;
+            final authorizationStillAllowsTracking =
+                authorization.canTrackPrecisely &&
+                (!_backgroundTrackingAllowed ||
+                    authorization.canTrackInBackground);
+            if (authorizationStillAllowsTracking) return;
+            // This handler is already serialized by the platform event queue.
+            // Schedule interruption cleanup after it returns so its final
+            // queue drain cannot wait on the event currently being processed.
+            unawaited(
+              _handleNativeInterruption(
+                _backgroundTrackingAllowed
+                    ? 'Background location permission was removed while tracking.'
+                    : 'Precise location permission was removed while tracking.',
+              ),
+            );
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
             if (status == 'stopped') {
-              _platformStatus = status;
+              final expectedStop = _nativeStopRequested;
+              _platformStatus = expectedStop ? status : 'interrupted';
+              if (!expectedStop) {
+                _platformError =
+                    'GPS updates stopped unexpectedly. Your local trip is preserved for review.';
+              }
               _nativeTracking = false;
               _nativeSampling = null;
+              _nativeSamplingPlan = null;
+              _lastNativeHeartbeatUtc = null;
+              _backgroundTrackingAllowed = false;
               _latestActivity = null;
               await _cancelPlatformSubscriptionAfterNativeStop();
               _platformSubscription = null;
-              if (_session?.lifecycleState ==
-                  TripTrackingSessionLifecycleState.active) {
+              if (!expectedStop &&
+                  (_session?.lifecycleState ==
+                          TripTrackingSessionLifecycleState.active ||
+                      _session?.lifecycleState ==
+                          TripTrackingSessionLifecycleState.degraded)) {
+                await _tryTransitionSession(
+                  TripTrackingSessionLifecycleState.interrupted,
+                  health: TripTrackingHealthState.interrupted,
+                );
+              } else if (expectedStop &&
+                  (_session?.lifecycleState ==
+                          TripTrackingSessionLifecycleState.active ||
+                      _session?.lifecycleState ==
+                          TripTrackingSessionLifecycleState.degraded)) {
                 await _tryTransitionSession(
                   TripTrackingSessionLifecycleState.paused,
                 );
               }
             } else if (status == 'tracking' && _nativeTracking) {
               _platformStatus = status;
+              _lastNativeHeartbeatUtc = _clockNow().toUtc();
             } else if (status == 'idle' && !_nativeTracking) {
               _platformStatus = status;
             } else {
@@ -1161,7 +1336,7 @@ class TripTrackingController extends ChangeNotifier {
     final platform = _platform;
     final session = _session;
     final current = _nativeSampling;
-    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+    final candidate = TripTrackingNativeSamplingPolicy.nextRecommendation(
       policy: _policy,
       profile: session?.profile ?? TripTrackingProfile.roadVehicle,
       sample: sample,
@@ -1172,7 +1347,11 @@ class TripTrackingController extends ChangeNotifier {
       platformAvailable: platform != null,
       sessionAvailable: session != null,
     );
-    if (platform == null || session == null || next == null) {
+    if (platform == null || session == null || candidate == null) {
+      return;
+    }
+    final next = _nativeSamplingPlan?.constrainAdaptive(candidate) ?? candidate;
+    if (TripTrackingNativeSamplingPolicy.isSameRecommendation(current, next)) {
       return;
     }
     bool updated;
@@ -1181,6 +1360,7 @@ class TripTrackingController extends ChangeNotifier {
         TripTrackingNativeRequest(
           profile: session.profile,
           sampling: next,
+          allowBackground: _backgroundTrackingAllowed,
           activityRecognitionEnabled: _activityRecognitionEnabled,
         ),
       );
@@ -1201,6 +1381,46 @@ class TripTrackingController extends ChangeNotifier {
   Future<void> stopNativeTracking() =>
       _enqueueNativeLifecycle(_stopNativeTracking);
 
+  /// Withdraw optional motion-sensor assistance from an active collector.
+  ///
+  /// This is deliberately one-way for a running session: enabling a sensor
+  /// later would require a fresh permission/capability decision, so it applies
+  /// only when the next GPS session is started. Disabling must take effect now.
+  Future<void> disableActivityRecognition() =>
+      _enqueueNativeLifecycle(_disableActivityRecognition);
+
+  Future<void> _disableActivityRecognition() async {
+    if (!_activityRecognitionEnabled) return;
+    _activityRecognitionEnabled = false;
+    _latestActivity = null;
+    final platform = _platform;
+    final session = _session;
+    final sampling = _nativeSampling;
+    if (!_nativeTracking || platform == null || session == null || sampling == null) {
+      notifyListeners();
+      return;
+    }
+    try {
+      final updated = await platform.update(
+        TripTrackingNativeRequest(
+          profile: session.profile,
+          sampling: sampling,
+          allowBackground: _backgroundTrackingAllowed,
+          activityRecognitionEnabled: false,
+        ),
+      );
+      if (updated) {
+        notifyListeners();
+        return;
+      }
+    } catch (_) {
+      // A failed native update leaves the optional sensor state uncertain.
+    }
+    _platformError =
+        'Motion activity was disabled, but GPS tracking stopped because the device could not apply that privacy change.';
+    await _stopNativeTracking();
+  }
+
   /// Foreground-only tracking must never continue after the app leaves the
   /// foreground. Background collection remains an explicit user setting and
   /// is separately permission-gated by [startNativeTracking]. Serializing this
@@ -1210,7 +1430,17 @@ class TripTrackingController extends ChangeNotifier {
     AppLifecycleState state, {
     required bool backgroundTrackingAllowed,
   }) => _enqueueNativeLifecycle(() async {
-    if (backgroundTrackingAllowed ||
+    // The UI-provided preference is not authority by itself: it can be stale
+    // across a settings change or process restoration. Continuing collection
+    // in the background requires both that current preference and the
+    // consent durably bound to this native collector at startup.
+    final mayContinueInBackground =
+        backgroundTrackingAllowed && _backgroundTrackingAllowed;
+    if (state == AppLifecycleState.resumed && mayContinueInBackground) {
+      await _checkNativeHeartbeat();
+      return;
+    }
+    if (mayContinueInBackground ||
         (state != AppLifecycleState.paused &&
             state != AppLifecycleState.detached)) {
       return;
@@ -1218,9 +1448,91 @@ class TripTrackingController extends ChangeNotifier {
     await _stopNativeTracking();
   });
 
-  Future<void> _stopNativeTracking() async {
+  /// Reconciles the expected native collector after an app resume. This never
+  /// creates distance, stops, or odometer changes; it only preserves the
+  /// local session lifecycle for user-directed recovery.
+  Future<TripTrackingHeartbeatWatchdogDecision?> checkNativeHeartbeat({
+    DateTime? nowUtc,
+  }) => _enqueueNativeLifecycle(() => _checkNativeHeartbeat(nowUtc: nowUtc));
+
+  Future<TripTrackingHeartbeatWatchdogDecision?> _checkNativeHeartbeat({
+    DateTime? nowUtc,
+  }) async {
+    final session = _session;
+    if (_isDisposed || session == null) return null;
+    final now = (nowUtc ?? _clockNow()).toUtc();
     final platform = _platform;
-    if (platform != null && _nativeTracking) {
+    var providerRunning = false;
+    var providerProbeSucceeded = false;
+    if (_nativeTracking && platform != null) {
+      try {
+        providerRunning = await platform.isTracking;
+        providerProbeSucceeded = true;
+      } catch (_) {
+        // The heartbeat policy below will preserve the local trip and surface
+        // a recoverable state instead of trusting an unavailable bridge.
+      }
+    }
+    if (providerProbeSucceeded && !providerRunning) {
+      const decision = TripTrackingHeartbeatWatchdogDecision(
+        status: TripTrackingHeartbeatWatchdogStatus.interruptedNeedsRecovery,
+        action: TripTrackingHeartbeatWatchdogAction.markInterrupted,
+        reasonCode: 'heartbeat_interrupted_recovery_required',
+        targetLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        canBridgeDistanceGap: false,
+        shouldRetryNativeTracking: true,
+        requiresUserReview: true,
+      );
+      await _handleNativeInterruption(
+        'GPS tracking is no longer running. Your local trip is preserved for review.',
+      );
+      return decision;
+    }
+    if (providerRunning) {
+      _lastNativeHeartbeatUtc = now;
+    }
+    final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
+      currentLifecycle: session.lifecycleState,
+      lastHeartbeatUtc: _lastNativeHeartbeatUtc,
+      nowUtc: now,
+      nativeTrackingExpected: _nativeTracking,
+    );
+    switch (decision.action) {
+      case TripTrackingHeartbeatWatchdogAction.continueTracking:
+        if (providerRunning && _nativeTracking) {
+          _platformStatus = 'tracking';
+          _platformError = null;
+          notifyListeners();
+        }
+        break;
+      case TripTrackingHeartbeatWatchdogAction.markDegraded:
+        _platformStatus = 'native_heartbeat_stale';
+        _platformError =
+            'GPS tracking has not reported recently. Your local trip is preserved while it recovers.';
+        await _tryTransitionSession(
+          TripTrackingSessionLifecycleState.degraded,
+          health: TripTrackingHealthState.reduced,
+        );
+        notifyListeners();
+        break;
+      case TripTrackingHeartbeatWatchdogAction.markInterrupted:
+        await _handleNativeInterruption(
+          'GPS tracking stopped responding. Your local trip is preserved for review.',
+        );
+        break;
+      case TripTrackingHeartbeatWatchdogAction.preservePaused ||
+          TripTrackingHeartbeatWatchdogAction.protectTerminal ||
+          TripTrackingHeartbeatWatchdogAction.ignoreInvalidClock:
+        break;
+    }
+    return decision;
+  }
+
+  Future<void> _stopNativeTracking({bool interrupted = false}) async {
+    final platform = _platform;
+    final wasNativeTracking = _nativeTracking;
+    if (wasNativeTracking) _nativeStopRequested = true;
+    if (platform != null && wasNativeTracking) {
       try {
         await platform.stop();
       } catch (error) {
@@ -1239,8 +1551,12 @@ class TripTrackingController extends ChangeNotifier {
     await _platformEventQueue;
     _nativeTracking = false;
     _nativeSampling = null;
+    _nativeSamplingPlan = null;
+    _lastNativeHeartbeatUtc = null;
+    _nativeStopRequested = false;
+    _backgroundTrackingAllowed = false;
     _latestActivity = null;
-    _platformStatus = 'stopped';
+    _platformStatus = interrupted ? 'interrupted' : 'stopped';
     if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
         _session?.lifecycleState ==
             TripTrackingSessionLifecycleState.degraded) {
@@ -1272,7 +1588,7 @@ class TripTrackingController extends ChangeNotifier {
       next,
     );
     final nextSession = session.copyWith(
-      updatedAt: DateTime.now(),
+      updatedAt: _clockNow(),
       lifecycleState: next,
       healthState: health,
     );
@@ -1290,6 +1606,29 @@ class TripTrackingController extends ChangeNotifier {
     } catch (error) {
       _platformStatus = 'storage_failed';
       _platformError = 'Could not save trip recovery state locally.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> _persistBackgroundTrackingPreference(
+    bool allowBackground,
+  ) async {
+    final session = _session;
+    if (session == null) return false;
+    if (session.backgroundTrackingAllowed == allowBackground) return true;
+    final next = session.copyWith(
+      updatedAt: _clockNow(),
+      backgroundTrackingAllowed: allowBackground,
+    );
+    try {
+      await _sessionStore.save(next);
+      _session = next;
+      return true;
+    } catch (_) {
+      _platformStatus = 'storage_failed';
+      _platformError =
+          'Could not save GPS background tracking permission locally.';
       notifyListeners();
       return false;
     }
@@ -1360,7 +1699,7 @@ class TripTrackingController extends ChangeNotifier {
           );
     }
     _session = session.copyWith(
-      updatedAt: DateTime.now(),
+      updatedAt: _clockNow(),
       engineSnapshot: engine.snapshot,
       advisories: reviewedAdvisories,
     );
@@ -1374,7 +1713,10 @@ class TripTrackingController extends ChangeNotifier {
   /// Drops a just-created trip only when it has not accepted any distance.
   /// This is used after permission or hardware startup fails so the global
   /// odometer is not left locked by a trip that never actually began.
-  Future<bool> discardEmptyTrip() async {
+  Future<bool> discardEmptyTrip() =>
+      _runExclusiveSessionOperation(false, _discardEmptyTrip);
+
+  Future<bool> _discardEmptyTrip() async {
     final session = _session;
     if (session == null || acceptedMeters > 0 || _nativeTracking) return false;
     try {
@@ -1406,14 +1748,20 @@ class TripTrackingController extends ChangeNotifier {
   /// Durably stores a review record before dropping crash-recovery state.
   /// The confirmed odometer stays untouched until a later review action makes
   /// one auditable permanent odometer event.
-  Future<TripTrackingReviewRecord?> finishForReview({
+  Future<TripTrackingReviewRecord?> finishForReview({DateTime? finishedAt}) =>
+      _runExclusiveSessionOperation(
+        null,
+        () => _finishForReview(finishedAt: finishedAt),
+      );
+
+  Future<TripTrackingReviewRecord?> _finishForReview({
     DateTime? finishedAt,
   }) async {
     final session = _session;
     final engine = _engine;
     final projection = _projection;
     if (session == null || engine == null || projection == null) return null;
-    final completedAt = finishedAt ?? DateTime.now();
+    final completedAt = finishedAt ?? _clockNow();
     if (completedAt.isBefore(session.startedAt)) {
       _platformStatus = 'review_timeline_invalid';
       _platformError =
@@ -1422,7 +1770,7 @@ class TripTrackingController extends ChangeNotifier {
       return null;
     }
     if (completedAt.toUtc().isAfter(
-      DateTime.now().toUtc().add(_policy.maximumFutureSampleSkew),
+      _clockNow().toUtc().add(_policy.maximumFutureSampleSkew),
     )) {
       _platformStatus = 'review_finish_time_invalid';
       _platformError =

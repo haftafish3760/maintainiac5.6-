@@ -148,6 +148,11 @@ class TripTrackingNativeBridge(
             result.error("trip_tracking_location_denied", "Precise location permission is required before starting trip tracking.", authorizationMap())
             return
         }
+        val allowBackground = call.argument<Boolean>("allowBackground") == true
+        if (allowBackground && !hasBackgroundLocation()) {
+            result.error("trip_tracking_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())
+            return
+        }
         val interval = (call.argument<Number>("intervalMillis")?.toLong() ?: 5000L).coerceIn(1000L, 60000L)
         val displacement = (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(1f, 100f)
         val intent = Intent(activity, TripTrackingForegroundService::class.java).apply {
@@ -192,8 +197,25 @@ class TripTrackingNativeBridge(
             putExtra(TripTrackingForegroundService.minimumDisplacementExtra, (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(1f, 100f))
             putExtra(TripTrackingForegroundService.activityRecognitionEnabledExtra, call.argument<Boolean>("activityRecognitionEnabled") == true)
         }
-        activity.startService(intent)
-        result.success(true)
+        try {
+            activity.startService(intent)
+            result.success(true)
+        } catch (error: SecurityException) {
+            result.error(
+                "trip_tracking_sampling_update_failed",
+                "Android blocked the GPS sampling update: ${error.message ?: "permission denied"}",
+                null,
+            )
+        } catch (error: IllegalStateException) {
+            // The service can disappear between the local running check and
+            // this update. Return a recoverable bridge error rather than
+            // throwing through the channel or pretending the cadence changed.
+            result.error(
+                "trip_tracking_sampling_update_failed",
+                "Android could not apply the GPS sampling update: ${error.message ?: "service unavailable"}",
+                null,
+            )
+        }
     }
 
     private fun capabilities(): Map<String, Any> {
