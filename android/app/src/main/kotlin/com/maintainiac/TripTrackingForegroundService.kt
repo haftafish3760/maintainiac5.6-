@@ -71,6 +71,7 @@ class TripTrackingForegroundService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        userPauseRequested = false
         try {
             startForeground(notificationId, notification())
         } catch (error: SecurityException) {
@@ -99,11 +100,12 @@ class TripTrackingForegroundService : Service() {
             .setMinUpdateDistanceMeters(displacement)
             .setWaitForAccurateLocation(false)
             .build()
-        locationCallback = object : LocationCallback() {
+        val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 for (location in result.locations) emitLocation(location)
             }
         }
+        locationCallback = callback
         // A fused provider may deliver a cached first fix immediately. Mark
         // the service live before registering so that credible first evidence
         // is not lost between registration and the tracking status event.
@@ -112,11 +114,14 @@ class TripTrackingForegroundService : Service() {
         try {
             fusedLocationClient.requestLocationUpdates(
                 request,
-                requireNotNull(locationCallback),
+                callback,
                 Looper.getMainLooper(),
             ).addOnFailureListener { error ->
+                // A delayed failure from a replaced or stopped request must
+                // never interrupt a newer GPS session.
+                if (!isRunning || locationCallback !== callback) return@addOnFailureListener
                 TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register location updates: ${error.message ?: "provider unavailable"}"))
-                stopSelf()
+                stopSelf(startId)
             }
         } catch (error: SecurityException) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register location updates: ${error.message ?: "permission denied"}"))
@@ -141,7 +146,9 @@ class TripTrackingForegroundService : Service() {
         }
         TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
         startHeartbeat()
-        return START_NOT_STICKY
+        // Re-deliver only the driver-approved request after Android restarts
+        // this foreground service, retaining its sampling and sensor consent.
+        return START_REDELIVER_INTENT
     }
 
     private fun emitLocation(location: Location) {

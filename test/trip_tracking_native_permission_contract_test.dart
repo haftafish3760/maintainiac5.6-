@@ -137,6 +137,9 @@ void main() {
     expect(android, contains('Priority.PRIORITY_HIGH_ACCURACY'));
     expect(android, contains('setMinUpdateDistanceMeters(displacement)'));
     expect(android, contains('stopLocationUpdates()'));
+    expect(android, contains('locationCallback !== callback'));
+    expect(android, contains('stopSelf(startId)'));
+    expect(android, contains('return START_REDELIVER_INTENT'));
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
     expect(androidActivity, contains('val observedAtMillis = result.time'));
