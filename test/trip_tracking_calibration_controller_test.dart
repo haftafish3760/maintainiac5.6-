@@ -156,6 +156,47 @@ void main() {
     },
   );
 
+  test('controller excludes future-dated reviews from calibration', () async {
+    final store = TripTrackingSessionStore.memory();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+      clockNow: () => DateTime.utc(2026, 7, 18, 12),
+    );
+    addTearDown(controller.dispose);
+    addTearDown(odometer.dispose);
+    for (var day = 0; day < 7; day += 1) {
+      await store.saveReview(
+        _confirmedReview(
+          id: 'current_calibration_$day',
+          startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+          filteredGpsMiles: 110,
+          odometerMiles: 100,
+        ),
+      );
+    }
+    await store.saveReview(
+      _confirmedReview(
+        id: 'future_calibration',
+        startedAt: DateTime.utc(2099, 1, 1, 8),
+        filteredGpsMiles: 200,
+        odometerMiles: 100,
+      ),
+    );
+
+    controller.refreshGpsAssistanceCalibration(enabled: true);
+
+    expect(
+      controller.gpsAssistanceCalibrationMultiplier,
+      closeTo(.9091, .001),
+    );
+    expect(controller.odometerCalibrationSignal().eligibleSampleCount, 7);
+  });
+
   test(
     'mid-trip calibration refresh waits for the next trip projection',
     () async {

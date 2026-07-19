@@ -143,7 +143,10 @@ class TripTrackingController extends ChangeNotifier {
   }) => TripOdometerCalibrationSignal.evaluateConfirmedReviews(
     reviews: _sessionStore.pendingReviews,
     vehicleId: vehicleId ?? _odometer.vehicleId,
-    nowUtc: nowUtc,
+    // Persisted reviews are an external trust boundary. A caller that does
+    // not supply a reference clock must still not let future-dated records
+    // influence advisory GPS calibration.
+    nowUtc: nowUtc ?? _clockNow(),
     requireTrustedSignalDiagnostics: true,
   );
 
