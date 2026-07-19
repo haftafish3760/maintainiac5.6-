@@ -3087,6 +3087,70 @@ void main() {
   );
 
   test(
+    'recovery applies the persisted battery safeguard before accepting GPS',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final initial = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await initial.start(
+        tripId: 'trip_restore_battery_guard',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await store.save(
+        store.activeSession!.copyWith(
+          backgroundTrackingAllowed: true,
+          nativeSampling: const TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 15),
+            minimumDisplacementMeters: 8,
+          ),
+          lowBatteryProtectionEnabled: true,
+          lowBatteryWarningDismissed: true,
+        ),
+      );
+      final native = _FakeTripTrackingPlatform(
+        batterySnapshot: const TripTrackingBatterySnapshot(
+          batteryPercent: 15,
+          isCharging: false,
+          lowPowerModeEnabled: false,
+        ),
+      );
+      await native.start(
+        const TripTrackingNativeRequest(
+          profile: TripTrackingProfile.roadVehicle,
+          sampling: TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 15),
+            minimumDisplacementMeters: 8,
+          ),
+          allowBackground: true,
+        ),
+      );
+      final restored = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+
+      expect(await restored.restore(), isTrue);
+      expect(restored.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(
+        restored.platformStatus,
+        'low_battery_gps_blocked_by_saved_choice',
+      );
+      expect(restored.isTracking, isTrue);
+    },
+  );
+
+  test(
     'stopping native GPS preserves the recoverable trip for a later resume',
     () async {
       final native = _FakeTripTrackingPlatform();
