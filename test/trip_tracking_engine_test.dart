@@ -750,6 +750,32 @@ void main() {
   });
 
   test(
+    'a restored engine keeps its vehicle anchor after an excluded walk',
+    () {
+      final engine = TripTrackingEngine();
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      engine.ingest(sample(-80, 0), activity: automotive);
+      engine.ingest(sample(-79.9997, 15), activity: automotive);
+      final distanceBeforeWalk = engine.totalAcceptedMeters;
+
+      expect(
+        engine.ingest(sample(-79.9987, 60), activity: walking(60)).disposition,
+        TripSampleDisposition.excludedWalking,
+      );
+
+      final restored = TripTrackingEngine.fromSnapshot(engine.snapshot);
+      final returnDecision = restored.ingest(sample(-79.9997, 75));
+
+      expect(returnDecision.disposition, TripSampleDisposition.rejectedDrift);
+      expect(restored.totalAcceptedMeters, distanceBeforeWalk);
+    },
+  );
+
+  test(
     'vehicle-speed evidence overrides a walking sensor misclassification',
     () {
       final engine = TripTrackingEngine();
