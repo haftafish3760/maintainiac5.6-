@@ -8,6 +8,7 @@ import UIKit
   private let receiptCameraChannelName = "maintainiac/receipt_camera"
   private var pendingReceiptCameraResult: FlutterResult?
   private var tripTrackingBridge: TripTrackingNativeBridge?
+  private var deviceCapabilityBridge: DeviceCapabilityBridge?
 
   override func application(
     _ application: UIApplication,
@@ -19,6 +20,9 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     registerReceiptCameraBridge(with: engineBridge.pluginRegistry)
+    let capabilityBridge = DeviceCapabilityBridge()
+    capabilityBridge.register(with: engineBridge.pluginRegistry)
+    deviceCapabilityBridge = capabilityBridge
     let bridge = TripTrackingNativeBridge()
     bridge.register(with: engineBridge.pluginRegistry)
     tripTrackingBridge = bridge

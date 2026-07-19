@@ -8,6 +8,7 @@ import 'incoming_receipt_destination_screen.dart';
 import '../screens/dashboard/dashboard.dart';
 import '../main.dart';
 import '../shared/navigation/app_page_routes.dart';
+import '../shared/device_capabilities/device_capability_scope.dart';
 import '../shared/theme/app_theme.dart';
 import '../shared/trip_tracking/trip_tracking_controller.dart';
 import '../shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -24,6 +25,7 @@ class MaintaniacApp extends StatefulWidget {
 class _MaintaniacAppState extends State<MaintaniacApp>
     with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
+  final _deviceCapabilities = DeviceCapabilityController();
   IncomingReceiptShareController? _incomingShare;
   var _openingIncomingShare = false;
 
@@ -31,6 +33,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    unawaited(_deviceCapabilities.initialize());
   }
 
   @override
@@ -47,12 +50,16 @@ class _MaintaniacAppState extends State<MaintaniacApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _deviceCapabilities.dispose();
     _incomingShare?.removeListener(_handleIncomingShare);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_deviceCapabilities.refreshRuntime());
+    }
     final tripTracking = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context);
     if (tripTracking == null || settings == null) return;
@@ -104,34 +111,37 @@ class _MaintaniacAppState extends State<MaintaniacApp>
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: _navigatorKey,
-      title: 'Maintaniac',
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        MaintaniacLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: MaintaniacLocalizations.supportedLocales,
-      theme: buildMaintaniacTheme().copyWith(
-        splashFactory: NoSplash.splashFactory,
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: AppSlidePageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.windows: AppSlidePageTransitionsBuilder(),
-            TargetPlatform.linux: AppSlidePageTransitionsBuilder(),
-          },
+    return DeviceCapabilityScope(
+      controller: _deviceCapabilities,
+      child: MaterialApp(
+        navigatorKey: _navigatorKey,
+        title: 'Maintaniac',
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          MaintaniacLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: MaintaniacLocalizations.supportedLocales,
+        theme: buildMaintaniacTheme().copyWith(
+          splashFactory: NoSplash.splashFactory,
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: AppSlidePageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.windows: AppSlidePageTransitionsBuilder(),
+              TargetPlatform.linux: AppSlidePageTransitionsBuilder(),
+            },
+          ),
         ),
-      ),
-      home: const AnnotatedRegion<SystemUiOverlayStyle>(
-        value: maintaniacSystemUiStyle,
-        child: DashboardScreen(),
+        home: const AnnotatedRegion<SystemUiOverlayStyle>(
+          value: maintaniacSystemUiStyle,
+          child: DashboardScreen(),
+        ),
       ),
     );
   }

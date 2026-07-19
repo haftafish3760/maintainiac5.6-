@@ -54,6 +54,8 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$cameraXVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraXVersion")
     implementation("androidx.camera:camera-view:$cameraXVersion")
+    implementation("androidx.core:core-performance:1.0.0")
+    implementation("androidx.core:core-performance-play-services:1.0.0")
     implementation("com.google.guava:guava:33.4.8-android")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 }

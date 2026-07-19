@@ -36,6 +36,9 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+        DeviceCapabilityBridge(this).register(
+            flutterEngine.dartExecutor.binaryMessenger,
+        )
     }
 
     override fun onRequestPermissionsResult(

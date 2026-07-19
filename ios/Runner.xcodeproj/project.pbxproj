@@ -14,6 +14,8 @@
 		52B03FC4D626DF96FB71D46B /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9705CC9A3084090D12D2498C /* Pods_RunnerTests.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		74B000000000000000000001 /* TripTrackingNativeBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74B000000000000000000002 /* TripTrackingNativeBridge.swift */; };
+		74C000000000000000000001 /* DeviceCapabilityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C000000000000000000002 /* DeviceCapabilityBridge.swift */; };
+		74C000000000000000000003 /* DeviceCapabilityEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C000000000000000000004 /* DeviceCapabilityEvents.swift */; };
 		74A000001111111111111111 /* ReceiptCameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111111112 /* ReceiptCameraViewController.swift */; };
 		74A000001111111111112001 /* ReceiptCameraViewControllerCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113001 /* ReceiptCameraViewControllerCapture.swift */; };
 		74A000001111111111112002 /* ReceiptCameraViewControllerCaptureClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113002 /* ReceiptCameraViewControllerCaptureClose.swift */; };
@@ -95,6 +97,8 @@
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		74B000000000000000000002 /* TripTrackingNativeBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripTrackingNativeBridge.swift; sourceTree = "<group>"; };
+		74C000000000000000000002 /* DeviceCapabilityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCapabilityBridge.swift; sourceTree = "<group>"; };
+		74C000000000000000000004 /* DeviceCapabilityEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCapabilityEvents.swift; sourceTree = "<group>"; };
 		74A000001111111111111112 /* ReceiptCameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewController.swift; sourceTree = "<group>"; };
 		74A000001111111111113001 /* ReceiptCameraViewControllerCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewControllerCapture.swift; sourceTree = "<group>"; };
 		74A000001111111111113002 /* ReceiptCameraViewControllerCaptureClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewControllerCaptureClose.swift; sourceTree = "<group>"; };
@@ -217,6 +221,8 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74B000000000000000000002 /* TripTrackingNativeBridge.swift */,
+				74C000000000000000000002 /* DeviceCapabilityBridge.swift */,
+				74C000000000000000000004 /* DeviceCapabilityEvents.swift */,
 				74A000001111111111111112 /* ReceiptCameraViewController.swift */,
 				74A000001111111111113001 /* ReceiptCameraViewControllerCapture.swift */,
 				74A000001111111111113002 /* ReceiptCameraViewControllerCaptureClose.swift */,
@@ -556,6 +562,8 @@
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				74B000000000000000000001 /* TripTrackingNativeBridge.swift in Sources */,
+				74C000000000000000000001 /* DeviceCapabilityBridge.swift in Sources */,
+				74C000000000000000000003 /* DeviceCapabilityEvents.swift in Sources */,
 				74A000001111111111111111 /* ReceiptCameraViewController.swift in Sources */,
 				74A000001111111111112001 /* ReceiptCameraViewControllerCapture.swift in Sources */,
 				74A000001111111111112002 /* ReceiptCameraViewControllerCaptureClose.swift in Sources */,
