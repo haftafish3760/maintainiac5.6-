@@ -491,10 +491,10 @@ void main() {
         tripTracking: controller,
       );
 
-      expect(summary.odometerCalibrationState, 'review_recommended');
+      expect(summary.odometerCalibrationState, 'review_acceptance_required');
       expect(summary.odometerCalibrationAssistEnabled, isTrue);
       expect(summary.odometerCalibrationSamples, 7);
-      expect(summary.odometerCalibrationMultiplier, closeTo(.9091, .0001));
+      expect(summary.odometerCalibrationMultiplier, 1);
       expect(
         controller.odometerCalibrationSignal().canOverwriteConfirmedOdometer,
         isFalse,

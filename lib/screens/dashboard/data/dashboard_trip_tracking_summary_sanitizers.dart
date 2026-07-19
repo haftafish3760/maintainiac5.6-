@@ -252,6 +252,7 @@ String _safeOdometerCalibrationState(String value) {
     'insufficient_history' => 'insufficient_history',
     'stable' => 'stable',
     'review_recommended' => 'review_recommended',
+    'review_acceptance_required' => 'review_acceptance_required',
     'invalid' => 'invalid',
     _ => 'unknown',
   };

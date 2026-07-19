@@ -5,9 +5,65 @@ import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/profiles/user_profile_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
+  testWidgets('calibration opt-in explains that evidence still needs review', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 2400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final settings = TripTrackingSettingsController.memory();
+    await settings.update(
+      const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        odometerAnomalyAlertsEnabled: true,
+        gpsOdometerCalibrationAssistEnabled: true,
+      ),
+    );
+    final odometer = GlobalOdometerController();
+    final tripTracking = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+    );
+    tripTracking.refreshGpsAssistanceCalibration(enabled: true);
+    addTearDown(settings.dispose);
+    addTearDown(odometer.dispose);
+    addTearDown(tripTracking.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: TripTrackingSettingsScope(
+              controller: settings,
+              child: TripTrackingScope(
+                controller: tripTracking,
+                child: const TripTrackingSettingsScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Calibration review'));
+    await tester.pump();
+
+    expect(find.text('Calibration review'), findsOneWidget);
+    expect(
+      find.textContaining('More consistent, reviewed driving days'),
+      findsOneWidget,
+    );
+    expect(find.text('Accept current calibration review'), findsNothing);
+  });
+
   testWidgets('GPS settings are visible and remain opt-in', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(900, 2400);

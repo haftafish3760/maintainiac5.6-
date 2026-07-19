@@ -364,6 +364,9 @@ class DashboardTripTrackingSummary {
             settings.odometerAnomalyAlertsEnabled
         ? tripTracking?.odometerCalibrationSignal()
         : null;
+    final calibrationReviewAccepted =
+        settings.gpsOdometerCalibrationAssistEnabled &&
+        tripTracking?.calibrationReviewAcceptedForCurrentEvidence == true;
     final usageSignal =
         settings.gpsAssistedTrackingEnabled &&
             settings.odometerAnomalyAlertsEnabled &&
@@ -396,10 +399,19 @@ class DashboardTripTrackingSummary {
       rawMapboxGeometryIncluded: false,
       odometerCalibrationAssistEnabled:
           settings.gpsOdometerCalibrationAssistEnabled,
-      odometerCalibrationState: _calibrationStateFor(calibrationSignal),
+      odometerCalibrationState: _calibrationStateFor(
+        calibrationSignal,
+        reviewAcceptanceRequired:
+            settings.gpsOdometerCalibrationAssistEnabled &&
+            calibrationSignal?.status ==
+                TripOdometerCalibrationStatus.reviewRecommended &&
+            !calibrationReviewAccepted,
+      ),
       odometerCalibrationSamples: calibrationSignal?.eligibleSampleCount,
       odometerCalibrationMultiplier:
-          calibrationSignal?.gpsAssistanceCalibrationMultiplier,
+          settings.gpsOdometerCalibrationAssistEnabled
+          ? tripTracking?.gpsAssistanceCalibrationMultiplier
+          : null,
       odometerUsageState: _usageStateFor(usageSignal),
       odometerUsageReviewedDays: usageSignal?.reviewedDayCount,
       odometerUsageCurrentMiles: usageSignal?.currentOdometerMiles,
@@ -444,9 +456,13 @@ String _gpsAssistState({
   return 'gps_assisted';
 }
 
-String _calibrationStateFor(TripOdometerCalibrationSignal? signal) {
+String _calibrationStateFor(
+  TripOdometerCalibrationSignal? signal, {
+  bool reviewAcceptanceRequired = false,
+}) {
   if (signal == null) return 'disabled';
   if (signal.reasonCode == 'invalid_calibration_threshold') return 'invalid';
+  if (reviewAcceptanceRequired) return 'review_acceptance_required';
   return switch (signal.status) {
     TripOdometerCalibrationStatus.insufficientHistory => 'insufficient_history',
     TripOdometerCalibrationStatus.stable => 'stable',
