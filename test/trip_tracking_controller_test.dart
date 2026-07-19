@@ -883,6 +883,46 @@ void main() {
   );
 
   test(
+    'critical battery startup error survives a native false start result',
+    () async {
+      final startGate = Completer<void>();
+      final native = _FakeTripTrackingPlatform(
+        startDelay: startGate.future,
+        startSucceeds: false,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_startup_critical_false_result',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      final starting = controller.startNativeTracking(allowBackground: false);
+      await Future<void>.delayed(Duration.zero);
+      native.addPlatformError(
+        code: 'trip_tracking_battery_critical',
+        message: 'Battery is critically low.',
+      );
+      await Future<void>.delayed(Duration.zero);
+      startGate.complete();
+
+      expect(await starting, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'battery_critical_gps_blocked');
+      expect(controller.platformError, contains('critically low'));
+    },
+  );
+
+  test(
     'runtime battery check pauses at ten percent for an explicit choice',
     () async {
       final native = _FakeTripTrackingPlatform();
@@ -5460,6 +5500,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.lowPowerModeAvailable = true,
     this.activityRecognitionAvailable = false,
     this.updateSucceeds = true,
+    this.startSucceeds = true,
     this.startFailureMessage = 'native start fault',
     this.batterySnapshot = const TripTrackingBatterySnapshot(
       batteryPercent: 100,
@@ -5487,6 +5528,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool lowPowerModeAvailable;
   final bool activityRecognitionAvailable;
   final bool updateSucceeds;
+  final bool startSucceeds;
   final String startFailureMessage;
   TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
@@ -5584,7 +5626,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     startCalls += 1;
     startedRequest = request;
     _running = true;
-    return true;
+    return startSucceeds;
   }
 
   @override

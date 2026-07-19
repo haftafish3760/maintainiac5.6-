@@ -1213,17 +1213,6 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (!started) {
-      await _platformSubscription?.cancel();
-      _platformSubscription = null;
-      _platformError = 'The device did not start GPS trip tracking.';
-      await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.failedRecoverable,
-        health: TripTrackingHealthState.unavailable,
-      );
-      notifyListeners();
-      return false;
-    }
     if (_nativeCriticalBatteryStopPending) {
       await _cancelPlatformSubscriptionAfterNativeStop();
       _platformSubscription = null;
@@ -1231,6 +1220,17 @@ class TripTrackingController extends ChangeNotifier {
       _platformError = TripTrackingNativeErrorPolicy.safeMessage(
         'trip_tracking_battery_critical',
       );
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    if (!started) {
+      await _platformSubscription?.cancel();
+      _platformSubscription = null;
+      _platformError = 'The device did not start GPS trip tracking.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
