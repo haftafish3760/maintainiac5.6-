@@ -12,6 +12,13 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
         if (!ActivityRecognitionResult.hasResult(intent)) return
         val result = ActivityRecognitionResult.extractResult(intent) ?: return
         val activity = result.mostProbableActivity ?: return
+        val observedAtMillis = result.time
+        // A malformed or implausibly future classifier timestamp must not be
+        // allowed to masquerade as fresh walking evidence. Dart repeats its
+        // own timestamp guard before a sample can affect a trip.
+        if (observedAtMillis <= 0 || observedAtMillis > System.currentTimeMillis() + 120_000L) {
+            return
+        }
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "activity",
@@ -27,7 +34,7 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
                 // The broadcast can be delayed. Preserve Play Services'
                 // observation time so stale walking evidence cannot be
                 // presented to Dart as a fresh delivery or job-site stop.
-                "recordedAt" to result.time,
+                "recordedAt" to observedAtMillis,
             ),
         )
     }

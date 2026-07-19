@@ -132,8 +132,9 @@ void main() {
     expect(android, contains('coerceIn(1f, 100f)'));
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
-    expect(androidActivity, contains('"recordedAt" to result.time'));
-    expect(androidActivity, isNot(contains('System.currentTimeMillis()')));
+    expect(androidActivity, contains('val observedAtMillis = result.time'));
+    expect(androidActivity, contains('observedAtMillis > System.currentTimeMillis() + 120_000L'));
+    expect(androidActivity, contains('"recordedAt" to observedAtMillis'));
     expect(ios, contains('"recordedAt": ISO8601DateFormatter()'));
     expect(ios, contains('"type": "activity"'));
     expect(ios, contains('"mockedLocation": simulated'));
