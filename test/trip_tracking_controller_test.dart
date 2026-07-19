@@ -797,6 +797,49 @@ void main() {
   );
 
   test(
+    'runtime battery check pauses at ten percent for an explicit choice',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      var now = DateTime.utc(2026, 7, 12, 12);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_runtime_low_battery_prompt',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.batterySnapshot = const TripTrackingBatterySnapshot(
+        batteryPercent: 10,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+      now = now.add(const Duration(minutes: 6));
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(() => !controller.nativeTracking);
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'low_battery_requires_user_choice');
+      expect(controller.platformError, contains('Choose whether to continue'));
+    },
+  );
+
+  test(
     'resume enforces critical battery before resuming background GPS',
     () async {
       final native = _FakeTripTrackingPlatform();
