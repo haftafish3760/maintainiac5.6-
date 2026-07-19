@@ -70,6 +70,7 @@ class TripTrackingPolicy {
     this.maximumHorizontalAccuracyMeters = 65,
     this.maximumPlausibleSpeedMetersPerSecond = 75,
     this.maximumReportedSpeedDisagreementMetersPerSecond = 25,
+    this.maximumReportedAccelerationMetersPerSecondSquared = 25,
     this.maximumGap = const Duration(minutes: 2),
     this.maximumFutureSampleSkew = const Duration(minutes: 2),
     this.minimumMovementMeters = 5,
@@ -91,6 +92,10 @@ class TripTrackingPolicy {
   final double maximumHorizontalAccuracyMeters;
   final double maximumPlausibleSpeedMetersPerSecond;
   final double maximumReportedSpeedDisagreementMetersPerSecond;
+
+  /// Rejects a provider-speed step that would require an implausible vehicle
+  /// acceleration. This is a kinematic guard only; it never creates miles.
+  final double maximumReportedAccelerationMetersPerSecondSquared;
   final Duration maximumGap;
 
   /// Native timestamps beyond this wall-clock tolerance are held out of the

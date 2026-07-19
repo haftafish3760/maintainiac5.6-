@@ -203,6 +203,20 @@ class TripTrackingEngine {
         TripSampleDisposition.rejectedSpeedConflict,
       );
     }
+    if (_reportedAccelerationExceedsLimit(
+      previousReportedSpeed: lastAccepted.speedMetersPerSecond,
+      reportedSpeed: reportedSpeed,
+      elapsed: elapsed,
+    )) {
+      // Preserve the fresh anchor so a rejected acceleration spike cannot
+      // later bridge into a large false mileage segment.
+      _lastAccepted = sample;
+      return _finish(
+        sample,
+        verifiedActivity,
+        TripSampleDisposition.rejectedSpeedConflict,
+      );
+    }
 
     _recordActivity(verifiedActivity, observedAt: sample.recordedAt);
 
@@ -365,6 +379,29 @@ class TripTrackingEngine {
       reportedSpeed.isFinite &&
       reportedSpeed >= 0 &&
       reportedSpeed <= 0.5;
+
+  bool _reportedAccelerationExceedsLimit({
+    required double? previousReportedSpeed,
+    required double? reportedSpeed,
+    required Duration elapsed,
+  }) {
+    if (previousReportedSpeed == null ||
+        reportedSpeed == null ||
+        !previousReportedSpeed.isFinite ||
+        !reportedSpeed.isFinite ||
+        previousReportedSpeed < 0 ||
+        reportedSpeed < 0) {
+      return false;
+    }
+    final seconds = elapsed.inMilliseconds / Duration.millisecondsPerSecond;
+    if (!seconds.isFinite || seconds <= 0) return false;
+    final maximumAcceleration = _safePositiveDouble(
+      policy.maximumReportedAccelerationMetersPerSecondSquared,
+      fallback: 25,
+    );
+    return (reportedSpeed - previousReportedSpeed).abs() / seconds >
+        maximumAcceleration;
+  }
 
   TripSampleDecision _finish(
     TripLocationSample sample,

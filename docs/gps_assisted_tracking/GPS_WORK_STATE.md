@@ -1,12 +1,12 @@
 # GPS Work State
 
 - Current phase: 15 — platform battery, capability, and recovery hardening
-- Current pass: 313
-- Current objective: close GPS/odometer regression gaps found by the complete trip-tracking test suite
+- Current pass: 316
+- Current objective: add kinematic acceleration validation without allowing malformed settings to suppress credible mileage
 - Relevant files: `lib/shared/trip_tracking/`, `lib/screens/dashboard/`,
   `android/app/src/main/`, `ios/Runner/`, `test/trip_tracking_*.dart`,
   `docs/gps_assisted_tracking/GPS_REAL_DEVICE_TEST_PROTOCOL.md`
-- Latest stable commit: `bc851db0e` (Android GPS capability checks)
-- Latest validation result: complete targeted trip-tracking regression suite green (936 tests)
+- Latest stable commit: `accd15e65` (GPS and odometer regression contracts)
+- Latest validation result: acceleration engine analysis plus deterministic engine/simulation/fuzz regressions green
 - Unresolved blockers: real Android/iOS route, battery, lifecycle, and long-session evidence not yet collected
-- Next action: extend distance-ground-truth replay coverage, then continue Android/iOS lifecycle and acquisition hardening
+- Next action: add acceleration coverage to commercial replay scenarios, then continue Android/iOS lifecycle and acquisition hardening

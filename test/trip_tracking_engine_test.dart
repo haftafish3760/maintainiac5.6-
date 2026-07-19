@@ -377,6 +377,58 @@ void main() {
     expect(decision.disposition, TripSampleDisposition.acceptedDistance);
   });
 
+  test('rejects impossible reported acceleration without adding mileage', () {
+    final engine = TripTrackingEngine(
+      policy: const TripTrackingPolicy(
+        maximumPlausibleSpeedMetersPerSecond: 100,
+        maximumReportedSpeedDisagreementMetersPerSecond: 100,
+        maximumReportedAccelerationMetersPerSecondSquared: 5,
+      ),
+    );
+    engine.ingest(sample(-80, 0, speedMetersPerSecond: 0));
+
+    final decision = engine.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -79.9998,
+        recordedAt: start.add(const Duration(seconds: 2)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 20,
+      ),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.rejectedSpeedConflict);
+    expect(decision.addedMeters, 0);
+    expect(engine.totalAcceptedMeters, 0);
+  });
+
+  test(
+    'malformed acceleration policy falls back without rejecting a credible drive',
+    () {
+      final engine = TripTrackingEngine(
+        policy: const TripTrackingPolicy(
+          maximumPlausibleSpeedMetersPerSecond: 100,
+          maximumReportedSpeedDisagreementMetersPerSecond: 100,
+          maximumReportedAccelerationMetersPerSecondSquared: double.nan,
+        ),
+      );
+      engine.ingest(sample(-80, 0, speedMetersPerSecond: 0));
+
+      final decision = engine.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -79.9998,
+          recordedAt: start.add(const Duration(seconds: 2)),
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: 20,
+        ),
+      );
+
+      expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+      expect(decision.addedMeters, greaterThan(10));
+    },
+  );
+
   test('rejects out-of-range coordinates and non-positive accuracy', () {
     final engine = TripTrackingEngine();
     final invalidSamples = [
