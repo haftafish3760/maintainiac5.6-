@@ -64,6 +64,27 @@ void main() {
     },
   );
 
+  test('weekday history evaluates only the matching regular route days', () {
+    final history = [
+      _review(day: 0, startingOdometer: 1000, confirmedEndingOdometer: 1050),
+      _review(day: 7, startingOdometer: 1100, confirmedEndingOdometer: 1150),
+      _review(day: 14, startingOdometer: 1200, confirmedEndingOdometer: 1250),
+      _review(day: 1, startingOdometer: 1300, confirmedEndingOdometer: 1500),
+    ];
+
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 160,
+      history: history,
+      vehicleId: 'vehicle_1',
+      weekday: DateTime.wednesday,
+      minimumReviewedDays: 3,
+    );
+
+    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+    expect(signal.reviewedDayCount, 3);
+    expect(signal.averageDailyMiles, 50);
+  });
+
   test('normal odometer delta stays advisory-silent', () {
     final signal = TripOdometerUsageAnomalySignal.evaluate(
       currentOdometerMiles: 85,

@@ -92,6 +92,7 @@ class TripOdometerUsageAnomalySignal {
     double maximumTrustedReviewedDayMiles = 1200,
     int maximumHistoryRecords = 366,
     bool anomalyAlertsEnabled = true,
+    int? weekday,
   }) {
     if (!currentOdometerMiles.isFinite ||
         currentOdometerMiles < 0 ||
@@ -107,6 +108,19 @@ class TripOdometerUsageAnomalySignal {
         status: TripOdometerUsageAnomalyStatus.invalid,
         reviewedDayCount: 0,
         currentOdometerMiles: 0,
+        averageDailyMiles: 0,
+        reviewThresholdMiles: 0,
+        ignoredHistoryRecordCount: 0,
+        anomalyAlertsEnabled: anomalyAlertsEnabled,
+        reasonCode: 'invalid_usage_anomaly_input',
+      );
+    }
+    if (weekday != null &&
+        (weekday < DateTime.monday || weekday > DateTime.sunday)) {
+      return TripOdometerUsageAnomalySignal(
+        status: TripOdometerUsageAnomalyStatus.invalid,
+        reviewedDayCount: 0,
+        currentOdometerMiles: currentOdometerMiles,
         averageDailyMiles: 0,
         reviewThresholdMiles: 0,
         ignoredHistoryRecordCount: 0,
@@ -153,6 +167,10 @@ class TripOdometerUsageAnomalySignal {
           (requestedVehicleId != null &&
               requestedVehicleId.isNotEmpty &&
               reviewVehicleId != requestedVehicleId)) {
+        ignoredRecords += 1;
+        continue;
+      }
+      if (weekday != null && review.startedAt.toUtc().weekday != weekday) {
         ignoredRecords += 1;
         continue;
       }
