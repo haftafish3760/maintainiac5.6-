@@ -2903,6 +2903,11 @@ void main() {
         store.activeSession!.copyWith(
           backgroundTrackingAllowed: true,
           activityRecognitionEnabled: true,
+          nativeSampling: const TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 5),
+            minimumDisplacementMeters: 5,
+          ),
         ),
       );
 
@@ -3151,6 +3156,58 @@ void main() {
   );
 
   test(
+    'recovery stops GPS when saved native settings cannot be reapplied',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final initial = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await initial.start(
+        tripId: 'trip_restore_native_reconfiguration',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      const sampling = TripSamplingRecommendation(
+        mode: TripSamplingMode.balanced,
+        interval: Duration(seconds: 15),
+        minimumDisplacementMeters: 8,
+      );
+      await store.save(
+        store.activeSession!.copyWith(
+          backgroundTrackingAllowed: true,
+          nativeSampling: sampling,
+        ),
+      );
+      final native = _FakeTripTrackingPlatform(updateSucceeds: false);
+      await native.start(
+        const TripTrackingNativeRequest(
+          profile: TripTrackingProfile.roadVehicle,
+          sampling: sampling,
+          allowBackground: true,
+        ),
+      );
+      final restored = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+
+      expect(await restored.restore(), isTrue);
+      expect(native.updateCalls, 1);
+      expect(native.stopCalls, 1);
+      expect(restored.nativeTracking, isFalse);
+      expect(restored.platformStatus, 'native_reconfiguration_failed');
+      expect(restored.platformError, contains('could not reapply'));
+      expect(restored.isTracking, isTrue);
+    },
+  );
+
+  test(
     'stopping native GPS preserves the recoverable trip for a later resume',
     () async {
       final native = _FakeTripTrackingPlatform();
@@ -3340,7 +3397,7 @@ void main() {
   );
 
   test(
-    'legacy recovery stops GPS when motion consent cannot be withdrawn safely',
+    'legacy recovery stops GPS when saved native sampling is unavailable',
     () async {
       final store = TripTrackingSessionStore.memory();
       final initial = TripTrackingController(
@@ -3385,14 +3442,13 @@ void main() {
       );
 
       expect(await restored.restore(), isTrue);
-      await restored.disableActivityRecognition();
 
       expect(native.updateCalls, 0);
       expect(native.stopCalls, 1);
       expect(restored.nativeTracking, isFalse);
       expect(
         restored.platformError,
-        contains('recovered sampling state was unavailable'),
+        contains('saved sampling state is unavailable'),
       );
     },
   );

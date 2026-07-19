@@ -840,16 +840,46 @@ class TripTrackingController extends ChangeNotifier {
             _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
             _lastNativeLocationReceivedUtc = null;
             _platformStatus = 'tracking';
-            _platformSubscription = _listenToPlatformEvents(platform);
-            try {
-              _lastKnownCapabilities = await platform.readCapabilities();
-              _lastBatterySafetyCheckUtc = _clockNow().toUtc();
-              await _enforceRuntimeBatterySafety();
-            } catch (_) {
-              // The surviving native collector remains authoritative for
-              // immediate OS-level safety. Do not fabricate a battery state
-              // or abandon recoverable local TripLog state when the optional
-              // runtime capability probe is temporarily unavailable.
+            final sampling = _nativeSampling;
+            if (sampling == null) {
+              _platformError =
+                  'GPS recovery was paused because its saved sampling state is unavailable.';
+              await _stopNativeTracking();
+              _platformStatus = 'sampling_recovery_required';
+            } else {
+              bool reapplied;
+              try {
+                reapplied = await platform.update(
+                  TripTrackingNativeRequest(
+                    profile: session.profile,
+                    sampling: sampling,
+                    allowBackground: true,
+                    activityRecognitionEnabled:
+                        session.activityRecognitionEnabled,
+                  ),
+                );
+              } catch (_) {
+                reapplied = false;
+              }
+              if (!reapplied) {
+                _platformError =
+                    'GPS recovery was paused because the device could not reapply its saved tracking settings.';
+                await _stopNativeTracking();
+                _platformStatus = 'native_reconfiguration_failed';
+              } else {
+                _platformSubscription = _listenToPlatformEvents(platform);
+                try {
+                  _lastKnownCapabilities = await platform.readCapabilities();
+                  _lastBatterySafetyCheckUtc = _clockNow().toUtc();
+                  await _enforceRuntimeBatterySafety();
+                } catch (_) {
+                  // The surviving native collector remains authoritative for
+                  // immediate OS-level safety. Do not fabricate a battery
+                  // state or abandon recoverable local TripLog state when the
+                  // optional runtime capability probe is temporarily
+                  // unavailable.
+                }
+              }
             }
           }
         }
