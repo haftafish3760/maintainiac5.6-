@@ -31,6 +31,7 @@ class TripGpsBatteryDecision {
       'reasonCode': safeReasonCode,
       'batteryBucket': _safeBatteryBucket(batteryBucket),
       'safetyCutoffPercent': _safeBatteryCutoff(safetyCutoffPercent),
+      'hardGpsShutdownPercent': _hardGpsShutdownPercent,
       'promptTitle': _batteryPromptTitle(safeReasonCode),
       'promptBody': _batteryPromptBody(safeReasonCode),
       'allowsGps': allowsGps,
@@ -118,6 +119,18 @@ class TripTrackingPolicy {
     required bool lowBatteryOverrideEnabled,
     required bool lowBatteryWarningDismissed,
   }) {
+    final percent = batteryPercent;
+    // Below this reserve, GPS is disabled even when the user previously chose
+    // to continue or the device reports external power. The app must protect
+    // the device's ability to place calls and retain the local TripLog.
+    if (percent != null && percent >= 0 && percent < _hardGpsShutdownPercent) {
+      return _batteryDecision(
+        status: TripGpsBatteryDecisionStatus.blocked,
+        reasonCode: 'battery_critical_gps_blocked',
+        batteryPercent: percent,
+        cutoffPercent: lowBatteryGpsCutoffPercent,
+      );
+    }
     if (!lowBatteryProtectionEnabled) {
       return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
@@ -134,7 +147,6 @@ class TripTrackingPolicy {
         cutoffPercent: lowBatteryGpsCutoffPercent,
       );
     }
-    final percent = batteryPercent;
     final cutoff =
         lowBatteryGpsCutoffPercent >= 1 && lowBatteryGpsCutoffPercent <= 100
         ? lowBatteryGpsCutoffPercent
@@ -263,6 +275,8 @@ class TripTrackingPolicy {
   }
 }
 
+const _hardGpsShutdownPercent = 10;
+
 TripGpsBatteryDecision _batteryDecision({
   required TripGpsBatteryDecisionStatus status,
   required String reasonCode,
@@ -292,6 +306,7 @@ String _safeBatteryReasonCode(String reasonCode) {
   return switch (reasonCode.trim()) {
     'battery_protection_disabled' => 'battery_protection_disabled',
     'device_charging' => 'device_charging',
+    'battery_critical_gps_blocked' => 'battery_critical_gps_blocked',
     'user_override_low_battery' => 'user_override_low_battery',
     'user_override_low_power_mode' => 'user_override_low_power_mode',
     'low_battery_requires_user_choice' => 'low_battery_requires_user_choice',
@@ -324,6 +339,7 @@ int _safeBatteryCutoff(int cutoffPercent) {
 
 String _batteryPromptTitle(String reasonCode) {
   return switch (reasonCode) {
+    'battery_critical_gps_blocked' => 'Battery critically low',
     'low_battery_requires_user_choice' ||
     'low_battery_gps_blocked_by_saved_choice' => 'Battery below 20%',
     'low_power_mode_requires_user_choice' ||

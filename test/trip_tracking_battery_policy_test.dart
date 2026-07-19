@@ -42,7 +42,7 @@ void main() {
     expect(decision.reasonCode, 'low_battery_requires_user_choice');
   });
 
-  test('low battery override allows GPS only after user opt-in', () {
+  test('critical battery blocks GPS even after a prior user override', () {
     const policy = TripTrackingPolicy();
     final settings = const TripTrackingSettings().copyWith(
       gpsAssistedTrackingEnabled: true,
@@ -58,41 +58,41 @@ void main() {
       lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
     );
 
-    expect(decision.status, TripGpsBatteryDecisionStatus.allowed);
-    expect(decision.reasonCode, 'user_override_low_battery');
+    expect(decision.status, TripGpsBatteryDecisionStatus.blocked);
+    expect(decision.reasonCode, 'battery_critical_gps_blocked');
     expect(decision.batteryBucket, 'below_20');
-    expect(decision.toSafeSummary(), {
-      'status': 'allowed',
-      'reasonCode': 'user_override_low_battery',
-      'batteryBucket': 'below_20',
-      'safetyCutoffPercent': 20,
-      'promptTitle': 'GPS battery guard',
-      'promptBody':
-          'GPS is continuing because you opted in to bypass the battery guard.',
-      'allowsGps': true,
-      'requiresUserChoice': false,
-      'userCanOverride': false,
-      'continueGpsActionLabel': 'Continue with GPS',
-      'cancelGpsActionLabel': 'Cancel GPS',
-      'doNotShowAgainAvailable': false,
-      'settingsReversalAvailable': true,
-      'defaultGpsPausesBelowCutoff': true,
-      'userOverrideRequiresExplicitChoice': true,
-      'batteryGuardCanBeChangedInSettings': true,
-      'gpsTrackingCanRetryWhenCharging': true,
-      'batteryDataTrustedAfterValidationOnly': true,
-      'batteryDataCanDeleteTripRecords': false,
-      'lowBatteryCanStopTextTripLog': false,
-      'firebaseBatteryStateCanOverrideGpsDecision': false,
-      'mapboxCanOverrideBatteryDecision': false,
-      'malformedBatteryPayloadFailsSafe': true,
-      'mapsRequiredForGps': false,
-      'tripDataDeletionAllowed': false,
-      'odometerRemainsCanonical': true,
-      'preciseBatteryIncluded': false,
-      'rawBatteryPayloadIncluded': false,
-      'tokensIncluded': false,
-    });
+    final summary = decision.toSafeSummary();
+    expect(summary['allowsGps'], isFalse);
+    expect(summary['requiresUserChoice'], isFalse);
+    expect(summary['hardGpsShutdownPercent'], 10);
+  });
+
+  test('critical battery cannot be bypassed by charging or disabled guard', () {
+    const policy = TripTrackingPolicy();
+
+    for (final decision in [
+      policy.gpsBatteryDecision(
+        batteryPercent: 9,
+        isCharging: true,
+        lowBatteryProtectionEnabled: true,
+        lowBatteryOverrideEnabled: true,
+        lowBatteryWarningDismissed: true,
+      ),
+      policy.gpsBatteryDecision(
+        batteryPercent: 9,
+        isCharging: false,
+        lowBatteryProtectionEnabled: false,
+        lowBatteryOverrideEnabled: true,
+        lowBatteryWarningDismissed: true,
+      ),
+    ]) {
+      expect(decision.status, TripGpsBatteryDecisionStatus.blocked);
+      expect(decision.reasonCode, 'battery_critical_gps_blocked');
+      expect(
+        decision.toSafeSummary()['reasonCode'],
+        'battery_critical_gps_blocked',
+      );
+    }
   });
 
   test('low power mode asks before GPS unless the user overrides it', () {
@@ -151,7 +151,7 @@ void main() {
     expect(decision.toSafeSummary()['lowBatteryCanStopTextTripLog'], isFalse);
   });
 
-  test('charging device or unknown battery reading does not block GPS', () {
+  test('unknown battery does not block GPS, but critical battery does', () {
     const policy = TripTrackingPolicy();
 
     final charging = policy.gpsBatteryDecision(
@@ -169,8 +169,8 @@ void main() {
       lowBatteryWarningDismissed: false,
     );
 
-    expect(charging.status, TripGpsBatteryDecisionStatus.allowed);
-    expect(charging.reasonCode, 'device_charging');
+    expect(charging.status, TripGpsBatteryDecisionStatus.blocked);
+    expect(charging.reasonCode, 'battery_critical_gps_blocked');
     expect(unknown.status, TripGpsBatteryDecisionStatus.allowed);
     expect(unknown.reasonCode, 'battery_unknown');
     expect(unknown.batteryBucket, 'unknown');
