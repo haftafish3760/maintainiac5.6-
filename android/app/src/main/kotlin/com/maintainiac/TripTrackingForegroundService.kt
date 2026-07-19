@@ -47,6 +47,7 @@ class TripTrackingForegroundService : Service() {
         override fun run() {
             if (!isRunning) return
             if (stopForCriticalBatteryIfNeeded()) return
+            if (stopForLocationPermissionRevokedIfNeeded()) return
             if (stopForLocationServicesDisabledIfNeeded()) return
             // Liveness only: no coordinates, mileage, stop evidence, or
             // identity crosses this status boundary.
@@ -224,6 +225,22 @@ class TripTrackingForegroundService : Service() {
     private fun stopForLocationServicesDisabledIfNeeded(): Boolean {
         if (locationServicesEnabled()) return false
         TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_gps_disabled", "errorMessage" to "Device location was turned off while tracking."))
+        stopSelf()
+        return true
+    }
+
+    /// Android can revoke precise location while this foreground service is
+    /// alive. Poll at the native heartbeat boundary so stale service status
+    /// never keeps a GPS session looking healthy after revocation.
+    private fun stopForLocationPermissionRevokedIfNeeded(): Boolean {
+        if (hasFineLocation()) return false
+        TripTrackingEventEmitter.emit(
+            mapOf(
+                "type" to "error",
+                "errorCode" to "trip_tracking_location_denied",
+                "errorMessage" to "Location permission was removed while tracking.",
+            ),
+        )
         stopSelf()
         return true
     }
