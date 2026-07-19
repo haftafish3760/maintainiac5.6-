@@ -825,6 +825,10 @@ void main() {
         code: 'trip_tracking_battery_critical',
         message: 'Battery is critically low.',
       );
+      // Android emits a final stopped status from service teardown after the
+      // critical-battery error. That ordinary lifecycle event must not erase the
+      // actionable battery explanation the driver needs to see.
+      native.addStatus('stopped');
       await drainNativeTripEventsUntil(() => !controller.nativeTracking);
 
       expect(controller.isTracking, isTrue);

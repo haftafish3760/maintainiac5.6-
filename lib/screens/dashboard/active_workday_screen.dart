@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shared/device_capabilities/device_capability_scope.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
 import '../../shared/state/global_odometer.dart';
@@ -406,6 +407,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   }
 
   Future<void> _startGpsTripImpl() async {
+    // GPS is heavy work. Refresh the shared runtime profile first so the
+    // dashboard and guidance use current battery, thermal, and storage facts
+    // without inferring permission or silently changing the driver's preset.
+    await DeviceCapabilityScope.refreshForHeavyWork(context);
+    if (!mounted) return;
     final settingsController = TripTrackingSettingsScope.maybeOf(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (settingsController == null || tripTracking == null) return;
