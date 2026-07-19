@@ -180,9 +180,26 @@ class TripTrackingController extends ChangeNotifier {
         _session?.startingOdometer ??
         _odometer.confirmedReading;
     final miles = (_odometer.reading - baseline).clamp(0, 999999).toDouble();
+    final referenceTime = (nowUtc ?? _clockNow()).toUtc();
+    // A recurring route is best compared with the same weekday. Three
+    // confirmed occurrences are enough to provide a useful early warning;
+    // until then, fall back to the broader seven-day baseline instead of
+    // hiding a genuinely unusual odometer entry for a new user.
+    final weekdaySignal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: miles,
+      history: _sessionStore.pendingReviews,
+      vehicleId: _odometer.vehicleId,
+      nowUtc: referenceTime,
+      weekday: referenceTime.weekday,
+      minimumReviewedDays: 3,
+    );
+    if (weekdaySignal.status !=
+        TripOdometerUsageAnomalyStatus.insufficientHistory) {
+      return weekdaySignal;
+    }
     return odometerUsageAnomalySignal(
       currentOdometerMiles: miles,
-      nowUtc: nowUtc,
+      nowUtc: referenceTime,
     );
   }
 

@@ -563,6 +563,69 @@ void main() {
     },
   );
 
+  test(
+    'runtime summary prefers a confirmed same-weekday mileage baseline',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1150,
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        clockNow: () => DateTime.utc(2026, 7, 22, 12),
+      );
+      final activeWorkday = ActiveWorkdaySessionRecord(
+        id: 'workday_weekday_usage',
+        vehicleId: 'vehicle_1',
+        vehicleLabel: 'Truck',
+        workProfileId: 'delivery',
+        startedAt: DateTime.utc(2026, 7, 22, 8),
+        startOdometer: 1000,
+        status: ActiveWorkdayStatus.active,
+        events: const [],
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      for (final day in const [1, 8, 15]) {
+        await store.saveReview(
+          _confirmedReview(
+            id: 'wednesday_$day',
+            startedAt: DateTime.utc(2026, 7, day, 8),
+            filteredGpsMiles: 50,
+            odometerMiles: 50,
+          ),
+        );
+      }
+      for (final day in const [2, 3, 4, 5, 6, 7, 9]) {
+        await store.saveReview(
+          _confirmedReview(
+            id: 'other_day_$day',
+            startedAt: DateTime.utc(2026, 7, day, 8),
+            filteredGpsMiles: 300,
+            odometerMiles: 300,
+          ),
+        );
+      }
+
+      final summary = DashboardTripTrackingSummary.fromRuntime(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          odometerAnomalyAlertsEnabled: true,
+        ),
+        tripTracking: controller,
+        activeWorkday: activeWorkday,
+      );
+
+      expect(summary.odometerUsageState, 'review_recommended');
+      expect(summary.odometerUsageReviewedDays, 3);
+      expect(summary.odometerUsageAverageDailyMiles, 50.0);
+      expect(summary.odometerUsageReviewThresholdMiles, 125.0);
+      expect(summary.reviewRequired, isTrue);
+    },
+  );
+
   test('runtime summary marks paused workday as requiring review', () {
     final activeWorkday = ActiveWorkdaySessionRecord(
       id: 'workday_1',
@@ -674,6 +737,14 @@ TripTrackingReviewRecord _confirmedReview({
   required DateTime startedAt,
   required double filteredGpsMiles,
   required int odometerMiles,
+  TripTrackingDiagnostics diagnostics = const TripTrackingDiagnostics(
+    receivedSamples: 100,
+    acceptedSamples: 90,
+    dispositionCounts: {
+      TripSampleDisposition.acceptedDistance: 90,
+      TripSampleDisposition.rejectedAccuracy: 10,
+    },
+  ),
 }) {
   final startingOdometer = 1000;
   return TripTrackingReviewRecord(
@@ -689,6 +760,7 @@ TripTrackingReviewRecord _confirmedReview({
     engineSnapshot: TripTrackingEngineSnapshot(
       totalAcceptedMeters: filteredGpsMiles * 1609.344,
       walkingReviewSuggested: false,
+      diagnostics: diagnostics,
     ),
   );
 }
