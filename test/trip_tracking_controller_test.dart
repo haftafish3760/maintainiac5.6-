@@ -797,6 +797,51 @@ void main() {
   );
 
   test(
+    'resume enforces critical battery before resuming background GPS',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      var now = DateTime.utc(2026, 7, 12, 12);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_resume_critical_battery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+
+      native.batterySnapshot = const TripTrackingBatterySnapshot(
+        batteryPercent: 9,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+      now = now.add(const Duration(minutes: 6));
+      await controller.handleAppLifecycleState(
+        AppLifecycleState.resumed,
+        backgroundTrackingAllowed: true,
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(controller.platformStatus, 'battery_critical_gps_blocked');
+    },
+  );
+
+  test(
     'background tracking requires explicit background authorization before native start',
     () async {
       final native = _FakeTripTrackingPlatform(

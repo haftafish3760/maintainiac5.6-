@@ -1528,6 +1528,8 @@ class TripTrackingController extends ChangeNotifier {
     final mayContinueInBackground =
         backgroundTrackingAllowed && _backgroundTrackingAllowed;
     if (state == AppLifecycleState.resumed && mayContinueInBackground) {
+      await _enforceRuntimeBatterySafety();
+      if (!_nativeTracking) return;
       await _checkNativeHeartbeat();
       return;
     }
