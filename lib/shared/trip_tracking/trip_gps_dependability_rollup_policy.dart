@@ -100,6 +100,8 @@ class TripGpsDependabilityRollupPolicy {
         .where((value) => value.isNotEmpty)
         .toList(growable: false);
     final hasDuplicateKeys = safeKeys.toSet().length != safeKeys.length;
+    final hasIncompleteWindowIdentity =
+        safeKeys.isNotEmpty && safeKeys.length != windowCount;
     final ready = list
         .where(
           (window) =>
@@ -152,10 +154,12 @@ class TripGpsDependabilityRollupPolicy {
         requiresUserReview: false,
       );
     }
-    if (hasDuplicateKeys) {
+    if (hasDuplicateKeys || hasIncompleteWindowIdentity) {
       return _decision(
         status: TripGpsDependabilityRollupStatus.unsafe,
-        reasonCode: 'gps_rollup_duplicate_window_rejected',
+        reasonCode: hasDuplicateKeys
+            ? 'gps_rollup_duplicate_window_rejected'
+            : 'gps_rollup_incomplete_window_identity',
         windowCount: windowCount,
         readyWindowCount: ready,
         reviewOnlyWindowCount: reviewOnly,
@@ -268,6 +272,8 @@ String _safeReason(String reasonCode) {
     'gps_rollup_unsafe_window_present' => 'gps_rollup_unsafe_window_present',
     'gps_rollup_duplicate_window_rejected' =>
       'gps_rollup_duplicate_window_rejected',
+    'gps_rollup_incomplete_window_identity' =>
+      'gps_rollup_incomplete_window_identity',
     'gps_rollup_projection_paused_window_present' =>
       'gps_rollup_projection_paused_window_present',
     'gps_rollup_review_only_window_present' =>

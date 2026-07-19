@@ -183,6 +183,28 @@ void main() {
     );
   });
 
+  test('partially identified GPS windows cannot become calibration evidence', () {
+    final rollup = TripGpsDependabilityRollupPolicy.evaluate(
+      windows: [
+        window(TripGpsDependabilityStatus.readyForAssist),
+        window(TripGpsDependabilityStatus.readyForAssist),
+      ],
+      windowKeys: const ['window_1', ''],
+    );
+    final safe = rollup.toSafeDashboardMap();
+
+    expect(rollup.status, TripGpsDependabilityRollupStatus.unsafe);
+    expect(rollup.reasonCode, 'gps_rollup_incomplete_window_identity');
+    expect(rollup.canUseForLiveAssist, isFalse);
+    expect(rollup.canUseForCalibrationEvidence, isFalse);
+    expect(
+      TripGpsDependabilityRollupSummaryValidation.fromSummary(
+        safe,
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
   test(
     'window keys are bucketed and sanitized without coordinates or tokens',
     () {

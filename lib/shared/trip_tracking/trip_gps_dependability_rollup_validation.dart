@@ -185,7 +185,8 @@ List<String> _rollupStatusBoundaryRisks(
       }
     case TripGpsDependabilityRollupStatus.unsafe:
       if ((reason != 'gps_rollup_unsafe_window_present' &&
-              reason != 'gps_rollup_duplicate_window_rejected') ||
+              reason != 'gps_rollup_duplicate_window_rejected' &&
+              reason != 'gps_rollup_incomplete_window_identity') ||
           windowCount <= 0 ||
           canUseForLiveAssist ||
           canUseForCalibrationEvidence ||

@@ -254,6 +254,9 @@ class TripOdometerCalibrationSignal {
     }
     final requestedVehicleId = vehicleId?.trim();
     final trustedNowUtc = nowUtc?.toUtc();
+    final oldestEligibleStartedAtUtc = trustedNowUtc?.subtract(
+      Duration(days: maximumReviewedDays),
+    );
     final confirmedReviews = reviews
         .where(
           (review) =>
@@ -262,6 +265,10 @@ class TripOdometerCalibrationSignal {
               (trustedNowUtc == null ||
                   !review.odometerConfirmedAt!.toUtc().isAfter(
                     trustedNowUtc,
+                  )) &&
+              (oldestEligibleStartedAtUtc == null ||
+                  !review.startedAt.toUtc().isBefore(
+                    oldestEligibleStartedAtUtc,
                   )) &&
               review.vehicleId.trim().isNotEmpty &&
               (requestedVehicleId == null ||

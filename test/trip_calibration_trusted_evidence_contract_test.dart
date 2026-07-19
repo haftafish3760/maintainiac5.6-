@@ -282,6 +282,36 @@ void main() {
     expect(safe['odometerIsGlobalTruth'], isTrue);
   });
 
+  test('stale reviewed history cannot calibrate a vehicle after the review window', () {
+    final reviews = <TripTrackingReviewRecord>[
+      _confirmedReview(
+        id: 'stale_tire_configuration',
+        startedAt: DateTime.utc(2026, 6, 1, 8),
+        filteredGpsMiles: 110,
+        odometerMiles: 100,
+        diagnostics: _trustedDiagnostics,
+      ),
+      for (var day = 0; day < 6; day += 1)
+        _confirmedReview(
+          id: 'recent_day_$day',
+          startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+          filteredGpsMiles: 110,
+          odometerMiles: 100,
+          diagnostics: _trustedDiagnostics,
+        ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+      vehicleId: 'vehicle_1',
+      nowUtc: DateTime.utc(2026, 7, 18, 12),
+    );
+
+    expect(signal.status, TripOdometerCalibrationStatus.insufficientHistory);
+    expect(signal.eligibleSampleCount, 6);
+    expect(signal.gpsAssistanceCalibrationMultiplier, 1);
+  });
+
   test('unknown GPS diagnostics fail neutral until explicitly allowed', () {
     final reviews = <TripTrackingReviewRecord>[
       for (var day = 0; day < 7; day += 1)

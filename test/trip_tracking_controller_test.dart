@@ -2739,6 +2739,64 @@ void main() {
     expect(controller.platformError, contains('Motion activity was disabled'));
   });
 
+  test('motion events arriving after consent withdrawal cannot influence stop review', () async {
+    final native = _FakeTripTrackingPlatform(activityRecognitionAvailable: true);
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_ignore_withdrawn_motion_events',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      startedAt: start,
+    );
+    await controller.startNativeTracking(
+      allowBackground: false,
+      activityRecognitionEnabled: true,
+    );
+    await controller.disableActivityRecognition();
+
+    for (final seconds in [20, 35, 50]) {
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start.add(Duration(seconds: seconds)),
+        ),
+      );
+      native.addLocation(sample(-80 + (seconds / 100000), seconds, speed: 8));
+    }
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(controller.needsWalkingReview, isFalse);
+    expect(controller.acceptedMeters, greaterThan(0));
+  });
+
+  test('withdrawing an already-disabled sensor does not disturb GPS tracking', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_no_motion_sensor_to_withdraw',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await controller.startNativeTracking(allowBackground: false);
+
+    await controller.disableActivityRecognition();
+
+    expect(native.updateCalls, 0);
+    expect(native.stopCalls, 0);
+    expect(controller.nativeTracking, isTrue);
+  });
+
   test(
     'a long paused GPS gap is not converted into live odometer miles',
     () async {
