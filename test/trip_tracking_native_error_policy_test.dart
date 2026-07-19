@@ -10,6 +10,7 @@ void main() {
       'trip_tracking_location_error',
       'trip_tracking_gps_unavailable',
       'trip_tracking_gps_disabled',
+      'trip_tracking_battery_critical',
     ]) {
       expect(TripTrackingNativeErrorPolicy.requiresRecovery(code), isTrue);
     }

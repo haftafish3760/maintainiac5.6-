@@ -7,7 +7,8 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_location_denied' ||
     'trip_tracking_location_error' ||
     'trip_tracking_gps_unavailable' ||
-    'trip_tracking_gps_disabled' => true,
+    'trip_tracking_gps_disabled' ||
+    'trip_tracking_battery_critical' => true,
     _ => false,
   };
 
@@ -32,6 +33,8 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_gps_unavailable' =>
       'GPS is unavailable on this device right now.',
     'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
+    'trip_tracking_battery_critical' =>
+      'Battery is critically low. GPS-assisted tracking is paused below 10%.',
     _ => 'GPS reported a device error.',
   };
 
@@ -154,6 +157,7 @@ String _safeErrorCode(String? value) {
     'trip_tracking_location_error' => 'trip_tracking_location_error',
     'trip_tracking_gps_unavailable' => 'trip_tracking_gps_unavailable',
     'trip_tracking_gps_disabled' => 'trip_tracking_gps_disabled',
+    'trip_tracking_battery_critical' => 'trip_tracking_battery_critical',
     'invalidLocationPayload' => 'invalidLocationPayload',
     'invalidActivityPayload' => 'invalidActivityPayload',
     'invalidNativeEventPayload' => 'invalidNativeEventPayload',
