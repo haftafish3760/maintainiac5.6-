@@ -5,6 +5,8 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_foreground_service_denied' ||
     'trip_tracking_location_registration_failed' ||
     'trip_tracking_location_denied' ||
+    'trip_tracking_background_location_denied' ||
+    'trip_tracking_location_accuracy_reduced' ||
     'trip_tracking_location_error' ||
     'trip_tracking_gps_unavailable' ||
     'trip_tracking_gps_disabled' ||
@@ -28,6 +30,10 @@ class TripTrackingNativeErrorPolicy {
       'GPS location updates could not be registered by the device.',
     'trip_tracking_location_denied' =>
       'GPS location permission is required for trip tracking.',
+    'trip_tracking_background_location_denied' =>
+      'Background GPS permission was removed while tracking.',
+    'trip_tracking_location_accuracy_reduced' =>
+      'Precise GPS access was reduced while tracking.',
     'trip_tracking_location_error' =>
       'The device could not continue GPS trip tracking.',
     'trip_tracking_gps_unavailable' =>
@@ -154,6 +160,10 @@ String _safeErrorCode(String? value) {
     'trip_tracking_location_registration_failed' =>
       'trip_tracking_location_registration_failed',
     'trip_tracking_location_denied' => 'trip_tracking_location_denied',
+    'trip_tracking_background_location_denied' =>
+      'trip_tracking_background_location_denied',
+    'trip_tracking_location_accuracy_reduced' =>
+      'trip_tracking_location_accuracy_reduced',
     'trip_tracking_location_error' => 'trip_tracking_location_error',
     'trip_tracking_gps_unavailable' => 'trip_tracking_gps_unavailable',
     'trip_tracking_gps_disabled' => 'trip_tracking_gps_disabled',

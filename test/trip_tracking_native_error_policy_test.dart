@@ -7,6 +7,8 @@ void main() {
       'trip_tracking_foreground_service_denied',
       'trip_tracking_location_registration_failed',
       'trip_tracking_location_denied',
+      'trip_tracking_background_location_denied',
+      'trip_tracking_location_accuracy_reduced',
       'trip_tracking_location_error',
       'trip_tracking_gps_unavailable',
       'trip_tracking_gps_disabled',
@@ -69,6 +71,12 @@ void main() {
       TripTrackingNativeErrorPolicy.safeMessage('trip_tracking_location_error'),
       'The device could not continue GPS trip tracking.',
     );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_location_accuracy_reduced',
+      ),
+      'Precise GPS access was reduced while tracking.',
+    );
   });
 
   test('native error summaries expose only allow-listed codes', () {
@@ -110,6 +118,26 @@ void main() {
     expect(validation.isRenderable, isTrue);
     expect(validation.reasons, isEmpty);
   });
+
+  test(
+    'background and precision revocations remain safe recoverable errors',
+    () {
+      for (final code in [
+        'trip_tracking_background_location_denied',
+        'trip_tracking_location_accuracy_reduced',
+      ]) {
+        final summary = TripTrackingNativeErrorPolicy.toSafeSummary(code);
+        expect(summary['nativeErrorCode'], code);
+        expect(summary['recoverable'], isTrue);
+        expect(
+          TripTrackingNativeErrorSummaryValidation.fromSummary(
+            summary,
+          ).isRenderable,
+          isTrue,
+        );
+      }
+    },
+  );
 
   test('native error summary rejects forged status and truth claims', () {
     final validation = TripTrackingNativeErrorSummaryValidation.fromSummary({

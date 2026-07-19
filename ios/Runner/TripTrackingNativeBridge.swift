@@ -63,15 +63,34 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let authorization = authorizationMap()
     emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
     let state = authorization["state"] as? String
-    if tracking && (state == "denied" || state == "restricted") {
+    let hasPreciseLocation = authorization["preciseLocation"] as? Bool == true
+    let canKeepBackgroundTracking = !requestedBackgroundAuthorization || state == "always"
+    if tracking && (
+      state == "denied" ||
+      state == "restricted" ||
+      !hasPreciseLocation ||
+      !canKeepBackgroundTracking
+    ) {
       stopHeartbeat()
       locationManager.stopUpdatingLocation()
       setActivityRecognitionEnabled(false)
       tracking = false
+      let errorCode: String
+      let errorMessage: String
+      if !hasPreciseLocation {
+        errorCode = "trip_tracking_location_accuracy_reduced"
+        errorMessage = "Precise location was reduced while tracking."
+      } else if !canKeepBackgroundTracking {
+        errorCode = "trip_tracking_background_location_denied"
+        errorMessage = "Background location permission was removed while tracking."
+      } else {
+        errorCode = "trip_tracking_location_denied"
+        errorMessage = "Location permission was removed while tracking."
+      }
       emit([
         "type": "error",
-        "errorCode": "trip_tracking_location_denied",
-        "errorMessage": "Location permission was removed while tracking.",
+        "errorCode": errorCode,
+        "errorMessage": errorMessage,
       ])
     }
     guard let result = pendingAuthorizationResult else { return }
@@ -318,7 +337,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
 
   private func capabilities() -> [String: Any] {
     UIDevice.current.isBatteryMonitoringEnabled = true
-    [
+    return [
       "schemaVersion": 1,
       "locationAvailable": CLLocationManager.locationServicesEnabled(),
       "backgroundTrackingAvailable": true,

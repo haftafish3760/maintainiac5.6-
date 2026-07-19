@@ -243,11 +243,10 @@ void main() {
       contains('"status" to if (userPauseRequested) "paused" else "stopped"'),
     );
     expect(ios, contains('func locationManagerDidChangeAuthorization'));
-    expect(
-      ios,
-      contains('if tracking && (state == "denied" || state == "restricted")'),
-    );
-    expect(ios, contains('"errorCode": "trip_tracking_location_denied"'));
+    expect(ios, contains('let hasPreciseLocation'));
+    expect(ios, contains('let canKeepBackgroundTracking'));
+    expect(ios, contains('trip_tracking_background_location_denied'));
+    expect(ios, contains('trip_tracking_location_accuracy_reduced'));
     expect(ios, contains('trip_tracking_location_error'));
     expect(ios, contains('locationError.code == .denied'));
     expect(ios, contains('locationError.code == .locationUnknown'));
