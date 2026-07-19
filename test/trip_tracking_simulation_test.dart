@@ -110,6 +110,42 @@ void main() {
   );
 
   test(
+    'a paused mower with nearby walking evidence does not create a delivery stop',
+    () {
+      final points = <SimulatedTripPoint>[
+        SimulatedTripPoint(point(-80, 0, speed: 3.5)),
+        SimulatedTripPoint(point(-79.99988, 15, speed: 3.5)),
+        SimulatedTripPoint(point(-79.99976, 30, speed: 3.5)),
+      ];
+      for (var index = 0; index < 16; index++) {
+        final offset = index.isEven ? .000004 : -.000004;
+        final seconds = 45 + (index * 10);
+        points.add(
+          SimulatedTripPoint(
+            point(-79.99976 + offset, seconds, speed: 0),
+            activity: walking(seconds),
+          ),
+        );
+      }
+      points.addAll([
+        SimulatedTripPoint(point(-79.99964, 220, speed: 3.5)),
+        SimulatedTripPoint(point(-79.99952, 235, speed: 3.5)),
+      ]);
+
+      final result = replayTrip(
+        points,
+        profile: TripTrackingProfile.lowSpeedEquipment,
+      );
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.count(TripSampleDisposition.excludedWalking), isZero);
+      expect(result.motionState, TripMotionState.moving);
+      expect(result.acceptedMeters, greaterThan(35));
+      expect(result.acceptedMeters, lessThan(90));
+    },
+  );
+
+  test(
     'poor urban-canyon samples and an outage never bridge false distance',
     () {
       final result = replayTrip([
