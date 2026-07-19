@@ -1052,7 +1052,7 @@ void main() {
   );
 
   test(
-    'vehicle-only waiting creates one review-safe stop candidate advisory',
+    'traffic-like vehicle-only waiting does not create a stop advisory',
     () async {
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
@@ -1078,45 +1078,15 @@ void main() {
       }
 
       expect(controller.needsWalkingReview, isFalse);
-      expect(controller.advisories, hasLength(1));
-      expect(
-        controller.advisories.single.type,
-        TripTrackingAdvisoryType.probableStop,
-      );
-      expect(
-        controller.advisories.single.confidence,
-        TripTrackingConfidence.medium,
-      );
-      expect(
-        controller.advisories.single.disposition,
-        TripTrackingAdvisoryDisposition.pending,
-      );
-      expect(
-        controller.advisories.single.evidenceStartedAt,
-        start.add(const Duration(seconds: 30)),
-      );
-      expect(
-        controller.advisories.single.evidenceEndedAt,
-        start.add(const Duration(seconds: 135)),
-      );
-
-      await controller.acknowledgeLatestStopReview();
-      expect(
-        controller.advisories.single.disposition,
-        TripTrackingAdvisoryDisposition.confirmed,
-      );
-      expect(controller.needsWalkingReview, isFalse);
+      expect(controller.advisories, isEmpty);
 
       await controller.ingest(sample(-79.997, 170), activity: automotive(170));
-      expect(controller.advisories.map((event) => event.type), [
-        TripTrackingAdvisoryType.probableStop,
-        TripTrackingAdvisoryType.resumedMovement,
-      ]);
+      expect(controller.advisories, isEmpty);
     },
   );
 
   test(
-    'reviewing a vehicle-only stop candidate persists across local recovery',
+    'traffic-like vehicle-only waiting stays advisory-free across recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
       final controller = TripTrackingController(
@@ -1141,16 +1111,7 @@ void main() {
       for (final seconds in [30, 60, 90, 135]) {
         await controller.ingest(sample(-79.9997, seconds));
       }
-      expect(
-        controller.advisories.single.disposition,
-        TripTrackingAdvisoryDisposition.pending,
-      );
-
-      await controller.acknowledgeLatestStopReview();
-      expect(
-        controller.advisories.single.disposition,
-        TripTrackingAdvisoryDisposition.confirmed,
-      );
+      expect(controller.advisories, isEmpty);
 
       final restored = TripTrackingController(
         sessionStore: store,
@@ -1160,16 +1121,13 @@ void main() {
         ),
       );
       expect(await restored.restore(), isTrue);
-      expect(
-        restored.advisories.single.disposition,
-        TripTrackingAdvisoryDisposition.confirmed,
-      );
+      expect(restored.advisories, isEmpty);
       expect(restored.needsWalkingReview, isFalse);
     },
   );
 
   test(
-    'walking confirmation upgrades vehicle-only stop without losing evidence window',
+    'walking confirmation creates a high-confidence stop after vehicle-only wait',
     () async {
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
@@ -1199,10 +1157,7 @@ void main() {
       for (final seconds in [30, 60, 90, 135]) {
         await controller.ingest(sample(-79.9997, seconds));
       }
-      expect(
-        controller.advisories.single.confidence,
-        TripTrackingConfidence.medium,
-      );
+      expect(controller.advisories, isEmpty);
 
       for (final seconds in [150, 165, 180, 195, 210]) {
         await controller.ingest(
@@ -1229,7 +1184,7 @@ void main() {
   );
 
   test(
-    'rejected vehicle-only stop does not create a resume advisory',
+    'traffic-like vehicle-only waiting cannot create a rejected stop record',
     () async {
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
@@ -1253,18 +1208,10 @@ void main() {
       for (final seconds in [30, 60, 90, 135]) {
         await controller.ingest(sample(-79.9997, seconds));
       }
-      expect(controller.advisories, hasLength(1));
-
-      await controller.reviewLatestStopAdvisory(
-        TripTrackingAdvisoryDisposition.rejected,
-      );
+      expect(controller.advisories, isEmpty);
       await controller.ingest(sample(-79.997, 170), activity: automotive(170));
 
-      expect(controller.advisories, hasLength(1));
-      expect(
-        controller.advisories.single.disposition,
-        TripTrackingAdvisoryDisposition.rejected,
-      );
+      expect(controller.advisories, isEmpty);
     },
   );
 

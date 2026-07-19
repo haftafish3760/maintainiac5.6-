@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'trip_tracking_models.dart';
 import 'trip_tracking_policy.dart';
 import 'trip_tracking_profile_strategy.dart';
+import 'trip_vehicle_only_dwell_policy.dart';
 
 /// Deterministic, platform-neutral evidence filter. Native adapters provide
 /// samples; this engine decides what is safe to count and what needs review.
@@ -386,7 +387,7 @@ class TripTrackingEngine {
             stationaryConflict) &&
         _vehicleMovementObserved) {
       _stationaryStartedAt ??= sample.recordedAt;
-      if (_hasVehicleOnlyStopCandidate(sample.recordedAt)) {
+      if (_hasVehicleOnlyStopCandidate(sample)) {
         _motionState = TripMotionState.stopCandidate;
       }
       return;
@@ -425,14 +426,37 @@ class TripTrackingEngine {
     );
   }
 
-  bool _hasVehicleOnlyStopCandidate(DateTime observedAt) {
+  bool _hasVehicleOnlyStopCandidate(TripLocationSample sample) {
     final startedAt = _stationaryStartedAt;
-    if (startedAt == null || observedAt.isBefore(startedAt)) return false;
-    return observedAt.difference(startedAt) >=
-        _safePositiveDuration(
-          policy.vehicleOnlyStopCandidateDuration,
-          const Duration(seconds: 90),
-        );
+    final speedMps = sample.speedMetersPerSecond;
+    if (startedAt == null ||
+        speedMps == null ||
+        sample.recordedAt.isBefore(startedAt)) {
+      return false;
+    }
+
+    // Vehicle-only pauses are intentionally much more conservative than
+    // walking-confirmed stops. A long traffic signal must not become a stop
+    // review just because a few stationary fixes arrived. This policy only
+    // permits a manual fallback after profile-specific dwell time plus a
+    // meaningful, clean driving history; it never auto-confirms a stop.
+    final decision = TripVehicleOnlyDwellPolicy.evaluate(
+      profile: profile,
+      stationaryDuration: sample.recordedAt.difference(startedAt),
+      walkingEvidenceCount: _walkingEvidence.length,
+      rejectedDriftCount:
+          _diagnostics.dispositionCounts[TripSampleDisposition.rejectedDrift] ??
+          0,
+      acceptedDistanceCount:
+          _diagnostics
+              .dispositionCounts[TripSampleDisposition.acceptedDistance] ??
+          0,
+      acceptedVehicleMovementObserved: _vehicleMovementObserved,
+      speedMps: speedMps,
+      horizontalAccuracyMeters: sample.horizontalAccuracyMeters,
+    );
+    return decision.status ==
+        TripVehicleOnlyDwellStatus.manualFallbackRecommended;
   }
 
   TripSampleDecision _decision(
