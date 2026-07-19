@@ -130,10 +130,12 @@ class TripOdometerUsageAnomalySignal {
 
     final requestedVehicleId = vehicleId?.trim();
     final trustedNowUtc = nowUtc?.toUtc();
+    final orderedHistory = history.toList(growable: false)
+      ..sort(_compareReviewRecency);
     final dailyMiles = <String, double>{};
     var inspectedRecords = 0;
     var ignoredRecords = 0;
-    for (final review in history) {
+    for (final review in orderedHistory) {
       if (inspectedRecords >= maximumHistoryRecords) {
         ignoredRecords += 1;
         continue;
@@ -216,6 +218,17 @@ class TripOdometerUsageAnomalySignal {
           : 'odometer_usage_within_review_threshold',
     );
   }
+}
+
+int _compareReviewRecency(
+  TripTrackingReviewRecord left,
+  TripTrackingReviewRecord right,
+) {
+  final leftConfirmedAt = left.odometerConfirmedAt?.toUtc();
+  final rightConfirmedAt = right.odometerConfirmedAt?.toUtc();
+  if (leftConfirmedAt == null) return rightConfirmedAt == null ? 0 : 1;
+  if (rightConfirmedAt == null) return -1;
+  return rightConfirmedAt.compareTo(leftConfirmedAt);
 }
 
 class TripOdometerUsageAnomalySummaryValidation {

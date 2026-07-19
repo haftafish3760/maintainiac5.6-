@@ -246,6 +246,35 @@ void main() {
     expect(summary['remoteTotalsCanReplaceOdometer'], isFalse);
   });
 
+  test('history caps retain the most recently confirmed driving days', () {
+    final history = <TripTrackingReviewRecord>[
+      for (var day = 0; day < 7; day += 1)
+        _review(
+          day: day,
+          startingOdometer: 1000 + (day * 10),
+          confirmedEndingOdometer: 1010 + (day * 10),
+        ),
+      for (var day = 7; day < 14; day += 1)
+        _review(
+          day: day,
+          startingOdometer: 2000 + ((day - 7) * 100),
+          confirmedEndingOdometer: 2100 + ((day - 7) * 100),
+        ),
+    ];
+
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 100,
+      history: history,
+      vehicleId: 'vehicle_1',
+      maximumHistoryRecords: 7,
+    );
+
+    expect(signal.reviewedDayCount, 7);
+    expect(signal.ignoredHistoryRecordCount, 7);
+    expect(signal.averageDailyMiles, 100);
+    expect(signal.status, TripOdometerUsageAnomalyStatus.normal);
+  });
+
   test('safe usage anomaly summary validates as renderable', () {
     final validation = TripOdometerUsageAnomalySummaryValidation.fromSummary(
       TripOdometerUsageAnomalySignal.evaluate(
