@@ -11,9 +11,14 @@ void main() {
       'ios/Runner/ReceiptCameraViewControllerSessionSettings.swift',
     ).readAsString();
 
-    expect(android, contains('assistedReceiptFill = false'));
-    expect(ios, contains('assistedReceiptFill = false'));
-    expect(android, isNot(contains('assistedReceiptFill = true')));
-    expect(ios, isNot(contains('assistedReceiptFill = true')));
+    expect(
+      android,
+      contains(
+        'Expense and account preferences are deliberately not reset here',
+      ),
+    );
+    expect(ios, contains('camera reset must preserve it'));
+    expect(android, isNot(contains('assistedReceiptFill =')));
+    expect(ios, isNot(contains('assistedReceiptFill =')));
   });
 }

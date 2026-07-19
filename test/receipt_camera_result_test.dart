@@ -34,7 +34,9 @@ void main() {
       );
       expect(
         result.ocrSourceFirstReviewCue,
-        contains('saved proof is being used because a clearer photo was not available'),
+        contains(
+          'saved proof is being used because a clearer photo was not available',
+        ),
       );
       expect(
         result.privacySafeOcrSourceFirstSummary,
@@ -50,7 +52,7 @@ void main() {
       );
       expect(
         result.ocrSourceFirstActionLabel,
-        'OCR fell back to saved proof; review the filled receipt carefully',
+        'Receipt details used the saved copy; review the filled receipt carefully',
       );
       expect(
         result.receiptReaderHandoffCounts,
@@ -132,9 +134,7 @@ void main() {
       );
       expect(
         result.ocrSourceFirstReviewCue,
-        contains(
-          'clearest receipt photos before the smaller saved proof',
-        ),
+        contains('clearest receipt photos before the smaller saved proof'),
       );
       expect(
         result.receiptReaderHandoffCounts,

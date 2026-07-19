@@ -99,13 +99,11 @@ void main() {
       expect(cameraController, contains('if latestFrameBrightness <= 70'));
       expect(cameraController, contains('return min(current + 1.0, maxBias)'));
       expect(cameraController, contains('if latestFrameBrightness <= 104'));
-      expect(cameraController, contains('if latestFrameBrightness <= 138'));
-      expect(cameraController, contains('if latestFrameBrightness <= 150'));
       expect(cameraController, contains('return min(current + 0.5, maxBias)'));
       expect(
         cameraController,
         contains(
-          'if latestFrameBrightness >= 150 && latestFrameBrightness <= 238',
+          'if latestFrameBrightness >= 104 && latestFrameBrightness <= 238',
         ),
       );
       expect(

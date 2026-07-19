@@ -217,7 +217,11 @@ void main() {
     expect(models, contains('_isBorderlineDimButReadable'));
     expect(models, contains('_isBrightReadablePaper'));
     expect(controls, isNot(contains("sharpnessBucket == 'captured_soft'")));
-    expect(previewControls, contains('label: strings.addAnotherReceiptPhoto'));
+    expect(
+      qualityRecovery,
+      contains('label: coverageDecision.isMissingBottomEdgeAndTotals'),
+    );
+    expect(qualityRecovery, contains(': strings.addAnotherReceiptPhoto'));
     expect(previewControls, isNot(contains("label: 'Add Section'")));
   });
 }
