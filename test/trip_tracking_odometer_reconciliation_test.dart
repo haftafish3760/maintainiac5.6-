@@ -1172,6 +1172,26 @@ void main() {
     expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(1.0638, .001));
   });
 
+  test('calibration does not suggest correction for inconsistent drift', () {
+    final history = [4, 5, 6, 7, 8, 9, 10]
+        .map(
+          (difference) => TripOdometerReconciliation(
+            status: TripOdometerReconciliationStatus.reviewRecommended,
+            confirmedOdometerDeltaMiles: 100,
+            filteredGpsMiles: 100 - difference,
+            absoluteDifferenceMiles: difference.toDouble(),
+            differencePercent: difference.toDouble(),
+          ),
+        )
+        .toList(growable: false);
+
+    final signal = TripOdometerCalibrationSignal.evaluate(history: history);
+
+    expect(signal.status, TripOdometerCalibrationStatus.stable);
+    expect(signal.reasonCode, 'gps_odometer_variance_too_high');
+    expect(signal.differenceSpreadPercent, 6);
+  });
+
   test('calibration rejects non-finite thresholds', () {
     final signal = TripOdometerCalibrationSignal.evaluate(
       history: const [],

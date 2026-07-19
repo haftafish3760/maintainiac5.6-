@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'trip_gps_dependability_rollup_policy.dart';
 import 'trip_tracking_odometer_reconciliation.dart';
 import 'trip_tracking_models.dart';
@@ -16,6 +18,7 @@ class TripOdometerCalibrationSignal {
     required this.averageGpsToOdometerRatio,
     required this.averageDifferencePercent,
     required this.reasonCode,
+    this.differenceSpreadPercent = 0,
     this.trustedGpsWindowCount,
     this.excludedPoorGpsDayCount = 0,
   });
@@ -24,6 +27,7 @@ class TripOdometerCalibrationSignal {
   final int eligibleSampleCount;
   final double averageGpsToOdometerRatio;
   final double averageDifferencePercent;
+  final double differenceSpreadPercent;
   final String reasonCode;
   final int? trustedGpsWindowCount;
   final int excludedPoorGpsDayCount;
@@ -55,6 +59,7 @@ class TripOdometerCalibrationSignal {
     ),
     'excludedPoorGpsDayCount': _safeCount(excludedPoorGpsDayCount),
     'averageDifferencePercent': _safeRoundedPercent(averageDifferencePercent),
+    'differenceSpreadPercent': _safeRoundedPercent(differenceSpreadPercent),
     'reasonCode': _safeCalibrationReason(reasonCode),
     'shouldPromptUser': _safeCalibrationShouldPrompt(
       status: status,
@@ -139,6 +144,7 @@ class TripOdometerCalibrationSignal {
     int minimumSamples = 7,
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
+    double maximumDifferenceSpreadPercent = 5,
     double maximumEligibleDifferencePercent = 25,
     int excludedPoorGpsDayCount = 0,
   }) {
@@ -147,6 +153,8 @@ class TripOdometerCalibrationSignal {
         !minimumOdometerMiles.isFinite ||
         !reviewDifferencePercent.isFinite ||
         reviewDifferencePercent < 0 ||
+        !maximumDifferenceSpreadPercent.isFinite ||
+        maximumDifferenceSpreadPercent < 0 ||
         !maximumEligibleDifferencePercent.isFinite ||
         maximumEligibleDifferencePercent < reviewDifferencePercent) {
       return const TripOdometerCalibrationSignal(
@@ -191,15 +199,29 @@ class TripOdometerCalibrationSignal {
     var odometerMilesTotal = 0.0;
     var gpsMilesTotal = 0.0;
     var differenceMilesTotal = 0.0;
+    var smallestDifferencePercent = double.infinity;
+    var largestDifferencePercent = 0.0;
     for (final entry in eligible) {
       final sample = entry.key;
       odometerMilesTotal += sample.confirmedOdometerDeltaMiles;
       gpsMilesTotal += sample.filteredGpsMiles;
       differenceMilesTotal +=
           (sample.confirmedOdometerDeltaMiles - sample.filteredGpsMiles).abs();
+      smallestDifferencePercent = math.min(
+        smallestDifferencePercent,
+        entry.value,
+      );
+      largestDifferencePercent = math.max(
+        largestDifferencePercent,
+        entry.value,
+      );
     }
     final averageRatio = gpsMilesTotal / odometerMilesTotal;
     final averagePercent = (differenceMilesTotal / odometerMilesTotal) * 100;
+    final differenceSpreadPercent =
+        (largestDifferencePercent - smallestDifferencePercent)
+            .clamp(0, 100)
+            .toDouble();
     final persistentSameDirection =
         eligible.every(
           (entry) =>
@@ -212,8 +234,12 @@ class TripOdometerCalibrationSignal {
               entry.key.confirmedOdometerDeltaMiles,
         );
 
+    final consistentDifference =
+        differenceSpreadPercent <= maximumDifferenceSpreadPercent;
     final shouldReview =
-        persistentSameDirection && averagePercent >= reviewDifferencePercent;
+        persistentSameDirection &&
+        consistentDifference &&
+        averagePercent >= reviewDifferencePercent;
     return TripOdometerCalibrationSignal(
       status: shouldReview
           ? TripOdometerCalibrationStatus.reviewRecommended
@@ -223,8 +249,11 @@ class TripOdometerCalibrationSignal {
       excludedPoorGpsDayCount: _safeCount(excludedPoorGpsDayCount),
       averageGpsToOdometerRatio: averageRatio,
       averageDifferencePercent: averagePercent,
+      differenceSpreadPercent: differenceSpreadPercent,
       reasonCode: shouldReview
           ? 'persistent_gps_odometer_drift'
+          : !consistentDifference
+          ? 'gps_odometer_variance_too_high'
           : 'calibration_stable',
     );
   }
