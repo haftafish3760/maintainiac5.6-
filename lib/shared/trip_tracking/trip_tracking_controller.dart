@@ -1897,7 +1897,8 @@ class TripTrackingController extends ChangeNotifier {
       return true;
     } catch (_) {
       _platformStatus = 'storage_failed';
-      _platformError = 'Could not save GPS collection permission locally.';
+      _platformError =
+          'Could not save GPS background tracking permission locally.';
       notifyListeners();
       return false;
     }
