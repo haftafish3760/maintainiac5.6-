@@ -159,11 +159,8 @@ class TripTrackingProfileStrategy {
     required Duration walkingEvidenceSpan,
   }) {
     if (!usesWalkingStopEvidence) return false;
-    if (walkingEvidenceCount >= walkingConfirmationCount &&
-        walkingEvidenceSpan >= walkingStopConfirmationDuration) {
-      return true;
-    }
-    if (walkingEvidenceCount < 2) return false;
+    if (walkingEvidenceCount < walkingConfirmationCount) return false;
+    if (walkingEvidenceSpan >= walkingStopConfirmationDuration) return true;
     final latest = latestWalkingEvidenceAt;
     if (latest == null || observedAt.isBefore(latest)) return false;
     return observedAt.difference(latest) >= walkingStopConfirmationDuration;

@@ -71,6 +71,22 @@ void main() {
     expect(engine.needsWalkingReview, isTrue);
   });
 
+  test('walking stop debounce never lowers the profile evidence count', () {
+    final delivery = TripTrackingProfileStrategy.forProfile(
+      TripTrackingProfile.deliveryVehicle,
+    );
+
+    expect(
+      delivery.hasWalkingStopEvidence(
+        walkingEvidenceCount: delivery.walkingConfirmationCount - 1,
+        observedAt: start.add(const Duration(minutes: 2)),
+        latestWalkingEvidenceAt: start,
+        walkingEvidenceSpan: const Duration(seconds: 15),
+      ),
+      isFalse,
+    );
+  });
+
   test(
     'rideshare does not treat a short passenger stop as a completed stop',
     () {
