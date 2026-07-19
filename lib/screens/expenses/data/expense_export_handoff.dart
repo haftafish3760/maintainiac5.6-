@@ -12,6 +12,7 @@ import '../../../shared/pdf/app_generated_pdf_export_estimator.dart';
 import '../../../shared/pdf/app_generated_pdf_export_request.dart';
 import '../../../shared/pdf/app_generated_pdf_export_verifier.dart';
 import '../../../shared/pdf/app_generated_pdf_image_loader.dart';
+import '../../../shared/pdf/app_generated_pdf_receipt_sections.dart';
 import '../../../shared/pdf/app_generated_pdf_share_content.dart';
 import '../../../shared/pdf/app_generated_pdf_service.dart';
 import '../../../shared/storage/app_storage_guard.dart';
@@ -318,76 +319,25 @@ Future<List<pw.Widget>> _loadReceiptImageSections({
   required AppGeneratedPdfImageResolver? imageResolver,
   required bool allowFullImageDownload,
 }) async {
-  if (mode == AppGeneratedPdfExportMode.textOnly) return const [];
-  final resolver = imageResolver;
-  if (resolver == null) {
+  if (mode != AppGeneratedPdfExportMode.textOnly && imageResolver == null) {
     throw const AppGeneratedPdfException(
       'This receipt image PDF export needs an image source before it can be generated.',
     );
   }
-  final sections = <pw.Widget>[];
-  for (final receipt in snapshot.receipts) {
-    for (final attachment in receipt.attachments.where(
-      (item) => item.isPhoto,
-    )) {
-      try {
-        final bytes = await resolver.resolve(
-          attachmentId: attachment.id,
-          mode: mode,
-          allowFullImageDownload: allowFullImageDownload,
-        );
-        final image = pw.MemoryImage(bytes);
-        sections.add(
-          pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 12),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('${receipt.merchantName} - ${attachment.id}'),
-                pw.SizedBox(height: 4),
-                pw.Image(
-                  image,
-                  height: mode == AppGeneratedPdfExportMode.thumbnails
-                      ? 120
-                      : 420,
-                  fit: pw.BoxFit.contain,
-                ),
-              ],
-            ),
+  return AppGeneratedPdfReceiptSections.build(
+    references: [
+      for (final receipt in snapshot.receipts)
+        for (final attachment in receipt.attachments.where(
+          (item) => item.isPhoto,
+        ))
+          AppGeneratedPdfReceiptImageReference(
+            attachmentId: attachment.id,
+            label: '${receipt.merchantName} - ${attachment.id}',
           ),
-        );
-      } on AppGeneratedPdfImageResolutionException catch (error) {
-        if (error.reasonCode ==
-            'full_image_download_requires_explicit_selection') {
-          rethrow;
-        }
-        sections.add(_unavailableReceiptImageSection(receipt.merchantName));
-      } catch (_) {
-        sections.add(_unavailableReceiptImageSection(receipt.merchantName));
-      }
-    }
-  }
-  return sections;
-}
-
-pw.Widget _unavailableReceiptImageSection(String merchantName) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.only(bottom: 12),
-    child: pw.Container(
-      padding: const pw.EdgeInsets.all(8),
-      decoration: pw.BoxDecoration(border: pw.Border.all()),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(merchantName),
-          pw.SizedBox(height: 3),
-          pw.Text(
-            'Receipt image was unavailable. The receipt details remain in this export.',
-            style: const pw.TextStyle(fontSize: 9),
-          ),
-        ],
-      ),
-    ),
+    ],
+    mode: mode,
+    imageResolver: imageResolver,
+    allowFullImageDownload: allowFullImageDownload,
   );
 }
 
