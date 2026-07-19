@@ -33,6 +33,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
     }
 
     private lateinit var locationManager: LocationManager
+    private var userPauseRequested = false
     private val heartbeatHandler = Handler(Looper.getMainLooper())
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
@@ -56,6 +57,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
         if (intent?.action == stopAction) {
             // The persistent notification must give the driver an immediate,
             // visible way to end tracking without reopening the app.
+            userPauseRequested = true
             stopSelf()
             return START_NOT_STICKY
         }
@@ -153,7 +155,12 @@ class TripTrackingForegroundService : Service(), LocationListener {
             // Location cleanup remains authoritative if Play Services is unavailable.
         }
         isRunning = false
-        TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "stopped"))
+        TripTrackingEventEmitter.emit(
+            mapOf(
+                "type" to "status",
+                "status" to if (userPauseRequested) "paused" else "stopped",
+            ),
+        )
         super.onDestroy()
     }
 

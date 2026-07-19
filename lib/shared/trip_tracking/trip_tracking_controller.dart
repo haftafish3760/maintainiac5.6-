@@ -1250,8 +1250,8 @@ class TripTrackingController extends ChangeNotifier {
             );
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
-            if (status == 'stopped') {
-              final expectedStop = _nativeStopRequested;
+            if (status == 'stopped' || status == 'paused') {
+              final expectedStop = _nativeStopRequested || status == 'paused';
               _platformStatus = expectedStop ? status : 'interrupted';
               if (!expectedStop) {
                 _platformError =

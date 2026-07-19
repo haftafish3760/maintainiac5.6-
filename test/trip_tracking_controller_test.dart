@@ -2377,6 +2377,33 @@ void main() {
     },
   );
 
+  test('an explicit native pause preserves the trip without an interruption', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_explicit_native_pause',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await controller.startNativeTracking(allowBackground: false);
+
+    native.addStatus('paused');
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(controller.healthState, isNot(TripTrackingHealthState.interrupted));
+    expect(controller.platformStatus, 'paused');
+    expect(controller.platformError, isNull);
+  });
+
   test(
     'malformed native status payload is ignored without stopping a valid trip',
     () async {
