@@ -63,6 +63,49 @@ void main() {
   });
 
   test(
+    'repeated lawn passes in a small area remain measurable without stops',
+    () {
+      final points = <SimulatedTripPoint>[];
+      const offsets = [
+        (0.0, 0.0),
+        (0.00012, 0.0),
+        (0.00012, 0.00009),
+        (0.0, 0.00009),
+      ];
+      var seconds = 0;
+      for (var lap = 0; lap < 8; lap++) {
+        for (final offset in offsets) {
+          points.add(
+            SimulatedTripPoint(
+              TripLocationSample(
+                latitude: 35.0 + offset.$2,
+                longitude: -80.0 + offset.$1,
+                recordedAt: start.add(Duration(seconds: seconds)),
+                horizontalAccuracyMeters: 4,
+                speedMetersPerSecond: 3.5,
+              ),
+            ),
+          );
+          seconds += 15;
+        }
+      }
+
+      final result = replayTrip(
+        points,
+        profile: TripTrackingProfile.lowSpeedEquipment,
+      );
+
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.motionState, TripMotionState.moving);
+      expect(
+        result.count(TripSampleDisposition.acceptedDistance),
+        greaterThan(20),
+      );
+      expect(result.acceptedMeters, greaterThan(500));
+    },
+  );
+
+  test(
     'poor urban-canyon samples and an outage never bridge false distance',
     () {
       final result = replayTrip([
@@ -437,7 +480,10 @@ void main() {
       expect(summary['stopSignal'], 'no_stop');
       expect(summary['stopCanSuggestReview'], isFalse);
       expect(summary['stopCanCreateOfficialStop'], isFalse);
-      expect(classification['activityRecognitionCanCreateOfficialStop'], isFalse);
+      expect(
+        classification['activityRecognitionCanCreateOfficialStop'],
+        isFalse,
+      );
       expect(classification['canCreateOfficialStop'], isFalse);
       expect(classification['odometerIsGlobalTruth'], isTrue);
     },
