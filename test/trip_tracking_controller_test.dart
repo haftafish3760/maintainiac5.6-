@@ -851,6 +851,39 @@ void main() {
     },
   );
 
+  test('native heartbeat at the GPS freshness boundary stays usable', () async {
+    final native = _FakeTripTrackingPlatform();
+    var now = start;
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: native,
+      clockNow: () => now,
+    );
+    addTearDown(controller.dispose);
+
+    await controller.start(
+      tripId: 'trip_signal_freshness_boundary',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
+
+    now = now.add(const Duration(minutes: 2));
+    native.addStatus('tracking');
+    await drainNativeTripEventsUntil(
+      () => controller.platformStatus == 'tracking',
+    );
+
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.active);
+    expect(controller.healthState, TripTrackingHealthState.healthy);
+    expect(controller.platformError, isNull);
+  });
+
   test(
     'native critical battery stop keeps the actionable battery status',
     () async {
