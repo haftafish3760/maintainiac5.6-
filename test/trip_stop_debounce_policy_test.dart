@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_debounce_summary_validation.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_gps_dependability_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 
@@ -39,6 +40,23 @@ void main() {
     );
   }
 
+  TripGpsDependabilityDecision gpsDependability(
+    TripGpsDependabilityStatus status, {
+    bool canOpenStopReview = false,
+  }) => TripGpsDependabilityDecision(
+    status: status,
+    reasonCode: 'test_gps_dependability',
+    profile: TripTrackingProfile.deliveryVehicle,
+    confidence: TripTrackingConfidence.low,
+    signalQuality: TripTrackingSignalQuality.poor,
+    canFeedLiveOdometerProjection: false,
+    canPersistCompactRoutePoint: false,
+    canOpenStopReview: canOpenStopReview,
+    canContributeToCalibration: false,
+    shouldContinueSampling: true,
+    requiresUserReview: true,
+  );
+
   test('delivery stops can open review after vehicle movement and walking', () {
     final decision = TripStopDebouncePolicy.evaluate(
       profile: TripTrackingProfile.deliveryVehicle,
@@ -53,6 +71,63 @@ void main() {
       decision.classification.toSafeSummary()['canCreateOfficialStop'],
       isFalse,
     );
+  });
+
+  test('unsafe GPS blocks otherwise strong delivery stop evidence', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: TripStopDebounceObservation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 2),
+        walkingEvidenceCount: 5,
+        walkingEvidenceSpan: const Duration(seconds: 35),
+        rejectedDriftCount: 0,
+        rejectedUnsafeCount: 0,
+        acceptedDistanceCount: 8,
+        acceptedVehicleMovementObserved: true,
+        speedMps: .1,
+        horizontalAccuracyMeters: 10,
+        latestWalkingEvidenceAt: latestWalking,
+        observedAt: observedAt,
+        gpsDependability: gpsDependability(
+          TripGpsDependabilityStatus.unsafeBlocked,
+        ),
+      ),
+    );
+
+    expect(decision.status, TripStopDebounceStatus.unsafeEvidence);
+    expect(decision.reasonCode, 'gps_dependability_blocks_stop_review');
+    expect(decision.canOpenReview, isFalse);
+  });
+
+  test('paused GPS cannot turn walking evidence into a stop review', () {
+    final decision = TripStopDebouncePolicy.evaluate(
+      profile: TripTrackingProfile.deliveryVehicle,
+      observation: TripStopDebounceObservation(
+        motionState: TripMotionState.stopped,
+        stationaryDuration: const Duration(minutes: 2),
+        walkingEvidenceCount: 5,
+        walkingEvidenceSpan: const Duration(seconds: 35),
+        rejectedDriftCount: 0,
+        rejectedUnsafeCount: 0,
+        acceptedDistanceCount: 8,
+        acceptedVehicleMovementObserved: true,
+        speedMps: .1,
+        horizontalAccuracyMeters: 10,
+        latestWalkingEvidenceAt: latestWalking,
+        observedAt: observedAt,
+        gpsDependability: gpsDependability(
+          TripGpsDependabilityStatus.projectionPaused,
+        ),
+      ),
+    );
+
+    expect(decision.status, TripStopDebounceStatus.waitingForEvidence);
+    expect(
+      decision.reasonCode,
+      'gps_dependability_waiting_for_projection_grade_signal',
+    );
+    expect(decision.canOpenReview, isFalse);
   });
 
   test('contractor jobsite stops are review-only and map independent', () {
