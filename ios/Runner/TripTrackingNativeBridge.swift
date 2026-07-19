@@ -87,6 +87,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    if stopForCriticalBatteryIfNeeded() { return }
     for location in locations where location.horizontalAccuracy >= 0 {
       let simulated = isSimulatedLocation(location)
       emit([
@@ -211,6 +212,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       result(FlutterError(code: "trip_tracking_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
       return
     }
+    if stopForCriticalBatteryIfNeeded() {
+      result(false)
+      return
+    }
     let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
     let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
@@ -299,6 +304,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     heartbeatTimer?.invalidate()
     heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
       guard let self, self.tracking else { return }
+      if self.stopForCriticalBatteryIfNeeded() { return }
       // Liveness only. No coordinates, sensor evidence, stops, or mileage
       // leave the native bridge in this status event.
       self.emit(["type": "status", "status": "tracking"])
@@ -332,6 +338,26 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       "isCharging": UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full,
       "lowPowerModeEnabled": ProcessInfo.processInfo.isLowPowerModeEnabled,
     ]
+  }
+
+  /// Core Location can keep running while Dart is background-suspended.
+  /// Mirror the hard below-ten-percent safety rule without changing TripLog
+  /// history or the authoritative odometer.
+  private func stopForCriticalBatteryIfNeeded() -> Bool {
+    let snapshot = batterySnapshot()
+    guard let percent = snapshot["batteryPercent"] as? Int,
+          percent >= 0,
+          percent < 10 else { return false }
+    stopHeartbeat()
+    locationManager.stopUpdatingLocation()
+    setActivityRecognitionEnabled(false)
+    tracking = false
+    emit([
+      "type": "error",
+      "errorCode": "trip_tracking_battery_critical",
+      "errorMessage": "Battery is critically low. GPS-assisted tracking is paused below 10%.",
+    ])
+    return true
   }
 
   private func authorizationMap() -> [String: Any] {

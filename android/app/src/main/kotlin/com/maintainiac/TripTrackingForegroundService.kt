@@ -7,11 +7,13 @@ import android.app.Service
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
+import android.os.BatteryManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -38,6 +40,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
             if (!isRunning) return
+            if (stopForCriticalBatteryIfNeeded()) return
             // Liveness only: no coordinates, mileage, stop evidence, or
             // identity crosses this status boundary.
             TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
@@ -73,6 +76,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
             stopSelf()
             return START_NOT_STICKY
         }
+        if (stopForCriticalBatteryIfNeeded()) return START_NOT_STICKY
         val interval = intent?.getLongExtra(intervalMillisExtra, 5000L)?.coerceIn(1000L, 60000L) ?: 5000L
         val displacement = intent?.getFloatExtra(minimumDisplacementExtra, 5f)?.coerceIn(1f, 100f) ?: 5f
         val activityEnabled = intent?.getBooleanExtra(activityRecognitionEnabledExtra, false) == true
@@ -124,6 +128,7 @@ class TripTrackingForegroundService : Service(), LocationListener {
     }
 
     override fun onLocationChanged(location: Location) {
+        if (stopForCriticalBatteryIfNeeded()) return
         if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
         TripTrackingEventEmitter.emit(
             mapOf(
@@ -173,6 +178,30 @@ class TripTrackingForegroundService : Service(), LocationListener {
 
     private fun stopHeartbeat() {
         heartbeatHandler.removeCallbacks(heartbeatRunnable)
+    }
+
+    /// Flutter may be suspended while Android keeps this foreground collector
+    /// alive. Enforce the hard below-ten-percent cutoff here as well. The
+    /// emitted event cannot close a TripLog day or alter the odometer.
+    private fun stopForCriticalBatteryIfNeeded(): Boolean {
+        if (!isBatteryCriticallyLow()) return false
+        TripTrackingEventEmitter.emit(
+            mapOf(
+                "type" to "error",
+                "errorCode" to "trip_tracking_battery_critical",
+                "errorMessage" to "Battery is critically low. GPS-assisted tracking is paused below 10%.",
+            ),
+        )
+        stopSelf()
+        return true
+    }
+
+    private fun isBatteryCriticallyLow(): Boolean {
+        val battery = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return false
+        val level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+        if (level < 0 || scale <= 0) return false
+        return level * 100 / scale < 10
     }
 
     private fun notification(): android.app.Notification {

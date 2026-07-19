@@ -133,11 +133,17 @@ void main() {
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
     expect(androidActivity, contains('val observedAtMillis = result.time'));
-    expect(androidActivity, contains('observedAtMillis > System.currentTimeMillis() + 120_000L'));
+    expect(
+      androidActivity,
+      contains('observedAtMillis > System.currentTimeMillis() + 120_000L'),
+    );
     expect(androidActivity, contains('"recordedAt" to observedAtMillis'));
     expect(ios, contains('let observedAt = motion.startDate'));
     expect(ios, contains('observedAt <= Date().addingTimeInterval(120)'));
-    expect(ios, contains('"recordedAt": ISO8601DateFormatter().string(from: observedAt)'));
+    expect(
+      ios,
+      contains('"recordedAt": ISO8601DateFormatter().string(from: observedAt)'),
+    );
     expect(ios, contains('"type": "activity"'));
     expect(ios, contains('"mockedLocation": simulated'));
     expect(ios, contains('isSimulatedBySoftware'));
@@ -244,8 +250,7 @@ void main() {
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
   });
 
-  test('motion collection stops when optional activity assistance is disabled',
-      () {
+  test('motion collection stops when optional activity assistance is disabled', () {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
     ).readAsStringSync();
@@ -327,6 +332,35 @@ void main() {
     expect(ios, contains('deinit {'));
     expect(ios, contains('No coordinates, sensor evidence, stops, or mileage'));
   });
+
+  test(
+    'native collectors enforce the critical battery cutoff while Dart sleeps',
+    () {
+      final android = File(
+        'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+      ).readAsStringSync();
+      final ios = File(
+        'ios/Runner/TripTrackingNativeBridge.swift',
+      ).readAsStringSync();
+
+      expect(android, contains('private fun stopForCriticalBatteryIfNeeded()'));
+      expect(android, contains('private fun isBatteryCriticallyLow()'));
+      expect(android, contains('Intent.ACTION_BATTERY_CHANGED'));
+      expect(android, contains('level * 100 / scale < 10'));
+      expect(android, contains('"trip_tracking_battery_critical"'));
+      expect(android, contains('if (stopForCriticalBatteryIfNeeded()) return'));
+      expect(
+        ios,
+        contains('private func stopForCriticalBatteryIfNeeded() -> Bool'),
+      );
+      expect(ios, contains('percent < 10'));
+      expect(ios, contains('"trip_tracking_battery_critical"'));
+      expect(
+        ios,
+        contains('if self.stopForCriticalBatteryIfNeeded() { return }'),
+      );
+    },
+  );
 
   test('native start rejects background collection without native permission', () {
     final android = File(

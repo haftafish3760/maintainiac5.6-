@@ -1338,7 +1338,11 @@ class TripTrackingController extends ChangeNotifier {
                 TripTrackingNativeErrorPolicy.requiresRecovery(
                   event.errorCode,
                 )) {
-              unawaited(_handleNativeInterruption(message));
+              if (event.errorCode == 'trip_tracking_battery_critical') {
+                unawaited(_handleNativeCriticalBatteryStop(message));
+              } else {
+                unawaited(_handleNativeInterruption(message));
+              }
             } else {
               notifyListeners();
             }
@@ -1404,6 +1408,17 @@ class TripTrackingController extends ChangeNotifier {
     // The local TripLog remains active and the user can make a new explicit
     // decision after charging or changing the GPS battery preference.
     _platformStatus = decision.reasonCode;
+    notifyListeners();
+  }
+
+  /// A native collector can enforce the critical cutoff while Dart is asleep.
+  /// Keep that distinct, actionable state instead of presenting a generic GPS
+  /// failure; local work and odometer truth remain intact.
+  Future<void> _handleNativeCriticalBatteryStop(String message) async {
+    if (_isDisposed) return;
+    await _stopNativeTracking();
+    _platformStatus = 'battery_critical_gps_blocked';
+    _platformError = message;
     notifyListeners();
   }
 
