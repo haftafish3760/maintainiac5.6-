@@ -94,6 +94,10 @@ class TripTrackingController extends ChangeNotifier {
   String? _durableRecordError;
   TripActivityObservation? _latestActivity;
   TripTrackingPlatformCapabilities? _lastKnownCapabilities;
+  DateTime? _lastBatterySafetyCheckUtc;
+  bool _lowBatteryProtectionEnabled = true;
+  bool _lowBatteryOverrideEnabled = false;
+  bool _lowBatteryWarningDismissed = false;
 
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking => _session != null;
@@ -1140,6 +1144,10 @@ class TripTrackingController extends ChangeNotifier {
     _backgroundTrackingAllowed = allowBackground;
     _activityRecognitionEnabled = requestedActivityRecognition;
     _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
+    _lowBatteryProtectionEnabled = lowBatteryProtectionEnabled;
+    _lowBatteryOverrideEnabled = lowBatteryOverrideEnabled;
+    _lowBatteryWarningDismissed = lowBatteryWarningDismissed;
+    _lastBatterySafetyCheckUtc = _clockNow().toUtc();
     _platformError = null;
     _platformStatus = 'tracking';
     if (!await _tryTransitionSession(
@@ -1166,6 +1174,9 @@ class TripTrackingController extends ChangeNotifier {
   }
 
   String _gpsBatteryMessageFor(TripGpsBatteryDecision decision) {
+    if (decision.reasonCode == 'battery_critical_gps_blocked') {
+      return 'Battery is critically low. GPS-assisted tracking is paused below 10% to preserve your device and local TripLog.';
+    }
     final lowPowerMode = decision.reasonCode.startsWith('low_power_mode');
     final prompt =
         decision.status == TripGpsBatteryDecisionStatus.userPromptRequired;
@@ -1242,6 +1253,7 @@ class TripTrackingController extends ChangeNotifier {
               referenceTime: _clockNow().toUtc(),
             );
             await _maybeUpdateNativeSampling(event.location!, decision);
+            _scheduleRuntimeBatterySafetyCheck();
           } else if (event.activity != null) {
             // Native event streams are external input. Ignore motion evidence
             // unless this tracking session both asked for it and the platform
@@ -1337,6 +1349,62 @@ class TripTrackingController extends ChangeNotifier {
           _platformError = 'GPS event could not be processed safely.';
           notifyListeners();
         });
+  }
+
+  void _scheduleRuntimeBatterySafetyCheck() {
+    final platform = _platform;
+    final capabilities = _lastKnownCapabilities;
+    if (!_nativeTracking ||
+        platform == null ||
+        capabilities?.batteryStateAvailable != true) {
+      return;
+    }
+    final now = _clockNow().toUtc();
+    final previous = _lastBatterySafetyCheckUtc;
+    if (previous != null &&
+        now.difference(previous) < const Duration(minutes: 5)) {
+      return;
+    }
+    _lastBatterySafetyCheckUtc = now;
+    // This is deliberately scheduled after the current platform event. A
+    // native stop drains that event queue, so stopping inline here could wait
+    // on the event currently being processed.
+    unawaited(_enqueueNativeLifecycle(_enforceRuntimeBatterySafety));
+  }
+
+  Future<void> _enforceRuntimeBatterySafety() async {
+    final platform = _platform;
+    final capabilities = _lastKnownCapabilities;
+    if (!_nativeTracking ||
+        platform == null ||
+        capabilities?.batteryStateAvailable != true) {
+      return;
+    }
+    TripTrackingBatterySnapshot snapshot;
+    try {
+      snapshot = await platform.readBatterySnapshot();
+    } catch (_) {
+      // An unavailable battery bridge must not fabricate a low-battery stop.
+      return;
+    }
+    final decision = _policy.gpsBatteryDecision(
+      batteryPercent: snapshot.batteryPercent,
+      isCharging: snapshot.isCharging,
+      lowPowerModeEnabled:
+          capabilities!.lowPowerModeAvailable && snapshot.lowPowerModeEnabled,
+      lowBatteryProtectionEnabled: _lowBatteryProtectionEnabled,
+      lowBatteryOverrideEnabled: _lowBatteryOverrideEnabled,
+      lowBatteryWarningDismissed: _lowBatteryWarningDismissed,
+    );
+    if (decision.allowsGps) return;
+    _platformStatus = decision.reasonCode;
+    _platformError = _gpsBatteryMessageFor(decision);
+    await _stopNativeTracking();
+    // Stopping the optional collector must not erase the actionable reason.
+    // The local TripLog remains active and the user can make a new explicit
+    // decision after charging or changing the GPS battery preference.
+    _platformStatus = decision.reasonCode;
+    notifyListeners();
   }
 
   Future<void> _cancelPlatformSubscriptionAfterNativeStop() async {
@@ -1577,6 +1645,7 @@ class TripTrackingController extends ChangeNotifier {
     _nativeSampling = null;
     _nativeSamplingPlan = null;
     _lastNativeHeartbeatUtc = null;
+    _lastBatterySafetyCheckUtc = null;
     _nativeStopRequested = false;
     _backgroundTrackingAllowed = false;
     _latestActivity = null;
