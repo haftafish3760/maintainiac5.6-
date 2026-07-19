@@ -439,11 +439,13 @@ class TripTrackingEngineSnapshot {
     this.algorithmVersion = 'gps-v1',
     this.lastAccepted,
     this.lastObservedAt,
+    this.lastContinuousAt,
     this.walkingEvidence = const [],
   });
 
   final TripLocationSample? lastAccepted;
   final DateTime? lastObservedAt;
+  final DateTime? lastContinuousAt;
   final double totalAcceptedMeters;
   final List<TripActivityObservation> walkingEvidence;
   final bool walkingReviewSuggested;
@@ -461,6 +463,7 @@ class TripTrackingEngineSnapshot {
     return {
       'lastAccepted': lastAccepted?.toMap(),
       'lastObservedAt': lastObservedAt?.toIso8601String(),
+      'lastContinuousAt': lastContinuousAt?.toIso8601String(),
       'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
       'walkingEvidence': evidence.map((item) => item.toMap()).toList(),
       'walkingReviewSuggested': _safeWalkingReviewSuggested(
@@ -496,6 +499,11 @@ class TripTrackingEngineSnapshot {
       map['lastObservedAt'],
       lastAccepted: lastAccepted,
     );
+    final lastContinuousAt = _safeLastContinuousAt(
+      map['lastContinuousAt'],
+      lastAccepted: lastAccepted,
+      lastObservedAt: lastObservedAt,
+    );
     final stationaryStartedAt = _safeStationaryStartedAt(
       map['stationaryStartedAt'],
       vehicleMovementObserved: vehicleMovementObserved,
@@ -504,6 +512,7 @@ class TripTrackingEngineSnapshot {
     return TripTrackingEngineSnapshot(
       lastAccepted: lastAccepted,
       lastObservedAt: lastObservedAt,
+      lastContinuousAt: lastContinuousAt,
       totalAcceptedMeters: _safeAcceptedMeters(map['totalAcceptedMeters']),
       walkingEvidence: walkingEvidence,
       walkingReviewSuggested: _safeWalkingReviewSuggested(
@@ -748,6 +757,18 @@ DateTime? _safeLastObservedAt(
       _maxPersistedObservationLead) {
     return lastAccepted.recordedAt;
   }
+  return parsed;
+}
+
+DateTime? _safeLastContinuousAt(
+  Object? value, {
+  required TripLocationSample? lastAccepted,
+  required DateTime? lastObservedAt,
+}) {
+  if (lastAccepted == null || lastObservedAt == null) return null;
+  final parsed = _tripTimestampFrom(value) ?? lastAccepted.recordedAt;
+  if (parsed.isBefore(lastAccepted.recordedAt)) return lastAccepted.recordedAt;
+  if (parsed.isAfter(lastObservedAt)) return lastObservedAt;
   return parsed;
 }
 

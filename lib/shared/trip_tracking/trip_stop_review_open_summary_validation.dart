@@ -1,6 +1,8 @@
 import 'trip_stop_review_open_guard.dart';
 
 class TripStopReviewOpenSummaryValidation {
+  static const bool odometerIsGlobalTruth = true;
+
   const TripStopReviewOpenSummaryValidation._({
     required this.isRenderable,
     required this.reasons,

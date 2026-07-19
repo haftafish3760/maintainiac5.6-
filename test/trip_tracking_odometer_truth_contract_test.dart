@@ -108,9 +108,5 @@ bool _touchesOdometerTruth(String source) {
   final lower = source.toLowerCase();
   return lower.contains('odometer') ||
       lower.contains('mileage') ||
-      lower.contains('calibration') ||
-      lower.contains('mapbox') ||
-      lower.contains('gps') ||
-      lower.contains('firestore') ||
-      lower.contains('firebase');
+      lower.contains('calibration');
 }

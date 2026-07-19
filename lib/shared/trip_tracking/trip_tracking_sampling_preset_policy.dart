@@ -95,7 +95,8 @@ class TripTrackingSamplingPlan {
         candidate.minimumDisplacementMeters < sampling.minimumDisplacementMeters
         ? sampling.minimumDisplacementMeters
         : candidate.minimumDisplacementMeters;
-    final mode = _samplingAggressiveness(candidate.mode) >
+    final mode =
+        _samplingAggressiveness(candidate.mode) >
             _samplingAggressiveness(sampling.mode)
         ? sampling.mode
         : candidate.mode;
@@ -123,6 +124,7 @@ class TripTrackingSamplingPlan {
     'deviceIdentityIncluded': false,
     'canAuthorizeTracking': false,
     'canConfirmOdometerMileage': false,
+    'odometerIsGlobalTruth': true,
   };
 }
 

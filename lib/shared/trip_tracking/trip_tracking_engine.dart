@@ -17,6 +17,7 @@ class TripTrackingEngine {
   final TripTrackingProfile profile;
   TripLocationSample? _lastAccepted;
   DateTime? _lastObservedAt;
+  DateTime? _lastContinuousAt;
   final List<TripActivityObservation> _walkingEvidence = [];
   var _totalAcceptedMeters = 0.0;
   var _walkingReviewSuggested = false;
@@ -48,6 +49,7 @@ class TripTrackingEngine {
   TripTrackingEngineSnapshot get snapshot => TripTrackingEngineSnapshot(
     lastAccepted: _lastAccepted,
     lastObservedAt: _lastObservedAt,
+    lastContinuousAt: _lastContinuousAt,
     totalAcceptedMeters: _totalAcceptedMeters,
     walkingEvidence: List.unmodifiable(_walkingEvidence),
     walkingReviewSuggested: _walkingReviewSuggested,
@@ -65,6 +67,8 @@ class TripTrackingEngine {
     final engine = TripTrackingEngine(policy: policy, profile: profile);
     engine._lastAccepted = snapshot.lastAccepted;
     engine._lastObservedAt = snapshot.lastObservedAt;
+    engine._lastContinuousAt =
+        snapshot.lastContinuousAt ?? snapshot.lastAccepted?.recordedAt;
     engine._totalAcceptedMeters =
         snapshot.totalAcceptedMeters.isFinite &&
             snapshot.totalAcceptedMeters >= 0
@@ -119,6 +123,7 @@ class TripTrackingEngine {
       return _decision(TripSampleDisposition.rejectedMockLocation);
     }
     final lastObservedAt = _lastObservedAt;
+    final lastContinuousAt = _lastContinuousAt;
     if (lastObservedAt != null && !sample.recordedAt.isAfter(lastObservedAt)) {
       return _decision(TripSampleDisposition.rejectedOutOfOrder);
     }
@@ -130,6 +135,12 @@ class TripTrackingEngine {
         )) {
       return _decision(TripSampleDisposition.rejectedAccuracy);
     }
+    // Continuity is based on the last structurally sound, accurate observation,
+    // not the last point that contributed mileage. Otherwise a legitimate
+    // stationary period looks like a GPS outage merely because drift points did
+    // not move the vehicle-distance anchor. Keep ordering separate so rejected
+    // poor-accuracy samples cannot make later stale data appear fresh.
+    _lastContinuousAt = sample.recordedAt;
 
     final lastAccepted = _lastAccepted;
     if (lastAccepted == null) {
@@ -141,8 +152,12 @@ class TripTrackingEngine {
       );
     }
 
-    final elapsed = sample.recordedAt.difference(lastAccepted.recordedAt);
-    if (elapsed > _safePositiveDuration(policy.maximumGap, _defaultGap)) {
+    final continuityElapsed = lastContinuousAt == null
+        ? null
+        : sample.recordedAt.difference(lastContinuousAt);
+    if (continuityElapsed != null &&
+        continuityElapsed >
+            _safePositiveDuration(policy.maximumGap, _defaultGap)) {
       _lastAccepted = sample;
       return _finish(
         sample,
@@ -151,6 +166,7 @@ class TripTrackingEngine {
       );
     }
 
+    final elapsed = sample.recordedAt.difference(lastAccepted.recordedAt);
     final distance = _distanceMeters(lastAccepted, sample);
     final seconds = elapsed.inMilliseconds / Duration.millisecondsPerSecond;
     final impliedSpeed = seconds <= 0 ? double.infinity : distance / seconds;
@@ -390,7 +406,8 @@ class TripTrackingEngine {
     if (disposition == TripSampleDisposition.rejectedGap) {
       _stationaryStartedAt = null;
       _walkingEvidence.clear();
-      _walkingReviewSuggested = false;
+      // A gap invalidates only incomplete evidence. Once a stop has already
+      // earned a review, it remains a user-visible advisory until reviewed.
       _motionState = TripMotionState.unknown;
       return;
     }
@@ -399,6 +416,19 @@ class TripTrackingEngine {
             stationaryConflict) &&
         _vehicleMovementObserved) {
       _stationaryStartedAt ??= sample.recordedAt;
+      final stationaryStartedAt = _stationaryStartedAt;
+      if (_walkingEvidence.isEmpty &&
+          stationaryStartedAt != null &&
+          sample.recordedAt.difference(stationaryStartedAt) >
+              _safePositiveDuration(policy.maximumGap, _defaultGap)) {
+        // Continuous stationary vehicle-only fixes can be a traffic queue,
+        // gridlock, or a phone left in a parked vehicle. Age that evidence out
+        // instead of turning a long wait into a stop candidate. Walking may
+        // still establish a fresh, review-only stop cue afterward.
+        _stationaryStartedAt = sample.recordedAt;
+        _motionState = TripMotionState.unknown;
+        return;
+      }
       if (_hasVehicleOnlyStopCandidate(sample)) {
         _motionState = TripMotionState.stopCandidate;
       }
@@ -460,8 +490,8 @@ class TripTrackingEngine {
           _diagnostics.dispositionCounts[TripSampleDisposition.rejectedDrift] ??
           0,
       acceptedDistanceCount:
-          _diagnostics
-              .dispositionCounts[TripSampleDisposition.acceptedDistance] ??
+          _diagnostics.dispositionCounts[TripSampleDisposition
+              .acceptedDistance] ??
           0,
       acceptedVehicleMovementObserved: _vehicleMovementObserved,
       speedMps: speedMps,

@@ -45,6 +45,15 @@ class TripStopAdvisoryReviewer {
         detectedAt: safeDetectedAt,
       );
     }
+    if (currentMotionState == TripMotionState.stopped &&
+        engineSnapshot.walkingEvidence.any(
+          (item) => item.recordedAt == safeDetectedAt,
+        )) {
+      return extendConfirmedWalkingStopAdvisory(
+        session,
+        detectedAt: safeDetectedAt,
+      );
+    }
     final type = _transitionType(
       previousMotionState: previousMotionState,
       currentMotionState: currentMotionState,
@@ -117,6 +126,25 @@ class TripStopAdvisoryReviewer {
     return advisories;
   }
 
+  static List<TripTrackingAdvisoryEvent> extendConfirmedWalkingStopAdvisory(
+    TripTrackingSessionRecord session, {
+    required DateTime detectedAt,
+  }) {
+    final latestPendingStopIndex = latestPendingStopReviewIndex(
+      session,
+      preferHighConfidence: true,
+    );
+    if (latestPendingStopIndex < 0) return session.advisories;
+    final advisories = [...session.advisories];
+    final current = advisories[latestPendingStopIndex];
+    if (!detectedAt.isAfter(current.evidenceEndedAt)) return advisories;
+    advisories[latestPendingStopIndex] = current.copyWith(
+      evidenceEndedAt: detectedAt,
+      confidence: TripTrackingConfidence.high,
+    );
+    return advisories;
+  }
+
   static TripTrackingAdvisoryType? _transitionType({
     required TripMotionState previousMotionState,
     required TripMotionState currentMotionState,
@@ -143,23 +171,23 @@ class TripStopAdvisoryReviewer {
     required DateTime detectedAt,
   }) {
     if (type != TripTrackingAdvisoryType.probableStop) return detectedAt;
-    if (engineSnapshot.walkingEvidence.isNotEmpty) {
-      return _safeEvidenceStartedAt(
-        session,
-        engineSnapshot.walkingEvidence.first.recordedAt,
-        detectedAt: detectedAt,
-      );
-    }
     final stationaryStartedAt = engineSnapshot.stationaryStartedAt;
-    if (stationaryStartedAt == null ||
-        stationaryStartedAt.isAfter(detectedAt)) {
-      return detectedAt;
+    final walkingStartedAt = engineSnapshot.walkingEvidence.isEmpty
+        ? null
+        : engineSnapshot.walkingEvidence.first.recordedAt;
+    final candidates = [
+      if (stationaryStartedAt != null &&
+          !stationaryStartedAt.isAfter(detectedAt))
+        stationaryStartedAt,
+      if (walkingStartedAt != null && !walkingStartedAt.isAfter(detectedAt))
+        walkingStartedAt,
+    ];
+    if (candidates.isEmpty) return detectedAt;
+    var earliest = candidates.first;
+    for (final candidate in candidates.skip(1)) {
+      if (candidate.isBefore(earliest)) earliest = candidate;
     }
-    return _safeEvidenceStartedAt(
-      session,
-      stationaryStartedAt,
-      detectedAt: detectedAt,
-    );
+    return _safeEvidenceStartedAt(session, earliest, detectedAt: detectedAt);
   }
 
   static bool _hasSameTransition(
