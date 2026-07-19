@@ -126,7 +126,10 @@ bool _containsSensitivePayload(Object? value) {
 
 int _schemaVersion(Object? raw) {
   if (raw is int) return raw;
-  if (raw is num && raw.isFinite) return raw.floor();
+  if (raw is num && raw.isFinite) {
+    final parsed = raw.toInt();
+    return raw == parsed ? parsed : 0;
+  }
   return 0;
 }
 

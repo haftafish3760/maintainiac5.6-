@@ -115,6 +115,24 @@ void main() {
     expect(badSession.reason, TripLocationSampleIntakeReason.sessionMismatch);
   });
 
+  test('fractional payload schema versions fail closed', () {
+    for (final schemaVersion in const [0.9, 1.1, 1.9]) {
+      final decision = TripLocationSampleIntakeGuard.evaluate(
+        payload: payload(schemaVersion: schemaVersion),
+        expectedOwnerUid: 'driver-1',
+        expectedSessionId: 'trip-1',
+        receivedAt: receivedAt,
+      );
+
+      expect(decision.status, TripLocationSampleIntakeStatus.rejected);
+      expect(
+        decision.reason,
+        TripLocationSampleIntakeReason.schemaVersionUnsupported,
+      );
+      expect(decision.canFeedTripEngine, isFalse);
+    }
+  });
+
   test('remote or Mapbox source cannot feed native trip engine', () {
     for (final source in const [
       'firestore_mirror',
