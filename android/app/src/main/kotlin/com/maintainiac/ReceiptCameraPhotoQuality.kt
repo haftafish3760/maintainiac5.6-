@@ -38,6 +38,19 @@ internal fun ReceiptCameraActivity.cancelWithoutCapturedPhoto(reason: String) {
     finish()
 }
 
+internal fun ReceiptCameraActivity.cancelForCameraStartupFailure(reason: String) {
+    if (closeResultDelivered) return
+    closingCamera = true
+    closeAction = "camera_start_$reason"
+    closeResultDelivered = true
+    val data = Intent().apply {
+        putExtra(ReceiptCameraActivity.extraCloseAction, closeAction)
+        putExtra(ReceiptCameraActivity.extraCameraFailureReason, reason)
+    }
+    setResult(Activity.RESULT_CANCELED, data)
+    finish()
+}
+
 internal fun ReceiptCameraActivity.recordCapturedPhotoQuality(file: File) {
     latestCapturedByteBucket = byteSizeBucket(file.length())
     val options = BitmapFactory.Options().apply {

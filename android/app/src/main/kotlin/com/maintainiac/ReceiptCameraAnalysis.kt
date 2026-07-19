@@ -16,13 +16,27 @@ import kotlin.math.min
 
 
 internal fun ReceiptCameraActivity.startCamera() {
+    if (cameraStartInProgress || closingCamera || closeResultDelivered) return
+    cameraStartInProgress = true
+    cameraStartAttemptCount += 1
+    lastCameraStartStatus = "provider_requested"
     val providerFuture = ProcessCameraProvider.getInstance(this)
     providerFuture.addListener(
         {
-            if (!isCameraSurfaceActive()) return@addListener
-            val provider = providerFuture.get()
+            if (!isCameraSurfaceActive()) {
+                cameraStartInProgress = false
+                lastCameraStartStatus = "surface_inactive"
+                return@addListener
+            }
+            val provider = runCatching { providerFuture.get() }.getOrElse { error ->
+                handleCameraStartFailure(error)
+                return@addListener
+            }
+            cameraProvider = provider
             if (!isCameraSurfaceActive()) {
                 runCatching { provider.unbindAll() }
+                cameraStartInProgress = false
+                lastCameraStartStatus = "surface_inactive"
                 return@addListener
             }
             val targetRotation = previewView.display?.rotation ?: Surface.ROTATION_0
@@ -45,7 +59,11 @@ internal fun ReceiptCameraActivity.startCamera() {
             val imageAnalysis = buildImageAnalysis(targetRotation)
             try {
                 provider.unbindAll()
-                if (!isCameraSurfaceActive()) return@addListener
+                if (!isCameraSurfaceActive()) {
+                    cameraStartInProgress = false
+                    lastCameraStartStatus = "surface_inactive"
+                    return@addListener
+                }
                 camera = if (imageAnalysis == null) {
                     provider.bindToLifecycle(
                         this,
@@ -67,13 +85,40 @@ internal fun ReceiptCameraActivity.startCamera() {
                 configureTouchControls()
                 configureExposureControls()
                 guidance.text = guidanceText()
+                cameraStartInProgress = false
+                lastCameraStartStatus = "ready"
             } catch (error: Throwable) {
-                guidance.text = "The receipt camera could not open."
-                Toast.makeText(this, "Receipt camera could not open.", Toast.LENGTH_LONG).show()
+                runCatching { provider.unbindAll() }
+                handleCameraStartFailure(error)
             }
         },
         mainExecutor(),
     )
+}
+
+internal fun ReceiptCameraActivity.handleCameraStartFailure(error: Throwable) {
+    cameraStartInProgress = false
+    cameraStartFailureCount += 1
+    camera = null
+    imageCapture = null
+    if (hasInitializedReceiptCameraField { torchButton }) torchButton.isEnabled = false
+    if (hasInitializedReceiptCameraField { shutterButton }) shutterButton.isEnabled = false
+    val reason = if (error is SecurityException) "permission_denied" else "provider_unavailable"
+    lastCameraStartStatus = reason
+    if (cameraStartAttemptCount < 2 && isCameraSurfaceActive()) {
+        lastCameraStartStatus = "retry_scheduled_$reason"
+        guidance.text = "Restarting the receipt camera."
+        previewView.postDelayed(
+            {
+                if (isCameraSurfaceActive() && !closingCamera && camera == null) startCamera()
+            },
+            350L,
+        )
+        return
+    }
+    guidance.text = "The receipt camera could not open. Returning to backup choices."
+    Toast.makeText(this, "Receipt camera could not open.", Toast.LENGTH_LONG).show()
+    cancelForCameraStartupFailure(reason)
 }
 
 internal fun ReceiptCameraActivity.receiptContinuousFocusStatus(): String {
@@ -170,113 +215,8 @@ internal fun ReceiptCameraActivity.buildImageAnalysis(targetRotation: Int): Imag
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
         .build()
         .apply {
-            setAnalyzer(mainExecutor()) { image -> analyzeLiveFrame(image) }
+            setAnalyzer(cameraAnalysisExecutor) { image -> analyzeLiveFrame(image) }
         }
-}
-
-internal fun ReceiptCameraActivity.analyzeLiveFrame(image: ImageProxy) {
-    try {
-        if (!isCameraSurfaceActive() || closeResultDelivered) return
-        val now = System.currentTimeMillis()
-        if (now - lastLiveAnalysisAt < analysisGapMs) return
-        lastLiveAnalysisAt = now
-        val lumaSamples = sampleLiveLumaGrid(image)
-        val motionScore = evaluateLiveMotion(lumaSamples)
-        val shadowScore = estimateShadowScore(lumaSamples)
-        val brightness = averageLuma(image)
-        latestFrameBrightness = brightness
-        latestShadowScore = shadowScore
-        var framing = LiveReceiptFraming()
-        var hasReceiptTarget = !edgeDetectionEnabled
-        if (edgeDetectionEnabled) {
-            framing = estimateReceiptFraming(image)
-            applyLiveFraming(framing)
-            hasReceiptTarget = hasUsableLiveFramingBounds(framing)
-            maybeAutoCapture(framing, brightness, motionScore, now)
-            autoAdjustExposureForLiveFrame(brightness, now, framing)
-        } else {
-            latestFramingSignal = "edge_detection_off"
-            latestFramingConfidence = "off"
-            latestEdgeCoverage = -1.0
-            latestPerspectiveReadiness = "perspective_skipped_edge_detection_off"
-            autoCaptureStableFrameCount = 0
-            latestAutoCaptureStatus = if (autoCaptureEnabled) {
-                "waiting_for_edges"
-            } else {
-                "off"
-            }
-            lastAutoExposureBrightnessBucket = brightnessBucket(brightness)
-            lastAutoExposureDecision = "waiting_for_receipt_target"
-        }
-        if (!hasReceiptTarget) {
-            latestMotionSignal = "waiting_for_receipt_target"
-            latestReadabilitySignal = "waiting_for_receipt_target"
-            resetExperimentalReceiptQualityCandidate()
-            resetExperimentalReceiptQualityGuidanceIfNeeded()
-            return
-        }
-        if (!hasReliableLiveReceiptTargetForQualityWarnings(framing)) {
-            latestMotionSignal = "waiting_for_receipt_target"
-            latestReadabilitySignal = "waiting_for_receipt_target"
-            resetExperimentalReceiptQualityCandidate()
-            resetExperimentalReceiptQualityGuidanceIfNeeded()
-            return
-        }
-        if (!hasExperimentalReceiptQualityWarningsEnabled()) {
-            latestMotionSignal = "neutral_workflow_guidance_only"
-            latestReadabilitySignal = "neutral_workflow_guidance_only"
-            resetExperimentalReceiptQualityCandidate()
-            resetExperimentalReceiptQualityGuidanceIfNeeded()
-            return
-        }
-        if (!brightness.isFinite() || !motionScore.isFinite() || !shadowScore.isFinite()) {
-            latestMotionSignal = "unknown"
-            latestReadabilitySignal = "readability_unknown"
-            updateExperimentalReceiptQualityGuidance(
-                "readability_unknown",
-                "Receipt quality needs another look. Keep it flat and readable.",
-            )
-        } else if (motionBlurWarningEnabled && motionScore > 22.0) {
-            latestMotionSignal = "moving_too_much"
-            updateExperimentalReceiptQualityGuidance(
-                "moving_too_much",
-                "Hold steady so the receipt text stays sharp.",
-            )
-        } else if (lowLightWarningEnabled && brightness in 0.0..58.0) {
-            latestReadabilitySignal = "low_light"
-            updateExperimentalReceiptQualityGuidance(
-                "low_light",
-                "Receipt looks dark. Add light or raise Brightness.",
-            )
-        } else if (glareWarningEnabled && brightness >= 246.0) {
-            latestReadabilitySignal = "glare_or_overbright"
-            updateExperimentalReceiptQualityGuidance(
-                "glare_or_overbright",
-                "Receipt is very bright. Tilt it or lower Brightness.",
-            )
-        } else if (shadowWarningEnabled && shadowScore >= 150.0) {
-            latestReadabilitySignal = "shadow_risk"
-            updateExperimentalReceiptQualityGuidance(
-                "shadow_risk",
-                "Receipt has heavy shadows. Move it into even light.",
-            )
-        } else if (dirtyLensWarningEnabled && brightness in 120.0..235.0 &&
-            shadowScore in 0.0..24.0 && motionScore in 0.0..7.0
-        ) {
-            latestReadabilitySignal = "dirty_lens_or_haze"
-            updateExperimentalReceiptQualityGuidance(
-                "dirty_lens_or_haze",
-                "Lens may be smudged. Wipe it if the receipt looks hazy.",
-            )
-        } else {
-            latestMotionSignal = if (motionScore >= 0) "steady" else "unknown"
-            latestReadabilitySignal = "lighting_ok"
-            resetExperimentalReceiptQualityCandidate()
-            resetExperimentalReceiptQualityGuidanceIfNeeded()
-        }
-    } finally {
-        image.close()
-    }
 }
 
 internal fun ReceiptCameraActivity.hasExperimentalReceiptQualityWarningsEnabled(): Boolean {

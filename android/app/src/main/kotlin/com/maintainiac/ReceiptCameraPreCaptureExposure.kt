@@ -58,6 +58,7 @@ internal fun ReceiptCameraActivity.prepareExposureBeforeCapture(onReady: () -> U
         {
             if (!isCameraSurfaceActive() || closeResultDelivered) {
                 captureInFlight = false
+                activeCaptureAttemptId = 0L
                 pendingCloseAfterCapture = false
                 preCaptureExposureAbortCount += 1
                 lastPreCaptureExposureDecision = "aborted_camera_closing"

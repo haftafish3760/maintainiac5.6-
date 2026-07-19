@@ -33,8 +33,6 @@ internal fun ReceiptCameraActivity.evaluateLiveMotion(samples: IntArray): Double
     val previous = previousLiveLumaSamples
     previousLiveLumaSamples = samples
     if (previous == null || previous.size != samples.size) {
-        latestMotionScore = -1.0
-        latestMotionSignal = "unknown"
         return -1.0
     }
     var totalDelta = 0.0
@@ -42,7 +40,6 @@ internal fun ReceiptCameraActivity.evaluateLiveMotion(samples: IntArray): Double
         totalDelta += kotlin.math.abs(samples[index] - previous[index]).toDouble()
     }
     val score = totalDelta / samples.size.toDouble()
-    latestMotionScore = score
     return score
 }
 

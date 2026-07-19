@@ -39,10 +39,7 @@ void main() {
         cameraActivity,
         contains('enforceExperimentalReceiptQualityPolicyGuard()'),
       );
-      expect(
-        cameraActivity,
-        contains('lowLightWarningEnabled = false'),
-      );
+      expect(cameraActivity, contains('lowLightWarningEnabled = false'));
       expect(cameraActivity, contains('glareWarningEnabled = false'));
       expect(cameraActivity, contains('dirtyLensWarningEnabled = false'));
       expect(cameraActivity, contains('motionBlurWarningEnabled = false'));
@@ -57,7 +54,7 @@ void main() {
       final combined = sources.cameraActivity;
 
       expect(combined, isNot(contains('Timer(')));
-      expect(combined, isNot(contains('postDelayed')));
+      expect(combined, isNot(contains('guidanceMessages.postDelayed')));
       expect(combined, isNot(contains('guidanceMessages')));
       expect(combined, isNot(contains('warningCarousel')));
       expect(combined, isNot(contains('randomGuidance')));

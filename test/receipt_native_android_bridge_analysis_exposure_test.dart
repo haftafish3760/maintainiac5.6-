@@ -146,7 +146,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('var hasReceiptTarget = !edgeDetectionEnabled'),
+      contains('val hasReceiptTarget = if (signals.edgeDetectionWasEnabled)'),
     );
     expect(
       cameraActivity,
@@ -157,9 +157,10 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'if (!hasReceiptTarget) {\n            latestMotionSignal = "waiting_for_receipt_target"',
+        'if (!hasReceiptTarget || !hasReliableLiveReceiptTargetForQualityWarnings(framing))',
       ),
     );
+    expect(cameraActivity, contains('applyWaitingForReceiptTargetState()'));
     expect(cameraActivity, contains('brightness <= 150.0'));
     expect(cameraActivity, contains('brightness <= 138.0'));
     expect(cameraActivity, contains('brightness <= 104.0'));

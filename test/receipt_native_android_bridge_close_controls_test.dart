@@ -113,9 +113,15 @@ void main() {
     expect(cameraActivity, contains('effectiveMaxZoom'));
     expect(cameraActivity, isNot(contains('FocusMeteringAction')));
     expect(cameraActivity, isNot(contains('startFocusAndMetering')));
-    expect(cameraActivity, contains('text = receiptCameraText("Done", "Listo")'));
+    expect(
+      cameraActivity,
+      contains('text = receiptCameraText("Done", "Listo")'),
+    );
     expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
-    expect(cameraActivity, contains('text = receiptCameraText("Add Photo", "Agregar foto")'));
+    expect(
+      cameraActivity,
+      contains('text = receiptCameraText("Add Photo", "Agregar foto")'),
+    );
     expect(cameraActivity, isNot(contains('"Use Photos"')));
     expect(cameraActivity, contains('"manual_add_photo"'));
     expect(
@@ -124,12 +130,7 @@ void main() {
     );
     expect(cameraActivity, contains('bottomBar.addView(addPhotoButton)'));
     expect(cameraActivity, contains('bottomBar.addView(bottomReviewButton)'));
-    expect(
-      cameraActivity,
-      contains(
-        'contentDescription = receiptCameraText(',
-      ),
-    );
+    expect(cameraActivity, contains('contentDescription = receiptCameraText('));
     expect(
       cameraActivity,
       contains(
@@ -317,7 +318,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('if (!isCameraSurfaceActive()) return@addListener'),
+      contains('lastCameraStartStatus = "surface_inactive"'),
     );
     expect(
       cameraActivity,

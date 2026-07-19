@@ -60,6 +60,20 @@ class MainActivity : FlutterActivity() {
         if (resultCode != RESULT_OK || data == null) {
             val closeAction = data?.getStringExtra(ReceiptCameraActivity.extraCloseAction)
                 ?: "unknown_cancel"
+            val cameraFailureReason = data?.getStringExtra(
+                ReceiptCameraActivity.extraCameraFailureReason,
+            )
+            if (!cameraFailureReason.isNullOrBlank()) {
+                pendingResult.error(
+                    "native_camera_unavailable",
+                    "Maintainiac receipt camera could not open.",
+                    mapOf(
+                        "closeAction" to closeAction,
+                        "cameraFailureReason" to cameraFailureReason,
+                    ),
+                )
+                return
+            }
             pendingResult.error(
                 "native_camera_cancelled",
                 "Receipt photo capture was cancelled.",

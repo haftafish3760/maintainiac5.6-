@@ -23,9 +23,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal val lifecycleRegistry = LifecycleRegistry(this)
+    internal val cameraAnalysisExecutor: ExecutorService =
+        Executors.newSingleThreadExecutor()
     internal var systemBackCallback: OnBackInvokedCallback? = null
     internal lateinit var cameraRootView: FrameLayout
     internal lateinit var previewView: PreviewView
@@ -49,6 +53,11 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal lateinit var nextSectionGuideImage: ImageView
     internal var imageCapture: ImageCapture? = null
     internal var camera: Camera? = null
+    internal var cameraProvider: ProcessCameraProvider? = null
+    internal var cameraStartInProgress = false
+    internal var cameraStartAttemptCount = 0
+    internal var cameraStartFailureCount = 0
+    internal var lastCameraStartStatus = "not_started"
     internal var scaleGestureDetector: ScaleGestureDetector? = null
     internal var lastSinglePointerUpAt = 0L
     internal var assistedReceiptFill = true
@@ -226,6 +235,10 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var maxSectionCount = 8
     internal var torchOn = false
     internal var captureInFlight = false
+    internal var captureAttemptSequence = 0L
+    internal var activeCaptureAttemptId = 0L
+    internal var captureTimeoutCount = 0
+    internal var captureTimeoutMs = 20_000L
     internal var closingCamera = false
     internal var pendingCloseAfterCapture = false
     internal var closeResultDelivered = false
@@ -283,6 +296,9 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     override fun onResume() {
         super.onResume()
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        if (camera == null && !cameraStartInProgress && !closingCamera) {
+            startCamera()
+        }
     }
 
     override fun onPause() {
@@ -297,10 +313,14 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
 
     override fun onDestroy() {
         closingCamera = true
+        cameraStartInProgress = false
         unregisterSystemBackHandler()
-        runCatching {
-            ProcessCameraProvider.getInstance(this).get().unbindAll()
-        }
+        runCatching { cameraProvider?.unbindAll() }
+        cameraAnalysisExecutor.shutdownNow()
+        cameraProvider = null
+        camera = null
+        imageCapture = null
+        activeCaptureAttemptId = 0L
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         super.onDestroy()
     }
@@ -329,5 +349,6 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         const val extraCapturedAt = "capturedAt"
         const val extraCaptureDiagnostics = "captureDiagnostics"
         const val extraCloseAction = "closeAction"
+        const val extraCameraFailureReason = "cameraFailureReason"
     }
 }

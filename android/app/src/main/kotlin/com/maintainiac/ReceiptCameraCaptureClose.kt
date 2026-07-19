@@ -43,6 +43,9 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
         autoCaptureStartedCount += 1
     }
     captureInFlight = true
+    captureAttemptSequence += 1L
+    val captureAttemptId = captureAttemptSequence
+    activeCaptureAttemptId = captureAttemptId
     latestCaptureStartedElapsedMs = SystemClock.elapsedRealtime()
     latestCaptureToSavedMs = -1L
     latestCaptureToReviewReadyMs = -1L
@@ -51,8 +54,12 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
     shutterButton.isEnabled = false
     val outputFile = newReceiptCaptureFile()
     val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
+    shutterButton.postDelayed(
+        { handleCaptureTimeout(captureAttemptId, outputFile) },
+        captureTimeoutMs,
+    )
     prepareExposureBeforeCapture {
-        performReceiptCapture(capture, outputFile, outputOptions)
+        performReceiptCapture(capture, outputFile, outputOptions, captureAttemptId)
     }
 }
 
@@ -60,11 +67,13 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
     capture: ImageCapture,
     outputFile: File,
     outputOptions: ImageCapture.OutputFileOptions,
+    captureAttemptId: Long,
 ) {
     val activity = this
-    if (!isCameraSurfaceActive()) {
-        captureInFlight = false
+    if (!isCameraSurfaceActive() || activeCaptureAttemptId != captureAttemptId) {
+        finishCaptureAttempt(captureAttemptId)
         pendingCloseAfterCapture = false
+        outputFile.delete()
         if (hasInitializedReceiptCameraField { shutterButton }) shutterButton.isEnabled = true
         return
     }
@@ -73,7 +82,10 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
         mainExecutor(),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                captureInFlight = false
+                if (!finishCaptureAttempt(captureAttemptId)) {
+                    outputFile.delete()
+                    return
+                }
                 if (!isCameraSurfaceActive() || closeResultDelivered) return
                 val capturedAt = Instant.now().toString()
                 latestCaptureToSavedMs = captureElapsedSinceStart()
@@ -116,7 +128,7 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
             }
 
             override fun onError(exception: ImageCaptureException) {
-                captureInFlight = false
+                if (!finishCaptureAttempt(captureAttemptId)) return
                 if (!isCameraSurfaceActive() || closeResultDelivered) return
                 if (pendingCloseAfterCapture) {
                     finishPendingCloseAfterCaptureFailure()
@@ -133,6 +145,41 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
             }
         },
     )
+}
+
+internal fun ReceiptCameraActivity.finishCaptureAttempt(captureAttemptId: Long): Boolean {
+    if (activeCaptureAttemptId != captureAttemptId) return false
+    activeCaptureAttemptId = 0L
+    captureInFlight = false
+    return true
+}
+
+internal fun ReceiptCameraActivity.handleCaptureTimeout(
+    captureAttemptId: Long,
+    outputFile: File,
+) {
+    if (!finishCaptureAttempt(captureAttemptId) || closeResultDelivered) return
+    captureTimeoutCount += 1
+    outputFile.delete()
+    latestCaptureLatencyBucket = "capture_timed_out"
+    lastCaptureBlockReason = "capture_timeout"
+    latestAutoCaptureStatus = "capture_timeout"
+    val closeWasPending = pendingCloseAfterCapture
+    pendingCloseAfterCapture = false
+    if (closeWasPending && capturedPhotoPaths.isNotEmpty()) {
+        finishWithCapturedPhotos(
+            closeReason = "back_capture_failed_returned_existing_sections",
+        )
+        return
+    }
+    if (closeWasPending) {
+        cancelWithoutCapturedPhoto("back_capture_failed_cancel")
+        return
+    }
+    shutterButton.isEnabled = true
+    updateDoneButton()
+    guidance.text = "That receipt photo took too long. Try the shutter again."
+    Toast.makeText(this, "Receipt photo timed out. Try again.", Toast.LENGTH_SHORT).show()
 }
 
 internal fun ReceiptCameraActivity.requestCloseCamera(backDispatchPath: String = "unknown") {
