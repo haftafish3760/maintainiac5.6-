@@ -4,7 +4,12 @@ const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { defineInt } = require('firebase-functions/params');
+const { defineInt, defineSecret } = require('firebase-functions/params');
+const {
+  ReceiptAssistError,
+  requestOpenAiAssist,
+  validateAssistRequest,
+} = require('./receipt_ai_assist');
 
 initializeApp();
 
@@ -26,6 +31,16 @@ const expiredProofCleanupBatch = defineInt(
   'EXPENSE_EXPIRED_PROOF_CLEANUP_BATCH',
   { default: 25 },
 );
+const receiptAiMaxInputCharacters = defineInt('RECEIPT_AI_MAX_INPUT_CHARACTERS', {
+  default: 16000,
+});
+const receiptAiMaxRequestsPerDay = defineInt('RECEIPT_AI_MAX_REQUESTS_PER_DAY', {
+  default: 20,
+});
+const receiptAiMaxOutputTokens = defineInt('RECEIPT_AI_MAX_OUTPUT_TOKENS', {
+  default: 1200,
+});
+const openAiApiKey = defineSecret('OPENAI_API_KEY');
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const OWN_RECEIPT_PERMISSIONS = new Set([
   'addOwnReceipts',
@@ -34,6 +49,42 @@ const OWN_RECEIPT_PERMISSIONS = new Set([
   'useMaterials',
   'logMaintenance',
 ]);
+
+function receiptAiUsageDay() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function requireReceiptMember({db, organizationId, uid}) {
+  const member = await db.doc(`orgs/${organizationId}/members/${uid}`).get();
+  const storedPermissions = member.data()?.permissions;
+  const permissions = Array.isArray(storedPermissions) ? storedPermissions : [];
+  if (member.data()?.status !== 'active' ||
+      !permissions.some((permission) => OWN_RECEIPT_PERMISSIONS.has(permission))) {
+    throw new HttpsError('permission-denied', 'Receipt assistance is not allowed.');
+  }
+}
+
+async function reserveReceiptAiRequest({db, organizationId, uid, maxRequests}) {
+  if (!Number.isInteger(maxRequests) || maxRequests < 1 || maxRequests > 1000) {
+    throw new HttpsError('failed-precondition', 'Receipt assistance configuration is invalid.');
+  }
+  const day = receiptAiUsageDay();
+  const usageRef = db.doc(`orgs/${organizationId}/receiptAiUsage/${uid}_${day}`);
+  await db.runTransaction(async (transaction) => {
+    const usage = await transaction.get(usageRef);
+    const count = usage.data()?.requestCount ?? 0;
+    if (!Number.isInteger(count) || count < 0) {
+      throw new HttpsError('failed-precondition', 'Receipt assistance usage is invalid.');
+    }
+    if (count >= maxRequests) {
+      throw new HttpsError('resource-exhausted', 'Receipt assistance limit reached.');
+    }
+    transaction.set(usageRef, {
+      requestCount: count + 1,
+      updatedAt: Timestamp.now(),
+    }, {merge: true});
+  });
+}
 
 function validQuotaBytes(value) {
   return Number.isInteger(value) && value >= 1024 &&
@@ -260,6 +311,56 @@ exports.finalizeExpenseProofUpload = onCall(
       });
       return { status: 'finalized', byteCount: size, contentSha256 };
     });
+  },
+);
+
+exports.requestReceiptAiAssist = onCall(
+  { enforceAppCheck: true, secrets: [openAiApiKey] },
+  async (request) => {
+    const uid = request.auth?.uid || '';
+    if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
+    const maxInputCharacters = receiptAiMaxInputCharacters.value();
+    if (!Number.isInteger(maxInputCharacters) || maxInputCharacters < 1000 ||
+        maxInputCharacters > 100000) {
+      throw new HttpsError('failed-precondition', 'Receipt assistance configuration is invalid.');
+    }
+    let evidence;
+    try {
+      evidence = validateAssistRequest(request.data, maxInputCharacters);
+    } catch (error) {
+      if (error instanceof ReceiptAssistError) {
+        throw new HttpsError(error.code, error.message);
+      }
+      throw error;
+    }
+    const db = getFirestore();
+    await requireReceiptMember({
+      db,
+      organizationId: evidence.organizationId,
+      uid,
+    });
+    await reserveReceiptAiRequest({
+      db,
+      organizationId: evidence.organizationId,
+      uid,
+      maxRequests: receiptAiMaxRequestsPerDay.value(),
+    });
+    const apiKey = openAiApiKey.value();
+    if (!apiKey) {
+      throw new HttpsError('failed-precondition', 'Receipt assistance is not configured.');
+    }
+    try {
+      return await requestOpenAiAssist({
+        apiKey,
+        evidence,
+        maxOutputTokens: receiptAiMaxOutputTokens.value(),
+      });
+    } catch (error) {
+      if (error instanceof ReceiptAssistError) {
+        throw new HttpsError(error.code, error.message);
+      }
+      throw error;
+    }
   },
 );
 
