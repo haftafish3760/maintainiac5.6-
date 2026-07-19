@@ -217,7 +217,10 @@ void main() {
     expect(android, contains('override fun onDestroy()'));
     expect(android, contains('locationManager.removeUpdates(this)'));
     expect(android, contains('removeActivityUpdates(activityPendingIntent)'));
-    expect(android, contains('"status" to "stopped"'));
+    expect(
+      android,
+      contains('"status" to if (userPauseRequested) "paused" else "stopped"'),
+    );
     expect(ios, contains('func locationManagerDidChangeAuthorization'));
     expect(
       ios,
