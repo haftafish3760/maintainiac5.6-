@@ -36,21 +36,27 @@ void main() {
   });
 
   test('disabled calibration always uses neutral multiplier', () {
-    final state = TripTrackingCalibrationState.initial(
-      .8,
-    ).refresh(enabled: false, signal: signal(.9));
+    final state = TripTrackingCalibrationState.initial(.8).refresh(
+      enabled: false,
+      signal: signal(.9),
+      canApplyToFutureGpsProjection: false,
+    );
 
     expect(state.enabled, isFalse);
     expect(state.multiplier, 1);
   });
 
-  test('enabled calibration follows bounded reviewed-history signal', () {
-    final low = TripTrackingCalibrationState.initial(
-      1,
-    ).refresh(enabled: true, signal: signal(.25));
-    final high = TripTrackingCalibrationState.initial(
-      1,
-    ).refresh(enabled: true, signal: signal(4));
+  test('accepted calibration follows bounded reviewed-history signal', () {
+    final low = TripTrackingCalibrationState.initial(1).refresh(
+      enabled: true,
+      signal: signal(.25),
+      canApplyToFutureGpsProjection: true,
+    );
+    final high = TripTrackingCalibrationState.initial(1).refresh(
+      enabled: true,
+      signal: signal(4),
+      canApplyToFutureGpsProjection: true,
+    );
 
     expect(low.enabled, isTrue);
     expect(low.multiplier, .8);
@@ -60,13 +66,21 @@ void main() {
   test('enabled refresh is a no-op when calibration assist is off', () {
     final state = TripTrackingCalibrationState.initial(.9);
 
-    expect(state.refreshEnabled(signal(.8)), same(state));
+    expect(
+      state.refreshEnabled(
+        signal: signal(.8),
+        canApplyToFutureGpsProjection: false,
+      ),
+      same(state),
+    );
   });
 
   test('calibration summary keeps remote and map data advisory-only', () {
-    final state = TripTrackingCalibrationState.initial(
-      1,
-    ).refresh(enabled: true, signal: signal(.9));
+    final state = TripTrackingCalibrationState.initial(1).refresh(
+      enabled: true,
+      signal: signal(.9),
+      canApplyToFutureGpsProjection: true,
+    );
     final summary = state.toSafeSummary();
 
     expect(summary['enabled'], isTrue);

@@ -18,8 +18,9 @@ class TripTrackingCalibrationState {
   TripTrackingCalibrationState refresh({
     required bool enabled,
     required TripOdometerCalibrationSignal signal,
+    required bool canApplyToFutureGpsProjection,
   }) {
-    final nextMultiplier = enabled
+    final nextMultiplier = enabled && canApplyToFutureGpsProjection
         ? safeMultiplier(signal.gpsAssistanceCalibrationMultiplier)
         : 1.0;
     if (this.enabled == enabled && multiplier == nextMultiplier) {
@@ -31,11 +32,16 @@ class TripTrackingCalibrationState {
     );
   }
 
-  TripTrackingCalibrationState refreshEnabled(
-    TripOdometerCalibrationSignal signal,
-  ) {
+  TripTrackingCalibrationState refreshEnabled({
+    required TripOdometerCalibrationSignal signal,
+    required bool canApplyToFutureGpsProjection,
+  }) {
     if (!enabled) return this;
-    return refresh(enabled: true, signal: signal);
+    return refresh(
+      enabled: true,
+      signal: signal,
+      canApplyToFutureGpsProjection: canApplyToFutureGpsProjection,
+    );
   }
 
   Map<String, Object?> toSafeSummary() => {

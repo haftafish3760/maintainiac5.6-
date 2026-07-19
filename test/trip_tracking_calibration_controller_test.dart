@@ -17,7 +17,7 @@ void main() {
       );
 
   test(
-    'controller refreshes opt-in calibration from reviewed history',
+    'controller requires explicit acceptance before applying reviewed calibration',
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(
@@ -43,6 +43,10 @@ void main() {
 
       controller.refreshGpsAssistanceCalibration(enabled: true);
 
+      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
+      expect(controller.calibrationReviewAcceptedForCurrentEvidence, isFalse);
+      expect(controller.acceptGpsAssistanceCalibrationReview(), isTrue);
+
       expect(
         controller.gpsAssistanceCalibrationMultiplier,
         closeTo(.9091, .001),
@@ -53,7 +57,7 @@ void main() {
   );
 
   test(
-    'confirmed odometer review refreshes enabled calibration immediately',
+    'a new inconsistent confirmed review fails neutral after acceptance resets',
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(
@@ -95,10 +99,10 @@ void main() {
       );
 
       expect(confirmed, isTrue);
-      expect(
-        controller.gpsAssistanceCalibrationMultiplier,
-        closeTo(.8974, .001),
-      );
+      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
+      expect(controller.calibrationReviewAcceptedForCurrentEvidence, isFalse);
+      expect(controller.acceptGpsAssistanceCalibrationReview(), isFalse);
+      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
     },
   );
 
@@ -189,11 +193,10 @@ void main() {
     );
 
     controller.refreshGpsAssistanceCalibration(enabled: true);
+    expect(controller.gpsAssistanceCalibrationMultiplier, 1);
+    expect(controller.acceptGpsAssistanceCalibrationReview(), isTrue);
 
-    expect(
-      controller.gpsAssistanceCalibrationMultiplier,
-      closeTo(.9091, .001),
-    );
+    expect(controller.gpsAssistanceCalibrationMultiplier, closeTo(.9091, .001));
     expect(controller.odometerCalibrationSignal().eligibleSampleCount, 7);
   });
 
@@ -236,6 +239,8 @@ void main() {
         );
       }
       controller.refreshGpsAssistanceCalibration(enabled: true);
+      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
+      expect(controller.acceptGpsAssistanceCalibrationReview(), isTrue);
       expect(
         controller.gpsAssistanceCalibrationMultiplier,
         closeTo(.9091, .001),

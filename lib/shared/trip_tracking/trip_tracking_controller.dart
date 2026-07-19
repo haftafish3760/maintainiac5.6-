@@ -6,6 +6,7 @@ import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_calibration_state.dart';
+import 'trip_tracking_calibration_apply_guard.dart';
 import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_heartbeat_watchdog_policy.dart';
@@ -98,6 +99,7 @@ class TripTrackingController extends ChangeNotifier {
   bool _lowBatteryProtectionEnabled = true;
   bool _lowBatteryOverrideEnabled = false;
   bool _lowBatteryWarningDismissed = false;
+  String? _acceptedCalibrationEvidenceSignature;
 
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking => _session != null;
@@ -129,6 +131,14 @@ class TripTrackingController extends ChangeNotifier {
   bool get poorGpsDaysExcludedFromCalibration => true;
   bool get controllerCanCreateCalibrationWithoutReview => false;
   bool get controllerCanApplyCalibrationWithoutOptIn => false;
+  bool get calibrationReviewAcceptedForCurrentEvidence =>
+      _acceptedCalibrationEvidenceSignature == _calibrationEvidenceSignature();
+  TripTrackingCalibrationApplyGuard get gpsAssistanceCalibrationApplyGuard =>
+      _calibrationApplyGuard(
+        signal: odometerCalibrationSignal(),
+        userOptedIn: _calibrationState.enabled,
+        userAcceptedLatestReview: calibrationReviewAcceptedForCurrentEvidence,
+      );
   double get gpsAssistanceCalibrationMultiplier => _calibrationState.multiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
       _lastKnownCapabilities;
@@ -155,13 +165,86 @@ class TripTrackingController extends ChangeNotifier {
   );
 
   void refreshGpsAssistanceCalibration({required bool enabled}) {
+    final signal = odometerCalibrationSignal();
+    final guard = _calibrationApplyGuard(
+      signal: signal,
+      userOptedIn: enabled,
+      userAcceptedLatestReview: calibrationReviewAcceptedForCurrentEvidence,
+    );
     final next = _calibrationState.refresh(
       enabled: enabled,
-      signal: odometerCalibrationSignal(),
+      signal: signal,
+      canApplyToFutureGpsProjection: guard.canApplyToFutureGpsProjection,
     );
     if (identical(next, _calibrationState)) return;
     _calibrationState = next;
     notifyListeners();
+  }
+
+  /// Records an explicit, in-session acceptance for the exact reviewed local
+  /// evidence currently shown to the driver. A later confirmed review, a
+  /// vehicle change, or a process restart fails neutral and requires a fresh
+  /// acceptance before GPS projections can be scaled.
+  bool acceptGpsAssistanceCalibrationReview() {
+    final signal = odometerCalibrationSignal();
+    final guard = _calibrationApplyGuard(
+      signal: signal,
+      userOptedIn: true,
+      userAcceptedLatestReview: true,
+    );
+    if (!guard.canApplyToFutureGpsProjection) return false;
+    _acceptedCalibrationEvidenceSignature = _calibrationEvidenceSignature(
+      signal,
+    );
+    refreshGpsAssistanceCalibration(enabled: true);
+    return _calibrationState.multiplier != 1;
+  }
+
+  TripTrackingCalibrationApplyGuard _calibrationApplyGuard({
+    required TripOdometerCalibrationSignal signal,
+    required bool userOptedIn,
+    required bool userAcceptedLatestReview,
+  }) => TripTrackingCalibrationApplyGuard.evaluate(
+    signal: signal,
+    userOptedIn: userOptedIn,
+    userAcceptedLatestReview: userAcceptedLatestReview,
+    minimumReviewedDays: 7,
+    latestReviewedAtUtc: _latestConfirmedOdometerReviewAt(),
+    nowUtc: _clockNow(),
+    activeVehicleId: _odometer.vehicleId,
+    reviewedVehicleId: _odometer.vehicleId,
+    reviewedVehicleIds: [_odometer.vehicleId],
+  );
+
+  DateTime? _latestConfirmedOdometerReviewAt() {
+    DateTime? latest;
+    final latestAllowed = _clockNow().toUtc().add(
+      _policy.maximumFutureSampleSkew,
+    );
+    for (final review in _sessionStore.pendingReviews) {
+      final confirmedAt = review.odometerConfirmedAt;
+      if (review.vehicleId != _odometer.vehicleId || confirmedAt == null) {
+        continue;
+      }
+      if (confirmedAt.toUtc().isAfter(latestAllowed) ||
+          review.finishedAt.toUtc().isAfter(latestAllowed)) {
+        continue;
+      }
+      if (latest == null || confirmedAt.isAfter(latest)) latest = confirmedAt;
+    }
+    return latest;
+  }
+
+  String _calibrationEvidenceSignature([
+    TripOdometerCalibrationSignal? suppliedSignal,
+  ]) {
+    final signal = suppliedSignal ?? odometerCalibrationSignal();
+    final latest =
+        _latestConfirmedOdometerReviewAt()?.toUtc().millisecondsSinceEpoch ??
+        -1;
+    final ratio = signal.averageGpsToOdometerRatio;
+    final stableRatio = ratio.isFinite ? ratio.toStringAsFixed(8) : 'invalid';
+    return '${_odometer.vehicleId}|${signal.status.name}|${signal.eligibleSampleCount}|$stableRatio|$latest';
   }
 
   TripOdometerUsageAnomalySignal odometerUsageAnomalySignal({
@@ -312,8 +395,10 @@ class TripTrackingController extends ChangeNotifier {
       _platformError = null;
     }
     await _saveDurableReviewedTrip(confirmedReview);
+    _acceptedCalibrationEvidenceSignature = null;
     _calibrationState = _calibrationState.refreshEnabled(
-      odometerCalibrationSignal(),
+      signal: odometerCalibrationSignal(),
+      canApplyToFutureGpsProjection: false,
     );
     final reconciliation = TripOdometerReconciliation.compare(
       review: review,
