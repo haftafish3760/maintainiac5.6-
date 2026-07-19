@@ -675,6 +675,10 @@ void main() {
         purpose: AppStoragePurpose.mileageTracking,
       ),
     );
+    final criticalBattery = DashboardTripTrackingSummary.fromRuntime(
+      settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+      platformStatus: 'battery_critical_gps_blocked',
+    );
     final unknown = DashboardTripTrackingSummary.fromRuntime(
       settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
       storageCheck: const AppStorageCheck.unknown(
@@ -689,6 +693,8 @@ void main() {
     expect(lowStorage.gpsAssistState, 'battery_limited');
     expect(lowStorage.batteryGpsLimited, isTrue);
     expect(lowStorage.storageState, 'low_storage');
+    expect(criticalBattery.gpsAssistState, 'battery_limited');
+    expect(criticalBattery.batteryGpsLimited, isTrue);
     expect(blocked.storageState, 'blocked');
     expect(unknown.storageState, 'unknown');
   });

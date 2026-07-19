@@ -2,6 +2,7 @@ part of 'dashboard_trip_tracking_summary.dart';
 
 bool _isBatteryLimitedStatus(String? status) {
   return switch (status) {
+    'battery_critical_gps_blocked' ||
     'low_battery_requires_user_choice' ||
     'low_power_mode_requires_user_choice' ||
     'low_battery_gps_blocked_by_saved_choice' ||
