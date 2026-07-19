@@ -439,4 +439,10 @@ class TripTrackingScenarioLibrary {
     ),
     SimulatedTripPoint(roadPoint(-79.9796, 220, speed: 8)),
   ];
+
+  List<SimulatedTripPoint> accelerationSpikeDuringDeliveryRoute() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 0)),
+    SimulatedTripPoint(roadPoint(-79.9998, 2, speed: 20)),
+    SimulatedTripPoint(roadPoint(-79.9996, 22, speed: 5)),
+  ];
 }

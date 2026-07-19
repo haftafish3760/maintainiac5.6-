@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_route_history_capture_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_sample_window_quality_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_commercial_edge_scenarios.dart';
@@ -247,6 +248,25 @@ void main() {
     expect(summary.toString(), isNot(contains('-79.')));
     expect(summary.toString(), isNot(contains('35.')));
   });
+
+  test(
+    'delivery acceleration spike is rejected before it can inflate miles',
+    () {
+      final result = replayTrip(
+        scenarios.accelerationSpikeDuringDeliveryRoute(),
+        profile: TripTrackingProfile.deliveryVehicle,
+        policy: const TripTrackingPolicy(
+          maximumPlausibleSpeedMetersPerSecond: 100,
+          maximumReportedSpeedDisagreementMetersPerSecond: 100,
+          maximumReportedAccelerationMetersPerSecondSquared: 5,
+        ),
+      );
+
+      expect(result.count(TripSampleDisposition.rejectedSpeedConflict), 1);
+      expect(result.needsWalkingReview, isFalse);
+      expect(result.acceptedMeters, lessThan(30));
+    },
+  );
 
   test('rideshare airport queue long wait does not become auto stop', () {
     final result = replayTrip(

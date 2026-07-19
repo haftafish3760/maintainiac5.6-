@@ -1,5 +1,6 @@
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_classification.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_stop_false_positive_guard.dart';
 
@@ -148,8 +149,9 @@ String _dashboardDebounceStatus(TripStopSignal signal) {
 SimulatedTripResult replayTrip(
   Iterable<SimulatedTripPoint> points, {
   TripTrackingProfile profile = TripTrackingProfile.roadVehicle,
+  TripTrackingPolicy policy = const TripTrackingPolicy(),
 }) {
-  final engine = TripTrackingEngine(profile: profile);
+  final engine = TripTrackingEngine(profile: profile, policy: policy);
   final dispositions = <TripSampleDisposition>[];
   for (final point in points) {
     dispositions.add(
