@@ -1163,6 +1163,38 @@ void main() {
     );
   });
 
+  test(
+    'an account change during upload never marks mileage backup synced',
+    () async {
+      final localStore = TripTrackingSessionStore.memory();
+      await localStore.saveReview(review());
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      String? currentUid = 'first-account-uid';
+      final sink = _RecordingSink(
+        onWrite: () => currentUid = 'second-account-uid',
+      );
+      final mirror = TripTrackingFirebaseMirror(
+        queueStore: queue,
+        uploadCoordinator: MaintainiacFirestoreUploadCoordinator(
+          queue: queue,
+          sink: sink,
+          uploadEnabled: true,
+        ),
+        localStore: localStore,
+        personal: true,
+        authenticatedUid: () => currentUid,
+      );
+
+      await mirror.queueReview(review());
+      await mirror.flushPending();
+
+      expect(sink.writes, hasLength(1));
+      final stored = localStore.reviewForTrip('trip 1');
+      expect(stored?.cloudSyncState, TripTrackingCloudSyncState.pending);
+      expect(stored?.cloudSyncError, contains('authenticated account changed'));
+    },
+  );
+
   test('backup normalizes padded authenticated UIDs before binding', () async {
     final localStore = TripTrackingSessionStore.memory();
     await localStore.saveReview(review());
@@ -2070,10 +2102,12 @@ class _RecordingSink implements MaintainiacFirestoreDocumentSink {
   _RecordingSink({
     this.throwOnWrite = false,
     this.failureMessage = 'simulated Firestore outage',
+    this.onWrite,
   });
 
   final bool throwOnWrite;
   final String failureMessage;
+  final void Function()? onWrite;
   final writes = <Map<String, Object?>>[];
   final paths = <String>[];
 
@@ -2083,6 +2117,7 @@ class _RecordingSink implements MaintainiacFirestoreDocumentSink {
     required Map<String, Object?> data,
   }) async {
     if (throwOnWrite) throw StateError(failureMessage);
+    onWrite?.call();
     paths.add(path);
     writes.add(Map<String, Object?>.from(data));
   }

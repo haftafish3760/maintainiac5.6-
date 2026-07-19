@@ -405,10 +405,29 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
           await withdrawBackupConsent();
           return;
         }
+        if (!_isStillAuthenticatedAs(createdByUid)) {
+          await _discardQueuedBackupFor(boundReview);
+          await _saveReviewState(
+            boundReview.copyWith(
+              cloudSyncState: TripTrackingCloudSyncState.pending,
+              cloudSyncError: _accountChangedDuringFlushMessage,
+            ),
+          );
+          continue;
+        }
         final result = await _uploadCoordinator.uploadPending(
           limit: 1,
           path: document.path,
         );
+        if (!_isStillAuthenticatedAs(createdByUid)) {
+          await _saveReviewState(
+            boundReview.copyWith(
+              cloudSyncState: TripTrackingCloudSyncState.pending,
+              cloudSyncError: _accountChangedDuringFlushMessage,
+            ),
+          );
+          continue;
+        }
         if (result.uploadedCount == 1) {
           await _saveReviewState(
             boundReview.copyWith(
@@ -486,6 +505,13 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
     return TripTrackingBackupScopePolicy.hasUsableOrganizationId(_orgId);
   }
 
+  bool _isStillAuthenticatedAs(String expectedUid) {
+    final currentUid = _currentUid?.trim();
+    return currentUid != null &&
+        currentUid.isNotEmpty &&
+        currentUid == expectedUid;
+  }
+
   bool _isReviewEligibleForBackup(TripTrackingReviewRecord review) =>
       review.hasValidTimeline &&
       review.id.trim().isNotEmpty &&
@@ -501,6 +527,8 @@ class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
       'Mileage backup could not finish. Retry backup when the connection is stable.';
   static const _backupWriteFailedMessage =
       'Mileage backup could not upload. It remains saved locally and will retry.';
+  static const _accountChangedDuringFlushMessage =
+      'Mileage backup is waiting because the authenticated account changed.';
 
   Future<void> _discardQueuedBackupFor(TripTrackingReviewRecord review) async {
     final accountUid = review.cloudAccountUid?.trim() ?? _currentUid?.trim();
