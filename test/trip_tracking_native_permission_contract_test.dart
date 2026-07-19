@@ -137,6 +137,10 @@ void main() {
     expect(android, contains('Priority.PRIORITY_HIGH_ACCURACY'));
     expect(android, contains('setMinUpdateDistanceMeters(displacement)'));
     expect(android, contains('stopLocationUpdates()'));
+    expect(
+      android,
+      contains('if (!isRunning || locationCallback !== this) return'),
+    );
     expect(android, contains('locationCallback !== callback'));
     expect(android, contains('stopSelf(startId)'));
     expect(android, contains('return START_REDELIVER_INTENT'));

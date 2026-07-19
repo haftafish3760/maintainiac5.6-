@@ -151,6 +151,11 @@ class TripTrackingForegroundService : Service() {
             .build()
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
+                // Fused Location can dispatch a callback that was already
+                // queued when this request was replaced or retired. Do not
+                // let that old request contribute a coordinate to the active
+                // trip after a stop/start boundary.
+                if (!isRunning || locationCallback !== this) return
                 for (location in result.locations) emitLocation(location)
             }
         }
