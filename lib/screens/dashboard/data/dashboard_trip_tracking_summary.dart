@@ -334,6 +334,7 @@ class DashboardTripTrackingSummary {
     String? platformStatus,
   }) {
     final status = platformStatus ?? tripTracking?.platformStatus;
+    final gpsSignalStale = status == 'gps_signal_stale';
     final activeTrip = tripTracking?.isTracking == true;
     final nativeTracking = tripTracking?.nativeTracking == true;
     final recoveryDecision = tripTracking?.recoveryDecision;
@@ -385,6 +386,7 @@ class DashboardTripTrackingSummary {
           tripTracking?.needsWalkingReview == true ||
           activeWorkday?.isPaused == true ||
           signalQuality?.requiresUserReview == true ||
+          gpsSignalStale ||
           usageSignal?.shouldPromptUser == true,
       storageState: _storageStateFor(storageCheck),
       deviceCapabilityState: _deviceCapabilityStateFor(capabilityGuidance),
@@ -424,10 +426,14 @@ class DashboardTripTrackingSummary {
       stopActionToken: stopClassification?.actionToken ?? 'keep_tracking',
       stopClassificationReason:
           stopClassification?.reasonCode ?? 'no_stop_review_needed',
-      gpsSignalQuality: _dashboardGpsSignalQualityFor(signalQuality),
-      gpsSignalReason:
-          signalQuality?.reasonCode ?? 'gps_signal_waiting_for_samples',
-      gpsSignalReviewRequired: signalQuality?.requiresUserReview == true,
+      gpsSignalQuality: gpsSignalStale
+          ? 'interrupted'
+          : _dashboardGpsSignalQualityFor(signalQuality),
+      gpsSignalReason: gpsSignalStale
+          ? 'gps_signal_interrupted_by_gap'
+          : signalQuality?.reasonCode ?? 'gps_signal_waiting_for_samples',
+      gpsSignalReviewRequired:
+          gpsSignalStale || signalQuality?.requiresUserReview == true,
       wifiAvailable: wifiAvailable,
       mobileDataAvailable: mobileDataAvailable,
       syncsUsedInWindow: syncsUsedInWindow,

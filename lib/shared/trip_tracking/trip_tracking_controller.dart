@@ -87,6 +87,8 @@ class TripTrackingController extends ChangeNotifier {
   TripSamplingRecommendation? _nativeSampling;
   TripTrackingSamplingPlan? _nativeSamplingPlan;
   DateTime? _lastNativeHeartbeatUtc;
+  DateTime? _nativeTrackingStartedAtUtc;
+  DateTime? _lastNativeLocationReceivedUtc;
   bool _backgroundTrackingAllowed = false;
   bool _activityRecognitionEnabled = false;
   bool _adaptiveSamplingEnabled = true;
@@ -821,6 +823,8 @@ class TripTrackingController extends ChangeNotifier {
             _nativeTracking = true;
             _backgroundTrackingAllowed = true;
             _lastNativeHeartbeatUtc = _clockNow().toUtc();
+            _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
+            _lastNativeLocationReceivedUtc = null;
             _platformStatus = 'tracking';
             _platformSubscription = _listenToPlatformEvents(platform);
           }
@@ -1242,6 +1246,8 @@ class TripTrackingController extends ChangeNotifier {
     _nativeSampling = request.sampling;
     _nativeSamplingPlan = samplingPlan;
     _lastNativeHeartbeatUtc = _clockNow().toUtc();
+    _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
+    _lastNativeLocationReceivedUtc = null;
     _backgroundTrackingAllowed = allowBackground;
     _activityRecognitionEnabled = requestedActivityRecognition;
     _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
@@ -1267,6 +1273,8 @@ class TripTrackingController extends ChangeNotifier {
       _nativeSampling = null;
       _nativeSamplingPlan = null;
       _lastNativeHeartbeatUtc = null;
+      _nativeTrackingStartedAtUtc = null;
+      _lastNativeLocationReceivedUtc = null;
       _backgroundTrackingAllowed = false;
       return false;
     }
@@ -1337,6 +1345,7 @@ class TripTrackingController extends ChangeNotifier {
             // A received provider event is a runtime heartbeat. Deliberately
             // use receive time, not the untrusted payload timestamp.
             _lastNativeHeartbeatUtc = _clockNow().toUtc();
+            _lastNativeLocationReceivedUtc = _lastNativeHeartbeatUtc;
             final activity = _latestActivity;
             final decision = await ingest(
               event.location!,
@@ -1354,6 +1363,11 @@ class TripTrackingController extends ChangeNotifier {
               referenceTime: _clockNow().toUtc(),
             );
             await _maybeUpdateNativeSampling(event.location!, decision);
+            if (decision?.accepted == true &&
+                _platformStatus == 'gps_signal_stale') {
+              _platformStatus = 'tracking';
+              _platformError = null;
+            }
             _scheduleRuntimeBatterySafetyCheck();
           } else if (event.activity != null) {
             // Native event streams are external input. Ignore motion evidence
@@ -1397,6 +1411,8 @@ class TripTrackingController extends ChangeNotifier {
               _nativeSampling = null;
               _nativeSamplingPlan = null;
               _lastNativeHeartbeatUtc = null;
+              _nativeTrackingStartedAtUtc = null;
+              _lastNativeLocationReceivedUtc = null;
               _backgroundTrackingAllowed = false;
               _latestActivity = null;
               await _cancelPlatformSubscriptionAfterNativeStop();
@@ -1420,8 +1436,12 @@ class TripTrackingController extends ChangeNotifier {
                 );
               }
             } else if (status == 'tracking' && _nativeTracking) {
-              _platformStatus = status;
-              _lastNativeHeartbeatUtc = _clockNow().toUtc();
+              final now = _clockNow().toUtc();
+              _lastNativeHeartbeatUtc = now;
+              await _markGpsSignalStaleIfNeeded(now);
+              if (_platformStatus != 'gps_signal_stale') {
+                _platformStatus = status;
+              }
             } else if (status == 'idle' && !_nativeTracking) {
               _platformStatus = status;
             } else {
@@ -1532,6 +1552,23 @@ class TripTrackingController extends ChangeNotifier {
       await subscription.cancel();
     } catch (error) {
       _platformError ??= 'Could not detach GPS event listener cleanly.';
+    }
+  }
+
+  Future<void> _markGpsSignalStaleIfNeeded(DateTime nowUtc) async {
+    final session = _session;
+    final lastEvidence =
+        _lastNativeLocationReceivedUtc ?? _nativeTrackingStartedAtUtc;
+    if (session == null || lastEvidence == null) return;
+    if (nowUtc.difference(lastEvidence) <= _policy.maximumGap) return;
+    _platformStatus = 'gps_signal_stale';
+    _platformError =
+        'GPS has not produced a location fix recently. Your local trip is preserved while signal recovers.';
+    if (session.lifecycleState == TripTrackingSessionLifecycleState.active) {
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.degraded,
+        health: TripTrackingHealthState.reduced,
+      );
     }
   }
 
@@ -1765,6 +1802,8 @@ class TripTrackingController extends ChangeNotifier {
     _nativeSampling = null;
     _nativeSamplingPlan = null;
     _lastNativeHeartbeatUtc = null;
+    _nativeTrackingStartedAtUtc = null;
+    _lastNativeLocationReceivedUtc = null;
     _lastBatterySafetyCheckUtc = null;
     _nativeStopRequested = false;
     _backgroundTrackingAllowed = false;

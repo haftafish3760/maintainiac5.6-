@@ -698,6 +698,18 @@ void main() {
     expect(blocked.storageState, 'blocked');
     expect(unknown.storageState, 'unknown');
   });
+
+  test('runtime summary surfaces a stale GPS fix stream for review', () {
+    final summary = DashboardTripTrackingSummary.fromRuntime(
+      settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+      platformStatus: 'gps_signal_stale',
+    );
+
+    expect(summary.gpsSignalQuality, 'interrupted');
+    expect(summary.gpsSignalReason, 'gps_signal_interrupted_by_gap');
+    expect(summary.gpsSignalReviewRequired, isTrue);
+    expect(summary.reviewRequired, isTrue);
+  });
 }
 
 DeviceCapabilityProfile _deviceProfile({

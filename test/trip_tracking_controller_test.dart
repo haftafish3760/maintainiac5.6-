@@ -797,6 +797,61 @@ void main() {
   );
 
   test(
+    'native heartbeat without GPS fixes degrades until a credible fix arrives',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      var now = start;
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_signal_stale_heartbeat',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+
+      now = now.add(const Duration(minutes: 3));
+      native.addStatus('tracking');
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'gps_signal_stale',
+      );
+
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.degraded,
+      );
+      expect(controller.healthState, TripTrackingHealthState.reduced);
+      expect(controller.platformError, contains('has not produced'));
+
+      now = now.add(const Duration(seconds: 1));
+      native.addLocation(sample(-80, 181));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
+
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.active,
+      );
+      expect(controller.healthState, TripTrackingHealthState.healthy);
+      expect(controller.platformError, isNull);
+    },
+  );
+
+  test(
     'native critical battery stop keeps the actionable battery status',
     () async {
       final native = _FakeTripTrackingPlatform();
