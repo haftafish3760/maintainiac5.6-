@@ -3045,7 +3045,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(restored.nativeTracking, isTrue);
-      expect(native.updateCalls, 0);
+      expect(native.updateCalls, 1);
       expect(
         store.activeSession?.nativeSampling?.interval,
         const Duration(seconds: 30),
