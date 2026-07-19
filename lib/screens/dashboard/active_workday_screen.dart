@@ -9,6 +9,7 @@ import '../../shared/odometer/open_odometer_entry.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_dashboard_live_status_policy.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
@@ -833,14 +834,11 @@ class _GpsTripPanel extends StatelessWidget {
         : null;
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
-    final staleGpsSignal =
-        tracking && controller?.platformStatus == 'gps_signal_stale';
-    final liveTrackingWarning = staleGpsSignal
-        ? controller?.platformError ??
-              'GPS has not produced a location fix recently. Keep your trip open; review the gap before confirming mileage.'
-        : tracking
-        ? controller?.platformError
-        : null;
+    final liveTrackingWarning = TripTrackingDashboardLiveStatusPolicy.warning(
+      tracking: tracking,
+      platformStatus: controller?.platformStatus,
+      platformError: controller?.platformError,
+    );
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
       decoration: BoxDecoration(

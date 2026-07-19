@@ -61,22 +61,12 @@ void main() {
     ).readAsStringSync();
 
     final liveOdometer = source.indexOf('const _LiveOdometerPanelLine()');
-    final staleStatus = source.indexOf(
-      "controller?.platformStatus == 'gps_signal_stale'",
-    );
     final liveWarning = source.indexOf(
-      'final liveTrackingWarning =',
-      staleStatus,
-    );
-    final staleGuidance = source.indexOf(
-      'GPS has not produced a location fix recently.',
+      'TripTrackingDashboardLiveStatusPolicy.warning(',
     );
 
     expect(liveOdometer, greaterThanOrEqualTo(0));
-    expect(staleStatus, greaterThan(liveOdometer));
-    expect(liveWarning, greaterThan(staleStatus));
-    expect(staleGuidance, greaterThan(liveWarning));
+    expect(liveWarning, greaterThan(liveOdometer));
     expect(source, contains('if (liveTrackingWarning != null)'));
-    expect(source, contains(': tracking\n        ? controller?.platformError'));
   });
 }
