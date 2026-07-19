@@ -840,6 +840,49 @@ void main() {
   );
 
   test(
+    'critical battery reported during native startup prevents a false active state',
+    () async {
+      final startGate = Completer<void>();
+      final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_startup_critical_battery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      final starting = controller.startNativeTracking(allowBackground: true);
+      await Future<void>.delayed(Duration.zero);
+      native.addPlatformError(
+        code: 'trip_tracking_battery_critical',
+        message: 'Battery is critically low.',
+      );
+      native.addStatus('stopped');
+      await Future<void>.delayed(Duration.zero);
+      startGate.complete();
+
+      expect(await starting, isFalse);
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+      expect(controller.platformStatus, 'battery_critical_gps_blocked');
+      expect(controller.platformError, contains('critically low'));
+    },
+  );
+
+  test(
     'runtime battery check pauses at ten percent for an explicit choice',
     () async {
       final native = _FakeTripTrackingPlatform();

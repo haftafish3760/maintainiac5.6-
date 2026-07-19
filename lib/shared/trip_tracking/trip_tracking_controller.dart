@@ -83,6 +83,7 @@ class TripTrackingController extends ChangeNotifier {
   // not be silently presented as a normal paused trip.
   bool _nativeStopRequested = false;
   bool _nativeInterruptionPending = false;
+  bool _nativeCriticalBatteryStopPending = false;
   TripSamplingRecommendation? _nativeSampling;
   TripTrackingSamplingPlan? _nativeSamplingPlan;
   DateTime? _lastNativeHeartbeatUtc;
@@ -1175,6 +1176,7 @@ class TripTrackingController extends ChangeNotifier {
     session = _session;
     if (session == null) return false;
     _latestActivity = null;
+    _nativeCriticalBatteryStopPending = false;
     _platformSubscription = _listenToPlatformEvents(platform);
     final samplingPlan = samplingOverride == null && samplingPreset != null
         ? TripTrackingSamplingPresetPolicy.planFor(
@@ -1215,6 +1217,20 @@ class TripTrackingController extends ChangeNotifier {
       await _platformSubscription?.cancel();
       _platformSubscription = null;
       _platformError = 'The device did not start GPS trip tracking.';
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
+    if (_nativeCriticalBatteryStopPending) {
+      await _cancelPlatformSubscriptionAfterNativeStop();
+      _platformSubscription = null;
+      _platformStatus = 'battery_critical_gps_blocked';
+      _platformError = TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_battery_critical',
+      );
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
@@ -1368,7 +1384,10 @@ class TripTrackingController extends ChangeNotifier {
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
             if (status == 'stopped' || status == 'paused') {
-              final expectedStop = _nativeStopRequested || status == 'paused';
+              final expectedStop =
+                  _nativeStopRequested ||
+                  _nativeCriticalBatteryStopPending ||
+                  status == 'paused';
               _platformStatus = expectedStop ? status : 'interrupted';
               if (!expectedStop) {
                 _platformError =
@@ -1419,15 +1438,14 @@ class TripTrackingController extends ChangeNotifier {
               event.errorCode,
             );
             _platformError = message;
-            if (_nativeTracking &&
+            if (event.errorCode == 'trip_tracking_battery_critical') {
+              _nativeCriticalBatteryStopPending = true;
+              unawaited(_handleNativeCriticalBatteryStop(message));
+            } else if (_nativeTracking &&
                 TripTrackingNativeErrorPolicy.requiresRecovery(
                   event.errorCode,
                 )) {
-              if (event.errorCode == 'trip_tracking_battery_critical') {
-                unawaited(_handleNativeCriticalBatteryStop(message));
-              } else {
-                unawaited(_handleNativeInterruption(message));
-              }
+              unawaited(_handleNativeInterruption(message));
             } else {
               notifyListeners();
             }
