@@ -717,6 +717,38 @@ void main() {
     },
   );
 
+  test('a return to the vehicle after walking cannot create false road miles', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+    final distanceBeforeWalk = engine.totalAcceptedMeters;
+
+    expect(
+      engine.ingest(sample(-79.9987, 60), activity: walking(60)).disposition,
+      TripSampleDisposition.excludedWalking,
+    );
+    final returnDecision = engine.ingest(sample(-79.9997, 75));
+
+    expect(returnDecision.disposition, TripSampleDisposition.rejectedDrift);
+    expect(engine.totalAcceptedMeters, distanceBeforeWalk);
+    expect(
+      engine.ingest(
+        sample(-79.9994, 90),
+        activity: TripActivityObservation(
+          activity: TripActivity.automotive,
+          confidence: 90,
+          recordedAt: start.add(const Duration(seconds: 90)),
+        ),
+      ).disposition,
+      TripSampleDisposition.acceptedDistance,
+    );
+  });
+
   test(
     'vehicle-speed evidence overrides a walking sensor misclassification',
     () {

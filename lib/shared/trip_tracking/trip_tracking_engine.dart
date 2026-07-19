@@ -216,14 +216,17 @@ class TripTrackingEngine {
     // We retain it as advisory evidence, but exclude it immediately instead
     // of allowing the first few on-foot points to inflate the live estimate.
     if (_strategy.walkingMayExcludeRoadMileage && strongWalking) {
-      _lastAccepted = sample;
       if (!walkingLooksLikeVehicleMisclassification) {
+        // Keep the last verified vehicle anchor. Re-anchoring to a walking
+        // point can turn an unclassified return-to-vehicle sample into false
+        // road mileage after a delivery or jobsite walk.
         return _finish(
           sample,
           verifiedActivity,
           TripSampleDisposition.excludedWalking,
         );
       }
+      _lastAccepted = sample;
     }
 
     final accuracyEnvelope = math.max(
