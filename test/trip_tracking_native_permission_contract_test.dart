@@ -135,7 +135,9 @@ void main() {
     expect(androidActivity, contains('val observedAtMillis = result.time'));
     expect(androidActivity, contains('observedAtMillis > System.currentTimeMillis() + 120_000L'));
     expect(androidActivity, contains('"recordedAt" to observedAtMillis'));
-    expect(ios, contains('"recordedAt": ISO8601DateFormatter()'));
+    expect(ios, contains('let observedAt = motion.startDate'));
+    expect(ios, contains('observedAt <= Date().addingTimeInterval(120)'));
+    expect(ios, contains('"recordedAt": ISO8601DateFormatter().string(from: observedAt)'));
     expect(ios, contains('"type": "activity"'));
     expect(ios, contains('"mockedLocation": simulated'));
     expect(ios, contains('isSimulatedBySoftware'));

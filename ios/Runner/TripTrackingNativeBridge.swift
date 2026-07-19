@@ -258,11 +258,14 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     }
     motionManager.startActivityUpdates(to: .main) { [weak self] motion in
       guard let self, self.activityRecognitionEnabled, let motion else { return }
+      let observedAt = motion.startDate
+      guard observedAt.timeIntervalSince1970 > 0,
+            observedAt <= Date().addingTimeInterval(120) else { return }
       self.emit([
         "type": "activity",
         "activity": self.tripActivity(for: motion),
         "confidence": self.confidence(for: motion.confidence),
-        "recordedAt": ISO8601DateFormatter().string(from: motion.startDate),
+        "recordedAt": ISO8601DateFormatter().string(from: observedAt),
       ])
     }
   }
