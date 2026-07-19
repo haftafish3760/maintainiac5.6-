@@ -19,6 +19,12 @@ class TripTrackingSessionRecord {
     this.healthState = TripTrackingHealthState.healthy,
     this.backgroundTrackingAllowed = false,
     this.activityRecognitionEnabled = false,
+    this.nativeSampling,
+    this.samplingCeiling,
+    this.adaptiveSamplingEnabled = false,
+    this.lowBatteryProtectionEnabled = true,
+    this.lowBatteryOverrideEnabled = false,
+    this.lowBatteryWarningDismissed = false,
     this.hasValidTimeline = true,
     this.schemaVersion = 1,
   });
@@ -41,6 +47,16 @@ class TripTrackingSessionRecord {
   /// Explicit local consent for optional walking-assisted stop evidence.
   /// Missing legacy values remain false so recovery never expands collection.
   final bool activityRecognitionEnabled;
+
+  /// Bounded collector configuration survives process recovery so adaptive
+  /// sampling cannot silently become more aggressive than the driver's last
+  /// selected cadence.
+  final TripSamplingRecommendation? nativeSampling;
+  final TripSamplingRecommendation? samplingCeiling;
+  final bool adaptiveSamplingEnabled;
+  final bool lowBatteryProtectionEnabled;
+  final bool lowBatteryOverrideEnabled;
+  final bool lowBatteryWarningDismissed;
   final bool hasValidTimeline;
   final int schemaVersion;
 
@@ -52,6 +68,14 @@ class TripTrackingSessionRecord {
     TripTrackingHealthState? healthState,
     bool? backgroundTrackingAllowed,
     bool? activityRecognitionEnabled,
+    TripSamplingRecommendation? nativeSampling,
+    bool clearNativeSampling = false,
+    TripSamplingRecommendation? samplingCeiling,
+    bool clearSamplingCeiling = false,
+    bool? adaptiveSamplingEnabled,
+    bool? lowBatteryProtectionEnabled,
+    bool? lowBatteryOverrideEnabled,
+    bool? lowBatteryWarningDismissed,
     bool? hasValidTimeline,
     int? schemaVersion,
   }) => TripTrackingSessionRecord(
@@ -69,6 +93,20 @@ class TripTrackingSessionRecord {
         backgroundTrackingAllowed ?? this.backgroundTrackingAllowed,
     activityRecognitionEnabled:
         activityRecognitionEnabled ?? this.activityRecognitionEnabled,
+    nativeSampling: clearNativeSampling
+        ? null
+        : nativeSampling ?? this.nativeSampling,
+    samplingCeiling: clearSamplingCeiling
+        ? null
+        : samplingCeiling ?? this.samplingCeiling,
+    adaptiveSamplingEnabled:
+        adaptiveSamplingEnabled ?? this.adaptiveSamplingEnabled,
+    lowBatteryProtectionEnabled:
+        lowBatteryProtectionEnabled ?? this.lowBatteryProtectionEnabled,
+    lowBatteryOverrideEnabled:
+        lowBatteryOverrideEnabled ?? this.lowBatteryOverrideEnabled,
+    lowBatteryWarningDismissed:
+        lowBatteryWarningDismissed ?? this.lowBatteryWarningDismissed,
     hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
     schemaVersion: schemaVersion ?? this.schemaVersion,
   );
@@ -88,6 +126,12 @@ class TripTrackingSessionRecord {
     'healthState': healthState.name,
     'backgroundTrackingAllowed': backgroundTrackingAllowed,
     'activityRecognitionEnabled': activityRecognitionEnabled,
+    'nativeSampling': _samplingToMap(nativeSampling),
+    'samplingCeiling': _samplingToMap(samplingCeiling),
+    'adaptiveSamplingEnabled': adaptiveSamplingEnabled,
+    'lowBatteryProtectionEnabled': lowBatteryProtectionEnabled,
+    'lowBatteryOverrideEnabled': lowBatteryOverrideEnabled,
+    'lowBatteryWarningDismissed': lowBatteryWarningDismissed,
     'schemaVersion': schemaVersion,
   };
 
@@ -154,6 +198,12 @@ class TripTrackingSessionRecord {
       ),
       backgroundTrackingAllowed: map['backgroundTrackingAllowed'] == true,
       activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
+      nativeSampling: _samplingFromMap(map['nativeSampling']),
+      samplingCeiling: _samplingFromMap(map['samplingCeiling']),
+      adaptiveSamplingEnabled: map['adaptiveSamplingEnabled'] == true,
+      lowBatteryProtectionEnabled: map['lowBatteryProtectionEnabled'] != false,
+      lowBatteryOverrideEnabled: map['lowBatteryOverrideEnabled'] == true,
+      lowBatteryWarningDismissed: map['lowBatteryWarningDismissed'] == true,
       hasValidTimeline:
           startedAt != null &&
           updatedAt != null &&
@@ -169,6 +219,48 @@ class TripTrackingSessionRecord {
 }
 
 const _maxPersistedAdvisories = 24;
+
+Map<String, Object?>? _samplingToMap(TripSamplingRecommendation? sampling) {
+  if (sampling == null ||
+      sampling.interval.inSeconds < 1 ||
+      sampling.interval.inSeconds > 60 ||
+      !sampling.minimumDisplacementMeters.isFinite ||
+      sampling.minimumDisplacementMeters < 1 ||
+      sampling.minimumDisplacementMeters > 100) {
+    return null;
+  }
+  return {
+    'mode': sampling.mode.name,
+    'intervalSeconds': sampling.interval.inSeconds,
+    'minimumDisplacementMeters': sampling.minimumDisplacementMeters,
+  };
+}
+
+TripSamplingRecommendation? _samplingFromMap(Object? value) {
+  if (value is! Map) return null;
+  final modeName = value['mode'];
+  final intervalSeconds = value['intervalSeconds'];
+  final displacement = value['minimumDisplacementMeters'];
+  if (modeName is! String ||
+      intervalSeconds is! num ||
+      displacement is! num ||
+      !intervalSeconds.isFinite ||
+      intervalSeconds != intervalSeconds.roundToDouble() ||
+      intervalSeconds < 1 ||
+      intervalSeconds > 60 ||
+      !displacement.isFinite ||
+      displacement < 1 ||
+      displacement > 100) {
+    return null;
+  }
+  final mode = TripSamplingMode.values.where((item) => item.name == modeName);
+  if (mode.length != 1) return null;
+  return TripSamplingRecommendation(
+    mode: mode.single,
+    interval: Duration(seconds: intervalSeconds.toInt()),
+    minimumDisplacementMeters: displacement.toDouble(),
+  );
+}
 
 Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
   Iterable<TripTrackingAdvisoryEvent> advisories,

@@ -823,6 +823,19 @@ class TripTrackingController extends ChangeNotifier {
             _nativeTracking = true;
             _backgroundTrackingAllowed = true;
             _activityRecognitionEnabled = session.activityRecognitionEnabled;
+            _nativeSampling = session.nativeSampling;
+            _nativeSamplingPlan = session.samplingCeiling == null
+                ? null
+                : TripTrackingSamplingPlan(
+                    sampling: session.samplingCeiling!,
+                    deviceTier: TripTrackingDeviceCapabilityTier.locationOnly,
+                    walkingEvidenceAvailable: false,
+                    batteryProtectionEvidenceAvailable: false,
+                  );
+            _adaptiveSamplingEnabled = session.adaptiveSamplingEnabled;
+            _lowBatteryProtectionEnabled = session.lowBatteryProtectionEnabled;
+            _lowBatteryOverrideEnabled = session.lowBatteryOverrideEnabled;
+            _lowBatteryWarningDismissed = session.lowBatteryWarningDismissed;
             _lastNativeHeartbeatUtc = _clockNow().toUtc();
             _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
             _lastNativeLocationReceivedUtc = null;
@@ -1171,21 +1184,6 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (!await _persistNativeCollectionPreferences(
-      allowBackground: allowBackground,
-      activityRecognitionEnabled: requestedActivityRecognition,
-    )) {
-      await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.failedRecoverable,
-        health: TripTrackingHealthState.unavailable,
-      );
-      return false;
-    }
-    session = _session;
-    if (session == null) return false;
-    _latestActivity = null;
-    _nativeCriticalBatteryStopPending = false;
-    _platformSubscription = _listenToPlatformEvents(platform);
     final samplingPlan = samplingOverride == null && samplingPreset != null
         ? TripTrackingSamplingPresetPolicy.planFor(
             preset: samplingPreset,
@@ -1207,6 +1205,28 @@ class TripTrackingController extends ChangeNotifier {
       activityRecognitionEnabled: requestedActivityRecognition,
       allowBackground: allowBackground,
     );
+    if (!await _persistNativeCollectionPreferences(
+      allowBackground: allowBackground,
+      activityRecognitionEnabled: requestedActivityRecognition,
+      nativeSampling: request.sampling,
+      samplingCeiling: samplingPlan?.sampling,
+      clearSamplingCeiling: samplingPlan == null,
+      adaptiveSamplingEnabled: adaptiveSamplingEnabled,
+      lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
+      lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
+      lowBatteryWarningDismissed: lowBatteryWarningDismissed,
+    )) {
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      return false;
+    }
+    session = _session;
+    if (session == null) return false;
+    _latestActivity = null;
+    _nativeCriticalBatteryStopPending = false;
+    _platformSubscription = _listenToPlatformEvents(platform);
     bool started;
     try {
       started = await platform.start(request);
@@ -1618,6 +1638,11 @@ class TripTrackingController extends ChangeNotifier {
     }
     if (updated) {
       _nativeSampling = next;
+      await _persistNativeCollectionPreferences(
+        allowBackground: _backgroundTrackingAllowed,
+        activityRecognitionEnabled: _activityRecognitionEnabled,
+        nativeSampling: next,
+      );
     } else {
       _platformError =
           'The device could not apply the updated GPS sampling mode.';
@@ -1879,17 +1904,51 @@ class TripTrackingController extends ChangeNotifier {
   Future<bool> _persistNativeCollectionPreferences({
     required bool allowBackground,
     required bool activityRecognitionEnabled,
+    TripSamplingRecommendation? nativeSampling,
+    TripSamplingRecommendation? samplingCeiling,
+    bool clearSamplingCeiling = false,
+    bool? adaptiveSamplingEnabled,
+    bool? lowBatteryProtectionEnabled,
+    bool? lowBatteryOverrideEnabled,
+    bool? lowBatteryWarningDismissed,
   }) async {
     final session = _session;
     if (session == null) return false;
     if (session.backgroundTrackingAllowed == allowBackground &&
-        session.activityRecognitionEnabled == activityRecognitionEnabled) {
+        session.activityRecognitionEnabled == activityRecognitionEnabled &&
+        (nativeSampling == null ||
+            TripTrackingNativeSamplingPolicy.isSameRecommendation(
+              session.nativeSampling,
+              nativeSampling,
+            )) &&
+        (!clearSamplingCeiling &&
+            (samplingCeiling == null ||
+                TripTrackingNativeSamplingPolicy.isSameRecommendation(
+                  session.samplingCeiling,
+                  samplingCeiling,
+                ))) &&
+        (adaptiveSamplingEnabled == null ||
+            session.adaptiveSamplingEnabled == adaptiveSamplingEnabled) &&
+        (lowBatteryProtectionEnabled == null ||
+            session.lowBatteryProtectionEnabled ==
+                lowBatteryProtectionEnabled) &&
+        (lowBatteryOverrideEnabled == null ||
+            session.lowBatteryOverrideEnabled == lowBatteryOverrideEnabled) &&
+        (lowBatteryWarningDismissed == null ||
+            session.lowBatteryWarningDismissed == lowBatteryWarningDismissed)) {
       return true;
     }
     final next = session.copyWith(
       updatedAt: _clockNow(),
       backgroundTrackingAllowed: allowBackground,
       activityRecognitionEnabled: activityRecognitionEnabled,
+      nativeSampling: nativeSampling,
+      samplingCeiling: samplingCeiling,
+      clearSamplingCeiling: clearSamplingCeiling,
+      adaptiveSamplingEnabled: adaptiveSamplingEnabled,
+      lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
+      lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
+      lowBatteryWarningDismissed: lowBatteryWarningDismissed,
     );
     try {
       await _sessionStore.save(next);

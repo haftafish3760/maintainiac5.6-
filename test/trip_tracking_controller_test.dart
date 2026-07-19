@@ -18,6 +18,7 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 /// Keeps controller tests aligned with production: GPS sessions are started
 /// for the currently selected odometer vehicle unless a test explicitly
@@ -2993,6 +2994,63 @@ void main() {
       expect(native.stopCalls, 1);
       expect(restored.platformStatus, 'background_consent_required');
       expect(restored.platformError, contains('not previously authorized'));
+    },
+  );
+
+  test(
+    'recovery preserves the driver-selected battery-saving sampling ceiling',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final native = _FakeTripTrackingPlatform();
+      final initial = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await initial.start(
+        tripId: 'trip_restore_sampling_ceiling',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await initial.startNativeTracking(
+          allowBackground: true,
+          samplingPreset: TripTrackingSamplingPreset.batterySaver,
+          adaptiveSamplingEnabled: true,
+          lowBatteryProtectionEnabled: false,
+          lowBatteryOverrideEnabled: true,
+          lowBatteryWarningDismissed: true,
+        ),
+        isTrue,
+      );
+      final restored = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+
+      expect(await restored.restore(), isTrue);
+      native.addLocation(sample(-80, 20, speed: 8));
+      native.addLocation(sample(-79.999, 40, speed: 8));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(restored.nativeTracking, isTrue);
+      expect(native.updateCalls, 0);
+      expect(
+        store.activeSession?.nativeSampling?.interval,
+        const Duration(seconds: 30),
+      );
+      expect(
+        store.activeSession?.samplingCeiling?.interval,
+        const Duration(seconds: 30),
+      );
+      expect(store.activeSession?.adaptiveSamplingEnabled, isTrue);
+      expect(store.activeSession?.lowBatteryProtectionEnabled, isFalse);
     },
   );
 

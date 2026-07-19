@@ -21,6 +21,20 @@ void main() {
         ),
         backgroundTrackingAllowed: true,
         activityRecognitionEnabled: true,
+        nativeSampling: const TripSamplingRecommendation(
+          mode: TripSamplingMode.balanced,
+          interval: Duration(seconds: 8),
+          minimumDisplacementMeters: 5,
+        ),
+        samplingCeiling: const TripSamplingRecommendation(
+          mode: TripSamplingMode.balanced,
+          interval: Duration(seconds: 15),
+          minimumDisplacementMeters: 8,
+        ),
+        adaptiveSamplingEnabled: true,
+        lowBatteryProtectionEnabled: false,
+        lowBatteryOverrideEnabled: true,
+        lowBatteryWarningDismissed: true,
       );
 
       await store.save(session);
@@ -34,6 +48,12 @@ void main() {
       expect(store.activeSession?.schemaVersion, 1);
       expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isTrue);
+      expect(store.activeSession?.nativeSampling?.interval.inSeconds, 8);
+      expect(store.activeSession?.samplingCeiling?.interval.inSeconds, 15);
+      expect(store.activeSession?.adaptiveSamplingEnabled, isTrue);
+      expect(store.activeSession?.lowBatteryProtectionEnabled, isFalse);
+      expect(store.activeSession?.lowBatteryOverrideEnabled, isTrue);
+      expect(store.activeSession?.lowBatteryWarningDismissed, isTrue);
       expect(store.activeSession?.engineSnapshot.algorithmVersion, 'gps-v1');
 
       await store.clear();
@@ -546,7 +566,43 @@ void main() {
     expect(session.hasValidTimeline, isFalse);
     expect(session.engineSnapshot.schemaVersion, 1);
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
+    expect(session.nativeSampling, isNull);
+    expect(session.samplingCeiling, isNull);
+    expect(session.adaptiveSamplingEnabled, isFalse);
+    expect(session.lowBatteryProtectionEnabled, isTrue);
   });
+
+  test(
+    'malformed persisted native sampling cannot override recovery limits',
+    () {
+      final session = TripTrackingSessionRecord.fromMap({
+        'id': 'trip_bad_sampling',
+        'vehicleId': 'vehicle_1',
+        'startingOdometer': 1000,
+        'profile': 'roadVehicle',
+        'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+        'updatedAt': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+        'engineSnapshot': const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ).toMap(),
+        'nativeSampling': {
+          'mode': TripSamplingMode.precision.name,
+          'intervalSeconds': 0,
+          'minimumDisplacementMeters': double.infinity,
+        },
+        'samplingCeiling': {
+          'mode': 'invalid',
+          'intervalSeconds': 2,
+          'minimumDisplacementMeters': 1,
+        },
+      });
+
+      expect(session.hasValidTimeline, isTrue);
+      expect(session.nativeSampling, isNull);
+      expect(session.samplingCeiling, isNull);
+    },
+  );
 
   test('unknown persisted active trip lifecycle fields are not trusted', () {
     final session = TripTrackingSessionRecord.fromMap({
