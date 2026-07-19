@@ -1948,7 +1948,7 @@ void main() {
       );
 
       storageAvailable = false;
-      native.addLocation(sample(-79.999, 20, speed: 8));
+      native.addLocation(sample(-79.999, 70, speed: 8));
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
@@ -2899,7 +2899,10 @@ void main() {
       );
       await initial.ingest(sample(-80, 0, speed: 8));
       await store.save(
-        store.activeSession!.copyWith(backgroundTrackingAllowed: true),
+        store.activeSession!.copyWith(
+          backgroundTrackingAllowed: true,
+          activityRecognitionEnabled: true,
+        ),
       );
 
       final native = _FakeTripTrackingPlatform();
@@ -2924,7 +2927,27 @@ void main() {
 
       expect(await restored.restore(), isTrue);
       expect(restored.nativeTracking, isTrue);
-      native.addLocation(sample(-79.999, 20, speed: 8));
+      for (final seconds in [20, 35, 50]) {
+        native.addActivity(
+          TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 95,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          ),
+        );
+        native.addLocation(sample(-80 + (seconds / 100000), seconds, speed: 1));
+      }
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      expect(restored.needsWalkingReview, isTrue);
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.automotive,
+          confidence: 95,
+          recordedAt: start.add(const Duration(seconds: 70)),
+        ),
+      );
+      native.addLocation(sample(-79.999, 70, speed: 8));
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
       expect(restored.acceptedMeters, greaterThan(0));
@@ -3088,8 +3111,9 @@ void main() {
       final native = _FakeTripTrackingPlatform(
         activityRecognitionAvailable: true,
       );
+      final store = TripTrackingSessionStore.memory();
       final controller = TripTrackingController(
-        sessionStore: TripTrackingSessionStore.memory(),
+        sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
       );
@@ -3113,6 +3137,7 @@ void main() {
       expect(native.updatedRequest?.activityRecognitionEnabled, isFalse);
       expect(native.updatedRequest?.allowBackground, isTrue);
       expect(controller.nativeTracking, isTrue);
+      expect(store.activeSession?.activityRecognitionEnabled, isFalse);
     },
   );
 

@@ -20,6 +20,7 @@ void main() {
           walkingReviewSuggested: false,
         ),
         backgroundTrackingAllowed: true,
+        activityRecognitionEnabled: true,
       );
 
       await store.save(session);
@@ -32,6 +33,7 @@ void main() {
       expect(store.activeSession?.engineSnapshot.totalAcceptedMeters, 804.672);
       expect(store.activeSession?.schemaVersion, 1);
       expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
+      expect(store.activeSession?.activityRecognitionEnabled, isTrue);
       expect(store.activeSession?.engineSnapshot.algorithmVersion, 'gps-v1');
 
       await store.clear();

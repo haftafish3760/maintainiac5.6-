@@ -822,6 +822,7 @@ class TripTrackingController extends ChangeNotifier {
           } else {
             _nativeTracking = true;
             _backgroundTrackingAllowed = true;
+            _activityRecognitionEnabled = session.activityRecognitionEnabled;
             _lastNativeHeartbeatUtc = _clockNow().toUtc();
             _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
             _lastNativeLocationReceivedUtc = null;
@@ -1170,7 +1171,10 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (!await _persistBackgroundTrackingPreference(allowBackground)) {
+    if (!await _persistNativeCollectionPreferences(
+      allowBackground: allowBackground,
+      activityRecognitionEnabled: requestedActivityRecognition,
+    )) {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
@@ -1636,6 +1640,15 @@ class TripTrackingController extends ChangeNotifier {
     if (!_activityRecognitionEnabled) return;
     _activityRecognitionEnabled = false;
     _latestActivity = null;
+    if (!await _persistNativeCollectionPreferences(
+      allowBackground: _backgroundTrackingAllowed,
+      activityRecognitionEnabled: false,
+    )) {
+      _platformError =
+          'Motion activity was disabled, but GPS tracking stopped because the privacy change could not be saved locally.';
+      await _stopNativeTracking();
+      return;
+    }
     final platform = _platform;
     final session = _session;
     final sampling = _nativeSampling;
@@ -1863,15 +1876,20 @@ class TripTrackingController extends ChangeNotifier {
     }
   }
 
-  Future<bool> _persistBackgroundTrackingPreference(
-    bool allowBackground,
-  ) async {
+  Future<bool> _persistNativeCollectionPreferences({
+    required bool allowBackground,
+    required bool activityRecognitionEnabled,
+  }) async {
     final session = _session;
     if (session == null) return false;
-    if (session.backgroundTrackingAllowed == allowBackground) return true;
+    if (session.backgroundTrackingAllowed == allowBackground &&
+        session.activityRecognitionEnabled == activityRecognitionEnabled) {
+      return true;
+    }
     final next = session.copyWith(
       updatedAt: _clockNow(),
       backgroundTrackingAllowed: allowBackground,
+      activityRecognitionEnabled: activityRecognitionEnabled,
     );
     try {
       await _sessionStore.save(next);
@@ -1879,8 +1897,7 @@ class TripTrackingController extends ChangeNotifier {
       return true;
     } catch (_) {
       _platformStatus = 'storage_failed';
-      _platformError =
-          'Could not save GPS background tracking permission locally.';
+      _platformError = 'Could not save GPS collection permission locally.';
       notifyListeners();
       return false;
     }

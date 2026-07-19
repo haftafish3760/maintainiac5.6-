@@ -18,6 +18,7 @@ class TripTrackingSessionRecord {
     this.lifecycleState = TripTrackingSessionLifecycleState.ready,
     this.healthState = TripTrackingHealthState.healthy,
     this.backgroundTrackingAllowed = false,
+    this.activityRecognitionEnabled = false,
     this.hasValidTimeline = true,
     this.schemaVersion = 1,
   });
@@ -32,9 +33,14 @@ class TripTrackingSessionRecord {
   final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
+
   /// Locally persisted consent for a collector that survives an app restart.
   /// Missing legacy values default to false; recovery never assumes consent.
   final bool backgroundTrackingAllowed;
+
+  /// Explicit local consent for optional walking-assisted stop evidence.
+  /// Missing legacy values remain false so recovery never expands collection.
+  final bool activityRecognitionEnabled;
   final bool hasValidTimeline;
   final int schemaVersion;
 
@@ -45,6 +51,7 @@ class TripTrackingSessionRecord {
     TripTrackingSessionLifecycleState? lifecycleState,
     TripTrackingHealthState? healthState,
     bool? backgroundTrackingAllowed,
+    bool? activityRecognitionEnabled,
     bool? hasValidTimeline,
     int? schemaVersion,
   }) => TripTrackingSessionRecord(
@@ -60,6 +67,8 @@ class TripTrackingSessionRecord {
     healthState: healthState ?? this.healthState,
     backgroundTrackingAllowed:
         backgroundTrackingAllowed ?? this.backgroundTrackingAllowed,
+    activityRecognitionEnabled:
+        activityRecognitionEnabled ?? this.activityRecognitionEnabled,
     hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
     schemaVersion: schemaVersion ?? this.schemaVersion,
   );
@@ -78,6 +87,7 @@ class TripTrackingSessionRecord {
     'lifecycleState': lifecycleState.name,
     'healthState': healthState.name,
     'backgroundTrackingAllowed': backgroundTrackingAllowed,
+    'activityRecognitionEnabled': activityRecognitionEnabled,
     'schemaVersion': schemaVersion,
   };
 
@@ -143,6 +153,7 @@ class TripTrackingSessionRecord {
         orElse: () => TripTrackingHealthState.healthy,
       ),
       backgroundTrackingAllowed: map['backgroundTrackingAllowed'] == true,
+      activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
       hasValidTimeline:
           startedAt != null &&
           updatedAt != null &&
