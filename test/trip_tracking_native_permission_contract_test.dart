@@ -259,6 +259,23 @@ void main() {
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
   });
 
+  test('iOS refuses reduced-accuracy GPS before an active session starts', () {
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(
+      ios,
+      contains('guard authorization["preciseLocation"] as? Bool == true else'),
+    );
+    expect(
+      ios,
+      contains(
+        'Precise location permission is required before starting trip tracking.',
+      ),
+    );
+  });
+
   test('motion collection stops when optional activity assistance is disabled', () {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',

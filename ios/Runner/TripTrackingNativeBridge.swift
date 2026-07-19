@@ -224,6 +224,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       result(FlutterError(code: "trip_tracking_location_denied", message: "Location permission is required before starting trip tracking.", details: authorization))
       return
     }
+    guard authorization["preciseLocation"] as? Bool == true else {
+      result(FlutterError(code: "trip_tracking_location_accuracy_reduced", message: "Precise location permission is required before starting trip tracking.", details: authorization))
+      return
+    }
     let arguments = call.arguments as? [String: Any]
     let profile = arguments?["profile"] as? String
     let allowBackground = arguments?["allowBackground"] as? Bool ?? false
