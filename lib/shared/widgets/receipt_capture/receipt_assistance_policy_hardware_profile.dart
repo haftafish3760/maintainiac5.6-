@@ -212,7 +212,7 @@ class ReceiptHardwareProfile {
     return isLowRamDevice ||
         (cameraCount > 0 && !hasRearCamera) ||
         (ram != null && ram <= 4096) ||
-        (storage != null && storage < 1200) ||
+        (storage != null && storage < 1024) ||
         (cpuCores != null && cpuCores! <= 4);
   }
 
@@ -318,10 +318,10 @@ class ReceiptHardwareProfile {
 
   ReceiptDeviceStorageClass get storageClass {
     final mb = freeStorageMb;
-    if (mb == null || mb <= 0) return ReceiptDeviceStorageClass.unknown;
-    if (mb < 500) return ReceiptDeviceStorageClass.critical;
-    if (mb < 1500) return ReceiptDeviceStorageClass.low;
-    if (mb < 8192) return ReceiptDeviceStorageClass.comfortable;
+    if (mb == null) return ReceiptDeviceStorageClass.unknown;
+    if (mb <= 250) return ReceiptDeviceStorageClass.critical;
+    if (mb < 500) return ReceiptDeviceStorageClass.low;
+    if (mb < 1024) return ReceiptDeviceStorageClass.comfortable;
     return ReceiptDeviceStorageClass.roomy;
   }
 

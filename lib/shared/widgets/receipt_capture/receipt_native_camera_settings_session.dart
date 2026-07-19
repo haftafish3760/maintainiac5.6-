@@ -246,6 +246,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       previousSectionGhostOpacity: hasPreviousGuide
           ? _boundedNativeCameraFraction(previousSectionGhostOpacity)
           : null,
+      cameraStoragePolicy: deviceCapability.cameraStoragePolicy,
     );
   }
 }

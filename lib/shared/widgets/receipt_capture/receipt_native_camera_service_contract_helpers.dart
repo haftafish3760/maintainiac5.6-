@@ -111,6 +111,16 @@ Map<String, Object?> _sessionArguments(
     'storageSafetyLevel': config.storageSafetyLevel.name,
     'storageConstrained': config.storageConstrained,
     'storageSafetyReason': config.storageSafetyReason,
+    'cameraStorageBand': config.cameraStoragePolicy.band.name,
+    'cameraStoragePolicyCode': config.cameraStoragePolicy.policyCode,
+    'cameraStorageFreeMb': config.cameraStoragePolicy.freeStorageMb,
+    'cameraStorageBelowSupportedFloor':
+        config.cameraStoragePolicy.isBelowSupportedFloor,
+    'cameraStorageCloudReliefRecommended':
+        config.cameraStoragePolicy.cloudReliefRecommended,
+    'cameraStorageCompletionPolicy':
+        config.cameraStoragePolicy.completionPolicyCode,
+    'cameraStorageNeverBlocksCompletion': config.storageCanNeverBlockCompletion,
     'receiptBackupConnectionLabel': 'Backup account not connected',
     'receiptBackupQuotaBytes': 0,
     'receiptBackupUsedBytes': 0,

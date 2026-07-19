@@ -173,7 +173,7 @@ class _ReceiptCropOverlayPainter extends CustomPainter {
     );
     canvas.drawPath(
       Path.combine(PathOperation.difference, fullPath, cropPath),
-      Paint()..color = const Color(0x99000000),
+      Paint()..color = const Color(0x26000000),
     );
 
     canvas.drawRect(

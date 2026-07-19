@@ -192,7 +192,7 @@ void main() {
         availableRamMb: 12288,
         cpuCores: 8,
         androidPerformanceClass: 34,
-        freeStorageMb: 320,
+        freeStorageMb: 250,
         hasOnDeviceAcceleration: true,
       ),
       mode: ReceiptPerformanceMode.maximumPerformance,

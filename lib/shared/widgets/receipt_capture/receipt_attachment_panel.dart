@@ -10,6 +10,7 @@ import '../../navigation/app_page_routes.dart';
 import '../../state/expense_settings_store.dart';
 import '../receipt_form/receipt_form_panel.dart';
 import 'receipt_capture_flow.dart';
+import 'receipt_acquired_photo_staging.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_capture_diagnostics_policy.dart';
 import 'receipt_capture_settings_store.dart';

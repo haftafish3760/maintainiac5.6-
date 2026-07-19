@@ -38,6 +38,8 @@ _DataSaverProfile _profileFor(ReceiptDataSaverLevel level) {
 ReceiptPhotoQualityCheck _qualityCheck(img.Image source) {
   final sample = _resizeToMaxSide(source, 320);
   var totalDelta = 0.0;
+  var laplacianTotal = 0.0;
+  var laplacianCount = 0;
   var sum = 0.0;
   var sumSquares = 0.0;
   var centerInk = 0;
@@ -55,6 +57,14 @@ ReceiptPhotoQualityCheck _qualityCheck(img.Image source) {
       sumSquares += currentLuma * currentLuma;
       totalDelta += (currentLuma - _luma(left)).abs();
       totalDelta += (currentLuma - _luma(up)).abs();
+      if (x + 1 < sample.width && y + 1 < sample.height) {
+        final rightLuma = _luma(sample.getPixel(x + 1, y));
+        final downLuma = _luma(sample.getPixel(x, y + 1));
+        final laplacian =
+            (currentLuma * 4) - _luma(left) - rightLuma - _luma(up) - downLuma;
+        laplacianTotal += laplacian.abs();
+        laplacianCount++;
+      }
       if (currentLuma < 148) {
         rowDark++;
         final centered =
@@ -73,6 +83,9 @@ ReceiptPhotoQualityCheck _qualityCheck(img.Image source) {
     rowDarkCounts.add(rowDark);
   }
   final focusScore = count == 0 ? 0.0 : totalDelta / count;
+  final detailScore = laplacianCount == 0
+      ? 0.0
+      : laplacianTotal / laplacianCount;
   final sampleCount = (count / 2).round();
   final brightness = sampleCount == 0 ? 0.0 : sum / sampleCount;
   final variance = sampleCount == 0
@@ -80,8 +93,12 @@ ReceiptPhotoQualityCheck _qualityCheck(img.Image source) {
       : (sumSquares / sampleCount) - brightness * brightness;
   final contrast = variance <= 0 ? 0.0 : math.sqrt(variance);
   final inkTotal = centerInk + outerInk;
+  final inkCoverage = sampleCount == 0 ? 0.0 : inkTotal / sampleCount;
   final cropScore = inkTotal == 0 ? 0.0 : centerInk / inkTotal;
   final textBandScore = _textBandScore(rowDarkCounts);
+  final largestInteriorTextGapRatio = _largestInteriorTextGapRatio(
+    rowDarkCounts,
+  );
   final enoughResolution = source.width >= 900 && source.height >= 900;
   final readableLight = brightness >= 68 && brightness <= 224;
   final readableContrast = contrast >= 16;
@@ -101,24 +118,23 @@ ReceiptPhotoQualityCheck _qualityCheck(img.Image source) {
     width: source.width,
     height: source.height,
     focusScore: focusScore,
+    detailScore: detailScore,
     brightness: brightness,
     contrast: contrast,
     cropScore: cropScore,
     textBandScore: textBandScore,
+    largestInteriorTextGapRatio: largestInteriorTextGapRatio,
+    inkCoverage: inkCoverage,
     isLikelyReadable:
-        borderlineReadable || (readableCore && readableCrop && readableLines),
+        largestInteriorTextGapRatio < .22 &&
+        !(inkCoverage > .46 && textBandScore < 4) &&
+        (borderlineReadable || (readableCore && readableCrop && readableLines)),
   );
 }
 
 double _textBandScore(List<int> rowDarkCounts) {
   if (rowDarkCounts.isEmpty) return 0;
-  final sortedCounts = [...rowDarkCounts]..sort();
-  final strongRowSample =
-      sortedCounts[(sortedCounts.length * .90).floor().clamp(
-        0,
-        sortedCounts.length - 1,
-      )];
-  final threshold = math.max(4, (strongRowSample * .28).round());
+  final threshold = _textRowThreshold(rowDarkCounts);
   var bands = 0;
   var inBand = false;
   for (final darkCount in rowDarkCounts) {
@@ -127,6 +143,35 @@ double _textBandScore(List<int> rowDarkCounts) {
     inBand = hasText;
   }
   return bands.toDouble().clamp(0, 18);
+}
+
+int _textRowThreshold(List<int> rowDarkCounts) {
+  final sortedCounts = [...rowDarkCounts]..sort();
+  final strongRowSample =
+      sortedCounts[(sortedCounts.length * .90).floor().clamp(
+        0,
+        sortedCounts.length - 1,
+      )];
+  return math.max(4, (strongRowSample * .28).round());
+}
+
+double _largestInteriorTextGapRatio(List<int> rowDarkCounts) {
+  if (rowDarkCounts.length < 3) return 0;
+  final threshold = _textRowThreshold(rowDarkCounts);
+  final firstText = rowDarkCounts.indexWhere((count) => count >= threshold);
+  final lastText = rowDarkCounts.lastIndexWhere((count) => count >= threshold);
+  if (firstText < 0 || lastText <= firstText) return 0;
+  var longestGap = 0;
+  var currentGap = 0;
+  for (var index = firstText + 1; index < lastText; index++) {
+    if (rowDarkCounts[index] < threshold) {
+      currentGap++;
+      if (currentGap > longestGap) longestGap = currentGap;
+    } else {
+      currentGap = 0;
+    }
+  }
+  return longestGap / rowDarkCounts.length;
 }
 
 double _luma(img.Pixel pixel) {

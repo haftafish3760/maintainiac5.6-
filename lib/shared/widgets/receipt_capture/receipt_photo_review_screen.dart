@@ -9,6 +9,7 @@ import '../../backup/cloud_backup_status.dart';
 import '../../storage/app_storage_guard.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_assistance_policy.dart';
+import 'receipt_acquired_photo_staging.dart';
 import 'receipt_capture_settings_store.dart';
 import 'receipt_camera_permission.dart';
 import 'receipt_edge_cropper.dart';

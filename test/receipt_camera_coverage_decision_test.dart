@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
@@ -32,10 +30,7 @@ void main() {
     expect(decision.shouldPromptForMorePhotos, isFalse);
     expect(decision.shouldEmphasizeAddPhoto, isFalse);
     expect(decision.title, 'Check Receipt Edges');
-    expect(
-      decision.guidance,
-      contains('use this photo if nothing is missing'),
-    );
+    expect(decision.guidance, contains('use this photo if nothing is missing'));
   });
 
   test(
@@ -121,19 +116,7 @@ void main() {
   });
 
   test('native camera contract carries user control and OCR-first rules', () async {
-    final contract =
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_native_camera_contract.dart',
-        ).readAsString() +
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_native_camera_settings.dart',
-        ).readAsString() +
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_native_camera_settings_session.dart',
-        ).readAsString() +
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_native_camera_settings_policy.dart',
-        ).readAsString();
+    final contract = await readReceiptNativeCameraContractSource();
     final androidActivity = await readAndroidReceiptCameraUnit();
     final iosController = await readIosReceiptCameraUnit();
 
@@ -142,9 +125,9 @@ void main() {
     expect(contract, contains('tapFocusEnabled = false'));
     expect(contract, contains('pinchZoomEnabled = true'));
     expect(contract, contains('exposureSliderEnabled = true'));
-    expect(contract, contains('motionBlurWarningEnabled = false'));
-    expect(contract, contains('glareWarningEnabled = false'));
-    expect(contract, contains('shadowWarningEnabled = false'));
+    expect(contract, contains('motionBlurWarningEnabled = true'));
+    expect(contract, contains('glareWarningEnabled = true'));
+    expect(contract, contains('shadowWarningEnabled = true'));
     expect(contract, contains('edgeDetectionEnabled = true'));
     expect(contract, contains('previousSectionGhostGuideEnabled = true'));
     expect(contract, contains('ocrUsesOriginalFirst = true'));

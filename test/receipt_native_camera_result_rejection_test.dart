@@ -333,17 +333,12 @@ void main() {
       expect(source, isNot(contains("package:camera/camera.dart")));
       expect(source, contains('ReceiptNativeCameraService'));
       expect(source, contains('readCapabilities'));
+      expect(source, contains('supportsTapFocus: camera.supportsTapFocus'));
       expect(
         source,
-        contains('supportsTapFocus: nativeCamera.supportsTapFocus'),
+        contains('supportsContinuousFocus: camera.supportsContinuousFocus'),
       );
-      expect(
-        source,
-        contains(
-          'supportsContinuousFocus: nativeCamera.supportsContinuousFocus',
-        ),
-      );
-      expect(source, contains('supportsZoom: nativeCamera.supportsZoom'));
+      expect(source, contains('supportsZoom: camera.supportsZoom'));
       expect(
         source,
         contains('supportsYuvLiveFrames: nativeCamera.supportsYuvLiveFrames'),

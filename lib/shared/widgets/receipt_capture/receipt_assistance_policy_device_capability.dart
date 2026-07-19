@@ -22,6 +22,7 @@ class ReceiptDeviceCapability {
     required this.enableAdvancedConfidenceScoring,
     required this.recommendedDataSaverLevel,
     this.workloadTier = ReceiptCameraWorkloadTier.balanced,
+    this.freeStorageMb,
   });
 
   const ReceiptDeviceCapability.standard()
@@ -109,7 +110,8 @@ class ReceiptDeviceCapability {
     };
     return base
         .withWorkloadTier(hardware.cameraWorkloadTierFor(mode))
-        .withStoragePressure(hardware.storageClass);
+        .withStoragePressure(hardware.storageClass)
+        .withFreeStorageMb(hardware.freeStorageMb);
   }
 
   final String profileName;
@@ -132,6 +134,36 @@ class ReceiptDeviceCapability {
   final bool enableAdvancedConfidenceScoring;
   final ReceiptDataSaverLevel recommendedDataSaverLevel;
   final ReceiptCameraWorkloadTier workloadTier;
+  final int? freeStorageMb;
+
+  ReceiptCameraStoragePolicy get cameraStoragePolicy =>
+      ReceiptCameraStoragePolicy.forFreeStorageMb(freeStorageMb);
+
+  ReceiptDeviceCapability withFreeStorageMb(int? value) {
+    return ReceiptDeviceCapability(
+      profileName: profileName,
+      tier: tier,
+      parserDepth: parserDepth,
+      maxLocalPdfBytes: maxLocalPdfBytes,
+      maxLocalPdfPages: maxLocalPdfPages,
+      maxLocalPhotoBytes: maxLocalPhotoBytes,
+      maxLocalPhotoCount: maxLocalPhotoCount,
+      cameraResolutionTier: cameraResolutionTier,
+      assistedCameraShotCount: assistedCameraShotCount,
+      bestShotCandidateCount: bestShotCandidateCount,
+      liveAnalysisGapMs: liveAnalysisGapMs,
+      readyHoldMs: readyHoldMs,
+      maxLocalCatalogMatches: maxLocalCatalogMatches,
+      maxLocalInventoryCacheItems: maxLocalInventoryCacheItems,
+      enableSkuDetection: enableSkuDetection,
+      enableTradeClassification: enableTradeClassification,
+      enableReturnDetection: enableReturnDetection,
+      enableAdvancedConfidenceScoring: enableAdvancedConfidenceScoring,
+      recommendedDataSaverLevel: recommendedDataSaverLevel,
+      workloadTier: workloadTier,
+      freeStorageMb: value,
+    );
+  }
 
   ReceiptDeviceCapability withWorkloadTier(ReceiptCameraWorkloadTier value) {
     return ReceiptDeviceCapability(
@@ -155,6 +187,7 @@ class ReceiptDeviceCapability {
       enableAdvancedConfidenceScoring: enableAdvancedConfidenceScoring,
       recommendedDataSaverLevel: recommendedDataSaverLevel,
       workloadTier: value,
+      freeStorageMb: freeStorageMb,
     );
   }
 
@@ -183,6 +216,7 @@ class ReceiptDeviceCapability {
         enableAdvancedConfidenceScoring: false,
         recommendedDataSaverLevel: ReceiptDataSaverLevel.maximum,
         workloadTier: ReceiptCameraWorkloadTier.light,
+        freeStorageMb: freeStorageMb,
       );
     }
     if (storageClass == ReceiptDeviceStorageClass.low) {
@@ -212,6 +246,7 @@ class ReceiptDeviceCapability {
         enableAdvancedConfidenceScoring: false,
         recommendedDataSaverLevel: ReceiptDataSaverLevel.strong,
         workloadTier: ReceiptCameraWorkloadTier.entry,
+        freeStorageMb: freeStorageMb,
       );
     }
     final recommended = recommendedDataSaverLevel;
@@ -236,6 +271,7 @@ class ReceiptDeviceCapability {
       enableAdvancedConfidenceScoring: enableAdvancedConfidenceScoring,
       recommendedDataSaverLevel: recommended,
       workloadTier: workloadTier,
+      freeStorageMb: freeStorageMb,
     );
   }
 }

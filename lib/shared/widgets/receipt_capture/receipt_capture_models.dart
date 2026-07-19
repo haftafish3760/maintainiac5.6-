@@ -30,6 +30,7 @@ part 'receipt_capture_stitch_model_helpers.dart';
 part 'receipt_camera_result_models.dart';
 part 'receipt_camera_result_diagnostics.dart';
 part 'receipt_photo_quality_models.dart';
+part 'receipt_capture_readiness_decision.dart';
 part 'receipt_native_saved_photo_warning.dart';
 part 'receipt_native_saved_photo_warning_details.dart';
 part 'receipt_photo_coverage_decision.dart';

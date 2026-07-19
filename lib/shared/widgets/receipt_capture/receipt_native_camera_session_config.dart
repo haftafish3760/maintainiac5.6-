@@ -66,6 +66,7 @@ class ReceiptNativeCameraSessionConfig {
     this.previousSectionGhostOverlayTopFraction,
     this.previousSectionGhostOverlayHeightFraction,
     this.previousSectionGhostOpacity,
+    this.cameraStoragePolicy = const ReceiptCameraStoragePolicy.unknown(),
   });
 
   final ReceiptNativeCameraSettings settings;
@@ -132,6 +133,10 @@ class ReceiptNativeCameraSessionConfig {
   final double? previousSectionGhostOverlayTopFraction;
   final double? previousSectionGhostOverlayHeightFraction;
   final double? previousSectionGhostOpacity;
+  final ReceiptCameraStoragePolicy cameraStoragePolicy;
+
+  bool get storageCanNeverBlockCompletion =>
+      cameraStoragePolicy.captureCompletionAllowed;
 
   bool get hasNextSectionGuide =>
       nextSectionGuidePhotoPath != null &&

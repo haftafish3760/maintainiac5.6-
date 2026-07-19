@@ -12,6 +12,7 @@ part 'receipt_assistance_policy_install_strategy.dart';
 part 'receipt_assistance_policy_device_profile.dart';
 part 'receipt_assistance_policy_decision.dart';
 part 'receipt_assistance_policy_cloud_plan.dart';
+part 'receipt_camera_storage_policy.dart';
 part 'receipt_assistance_policy_hardware_profile.dart';
 part 'receipt_assistance_policy_hardware_labels.dart';
 part 'receipt_assistance_policy_device_capability.dart';

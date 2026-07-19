@@ -170,6 +170,121 @@ void main() {
     },
   );
 
+  test(
+    'quality check catches a large washed-out interior receipt region',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('receipt_glare_gap_');
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+      final cleanImage = receiptLikeImage();
+      final washedImage = img.copyResize(cleanImage, width: cleanImage.width);
+      img.fillRect(
+        washedImage,
+        x1: 40,
+        y1: 620,
+        x2: washedImage.width - 40,
+        y2: 1120,
+        color: img.ColorRgb8(255, 255, 255),
+      );
+      final clean = await writeReceiptFixtureImage(
+        dir,
+        'clean.jpg',
+        cleanImage,
+      );
+      final washed = await writeReceiptFixtureImage(
+        dir,
+        'washed.jpg',
+        washedImage,
+      );
+
+      final cleanQuality = await ReceiptImageProcessor.qualityCheckFile(
+        clean.path,
+      );
+      final washedQuality = await ReceiptImageProcessor.qualityCheckFile(
+        washed.path,
+      );
+
+      expect(cleanQuality.isLargeInteriorTextGap, isFalse);
+      expect(washedQuality.isLargeInteriorTextGap, isTrue);
+      expect(washedQuality.isSevereInteriorTextGap, isTrue);
+      expect(washedQuality.needsReview, isTrue);
+      expect(washedQuality.reviewScore, lessThan(cleanQuality.reviewScore));
+      expect(washedQuality.reviewGuidance, contains('glare'));
+    },
+  );
+
+  test(
+    'quality check distinguishes focused receipt text from optical blur',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('receipt_focus_');
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+      final focusedImage = receiptLikeImage();
+      final blurredImage = img.gaussianBlur(
+        img.copyResize(focusedImage, width: focusedImage.width),
+        radius: 9,
+      );
+      final focused = await writeReceiptFixtureImage(
+        dir,
+        'focused.jpg',
+        focusedImage,
+      );
+      final blurred = await writeReceiptFixtureImage(
+        dir,
+        'blurred.jpg',
+        blurredImage,
+      );
+
+      final focusedQuality = await ReceiptImageProcessor.qualityCheckFile(
+        focused.path,
+      );
+      final blurredQuality = await ReceiptImageProcessor.qualityCheckFile(
+        blurred.path,
+      );
+
+      expect(focusedQuality.detailScore, isNotNull);
+      expect(blurredQuality.detailScore, isNotNull);
+      expect(
+        focusedQuality.detailScore!,
+        greaterThan(blurredQuality.detailScore! * 1.8),
+      );
+      expect(focusedQuality.isSoft, isFalse);
+      expect(
+        blurredQuality.isSoft,
+        isTrue,
+        reason:
+            'focused detail=${focusedQuality.detailScore}, blurred detail=${blurredQuality.detailScore}',
+      );
+      expect(blurredQuality.needsReview, isTrue);
+      expect(blurredQuality.reviewScore, lessThan(focusedQuality.reviewScore));
+    },
+  );
+
+  test('quality check rejects sharp random texture as receipt text', () async {
+    final dir = await Directory.systemTemp.createTemp('receipt_noise_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+    final noise = img.Image(width: 1000, height: 1400);
+    for (final pixel in noise) {
+      final value = (pixel.x * 73 + pixel.y * 151 + pixel.x * pixel.y) & 0xff;
+      pixel
+        ..r = value
+        ..g = (value * 17) & 0xff
+        ..b = (value * 31) & 0xff;
+    }
+    final file = await writeReceiptFixtureImage(dir, 'noise.jpg', noise);
+    final quality = await ReceiptImageProcessor.qualityCheckFile(file.path);
+
+    expect(quality.focusScore, greaterThan(10));
+    expect(quality.isChaoticTexture, isTrue);
+    expect(quality.isLikelyReadable, isFalse);
+    expect(quality.shouldRetakeBeforeOcr, isTrue);
+    expect(quality.reviewGuidance, contains('receipt lines'));
+  });
+
   test('saved-copy preview quality is measured from the saved copy', () async {
     final dir = await Directory.systemTemp.createTemp('receipt_preview_copy_');
     addTearDown(() async {

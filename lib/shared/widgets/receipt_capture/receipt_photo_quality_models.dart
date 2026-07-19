@@ -31,38 +31,56 @@ class ReceiptPhotoQualityCheck {
     required this.height,
     required this.focusScore,
     required this.isLikelyReadable,
+    this.detailScore,
     this.brightness = 128,
     this.contrast = 28,
     this.cropScore = .72,
     this.textBandScore = 12,
+    this.largestInteriorTextGapRatio = 0,
+    this.inkCoverage = .18,
   });
 
   final int width;
   final int height;
   final double focusScore;
+  final double? detailScore;
   final bool isLikelyReadable;
   final double brightness;
   final double contrast;
   final double cropScore;
   final double textBandScore;
+  final double largestInteriorTextGapRatio;
+  final double inkCoverage;
 
   String get resolutionLabel => '${width}x$height';
   int get reviewScore {
     if (width <= 0 || height <= 0) return 0;
-    final focusPoints = (_safeFocusScore / 18 * 42).clamp(0, 42).round();
+    final detailLimitedFocus = _safeDetailScore * 1.35;
+    final combinedFocus = _safeFocusScore < detailLimitedFocus
+        ? _safeFocusScore
+        : detailLimitedFocus;
+    final focusPoints = (combinedFocus / 18 * 42).clamp(0, 42).round();
     final shortestSide = width < height ? width : height;
     final resolutionPoints = (shortestSide / 1600 * 22).clamp(0, 22).round();
     final contrastPoints = (_safeContrast / 34 * 16).clamp(0, 16).round();
     final cropPoints = (_safeCropScore * 12).clamp(0, 12).round();
     final textPoints = (_safeTextBandScore / 12 * 8).clamp(0, 8).round();
     final lightPenalty = isTooDark || isTooBright ? 18 : 0;
+    final missingRegionPenalty = isSevereInteriorTextGap
+        ? 24
+        : isLargeInteriorTextGap
+        ? 12
+        : 0;
+    final texturePenalty = isChaoticTexture ? 24 : 0;
     final rawScore =
         (focusPoints +
                 resolutionPoints +
                 contrastPoints +
                 cropPoints +
                 textPoints -
-                lightPenalty)
+                lightPenalty -
+                missingRegionPenalty -
+                texturePenalty)
             .clamp(0, 100)
             .toInt();
     if (isLikelyReadable && !isTooDark && !isTooBright && !isVerySoft) {
@@ -79,12 +97,22 @@ class ReceiptPhotoQualityCheck {
   bool get isLowContrast => _safeContrast < 16;
   bool get isPoorlyFramed => _safeCropScore < .30;
   bool get isMissingTextBands => _safeTextBandScore < 6;
+  bool get isLargeInteriorTextGap => _safeInteriorTextGapRatio >= .10;
+  bool get isSevereInteriorTextGap => _safeInteriorTextGapRatio >= .22;
+  bool get isChaoticTexture => _safeInkCoverage > .46 && _safeTextBandScore < 4;
   bool get isLowResolution => width < 900 || height < 900;
-  bool get isSoft => _safeFocusScore < 8;
-  bool get isVerySoft => _safeFocusScore < 5.5;
+  bool get isSoft =>
+      _safeFocusScore < 8 || (detailScore != null && _safeDetailScore < 20);
+  bool get isVerySoft =>
+      _safeFocusScore < 5.5 || (detailScore != null && _safeDetailScore < 9);
   bool get isUnreadableImage => width <= 0 || height <= 0;
   bool get hasCriticalIssue =>
-      isUnreadableImage || isTooDark || isTooBright || isVerySoft;
+      isUnreadableImage ||
+      isTooDark ||
+      isTooBright ||
+      isVerySoft ||
+      isSevereInteriorTextGap ||
+      isChaoticTexture;
   bool get isReadableScore => reviewScore >= 70;
   bool get isExcellentScore => reviewScore >= 85;
   double get brightnessDistanceFromReceiptIdeal =>
@@ -116,7 +144,9 @@ class ReceiptPhotoQualityCheck {
   }
 
   String get nextReviewActionLabel {
-    if (shouldRetakeBeforeOcr) return 'Retake recommended; use the photo only if the text is readable';
+    if (shouldRetakeBeforeOcr) {
+      return 'Retake recommended; use the photo only if the text is readable';
+    }
     if (reviewActionCode == 'crop_or_retake_then_next') {
       return 'Crop or retake if text is missing; use the photo only if the text is readable';
     }
@@ -194,6 +224,8 @@ class ReceiptPhotoQualityCheck {
     if (isUnderexposedForReceipt) return 'could be brighter';
     if (isLowResolution) return 'move closer';
     if (isLowContrast) return 'low contrast';
+    if (isChaoticTexture) return 'image does not look like receipt text';
+    if (isLargeInteriorTextGap) return 'receipt text missing in one area';
     if (isPoorlyFramed) return 'check that no text is cut off';
     if (isMissingTextBands) return 'printed lines are weak';
     return 'looks readable';
@@ -234,6 +266,12 @@ class ReceiptPhotoQualityCheck {
     if (isLowContrast) {
       return 'Check that the printed text stands out from the paper before continuing.';
     }
+    if (isChaoticTexture) {
+      return 'The image has sharp texture but not clear receipt lines. Retake with the receipt filling the frame.';
+    }
+    if (isLargeInteriorTextGap) {
+      return 'A section of the receipt has little readable text. Check for glare, a shadow, a fold, or missing lines and retake or add a closer photo if needed.';
+    }
     if (isPoorlyFramed) {
       return 'If every line of the receipt is visible, use this photo. Use crop or retake only if part of the receipt is missing.';
     }
@@ -262,16 +300,31 @@ class ReceiptPhotoQualityCheck {
         'Photo sharpness should be checked.',
       if (isLowResolution) 'Receipt resolution is low.',
       if (isLowContrast) 'Printed text has low contrast.',
+      if (isChaoticTexture)
+        'Sharp texture was detected without normal receipt-line structure.',
+      if (isLargeInteriorTextGap)
+        'A large section between printed receipt lines may be washed out or obstructed.',
       if (isPoorlyFramed) 'Check that every receipt line is visible.',
       if (isMissingTextBands) 'Receipt text lines are hard to detect.',
     ];
   }
 
   double get _safeFocusScore => focusScore.isFinite ? focusScore : 0;
+  double get _safeDetailScore {
+    final value = detailScore;
+    if (value == null) return _safeFocusScore;
+    return value.isFinite ? value : 0;
+  }
+
   double get _safeBrightness => brightness.isFinite ? brightness : 0;
   double get _safeContrast => contrast.isFinite ? contrast : 0;
   double get _safeCropScore => cropScore.isFinite ? cropScore : 0;
   double get _safeTextBandScore => textBandScore.isFinite ? textBandScore : 0;
+  double get _safeInteriorTextGapRatio => largestInteriorTextGapRatio.isFinite
+      ? largestInteriorTextGapRatio.clamp(0, 1)
+      : 1;
+  double get _safeInkCoverage =>
+      inkCoverage.isFinite ? inkCoverage.clamp(0, 1) : 1;
 
   ReceiptCaptureReadinessDecision captureReadiness({
     required bool autoCaptureEnabled,
@@ -285,124 +338,6 @@ class ReceiptPhotoQualityCheck {
       requiredStableFrames: requiredStableFrames,
     );
   }
-}
-
-class ReceiptCaptureReadinessDecision {
-  const ReceiptCaptureReadinessDecision({
-    required this.code,
-    required this.label,
-    required this.manualCaptureAllowed,
-    required this.autoCaptureAllowed,
-    required this.autoCaptureEnabled,
-    required this.stableFrameCount,
-    required this.requiredStableFrames,
-  });
-
-  factory ReceiptCaptureReadinessDecision.fromQuality(
-    ReceiptPhotoQualityCheck quality, {
-    required bool autoCaptureEnabled,
-    int stableFrameCount = 0,
-    int requiredStableFrames = 3,
-  }) {
-    final safeRequiredFrames = requiredStableFrames < 1
-        ? 1
-        : requiredStableFrames;
-    final safeStableFrames = stableFrameCount < 0 ? 0 : stableFrameCount;
-
-    if (quality.isUnreadableImage) {
-      return ReceiptCaptureReadinessDecision(
-        code: 'manual_only_unreadable_image',
-        label: 'Take a new photo when the receipt is visible.',
-        manualCaptureAllowed: true,
-        autoCaptureAllowed: false,
-        autoCaptureEnabled: autoCaptureEnabled,
-        stableFrameCount: safeStableFrames,
-        requiredStableFrames: safeRequiredFrames,
-      );
-    }
-    if (!autoCaptureEnabled) {
-      return ReceiptCaptureReadinessDecision(
-        code: 'manual_ready_auto_capture_off',
-        label: 'Manual capture is ready. Auto capture is off.',
-        manualCaptureAllowed: true,
-        autoCaptureAllowed: false,
-        autoCaptureEnabled: false,
-        stableFrameCount: safeStableFrames,
-        requiredStableFrames: safeRequiredFrames,
-      );
-    }
-    if (quality.hasCriticalIssue) {
-      return ReceiptCaptureReadinessDecision(
-        code: 'manual_only_quality_retake_recommended',
-        label: quality.reviewGuidance,
-        manualCaptureAllowed: true,
-        autoCaptureAllowed: false,
-        autoCaptureEnabled: true,
-        stableFrameCount: safeStableFrames,
-        requiredStableFrames: safeRequiredFrames,
-      );
-    }
-    if (quality.isPoorlyFramed || quality.isMissingTextBands) {
-      return ReceiptCaptureReadinessDecision(
-        code: 'manual_only_check_framing',
-        label: 'Check that every receipt line is visible before auto capture.',
-        manualCaptureAllowed: true,
-        autoCaptureAllowed: false,
-        autoCaptureEnabled: true,
-        stableFrameCount: safeStableFrames,
-        requiredStableFrames: safeRequiredFrames,
-      );
-    }
-    if (quality.needsReview) {
-      return ReceiptCaptureReadinessDecision(
-        code: 'manual_only_quality_review',
-        label: 'Check receipt sharpness, light, and text before auto capture.',
-        manualCaptureAllowed: true,
-        autoCaptureAllowed: false,
-        autoCaptureEnabled: true,
-        stableFrameCount: safeStableFrames,
-        requiredStableFrames: safeRequiredFrames,
-      );
-    }
-    if (safeStableFrames < safeRequiredFrames) {
-      return ReceiptCaptureReadinessDecision(
-        code: 'auto_capture_waiting_for_stability',
-        label: 'Hold steady for automatic capture.',
-        manualCaptureAllowed: true,
-        autoCaptureAllowed: false,
-        autoCaptureEnabled: true,
-        stableFrameCount: safeStableFrames,
-        requiredStableFrames: safeRequiredFrames,
-      );
-    }
-    return ReceiptCaptureReadinessDecision(
-      code: 'auto_capture_ready',
-      label: 'Receipt looks steady. Taking photo.',
-      manualCaptureAllowed: true,
-      autoCaptureAllowed: true,
-      autoCaptureEnabled: true,
-      stableFrameCount: safeStableFrames,
-      requiredStableFrames: safeRequiredFrames,
-    );
-  }
-
-  final String code;
-  final String label;
-  final bool manualCaptureAllowed;
-  final bool autoCaptureAllowed;
-  final bool autoCaptureEnabled;
-  final int stableFrameCount;
-  final int requiredStableFrames;
-
-  Map<String, Object?> get diagnostics => {
-    ReceiptCaptureDiagnosticKeys.captureReadinessCode: code,
-    ReceiptCaptureDiagnosticKeys.captureReadinessLabel: label,
-    ReceiptCaptureDiagnosticKeys.manualCaptureAllowed: manualCaptureAllowed,
-    ReceiptCaptureDiagnosticKeys.autoCaptureAllowed: autoCaptureAllowed,
-    ReceiptCaptureDiagnosticKeys.autoCaptureEnabled: autoCaptureEnabled,
-    ReceiptCaptureDiagnosticKeys.stableFrameCount: stableFrameCount,
-    ReceiptCaptureDiagnosticKeys.requiredStableFrames: requiredStableFrames,
-  };
 }
 
 enum ReceiptNativeSavedPhotoWarningSeverity { notice, warning, critical }
