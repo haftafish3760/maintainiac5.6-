@@ -905,7 +905,7 @@ void main() {
     expect(engine.motionState, TripMotionState.moving);
   });
 
-  test('vehicle-only fallback needs clean driving and full profile dwell', () {
+  test('vehicle-only fallback rejects interrupted GPS evidence', () {
     final engine = TripTrackingEngine(
       profile: TripTrackingProfile.rideshareVehicle,
     );
@@ -931,8 +931,43 @@ void main() {
       engine.ingest(sample(-79.9980, seconds, speedMetersPerSecond: .2));
     }
 
-    expect(engine.motionState, TripMotionState.stopCandidate);
+    expect(engine.motionState, TripMotionState.unknown);
     expect(engine.needsWalkingReview, isFalse);
+  });
+
+  test('a GPS outage cannot bridge an old vehicle-only wait into a stop', () {
+    final engine = TripTrackingEngine(
+      profile: TripTrackingProfile.rideshareVehicle,
+    );
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    for (final entry in const [
+      (0, -80.0),
+      (15, -79.9995),
+      (30, -79.9990),
+      (45, -79.9985),
+      (60, -79.9980),
+    ]) {
+      engine.ingest(
+        sample(entry.$2, entry.$1, speedMetersPerSecond: 3),
+        activity: entry.$1 == 0 ? automotive : null,
+      );
+    }
+    engine.ingest(sample(-79.9980, 90, speedMetersPerSecond: .2));
+    final outage = engine.ingest(
+      sample(-79.9980, 300, speedMetersPerSecond: .2),
+    );
+    engine.ingest(sample(-79.9980, 390, speedMetersPerSecond: .2));
+
+    expect(outage.disposition, TripSampleDisposition.rejectedGap);
+    expect(
+      engine.snapshot.stationaryStartedAt,
+      start.add(const Duration(seconds: 390)),
+    );
+    expect(engine.motionState, isNot(TripMotionState.stopCandidate));
   });
 
   test('stationary GPS conflicts cannot invent a vehicle-only stop candidate', () {

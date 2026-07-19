@@ -383,6 +383,18 @@ class TripTrackingEngine {
       return;
     }
 
+    // A provider outage breaks the continuity required for automatic stop
+    // assistance. Keep recorded distance intact, but discard any in-progress
+    // stationary or walking window so a later fix cannot bridge the outage
+    // into a fabricated stop.
+    if (disposition == TripSampleDisposition.rejectedGap) {
+      _stationaryStartedAt = null;
+      _walkingEvidence.clear();
+      _walkingReviewSuggested = false;
+      _motionState = TripMotionState.unknown;
+      return;
+    }
+
     if ((disposition == TripSampleDisposition.rejectedDrift ||
             stationaryConflict) &&
         _vehicleMovementObserved) {
