@@ -596,13 +596,46 @@ void main() {
           'intervalSeconds': 2,
           'minimumDisplacementMeters': 1,
         },
+        'adaptiveSamplingEnabled': true,
       });
 
       expect(session.hasValidTimeline, isTrue);
       expect(session.nativeSampling, isNull);
       expect(session.samplingCeiling, isNull);
+      expect(session.adaptiveSamplingEnabled, isFalse);
     },
   );
+
+  test('recovery clamps a persisted native cadence to its user ceiling', () {
+    final session = TripTrackingSessionRecord.fromMap({
+      'id': 'trip_sampling_ceiling',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 14, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 14, 12, 1).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+      'nativeSampling': {
+        'mode': TripSamplingMode.precision.name,
+        'intervalSeconds': 2,
+        'minimumDisplacementMeters': 3,
+      },
+      'samplingCeiling': {
+        'mode': TripSamplingMode.economy.name,
+        'intervalSeconds': 30,
+        'minimumDisplacementMeters': 20,
+      },
+      'adaptiveSamplingEnabled': true,
+    });
+
+    expect(session.nativeSampling?.mode, TripSamplingMode.economy);
+    expect(session.nativeSampling?.interval, const Duration(seconds: 30));
+    expect(session.nativeSampling?.minimumDisplacementMeters, 20);
+    expect(session.adaptiveSamplingEnabled, isTrue);
+  });
 
   test('unknown persisted active trip lifecycle fields are not trusted', () {
     final session = TripTrackingSessionRecord.fromMap({

@@ -167,6 +167,11 @@ class TripTrackingSessionRecord {
     );
     final safeStartedAt =
         startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final samplingCeiling = _samplingFromMap(map['samplingCeiling']);
+    final nativeSampling = _recoveredNativeSampling(
+      nativeSampling: _samplingFromMap(map['nativeSampling']),
+      samplingCeiling: samplingCeiling,
+    );
     return TripTrackingSessionRecord(
       id: safeId,
       vehicleId: safeVehicleId,
@@ -198,9 +203,12 @@ class TripTrackingSessionRecord {
       ),
       backgroundTrackingAllowed: map['backgroundTrackingAllowed'] == true,
       activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
-      nativeSampling: _samplingFromMap(map['nativeSampling']),
-      samplingCeiling: _samplingFromMap(map['samplingCeiling']),
-      adaptiveSamplingEnabled: map['adaptiveSamplingEnabled'] == true,
+      nativeSampling: nativeSampling,
+      samplingCeiling: samplingCeiling,
+      // A missing or malformed ceiling must not let a recovered collector
+      // increase its native request beyond an unknown prior user preference.
+      adaptiveSamplingEnabled:
+          map['adaptiveSamplingEnabled'] == true && samplingCeiling != null,
       lowBatteryProtectionEnabled: map['lowBatteryProtectionEnabled'] != false,
       lowBatteryOverrideEnabled: map['lowBatteryOverrideEnabled'] == true,
       lowBatteryWarningDismissed: map['lowBatteryWarningDismissed'] == true,
@@ -261,6 +269,33 @@ TripSamplingRecommendation? _samplingFromMap(Object? value) {
     minimumDisplacementMeters: displacement.toDouble(),
   );
 }
+
+TripSamplingRecommendation? _recoveredNativeSampling({
+  required TripSamplingRecommendation? nativeSampling,
+  required TripSamplingRecommendation? samplingCeiling,
+}) {
+  if (samplingCeiling == null) return nativeSampling;
+  if (nativeSampling == null ||
+      _isMoreAggressiveThan(nativeSampling, samplingCeiling)) {
+    return samplingCeiling;
+  }
+  return nativeSampling;
+}
+
+bool _isMoreAggressiveThan(
+  TripSamplingRecommendation candidate,
+  TripSamplingRecommendation ceiling,
+) =>
+    candidate.interval < ceiling.interval ||
+    candidate.minimumDisplacementMeters < ceiling.minimumDisplacementMeters ||
+    _samplingAggressiveness(candidate.mode) >
+        _samplingAggressiveness(ceiling.mode);
+
+int _samplingAggressiveness(TripSamplingMode mode) => switch (mode) {
+  TripSamplingMode.precision => 3,
+  TripSamplingMode.balanced => 2,
+  TripSamplingMode.economy => 1,
+};
 
 Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
   Iterable<TripTrackingAdvisoryEvent> advisories,
