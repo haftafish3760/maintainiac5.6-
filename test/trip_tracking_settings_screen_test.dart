@@ -50,6 +50,10 @@ void main() {
     expect(find.text('Profile-specific stop detection'), findsOneWidget);
     expect(find.text('Odometer anomaly alerts'), findsOneWidget);
     expect(find.text('Odometer calibration assist'), findsOneWidget);
+    expect(
+      find.textContaining('review and accept current local evidence'),
+      findsNothing,
+    );
     expect(find.text('Protect GPS below 20% battery'), findsOneWidget);
     expect(find.text('Allow GPS below 20% battery'), findsOneWidget);
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
@@ -189,6 +193,10 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isTrue);
+    expect(
+      find.textContaining('review and accept current local evidence'),
+      findsOneWidget,
+    );
     expect(find.text('Back up reviewed mileage'), findsOneWidget);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
     expect(find.text('Firebase backup account'), findsNothing);

@@ -272,7 +272,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           _switch(
             title: 'Odometer calibration assist',
             detail: settings.odometerAnomalyAlertsEnabled
-                ? 'Separate opt-in. Uses reviewed patterns to tune future GPS estimates only; it cannot change confirmed odometer records.'
+                ? 'Separate opt-in. It remains neutral until you review and accept current local evidence; then it affects future GPS estimates only, never confirmed odometer records.'
                 : 'Enable odometer anomaly alerts first. Calibration assist stays off until you opt in.',
             value: settings.gpsOdometerCalibrationAssistEnabled,
             onChanged: settings.odometerAnomalyAlertsEnabled
