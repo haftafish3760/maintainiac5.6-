@@ -15,12 +15,18 @@ void main() {
         'DeviceCapabilityScope.refreshForHeavyWork(context)',
         start,
       );
+      final gpsEnabledCheck = source.indexOf(
+        'if (!settings.gpsAssistedTrackingEnabled)',
+        start,
+      );
       final nativeStart = source.indexOf(
         'tripTracking.startNativeTracking(',
         start,
       );
 
       expect(start, greaterThanOrEqualTo(0));
+      expect(gpsEnabledCheck, greaterThan(start));
+      expect(refresh, greaterThan(gpsEnabledCheck));
       expect(refresh, greaterThan(start));
       expect(nativeStart, greaterThan(refresh));
     },

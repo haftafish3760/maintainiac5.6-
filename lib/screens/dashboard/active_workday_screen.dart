@@ -407,11 +407,6 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   }
 
   Future<void> _startGpsTripImpl() async {
-    // GPS is heavy work. Refresh the shared runtime profile first so the
-    // dashboard and guidance use current battery, thermal, and storage facts
-    // without inferring permission or silently changing the driver's preset.
-    await DeviceCapabilityScope.refreshForHeavyWork(context);
-    if (!mounted) return;
     final settingsController = TripTrackingSettingsScope.maybeOf(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (settingsController == null || tripTracking == null) return;
@@ -438,6 +433,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       );
       return;
     }
+    // GPS is heavy work. Refresh the shared runtime profile only after the
+    // driver has actually opted in, so a disabled setting never wakes the
+    // capability probe. This refresh informs dashboard guidance; it neither
+    // grants permission nor silently changes the selected sampling preset.
+    await DeviceCapabilityScope.refreshForHeavyWork(context);
+    if (!mounted) return;
     var startedNewTrip = false;
     if (!tripTracking.isTracking) {
       startedNewTrip = await tripTracking.start(
