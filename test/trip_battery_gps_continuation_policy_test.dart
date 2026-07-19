@@ -72,7 +72,9 @@ void main() {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
       lifecycle: TripTrackingSessionLifecycleState.recovering,
       localSessionAvailable: true,
-      batteryDecision: battery(percent: 5, override: true),
+      // A driver override may continue below the configured 20% safeguard,
+      // but never below the hard emergency reserve.
+      batteryDecision: battery(percent: 15, override: true),
     );
 
     expect(decision.status, TripBatteryGpsContinuationStatus.continueGps);
