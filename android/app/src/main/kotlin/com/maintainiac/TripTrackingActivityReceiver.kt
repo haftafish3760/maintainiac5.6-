@@ -10,9 +10,8 @@ import com.google.android.gms.location.DetectedActivity
 class TripTrackingActivityReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (!ActivityRecognitionResult.hasResult(intent)) return
-        val activity = ActivityRecognitionResult.extractResult(intent)
-            ?.mostProbableActivity
-            ?: return
+        val result = ActivityRecognitionResult.extractResult(intent) ?: return
+        val activity = result.mostProbableActivity ?: return
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "activity",
@@ -25,7 +24,10 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
                     else -> "unknown"
                 },
                 "confidence" to activity.confidence,
-                "recordedAt" to System.currentTimeMillis(),
+                // The broadcast can be delayed. Preserve Play Services'
+                // observation time so stale walking evidence cannot be
+                // presented to Dart as a fresh delivery or job-site stop.
+                "recordedAt" to result.time,
             ),
         )
     }

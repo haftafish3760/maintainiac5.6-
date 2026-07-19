@@ -7,7 +7,9 @@ if [ "$#" -eq 0 ]; then
 fi
 
 log_file="${TMPDIR:-/tmp}/maintainiac_trip_qa_$(date +%s).log"
-if [ "$1" = "--analyze" ]; then
+if [ "$1" = "--android-debug" ]; then
+  command=(flutter build apk --debug)
+elif [ "$1" = "--analyze" ]; then
   shift
   command=(flutter analyze "$@")
 else
