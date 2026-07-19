@@ -97,6 +97,7 @@ class TripTrackingRecoveryPolicy {
     required int currentConfirmedOdometer,
     TripTrackingReviewRecord? review,
     TripTrackingPendingSample? pendingSample,
+    DateTime? nowUtc,
   }) {
     if (session == null) {
       return _decision(
@@ -104,7 +105,13 @@ class TripTrackingRecoveryPolicy {
         'trip_recovery_none',
       );
     }
+    final trustedNowUtc = (nowUtc ?? DateTime.now()).toUtc();
+    final maximumFutureTimestamp = trustedNowUtc.add(
+      const Duration(minutes: 5),
+    );
     if (!session.hasValidTimeline ||
+        session.startedAt.toUtc().isAfter(maximumFutureTimestamp) ||
+        session.updatedAt.toUtc().isAfter(maximumFutureTimestamp) ||
         !_isRecoverableLifecycleState(session.lifecycleState)) {
       return _decision(
         TripTrackingRecoveryStatus.invalidSession,
@@ -212,7 +219,9 @@ bool _hasRecoverablePendingSample({
 }) {
   final pending = pendingSample;
   if (pending == null || pending.sessionId != session.id) return false;
-  if (!pending.sample.hasValidCoordinate || !pending.sample.hasValidAccuracy) {
+  if (!pending.sample.hasValidCoordinate ||
+      !pending.sample.hasValidAccuracy ||
+      !pending.sample.hasValidReportedSpeed) {
     return false;
   }
   if (pending.sample.mockedLocation == true) return false;

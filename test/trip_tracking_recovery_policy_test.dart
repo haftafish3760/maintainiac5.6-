@@ -165,12 +165,23 @@ void main() {
         mockedLocation: true,
       ),
     );
+    final invalidSpeedReplay = TripTrackingPendingSample(
+      sessionId: 'trip_recovery_1',
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: startedAt.add(const Duration(minutes: 1)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 71,
+      ),
+    );
 
     for (final pending in [
       impossibleCoordinate,
       staleSensorEvidence,
       futureReplay,
       mockedReplay,
+      invalidSpeedReplay,
     ]) {
       final decision = TripTrackingRecoveryPolicy.evaluate(
         session: session(),
@@ -216,6 +227,30 @@ void main() {
       TripTrackingRecoveryStatus.invalidReviewPresent,
     );
     expect(invalidReview.requiresUserAction, isTrue);
+  });
+
+  test('future-dated recovery checkpoints fail closed', () {
+    final decision = TripTrackingRecoveryPolicy.evaluate(
+      session: TripTrackingSessionRecord(
+        id: 'trip_recovery_1',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: DateTime.utc(2026, 7, 18, 10),
+        updatedAt: DateTime.utc(2026, 7, 18, 10, 5),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ),
+      ),
+      currentVehicleId: 'vehicle_1',
+      currentConfirmedOdometer: 1000,
+      nowUtc: DateTime.utc(2026, 7, 18, 9),
+    );
+
+    expect(decision.status, TripTrackingRecoveryStatus.invalidSession);
+    expect(decision.canRestore, isFalse);
+    expect(decision.pendingSampleQueued, isFalse);
   });
 
   test('recovery rejects completed reviews that do not own the session', () {
