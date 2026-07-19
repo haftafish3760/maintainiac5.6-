@@ -17,6 +17,7 @@ class TripTrackingSessionRecord {
     this.advisories = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.ready,
     this.healthState = TripTrackingHealthState.healthy,
+    this.backgroundTrackingAllowed = false,
     this.hasValidTimeline = true,
     this.schemaVersion = 1,
   });
@@ -31,6 +32,9 @@ class TripTrackingSessionRecord {
   final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
+  /// Locally persisted consent for a collector that survives an app restart.
+  /// Missing legacy values default to false; recovery never assumes consent.
+  final bool backgroundTrackingAllowed;
   final bool hasValidTimeline;
   final int schemaVersion;
 
@@ -40,6 +44,7 @@ class TripTrackingSessionRecord {
     List<TripTrackingAdvisoryEvent>? advisories,
     TripTrackingSessionLifecycleState? lifecycleState,
     TripTrackingHealthState? healthState,
+    bool? backgroundTrackingAllowed,
     bool? hasValidTimeline,
     int? schemaVersion,
   }) => TripTrackingSessionRecord(
@@ -53,6 +58,8 @@ class TripTrackingSessionRecord {
     advisories: advisories ?? this.advisories,
     lifecycleState: lifecycleState ?? this.lifecycleState,
     healthState: healthState ?? this.healthState,
+    backgroundTrackingAllowed:
+        backgroundTrackingAllowed ?? this.backgroundTrackingAllowed,
     hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
     schemaVersion: schemaVersion ?? this.schemaVersion,
   );
@@ -70,6 +77,7 @@ class TripTrackingSessionRecord {
     ).map((item) => item.toMap()).toList(),
     'lifecycleState': lifecycleState.name,
     'healthState': healthState.name,
+    'backgroundTrackingAllowed': backgroundTrackingAllowed,
     'schemaVersion': schemaVersion,
   };
 
@@ -134,6 +142,7 @@ class TripTrackingSessionRecord {
         (value) => value.name == map['healthState'],
         orElse: () => TripTrackingHealthState.healthy,
       ),
+      backgroundTrackingAllowed: map['backgroundTrackingAllowed'] == true,
       hasValidTimeline:
           startedAt != null &&
           updatedAt != null &&
@@ -773,39 +782,41 @@ class TripTrackingSessionStore {
     return null;
   }
 
-  Future<void> savePending(TripTrackingPendingSample pending) => _enqueue(
-    () async {
-      if (!_isSafePendingSessionId(pending.sessionId)) {
-        throw ArgumentError.value(
-          pending.sessionId,
-          'sessionId',
-          'Pending GPS samples require a non-empty safe trip id.',
-        );
-      }
-      if (!pending.sample.hasValidCoordinate ||
-          !pending.sample.hasValidAccuracy) {
-        throw ArgumentError.value(
-          pending.sample,
-          'sample',
-          'Pending GPS samples require valid coordinates and accuracy.',
-        );
-      }
-      if (pending.activity != null &&
-          !_isSafePendingActivity(pending.sample, pending.activity)) {
-        throw ArgumentError.value(
-          pending.activity,
-          'activity',
-          'Pending GPS activity evidence must be bounded and coherent.',
-        );
-      }
-      if (_storageCheck != null) await _ensureStorageForWrite();
-      if (_box == null) {
-        _memoryPending[pending.sessionId] = pending;
-      } else {
-        await _box.put('$_pendingPrefix${pending.sessionId}', pending.toMap());
-      }
-    },
-  );
+  Future<void> savePending(
+    TripTrackingPendingSample pending,
+  ) => _enqueue(() async {
+    if (!_isSafePendingSessionId(pending.sessionId)) {
+      throw ArgumentError.value(
+        pending.sessionId,
+        'sessionId',
+        'Pending GPS samples require a non-empty safe trip id.',
+      );
+    }
+    if (!pending.sample.hasValidCoordinate ||
+        !pending.sample.hasValidAccuracy ||
+        !pending.sample.hasValidReportedSpeed ||
+        pending.sample.mockedLocation == true) {
+      throw ArgumentError.value(
+        pending.sample,
+        'sample',
+        'Pending GPS samples require trusted coordinates, accuracy, and speed.',
+      );
+    }
+    if (pending.activity != null &&
+        !_isSafePendingActivity(pending.sample, pending.activity)) {
+      throw ArgumentError.value(
+        pending.activity,
+        'activity',
+        'Pending GPS activity evidence must be bounded and coherent.',
+      );
+    }
+    if (_storageCheck != null) await _ensureStorageForWrite();
+    if (_box == null) {
+      _memoryPending[pending.sessionId] = pending;
+    } else {
+      await _box.put('$_pendingPrefix${pending.sessionId}', pending.toMap());
+    }
+  });
 
   Future<void> clearPending(String sessionId) => _enqueue(() async {
     if (!_isSafePendingSessionId(sessionId)) return;

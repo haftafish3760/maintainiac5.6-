@@ -352,6 +352,13 @@ void main() {
       15,
     );
     expect(
+      TripTrackingSettings.fromMap({
+        ...custom.toMap(),
+        'customIntervalSeconds': 600,
+      }).customIntervalSeconds,
+      60,
+    );
+    expect(
       TripTrackingSettings.fromMap({'batteryMode': 'saver'}).samplingPreset,
       TripTrackingSamplingPreset.batterySaver,
     );

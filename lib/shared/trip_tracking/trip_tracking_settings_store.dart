@@ -336,7 +336,8 @@ bool _hasUnsupportedSchemaVersion(Map<dynamic, dynamic> map) {
   return rawVersion < 1 || rawVersion > TripTrackingSettings.schemaVersion;
 }
 
-int _validCustomInterval(int seconds) => seconds.clamp(3, 600);
+// Android and iOS both support a maximum sixty-second native cadence.
+int _validCustomInterval(int seconds) => seconds.clamp(3, 60);
 
 double _validMapDailyBudgetMb(double value) {
   if (!value.isFinite || value <= 0) return 0;

@@ -18,6 +18,21 @@ void main() {
 
     expect(request.toMap()['intervalMillis'], 2000);
     expect(request.toMap()['minimumDisplacementMeters'], 3.0);
+    expect(request.toMap()['allowBackground'], isFalse);
+  });
+
+  test('native request binds explicit background consent to its start', () {
+    const request = TripTrackingNativeRequest(
+      profile: TripTrackingProfile.roadVehicle,
+      sampling: TripSamplingRecommendation(
+        mode: TripSamplingMode.balanced,
+        interval: Duration(seconds: 15),
+        minimumDisplacementMeters: 8,
+      ),
+      allowBackground: true,
+    );
+
+    expect(request.toMap()['allowBackground'], isTrue);
   });
 
   test('native request bounds malformed sampling recommendations', () {
@@ -40,7 +55,7 @@ void main() {
 
     expect(tooFast.toMap()['intervalMillis'], 1000);
     expect(tooFast.toMap()['minimumDisplacementMeters'], 1);
-    expect(tooSparse.toMap()['intervalMillis'], 120000);
+    expect(tooSparse.toMap()['intervalMillis'], 60000);
     expect(tooSparse.toMap()['minimumDisplacementMeters'], 1000);
   });
 

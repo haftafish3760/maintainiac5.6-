@@ -19,6 +19,7 @@ void main() {
           totalAcceptedMeters: 804.672,
           walkingReviewSuggested: false,
         ),
+        backgroundTrackingAllowed: true,
       );
 
       await store.save(session);
@@ -30,6 +31,7 @@ void main() {
       );
       expect(store.activeSession?.engineSnapshot.totalAcceptedMeters, 804.672);
       expect(store.activeSession?.schemaVersion, 1);
+      expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
       expect(store.activeSession?.engineSnapshot.algorithmVersion, 'gps-v1');
 
       await store.clear();
@@ -256,13 +258,15 @@ void main() {
   });
 
   test(
-    'pending GPS sample writes require valid coordinates and accuracy',
+    'pending GPS sample writes require trusted coordinates, accuracy, and speed',
     () async {
       final store = TripTrackingSessionStore.memory();
       TripTrackingPendingSample pending({
         double latitude = 35,
         double longitude = -80,
         double accuracy = 5,
+        double? speed,
+        bool mocked = false,
       }) => TripTrackingPendingSample(
         sessionId: 'trip_bad_sample',
         sample: TripLocationSample(
@@ -270,6 +274,8 @@ void main() {
           longitude: longitude,
           recordedAt: DateTime.utc(2026, 7, 12, 12),
           horizontalAccuracyMeters: accuracy,
+          speedMetersPerSecond: speed,
+          mockedLocation: mocked ? true : null,
         ),
       );
 
@@ -283,6 +289,14 @@ void main() {
       );
       await expectLater(
         store.savePending(pending(accuracy: 0)),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.savePending(pending(speed: 71)),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.savePending(pending(mocked: true)),
         throwsArgumentError,
       );
       expect(store.pendingSampleFor('trip_bad_sample'), isNull);

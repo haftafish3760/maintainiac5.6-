@@ -5,6 +5,7 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_foreground_service_denied' ||
     'trip_tracking_location_registration_failed' ||
     'trip_tracking_location_denied' ||
+    'trip_tracking_location_error' ||
     'trip_tracking_gps_unavailable' ||
     'trip_tracking_gps_disabled' => true,
     _ => false,
@@ -26,6 +27,8 @@ class TripTrackingNativeErrorPolicy {
       'GPS location updates could not be registered by the device.',
     'trip_tracking_location_denied' =>
       'GPS location permission is required for trip tracking.',
+    'trip_tracking_location_error' =>
+      'The device could not continue GPS trip tracking.',
     'trip_tracking_gps_unavailable' =>
       'GPS is unavailable on this device right now.',
     'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
@@ -148,6 +151,7 @@ String _safeErrorCode(String? value) {
     'trip_tracking_location_registration_failed' =>
       'trip_tracking_location_registration_failed',
     'trip_tracking_location_denied' => 'trip_tracking_location_denied',
+    'trip_tracking_location_error' => 'trip_tracking_location_error',
     'trip_tracking_gps_unavailable' => 'trip_tracking_gps_unavailable',
     'trip_tracking_gps_disabled' => 'trip_tracking_gps_disabled',
     'invalidLocationPayload' => 'invalidLocationPayload',

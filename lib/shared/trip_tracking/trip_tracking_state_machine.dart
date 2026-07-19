@@ -78,6 +78,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.active,
           TripTrackingSessionLifecycleState.recovering,
+          TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.stopping,
         },

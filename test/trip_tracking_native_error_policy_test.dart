@@ -7,6 +7,7 @@ void main() {
       'trip_tracking_foreground_service_denied',
       'trip_tracking_location_registration_failed',
       'trip_tracking_location_denied',
+      'trip_tracking_location_error',
       'trip_tracking_gps_unavailable',
       'trip_tracking_gps_disabled',
     ]) {
@@ -62,6 +63,10 @@ void main() {
     expect(
       TripTrackingNativeErrorPolicy.safeMessage(sensitiveRawCode),
       isNot(contains('pk')),
+    );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage('trip_tracking_location_error'),
+      'The device could not continue GPS trip tracking.',
     );
   });
 

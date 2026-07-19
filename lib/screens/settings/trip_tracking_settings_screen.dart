@@ -386,7 +386,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
         children: [
           const Expanded(
             child: Text(
-              'Custom update interval (3–600 sec)',
+              'Custom update interval (3–60 sec)',
               style: _titleStyle,
             ),
           ),

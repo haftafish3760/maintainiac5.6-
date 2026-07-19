@@ -95,11 +95,15 @@ class TripTrackingNativeRequest {
   const TripTrackingNativeRequest({
     required this.profile,
     required this.sampling,
+    this.allowBackground = false,
     this.activityRecognitionEnabled = false,
   });
 
   final TripTrackingProfile profile;
   final TripSamplingRecommendation sampling;
+
+  /// Consent bound to this collector start, not a UI preference alone.
+  final bool allowBackground;
   final bool activityRecognitionEnabled;
 
   Map<String, Object> toMap() => {
@@ -108,13 +112,16 @@ class TripTrackingNativeRequest {
     'minimumDisplacementMeters': _safeMinimumDisplacementMeters(
       sampling.minimumDisplacementMeters,
     ),
+    'allowBackground': allowBackground,
     'activityRecognitionEnabled': activityRecognitionEnabled,
   };
 }
 
 int _safeSamplingIntervalMillis(Duration interval) {
   final millis = interval.inMilliseconds;
-  return millis.clamp(1000, 120000).toInt();
+  // Both native collectors cap at sixty seconds. Bound here too so the
+  // saved setting, Dart request, Android, and iOS all mean the same thing.
+  return millis.clamp(1000, 60000).toInt();
 }
 
 double _safeMinimumDisplacementMeters(double meters) {
