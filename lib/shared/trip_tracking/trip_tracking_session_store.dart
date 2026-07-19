@@ -78,38 +78,45 @@ class TripTrackingSessionRecord {
     bool? lowBatteryWarningDismissed,
     bool? hasValidTimeline,
     int? schemaVersion,
-  }) => TripTrackingSessionRecord(
-    id: id,
-    vehicleId: vehicleId,
-    startingOdometer: startingOdometer,
-    profile: profile,
-    startedAt: startedAt,
-    updatedAt: updatedAt ?? this.updatedAt,
-    engineSnapshot: engineSnapshot ?? this.engineSnapshot,
-    advisories: advisories ?? this.advisories,
-    lifecycleState: lifecycleState ?? this.lifecycleState,
-    healthState: healthState ?? this.healthState,
-    backgroundTrackingAllowed:
-        backgroundTrackingAllowed ?? this.backgroundTrackingAllowed,
-    activityRecognitionEnabled:
-        activityRecognitionEnabled ?? this.activityRecognitionEnabled,
-    nativeSampling: clearNativeSampling
+  }) {
+    final nextSamplingCeiling = clearSamplingCeiling
         ? null
-        : nativeSampling ?? this.nativeSampling,
-    samplingCeiling: clearSamplingCeiling
+        : samplingCeiling ?? this.samplingCeiling;
+    final nextNativeSampling = clearNativeSampling
         ? null
-        : samplingCeiling ?? this.samplingCeiling,
-    adaptiveSamplingEnabled:
-        adaptiveSamplingEnabled ?? this.adaptiveSamplingEnabled,
-    lowBatteryProtectionEnabled:
-        lowBatteryProtectionEnabled ?? this.lowBatteryProtectionEnabled,
-    lowBatteryOverrideEnabled:
-        lowBatteryOverrideEnabled ?? this.lowBatteryOverrideEnabled,
-    lowBatteryWarningDismissed:
-        lowBatteryWarningDismissed ?? this.lowBatteryWarningDismissed,
-    hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
-    schemaVersion: schemaVersion ?? this.schemaVersion,
-  );
+        : _recoveredNativeSampling(
+            nativeSampling: nativeSampling ?? this.nativeSampling,
+            samplingCeiling: nextSamplingCeiling,
+          );
+    return TripTrackingSessionRecord(
+      id: id,
+      vehicleId: vehicleId,
+      startingOdometer: startingOdometer,
+      profile: profile,
+      startedAt: startedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      engineSnapshot: engineSnapshot ?? this.engineSnapshot,
+      advisories: advisories ?? this.advisories,
+      lifecycleState: lifecycleState ?? this.lifecycleState,
+      healthState: healthState ?? this.healthState,
+      backgroundTrackingAllowed:
+          backgroundTrackingAllowed ?? this.backgroundTrackingAllowed,
+      activityRecognitionEnabled:
+          activityRecognitionEnabled ?? this.activityRecognitionEnabled,
+      nativeSampling: nextNativeSampling,
+      samplingCeiling: nextSamplingCeiling,
+      adaptiveSamplingEnabled:
+          adaptiveSamplingEnabled ?? this.adaptiveSamplingEnabled,
+      lowBatteryProtectionEnabled:
+          lowBatteryProtectionEnabled ?? this.lowBatteryProtectionEnabled,
+      lowBatteryOverrideEnabled:
+          lowBatteryOverrideEnabled ?? this.lowBatteryOverrideEnabled,
+      lowBatteryWarningDismissed:
+          lowBatteryWarningDismissed ?? this.lowBatteryWarningDismissed,
+      hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
+    );
+  }
 
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
