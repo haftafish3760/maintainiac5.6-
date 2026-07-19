@@ -183,11 +183,19 @@ class TripTrackingForegroundService : Service() {
             return START_NOT_STICKY
         }
         if (activityEnabled && hasActivityRecognition()) {
+            val pendingIntent = activityRecognitionPendingIntent()
+            val requestEpoch = activityEpoch
             ActivityRecognition.getClient(this).requestActivityUpdates(
                 5000,
-                activityRecognitionPendingIntent(),
+                pendingIntent,
             )
                 .addOnFailureListener { error ->
+                    // Play Services can report a registration failure after
+                    // the driver has disabled motion assistance or a newer
+                    // collector has taken ownership. Do not let that stale
+                    // callback degrade the active trip.
+                    if (!isRunning || requestEpoch == null ||
+                        !isActivityEpochActive(requestEpoch)) return@addOnFailureListener
                     TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_activity_unavailable", "errorMessage" to "Activity recognition is unavailable: ${error.message ?: "request failed"}"))
                 }
         } else {

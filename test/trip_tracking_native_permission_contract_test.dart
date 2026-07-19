@@ -171,6 +171,8 @@ void main() {
       ),
     );
     expect(android, contains('.putExtra(activityEpochExtra, epoch)'));
+    expect(android, contains('val requestEpoch = activityEpoch'));
+    expect(android, contains('!isActivityEpochActive(requestEpoch)'));
     expect(androidActivity, contains('val observedAtMillis = result.time'));
     expect(
       androidActivity,
