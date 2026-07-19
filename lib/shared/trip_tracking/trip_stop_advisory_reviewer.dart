@@ -104,8 +104,7 @@ class TripStopAdvisoryReviewer {
     final latestPendingStopIndex = session.advisories.lastIndexWhere(
       (event) =>
           event.type == TripTrackingAdvisoryType.probableStop &&
-          (event.disposition == TripTrackingAdvisoryDisposition.pending ||
-              event.disposition == TripTrackingAdvisoryDisposition.confirmed),
+          event.disposition == TripTrackingAdvisoryDisposition.pending,
     );
     if (latestPendingStopIndex < 0) return session.advisories;
     final advisories = [...session.advisories];

@@ -151,6 +151,26 @@ void main() {
     },
   );
 
+  test('a confirmed stop remains immutable during a late motion upgrade', () {
+    final confirmedAt = start.add(const Duration(minutes: 3));
+    final confirmed = stop(
+      id: 'confirmed_stop',
+      detectedAt: confirmedAt,
+      confidence: TripTrackingConfidence.medium,
+      disposition: TripTrackingAdvisoryDisposition.confirmed,
+    );
+
+    final advisories = TripStopAdvisoryReviewer.upgradedStopCandidateAdvisories(
+      sessionWith([confirmed]),
+      detectedAt: start.add(const Duration(minutes: 4)),
+    );
+
+    expect(advisories, hasLength(1));
+    expect(advisories.single, same(confirmed));
+    expect(advisories.single.evidenceEndedAt, confirmedAt);
+    expect(advisories.single.confidence, TripTrackingConfidence.medium);
+  });
+
   test('advisory transitions clamp evidence inside the trip boundary', () {
     final session = sessionWith(const []);
     final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
