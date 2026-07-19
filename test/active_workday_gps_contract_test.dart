@@ -54,4 +54,22 @@ void main() {
       ),
     );
   });
+
+  test('active dashboard keeps a stale GPS stream visible for review', () {
+    final source = File(
+      'lib/screens/dashboard/active_workday_screen.dart',
+    ).readAsStringSync();
+
+    final liveOdometer = source.indexOf('const _LiveOdometerPanelLine()');
+    final staleStatus = source.indexOf(
+      "controller?.platformStatus == 'gps_signal_stale'",
+    );
+    final staleGuidance = source.indexOf(
+      'GPS has not produced a location fix recently.',
+    );
+
+    expect(liveOdometer, greaterThanOrEqualTo(0));
+    expect(staleStatus, greaterThan(liveOdometer));
+    expect(staleGuidance, greaterThan(staleStatus));
+  });
 }

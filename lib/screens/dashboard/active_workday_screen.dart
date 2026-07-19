@@ -886,6 +886,19 @@ class _GpsTripPanel extends StatelessWidget {
                   const SizedBox(height: 3),
                   const _LiveOdometerPanelLine(),
                 ],
+                if (tracking &&
+                    controller?.platformStatus == 'gps_signal_stale') ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    controller?.platformError ??
+                        'GPS has not produced a location fix recently. Keep your trip open; review the gap before confirming mileage.',
+                    style: const TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
                 if (capabilityGuidance != null) ...[
                   const SizedBox(height: 3),
                   Wrap(

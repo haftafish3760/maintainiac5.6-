@@ -205,6 +205,11 @@ TripTrackingReviewRecord _confirmedReview({
     engineSnapshot: TripTrackingEngineSnapshot(
       totalAcceptedMeters: gpsMiles * 1609.344,
       walkingReviewSuggested: false,
+      diagnostics: const TripTrackingDiagnostics(
+        receivedSamples: 10,
+        acceptedSamples: 10,
+        dispositionCounts: {TripSampleDisposition.acceptedDistance: 10},
+      ),
     ),
   );
 }
