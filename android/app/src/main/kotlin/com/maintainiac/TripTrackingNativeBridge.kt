@@ -224,7 +224,10 @@ class TripTrackingNativeBridge(
         val powerManager = activity.getSystemService(Context.POWER_SERVICE) as? PowerManager
         return mapOf(
             "schemaVersion" to 1,
-            "locationAvailable" to manager.isProviderEnabled(LocationManager.GPS_PROVIDER),
+            // Match the foreground collector: Fused Location may legitimately
+            // use a non-GPS provider, so capability reporting must describe
+            // system location availability rather than one provider toggle.
+            "locationAvailable" to locationServicesEnabled(manager),
             "backgroundTrackingAvailable" to true,
             "activityRecognitionAvailable" to (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED),
             "batteryStateAvailable" to (batteryManager != null),
@@ -277,6 +280,14 @@ class TripTrackingNativeBridge(
         activity,
         Manifest.permission.ACTIVITY_RECOGNITION,
     ) == PackageManager.PERMISSION_GRANTED
+
+    private fun locationServicesEnabled(manager: LocationManager): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            manager.isLocationEnabled
+        } else {
+            manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        }
 
     private fun isTracking(): Boolean = TripTrackingForegroundService.isRunning
 }

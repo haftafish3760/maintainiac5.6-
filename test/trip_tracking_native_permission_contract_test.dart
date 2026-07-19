@@ -225,12 +225,20 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
     ).readAsStringSync();
+    final androidBridge = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
     final ios = File(
       'ios/Runner/TripTrackingNativeBridge.swift',
     ).readAsStringSync();
 
     expect(android, contains('trip_tracking_location_denied'));
     expect(android, contains('trip_tracking_gps_disabled'));
+    expect(
+      androidBridge,
+      contains('"locationAvailable" to locationServicesEnabled(manager)'),
+    );
+    expect(androidBridge, contains('manager.isLocationEnabled'));
     expect(
       android,
       contains(RegExp(r'trip_tracking_gps_disabled[\s\S]{0,500}stopSelf\(\)')),
