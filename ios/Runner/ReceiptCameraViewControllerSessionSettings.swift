@@ -12,6 +12,7 @@ extension ReceiptCameraViewController {
   }
 
   func configureSession() {
+    lastSessionRecoveryStatus = "configuring"
     sessionQueue.async { [weak self] in
       guard let self, self.isCameraSessionUsable else { return }
       self.session.beginConfiguration()
@@ -23,6 +24,8 @@ extension ReceiptCameraViewController {
         self.session.canAddOutput(self.photoOutput)
       else {
         DispatchQueue.main.async {
+          self.lastSessionRecoveryStatus = "configuration_failed"
+          self.shutterButton.isEnabled = false
           self.guidanceLabel.text = "The receipt camera could not open."
         }
         self.session.commitConfiguration()
@@ -40,8 +43,10 @@ extension ReceiptCameraViewController {
       self.session.commitConfiguration()
       DispatchQueue.main.async {
         guard self.isCameraUiUsable else { return }
+        self.lastSessionRecoveryStatus = "configured"
         self.torchButton.isEnabled = device.hasTorch
         self.configureExposureControls(for: device)
+        self.updateCaptureOrientation()
       }
     }
   }
@@ -311,8 +316,7 @@ extension ReceiptCameraViewController {
 
   func resetReceiptCameraDefaults() {
     settingsResetCount += 1
-    // Receipt Assist remains opt-in, even after restoring camera defaults.
-    assistedReceiptFill = false
+    // Receipt Assist belongs to Expense Settings; camera reset must preserve it.
     longReceiptMode = canUseLongReceiptMode()
     autoCaptureEnabled = false
     reviewDepth = "pricesOnly"

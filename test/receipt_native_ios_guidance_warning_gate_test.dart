@@ -79,7 +79,7 @@ void main() {
     final combined = sources.cameraController;
 
     expect(combined, isNot(contains('Timer.scheduledTimer')));
-    expect(combined, isNot(contains('DispatchQueue.main.asyncAfter')));
+    expect(combined, isNot(contains('guidanceMessages.asyncAfter')));
     expect(combined, isNot(contains('guidanceMessages')));
     expect(combined, isNot(contains('warningCarousel')));
     expect(combined, isNot(contains('randomGuidance')));

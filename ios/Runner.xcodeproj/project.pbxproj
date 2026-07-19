@@ -34,6 +34,8 @@
 		74A000001111111111112015 /* ReceiptCameraViewControllerPreviousSectionGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113015 /* ReceiptCameraViewControllerPreviousSectionGuide.swift */; };
 		74A000001111111111112016 /* ReceiptCameraViewControllerPhotoQualityClassifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113016 /* ReceiptCameraViewControllerPhotoQualityClassifiers.swift */; };
 		74A000001111111111112017 /* ReceiptCameraFullScreenSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113017 /* ReceiptCameraFullScreenSettingsViewController.swift */; };
+		74A000001111111111112020 /* ReceiptCameraViewControllerSessionRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113020 /* ReceiptCameraViewControllerSessionRecovery.swift */; };
+		74A000001111111111112021 /* ReceiptCameraViewControllerOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A000001111111111113021 /* ReceiptCameraViewControllerOrientation.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -117,6 +119,8 @@
 		74A000001111111111113015 /* ReceiptCameraViewControllerPreviousSectionGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewControllerPreviousSectionGuide.swift; sourceTree = "<group>"; };
 		74A000001111111111113016 /* ReceiptCameraViewControllerPhotoQualityClassifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewControllerPhotoQualityClassifiers.swift; sourceTree = "<group>"; };
 		74A000001111111111113017 /* ReceiptCameraFullScreenSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraFullScreenSettingsViewController.swift; sourceTree = "<group>"; };
+		74A000001111111111113020 /* ReceiptCameraViewControllerSessionRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewControllerSessionRecovery.swift; sourceTree = "<group>"; };
+		74A000001111111111113021 /* ReceiptCameraViewControllerOrientation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCameraViewControllerOrientation.swift; sourceTree = "<group>"; };
 		7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7BE880D5CB35FD29C914FEF6 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
@@ -241,6 +245,8 @@
 				74A000001111111111113011 /* ReceiptCameraViewControllerSessionSettings.swift */,
 				74A000001111111111113012 /* ReceiptCameraViewControllerSettingsCopy.swift */,
 				74A000001111111111113013 /* ReceiptCameraViewControllerSessionArguments.swift */,
+				74A000001111111111113020 /* ReceiptCameraViewControllerSessionRecovery.swift */,
+				74A000001111111111113021 /* ReceiptCameraViewControllerOrientation.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				A10000000000000000000007 /* Runner.entitlements */,
@@ -582,6 +588,8 @@
 				74A000001111111111112011 /* ReceiptCameraViewControllerSessionSettings.swift in Sources */,
 				74A000001111111111112012 /* ReceiptCameraViewControllerSettingsCopy.swift in Sources */,
 				74A000001111111111112013 /* ReceiptCameraViewControllerSessionArguments.swift in Sources */,
+				74A000001111111111112020 /* ReceiptCameraViewControllerSessionRecovery.swift in Sources */,
+				74A000001111111111112021 /* ReceiptCameraViewControllerOrientation.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 			);

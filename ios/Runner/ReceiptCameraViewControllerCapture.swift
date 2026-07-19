@@ -65,6 +65,8 @@ extension ReceiptCameraViewController {
       return
     }
     let settings = AVCapturePhotoSettings()
+    let captureUniqueId = settings.uniqueID
+    activeCaptureUniqueId = captureUniqueId
     settings.isHighResolutionPhotoEnabled = true
     if #available(iOS 13.0, *) {
       stillCaptureModeLabel = "receipt_fast_document_shutter"
@@ -74,6 +76,9 @@ extension ReceiptCameraViewController {
       settings.embeddedThumbnailPhotoFormat = [
         AVVideoCodecKey: AVVideoCodecType.jpeg
       ]
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + captureTimeoutSeconds) { [weak self] in
+      self?.handleCaptureTimeout(captureUniqueId)
     }
     photoOutput.capturePhoto(with: settings, delegate: self)
   }
@@ -126,6 +131,7 @@ extension ReceiptCameraViewController {
           guard let self else { return }
           if !self.isCameraUiUsable {
             self.captureInFlight = false
+            self.activeCaptureUniqueId = nil
             self.pendingCloseAfterCapture = false
             self.preCaptureExposureAbortCount += 1
             self.lastPreCaptureExposureDecision = "aborted_camera_closing"
@@ -188,6 +194,8 @@ extension ReceiptCameraViewController {
     didFinishProcessingPhoto photo: AVCapturePhoto,
     error: Error?
   ) {
+    let captureUniqueId = photo.resolvedSettings.uniqueID
+    guard finishCaptureAttempt(captureUniqueId) else { return }
     guard isCameraSessionUsable || pendingCloseAfterCapture else {
       captureInFlight = false
       pendingCloseAfterCapture = false
@@ -268,5 +276,35 @@ extension ReceiptCameraViewController {
       shutterButton.isEnabled = true
       guidanceLabel.text = "That photo did not save. Try again."
     }
+  }
+
+  func finishCaptureAttempt(_ captureUniqueId: Int64) -> Bool {
+    guard activeCaptureUniqueId == captureUniqueId else { return false }
+    activeCaptureUniqueId = nil
+    captureInFlight = false
+    return true
+  }
+
+  func handleCaptureTimeout(_ captureUniqueId: Int64) {
+    guard finishCaptureAttempt(captureUniqueId), !closeResultDelivered else { return }
+    captureTimeoutCount += 1
+    latestCaptureLatencyBucket = "capture_timed_out"
+    lastCaptureBlockReason = "capture_timeout"
+    latestAutoCaptureStatus = "capture_timeout"
+    let closeWasPending = pendingCloseAfterCapture
+    pendingCloseAfterCapture = false
+    if closeWasPending && !capturedPhotoPaths.isEmpty {
+      finishWithCapturedPhotos(
+        closeReason: "back_capture_failed_returned_existing_sections"
+      )
+      return
+    }
+    if closeWasPending {
+      cancelWithoutCapturedPhoto(reason: "back_capture_failed_cancel")
+      return
+    }
+    shutterButton.isEnabled = true
+    updateDoneButton()
+    guidanceLabel.text = "That receipt photo took too long. Try the shutter again."
   }
 }

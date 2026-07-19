@@ -12,10 +12,21 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   let photoOutput = AVCapturePhotoOutput()
   let videoOutput = AVCaptureVideoDataOutput()
   let sessionQueue = DispatchQueue(label: "maintainiac.receipt.camera.session")
+  var sessionObservers: [NSObjectProtocol] = []
+  var sessionWasInterrupted = false
+  var sessionInterruptionCount = 0
+  var sessionRuntimeErrorCount = 0
+  var sessionRecoveryAttemptCount = 0
+  var lastSessionRecoveryStatus = "not_needed"
+  var captureOrientationUpdateCount = 0
+  var lastCaptureOrientation = "unknown"
   var previewLayer: AVCaptureVideoPreviewLayer?
   var cameraDevice: AVCaptureDevice?
   var torchOn = false
   var captureInFlight = false
+  var activeCaptureUniqueId: Int64?
+  var captureTimeoutCount = 0
+  let captureTimeoutSeconds = 20.0
   var closingCamera = false
   var cameraViewClosing = false
   var pendingCloseAfterCapture = false
@@ -241,6 +252,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   }
 
   deinit {
+    removeSessionRecoveryObservers()
     videoOutput.setSampleBufferDelegate(nil, queue: nil)
   }
 }

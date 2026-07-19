@@ -8,7 +8,7 @@ void main() {
     final cameraController = sources.cameraController;
 
     expect(cameraController, contains('Take receipt photo'));
-    expect(cameraController, contains('doneButton'));
+    expect(cameraController, contains('bottomReviewButton'));
     expect(
       cameraController,
       contains('Done: review captured receipt photos in Maintainiac'),

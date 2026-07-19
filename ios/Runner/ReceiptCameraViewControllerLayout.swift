@@ -9,17 +9,23 @@ extension ReceiptCameraViewController {
     view.backgroundColor = .black
     readSessionArguments()
     buildLayout()
+    registerSessionRecoveryObservers()
     configureSession()
   }
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     previewLayer?.frame = view.bounds
+    updateCaptureOrientation()
   }
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     cameraViewClosing = false
+    if !closeResultDelivered {
+      closingCamera = false
+    }
+    updateCaptureOrientation()
     sessionQueue.async { [weak self] in
       guard let self, self.isCameraSessionUsable, !self.session.isRunning else { return }
       self.session.startRunning()
@@ -28,7 +34,6 @@ extension ReceiptCameraViewController {
 
   override func viewWillDisappear(_ animated: Bool) {
     cameraViewClosing = true
-    closingCamera = true
     sessionQueue.async { [weak self] in
       guard let self, self.session.isRunning else { return }
       self.session.stopRunning()
