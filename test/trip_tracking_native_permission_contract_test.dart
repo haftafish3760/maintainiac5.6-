@@ -130,6 +130,13 @@ void main() {
     expect(androidBridge, contains('catch (error: IllegalStateException)'));
     expect(android, contains('trip_tracking_location_registration_failed'));
     expect(android, contains('coerceIn(1f, 100f)'));
+    expect(
+      android,
+      contains('LocationServices.getFusedLocationProviderClient(this)'),
+    );
+    expect(android, contains('Priority.PRIORITY_HIGH_ACCURACY'));
+    expect(android, contains('setMinUpdateDistanceMeters(displacement)'));
+    expect(android, contains('stopLocationUpdates()'));
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
     expect(androidActivity, contains('val observedAtMillis = result.time'));
@@ -226,7 +233,7 @@ void main() {
       contains(RegExp(r'trip_tracking_gps_disabled[\s\S]{0,500}stopSelf\(\)')),
     );
     expect(android, contains('override fun onDestroy()'));
-    expect(android, contains('locationManager.removeUpdates(this)'));
+    expect(android, contains('fusedLocationClient.removeLocationUpdates(it)'));
     expect(android, contains('removeActivityUpdates(activityPendingIntent)'));
     expect(
       android,

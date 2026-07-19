@@ -1,12 +1,12 @@
 # GPS Work State
 
 - Current phase: 15 — platform battery, capability, and recovery hardening
-- Current pass: 280
-- Current objective: keep a stale live GPS stream visible on the active workday while preserving review-first mileage confirmation
+- Current pass: 283
+- Current objective: harden live GPS health visibility and Android high-accuracy acquisition without weakening local-first review controls
 - Relevant files: `lib/shared/trip_tracking/`, `lib/screens/dashboard/`,
   `android/app/src/main/`, `ios/Runner/`, `test/trip_tracking_*.dart`,
   `docs/gps_assisted_tracking/GPS_REAL_DEVICE_TEST_PROTOCOL.md`
-- Latest stable commit: `74592d612` (GPS freshness boundary regression checkpoint)
-- Latest validation result: active-workday GPS/odometer widget and contract tests, controller regression suite, and focused static analysis green
+- Latest stable commit: pending checkpoint for dashboard live-health visibility and Android fused location acquisition
+- Latest validation result: active-workday GPS/odometer widget and contract tests, native permission contract, controller regression suite, focused static analysis, and Android debug build green
 - Unresolved blockers: real Android/iOS route, battery, lifecycle, and long-session evidence not yet collected
-- Next action: harden dashboard handling of live GPS health changes; exercise platform lifecycle and battery behavior with authorized real-device evidence; keep calibration acceptance fail-neutral until persistence is deliberately designed
+- Next action: verify Android fused-acquisition lifecycle behavior with authorized real-device evidence; continue hardening dashboard health handling and keep calibration acceptance fail-neutral until persistence is deliberately designed

@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.BatteryManager
@@ -20,8 +19,14 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.ActivityRecognition
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
-class TripTrackingForegroundService : Service(), LocationListener {
+class TripTrackingForegroundService : Service() {
     companion object {
         const val intervalMillisExtra = "intervalMillis"
         const val minimumDisplacementExtra = "minimumDisplacementMeters"
@@ -34,13 +39,15 @@ class TripTrackingForegroundService : Service(), LocationListener {
             private set
     }
 
-    private lateinit var locationManager: LocationManager
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var locationCallback: LocationCallback? = null
     private var userPauseRequested = false
     private val heartbeatHandler = Handler(Looper.getMainLooper())
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
             if (!isRunning) return
             if (stopForCriticalBatteryIfNeeded()) return
+            if (stopForLocationServicesDisabledIfNeeded()) return
             // Liveness only: no coordinates, mileage, stop evidence, or
             // identity crosses this status boundary.
             TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
@@ -80,28 +87,39 @@ class TripTrackingForegroundService : Service(), LocationListener {
         val interval = intent?.getLongExtra(intervalMillisExtra, 5000L)?.coerceIn(1000L, 60000L) ?: 5000L
         val displacement = intent?.getFloatExtra(minimumDisplacementExtra, 5f)?.coerceIn(1f, 100f) ?: 5f
         val activityEnabled = intent?.getBooleanExtra(activityRecognitionEnabledExtra, false) == true
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (!locationServicesEnabled()) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_gps_unavailable", "errorMessage" to "GPS is unavailable. Turn on device location to continue tracking."))
             stopSelf()
             return START_NOT_STICKY
         }
-        locationManager.removeUpdates(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        stopLocationUpdates()
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, interval)
+            .setMinUpdateIntervalMillis((interval / 2).coerceAtLeast(1000L))
+            .setMinUpdateDistanceMeters(displacement)
+            .setWaitForAccurateLocation(false)
+            .build()
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                for (location in result.locations) emitLocation(location)
+            }
+        }
+        // A fused provider may deliver a cached first fix immediately. Mark
+        // the service live before registering so that credible first evidence
+        // is not lost between registration and the tracking status event.
+        isRunning = true
         @Suppress("MissingPermission")
         try {
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                interval,
-                displacement,
-                this,
+            fusedLocationClient.requestLocationUpdates(
+                request,
+                requireNotNull(locationCallback),
                 Looper.getMainLooper(),
-            )
+            ).addOnFailureListener { error ->
+                TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register location updates: ${error.message ?: "provider unavailable"}"))
+                stopSelf()
+            }
         } catch (error: SecurityException) {
-            TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register GPS updates: ${error.message ?: "permission denied"}"))
-            stopSelf()
-            return START_NOT_STICKY
-        } catch (error: IllegalArgumentException) {
-            TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android rejected the GPS provider: ${error.message ?: "provider unavailable"}"))
+            TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register location updates: ${error.message ?: "permission denied"}"))
             stopSelf()
             return START_NOT_STICKY
         }
@@ -121,14 +139,14 @@ class TripTrackingForegroundService : Service(), LocationListener {
                 // if Play Services is temporarily unavailable.
             }
         }
-        isRunning = true
         TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
         startHeartbeat()
         return START_NOT_STICKY
     }
 
-    override fun onLocationChanged(location: Location) {
+    private fun emitLocation(location: Location) {
         if (stopForCriticalBatteryIfNeeded()) return
+        if (stopForLocationServicesDisabledIfNeeded()) return
         if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
         TripTrackingEventEmitter.emit(
             mapOf(
@@ -143,17 +161,9 @@ class TripTrackingForegroundService : Service(), LocationListener {
         )
     }
 
-    override fun onProviderDisabled(provider: String) {
-        TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_gps_disabled", "errorMessage" to "GPS was turned off while tracking."))
-        // Stop independently of the Flutter event channel. The Dart controller
-        // will preserve a recoverable trip when it receives the error, but a
-        // detached UI must never leave a location collector running.
-        stopSelf()
-    }
-
     override fun onDestroy() {
         stopHeartbeat()
-        if (::locationManager.isInitialized) locationManager.removeUpdates(this)
+        stopLocationUpdates()
         try {
             ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
         } catch (_: Exception) {
@@ -202,6 +212,29 @@ class TripTrackingForegroundService : Service(), LocationListener {
         val scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         if (level < 0 || scale <= 0) return false
         return level * 100 / scale < 10
+    }
+
+    private fun stopForLocationServicesDisabledIfNeeded(): Boolean {
+        if (locationServicesEnabled()) return false
+        TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_gps_disabled", "errorMessage" to "Device location was turned off while tracking."))
+        stopSelf()
+        return true
+    }
+
+    private fun locationServicesEnabled(): Boolean {
+        val manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            manager.isLocationEnabled
+        } else {
+            manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        if (!::fusedLocationClient.isInitialized) return
+        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
+        locationCallback = null
     }
 
     private fun notification(): android.app.Notification {

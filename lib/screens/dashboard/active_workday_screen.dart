@@ -833,6 +833,14 @@ class _GpsTripPanel extends StatelessWidget {
         : null;
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
+    final staleGpsSignal =
+        tracking && controller?.platformStatus == 'gps_signal_stale';
+    final liveTrackingWarning = staleGpsSignal
+        ? controller?.platformError ??
+              'GPS has not produced a location fix recently. Keep your trip open; review the gap before confirming mileage.'
+        : tracking
+        ? controller?.platformError
+        : null;
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
       decoration: BoxDecoration(
@@ -886,12 +894,10 @@ class _GpsTripPanel extends StatelessWidget {
                   const SizedBox(height: 3),
                   const _LiveOdometerPanelLine(),
                 ],
-                if (tracking &&
-                    controller?.platformStatus == 'gps_signal_stale') ...[
+                if (liveTrackingWarning != null) ...[
                   const SizedBox(height: 3),
                   Text(
-                    controller?.platformError ??
-                        'GPS has not produced a location fix recently. Keep your trip open; review the gap before confirming mileage.',
+                    liveTrackingWarning,
                     style: const TextStyle(
                       color: Color(0xFFFFD166),
                       fontSize: 11,
