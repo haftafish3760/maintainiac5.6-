@@ -106,6 +106,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    // Core Location can deliver a buffered callback after stopUpdatingLocation.
+    // Do not let a retired session emit a late coordinate into Flutter, even
+    // though the Dart controller independently rejects inactive-session data.
+    guard tracking else { return }
     if stopForCriticalBatteryIfNeeded() { return }
     for location in locations where location.horizontalAccuracy >= 0 {
       let simulated = isSimulatedLocation(location)
@@ -129,6 +133,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    // Ignore deferred Core Location failures from a session that was already
+    // stopped or replaced. A late error must not interrupt a newer trip.
+    guard tracking else { return }
     if let locationError = error as? CLError, locationError.code == .locationUnknown {
       // Core Location documents this as transient and will keep trying. Do
       // not manufacture a platform error, interruption, or UI alarm from a

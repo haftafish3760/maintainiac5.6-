@@ -39,6 +39,7 @@ class TripTrackingBenchmarkCase {
     required this.category,
     this.expectedDistanceMeters,
     this.expectedStopReview,
+    this.stopReviewDetector = _defaultStopReviewDetector,
   }) : assert(id != '');
 
   final String id;
@@ -50,6 +51,7 @@ class TripTrackingBenchmarkCase {
 
   /// Null means the fixture is distance-only and contributes no event metric.
   final bool? expectedStopReview;
+  final bool Function(SimulatedTripResult result) stopReviewDetector;
 }
 
 class TripTrackingBenchmarkCaseResult {
@@ -60,6 +62,8 @@ class TripTrackingBenchmarkCaseResult {
 
   final TripTrackingBenchmarkCase benchmarkCase;
   final SimulatedTripResult actual;
+
+  bool get actualStopReview => benchmarkCase.stopReviewDetector(actual);
 
   double? get distanceAbsoluteErrorMeters {
     final expected = benchmarkCase.expectedDistanceMeters;
@@ -76,7 +80,7 @@ class TripTrackingBenchmarkCaseResult {
 
   bool? get stopDetectionCorrect {
     final expected = benchmarkCase.expectedStopReview;
-    return expected == null ? null : actual.needsWalkingReview == expected;
+    return expected == null ? null : actualStopReview == expected;
   }
 }
 
@@ -135,7 +139,7 @@ class TripTrackingBenchmarkReport {
       .where(
         (entry) =>
             entry.benchmarkCase.expectedStopReview == true &&
-            entry.actual.needsWalkingReview,
+            entry.actualStopReview,
       )
       .length;
 
@@ -143,7 +147,7 @@ class TripTrackingBenchmarkReport {
       .where(
         (entry) =>
             entry.benchmarkCase.expectedStopReview == false &&
-            entry.actual.needsWalkingReview,
+            entry.actualStopReview,
       )
       .length;
 
@@ -151,7 +155,7 @@ class TripTrackingBenchmarkReport {
       .where(
         (entry) =>
             entry.benchmarkCase.expectedStopReview == true &&
-            !entry.actual.needsWalkingReview,
+            !entry.actualStopReview,
       )
       .length;
 
@@ -206,3 +210,6 @@ double? _percentile(Iterable<double?> source, double percentile) {
 
 double? _rounded(double? value) =>
     value == null ? null : double.parse(value.toStringAsFixed(4));
+
+bool _defaultStopReviewDetector(SimulatedTripResult result) =>
+    result.needsWalkingReview;

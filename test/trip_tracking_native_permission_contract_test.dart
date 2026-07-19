@@ -253,10 +253,26 @@ void main() {
     expect(
       ios,
       contains(
+        RegExp(
+          r'func locationManager\(_ manager: CLLocationManager, didFailWithError error: Error\) \{[\s\S]{0,400}guard tracking else \{ return \}',
+        ),
+      ),
+    );
+    expect(
+      ios,
+      contains(
         'tracking = false\n    emit([\n      "type": "error",\n      "errorCode": "trip_tracking_location_error"',
       ),
     );
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
+    expect(
+      ios,
+      contains(
+        RegExp(
+          r'func locationManager\(_ manager: CLLocationManager, didUpdateLocations locations: \[CLLocation\]\) \{[\s\S]{0,500}guard tracking else \{ return \}',
+        ),
+      ),
+    );
   });
 
   test('iOS refuses reduced-accuracy GPS before an active session starts', () {
