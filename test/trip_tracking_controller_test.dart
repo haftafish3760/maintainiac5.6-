@@ -753,6 +753,50 @@ void main() {
   );
 
   test(
+    'runtime battery check allows a plugged-in device below twenty percent',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      var now = DateTime.utc(2026, 7, 12, 12);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_runtime_charging_battery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.batterySnapshot = const TripTrackingBatterySnapshot(
+        batteryPercent: 19,
+        isCharging: true,
+        lowPowerModeEnabled: false,
+      );
+      now = now.add(const Duration(minutes: 6));
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
+
+      expect(controller.nativeTracking, isTrue);
+      expect(native.stopCalls, 0);
+      expect(controller.platformStatus, 'tracking');
+    },
+  );
+
+  test(
     'background tracking requires explicit background authorization before native start',
     () async {
       final native = _FakeTripTrackingPlatform(
