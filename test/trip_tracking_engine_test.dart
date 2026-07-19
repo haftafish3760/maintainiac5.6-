@@ -634,6 +634,27 @@ void main() {
   });
 
   test(
+    'rejects duplicate samples without changing distance or stop evidence',
+    () {
+      final engine = TripTrackingEngine();
+
+      engine.ingest(sample(-80, 0));
+      engine.ingest(sample(-79.9998, 20));
+      final total = engine.totalAcceptedMeters;
+      final duplicate = engine.ingest(
+        sample(-79.9998, 20),
+        activity: walking(20),
+      );
+
+      expect(duplicate.disposition, TripSampleDisposition.rejectedOutOfOrder);
+      expect(duplicate.addedMeters, 0);
+      expect(duplicate.walkingReviewSuggested, isFalse);
+      expect(engine.totalAcceptedMeters, total);
+      expect(engine.needsWalkingReview, isFalse);
+    },
+  );
+
+  test(
     'requires repeated high-confidence walking before suggesting review',
     () {
       final engine = TripTrackingEngine();
