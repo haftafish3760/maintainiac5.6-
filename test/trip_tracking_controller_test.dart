@@ -3340,6 +3340,64 @@ void main() {
   );
 
   test(
+    'legacy recovery stops GPS when motion consent cannot be withdrawn safely',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final initial = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await initial.start(
+        tripId: 'trip_legacy_motion_withdrawal',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await store.save(
+        store.activeSession!.copyWith(
+          backgroundTrackingAllowed: true,
+          activityRecognitionEnabled: true,
+          clearNativeSampling: true,
+        ),
+      );
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      await native.start(
+        const TripTrackingNativeRequest(
+          profile: TripTrackingProfile.roadVehicle,
+          sampling: TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 15),
+            minimumDisplacementMeters: 8,
+          ),
+          allowBackground: true,
+          activityRecognitionEnabled: true,
+        ),
+      );
+      final restored = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+
+      expect(await restored.restore(), isTrue);
+      await restored.disableActivityRecognition();
+
+      expect(native.updateCalls, 0);
+      expect(native.stopCalls, 1);
+      expect(restored.nativeTracking, isFalse);
+      expect(
+        restored.platformError,
+        contains('recovered sampling state was unavailable'),
+      );
+    },
+  );
+
+  test(
     'withdrawing an already-disabled sensor does not disturb GPS tracking',
     () async {
       final native = _FakeTripTrackingPlatform();

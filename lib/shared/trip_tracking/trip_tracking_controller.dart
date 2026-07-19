@@ -1687,11 +1687,18 @@ class TripTrackingController extends ChangeNotifier {
     final platform = _platform;
     final session = _session;
     final sampling = _nativeSampling;
-    if (!_nativeTracking ||
-        platform == null ||
-        session == null ||
-        sampling == null) {
+    if (!_nativeTracking || platform == null || session == null) {
       notifyListeners();
+      return;
+    }
+    if (sampling == null) {
+      // Legacy recoveries can lack a persisted sampling request. Continuing
+      // would leave us unable to prove that the native motion sensor was
+      // withdrawn, so stop the collector rather than retaining optional
+      // sensor access after the driver opted out.
+      _platformError =
+          'Motion activity was disabled, but GPS tracking stopped because the recovered sampling state was unavailable.';
+      await _stopNativeTracking();
       return;
     }
     try {
