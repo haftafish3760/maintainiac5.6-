@@ -310,6 +310,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private func capabilities() -> [String: Any] {
     UIDevice.current.isBatteryMonitoringEnabled = true
     [
+      "schemaVersion": 1,
       "locationAvailable": CLLocationManager.locationServicesEnabled(),
       "backgroundTrackingAvailable": true,
       "activityRecognitionAvailable": CMMotionActivityManager.isActivityAvailable(),
@@ -323,6 +324,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let batteryLevel = UIDevice.current.batteryLevel
     let percent: Int? = batteryLevel >= 0 ? Int(round(batteryLevel * 100)) : nil
     return [
+      "schemaVersion": 1,
       "batteryPercent": percent,
       "isCharging": UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full,
       "lowPowerModeEnabled": ProcessInfo.processInfo.isLowPowerModeEnabled,
@@ -350,11 +352,11 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     } else {
       precise = true
     }
-    return ["state": state, "preciseLocation": precise]
+    return ["schemaVersion": 1, "state": state, "preciseLocation": precise]
   }
 
   private func emit(_ event: [String: Any]) {
-    eventSink?(event)
+    eventSink?(event.merging(["schemaVersion": 1]) { _, latest in latest })
   }
 
   private func tripActivity(for motion: CMMotionActivity) -> String {

@@ -29,7 +29,7 @@ object TripTrackingEventEmitter {
     }
 
     fun emit(event: Map<String, Any?>) {
-        sink?.success(event)
+        sink?.success(event + mapOf("schemaVersion" to 1))
     }
 }
 
@@ -223,6 +223,7 @@ class TripTrackingNativeBridge(
         val batteryManager = activity.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
         val powerManager = activity.getSystemService(Context.POWER_SERVICE) as? PowerManager
         return mapOf(
+            "schemaVersion" to 1,
             "locationAvailable" to manager.isProviderEnabled(LocationManager.GPS_PROVIDER),
             "backgroundTrackingAvailable" to true,
             "activityRecognitionAvailable" to (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED),
@@ -240,6 +241,7 @@ class TripTrackingNativeBridge(
         val batteryStatus = activity.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         return mapOf(
+            "schemaVersion" to 1,
             "batteryPercent" to percent,
             "isCharging" to (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL),
             "lowPowerModeEnabled" to (powerManager?.isPowerSaveMode == true),
@@ -247,6 +249,7 @@ class TripTrackingNativeBridge(
     }
 
     private fun authorizationMap(): Map<String, Any> = mapOf(
+        "schemaVersion" to 1,
         "state" to when {
             !hasFineLocation() -> "denied"
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && hasBackgroundLocation() -> "always"
