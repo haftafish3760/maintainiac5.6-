@@ -253,6 +253,7 @@ void main() {
         'reasonCode': 'low_battery_requires_user_choice',
         'batteryBucket': 'below_20',
         'safetyCutoffPercent': 20,
+        'hardGpsShutdownPercent': 10,
         'promptTitle': 'Battery below 20%',
         'promptBody':
             'GPS-assisted tracking is paused by default below the safety threshold. Continue only if you want GPS to keep running.',
@@ -717,40 +718,8 @@ void main() {
     },
   );
 
-  test('a return to the vehicle after walking cannot create false road miles', () {
-    final engine = TripTrackingEngine();
-    final automotive = TripActivityObservation(
-      activity: TripActivity.automotive,
-      confidence: 90,
-      recordedAt: start,
-    );
-    engine.ingest(sample(-80, 0), activity: automotive);
-    engine.ingest(sample(-79.9997, 15), activity: automotive);
-    final distanceBeforeWalk = engine.totalAcceptedMeters;
-
-    expect(
-      engine.ingest(sample(-79.9987, 60), activity: walking(60)).disposition,
-      TripSampleDisposition.excludedWalking,
-    );
-    final returnDecision = engine.ingest(sample(-79.9997, 75));
-
-    expect(returnDecision.disposition, TripSampleDisposition.rejectedDrift);
-    expect(engine.totalAcceptedMeters, distanceBeforeWalk);
-    expect(
-      engine.ingest(
-        sample(-79.9994, 90),
-        activity: TripActivityObservation(
-          activity: TripActivity.automotive,
-          confidence: 90,
-          recordedAt: start.add(const Duration(seconds: 90)),
-        ),
-      ).disposition,
-      TripSampleDisposition.acceptedDistance,
-    );
-  });
-
   test(
-    'a restored engine keeps its vehicle anchor after an excluded walk',
+    'a return to the vehicle after walking cannot create false road miles',
     () {
       final engine = TripTrackingEngine();
       final automotive = TripActivityObservation(
@@ -766,14 +735,48 @@ void main() {
         engine.ingest(sample(-79.9987, 60), activity: walking(60)).disposition,
         TripSampleDisposition.excludedWalking,
       );
-
-      final restored = TripTrackingEngine.fromSnapshot(engine.snapshot);
-      final returnDecision = restored.ingest(sample(-79.9997, 75));
+      final returnDecision = engine.ingest(sample(-79.9997, 75));
 
       expect(returnDecision.disposition, TripSampleDisposition.rejectedDrift);
-      expect(restored.totalAcceptedMeters, distanceBeforeWalk);
+      expect(engine.totalAcceptedMeters, distanceBeforeWalk);
+      expect(
+        engine
+            .ingest(
+              sample(-79.9994, 90),
+              activity: TripActivityObservation(
+                activity: TripActivity.automotive,
+                confidence: 90,
+                recordedAt: start.add(const Duration(seconds: 90)),
+              ),
+            )
+            .disposition,
+        TripSampleDisposition.acceptedDistance,
+      );
     },
   );
+
+  test('a restored engine keeps its vehicle anchor after an excluded walk', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+    final distanceBeforeWalk = engine.totalAcceptedMeters;
+
+    expect(
+      engine.ingest(sample(-79.9987, 60), activity: walking(60)).disposition,
+      TripSampleDisposition.excludedWalking,
+    );
+
+    final restored = TripTrackingEngine.fromSnapshot(engine.snapshot);
+    final returnDecision = restored.ingest(sample(-79.9997, 75));
+
+    expect(returnDecision.disposition, TripSampleDisposition.rejectedDrift);
+    expect(restored.totalAcceptedMeters, distanceBeforeWalk);
+  });
 
   test(
     'vehicle-speed evidence overrides a walking sensor misclassification',
@@ -873,37 +876,40 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
   });
 
-  test('a long vehicle-only wait remains protected without clean drive proof', () {
-    final engine = TripTrackingEngine(
-      profile: TripTrackingProfile.rideshareVehicle,
-    );
-    final automotive = TripActivityObservation(
-      activity: TripActivity.automotive,
-      confidence: 90,
-      recordedAt: start,
-    );
-    engine.ingest(sample(-80, 0), activity: automotive);
-    engine.ingest(sample(-79.9997, 15), activity: automotive);
-
-    for (final seconds in [30, 60, 90]) {
-      engine.ingest(sample(-79.9997, seconds));
-    }
-    expect(engine.motionState, isNot(TripMotionState.stopCandidate));
-
-    engine.ingest(sample(-79.9997, 135));
-    expect(engine.motionState, isNot(TripMotionState.stopCandidate));
-    expect(engine.needsWalkingReview, isFalse);
-
-    engine.ingest(
-      sample(-79.997, 160),
-      activity: TripActivityObservation(
+  test(
+    'a long vehicle-only wait remains protected without clean drive proof',
+    () {
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.rideshareVehicle,
+      );
+      final automotive = TripActivityObservation(
         activity: TripActivity.automotive,
         confidence: 90,
-        recordedAt: start.add(const Duration(seconds: 160)),
-      ),
-    );
-    expect(engine.motionState, TripMotionState.moving);
-  });
+        recordedAt: start,
+      );
+      engine.ingest(sample(-80, 0), activity: automotive);
+      engine.ingest(sample(-79.9997, 15), activity: automotive);
+
+      for (final seconds in [30, 60, 90]) {
+        engine.ingest(sample(-79.9997, seconds));
+      }
+      expect(engine.motionState, isNot(TripMotionState.stopCandidate));
+
+      engine.ingest(sample(-79.9997, 135));
+      expect(engine.motionState, isNot(TripMotionState.stopCandidate));
+      expect(engine.needsWalkingReview, isFalse);
+
+      engine.ingest(
+        sample(-79.997, 160),
+        activity: TripActivityObservation(
+          activity: TripActivity.automotive,
+          confidence: 90,
+          recordedAt: start.add(const Duration(seconds: 160)),
+        ),
+      );
+      expect(engine.motionState, TripMotionState.moving);
+    },
+  );
 
   test('vehicle-only fallback rejects interrupted GPS evidence', () {
     final engine = TripTrackingEngine(
@@ -970,64 +976,73 @@ void main() {
     expect(engine.motionState, isNot(TripMotionState.stopCandidate));
   });
 
-  test('stationary GPS conflicts cannot invent a vehicle-only stop candidate', () {
-    final engine = TripTrackingEngine(
-      profile: TripTrackingProfile.rideshareVehicle,
-    );
-    final automotive = TripActivityObservation(
-      activity: TripActivity.automotive,
-      confidence: 90,
-      recordedAt: start,
-    );
-    engine.ingest(sample(-80, 0), activity: automotive);
-    engine.ingest(sample(-79.9997, 15), activity: automotive);
-    final drivenMeters = engine.totalAcceptedMeters;
-
-    for (final entry in const [
-      (30, -79.9987),
-      (60, -79.9977),
-      (90, -79.9967),
-    ]) {
-      final decision = engine.ingest(
-        sample(entry.$2, entry.$1, speedMetersPerSecond: 0.2),
+  test(
+    'stationary GPS conflicts cannot invent a vehicle-only stop candidate',
+    () {
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.rideshareVehicle,
       );
-      expect(decision.disposition, TripSampleDisposition.rejectedSpeedConflict);
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      engine.ingest(sample(-80, 0), activity: automotive);
+      engine.ingest(sample(-79.9997, 15), activity: automotive);
+      final drivenMeters = engine.totalAcceptedMeters;
+
+      for (final entry in const [
+        (30, -79.9987),
+        (60, -79.9977),
+        (90, -79.9967),
+      ]) {
+        final decision = engine.ingest(
+          sample(entry.$2, entry.$1, speedMetersPerSecond: 0.2),
+        );
+        expect(
+          decision.disposition,
+          TripSampleDisposition.rejectedSpeedConflict,
+        );
+        expect(engine.motionState, isNot(TripMotionState.stopCandidate));
+      }
+
+      final stopped = engine.ingest(
+        sample(-79.9957, 135, speedMetersPerSecond: 0.2),
+      );
+      expect(stopped.disposition, TripSampleDisposition.rejectedSpeedConflict);
       expect(engine.motionState, isNot(TripMotionState.stopCandidate));
-    }
+      expect(engine.totalAcceptedMeters, drivenMeters);
+      expect(engine.needsWalkingReview, isFalse);
+    },
+  );
 
-    final stopped = engine.ingest(
-      sample(-79.9957, 135, speedMetersPerSecond: 0.2),
-    );
-    expect(stopped.disposition, TripSampleDisposition.rejectedSpeedConflict);
-    expect(engine.motionState, isNot(TripMotionState.stopCandidate));
-    expect(engine.totalAcceptedMeters, drivenMeters);
-    expect(engine.needsWalkingReview, isFalse);
-  });
+  test(
+    'vehicle-only wait remains protected after safe engine snapshot restore',
+    () {
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.rideshareVehicle,
+      );
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      engine.ingest(sample(-80, 0), activity: automotive);
+      engine.ingest(sample(-79.9997, 15), activity: automotive);
+      for (final seconds in [30, 60, 90]) {
+        engine.ingest(sample(-79.9997, seconds));
+      }
 
-  test('vehicle-only wait remains protected after safe engine snapshot restore', () {
-    final engine = TripTrackingEngine(
-      profile: TripTrackingProfile.rideshareVehicle,
-    );
-    final automotive = TripActivityObservation(
-      activity: TripActivity.automotive,
-      confidence: 90,
-      recordedAt: start,
-    );
-    engine.ingest(sample(-80, 0), activity: automotive);
-    engine.ingest(sample(-79.9997, 15), activity: automotive);
-    for (final seconds in [30, 60, 90]) {
-      engine.ingest(sample(-79.9997, seconds));
-    }
+      final restored = TripTrackingEngine.fromSnapshot(
+        TripTrackingEngineSnapshot.fromMap(engine.snapshot.toMap()),
+        profile: TripTrackingProfile.rideshareVehicle,
+      );
+      restored.ingest(sample(-79.9997, 135));
 
-    final restored = TripTrackingEngine.fromSnapshot(
-      TripTrackingEngineSnapshot.fromMap(engine.snapshot.toMap()),
-      profile: TripTrackingProfile.rideshareVehicle,
-    );
-    restored.ingest(sample(-79.9997, 135));
-
-    expect(restored.motionState, isNot(TripMotionState.stopCandidate));
-    expect(restored.needsWalkingReview, isFalse);
-  });
+      expect(restored.motionState, isNot(TripMotionState.stopCandidate));
+      expect(restored.needsWalkingReview, isFalse);
+    },
+  );
 
   test('malformed stationary restore cannot invent vehicle-only stop', () {
     final restored = TripTrackingEngine.fromSnapshot(

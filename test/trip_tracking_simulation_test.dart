@@ -101,7 +101,11 @@ void main() {
         result.count(TripSampleDisposition.acceptedDistance),
         greaterThan(20),
       );
-      expect(result.acceptedMeters, greaterThan(500));
+      // The fixture contains seven complete 42 m rectangles plus the initial
+      // three sides of the eighth pass: about 325 m of real mower movement.
+      // Keep the regression bounded so an outlier filter cannot silently turn
+      // a repeated small-area route into either zero miles or drift mileage.
+      expect(result.acceptedMeters, closeTo(325, 6));
     },
   );
 
