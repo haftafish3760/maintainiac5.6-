@@ -4,6 +4,10 @@
 class TripTrackingDashboardLiveStatusPolicy {
   const TripTrackingDashboardLiveStatusPolicy._();
 
+  /// Dashboard health messages are advisory; the confirmed physical odometer
+  /// remains the app-wide mileage authority.
+  static const bool odometerIsGlobalTruth = true;
+
   static const _staleSignalFallback =
       'GPS has not produced a location fix recently. Keep your trip open; '
       'review the gap before confirming mileage.';

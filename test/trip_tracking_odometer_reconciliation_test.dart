@@ -1086,7 +1086,7 @@ void main() {
       expect(signal.eligibleSampleCount, 7);
       expect(signal.averageGpsToOdometerRatio, closeTo(543 / 560, .001));
       expect(signal.averageDifferencePercent, closeTo(17 / 560 * 100, .001));
-      expect(signal.reasonCode, 'calibration_stable');
+      expect(signal.reasonCode, 'gps_odometer_variance_too_high');
     },
   );
 
@@ -1178,7 +1178,7 @@ void main() {
           (difference) => TripOdometerReconciliation(
             status: TripOdometerReconciliationStatus.reviewRecommended,
             confirmedOdometerDeltaMiles: 100,
-            filteredGpsMiles: 100 - difference,
+            filteredGpsMiles: 100.0 - difference,
             absoluteDifferenceMiles: difference.toDouble(),
             differencePercent: difference.toDouble(),
           ),
@@ -1324,6 +1324,7 @@ void main() {
       'trustedGpsWindowCount': 7,
       'excludedPoorGpsDayCount': 0,
       'averageDifferencePercent': 6.2,
+      'differenceSpreadPercent': 0.0,
       'reasonCode': 'persistent_gps_odometer_drift',
       'shouldPromptUser': true,
       'maySuggestTireOrSpeedometerReview': true,

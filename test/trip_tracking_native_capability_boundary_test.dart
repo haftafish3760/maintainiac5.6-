@@ -467,9 +467,9 @@ void main() {
       expect(decision?.status, TripTrackingHeartbeatWatchdogStatus.healthy);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.degraded,
       );
-      expect(controller.platformStatus, 'tracking');
+      expect(controller.platformStatus, 'gps_signal_stale');
     },
   );
 

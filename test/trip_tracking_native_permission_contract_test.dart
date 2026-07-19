@@ -221,6 +221,29 @@ void main() {
     },
   );
 
+  test('iOS background trip tracking keeps its declared capability contract', () {
+    final info = File('ios/Runner/Info.plist').readAsStringSync();
+    final bridge = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(info, contains('NSLocationAlwaysAndWhenInUseUsageDescription'));
+    expect(info, contains('UIBackgroundModes'));
+    expect(info, contains('<string>location</string>'));
+    expect(
+      bridge,
+      contains(
+        'locationManager.allowsBackgroundLocationUpdates = allowBackground && state == "always"',
+      ),
+    );
+    expect(
+      bridge,
+      contains(
+        'locationManager.showsBackgroundLocationIndicator = allowBackground && state == "always"',
+      ),
+    );
+  });
+
   test('native collectors emit revocation errors and release resources', () {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
