@@ -390,7 +390,6 @@ class TripTrackingEngine {
     if (disposition == TripSampleDisposition.rejectedGap) {
       _stationaryStartedAt = null;
       _walkingEvidence.clear();
-      _walkingReviewSuggested = false;
       _motionState = TripMotionState.unknown;
       return;
     }
@@ -460,8 +459,8 @@ class TripTrackingEngine {
           _diagnostics.dispositionCounts[TripSampleDisposition.rejectedDrift] ??
           0,
       acceptedDistanceCount:
-          _diagnostics
-              .dispositionCounts[TripSampleDisposition.acceptedDistance] ??
+          _diagnostics.dispositionCounts[TripSampleDisposition
+              .acceptedDistance] ??
           0,
       acceptedVehicleMovementObserved: _vehicleMovementObserved,
       speedMps: speedMps,
