@@ -1190,6 +1190,10 @@ void main() {
     expect(signal.status, TripOdometerCalibrationStatus.stable);
     expect(signal.reasonCode, 'gps_odometer_variance_too_high');
     expect(signal.differenceSpreadPercent, 6.0);
+    expect(
+      signal.toSafeDashboardMap()['reasonCode'],
+      'gps_odometer_variance_too_high',
+    );
   });
 
   test('calibration rejects non-finite thresholds', () {

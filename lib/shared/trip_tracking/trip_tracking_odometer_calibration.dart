@@ -421,6 +421,7 @@ String _safeCalibrationReason(String value) {
     'needs_more_reviewed_days' => clean,
     'mixed_vehicle_calibration_history' => clean,
     'persistent_gps_odometer_drift' => clean,
+    'gps_odometer_variance_too_high' => clean,
     'calibration_stable' => clean,
     _ => 'unknown_calibration_state',
   };
