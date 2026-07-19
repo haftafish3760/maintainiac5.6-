@@ -140,6 +140,11 @@ void main() {
     expect(android, contains('locationCallback !== callback'));
     expect(android, contains('stopSelf(startId)'));
     expect(android, contains('return START_REDELIVER_INTENT'));
+    expect(android, contains('fun retireForExplicitStop()'));
+    expect(
+      androidBridge,
+      contains('TripTrackingForegroundService.retireForExplicitStop()'),
+    );
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
     expect(
@@ -306,7 +311,7 @@ void main() {
     expect(android, contains('fusedLocationClient.removeLocationUpdates(it)'));
     expect(android, contains('removeActivityUpdates(pendingIntent)'));
     expect(
-      android.indexOf('isRunning = false\n        stopHeartbeat()'),
+      android.indexOf('retireForExplicitStop()\n        stopHeartbeat()'),
       greaterThanOrEqualTo(0),
     );
     expect(

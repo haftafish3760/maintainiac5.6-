@@ -50,6 +50,14 @@ class TripTrackingForegroundService : Service() {
 
         fun isActivityEpochActive(epoch: String): Boolean =
             isRunning && activeActivityEpoch == epoch
+
+        /// Called by the Flutter bridge before an explicit stop request. This
+        /// closes the short interval before Android invokes onDestroy, when a
+        /// queued fused or activity callback could otherwise still emit.
+        fun retireForExplicitStop() {
+            isRunning = false
+            activeActivityEpoch = null
+        }
     }
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -215,7 +223,7 @@ class TripTrackingForegroundService : Service() {
         // A fused callback may already be queued while Android tears down the
         // service. Retire collection before unregistering so that a late fix
         // cannot cross the native boundary after the driver stopped tracking.
-        isRunning = false
+        retireForExplicitStop()
         stopHeartbeat()
         stopLocationUpdates()
         removeActivityRecognitionUpdates()

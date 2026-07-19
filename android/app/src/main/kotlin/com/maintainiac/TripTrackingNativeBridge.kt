@@ -71,6 +71,9 @@ class TripTrackingNativeBridge(
             "start" -> start(call, result)
             "update" -> update(call, result)
             "stop" -> {
+                // Retire callbacks before stopService returns. Android may
+                // invoke onDestroy asynchronously after this bridge reply.
+                TripTrackingForegroundService.retireForExplicitStop()
                 activity.stopService(Intent(activity, TripTrackingForegroundService::class.java))
                 result.success(null)
             }
