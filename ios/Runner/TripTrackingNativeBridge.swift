@@ -17,6 +17,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private var backgroundAuthorizationRequested = false
   private var tracking = false
   private var activityRecognitionEnabled = false
+  private var activityRecognitionGeneration = 0
   private var heartbeatTimer: Timer?
 
   override init() {
@@ -71,10 +72,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       !hasPreciseLocation ||
       !canKeepBackgroundTracking
     ) {
-      stopHeartbeat()
-      locationManager.stopUpdatingLocation()
-      setActivityRecognitionEnabled(false)
-      tracking = false
+      stopNativeCollection()
       let errorCode: String
       let errorMessage: String
       if !hasPreciseLocation {
@@ -143,10 +141,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       return
     }
     if let locationError = error as? CLError, locationError.code == .denied {
-      stopHeartbeat()
-      locationManager.stopUpdatingLocation()
-      setActivityRecognitionEnabled(false)
-      tracking = false
+      stopNativeCollection()
       emit([
         "type": "error",
         "errorCode": "trip_tracking_location_denied",
@@ -158,10 +153,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     // indeterminate. End native collection and let the Dart lifecycle keep
     // the local trip recoverable rather than silently continuing with stale
     // state. This never creates mileage, a stop, or an odometer update.
-    stopHeartbeat()
-    locationManager.stopUpdatingLocation()
-    setActivityRecognitionEnabled(false)
-    tracking = false
+    stopNativeCollection()
     emit([
       "type": "error",
       "errorCode": "trip_tracking_location_error",
@@ -182,10 +174,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     case "update":
       update(call, result: result)
     case "stop":
-      stopHeartbeat()
-      locationManager.stopUpdatingLocation()
-      setActivityRecognitionEnabled(false)
-      tracking = false
+      stopNativeCollection()
       emit(["type": "status", "status": "stopped"])
       result(nil)
     case "isTracking":
@@ -258,9 +247,12 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     if #available(iOS 11.0, *) {
       locationManager.showsBackgroundLocationIndicator = allowBackground && state == "always"
     }
+    // Core Location may return a cached fix as soon as collection starts.
+    // Mark this native collector live first so the first credible fix is not
+    // discarded solely because the start callback and delegate race.
+    tracking = true
     locationManager.startUpdatingLocation()
     setActivityRecognitionEnabled(activityEnabled)
-    tracking = true
     emit(["type": "status", "status": "tracking"])
     startHeartbeat()
     result(true)
@@ -286,13 +278,21 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private func setActivityRecognitionEnabled(_ enabled: Bool) {
     let shouldEnable = enabled && CMMotionActivityManager.isActivityAvailable()
     guard shouldEnable != activityRecognitionEnabled else { return }
+    // Core Motion callbacks can be queued across stop/start boundaries. A
+    // new consent window gets a new generation so a delayed walking signal
+    // cannot influence a later tracking session or re-enabled sensor.
+    activityRecognitionGeneration += 1
+    let generation = activityRecognitionGeneration
     activityRecognitionEnabled = shouldEnable
     guard shouldEnable else {
       motionManager.stopActivityUpdates()
       return
     }
     motionManager.startActivityUpdates(to: .main) { [weak self] motion in
-      guard let self, self.activityRecognitionEnabled, let motion else { return }
+      guard let self,
+            self.activityRecognitionEnabled,
+            self.activityRecognitionGeneration == generation,
+            let motion else { return }
       let observedAt = motion.startDate
       guard observedAt.timeIntervalSince1970 > 0,
             observedAt <= Date().addingTimeInterval(120) else { return }
@@ -346,6 +346,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     heartbeatTimer = nil
   }
 
+  /// Retire the collector before telling Core Location or Core Motion to stop.
+  /// Both frameworks may have a buffered callback already queued, and a late
+  /// callback must never influence a completed or replacement Dart session.
+  private func stopNativeCollection() {
+    tracking = false
+    stopHeartbeat()
+    locationManager.stopUpdatingLocation()
+    setActivityRecognitionEnabled(false)
+  }
+
   private func capabilities() -> [String: Any] {
     UIDevice.current.isBatteryMonitoringEnabled = true
     return [
@@ -378,10 +388,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     guard let percent = snapshot["batteryPercent"] as? Int,
           percent >= 0,
           percent < 10 else { return false }
-    stopHeartbeat()
-    locationManager.stopUpdatingLocation()
-    setActivityRecognitionEnabled(false)
-    tracking = false
+    stopNativeCollection()
     emit([
       "type": "error",
       "errorCode": "trip_tracking_battery_critical",

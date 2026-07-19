@@ -1,4 +1,5 @@
 import 'trip_tracking_simulator.dart';
+import 'trip_tracking_field_evidence.dart';
 
 enum TripTrackingBenchmarkCategory {
   normalOpenSky,
@@ -30,6 +31,69 @@ class TripTrackingBenchmarkReporter {
         .toList(growable: false);
     return TripTrackingBenchmarkReport(results);
   }
+
+  static TripTrackingFieldEvidenceReport evaluateFieldEvidence(
+    Iterable<TripTrackingFieldEvidence> evidence,
+  ) => TripTrackingFieldEvidenceReport(evidence);
+}
+
+/// Coordinate-minimized metrics collected from explicitly recorded field runs.
+/// These are evidence summaries, not a certification of production accuracy.
+class TripTrackingFieldEvidenceReport {
+  TripTrackingFieldEvidenceReport(Iterable<TripTrackingFieldEvidence> input)
+    : evidence = List.unmodifiable(input);
+
+  final List<TripTrackingFieldEvidence> evidence;
+
+  int get caseCount => evidence.length;
+
+  Map<String, int> get platformCaseCounts => Map.unmodifiable({
+    'android': evidence.where((entry) => entry.platform == 'android').length,
+    'ios': evidence.where((entry) => entry.platform == 'ios').length,
+  });
+
+  double? get meanDistanceAbsoluteErrorMiles =>
+      _mean(evidence.map((entry) => entry.absoluteDistanceErrorMiles));
+
+  int get expectedWalkingStops =>
+      evidence.fold(0, (total, entry) => total + entry.expectedWalkingStops);
+
+  int get detectedWalkingStops =>
+      evidence.fold(0, (total, entry) => total + entry.detectedWalkingStops);
+
+  int get matchedWalkingStops =>
+      evidence.fold(0, (total, entry) => total + entry.matchedWalkingStops);
+
+  int get missedWalkingStops => expectedWalkingStops - matchedWalkingStops;
+
+  int get falseWalkingStops => detectedWalkingStops - matchedWalkingStops;
+
+  double? get walkingStopPrecision {
+    final denominator = detectedWalkingStops;
+    return denominator == 0 ? null : matchedWalkingStops / denominator;
+  }
+
+  double? get walkingStopRecall {
+    final denominator = expectedWalkingStops;
+    return denominator == 0 ? null : matchedWalkingStops / denominator;
+  }
+
+  Map<String, Object?> toSafeSummary() => {
+    'caseCount': caseCount,
+    'platformCaseCounts': platformCaseCounts,
+    'meanDistanceAbsoluteErrorMiles': _rounded(meanDistanceAbsoluteErrorMiles),
+    'expectedWalkingStops': expectedWalkingStops,
+    'detectedWalkingStops': detectedWalkingStops,
+    'matchedWalkingStops': matchedWalkingStops,
+    'missedWalkingStops': missedWalkingStops,
+    'falseWalkingStops': falseWalkingStops,
+    'walkingStopPrecision': _rounded(walkingStopPrecision),
+    'walkingStopRecall': _rounded(walkingStopRecall),
+    'coordinatesIncluded': false,
+    'routeGeometryIncluded': false,
+    'preciseTimestampIncluded': false,
+    'realDeviceEvidenceIsNotAutomaticCertification': true,
+  };
 }
 
 class TripTrackingBenchmarkCase {

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_benchmark_reporter.dart';
+import 'support/trip_tracking_qa/trip_tracking_field_evidence.dart';
 import 'support/trip_tracking_qa/trip_tracking_simulator.dart';
 
 void main() {
@@ -75,4 +76,44 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test(
+    'field evidence reporter keeps walking-stop metrics coordinate-free',
+    () {
+      final report = TripTrackingBenchmarkReporter.evaluateFieldEvidence([
+        const TripTrackingFieldEvidence(
+          platform: 'android',
+          odometerMiles: 10,
+          filteredGpsMiles: 9.8,
+          expectedWalkingStops: 3,
+          detectedWalkingStops: 2,
+          matchedWalkingStops: 2,
+        ),
+        const TripTrackingFieldEvidence(
+          platform: 'ios',
+          odometerMiles: 4,
+          filteredGpsMiles: 4.1,
+          expectedWalkingStops: 1,
+          detectedWalkingStops: 2,
+          matchedWalkingStops: 1,
+        ),
+      ]);
+
+      expect(report.caseCount, 2);
+      expect(report.platformCaseCounts, {'android': 1, 'ios': 1});
+      expect(report.meanDistanceAbsoluteErrorMiles, closeTo(.15, .0001));
+      expect(report.expectedWalkingStops, 4);
+      expect(report.detectedWalkingStops, 4);
+      expect(report.matchedWalkingStops, 3);
+      expect(report.missedWalkingStops, 1);
+      expect(report.falseWalkingStops, 1);
+      expect(report.walkingStopPrecision, .75);
+      expect(report.walkingStopRecall, .75);
+      expect(report.toSafeSummary()['coordinatesIncluded'], isFalse);
+      expect(
+        report.toSafeSummary()['realDeviceEvidenceIsNotAutomaticCertification'],
+        isTrue,
+      );
+    },
+  );
 }

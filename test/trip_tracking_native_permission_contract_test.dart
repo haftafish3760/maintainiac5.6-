@@ -142,6 +142,26 @@ void main() {
     expect(android, contains('return START_REDELIVER_INTENT'));
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(androidActivity, contains('"type" to "activity"'));
+    expect(
+      androidActivity,
+      contains('TripTrackingForegroundService.isActivityEpochActive(epoch)'),
+    );
+    expect(android, contains('const val activityEpochExtra = "activityEpoch"'));
+    expect(
+      android,
+      contains('private var activeActivityEpoch: String? = null'),
+    );
+    expect(
+      android,
+      contains('Intent(this, TripTrackingActivityReceiver::class.java)'),
+    );
+    expect(
+      android,
+      contains(
+        r'.setData(Uri.parse("maintainiac://trip_tracking/activity/$epoch"))',
+      ),
+    );
+    expect(android, contains('.putExtra(activityEpochExtra, epoch)'));
     expect(androidActivity, contains('val observedAtMillis = result.time'));
     expect(
       androidActivity,
@@ -157,6 +177,12 @@ void main() {
     expect(ios, contains('"type": "activity"'));
     expect(ios, contains('"mockedLocation": simulated'));
     expect(ios, contains('isSimulatedBySoftware'));
+    expect(
+      ios.indexOf(
+        'tracking = true\n    locationManager.startUpdatingLocation()',
+      ),
+      greaterThanOrEqualTo(0),
+    );
   });
 
   test('native capabilities expose battery and low-power availability', () {
@@ -261,7 +287,12 @@ void main() {
       android,
       contains('if (stopForLocationPermissionRevokedIfNeeded()) return'),
     );
-    expect(android, contains('private fun stopForLocationPermissionRevokedIfNeeded(): Boolean'));
+    expect(
+      android,
+      contains(
+        'private fun stopForLocationPermissionRevokedIfNeeded(): Boolean',
+      ),
+    );
     expect(
       androidBridge,
       contains('"locationAvailable" to locationServicesEnabled(manager)'),
@@ -273,7 +304,11 @@ void main() {
     );
     expect(android, contains('override fun onDestroy()'));
     expect(android, contains('fusedLocationClient.removeLocationUpdates(it)'));
-    expect(android, contains('removeActivityUpdates(activityPendingIntent)'));
+    expect(android, contains('removeActivityUpdates(pendingIntent)'));
+    expect(
+      android.indexOf('isRunning = false\n        stopHeartbeat()'),
+      greaterThanOrEqualTo(0),
+    );
     expect(
       android,
       contains('"status" to if (userPauseRequested) "paused" else "stopped"'),
@@ -297,10 +332,15 @@ void main() {
     expect(
       ios,
       contains(
-        'tracking = false\n    emit([\n      "type": "error",\n      "errorCode": "trip_tracking_location_error"',
+        'stopNativeCollection()\n    emit([\n      "type": "error",\n      "errorCode": "trip_tracking_location_error"',
       ),
     );
+    expect(ios, contains('private func stopNativeCollection()'));
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
+    expect(
+      ios.indexOf('tracking = false\n    stopHeartbeat()'),
+      greaterThanOrEqualTo(0),
+    );
     expect(
       ios,
       contains(
@@ -339,14 +379,17 @@ void main() {
     expect(
       android,
       contains(
-        'ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)',
+        'ActivityRecognition.getClient(this).removeActivityUpdates(pendingIntent)',
       ),
     );
+    expect(android, contains('retireActivityRecognitionEpoch()'));
     expect(android, contains('if (!isRunning || !location.hasAccuracy()'));
     expect(ios, contains('private var activityRecognitionEnabled = false'));
+    expect(ios, contains('private var activityRecognitionGeneration = 0'));
     expect(ios, contains('private func setActivityRecognitionEnabled'));
     expect(ios, contains('setActivityRecognitionEnabled(activityEnabled)'));
-    expect(ios, contains('self.activityRecognitionEnabled, let motion'));
+    expect(ios, contains('self.activityRecognitionEnabled,'));
+    expect(ios, contains('self.activityRecognitionGeneration == generation'));
     expect(ios, contains('motionManager.stopActivityUpdates()'));
   });
 

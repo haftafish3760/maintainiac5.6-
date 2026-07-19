@@ -11,6 +11,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.BatteryManager
 import android.os.Handler
@@ -25,18 +26,30 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.util.UUID
 
 class TripTrackingForegroundService : Service() {
     companion object {
         const val intervalMillisExtra = "intervalMillis"
         const val minimumDisplacementExtra = "minimumDisplacementMeters"
         const val activityRecognitionEnabledExtra = "activityRecognitionEnabled"
+        const val activityEpochExtra = "activityEpoch"
         private const val stopAction = "com.maintainiac.trip_tracking.STOP"
         private const val notificationChannelId = "maintainiac_trip_tracking"
         private const val notificationId = 7313
         private const val heartbeatIntervalMillis = 60_000L
+        @Volatile
         var isRunning = false
             private set
+
+        // Activity Recognition broadcasts can be buffered after a user stops
+        // tracking. Bind each subscription to the current foreground-service
+        // epoch so an old walking classification cannot influence a later trip.
+        @Volatile
+        private var activeActivityEpoch: String? = null
+
+        fun isActivityEpochActive(epoch: String): Boolean =
+            isRunning && activeActivityEpoch == epoch
     }
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -55,13 +68,40 @@ class TripTrackingForegroundService : Service() {
             heartbeatHandler.postDelayed(this, heartbeatIntervalMillis)
         }
     }
-    private val activityPendingIntent by lazy {
-        PendingIntent.getBroadcast(
+    private var activityEpoch: String? = null
+    private var activityPendingIntent: PendingIntent? = null
+
+    private fun activityRecognitionPendingIntent(): PendingIntent {
+        val epoch = activityEpoch ?: UUID.randomUUID().toString().also {
+            activityEpoch = it
+            activeActivityEpoch = it
+        }
+        return activityPendingIntent ?: PendingIntent.getBroadcast(
             this,
             7314,
-            Intent(this, TripTrackingActivityReceiver::class.java),
+            Intent(this, TripTrackingActivityReceiver::class.java)
+                // PendingIntent identity includes data, which prevents a
+                // delayed broadcast for a previous session from being reused.
+                .setData(Uri.parse("maintainiac://trip_tracking/activity/$epoch"))
+                .putExtra(activityEpochExtra, epoch),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+        ).also { activityPendingIntent = it }
+    }
+
+    private fun removeActivityRecognitionUpdates() {
+        val pendingIntent = activityPendingIntent ?: return
+        try {
+            ActivityRecognition.getClient(this).removeActivityUpdates(pendingIntent)
+        } catch (_: Exception) {
+            // Location cleanup and the explicit opt-out remain authoritative
+            // if Play Services is temporarily unavailable.
+        }
+    }
+
+    private fun retireActivityRecognitionEpoch() {
+        activeActivityEpoch = null
+        activityEpoch = null
+        activityPendingIntent = null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -130,7 +170,10 @@ class TripTrackingForegroundService : Service() {
             return START_NOT_STICKY
         }
         if (activityEnabled && hasActivityRecognition()) {
-            ActivityRecognition.getClient(this).requestActivityUpdates(5000, activityPendingIntent)
+            ActivityRecognition.getClient(this).requestActivityUpdates(
+                5000,
+                activityRecognitionPendingIntent(),
+            )
                 .addOnFailureListener { error ->
                     TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_activity_unavailable", "errorMessage" to "Activity recognition is unavailable: ${error.message ?: "request failed"}"))
                 }
@@ -138,12 +181,11 @@ class TripTrackingForegroundService : Service() {
             // Sampling updates can revoke motion assistance while the trip
             // remains active. Stop the sensor immediately; location tracking
             // must never keep collecting activity data after that opt-out.
-            try {
-                ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
-            } catch (_: Exception) {
-                // Location cleanup and the explicit opt-out remain authoritative
-                // if Play Services is temporarily unavailable.
-            }
+            removeActivityRecognitionUpdates()
+            // A later re-enable is a new consent window. Retiring the token
+            // prevents a delayed broadcast from before opt-out from becoming
+            // valid again when motion assistance is turned back on.
+            retireActivityRecognitionEpoch()
         }
         TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
         startHeartbeat()
@@ -170,14 +212,14 @@ class TripTrackingForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        // A fused callback may already be queued while Android tears down the
+        // service. Retire collection before unregistering so that a late fix
+        // cannot cross the native boundary after the driver stopped tracking.
+        isRunning = false
         stopHeartbeat()
         stopLocationUpdates()
-        try {
-            ActivityRecognition.getClient(this).removeActivityUpdates(activityPendingIntent)
-        } catch (_: Exception) {
-            // Location cleanup remains authoritative if Play Services is unavailable.
-        }
-        isRunning = false
+        removeActivityRecognitionUpdates()
+        retireActivityRecognitionEpoch()
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "status",

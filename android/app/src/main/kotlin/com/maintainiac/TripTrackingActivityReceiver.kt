@@ -10,6 +10,12 @@ import com.google.android.gms.location.DetectedActivity
 class TripTrackingActivityReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (!ActivityRecognitionResult.hasResult(intent)) return
+        val epoch = intent.getStringExtra(TripTrackingForegroundService.activityEpochExtra)
+            ?: return
+        // Play Services may deliver a queued broadcast after the user stopped
+        // tracking or immediately after a new session starts. Accept motion
+        // assistance only for the currently live collector epoch.
+        if (!TripTrackingForegroundService.isActivityEpochActive(epoch)) return
         val result = ActivityRecognitionResult.extractResult(intent) ?: return
         val activity = result.mostProbableActivity ?: return
         val observedAtMillis = result.time
