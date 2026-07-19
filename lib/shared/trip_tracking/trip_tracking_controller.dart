@@ -1396,7 +1396,10 @@ class TripTrackingController extends ChangeNotifier {
     final platform = _platform;
     final session = _session;
     final sampling = _nativeSampling;
-    if (!_nativeTracking || platform == null || session == null || sampling == null) {
+    if (!_nativeTracking ||
+        platform == null ||
+        session == null ||
+        sampling == null) {
       notifyListeners();
       return;
     }
@@ -1442,6 +1445,7 @@ class TripTrackingController extends ChangeNotifier {
     }
     if (mayContinueInBackground ||
         (state != AppLifecycleState.paused &&
+            state != AppLifecycleState.hidden &&
             state != AppLifecycleState.detached)) {
       return;
     }

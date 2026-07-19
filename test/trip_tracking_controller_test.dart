@@ -1510,6 +1510,34 @@ void main() {
     },
   );
 
+  test('foreground-only tracking stops when the app becomes hidden', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_hidden_foreground_only',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2025),
+    );
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+
+    await controller.handleAppLifecycleState(
+      AppLifecycleState.hidden,
+      backgroundTrackingAllowed: false,
+    );
+
+    expect(native.stopCalls, 1);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+  });
+
   test(
     'a native GPS stream error stops tracking and leaves a retryable trip',
     () async {
@@ -2681,121 +2709,140 @@ void main() {
     },
   );
 
-  test('disabling motion assistance updates the active native collector', () async {
-    final native = _FakeTripTrackingPlatform(activityRecognitionAvailable: true);
-    final controller = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: GlobalOdometerController(initialReading: 1000),
-      platform: native,
-    );
-    await controller.start(
-      tripId: 'trip_disable_motion_assistance',
-      vehicleId: 'vehicle_1',
-      profile: TripTrackingProfile.roadVehicle,
-      startedAt: start,
-    );
-    expect(
-      await controller.startNativeTracking(
-        allowBackground: true,
-        activityRecognitionEnabled: true,
-      ),
-      isTrue,
-    );
-
-    await controller.disableActivityRecognition();
-
-    expect(native.updateCalls, 1);
-    expect(native.updatedRequest?.activityRecognitionEnabled, isFalse);
-    expect(native.updatedRequest?.allowBackground, isTrue);
-    expect(controller.nativeTracking, isTrue);
-  });
-
-  test('a failed motion-assistance withdrawal stops GPS rather than retaining sensor access', () async {
-    final native = _FakeTripTrackingPlatform(
-      activityRecognitionAvailable: true,
-      updateSucceeds: false,
-    );
-    final controller = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: GlobalOdometerController(initialReading: 1000),
-      platform: native,
-    );
-    await controller.start(
-      tripId: 'trip_failed_motion_withdrawal',
-      vehicleId: 'vehicle_1',
-      profile: TripTrackingProfile.roadVehicle,
-      startedAt: start,
-    );
-    await controller.startNativeTracking(
-      allowBackground: false,
-      activityRecognitionEnabled: true,
-    );
-
-    await controller.disableActivityRecognition();
-
-    expect(native.updateCalls, 1);
-    expect(native.stopCalls, 1);
-    expect(controller.nativeTracking, isFalse);
-    expect(controller.platformError, contains('Motion activity was disabled'));
-  });
-
-  test('motion events arriving after consent withdrawal cannot influence stop review', () async {
-    final native = _FakeTripTrackingPlatform(activityRecognitionAvailable: true);
-    final controller = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: GlobalOdometerController(initialReading: 1000),
-      platform: native,
-    );
-    await controller.start(
-      tripId: 'trip_ignore_withdrawn_motion_events',
-      vehicleId: 'vehicle_1',
-      profile: TripTrackingProfile.deliveryVehicle,
-      startedAt: start,
-    );
-    await controller.startNativeTracking(
-      allowBackground: false,
-      activityRecognitionEnabled: true,
-    );
-    await controller.disableActivityRecognition();
-
-    for (final seconds in [20, 35, 50]) {
-      native.addActivity(
-        TripActivityObservation(
-          activity: TripActivity.walking,
-          confidence: 95,
-          recordedAt: start.add(Duration(seconds: seconds)),
-        ),
+  test(
+    'disabling motion assistance updates the active native collector',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
       );
-      native.addLocation(sample(-80 + (seconds / 100000), seconds, speed: 8));
-    }
-    await Future<void>.delayed(Duration.zero);
-    await Future<void>.delayed(Duration.zero);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_disable_motion_assistance',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: true,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
 
-    expect(controller.needsWalkingReview, isFalse);
-    expect(controller.acceptedMeters, greaterThan(0));
-  });
+      await controller.disableActivityRecognition();
 
-  test('withdrawing an already-disabled sensor does not disturb GPS tracking', () async {
-    final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: GlobalOdometerController(initialReading: 1000),
-      platform: native,
-    );
-    await controller.start(
-      tripId: 'trip_no_motion_sensor_to_withdraw',
-      vehicleId: 'vehicle_1',
-      profile: TripTrackingProfile.roadVehicle,
-      startedAt: start,
-    );
-    await controller.startNativeTracking(allowBackground: false);
+      expect(native.updateCalls, 1);
+      expect(native.updatedRequest?.activityRecognitionEnabled, isFalse);
+      expect(native.updatedRequest?.allowBackground, isTrue);
+      expect(controller.nativeTracking, isTrue);
+    },
+  );
 
-    await controller.disableActivityRecognition();
+  test(
+    'a failed motion-assistance withdrawal stops GPS rather than retaining sensor access',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+        updateSucceeds: false,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_failed_motion_withdrawal',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(
+        allowBackground: false,
+        activityRecognitionEnabled: true,
+      );
 
-    expect(native.updateCalls, 0);
-    expect(native.stopCalls, 0);
-    expect(controller.nativeTracking, isTrue);
-  });
+      await controller.disableActivityRecognition();
+
+      expect(native.updateCalls, 1);
+      expect(native.stopCalls, 1);
+      expect(controller.nativeTracking, isFalse);
+      expect(
+        controller.platformError,
+        contains('Motion activity was disabled'),
+      );
+    },
+  );
+
+  test(
+    'motion events arriving after consent withdrawal cannot influence stop review',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_ignore_withdrawn_motion_events',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(
+        allowBackground: false,
+        activityRecognitionEnabled: true,
+      );
+      await controller.disableActivityRecognition();
+
+      for (final seconds in [20, 35, 50]) {
+        native.addActivity(
+          TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 95,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          ),
+        );
+        native.addLocation(sample(-80 + (seconds / 100000), seconds, speed: 8));
+      }
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.needsWalkingReview, isFalse);
+      expect(controller.acceptedMeters, greaterThan(0));
+    },
+  );
+
+  test(
+    'withdrawing an already-disabled sensor does not disturb GPS tracking',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_no_motion_sensor_to_withdraw',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+
+      await controller.disableActivityRecognition();
+
+      expect(native.updateCalls, 0);
+      expect(native.stopCalls, 0);
+      expect(controller.nativeTracking, isTrue);
+    },
+  );
 
   test(
     'a long paused GPS gap is not converted into live odometer miles',
