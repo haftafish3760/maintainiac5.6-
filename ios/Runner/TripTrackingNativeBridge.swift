@@ -16,6 +16,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private var requestedBackgroundAuthorization = false
   private var backgroundAuthorizationRequested = false
   private var tracking = false
+  private var trackingStartedAt: Date?
   private var activityRecognitionEnabled = false
   private var activityRecognitionGeneration = 0
   private var heartbeatTimer: Timer?
@@ -107,9 +108,13 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     // Core Location can deliver a buffered callback after stopUpdatingLocation.
     // Do not let a retired session emit a late coordinate into Flutter, even
     // though the Dart controller independently rejects inactive-session data.
-    guard tracking else { return }
+    guard tracking, let trackingStartedAt else { return }
     if stopForCriticalBatteryIfNeeded() { return }
     for location in locations where location.horizontalAccuracy >= 0 {
+      // The delegate is shared across collection sessions. A callback queued
+      // before stopUpdatingLocation can arrive after a new start, so do not
+      // treat a coordinate predating this collector as current-trip evidence.
+      guard location.timestamp >= trackingStartedAt else { continue }
       let simulated = isSimulatedLocation(location)
       emit([
         "type": "location",
@@ -250,6 +255,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     // Core Location may return a cached fix as soon as collection starts.
     // Mark this native collector live first so the first credible fix is not
     // discarded solely because the start callback and delegate race.
+    trackingStartedAt = Date()
     tracking = true
     locationManager.startUpdatingLocation()
     setActivityRecognitionEnabled(activityEnabled)
@@ -351,6 +357,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   /// callback must never influence a completed or replacement Dart session.
   private func stopNativeCollection() {
     tracking = false
+    trackingStartedAt = nil
     stopHeartbeat()
     locationManager.stopUpdatingLocation()
     setActivityRecognitionEnabled(false)

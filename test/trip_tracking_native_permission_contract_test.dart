@@ -347,14 +347,21 @@ void main() {
     expect(ios, contains('private func stopNativeCollection()'));
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
     expect(
-      ios.indexOf('tracking = false\n    stopHeartbeat()'),
+      ios.indexOf(
+        'tracking = false\n    trackingStartedAt = nil\n    stopHeartbeat()',
+      ),
+      greaterThanOrEqualTo(0),
+    );
+    expect(ios, contains('private var trackingStartedAt: Date?'));
+    expect(
+      ios.indexOf('trackingStartedAt = Date()\n    tracking = true'),
       greaterThanOrEqualTo(0),
     );
     expect(
       ios,
       contains(
         RegExp(
-          r'func locationManager\(_ manager: CLLocationManager, didUpdateLocations locations: \[CLLocation\]\) \{[\s\S]{0,500}guard tracking else \{ return \}',
+          r'func locationManager\(_ manager: CLLocationManager, didUpdateLocations locations: \[CLLocation\]\) \{[\s\S]{0,500}guard tracking, let trackingStartedAt else \{ return \}[\s\S]{0,500}guard location.timestamp >= trackingStartedAt else \{ continue \}',
         ),
       ),
     );
