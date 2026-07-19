@@ -240,6 +240,37 @@ void main() {
     expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(.9091, .001));
   });
 
+  test('recent trusted calibration days can adapt after a tire-size change', () {
+    final reviews = <TripTrackingReviewRecord>[
+      for (var day = 0; day < 7; day += 1)
+        _confirmedReview(
+          id: 'old_tire_$day',
+          startedAt: DateTime.utc(2026, 6, 1 + day, 8),
+          filteredGpsMiles: 90,
+          odometerMiles: 100,
+          diagnostics: _trustedDiagnostics,
+        ),
+      for (var day = 0; day < 7; day += 1)
+        _confirmedReview(
+          id: 'new_tire_$day',
+          startedAt: DateTime.utc(2026, 7, 1 + day, 8),
+          filteredGpsMiles: 110,
+          odometerMiles: 100,
+          diagnostics: _trustedDiagnostics,
+        ),
+    ];
+
+    final signal = TripOdometerCalibrationSignal.evaluateConfirmedReviews(
+      reviews: reviews,
+      vehicleId: 'vehicle_1',
+      nowUtc: DateTime.utc(2026, 7, 18, 12),
+    );
+
+    expect(signal.eligibleSampleCount, 7);
+    expect(signal.averageGpsToOdometerRatio, closeTo(1.1, .001));
+    expect(signal.gpsAssistanceCalibrationMultiplier, closeTo(.9091, .001));
+  });
+
   test('daily GPS rollup can exclude an otherwise trusted calibration day', () {
     final reviews = <TripTrackingReviewRecord>[
       for (var day = 0; day < 7; day += 1)

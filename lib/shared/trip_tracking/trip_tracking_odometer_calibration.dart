@@ -235,6 +235,7 @@ class TripOdometerCalibrationSignal {
     DateTime? nowUtc,
     int minimumSamples = 7,
     int maximumReviewedDays = 30,
+    int? recentCalibrationDays,
     double minimumOdometerMiles = 5,
     double reviewDifferencePercent = 4,
     double maximumEligibleDifferencePercent = 25,
@@ -243,7 +244,10 @@ class TripOdometerCalibrationSignal {
         dailyGpsDependabilityRollups =
         const {},
   }) {
-    if (maximumReviewedDays < minimumSamples) {
+    final calibrationWindowDays = recentCalibrationDays ?? minimumSamples;
+    if (maximumReviewedDays < minimumSamples ||
+        calibrationWindowDays < minimumSamples ||
+        calibrationWindowDays > maximumReviewedDays) {
       return const TripOdometerCalibrationSignal(
         status: TripOdometerCalibrationStatus.insufficientHistory,
         eligibleSampleCount: 0,
@@ -327,7 +331,13 @@ class TripOdometerCalibrationSignal {
     final boundedDayKeys = recentDayKeys.length > maximumReviewedDays
         ? recentDayKeys.skip(recentDayKeys.length - maximumReviewedDays)
         : recentDayKeys;
-    final reconciliations = boundedDayKeys.map(
+    // A vehicle can change tires or have its speedometer recalibrated. Keep a
+    // multi-day minimum, but use the newest trusted cohort so stale history
+    // cannot mask a persistent new odometer/GPS relationship indefinitely.
+    final calibrationDayKeys = boundedDayKeys.length > calibrationWindowDays
+        ? boundedDayKeys.skip(boundedDayKeys.length - calibrationWindowDays)
+        : boundedDayKeys;
+    final reconciliations = calibrationDayKeys.map(
       (key) => dailyTotals[key]!.toReconciliation(),
     );
     return evaluate(
