@@ -2,12 +2,19 @@
 set -u
 
 if [ "$#" -eq 0 ]; then
-  echo "TRIP_QA_FAIL missing_test_target"
+  echo "TRIP_QA_FAIL missing_target"
   exit 64
 fi
 
 log_file="${TMPDIR:-/tmp}/maintainiac_trip_qa_$(date +%s).log"
-if flutter test "$@" --reporter compact >"$log_file" 2>&1; then
+if [ "$1" = "--analyze" ]; then
+  shift
+  command=(flutter analyze "$@")
+else
+  command=(flutter test "$@" --reporter compact)
+fi
+
+if "${command[@]}" >"$log_file" 2>&1; then
   echo "TRIP_QA_PASS"
   exit 0
 fi
