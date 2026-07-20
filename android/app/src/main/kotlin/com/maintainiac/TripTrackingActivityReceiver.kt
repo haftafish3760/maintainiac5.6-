@@ -15,7 +15,6 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
         // Play Services may deliver a queued broadcast after the user stopped
         // tracking or immediately after a new session starts. Accept motion
         // assistance only for the currently live collector epoch.
-        if (!TripTrackingForegroundService.isActivityEpochActive(epoch)) return
         val result = ActivityRecognitionResult.extractResult(intent) ?: return
         val activity = result.mostProbableActivity ?: return
         val observedAtMillis = result.time
@@ -25,6 +24,7 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
         if (observedAtMillis <= 0 || observedAtMillis > System.currentTimeMillis() + 120_000L) {
             return
         }
+        if (!TripTrackingForegroundService.isActivityEpochActive(epoch, observedAtMillis)) return
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "activity",

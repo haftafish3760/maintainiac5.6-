@@ -207,7 +207,9 @@ void main() {
     expect(androidActivity, contains('"type" to "activity"'));
     expect(
       androidActivity,
-      contains('TripTrackingForegroundService.isActivityEpochActive(epoch)'),
+      contains(
+        'TripTrackingForegroundService.isActivityEpochActive(epoch, observedAtMillis)',
+      ),
     );
     expect(android, contains('const val activityEpochExtra = "activityEpoch"'));
     expect(
@@ -232,8 +234,14 @@ void main() {
       androidActivity,
       contains('observedAtMillis > System.currentTimeMillis() + 120_000L'),
     );
+    expect(
+      androidActivity,
+      contains('isActivityEpochActive(epoch, observedAtMillis)'),
+    );
     expect(androidActivity, contains('"recordedAt" to observedAtMillis'));
     expect(ios, contains('let observedAt = motion.startDate'));
+    expect(ios, contains('let trackingStartedAt = self.trackingStartedAt'));
+    expect(ios, contains('guard observedAt >= trackingStartedAt,'));
     expect(ios, contains('observedAt <= Date().addingTimeInterval(120)'));
     expect(
       ios,

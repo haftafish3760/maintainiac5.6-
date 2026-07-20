@@ -49,8 +49,17 @@ class TripTrackingForegroundService : Service() {
         @Volatile
         private var activeActivityEpoch: String? = null
 
+        @Volatile
+        private var activeActivityStartedAtMillis: Long? = null
+
         fun isActivityEpochActive(epoch: String): Boolean =
             isRunning && activeActivityEpoch == epoch
+
+        fun isActivityEpochActive(epoch: String, observedAtMillis: Long): Boolean {
+            val startedAtMillis = activeActivityStartedAtMillis ?: return false
+            return isRunning && activeActivityEpoch == epoch &&
+                observedAtMillis >= startedAtMillis
+        }
 
         /// Called by the Flutter bridge before an explicit stop request. This
         /// closes the short interval before Android invokes onDestroy, when a
@@ -58,6 +67,7 @@ class TripTrackingForegroundService : Service() {
         fun retireForExplicitStop() {
             isRunning = false
             activeActivityEpoch = null
+            activeActivityStartedAtMillis = null
         }
     }
 
@@ -102,6 +112,7 @@ class TripTrackingForegroundService : Service() {
         val epoch = activityEpoch ?: UUID.randomUUID().toString().also {
             activityEpoch = it
             activeActivityEpoch = it
+            activeActivityStartedAtMillis = System.currentTimeMillis()
         }
         return activityPendingIntent ?: PendingIntent.getBroadcast(
             this,
@@ -127,6 +138,7 @@ class TripTrackingForegroundService : Service() {
 
     private fun retireActivityRecognitionEpoch() {
         activeActivityEpoch = null
+        activeActivityStartedAtMillis = null
         activityEpoch = null
         activityPendingIntent = null
     }

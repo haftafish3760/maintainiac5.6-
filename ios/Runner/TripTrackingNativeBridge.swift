@@ -343,9 +343,11 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       guard let self,
             self.activityRecognitionEnabled,
             self.activityRecognitionGeneration == generation,
+            let trackingStartedAt = self.trackingStartedAt,
             let motion else { return }
       let observedAt = motion.startDate
-      guard observedAt.timeIntervalSince1970 > 0,
+      guard observedAt >= trackingStartedAt,
+            observedAt.timeIntervalSince1970 > 0,
             observedAt <= Date().addingTimeInterval(120) else { return }
       self.emit([
         "type": "activity",
