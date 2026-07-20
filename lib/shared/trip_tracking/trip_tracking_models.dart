@@ -401,7 +401,10 @@ double? _tripBearingFrom(Object? rawBearing) {
 
 const _maximumNativeHorizontalAccuracyMeters = 10000.0;
 const _maximumNativeReportedSpeedMetersPerSecond = 70.0;
-const _maximumNativeSpeedAccuracyMetersPerSecond = 100.0;
+// A poor speed estimate should reduce trust, not turn an otherwise valid GPS
+// fix into a fabricated platform failure. The engine applies a much tighter
+// trust threshold before speed can influence distance or cadence.
+const _maximumNativeSpeedAccuracyMetersPerSecond = 1000.0;
 const _maximumNativeMonotonicElapsedNanos = 9223372036854775807;
 
 double? _tripNumberFrom(Object? value) {

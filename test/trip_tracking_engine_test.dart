@@ -61,7 +61,7 @@ void main() {
     expect(
       TripLocationSample.tryFromMap({
         ...base,
-        'speedAccuracyMetersPerSecond': 101,
+        'speedAccuracyMetersPerSecond': 1001,
       }),
       isNull,
     );

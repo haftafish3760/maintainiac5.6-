@@ -540,7 +540,7 @@ void main() {
       'longitude': -80.8,
       'recordedAt': '2026-07-13T12:00:00.000Z',
       'horizontalAccuracyMeters': 4.5,
-      'speedAccuracyMetersPerSecond': 101,
+      'speedAccuracyMetersPerSecond': 1001,
     });
 
     expect(event.type, TripTrackingPlatformEventType.error);
