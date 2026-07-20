@@ -16,6 +16,7 @@ extension TripLocationSampleEvidenceSummary on TripLocationSample {
       'hasValidAccuracy': hasValidAccuracy,
       'accuracyBucket': _accuracyBucket(horizontalAccuracyMeters),
       'speedBucket': _speedBucket(speedMetersPerSecond),
+      'hasSpeedAccuracy': speedAccuracyMetersPerSecond != null,
       'hasBearing': bearingDegrees != null,
       'hasMonotonicElapsedTime': monotonicElapsedNanos != null,
       'timestampBucket': _timestampBucket(age),

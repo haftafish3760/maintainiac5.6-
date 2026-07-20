@@ -268,7 +268,7 @@ class TripTrackingEngine {
       );
     }
 
-    final reportedSpeed = sample.speedMetersPerSecond;
+    final reportedSpeed = _trustedReportedSpeed(sample);
     if (reportedSpeed != null &&
         reportedSpeed.isFinite &&
         reportedSpeed >= 0 &&
@@ -500,6 +500,21 @@ class TripTrackingEngine {
     );
     return (reportedSpeed - previousReportedSpeed).abs() / seconds >
         maximumAcceleration;
+  }
+
+  double? _trustedReportedSpeed(TripLocationSample sample) {
+    final speed = sample.speedMetersPerSecond;
+    final speedAccuracy = sample.speedAccuracyMetersPerSecond;
+    if (speed == null ||
+        speedAccuracy == null ||
+        speedAccuracy <=
+            _safePositiveDouble(
+              policy.maximumTrustedReportedSpeedAccuracyMetersPerSecond,
+              fallback: 20,
+            )) {
+      return speed;
+    }
+    return null;
   }
 
   static bool _isMonotonicElapsedNanosNewer(int? candidate, int? previous) =>

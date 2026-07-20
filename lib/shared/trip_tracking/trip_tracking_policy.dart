@@ -70,6 +70,7 @@ class TripTrackingPolicy {
     this.maximumHorizontalAccuracyMeters = 65,
     this.maximumPlausibleSpeedMetersPerSecond = 75,
     this.maximumReportedSpeedDisagreementMetersPerSecond = 25,
+    this.maximumTrustedReportedSpeedAccuracyMetersPerSecond = 20,
     this.maximumReportedAccelerationMetersPerSecondSquared = 25,
     this.maximumGap = const Duration(minutes: 2),
     this.maximumFutureSampleSkew = const Duration(minutes: 2),
@@ -92,6 +93,10 @@ class TripTrackingPolicy {
   final double maximumHorizontalAccuracyMeters;
   final double maximumPlausibleSpeedMetersPerSecond;
   final double maximumReportedSpeedDisagreementMetersPerSecond;
+
+  /// A provider speed with a larger uncertainty is retained for diagnostics
+  /// but does not veto otherwise validated GPS distance evidence.
+  final double maximumTrustedReportedSpeedAccuracyMetersPerSecond;
 
   /// Rejects a provider-speed step that would require an implausible vehicle
   /// acceleration. This is a kinematic guard only; it never creates miles.

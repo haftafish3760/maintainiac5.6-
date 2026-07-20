@@ -123,6 +123,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       let reportedSpeed = location.speed >= 0 && location.speed.isFinite
         ? location.speed
         : nil
+      let reportedSpeedAccuracy = location.speedAccuracy >= 0 && location.speedAccuracy.isFinite
+        ? location.speedAccuracy
+        : nil
       let reportedBearing = location.course >= 0 &&
         location.course.isFinite && location.course < 360
         ? location.course
@@ -135,6 +138,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
         "recordedAt": ISO8601DateFormatter().string(from: location.timestamp),
         "horizontalAccuracyMeters": location.horizontalAccuracy,
         "speedMetersPerSecond": reportedSpeed ?? NSNull(),
+        "speedAccuracyMetersPerSecond": reportedSpeedAccuracy ?? NSNull(),
         "bearingDegrees": reportedBearing ?? NSNull(),
         "mockedLocation": simulated,
       ])

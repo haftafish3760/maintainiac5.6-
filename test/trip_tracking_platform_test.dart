@@ -305,12 +305,15 @@ void main() {
         'recordedAt': '2026-07-13T12:00:00.000Z',
         'horizontalAccuracyMeters': 4.5,
         'speedMetersPerSecond': 8.1,
+        'speedAccuracyMetersPerSecond': 1.2,
         'monotonicElapsedNanos': 123456789000,
       });
 
       expect(event.type, TripTrackingPlatformEventType.location);
       expect(event.location?.horizontalAccuracyMeters, 4.5);
       expect(event.location?.speedMetersPerSecond, 8.1);
+      expect(event.location?.speedAccuracyMetersPerSecond, 1.2);
+      expect(event.toSafeLogMap()['hasSpeedAccuracy'], isTrue);
       expect(event.location?.monotonicElapsedNanos, 123456789000);
       expect(event.toSafeLogMap()['hasMonotonicElapsedTime'], isTrue);
       expect(event.toSafeLogMap()['locationAccuracyBucket'], 'high');

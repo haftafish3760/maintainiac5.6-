@@ -251,6 +251,7 @@ class TripLocationSample {
     required this.recordedAt,
     required this.horizontalAccuracyMeters,
     this.speedMetersPerSecond,
+    this.speedAccuracyMetersPerSecond,
     this.bearingDegrees,
     this.monotonicElapsedNanos,
     this.mockedLocation,
@@ -261,6 +262,7 @@ class TripLocationSample {
   final DateTime recordedAt;
   final double horizontalAccuracyMeters;
   final double? speedMetersPerSecond;
+  final double? speedAccuracyMetersPerSecond;
   final double? bearingDegrees;
   final int? monotonicElapsedNanos;
   final bool? mockedLocation;
@@ -284,6 +286,13 @@ class TripLocationSample {
           speedMetersPerSecond! >= 0 &&
           speedMetersPerSecond! <= _maximumNativeReportedSpeedMetersPerSecond);
 
+  bool get hasValidReportedSpeedAccuracy =>
+      speedAccuracyMetersPerSecond == null ||
+      (speedAccuracyMetersPerSecond!.isFinite &&
+          speedAccuracyMetersPerSecond! >= 0 &&
+          speedAccuracyMetersPerSecond! <=
+              _maximumNativeSpeedAccuracyMetersPerSecond);
+
   bool get hasValidReportedBearing =>
       bearingDegrees == null ||
       (bearingDegrees!.isFinite &&
@@ -301,6 +310,10 @@ class TripLocationSample {
     'recordedAt': recordedAt.toIso8601String(),
     'horizontalAccuracyMeters': horizontalAccuracyMeters,
     'speedMetersPerSecond': _tripSpeedFrom(speedMetersPerSecond),
+    if (speedAccuracyMetersPerSecond != null)
+      'speedAccuracyMetersPerSecond': _tripSpeedAccuracyFrom(
+        speedAccuracyMetersPerSecond,
+      ),
     'bearingDegrees': _tripBearingFrom(bearingDegrees),
     if (monotonicElapsedNanos != null)
       'monotonicElapsedNanos': monotonicElapsedNanos,
@@ -331,12 +344,19 @@ class TripLocationSample {
         monotonicElapsedNanos == null) {
       return null;
     }
+    final speedAccuracy = map.containsKey('speedAccuracyMetersPerSecond')
+        ? _tripSpeedAccuracyFrom(map['speedAccuracyMetersPerSecond'])
+        : null;
+    if (map['speedAccuracyMetersPerSecond'] != null && speedAccuracy == null) {
+      return null;
+    }
     final sample = TripLocationSample(
       latitude: latitude,
       longitude: longitude,
       recordedAt: recordedAt,
       horizontalAccuracyMeters: accuracy,
       speedMetersPerSecond: _tripSpeedFrom(map['speedMetersPerSecond']),
+      speedAccuracyMetersPerSecond: speedAccuracy,
       bearingDegrees: _tripBearingFrom(map['bearingDegrees']),
       monotonicElapsedNanos: monotonicElapsedNanos,
       mockedLocation: map['mockedLocation'] is bool
@@ -345,6 +365,7 @@ class TripLocationSample {
     );
     return sample.hasValidCoordinate &&
             sample.hasValidAccuracy &&
+            sample.hasValidReportedSpeedAccuracy &&
             sample.hasValidReportedBearing &&
             sample.hasValidMonotonicElapsedNanos
         ? sample
@@ -362,6 +383,15 @@ double? _tripSpeedFrom(Object? rawSpeed) {
       : null;
 }
 
+double? _tripSpeedAccuracyFrom(Object? rawSpeedAccuracy) {
+  final accuracy = _tripNumberFrom(rawSpeedAccuracy);
+  return accuracy != null &&
+          accuracy >= 0 &&
+          accuracy <= _maximumNativeSpeedAccuracyMetersPerSecond
+      ? accuracy
+      : null;
+}
+
 double? _tripBearingFrom(Object? rawBearing) {
   final bearing = _tripNumberFrom(rawBearing);
   return bearing != null && bearing.isFinite && bearing >= 0 && bearing < 360
@@ -371,6 +401,7 @@ double? _tripBearingFrom(Object? rawBearing) {
 
 const _maximumNativeHorizontalAccuracyMeters = 10000.0;
 const _maximumNativeReportedSpeedMetersPerSecond = 70.0;
+const _maximumNativeSpeedAccuracyMetersPerSecond = 100.0;
 const _maximumNativeMonotonicElapsedNanos = 9223372036854775807;
 
 double? _tripNumberFrom(Object? value) {

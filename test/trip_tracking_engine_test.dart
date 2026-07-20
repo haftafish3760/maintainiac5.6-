@@ -48,6 +48,32 @@ void main() {
     );
   });
 
+  test('malformed native speed accuracy fails closed', () {
+    final base = sample(-80, 0).toMap();
+
+    expect(
+      TripLocationSample.tryFromMap({
+        ...base,
+        'speedAccuracyMetersPerSecond': -1,
+      }),
+      isNull,
+    );
+    expect(
+      TripLocationSample.tryFromMap({
+        ...base,
+        'speedAccuracyMetersPerSecond': 101,
+      }),
+      isNull,
+    );
+    expect(
+      TripLocationSample.tryFromMap({
+        ...base,
+        'speedAccuracyMetersPerSecond': 2.5,
+      })?.speedAccuracyMetersPerSecond,
+      2.5,
+    );
+  });
+
   test('recovery clamps contradictory Android monotonic checkpoints', () {
     final anchor = sample(-80, 0, monotonicElapsedNanos: 1000000000);
     final recovered = TripTrackingEngineSnapshot.fromMap({
@@ -417,6 +443,30 @@ void main() {
     );
 
     expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+  });
+
+  test('unreliable reported speed cannot veto a credible GPS segment', () {
+    final engine = TripTrackingEngine(
+      policy: const TripTrackingPolicy(
+        maximumReportedSpeedDisagreementMetersPerSecond: 5,
+        maximumTrustedReportedSpeedAccuracyMetersPerSecond: 2,
+      ),
+    );
+    engine.ingest(sample(-80, 0));
+
+    final decision = engine.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -79.9998,
+        recordedAt: start.add(const Duration(seconds: 20)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 40,
+        speedAccuracyMetersPerSecond: 20,
+      ),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(engine.totalAcceptedMeters, greaterThan(10));
   });
 
   test('rejects impossible reported acceleration without adding mileage', () {

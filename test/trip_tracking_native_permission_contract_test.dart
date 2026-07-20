@@ -143,6 +143,11 @@ void main() {
       contains('"mockedLocation" to location.isFromMockProvider'),
     );
     expect(android, contains('"recordedAt" to location.time'));
+    expect(android, contains('location.hasSpeedAccuracy()'));
+    expect(
+      ios,
+      contains('"speedAccuracyMetersPerSecond": reportedSpeedAccuracy'),
+    );
     expect(android, contains('trip_tracking_foreground_service_denied'));
     expect(androidBridge, contains('catch (error: IllegalStateException)'));
     expect(android, contains('trip_tracking_location_registration_failed'));
@@ -179,7 +184,10 @@ void main() {
     expect(android, contains('location.time <= 0'));
     expect(android, contains('!accuracyMeters.isFinite()'));
     expect(android, contains('!reportedSpeed.isFinite()'));
-    expect(android, contains('"monotonicElapsedNanos" to location.elapsedRealtimeNanos'));
+    expect(
+      android,
+      contains('"monotonicElapsedNanos" to location.elapsedRealtimeNanos'),
+    );
     expect(
       android,
       contains('activityPendingIntent == null || hasActivityRecognition()'),
