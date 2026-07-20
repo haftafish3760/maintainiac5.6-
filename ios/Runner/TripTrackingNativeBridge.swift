@@ -126,7 +126,8 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
             location.coordinate.longitude.isFinite,
             location.horizontalAccuracy > 0,
             location.horizontalAccuracy.isFinite,
-            location.timestamp.timeIntervalSince1970 > 0 else { continue }
+            location.timestamp.timeIntervalSince1970 > 0,
+            location.timestamp <= Date().addingTimeInterval(120) else { continue }
       let reportedSpeed = location.speed >= 0 && location.speed.isFinite
         ? location.speed
         : nil

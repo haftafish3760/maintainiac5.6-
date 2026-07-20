@@ -107,6 +107,10 @@ void main() {
     expect(source, contains('location.coordinate.longitude.isFinite'));
     expect(source, contains('location.horizontalAccuracy.isFinite'));
     expect(source, contains('location.timestamp.timeIntervalSince1970 > 0'));
+    expect(
+      source,
+      contains('location.timestamp <= Date().addingTimeInterval(120)'),
+    );
     expect(source, contains('location.speedAccuracy <= 1000'));
     expect(source, contains('"bearingDegrees": reportedBearing ?? NSNull()'));
   });
