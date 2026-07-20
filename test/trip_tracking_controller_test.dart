@@ -2177,6 +2177,50 @@ void main() {
     },
   );
 
+  test(
+    'motion-assistance loss keeps GPS active and clears persisted sensor consent',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_activity_assistance_lost',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+      expect(store.activeSession?.activityRecognitionEnabled, isTrue);
+
+      native.addPlatformError(
+        code: 'trip_tracking_activity_unavailable',
+        message: 'Motion permission was removed.',
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.active,
+      );
+      expect(controller.nativeTracking, isTrue);
+      expect(store.activeSession?.activityRecognitionEnabled, isFalse);
+      expect(native.stopCalls, 0);
+    },
+  );
+
   test('duplicate fatal platform errors issue one native stop', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(

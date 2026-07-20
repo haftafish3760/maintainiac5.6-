@@ -41,6 +41,8 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
     'trip_tracking_battery_critical' =>
       'Battery is critically low. GPS-assisted tracking is paused below 10%.',
+    'trip_tracking_activity_unavailable' =>
+      'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',
     _ => 'GPS reported a device error.',
   };
 
@@ -168,6 +170,8 @@ String _safeErrorCode(String? value) {
     'trip_tracking_gps_unavailable' => 'trip_tracking_gps_unavailable',
     'trip_tracking_gps_disabled' => 'trip_tracking_gps_disabled',
     'trip_tracking_battery_critical' => 'trip_tracking_battery_critical',
+    'trip_tracking_activity_unavailable' =>
+      'trip_tracking_activity_unavailable',
     'invalidLocationPayload' => 'invalidLocationPayload',
     'invalidActivityPayload' => 'invalidActivityPayload',
     'invalidNativeEventPayload' => 'invalidNativeEventPayload',

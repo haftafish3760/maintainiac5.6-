@@ -1525,6 +1525,18 @@ class TripTrackingController extends ChangeNotifier {
             if (event.errorCode == 'trip_tracking_battery_critical') {
               _nativeCriticalBatteryStopPending = true;
               unawaited(_handleNativeCriticalBatteryStop(message));
+            } else if (event.errorCode ==
+                'trip_tracking_activity_unavailable') {
+              // Walking assistance is optional. A permission revocation or
+              // provider failure must retire only that sensor, never GPS,
+              // TripLog, or the authoritative odometer workflow.
+              _latestActivity = null;
+              _activityRecognitionEnabled = false;
+              await _persistNativeCollectionPreferences(
+                allowBackground: _backgroundTrackingAllowed,
+                activityRecognitionEnabled: false,
+              );
+              notifyListeners();
             } else if (_nativeTracking &&
                 TripTrackingNativeErrorPolicy.requiresRecovery(
                   event.errorCode,

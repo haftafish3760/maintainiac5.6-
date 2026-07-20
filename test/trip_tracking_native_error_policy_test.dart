@@ -77,6 +77,12 @@ void main() {
       ),
       'Precise GPS access was reduced while tracking.',
     );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_activity_unavailable',
+      ),
+      'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',
+    );
   });
 
   test('native error summaries expose only allow-listed codes', () {
@@ -108,6 +114,15 @@ void main() {
     expect(unknown['odometerRemainsCanonical'], isTrue);
     expect(unknown.toString(), isNot(contains('sk.secret')));
     expect(unknown.toString(), isNot(contains('35.1')));
+
+    final activityUnavailable = TripTrackingNativeErrorPolicy.toSafeSummary(
+      'trip_tracking_activity_unavailable',
+    );
+    expect(
+      activityUnavailable['nativeErrorCode'],
+      'trip_tracking_activity_unavailable',
+    );
+    expect(activityUnavailable['recoverable'], isFalse);
   });
 
   test('native error summaries validate as renderable', () {
