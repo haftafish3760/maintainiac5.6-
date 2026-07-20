@@ -111,6 +111,28 @@ void main() {
     expect(next, isNull);
   });
 
+  test('unreliable low speed cannot prematurely lower GPS cadence', () {
+    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+      policy: const TripTrackingPolicy(
+        maximumTrustedReportedSpeedAccuracyMetersPerSecond: 2,
+      ),
+      profile: TripTrackingProfile.roadVehicle,
+      sample: sample(seconds: 22, speed: 0, speedAccuracy: 15),
+      decision: decision(TripSampleDisposition.rejectedDrift),
+      current: const TripSamplingRecommendation(
+        mode: TripSamplingMode.precision,
+        interval: Duration(seconds: 2),
+        minimumDisplacementMeters: 3,
+      ),
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+
+    expect(next, isNull);
+  });
+
   test(
     'stationary drift can deescalate from precision without adding miles',
     () {
