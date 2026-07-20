@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widgets.dart';
 
 import '../odometer/odometer_mileage_review.dart';
@@ -1320,7 +1321,10 @@ class TripTrackingController extends ChangeNotifier {
       _clearPendingNativeStart();
       await _platformSubscription?.cancel();
       _platformSubscription = null;
-      _platformError = 'The device could not start GPS trip tracking.';
+      _platformError = _safeNativeCommandFailure(
+        error,
+        fallback: 'The device could not start GPS trip tracking.',
+      );
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
@@ -1425,6 +1429,13 @@ class TripTrackingController extends ChangeNotifier {
     }
     notifyListeners();
     return true;
+  }
+
+  String _safeNativeCommandFailure(Object error, {required String fallback}) {
+    if (error is PlatformException) {
+      return TripTrackingNativeErrorPolicy.safeMessage(error.code);
+    }
+    return fallback;
   }
 
   String _gpsBatteryMessageFor(TripGpsBatteryDecision decision) {

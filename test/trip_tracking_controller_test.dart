@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -4255,6 +4256,42 @@ void main() {
   );
 
   test(
+    'native startup platform errors use a safe actionable message',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        startException: PlatformException(
+          code: 'trip_tracking_location_accuracy_reduced',
+          message: 'raw native provider failure',
+        ),
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_safe_native_start_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isFalse,
+      );
+      expect(
+        controller.platformError,
+        'Precise GPS access was reduced while tracking.',
+      );
+      expect(
+        controller.platformError,
+        isNot(contains('raw native provider failure')),
+      );
+    },
+  );
+
+  test(
     'future-dated walking evidence is not applied to an earlier location',
     () async {
       final native = _FakeTripTrackingPlatform();
@@ -6411,6 +6448,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
       preciseLocation: true,
     ),
     this.throwOnStart = false,
+    this.startException,
     this.throwOnStop = false,
     this.throwOnCancel = false,
     this.throwOnIsTracking = false,
@@ -6439,6 +6477,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final StreamController<TripTrackingPlatformEvent> _events;
   final TripTrackingAuthorization authorization;
   final bool throwOnStart;
+  final Object? startException;
   final bool throwOnStop;
   final bool throwOnCancel;
   final bool throwOnIsTracking;
@@ -6553,6 +6592,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
 
   @override
   Future<bool> start(TripTrackingNativeRequest request) async {
+    final exception = startException;
+    if (exception != null) throw exception;
     if (throwOnStart) throw StateError(startFailureMessage);
     beforeStart?.call();
     await startDelay;
