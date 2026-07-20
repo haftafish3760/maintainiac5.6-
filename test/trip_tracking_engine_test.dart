@@ -767,6 +767,24 @@ void main() {
     expect(engine.totalAcceptedMeters, greaterThan(0));
   });
 
+  test('a monotonic clock reset still preserves a material recovery gap', () {
+    final engine = TripTrackingEngine();
+
+    engine.ingest(sample(-80, 0, monotonicElapsedNanos: 120000000000));
+    final gap = engine.ingest(
+      sample(-79.99, 121, monotonicElapsedNanos: 1000000000),
+    );
+
+    expect(gap.disposition, TripSampleDisposition.rejectedGap);
+    expect(engine.totalAcceptedMeters, 0);
+    expect(
+      engine
+          .ingest(sample(-79.9898, 141, monotonicElapsedNanos: 21000000000))
+          .disposition,
+      TripSampleDisposition.acceptedDistance,
+    );
+  });
+
   test(
     'Android monotonic time disambiguates duplicate wall-clock timestamps',
     () {
