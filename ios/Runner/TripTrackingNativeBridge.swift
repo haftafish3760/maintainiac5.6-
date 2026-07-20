@@ -19,6 +19,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private var trackingStartedAt: Date?
   private var activityRecognitionEnabled = false
   private var activityRecognitionGeneration = 0
+  private var activityRecognitionUnavailableReported = false
   private var heartbeatTimer: Timer?
 
   override init() {
@@ -282,7 +283,20 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   /// sensor live after the driver turns it off. This remains independent from
   /// GPS collection so a privacy opt-out cannot accidentally end a trip.
   private func setActivityRecognitionEnabled(_ enabled: Bool) {
-    let shouldEnable = enabled && activityRecognitionIsAvailableAndAuthorized()
+    let eligible = activityRecognitionIsEligible()
+    let shouldEnable = enabled && eligible
+    if enabled && !eligible {
+      if !activityRecognitionUnavailableReported {
+        activityRecognitionUnavailableReported = true
+        emit([
+          "type": "error",
+          "errorCode": "trip_tracking_activity_unavailable",
+          "errorMessage": "Motion activity permission is unavailable for GPS-assisted stop evidence.",
+        ])
+      }
+    } else {
+      activityRecognitionUnavailableReported = false
+    }
     guard shouldEnable != activityRecognitionEnabled else { return }
     // Core Motion callbacks can be queued across stop/start boundaries. A
     // new consent window gets a new generation so a delayed walking signal
@@ -320,7 +334,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     }
   }
 
-  private func activityRecognitionIsAvailableAndAuthorized() -> Bool {
+  private func activityRecognitionIsEligible() -> Bool {
     guard CMMotionActivityManager.isActivityAvailable() else { return false }
     if #available(iOS 11.0, *) {
       // `notDetermined` must remain eligible to start: Core Motion presents
@@ -353,6 +367,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
       guard let self, self.tracking else { return }
       if self.stopForCriticalBatteryIfNeeded() { return }
+      if self.activityRecognitionEnabled && !self.activityRecognitionIsEligible() {
+        self.setActivityRecognitionEnabled(true)
+      }
       // Liveness only. No coordinates, sensor evidence, stops, or mileage
       // leave the native bridge in this status event.
       self.emit(["type": "status", "status": "tracking"])
@@ -381,7 +398,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       "schemaVersion": 1,
       "locationAvailable": CLLocationManager.locationServicesEnabled(),
       "backgroundTrackingAvailable": true,
-      "activityRecognitionAvailable": activityRecognitionIsAvailableAndAuthorized(),
+      "activityRecognitionAvailable": activityRecognitionIsEligible(),
       "batteryStateAvailable": UIDevice.current.batteryState != .unknown,
       "lowPowerModeAvailable": true,
     ]

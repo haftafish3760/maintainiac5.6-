@@ -70,6 +70,7 @@ class TripTrackingForegroundService : Service() {
             if (stopForCriticalBatteryIfNeeded()) return
             if (stopForLocationPermissionRevokedIfNeeded()) return
             if (stopForLocationServicesDisabledIfNeeded()) return
+            stopActivityRecognitionIfPermissionRevoked()
             // Liveness only: no coordinates, mileage, stop evidence, or
             // identity crosses this status boundary.
             TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
@@ -357,4 +358,20 @@ class TripTrackingForegroundService : Service() {
 
     private fun hasActivityRecognition() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
         ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+
+    private fun stopActivityRecognitionIfPermissionRevoked() {
+        // Android can revoke the optional activity permission while a trip is
+        // active. Keep GPS and TripLog intact, but immediately retire walking
+        // assistance and report the change once through the native boundary.
+        if (activityPendingIntent == null || hasActivityRecognition()) return
+        removeActivityRecognitionUpdates()
+        retireActivityRecognitionEpoch()
+        TripTrackingEventEmitter.emit(
+            mapOf(
+                "type" to "error",
+                "errorCode" to "trip_tracking_activity_unavailable",
+                "errorMessage" to "Activity recognition permission was removed; GPS tracking continues without walking-assisted stop evidence.",
+            ),
+        )
+    }
 }

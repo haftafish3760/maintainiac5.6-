@@ -89,8 +89,16 @@ void main() {
     expect(plist, contains('NSMotionUsageDescription'));
     expect(plist, contains('<key>UIBackgroundModes</key>'));
     expect(plist, contains('<string>location</string>'));
-    expect(source, contains('activityRecognitionIsAvailableAndAuthorized()'));
+    expect(source, contains('activityRecognitionIsEligible()'));
     expect(source, contains('status != .denied && status != .restricted'));
+    expect(source, contains('activityRecognitionUnavailableReported'));
+    expect(source, contains('trip_tracking_activity_unavailable'));
+    expect(
+      source,
+      contains(
+        'self.activityRecognitionEnabled && !self.activityRecognitionIsEligible()',
+      ),
+    );
   });
 
   test('Android declares only the permissions and service type GPS needs', () {
@@ -152,6 +160,11 @@ void main() {
       contains('TripTrackingForegroundService.retireForExplicitStop()'),
     );
     expect(android, contains('trip_tracking_activity_unavailable'));
+    expect(android, contains('stopActivityRecognitionIfPermissionRevoked()'));
+    expect(
+      android,
+      contains('activityPendingIntent == null || hasActivityRecognition()'),
+    );
     expect(androidActivity, contains('"type" to "activity"'));
     expect(
       androidActivity,
