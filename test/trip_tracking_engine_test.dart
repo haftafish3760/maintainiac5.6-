@@ -739,6 +739,22 @@ void main() {
     expect(engine.totalAcceptedMeters, greaterThan(0));
   });
 
+  test(
+    'Android monotonic time disambiguates duplicate wall-clock timestamps',
+    () {
+      final engine = TripTrackingEngine();
+
+      engine.ingest(sample(-80, 0, monotonicElapsedNanos: 10000000000));
+      expect(
+        engine
+            .ingest(sample(-79.9998, 0, monotonicElapsedNanos: 30000000000))
+            .disposition,
+        TripSampleDisposition.acceptedDistance,
+      );
+      expect(engine.totalAcceptedMeters, greaterThan(0));
+    },
+  );
+
   test('persisted Android monotonic time remains an ordering boundary', () {
     final engine = TripTrackingEngine();
     engine.ingest(sample(-80, 0, monotonicElapsedNanos: 20000000000));
