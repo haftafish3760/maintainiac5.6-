@@ -425,7 +425,13 @@ DateTime? _tripTimestampFrom(Object? rawTimestamp) {
   if (rawTimestamp is! num) {
     return DateTime.tryParse('${rawTimestamp ?? ''}');
   }
-  if (!rawTimestamp.isFinite) return null;
+  // Android location and activity APIs provide epoch milliseconds as an
+  // integer. Rounding a fractional external value changes event ordering at
+  // the native boundary, which can turn malformed input into a plausible
+  // duplicate or out-of-order fix. Reject it instead of inventing time.
+  if (!rawTimestamp.isFinite || rawTimestamp != rawTimestamp.roundToDouble()) {
+    return null;
+  }
   try {
     return DateTime.fromMillisecondsSinceEpoch(
       rawTimestamp.round(),

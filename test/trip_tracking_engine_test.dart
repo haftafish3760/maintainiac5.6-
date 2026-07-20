@@ -50,6 +50,23 @@ void main() {
     );
   });
 
+  test('fractional native timestamps fail closed instead of being rounded', () {
+    final base = sample(-80, 0).toMap();
+
+    expect(
+      TripLocationSample.tryFromMap({...base, 'recordedAt': 1783857600000.5}),
+      isNull,
+    );
+    expect(
+      TripActivityObservation.tryFromMap({
+        'activity': 'walking',
+        'confidence': 90,
+        'recordedAt': 1783857600000.5,
+      }),
+      isNull,
+    );
+  });
+
   test('malformed native speed accuracy fails closed', () {
     final base = sample(-80, 0).toMap();
 
