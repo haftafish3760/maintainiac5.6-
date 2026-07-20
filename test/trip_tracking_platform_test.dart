@@ -556,6 +556,31 @@ void main() {
     }
   });
 
+  test('native bearing metadata is bounded without rejecting a safe fix', () {
+    final valid = TripTrackingPlatformEvent.fromMap({
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'horizontalAccuracyMeters': 4.5,
+      'bearingDegrees': 90,
+    });
+    expect(valid.location?.bearingDegrees, 90);
+
+    for (final bearing in [double.nan, double.infinity, -1.0, 360.0]) {
+      final event = TripTrackingPlatformEvent.fromMap({
+        'type': 'location',
+        'latitude': 35.2,
+        'longitude': -80.8,
+        'recordedAt': '2026-07-13T12:00:00.000Z',
+        'horizontalAccuracyMeters': 4.5,
+        'bearingDegrees': bearing,
+      });
+      expect(event.type, TripTrackingPlatformEventType.location);
+      expect(event.location?.bearingDegrees, isNull);
+    }
+  });
+
   test(
     'malformed mocked-location flags fail closed at the native boundary',
     () {

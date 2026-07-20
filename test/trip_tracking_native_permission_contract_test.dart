@@ -105,6 +105,7 @@ void main() {
     );
     expect(source, contains('location.horizontalAccuracy.isFinite'));
     expect(source, contains('location.timestamp.timeIntervalSince1970 > 0'));
+    expect(source, contains('"bearingDegrees": reportedBearing ?? NSNull()'));
   });
 
   test('Android declares only the permissions and service type GPS needs', () {

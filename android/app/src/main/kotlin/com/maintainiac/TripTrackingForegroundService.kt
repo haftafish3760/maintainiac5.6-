@@ -255,6 +255,7 @@ class TripTrackingForegroundService : Service() {
         if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
         val accuracyMeters = location.accuracy.toDouble()
         val reportedSpeed = if (location.hasSpeed()) location.speed.toDouble() else null
+        val reportedBearing = if (location.hasBearing()) location.bearing.toDouble() else null
         // Reject malformed native metadata before it crosses the platform
         // boundary. Dart validates again, but the foreground service should
         // not keep forwarding a corrupt cached fix on every callback.
@@ -268,6 +269,7 @@ class TripTrackingForegroundService : Service() {
                 "recordedAt" to location.time,
                 "horizontalAccuracyMeters" to accuracyMeters,
                 "speedMetersPerSecond" to reportedSpeed,
+                "bearingDegrees" to reportedBearing?.takeIf { it.isFinite() && it >= 0 && it < 360 },
                 "mockedLocation" to location.isFromMockProvider,
             ),
         )

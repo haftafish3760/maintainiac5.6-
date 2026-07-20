@@ -251,6 +251,7 @@ class TripLocationSample {
     required this.recordedAt,
     required this.horizontalAccuracyMeters,
     this.speedMetersPerSecond,
+    this.bearingDegrees,
     this.mockedLocation,
   });
 
@@ -259,6 +260,7 @@ class TripLocationSample {
   final DateTime recordedAt;
   final double horizontalAccuracyMeters;
   final double? speedMetersPerSecond;
+  final double? bearingDegrees;
   final bool? mockedLocation;
 
   bool get hasValidCoordinate =>
@@ -280,12 +282,19 @@ class TripLocationSample {
           speedMetersPerSecond! >= 0 &&
           speedMetersPerSecond! <= _maximumNativeReportedSpeedMetersPerSecond);
 
+  bool get hasValidReportedBearing =>
+      bearingDegrees == null ||
+      (bearingDegrees!.isFinite &&
+          bearingDegrees! >= 0 &&
+          bearingDegrees! < 360);
+
   Map<String, Object?> toMap() => {
     'latitude': latitude,
     'longitude': longitude,
     'recordedAt': recordedAt.toIso8601String(),
     'horizontalAccuracyMeters': horizontalAccuracyMeters,
     'speedMetersPerSecond': _tripSpeedFrom(speedMetersPerSecond),
+    'bearingDegrees': _tripBearingFrom(bearingDegrees),
     if (mockedLocation != null) 'mockedLocation': mockedLocation,
   };
 
@@ -312,11 +321,16 @@ class TripLocationSample {
       recordedAt: recordedAt,
       horizontalAccuracyMeters: accuracy,
       speedMetersPerSecond: _tripSpeedFrom(map['speedMetersPerSecond']),
+      bearingDegrees: _tripBearingFrom(map['bearingDegrees']),
       mockedLocation: map['mockedLocation'] is bool
           ? map['mockedLocation'] as bool
           : null,
     );
-    return sample.hasValidCoordinate && sample.hasValidAccuracy ? sample : null;
+    return sample.hasValidCoordinate &&
+            sample.hasValidAccuracy &&
+            sample.hasValidReportedBearing
+        ? sample
+        : null;
   }
 }
 
@@ -327,6 +341,13 @@ double? _tripSpeedFrom(Object? rawSpeed) {
           speed >= 0 &&
           speed <= _maximumNativeReportedSpeedMetersPerSecond
       ? speed
+      : null;
+}
+
+double? _tripBearingFrom(Object? rawBearing) {
+  final bearing = _tripNumberFrom(rawBearing);
+  return bearing != null && bearing.isFinite && bearing >= 0 && bearing < 360
+      ? bearing
       : null;
 }
 
