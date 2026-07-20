@@ -4,11 +4,19 @@ enum OdometerCorrectionReason {
   backdatedEntry('Backdated receipt or trip'),
   previousEntryWrong('Previous odometer entry was wrong'),
   odometerReplaced('Odometer repaired or replaced'),
+  odometerRolledOver('Odometer rolled over'),
+  unitsChanged('Miles/kilometers setting changed'),
   unresolved('Not sure yet');
 
   const OdometerCorrectionReason(this.label);
 
   final String label;
+
+  bool get requiresDedicatedCorrectionFlow =>
+      this == OdometerCorrectionReason.previousEntryWrong ||
+      this == OdometerCorrectionReason.odometerReplaced ||
+      this == OdometerCorrectionReason.odometerRolledOver ||
+      this == OdometerCorrectionReason.unitsChanged;
 }
 
 class OdometerCorrectionReview {
@@ -35,8 +43,7 @@ class OdometerCorrectionReview {
       reason == OdometerCorrectionReason.backdatedEntry;
 
   bool get requiresDedicatedCorrectionFlow =>
-      reason == OdometerCorrectionReason.previousEntryWrong ||
-      reason == OdometerCorrectionReason.odometerReplaced;
+      reason.requiresDedicatedCorrectionFlow;
 
   bool get shouldStopAndLetUserRetry =>
       reason == OdometerCorrectionReason.typedWrong ||

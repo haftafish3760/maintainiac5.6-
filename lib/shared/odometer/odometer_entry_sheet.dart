@@ -425,8 +425,7 @@ class _CorrectionReviewPanel extends StatelessWidget {
                 );
               }).toList(),
             ),
-            if (selectedReason == OdometerCorrectionReason.previousEntryWrong ||
-                selectedReason == OdometerCorrectionReason.odometerReplaced)
+            if (selectedReason?.requiresDedicatedCorrectionFlow == true)
               const Padding(
                 padding: EdgeInsets.only(top: 10),
                 child: Text(

@@ -457,7 +457,7 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     if (!correctionReview.requiresDedicatedCorrectionFlow) {
       throw ArgumentError(
-        'Audit corrections are only for previous-entry fixes or odometer replacement.',
+        'Audit corrections are only for previous-entry fixes, odometer replacement, rollover, or unit changes.',
       );
     }
     final validation = _validationPolicy.validate(

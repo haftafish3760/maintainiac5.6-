@@ -181,9 +181,7 @@ Future<OdometerCorrectionReview?> collectOdometerCorrectionReview(
                   );
                 }).toList(),
               ),
-              if (selectedReason ==
-                      OdometerCorrectionReason.previousEntryWrong ||
-                  selectedReason == OdometerCorrectionReason.odometerReplaced)
+              if (selectedReason?.requiresDedicatedCorrectionFlow == true)
                 const Padding(
                   padding: EdgeInsets.only(top: 12),
                   child: Text(
