@@ -62,6 +62,7 @@ class TripTrackingForegroundService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationCallback: LocationCallback? = null
+    private var trackingStartedAtMillis: Long? = null
     private var userPauseRequested = false
     private val heartbeatHandler = Handler(Looper.getMainLooper())
     private val heartbeatRunnable = object : Runnable {
@@ -180,6 +181,9 @@ class TripTrackingForegroundService : Service() {
         // A fused provider may deliver a cached first fix immediately. Mark
         // the service live before registering so that credible first evidence
         // is not lost between registration and the tracking status event.
+        // Keep a session boundary as well: a buffered fix from before this
+        // collection must not become mileage in a newly started trip.
+        trackingStartedAtMillis = System.currentTimeMillis()
         isRunning = true
         @Suppress("MissingPermission")
         try {
@@ -252,6 +256,7 @@ class TripTrackingForegroundService : Service() {
     private fun emitLocation(location: Location) {
         if (stopForCriticalBatteryIfNeeded()) return
         if (stopForLocationServicesDisabledIfNeeded()) return
+        val startedAtMillis = trackingStartedAtMillis ?: return
         if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
         val accuracyMeters = location.accuracy.toDouble()
         val reportedSpeed = if (location.hasSpeed()) location.speed.toDouble() else null
@@ -260,7 +265,7 @@ class TripTrackingForegroundService : Service() {
         // Reject malformed native metadata before it crosses the platform
         // boundary. Dart validates again, but the foreground service should
         // not keep forwarding a corrupt cached fix on every callback.
-        if (location.time <= 0 || !accuracyMeters.isFinite() || accuracyMeters <= 0 ||
+        if (location.time < startedAtMillis || !accuracyMeters.isFinite() || accuracyMeters <= 0 ||
             (reportedSpeed != null && (!reportedSpeed.isFinite() || reportedSpeed < 0))) return
         TripTrackingEventEmitter.emit(
             mapOf(
@@ -287,6 +292,7 @@ class TripTrackingForegroundService : Service() {
         stopLocationUpdates()
         removeActivityRecognitionUpdates()
         retireActivityRecognitionEpoch()
+        trackingStartedAtMillis = null
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "status",

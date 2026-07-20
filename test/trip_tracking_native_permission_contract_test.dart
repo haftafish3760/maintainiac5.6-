@@ -103,8 +103,11 @@ void main() {
       source,
       contains('CLLocationCoordinate2DIsValid(location.coordinate)'),
     );
+    expect(source, contains('location.coordinate.latitude.isFinite'));
+    expect(source, contains('location.coordinate.longitude.isFinite'));
     expect(source, contains('location.horizontalAccuracy.isFinite'));
     expect(source, contains('location.timestamp.timeIntervalSince1970 > 0'));
+    expect(source, contains('location.speedAccuracy <= 1000'));
     expect(source, contains('"bearingDegrees": reportedBearing ?? NSNull()'));
   });
 
@@ -181,7 +184,10 @@ void main() {
         'Activity recognition permission is unavailable; GPS tracking continues without walking-assisted stop evidence.',
       ),
     );
-    expect(android, contains('location.time <= 0'));
+    expect(android, contains('private var trackingStartedAtMillis: Long?'));
+    expect(android, contains('trackingStartedAtMillis = System.currentTimeMillis()'));
+    expect(android, contains('val startedAtMillis = trackingStartedAtMillis ?: return'));
+    expect(android, contains('location.time < startedAtMillis'));
     expect(android, contains('!accuracyMeters.isFinite()'));
     expect(android, contains('!reportedSpeed.isFinite()'));
     expect(

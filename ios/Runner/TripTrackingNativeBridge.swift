@@ -122,13 +122,19 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       // treat a coordinate predating this collector as current-trip evidence.
       guard location.timestamp >= trackingStartedAt else { continue }
       guard CLLocationCoordinate2DIsValid(location.coordinate),
+            location.coordinate.latitude.isFinite,
+            location.coordinate.longitude.isFinite,
             location.horizontalAccuracy > 0,
             location.horizontalAccuracy.isFinite,
             location.timestamp.timeIntervalSince1970 > 0 else { continue }
       let reportedSpeed = location.speed >= 0 && location.speed.isFinite
         ? location.speed
         : nil
-      let reportedSpeedAccuracy = location.speedAccuracy >= 0 && location.speedAccuracy.isFinite
+      // Keep provider metadata inside the same bounded contract enforced by
+      // the shared Dart model. A malformed cached accuracy must not turn an
+      // otherwise valid fix into a repeatedly rejected platform event.
+      let reportedSpeedAccuracy = location.speedAccuracy >= 0 &&
+        location.speedAccuracy.isFinite && location.speedAccuracy <= 1000
         ? location.speedAccuracy
         : nil
       let reportedBearing = location.course >= 0 &&
