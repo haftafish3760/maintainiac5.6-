@@ -131,6 +131,14 @@ class TripTrackingForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // A service recreation without the original, driver-approved request
+        // must never fall through to default GPS settings and restart
+        // collection. Dart retains the local trip for recovery/review.
+        if (intent == null) {
+            retireForExplicitStop()
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
         if (intent?.action == stopAction) {
             // The persistent notification must give the driver an immediate,
             // visible way to end tracking without reopening the app.

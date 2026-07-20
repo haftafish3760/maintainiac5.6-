@@ -185,8 +185,14 @@ void main() {
       ),
     );
     expect(android, contains('private var trackingStartedAtMillis: Long?'));
-    expect(android, contains('trackingStartedAtMillis = System.currentTimeMillis()'));
-    expect(android, contains('val startedAtMillis = trackingStartedAtMillis ?: return'));
+    expect(
+      android,
+      contains('trackingStartedAtMillis = System.currentTimeMillis()'),
+    );
+    expect(
+      android,
+      contains('val startedAtMillis = trackingStartedAtMillis ?: return'),
+    );
     expect(android, contains('location.time < startedAtMillis'));
     expect(android, contains('!accuracyMeters.isFinite()'));
     expect(android, contains('!reportedSpeed.isFinite()'));
@@ -491,6 +497,19 @@ void main() {
     expect(
       android,
       contains('Android could not apply the GPS sampling update'),
+    );
+  });
+
+  test('Android never restarts GPS collection without its approved request', () {
+    final service = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+
+    expect(service, contains('if (intent == null) {'));
+    expect(service, contains('stopSelf(startId)'));
+    expect(
+      service.indexOf('if (intent == null) {'),
+      lessThan(service.indexOf('if (intent?.action == stopAction)')),
     );
   });
 
