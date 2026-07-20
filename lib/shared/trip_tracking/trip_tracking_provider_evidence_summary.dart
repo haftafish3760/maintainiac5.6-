@@ -16,6 +16,7 @@ extension TripLocationSampleEvidenceSummary on TripLocationSample {
       'hasValidAccuracy': hasValidAccuracy,
       'accuracyBucket': _accuracyBucket(horizontalAccuracyMeters),
       'speedBucket': _speedBucket(speedMetersPerSecond),
+      'hasBearing': bearingDegrees != null,
       'timestampBucket': _timestampBucket(age),
       'mockedLocationReported': mockedLocation == true,
       'trustedAfterValidationOnly': true,
@@ -32,6 +33,7 @@ extension TripLocationSampleEvidenceSummary on TripLocationSample {
       'rawLatitudeIncluded': false,
       'rawLongitudeIncluded': false,
       'rawTimestampIncluded': false,
+      'rawBearingIncluded': false,
       'rawProviderPayloadIncluded': false,
       'tokensIncluded': false,
     };

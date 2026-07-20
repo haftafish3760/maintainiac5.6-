@@ -12,6 +12,7 @@ void main() {
           longitude: -80.123456,
           recordedAt: recordedAt,
           horizontalAccuracyMeters: 8,
+          bearingDegrees: 91.5,
           speedMetersPerSecond: 12,
           mockedLocation: true,
         ).toEvidenceBoundarySummary(
@@ -29,6 +30,8 @@ void main() {
     expect(summary['calibrationRequiresTrustedGpsWindow'], isTrue);
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['providerEvidenceCanCreateCalibration'], isFalse);
+    expect(summary['hasBearing'], isTrue);
+    expect(summary['rawBearingIncluded'], isFalse);
     expect(summary['providerEvidenceCanApplyCalibration'], isFalse);
     expect(summary['canCreateOfficialMileage'], isFalse);
     expect(summary['canOverrideOdometer'], isFalse);

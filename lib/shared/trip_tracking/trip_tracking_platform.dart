@@ -378,6 +378,7 @@ class TripTrackingPlatformEvent {
         'locationSpeedBucket': summary['speedBucket'],
         'mockedLocationReported': summary['mockedLocationReported'],
         'hasSpeed': sample.speedMetersPerSecond != null,
+        'hasBearing': summary['hasBearing'],
         'rawLatitudeIncluded': summary['rawLatitudeIncluded'],
         'rawLongitudeIncluded': summary['rawLongitudeIncluded'],
         'rawTimestampIncluded': summary['rawTimestampIncluded'],
