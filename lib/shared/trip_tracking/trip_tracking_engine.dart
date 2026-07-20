@@ -223,6 +223,8 @@ class TripTrackingEngine {
       );
     }
 
+    final distance = _distanceMeters(lastAccepted, sample);
+
     final continuityElapsed = _elapsedBetween(
       earlierWallClock: lastContinuousAt,
       laterWallClock: sample.recordedAt,
@@ -239,6 +241,7 @@ class TripTrackingEngine {
         sample,
         verifiedActivity,
         TripSampleDisposition.rejectedGap,
+        estimatedGapMeters: distance,
       );
     }
 
@@ -250,7 +253,6 @@ class TripTrackingEngine {
           ? null
           : sampleMonotonicElapsedNanos,
     );
-    final distance = _distanceMeters(lastAccepted, sample);
     final seconds =
         (elapsed?.inMilliseconds ?? 0) / Duration.millisecondsPerSecond;
     final impliedSpeed = seconds <= 0 ? double.infinity : distance / seconds;
@@ -266,6 +268,7 @@ class TripTrackingEngine {
         sample,
         verifiedActivity,
         TripSampleDisposition.rejectedImplausibleSpeed,
+        rejectedMeters: distance,
       );
     }
 
@@ -285,6 +288,7 @@ class TripTrackingEngine {
         sample,
         verifiedActivity,
         TripSampleDisposition.rejectedSpeedConflict,
+        rejectedMeters: distance,
       );
     }
     if (_reportedAccelerationExceedsLimit(
@@ -299,6 +303,7 @@ class TripTrackingEngine {
         sample,
         verifiedActivity,
         TripSampleDisposition.rejectedSpeedConflict,
+        rejectedMeters: distance,
       );
     }
 
@@ -367,6 +372,7 @@ class TripTrackingEngine {
         sample,
         activityForMileage,
         TripSampleDisposition.rejectedSpeedConflict,
+        rejectedMeters: distance,
       );
     }
     if (distance <= accuracyEnvelope) {
@@ -374,6 +380,7 @@ class TripTrackingEngine {
         sample,
         activityForMileage,
         TripSampleDisposition.rejectedDrift,
+        rejectedMeters: distance,
       );
     }
 
@@ -556,9 +563,16 @@ class TripTrackingEngine {
     TripActivityObservation? activity,
     TripSampleDisposition disposition, {
     double addedMeters = 0,
+    double rejectedMeters = 0,
+    double estimatedGapMeters = 0,
   }) {
     _updateMotionState(sample, activity, disposition);
-    return _decision(disposition, addedMeters: addedMeters);
+    return _decision(
+      disposition,
+      addedMeters: addedMeters,
+      rejectedMeters: rejectedMeters,
+      estimatedGapMeters: estimatedGapMeters,
+    );
   }
 
   void _updateMotionState(
@@ -689,8 +703,14 @@ class TripTrackingEngine {
   TripSampleDecision _decision(
     TripSampleDisposition disposition, {
     double addedMeters = 0,
+    double rejectedMeters = 0,
+    double estimatedGapMeters = 0,
   }) {
-    _diagnostics = _diagnostics.record(disposition);
+    _diagnostics = _diagnostics.record(
+      disposition,
+      rejectedMeters: rejectedMeters,
+      estimatedGapMeters: estimatedGapMeters,
+    );
     return TripSampleDecision(
       disposition: disposition,
       totalAcceptedMeters: _totalAcceptedMeters,
