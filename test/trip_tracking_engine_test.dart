@@ -28,6 +28,26 @@ void main() {
         recordedAt: start.add(Duration(seconds: seconds)),
       );
 
+  test('malformed Android monotonic timestamps fail closed', () {
+    final base = sample(-80, 0).toMap();
+
+    expect(
+      TripLocationSample.tryFromMap({...base, 'monotonicElapsedNanos': -1}),
+      isNull,
+    );
+    expect(
+      TripLocationSample.tryFromMap({...base, 'monotonicElapsedNanos': 1.5}),
+      isNull,
+    );
+    expect(
+      TripLocationSample.tryFromMap({
+        ...base,
+        'monotonicElapsedNanos': 1000000000,
+      })?.monotonicElapsedNanos,
+      1000000000,
+    );
+  });
+
   test('uses two-second precision only after vehicle speed reaches 15 mph', () {
     final engine = TripTrackingEngine();
 
