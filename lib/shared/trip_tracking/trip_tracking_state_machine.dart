@@ -50,6 +50,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.awaitingPermission,
           TripTrackingSessionLifecycleState.awaitingLocationServices,
           TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.candidateMovement,
           TripTrackingSessionLifecycleState.pausedByUser,
           TripTrackingSessionLifecycleState.pausedBySystem,
           TripTrackingSessionLifecycleState.stopping,

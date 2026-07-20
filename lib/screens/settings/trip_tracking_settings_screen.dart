@@ -294,6 +294,30 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             _CalibrationAcceptancePanel(tripTracking: tripTracking!),
           ],
           _switch(
+            title: 'Suggest a trip after sustained driving',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'Optional. Requires several credible movement observations and never confirms mileage, purpose, or a job.'
+                : 'Enable GPS-assisted tracking before turning on driving-based trip suggestions.',
+            value: settings.assistedStartSuggestionsEnabled,
+            onChanged: settings.gpsAssistedTrackingEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(assistedStartSuggestionsEnabled: value),
+                  )
+                : null,
+          ),
+          _switch(
+            title: 'Begin an assisted candidate automatically',
+            detail: settings.assistedStartSuggestionsEnabled
+                ? 'Separate opt-in. Requires an independent in-vehicle or approved Bluetooth hint. The trip still waits for your odometer review.'
+                : 'Turn on driving-based trip suggestions first. Automatic candidates remain off by default.',
+            value: settings.automaticAssistedStartEnabled,
+            onChanged: settings.assistedStartSuggestionsEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(automaticAssistedStartEnabled: value),
+                  )
+                : null,
+          ),
+          _switch(
             title: 'Recognize a linked vehicle by Bluetooth',
             detail:
                 'Uses only Bluetooth devices you explicitly link to a vehicle on this device.',

@@ -1,7 +1,9 @@
 package com.maintainiac
 
+import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -17,8 +19,10 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import android.content.pm.PackageManager
 import android.util.DisplayMetrics
 import androidx.core.performance.play.services.PlayServicesDevicePerformance
+import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import kotlin.math.roundToInt
@@ -35,6 +39,7 @@ class DeviceCapabilityBridge(private val activity: Activity) {
                 "readCameraCapabilities" -> result.success(readCameraSummary())
                 "readExtendedCapabilities" -> result.success(readExtendedCapabilities())
                 "readDynamicCapabilities" -> result.success(readDynamicCapabilities())
+                "readBluetoothCapabilities" -> result.success(readBluetoothCapabilities())
                 else -> result.notImplemented()
             }
         }
@@ -70,6 +75,24 @@ class DeviceCapabilityBridge(private val activity: Activity) {
         "battery" to readBattery(),
         "connectivity" to readConnectivity(),
     )
+
+    private fun readBluetoothCapabilities(): Map<String, Any> {
+        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        val adapter = manager?.adapter
+        val authorized = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) ==
+                PackageManager.PERMISSION_GRANTED
+        val authorization = if (authorized) "authorized" else "notRequested"
+        val poweredOn = if (authorized) adapter?.isEnabled == true else false
+        return mapOf(
+            "adapterAvailable" to (adapter != null),
+            "poweredOn" to poweredOn,
+            "authorization" to authorization,
+            // Connection identity is supplied only by a future user-approved
+            // adapter; generic Android discovery is not reliable vehicle identity.
+            "supportsApprovedDeviceObservation" to false,
+        )
+    }
 
     private fun readCameraSummary(): Map<String, Any> {
         val lenses = readCameraLenses()

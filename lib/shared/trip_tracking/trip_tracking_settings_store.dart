@@ -42,6 +42,8 @@ class TripTrackingSettings {
     this.activityRecognitionEnabled = false,
     this.walkingTransitionReviewEnabled = true,
     this.backgroundTrackingEnabled = false,
+    this.assistedStartSuggestionsEnabled = false,
+    this.automaticAssistedStartEnabled = false,
     this.organizationMileageSharingEnabled = false,
     this.defaultProfile = TripTrackingProfile.roadVehicle,
     this.bluetoothVehicleRecognitionEnabled = false,
@@ -59,7 +61,7 @@ class TripTrackingSettings {
         TripTrackingBackupNetworkPolicy.wifiAndMobileData,
   });
 
-  static const schemaVersion = 2;
+  static const schemaVersion = 3;
 
   final bool gpsAssistedTrackingEnabled;
   final TripTrackingSamplingPreset samplingPreset;
@@ -68,6 +70,8 @@ class TripTrackingSettings {
   final bool activityRecognitionEnabled;
   final bool walkingTransitionReviewEnabled;
   final bool backgroundTrackingEnabled;
+  final bool assistedStartSuggestionsEnabled;
+  final bool automaticAssistedStartEnabled;
   final bool organizationMileageSharingEnabled;
   final TripTrackingProfile defaultProfile;
   final bool bluetoothVehicleRecognitionEnabled;
@@ -91,6 +95,8 @@ class TripTrackingSettings {
     bool? activityRecognitionEnabled,
     bool? walkingTransitionReviewEnabled,
     bool? backgroundTrackingEnabled,
+    bool? assistedStartSuggestionsEnabled,
+    bool? automaticAssistedStartEnabled,
     bool? organizationMileageSharingEnabled,
     TripTrackingProfile? defaultProfile,
     bool? bluetoothVehicleRecognitionEnabled,
@@ -116,6 +122,13 @@ class TripTrackingSettings {
     final odometerAlerts =
         gpsEnabled &&
         (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled);
+    final assistedSuggestions =
+        gpsEnabled &&
+        (assistedStartSuggestionsEnabled ??
+            this.assistedStartSuggestionsEnabled);
+    final automaticAssistedStart =
+        assistedSuggestions &&
+        (automaticAssistedStartEnabled ?? this.automaticAssistedStartEnabled);
     return TripTrackingSettings(
       gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: samplingPreset ?? this.samplingPreset,
@@ -132,6 +145,8 @@ class TripTrackingSettings {
       backgroundTrackingEnabled:
           gpsEnabled &&
           (backgroundTrackingEnabled ?? this.backgroundTrackingEnabled),
+      assistedStartSuggestionsEnabled: assistedSuggestions,
+      automaticAssistedStartEnabled: automaticAssistedStart,
       organizationMileageSharingEnabled:
           organizationMileageSharingEnabled ??
           this.organizationMileageSharingEnabled,
@@ -182,6 +197,8 @@ class TripTrackingSettings {
     'activityRecognitionEnabled': activityRecognitionEnabled,
     'walkingTransitionReviewEnabled': walkingTransitionReviewEnabled,
     'backgroundTrackingEnabled': backgroundTrackingEnabled,
+    'assistedStartSuggestionsEnabled': assistedStartSuggestionsEnabled,
+    'automaticAssistedStartEnabled': automaticAssistedStartEnabled,
     'organizationMileageSharingEnabled': organizationMileageSharingEnabled,
     'defaultProfile': defaultProfile.name,
     'bluetoothVehicleRecognitionEnabled': bluetoothVehicleRecognitionEnabled,
@@ -213,6 +230,8 @@ class TripTrackingSettings {
       'activityRecognitionEnabled': safe.activityRecognitionEnabled,
       'walkingTransitionReviewEnabled': safe.walkingTransitionReviewEnabled,
       'backgroundTrackingEnabled': safe.backgroundTrackingEnabled,
+      'assistedStartSuggestionsEnabled': safe.assistedStartSuggestionsEnabled,
+      'automaticAssistedStartEnabled': safe.automaticAssistedStartEnabled,
       'organizationMileageSharingEnabled':
           safe.organizationMileageSharingEnabled,
       'defaultProfile': safe.defaultProfile.name,
@@ -251,6 +270,8 @@ class TripTrackingSettings {
           safe.gpsAssistedTrackingEnabled && safe.backgroundTrackingEnabled,
       'requiresMotionConsent':
           safe.gpsAssistedTrackingEnabled && safe.activityRecognitionEnabled,
+      'assistedStartCanFinalizeTrip': false,
+      'assistedStartCanInventOdometer': false,
       'requiresOrganizationSharingConsent':
           safe.organizationMileageSharingEnabled,
       'mapsRequiredForTracking': false,
@@ -290,6 +311,12 @@ class TripTrackingSettings {
           map['walkingTransitionReviewEnabled'] != false,
       backgroundTrackingEnabled:
           gpsEnabled && map['backgroundTrackingEnabled'] == true,
+      assistedStartSuggestionsEnabled:
+          gpsEnabled && map['assistedStartSuggestionsEnabled'] == true,
+      automaticAssistedStartEnabled:
+          gpsEnabled &&
+          map['assistedStartSuggestionsEnabled'] == true &&
+          map['automaticAssistedStartEnabled'] == true,
       organizationMileageSharingEnabled:
           map['organizationMileageSharingEnabled'] == true,
       defaultProfile: defaultProfile ?? TripTrackingProfile.roadVehicle,

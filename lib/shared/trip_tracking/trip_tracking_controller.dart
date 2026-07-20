@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
+import 'trip_start_detection_assistant.dart';
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_calibration_apply_guard.dart';
 import 'trip_tracking_backup_port.dart';
@@ -612,11 +613,42 @@ class TripTrackingController extends ChangeNotifier {
     ),
   );
 
+  Future<bool> beginAssistedSessionIfEligible({
+    required String tripId,
+    required String vehicleId,
+    required TripTrackingProfile profile,
+    required TripTrackingSettings settings,
+    required List<TripStartEvidenceObservation> observations,
+    DateTime? startedAt,
+  }) => _runExclusiveSessionOperation(false, () async {
+    final decision = TripStartDetectionAssistant.evaluate(
+      settings: settings,
+      observations: observations,
+      hasActiveOrRecoverableSession:
+          _session != null || _sessionStore.activeSession != null,
+    );
+    if (!decision.shouldBeginAssistedSession) return false;
+    return _start(
+      tripId: tripId,
+      vehicleId: vehicleId,
+      profile: profile,
+      startedAt: startedAt,
+      initialLifecycleState:
+          TripTrackingSessionLifecycleState.candidateMovement,
+      startReasonCode: decision.reasonCode,
+      initiatingSource: 'assisted_start_detector',
+    );
+  });
+
   Future<bool> _start({
     required String tripId,
     required String vehicleId,
     required TripTrackingProfile profile,
     DateTime? startedAt,
+    TripTrackingSessionLifecycleState initialLifecycleState =
+        TripTrackingSessionLifecycleState.preparing,
+    String startReasonCode = 'manual_start_requested',
+    String initiatingSource = 'user',
   }) async {
     if (_isDisposed ||
         isTracking ||
@@ -681,6 +713,25 @@ class TripTrackingController extends ChangeNotifier {
         return false;
       }
     }
+    final recoveredState = _session?.lifecycleState;
+    if (!_nativeTracking &&
+        recoveredState != null &&
+        recoveredState != TripTrackingSessionLifecycleState.pausedByUser &&
+        recoveredState != TripTrackingSessionLifecycleState.pausedBySystem &&
+        TripTrackingSessionStateMachine.canTransition(
+          recoveredState,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+        )) {
+      await _transitionSession(
+        TripTrackingSessionLifecycleState.pausedBySystem,
+        health: TripTrackingHealthState.interrupted,
+        reasonCode: 'recovery_native_collector_not_running',
+        initiatingSource: 'application_recovery',
+      );
+      _platformStatus ??= 'recovery_paused';
+      _platformError ??=
+          'The trip was restored safely, but GPS assistance is paused until you resume it.';
+    }
     final now = _clockNow();
     final started = startedAt ?? now;
     if (started.toUtc().isAfter(
@@ -708,9 +759,20 @@ class TripTrackingController extends ChangeNotifier {
       startedAt: started,
       updatedAt: started,
       engineSnapshot: _engine!.snapshot,
+      lifecycleState: initialLifecycleState,
     );
     try {
-      final claim = await _sessionStore.claimActive(candidate);
+      final claim = await _sessionStore.claimActive(
+        candidate,
+        reasonCode: startReasonCode,
+        initiatingSource: initiatingSource,
+        confidenceState:
+            initialLifecycleState ==
+                TripTrackingSessionLifecycleState.candidateMovement
+            ? 'high'
+            : 'unknown',
+        trackingQualityMode: initialLifecycleState.name,
+      );
       if (claim.status != TripTrackingSessionClaimStatus.claimed ||
           claim.session == null) {
         _engine = null;
@@ -2289,6 +2351,8 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingSessionLifecycleState next, {
     TripTrackingHealthState? health,
     DateTime? eventTimestamp,
+    String reasonCode = 'lifecycle_condition_changed',
+    String initiatingSource = 'coordinator',
   }) async {
     final session = _session;
     if (session == null || session.lifecycleState == next) return;
@@ -2298,6 +2362,8 @@ class TripTrackingController extends ChangeNotifier {
       nextState: next,
       eventTimestamp: eventTimestamp ?? _clockNow(),
       healthState: health,
+      reasonCode: reasonCode,
+      initiatingSource: initiatingSource,
     );
     _session = result.session;
     if (!result.accepted) {
