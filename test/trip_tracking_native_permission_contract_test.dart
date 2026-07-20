@@ -161,6 +161,14 @@ void main() {
     );
     expect(android, contains('trip_tracking_activity_unavailable'));
     expect(android, contains('stopActivityRecognitionIfPermissionRevoked()'));
+    expect(android, contains('reportActivityRecognitionUnavailable'));
+    expect(android, contains('activityRecognitionUnavailableReported = false'));
+    expect(
+      android,
+      contains(
+        'Activity recognition permission is unavailable; GPS tracking continues without walking-assisted stop evidence.',
+      ),
+    );
     expect(
       android,
       contains('activityPendingIntent == null || hasActivityRecognition()'),

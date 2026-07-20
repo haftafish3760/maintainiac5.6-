@@ -79,6 +79,22 @@ class TripTrackingForegroundService : Service() {
     }
     private var activityEpoch: String? = null
     private var activityPendingIntent: PendingIntent? = null
+    private var activityRecognitionUnavailableReported = false
+
+    private fun reportActivityRecognitionUnavailable(message: String) {
+        // Location collection remains independent from optional walking
+        // assistance. Emit this degraded-mode signal only once per native
+        // service lifetime so sampling updates cannot spam the Flutter bridge.
+        if (activityRecognitionUnavailableReported) return
+        activityRecognitionUnavailableReported = true
+        TripTrackingEventEmitter.emit(
+            mapOf(
+                "type" to "error",
+                "errorCode" to "trip_tracking_activity_unavailable",
+                "errorMessage" to message,
+            ),
+        )
+    }
 
     private fun activityRecognitionPendingIntent(): PendingIntent {
         val epoch = activityEpoch ?: UUID.randomUUID().toString().also {
@@ -184,6 +200,7 @@ class TripTrackingForegroundService : Service() {
             return START_NOT_STICKY
         }
         if (activityEnabled && hasActivityRecognition()) {
+            activityRecognitionUnavailableReported = false
             val pendingIntent = activityRecognitionPendingIntent()
             val requestEpoch = activityEpoch
             ActivityRecognition.getClient(this).requestActivityUpdates(
@@ -197,12 +214,28 @@ class TripTrackingForegroundService : Service() {
                     // callback degrade the active trip.
                     if (!isRunning || requestEpoch == null ||
                         !isActivityEpochActive(requestEpoch)) return@addOnFailureListener
-                    TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_activity_unavailable", "errorMessage" to "Activity recognition is unavailable: ${error.message ?: "request failed"}"))
+                    reportActivityRecognitionUnavailable(
+                        "Activity recognition is unavailable: ${error.message ?: "request failed"}",
+                    )
                 }
+        } else if (activityEnabled) {
+            // The app can receive a start/redelivery request after the driver
+            // revoked Android activity recognition in Settings. GPS remains
+            // active, but Flutter must be told that walking-assisted evidence
+            // is unavailable rather than leaving the stale preference looking
+            // operational until the next heartbeat.
+            removeActivityRecognitionUpdates()
+            retireActivityRecognitionEpoch()
+            reportActivityRecognitionUnavailable(
+                "Activity recognition permission is unavailable; GPS tracking continues without walking-assisted stop evidence.",
+            )
         } else {
             // Sampling updates can revoke motion assistance while the trip
             // remains active. Stop the sensor immediately; location tracking
             // must never keep collecting activity data after that opt-out.
+            // A later explicit opt-in is a new consent attempt and must be
+            // able to surface a fresh unavailable-permission diagnosis.
+            activityRecognitionUnavailableReported = false
             removeActivityRecognitionUpdates()
             // A later re-enable is a new consent window. Retiring the token
             // prevents a delayed broadcast from before opt-out from becoming
@@ -366,12 +399,8 @@ class TripTrackingForegroundService : Service() {
         if (activityPendingIntent == null || hasActivityRecognition()) return
         removeActivityRecognitionUpdates()
         retireActivityRecognitionEpoch()
-        TripTrackingEventEmitter.emit(
-            mapOf(
-                "type" to "error",
-                "errorCode" to "trip_tracking_activity_unavailable",
-                "errorMessage" to "Activity recognition permission was removed; GPS tracking continues without walking-assisted stop evidence.",
-            ),
+        reportActivityRecognitionUnavailable(
+            "Activity recognition permission was removed; GPS tracking continues without walking-assisted stop evidence.",
         )
     }
 }
