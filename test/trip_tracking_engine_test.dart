@@ -48,6 +48,26 @@ void main() {
     );
   });
 
+  test('recovery clamps contradictory Android monotonic checkpoints', () {
+    final anchor = sample(-80, 0, monotonicElapsedNanos: 1000000000);
+    final recovered = TripTrackingEngineSnapshot.fromMap({
+      'lastAccepted': anchor.toMap(),
+      'lastObservedAt': anchor.recordedAt.toIso8601String(),
+      'lastContinuousAt': anchor.recordedAt.toIso8601String(),
+      'lastObservedMonotonicElapsedNanos': 999999999,
+      'lastContinuousMonotonicElapsedNanos': 9999999999,
+      'totalAcceptedMeters': 0,
+      'walkingReviewSuggested': false,
+      'vehicleMovementObserved': false,
+      'diagnostics': const TripTrackingDiagnostics().toMap(),
+      'schemaVersion': 1,
+      'algorithmVersion': 'gps-v1',
+    });
+
+    expect(recovered.lastObservedMonotonicElapsedNanos, 1000000000);
+    expect(recovered.lastContinuousMonotonicElapsedNanos, 1000000000);
+  });
+
   test('uses two-second precision only after vehicle speed reaches 15 mph', () {
     final engine = TripTrackingEngine();
 
