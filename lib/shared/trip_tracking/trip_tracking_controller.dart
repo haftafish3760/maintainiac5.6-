@@ -1821,7 +1821,10 @@ class TripTrackingController extends ChangeNotifier {
         ),
       );
     } catch (error) {
-      _platformError = 'Could not update GPS sampling.';
+      _platformError = _safeNativeCommandFailure(
+        error,
+        fallback: 'Could not update GPS sampling.',
+      );
       notifyListeners();
       return;
     }

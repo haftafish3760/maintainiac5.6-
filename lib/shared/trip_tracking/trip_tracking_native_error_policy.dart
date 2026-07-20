@@ -43,6 +43,8 @@ class TripTrackingNativeErrorPolicy {
       'Battery is critically low. GPS-assisted tracking is paused below 10%.',
     'trip_tracking_activity_unavailable' =>
       'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',
+    'trip_tracking_sampling_update_failed' =>
+      'The device could not apply the requested GPS sampling change.',
     _ => 'GPS reported a device error.',
   };
 

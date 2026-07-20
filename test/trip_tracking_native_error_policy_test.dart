@@ -83,6 +83,12 @@ void main() {
       ),
       'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',
     );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_sampling_update_failed',
+      ),
+      'The device could not apply the requested GPS sampling change.',
+    );
   });
 
   test('native error summaries expose only allow-listed codes', () {
