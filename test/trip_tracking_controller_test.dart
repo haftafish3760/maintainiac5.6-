@@ -3740,6 +3740,51 @@ void main() {
   );
 
   test(
+    'native traffic delay without walking evidence is not a completed stop',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_native_traffic_delay',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.moving,
+        maxPumps: 48,
+      );
+      for (final seconds in [30, 45, 60, 75]) {
+        native.addLocation(sample(-79.9997, seconds));
+      }
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.moving,
+        maxPumps: 48,
+      );
+
+      expect(controller.motionState, TripMotionState.moving);
+      expect(controller.needsWalkingReview, isFalse);
+      expect(controller.isTracking, isTrue);
+    },
+  );
+
+  test(
     'disabling motion assistance updates the active native collector',
     () async {
       final native = _FakeTripTrackingPlatform(
