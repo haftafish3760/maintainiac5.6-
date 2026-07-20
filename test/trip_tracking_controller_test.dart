@@ -88,6 +88,31 @@ void main() {
   );
 
   test(
+    'controller rejects regressing Android monotonic time before persistence',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_regressing_android_monotonic_time',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      await controller.ingest(sample(0, 0, monotonicElapsedNanos: 30000000000));
+      expect(
+        (await controller.ingest(
+          sample(1, 1, monotonicElapsedNanos: 20000000000),
+        ))?.disposition,
+        TripSampleDisposition.rejectedOutOfOrder,
+      );
+      expect(controller.acceptedMeters, 0);
+    },
+  );
+
+  test(
     'a failed initial local checkpoint releases the live odometer lock',
     () async {
       final hiveDirectory = await Directory.systemTemp.createTemp(
