@@ -533,6 +533,21 @@ void main() {
     expect(event.errorCode, 'invalidLocationPayload');
   });
 
+  test('impossible native speed accuracy fails closed at the boundary', () {
+    final event = TripTrackingPlatformEvent.fromMap({
+      'type': 'location',
+      'latitude': 35.2,
+      'longitude': -80.8,
+      'recordedAt': '2026-07-13T12:00:00.000Z',
+      'horizontalAccuracyMeters': 4.5,
+      'speedAccuracyMetersPerSecond': 101,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.error);
+    expect(event.location, isNull);
+    expect(event.errorCode, 'invalidLocationPayload');
+  });
+
   test('non-finite native timestamps fail closed without throwing', () {
     final event = TripTrackingPlatformEvent.fromMap({
       'type': 'location',
