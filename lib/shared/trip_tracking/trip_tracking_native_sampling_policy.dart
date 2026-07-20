@@ -109,11 +109,16 @@ class TripTrackingNativeSamplingPolicy {
     required TripSamplingRecommendation? current,
   }) {
     final speed = sample.speedMetersPerSecond;
+    final configuredExitSpeed = policy.precisionExitSpeedMetersPerSecond;
+    final precisionExitSpeed =
+        configuredExitSpeed.isFinite && configuredExitSpeed > 0
+        ? configuredExitSpeed
+        : 5.6;
     return current?.mode == TripSamplingMode.precision &&
         speed != null &&
         speed.isFinite &&
         speed >= 0 &&
-        speed < policy.precisionExitSpeedMetersPerSecond;
+        speed < precisionExitSpeed;
   }
 
   static bool isSafeDecisionForNativeSampling(TripSampleDecision decision) {

@@ -120,6 +120,29 @@ void main() {
     },
   );
 
+  test('malformed precision exit settings cannot pin high-rate GPS', () {
+    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+      policy: const TripTrackingPolicy(
+        precisionExitSpeedMetersPerSecond: double.nan,
+      ),
+      profile: TripTrackingProfile.roadVehicle,
+      sample: sample(seconds: 22, speed: 0),
+      decision: decision(TripSampleDisposition.rejectedDrift),
+      current: const TripSamplingRecommendation(
+        mode: TripSamplingMode.precision,
+        interval: Duration(seconds: 2),
+        minimumDisplacementMeters: 3,
+      ),
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+
+    expect(next?.mode, TripSamplingMode.balanced);
+    expect(next?.interval, const Duration(seconds: 5));
+  });
+
   test(
     'malformed or unavailable state cannot trigger native sampling update',
     () {
