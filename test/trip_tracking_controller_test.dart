@@ -2444,6 +2444,42 @@ void main() {
     expect(controller.platformError, contains('stopped while trip tracking'));
   });
 
+  test('location permission loss during native startup fails closed', () async {
+    final native = _FakeTripTrackingPlatform(
+      startDelay: Future<void>.delayed(Duration.zero),
+    );
+    native.beforeStart = () => native.addAuthorization(
+      const TripTrackingAuthorization(
+        state: TripTrackingAuthorizationState.denied,
+        preciseLocation: false,
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_native_start_permission_loss',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isFalse,
+    );
+
+    expect(controller.nativeTracking, isFalse);
+    expect(native.stopCalls, 1);
+    expect(
+      controller.lifecycleState,
+      TripTrackingSessionLifecycleState.failedRecoverable,
+    );
+    expect(controller.platformError, contains('permission was removed'));
+  });
+
   test('duplicate fatal platform errors issue one native stop', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(
@@ -6187,6 +6223,16 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
       TripTrackingPlatformEvent.fromMap({
         'type': 'activity',
         ...observation.toMap(),
+      }),
+    );
+  }
+
+  void addAuthorization(TripTrackingAuthorization authorization) {
+    _events.add(
+      TripTrackingPlatformEvent.fromMap({
+        'type': 'authorization',
+        'state': authorization.state.name,
+        'preciseLocation': authorization.preciseLocation,
       }),
     );
   }

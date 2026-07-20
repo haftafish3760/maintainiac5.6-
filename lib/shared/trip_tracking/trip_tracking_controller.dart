@@ -88,6 +88,7 @@ class TripTrackingController extends ChangeNotifier {
   bool _pendingNativeStartActivityUnavailable = false;
   bool _pendingNativeStartPreferenceSaveFailed = false;
   bool _pendingNativeStartStopped = false;
+  bool _pendingNativeStartAuthorizationRevoked = false;
   TripSamplingRecommendation? _nativeSampling;
   TripTrackingSamplingPlan? _nativeSamplingPlan;
   DateTime? _lastNativeHeartbeatUtc;
@@ -1289,6 +1290,7 @@ class TripTrackingController extends ChangeNotifier {
     _pendingNativeStartActivityUnavailable = false;
     _pendingNativeStartPreferenceSaveFailed = false;
     _pendingNativeStartStopped = false;
+    _pendingNativeStartAuthorizationRevoked = false;
     _platformSubscription = _listenToPlatformEvents(platform);
     bool started;
     try {
@@ -1310,6 +1312,8 @@ class TripTrackingController extends ChangeNotifier {
     final preferenceSaveFailedDuringStart =
         _pendingNativeStartPreferenceSaveFailed;
     final nativeStoppedDuringStart = _pendingNativeStartStopped;
+    final authorizationRevokedDuringStart =
+        _pendingNativeStartAuthorizationRevoked;
     _clearPendingNativeStart();
     if (_nativeCriticalBatteryStopPending) {
       await _cancelPlatformSubscriptionAfterNativeStop();
@@ -1336,7 +1340,9 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (preferenceSaveFailedDuringStart || nativeStoppedDuringStart) {
+    if (preferenceSaveFailedDuringStart ||
+        nativeStoppedDuringStart ||
+        authorizationRevokedDuringStart) {
       try {
         await platform.stop();
       } catch (_) {
@@ -1347,10 +1353,14 @@ class TripTrackingController extends ChangeNotifier {
       _platformSubscription = null;
       _platformError = preferenceSaveFailedDuringStart
           ? 'Motion activity became unavailable, and GPS tracking could not save that privacy change locally.'
+          : authorizationRevokedDuringStart
+          ? 'Precise location permission was removed while trip tracking was starting.'
           : 'GPS updates stopped while trip tracking was starting.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
-        health: TripTrackingHealthState.unavailable,
+        health: authorizationRevokedDuringStart
+            ? TripTrackingHealthState.permissionBlocked
+            : TripTrackingHealthState.unavailable,
       );
       notifyListeners();
       return false;
@@ -1423,7 +1433,9 @@ class TripTrackingController extends ChangeNotifier {
     },
     onDone: () {
       if (!_nativeTracking) return;
-      unawaited(_handleNativeInterruption('GPS updates ended unexpectedly.'));
+      _deferPlatformCleanup(
+        () => _handleNativeInterruption('GPS updates ended unexpectedly.'),
+      );
     },
   );
 
@@ -1492,18 +1504,29 @@ class TripTrackingController extends ChangeNotifier {
           } else if (event.type ==
                   TripTrackingPlatformEventType.authorization &&
               event.authorization != null) {
-            if (!_nativeTracking) return;
+            final pendingStart = _pendingNativeStartRequest;
+            if (!_nativeTracking && pendingStart == null) return;
             final authorization = event.authorization!;
             final authorizationStillAllowsTracking =
                 authorization.canTrackPrecisely &&
-                (!_backgroundTrackingAllowed ||
+                (!(_nativeTracking
+                        ? _backgroundTrackingAllowed
+                        : pendingStart!.allowBackground) ||
                     authorization.canTrackInBackground);
             if (authorizationStillAllowsTracking) return;
+            if (pendingStart != null && !_nativeTracking) {
+              _pendingNativeStartAuthorizationRevoked = true;
+              _platformError = pendingStart.allowBackground
+                  ? 'Background location permission was removed while trip tracking was starting.'
+                  : 'Precise location permission was removed while trip tracking was starting.';
+              notifyListeners();
+              return;
+            }
             // This handler is already serialized by the platform event queue.
             // Schedule interruption cleanup after it returns so its final
             // queue drain cannot wait on the event currently being processed.
-            unawaited(
-              _handleNativeInterruption(
+            _deferPlatformCleanup(
+              () => _handleNativeInterruption(
                 _backgroundTrackingAllowed
                     ? 'Background location permission was removed while tracking.'
                     : 'Precise location permission was removed while tracking.',
@@ -1615,7 +1638,7 @@ class TripTrackingController extends ChangeNotifier {
                   // This handler is executing inside the platform event queue.
                   // Stopping drains that queue, so schedule it after this event
                   // completes instead of awaiting a self-draining deadlock.
-                  unawaited(_stopNativeTracking());
+                  _deferPlatformCleanup(_stopNativeTracking);
                 }
               }
               notifyListeners();
@@ -1623,7 +1646,7 @@ class TripTrackingController extends ChangeNotifier {
                 TripTrackingNativeErrorPolicy.requiresRecovery(
                   event.errorCode,
                 )) {
-              unawaited(_handleNativeInterruption(message));
+              _deferPlatformCleanup(() => _handleNativeInterruption(message));
             } else {
               notifyListeners();
             }
@@ -2001,6 +2024,14 @@ class TripTrackingController extends ChangeNotifier {
     _pendingNativeStartActivityUnavailable = false;
     _pendingNativeStartPreferenceSaveFailed = false;
     _pendingNativeStartStopped = false;
+    _pendingNativeStartAuthorizationRevoked = false;
+  }
+
+  /// Platform callbacks are serialized by [_platformEventQueue]. Stopping the
+  /// collector drains that queue, so cleanup must begin only after the current
+  /// callback has completed instead of waiting on its own in-flight future.
+  void _deferPlatformCleanup(Future<void> Function() operation) {
+    unawaited(Future<void>.delayed(Duration.zero, operation));
   }
 
   Future<T> _enqueueNativeLifecycle<T>(Future<T> Function() operation) {
