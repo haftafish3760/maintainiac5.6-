@@ -117,4 +117,76 @@ void main() {
     expect(controller.routeStorageStatus, 'route_point_persisted');
     expect(odometer.confirmedReading, 1000);
   });
+
+  test(
+    'revoking maps mid-trip stops route capture without stopping GPS mileage',
+    () async {
+      final routeStore = TripRouteHistoryStore.memory();
+      var activeSettings = settings;
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        routeHistoryStore: routeStore,
+        trackingSettings: () => activeSettings,
+      );
+      await controller.start(
+        tripId: 'trip_route_consent_revoked',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: started,
+      );
+
+      for (final entry in [(0, -80.0), (30, -79.999)]) {
+        await controller.ingest(
+          TripLocationSample(
+            latitude: 35,
+            longitude: entry.$2,
+            recordedAt: started.add(Duration(seconds: entry.$1)),
+            horizontalAccuracyMeters: 5,
+          ),
+          referenceTime: started.add(Duration(seconds: entry.$1)),
+        );
+      }
+      final acceptedBeforeRevocation = controller.acceptedMeters;
+      expect(
+        routeStore.replay('trip_route_consent_revoked').points,
+        hasLength(2),
+      );
+
+      activeSettings = activeSettings.copyWith(mapPreviewEnabled: false);
+      await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -79.998,
+          recordedAt: started.add(const Duration(seconds: 60)),
+          horizontalAccuracyMeters: 5,
+        ),
+        referenceTime: started.add(const Duration(seconds: 60)),
+      );
+
+      expect(activeSettings.gpsAssistedTrackingEnabled, isTrue);
+      expect(activeSettings.mapPreviewEnabled, isFalse);
+      expect(activeSettings.mapRouteHistorySavingEnabled, isFalse);
+      expect(controller.acceptedMeters, greaterThan(acceptedBeforeRevocation));
+      expect(controller.routeStorageStatus, 'maps_not_enabled');
+      expect(
+        routeStore.replay('trip_route_consent_revoked').points,
+        hasLength(2),
+      );
+      expect(
+        await routeStore.deleteRoute(
+          'trip_route_consent_revoked',
+          userConfirmed: false,
+        ),
+        isFalse,
+      );
+      expect(
+        routeStore.replay('trip_route_consent_revoked').points,
+        hasLength(2),
+      );
+    },
+  );
 }
