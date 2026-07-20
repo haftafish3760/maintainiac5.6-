@@ -602,6 +602,21 @@ void main() {
     expect(engine.totalAcceptedMeters, 0);
   });
 
+  test(
+    'uses Android monotonic time to reject a wall-clock rollback outage',
+    () {
+      final engine = TripTrackingEngine();
+
+      engine.ingest(sample(-80, 0, monotonicElapsedNanos: 10000000000));
+      final gap = engine.ingest(
+        sample(-79.99, -60, monotonicElapsedNanos: 131000000000),
+      );
+
+      expect(gap.disposition, TripSampleDisposition.rejectedGap);
+      expect(engine.totalAcceptedMeters, 0);
+    },
+  );
+
   test('rejects impossible location jumps', () {
     final engine = TripTrackingEngine();
 
