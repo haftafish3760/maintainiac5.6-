@@ -57,21 +57,39 @@ void main() {
     return map;
   }
 
-  test('active trip schema versions must be integer version one', () {
-    for (final schema in const [1.0, 1.5, '1', true, null]) {
-      final session = TripTrackingSessionRecord.fromMap(
-        sessionMap(schemaVersion: schema),
+  test(
+    'active trip schema versions migrate to current integer version two',
+    () {
+      for (final schema in const [1.0, 1.5, '1', true, null]) {
+        final session = TripTrackingSessionRecord.fromMap(
+          sessionMap(schemaVersion: schema),
+        );
+
+        expect(session.schemaVersion, 2, reason: '$schema');
+        expect(session.hasValidTimeline, isFalse, reason: '$schema');
+      }
+
+      final supported = TripTrackingSessionRecord.fromMap(sessionMap());
+
+      expect(supported.schemaVersion, 2);
+      expect(supported.hasValidTimeline, isTrue);
+
+      final current = TripTrackingSessionRecord.fromMap(
+        sessionMap(schemaVersion: 2)..addAll({
+          'profileId': 'profile_1',
+          'revision': 1,
+          'lastEventSequence': 1,
+        }),
+      );
+      final future = TripTrackingSessionRecord.fromMap(
+        sessionMap(schemaVersion: 99),
       );
 
-      expect(session.schemaVersion, 1, reason: '$schema');
-      expect(session.hasValidTimeline, isFalse, reason: '$schema');
-    }
-
-    final supported = TripTrackingSessionRecord.fromMap(sessionMap());
-
-    expect(supported.schemaVersion, 1);
-    expect(supported.hasValidTimeline, isTrue);
-  });
+      expect(current.schemaVersion, 2);
+      expect(current.hasValidTimeline, isTrue);
+      expect(future.hasValidTimeline, isFalse);
+    },
+  );
 
   test('review schema versions must be integer version one', () {
     for (final schema in const [1.0, 2, 99, '1', false]) {

@@ -29,6 +29,9 @@ class TripTrackingCancelledSessionRecord {
   final bool userConfirmed;
   final int schemaVersion;
 
+  /// Cancellation preserves evidence but never changes odometer authority.
+  static const bool odometerIsGlobalTruth = true;
+
   bool get hasMeaningfulEvidence =>
       engineSnapshot.totalAcceptedMeters > 0 ||
       engineSnapshot.lastObservedAt != null ||

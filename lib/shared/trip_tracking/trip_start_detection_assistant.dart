@@ -54,6 +54,7 @@ class TripStartDetectionDecision {
     'totalDisplacementMeters': totalDisplacementMeters,
     'canFinalizeTrip': false,
     'canInventOdometer': false,
+    'odometerIsGlobalTruth': true,
     'canAssignJob': false,
     'rawLocationsIncluded': false,
   };

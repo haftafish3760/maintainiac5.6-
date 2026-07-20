@@ -182,7 +182,7 @@ class TripTrackingSessionRecord {
       map['profile'],
       TripTrackingProfile.values.map((value) => value.name),
     );
-    final hasSupportedSchemaVersion = _hasSupportedSessionSchemaVersion(
+    final hasSupportedSchemaVersion = _hasSupportedActiveSessionSchemaVersion(
       map,
       'schemaVersion',
     );
@@ -556,7 +556,7 @@ class TripTrackingReviewRecord {
       'cloudSyncState',
       TripTrackingCloudSyncState.values.map((value) => value.name),
     );
-    final hasSupportedSchemaVersion = _hasSupportedSessionSchemaVersion(
+    final hasSupportedSchemaVersion = _hasSupportedReviewSchemaVersion(
       map,
       'schemaVersion',
     );
@@ -663,10 +663,19 @@ int _sessionSchemaVersion(Object? value) {
   return value < 1 ? 1 : value;
 }
 
-bool _hasSupportedSessionSchemaVersion(Map<dynamic, dynamic> map, String key) {
+bool _hasSupportedActiveSessionSchemaVersion(
+  Map<dynamic, dynamic> map,
+  String key,
+) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
   return rawVersion is int && rawVersion >= 1 && rawVersion <= 2;
+}
+
+bool _hasSupportedReviewSchemaVersion(Map<dynamic, dynamic> map, String key) {
+  if (!map.containsKey(key)) return true;
+  final rawVersion = map[key];
+  return rawVersion is int && rawVersion == 1;
 }
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
