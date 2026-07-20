@@ -495,6 +495,43 @@ void main() {
   });
 
   test(
+    'unreliable prior speed cannot create a false acceleration rejection',
+    () {
+      final engine = TripTrackingEngine(
+        policy: const TripTrackingPolicy(
+          maximumPlausibleSpeedMetersPerSecond: 100,
+          maximumReportedSpeedDisagreementMetersPerSecond: 100,
+          maximumReportedAccelerationMetersPerSecondSquared: 5,
+          maximumTrustedReportedSpeedAccuracyMetersPerSecond: 2,
+        ),
+      );
+      engine.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: start,
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: 0,
+          speedAccuracyMetersPerSecond: 20,
+        ),
+      );
+
+      final decision = engine.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -79.9998,
+          recordedAt: start.add(const Duration(seconds: 2)),
+          horizontalAccuracyMeters: 5,
+          speedMetersPerSecond: 20,
+          speedAccuracyMetersPerSecond: 1,
+        ),
+      );
+
+      expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    },
+  );
+
+  test(
     'malformed acceleration policy falls back without rejecting a credible drive',
     () {
       final engine = TripTrackingEngine(

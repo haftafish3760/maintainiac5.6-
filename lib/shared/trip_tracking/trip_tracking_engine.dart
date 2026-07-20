@@ -287,7 +287,7 @@ class TripTrackingEngine {
       );
     }
     if (_reportedAccelerationExceedsLimit(
-      previousReportedSpeed: lastAccepted.speedMetersPerSecond,
+      previousReportedSpeed: _trustedReportedSpeed(lastAccepted),
       reportedSpeed: reportedSpeed,
       elapsed: elapsed ?? Duration.zero,
     )) {
