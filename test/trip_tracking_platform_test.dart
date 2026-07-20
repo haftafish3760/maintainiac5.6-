@@ -319,6 +319,7 @@ void main() {
       expect(event.toSafeLogMap()['rawLongitudeIncluded'], isFalse);
       expect(event.toSafeLogMap()['rawTimestampIncluded'], isFalse);
       expect(event.toSafeLogMap().toString(), isNot(contains('35.2')));
+      expect(event.toSafeLogMap().toString(), isNot(contains('123456789000')));
     },
   );
 
