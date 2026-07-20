@@ -5777,6 +5777,10 @@ void main() {
 
     expect(await controller.restore(), isFalse);
     expect(store.activeSession, isNull);
+    expect(store.quarantinedSessions, hasLength(1));
+    expect(store.quarantinedSessions.single.sessionId, 'trip_terminal_restore');
+    expect(controller.platformStatus, 'session_quarantined');
+    expect(controller.platformError, contains('without deleting'));
     expect(controller.isTracking, isFalse);
   });
 

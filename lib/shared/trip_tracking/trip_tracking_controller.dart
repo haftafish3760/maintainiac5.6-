@@ -881,10 +881,21 @@ class TripTrackingController extends ChangeNotifier {
     if (session == null) return false;
     if (!_isRecoverableSession(session)) {
       try {
-        await _sessionStore.clearIfSession(session.id);
+        final quarantined = await _sessionStore.quarantineActiveSession(
+          sessionId: session.id,
+          reasonCode: 'unsafe_session_recovery_boundary',
+          quarantinedAtUtc: _clockNow(),
+        );
+        _platformStatus = quarantined
+            ? 'session_quarantined'
+            : 'session_quarantine_pending';
+        _platformError = quarantined
+            ? 'An unsafe trip checkpoint was isolated without deleting its evidence.'
+            : 'An unsafe trip checkpoint still needs recovery review.';
+        notifyListeners();
       } catch (error) {
         _platformStatus = 'storage_failed';
-        _platformError = 'Could not remove invalid local trip data.';
+        _platformError = 'Could not isolate invalid local trip data safely.';
         notifyListeners();
       }
       return false;

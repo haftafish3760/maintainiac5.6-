@@ -5,6 +5,7 @@ import 'trip_tracking_cancelled_session.dart';
 import 'trip_tracking_lifecycle_event.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_recovery_diagnostic.dart';
+import 'trip_tracking_quarantined_session.dart';
 import 'trip_tracking_session_snapshot.dart';
 import 'trip_tracking_state_machine.dart';
 
@@ -889,6 +890,7 @@ class TripTrackingSessionStore {
   static const _snapshotAKey = 'activeSnapshot:a';
   static const _snapshotBKey = 'activeSnapshot:b';
   static const _snapshotHeadKey = 'activeSnapshot:head';
+  static const _quarantinedPrefix = 'quarantinedSession:';
   static const _reviewPrefix = 'review:';
   static const _pendingPrefix = 'pending:';
   static const _cancelledPrefix = 'cancelled:';
@@ -907,6 +909,7 @@ class TripTrackingSessionStore {
   final Map<String, TripTrackingLifecycleEvent> _memoryTransitions = {};
   final Map<String, TripTrackingRecoveryDiagnostic> _memoryRecoveryDiagnostics =
       {};
+  final Map<String, TripTrackingQuarantinedSession> _memoryQuarantined = {};
   final TripTrackingSessionStorageCheck? _storageCheck;
 
   static Future<TripTrackingSessionStore> create({
@@ -936,6 +939,21 @@ class TripTrackingSessionStore {
               .toList();
     diagnostics.sort((a, b) => a.recordedAtUtc.compareTo(b.recordedAtUtc));
     return diagnostics;
+  }
+
+  List<TripTrackingQuarantinedSession> get quarantinedSessions {
+    final records = _box == null
+        ? _memoryQuarantined.values.toList()
+        : _box.keys
+              .whereType<String>()
+              .where((key) => key.startsWith(_quarantinedPrefix))
+              .map((key) => _box.get(key))
+              .whereType<Map>()
+              .map(TripTrackingQuarantinedSession.tryFromMap)
+              .whereType<TripTrackingQuarantinedSession>()
+              .toList();
+    records.sort((a, b) => a.quarantinedAtUtc.compareTo(b.quarantinedAtUtc));
+    return records;
   }
 
   Future<TripTrackingSessionRecoveryResult>
@@ -1243,6 +1261,46 @@ class TripTrackingSessionStore {
     if (!_isSafeStoreIdentifier(sessionId)) return false;
     final current = activeSession;
     if (current == null || current.id != sessionId) return false;
+    _memorySession = null;
+    _memorySnapshotA = null;
+    _memorySnapshotB = null;
+    _memorySnapshotHead = 0;
+    await _box?.deleteAll([
+      _activeSessionKey,
+      _snapshotAKey,
+      _snapshotBKey,
+      _snapshotHeadKey,
+    ]);
+    return true;
+  });
+
+  /// Removes an unsafe record from active ownership only after preserving a
+  /// complete local copy for explicit recovery or user-directed deletion.
+  Future<bool> quarantineActiveSession({
+    required String sessionId,
+    required String reasonCode,
+    DateTime? quarantinedAtUtc,
+  }) => _enqueue(() async {
+    if (!_isSafeStoreIdentifier(sessionId) ||
+        !_isSafeStoreIdentifier(reasonCode)) {
+      return false;
+    }
+    final current = activeSession;
+    if (current == null || current.id != sessionId) return false;
+    await _ensureStorageForWrite();
+    final record = TripTrackingQuarantinedSession(
+      sessionId: current.id,
+      revision: current.revision,
+      sessionPayload: current.toMap(),
+      reasonCode: reasonCode,
+      quarantinedAtUtc: (quarantinedAtUtc ?? DateTime.now()).toUtc(),
+    );
+    final key = '$_quarantinedPrefix${current.id}:${current.revision}';
+    if (_box == null) {
+      _memoryQuarantined[key] = record;
+    } else {
+      await _box.put(key, record.toMap());
+    }
     _memorySession = null;
     _memorySnapshotA = null;
     _memorySnapshotB = null;
