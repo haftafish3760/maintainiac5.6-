@@ -45,6 +45,8 @@ class TripTrackingNativeErrorPolicy {
       'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',
     'trip_tracking_sampling_update_failed' =>
       'The device could not apply the requested GPS sampling change.',
+    'trip_tracking_permission_busy' =>
+      'Another GPS permission request is already in progress.',
     _ => 'GPS reported a device error.',
   };
 

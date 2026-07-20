@@ -1246,7 +1246,10 @@ class TripTrackingController extends ChangeNotifier {
         activityRecognitionEnabled: requestedActivityRecognition,
       );
     } catch (error) {
-      _platformError = 'Could not request GPS permission.';
+      _platformError = _safeNativeCommandFailure(
+        error,
+        fallback: 'Could not request GPS permission.',
+      );
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.permissionBlocked,

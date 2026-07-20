@@ -4255,6 +4255,39 @@ void main() {
     },
   );
 
+  test('native permission errors use a safe actionable message', () async {
+    final native = _FakeTripTrackingPlatform(
+      authorizationException: PlatformException(
+        code: 'trip_tracking_permission_busy',
+        message: 'raw permission provider detail',
+      ),
+    );
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_permission_command_failure',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isFalse,
+    );
+    expect(
+      controller.platformError,
+      'Another GPS permission request is already in progress.',
+    );
+    expect(
+      controller.platformError,
+      isNot(contains('raw permission provider')),
+    );
+  });
+
   test(
     'native startup platform errors use a safe actionable message',
     () async {
@@ -6448,6 +6481,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
       preciseLocation: true,
     ),
     this.throwOnStart = false,
+    this.authorizationException,
     this.startException,
     this.throwOnStop = false,
     this.throwOnCancel = false,
@@ -6477,6 +6511,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final StreamController<TripTrackingPlatformEvent> _events;
   final TripTrackingAuthorization authorization;
   final bool throwOnStart;
+  final Object? authorizationException;
   final Object? startException;
   final bool throwOnStop;
   final bool throwOnCancel;
@@ -6586,6 +6621,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     required bool allowBackground,
     required bool activityRecognitionEnabled,
   }) async {
+    final exception = authorizationException;
+    if (exception != null) throw exception;
     requestAuthorizationCalls += 1;
     return authorization;
   }

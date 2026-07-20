@@ -89,6 +89,12 @@ void main() {
       ),
       'The device could not apply the requested GPS sampling change.',
     );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_permission_busy',
+      ),
+      'Another GPS permission request is already in progress.',
+    );
   });
 
   test('native error summaries expose only allow-listed codes', () {
