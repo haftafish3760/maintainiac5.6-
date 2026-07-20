@@ -1,4 +1,5 @@
 import '../records/maintainiac_durable_record_store.dart';
+import 'trip_route_history_models.dart';
 import 'trip_tracking_session_store.dart';
 
 class TripTrackingDurableRecordBridge {
@@ -12,6 +13,7 @@ class TripTrackingDurableRecordBridge {
     TripTrackingReviewRecord review, {
     int? expectedRevision,
     DateTime? now,
+    TripRouteHistorySummary? routeSummary,
   }) {
     final safeReview = _validatedReview(review);
     final safeTripId = _safeDurableTripId(safeReview.id);
@@ -21,7 +23,7 @@ class TripTrackingDurableRecordBridge {
     return store.save(
       module: module,
       id: safeTripId,
-      payload: _payloadFor(safeReview),
+      payload: _payloadFor(safeReview, routeSummary: routeSummary),
       expectedRevision: expectedRevision,
       now: now,
     );
@@ -215,7 +217,10 @@ String? _safeDurableVehicleId(Object? value) {
   return RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(clean) ? clean : '';
 }
 
-Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
+Map<String, dynamic> _payloadFor(
+  TripTrackingReviewRecord review, {
+  TripRouteHistorySummary? routeSummary,
+}) {
   final map = Map<String, dynamic>.from(review.toMap());
   final engineSnapshot = map['engineSnapshot'];
   if (engineSnapshot is Map) {
@@ -236,6 +241,9 @@ Map<String, dynamic> _payloadFor(TripTrackingReviewRecord review) {
     map.remove(forbidden);
   }
   _scrubSensitiveTripPayload(map);
+  if (routeSummary != null && routeSummary.tripId == review.id) {
+    map['routeHistorySummary'] = routeSummary.toBundleSafeMap();
+  }
   map['durableRecordSchema'] = 'trip_tracking_review_v1';
   map['hiveRemainsSourceOfTruth'] = true;
   map['firestoreMirrorOnly'] = true;

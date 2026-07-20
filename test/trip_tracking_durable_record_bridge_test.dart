@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_route_history_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
@@ -9,11 +10,25 @@ void main() {
     final bridge = TripTrackingDurableRecordBridge(
       MaintainiacDurableRecordStore.memory(),
     );
-    final saved = await bridge.saveReviewedTrip(_review());
+    final saved = await bridge.saveReviewedTrip(
+      _review(),
+      routeSummary: TripRouteHistorySummary(
+        tripId: 'trip_1',
+        pointCount: 12,
+        segmentCount: 1,
+        corruptSegmentCount: 0,
+        firstPointAtUtc: DateTime.utc(2026, 7, 18, 8),
+        lastPointAtUtc: DateTime.utc(2026, 7, 18, 9),
+      ),
+    );
 
     expect(saved.module, TripTrackingDurableRecordBridge.module);
     expect(saved.payload['durableRecordSchema'], 'trip_tracking_review_v1');
     expect(saved.payload['confirmedEndingOdometer'], 1012);
+    final routeSummary = saved.payload['routeHistorySummary'] as Map;
+    expect(routeSummary['pointCount'], 12);
+    expect(routeSummary.containsKey('latitude'), isFalse);
+    expect(routeSummary['rawCoordinatesIncluded'], isFalse);
     expect(saved.payload['hiveRemainsSourceOfTruth'], isTrue);
     expect(saved.payload['firestoreMirrorOnly'], isTrue);
     expect(saved.payload['remoteDataCanOverrideLocalDaytimeData'], isFalse);

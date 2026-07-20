@@ -33,6 +33,7 @@ import 'shared/storage/app_storage_guard.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
+import 'shared/trip_tracking/trip_route_history_store.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
@@ -124,6 +125,7 @@ Future<void> main() async {
     snapshotWriter: odometerStore.saveSnapshot,
   );
   final tripTrackingStore = await TripTrackingSessionStore.create();
+  final tripRouteHistoryStore = await TripRouteHistoryStore.create();
   final durableRecordStore = await MaintainiacDurableRecordStore.create(
     'maintainiac_durable_records',
   );
@@ -145,6 +147,8 @@ Future<void> main() async {
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
     activeProfileId: () => userProfiles.activeProfile.id,
+    routeHistoryStore: tripRouteHistoryStore,
+    trackingSettings: () => tripTrackingSettings.settings,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
   );
   await tripTracking.restore();

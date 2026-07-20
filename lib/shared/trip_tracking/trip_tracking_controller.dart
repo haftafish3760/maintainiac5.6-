@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
+import 'trip_route_history_models.dart';
+import 'trip_route_history_store.dart';
 import 'trip_start_detection_assistant.dart';
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_calibration_apply_guard.dart';
@@ -43,6 +45,8 @@ class TripTrackingController extends ChangeNotifier {
     DateTime Function()? clockNow,
     DateTime Function()? heartbeatNow,
     String Function()? activeProfileId,
+    TripRouteHistoryStore? routeHistoryStore,
+    TripTrackingSettings Function()? trackingSettings,
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
@@ -53,6 +57,8 @@ class TripTrackingController extends ChangeNotifier {
          gpsAssistanceCalibrationMultiplier,
        ),
        _activeProfileId = activeProfileId,
+       _routeHistoryStore = routeHistoryStore,
+       _trackingSettings = trackingSettings,
        _clockNow = clockNow ?? heartbeatNow ?? DateTime.now;
 
   final TripTrackingSessionStore _sessionStore;
@@ -62,6 +68,8 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingBackupPort _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
   final String Function()? _activeProfileId;
+  final TripRouteHistoryStore? _routeHistoryStore;
+  final TripTrackingSettings Function()? _trackingSettings;
 
   /// One wall-clock authority for native timestamps, recovery, and review
   /// validation. Keeping these checks on the same clock prevents a delayed or
@@ -114,6 +122,7 @@ class TripTrackingController extends ChangeNotifier {
   bool _lowBatteryOverrideEnabled = false;
   bool _lowBatteryWarningDismissed = false;
   String? _acceptedCalibrationEvidenceSignature;
+  String? _routeStorageStatus;
 
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking =>
@@ -144,6 +153,9 @@ class TripTrackingController extends ChangeNotifier {
   String? get platformError => _platformError;
   String? get cloudMirrorError => _cloudMirrorError;
   String? get durableRecordError => _durableRecordError;
+  String? get routeStorageStatus => _routeStorageStatus;
+  TripRouteHistorySummary? routeSummaryFor(String tripId) =>
+      _routeHistoryStore?.summary(tripId);
   bool get hasDurableRecordBridge => _durableRecordBridge != null;
   bool get odometerIsGlobalTruth => true;
   bool get calibrationRequiresTrustedGpsWindow => true;
@@ -535,7 +547,10 @@ class TripTrackingController extends ChangeNotifier {
     final bridge = _durableRecordBridge;
     if (bridge == null || !review.isOdometerConfirmed) return;
     try {
-      await bridge.saveReviewedTrip(review);
+      await bridge.saveReviewedTrip(
+        review,
+        routeSummary: _routeHistoryStore?.summary(review.id),
+      );
       if (_durableRecordError != null) _durableRecordError = null;
     } catch (_) {
       _durableRecordError =
@@ -549,7 +564,10 @@ class TripTrackingController extends ChangeNotifier {
     try {
       for (final review in _sessionStore.pendingReviews) {
         if (review.isOdometerConfirmed) {
-          await bridge.saveReviewedTrip(review);
+          await bridge.saveReviewedTrip(
+            review,
+            routeSummary: _routeHistoryStore?.summary(review.id),
+          );
         }
       }
       if (_durableRecordError != null) {
@@ -1302,6 +1320,25 @@ class TripTrackingController extends ChangeNotifier {
           profile: engine.profile,
         );
         rethrow;
+      }
+      final routeStore = _routeHistoryStore;
+      final settings = _trackingSettings?.call();
+      if (decision.accepted && routeStore != null && settings != null) {
+        try {
+          final routeResult = await routeStore.appendGpsPoint(
+            tripId: session.id,
+            latitude: sample.latitude,
+            longitude: sample.longitude,
+            recordedAtUtc: sample.recordedAt,
+            horizontalAccuracyMeters: sample.horizontalAccuracyMeters,
+            localDayKey: _localDayKey(sample.recordedAt),
+            settings: settings,
+            nowUtc: receivedAt,
+          );
+          _routeStorageStatus = routeResult.reasonCode;
+        } catch (_) {
+          _routeStorageStatus = 'route_storage_failed_gps_continues';
+        }
       }
       final estimatedOdometer = projection.updateAcceptedMeters(
         decision.totalAcceptedMeters,
@@ -2777,6 +2814,12 @@ class TripTrackingController extends ChangeNotifier {
 bool _isSafeTripTrackingIdentity(String value) {
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   return clean == value && clean.isNotEmpty && clean.length <= 160;
+}
+
+String _localDayKey(DateTime timestamp) {
+  final local = timestamp.toLocal();
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${local.year}-${two(local.month)}-${two(local.day)}';
 }
 
 class TripTrackingScope extends InheritedNotifier<TripTrackingController> {
