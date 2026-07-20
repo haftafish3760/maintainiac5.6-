@@ -34,6 +34,7 @@ class TripTrackingNativeSamplingPolicy {
     'futureSampleCanChangeCadence': false,
     'rejectedInvalidCanChangeCadence': false,
     'stationarySpeedConflictCanOnlyDowngradePrecision': true,
+    'unreliableSpeedCanEscalateCadence': false,
     'remoteSampleCanChangeCadence': false,
     'mapboxCanChangeNativeCadence': false,
     'firestoreCanChangeNativeCadence': false,
@@ -211,6 +212,7 @@ class TripTrackingNativeSamplingSummaryValidation {
       'futureSampleCanChangeCadence',
       'rejectedInvalidCanChangeCadence',
       'stationarySpeedConflictCanOnlyDowngradePrecision',
+      'unreliableSpeedCanEscalateCadence',
       'remoteSampleCanChangeCadence',
       'mapboxCanChangeNativeCadence',
       'firestoreCanChangeNativeCadence',
@@ -262,6 +264,7 @@ class TripTrackingNativeSamplingSummaryValidation {
         summary['futureSampleCanChangeCadence'] != false ||
         summary['rejectedInvalidCanChangeCadence'] != false ||
         summary['stationarySpeedConflictCanOnlyDowngradePrecision'] != true ||
+        summary['unreliableSpeedCanEscalateCadence'] != false ||
         summary['remoteSampleCanChangeCadence'] != false ||
         summary['mapboxCanChangeNativeCadence'] != false ||
         summary['firestoreCanChangeNativeCadence'] != false ||

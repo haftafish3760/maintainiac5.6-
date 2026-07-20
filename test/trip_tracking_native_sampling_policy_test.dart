@@ -80,6 +80,7 @@ void main() {
     );
     expect(summary['canUpdateNativeCadence'], isTrue);
     expect(summary['validatedSampleRequired'], isTrue);
+    expect(summary['unreliableSpeedCanEscalateCadence'], isFalse);
     expect(summary['mapboxCanChangeNativeCadence'], isFalse);
     expect(summary['nativeSamplingCanConfirmOdometer'], isFalse);
     expect(summary['nativeSamplingCanSetGlobalTruth'], isFalse);
