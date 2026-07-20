@@ -1405,9 +1405,20 @@ void main() {
   });
 
   test('persisted walking evidence keeps only a bounded recent window', () {
+    final recoveryAnchor = TripLocationSample(
+      latitude: 35,
+      longitude: -80,
+      recordedAt: start.add(const Duration(minutes: 18)),
+      horizontalAccuracyMeters: 5,
+    );
     final snapshot = TripTrackingEngineSnapshot.fromMap({
       'totalAcceptedMeters': 17,
       'walkingReviewSuggested': true,
+      'vehicleMovementObserved': true,
+      'lastAccepted': recoveryAnchor.toMap(),
+      'lastObservedAt': start
+          .add(const Duration(minutes: 19))
+          .toIso8601String(),
       'walkingEvidence': [
         for (var i = 0; i < 20; i++)
           {
@@ -1424,6 +1435,58 @@ void main() {
     expect(snapshot.walkingEvidence.first.recordedAt.minute, 8);
     expect(persistedEvidence, hasLength(12));
   });
+
+  test(
+    'recovery sanitizes unordered, duplicate, and future walking evidence',
+    () {
+      final snapshot = TripTrackingEngineSnapshot.fromMap({
+        'lastAccepted': sample(-80, 0).toMap(),
+        'lastObservedAt': start
+            .add(const Duration(seconds: 30))
+            .toIso8601String(),
+        'vehicleMovementObserved': true,
+        'walkingReviewSuggested': true,
+        'motionState': 'stopped',
+        'walkingEvidence': [
+          {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': start
+                .add(const Duration(seconds: 20))
+                .toIso8601String(),
+          },
+          {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': start
+                .add(const Duration(seconds: 10))
+                .toIso8601String(),
+          },
+          {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': start
+                .add(const Duration(seconds: 20))
+                .toIso8601String(),
+          },
+          {
+            'activity': 'walking',
+            'confidence': 95,
+            'recordedAt': start
+                .add(const Duration(minutes: 5))
+                .toIso8601String(),
+          },
+        ],
+      });
+
+      expect(snapshot.walkingEvidence.map((item) => item.recordedAt), [
+        start.add(const Duration(seconds: 10)),
+        start.add(const Duration(seconds: 20)),
+      ]);
+      expect(snapshot.walkingReviewSuggested, isTrue);
+      expect(snapshot.motionState, TripMotionState.stopped);
+    },
+  );
 
   test('non-finite in-memory snapshot distance cannot poison recovery', () {
     final restored = TripTrackingEngine.fromSnapshot(

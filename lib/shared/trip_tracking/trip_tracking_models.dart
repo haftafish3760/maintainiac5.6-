@@ -482,13 +482,11 @@ class TripTrackingEngineSnapshot {
 
   factory TripTrackingEngineSnapshot.fromMap(Map<dynamic, dynamic> map) {
     final rawEvidence = map['walkingEvidence'];
-    final walkingEvidence = rawEvidence is Iterable
+    final parsedWalkingEvidence = rawEvidence is Iterable
         ? rawEvidence
               .whereType<Map>()
               .map(TripActivityObservation.tryFromMap)
               .whereType<TripActivityObservation>()
-              .toList(growable: false)
-              .takeLast(_maxPersistedWalkingEvidence)
               .toList(growable: false)
         : const <TripActivityObservation>[];
     final vehicleMovementObserved = map['vehicleMovementObserved'] == true;
@@ -502,6 +500,10 @@ class TripTrackingEngineSnapshot {
     final lastContinuousAt = _safeLastContinuousAt(
       map['lastContinuousAt'],
       lastAccepted: lastAccepted,
+      lastObservedAt: lastObservedAt,
+    );
+    final walkingEvidence = _safeRecoveredWalkingEvidence(
+      parsedWalkingEvidence,
       lastObservedAt: lastObservedAt,
     );
     final stationaryStartedAt = _safeStationaryStartedAt(
@@ -545,6 +547,33 @@ Iterable<TripActivityObservation> _boundedWalkingEvidence(
 ) {
   final items = evidence.toList(growable: false);
   return items.takeLast(_maxPersistedWalkingEvidence);
+}
+
+List<TripActivityObservation> _safeRecoveredWalkingEvidence(
+  Iterable<TripActivityObservation> evidence, {
+  required DateTime? lastObservedAt,
+}) {
+  // Persisted activity evidence is advisory-only, but it still must not be
+  // allowed to manufacture a stop after recovery. Require a valid location
+  // timeline, remove non-walking/low-confidence records, and reject events
+  // that claim to occur materially after the last accepted observation.
+  if (lastObservedAt == null) return const <TripActivityObservation>[];
+  final latestAllowed = lastObservedAt.add(_maxPersistedObservationLead);
+  final ordered =
+      evidence
+          .where(
+            (item) =>
+                item.canSupportStopReview &&
+                !item.recordedAt.isAfter(latestAllowed),
+          )
+          .toList(growable: false)
+        ..sort((left, right) => left.recordedAt.compareTo(right.recordedAt));
+  final seenTimestamps = <int>{};
+  return _boundedWalkingEvidence(
+    ordered.where(
+      (item) => seenTimestamps.add(item.recordedAt.microsecondsSinceEpoch),
+    ),
+  ).toList(growable: false);
 }
 
 bool _safeWalkingReviewSuggested(
