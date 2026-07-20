@@ -471,9 +471,7 @@ void main() {
       'recordedAt': DateTime.utc(2026, 7, 12, 12).toIso8601String(),
     });
 
-    expect(parsed, isNotNull);
-    expect(parsed!.confidence, 69);
-    expect(parsed.isHighConfidenceWalking, isFalse);
+    expect(parsed, isNull);
   });
 
   test('persisted engine snapshots do not write invalid accepted distance', () {
