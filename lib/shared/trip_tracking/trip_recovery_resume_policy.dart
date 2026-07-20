@@ -231,7 +231,7 @@ class TripRecoveryResumePolicy {
       return TripRecoveryResumeDecision(
         status: TripRecoveryResumeStatus.ready,
         reason: TripRecoveryResumeReason.reviewCanOpen,
-        targetLifecycle: TripTrackingSessionLifecycleState.awaitingReview,
+        targetLifecycle: TripTrackingSessionLifecycleState.completionPending,
         canResumeNativeTracking: false,
         canOpenReview: true,
         requiresUserReview: true,

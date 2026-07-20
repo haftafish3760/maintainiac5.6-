@@ -49,7 +49,7 @@ void main() {
   const lifecycleContinue = TripLifecycleSupervisorDecision(
     status: TripLifecycleSupervisorStatus.continueTracking,
     reasonCode: 'supervisor_continue_tracking',
-    nextLifecycle: TripTrackingSessionLifecycleState.active,
+    nextLifecycle: TripTrackingSessionLifecycleState.activeTracking,
     shouldKeepForegroundServiceAlive: true,
     shouldRequestUserAction: false,
     canReplayPendingSample: false,

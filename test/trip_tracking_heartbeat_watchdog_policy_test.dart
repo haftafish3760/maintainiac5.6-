@@ -13,7 +13,10 @@ void main() {
       decision.action,
       TripTrackingHeartbeatWatchdogAction.continueTracking,
     );
-    expect(decision.targetLifecycle, TripTrackingSessionLifecycleState.active);
+    expect(
+      decision.targetLifecycle,
+      TripTrackingSessionLifecycleState.activeTracking,
+    );
     expect(decision.canBridgeDistanceGap, isFalse);
   });
 
@@ -30,7 +33,7 @@ void main() {
     expect(decision.action, TripTrackingHeartbeatWatchdogAction.markDegraded);
     expect(
       decision.targetLifecycle,
-      TripTrackingSessionLifecycleState.degraded,
+      TripTrackingSessionLifecycleState.signalDegraded,
     );
     expect(decision.shouldRetryNativeTracking, isTrue);
     expect(decision.requiresUserReview, isFalse);
@@ -49,7 +52,7 @@ void main() {
     );
     expect(
       decision.targetLifecycle,
-      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.signalLost,
     );
     expect(decision.requiresUserReview, isTrue);
     expect(safe['heartbeatGapCanCreateMileage'], isFalse);
@@ -61,7 +64,7 @@ void main() {
 
   test('paused trips are preserved instead of restarted by heartbeat', () {
     final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.paused,
+      currentLifecycle: TripTrackingSessionLifecycleState.pausedByUser,
       lastHeartbeatUtc: now.subtract(const Duration(minutes: 20)),
       nowUtc: now,
     );
@@ -69,14 +72,17 @@ void main() {
 
     expect(decision.status, TripTrackingHeartbeatWatchdogStatus.pausedNoop);
     expect(decision.action, TripTrackingHeartbeatWatchdogAction.preservePaused);
-    expect(decision.targetLifecycle, TripTrackingSessionLifecycleState.paused);
+    expect(
+      decision.targetLifecycle,
+      TripTrackingSessionLifecycleState.pausedByUser,
+    );
     expect(decision.shouldRetryNativeTracking, isFalse);
     expect(safe['heartbeatRespectsPausedTrip'], isTrue);
   });
 
   test('missing heartbeat is no-op when native tracking is not expected', () {
     final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
       lastHeartbeatUtc: null,
       nowUtc: now,
       nativeTrackingExpected: false,
@@ -104,9 +110,9 @@ void main() {
   test('terminal sessions cannot be resumed by stale heartbeat recovery', () {
     for (final state in [
       TripTrackingSessionLifecycleState.completed,
-      TripTrackingSessionLifecycleState.awaitingReview,
-      TripTrackingSessionLifecycleState.failedTerminal,
-      TripTrackingSessionLifecycleState.disabled,
+      TripTrackingSessionLifecycleState.completionPending,
+      TripTrackingSessionLifecycleState.failedUnrecoverable,
+      TripTrackingSessionLifecycleState.idle,
     ]) {
       final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
         currentLifecycle: state,
@@ -137,7 +143,7 @@ void main() {
         lastHeartbeatUtc: now.add(const Duration(minutes: 1)),
       );
       final malformedThresholds = TripTrackingHeartbeatWatchdogPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         lastHeartbeatUtc: now,
         nowUtc: now,
         staleAfter: const Duration(minutes: 5),
@@ -247,7 +253,8 @@ void main() {
         TripTrackingHeartbeatWatchdogSummaryValidation.fromSummary({
           ...interrupted,
           'requiresUserReview': false,
-          'targetLifecycle': TripTrackingSessionLifecycleState.active.name,
+          'targetLifecycle':
+              TripTrackingSessionLifecycleState.activeTracking.name,
         });
 
     expect(forgedStale.isRenderable, isFalse);
@@ -268,7 +275,7 @@ TripTrackingHeartbeatWatchdogDecision evaluate(
   required DateTime? lastHeartbeatUtc,
 }) {
   return TripTrackingHeartbeatWatchdogPolicy.evaluate(
-    currentLifecycle: TripTrackingSessionLifecycleState.active,
+    currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
     lastHeartbeatUtc: lastHeartbeatUtc,
     nowUtc: now,
   );

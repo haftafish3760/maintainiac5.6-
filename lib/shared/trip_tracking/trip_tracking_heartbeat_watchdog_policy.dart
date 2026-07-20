@@ -212,7 +212,7 @@ class TripTrackingHeartbeatWatchdogPolicy {
         requiresUserReview: true,
       );
     }
-    if (currentLifecycle == TripTrackingSessionLifecycleState.paused) {
+    if (currentLifecycle == TripTrackingSessionLifecycleState.pausedByUser) {
       return _decision(
         TripTrackingHeartbeatWatchdogStatus.pausedNoop,
         TripTrackingHeartbeatWatchdogAction.preservePaused,
@@ -253,7 +253,7 @@ class TripTrackingHeartbeatWatchdogPolicy {
         TripTrackingHeartbeatWatchdogStatus.staleButRecoverable,
         TripTrackingHeartbeatWatchdogAction.markDegraded,
         'heartbeat_stale_retry_native',
-        TripTrackingSessionLifecycleState.degraded,
+        TripTrackingSessionLifecycleState.signalDegraded,
         shouldRetryNativeTracking: true,
       );
     }
@@ -261,7 +261,7 @@ class TripTrackingHeartbeatWatchdogPolicy {
       TripTrackingHeartbeatWatchdogStatus.interruptedNeedsRecovery,
       TripTrackingHeartbeatWatchdogAction.markInterrupted,
       'heartbeat_interrupted_recovery_required',
-      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.signalLost,
       shouldRetryNativeTracking: true,
       requiresUserReview: true,
     );
@@ -270,9 +270,9 @@ class TripTrackingHeartbeatWatchdogPolicy {
 
 bool _terminalProtected(TripTrackingSessionLifecycleState state) {
   return state == TripTrackingSessionLifecycleState.completed ||
-      state == TripTrackingSessionLifecycleState.awaitingReview ||
-      state == TripTrackingSessionLifecycleState.failedTerminal ||
-      state == TripTrackingSessionLifecycleState.disabled;
+      state == TripTrackingSessionLifecycleState.completionPending ||
+      state == TripTrackingSessionLifecycleState.failedUnrecoverable ||
+      state == TripTrackingSessionLifecycleState.idle;
 }
 
 TripTrackingHeartbeatWatchdogDecision _decision(
@@ -353,17 +353,17 @@ String? _heartbeatStatusBoundaryRisk(Map<String, Object?> summary) {
           review,
     TripTrackingHeartbeatWatchdogStatus.staleButRecoverable =>
       action != TripTrackingHeartbeatWatchdogAction.markDegraded ||
-          lifecycle != TripTrackingSessionLifecycleState.degraded ||
+          lifecycle != TripTrackingSessionLifecycleState.signalDegraded ||
           !retry ||
           review,
     TripTrackingHeartbeatWatchdogStatus.interruptedNeedsRecovery =>
       action != TripTrackingHeartbeatWatchdogAction.markInterrupted ||
-          lifecycle != TripTrackingSessionLifecycleState.interrupted ||
+          lifecycle != TripTrackingSessionLifecycleState.signalLost ||
           !retry ||
           !review,
     TripTrackingHeartbeatWatchdogStatus.pausedNoop =>
       action != TripTrackingHeartbeatWatchdogAction.preservePaused ||
-          lifecycle != TripTrackingSessionLifecycleState.paused ||
+          lifecycle != TripTrackingSessionLifecycleState.pausedByUser ||
           retry,
     TripTrackingHeartbeatWatchdogStatus.terminalProtected =>
       action != TripTrackingHeartbeatWatchdogAction.protectTerminal || retry,

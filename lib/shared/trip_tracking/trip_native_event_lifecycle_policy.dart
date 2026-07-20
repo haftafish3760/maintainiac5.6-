@@ -209,7 +209,7 @@ class TripNativeEventLifecyclePolicy {
         requiresUserReview: true,
       );
     }
-    if (currentState == TripTrackingSessionLifecycleState.failedTerminal) {
+    if (currentState == TripTrackingSessionLifecycleState.failedUnrecoverable) {
       return _decision(
         action: TripNativeEventLifecycleAction.ignoreEvent,
         reason: TripNativeEventLifecycleReason.illegalTransitionRejected,
@@ -283,12 +283,12 @@ _NativeTarget _targetState(
 
 bool _locationCanFeedEngine(TripTrackingSessionLifecycleState currentState) {
   return switch (currentState) {
-    TripTrackingSessionLifecycleState.disabled ||
-    TripTrackingSessionLifecycleState.paused ||
-    TripTrackingSessionLifecycleState.permissionRequired ||
-    TripTrackingSessionLifecycleState.awaitingReview ||
+    TripTrackingSessionLifecycleState.idle ||
+    TripTrackingSessionLifecycleState.pausedByUser ||
+    TripTrackingSessionLifecycleState.awaitingPermission ||
+    TripTrackingSessionLifecycleState.completionPending ||
     TripTrackingSessionLifecycleState.completed ||
-    TripTrackingSessionLifecycleState.failedTerminal => false,
+    TripTrackingSessionLifecycleState.failedUnrecoverable => false,
     _ => true,
   };
 }
@@ -297,11 +297,11 @@ TripTrackingSessionLifecycleState _activeCompatibleState(
   TripTrackingSessionLifecycleState currentState,
 ) {
   return switch (currentState) {
-    TripTrackingSessionLifecycleState.starting ||
-    TripTrackingSessionLifecycleState.degraded ||
+    TripTrackingSessionLifecycleState.awaitingInitialFix ||
+    TripTrackingSessionLifecycleState.signalDegraded ||
     TripTrackingSessionLifecycleState.recovering ||
     TripTrackingSessionLifecycleState.failedRecoverable =>
-      TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.activeTracking,
     _ => currentState,
   };
 }
@@ -312,7 +312,7 @@ _NativeTarget _authorizationTarget(TripTrackingAuthorization? authorization) {
       state == TripTrackingAuthorizationState.restricted ||
       state == TripTrackingAuthorizationState.notDetermined) {
     return _NativeTarget(
-      state: TripTrackingSessionLifecycleState.permissionRequired,
+      state: TripTrackingSessionLifecycleState.awaitingPermission,
       action: TripNativeEventLifecycleAction.requestUserPermissionReview,
       reason: TripNativeEventLifecycleReason.permissionRequired,
       canFeedEngine: false,
@@ -320,7 +320,7 @@ _NativeTarget _authorizationTarget(TripTrackingAuthorization? authorization) {
     );
   }
   return const _NativeTarget(
-    state: TripTrackingSessionLifecycleState.active,
+    state: TripTrackingSessionLifecycleState.activeTracking,
     action: TripNativeEventLifecycleAction.recoverLocally,
     reason: TripNativeEventLifecycleReason.nativeTrackingStatus,
     canFeedEngine: false,
@@ -339,7 +339,7 @@ _NativeTarget _statusTarget(
       canFeedEngine: false,
     ),
     'paused' => const _NativeTarget(
-      state: TripTrackingSessionLifecycleState.paused,
+      state: TripTrackingSessionLifecycleState.pausedByUser,
       action: TripNativeEventLifecycleAction.markInterrupted,
       reason: TripNativeEventLifecycleReason.nativePausedStatus,
       canFeedEngine: false,
@@ -351,20 +351,20 @@ _NativeTarget _statusTarget(
       canFeedEngine: false,
     ),
     'degraded' || 'providerUnavailable' => const _NativeTarget(
-      state: TripTrackingSessionLifecycleState.degraded,
+      state: TripTrackingSessionLifecycleState.signalDegraded,
       action: TripNativeEventLifecycleAction.markDegraded,
       reason: TripNativeEventLifecycleReason.providerUnavailable,
       canFeedEngine: false,
     ),
     'backgroundRestricted' => const _NativeTarget(
-      state: TripTrackingSessionLifecycleState.interrupted,
+      state: TripTrackingSessionLifecycleState.signalLost,
       action: TripNativeEventLifecycleAction.markInterrupted,
       reason: TripNativeEventLifecycleReason.backgroundRestricted,
       canFeedEngine: false,
       requiresUserReview: true,
     ),
     'permissionRequired' => const _NativeTarget(
-      state: TripTrackingSessionLifecycleState.permissionRequired,
+      state: TripTrackingSessionLifecycleState.awaitingPermission,
       action: TripNativeEventLifecycleAction.requestUserPermissionReview,
       reason: TripNativeEventLifecycleReason.permissionRequired,
       canFeedEngine: false,
@@ -471,8 +471,8 @@ String? _nativeLifecycleBoundaryRisk(
   if (canFeed &&
       (action != TripNativeEventLifecycleAction.ingestLocation ||
           !transition ||
-          from == TripTrackingSessionLifecycleState.paused ||
-          from == TripTrackingSessionLifecycleState.permissionRequired)) {
+          from == TripTrackingSessionLifecycleState.pausedByUser ||
+          from == TripTrackingSessionLifecycleState.awaitingPermission)) {
     return 'native_lifecycle_status_conflicts_with_authority';
   }
   if (!transition && to != from) {

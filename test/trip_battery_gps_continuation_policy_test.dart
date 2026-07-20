@@ -6,7 +6,7 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 void main() {
   test('low battery prompt pauses GPS but keeps trip and text log alive', () {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       localSessionAvailable: true,
       batteryDecision: battery(
         percent: 19,
@@ -49,7 +49,7 @@ void main() {
 
   test('saved cancel choice pauses GPS without stopping trip records', () {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.degraded,
+      lifecycle: TripTrackingSessionLifecycleState.signalDegraded,
       localSessionAvailable: true,
       batteryDecision: battery(
         percent: 19,
@@ -85,7 +85,7 @@ void main() {
 
   test('background GPS pauses when platform permission is missing', () {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       localSessionAvailable: true,
       appInBackground: true,
       foregroundServiceAvailable: true,
@@ -146,7 +146,7 @@ void main() {
 
   test('malformed battery decision prompts instead of continuing GPS', () {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       localSessionAvailable: true,
       batteryDecision: const TripGpsBatteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
@@ -193,7 +193,7 @@ void main() {
 
   test('missing local session blocks remote-only battery decisions', () {
     final decision = TripBatteryGpsContinuationPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       localSessionAvailable: false,
       batteryDecision: battery(percent: 19),
     );
@@ -216,7 +216,7 @@ void main() {
     'safe summary never exposes exact battery or grants remote authority',
     () {
       final safe = TripBatteryGpsContinuationPolicy.evaluate(
-        lifecycle: TripTrackingSessionLifecycleState.active,
+        lifecycle: TripTrackingSessionLifecycleState.activeTracking,
         localSessionAvailable: true,
         batteryDecision: battery(percent: 12, warningDismissed: true),
       ).toSafeDashboardMap();
@@ -248,7 +248,7 @@ void main() {
 
   test('battery continuation summary rejects forged trip authority', () {
     final safe = TripBatteryGpsContinuationPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       localSessionAvailable: true,
       batteryDecision: battery(percent: 12, warningDismissed: true),
     ).toSafeDashboardMap();

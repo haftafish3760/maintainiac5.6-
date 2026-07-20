@@ -8,7 +8,7 @@ void main() {
 
   test('active day timer ticks live from local active session clock', () {
     final decision = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       startedAtUtc: started,
       pausedAtUtc: null,
       completedAtUtc: null,
@@ -23,14 +23,14 @@ void main() {
 
   test('paused, awaiting review, and completed timers stop ticking', () {
     final paused = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.paused,
+      lifecycle: TripTrackingSessionLifecycleState.pausedByUser,
       startedAtUtc: started,
       pausedAtUtc: started.add(const Duration(minutes: 45)),
       completedAtUtc: null,
       nowUtc: now,
     );
     final review = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.awaitingReview,
+      lifecycle: TripTrackingSessionLifecycleState.completionPending,
       startedAtUtc: started,
       pausedAtUtc: null,
       completedAtUtc: started.add(const Duration(hours: 1)),
@@ -54,14 +54,14 @@ void main() {
 
   test('invalid clock data fails closed without fabricating elapsed time', () {
     final futureStart = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       startedAtUtc: now.add(const Duration(minutes: 1)),
       pausedAtUtc: null,
       completedAtUtc: null,
       nowUtc: now,
     );
     final pauseBeforeStart = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.paused,
+      lifecycle: TripTrackingSessionLifecycleState.pausedByUser,
       startedAtUtc: started,
       pausedAtUtc: started.subtract(const Duration(minutes: 1)),
       completedAtUtc: null,
@@ -78,7 +78,7 @@ void main() {
 
   test('interrupted running timer keeps local clock but asks review', () {
     final decision = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.interrupted,
+      lifecycle: TripTrackingSessionLifecycleState.signalLost,
       startedAtUtc: started,
       pausedAtUtc: null,
       completedAtUtc: null,
@@ -92,7 +92,7 @@ void main() {
 
   test('safe timer summary cannot mutate mileage, stops, maps, or data', () {
     final safe = TripActiveDayTimerPolicy.evaluate(
-      lifecycle: TripTrackingSessionLifecycleState.active,
+      lifecycle: TripTrackingSessionLifecycleState.activeTracking,
       startedAtUtc: started,
       pausedAtUtc: null,
       completedAtUtc: null,

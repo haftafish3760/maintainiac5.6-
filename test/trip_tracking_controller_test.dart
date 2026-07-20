@@ -952,7 +952,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.degraded,
+        TripTrackingSessionLifecycleState.signalDegraded,
       );
       expect(controller.healthState, TripTrackingHealthState.reduced);
       expect(controller.platformError, contains('has not produced'));
@@ -965,7 +965,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.activeTracking,
       );
       expect(controller.healthState, TripTrackingHealthState.healthy);
       expect(controller.platformError, isNull);
@@ -1000,7 +1000,10 @@ void main() {
       () => controller.platformStatus == 'tracking',
     );
 
-    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.active);
+    expect(
+      controller.lifecycleState,
+      TripTrackingSessionLifecycleState.activeTracking,
+    );
     expect(controller.healthState, TripTrackingHealthState.healthy);
     expect(controller.platformError, isNull);
   });
@@ -1257,7 +1260,7 @@ void main() {
       );
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.permissionRequired,
+        TripTrackingSessionLifecycleState.awaitingPermission,
       );
       expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
     },
@@ -1833,7 +1836,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.paused,
+        TripTrackingSessionLifecycleState.pausedByUser,
       );
     },
   );
@@ -1865,7 +1868,7 @@ void main() {
       );
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.paused,
+        TripTrackingSessionLifecycleState.pausedByUser,
       );
     },
   );
@@ -1899,7 +1902,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.paused,
+        TripTrackingSessionLifecycleState.pausedByUser,
       );
     },
   );
@@ -1993,7 +1996,10 @@ void main() {
 
     expect(native.stopCalls, 1);
     expect(controller.nativeTracking, isFalse);
-    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(
+      controller.lifecycleState,
+      TripTrackingSessionLifecycleState.pausedByUser,
+    );
   });
 
   test(
@@ -2025,7 +2031,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(controller.healthState, TripTrackingHealthState.interrupted);
       expect(
@@ -2141,7 +2147,7 @@ void main() {
     expect(controller.nativeTracking, isFalse);
     expect(
       controller.lifecycleState,
-      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.signalLost,
     );
     expect(controller.platformError, contains('could not be registered'));
     expect(native.stopCalls, 1);
@@ -2179,7 +2185,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(
         controller.platformError,
@@ -2256,7 +2262,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(controller.healthState, TripTrackingHealthState.interrupted);
     },
@@ -2291,7 +2297,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.paused,
+        TripTrackingSessionLifecycleState.pausedByUser,
       );
       expect(native.stopCalls, 1);
     },
@@ -2333,7 +2339,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.activeTracking,
       );
       expect(controller.nativeTracking, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isFalse);
@@ -2631,7 +2637,7 @@ void main() {
 
     expect(
       controller.lifecycleState,
-      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.signalLost,
     );
     expect(native.stopCalls, 1);
   });
@@ -2891,14 +2897,14 @@ void main() {
       await controller.ingest(sample(-79.999, 15, accuracy: 120));
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.degraded,
+        TripTrackingSessionLifecycleState.signalDegraded,
       );
       expect(controller.healthState, TripTrackingHealthState.poor);
 
       await controller.ingest(sample(-79.9998, 30));
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.activeTracking,
       );
       expect(controller.healthState, TripTrackingHealthState.healthy);
     },
@@ -3082,7 +3088,7 @@ void main() {
       expect(native.hasEventListener, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(controller.healthState, TripTrackingHealthState.interrupted);
       expect(controller.platformStatus, 'interrupted');
@@ -3162,7 +3168,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.paused,
+        TripTrackingSessionLifecycleState.pausedByUser,
       );
       expect(
         controller.healthState,
@@ -3260,7 +3266,7 @@ void main() {
       expect(await native.isTracking, isFalse);
       expect(
         store.activeSession?.lifecycleState,
-        TripTrackingSessionLifecycleState.paused,
+        TripTrackingSessionLifecycleState.pausedByUser,
       );
     },
   );
@@ -4220,7 +4226,7 @@ void main() {
     expect(controller.platformError, contains('Precise location permission'));
     expect(
       controller.lifecycleState,
-      TripTrackingSessionLifecycleState.permissionRequired,
+      TripTrackingSessionLifecycleState.awaitingPermission,
     );
   });
 

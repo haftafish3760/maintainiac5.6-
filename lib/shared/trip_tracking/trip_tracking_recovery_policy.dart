@@ -185,20 +185,25 @@ class TripTrackingRecoveryPolicy {
 
 bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
     switch (state) {
-      TripTrackingSessionLifecycleState.ready ||
-      TripTrackingSessionLifecycleState.starting ||
-      TripTrackingSessionLifecycleState.active ||
-      TripTrackingSessionLifecycleState.paused ||
-      TripTrackingSessionLifecycleState.degraded ||
-      TripTrackingSessionLifecycleState.interrupted ||
+      TripTrackingSessionLifecycleState.preparing ||
+      TripTrackingSessionLifecycleState.awaitingPermission ||
+      TripTrackingSessionLifecycleState.awaitingLocationServices ||
+      TripTrackingSessionLifecycleState.awaitingInitialFix ||
+      TripTrackingSessionLifecycleState.candidateMovement ||
+      TripTrackingSessionLifecycleState.activeTracking ||
+      TripTrackingSessionLifecycleState.temporarilyStopped ||
+      TripTrackingSessionLifecycleState.pausedByUser ||
+      TripTrackingSessionLifecycleState.pausedBySystem ||
+      TripTrackingSessionLifecycleState.signalDegraded ||
+      TripTrackingSessionLifecycleState.signalLost ||
       TripTrackingSessionLifecycleState.recovering ||
       TripTrackingSessionLifecycleState.stopping ||
+      TripTrackingSessionLifecycleState.completionPending ||
       TripTrackingSessionLifecycleState.failedRecoverable => true,
-      TripTrackingSessionLifecycleState.disabled ||
-      TripTrackingSessionLifecycleState.permissionRequired ||
-      TripTrackingSessionLifecycleState.awaitingReview ||
+      TripTrackingSessionLifecycleState.idle ||
       TripTrackingSessionLifecycleState.completed ||
-      TripTrackingSessionLifecycleState.failedTerminal => false,
+      TripTrackingSessionLifecycleState.cancelled ||
+      TripTrackingSessionLifecycleState.failedUnrecoverable => false,
     };
 
 bool _sameSafeVehicleId(String left, String right) {

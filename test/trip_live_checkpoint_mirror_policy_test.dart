@@ -384,7 +384,7 @@ TripLiveCheckpointDurabilityDecision durabilityDecision({
     reservationWriteSucceeded: true,
   );
   return TripLiveCheckpointDurabilityPolicy.evaluate(
-    lifecycle: TripTrackingSessionLifecycleState.active,
+    lifecycle: TripTrackingSessionLifecycleState.activeTracking,
     localSessionAvailable: true,
     checkpointShapeValid: true,
     localWriteSucceeded: localWriteSucceeded,

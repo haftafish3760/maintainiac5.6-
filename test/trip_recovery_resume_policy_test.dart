@@ -12,7 +12,7 @@ void main() {
         validation: TripTrackingSessionRecoveryValidation.activeSession(
           session(),
         ),
-        currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
         currentVehicleId: 'vehicle_1',
         expectedVehicleId: 'vehicle_1',
         currentConfirmedOdometer: 999,
@@ -32,7 +32,7 @@ void main() {
   test('recoverable review opens review instead of native tracking', () {
     final decision = TripRecoveryResumePolicy.evaluate(
       validation: TripTrackingSessionRecoveryValidation.review(review()),
-      currentLifecycle: TripTrackingSessionLifecycleState.awaitingReview,
+      currentLifecycle: TripTrackingSessionLifecycleState.completionPending,
       currentVehicleId: 'vehicle_1',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: 999,
@@ -51,7 +51,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(id: 'bad token=sk.secret'),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_1',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: 999,
@@ -61,7 +61,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_2',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: 999,
@@ -71,7 +71,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_1',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: 1001,
@@ -109,7 +109,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_1\nvehicle_2',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: 999,
@@ -119,7 +119,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_1',
       expectedVehicleId: ' vehicle_1 ',
       currentConfirmedOdometer: 999,
@@ -143,7 +143,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_1',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: -1,
@@ -153,7 +153,7 @@ void main() {
       validation: TripTrackingSessionRecoveryValidation.activeSession(
         session(),
       ),
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       currentVehicleId: 'vehicle_1',
       expectedVehicleId: 'vehicle_1',
       currentConfirmedOdometer: 999,
@@ -182,7 +182,7 @@ void main() {
         validation: TripTrackingSessionRecoveryValidation.activeSession(
           session(),
         ),
-        currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
         currentVehicleId: 'vehicle_1',
         expectedVehicleId: 'vehicle_1',
         currentConfirmedOdometer: 999,
@@ -217,7 +217,7 @@ void main() {
         validation: TripTrackingSessionRecoveryValidation.activeSession(
           session(),
         ),
-        currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
         currentVehicleId: 'vehicle_1',
         expectedVehicleId: 'vehicle_1',
         currentConfirmedOdometer: 999,
@@ -235,7 +235,7 @@ void main() {
         validation: TripTrackingSessionRecoveryValidation.activeSession(
           session(),
         ),
-        currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
         currentVehicleId: 'vehicle_1',
         expectedVehicleId: 'vehicle_1',
         currentConfirmedOdometer: 999,

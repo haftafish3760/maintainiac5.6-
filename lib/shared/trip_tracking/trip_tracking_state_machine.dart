@@ -33,7 +33,7 @@ class TripTrackingSessionStateMachine {
           ? 'gps_session_transition_allowed'
           : _rejectedReason(from, to),
       requiresUserReview:
-          !allowed || to == TripTrackingSessionLifecycleState.awaitingReview,
+          !allowed || to == TripTrackingSessionLifecycleState.completionPending,
     );
   }
 
@@ -42,74 +42,155 @@ class TripTrackingSessionStateMachine {
         TripTrackingSessionLifecycleState,
         Set<TripTrackingSessionLifecycleState>
       >{
-        TripTrackingSessionLifecycleState.disabled: {
-          TripTrackingSessionLifecycleState.permissionRequired,
-          TripTrackingSessionLifecycleState.ready,
+        TripTrackingSessionLifecycleState.idle: {
+          TripTrackingSessionLifecycleState.preparing,
+          TripTrackingSessionLifecycleState.candidateMovement,
         },
-        TripTrackingSessionLifecycleState.permissionRequired: {
-          TripTrackingSessionLifecycleState.ready,
-          TripTrackingSessionLifecycleState.failedTerminal,
-        },
-        TripTrackingSessionLifecycleState.ready: {
-          TripTrackingSessionLifecycleState.starting,
-          TripTrackingSessionLifecycleState.disabled,
-        },
-        TripTrackingSessionLifecycleState.starting: {
-          TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.preparing: {
+          TripTrackingSessionLifecycleState.awaitingPermission,
+          TripTrackingSessionLifecycleState.awaitingLocationServices,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.pausedByUser,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.cancelled,
           TripTrackingSessionLifecycleState.failedRecoverable,
-          TripTrackingSessionLifecycleState.permissionRequired,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
         },
-        TripTrackingSessionLifecycleState.active: {
-          // Native collection may have stopped while a local checkpoint was
-          // temporarily unavailable. A later retry can safely re-enter the
-          // start handshake for this still-recoverable trip.
-          TripTrackingSessionLifecycleState.starting,
-          TripTrackingSessionLifecycleState.paused,
-          TripTrackingSessionLifecycleState.degraded,
-          TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.awaitingPermission: {
+          TripTrackingSessionLifecycleState.preparing,
+          TripTrackingSessionLifecycleState.awaitingLocationServices,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.cancelled,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
+        },
+        TripTrackingSessionLifecycleState.awaitingLocationServices: {
+          TripTrackingSessionLifecycleState.awaitingPermission,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.cancelled,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
+        },
+        TripTrackingSessionLifecycleState.awaitingInitialFix: {
+          TripTrackingSessionLifecycleState.awaitingPermission,
+          TripTrackingSessionLifecycleState.awaitingLocationServices,
+          TripTrackingSessionLifecycleState.candidateMovement,
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.signalDegraded,
+          TripTrackingSessionLifecycleState.signalLost,
+          TripTrackingSessionLifecycleState.pausedByUser,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.cancelled,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
+        },
+        TripTrackingSessionLifecycleState.candidateMovement: {
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.temporarilyStopped,
+          TripTrackingSessionLifecycleState.pausedByUser,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.signalDegraded,
+          TripTrackingSessionLifecycleState.signalLost,
+          TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.cancelled,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+        },
+        TripTrackingSessionLifecycleState.activeTracking: {
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.temporarilyStopped,
+          TripTrackingSessionLifecycleState.pausedByUser,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.signalDegraded,
+          TripTrackingSessionLifecycleState.signalLost,
+          TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
+        },
+        TripTrackingSessionLifecycleState.temporarilyStopped: {
+          TripTrackingSessionLifecycleState.candidateMovement,
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.pausedByUser,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.signalDegraded,
+          TripTrackingSessionLifecycleState.signalLost,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
         },
-        TripTrackingSessionLifecycleState.paused: {
-          TripTrackingSessionLifecycleState.starting,
+        TripTrackingSessionLifecycleState.pausedByUser: {
+          TripTrackingSessionLifecycleState.preparing,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.cancelled,
         },
-        TripTrackingSessionLifecycleState.degraded: {
-          TripTrackingSessionLifecycleState.starting,
-          TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.pausedBySystem: {
+          TripTrackingSessionLifecycleState.preparing,
+          TripTrackingSessionLifecycleState.awaitingPermission,
+          TripTrackingSessionLifecycleState.awaitingLocationServices,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
           TripTrackingSessionLifecycleState.recovering,
-          TripTrackingSessionLifecycleState.interrupted,
-          TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.cancelled,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
         },
-        TripTrackingSessionLifecycleState.interrupted: {
+        TripTrackingSessionLifecycleState.signalDegraded: {
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.temporarilyStopped,
+          TripTrackingSessionLifecycleState.signalLost,
           TripTrackingSessionLifecycleState.recovering,
-          TripTrackingSessionLifecycleState.starting,
-          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.pausedByUser,
+          TripTrackingSessionLifecycleState.pausedBySystem,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
+        },
+        TripTrackingSessionLifecycleState.signalLost: {
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.recovering,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
         },
         TripTrackingSessionLifecycleState.recovering: {
-          TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.awaitingPermission,
+          TripTrackingSessionLifecycleState.awaitingLocationServices,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.signalDegraded,
+          TripTrackingSessionLifecycleState.signalLost,
+          TripTrackingSessionLifecycleState.pausedBySystem,
+          TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.completionPending,
           TripTrackingSessionLifecycleState.failedRecoverable,
-          TripTrackingSessionLifecycleState.awaitingReview,
-        },
-        TripTrackingSessionLifecycleState.awaitingReview: {
-          TripTrackingSessionLifecycleState.completed,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
         },
         TripTrackingSessionLifecycleState.stopping: {
+          TripTrackingSessionLifecycleState.completionPending,
+          TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
+        },
+        TripTrackingSessionLifecycleState.completionPending: {
           TripTrackingSessionLifecycleState.completed,
+          TripTrackingSessionLifecycleState.cancelled,
           TripTrackingSessionLifecycleState.failedRecoverable,
         },
         TripTrackingSessionLifecycleState.completed: {},
+        TripTrackingSessionLifecycleState.cancelled: {},
         TripTrackingSessionLifecycleState.failedRecoverable: {
+          TripTrackingSessionLifecycleState.preparing,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
           TripTrackingSessionLifecycleState.recovering,
-          TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.stopping,
-          TripTrackingSessionLifecycleState.awaitingReview,
+          TripTrackingSessionLifecycleState.completionPending,
+          TripTrackingSessionLifecycleState.cancelled,
+          TripTrackingSessionLifecycleState.failedUnrecoverable,
         },
-        TripTrackingSessionLifecycleState.failedTerminal: {
-          TripTrackingSessionLifecycleState.disabled,
-        },
+        TripTrackingSessionLifecycleState.failedUnrecoverable: {},
       };
 }
 
@@ -176,12 +257,12 @@ String _rejectedReason(
   if (from == TripTrackingSessionLifecycleState.completed) {
     return 'completed_session_cannot_resume';
   }
-  if (from == TripTrackingSessionLifecycleState.awaitingReview &&
+  if (from == TripTrackingSessionLifecycleState.completionPending &&
       to != TripTrackingSessionLifecycleState.completed) {
     return 'review_required_before_transition';
   }
-  if (from == TripTrackingSessionLifecycleState.failedTerminal &&
-      to != TripTrackingSessionLifecycleState.disabled) {
+  if (from == TripTrackingSessionLifecycleState.failedUnrecoverable &&
+      to != TripTrackingSessionLifecycleState.idle) {
     return 'terminal_failure_requires_fresh_opt_in';
   }
   return 'illegal_gps_session_transition';
@@ -222,7 +303,7 @@ bool _safeRequiresTransitionReview({
     reasonCode: reasonCode,
   )) {
     return requiresUserReview ||
-        to == TripTrackingSessionLifecycleState.awaitingReview;
+        to == TripTrackingSessionLifecycleState.completionPending;
   }
   return true;
 }

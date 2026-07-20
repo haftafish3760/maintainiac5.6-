@@ -89,7 +89,7 @@ class TripLifecycleSupervisorPolicy {
       return _decision(
         status: TripLifecycleSupervisorStatus.blocked,
         reasonCode: 'supervisor_invalid_local_boundary',
-        nextLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        nextLifecycle: TripTrackingSessionLifecycleState.signalLost,
         shouldKeepForegroundServiceAlive: false,
         shouldRequestUserAction: true,
         canReplayPendingSample: false,
@@ -101,7 +101,7 @@ class TripLifecycleSupervisorPolicy {
       return _decision(
         status: TripLifecycleSupervisorStatus.pauseForReview,
         reasonCode: 'dashboard_blocked_requires_review',
-        nextLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        nextLifecycle: TripTrackingSessionLifecycleState.signalLost,
         shouldKeepForegroundServiceAlive: nativeTrackingAvailable,
         shouldRequestUserAction: true,
         canReplayPendingSample: false,
@@ -114,7 +114,7 @@ class TripLifecycleSupervisorPolicy {
       return _decision(
         status: TripLifecycleSupervisorStatus.promptUser,
         reasonCode: 'native_error_requires_user_action',
-        nextLifecycle: TripTrackingSessionLifecycleState.permissionRequired,
+        nextLifecycle: TripTrackingSessionLifecycleState.awaitingPermission,
         shouldKeepForegroundServiceAlive: false,
         shouldRequestUserAction: true,
         canReplayPendingSample: false,
@@ -310,11 +310,11 @@ TripLifecycleSupervisorDecision _decision({
 
 bool _safeLifecycleCanBeSupervised(TripTrackingSessionLifecycleState state) {
   return switch (state) {
-    TripTrackingSessionLifecycleState.starting ||
-    TripTrackingSessionLifecycleState.active ||
-    TripTrackingSessionLifecycleState.paused ||
-    TripTrackingSessionLifecycleState.degraded ||
-    TripTrackingSessionLifecycleState.interrupted ||
+    TripTrackingSessionLifecycleState.awaitingInitialFix ||
+    TripTrackingSessionLifecycleState.activeTracking ||
+    TripTrackingSessionLifecycleState.pausedByUser ||
+    TripTrackingSessionLifecycleState.signalDegraded ||
+    TripTrackingSessionLifecycleState.signalLost ||
     TripTrackingSessionLifecycleState.recovering ||
     TripTrackingSessionLifecycleState.stopping ||
     TripTrackingSessionLifecycleState.failedRecoverable => true,
@@ -327,14 +327,14 @@ TripTrackingSessionLifecycleState _continueLifecycle(
   bool nativeTrackingAvailable,
 ) {
   if (!nativeTrackingAvailable) {
-    return TripTrackingSessionLifecycleState.degraded;
+    return TripTrackingSessionLifecycleState.signalDegraded;
   }
   return switch (current) {
-    TripTrackingSessionLifecycleState.paused =>
-      TripTrackingSessionLifecycleState.paused,
+    TripTrackingSessionLifecycleState.pausedByUser =>
+      TripTrackingSessionLifecycleState.pausedByUser,
     TripTrackingSessionLifecycleState.stopping =>
       TripTrackingSessionLifecycleState.stopping,
-    _ => TripTrackingSessionLifecycleState.active,
+    _ => TripTrackingSessionLifecycleState.activeTracking,
   };
 }
 

@@ -91,13 +91,14 @@ class TripActiveDayTimerPolicy {
     }
 
     return switch (lifecycle) {
-      TripTrackingSessionLifecycleState.paused => _decision(
+      TripTrackingSessionLifecycleState.pausedByUser ||
+      TripTrackingSessionLifecycleState.pausedBySystem => _decision(
         TripActiveDayTimerStatus.paused,
         previous + ((paused ?? now).difference(started)),
         'timer_paused_from_local_checkpoint',
         shouldTickLive: false,
       ),
-      TripTrackingSessionLifecycleState.awaitingReview => _decision(
+      TripTrackingSessionLifecycleState.completionPending => _decision(
         TripActiveDayTimerStatus.awaitingReview,
         previous + ((completed ?? now).difference(started)),
         'timer_awaiting_odometer_review',
@@ -110,10 +111,22 @@ class TripActiveDayTimerPolicy {
         'timer_completed',
         shouldTickLive: false,
       ),
-      TripTrackingSessionLifecycleState.active ||
-      TripTrackingSessionLifecycleState.starting ||
-      TripTrackingSessionLifecycleState.degraded ||
-      TripTrackingSessionLifecycleState.interrupted ||
+      TripTrackingSessionLifecycleState.cancelled => _decision(
+        TripActiveDayTimerStatus.completed,
+        previous + ((completed ?? now).difference(started)),
+        'timer_cancelled',
+        shouldTickLive: false,
+        requiresUserReview: true,
+      ),
+      TripTrackingSessionLifecycleState.preparing ||
+      TripTrackingSessionLifecycleState.awaitingPermission ||
+      TripTrackingSessionLifecycleState.awaitingLocationServices ||
+      TripTrackingSessionLifecycleState.activeTracking ||
+      TripTrackingSessionLifecycleState.awaitingInitialFix ||
+      TripTrackingSessionLifecycleState.candidateMovement ||
+      TripTrackingSessionLifecycleState.temporarilyStopped ||
+      TripTrackingSessionLifecycleState.signalDegraded ||
+      TripTrackingSessionLifecycleState.signalLost ||
       TripTrackingSessionLifecycleState.recovering ||
       TripTrackingSessionLifecycleState.stopping ||
       TripTrackingSessionLifecycleState.failedRecoverable => _decision(
@@ -122,19 +135,17 @@ class TripActiveDayTimerPolicy {
         'timer_running_from_local_checkpoint',
         shouldTickLive: true,
         requiresUserReview:
-            lifecycle == TripTrackingSessionLifecycleState.interrupted ||
+            lifecycle == TripTrackingSessionLifecycleState.signalLost ||
             lifecycle == TripTrackingSessionLifecycleState.stopping,
       ),
-      TripTrackingSessionLifecycleState.disabled ||
-      TripTrackingSessionLifecycleState.permissionRequired ||
-      TripTrackingSessionLifecycleState.ready ||
-      TripTrackingSessionLifecycleState.failedTerminal => _decision(
+      TripTrackingSessionLifecycleState.idle ||
+      TripTrackingSessionLifecycleState.failedUnrecoverable => _decision(
         TripActiveDayTimerStatus.notStarted,
         previous,
         'timer_not_tracking',
         shouldTickLive: false,
         requiresUserReview:
-            lifecycle == TripTrackingSessionLifecycleState.permissionRequired,
+            lifecycle == TripTrackingSessionLifecycleState.failedUnrecoverable,
       ),
     };
   }

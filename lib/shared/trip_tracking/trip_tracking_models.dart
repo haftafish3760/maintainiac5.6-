@@ -21,20 +21,25 @@ enum TripTrackingAdvisoryType { probableStop, resumedMovement }
 enum TripTrackingConfidence { unknown, low, medium, high }
 
 enum TripTrackingSessionLifecycleState {
-  disabled,
-  permissionRequired,
-  ready,
-  starting,
-  active,
-  paused,
-  degraded,
-  interrupted,
+  idle,
+  preparing,
+  awaitingPermission,
+  awaitingLocationServices,
+  awaitingInitialFix,
+  candidateMovement,
+  activeTracking,
+  temporarilyStopped,
+  pausedByUser,
+  pausedBySystem,
+  signalDegraded,
+  signalLost,
   recovering,
-  awaitingReview,
   stopping,
+  completionPending,
   completed,
+  cancelled,
   failedRecoverable,
-  failedTerminal,
+  failedUnrecoverable,
 }
 
 enum TripTrackingHealthState {

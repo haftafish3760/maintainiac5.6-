@@ -8,28 +8,28 @@ void main() {
     () {
       expect(
         TripTrackingSessionStateMachine.canTransition(
-          TripTrackingSessionLifecycleState.active,
-          TripTrackingSessionLifecycleState.interrupted,
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.signalLost,
         ),
         isTrue,
       );
       expect(
         TripTrackingSessionStateMachine.canTransition(
-          TripTrackingSessionLifecycleState.degraded,
-          TripTrackingSessionLifecycleState.interrupted,
+          TripTrackingSessionLifecycleState.signalDegraded,
+          TripTrackingSessionLifecycleState.signalLost,
         ),
         isTrue,
       );
       expect(
         TripTrackingSessionStateMachine.canTransition(
-          TripTrackingSessionLifecycleState.active,
-          TripTrackingSessionLifecycleState.starting,
+          TripTrackingSessionLifecycleState.activeTracking,
+          TripTrackingSessionLifecycleState.awaitingInitialFix,
         ),
         isTrue,
       );
       expect(
         TripTrackingSessionStateMachine.canTransition(
-          TripTrackingSessionLifecycleState.interrupted,
+          TripTrackingSessionLifecycleState.signalLost,
           TripTrackingSessionLifecycleState.recovering,
         ),
         isTrue,
@@ -37,14 +37,14 @@ void main() {
       expect(
         TripTrackingSessionStateMachine.canTransition(
           TripTrackingSessionLifecycleState.completed,
-          TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.activeTracking,
         ),
         isFalse,
       );
       expect(
         TripTrackingSessionStateMachine.canTransition(
           TripTrackingSessionLifecycleState.completed,
-          TripTrackingSessionLifecycleState.disabled,
+          TripTrackingSessionLifecycleState.idle,
         ),
         isFalse,
       );
@@ -54,8 +54,8 @@ void main() {
   test('illegal GPS session lifecycle transitions fail closed', () {
     expect(
       () => TripTrackingSessionStateMachine.requireTransition(
-        TripTrackingSessionLifecycleState.awaitingReview,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.completionPending,
+        TripTrackingSessionLifecycleState.activeTracking,
       ),
       throwsStateError,
     );
@@ -66,11 +66,11 @@ void main() {
     () {
       final allowed = TripTrackingSessionStateMachine.evaluateTransition(
         TripTrackingSessionLifecycleState.recovering,
-        TripTrackingSessionLifecycleState.awaitingReview,
+        TripTrackingSessionLifecycleState.completionPending,
       ).toSafeSummary();
       final rejected = TripTrackingSessionStateMachine.evaluateTransition(
         TripTrackingSessionLifecycleState.completed,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.activeTracking,
       ).toSafeSummary();
 
       expect(allowed['allowed'], isTrue);
@@ -98,7 +98,7 @@ void main() {
 
   test('malformed lifecycle reason text is sanitized in summaries', () {
     const decision = TripTrackingLifecycleTransitionDecision(
-      from: TripTrackingSessionLifecycleState.active,
+      from: TripTrackingSessionLifecycleState.activeTracking,
       to: TripTrackingSessionLifecycleState.completed,
       allowed: false,
       reasonCode: 'token=pk.secret lat=35.1',
@@ -116,7 +116,7 @@ void main() {
   test('direct lifecycle summaries cannot forge illegal transitions', () {
     const decision = TripTrackingLifecycleTransitionDecision(
       from: TripTrackingSessionLifecycleState.completed,
-      to: TripTrackingSessionLifecycleState.active,
+      to: TripTrackingSessionLifecycleState.activeTracking,
       allowed: true,
       reasonCode: 'gps_session_transition_allowed',
       requiresUserReview: false,
@@ -132,16 +132,16 @@ void main() {
 
   test('background interruption transitions preserve local checkpoint', () {
     final interrupted = TripTrackingSessionStateMachine.evaluateTransition(
-      TripTrackingSessionLifecycleState.active,
-      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.activeTracking,
+      TripTrackingSessionLifecycleState.signalLost,
     ).toSafeSummary();
     final recovering = TripTrackingSessionStateMachine.evaluateTransition(
-      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.signalLost,
       TripTrackingSessionLifecycleState.recovering,
     ).toSafeSummary();
     final permissionLoss = TripTrackingSessionStateMachine.evaluateTransition(
-      TripTrackingSessionLifecycleState.starting,
-      TripTrackingSessionLifecycleState.permissionRequired,
+      TripTrackingSessionLifecycleState.awaitingInitialFix,
+      TripTrackingSessionLifecycleState.awaitingPermission,
     ).toSafeSummary();
 
     for (final summary in [interrupted, recovering, permissionLoss]) {

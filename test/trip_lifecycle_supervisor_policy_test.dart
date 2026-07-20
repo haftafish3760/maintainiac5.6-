@@ -61,7 +61,7 @@ void main() {
 
   test('normal active session continues tracking and may upload backup', () {
     final decision = TripLifecycleSupervisorPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
       dashboardRollup: normalRollup,
       errorRecoveryPlan: recoveryPlan(null),
       recoveryDecision: noRecovery,
@@ -71,7 +71,10 @@ void main() {
     );
 
     expect(decision.status, TripLifecycleSupervisorStatus.continueTracking);
-    expect(decision.nextLifecycle, TripTrackingSessionLifecycleState.active);
+    expect(
+      decision.nextLifecycle,
+      TripTrackingSessionLifecycleState.activeTracking,
+    );
     expect(decision.shouldKeepForegroundServiceAlive, isTrue);
     expect(decision.canUploadBackupMirror, isTrue);
   });
@@ -80,7 +83,7 @@ void main() {
     'dashboard blocked pauses for user review without deleting checkpoint',
     () {
       final decision = TripLifecycleSupervisorPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         dashboardRollup: blockedRollup,
         errorRecoveryPlan: recoveryPlan(null),
         recoveryDecision: noRecovery,
@@ -101,7 +104,7 @@ void main() {
 
   test('permission native error prompts user and blocks backup upload', () {
     final decision = TripLifecycleSupervisorPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
       dashboardRollup: normalRollup,
       errorRecoveryPlan: recoveryPlan(
         'trip_tracking_location_denied',
@@ -116,14 +119,14 @@ void main() {
     expect(decision.status, TripLifecycleSupervisorStatus.promptUser);
     expect(
       decision.nextLifecycle,
-      TripTrackingSessionLifecycleState.permissionRequired,
+      TripTrackingSessionLifecycleState.awaitingPermission,
     );
     expect(decision.canUploadBackupMirror, isFalse);
   });
 
   test('recoverable session replays pending sample in background', () {
     final decision = TripLifecycleSupervisorPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.interrupted,
+      currentLifecycle: TripTrackingSessionLifecycleState.signalLost,
       dashboardRollup: normalRollup,
       errorRecoveryPlan: recoveryPlan(null),
       recoveryDecision: recoveryReady,
@@ -148,7 +151,7 @@ void main() {
 
   test('malformed native payload continues offline from local checkpoint', () {
     final decision = TripLifecycleSupervisorPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
       dashboardRollup: normalRollup,
       errorRecoveryPlan: recoveryPlan('invalidLocationPayload'),
       recoveryDecision: noRecovery,
@@ -168,7 +171,7 @@ void main() {
 
   test('missing local checkpoint fails closed at supervisor boundary', () {
     final decision = TripLifecycleSupervisorPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
       dashboardRollup: normalRollup,
       errorRecoveryPlan: recoveryPlan(null),
       recoveryDecision: noRecovery,
@@ -186,7 +189,7 @@ void main() {
     'safe summary denies remote, mapbox, raw location, and token authority',
     () {
       final safe = TripLifecycleSupervisorPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         dashboardRollup: normalRollup,
         errorRecoveryPlan: recoveryPlan(null),
         recoveryDecision: noRecovery,
@@ -215,7 +218,7 @@ void main() {
   test('safe supervisor summary validates recovery truth boundary', () {
     final validation = TripLifecycleSupervisorSummaryValidation.fromSummary(
       TripLifecycleSupervisorPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         dashboardRollup: normalRollup,
         errorRecoveryPlan: recoveryPlan(null),
         recoveryDecision: noRecovery,
@@ -231,7 +234,7 @@ void main() {
 
   test('supervisor validation rejects forged replay and upload states', () {
     final base = TripLifecycleSupervisorPolicy.evaluate(
-      currentLifecycle: TripTrackingSessionLifecycleState.active,
+      currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
       dashboardRollup: normalRollup,
       errorRecoveryPlan: recoveryPlan(null),
       recoveryDecision: noRecovery,
@@ -250,7 +253,7 @@ void main() {
     );
     final upload = TripLifecycleSupervisorSummaryValidation.fromSummary(
       TripLifecycleSupervisorPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         dashboardRollup: normalRollup,
         errorRecoveryPlan: recoveryPlan(null),
         recoveryDecision: noRecovery,
@@ -264,7 +267,7 @@ void main() {
     );
     final blocked = TripLifecycleSupervisorSummaryValidation.fromSummary(
       TripLifecycleSupervisorPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         dashboardRollup: normalRollup,
         errorRecoveryPlan: recoveryPlan(null),
         recoveryDecision: noRecovery,
@@ -297,7 +300,7 @@ void main() {
     () {
       final validation = TripLifecycleSupervisorSummaryValidation.fromSummary(
         TripLifecycleSupervisorPolicy.evaluate(
-          currentLifecycle: TripTrackingSessionLifecycleState.active,
+          currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
           dashboardRollup: normalRollup,
           errorRecoveryPlan: recoveryPlan(null),
           recoveryDecision: noRecovery,
@@ -364,7 +367,7 @@ void main() {
     'permission lifecycle never uploads backup or replays pending sample',
     () {
       final decision = TripLifecycleSupervisorPolicy.evaluate(
-        currentLifecycle: TripTrackingSessionLifecycleState.active,
+        currentLifecycle: TripTrackingSessionLifecycleState.activeTracking,
         dashboardRollup: normalRollup,
         errorRecoveryPlan: recoveryPlan(
           'trip_tracking_location_denied',

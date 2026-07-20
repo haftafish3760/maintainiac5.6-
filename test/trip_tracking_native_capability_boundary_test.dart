@@ -307,7 +307,7 @@ void main() {
       );
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.degraded,
+        TripTrackingSessionLifecycleState.signalDegraded,
       );
       expect(controller.healthState, TripTrackingHealthState.reduced);
       expect(controller.platformStatus, 'native_heartbeat_stale');
@@ -362,7 +362,7 @@ void main() {
       );
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(controller.healthState, TripTrackingHealthState.interrupted);
       expect(controller.nativeTracking, isFalse);
@@ -413,7 +413,7 @@ void main() {
       expect(decision?.status, TripTrackingHeartbeatWatchdogStatus.healthy);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.activeTracking,
       );
       expect(controller.healthState, TripTrackingHealthState.healthy);
       expect(controller.nativeTracking, isTrue);
@@ -467,7 +467,7 @@ void main() {
       expect(decision?.status, TripTrackingHeartbeatWatchdogStatus.healthy);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.degraded,
+        TripTrackingSessionLifecycleState.signalDegraded,
       );
       expect(controller.platformStatus, 'gps_signal_stale');
     },
@@ -520,7 +520,7 @@ void main() {
       );
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(controller.nativeTracking, isFalse);
     },
@@ -570,7 +570,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.signalLost,
       );
       expect(controller.healthState, TripTrackingHealthState.interrupted);
       expect(controller.nativeTracking, isFalse);

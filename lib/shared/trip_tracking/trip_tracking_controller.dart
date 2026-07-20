@@ -8,10 +8,10 @@ import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_calibration_apply_guard.dart';
+import 'trip_tracking_backup_port.dart';
 import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_heartbeat_watchdog_policy.dart';
-import 'trip_tracking_firebase_bridge.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_native_error_policy.dart';
 import 'trip_tracking_native_sampling_policy.dart';
@@ -35,7 +35,7 @@ class TripTrackingController extends ChangeNotifier {
     required GlobalOdometerController odometer,
     TripTrackingNativeGateway? platform,
     TripTrackingPolicy policy = const TripTrackingPolicy(),
-    TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
+    TripTrackingBackupPort cloudMirror = const NoopTripTrackingBackupPort(),
     TripTrackingDurableRecordBridge? durableRecordBridge,
     double gpsAssistanceCalibrationMultiplier = 1,
     DateTime Function()? clockNow,
@@ -55,7 +55,7 @@ class TripTrackingController extends ChangeNotifier {
   final GlobalOdometerController _odometer;
   final TripTrackingNativeGateway? _platform;
   final TripTrackingPolicy _policy;
-  final TripTrackingCloudMirror _cloudMirror;
+  final TripTrackingBackupPort _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
 
   /// One wall-clock authority for native timestamps, recovery, and review
@@ -908,20 +908,25 @@ class TripTrackingController extends ChangeNotifier {
 
   bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
       switch (state) {
-        TripTrackingSessionLifecycleState.ready ||
-        TripTrackingSessionLifecycleState.starting ||
-        TripTrackingSessionLifecycleState.active ||
-        TripTrackingSessionLifecycleState.paused ||
-        TripTrackingSessionLifecycleState.degraded ||
-        TripTrackingSessionLifecycleState.interrupted ||
+        TripTrackingSessionLifecycleState.preparing ||
+        TripTrackingSessionLifecycleState.awaitingPermission ||
+        TripTrackingSessionLifecycleState.awaitingLocationServices ||
+        TripTrackingSessionLifecycleState.awaitingInitialFix ||
+        TripTrackingSessionLifecycleState.candidateMovement ||
+        TripTrackingSessionLifecycleState.activeTracking ||
+        TripTrackingSessionLifecycleState.temporarilyStopped ||
+        TripTrackingSessionLifecycleState.pausedByUser ||
+        TripTrackingSessionLifecycleState.pausedBySystem ||
+        TripTrackingSessionLifecycleState.signalDegraded ||
+        TripTrackingSessionLifecycleState.signalLost ||
         TripTrackingSessionLifecycleState.recovering ||
         TripTrackingSessionLifecycleState.stopping ||
+        TripTrackingSessionLifecycleState.completionPending ||
         TripTrackingSessionLifecycleState.failedRecoverable => true,
-        TripTrackingSessionLifecycleState.disabled ||
-        TripTrackingSessionLifecycleState.permissionRequired ||
-        TripTrackingSessionLifecycleState.awaitingReview ||
+        TripTrackingSessionLifecycleState.idle ||
         TripTrackingSessionLifecycleState.completed ||
-        TripTrackingSessionLifecycleState.failedTerminal => false,
+        TripTrackingSessionLifecycleState.cancelled ||
+        TripTrackingSessionLifecycleState.failedUnrecoverable => false,
       };
 
   bool _isAuthoritativeReview(
@@ -1166,7 +1171,7 @@ class TripTrackingController extends ChangeNotifier {
       return false;
     }
     if (!await _tryTransitionSession(
-      TripTrackingSessionLifecycleState.starting,
+      TripTrackingSessionLifecycleState.awaitingInitialFix,
       health: TripTrackingHealthState.healthy,
     )) {
       return false;
@@ -1264,7 +1269,7 @@ class TripTrackingController extends ChangeNotifier {
           ? 'Background location permission is required for this tracking mode.'
           : 'Precise location permission is required to start trip tracking.';
       await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.permissionRequired,
+        TripTrackingSessionLifecycleState.awaitingPermission,
         health: TripTrackingHealthState.permissionBlocked,
       );
       notifyListeners();
@@ -1411,7 +1416,7 @@ class TripTrackingController extends ChangeNotifier {
     _platformError = null;
     _platformStatus = 'tracking';
     if (!await _tryTransitionSession(
-      TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.activeTracking,
       health: TripTrackingHealthState.healthy,
     )) {
       try {
@@ -1482,11 +1487,11 @@ class TripTrackingController extends ChangeNotifier {
       _platformError = message;
       _platformStatus = 'error';
       if (_session?.lifecycleState ==
-              TripTrackingSessionLifecycleState.active ||
+              TripTrackingSessionLifecycleState.activeTracking ||
           _session?.lifecycleState ==
-              TripTrackingSessionLifecycleState.degraded) {
+              TripTrackingSessionLifecycleState.signalDegraded) {
         await _tryTransitionSession(
-          TripTrackingSessionLifecycleState.interrupted,
+          TripTrackingSessionLifecycleState.signalLost,
           health: TripTrackingHealthState.interrupted,
         );
       }
@@ -1600,20 +1605,20 @@ class TripTrackingController extends ChangeNotifier {
               _platformSubscription = null;
               if (!expectedStop &&
                   (_session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.active ||
+                          TripTrackingSessionLifecycleState.activeTracking ||
                       _session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.degraded)) {
+                          TripTrackingSessionLifecycleState.signalDegraded)) {
                 await _tryTransitionSession(
-                  TripTrackingSessionLifecycleState.interrupted,
+                  TripTrackingSessionLifecycleState.signalLost,
                   health: TripTrackingHealthState.interrupted,
                 );
               } else if (expectedStop &&
                   (_session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.active ||
+                          TripTrackingSessionLifecycleState.activeTracking ||
                       _session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.degraded)) {
+                          TripTrackingSessionLifecycleState.signalDegraded)) {
                 await _tryTransitionSession(
-                  TripTrackingSessionLifecycleState.paused,
+                  TripTrackingSessionLifecycleState.pausedByUser,
                 );
               }
             } else if (status == 'tracking' && _nativeTracking) {
@@ -1781,9 +1786,10 @@ class TripTrackingController extends ChangeNotifier {
     _platformStatus = 'gps_signal_stale';
     _platformError =
         'GPS has not produced a location fix recently. Your local trip is preserved while signal recovers.';
-    if (session.lifecycleState == TripTrackingSessionLifecycleState.active) {
+    if (session.lifecycleState ==
+        TripTrackingSessionLifecycleState.activeTracking) {
       await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.degraded,
+        TripTrackingSessionLifecycleState.signalDegraded,
         health: TripTrackingHealthState.reduced,
       );
     }
@@ -1968,7 +1974,7 @@ class TripTrackingController extends ChangeNotifier {
         status: TripTrackingHeartbeatWatchdogStatus.interruptedNeedsRecovery,
         action: TripTrackingHeartbeatWatchdogAction.markInterrupted,
         reasonCode: 'heartbeat_interrupted_recovery_required',
-        targetLifecycle: TripTrackingSessionLifecycleState.interrupted,
+        targetLifecycle: TripTrackingSessionLifecycleState.signalLost,
         canBridgeDistanceGap: false,
         shouldRetryNativeTracking: true,
         requiresUserReview: true,
@@ -2000,7 +2006,7 @@ class TripTrackingController extends ChangeNotifier {
         _platformError =
             'GPS tracking has not reported recently. Your local trip is preserved while it recovers.';
         await _tryTransitionSession(
-          TripTrackingSessionLifecycleState.degraded,
+          TripTrackingSessionLifecycleState.signalDegraded,
           health: TripTrackingHealthState.reduced,
         );
         notifyListeners();
@@ -2050,10 +2056,13 @@ class TripTrackingController extends ChangeNotifier {
     _backgroundTrackingAllowed = false;
     _latestActivity = null;
     _platformStatus = interrupted ? 'interrupted' : 'stopped';
-    if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
+    if (_session?.lifecycleState ==
+            TripTrackingSessionLifecycleState.activeTracking ||
         _session?.lifecycleState ==
-            TripTrackingSessionLifecycleState.degraded) {
-      await _tryTransitionSession(TripTrackingSessionLifecycleState.paused);
+            TripTrackingSessionLifecycleState.signalDegraded) {
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.pausedByUser,
+      );
     }
     notifyListeners();
   }
@@ -2197,20 +2206,20 @@ class TripTrackingController extends ChangeNotifier {
     TripSampleDecision decision,
   ) {
     if (decision.disposition == TripSampleDisposition.rejectedAccuracy &&
-        current == TripTrackingSessionLifecycleState.active) {
-      return TripTrackingSessionLifecycleState.degraded;
+        current == TripTrackingSessionLifecycleState.activeTracking) {
+      return TripTrackingSessionLifecycleState.signalDegraded;
     }
     if (decision.disposition == TripSampleDisposition.rejectedGap &&
-        (current == TripTrackingSessionLifecycleState.active ||
-            current == TripTrackingSessionLifecycleState.degraded)) {
-      return TripTrackingSessionLifecycleState.interrupted;
+        (current == TripTrackingSessionLifecycleState.activeTracking ||
+            current == TripTrackingSessionLifecycleState.signalDegraded)) {
+      return TripTrackingSessionLifecycleState.signalLost;
     }
     if (!decision.accepted) return current;
     return switch (current) {
-      TripTrackingSessionLifecycleState.degraded ||
+      TripTrackingSessionLifecycleState.signalDegraded ||
       TripTrackingSessionLifecycleState.recovering =>
-        TripTrackingSessionLifecycleState.active,
-      TripTrackingSessionLifecycleState.interrupted =>
+        TripTrackingSessionLifecycleState.activeTracking,
+      TripTrackingSessionLifecycleState.signalLost =>
         TripTrackingSessionLifecycleState.recovering,
       _ => current,
     };
@@ -2325,9 +2334,12 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return null;
     }
-    if (session.lifecycleState == TripTrackingSessionLifecycleState.active ||
-        session.lifecycleState == TripTrackingSessionLifecycleState.paused ||
-        session.lifecycleState == TripTrackingSessionLifecycleState.degraded) {
+    if (session.lifecycleState ==
+            TripTrackingSessionLifecycleState.activeTracking ||
+        session.lifecycleState ==
+            TripTrackingSessionLifecycleState.pausedByUser ||
+        session.lifecycleState ==
+            TripTrackingSessionLifecycleState.signalDegraded) {
       await _tryTransitionSession(TripTrackingSessionLifecycleState.stopping);
     }
     await stopNativeTracking();

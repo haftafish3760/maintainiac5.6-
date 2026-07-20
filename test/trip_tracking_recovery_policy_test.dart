@@ -11,7 +11,7 @@ void main() {
     bool valid = true,
     double acceptedMeters = 1609.344,
     TripTrackingSessionLifecycleState lifecycleState =
-        TripTrackingSessionLifecycleState.ready,
+        TripTrackingSessionLifecycleState.preparing,
   }) => TripTrackingSessionRecord(
     id: 'trip_recovery_1',
     vehicleId: vehicleId,
@@ -283,11 +283,10 @@ void main() {
     'terminal lifecycle checkpoints cannot be restored from summary path',
     () {
       for (final lifecycleState in [
-        TripTrackingSessionLifecycleState.disabled,
-        TripTrackingSessionLifecycleState.permissionRequired,
-        TripTrackingSessionLifecycleState.awaitingReview,
+        TripTrackingSessionLifecycleState.idle,
         TripTrackingSessionLifecycleState.completed,
-        TripTrackingSessionLifecycleState.failedTerminal,
+        TripTrackingSessionLifecycleState.cancelled,
+        TripTrackingSessionLifecycleState.failedUnrecoverable,
       ]) {
         final decision = TripTrackingRecoveryPolicy.evaluate(
           session: session(lifecycleState: lifecycleState),
@@ -311,6 +310,22 @@ void main() {
       }
     },
   );
+
+  test('user-action checkpoints remain recoverable', () {
+    for (final lifecycle in [
+      TripTrackingSessionLifecycleState.awaitingPermission,
+      TripTrackingSessionLifecycleState.completionPending,
+    ]) {
+      final decision = TripTrackingRecoveryPolicy.evaluate(
+        session: session(lifecycleState: lifecycle),
+        currentVehicleId: 'vehicle_1',
+        currentConfirmedOdometer: 1000,
+      );
+
+      expect(decision.status, TripTrackingRecoveryStatus.ready);
+      expect(decision.canRestore, isTrue);
+    }
+  });
 
   test('vehicle or odometer mismatch requires user action', () {
     final vehicleMismatch = TripTrackingRecoveryPolicy.evaluate(
@@ -442,8 +457,8 @@ void main() {
 
   test('interrupted and degraded checkpoints remain recoverable locally', () {
     for (final lifecycleState in [
-      TripTrackingSessionLifecycleState.interrupted,
-      TripTrackingSessionLifecycleState.degraded,
+      TripTrackingSessionLifecycleState.signalLost,
+      TripTrackingSessionLifecycleState.signalDegraded,
       TripTrackingSessionLifecycleState.failedRecoverable,
     ]) {
       final decision = TripTrackingRecoveryPolicy.evaluate(

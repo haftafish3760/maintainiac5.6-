@@ -53,7 +53,7 @@ void main() {
 
   TripLiveCheckpointDurabilityDecision evaluate({
     TripTrackingSessionLifecycleState lifecycle =
-        TripTrackingSessionLifecycleState.active,
+        TripTrackingSessionLifecycleState.activeTracking,
     bool localSessionAvailable = true,
     bool checkpointShapeValid = true,
     bool localWriteSucceeded = true,

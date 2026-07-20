@@ -6,13 +6,13 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 void main() {
   test('location events can activate a starting session and feed engine', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.starting,
+      currentState: TripTrackingSessionLifecycleState.awaitingInitialFix,
       event: locationEvent(),
     );
     final safe = decision.toSafeSummary();
 
     expect(decision.action, TripNativeEventLifecycleAction.ingestLocation);
-    expect(decision.to, TripTrackingSessionLifecycleState.active);
+    expect(decision.to, TripTrackingSessionLifecycleState.activeTracking);
     expect(decision.canFeedEngine, isTrue);
     expect(safe['nativeEventTrustedAfterValidationOnly'], isTrue);
     expect(safe['nativeEventCanConfirmOdometer'], isFalse);
@@ -27,13 +27,13 @@ void main() {
     );
 
     expect(decision.action, TripNativeEventLifecycleAction.ingestActivity);
-    expect(decision.to, TripTrackingSessionLifecycleState.active);
+    expect(decision.to, TripTrackingSessionLifecycleState.activeTracking);
     expect(decision.canFeedEngine, isFalse);
   });
 
   test('permission loss requires user review and cannot complete trip', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.starting,
+      currentState: TripTrackingSessionLifecycleState.awaitingInitialFix,
       event: authorizationEvent(TripTrackingAuthorizationState.denied),
     );
     final safe = decision.toSafeSummary();
@@ -42,7 +42,7 @@ void main() {
       decision.action,
       TripNativeEventLifecycleAction.requestUserPermissionReview,
     );
-    expect(decision.to, TripTrackingSessionLifecycleState.permissionRequired);
+    expect(decision.to, TripTrackingSessionLifecycleState.awaitingPermission);
     expect(decision.requiresUserReview, isTrue);
     expect(safe['permissionLossRequiresUserReview'], isTrue);
     expect(safe['permissionLossCannotFeedEngine'], isTrue);
@@ -54,7 +54,7 @@ void main() {
     'background restriction moves active trip to recoverable interruption',
     () {
       final decision = TripNativeEventLifecyclePolicy.evaluate(
-        currentState: TripTrackingSessionLifecycleState.active,
+        currentState: TripTrackingSessionLifecycleState.activeTracking,
         event: statusEvent('backgroundRestricted'),
       );
 
@@ -63,7 +63,7 @@ void main() {
         decision.reason,
         TripNativeEventLifecycleReason.backgroundRestricted,
       );
-      expect(decision.to, TripTrackingSessionLifecycleState.interrupted);
+      expect(decision.to, TripTrackingSessionLifecycleState.signalLost);
       expect(decision.requiresUserReview, isTrue);
       expect(
         decision
@@ -79,13 +79,13 @@ void main() {
 
   test('native stopped status is ignored instead of ending local trip', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.active,
+      currentState: TripTrackingSessionLifecycleState.activeTracking,
       event: statusEvent('stopped'),
     );
     final safe = decision.toSafeSummary();
 
     expect(decision.action, TripNativeEventLifecycleAction.ignoreEvent);
-    expect(decision.to, TripTrackingSessionLifecycleState.active);
+    expect(decision.to, TripTrackingSessionLifecycleState.activeTracking);
     expect(decision.requiresUserReview, isTrue);
     expect(safe['nativeEventCanForceComplete'], isFalse);
     expect(safe['lateNativeStoppedStatusCannotEndTrip'], isTrue);
@@ -110,7 +110,7 @@ void main() {
 
   test('location events cannot feed engine while permission is required', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.permissionRequired,
+      currentState: TripTrackingSessionLifecycleState.awaitingPermission,
       event: locationEvent(),
     );
     final safe = decision.toSafeSummary();
@@ -124,13 +124,13 @@ void main() {
 
   test('location events cannot feed engine while trip is paused', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.paused,
+      currentState: TripTrackingSessionLifecycleState.pausedByUser,
       event: locationEvent(),
     );
     final safe = decision.toSafeSummary();
 
     expect(decision.action, TripNativeEventLifecycleAction.ingestLocation);
-    expect(decision.to, TripTrackingSessionLifecycleState.paused);
+    expect(decision.to, TripTrackingSessionLifecycleState.pausedByUser);
     expect(decision.canFeedEngine, isFalse);
     expect(decision.requiresUserReview, isTrue);
     expect(safe['canFeedEngine'], isFalse);
@@ -141,12 +141,12 @@ void main() {
 
   test('terminal failure cannot be revived by a late location event', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.failedTerminal,
+      currentState: TripTrackingSessionLifecycleState.failedUnrecoverable,
       event: locationEvent(),
     );
 
     expect(decision.action, TripNativeEventLifecycleAction.ignoreEvent);
-    expect(decision.to, TripTrackingSessionLifecycleState.failedTerminal);
+    expect(decision.to, TripTrackingSessionLifecycleState.failedUnrecoverable);
     expect(decision.canFeedEngine, isFalse);
     expect(decision.requiresUserReview, isTrue);
   });
@@ -155,7 +155,7 @@ void main() {
     'malformed native events fail into recovery without raw payload leakage',
     () {
       final decision = TripNativeEventLifecyclePolicy.evaluate(
-        currentState: TripTrackingSessionLifecycleState.active,
+        currentState: TripTrackingSessionLifecycleState.activeTracking,
         event: TripTrackingPlatformEvent.fromNativePayload('bad'),
       );
       final safe = decision.toSafeSummary();
@@ -179,7 +179,7 @@ void main() {
   test('safe native lifecycle summary validates as renderable', () {
     final validation = TripNativeEventLifecycleSummaryValidation.fromSummary(
       TripNativeEventLifecyclePolicy.evaluate(
-        currentState: TripTrackingSessionLifecycleState.starting,
+        currentState: TripTrackingSessionLifecycleState.awaitingInitialFix,
         event: locationEvent(),
       ).toSafeSummary(),
     );
@@ -192,7 +192,7 @@ void main() {
   test('native lifecycle summary rejects mutation and sensitive claims', () {
     final validation = TripNativeEventLifecycleSummaryValidation.fromSummary(
       TripNativeEventLifecyclePolicy.evaluate(
-        currentState: TripTrackingSessionLifecycleState.active,
+        currentState: TripTrackingSessionLifecycleState.activeTracking,
         event: statusEvent('recovering'),
       ).toSafeSummary()..addAll({
         'nativeEventCanForceComplete': true,
@@ -233,11 +233,11 @@ void main() {
 
   test('native lifecycle summary rejects status authority mismatch', () {
     final paused = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.paused,
+      currentState: TripTrackingSessionLifecycleState.pausedByUser,
       event: locationEvent(),
     ).toSafeSummary();
     final permission = TripNativeEventLifecyclePolicy.evaluate(
-      currentState: TripTrackingSessionLifecycleState.active,
+      currentState: TripTrackingSessionLifecycleState.activeTracking,
       event: authorizationEvent(TripTrackingAuthorizationState.denied),
     ).toSafeSummary();
 

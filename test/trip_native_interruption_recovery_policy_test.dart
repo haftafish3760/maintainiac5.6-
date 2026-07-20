@@ -13,11 +13,11 @@ void main() {
     'valid location event feeds engine while preserving backup boundary',
     () {
       final native = nativeDecision(
-        current: TripTrackingSessionLifecycleState.starting,
+        current: TripTrackingSessionLifecycleState.awaitingInitialFix,
         event: locationEvent(),
       );
       final supervisor = supervisorDecision(
-        lifecycle: TripTrackingSessionLifecycleState.starting,
+        lifecycle: TripTrackingSessionLifecycleState.awaitingInitialFix,
         backupMirrorReady: true,
       );
       final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
@@ -28,7 +28,10 @@ void main() {
 
       expect(decision.status, TripNativeInterruptionRecoveryStatus.feedEngine);
       expect(decision.canFeedEngine, isTrue);
-      expect(decision.nextLifecycle, TripTrackingSessionLifecycleState.active);
+      expect(
+        decision.nextLifecycle,
+        TripTrackingSessionLifecycleState.activeTracking,
+      );
       expect(decision.canUploadBackupMirror, isTrue);
     },
   );
@@ -39,7 +42,7 @@ void main() {
         event: statusEvent('backgroundRestricted'),
       ),
       supervisorDecision: supervisorDecision(
-        lifecycle: TripTrackingSessionLifecycleState.interrupted,
+        lifecycle: TripTrackingSessionLifecycleState.signalLost,
         nativeTrackingAvailable: false,
       ),
       localCheckpointAvailable: true,
@@ -63,11 +66,11 @@ void main() {
     () {
       final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
         nativeDecision: nativeDecision(
-          current: TripTrackingSessionLifecycleState.interrupted,
+          current: TripTrackingSessionLifecycleState.signalLost,
           event: statusEvent('recovering'),
         ),
         supervisorDecision: supervisorDecision(
-          lifecycle: TripTrackingSessionLifecycleState.interrupted,
+          lifecycle: TripTrackingSessionLifecycleState.signalLost,
           recovery: const TripTrackingRecoveryDecision(
             status: TripTrackingRecoveryStatus.pendingReplayReady,
             safeReason: 'trip_recovery_pending_replay_ready',
@@ -147,7 +150,7 @@ void main() {
   test('missing local checkpoint blocks recovery from native events', () {
     final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
       nativeDecision: nativeDecision(
-        current: TripTrackingSessionLifecycleState.interrupted,
+        current: TripTrackingSessionLifecycleState.signalLost,
         event: statusEvent('recovering'),
       ),
       supervisorDecision: supervisorDecision(),
@@ -292,7 +295,7 @@ void main() {
     final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
       nativeDecision: nativeDecision(event: statusEvent('permissionRequired')),
       supervisorDecision: supervisorDecision(
-        lifecycle: TripTrackingSessionLifecycleState.permissionRequired,
+        lifecycle: TripTrackingSessionLifecycleState.awaitingPermission,
         nativeTrackingAvailable: false,
         backupMirrorReady: true,
         recovery: const TripTrackingRecoveryDecision(
@@ -323,18 +326,18 @@ void main() {
   test('native recovery summary rejects status authority mismatch', () {
     final feed = TripNativeInterruptionRecoveryPolicy.evaluate(
       nativeDecision: nativeDecision(
-        current: TripTrackingSessionLifecycleState.starting,
+        current: TripTrackingSessionLifecycleState.awaitingInitialFix,
         event: locationEvent(),
       ),
       supervisorDecision: supervisorDecision(
-        lifecycle: TripTrackingSessionLifecycleState.starting,
+        lifecycle: TripTrackingSessionLifecycleState.awaitingInitialFix,
       ),
       localCheckpointAvailable: true,
     ).toSafeDashboardMap();
     final prompt = TripNativeInterruptionRecoveryPolicy.evaluate(
       nativeDecision: nativeDecision(event: statusEvent('permissionRequired')),
       supervisorDecision: supervisorDecision(
-        lifecycle: TripTrackingSessionLifecycleState.permissionRequired,
+        lifecycle: TripTrackingSessionLifecycleState.awaitingPermission,
         nativeTrackingAvailable: false,
       ),
       localCheckpointAvailable: true,
@@ -389,7 +392,7 @@ const noRecovery = TripTrackingRecoveryDecision(
 
 TripNativeEventLifecycleDecision nativeDecision({
   TripTrackingSessionLifecycleState current =
-      TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.activeTracking,
   TripTrackingPlatformEvent? event,
 }) {
   return TripNativeEventLifecyclePolicy.evaluate(
@@ -400,7 +403,7 @@ TripNativeEventLifecycleDecision nativeDecision({
 
 TripLifecycleSupervisorDecision supervisorDecision({
   TripTrackingSessionLifecycleState lifecycle =
-      TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.activeTracking,
   bool nativeTrackingAvailable = true,
   bool backupMirrorReady = false,
   TripTrackingRecoveryDecision recovery = noRecovery,

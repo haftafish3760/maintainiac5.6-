@@ -15,7 +15,7 @@ class TripTrackingSessionRecord {
     required this.updatedAt,
     required this.engineSnapshot,
     this.advisories = const [],
-    this.lifecycleState = TripTrackingSessionLifecycleState.ready,
+    this.lifecycleState = TripTrackingSessionLifecycleState.preparing,
     this.healthState = TripTrackingHealthState.healthy,
     this.backgroundTrackingAllowed = false,
     this.activityRecognitionEnabled = false,
@@ -202,7 +202,7 @@ class TripTrackingSessionRecord {
       ),
       lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
         (value) => value.name == map['lifecycleState'],
-        orElse: () => TripTrackingSessionLifecycleState.ready,
+        orElse: () => TripTrackingSessionLifecycleState.preparing,
       ),
       healthState: TripTrackingHealthState.values.firstWhere(
         (value) => value.name == map['healthState'],

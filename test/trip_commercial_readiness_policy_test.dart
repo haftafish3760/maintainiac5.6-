@@ -34,7 +34,7 @@ void main() {
   const lifecycleContinue = TripLifecycleSupervisorDecision(
     status: TripLifecycleSupervisorStatus.continueTracking,
     reasonCode: 'supervisor_continue_tracking',
-    nextLifecycle: TripTrackingSessionLifecycleState.active,
+    nextLifecycle: TripTrackingSessionLifecycleState.activeTracking,
     shouldKeepForegroundServiceAlive: true,
     shouldRequestUserAction: false,
     canReplayPendingSample: false,
@@ -43,7 +43,7 @@ void main() {
   const lifecyclePrompt = TripLifecycleSupervisorDecision(
     status: TripLifecycleSupervisorStatus.promptUser,
     reasonCode: 'native_error_requires_user_action',
-    nextLifecycle: TripTrackingSessionLifecycleState.permissionRequired,
+    nextLifecycle: TripTrackingSessionLifecycleState.awaitingPermission,
     shouldKeepForegroundServiceAlive: false,
     shouldRequestUserAction: true,
     canReplayPendingSample: false,

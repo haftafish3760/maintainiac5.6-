@@ -651,7 +651,7 @@ void main() {
       'healthState': 'healthy',
     });
 
-    expect(session.lifecycleState, TripTrackingSessionLifecycleState.ready);
+    expect(session.lifecycleState, TripTrackingSessionLifecycleState.preparing);
     expect(session.hasValidTimeline, isFalse);
   });
 

@@ -316,10 +316,10 @@ TripLiveCheckpointDurabilityDecision _decision({
 
 bool _isTrackingLifecycle(TripTrackingSessionLifecycleState lifecycle) {
   return switch (lifecycle) {
-    TripTrackingSessionLifecycleState.starting ||
-    TripTrackingSessionLifecycleState.active ||
-    TripTrackingSessionLifecycleState.degraded ||
-    TripTrackingSessionLifecycleState.interrupted ||
+    TripTrackingSessionLifecycleState.awaitingInitialFix ||
+    TripTrackingSessionLifecycleState.activeTracking ||
+    TripTrackingSessionLifecycleState.signalDegraded ||
+    TripTrackingSessionLifecycleState.signalLost ||
     TripTrackingSessionLifecycleState.recovering ||
     TripTrackingSessionLifecycleState.stopping ||
     TripTrackingSessionLifecycleState.failedRecoverable => true,

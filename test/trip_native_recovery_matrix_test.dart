@@ -13,7 +13,7 @@ void main() {
     final cases = <_NativeCase>[
       _NativeCase(
         name: 'valid location feeds engine',
-        current: TripTrackingSessionLifecycleState.starting,
+        current: TripTrackingSessionLifecycleState.awaitingInitialFix,
         event: _locationEvent(),
         localCheckpoint: true,
         expectedStatus: TripNativeInterruptionRecoveryStatus.feedEngine,
@@ -22,7 +22,7 @@ void main() {
       ),
       _NativeCase(
         name: 'background restricted prompts user',
-        current: TripTrackingSessionLifecycleState.active,
+        current: TripTrackingSessionLifecycleState.activeTracking,
         event: _statusEvent('backgroundRestricted'),
         localCheckpoint: true,
         expectedStatus: TripNativeInterruptionRecoveryStatus.promptUser,
@@ -30,7 +30,7 @@ void main() {
       ),
       _NativeCase(
         name: 'native stopped ignored',
-        current: TripTrackingSessionLifecycleState.active,
+        current: TripTrackingSessionLifecycleState.activeTracking,
         event: _statusEvent('stopped'),
         localCheckpoint: true,
         expectedStatus: TripNativeInterruptionRecoveryStatus.ignoreSafely,
@@ -46,7 +46,7 @@ void main() {
       ),
       _NativeCase(
         name: 'missing checkpoint blocks recovery',
-        current: TripTrackingSessionLifecycleState.interrupted,
+        current: TripTrackingSessionLifecycleState.signalLost,
         event: _statusEvent('recovering'),
         localCheckpoint: false,
         expectedStatus: TripNativeInterruptionRecoveryStatus.blocked,
@@ -54,7 +54,7 @@ void main() {
       ),
       _NativeCase(
         name: 'permission loss prompts review',
-        current: TripTrackingSessionLifecycleState.active,
+        current: TripTrackingSessionLifecycleState.activeTracking,
         event: _authorizationEvent(TripTrackingAuthorizationState.denied),
         localCheckpoint: true,
         expectedStatus: TripNativeInterruptionRecoveryStatus.ignoreSafely,
@@ -112,7 +112,7 @@ void main() {
     'native lifecycle matrix blocks remote and sensitive forged summaries',
     () {
       final safe = TripNativeEventLifecyclePolicy.evaluate(
-        currentState: TripTrackingSessionLifecycleState.active,
+        currentState: TripTrackingSessionLifecycleState.activeTracking,
         event: _statusEvent('recovering'),
       ).toSafeSummary();
       final validation = TripNativeEventLifecycleSummaryValidation.fromSummary({
