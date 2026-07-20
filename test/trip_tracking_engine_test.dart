@@ -74,6 +74,23 @@ void main() {
     );
   });
 
+  test('direct invalid speed accuracy cannot reach distance calculations', () {
+    final engine = TripTrackingEngine();
+
+    final decision = engine.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: start,
+        horizontalAccuracyMeters: 5,
+        speedAccuracyMetersPerSecond: -1,
+      ),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.rejectedInvalid);
+    expect(engine.totalAcceptedMeters, 0);
+  });
+
   test('recovery clamps contradictory Android monotonic checkpoints', () {
     final anchor = sample(-80, 0, monotonicElapsedNanos: 1000000000);
     final recovered = TripTrackingEngineSnapshot.fromMap({

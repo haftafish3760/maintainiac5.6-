@@ -972,7 +972,8 @@ class TripTrackingController extends ChangeNotifier {
     if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
       return engine.reject(TripSampleDisposition.rejectedInvalid);
     }
-    if (!sample.hasValidReportedSpeed) {
+    if (!sample.hasValidReportedSpeed ||
+        !sample.hasValidReportedSpeedAccuracy) {
       return engine.reject(TripSampleDisposition.rejectedInvalid);
     }
 

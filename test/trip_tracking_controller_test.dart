@@ -88,6 +88,39 @@ void main() {
   );
 
   test(
+    'controller rejects invalid direct speed accuracy before persistence',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_invalid_direct_speed_accuracy',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final decision = await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: start,
+          horizontalAccuracyMeters: 5,
+          speedAccuracyMetersPerSecond: -1,
+        ),
+      );
+
+      expect(decision?.disposition, TripSampleDisposition.rejectedInvalid);
+      expect(
+        store.pendingSampleFor('trip_invalid_direct_speed_accuracy'),
+        isNull,
+      );
+    },
+  );
+
+  test(
     'controller rejects regressing Android monotonic time before persistence',
     () async {
       final store = TripTrackingSessionStore.memory();
