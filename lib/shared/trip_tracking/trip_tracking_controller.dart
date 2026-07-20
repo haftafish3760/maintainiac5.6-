@@ -84,6 +84,10 @@ class TripTrackingController extends ChangeNotifier {
   bool _nativeStopRequested = false;
   bool _nativeInterruptionPending = false;
   bool _nativeCriticalBatteryStopPending = false;
+  TripTrackingNativeRequest? _pendingNativeStartRequest;
+  bool _pendingNativeStartActivityUnavailable = false;
+  bool _pendingNativeStartPreferenceSaveFailed = false;
+  bool _pendingNativeStartStopped = false;
   TripSamplingRecommendation? _nativeSampling;
   TripTrackingSamplingPlan? _nativeSamplingPlan;
   DateTime? _lastNativeHeartbeatUtc;
@@ -1281,11 +1285,16 @@ class TripTrackingController extends ChangeNotifier {
     if (session == null) return false;
     _latestActivity = null;
     _nativeCriticalBatteryStopPending = false;
+    _pendingNativeStartRequest = request;
+    _pendingNativeStartActivityUnavailable = false;
+    _pendingNativeStartPreferenceSaveFailed = false;
+    _pendingNativeStartStopped = false;
     _platformSubscription = _listenToPlatformEvents(platform);
     bool started;
     try {
       started = await platform.start(request);
     } catch (error) {
+      _clearPendingNativeStart();
       await _platformSubscription?.cancel();
       _platformSubscription = null;
       _platformError = 'The device could not start GPS trip tracking.';
@@ -1296,6 +1305,12 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    final activityUnavailableDuringStart =
+        _pendingNativeStartActivityUnavailable;
+    final preferenceSaveFailedDuringStart =
+        _pendingNativeStartPreferenceSaveFailed;
+    final nativeStoppedDuringStart = _pendingNativeStartStopped;
+    _clearPendingNativeStart();
     if (_nativeCriticalBatteryStopPending) {
       await _cancelPlatformSubscriptionAfterNativeStop();
       _platformSubscription = null;
@@ -1321,6 +1336,25 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (preferenceSaveFailedDuringStart || nativeStoppedDuringStart) {
+      try {
+        await platform.stop();
+      } catch (_) {
+        // The durable local failure is authoritative; best-effort native
+        // cleanup must not replace that actionable error.
+      }
+      await _platformSubscription?.cancel();
+      _platformSubscription = null;
+      _platformError = preferenceSaveFailedDuringStart
+          ? 'Motion activity became unavailable, and GPS tracking could not save that privacy change locally.'
+          : 'GPS updates stopped while trip tracking was starting.';
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.failedRecoverable,
+        health: TripTrackingHealthState.unavailable,
+      );
+      notifyListeners();
+      return false;
+    }
     _nativeTracking = true;
     _nativeSampling = request.sampling;
     _nativeSamplingPlan = samplingPlan;
@@ -1328,7 +1362,8 @@ class TripTrackingController extends ChangeNotifier {
     _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
     _lastNativeLocationReceivedUtc = null;
     _backgroundTrackingAllowed = allowBackground;
-    _activityRecognitionEnabled = requestedActivityRecognition;
+    _activityRecognitionEnabled =
+        requestedActivityRecognition && !activityUnavailableDuringStart;
     _adaptiveSamplingEnabled = adaptiveSamplingEnabled;
     _lowBatteryProtectionEnabled = lowBatteryProtectionEnabled;
     _lowBatteryOverrideEnabled = lowBatteryOverrideEnabled;
@@ -1477,6 +1512,14 @@ class TripTrackingController extends ChangeNotifier {
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
             if (status == 'stopped' || status == 'paused') {
+              if (_pendingNativeStartRequest != null && !_nativeTracking) {
+                _pendingNativeStartStopped = true;
+                _platformStatus = 'interrupted';
+                _platformError =
+                    'GPS updates stopped while trip tracking was starting.';
+                notifyListeners();
+                return;
+              }
               final expectedStop =
                   _nativeStopRequested ||
                   _nativeCriticalBatteryStopPending ||
@@ -1541,24 +1584,39 @@ class TripTrackingController extends ChangeNotifier {
               _nativeCriticalBatteryStopPending = true;
               unawaited(_handleNativeCriticalBatteryStop(message));
             } else if (event.errorCode ==
-                    'trip_tracking_activity_unavailable' &&
-                _nativeTracking) {
+                'trip_tracking_activity_unavailable') {
+              final pendingStart = _pendingNativeStartRequest;
+              final activityAssistanceActive =
+                  (_nativeTracking && !_nativeStopRequested) ||
+                  (pendingStart?.activityRecognitionEnabled ?? false);
+              if (!activityAssistanceActive) {
+                notifyListeners();
+                return;
+              }
               // Walking assistance is optional. A permission revocation or
               // provider failure must retire only that sensor, never GPS,
               // TripLog, or the authoritative odometer workflow.
               _latestActivity = null;
               _activityRecognitionEnabled = false;
+              if (pendingStart != null) {
+                _pendingNativeStartActivityUnavailable = true;
+              }
               final persisted = await _persistNativeCollectionPreferences(
-                allowBackground: _backgroundTrackingAllowed,
+                allowBackground:
+                    pendingStart?.allowBackground ?? _backgroundTrackingAllowed,
                 activityRecognitionEnabled: false,
               );
               if (!persisted) {
-                _platformError =
-                    'Motion activity became unavailable, and GPS tracking stopped because that privacy change could not be saved locally.';
-                // This handler is executing inside the platform event queue.
-                // Stopping drains that queue, so schedule it after this event
-                // completes instead of awaiting a self-draining deadlock.
-                unawaited(_stopNativeTracking());
+                if (pendingStart != null) {
+                  _pendingNativeStartPreferenceSaveFailed = true;
+                } else {
+                  _platformError =
+                      'Motion activity became unavailable, and GPS tracking stopped because that privacy change could not be saved locally.';
+                  // This handler is executing inside the platform event queue.
+                  // Stopping drains that queue, so schedule it after this event
+                  // completes instead of awaiting a self-draining deadlock.
+                  unawaited(_stopNativeTracking());
+                }
               }
               notifyListeners();
             } else if (_nativeTracking &&
@@ -1936,6 +1994,13 @@ class TripTrackingController extends ChangeNotifier {
       await _tryTransitionSession(TripTrackingSessionLifecycleState.paused);
     }
     notifyListeners();
+  }
+
+  void _clearPendingNativeStart() {
+    _pendingNativeStartRequest = null;
+    _pendingNativeStartActivityUnavailable = false;
+    _pendingNativeStartPreferenceSaveFailed = false;
+    _pendingNativeStartStopped = false;
   }
 
   Future<T> _enqueueNativeLifecycle<T>(Future<T> Function() operation) {

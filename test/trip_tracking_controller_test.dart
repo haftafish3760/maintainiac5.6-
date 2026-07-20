@@ -2301,6 +2301,149 @@ void main() {
     },
   );
 
+  test(
+    'motion-assistance loss queued during a stop cannot alter trip preference',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final store = TripTrackingSessionStore.memory();
+      native.beforeStop = () => native.addPlatformError(
+        code: 'trip_tracking_activity_unavailable',
+        message: 'Motion provider ended with the collector.',
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_stopping_activity_assistance_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      await controller.stopNativeTracking();
+
+      expect(store.activeSession?.activityRecognitionEnabled, isTrue);
+      expect(native.stopCalls, 1);
+    },
+  );
+
+  test(
+    'motion-assistance loss during native startup keeps GPS and retires walking',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+        startDelay: Future<void>.delayed(Duration.zero),
+      );
+      native.beforeStart = () => native.addPlatformError(
+        code: 'trip_tracking_activity_unavailable',
+        message: 'Motion permission was unavailable at startup.',
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_starting_activity_assistance_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      expect(controller.nativeTracking, isTrue);
+      expect(store.activeSession?.activityRecognitionEnabled, isFalse);
+      expect(native.stopCalls, 0);
+    },
+  );
+
+  test(
+    'startup motion-assistance loss fails closed when withdrawal cannot persist',
+    () async {
+      final store = _FailingNextSessionSaveStore();
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+        startDelay: Future<void>.delayed(Duration.zero),
+      );
+      native.beforeStart = () {
+        store.failNextSessionSave = true;
+        native.addPlatformError(
+          code: 'trip_tracking_activity_unavailable',
+          message: 'Motion permission was unavailable at startup.',
+        );
+      };
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_starting_activity_assistance_persist_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isFalse,
+      );
+
+      expect(controller.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(controller.platformError, contains('could not save'));
+    },
+  );
+
+  test('native collector stop during startup fails closed', () async {
+    final native = _FakeTripTrackingPlatform(
+      startDelay: Future<void>.delayed(Duration.zero),
+    );
+    native.beforeStart = () => native.addStatus('stopped');
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_native_start_stop',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isFalse,
+    );
+
+    expect(controller.nativeTracking, isFalse);
+    expect(native.stopCalls, 1);
+    expect(controller.platformError, contains('stopped while trip tracking'));
+  });
+
   test('duplicate fatal platform errors issue one native stop', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(
@@ -6016,6 +6159,8 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final String startFailureMessage;
   TripTrackingBatterySnapshot batterySnapshot;
   final Future<void>? startDelay;
+  void Function()? beforeStart;
+  void Function()? beforeStop;
   var _running = false;
   TripTrackingNativeRequest? startedRequest;
   TripTrackingNativeRequest? updatedRequest;
@@ -6106,6 +6251,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   @override
   Future<bool> start(TripTrackingNativeRequest request) async {
     if (throwOnStart) throw StateError(startFailureMessage);
+    beforeStart?.call();
     await startDelay;
     startCalls += 1;
     startedRequest = request;
@@ -6122,6 +6268,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
 
   @override
   Future<void> stop() async {
+    beforeStop?.call();
     stopCalls += 1;
     if (throwOnStop) throw StateError('native stop fault');
     _running = false;
