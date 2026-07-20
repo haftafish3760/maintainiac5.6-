@@ -296,7 +296,9 @@ class TripTrackingForegroundService : Service() {
         // Reject malformed native metadata before it crosses the platform
         // boundary. Dart validates again, but the foreground service should
         // not keep forwarding a corrupt cached fix on every callback.
-        if (location.time < startedAtMillis || !accuracyMeters.isFinite() || accuracyMeters <= 0 ||
+        if (location.time < startedAtMillis ||
+            location.time > System.currentTimeMillis() + 120_000L ||
+            !accuracyMeters.isFinite() || accuracyMeters <= 0 ||
             (reportedSpeed != null && (!reportedSpeed.isFinite() || reportedSpeed < 0))) return
         TripTrackingEventEmitter.emit(
             mapOf(
