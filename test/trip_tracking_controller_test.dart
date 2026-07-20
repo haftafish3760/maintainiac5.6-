@@ -6806,13 +6806,25 @@ class _FailingNextSessionSaveStore extends TripTrackingSessionStore {
     }
     return super.save(session);
   }
+
+  @override
+  Future<TripTrackingSessionRecord> checkpoint(
+    TripTrackingSessionRecord session, {
+    required int expectedRevision,
+  }) async {
+    if (failNextSessionSave) {
+      failNextSessionSave = false;
+      throw StateError('local session checkpoint failed');
+    }
+    return super.checkpoint(session, expectedRevision: expectedRevision);
+  }
 }
 
 class _FailingReviewCleanupStore extends TripTrackingSessionStore {
   _FailingReviewCleanupStore() : super.memory();
 
   @override
-  Future<void> clear() async {
+  Future<bool> clearIfSession(String sessionId) async {
     throw StateError('stale recovery cleanup failed');
   }
 }

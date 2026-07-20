@@ -144,6 +144,7 @@ Future<void> main() async {
     sessionStore: tripTrackingStore,
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
+    activeProfileId: () => userProfiles.activeProfile.id,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
   );
   await tripTracking.restore();

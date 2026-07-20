@@ -40,6 +40,7 @@ class TripTrackingController extends ChangeNotifier {
     double gpsAssistanceCalibrationMultiplier = 1,
     DateTime Function()? clockNow,
     DateTime Function()? heartbeatNow,
+    String Function()? activeProfileId,
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
@@ -49,6 +50,7 @@ class TripTrackingController extends ChangeNotifier {
        _calibrationState = TripTrackingCalibrationState.initial(
          gpsAssistanceCalibrationMultiplier,
        ),
+       _activeProfileId = activeProfileId,
        _clockNow = clockNow ?? heartbeatNow ?? DateTime.now;
 
   final TripTrackingSessionStore _sessionStore;
@@ -57,6 +59,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingPolicy _policy;
   final TripTrackingBackupPort _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
+  final String Function()? _activeProfileId;
 
   /// One wall-clock authority for native timestamps, recovery, and review
   /// validation. Keeping these checks on the same clock prevents a delayed or
@@ -583,10 +586,28 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    final boundProfileId = _activeProfileId?.call() ?? 'legacy-local-profile';
+    if (!_isSafeTripTrackingIdentity(boundProfileId)) {
+      _platformStatus = 'profile_missing';
+      _platformError = 'Select a valid profile before starting GPS assistance.';
+      notifyListeners();
+      return false;
+    }
     try {
       // Reviews are stored by trip id. Reusing an id would otherwise replace
       // an existing locally durable audit record when the new trip finishes.
       if (_sessionStore.recoveryReviewForTrip(tripId) != null) return false;
+      final existing = _sessionStore.activeSession;
+      if (existing != null) {
+        _platformStatus = 'active_session_exists';
+        _platformError =
+            existing.vehicleId == vehicleId &&
+                existing.profileId == boundProfileId
+            ? 'A GPS trip is already available to resume or review.'
+            : 'Another vehicle or profile has an unfinished GPS trip.';
+        notifyListeners();
+        return false;
+      }
     } catch (error) {
       // Do not start GPS or alter the live odometer when we cannot establish
       // that the immutable local review history is available.
@@ -594,6 +615,24 @@ class TripTrackingController extends ChangeNotifier {
       _platformError = 'Could not save the trip locally.';
       notifyListeners();
       return false;
+    }
+    final platform = _platform;
+    if (platform != null) {
+      try {
+        if (await platform.isTracking) {
+          _platformStatus = 'native_session_recovery_required';
+          _platformError =
+              'The device GPS service is already tracking. Recover it before starting another trip.';
+          notifyListeners();
+          return false;
+        }
+      } catch (_) {
+        _platformStatus = 'native_state_unavailable';
+        _platformError =
+            'The device GPS service state could not be verified safely.';
+        notifyListeners();
+        return false;
+      }
     }
     final now = _clockNow();
     final started = startedAt ?? now;
@@ -607,22 +646,16 @@ class TripTrackingController extends ChangeNotifier {
       return false;
     }
     final startingOdometer = _odometer.confirmedReading;
-    if (!_odometer.beginLiveTripProjection(
-      tripId: tripId,
-      startingOdometer: startingOdometer,
-      observedAtUtc: started,
-    )) {
-      return false;
-    }
     _engine = TripTrackingEngine(policy: _policy, profile: profile);
     _projection = TripLiveOdometerProjection(
       startingOdometer: startingOdometer,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
     _activeTripCalibrationMultiplier = gpsAssistanceCalibrationMultiplier;
-    _session = TripTrackingSessionRecord(
+    final candidate = TripTrackingSessionRecord(
       id: tripId,
       vehicleId: vehicleId,
+      profileId: boundProfileId,
       startingOdometer: startingOdometer,
       profile: profile,
       startedAt: started,
@@ -630,13 +663,40 @@ class TripTrackingController extends ChangeNotifier {
       engineSnapshot: _engine!.snapshot,
     );
     try {
-      await _sessionStore.save(_session!);
+      final claim = await _sessionStore.claimActive(candidate);
+      if (claim.status != TripTrackingSessionClaimStatus.claimed ||
+          claim.session == null) {
+        _engine = null;
+        _projection = null;
+        _activeTripCalibrationMultiplier = 1;
+        _platformStatus = claim.status == TripTrackingSessionClaimStatus.corrupt
+            ? 'recovery_data_corrupt'
+            : 'active_session_exists';
+        _platformError = claim.status == TripTrackingSessionClaimStatus.corrupt
+            ? 'Existing GPS recovery data needs review before another trip can start.'
+            : 'A GPS trip is already available to resume or review.';
+        notifyListeners();
+        return false;
+      }
+      _session = claim.session;
+      if (!_odometer.beginLiveTripProjection(
+        tripId: tripId,
+        startingOdometer: startingOdometer,
+        observedAtUtc: started,
+      )) {
+        await _sessionStore.clearIfSession(tripId);
+        _session = null;
+        _engine = null;
+        _projection = null;
+        _activeTripCalibrationMultiplier = 1;
+        return false;
+      }
     } catch (error) {
       // An active trip is only recoverable after its initial local checkpoint
       // succeeds. Do not leave a phantom trip holding the live odometer when
       // storage is unavailable (for example, a full or closed local store).
       try {
-        await _sessionStore.clear();
+        await _sessionStore.clearIfSession(tripId);
       } catch (_) {
         // The original storage failure is the useful error to surface. A
         // later restore still validates any residual record defensively.
@@ -663,7 +723,13 @@ class TripTrackingController extends ChangeNotifier {
     if (_isDisposed || isTracking) return false;
     TripTrackingSessionRecord? session;
     try {
-      session = _sessionStore.activeSession;
+      final recovery = await _sessionStore.recoverActive();
+      session = recovery.session;
+      if (recovery.usedFallback) {
+        _platformStatus = 'snapshot_recovered';
+        _platformError =
+            'The newest trip checkpoint was damaged. An earlier safe checkpoint was restored for review.';
+      }
     } catch (error) {
       _platformStatus = 'storage_failed';
       _platformError = 'Could not read local trip recovery data.';
@@ -673,7 +739,7 @@ class TripTrackingController extends ChangeNotifier {
     if (session == null) return false;
     if (!_isRecoverableSession(session)) {
       try {
-        await _sessionStore.clear();
+        await _sessionStore.clearIfSession(session.id);
       } catch (error) {
         _platformStatus = 'storage_failed';
         _platformError = 'Could not remove invalid local trip data.';
@@ -704,7 +770,7 @@ class TripTrackingController extends ChangeNotifier {
         return false;
       }
       try {
-        await _sessionStore.clear();
+        await _sessionStore.clearIfSession(session.id);
         await _sessionStore.clearPending(session.id);
       } catch (error) {
         // The durable review remains authoritative even if a stale recovery
@@ -723,6 +789,14 @@ class TripTrackingController extends ChangeNotifier {
       _platformStatus = 'vehicle_mismatch';
       _platformError =
           'This GPS trip belongs to another vehicle. Switch vehicles before recovering it.';
+      notifyListeners();
+      return false;
+    }
+    final currentProfileId = _activeProfileId?.call();
+    if (currentProfileId != null && session.profileId != currentProfileId) {
+      _platformStatus = 'profile_mismatch';
+      _platformError =
+          'This GPS trip belongs to another profile. Switch profiles before recovering it.';
       notifyListeners();
       return false;
     }
@@ -1059,11 +1133,32 @@ class TripTrackingController extends ChangeNotifier {
         updatedAt: sample.recordedAt,
         engineSnapshot: engine.snapshot,
         advisories: advisories,
-        lifecycleState: naturalLifecycleState,
-        healthState: _healthAfterDecision(session.healthState, decision),
+        healthState: naturalLifecycleState == session.lifecycleState
+            ? _healthAfterDecision(session.healthState, decision)
+            : session.healthState,
       );
       try {
-        await _sessionStore.save(_session!);
+        _session = await _sessionStore.checkpoint(
+          _session!,
+          expectedRevision: session.revision,
+        );
+        if (naturalLifecycleState != session.lifecycleState) {
+          final transitioned = await _sessionStore.commitTransition(
+            sessionId: session.id,
+            expectedRevision: _session!.revision,
+            nextState: naturalLifecycleState,
+            eventTimestamp: sample.recordedAt,
+            healthState: _healthAfterDecision(session.healthState, decision),
+            reasonCode: 'validated_sample_quality_changed',
+            initiatingSource: 'gps_sample_validator',
+            confidenceState: decision.accepted ? 'medium' : 'low',
+            trackingQualityMode: naturalLifecycleState.name,
+          );
+          if (!transitioned.accepted) {
+            throw StateError('Validated sample transition was rejected.');
+          }
+          _session = transitioned.session;
+        }
       } catch (_) {
         _session = session;
         _engine = TripTrackingEngine.fromSnapshot(
@@ -1095,11 +1190,11 @@ class TripTrackingController extends ChangeNotifier {
           _session!.lifecycleState,
           TripTrackingSessionLifecycleState.failedRecoverable,
         )) {
-          _session = _session!.copyWith(
-            lifecycleState: TripTrackingSessionLifecycleState.failedRecoverable,
-            healthState: TripTrackingHealthState.unavailable,
+          await _transitionSession(
+            TripTrackingSessionLifecycleState.failedRecoverable,
+            health: TripTrackingHealthState.unavailable,
+            eventTimestamp: sample.recordedAt,
           );
-          await _sessionStore.save(_session!);
         }
       }
       notifyListeners();
@@ -2097,20 +2192,21 @@ class TripTrackingController extends ChangeNotifier {
   Future<void> _transitionSession(
     TripTrackingSessionLifecycleState next, {
     TripTrackingHealthState? health,
+    DateTime? eventTimestamp,
   }) async {
     final session = _session;
     if (session == null || session.lifecycleState == next) return;
-    TripTrackingSessionStateMachine.requireTransition(
-      session.lifecycleState,
-      next,
-    );
-    final nextSession = session.copyWith(
-      updatedAt: _clockNow(),
-      lifecycleState: next,
+    final result = await _sessionStore.commitTransition(
+      sessionId: session.id,
+      expectedRevision: session.revision,
+      nextState: next,
+      eventTimestamp: eventTimestamp ?? _clockNow(),
       healthState: health,
     );
-    await _sessionStore.save(nextSession);
-    _session = nextSession;
+    _session = result.session;
+    if (!result.accepted) {
+      throw StateError('Illegal GPS session transition was rejected safely.');
+    }
   }
 
   Future<bool> _tryTransitionSession(
@@ -2178,8 +2274,10 @@ class TripTrackingController extends ChangeNotifier {
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
     );
     try {
-      await _sessionStore.save(next);
-      _session = next;
+      _session = await _sessionStore.checkpoint(
+        next,
+        expectedRevision: session.revision,
+      );
       return true;
     } catch (_) {
       _platformStatus = 'storage_failed';
@@ -2254,12 +2352,15 @@ class TripTrackingController extends ChangeNotifier {
             disposition: disposition,
           );
     }
-    _session = session.copyWith(
+    final next = session.copyWith(
       updatedAt: _clockNow(),
       engineSnapshot: engine.snapshot,
       advisories: reviewedAdvisories,
     );
-    await _sessionStore.save(_session!);
+    _session = await _sessionStore.checkpoint(
+      next,
+      expectedRevision: session.revision,
+    );
     notifyListeners();
   }
 
@@ -2276,7 +2377,7 @@ class TripTrackingController extends ChangeNotifier {
     final session = _session;
     if (session == null || acceptedMeters > 0 || _nativeTracking) return false;
     try {
-      await _sessionStore.clear();
+      await _sessionStore.clearIfSession(session.id);
     } catch (error) {
       // Preserve the checkpoint and odometer projection if its durable delete
       // cannot be confirmed. A later retry is safer than inventing a clean
@@ -2369,7 +2470,7 @@ class TripTrackingController extends ChangeNotifier {
       return null;
     }
     try {
-      await _sessionStore.clear();
+      await _sessionStore.clearIfSession(session.id);
     } catch (error) {
       // The review is already durable. Clear the in-memory trip regardless so
       // it cannot be finished twice; restore will treat the review as

@@ -45,10 +45,10 @@ void main() {
         TripTrackingProfile.lowSpeedEquipment,
       );
       expect(store.activeSession?.engineSnapshot.totalAcceptedMeters, 804.672);
-      expect(store.activeSession?.schemaVersion, 1);
+      expect(store.activeSession?.schemaVersion, 2);
       expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isTrue);
-      expect(store.activeSession?.nativeSampling?.interval.inSeconds, 8);
+      expect(store.activeSession?.nativeSampling?.interval.inSeconds, 15);
       expect(store.activeSession?.samplingCeiling?.interval.inSeconds, 15);
       expect(store.activeSession?.adaptiveSamplingEnabled, isTrue);
       expect(store.activeSession?.lowBatteryProtectionEnabled, isFalse);
@@ -60,6 +60,107 @@ void main() {
       expect(store.activeSession, isNull);
     },
   );
+
+  test('active claim is atomic and records its durable audit event', () async {
+    final store = TripTrackingSessionStore.memory();
+    final started = DateTime.utc(2026, 7, 20, 12);
+    TripTrackingSessionRecord candidate(String id) => TripTrackingSessionRecord(
+      id: id,
+      vehicleId: 'vehicle_1',
+      profileId: 'profile_1',
+      startingOdometer: 1000,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: started,
+      updatedAt: started,
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final results = await Future.wait([
+      store.claimActive(candidate('trip_first')),
+      store.claimActive(candidate('trip_second')),
+    ]);
+
+    expect(
+      results.where(
+        (result) => result.status == TripTrackingSessionClaimStatus.claimed,
+      ),
+      hasLength(1),
+    );
+    final active = store.activeSession!;
+    expect(active.revision, 1);
+    expect(active.lastEventSequence, 1);
+    final events = store.transitionEventsFor(active.id);
+    expect(events, hasLength(1));
+    expect(events.single.previousState, TripTrackingSessionLifecycleState.idle);
+    expect(events.single.newState, TripTrackingSessionLifecycleState.preparing);
+    expect(events.single.profileId, 'profile_1');
+    expect(events.single.accepted, isTrue);
+  });
+
+  test('illegal transition preserves distance and records rejection', () async {
+    final store = TripTrackingSessionStore.memory();
+    final started = DateTime.utc(2026, 7, 20, 12);
+    final claim = await store.claimActive(
+      TripTrackingSessionRecord(
+        id: 'trip_illegal_transition',
+        vehicleId: 'vehicle_1',
+        profileId: 'profile_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: started,
+        updatedAt: started,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 321,
+          walkingReviewSuggested: false,
+        ),
+      ),
+    );
+
+    final result = await store.commitTransition(
+      sessionId: claim.session!.id,
+      expectedRevision: claim.session!.revision,
+      nextState: TripTrackingSessionLifecycleState.completed,
+      eventTimestamp: started.add(const Duration(seconds: 1)),
+    );
+
+    expect(result.accepted, isFalse);
+    expect(
+      result.session.lifecycleState,
+      TripTrackingSessionLifecycleState.preparing,
+    );
+    expect(result.session.engineSnapshot.totalAcceptedMeters, 321);
+    expect(result.session.revision, 2);
+    expect(result.event.reasonCode, 'illegal_transition_rejected');
+    expect(result.event.accepted, isFalse);
+  });
+
+  test('schema one active record migrates deterministically to schema two', () {
+    final migrated = TripTrackingSessionRecord.fromMap({
+      'schemaVersion': 1,
+      'id': 'trip_legacy',
+      'vehicleId': 'vehicle_1',
+      'startingOdometer': 1000,
+      'profile': 'roadVehicle',
+      'startedAt': DateTime.utc(2026, 7, 20, 12).toIso8601String(),
+      'updatedAt': DateTime.utc(2026, 7, 20, 12, 1).toIso8601String(),
+      'engineSnapshot': const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ).toMap(),
+    });
+
+    expect(migrated.schemaVersion, 2);
+    expect(migrated.profileId, 'legacy-local-profile');
+    expect(migrated.revision, 0);
+    expect(migrated.hasValidTimeline, isTrue);
+    expect(
+      TripTrackingSessionRecord.fromMap(migrated.toMap()).toMap(),
+      migrated.toMap(),
+    );
+  });
 
   test('unknown persisted trip profiles are marked invalid', () {
     final session = TripTrackingSessionRecord.fromMap({
@@ -560,7 +661,7 @@ void main() {
       'engineSnapshot': {'totalAcceptedMeters': 0},
     });
 
-    expect(session.schemaVersion, 1);
+    expect(session.schemaVersion, 2);
     expect(session.hasValidTimeline, isFalse);
     expect(session.engineSnapshot.schemaVersion, 1);
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
@@ -703,7 +804,7 @@ void main() {
       'schemaVersion': double.infinity,
     });
 
-    expect(session.schemaVersion, 1);
+    expect(session.schemaVersion, 2);
     expect(review.schemaVersion, 1);
     expect(session.hasValidTimeline, isFalse);
     expect(review.hasValidTimeline, isFalse);

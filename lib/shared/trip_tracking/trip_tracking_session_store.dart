@@ -1,7 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
+import 'trip_tracking_lifecycle_event.dart';
 import 'trip_tracking_models.dart';
+import 'trip_tracking_recovery_diagnostic.dart';
+import 'trip_tracking_session_snapshot.dart';
+import 'trip_tracking_state_machine.dart';
 
 typedef TripTrackingSessionStorageCheck = Future<AppStorageCheck> Function();
 
@@ -14,6 +18,9 @@ class TripTrackingSessionRecord {
     required this.startedAt,
     required this.updatedAt,
     required this.engineSnapshot,
+    this.profileId = 'legacy-local-profile',
+    this.revision = 0,
+    this.lastEventSequence = 0,
     this.advisories = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.preparing,
     this.healthState = TripTrackingHealthState.healthy,
@@ -26,11 +33,14 @@ class TripTrackingSessionRecord {
     this.lowBatteryOverrideEnabled = false,
     this.lowBatteryWarningDismissed = false,
     this.hasValidTimeline = true,
-    this.schemaVersion = 1,
+    this.schemaVersion = 2,
   });
 
   final String id;
   final String vehicleId;
+  final String profileId;
+  final int revision;
+  final int lastEventSequence;
   final int startingOdometer;
   final TripTrackingProfile profile;
   final DateTime startedAt;
@@ -61,6 +71,9 @@ class TripTrackingSessionRecord {
   final int schemaVersion;
 
   TripTrackingSessionRecord copyWith({
+    String? profileId,
+    int? revision,
+    int? lastEventSequence,
     DateTime? updatedAt,
     TripTrackingEngineSnapshot? engineSnapshot,
     List<TripTrackingAdvisoryEvent>? advisories,
@@ -91,6 +104,9 @@ class TripTrackingSessionRecord {
     return TripTrackingSessionRecord(
       id: id,
       vehicleId: vehicleId,
+      profileId: profileId ?? this.profileId,
+      revision: revision ?? this.revision,
+      lastEventSequence: lastEventSequence ?? this.lastEventSequence,
       startingOdometer: startingOdometer,
       profile: profile,
       startedAt: startedAt,
@@ -121,6 +137,9 @@ class TripTrackingSessionRecord {
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
     'vehicleId': _safeIdentifier(vehicleId),
+    'profileId': _safeIdentifier(profileId),
+    'revision': revision,
+    'lastEventSequence': lastEventSequence,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
     'startedAt': startedAt.toIso8601String(),
@@ -168,6 +187,18 @@ class TripTrackingSessionRecord {
     );
     final safeId = _safeIdentifier(map['id']);
     final safeVehicleId = _safeIdentifier(map['vehicleId']);
+    final sourceSchemaVersion = _sessionSchemaVersion(map['schemaVersion']);
+    final safeProfileId = sourceSchemaVersion == 1
+        ? 'legacy-local-profile'
+        : _safeIdentifier(map['profileId']);
+    final revision = map['revision'] is int && (map['revision'] as int) >= 0
+        ? map['revision'] as int
+        : 0;
+    final lastEventSequence =
+        map['lastEventSequence'] is int &&
+            (map['lastEventSequence'] as int) >= 0
+        ? map['lastEventSequence'] as int
+        : 0;
     final safeProfile = TripTrackingProfile.values.firstWhere(
       (value) => value.name == map['profile'],
       orElse: () => TripTrackingProfile.roadVehicle,
@@ -182,6 +213,9 @@ class TripTrackingSessionRecord {
     return TripTrackingSessionRecord(
       id: safeId,
       vehicleId: safeVehicleId,
+      profileId: safeProfileId,
+      revision: revision,
+      lastEventSequence: lastEventSequence,
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
       profile: safeProfile,
       startedAt: safeStartedAt,
@@ -224,11 +258,13 @@ class TripTrackingSessionRecord {
           updatedAt != null &&
           !updatedAt.isBefore(startedAt) &&
           hasSafeIdentity &&
+          _isSafeStoreIdentifierValue(safeProfileId) &&
+          revision >= lastEventSequence &&
           hasValidProfile &&
           hasValidLifecycleState &&
           hasValidHealthState &&
           hasSupportedSchemaVersion,
-      schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
+      schemaVersion: sourceSchemaVersion == 1 ? 2 : sourceSchemaVersion,
     );
   }
 }
@@ -629,7 +665,7 @@ int _sessionSchemaVersion(Object? value) {
 bool _hasSupportedSessionSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 1;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 2;
 }
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
@@ -795,6 +831,39 @@ bool _isSafePendingActivity(
       const Duration(seconds: 90);
 }
 
+enum TripTrackingSessionClaimStatus { claimed, existing, corrupt }
+
+class TripTrackingSessionClaimResult {
+  const TripTrackingSessionClaimResult(this.status, {this.session});
+
+  final TripTrackingSessionClaimStatus status;
+  final TripTrackingSessionRecord? session;
+}
+
+class TripTrackingTransitionCommitResult {
+  const TripTrackingTransitionCommitResult({
+    required this.accepted,
+    required this.session,
+    required this.event,
+  });
+
+  final bool accepted;
+  final TripTrackingSessionRecord session;
+  final TripTrackingLifecycleEvent event;
+}
+
+class TripTrackingSessionRecoveryResult {
+  const TripTrackingSessionRecoveryResult({
+    required this.session,
+    required this.usedFallback,
+    this.diagnostic,
+  });
+
+  final TripTrackingSessionRecord? session;
+  final bool usedFallback;
+  final TripTrackingRecoveryDiagnostic? diagnostic;
+}
+
 class TripTrackingSessionStore {
   TripTrackingSessionStore._(
     this._box, {
@@ -807,15 +876,26 @@ class TripTrackingSessionStore {
 
   static const boxName = 'active_gps_trip_tracking_session';
   static const _activeSessionKey = 'activeSession';
+  static const _snapshotAKey = 'activeSnapshot:a';
+  static const _snapshotBKey = 'activeSnapshot:b';
+  static const _snapshotHeadKey = 'activeSnapshot:head';
   static const _reviewPrefix = 'review:';
   static const _pendingPrefix = 'pending:';
+  static const _transitionPrefix = 'transition:';
+  static const _recoveryDiagnosticPrefix = 'recoveryDiagnostic:';
+  static Future<void> _sharedWriteTail = Future<void>.value();
 
   final Box<dynamic>? _box;
   TripTrackingSessionRecord? _memorySession;
+  Map<String, Object?>? _memorySnapshotA;
+  Map<String, Object?>? _memorySnapshotB;
+  int _memorySnapshotHead = 0;
   final Map<String, TripTrackingReviewRecord> _memoryReviews = {};
   final Map<String, TripTrackingPendingSample> _memoryPending = {};
+  final Map<String, TripTrackingLifecycleEvent> _memoryTransitions = {};
+  final Map<String, TripTrackingRecoveryDiagnostic> _memoryRecoveryDiagnostics =
+      {};
   final TripTrackingSessionStorageCheck? _storageCheck;
-  Future<void> _writeTail = Future<void>.value();
 
   static Future<TripTrackingSessionStore> create({
     TripTrackingSessionStorageCheck? storageCheck,
@@ -825,11 +905,205 @@ class TripTrackingSessionStore {
   }
 
   TripTrackingSessionRecord? get activeSession {
+    final snapshots = _validSnapshots();
+    if (snapshots.isNotEmpty) return snapshots.first.session;
     final value = _box == null ? _memorySession : _box.get(_activeSessionKey);
-    if (value is TripTrackingSessionRecord) return value;
-    if (value is Map) return TripTrackingSessionRecord.fromMap(value);
-    return null;
+    return _validSessionFromValue(value);
   }
+
+  List<TripTrackingRecoveryDiagnostic> get recoveryDiagnostics {
+    final diagnostics = _box == null
+        ? _memoryRecoveryDiagnostics.values.toList()
+        : _box.keys
+              .whereType<String>()
+              .where((key) => key.startsWith(_recoveryDiagnosticPrefix))
+              .map((key) => _box.get(key))
+              .whereType<Map>()
+              .map(TripTrackingRecoveryDiagnostic.tryFromMap)
+              .whereType<TripTrackingRecoveryDiagnostic>()
+              .toList();
+    diagnostics.sort((a, b) => a.recordedAtUtc.compareTo(b.recordedAtUtc));
+    return diagnostics;
+  }
+
+  Future<TripTrackingSessionRecoveryResult>
+  recoverActive() => _enqueue(() async {
+    final snapshots = _validSnapshots();
+    final rawHead = _box == null
+        ? _memorySnapshotHead
+        : _box.get(_snapshotHeadKey);
+    final expectedGeneration = rawHead is int && rawHead >= 0 ? rawHead : 0;
+    final selected = snapshots.isEmpty ? null : snapshots.first;
+    final legacy = _validSessionFromValue(
+      _box == null ? _memorySession : _box.get(_activeSessionKey),
+    );
+    final session = selected?.session ?? legacy;
+    final restoredGeneration = selected?.generation ?? 0;
+    final usedFallback =
+        session != null &&
+        ((expectedGeneration > restoredGeneration) ||
+            (selected == null && _hasRawActiveEvidence));
+    TripTrackingRecoveryDiagnostic? diagnostic;
+    if (usedFallback) {
+      diagnostic = TripTrackingRecoveryDiagnostic(
+        code: 'corrupt_latest_snapshot_fallback',
+        recordedAtUtc: DateTime.now().toUtc(),
+        expectedGeneration: expectedGeneration,
+        restoredGeneration: restoredGeneration,
+      );
+      final safeSessionId = session.id;
+      final key =
+          '$_recoveryDiagnosticPrefix$safeSessionId:$expectedGeneration:$restoredGeneration';
+      if (_box == null) {
+        _memoryRecoveryDiagnostics[key] = diagnostic;
+      } else {
+        await _box.put(key, diagnostic.toMap());
+      }
+    }
+    return TripTrackingSessionRecoveryResult(
+      session: session,
+      usedFallback: usedFallback,
+      diagnostic: diagnostic,
+    );
+  });
+
+  List<TripTrackingLifecycleEvent> transitionEventsFor(String sessionId) {
+    if (!_isSafeStoreIdentifier(sessionId)) return const [];
+    final prefix = '$_transitionPrefix$sessionId:';
+    final events = _box == null
+        ? _memoryTransitions.entries
+              .where((entry) => entry.key.startsWith(prefix))
+              .map((entry) => entry.value)
+              .toList()
+        : _box.keys
+              .whereType<String>()
+              .where((key) => key.startsWith(prefix))
+              .map((key) => _box.get(key))
+              .whereType<Map>()
+              .map(TripTrackingLifecycleEvent.tryFromMap)
+              .whereType<TripTrackingLifecycleEvent>()
+              .toList();
+    events.sort((a, b) => a.sequenceNumber.compareTo(b.sequenceNumber));
+    return events;
+  }
+
+  Future<TripTrackingSessionClaimResult> claimActive(
+    TripTrackingSessionRecord candidate, {
+    String reasonCode = 'manual_start_requested',
+    String initiatingSource = 'user',
+    String confidenceState = 'unknown',
+    String permissionState = 'unknown',
+    String trackingQualityMode = 'preparing',
+  }) => _enqueue(() async {
+    _validateActiveSessionRecord(candidate);
+    final existing = activeSession;
+    if (existing != null || _hasRawActiveEvidence) {
+      return TripTrackingSessionClaimResult(
+        existing == null
+            ? TripTrackingSessionClaimStatus.corrupt
+            : TripTrackingSessionClaimStatus.existing,
+        session: existing,
+      );
+    }
+    if (_storageCheck != null) await _ensureStorageForWrite();
+    final claimed = candidate.copyWith(revision: 1, lastEventSequence: 1);
+    final event = TripTrackingLifecycleEvent(
+      sessionId: claimed.id,
+      previousState: TripTrackingSessionLifecycleState.idle,
+      newState: claimed.lifecycleState,
+      eventTimestampUtc: claimed.updatedAt.toUtc(),
+      sequenceNumber: 1,
+      reasonCode: reasonCode,
+      initiatingSource: initiatingSource,
+      vehicleId: claimed.vehicleId,
+      profileId: claimed.profileId,
+      revision: 1,
+      confidenceState: confidenceState,
+      permissionState: permissionState,
+      trackingQualityMode: trackingQualityMode,
+      accepted: true,
+    );
+    final eventKey = _transitionKey(claimed.id, event.sequenceNumber);
+    if (_box == null) {
+      _writeMemorySnapshot(claimed);
+      _memoryTransitions[eventKey] = event;
+    } else {
+      await _box.putAll({
+        ..._activeSnapshotEntries(claimed),
+        eventKey: event.toMap(),
+      });
+    }
+    return TripTrackingSessionClaimResult(
+      TripTrackingSessionClaimStatus.claimed,
+      session: claimed,
+    );
+  });
+
+  Future<TripTrackingTransitionCommitResult> commitTransition({
+    required String sessionId,
+    required int expectedRevision,
+    required TripTrackingSessionLifecycleState nextState,
+    required DateTime eventTimestamp,
+    TripTrackingHealthState? healthState,
+    String reasonCode = 'lifecycle_condition_changed',
+    String initiatingSource = 'coordinator',
+    String confidenceState = 'unknown',
+    String permissionState = 'unknown',
+    String? trackingQualityMode,
+  }) => _enqueue(() async {
+    final current = activeSession;
+    if (current == null || !current.hasValidTimeline) {
+      throw StateError('No valid active GPS session can accept a transition.');
+    }
+    if (current.id != sessionId || current.revision != expectedRevision) {
+      throw StateError('The active GPS session revision changed.');
+    }
+    if (_storageCheck != null) await _ensureStorageForWrite();
+    final accepted = TripTrackingSessionStateMachine.canTransition(
+      current.lifecycleState,
+      nextState,
+    );
+    final revision = current.revision + 1;
+    final sequence = current.lastEventSequence + 1;
+    final next = current.copyWith(
+      updatedAt: eventTimestamp,
+      lifecycleState: accepted ? nextState : current.lifecycleState,
+      healthState: accepted ? healthState : current.healthState,
+      revision: revision,
+      lastEventSequence: sequence,
+    );
+    final event = TripTrackingLifecycleEvent(
+      sessionId: current.id,
+      previousState: current.lifecycleState,
+      newState: nextState,
+      eventTimestampUtc: eventTimestamp.toUtc(),
+      sequenceNumber: sequence,
+      reasonCode: accepted ? reasonCode : 'illegal_transition_rejected',
+      initiatingSource: initiatingSource,
+      vehicleId: current.vehicleId,
+      profileId: current.profileId,
+      revision: revision,
+      confidenceState: confidenceState,
+      permissionState: permissionState,
+      trackingQualityMode: trackingQualityMode ?? next.lifecycleState.name,
+      accepted: accepted,
+    );
+    final eventKey = _transitionKey(current.id, sequence);
+    if (_box == null) {
+      _writeMemorySnapshot(next);
+      _memoryTransitions[eventKey] = event;
+    } else {
+      await _box.putAll({
+        ..._activeSnapshotEntries(next),
+        eventKey: event.toMap(),
+      });
+    }
+    return TripTrackingTransitionCommitResult(
+      accepted: accepted,
+      session: next,
+      event: event,
+    );
+  });
 
   List<TripTrackingReviewRecord> get pendingReviews {
     if (_box == null) {
@@ -875,46 +1149,64 @@ class TripTrackingSessionStore {
   }
 
   Future<void> save(TripTrackingSessionRecord session) => _enqueue(() async {
-    if (!_isSafeStoreIdentifier(session.id)) {
-      throw ArgumentError.value(
-        session.id,
-        'session.id',
-        'Active GPS sessions require a non-empty safe trip id.',
-      );
-    }
-    if (!_isSafeStoreIdentifier(session.vehicleId)) {
-      throw ArgumentError.value(
-        session.vehicleId,
-        'session.vehicleId',
-        'Active GPS sessions require a non-empty safe vehicle id.',
-      );
-    }
-    if (!session.hasValidTimeline ||
-        session.updatedAt.isBefore(session.startedAt)) {
-      throw ArgumentError.value(
-        session.id,
-        'session',
-        'Active GPS sessions require a sane timeline and known profile.',
-      );
-    }
-    if (session.startingOdometer < 0) {
-      throw ArgumentError.value(
-        session.startingOdometer,
-        'session.startingOdometer',
-        'Active GPS sessions require a non-negative starting odometer.',
-      );
-    }
+    _validateActiveSessionRecord(session);
     if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
-      _memorySession = session;
+      _writeMemorySnapshot(session);
     } else {
-      await _box.put(_activeSessionKey, session.toMap());
+      await _box.putAll(_activeSnapshotEntries(session));
     }
+  });
+
+  Future<TripTrackingSessionRecord> checkpoint(
+    TripTrackingSessionRecord session, {
+    required int expectedRevision,
+  }) => _enqueue(() async {
+    _validateActiveSessionRecord(session);
+    final current = activeSession;
+    if (current == null ||
+        current.id != session.id ||
+        current.revision != expectedRevision) {
+      throw StateError('The active GPS session revision changed.');
+    }
+    if (_storageCheck != null) await _ensureStorageForWrite();
+    final next = session.copyWith(revision: current.revision + 1);
+    if (_box == null) {
+      _writeMemorySnapshot(next);
+    } else {
+      await _box.putAll(_activeSnapshotEntries(next));
+    }
+    return next;
   });
 
   Future<void> clear() => _enqueue(() async {
     _memorySession = null;
-    await _box?.delete(_activeSessionKey);
+    _memorySnapshotA = null;
+    _memorySnapshotB = null;
+    _memorySnapshotHead = 0;
+    await _box?.deleteAll([
+      _activeSessionKey,
+      _snapshotAKey,
+      _snapshotBKey,
+      _snapshotHeadKey,
+    ]);
+  });
+
+  Future<bool> clearIfSession(String sessionId) => _enqueue(() async {
+    if (!_isSafeStoreIdentifier(sessionId)) return false;
+    final current = activeSession;
+    if (current == null || current.id != sessionId) return false;
+    _memorySession = null;
+    _memorySnapshotA = null;
+    _memorySnapshotB = null;
+    _memorySnapshotHead = 0;
+    await _box?.deleteAll([
+      _activeSessionKey,
+      _snapshotAKey,
+      _snapshotBKey,
+      _snapshotHeadKey,
+    ]);
+    return true;
   });
 
   TripTrackingPendingSample? pendingSampleFor(String sessionId) {
@@ -1012,6 +1304,84 @@ class TripTrackingSessionStore {
         }
       });
 
+  bool get _hasRawActiveEvidence => _box == null
+      ? _memorySession != null ||
+            _memorySnapshotA != null ||
+            _memorySnapshotB != null
+      : _box.get(_activeSessionKey) != null ||
+            _box.get(_snapshotAKey) != null ||
+            _box.get(_snapshotBKey) != null;
+
+  List<_RecoveredSessionSnapshot> _validSnapshots() {
+    final rawSnapshots = _box == null
+        ? <Object?>[_memorySnapshotA, _memorySnapshotB]
+        : <Object?>[_box.get(_snapshotAKey), _box.get(_snapshotBKey)];
+    final recovered = <_RecoveredSessionSnapshot>[];
+    for (final raw in rawSnapshots) {
+      if (raw is! Map) continue;
+      final envelope = TripTrackingSessionSnapshotEnvelope.tryFromMap(raw);
+      if (envelope == null) continue;
+      final session = _validSessionFromValue(envelope.payload);
+      if (session == null || session.id != envelope.sessionId) continue;
+      recovered.add(
+        _RecoveredSessionSnapshot(
+          generation: envelope.generation,
+          session: session,
+        ),
+      );
+    }
+    recovered.sort((a, b) => b.generation.compareTo(a.generation));
+    return recovered;
+  }
+
+  int _nextSnapshotGeneration() {
+    final validGeneration = _validSnapshots().fold<int>(
+      0,
+      (highest, snapshot) =>
+          snapshot.generation > highest ? snapshot.generation : highest,
+    );
+    final rawHead = _box == null
+        ? _memorySnapshotHead
+        : _box.get(_snapshotHeadKey);
+    final safeHead = rawHead is int && rawHead >= 0 && rawHead < 0x7fffffff
+        ? rawHead
+        : 0;
+    final current = safeHead > validGeneration ? safeHead : validGeneration;
+    return current + 1;
+  }
+
+  Map<String, Object?> _activeSnapshotEntries(
+    TripTrackingSessionRecord session,
+  ) {
+    final generation = _nextSnapshotGeneration();
+    final envelope = TripTrackingSessionSnapshotEnvelope.create(
+      generation: generation,
+      sessionId: session.id,
+      payload: session.toMap(),
+    );
+    return {
+      _activeSessionKey: session.toMap(),
+      generation.isOdd ? _snapshotAKey : _snapshotBKey: envelope.toMap(),
+      _snapshotHeadKey: generation,
+    };
+  }
+
+  void _writeMemorySnapshot(TripTrackingSessionRecord session) {
+    final generation = _nextSnapshotGeneration();
+    final envelope = TripTrackingSessionSnapshotEnvelope.create(
+      generation: generation,
+      sessionId: session.id,
+      payload: session.toMap(),
+    ).toMap();
+    _memorySession = session;
+    _memorySnapshotHead = generation;
+    if (generation.isOdd) {
+      _memorySnapshotA = envelope;
+    } else {
+      _memorySnapshotB = envelope;
+    }
+  }
+
   Future<void> _ensureStorageForWrite() async {
     final check = _storageCheck;
     if (check == null) return;
@@ -1020,14 +1390,63 @@ class TripTrackingSessionStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
-    if (_box == null && _storageCheck == null) return operation();
-    final next = _writeTail.then((_) => operation());
-    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    final next = _sharedWriteTail.then((_) => operation());
+    _sharedWriteTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
 
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.mileageTracking);
+}
+
+class _RecoveredSessionSnapshot {
+  const _RecoveredSessionSnapshot({
+    required this.generation,
+    required this.session,
+  });
+
+  final int generation;
+  final TripTrackingSessionRecord session;
+}
+
+TripTrackingSessionRecord? _validSessionFromValue(Object? value) {
+  final session = switch (value) {
+    TripTrackingSessionRecord record => record,
+    Map map => TripTrackingSessionRecord.fromMap(map),
+    _ => null,
+  };
+  return session?.hasValidTimeline == true ? session : null;
+}
+
+String _transitionKey(String sessionId, int sequence) =>
+    '${TripTrackingSessionStore._transitionPrefix}$sessionId:${sequence.toString().padLeft(20, '0')}';
+
+void _validateActiveSessionRecord(TripTrackingSessionRecord session) {
+  if (!_isSafeStoreIdentifier(session.id) ||
+      !_isSafeStoreIdentifier(session.vehicleId) ||
+      !_isSafeStoreIdentifier(session.profileId)) {
+    throw ArgumentError.value(
+      session.id,
+      'session',
+      'Active GPS sessions require safe session, vehicle, and profile ids.',
+    );
+  }
+  if (!session.hasValidTimeline ||
+      session.updatedAt.isBefore(session.startedAt) ||
+      session.revision < session.lastEventSequence) {
+    throw ArgumentError.value(
+      session.id,
+      'session',
+      'Active GPS sessions require a sane timeline and revision.',
+    );
+  }
+  if (session.startingOdometer < 0) {
+    throw ArgumentError.value(
+      session.startingOdometer,
+      'session.startingOdometer',
+      'Active GPS sessions require a non-negative starting odometer.',
+    );
+  }
 }
 
 bool _isSafePendingSessionId(Object? value) =>
