@@ -65,6 +65,14 @@ void main() {
       }),
       isNull,
     );
+    expect(
+      TripActivityObservation.tryFromMap({
+        'activity': 'walking',
+        'confidence': 90.5,
+        'recordedAt': 1783857600000,
+      }),
+      isNull,
+    );
   });
 
   test('malformed native speed accuracy fails closed', () {
