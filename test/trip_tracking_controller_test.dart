@@ -2221,6 +2221,47 @@ void main() {
     },
   );
 
+  test(
+    'motion-assistance loss stops GPS when withdrawn sensor consent cannot persist',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final store = _FailingNextSessionSaveStore();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_activity_assistance_persist_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+      store.failNextSessionSave = true;
+
+      native.addPlatformError(
+        code: 'trip_tracking_activity_unavailable',
+        message: 'Motion permission was removed.',
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(controller.platformError, contains('could not be saved locally'));
+    },
+  );
+
   test('duplicate fatal platform errors issue one native stop', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(
@@ -6143,6 +6184,21 @@ class _FailingAfterInitialSessionSaveStore extends TripTrackingSessionStore {
   Future<void> save(TripTrackingSessionRecord session) async {
     _sessionSaves += 1;
     if (_sessionSaves > _failAfterSaves) {
+      throw StateError('local session checkpoint failed');
+    }
+    return super.save(session);
+  }
+}
+
+class _FailingNextSessionSaveStore extends TripTrackingSessionStore {
+  _FailingNextSessionSaveStore() : super.memory();
+
+  var failNextSessionSave = false;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) async {
+    if (failNextSessionSave) {
+      failNextSessionSave = false;
       throw StateError('local session checkpoint failed');
     }
     return super.save(session);

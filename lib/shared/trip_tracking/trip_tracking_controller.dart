@@ -1532,10 +1532,18 @@ class TripTrackingController extends ChangeNotifier {
               // TripLog, or the authoritative odometer workflow.
               _latestActivity = null;
               _activityRecognitionEnabled = false;
-              await _persistNativeCollectionPreferences(
+              final persisted = await _persistNativeCollectionPreferences(
                 allowBackground: _backgroundTrackingAllowed,
                 activityRecognitionEnabled: false,
               );
+              if (!persisted) {
+                _platformError =
+                    'Motion activity became unavailable, and GPS tracking stopped because that privacy change could not be saved locally.';
+                // This handler is executing inside the platform event queue.
+                // Stopping drains that queue, so schedule it after this event
+                // completes instead of awaiting a self-draining deadlock.
+                unawaited(_stopNativeTracking());
+              }
               notifyListeners();
             } else if (_nativeTracking &&
                 TripTrackingNativeErrorPolicy.requiresRecovery(
