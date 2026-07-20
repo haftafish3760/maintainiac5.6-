@@ -65,22 +65,26 @@ class TripTrackingEngine {
     TripTrackingProfile profile = TripTrackingProfile.roadVehicle,
   }) {
     final engine = TripTrackingEngine(policy: policy, profile: profile);
-    engine._lastAccepted = snapshot.lastAccepted;
-    engine._lastObservedAt = snapshot.lastObservedAt;
+    // This public constructor is also a recovery boundary. Normalize direct
+    // in-memory snapshots through the same versioned rules used for persisted
+    // snapshots so malformed anchors or timestamps cannot poison a resumed
+    // trip merely by bypassing map decoding.
+    final recoveredSnapshot = TripTrackingEngineSnapshot.fromMap(
+      snapshot.toMap(),
+    );
+    engine._lastAccepted = recoveredSnapshot.lastAccepted;
+    engine._lastObservedAt = recoveredSnapshot.lastObservedAt;
     engine._lastContinuousAt =
-        snapshot.lastContinuousAt ?? snapshot.lastAccepted?.recordedAt;
-    engine._totalAcceptedMeters =
-        snapshot.totalAcceptedMeters.isFinite &&
-            snapshot.totalAcceptedMeters >= 0
-        ? snapshot.totalAcceptedMeters
-        : 0;
+        recoveredSnapshot.lastContinuousAt ??
+        recoveredSnapshot.lastAccepted?.recordedAt;
+    engine._totalAcceptedMeters = recoveredSnapshot.totalAcceptedMeters;
     final recoveredWalkingEvidence = sanitizeRecoveredWalkingEvidence(
-      snapshot.walkingEvidence,
+      recoveredSnapshot.walkingEvidence,
       lastObservedAt: engine._lastObservedAt,
     );
     final recoveredStationaryStartedAt = _safeRecoveredStationaryStartedAt(
-      snapshot.stationaryStartedAt,
-      vehicleMovementObserved: snapshot.vehicleMovementObserved,
+      recoveredSnapshot.stationaryStartedAt,
+      vehicleMovementObserved: recoveredSnapshot.vehicleMovementObserved,
       lastObservedAt: engine._lastObservedAt,
     );
     if (TripTrackingProfileStrategy.forProfile(
@@ -90,19 +94,19 @@ class TripTrackingEngine {
       engine._walkingEvidence.addAll(recoveredWalkingEvidence);
       final hasRecoveredWalkingEvidence = recoveredWalkingEvidence.isNotEmpty;
       engine._walkingReviewSuggested =
-          snapshot.walkingReviewSuggested &&
-          snapshot.vehicleMovementObserved &&
+          recoveredSnapshot.walkingReviewSuggested &&
+          recoveredSnapshot.vehicleMovementObserved &&
           hasRecoveredWalkingEvidence;
-      engine._motionState = switch (snapshot.motionState) {
-        TripMotionState.moving when snapshot.vehicleMovementObserved =>
+      engine._motionState = switch (recoveredSnapshot.motionState) {
+        TripMotionState.moving when recoveredSnapshot.vehicleMovementObserved =>
           TripMotionState.moving,
         TripMotionState.stopCandidate
-            when snapshot.vehicleMovementObserved &&
+            when recoveredSnapshot.vehicleMovementObserved &&
                 (recoveredStationaryStartedAt != null ||
                     hasRecoveredWalkingEvidence) =>
           TripMotionState.stopCandidate,
         TripMotionState.stopped
-            when snapshot.vehicleMovementObserved &&
+            when recoveredSnapshot.vehicleMovementObserved &&
                 hasRecoveredWalkingEvidence =>
           TripMotionState.stopped,
         _ => TripMotionState.unknown,
@@ -110,14 +114,14 @@ class TripTrackingEngine {
     } else {
       engine._walkingReviewSuggested = false;
       engine._motionState =
-          snapshot.motionState == TripMotionState.stopCandidate ||
-              snapshot.motionState == TripMotionState.stopped
+          recoveredSnapshot.motionState == TripMotionState.stopCandidate ||
+              recoveredSnapshot.motionState == TripMotionState.stopped
           ? TripMotionState.unknown
-          : snapshot.motionState;
+          : recoveredSnapshot.motionState;
     }
-    engine._vehicleMovementObserved = snapshot.vehicleMovementObserved;
+    engine._vehicleMovementObserved = recoveredSnapshot.vehicleMovementObserved;
     engine._stationaryStartedAt = recoveredStationaryStartedAt;
-    engine._diagnostics = snapshot.diagnostics;
+    engine._diagnostics = recoveredSnapshot.diagnostics;
     return engine;
   }
 

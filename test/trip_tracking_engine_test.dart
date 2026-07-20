@@ -1542,6 +1542,23 @@ void main() {
     expect(restored.motionState, TripMotionState.unknown);
   });
 
+  test('direct recovery input cannot poison the observed timestamp', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot(
+        lastAccepted: sample(-80, 0),
+        lastObservedAt: start.add(const Duration(days: 30)),
+        totalAcceptedMeters: 17,
+        walkingReviewSuggested: false,
+        vehicleMovementObserved: true,
+      ),
+    );
+
+    final decision = restored.ingest(sample(-79.9998, 20));
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(restored.totalAcceptedMeters, greaterThan(17));
+  });
+
   test('low-speed equipment restore ignores road walking-stop state', () {
     final restored = TripTrackingEngine.fromSnapshot(
       TripTrackingEngineSnapshot.fromMap({
