@@ -3671,6 +3671,75 @@ void main() {
   );
 
   test(
+    'native walking evidence suggests a real stop without ending the trip',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_native_walking_stop_assistance',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.moving,
+        maxPumps: 48,
+      );
+
+      for (final seconds in [30, 45, 60]) {
+        native.addActivity(
+          TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 95,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          ),
+        );
+        native.addLocation(sample(-79.9997, seconds));
+      }
+      await drainNativeTripEventsUntil(
+        () => controller.needsWalkingReview,
+        maxPumps: 48,
+      );
+
+      expect(controller.motionState, TripMotionState.stopped);
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.automotive,
+          confidence: 95,
+          recordedAt: start.add(const Duration(seconds: 75)),
+        ),
+      );
+      native.addLocation(sample(-79.9994, 75, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.moving,
+        maxPumps: 48,
+      );
+
+      expect(controller.motionState, TripMotionState.moving);
+      expect(controller.isTracking, isTrue);
+    },
+  );
+
+  test(
     'disabling motion assistance updates the active native collector',
     () async {
       final native = _FakeTripTrackingPlatform(
