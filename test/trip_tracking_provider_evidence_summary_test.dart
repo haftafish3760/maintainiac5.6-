@@ -14,6 +14,7 @@ void main() {
           horizontalAccuracyMeters: 8,
           bearingDegrees: 91.5,
           speedMetersPerSecond: 12,
+          speedAccuracyMetersPerSecond: 2.5,
           mockedLocation: true,
         ).toEvidenceBoundarySummary(
           receivedAtUtc: recordedAt.add(const Duration(minutes: 1)),
@@ -31,6 +32,7 @@ void main() {
     expect(summary['poorGpsDaysExcludedFromCalibration'], isTrue);
     expect(summary['providerEvidenceCanCreateCalibration'], isFalse);
     expect(summary['hasBearing'], isTrue);
+    expect(summary['hasSpeedAccuracy'], isTrue);
     expect(summary['rawBearingIncluded'], isFalse);
     expect(summary['providerEvidenceCanApplyCalibration'], isFalse);
     expect(summary['canCreateOfficialMileage'], isFalse);
@@ -45,6 +47,7 @@ void main() {
     expect(summary['tokensIncluded'], isFalse);
     expect(summary.toString(), isNot(contains('35.123456')));
     expect(summary.toString(), isNot(contains('-80.123456')));
+    expect(summary.toString(), isNot(contains('2.5')));
   });
 
   test('malformed GPS evidence summaries fail into untrusted buckets', () {
