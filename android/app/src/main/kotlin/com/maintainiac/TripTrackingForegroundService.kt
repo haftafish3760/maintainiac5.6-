@@ -285,7 +285,10 @@ class TripTrackingForegroundService : Service() {
         if (stopForCriticalBatteryIfNeeded()) return
         if (stopForLocationServicesDisabledIfNeeded()) return
         val startedAtMillis = trackingStartedAtMillis ?: return
-        if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
+        if (!isRunning || !location.hasAccuracy() ||
+            !location.latitude.isFinite() || !location.longitude.isFinite() ||
+            location.latitude !in -90.0..90.0 ||
+            location.longitude !in -180.0..180.0) return
         val accuracyMeters = location.accuracy.toDouble()
         val reportedSpeed = if (location.hasSpeed()) location.speed.toDouble() else null
         val reportedSpeedAccuracy = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond.toDouble() else null

@@ -195,6 +195,8 @@ void main() {
     );
     expect(android, contains('location.time < startedAtMillis'));
     expect(android, contains('!accuracyMeters.isFinite()'));
+    expect(android, contains('location.latitude !in -90.0..90.0'));
+    expect(android, contains('location.longitude !in -180.0..180.0'));
     expect(android, contains('!reportedSpeed.isFinite()'));
     expect(
       android,
