@@ -46,6 +46,14 @@ void main() {
       }),
       throwsFormatException,
     );
+    expect(
+      () => TripTrackingFieldEvidence.fromMap({
+        'platform': 'ios',
+        'odometerMiles': 100000.1,
+        'filteredGpsMiles': 1.0,
+      }),
+      throwsFormatException,
+    );
   });
 
   test('field evidence rejects abbreviated coordinates and precise time', () {

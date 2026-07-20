@@ -1,4 +1,5 @@
 const _maxWalkingStopsPerRun = 10000;
+const _maxMilesPerEvidenceRecord = 100000.0;
 
 class TripTrackingFieldEvidence {
   const TripTrackingFieldEvidence({
@@ -58,6 +59,8 @@ class TripTrackingFieldEvidence {
         gps == null ||
         odometer < 0 ||
         gps < 0 ||
+        odometer > _maxMilesPerEvidenceRecord ||
+        gps > _maxMilesPerEvidenceRecord ||
         (map.containsKey('expectedWalkingStops') &&
             _nonNegativeInt(map['expectedWalkingStops']) == null) ||
         (map.containsKey('detectedWalkingStops') &&
