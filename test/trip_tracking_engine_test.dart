@@ -11,6 +11,7 @@ void main() {
     int seconds, {
     double accuracy = 5,
     double? speedMetersPerSecond,
+    double? speedAccuracyMetersPerSecond,
     int? monotonicElapsedNanos,
   }) => TripLocationSample(
     latitude: 35,
@@ -18,6 +19,7 @@ void main() {
     recordedAt: start.add(Duration(seconds: seconds)),
     horizontalAccuracyMeters: accuracy,
     speedMetersPerSecond: speedMetersPerSecond,
+    speedAccuracyMetersPerSecond: speedAccuracyMetersPerSecond,
     monotonicElapsedNanos: monotonicElapsedNanos,
   );
 
@@ -769,6 +771,35 @@ void main() {
       expect(resumed.addedMeters, greaterThan(75));
     },
   );
+
+  test('unreliable stationary speed cannot create a vehicle-only stop cue', () {
+    final engine = TripTrackingEngine(
+      profile: TripTrackingProfile.rideshareVehicle,
+      policy: const TripTrackingPolicy(
+        maximumTrustedReportedSpeedAccuracyMetersPerSecond: 2,
+      ),
+    );
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+
+    for (final seconds in const [30, 60, 90, 120]) {
+      final decision = engine.ingest(
+        sample(
+          -79.9997,
+          seconds,
+          speedMetersPerSecond: 0.2,
+          speedAccuracyMetersPerSecond: 20,
+        ),
+      );
+      expect(decision.disposition, TripSampleDisposition.rejectedDrift);
+      expect(engine.motionState, TripMotionState.moving);
+    }
+  });
 
   test('rejected jumps cannot accumulate walking stop evidence', () {
     final engine = TripTrackingEngine();

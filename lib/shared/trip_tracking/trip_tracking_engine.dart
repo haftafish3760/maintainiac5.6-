@@ -572,7 +572,7 @@ class TripTrackingEngine {
         disposition == TripSampleDisposition.acceptedDistance && !walking;
     final stationaryConflict =
         disposition == TripSampleDisposition.rejectedSpeedConflict &&
-        _isStationaryReportedSpeed(sample.speedMetersPerSecond) &&
+        _isStationaryReportedSpeed(_trustedReportedSpeed(sample)) &&
         !walking;
     if (automotive || credibleMovement) {
       if (credibleMovement && !_vehicleMovementObserved) {
@@ -655,7 +655,7 @@ class TripTrackingEngine {
 
   bool _hasVehicleOnlyStopCandidate(TripLocationSample sample) {
     final startedAt = _stationaryStartedAt;
-    final speedMps = sample.speedMetersPerSecond;
+    final speedMps = _trustedReportedSpeed(sample);
     if (startedAt == null ||
         speedMps == null ||
         sample.recordedAt.isBefore(startedAt)) {
