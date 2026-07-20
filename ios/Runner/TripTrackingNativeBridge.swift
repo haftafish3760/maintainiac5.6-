@@ -63,6 +63,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    // Toggling system Location Services can be reported alongside an
+    // authorization transition. Retire immediately instead of waiting for a
+    // timer or a future coordinate callback that may never arrive.
+    if tracking && stopForLocationServicesDisabledIfNeeded() { return }
     let authorization = authorizationMap()
     emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
     let state = authorization["state"] as? String

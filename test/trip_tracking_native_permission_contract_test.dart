@@ -370,6 +370,10 @@ void main() {
       contains('"status" to if (userPauseRequested) "paused" else "stopped"'),
     );
     expect(ios, contains('func locationManagerDidChangeAuthorization'));
+    expect(
+      ios,
+      contains('tracking && stopForLocationServicesDisabledIfNeeded()'),
+    );
     expect(ios, contains('let hasPreciseLocation'));
     expect(ios, contains('let canKeepBackgroundTracking'));
     expect(ios, contains('trip_tracking_background_location_denied'));
