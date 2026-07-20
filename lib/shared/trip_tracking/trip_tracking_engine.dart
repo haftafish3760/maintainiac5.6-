@@ -18,6 +18,8 @@ class TripTrackingEngine {
   TripLocationSample? _lastAccepted;
   DateTime? _lastObservedAt;
   DateTime? _lastContinuousAt;
+  int? _lastObservedMonotonicElapsedNanos;
+  int? _lastContinuousMonotonicElapsedNanos;
   final List<TripActivityObservation> _walkingEvidence = [];
   var _totalAcceptedMeters = 0.0;
   var _walkingReviewSuggested = false;
@@ -50,6 +52,8 @@ class TripTrackingEngine {
     lastAccepted: _lastAccepted,
     lastObservedAt: _lastObservedAt,
     lastContinuousAt: _lastContinuousAt,
+    lastObservedMonotonicElapsedNanos: _lastObservedMonotonicElapsedNanos,
+    lastContinuousMonotonicElapsedNanos: _lastContinuousMonotonicElapsedNanos,
     totalAcceptedMeters: _totalAcceptedMeters,
     walkingEvidence: List.unmodifiable(_walkingEvidence),
     walkingReviewSuggested: _walkingReviewSuggested,
@@ -77,6 +81,12 @@ class TripTrackingEngine {
     engine._lastContinuousAt =
         recoveredSnapshot.lastContinuousAt ??
         recoveredSnapshot.lastAccepted?.recordedAt;
+    engine._lastObservedMonotonicElapsedNanos =
+        recoveredSnapshot.lastObservedMonotonicElapsedNanos ??
+        recoveredSnapshot.lastAccepted?.monotonicElapsedNanos;
+    engine._lastContinuousMonotonicElapsedNanos =
+        recoveredSnapshot.lastContinuousMonotonicElapsedNanos ??
+        recoveredSnapshot.lastAccepted?.monotonicElapsedNanos;
     engine._totalAcceptedMeters = recoveredSnapshot.totalAcceptedMeters;
     final recoveredWalkingEvidence = sanitizeRecoveredWalkingEvidence(
       recoveredSnapshot.walkingEvidence,
@@ -153,11 +163,28 @@ class TripTrackingEngine {
       return _decision(TripSampleDisposition.rejectedMockLocation);
     }
     final lastObservedAt = _lastObservedAt;
+    final lastObservedMonotonicElapsedNanos =
+        _lastObservedMonotonicElapsedNanos;
     final lastContinuousAt = _lastContinuousAt;
-    if (lastObservedAt != null && !sample.recordedAt.isAfter(lastObservedAt)) {
+    final lastContinuousMonotonicElapsedNanos =
+        _lastContinuousMonotonicElapsedNanos;
+    final sampleMonotonicElapsedNanos = sample.monotonicElapsedNanos;
+    final monotonicIsNewer = _isMonotonicElapsedNanosNewer(
+      sampleMonotonicElapsedNanos,
+      lastObservedMonotonicElapsedNanos,
+    );
+    if (lastObservedAt != null &&
+        !sample.recordedAt.isAfter(lastObservedAt) &&
+        !monotonicIsNewer) {
+      return _decision(TripSampleDisposition.rejectedOutOfOrder);
+    }
+    if (lastObservedMonotonicElapsedNanos != null &&
+        sampleMonotonicElapsedNanos != null &&
+        !monotonicIsNewer) {
       return _decision(TripSampleDisposition.rejectedOutOfOrder);
     }
     _lastObservedAt = sample.recordedAt;
+    _lastObservedMonotonicElapsedNanos = sampleMonotonicElapsedNanos;
     if (sample.horizontalAccuracyMeters >
         _safePositiveDouble(
           policy.maximumHorizontalAccuracyMeters,
@@ -171,6 +198,7 @@ class TripTrackingEngine {
     // not move the vehicle-distance anchor. Keep ordering separate so rejected
     // poor-accuracy samples cannot make later stale data appear fresh.
     _lastContinuousAt = sample.recordedAt;
+    _lastContinuousMonotonicElapsedNanos = sampleMonotonicElapsedNanos;
 
     final lastAccepted = _lastAccepted;
     if (lastAccepted == null) {
@@ -182,9 +210,12 @@ class TripTrackingEngine {
       );
     }
 
-    final continuityElapsed = lastContinuousAt == null
-        ? null
-        : sample.recordedAt.difference(lastContinuousAt);
+    final continuityElapsed = _elapsedBetween(
+      earlierWallClock: lastContinuousAt,
+      laterWallClock: sample.recordedAt,
+      earlierMonotonicElapsedNanos: lastContinuousMonotonicElapsedNanos,
+      laterMonotonicElapsedNanos: sampleMonotonicElapsedNanos,
+    );
     if (continuityElapsed != null &&
         continuityElapsed >
             _safePositiveDuration(policy.maximumGap, _defaultGap)) {
@@ -196,9 +227,15 @@ class TripTrackingEngine {
       );
     }
 
-    final elapsed = sample.recordedAt.difference(lastAccepted.recordedAt);
+    final elapsed = _elapsedBetween(
+      earlierWallClock: lastAccepted.recordedAt,
+      laterWallClock: sample.recordedAt,
+      earlierMonotonicElapsedNanos: lastAccepted.monotonicElapsedNanos,
+      laterMonotonicElapsedNanos: sampleMonotonicElapsedNanos,
+    );
     final distance = _distanceMeters(lastAccepted, sample);
-    final seconds = elapsed.inMilliseconds / Duration.millisecondsPerSecond;
+    final seconds =
+        (elapsed?.inMilliseconds ?? 0) / Duration.millisecondsPerSecond;
     final impliedSpeed = seconds <= 0 ? double.infinity : distance / seconds;
     if (impliedSpeed >
         _safePositiveDouble(
@@ -236,7 +273,7 @@ class TripTrackingEngine {
     if (_reportedAccelerationExceedsLimit(
       previousReportedSpeed: lastAccepted.speedMetersPerSecond,
       reportedSpeed: reportedSpeed,
-      elapsed: elapsed,
+      elapsed: elapsed ?? Duration.zero,
     )) {
       // Preserve the fresh anchor so a rejected acceleration spike cannot
       // later bridge into a large false mileage segment.
@@ -447,6 +484,26 @@ class TripTrackingEngine {
     );
     return (reportedSpeed - previousReportedSpeed).abs() / seconds >
         maximumAcceleration;
+  }
+
+  static bool _isMonotonicElapsedNanosNewer(int? candidate, int? previous) =>
+      candidate != null && previous != null && candidate > previous;
+
+  static Duration? _elapsedBetween({
+    required DateTime? earlierWallClock,
+    required DateTime laterWallClock,
+    required int? earlierMonotonicElapsedNanos,
+    required int? laterMonotonicElapsedNanos,
+  }) {
+    if (earlierMonotonicElapsedNanos != null &&
+        laterMonotonicElapsedNanos != null) {
+      final nanos = laterMonotonicElapsedNanos - earlierMonotonicElapsedNanos;
+      if (nanos <= 0) return null;
+      return Duration(microseconds: nanos ~/ 1000);
+    }
+    return earlierWallClock == null
+        ? null
+        : laterWallClock.difference(earlierWallClock);
   }
 
   TripSampleDecision _finish(

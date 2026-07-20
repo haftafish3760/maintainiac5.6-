@@ -11,12 +11,14 @@ void main() {
     int seconds, {
     double accuracy = 5,
     double? speedMetersPerSecond,
+    int? monotonicElapsedNanos,
   }) => TripLocationSample(
     latitude: 35,
     longitude: longitude,
     recordedAt: start.add(Duration(seconds: seconds)),
     horizontalAccuracyMeters: accuracy,
     speedMetersPerSecond: speedMetersPerSecond,
+    monotonicElapsedNanos: monotonicElapsedNanos,
   );
 
   TripActivityObservation walking(int seconds, {int confidence = 90}) =>
@@ -683,6 +685,37 @@ void main() {
       TripSampleDisposition.rejectedOutOfOrder,
     );
     expect(engine.totalAcceptedMeters, total);
+  });
+
+  test('Android monotonic time survives a backward wall-clock adjustment', () {
+    final engine = TripTrackingEngine();
+
+    engine.ingest(sample(-80, 10, monotonicElapsedNanos: 10000000000));
+    final decision = engine.ingest(
+      sample(-79.9998, -50, monotonicElapsedNanos: 30000000000),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(engine.totalAcceptedMeters, greaterThan(0));
+  });
+
+  test('persisted Android monotonic time remains an ordering boundary', () {
+    final engine = TripTrackingEngine();
+    engine.ingest(sample(-80, 0, monotonicElapsedNanos: 20000000000));
+    final restored = TripTrackingEngine.fromSnapshot(engine.snapshot);
+
+    expect(
+      restored
+          .ingest(sample(-79.9998, -40, monotonicElapsedNanos: 40000000000))
+          .disposition,
+      TripSampleDisposition.acceptedDistance,
+    );
+    expect(
+      restored
+          .ingest(sample(-79.9996, 20, monotonicElapsedNanos: 30000000000))
+          .disposition,
+      TripSampleDisposition.rejectedOutOfOrder,
+    );
   });
 
   test(

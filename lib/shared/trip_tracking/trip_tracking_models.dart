@@ -252,6 +252,7 @@ class TripLocationSample {
     required this.horizontalAccuracyMeters,
     this.speedMetersPerSecond,
     this.bearingDegrees,
+    this.monotonicElapsedNanos,
     this.mockedLocation,
   });
 
@@ -261,6 +262,7 @@ class TripLocationSample {
   final double horizontalAccuracyMeters;
   final double? speedMetersPerSecond;
   final double? bearingDegrees;
+  final int? monotonicElapsedNanos;
   final bool? mockedLocation;
 
   bool get hasValidCoordinate =>
@@ -288,6 +290,11 @@ class TripLocationSample {
           bearingDegrees! >= 0 &&
           bearingDegrees! < 360);
 
+  bool get hasValidMonotonicElapsedNanos =>
+      monotonicElapsedNanos == null ||
+      (monotonicElapsedNanos! > 0 &&
+          monotonicElapsedNanos! <= _maximumNativeMonotonicElapsedNanos);
+
   Map<String, Object?> toMap() => {
     'latitude': latitude,
     'longitude': longitude,
@@ -295,6 +302,8 @@ class TripLocationSample {
     'horizontalAccuracyMeters': horizontalAccuracyMeters,
     'speedMetersPerSecond': _tripSpeedFrom(speedMetersPerSecond),
     'bearingDegrees': _tripBearingFrom(bearingDegrees),
+    if (monotonicElapsedNanos != null)
+      'monotonicElapsedNanos': monotonicElapsedNanos,
     if (mockedLocation != null) 'mockedLocation': mockedLocation,
   };
 
@@ -315,6 +324,13 @@ class TripLocationSample {
     if (map.containsKey('mockedLocation') && map['mockedLocation'] is! bool) {
       return null;
     }
+    final monotonicElapsedNanos = map.containsKey('monotonicElapsedNanos')
+        ? _tripMonotonicElapsedNanosFrom(map['monotonicElapsedNanos'])
+        : null;
+    if (map.containsKey('monotonicElapsedNanos') &&
+        monotonicElapsedNanos == null) {
+      return null;
+    }
     final sample = TripLocationSample(
       latitude: latitude,
       longitude: longitude,
@@ -322,13 +338,15 @@ class TripLocationSample {
       horizontalAccuracyMeters: accuracy,
       speedMetersPerSecond: _tripSpeedFrom(map['speedMetersPerSecond']),
       bearingDegrees: _tripBearingFrom(map['bearingDegrees']),
+      monotonicElapsedNanos: monotonicElapsedNanos,
       mockedLocation: map['mockedLocation'] is bool
           ? map['mockedLocation'] as bool
           : null,
     );
     return sample.hasValidCoordinate &&
             sample.hasValidAccuracy &&
-            sample.hasValidReportedBearing
+            sample.hasValidReportedBearing &&
+            sample.hasValidMonotonicElapsedNanos
         ? sample
         : null;
   }
@@ -353,10 +371,20 @@ double? _tripBearingFrom(Object? rawBearing) {
 
 const _maximumNativeHorizontalAccuracyMeters = 10000.0;
 const _maximumNativeReportedSpeedMetersPerSecond = 70.0;
+const _maximumNativeMonotonicElapsedNanos = 9223372036854775807;
 
 double? _tripNumberFrom(Object? value) {
   if (value is! num || !value.isFinite) return null;
   return value.toDouble();
+}
+
+int? _tripMonotonicElapsedNanosFrom(Object? value) {
+  if (value is! int ||
+      value <= 0 ||
+      value > _maximumNativeMonotonicElapsedNanos) {
+    return null;
+  }
+  return value;
 }
 
 DateTime? _tripTimestampFrom(Object? rawTimestamp) {
@@ -461,12 +489,16 @@ class TripTrackingEngineSnapshot {
     this.lastAccepted,
     this.lastObservedAt,
     this.lastContinuousAt,
+    this.lastObservedMonotonicElapsedNanos,
+    this.lastContinuousMonotonicElapsedNanos,
     this.walkingEvidence = const [],
   });
 
   final TripLocationSample? lastAccepted;
   final DateTime? lastObservedAt;
   final DateTime? lastContinuousAt;
+  final int? lastObservedMonotonicElapsedNanos;
+  final int? lastContinuousMonotonicElapsedNanos;
   final double totalAcceptedMeters;
   final List<TripActivityObservation> walkingEvidence;
   final bool walkingReviewSuggested;
@@ -485,6 +517,9 @@ class TripTrackingEngineSnapshot {
       'lastAccepted': lastAccepted?.toMap(),
       'lastObservedAt': lastObservedAt?.toIso8601String(),
       'lastContinuousAt': lastContinuousAt?.toIso8601String(),
+      'lastObservedMonotonicElapsedNanos': lastObservedMonotonicElapsedNanos,
+      'lastContinuousMonotonicElapsedNanos':
+          lastContinuousMonotonicElapsedNanos,
       'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
       'walkingEvidence': evidence.map((item) => item.toMap()).toList(),
       'walkingReviewSuggested': _safeWalkingReviewSuggested(
@@ -523,6 +558,17 @@ class TripTrackingEngineSnapshot {
       lastAccepted: lastAccepted,
       lastObservedAt: lastObservedAt,
     );
+    final lastObservedMonotonicElapsedNanos =
+        _safePersistedMonotonicElapsedNanos(
+          map['lastObservedMonotonicElapsedNanos'],
+          floor: lastAccepted?.monotonicElapsedNanos,
+        );
+    final lastContinuousMonotonicElapsedNanos =
+        _safePersistedMonotonicElapsedNanos(
+          map['lastContinuousMonotonicElapsedNanos'],
+          floor: lastAccepted?.monotonicElapsedNanos,
+          ceiling: lastObservedMonotonicElapsedNanos,
+        );
     final walkingEvidence = sanitizeRecoveredWalkingEvidence(
       parsedWalkingEvidence,
       lastObservedAt: lastObservedAt,
@@ -536,6 +582,8 @@ class TripTrackingEngineSnapshot {
       lastAccepted: lastAccepted,
       lastObservedAt: lastObservedAt,
       lastContinuousAt: lastContinuousAt,
+      lastObservedMonotonicElapsedNanos: lastObservedMonotonicElapsedNanos,
+      lastContinuousMonotonicElapsedNanos: lastContinuousMonotonicElapsedNanos,
       totalAcceptedMeters: _safeAcceptedMeters(map['totalAcceptedMeters']),
       walkingEvidence: walkingEvidence,
       walkingReviewSuggested: _safeWalkingReviewSuggested(
@@ -824,6 +872,18 @@ DateTime? _safeLastContinuousAt(
   final parsed = _tripTimestampFrom(value) ?? lastAccepted.recordedAt;
   if (parsed.isBefore(lastAccepted.recordedAt)) return lastAccepted.recordedAt;
   if (parsed.isAfter(lastObservedAt)) return lastObservedAt;
+  return parsed;
+}
+
+int? _safePersistedMonotonicElapsedNanos(
+  Object? value, {
+  int? floor,
+  int? ceiling,
+}) {
+  final parsed = _tripMonotonicElapsedNanosFrom(value);
+  if (parsed == null) return floor;
+  if (floor != null && parsed < floor) return floor;
+  if (ceiling != null && parsed > ceiling) return ceiling;
   return parsed;
 }
 

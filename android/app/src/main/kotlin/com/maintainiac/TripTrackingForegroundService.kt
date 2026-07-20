@@ -270,6 +270,7 @@ class TripTrackingForegroundService : Service() {
                 "horizontalAccuracyMeters" to accuracyMeters,
                 "speedMetersPerSecond" to reportedSpeed,
                 "bearingDegrees" to reportedBearing?.takeIf { it.isFinite() && it >= 0 && it < 360 },
+                "monotonicElapsedNanos" to location.elapsedRealtimeNanos.takeIf { it > 0 },
                 "mockedLocation" to location.isFromMockProvider,
             ),
         )

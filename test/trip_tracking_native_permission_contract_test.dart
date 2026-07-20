@@ -179,6 +179,7 @@ void main() {
     expect(android, contains('location.time <= 0'));
     expect(android, contains('!accuracyMeters.isFinite()'));
     expect(android, contains('!reportedSpeed.isFinite()'));
+    expect(android, contains('"monotonicElapsedNanos" to location.elapsedRealtimeNanos'));
     expect(
       android,
       contains('activityPendingIntent == null || hasActivityRecognition()'),
