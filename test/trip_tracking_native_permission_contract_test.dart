@@ -336,6 +336,9 @@ void main() {
 
     expect(android, contains('trip_tracking_location_denied'));
     expect(android, contains('trip_tracking_gps_disabled'));
+    expect(ios, contains('trip_tracking_gps_unavailable'));
+    expect(ios, contains('stopForLocationServicesDisabledIfNeeded'));
+    expect(ios, contains('trip_tracking_gps_disabled'));
     expect(
       android,
       contains('if (stopForLocationPermissionRevokedIfNeeded()) return'),

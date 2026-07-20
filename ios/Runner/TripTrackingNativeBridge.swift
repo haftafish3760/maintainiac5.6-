@@ -110,6 +110,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     // Do not let a retired session emit a late coordinate into Flutter, even
     // though the Dart controller independently rejects inactive-session data.
     guard tracking, let trackingStartedAt else { return }
+    if stopForLocationServicesDisabledIfNeeded() { return }
     if stopForCriticalBatteryIfNeeded() { return }
     for location in locations {
       // The delegate is shared across collection sessions. A callback queued
@@ -236,6 +237,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   private func start(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard CLLocationManager.locationServicesEnabled() else {
+      result(FlutterError(code: "trip_tracking_gps_unavailable", message: "Device location is unavailable. Turn on Location Services before starting trip tracking.", details: nil))
+      return
+    }
     let authorization = authorizationMap()
     let state = authorization["state"] as? String
     guard state == "whileInUse" || state == "always" else {
@@ -382,6 +387,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     heartbeatTimer?.invalidate()
     heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
       guard let self, self.tracking else { return }
+      if self.stopForLocationServicesDisabledIfNeeded() { return }
       if self.stopForCriticalBatteryIfNeeded() { return }
       if self.activityRecognitionEnabled && !self.activityRecognitionIsEligible() {
         self.setActivityRecognitionEnabled(true)
@@ -395,6 +401,20 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private func stopHeartbeat() {
     heartbeatTimer?.invalidate()
     heartbeatTimer = nil
+  }
+
+  /// Core Location can stop delivering fixes when system Location Services is
+  /// switched off. Treat that as an interrupted collector rather than leaving
+  /// the Dart session falsely healthy until a future callback happens.
+  private func stopForLocationServicesDisabledIfNeeded() -> Bool {
+    guard !CLLocationManager.locationServicesEnabled() else { return false }
+    stopNativeCollection()
+    emit([
+      "type": "error",
+      "errorCode": "trip_tracking_gps_disabled",
+      "errorMessage": "Device location was turned off while tracking.",
+    ])
+    return true
   }
 
   /// Retire the collector before telling Core Location or Core Motion to stop.
