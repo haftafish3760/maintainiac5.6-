@@ -40,6 +40,7 @@ void main() {
     double longitude,
     int seconds, {
     double? speed,
+    double? speedAccuracy,
     double accuracy = 5,
     int? monotonicElapsedNanos,
   }) => TripLocationSample(
@@ -48,6 +49,7 @@ void main() {
     recordedAt: start.add(Duration(seconds: seconds)),
     horizontalAccuracyMeters: accuracy,
     speedMetersPerSecond: speed,
+    speedAccuracyMetersPerSecond: speedAccuracy,
     monotonicElapsedNanos: monotonicElapsedNanos,
   );
 
@@ -4840,6 +4842,31 @@ void main() {
       expect(native.updateCalls, 1);
     },
   );
+
+  test('uncertain native speed cannot escalate GPS sampling', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_sampling_uncertain_speed',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await controller.startNativeTracking(allowBackground: false);
+    native.addLocation(sample(-80, 0, speed: 20, speedAccuracy: 50));
+    native.addLocation(sample(-79.999, 20, speed: 20, speedAccuracy: 50));
+    await drainNativeTripEventsUntil(
+      () => controller.acceptedMeters > 0,
+      maxPumps: 48,
+    );
+
+    expect(controller.acceptedMeters, greaterThan(0));
+    expect(native.updateCalls, 0);
+  });
 
   test(
     'stationary GPS drift deescalates precision sampling to save battery',
