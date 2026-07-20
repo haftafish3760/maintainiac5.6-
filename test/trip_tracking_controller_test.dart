@@ -2222,6 +2222,44 @@ void main() {
   );
 
   test(
+    'late motion-assistance loss cannot alter a stopped trip preference',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_late_activity_assistance_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+      await controller.stopNativeTracking();
+
+      native.addPlatformError(
+        code: 'trip_tracking_activity_unavailable',
+        message: 'Late motion provider error.',
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(store.activeSession?.activityRecognitionEnabled, isTrue);
+      expect(native.stopCalls, 1);
+    },
+  );
+
+  test(
     'motion-assistance loss stops GPS when withdrawn sensor consent cannot persist',
     () async {
       final native = _FakeTripTrackingPlatform(
@@ -3985,6 +4023,7 @@ void main() {
 
       expect(odometer.reading, 1000);
       expect(odometer.confirmedReading, 1000);
+      expect(controller.acceptedMeters, 0);
     },
   );
 

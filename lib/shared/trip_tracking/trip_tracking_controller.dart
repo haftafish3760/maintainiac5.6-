@@ -988,6 +988,11 @@ class TripTrackingController extends ChangeNotifier {
       );
     }
 
+    // The filter is mutable. Keep a recoverable in-memory checkpoint until
+    // its matching session state is safely local. Otherwise a failed write
+    // could make the next sample measure from GPS evidence that did not
+    // survive the local-first durability boundary.
+    final previousEngineSnapshot = engine.snapshot;
     final previousMotionState = engine.motionState;
     final decision = engine.ingest(sample, activity: safeActivity);
     final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
@@ -1008,10 +1013,6 @@ class TripTrackingController extends ChangeNotifier {
         decision.disposition == TripSampleDisposition.rejectedSpeedConflict ||
         decision.disposition == TripSampleDisposition.excludedWalking;
     if (persistsRecoveryState) {
-      final estimatedOdometer = projection.updateAcceptedMeters(
-        decision.totalAcceptedMeters,
-        gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
-      );
       final naturalLifecycleState = _lifecycleAfterDecision(
         session.lifecycleState,
         decision,
@@ -1029,7 +1030,21 @@ class TripTrackingController extends ChangeNotifier {
         lifecycleState: naturalLifecycleState,
         healthState: _healthAfterDecision(session.healthState, decision),
       );
-      await _sessionStore.save(_session!);
+      try {
+        await _sessionStore.save(_session!);
+      } catch (_) {
+        _session = session;
+        _engine = TripTrackingEngine.fromSnapshot(
+          previousEngineSnapshot,
+          policy: engine.policy,
+          profile: engine.profile,
+        );
+        rethrow;
+      }
+      final estimatedOdometer = projection.updateAcceptedMeters(
+        decision.totalAcceptedMeters,
+        gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
+      );
       final liveProjectionUpdated = _odometer.updateLiveTripProjection(
         tripId: session.id,
         estimatedOdometer: estimatedOdometer,
@@ -1526,7 +1541,8 @@ class TripTrackingController extends ChangeNotifier {
               _nativeCriticalBatteryStopPending = true;
               unawaited(_handleNativeCriticalBatteryStop(message));
             } else if (event.errorCode ==
-                'trip_tracking_activity_unavailable') {
+                    'trip_tracking_activity_unavailable' &&
+                _nativeTracking) {
               // Walking assistance is optional. A permission revocation or
               // provider failure must retire only that sensor, never GPS,
               // TripLog, or the authoritative odometer workflow.
