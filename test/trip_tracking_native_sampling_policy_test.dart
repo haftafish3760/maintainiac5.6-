@@ -6,14 +6,18 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 void main() {
   final start = DateTime.utc(2026, 7, 14, 12);
 
-  TripLocationSample sample({required int seconds, required double speed}) =>
-      TripLocationSample(
-        latitude: 35,
-        longitude: -80 + (seconds * .0001),
-        horizontalAccuracyMeters: 8,
-        recordedAt: start.add(Duration(seconds: seconds)),
-        speedMetersPerSecond: speed,
-      );
+  TripLocationSample sample({
+    required int seconds,
+    required double speed,
+    double? speedAccuracy,
+  }) => TripLocationSample(
+    latitude: 35,
+    longitude: -80 + (seconds * .0001),
+    horizontalAccuracyMeters: 8,
+    recordedAt: start.add(Duration(seconds: seconds)),
+    speedMetersPerSecond: speed,
+    speedAccuracyMetersPerSecond: speedAccuracy,
+  );
 
   TripSampleDecision decision(TripSampleDisposition disposition) =>
       TripSampleDecision(
@@ -82,6 +86,28 @@ void main() {
     expect(summary['nativeSamplingCanChangeOfficialMileage'], isFalse);
     expect(validation.isRenderable, isTrue);
     expect(validation.canUpdateNativeCadence, isTrue);
+  });
+
+  test('unreliable speed cannot increase native GPS cadence', () {
+    final next = TripTrackingNativeSamplingPolicy.nextRecommendation(
+      policy: const TripTrackingPolicy(
+        maximumTrustedReportedSpeedAccuracyMetersPerSecond: 2,
+      ),
+      profile: TripTrackingProfile.roadVehicle,
+      sample: sample(seconds: 20, speed: 20, speedAccuracy: 15),
+      decision: decision(TripSampleDisposition.acceptedDistance),
+      current: const TripSamplingRecommendation(
+        mode: TripSamplingMode.balanced,
+        interval: Duration(seconds: 5),
+        minimumDisplacementMeters: 5,
+      ),
+      adaptiveSamplingEnabled: true,
+      nativeTracking: true,
+      platformAvailable: true,
+      sessionAvailable: true,
+    );
+
+    expect(next, isNull);
   });
 
   test(

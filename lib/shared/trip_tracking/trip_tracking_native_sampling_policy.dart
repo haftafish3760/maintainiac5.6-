@@ -93,7 +93,7 @@ class TripTrackingNativeSamplingPolicy {
       return null;
     }
     final next = policy.samplingFor(
-      speedMetersPerSecond: sample.speedMetersPerSecond,
+      speedMetersPerSecond: _trustedSamplingSpeed(policy, sample),
       vehicleMovementConfirmed:
           decision.disposition == TripSampleDisposition.acceptedDistance,
       profile: profile,
@@ -108,7 +108,7 @@ class TripTrackingNativeSamplingPolicy {
     required TripLocationSample sample,
     required TripSamplingRecommendation? current,
   }) {
-    final speed = sample.speedMetersPerSecond;
+    final speed = _trustedSamplingSpeed(policy, sample);
     final configuredExitSpeed = policy.precisionExitSpeedMetersPerSecond;
     final precisionExitSpeed =
         configuredExitSpeed.isFinite && configuredExitSpeed > 0
@@ -140,6 +140,23 @@ class TripTrackingNativeSamplingPolicy {
 
   static bool isSafeSampleForNativeSampling(TripLocationSample sample) =>
       _safeSampleForNativeSampling(sample);
+
+  static double? _trustedSamplingSpeed(
+    TripTrackingPolicy policy,
+    TripLocationSample sample,
+  ) {
+    final speed = sample.speedMetersPerSecond;
+    final accuracy = sample.speedAccuracyMetersPerSecond;
+    final maximumAccuracy =
+        policy.maximumTrustedReportedSpeedAccuracyMetersPerSecond;
+    final safeMaximumAccuracy = maximumAccuracy.isFinite && maximumAccuracy > 0
+        ? maximumAccuracy
+        : 20.0;
+    return speed != null &&
+            (accuracy == null || accuracy <= safeMaximumAccuracy)
+        ? speed
+        : null;
+  }
 
   static bool isSameRecommendation(
     TripSamplingRecommendation? current,
@@ -285,6 +302,7 @@ class TripTrackingNativeSamplingSummaryValidation {
 
 bool _safeSampleForNativeSampling(TripLocationSample sample) {
   if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) return false;
+  if (!sample.hasValidReportedSpeedAccuracy) return false;
   if (sample.mockedLocation == true) return false;
   if (sample.horizontalAccuracyMeters > 250) return false;
   final speed = sample.speedMetersPerSecond;
