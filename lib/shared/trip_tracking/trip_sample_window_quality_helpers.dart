@@ -22,13 +22,23 @@ bool _reportedStationaryContradictsDistance(
   double acceptedDistanceMeters,
 ) {
   if (acceptedDistanceMeters < 75 || samples.length < 2) return false;
-  final reportedSpeeds = samples
-      .map((sample) => sample.speedMetersPerSecond)
-      .whereType<double>()
-      .where((speed) => speed.isFinite)
-      .toList(growable: false);
-  if (reportedSpeeds.length < samples.length) return false;
-  return reportedSpeeds.every((speed) => speed <= 0.5);
+  return samples.every(_hasTrustedStationaryReportedSpeed);
+}
+
+bool _hasTrustedStationaryReportedSpeed(TripLocationSample sample) {
+  final speed = sample.speedMetersPerSecond;
+  final accuracy = sample.speedAccuracyMetersPerSecond;
+  if (speed == null || !speed.isFinite) return false;
+  // Mirror the engine rule: a reported speed without an accuracy estimate is
+  // usable for legacy providers, while a known low-quality estimate cannot
+  // suppress a coordinate-derived live projection.
+  if (accuracy != null &&
+      accuracy >
+          const TripTrackingPolicy()
+              .maximumTrustedReportedSpeedAccuracyMetersPerSecond) {
+    return false;
+  }
+  return speed <= 0.5;
 }
 
 bool _isIndividuallySafe(

@@ -13,6 +13,7 @@ void main() {
     double longitude, {
     double accuracy = 12,
     double? speed,
+    double? speedAccuracy,
     bool? mocked,
   }) {
     return TripLocationSample(
@@ -21,6 +22,7 @@ void main() {
       recordedAt: start.add(Duration(seconds: seconds)),
       horizontalAccuracyMeters: accuracy,
       speedMetersPerSecond: speed,
+      speedAccuracyMetersPerSecond: speedAccuracy,
       mockedLocation: mocked,
     );
   }
@@ -78,6 +80,22 @@ void main() {
     expect(decision.canPersistCompactRoutePoint, isFalse);
     expect(safe['sampleWindowRequiresMovementCorroboration'], isTrue);
     expect(safe['sampleWindowCanConfirmOdometer'], isFalse);
+  });
+
+  test('unreliable stationary speed cannot pause a valid GPS projection', () {
+    final decision = TripSampleWindowQualityPolicy.evaluate(
+      samples: [
+        sample(0, 35.0000, -80.0000, speed: 0, speedAccuracy: 40),
+        sample(15, 35.0004, -80.0000, speed: 0.2, speedAccuracy: 40),
+        sample(30, 35.0008, -80.0000, speed: 0.1, speedAccuracy: 40),
+      ],
+      routeHistoryDecision: routeDecision(),
+    );
+
+    expect(decision.status, TripSampleWindowQualityStatus.usableForTracking);
+    expect(decision.reasonCode, 'sample_window_usable');
+    expect(decision.canFeedLiveOdometerProjection, isTrue);
+    expect(decision.canPersistCompactRoutePoint, isTrue);
   });
 
   test('route storage can pause without stopping GPS tracking', () {
