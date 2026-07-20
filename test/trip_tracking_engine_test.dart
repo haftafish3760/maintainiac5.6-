@@ -1525,6 +1525,23 @@ void main() {
     expect(restored.motionState, TripMotionState.unknown);
   });
 
+  test('direct recovery input cannot restore a future stationary start', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot(
+        lastAccepted: sample(-80, 0),
+        lastObservedAt: start.add(const Duration(seconds: 30)),
+        totalAcceptedMeters: 17,
+        vehicleMovementObserved: true,
+        walkingReviewSuggested: false,
+        motionState: TripMotionState.stopCandidate,
+        stationaryStartedAt: start.add(const Duration(minutes: 5)),
+      ),
+    );
+
+    expect(restored.snapshot.stationaryStartedAt, isNull);
+    expect(restored.motionState, TripMotionState.unknown);
+  });
+
   test('low-speed equipment restore ignores road walking-stop state', () {
     final restored = TripTrackingEngine.fromSnapshot(
       TripTrackingEngineSnapshot.fromMap({

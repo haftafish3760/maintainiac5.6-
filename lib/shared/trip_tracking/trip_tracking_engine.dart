@@ -78,6 +78,11 @@ class TripTrackingEngine {
       snapshot.walkingEvidence,
       lastObservedAt: engine._lastObservedAt,
     );
+    final recoveredStationaryStartedAt = _safeRecoveredStationaryStartedAt(
+      snapshot.stationaryStartedAt,
+      vehicleMovementObserved: snapshot.vehicleMovementObserved,
+      lastObservedAt: engine._lastObservedAt,
+    );
     if (TripTrackingProfileStrategy.forProfile(
       profile,
       policy: policy,
@@ -93,7 +98,7 @@ class TripTrackingEngine {
           TripMotionState.moving,
         TripMotionState.stopCandidate
             when snapshot.vehicleMovementObserved &&
-                (snapshot.stationaryStartedAt != null ||
+                (recoveredStationaryStartedAt != null ||
                     hasRecoveredWalkingEvidence) =>
           TripMotionState.stopCandidate,
         TripMotionState.stopped
@@ -111,7 +116,7 @@ class TripTrackingEngine {
           : snapshot.motionState;
     }
     engine._vehicleMovementObserved = snapshot.vehicleMovementObserved;
-    engine._stationaryStartedAt = snapshot.stationaryStartedAt;
+    engine._stationaryStartedAt = recoveredStationaryStartedAt;
     engine._diagnostics = snapshot.diagnostics;
     return engine;
   }
@@ -384,6 +389,22 @@ class TripTrackingEngine {
 
   bool _isStrongWalking(TripActivityObservation? activity) =>
       activity?.canSupportStopReview ?? false;
+
+  static DateTime? _safeRecoveredStationaryStartedAt(
+    DateTime? candidate, {
+    required bool vehicleMovementObserved,
+    required DateTime? lastObservedAt,
+  }) {
+    if (!vehicleMovementObserved ||
+        candidate == null ||
+        lastObservedAt == null) {
+      return null;
+    }
+    // A directly constructed recovery snapshot is still an external boundary.
+    // A future stationary start would otherwise suppress legitimate stop
+    // detection until wall time catches up with corrupt state.
+    return candidate.isAfter(lastObservedAt) ? null : candidate;
+  }
 
   bool _stationaryProviderContradictsDistance({
     required double? reportedSpeed,
