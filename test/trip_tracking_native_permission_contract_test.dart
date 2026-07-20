@@ -89,6 +89,8 @@ void main() {
     expect(plist, contains('NSMotionUsageDescription'));
     expect(plist, contains('<key>UIBackgroundModes</key>'));
     expect(plist, contains('<string>location</string>'));
+    expect(source, contains('activityRecognitionIsAvailableAndAuthorized()'));
+    expect(source, contains('status != .denied && status != .restricted'));
   });
 
   test('Android declares only the permissions and service type GPS needs', () {

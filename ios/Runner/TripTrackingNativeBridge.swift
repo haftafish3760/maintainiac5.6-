@@ -282,7 +282,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   /// sensor live after the driver turns it off. This remains independent from
   /// GPS collection so a privacy opt-out cannot accidentally end a trip.
   private func setActivityRecognitionEnabled(_ enabled: Bool) {
-    let shouldEnable = enabled && CMMotionActivityManager.isActivityAvailable()
+    let shouldEnable = enabled && activityRecognitionIsAvailableAndAuthorized()
     guard shouldEnable != activityRecognitionEnabled else { return }
     // Core Motion callbacks can be queued across stop/start boundaries. A
     // new consent window gets a new generation so a delayed walking signal
@@ -318,6 +318,18 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     default:
       return false
     }
+  }
+
+  private func activityRecognitionIsAvailableAndAuthorized() -> Bool {
+    guard CMMotionActivityManager.isActivityAvailable() else { return false }
+    if #available(iOS 11.0, *) {
+      // `notDetermined` must remain eligible to start: Core Motion presents
+      // its one-time authorization prompt on first use. Only a known denial
+      // or system restriction means motion assistance cannot be requested.
+      let status = CMMotionActivityManager.authorizationStatus()
+      return status != .denied && status != .restricted
+    }
+    return true
   }
 
   /// Core Location has no fixed polling interval. The requested interval is
@@ -369,7 +381,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       "schemaVersion": 1,
       "locationAvailable": CLLocationManager.locationServicesEnabled(),
       "backgroundTrackingAvailable": true,
-      "activityRecognitionAvailable": CMMotionActivityManager.isActivityAvailable(),
+      "activityRecognitionAvailable": activityRecognitionIsAvailableAndAuthorized(),
       "batteryStateAvailable": UIDevice.current.batteryState != .unknown,
       "lowPowerModeAvailable": true,
     ]
