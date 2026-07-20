@@ -13,6 +13,7 @@ import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
@@ -3996,9 +3997,9 @@ void main() {
   });
 
   test(
-    'accepted GPS distance does not update live odometer before local save',
+    'failed local GPS checkpoints do not advance the live filter or odometer',
     () async {
-      final store = _FailingAfterInitialSessionSaveStore();
+      final store = _FailingNextSessionSaveStore();
       final odometer = GlobalOdometerController(initialReading: 1000);
       final controller = TripTrackingController(
         sessionStore: store,
@@ -4015,6 +4016,7 @@ void main() {
         isTrue,
       );
       expect(await controller.ingest(sample(-80, 0)), isNotNull);
+      store.failNextSessionSave = true;
 
       await expectLater(
         controller.ingest(sample(-79.985, 60)),
@@ -4024,6 +4026,15 @@ void main() {
       expect(odometer.reading, 1000);
       expect(odometer.confirmedReading, 1000);
       expect(controller.acceptedMeters, 0);
+
+      final expected = TripTrackingEngine();
+      expected.ingest(sample(-80, 0));
+      expected.ingest(sample(-79.97, 120));
+      expect(await controller.ingest(sample(-79.97, 120)), isNotNull);
+      expect(
+        controller.acceptedMeters,
+        closeTo(expected.totalAcceptedMeters, .001),
+      );
     },
   );
 
@@ -6208,24 +6219,6 @@ class _DelayedConfirmationSaveStore extends TripTrackingSessionStore {
     confirmationSaveStarted.complete();
     await allowConfirmationSave.future;
     await super.saveReview(review);
-  }
-}
-
-class _FailingAfterInitialSessionSaveStore extends TripTrackingSessionStore {
-  _FailingAfterInitialSessionSaveStore({int failAfterSaves = 2})
-    : _failAfterSaves = failAfterSaves,
-      super.memory();
-
-  final int _failAfterSaves;
-  var _sessionSaves = 0;
-
-  @override
-  Future<void> save(TripTrackingSessionRecord session) async {
-    _sessionSaves += 1;
-    if (_sessionSaves > _failAfterSaves) {
-      throw StateError('local session checkpoint failed');
-    }
-    return super.save(session);
   }
 }
 
