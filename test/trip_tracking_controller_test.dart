@@ -4591,6 +4591,43 @@ void main() {
   );
 
   test(
+    'stale live odometer projection updates are not mislabeled as distance range failures',
+    () async {
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+      );
+      await controller.start(
+        tripId: 'trip_projection_timestamp_conflict',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.ingest(sample(-80, 0), referenceTime: start);
+      expect(
+        odometer.updateLiveTripProjection(
+          tripId: 'trip_projection_timestamp_conflict',
+          estimatedOdometer: 1000,
+          observedAtUtc: start.add(const Duration(minutes: 1)),
+          receivedAtUtc: start.add(const Duration(minutes: 1)),
+        ),
+        isTrue,
+      );
+
+      await controller.ingest(
+        sample(-79.999, 20),
+        referenceTime: start.add(const Duration(seconds: 20)),
+      );
+
+      expect(controller.platformStatus, 'odometer_projection_invalid');
+      expect(controller.platformError, contains('could not be updated safely'));
+      expect(controller.platformError, isNot(contains('distance exceeded')));
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test(
     'native future timestamps are rejected without changing GPS distance',
     () async {
       final store = TripTrackingSessionStore.memory();

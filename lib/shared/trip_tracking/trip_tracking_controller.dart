@@ -1083,8 +1083,9 @@ class TripTrackingController extends ChangeNotifier {
           (projection.lastUpdateExceededMax || !liveProjectionUpdated);
       if (liveProjectionFailed) {
         _platformStatus = 'odometer_projection_invalid';
-        _platformError =
-            'GPS distance exceeded the supported live odometer range. Review the trip before continuing.';
+        _platformError = projection.lastUpdateExceededMax
+            ? 'GPS distance exceeded the supported live odometer range. Review the trip before continuing.'
+            : 'GPS live odometer projection could not be updated safely. The confirmed odometer remains unchanged.';
         if (TripTrackingSessionStateMachine.canTransition(
           _session!.lifecycleState,
           TripTrackingSessionLifecycleState.failedRecoverable,
