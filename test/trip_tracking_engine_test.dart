@@ -1501,6 +1501,30 @@ void main() {
     expect(restored.totalAcceptedMeters, isZero);
   });
 
+  test('direct recovery input cannot restore a future walking stop', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot(
+        lastAccepted: sample(-80, 0),
+        lastObservedAt: start.add(const Duration(seconds: 30)),
+        totalAcceptedMeters: 17,
+        vehicleMovementObserved: true,
+        walkingReviewSuggested: true,
+        motionState: TripMotionState.stopped,
+        walkingEvidence: [
+          TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 95,
+            recordedAt: start.add(const Duration(minutes: 5)),
+          ),
+        ],
+      ),
+    );
+
+    expect(restored.snapshot.walkingEvidence, isEmpty);
+    expect(restored.needsWalkingReview, isFalse);
+    expect(restored.motionState, TripMotionState.unknown);
+  });
+
   test('low-speed equipment restore ignores road walking-stop state', () {
     final restored = TripTrackingEngine.fromSnapshot(
       TripTrackingEngineSnapshot.fromMap({

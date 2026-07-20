@@ -74,13 +74,34 @@ class TripTrackingEngine {
             snapshot.totalAcceptedMeters >= 0
         ? snapshot.totalAcceptedMeters
         : 0;
+    final recoveredWalkingEvidence = sanitizeRecoveredWalkingEvidence(
+      snapshot.walkingEvidence,
+      lastObservedAt: engine._lastObservedAt,
+    );
     if (TripTrackingProfileStrategy.forProfile(
       profile,
       policy: policy,
     ).usesWalkingStopEvidence) {
-      engine._walkingEvidence.addAll(snapshot.walkingEvidence);
-      engine._walkingReviewSuggested = snapshot.walkingReviewSuggested;
-      engine._motionState = snapshot.motionState;
+      engine._walkingEvidence.addAll(recoveredWalkingEvidence);
+      final hasRecoveredWalkingEvidence = recoveredWalkingEvidence.isNotEmpty;
+      engine._walkingReviewSuggested =
+          snapshot.walkingReviewSuggested &&
+          snapshot.vehicleMovementObserved &&
+          hasRecoveredWalkingEvidence;
+      engine._motionState = switch (snapshot.motionState) {
+        TripMotionState.moving when snapshot.vehicleMovementObserved =>
+          TripMotionState.moving,
+        TripMotionState.stopCandidate
+            when snapshot.vehicleMovementObserved &&
+                (snapshot.stationaryStartedAt != null ||
+                    hasRecoveredWalkingEvidence) =>
+          TripMotionState.stopCandidate,
+        TripMotionState.stopped
+            when snapshot.vehicleMovementObserved &&
+                hasRecoveredWalkingEvidence =>
+          TripMotionState.stopped,
+        _ => TripMotionState.unknown,
+      };
     } else {
       engine._walkingReviewSuggested = false;
       engine._motionState =

@@ -502,7 +502,7 @@ class TripTrackingEngineSnapshot {
       lastAccepted: lastAccepted,
       lastObservedAt: lastObservedAt,
     );
-    final walkingEvidence = _safeRecoveredWalkingEvidence(
+    final walkingEvidence = sanitizeRecoveredWalkingEvidence(
       parsedWalkingEvidence,
       lastObservedAt: lastObservedAt,
     );
@@ -549,7 +549,9 @@ Iterable<TripActivityObservation> _boundedWalkingEvidence(
   return items.takeLast(_maxPersistedWalkingEvidence);
 }
 
-List<TripActivityObservation> _safeRecoveredWalkingEvidence(
+/// Removes recovery evidence that cannot safely corroborate a user-reviewable
+/// stop. This is shared by map decoding and direct in-memory recovery.
+List<TripActivityObservation> sanitizeRecoveredWalkingEvidence(
   Iterable<TripActivityObservation> evidence, {
   required DateTime? lastObservedAt,
 }) {
