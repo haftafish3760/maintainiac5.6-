@@ -754,6 +754,19 @@ void main() {
     expect(engine.totalAcceptedMeters, greaterThan(0));
   });
 
+  test('Android monotonic time rebases after a device clock epoch reset', () {
+    final engine = TripTrackingEngine();
+
+    engine.ingest(sample(-80, 0, monotonicElapsedNanos: 120000000000));
+    final decision = engine.ingest(
+      sample(-79.9998, 20, monotonicElapsedNanos: 1000000000),
+    );
+
+    expect(decision.disposition, TripSampleDisposition.acceptedDistance);
+    expect(engine.snapshot.lastObservedMonotonicElapsedNanos, 1000000000);
+    expect(engine.totalAcceptedMeters, greaterThan(0));
+  });
+
   test(
     'Android monotonic time disambiguates duplicate wall-clock timestamps',
     () {

@@ -8,6 +8,11 @@ import 'trip_vehicle_only_dwell_policy.dart';
 /// Deterministic, platform-neutral evidence filter. Native adapters provide
 /// samples; this engine decides what is safe to count and what needs review.
 class TripTrackingEngine {
+  // Android elapsedRealtimeNanos resets after a device reboot. A large,
+  // forward-wall-clock regression is therefore treated as a new monotonic
+  // clock epoch rather than permanently rejecting a recovered active day.
+  static const _minimumMonotonicClockResetRegressionNanos = 60000000000;
+
   TripTrackingEngine({
     this.policy = const TripTrackingPolicy(),
     this.profile = TripTrackingProfile.roadVehicle,
@@ -173,6 +178,12 @@ class TripTrackingEngine {
       sampleMonotonicElapsedNanos,
       lastObservedMonotonicElapsedNanos,
     );
+    final monotonicClockReset = isMonotonicClockReset(
+      candidate: sampleMonotonicElapsedNanos,
+      previous: lastObservedMonotonicElapsedNanos,
+      candidateWallClock: sample.recordedAt,
+      previousWallClock: lastObservedAt,
+    );
     if (lastObservedAt != null &&
         !sample.recordedAt.isAfter(lastObservedAt) &&
         !monotonicIsNewer) {
@@ -180,7 +191,8 @@ class TripTrackingEngine {
     }
     if (lastObservedMonotonicElapsedNanos != null &&
         sampleMonotonicElapsedNanos != null &&
-        !monotonicIsNewer) {
+        !monotonicIsNewer &&
+        !monotonicClockReset) {
       return _decision(TripSampleDisposition.rejectedOutOfOrder);
     }
     _lastObservedAt = sample.recordedAt;
@@ -214,7 +226,9 @@ class TripTrackingEngine {
       earlierWallClock: lastContinuousAt,
       laterWallClock: sample.recordedAt,
       earlierMonotonicElapsedNanos: lastContinuousMonotonicElapsedNanos,
-      laterMonotonicElapsedNanos: sampleMonotonicElapsedNanos,
+      laterMonotonicElapsedNanos: monotonicClockReset
+          ? null
+          : sampleMonotonicElapsedNanos,
     );
     if (continuityElapsed != null &&
         continuityElapsed >
@@ -231,7 +245,9 @@ class TripTrackingEngine {
       earlierWallClock: lastAccepted.recordedAt,
       laterWallClock: sample.recordedAt,
       earlierMonotonicElapsedNanos: lastAccepted.monotonicElapsedNanos,
-      laterMonotonicElapsedNanos: sampleMonotonicElapsedNanos,
+      laterMonotonicElapsedNanos: monotonicClockReset
+          ? null
+          : sampleMonotonicElapsedNanos,
     );
     final distance = _distanceMeters(lastAccepted, sample);
     final seconds =
@@ -488,6 +504,19 @@ class TripTrackingEngine {
 
   static bool _isMonotonicElapsedNanosNewer(int? candidate, int? previous) =>
       candidate != null && previous != null && candidate > previous;
+
+  static bool isMonotonicClockReset({
+    required int? candidate,
+    required int? previous,
+    required DateTime candidateWallClock,
+    required DateTime? previousWallClock,
+  }) =>
+      candidate != null &&
+      previous != null &&
+      previousWallClock != null &&
+      candidate < previous &&
+      candidateWallClock.isAfter(previousWallClock) &&
+      previous - candidate >= _minimumMonotonicClockResetRegressionNanos;
 
   static Duration? _elapsedBetween({
     required DateTime? earlierWallClock,

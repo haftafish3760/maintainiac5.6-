@@ -983,14 +983,22 @@ class TripTrackingController extends ChangeNotifier {
         sample.monotonicElapsedNanos != null &&
         lastObservedMonotonicElapsedNanos != null &&
         sample.monotonicElapsedNanos! > lastObservedMonotonicElapsedNanos;
-    if (lastObservedAt != null &&
-        !sample.recordedAt.toUtc().isAfter(lastObservedAt) &&
-        !monotonicIsNewer) {
+    final wallClockIsNewer =
+        lastObservedAt == null ||
+        sample.recordedAt.toUtc().isAfter(lastObservedAt);
+    final monotonicClockReset = TripTrackingEngine.isMonotonicClockReset(
+      candidate: sample.monotonicElapsedNanos,
+      previous: lastObservedMonotonicElapsedNanos,
+      candidateWallClock: sample.recordedAt,
+      previousWallClock: lastObservedAt,
+    );
+    if (lastObservedAt != null && !wallClockIsNewer && !monotonicIsNewer) {
       return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
     }
     if (lastObservedMonotonicElapsedNanos != null &&
         sample.monotonicElapsedNanos != null &&
-        !monotonicIsNewer) {
+        !monotonicIsNewer &&
+        !monotonicClockReset) {
       return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
     }
 

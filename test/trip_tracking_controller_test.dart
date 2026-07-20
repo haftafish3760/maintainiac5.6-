@@ -90,8 +90,9 @@ void main() {
   test(
     'controller rejects regressing Android monotonic time before persistence',
     () async {
+      final store = TripTrackingSessionStore.memory();
       final controller = TripTrackingController(
-        sessionStore: TripTrackingSessionStore.memory(),
+        sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
       await controller.start(
@@ -102,13 +103,41 @@ void main() {
       );
 
       await controller.ingest(sample(0, 0, monotonicElapsedNanos: 30000000000));
+      final rejected = await controller.ingest(
+        sample(1, 1, monotonicElapsedNanos: 20000000000),
+      );
+      expect(rejected?.disposition, TripSampleDisposition.rejectedOutOfOrder);
+      expect(controller.acceptedMeters, 0);
+      expect(
+        store.pendingSampleFor('trip_regressing_android_monotonic_time'),
+        isNull,
+      );
+    },
+  );
+
+  test(
+    'controller allows a recovered Android monotonic clock epoch reset',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_recovered_android_monotonic_clock',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      await controller.ingest(
+        sample(0, 0, monotonicElapsedNanos: 120000000000),
+      );
       expect(
         (await controller.ingest(
-          sample(1, 1, monotonicElapsedNanos: 20000000000),
+          sample(0.0002, 20, monotonicElapsedNanos: 1000000000),
         ))?.disposition,
-        TripSampleDisposition.rejectedOutOfOrder,
+        TripSampleDisposition.acceptedDistance,
       );
-      expect(controller.acceptedMeters, 0);
     },
   );
 
