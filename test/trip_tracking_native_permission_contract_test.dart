@@ -99,6 +99,12 @@ void main() {
         'self.activityRecognitionEnabled && !self.activityRecognitionIsEligible()',
       ),
     );
+    expect(
+      source,
+      contains('CLLocationCoordinate2DIsValid(location.coordinate)'),
+    );
+    expect(source, contains('location.horizontalAccuracy.isFinite'));
+    expect(source, contains('location.timestamp.timeIntervalSince1970 > 0'));
   });
 
   test('Android declares only the permissions and service type GPS needs', () {
@@ -169,6 +175,9 @@ void main() {
         'Activity recognition permission is unavailable; GPS tracking continues without walking-assisted stop evidence.',
       ),
     );
+    expect(android, contains('location.time <= 0'));
+    expect(android, contains('!accuracyMeters.isFinite()'));
+    expect(android, contains('!reportedSpeed.isFinite()'));
     expect(
       android,
       contains('activityPendingIntent == null || hasActivityRecognition()'),

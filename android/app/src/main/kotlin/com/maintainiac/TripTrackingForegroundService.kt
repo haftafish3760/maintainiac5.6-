@@ -253,14 +253,21 @@ class TripTrackingForegroundService : Service() {
         if (stopForCriticalBatteryIfNeeded()) return
         if (stopForLocationServicesDisabledIfNeeded()) return
         if (!isRunning || !location.hasAccuracy() || !location.latitude.isFinite() || !location.longitude.isFinite()) return
+        val accuracyMeters = location.accuracy.toDouble()
+        val reportedSpeed = if (location.hasSpeed()) location.speed.toDouble() else null
+        // Reject malformed native metadata before it crosses the platform
+        // boundary. Dart validates again, but the foreground service should
+        // not keep forwarding a corrupt cached fix on every callback.
+        if (location.time <= 0 || !accuracyMeters.isFinite() || accuracyMeters <= 0 ||
+            (reportedSpeed != null && (!reportedSpeed.isFinite() || reportedSpeed < 0))) return
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "location",
                 "latitude" to location.latitude,
                 "longitude" to location.longitude,
                 "recordedAt" to location.time,
-                "horizontalAccuracyMeters" to location.accuracy.toDouble(),
-                "speedMetersPerSecond" to if (location.hasSpeed()) location.speed.toDouble() else null,
+                "horizontalAccuracyMeters" to accuracyMeters,
+                "speedMetersPerSecond" to reportedSpeed,
                 "mockedLocation" to location.isFromMockProvider,
             ),
         )

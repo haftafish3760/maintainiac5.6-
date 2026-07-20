@@ -111,11 +111,18 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     // though the Dart controller independently rejects inactive-session data.
     guard tracking, let trackingStartedAt else { return }
     if stopForCriticalBatteryIfNeeded() { return }
-    for location in locations where location.horizontalAccuracy >= 0 {
+    for location in locations {
       // The delegate is shared across collection sessions. A callback queued
       // before stopUpdatingLocation can arrive after a new start, so do not
       // treat a coordinate predating this collector as current-trip evidence.
       guard location.timestamp >= trackingStartedAt else { continue }
+      guard CLLocationCoordinate2DIsValid(location.coordinate),
+            location.horizontalAccuracy > 0,
+            location.horizontalAccuracy.isFinite,
+            location.timestamp.timeIntervalSince1970 > 0 else { continue }
+      let reportedSpeed = location.speed >= 0 && location.speed.isFinite
+        ? location.speed
+        : nil
       let simulated = isSimulatedLocation(location)
       emit([
         "type": "location",
@@ -123,7 +130,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
         "longitude": location.coordinate.longitude,
         "recordedAt": ISO8601DateFormatter().string(from: location.timestamp),
         "horizontalAccuracyMeters": location.horizontalAccuracy,
-        "speedMetersPerSecond": location.speed >= 0 ? location.speed : NSNull(),
+        "speedMetersPerSecond": reportedSpeed ?? NSNull(),
         "mockedLocation": simulated,
       ])
     }
