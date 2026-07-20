@@ -1,3 +1,5 @@
+const _maxWalkingStopsPerRun = 10000;
+
 class TripTrackingFieldEvidence {
   const TripTrackingFieldEvidence({
     required this.platform,
@@ -105,6 +107,8 @@ double? _number(Object? value) {
 }
 
 int? _nonNegativeInt(Object? value) =>
-    value is int && value >= 0 ? value : null;
+    value is int && value >= 0 && value <= _maxWalkingStopsPerRun
+    ? value
+    : null;
 
 double _round(double value) => double.parse(value.toStringAsFixed(3));

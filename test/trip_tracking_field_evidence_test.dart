@@ -85,6 +85,15 @@ void main() {
       }),
       throwsFormatException,
     );
+    expect(
+      () => TripTrackingFieldEvidence.fromMap({
+        'platform': 'android',
+        'odometerMiles': 10.0,
+        'filteredGpsMiles': 9.8,
+        'expectedWalkingStops': 10001,
+      }),
+      throwsFormatException,
+    );
   });
 
   test('field evidence rejects impossible stop matching totals', () {
