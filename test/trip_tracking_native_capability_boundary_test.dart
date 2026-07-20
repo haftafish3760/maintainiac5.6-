@@ -413,7 +413,7 @@ void main() {
       expect(decision?.status, TripTrackingHeartbeatWatchdogStatus.healthy);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.activeTracking,
+        TripTrackingSessionLifecycleState.awaitingInitialFix,
       );
       expect(controller.healthState, TripTrackingHealthState.healthy);
       expect(controller.nativeTracking, isTrue);

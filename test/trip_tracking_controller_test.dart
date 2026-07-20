@@ -12,6 +12,7 @@ import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart'
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
+import 'package:maintaniac/shared/trip_tracking/trip_initial_fix_classifier.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
@@ -969,6 +970,78 @@ void main() {
       );
       expect(controller.healthState, TripTrackingHealthState.healthy);
       expect(controller.platformError, isNull);
+      expect(
+        controller.initialFixDecision.classification,
+        TripInitialFixClassification.freshPrecise,
+      );
+    },
+  );
+
+  test(
+    'cached initial fix is recorded but cannot become the trip anchor',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = TripTrackingSessionStore.memory();
+      var now = start;
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_stale_initial_fix',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, -1));
+      await drainNativeTripEventsUntil(
+        () =>
+            controller.initialFixDecision.classification ==
+            TripInitialFixClassification.staleCached,
+      );
+
+      expect(controller.acceptedMeters, 0);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.awaitingInitialFix,
+      );
+      expect(store.activeSession?.startedAt, start);
+      expect(
+        store.transitionEventsFor('trip_stale_initial_fix').last.reasonCode,
+        'initial_fix_stale_cached',
+      );
+      expect(
+        store
+            .activeSession
+            ?.engineSnapshot
+            .diagnostics
+            .dispositionCounts[TripSampleDisposition.rejectedOutOfOrder],
+        1,
+      );
+
+      now = start.add(const Duration(seconds: 1));
+      native.addLocation(sample(-79.9999, 1));
+      await drainNativeTripEventsUntil(
+        () =>
+            controller.lifecycleState ==
+            TripTrackingSessionLifecycleState.activeTracking,
+      );
+
+      expect(
+        controller.initialFixDecision.classification,
+        TripInitialFixClassification.freshPrecise,
+      );
+      expect(controller.acceptedMeters, 0);
+      expect(store.activeSession?.startedAt, start);
     },
   );
 
@@ -1002,7 +1075,7 @@ void main() {
 
     expect(
       controller.lifecycleState,
-      TripTrackingSessionLifecycleState.activeTracking,
+      TripTrackingSessionLifecycleState.awaitingInitialFix,
     );
     expect(controller.healthState, TripTrackingHealthState.healthy);
     expect(controller.platformError, isNull);
@@ -2339,7 +2412,7 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.activeTracking,
+        TripTrackingSessionLifecycleState.awaitingInitialFix,
       );
       expect(controller.nativeTracking, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isFalse);

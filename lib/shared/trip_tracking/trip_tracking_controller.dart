@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
+import 'trip_initial_fix_classifier.dart';
 import 'trip_live_odometer_projection.dart';
 import 'trip_route_history_models.dart';
 import 'trip_route_history_store.dart';
@@ -123,6 +124,13 @@ class TripTrackingController extends ChangeNotifier {
   bool _lowBatteryWarningDismissed = false;
   String? _acceptedCalibrationEvidenceSignature;
   String? _routeStorageStatus;
+  TripInitialFixDecision _initialFixDecision =
+      TripInitialFixClassifier.evaluate(
+        sample: null,
+        sessionStartedAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        preciseLocationAuthorized: false,
+      );
 
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking =>
@@ -154,6 +162,7 @@ class TripTrackingController extends ChangeNotifier {
   String? get cloudMirrorError => _cloudMirrorError;
   String? get durableRecordError => _durableRecordError;
   String? get routeStorageStatus => _routeStorageStatus;
+  TripInitialFixDecision get initialFixDecision => _initialFixDecision;
   TripRouteHistorySummary? routeSummaryFor(String tripId) =>
       _routeHistoryStore?.summary(tripId);
   bool get hasDurableRecordBridge => _durableRecordBridge != null;
@@ -840,6 +849,12 @@ class TripTrackingController extends ChangeNotifier {
     }
     _platformStatus = null;
     _platformError = null;
+    _initialFixDecision = TripInitialFixClassifier.evaluate(
+      sample: null,
+      sessionStartedAt: _session!.startedAt,
+      receivedAt: _clockNow(),
+      preciseLocationAuthorized: false,
+    );
     notifyListeners();
     return true;
   }
@@ -1186,6 +1201,48 @@ class TripTrackingController extends ChangeNotifier {
     final projection = _projection;
     if (session == null || engine == null || projection == null) return null;
 
+    final receivedAt = (referenceTime ?? _clockNow()).toUtc();
+    final needsInitialFixClassification =
+        engine.snapshot.lastAccepted == null &&
+        (session.lifecycleState ==
+                TripTrackingSessionLifecycleState.awaitingInitialFix ||
+            session.lifecycleState ==
+                TripTrackingSessionLifecycleState.signalDegraded ||
+            session.lifecycleState ==
+                TripTrackingSessionLifecycleState.signalLost ||
+            session.lifecycleState ==
+                TripTrackingSessionLifecycleState.recovering);
+    if (needsInitialFixClassification) {
+      final sessionAge = receivedAt.difference(session.startedAt.toUtc());
+      final initialFix = TripInitialFixClassifier.evaluate(
+        sample: sample,
+        sessionStartedAt: session.startedAt,
+        receivedAt: receivedAt,
+        preciseLocationAuthorized: _nativeTracking,
+        recentKnownLocation: engine.snapshot.lastAccepted,
+        motionState: engine.motionState,
+        maximumFreshAge: sessionAge > const Duration(seconds: 30)
+            ? sessionAge + const Duration(minutes: 2)
+            : const Duration(seconds: 30),
+        maximumUsableAccuracyMeters:
+            engine.policy.maximumHorizontalAccuracyMeters,
+      );
+      _initialFixDecision = initialFix;
+      _platformStatus = initialFix.reasonCode;
+      if (!initialFix.canAnchorSession) {
+        final rejected = engine.reject(
+          _initialFixRejectionDisposition(initialFix, sample),
+        );
+        await _recordInitialFixRejection(
+          session: session,
+          decision: initialFix,
+          receivedAt: receivedAt,
+          engineSnapshot: engine.snapshot,
+        );
+        return rejected;
+      }
+    }
+
     if (sample.recordedAt.toUtc().isBefore(session.startedAt.toUtc())) {
       return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
     }
@@ -1194,7 +1251,6 @@ class TripTrackingController extends ChangeNotifier {
     // ingestion still uses the controller clock as a mandatory future-date
     // guard, while the odometer projection keeps its historical sample time
     // when no distinct receipt time is available.
-    final receivedAt = (referenceTime ?? _clockNow()).toUtc();
     final projectionReceivedAt = (referenceTime ?? sample.recordedAt).toUtc();
     if (sample.recordedAt.toUtc().isAfter(
       receivedAt.add(engine.policy.maximumFutureSampleSkew),
@@ -1302,10 +1358,20 @@ class TripTrackingController extends ChangeNotifier {
             nextState: naturalLifecycleState,
             eventTimestamp: sample.recordedAt,
             healthState: _healthAfterDecision(session.healthState, decision),
-            reasonCode: 'validated_sample_quality_changed',
-            initiatingSource: 'gps_sample_validator',
-            confidenceState: decision.accepted ? 'medium' : 'low',
-            trackingQualityMode: naturalLifecycleState.name,
+            reasonCode: needsInitialFixClassification
+                ? _initialFixDecision.reasonCode
+                : 'validated_sample_quality_changed',
+            initiatingSource: needsInitialFixClassification
+                ? 'initial_fix_classifier'
+                : 'gps_sample_validator',
+            confidenceState: needsInitialFixClassification
+                ? _initialFixDecision.confidence.name
+                : decision.accepted
+                ? 'medium'
+                : 'low',
+            trackingQualityMode: needsInitialFixClassification
+                ? _initialFixDecision.classification.name
+                : naturalLifecycleState.name,
           );
           if (!transitioned.accepted) {
             throw StateError('Validated sample transition was rejected.');
@@ -1368,6 +1434,9 @@ class TripTrackingController extends ChangeNotifier {
             eventTimestamp: sample.recordedAt,
           );
         }
+      } else if (needsInitialFixClassification && decision.accepted) {
+        _platformStatus = 'tracking';
+        _platformError = null;
       }
       notifyListeners();
     }
@@ -1682,27 +1751,12 @@ class TripTrackingController extends ChangeNotifier {
     _lastBatterySafetyCheckUtc = _clockNow().toUtc();
     _platformError = null;
     _platformStatus = 'tracking';
-    if (!await _tryTransitionSession(
-      TripTrackingSessionLifecycleState.activeTracking,
-      health: TripTrackingHealthState.healthy,
-    )) {
-      try {
-        await platform.stop();
-      } catch (_) {
-        // The local persistence failure is already surfaced. The platform
-        // service also has its own cleanup path if this best-effort stop fails.
-      }
-      await _platformSubscription?.cancel();
-      _platformSubscription = null;
-      _nativeTracking = false;
-      _nativeSampling = null;
-      _nativeSamplingPlan = null;
-      _lastNativeHeartbeatUtc = null;
-      _nativeTrackingStartedAtUtc = null;
-      _lastNativeLocationReceivedUtc = null;
-      _backgroundTrackingAllowed = false;
-      return false;
-    }
+    _initialFixDecision = TripInitialFixClassifier.evaluate(
+      sample: null,
+      sessionStartedAt: session.startedAt,
+      receivedAt: _clockNow(),
+      preciseLocationAuthorized: true,
+    );
     notifyListeners();
     return true;
   }
@@ -1756,7 +1810,9 @@ class TripTrackingController extends ChangeNotifier {
       if (_session?.lifecycleState ==
               TripTrackingSessionLifecycleState.activeTracking ||
           _session?.lifecycleState ==
-              TripTrackingSessionLifecycleState.signalDegraded) {
+              TripTrackingSessionLifecycleState.signalDegraded ||
+          _session?.lifecycleState ==
+              TripTrackingSessionLifecycleState.awaitingInitialFix) {
         await _tryTransitionSession(
           TripTrackingSessionLifecycleState.signalLost,
           health: TripTrackingHealthState.interrupted,
@@ -1874,7 +1930,10 @@ class TripTrackingController extends ChangeNotifier {
                   (_session?.lifecycleState ==
                           TripTrackingSessionLifecycleState.activeTracking ||
                       _session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.signalDegraded)) {
+                          TripTrackingSessionLifecycleState.signalDegraded ||
+                      _session?.lifecycleState ==
+                          TripTrackingSessionLifecycleState
+                              .awaitingInitialFix)) {
                 await _tryTransitionSession(
                   TripTrackingSessionLifecycleState.signalLost,
                   health: TripTrackingHealthState.interrupted,
@@ -1883,7 +1942,10 @@ class TripTrackingController extends ChangeNotifier {
                   (_session?.lifecycleState ==
                           TripTrackingSessionLifecycleState.activeTracking ||
                       _session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.signalDegraded)) {
+                          TripTrackingSessionLifecycleState.signalDegraded ||
+                      _session?.lifecycleState ==
+                          TripTrackingSessionLifecycleState
+                              .awaitingInitialFix)) {
                 await _tryTransitionSession(
                   TripTrackingSessionLifecycleState.pausedByUser,
                 );
@@ -2054,7 +2116,9 @@ class TripTrackingController extends ChangeNotifier {
     _platformError =
         'GPS has not produced a location fix recently. Your local trip is preserved while signal recovers.';
     if (session.lifecycleState ==
-        TripTrackingSessionLifecycleState.activeTracking) {
+            TripTrackingSessionLifecycleState.activeTracking ||
+        session.lifecycleState ==
+            TripTrackingSessionLifecycleState.awaitingInitialFix) {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.signalDegraded,
         health: TripTrackingHealthState.reduced,
@@ -2513,12 +2577,62 @@ class TripTrackingController extends ChangeNotifier {
     }
     if (!decision.accepted) return current;
     return switch (current) {
+      TripTrackingSessionLifecycleState.awaitingInitialFix =>
+        TripTrackingSessionLifecycleState.activeTracking,
       TripTrackingSessionLifecycleState.signalDegraded ||
       TripTrackingSessionLifecycleState.recovering =>
         TripTrackingSessionLifecycleState.activeTracking,
       TripTrackingSessionLifecycleState.signalLost =>
         TripTrackingSessionLifecycleState.recovering,
       _ => current,
+    };
+  }
+
+  Future<void> _recordInitialFixRejection({
+    required TripTrackingSessionRecord session,
+    required TripInitialFixDecision decision,
+    required DateTime receivedAt,
+    required TripTrackingEngineSnapshot engineSnapshot,
+  }) async {
+    final checkpoint = await _sessionStore.checkpoint(
+      session.copyWith(updatedAt: receivedAt, engineSnapshot: engineSnapshot),
+      expectedRevision: session.revision,
+    );
+    final result = await _sessionStore.commitTransition(
+      sessionId: session.id,
+      expectedRevision: checkpoint.revision,
+      nextState: session.lifecycleState,
+      eventTimestamp: receivedAt,
+      reasonCode: decision.reasonCode,
+      initiatingSource: 'initial_fix_classifier',
+      confidenceState: decision.confidence.name,
+      permissionState:
+          decision.classification ==
+              TripInitialFixClassification.approximateOnly
+          ? 'approximate_only'
+          : 'precise',
+      trackingQualityMode: decision.classification.name,
+    );
+    _session = result.session;
+    if (!result.accepted) {
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not preserve initial GPS fix diagnostics.';
+    }
+  }
+
+  TripSampleDisposition _initialFixRejectionDisposition(
+    TripInitialFixDecision decision,
+    TripLocationSample sample,
+  ) {
+    if (sample.mockedLocation == true) {
+      return TripSampleDisposition.rejectedMockLocation;
+    }
+    return switch (decision.classification) {
+      TripInitialFixClassification.staleCached =>
+        TripSampleDisposition.rejectedOutOfOrder,
+      TripInitialFixClassification.approximateOnly =>
+        TripSampleDisposition.rejectedAccuracy,
+      _ => TripSampleDisposition.rejectedInvalid,
     };
   }
 
