@@ -556,17 +556,20 @@ List<TripActivityObservation> sanitizeRecoveredWalkingEvidence(
   required DateTime? lastObservedAt,
 }) {
   // Persisted activity evidence is advisory-only, but it still must not be
-  // allowed to manufacture a stop after recovery. Require a valid location
-  // timeline, remove non-walking/low-confidence records, and reject events
-  // that claim to occur materially after the last accepted observation.
-  if (lastObservedAt == null) return const <TripActivityObservation>[];
-  final latestAllowed = lastObservedAt.add(_maxPersistedObservationLead);
+  // allowed to manufacture a stop after recovery. Remove
+  // non-walking/low-confidence records, and when a location timeline is
+  // available reject events that claim to occur materially after the last
+  // accepted observation. Legacy pending-review records may legitimately
+  // carry only advisory motion evidence, so a missing anchor cannot erase a
+  // user-visible review cue by itself.
+  final latestAllowed = lastObservedAt?.add(_maxPersistedObservationLead);
   final ordered =
       evidence
           .where(
             (item) =>
                 item.canSupportStopReview &&
-                !item.recordedAt.isAfter(latestAllowed),
+                (latestAllowed == null ||
+                    !item.recordedAt.isAfter(latestAllowed)),
           )
           .toList(growable: false)
         ..sort((left, right) => left.recordedAt.compareTo(right.recordedAt));
