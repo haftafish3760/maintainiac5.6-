@@ -33,6 +33,7 @@ class TripTrackingForegroundService : Service() {
         const val intervalMillisExtra = "intervalMillis"
         const val minimumDisplacementExtra = "minimumDisplacementMeters"
         const val activityRecognitionEnabledExtra = "activityRecognitionEnabled"
+        const val samplingUpdateExtra = "samplingUpdate"
         const val activityEpochExtra = "activityEpoch"
         private const val stopAction = "com.maintainiac.trip_tracking.STOP"
         private const val notificationChannelId = "maintainiac_trip_tracking"
@@ -136,6 +137,13 @@ class TripTrackingForegroundService : Service() {
         // collection. Dart retains the local trip for recovery/review.
         if (intent == null) {
             retireForExplicitStop()
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+        // The bridge verifies the collector before requesting a cadence
+        // update, but it can still disappear in the tiny interval afterward.
+        // An update intent is never authorization to create a new collector.
+        if (intent.getBooleanExtra(samplingUpdateExtra, false) && !isRunning) {
             stopSelf(startId)
             return START_NOT_STICKY
         }

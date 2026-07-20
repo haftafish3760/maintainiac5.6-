@@ -504,12 +504,28 @@ void main() {
     final service = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
     ).readAsStringSync();
+    final bridge = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
 
     expect(service, contains('if (intent == null) {'));
     expect(service, contains('stopSelf(startId)'));
     expect(
       service.indexOf('if (intent == null) {'),
       lessThan(service.indexOf('if (intent?.action == stopAction)')),
+    );
+    expect(service, contains('samplingUpdateExtra'));
+    expect(
+      service,
+      contains(
+        'intent.getBooleanExtra(samplingUpdateExtra, false) && !isRunning',
+      ),
+    );
+    expect(
+      bridge,
+      contains(
+        'putExtra(TripTrackingForegroundService.samplingUpdateExtra, true)',
+      ),
     );
   });
 
