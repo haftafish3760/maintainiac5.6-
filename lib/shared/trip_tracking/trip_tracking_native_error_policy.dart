@@ -176,6 +176,9 @@ String _safeErrorCode(String? value) {
     'trip_tracking_battery_critical' => 'trip_tracking_battery_critical',
     'trip_tracking_activity_unavailable' =>
       'trip_tracking_activity_unavailable',
+    'trip_tracking_sampling_update_failed' =>
+      'trip_tracking_sampling_update_failed',
+    'trip_tracking_permission_busy' => 'trip_tracking_permission_busy',
     'invalidLocationPayload' => 'invalidLocationPayload',
     'invalidActivityPayload' => 'invalidActivityPayload',
     'invalidNativeEventPayload' => 'invalidNativeEventPayload',

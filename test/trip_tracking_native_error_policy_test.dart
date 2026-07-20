@@ -135,6 +135,12 @@ void main() {
       'trip_tracking_activity_unavailable',
     );
     expect(activityUnavailable['recoverable'], isFalse);
+
+    final permissionBusy = TripTrackingNativeErrorPolicy.toSafeSummary(
+      'trip_tracking_permission_busy',
+    );
+    expect(permissionBusy['nativeErrorCode'], 'trip_tracking_permission_busy');
+    expect(permissionBusy['recoverable'], isFalse);
   });
 
   test('native error summaries validate as renderable', () {
