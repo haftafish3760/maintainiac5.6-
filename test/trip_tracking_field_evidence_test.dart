@@ -1,8 +1,25 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_field_evidence.dart';
 
 void main() {
+  test('real-device field-evidence template stays safely importable', () {
+    final decoded = jsonDecode(
+      File(
+        'docs/gps_assisted_tracking/GPS_FIELD_EVIDENCE_TEMPLATE.json',
+      ).readAsStringSync(),
+    );
+    final evidence = TripTrackingFieldEvidence.fromMap(
+      Map<String, Object?>.from(decoded as Map),
+    );
+
+    expect(evidence.toSafeSummary()['coordinatesIncluded'], isFalse);
+    expect(evidence.toSafeSummary()['routeGeometryIncluded'], isFalse);
+  });
+
   test('field evidence compares only coordinate-minimized mileage', () {
     final evidence = TripTrackingFieldEvidence.fromMap({
       'platform': 'android',

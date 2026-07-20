@@ -1,0 +1,8 @@
+{
+  "platform": "android",
+  "odometerMiles": 0.0,
+  "filteredGpsMiles": 0.0,
+  "expectedWalkingStops": 0,
+  "detectedWalkingStops": 0,
+  "matchedWalkingStops": 0
+}

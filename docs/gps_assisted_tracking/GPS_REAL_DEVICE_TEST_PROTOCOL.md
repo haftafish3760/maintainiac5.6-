@@ -27,6 +27,12 @@ Create one coordinate-minimized record for every Android and iOS run. Record:
   summary-upload outcome. Do not retain coordinates, screenshots containing
   locations, route polylines, addresses, or raw native GPS logs.
 
+For the importable comparison subset, copy
+`GPS_FIELD_EVIDENCE_TEMPLATE.json` once per run and replace only its listed
+values. The importer intentionally accepts only platform, confirmed odometer
+miles, filtered GPS miles, and aggregate walking-stop counts; keep the richer
+run record separate and coordinate-free.
+
 Use a private, deliberately approved fixture only if a route is essential to
 investigate a defect. Remove personal locations before promoting it to a
 regression fixture and record only expected distance, stop, gap, and health
