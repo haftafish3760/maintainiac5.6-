@@ -312,6 +312,7 @@ void main() {
       expect(event.location?.horizontalAccuracyMeters, 4.5);
       expect(event.location?.speedMetersPerSecond, 8.1);
       expect(event.location?.monotonicElapsedNanos, 123456789000);
+      expect(event.toSafeLogMap()['hasMonotonicElapsedTime'], isTrue);
       expect(event.toSafeLogMap()['locationAccuracyBucket'], 'high');
       expect(event.toSafeLogMap()['locationSpeedBucket'], 'road_speed');
       expect(event.toSafeLogMap()['rawLatitudeIncluded'], isFalse);
