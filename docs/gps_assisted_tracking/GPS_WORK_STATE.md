@@ -8,5 +8,5 @@
   `docs/gps_assisted_tracking/GPS_REAL_DEVICE_TEST_PROTOCOL.md`
 - Latest stable commit: `30f59a9dc` (add sanitized real-device field-evidence template)
 - Latest validation result: 67-file non-simulation GPS suite green (960 tests); Android debug build gate and iOS device build green
-- Unresolved blockers: no source blocker; simulation/fuzz work is intentionally deferred, and real Android/iOS route, battery, lifecycle, and long-session evidence remains uncollected
+- Unresolved blockers: no source blocker; simulation/fuzz handoff is documented and intentionally deferred, and real Android/iOS route, battery, lifecycle, and long-session evidence remains uncollected
 - Next action: continue targeted source-level hardening and cross-platform validation; defer simulation execution until separately assigned
