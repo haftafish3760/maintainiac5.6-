@@ -116,6 +116,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     guard tracking, let trackingStartedAt else { return }
     if stopForLocationServicesDisabledIfNeeded() { return }
     if stopForCriticalBatteryIfNeeded() { return }
+    let callbackReceivedAt = Date()
     for location in locations {
       // The delegate is shared across collection sessions. A callback queued
       // before stopUpdatingLocation can arrive after a new start, so do not
@@ -127,7 +128,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
             location.horizontalAccuracy > 0,
             location.horizontalAccuracy.isFinite,
             location.timestamp.timeIntervalSince1970 > 0,
-            location.timestamp <= Date().addingTimeInterval(120) else { continue }
+            location.timestamp <= callbackReceivedAt.addingTimeInterval(120) else { continue }
       let reportedSpeed = location.speed >= 0 && location.speed.isFinite
         ? location.speed
         : nil
@@ -143,7 +144,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
         ? location.course
         : nil
       let simulated = isSimulatedLocation(location)
-      emit([
+      var event: [String: Any] = [
         "type": "location",
         "latitude": location.coordinate.latitude,
         "longitude": location.coordinate.longitude,
@@ -153,8 +154,28 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
         "speedAccuracyMetersPerSecond": reportedSpeedAccuracy ?? NSNull(),
         "bearingDegrees": reportedBearing ?? NSNull(),
         "mockedLocation": simulated,
-      ])
+      ]
+      if let monotonicElapsedNanos = monotonicElapsedNanos(
+        for: location,
+        observedAt: callbackReceivedAt
+      ) {
+        event["monotonicElapsedNanos"] = monotonicElapsedNanos
+      }
+      emit(event)
     }
+  }
+
+  /// Core Location exposes wall time but not the monotonic timestamp carried
+  /// by Android locations. Derive the sample uptime from its bounded age so a
+  /// user clock change cannot silently reorder otherwise current iOS fixes.
+  private func monotonicElapsedNanos(for location: CLLocation, observedAt: Date) -> Int64? {
+    let wallAge = max(0, observedAt.timeIntervalSince(location.timestamp))
+    let sampleUptime = ProcessInfo.processInfo.systemUptime - wallAge
+    let maximumUptime = Double(Int64.max) / 1_000_000_000
+    guard sampleUptime.isFinite, sampleUptime > 0, sampleUptime <= maximumUptime else {
+      return nil
+    }
+    return Int64(sampleUptime * 1_000_000_000)
   }
 
   private func isSimulatedLocation(_ location: CLLocation) -> Bool {
