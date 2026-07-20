@@ -977,8 +977,20 @@ class TripTrackingController extends ChangeNotifier {
     }
 
     final lastObservedAt = engine.snapshot.lastObservedAt?.toUtc();
+    final lastObservedMonotonicElapsedNanos =
+        engine.snapshot.lastObservedMonotonicElapsedNanos;
+    final monotonicIsNewer =
+        sample.monotonicElapsedNanos != null &&
+        lastObservedMonotonicElapsedNanos != null &&
+        sample.monotonicElapsedNanos! > lastObservedMonotonicElapsedNanos;
     if (lastObservedAt != null &&
-        !sample.recordedAt.toUtc().isAfter(lastObservedAt)) {
+        !sample.recordedAt.toUtc().isAfter(lastObservedAt) &&
+        !monotonicIsNewer) {
+      return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
+    }
+    if (lastObservedMonotonicElapsedNanos != null &&
+        sample.monotonicElapsedNanos != null &&
+        !monotonicIsNewer) {
       return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
     }
 

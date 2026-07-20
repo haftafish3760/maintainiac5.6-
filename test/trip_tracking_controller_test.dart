@@ -41,12 +41,14 @@ void main() {
     int seconds, {
     double? speed,
     double accuracy = 5,
+    int? monotonicElapsedNanos,
   }) => TripLocationSample(
     latitude: 35,
     longitude: longitude,
     recordedAt: start.add(Duration(seconds: seconds)),
     horizontalAccuracyMeters: accuracy,
     speedMetersPerSecond: speed,
+    monotonicElapsedNanos: monotonicElapsedNanos,
   );
 
   Future<void> drainNativeTripEventsUntil(
@@ -57,6 +59,33 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     }
   }
+
+  test(
+    'controller accepts newer Android monotonic time at a duplicate wall clock',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_duplicate_android_wall_clock',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      await controller.ingest(
+        sample(-80, 0, monotonicElapsedNanos: 10000000000),
+      );
+      expect(
+        (await controller.ingest(
+          sample(-79.9998, 0, monotonicElapsedNanos: 30000000000),
+        ))?.disposition,
+        TripSampleDisposition.acceptedDistance,
+      );
+      expect(controller.acceptedMeters, greaterThan(0));
+    },
+  );
 
   test(
     'a failed initial local checkpoint releases the live odometer lock',
