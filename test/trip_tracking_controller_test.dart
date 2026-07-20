@@ -5640,7 +5640,7 @@ void main() {
     },
   );
 
-  test('corrupt local trip identity is cleared instead of restored', () async {
+  test('corrupt local trip identity is preserved but never restored', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_corrupt_identity_',
     );
@@ -5673,11 +5673,24 @@ void main() {
 
     expect(await controller.restore(), isFalse);
     expect(store.activeSession, isNull);
+    expect(box.get('activeSession'), isNotNull);
+    expect(store.recoveryDiagnostics, hasLength(1));
+    expect(
+      store.recoveryDiagnostics.single.code,
+      'corrupt_active_session_recovery_required',
+    );
+    expect(controller.platformStatus, 'corrupt_session_recovery_required');
+    expect(controller.platformError, contains('was preserved'));
+    final firstDiagnosticAt = store.recoveryDiagnostics.single.recordedAtUtc;
+
+    expect(await controller.restore(), isFalse);
+    expect(store.recoveryDiagnostics, hasLength(1));
+    expect(store.recoveryDiagnostics.single.recordedAtUtc, firstDiagnosticAt);
     expect(controller.isTracking, isFalse);
     expect(odometer.hasLiveTripProjection, isFalse);
   });
 
-  test('future-schema local trip is cleared instead of restored', () async {
+  test('future-schema local trip is preserved but never restored', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_future_schema_',
     );
@@ -5711,6 +5724,11 @@ void main() {
 
     expect(await controller.restore(), isFalse);
     expect(store.activeSession, isNull);
+    expect(box.get('activeSession'), isNotNull);
+    expect(
+      store.recoveryDiagnostics.single.code,
+      'corrupt_active_session_recovery_required',
+    );
     expect(controller.isTracking, isFalse);
     expect(odometer.hasLiveTripProjection, isFalse);
   });

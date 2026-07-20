@@ -969,25 +969,39 @@ class TripTrackingSessionStore {
     );
     final session = selected?.session ?? legacy;
     final restoredGeneration = selected?.generation ?? 0;
+    final corruptWithoutFallback = session == null && _hasRawActiveEvidence;
     final usedFallback =
         session != null &&
         ((expectedGeneration > restoredGeneration) ||
             (selected == null && _hasRawActiveEvidence));
     TripTrackingRecoveryDiagnostic? diagnostic;
-    if (usedFallback) {
-      diagnostic = TripTrackingRecoveryDiagnostic(
-        code: 'corrupt_latest_snapshot_fallback',
-        recordedAtUtc: DateTime.now().toUtc(),
-        expectedGeneration: expectedGeneration,
-        restoredGeneration: restoredGeneration,
-      );
-      final safeSessionId = session.id;
+    if (usedFallback || corruptWithoutFallback) {
+      final code = usedFallback
+          ? 'corrupt_latest_snapshot_fallback'
+          : 'corrupt_active_session_recovery_required';
+      final safeSessionId = session?.id ?? 'unreadable';
       final key =
           '$_recoveryDiagnosticPrefix$safeSessionId:$expectedGeneration:$restoredGeneration';
-      if (_box == null) {
-        _memoryRecoveryDiagnostics[key] = diagnostic;
+      final existing = _box == null
+          ? _memoryRecoveryDiagnostics[key]
+          : switch (_box.get(key)) {
+              Map value => TripTrackingRecoveryDiagnostic.tryFromMap(value),
+              _ => null,
+            };
+      if (existing != null) {
+        diagnostic = existing;
       } else {
-        await _box.put(key, diagnostic.toMap());
+        diagnostic = TripTrackingRecoveryDiagnostic(
+          code: code,
+          recordedAtUtc: DateTime.now().toUtc(),
+          expectedGeneration: expectedGeneration,
+          restoredGeneration: restoredGeneration,
+        );
+        if (_box == null) {
+          _memoryRecoveryDiagnostics[key] = diagnostic;
+        } else {
+          await _box.put(key, diagnostic.toMap());
+        }
       }
     }
     return TripTrackingSessionRecoveryResult(

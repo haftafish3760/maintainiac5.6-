@@ -864,8 +864,9 @@ class TripTrackingController extends ChangeNotifier {
   Future<bool> _restore() async {
     if (_isDisposed || isTracking) return false;
     TripTrackingSessionRecord? session;
+    TripTrackingSessionRecoveryResult? recovery;
     try {
-      final recovery = await _sessionStore.recoverActive();
+      recovery = await _sessionStore.recoverActive();
       session = recovery.session;
       if (recovery.usedFallback) {
         _platformStatus = 'snapshot_recovered';
@@ -878,7 +879,16 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (session == null) return false;
+    if (session == null) {
+      if (recovery.diagnostic?.code ==
+          'corrupt_active_session_recovery_required') {
+        _platformStatus = 'corrupt_session_recovery_required';
+        _platformError =
+            'A damaged trip checkpoint was preserved for recovery review. It was not deleted or used as mileage.';
+        notifyListeners();
+      }
+      return false;
+    }
     if (!_isRecoverableSession(session)) {
       try {
         final quarantined = await _sessionStore.quarantineActiveSession(
