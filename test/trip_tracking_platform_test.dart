@@ -646,16 +646,18 @@ void main() {
     expect(event.errorCode, 'invalidActivityPayload');
   });
 
-  test('non-finite activity confidence fails closed without throwing', () {
-    final event = TripTrackingPlatformEvent.fromMap({
-      'type': 'activity',
-      'activity': 'walking',
-      'confidence': double.nan,
-      'recordedAt': '2026-07-13T12:00:00.000Z',
-    });
+  test('invalid activity confidence fails closed without throwing', () {
+    for (final confidence in [double.nan, 90.5]) {
+      final event = TripTrackingPlatformEvent.fromMap({
+        'type': 'activity',
+        'activity': 'walking',
+        'confidence': confidence,
+        'recordedAt': '2026-07-13T12:00:00.000Z',
+      });
 
-    expect(event.type, TripTrackingPlatformEventType.error);
-    expect(event.errorCode, 'invalidActivityPayload');
+      expect(event.type, TripTrackingPlatformEventType.error);
+      expect(event.errorCode, 'invalidActivityPayload');
+    }
   });
 
   test('native activity timestamps accept epoch milliseconds', () {
