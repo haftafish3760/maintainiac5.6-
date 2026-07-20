@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
+import 'trip_tracking_cancelled_session.dart';
 import 'trip_tracking_lifecycle_event.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_recovery_diagnostic.dart';
@@ -881,6 +882,7 @@ class TripTrackingSessionStore {
   static const _snapshotHeadKey = 'activeSnapshot:head';
   static const _reviewPrefix = 'review:';
   static const _pendingPrefix = 'pending:';
+  static const _cancelledPrefix = 'cancelled:';
   static const _transitionPrefix = 'transition:';
   static const _recoveryDiagnosticPrefix = 'recoveryDiagnostic:';
   static Future<void> _sharedWriteTail = Future<void>.value();
@@ -892,6 +894,7 @@ class TripTrackingSessionStore {
   int _memorySnapshotHead = 0;
   final Map<String, TripTrackingReviewRecord> _memoryReviews = {};
   final Map<String, TripTrackingPendingSample> _memoryPending = {};
+  final Map<String, TripTrackingCancelledSessionRecord> _memoryCancelled = {};
   final Map<String, TripTrackingLifecycleEvent> _memoryTransitions = {};
   final Map<String, TripTrackingRecoveryDiagnostic> _memoryRecoveryDiagnostics =
       {};
@@ -986,6 +989,41 @@ class TripTrackingSessionStore {
     events.sort((a, b) => a.sequenceNumber.compareTo(b.sequenceNumber));
     return events;
   }
+
+  List<TripTrackingCancelledSessionRecord> get cancelledSessions {
+    final records = _box == null
+        ? _memoryCancelled.values.toList()
+        : _box.keys
+              .whereType<String>()
+              .where((key) => key.startsWith(_cancelledPrefix))
+              .map((key) => _box.get(key))
+              .whereType<Map>()
+              .map(TripTrackingCancelledSessionRecord.tryFromMap)
+              .whereType<TripTrackingCancelledSessionRecord>()
+              .toList();
+    records.sort((a, b) => b.cancelledAt.compareTo(a.cancelledAt));
+    return records;
+  }
+
+  Future<void> saveCancelled(TripTrackingCancelledSessionRecord record) =>
+      _enqueue(() async {
+        if (!_isSafeStoreIdentifier(record.sessionId) ||
+            !_isSafeStoreIdentifier(record.vehicleId) ||
+            !_isSafeStoreIdentifier(record.profileId) ||
+            record.cancelledAt.isBefore(record.startedAt) ||
+            record.startingOdometer < 0) {
+          throw ArgumentError.value(record.sessionId, 'record');
+        }
+        if (_storageCheck != null) await _ensureStorageForWrite();
+        if (_box == null) {
+          _memoryCancelled[record.sessionId] = record;
+        } else {
+          await _box.put(
+            '$_cancelledPrefix${record.sessionId}',
+            record.toMap(),
+          );
+        }
+      });
 
   Future<TripTrackingSessionClaimResult> claimActive(
     TripTrackingSessionRecord candidate, {

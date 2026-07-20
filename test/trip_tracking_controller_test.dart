@@ -1836,7 +1836,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.pausedByUser,
+        TripTrackingSessionLifecycleState.pausedBySystem,
       );
     },
   );
@@ -1902,7 +1902,7 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.pausedByUser,
+        TripTrackingSessionLifecycleState.pausedBySystem,
       );
     },
   );
@@ -1998,7 +1998,7 @@ void main() {
     expect(controller.nativeTracking, isFalse);
     expect(
       controller.lifecycleState,
-      TripTrackingSessionLifecycleState.pausedByUser,
+      TripTrackingSessionLifecycleState.pausedBySystem,
     );
   });
 
@@ -3266,7 +3266,7 @@ void main() {
       expect(await native.isTracking, isFalse);
       expect(
         store.activeSession?.lifecycleState,
-        TripTrackingSessionLifecycleState.pausedByUser,
+        TripTrackingSessionLifecycleState.pausedBySystem,
       );
     },
   );
@@ -4159,7 +4159,10 @@ void main() {
 
       expect(review, isNotNull);
       expect(store.reviewForTrip('trip_finish_stop_fault'), isNotNull);
-      expect(store.activeSession, isNull);
+      expect(
+        store.activeSession?.lifecycleState,
+        TripTrackingSessionLifecycleState.completionPending,
+      );
       expect(controller.isTracking, isFalse);
       expect(controller.nativeTracking, isFalse);
       expect(odometer.hasLiveTripProjection, isFalse);
@@ -5154,7 +5157,10 @@ void main() {
 
       expect(review, isNotNull);
       expect(review!.estimatedEndingOdometer, greaterThan(1000));
-      expect(store.activeSession, isNull);
+      expect(
+        store.activeSession?.lifecycleState,
+        TripTrackingSessionLifecycleState.completionPending,
+      );
       expect(store.reviewForTrip('trip_review')?.id, 'trip_review');
       expect(controller.isTracking, isFalse);
       expect(odometer.hasLiveTripProjection, isFalse);

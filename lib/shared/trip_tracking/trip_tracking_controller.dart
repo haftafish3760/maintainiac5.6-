@@ -9,6 +9,7 @@ import 'trip_live_odometer_projection.dart';
 import 'trip_tracking_calibration_state.dart';
 import 'trip_tracking_calibration_apply_guard.dart';
 import 'trip_tracking_backup_port.dart';
+import 'trip_tracking_cancelled_session.dart';
 import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_heartbeat_watchdog_policy.dart';
@@ -114,7 +115,12 @@ class TripTrackingController extends ChangeNotifier {
   String? _acceptedCalibrationEvidenceSignature;
 
   TripTrackingSessionRecord? get activeSession => _session;
-  bool get isTracking => _session != null;
+  bool get isTracking =>
+      _session != null &&
+      _session!.lifecycleState !=
+          TripTrackingSessionLifecycleState.completionPending &&
+      _session!.lifecycleState != TripTrackingSessionLifecycleState.completed &&
+      _session!.lifecycleState != TripTrackingSessionLifecycleState.cancelled;
   double get acceptedMeters => _engine?.totalAcceptedMeters ?? 0;
   bool get needsWalkingReview => _engine?.needsWalkingReview ?? false;
   TripMotionState get motionState =>
@@ -325,11 +331,16 @@ class TripTrackingController extends ChangeNotifier {
         !review.hasValidTimeline ||
         review.id.trim().isEmpty ||
         review.vehicleId.trim().isEmpty ||
-        review.isOdometerConfirmed ||
         review.vehicleId != _odometer.vehicleId ||
         review.estimatedEndingOdometer < review.startingOdometer ||
         confirmedEndingOdometer < review.startingOdometer) {
       return false;
+    }
+    if (review.isOdometerConfirmed) {
+      if (review.confirmedEndingOdometer != confirmedEndingOdometer) {
+        return false;
+      }
+      return _finalizeCompletedSession(review, confirmedAt: confirmedAt);
     }
     final confirmationTime = confirmedAt ?? _clockNow();
     if (confirmationTime.isBefore(review.finishedAt)) return false;
@@ -402,6 +413,12 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (!await _finalizeCompletedSession(
+      confirmedReview,
+      confirmedAt: confirmationTime,
+    )) {
+      return false;
+    }
     if (_platformStatus == 'review_confirmation_save_failed') {
       _platformStatus = null;
       _platformError = null;
@@ -442,6 +459,36 @@ class TripTrackingController extends ChangeNotifier {
       _cloudMirrorError = 'Cloud mileage backup is pending.';
     }
     notifyListeners();
+    return true;
+  }
+
+  Future<bool> _finalizeCompletedSession(
+    TripTrackingReviewRecord review, {
+    DateTime? confirmedAt,
+  }) async {
+    final active = _session?.id == review.id
+        ? _session
+        : _sessionStore.activeSession;
+    if (active == null) return true;
+    if (active.id != review.id ||
+        active.lifecycleState !=
+            TripTrackingSessionLifecycleState.completionPending) {
+      return false;
+    }
+    final result = await _sessionStore.commitTransition(
+      sessionId: active.id,
+      expectedRevision: active.revision,
+      nextState: TripTrackingSessionLifecycleState.completed,
+      eventTimestamp: confirmedAt ?? review.odometerConfirmedAt ?? _clockNow(),
+      reasonCode: 'odometer_review_confirmed',
+      initiatingSource: 'trip_log_review',
+      confidenceState: 'user_confirmed',
+      permissionState: 'not_required',
+      trackingQualityMode: 'completed',
+    );
+    if (!result.accepted) return false;
+    if (!await _sessionStore.clearIfSession(active.id)) return false;
+    if (_session?.id == active.id) _session = null;
     return true;
   }
 
@@ -768,6 +815,32 @@ class TripTrackingController extends ChangeNotifier {
             'A saved trip review is incomplete. GPS recovery is paused to protect your mileage.';
         notifyListeners();
         return false;
+      }
+      if (session.lifecycleState ==
+          TripTrackingSessionLifecycleState.completionPending) {
+        if (session.vehicleId != _odometer.vehicleId) {
+          _platformStatus = 'vehicle_mismatch';
+          _platformError =
+              'This completed GPS trip belongs to another vehicle. Switch vehicles to review it.';
+          notifyListeners();
+          return false;
+        }
+        final currentProfileId = _activeProfileId?.call();
+        if (currentProfileId != null && session.profileId != currentProfileId) {
+          _platformStatus = 'profile_mismatch';
+          _platformError =
+              'This completed GPS trip belongs to another profile. Switch profiles to review it.';
+          notifyListeners();
+          return false;
+        }
+        _session = session;
+        _engine = null;
+        _projection = null;
+        _platformStatus = 'completion_pending';
+        _platformError =
+            'GPS assistance stopped. Confirm the ending odometer to complete this trip.';
+        notifyListeners();
+        return true;
       }
       try {
         await _sessionStore.clearIfSession(session.id);
@@ -1948,7 +2021,23 @@ class TripTrackingController extends ChangeNotifier {
   }
 
   Future<void> stopNativeTracking() =>
-      _enqueueNativeLifecycle(_stopNativeTracking);
+      _enqueueNativeLifecycle(() => _stopNativeTracking(systemPause: false));
+
+  Future<bool> pauseByUser() => _enqueueNativeLifecycle(() async {
+    final session = _session;
+    if (session == null || !isTracking) return false;
+    await _stopNativeTracking(systemPause: false);
+    return _session?.lifecycleState ==
+        TripTrackingSessionLifecycleState.pausedByUser;
+  });
+
+  Future<bool> resumeByUser({
+    required bool allowBackground,
+    bool activityRecognitionEnabled = false,
+  }) => startNativeTracking(
+    allowBackground: allowBackground,
+    activityRecognitionEnabled: activityRecognitionEnabled,
+  );
 
   /// Withdraw optional motion-sensor assistance from an active collector.
   ///
@@ -2119,7 +2208,10 @@ class TripTrackingController extends ChangeNotifier {
     return decision;
   }
 
-  Future<void> _stopNativeTracking({bool interrupted = false}) async {
+  Future<void> _stopNativeTracking({
+    bool interrupted = false,
+    bool systemPause = true,
+  }) async {
     final platform = _platform;
     final wasNativeTracking = _nativeTracking;
     if (wasNativeTracking) _nativeStopRequested = true;
@@ -2151,13 +2243,17 @@ class TripTrackingController extends ChangeNotifier {
     _backgroundTrackingAllowed = false;
     _latestActivity = null;
     _platformStatus = interrupted ? 'interrupted' : 'stopped';
-    if (_session?.lifecycleState ==
-            TripTrackingSessionLifecycleState.activeTracking ||
-        _session?.lifecycleState ==
-            TripTrackingSessionLifecycleState.signalDegraded) {
-      await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.pausedByUser,
-      );
+    final currentState = _session?.lifecycleState;
+    final targetState = systemPause
+        ? TripTrackingSessionLifecycleState.pausedBySystem
+        : TripTrackingSessionLifecycleState.pausedByUser;
+    if (!interrupted &&
+        currentState != null &&
+        TripTrackingSessionStateMachine.canTransition(
+          currentState,
+          targetState,
+        )) {
+      await _tryTransitionSession(targetState);
     }
     notifyListeners();
   }
@@ -2373,6 +2469,101 @@ class TripTrackingController extends ChangeNotifier {
   Future<bool> discardEmptyTrip() =>
       _runExclusiveSessionOperation(false, _discardEmptyTrip);
 
+  Future<bool> cancelSession({
+    required bool userConfirmed,
+    String reasonCode = 'user_cancelled',
+    DateTime? cancelledAt,
+  }) => _runExclusiveSessionOperation(
+    false,
+    () => _cancelSession(
+      userConfirmed: userConfirmed,
+      reasonCode: reasonCode,
+      cancelledAt: cancelledAt,
+    ),
+  );
+
+  Future<bool> _cancelSession({
+    required bool userConfirmed,
+    required String reasonCode,
+    DateTime? cancelledAt,
+  }) async {
+    final session = _session;
+    final engine = _engine;
+    if (session == null ||
+        engine == null ||
+        !_isSafeTripTrackingIdentity(reasonCode)) {
+      return false;
+    }
+    final pendingEvidence = _sessionStore.pendingSampleFor(session.id) != null;
+    final meaningfulEvidence =
+        engine.totalAcceptedMeters > 0 ||
+        engine.snapshot.lastObservedAt != null ||
+        session.advisories.isNotEmpty ||
+        pendingEvidence;
+    if (meaningfulEvidence && !userConfirmed) {
+      _platformStatus = 'cancellation_confirmation_required';
+      _platformError =
+          'This trip contains GPS evidence. Confirm cancellation to preserve it in cancelled history.';
+      notifyListeners();
+      return false;
+    }
+    final at = cancelledAt ?? _clockNow();
+    if (at.isBefore(session.startedAt) ||
+        at.toUtc().isAfter(
+          _clockNow().toUtc().add(_policy.maximumFutureSampleSkew),
+        )) {
+      return false;
+    }
+    await stopNativeTracking();
+    final beforeCancellation = _session ?? session;
+    final cancelled = TripTrackingCancelledSessionRecord(
+      sessionId: session.id,
+      vehicleId: session.vehicleId,
+      profileId: session.profileId,
+      startedAt: session.startedAt,
+      cancelledAt: at,
+      startingOdometer: session.startingOdometer,
+      profile: session.profile,
+      engineSnapshot: engine.snapshot,
+      lifecycleBeforeCancellation: beforeCancellation.lifecycleState,
+      reasonCode: reasonCode,
+      userConfirmed: userConfirmed,
+    );
+    try {
+      await _sessionStore.saveCancelled(cancelled);
+      final transition = await _sessionStore.commitTransition(
+        sessionId: beforeCancellation.id,
+        expectedRevision: beforeCancellation.revision,
+        nextState: TripTrackingSessionLifecycleState.cancelled,
+        eventTimestamp: at,
+        reasonCode: reasonCode,
+        initiatingSource: 'user',
+        confidenceState: 'user_confirmed',
+        permissionState: 'not_required',
+        trackingQualityMode: 'cancelled',
+      );
+      if (!transition.accepted ||
+          !await _sessionStore.clearIfSession(session.id)) {
+        throw StateError('Cancellation could not be committed safely.');
+      }
+    } catch (_) {
+      _platformStatus = 'cancellation_save_failed';
+      _platformError =
+          'The trip remains recoverable because cancellation could not be saved safely.';
+      notifyListeners();
+      return false;
+    }
+    _odometer.clearLiveTripProjection(tripId: session.id);
+    _session = null;
+    _engine = null;
+    _projection = null;
+    _activeTripCalibrationMultiplier = 1;
+    _platformStatus = 'cancelled';
+    _platformError = null;
+    notifyListeners();
+    return true;
+  }
+
   Future<bool> _discardEmptyTrip() async {
     final session = _session;
     if (session == null || acceptedMeters > 0 || _nativeTracking) return false;
@@ -2435,15 +2626,35 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
       return null;
     }
-    if (session.lifecycleState ==
-            TripTrackingSessionLifecycleState.activeTracking ||
-        session.lifecycleState ==
-            TripTrackingSessionLifecycleState.pausedByUser ||
-        session.lifecycleState ==
-            TripTrackingSessionLifecycleState.signalDegraded) {
-      await _tryTransitionSession(TripTrackingSessionLifecycleState.stopping);
+    if (session.lifecycleState != TripTrackingSessionLifecycleState.stopping &&
+        TripTrackingSessionStateMachine.canTransition(
+          session.lifecycleState,
+          TripTrackingSessionLifecycleState.stopping,
+        )) {
+      if (!await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.stopping,
+      )) {
+        _platformStatus = 'review_save_failed';
+        _platformError =
+            'Could not save the completed trip locally. It remains recoverable.';
+        notifyListeners();
+        return null;
+      }
     }
     await stopNativeTracking();
+    final stoppedSession = _session;
+    if (stoppedSession == null) return null;
+    if (stoppedSession.lifecycleState !=
+            TripTrackingSessionLifecycleState.completionPending &&
+        !await _tryTransitionSession(
+          TripTrackingSessionLifecycleState.completionPending,
+        )) {
+      _platformStatus = 'completion_state_failed';
+      _platformError =
+          'GPS assistance stopped, but the trip could not enter safe review state.';
+      notifyListeners();
+      return null;
+    }
     final review = TripTrackingReviewRecord(
       id: session.id,
       vehicleId: session.vehicleId,
@@ -2470,28 +2681,12 @@ class TripTrackingController extends ChangeNotifier {
       return null;
     }
     try {
-      await _sessionStore.clearIfSession(session.id);
-    } catch (error) {
-      // The review is already durable. Clear the in-memory trip regardless so
-      // it cannot be finished twice; restore will treat the review as
-      // authoritative and retry cleanup on a future launch.
-      _platformStatus = 'review_cleanup_failed';
-      _platformError =
-          'Trip review was saved, but stale recovery cleanup is pending.';
-    }
-    try {
-      // A review contains only the completed-trip summary. Its transient
-      // pending sample can contain a raw location, so it must not linger once
-      // the review itself is durable.
       await _sessionStore.clearPending(session.id);
-    } catch (error) {
-      if (_platformStatus == null) {
-        _platformStatus = 'pending_cleanup_failed';
-        _platformError = 'Could not clear transient GPS recovery data.';
-      }
+    } catch (_) {
+      _platformStatus = 'pending_cleanup_failed';
+      _platformError = 'Could not flush transient GPS recovery data.';
     }
     _odometer.clearLiveTripProjection(tripId: session.id);
-    _session = null;
     _engine = null;
     _projection = null;
     _activeTripCalibrationMultiplier = 1;
