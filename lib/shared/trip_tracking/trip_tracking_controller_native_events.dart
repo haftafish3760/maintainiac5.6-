@@ -80,6 +80,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               final engine = _engine;
               final currentSession = _session;
               if (engine == null || currentSession == null) return;
+              final previousEngineSnapshot = engine.snapshot;
               final assessment = _initialFixClassifier.classify(
                 sample: event.location,
                 receivedAt: receivedAt,
@@ -110,6 +111,11 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                     _ => 'initial_fix_rejected',
                   };
                 } catch (_) {
+                  _engine = TripTrackingEngine.fromSnapshot(
+                    previousEngineSnapshot,
+                    policy: engine.policy,
+                    profile: engine.profile,
+                  );
                   _platformStatus = 'storage_failed';
                   _platformError =
                       'Could not save initial GPS fix evidence locally.';

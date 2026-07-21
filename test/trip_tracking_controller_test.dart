@@ -7742,6 +7742,50 @@ void main() {
       expect(controller.acceptedMeters, greaterThan(0));
     },
   );
+
+  test(
+    'failed initial-fix checkpoint cannot alter recoverable state',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = _FailingNextSessionSaveStore();
+      final controller = production.TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => start.add(const Duration(minutes: 5)),
+      );
+      addTearDown(controller.dispose);
+      expect(
+        await controller.start(
+          tripId: 'trip_failed_initial_fix_checkpoint',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      final revisionBeforeFix = controller.activeSession!.revision;
+      store.failNextSessionSave = true;
+
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'storage_failed',
+        maxPumps: 48,
+      );
+
+      expect(controller.platformStatus, 'storage_failed');
+      expect(controller.initialFixAssessment, isNull);
+      expect(
+        controller.activeSession?.engineSnapshot.initialFixAssessment,
+        isNull,
+      );
+      expect(controller.activeSession?.revision, revisionBeforeFix);
+    },
+  );
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
