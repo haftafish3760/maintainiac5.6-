@@ -128,7 +128,10 @@ extension TripTrackingControllerIngestion on TripTrackingController {
         );
       }
       _session = session.copyWith(
-        updatedAt: sample.recordedAt,
+        // The raw sample time remains in the engine snapshot for evidence,
+        // while the durable revision clock must never move backwards when a
+        // monotonic device clock proves ordering across a wall-clock rollback.
+        updatedAt: _nonRegressingSessionTime(session, sample.recordedAt),
         engineSnapshot: engine.snapshot,
         advisories: advisories,
         lifecycleState: naturalLifecycleState,

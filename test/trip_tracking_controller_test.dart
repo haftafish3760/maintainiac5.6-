@@ -118,6 +118,34 @@ void main() {
     },
   );
 
+  test('monotonic ordering cannot regress the durable session clock', () async {
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_monotonic_wall_clock_rollback',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    final latestWallClock = start.add(const Duration(seconds: 60));
+    await controller.ingest(
+      sample(-80, 60, monotonicElapsedNanos: 10000000000),
+    );
+    final rollback = await controller.ingest(
+      sample(-80, 30, monotonicElapsedNanos: 30000000000),
+    );
+
+    expect(rollback?.disposition, TripSampleDisposition.rejectedDrift);
+    expect(controller.activeSession?.updatedAt, latestWallClock);
+    expect(
+      controller.activeSession?.engineSnapshot.lastObservedAt,
+      start.add(const Duration(seconds: 30)),
+    );
+  });
+
   test(
     'controller rejects invalid direct speed accuracy before persistence',
     () async {
