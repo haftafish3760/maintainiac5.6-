@@ -188,6 +188,14 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       notifyListeners();
       return null;
     }
+    if (canceledAt != null &&
+        observedCompletedAt.toUtc().isBefore(session.updatedAt.toUtc())) {
+      _platformStatus = 'trip_cancel_before_latest_evidence';
+      _platformError =
+          'Trip cancellation time cannot be before the latest saved trip evidence.';
+      notifyListeners();
+      return null;
+    }
     final completedAt = canceledAt == null
         ? _nonRegressingSessionTime(session, observedCompletedAt)
         : observedCompletedAt.toUtc();
@@ -346,6 +354,14 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       _platformStatus = 'review_timeline_invalid';
       _platformError =
           'Trip review could not be saved because the finish time is before the start time.';
+      notifyListeners();
+      return null;
+    }
+    if (finishedAt != null &&
+        observedCompletedAt.toUtc().isBefore(session.updatedAt.toUtc())) {
+      _platformStatus = 'review_finish_before_latest_evidence';
+      _platformError =
+          'Trip finish time cannot be before the latest saved trip evidence.';
       notifyListeners();
       return null;
     }

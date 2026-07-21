@@ -328,6 +328,70 @@ void main() {
     expect(cancelled?.finishedAt, startedAt);
   });
 
+  test('explicit end times cannot predate persisted trip evidence', () async {
+    final startedAt = DateTime.utc(2026, 7, 12, 12);
+    final evidenceAt = startedAt.add(const Duration(seconds: 30));
+    final invalidEndAt = startedAt.add(const Duration(seconds: 10));
+
+    Future<TripTrackingController> controllerFor(String tripId) async {
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+      );
+      addTearDown(controller.dispose);
+      expect(
+        await controller.start(
+          tripId: tripId,
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: startedAt,
+        ),
+        isTrue,
+      );
+      await controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: evidenceAt,
+          horizontalAccuracyMeters: 5,
+        ),
+        referenceTime: evidenceAt,
+      );
+      expect(controller.activeSession?.updatedAt, evidenceAt);
+      return controller;
+    }
+
+    final finishController = await controllerFor('trip_explicit_finish');
+    expect(
+      await finishController.finishForReview(finishedAt: invalidEndAt),
+      isNull,
+    );
+    expect(
+      finishController.platformStatus,
+      'review_finish_before_latest_evidence',
+    );
+    expect(finishController.activeSession, isNotNull);
+    expect(finishController.activeSession?.updatedAt, evidenceAt);
+
+    final cancelController = await controllerFor('trip_explicit_cancel');
+    expect(
+      await cancelController.cancelActiveTrip(
+        canceledAt: invalidEndAt,
+        userConfirmed: true,
+      ),
+      isNull,
+    );
+    expect(
+      cancelController.platformStatus,
+      'trip_cancel_before_latest_evidence',
+    );
+    expect(cancelController.activeSession, isNotNull);
+    expect(cancelController.activeSession?.updatedAt, evidenceAt);
+  });
+
   test(
     'legacy transition map without profileId falls back to profile name',
     () {
