@@ -3758,6 +3758,46 @@ void main() {
   );
 
   test(
+    'late location callbacks after native stop cannot change GPS mileage',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_late_location_after_stop',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.999, 30, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.acceptedMeters > 0,
+        maxPumps: 48,
+      );
+      final acceptedBeforeStop = controller.acceptedMeters;
+      final projectedBeforeStop = odometer.reading;
+
+      await controller.stopNativeTracking();
+      native.addLocation(sample(-79.95, 60, speed: 20));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.acceptedMeters, acceptedBeforeStop);
+      expect(odometer.reading, projectedBeforeStop);
+    },
+  );
+
+  test(
     'stale walking activity is cleared across native stop and restart',
     () async {
       final native = _FakeTripTrackingPlatform();
