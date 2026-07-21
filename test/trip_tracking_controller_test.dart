@@ -1178,7 +1178,7 @@ void main() {
   );
 
   test(
-    'runtime battery check pauses at ten percent for an explicit choice',
+    'runtime battery check pauses at the fifteen percent consent boundary',
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = DateTime.utc(2026, 7, 12, 12);
@@ -1205,7 +1205,7 @@ void main() {
       );
 
       native.batterySnapshot = const TripTrackingBatterySnapshot(
-        batteryPercent: 10,
+        batteryPercent: 15,
         isCharging: false,
         lowPowerModeEnabled: false,
       );

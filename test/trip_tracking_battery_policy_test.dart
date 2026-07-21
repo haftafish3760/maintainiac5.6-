@@ -40,6 +40,7 @@ void main() {
 
     expect(decision.status, TripGpsBatteryDecisionStatus.userPromptRequired);
     expect(decision.reasonCode, 'low_battery_requires_user_choice');
+    expect(decision.safetyCutoffPercent, 15);
   });
 
   test('battery below 20% warns before the 15% consent cutoff', () {
@@ -241,7 +242,7 @@ void main() {
 
     expect(summary['reasonCode'], 'battery_unknown');
     expect(summary['batteryBucket'], 'unknown');
-    expect(summary['safetyCutoffPercent'], 20);
+    expect(summary['safetyCutoffPercent'], 15);
     expect(summary['promptTitle'], 'GPS battery guard');
     expect(summary['promptBody'], 'GPS battery guard did not block tracking.');
     expect(summary['batteryDataTrustedAfterValidationOnly'], isTrue);

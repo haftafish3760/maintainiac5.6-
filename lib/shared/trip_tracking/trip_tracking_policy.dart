@@ -360,7 +360,7 @@ String _safeBatteryBucket(String batteryBucket) {
 
 int _safeBatteryCutoff(int cutoffPercent) {
   if (cutoffPercent >= 1 && cutoffPercent <= 100) return cutoffPercent;
-  return 20;
+  return 15;
 }
 
 String _batteryPromptTitle(String reasonCode) {

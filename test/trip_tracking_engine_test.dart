@@ -319,11 +319,11 @@ void main() {
     expect(engine.motionState, TripMotionState.stopCandidate);
   });
 
-  test('malformed low battery GPS cutoffs fall back to twenty percent', () {
+  test('malformed low battery GPS cutoffs fall back to fifteen percent', () {
     for (final cutoff in const [-1, 0, 101]) {
       final decision = TripTrackingPolicy(lowBatteryGpsCutoffPercent: cutoff)
           .gpsBatteryDecision(
-            batteryPercent: 19,
+            batteryPercent: 15,
             isCharging: false,
             lowBatteryProtectionEnabled: true,
             lowBatteryOverrideEnabled: false,
@@ -336,7 +336,7 @@ void main() {
         reason: 'cutoff $cutoff must not disable the default battery guard',
       );
       expect(decision.reasonCode, 'low_battery_requires_user_choice');
-      expect(decision.toSafeSummary()['safetyCutoffPercent'], 20);
+      expect(decision.toSafeSummary()['safetyCutoffPercent'], 15);
     }
   });
 
@@ -344,14 +344,14 @@ void main() {
     'low battery GPS decision summary is actionable without raw battery data',
     () {
       final prompt = const TripTrackingPolicy().gpsBatteryDecision(
-        batteryPercent: 19,
+        batteryPercent: 15,
         isCharging: false,
         lowBatteryProtectionEnabled: true,
         lowBatteryOverrideEnabled: false,
         lowBatteryWarningDismissed: false,
       );
       final blocked = const TripTrackingPolicy().gpsBatteryDecision(
-        batteryPercent: 18,
+        batteryPercent: 15,
         isCharging: false,
         lowPowerModeEnabled: true,
         lowBatteryProtectionEnabled: true,
@@ -364,9 +364,9 @@ void main() {
         'status': 'userPromptRequired',
         'reasonCode': 'low_battery_requires_user_choice',
         'batteryBucket': 'below_20',
-        'safetyCutoffPercent': 20,
+        'safetyCutoffPercent': 15,
         'hardGpsShutdownPercent': 10,
-        'promptTitle': 'Battery below 20%',
+        'promptTitle': 'Battery at or below 15%',
         'promptBody':
             'GPS-assisted tracking is paused by default below the safety threshold. Continue only if you want GPS to keep running.',
         'allowsGps': false,

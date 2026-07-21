@@ -145,7 +145,7 @@ void main() {
 
 TripGpsBatteryDecision promptDecision() {
   return const TripTrackingPolicy().gpsBatteryDecision(
-    batteryPercent: 19,
+    batteryPercent: 15,
     isCharging: false,
     lowBatteryProtectionEnabled: true,
     lowBatteryOverrideEnabled: false,
@@ -155,7 +155,7 @@ TripGpsBatteryDecision promptDecision() {
 
 TripGpsBatteryDecision blockedDecision() {
   return const TripTrackingPolicy().gpsBatteryDecision(
-    batteryPercent: 19,
+    batteryPercent: 15,
     isCharging: false,
     lowBatteryProtectionEnabled: true,
     lowBatteryOverrideEnabled: false,

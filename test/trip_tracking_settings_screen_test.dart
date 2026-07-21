@@ -110,8 +110,8 @@ void main() {
       find.textContaining('review and accept current local evidence'),
       findsNothing,
     );
-    expect(find.text('Protect GPS below 20% battery'), findsOneWidget);
-    expect(find.text('Allow GPS below 20% battery'), findsOneWidget);
+    expect(find.text('Protect GPS at or below 15% battery'), findsOneWidget);
+    expect(find.text('Allow GPS at or below 15% battery'), findsOneWidget);
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
     expect(find.text('Mileage backup network'), findsOneWidget);
     expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
@@ -377,11 +377,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Allow GPS below 20% battery'));
+    await tester.ensureVisible(find.text('Allow GPS at or below 15% battery'));
     await tester.pump();
     final allowRow = find
         .ancestor(
-          of: find.text('Allow GPS below 20% battery'),
+          of: find.text('Allow GPS at or below 15% battery'),
           matching: find.byType(Row),
         )
         .first;

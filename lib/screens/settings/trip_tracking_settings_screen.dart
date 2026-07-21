@@ -188,18 +188,18 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 : null,
           ),
           _switch(
-            title: 'Protect GPS below 20% battery',
+            title: 'Protect GPS at or below 15% battery',
             detail:
-                'On by default. Below 20%, GPS asks before continuing. Below 10%, GPS stays off to preserve emergency battery.',
+                'On by default. Below 20%, GPS warns. At or below 15%, GPS asks before continuing. Below 10%, GPS stays off to preserve emergency battery.',
             value: settings.lowBatteryGpsProtectionEnabled,
             onChanged: (value) => onChanged(
               settings.copyWith(lowBatteryGpsProtectionEnabled: value),
             ),
           ),
           _switch(
-            title: 'Allow GPS below 20% battery',
+            title: 'Allow GPS at or below 15% battery',
             detail:
-                'Off by default. This can continue GPS from 10% to 19% when you accept the battery drain risk; GPS remains off below 10%.',
+                'Off by default. This can continue GPS from 10% to 15% when you accept the battery drain risk; GPS remains off below 10%.',
             value: settings.lowBatteryGpsOverrideEnabled,
             onChanged: (value) => onChanged(
               settings.copyWith(lowBatteryGpsOverrideEnabled: value),

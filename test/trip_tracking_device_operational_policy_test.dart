@@ -225,7 +225,7 @@ void main() {
     );
     final summary = policy.toSafeSummary();
 
-    expect(summary['lowBatteryDefaultGpsPausePercent'], 20);
+    expect(summary['lowBatteryDefaultGpsPausePercent'], 15);
     expect(summary['lowBatteryPauseCanBeOverriddenByUser'], isTrue);
     expect(summary['tokensIncluded'], isFalse);
   });
