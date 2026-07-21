@@ -175,11 +175,12 @@ extension TripTrackingControllerIngestion on TripTrackingController {
           _session!.lifecycleState,
           TripTrackingSessionLifecycleState.failedRecoverable,
         )) {
-          _session = _session!.copyWith(
-            lifecycleState: TripTrackingSessionLifecycleState.failedRecoverable,
-            healthState: TripTrackingHealthState.unavailable,
+          await _tryTransitionSession(
+            TripTrackingSessionLifecycleState.failedRecoverable,
+            health: TripTrackingHealthState.unavailable,
+            source: 'gps_odometer_projection',
+            reasonCode: 'live_odometer_projection_failed',
           );
-          await _sessionStore.save(_session!);
         }
       }
       notifyListeners();

@@ -75,6 +75,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     }
     _session = session.copyWith(
       updatedAt: _nonRegressingSessionTime(session),
+      revision: session.revision + 1,
       engineSnapshot: engine.snapshot,
       advisories: reviewedAdvisories,
     );

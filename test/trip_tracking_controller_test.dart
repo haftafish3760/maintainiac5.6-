@@ -2006,11 +2006,13 @@ void main() {
       expect(probableStop.confidence, TripTrackingConfidence.high);
       expect(probableStop.disposition, TripTrackingAdvisoryDisposition.pending);
 
+      final revisionBeforeReview = controller.activeSession!.revision;
       await controller.acknowledgeWalkingReview();
       expect(
         controller.advisories.first.disposition,
         TripTrackingAdvisoryDisposition.confirmed,
       );
+      expect(controller.activeSession?.revision, revisionBeforeReview + 1);
 
       final restored = TripTrackingController(
         sessionStore: store,
@@ -5459,9 +5461,11 @@ void main() {
           maxSupportedReading: 1001,
         ),
       );
+      final native = _FakeTripTrackingPlatform();
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
+        platform: native,
         policy: const TripTrackingPolicy(
           maximumPlausibleSpeedMetersPerSecond: 1000,
         ),
@@ -5476,13 +5480,27 @@ void main() {
         ),
         isTrue,
       );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
       await controller.ingest(sample(-80, 0));
+      final revisionBeforeFailure = controller.activeSession!.revision;
       await controller.ingest(sample(-79.95, 60));
 
       expect(controller.acceptedMeters, greaterThan(0));
       expect(odometer.reading, 1000);
       expect(controller.platformStatus, 'odometer_projection_invalid');
       expect(controller.platformError, contains('Review the trip'));
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+      expect(controller.activeSession?.revision, revisionBeforeFailure + 2);
+      expect(
+        controller.transitionAudits.last.reasonCode,
+        'live_odometer_projection_failed',
+      );
     },
   );
 
