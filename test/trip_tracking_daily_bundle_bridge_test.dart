@@ -3,6 +3,7 @@ import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart'
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_daily_bundle_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_user_event.dart';
 
 void main() {
   test('reviewed trips merge idempotently into one local-day bundle', () async {
@@ -25,6 +26,8 @@ void main() {
     expect(bundle.payload['singleDocumentPerLocalDay'], isTrue);
     expect(bundle.payload['rawGpsIncluded'], isFalse);
     expect(bundle.payload['coordinatesIncluded'], isFalse);
+    final trips = bundle.payload['trips'] as List;
+    expect((trips.first as Map)['userEvents'], hasLength(1));
   });
 
   test('cross-midnight trip remains assigned to its start day', () async {
@@ -94,4 +97,16 @@ TripTrackingReviewRecord review(
     totalAcceptedMeters: miles * 1609.344,
     walkingReviewSuggested: false,
   ),
+  userEvents: [
+    TripTrackingUserEvent(
+      id: '$id:user:pickup_1',
+      sessionId: id,
+      vehicleId: 'vehicle_1',
+      profileId: 'profile_1',
+      kind: TripTrackingUserEventKind.pickup,
+      occurredAt: startedAt.add(const Duration(minutes: 20)),
+      recordedAt: startedAt.add(const Duration(minutes: 20)),
+      initiatingSource: 'trip_screen',
+    ),
+  ],
 );

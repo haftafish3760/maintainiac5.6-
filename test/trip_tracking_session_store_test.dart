@@ -45,7 +45,7 @@ void main() {
         TripTrackingProfile.lowSpeedEquipment,
       );
       expect(store.activeSession?.engineSnapshot.totalAcceptedMeters, 804.672);
-      expect(store.activeSession?.schemaVersion, 4);
+      expect(store.activeSession?.schemaVersion, 5);
       expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isTrue);
       expect(store.activeSession?.nativeSampling?.interval.inSeconds, 15);
@@ -138,7 +138,7 @@ void main() {
   });
 
   test(
-    'schema one active record migrates deterministically to schema four',
+    'schema one active record migrates deterministically to schema five',
     () {
       final migrated = TripTrackingSessionRecord.fromMap({
         'schemaVersion': 1,
@@ -154,7 +154,7 @@ void main() {
         ).toMap(),
       });
 
-      expect(migrated.schemaVersion, 4);
+      expect(migrated.schemaVersion, 5);
       expect(migrated.profileId, 'legacy-local-profile');
       expect(migrated.revision, 0);
       expect(migrated.hasValidTimeline, isTrue);
@@ -664,7 +664,7 @@ void main() {
       'engineSnapshot': {'totalAcceptedMeters': 0},
     });
 
-    expect(session.schemaVersion, 4);
+    expect(session.schemaVersion, 5);
     expect(session.hasValidTimeline, isFalse);
     expect(session.engineSnapshot.schemaVersion, 1);
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
@@ -807,8 +807,8 @@ void main() {
       'schemaVersion': double.infinity,
     });
 
-    expect(session.schemaVersion, 4);
-    expect(review.schemaVersion, 4);
+    expect(session.schemaVersion, 5);
+    expect(review.schemaVersion, 5);
     expect(session.hasValidTimeline, isFalse);
     expect(review.hasValidTimeline, isFalse);
   });

@@ -58,6 +58,9 @@ class TripTrackingSessionRecoveryValidation {
     if (_hasForeignAdvisory(session)) {
       reasons.add('foreign_advisory_in_session');
     }
+    if (_hasForeignUserEvent(session)) {
+      reasons.add('foreign_user_event_in_session');
+    }
     if (_hasSensitiveAdvisoryText(session.advisories)) {
       reasons.add('sensitive_advisory_text');
     }
@@ -118,6 +121,9 @@ class TripTrackingSessionRecoveryValidation {
     }
     if (_containsSensitiveText(review.cloudSyncError)) {
       reasons.add('sensitive_sync_error');
+    }
+    if (_hasForeignReviewUserEvent(review)) {
+      reasons.add('foreign_user_event_in_review');
     }
     return TripTrackingSessionRecoveryValidation._(
       status: reasons.isEmpty
@@ -199,9 +205,30 @@ bool _hasSensitiveAdvisoryText(
       _containsSensitiveText(event.tripLogReference),
 );
 
-bool _supportedActiveSessionSchema(int value) => value == 1 || value == 2;
+bool _hasForeignUserEvent(TripTrackingSessionRecord session) =>
+    session.userEvents.any(
+      (event) => !event.belongsTo(
+        expectedSessionId: session.id,
+        expectedVehicleId: session.vehicleId,
+        expectedProfileId: session.profileId,
+        tripStartedAt: session.startedAt,
+      ),
+    );
 
-bool _supportedReviewSchema(int value) => value == 1;
+bool _hasForeignReviewUserEvent(TripTrackingReviewRecord review) =>
+    review.userEvents.any(
+      (event) => !event.belongsTo(
+        expectedSessionId: review.id,
+        expectedVehicleId: review.vehicleId,
+        expectedProfileId: review.profileId,
+        tripStartedAt: review.startedAt,
+        tripFinishedAt: review.finishedAt,
+      ),
+    );
+
+bool _supportedActiveSessionSchema(int value) => value >= 1 && value <= 5;
+
+bool _supportedReviewSchema(int value) => value >= 1 && value <= 5;
 
 Duration _safeCheckpointAge(Duration value) {
   if (value <= Duration.zero) return const Duration(hours: 1);

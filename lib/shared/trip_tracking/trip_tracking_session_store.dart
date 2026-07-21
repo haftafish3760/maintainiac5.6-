@@ -8,6 +8,7 @@ import 'trip_tracking_recovery_diagnostic.dart';
 import 'trip_tracking_quarantined_session.dart';
 import 'trip_tracking_session_snapshot.dart';
 import 'trip_tracking_state_machine.dart';
+import 'trip_tracking_user_event.dart';
 
 typedef TripTrackingSessionStorageCheck = Future<AppStorageCheck> Function();
 
@@ -27,6 +28,7 @@ class TripTrackingSessionRecord {
     this.revision = 0,
     this.lastEventSequence = 0,
     this.advisories = const [],
+    this.userEvents = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.preparing,
     this.healthState = TripTrackingHealthState.healthy,
     this.backgroundTrackingAllowed = false,
@@ -38,7 +40,7 @@ class TripTrackingSessionRecord {
     this.lowBatteryOverrideEnabled = false,
     this.lowBatteryWarningDismissed = false,
     this.hasValidTimeline = true,
-    this.schemaVersion = 4,
+    this.schemaVersion = 5,
   });
 
   final String id;
@@ -55,6 +57,7 @@ class TripTrackingSessionRecord {
   final String startedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
   final List<TripTrackingAdvisoryEvent> advisories;
+  final List<TripTrackingUserEvent> userEvents;
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
 
@@ -86,6 +89,7 @@ class TripTrackingSessionRecord {
     DateTime? updatedAt,
     TripTrackingEngineSnapshot? engineSnapshot,
     List<TripTrackingAdvisoryEvent>? advisories,
+    List<TripTrackingUserEvent>? userEvents,
     TripTrackingSessionLifecycleState? lifecycleState,
     TripTrackingHealthState? healthState,
     bool? backgroundTrackingAllowed,
@@ -126,6 +130,7 @@ class TripTrackingSessionRecord {
       startedTimeZoneName: startedTimeZoneName,
       engineSnapshot: engineSnapshot ?? this.engineSnapshot,
       advisories: advisories ?? this.advisories,
+      userEvents: userEvents ?? this.userEvents,
       lifecycleState: lifecycleState ?? this.lifecycleState,
       healthState: healthState ?? this.healthState,
       backgroundTrackingAllowed:
@@ -164,6 +169,9 @@ class TripTrackingSessionRecord {
     'advisories': _boundedAdvisories(
       advisories,
     ).map((item) => item.toMap()).toList(),
+    'userEvents': _boundedUserEvents(
+      userEvents,
+    ).map((item) => item.toMap()).toList(growable: false),
     'lifecycleState': lifecycleState.name,
     'healthState': healthState.name,
     'backgroundTrackingAllowed': backgroundTrackingAllowed,
@@ -212,6 +220,8 @@ class TripTrackingSessionRecord {
         sourceSchemaVersion < 4 ||
         (_isValidTimeZoneOffset(map['startedTimeZoneOffsetMinutes']) &&
             _isSafeTimeZoneName(map['startedTimeZoneName']));
+    final hasValidUserEventHistory =
+        sourceSchemaVersion < 5 || map['userEvents'] is Iterable;
     final safeProfileId = sourceSchemaVersion == 1
         ? 'legacy-local-profile'
         : _safeIdentifier(map['profileId']);
@@ -270,6 +280,15 @@ class TripTrackingSessionRecord {
         profile: safeProfile,
         startedAt: safeStartedAt,
       ),
+      userEvents: sourceSchemaVersion < 5
+          ? const <TripTrackingUserEvent>[]
+          : _userEventsFromMapValue(
+              map['userEvents'],
+              sessionId: safeId,
+              vehicleId: safeVehicleId,
+              profileId: safeProfileId,
+              startedAt: safeStartedAt,
+            ),
       lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
         (value) => value.name == map['lifecycleState'],
         orElse: () => TripTrackingSessionLifecycleState.preparing,
@@ -301,13 +320,48 @@ class TripTrackingSessionRecord {
           hasValidHealthState &&
           hasValidVehicleConfigurationRevision &&
           hasValidStartedTimeZone &&
+          hasValidUserEventHistory &&
           hasSupportedSchemaVersion,
-      schemaVersion: sourceSchemaVersion < 4 ? 4 : sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion < 5 ? 5 : sourceSchemaVersion,
     );
   }
 }
 
 const _maxPersistedAdvisories = 24;
+const _maxPersistedUserEvents = 2000;
+
+Iterable<TripTrackingUserEvent> _boundedUserEvents(
+  Iterable<TripTrackingUserEvent> events,
+) {
+  final items = events.toList(growable: false);
+  return items.takeLast(_maxPersistedUserEvents);
+}
+
+List<TripTrackingUserEvent> _userEventsFromMapValue(
+  Object? value, {
+  required String sessionId,
+  required String vehicleId,
+  required String profileId,
+  required DateTime startedAt,
+  DateTime? finishedAt,
+}) {
+  if (value is! Iterable) return const [];
+  return value
+      .whereType<Map>()
+      .map(TripTrackingUserEvent.fromMap)
+      .where(
+        (event) => event.belongsTo(
+          expectedSessionId: sessionId,
+          expectedVehicleId: vehicleId,
+          expectedProfileId: profileId,
+          tripStartedAt: startedAt,
+          tripFinishedAt: finishedAt,
+        ),
+      )
+      .toList(growable: false)
+      .takeLast(_maxPersistedUserEvents)
+      .toList(growable: false);
+}
 
 Map<String, Object?>? _samplingToMap(TripSamplingRecommendation? sampling) {
   if (sampling == null ||
@@ -455,6 +509,7 @@ class TripTrackingReviewRecord {
     required this.finishedAt,
     required this.engineSnapshot,
     this.advisories = const [],
+    this.userEvents = const [],
     this.startedTimeZoneOffsetMinutes = 0,
     this.startedTimeZoneName = 'UTC',
     this.finishedTimeZoneOffsetMinutes = 0,
@@ -467,7 +522,7 @@ class TripTrackingReviewRecord {
     this.cloudSyncedAt,
     this.confirmedEndingOdometer,
     this.odometerConfirmedAt,
-    this.schemaVersion = 4,
+    this.schemaVersion = 5,
     this.hasValidTimeline = true,
   });
 
@@ -486,6 +541,7 @@ class TripTrackingReviewRecord {
   final String finishedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
   final List<TripTrackingAdvisoryEvent> advisories;
+  final List<TripTrackingUserEvent> userEvents;
   final TripTrackingCloudSyncState cloudSyncState;
   final String? cloudAccountUid;
 
@@ -544,6 +600,7 @@ class TripTrackingReviewRecord {
       finishedTimeZoneName: finishedTimeZoneName,
       engineSnapshot: engineSnapshot,
       advisories: advisories,
+      userEvents: userEvents,
       cloudSyncState: cloudSyncState ?? this.cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(
         cloudAccountUid ?? this.cloudAccountUid,
@@ -582,6 +639,9 @@ class TripTrackingReviewRecord {
     'engineSnapshot': engineSnapshot.toMap(),
     'advisories': _boundedAdvisories(
       advisories,
+    ).map((item) => item.toMap()).toList(growable: false),
+    'userEvents': _boundedUserEvents(
+      userEvents,
     ).map((item) => item.toMap()).toList(growable: false),
     'cloudSyncState': cloudSyncState.name,
     if (_optionalSafeCloudToken(cloudAccountUid) != null)
@@ -626,6 +686,8 @@ class TripTrackingReviewRecord {
             _isSafeTimeZoneName(map['finishedTimeZoneName']));
     final hasValidAdvisoryHistory =
         sourceSchemaVersion < 4 || map['advisories'] is Iterable;
+    final hasValidUserEventHistory =
+        sourceSchemaVersion < 5 || map['userEvents'] is Iterable;
     final cloudBackupScope = _cloudBackupScopeFromMap(map['cloudBackupScope']);
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
@@ -682,6 +744,16 @@ class TripTrackingReviewRecord {
             profile: safeProfile,
             startedAt: safeStartedAt,
           );
+    final userEvents = sourceSchemaVersion < 5
+        ? const <TripTrackingUserEvent>[]
+        : _userEventsFromMapValue(
+            map['userEvents'],
+            sessionId: id,
+            vehicleId: vehicleId,
+            profileId: safeProfileId,
+            startedAt: safeStartedAt,
+            finishedAt: safeFinishedAt,
+          );
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
@@ -715,6 +787,7 @@ class TripTrackingReviewRecord {
               walkingReviewSuggested: false,
             ),
       advisories: advisories,
+      userEvents: userEvents,
       cloudSyncState: cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
       confirmedEndingOdometer: confirmedEndingOdometer,
@@ -729,7 +802,7 @@ class TripTrackingReviewRecord {
         maxLength: 240,
       ),
       cloudSyncedAt: cloudSyncedAt,
-      schemaVersion: sourceSchemaVersion < 4 ? 4 : sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion < 5 ? 5 : sourceSchemaVersion,
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
@@ -739,6 +812,7 @@ class TripTrackingReviewRecord {
           hasValidVehicleConfigurationRevision &&
           hasValidTimeZoneContext &&
           hasValidAdvisoryHistory &&
+          hasValidUserEventHistory &&
           hasValidProfile &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(
@@ -787,13 +861,13 @@ bool _hasSupportedActiveSessionSchemaVersion(
 ) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 4;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 5;
 }
 
 bool _hasSupportedReviewSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 4;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 5;
 }
 
 bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
@@ -805,6 +879,27 @@ bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
           event.profile == review.profile &&
           !event.detectedAt.isBefore(review.startedAt) &&
           !event.detectedAt.isAfter(review.finishedAt),
+    );
+
+bool _reviewUserEventsAreValid(TripTrackingReviewRecord review) =>
+    review.userEvents.every(
+      (event) => event.belongsTo(
+        expectedSessionId: review.id,
+        expectedVehicleId: review.vehicleId,
+        expectedProfileId: review.profileId,
+        tripStartedAt: review.startedAt,
+        tripFinishedAt: review.finishedAt,
+      ),
+    );
+
+bool _sessionUserEventsAreValid(TripTrackingSessionRecord session) =>
+    session.userEvents.every(
+      (event) => event.belongsTo(
+        expectedSessionId: session.id,
+        expectedVehicleId: session.vehicleId,
+        expectedProfileId: session.profileId,
+        tripStartedAt: session.startedAt,
+      ),
     );
 
 bool _isValidTimeZoneOffset(Object? value) =>
@@ -1559,6 +1654,7 @@ class TripTrackingSessionStore {
             !_isValidTimeZoneOffset(review.finishedTimeZoneOffsetMinutes) ||
             !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
             !_reviewAdvisoriesAreValid(review) ||
+            !_reviewUserEventsAreValid(review) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
@@ -1714,7 +1810,8 @@ void _validateActiveSessionRecord(TripTrackingSessionRecord session) {
       session.revision < session.lastEventSequence ||
       session.vehicleConfigurationRevision < 0 ||
       !_isValidTimeZoneOffset(session.startedTimeZoneOffsetMinutes) ||
-      !_isSafeTimeZoneName(session.startedTimeZoneName)) {
+      !_isSafeTimeZoneName(session.startedTimeZoneName) ||
+      !_sessionUserEventsAreValid(session)) {
     throw ArgumentError.value(
       session.id,
       'session',

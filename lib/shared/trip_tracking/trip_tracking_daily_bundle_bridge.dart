@@ -112,6 +112,9 @@ Map<String, Object?> _tripSummary(TripTrackingReviewRecord review) {
     'estimatedGapDistanceMiles': _miles(diagnostics.estimatedGapDistanceMeters),
     'rejectedDistanceMiles': _miles(diagnostics.rejectedDistanceMeters),
     'events': review.advisories.map(_advisorySummary).toList(growable: false),
+    'userEvents': review.userEvents
+        .map((event) => event.toMap())
+        .toList(growable: false),
     'odometerIsGlobalTruth': true,
     'gpsDistanceIsAdvisoryOnly': true,
   };
@@ -142,6 +145,7 @@ Map<String, dynamic> _bundlePayload({
     estimatedGapMiles += trip['estimatedGapDistanceMiles'] as double? ?? 0;
     rejectedMiles += trip['rejectedDistanceMiles'] as double? ?? 0;
     eventCount += (trip['events'] as List?)?.length ?? 0;
+    eventCount += (trip['userEvents'] as List?)?.length ?? 0;
   }
   return {
     'schemaVersion': 1,

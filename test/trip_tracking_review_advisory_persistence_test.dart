@@ -44,7 +44,7 @@ void main() {
     final store = TripTrackingSessionStore.memory();
     await store.saveReview(restored);
 
-    expect(restored.schemaVersion, 4);
+    expect(restored.schemaVersion, 5);
     expect(restored.advisories, hasLength(1));
     expect(
       restored.advisories.single.disposition,
@@ -72,7 +72,7 @@ void main() {
         ..remove('advisories');
       final restored = TripTrackingReviewRecord.fromMap(map);
 
-      expect(restored.schemaVersion, 4);
+      expect(restored.schemaVersion, 5);
       expect(restored.advisories, isEmpty);
       expect(restored.hasValidTimeline, isTrue);
     },

@@ -30,6 +30,7 @@ import 'trip_tracking_sampling_preset_policy.dart';
 import 'trip_tracking_session_store.dart';
 import 'trip_tracking_settings_store.dart';
 import 'trip_tracking_state_machine.dart';
+import 'trip_tracking_user_event.dart';
 import 'trip_stop_advisory_reviewer.dart';
 
 /// Owns one active GPS-assisted trip. Platform adapters feed it samples; this
@@ -2739,6 +2740,114 @@ class TripTrackingController extends ChangeNotifier {
   /// Backward-compatible walking stop review hook used by existing UI/tests.
   Future<void> acknowledgeWalkingReview() => acknowledgeLatestStopReview();
 
+  /// Records a driver-confirmed stop or work event without granting GPS any
+  /// authority to classify it. [commandId] makes duplicate UI/voice retries
+  /// idempotent across controller rebuilds and process recovery.
+  Future<bool> recordUserTripEvent({
+    required String commandId,
+    required TripTrackingUserEventKind kind,
+    required String initiatingSource,
+    DateTime? occurredAt,
+    String? note,
+  }) => _runExclusiveSessionOperation(
+    false,
+    () => _recordUserTripEvent(
+      commandId: commandId,
+      kind: kind,
+      initiatingSource: initiatingSource,
+      occurredAt: occurredAt,
+      note: note,
+    ),
+  );
+
+  Future<bool> _recordUserTripEvent({
+    required String commandId,
+    required TripTrackingUserEventKind kind,
+    required String initiatingSource,
+    DateTime? occurredAt,
+    String? note,
+  }) async {
+    final session = _session;
+    if (session == null ||
+        !_canRecordUserTripEvent(session.lifecycleState) ||
+        !_isSafeUserEventCommandId(commandId) ||
+        !_isAllowedUserEventSource(initiatingSource)) {
+      return false;
+    }
+    final eventId = 'user:$commandId';
+    final existing = session.userEvents
+        .where((event) => event.id == eventId)
+        .firstOrNull;
+    if (existing != null) {
+      return existing.kind == kind &&
+          existing.initiatingSource == initiatingSource;
+    }
+    final recordedAt = _clockNow();
+    final eventTime = occurredAt ?? recordedAt;
+    if (eventTime.isBefore(session.startedAt) ||
+        eventTime.toUtc().isAfter(
+          recordedAt.toUtc().add(_policy.maximumFutureSampleSkew),
+        )) {
+      return false;
+    }
+    final event = TripTrackingUserEvent(
+      id: eventId,
+      sessionId: session.id,
+      vehicleId: session.vehicleId,
+      profileId: session.profileId,
+      kind: kind,
+      occurredAt: eventTime,
+      recordedAt: recordedAt.isBefore(eventTime) ? eventTime : recordedAt,
+      initiatingSource: initiatingSource,
+      note: note,
+    );
+    try {
+      _session = await _sessionStore.checkpoint(
+        session.copyWith(
+          updatedAt: recordedAt.isBefore(eventTime) ? eventTime : recordedAt,
+          userEvents: [...session.userEvents, event],
+        ),
+        expectedRevision: session.revision,
+      );
+    } catch (_) {
+      _platformStatus = 'trip_event_save_failed';
+      _platformError =
+          'Could not save this trip event locally. Retry before leaving the screen.';
+      notifyListeners();
+      return false;
+    }
+    _platformStatus = null;
+    _platformError = null;
+    notifyListeners();
+    return true;
+  }
+
+  bool _canRecordUserTripEvent(TripTrackingSessionLifecycleState state) =>
+      switch (state) {
+        TripTrackingSessionLifecycleState.preparing ||
+        TripTrackingSessionLifecycleState.awaitingPermission ||
+        TripTrackingSessionLifecycleState.awaitingLocationServices ||
+        TripTrackingSessionLifecycleState.awaitingInitialFix ||
+        TripTrackingSessionLifecycleState.candidateMovement ||
+        TripTrackingSessionLifecycleState.activeTracking ||
+        TripTrackingSessionLifecycleState.temporarilyStopped ||
+        TripTrackingSessionLifecycleState.pausedByUser ||
+        TripTrackingSessionLifecycleState.pausedBySystem ||
+        TripTrackingSessionLifecycleState.signalDegraded ||
+        TripTrackingSessionLifecycleState.signalLost ||
+        TripTrackingSessionLifecycleState.recovering ||
+        TripTrackingSessionLifecycleState.failedRecoverable => true,
+        _ => false,
+      };
+
+  bool _isAllowedUserEventSource(String source) => switch (source) {
+    'dashboard' ||
+    'trip_screen' ||
+    'voice_assistant' ||
+    'recovery_review' => true,
+    _ => false,
+  };
+
   /// Drops a just-created trip only when it has not accepted any distance.
   /// This is used after permission or hardware startup fails so the global
   /// odometer is not left locked by a trip that never actually began.
@@ -2951,6 +3060,7 @@ class TripTrackingController extends ChangeNotifier {
       finishedTimeZoneName: completedAt.timeZoneName,
       engineSnapshot: engine.snapshot,
       advisories: session.advisories,
+      userEvents: session.userEvents,
     );
     try {
       await _sessionStore.saveReview(review);
@@ -2996,6 +3106,11 @@ bool _isSafeTripTrackingIdentity(String value) {
   final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   return clean == value && clean.isNotEmpty && clean.length <= 160;
 }
+
+bool _isSafeUserEventCommandId(String value) =>
+    value.isNotEmpty &&
+    value.length <= 96 &&
+    RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(value);
 
 String _localDayKey(DateTime timestamp) {
   final local = timestamp.toLocal();
