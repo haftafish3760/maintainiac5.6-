@@ -147,6 +147,7 @@ Iterable<TripActivityObservation> _boundedWalkingEvidence(
 List<TripActivityObservation> sanitizeRecoveredWalkingEvidence(
   Iterable<TripActivityObservation> evidence, {
   required DateTime? lastObservedAt,
+  Duration? maximumEvidenceAge,
 }) {
   // Persisted activity evidence is advisory-only, but it still must not be
   // allowed to manufacture a stop after recovery. Remove
@@ -156,11 +157,20 @@ List<TripActivityObservation> sanitizeRecoveredWalkingEvidence(
   // carry only advisory motion evidence, so a missing anchor cannot erase a
   // user-visible review cue by itself.
   final latestAllowed = lastObservedAt?.add(_maxPersistedObservationLead);
+  final earliestAllowed =
+      lastObservedAt != null &&
+          maximumEvidenceAge != null &&
+          !maximumEvidenceAge.isNegative &&
+          maximumEvidenceAge > Duration.zero
+      ? lastObservedAt.subtract(maximumEvidenceAge)
+      : null;
   final ordered =
       evidence
           .where(
             (item) =>
                 item.canSupportStopReview &&
+                (earliestAllowed == null ||
+                    !item.recordedAt.isBefore(earliestAllowed)) &&
                 (latestAllowed == null ||
                     !item.recordedAt.isAfter(latestAllowed)),
           )

@@ -1924,6 +1924,24 @@ void main() {
     expect(restored.motionState, TripMotionState.unknown);
   });
 
+  test('direct recovery cannot restore an expired walking stop', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot(
+        lastAccepted: sample(-79.9997, 180),
+        lastObservedAt: start.add(const Duration(seconds: 180)),
+        totalAcceptedMeters: 17,
+        vehicleMovementObserved: true,
+        walkingReviewSuggested: true,
+        motionState: TripMotionState.stopped,
+        walkingEvidence: [walking(30), walking(45), walking(60)],
+      ),
+    );
+
+    expect(restored.snapshot.walkingEvidence, isEmpty);
+    expect(restored.needsWalkingReview, isFalse);
+    expect(restored.motionState, TripMotionState.unknown);
+  });
+
   test('direct recovery input cannot restore a future stationary start', () {
     final restored = TripTrackingEngine.fromSnapshot(
       TripTrackingEngineSnapshot(

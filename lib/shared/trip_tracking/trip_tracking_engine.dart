@@ -136,9 +136,17 @@ class TripTrackingEngine {
         recoveredSnapshot.lastContinuousMonotonicElapsedNanos ??
         recoveredSnapshot.lastAccepted?.monotonicElapsedNanos;
     engine._totalAcceptedMeters = recoveredSnapshot.totalAcceptedMeters;
+    final strategy = TripTrackingProfileStrategy.forProfile(
+      profile,
+      policy: policy,
+    );
     final recoveredWalkingEvidence = sanitizeRecoveredWalkingEvidence(
       recoveredSnapshot.walkingEvidence,
       lastObservedAt: engine._lastObservedAt,
+      maximumEvidenceAge: _safePositiveDuration(
+        policy.walkingConfirmationWindow,
+        _defaultWalkingConfirmationWindow,
+      ),
     );
     final recoveredStationaryStartedAt =
         TripTrackingEngineAnalysis._safeRecoveredStationaryStartedAt(
@@ -146,27 +154,40 @@ class TripTrackingEngine {
           vehicleMovementObserved: recoveredSnapshot.vehicleMovementObserved,
           lastObservedAt: engine._lastObservedAt,
         );
-    if (TripTrackingProfileStrategy.forProfile(
-      profile,
-      policy: policy,
-    ).usesWalkingStopEvidence) {
+    if (strategy.usesWalkingStopEvidence) {
       engine._walkingEvidence.addAll(recoveredWalkingEvidence);
       final hasRecoveredWalkingEvidence = recoveredWalkingEvidence.isNotEmpty;
+      final latestWalkingEvidenceAt = hasRecoveredWalkingEvidence
+          ? recoveredWalkingEvidence.last.recordedAt
+          : null;
+      final hasRecoveredWalkingStopEvidence = strategy.hasWalkingStopEvidence(
+        walkingEvidenceCount: recoveredWalkingEvidence.length,
+        observedAt:
+            engine._lastObservedAt ??
+            latestWalkingEvidenceAt ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        latestWalkingEvidenceAt: latestWalkingEvidenceAt,
+        walkingEvidenceSpan: hasRecoveredWalkingEvidence
+            ? latestWalkingEvidenceAt!.difference(
+                recoveredWalkingEvidence.first.recordedAt,
+              )
+            : Duration.zero,
+      );
       engine._walkingReviewSuggested =
           recoveredSnapshot.walkingReviewSuggested &&
           recoveredSnapshot.vehicleMovementObserved &&
-          hasRecoveredWalkingEvidence;
+          hasRecoveredWalkingStopEvidence;
       engine._motionState = switch (recoveredSnapshot.motionState) {
         TripMotionState.moving when recoveredSnapshot.vehicleMovementObserved =>
           TripMotionState.moving,
         TripMotionState.stopCandidate
             when recoveredSnapshot.vehicleMovementObserved &&
                 (recoveredStationaryStartedAt != null ||
-                    hasRecoveredWalkingEvidence) =>
+                    hasRecoveredWalkingStopEvidence) =>
           TripMotionState.stopCandidate,
         TripMotionState.stopped
             when recoveredSnapshot.vehicleMovementObserved &&
-                hasRecoveredWalkingEvidence =>
+                hasRecoveredWalkingStopEvidence =>
           TripMotionState.stopped,
         _ => TripMotionState.unknown,
       };
