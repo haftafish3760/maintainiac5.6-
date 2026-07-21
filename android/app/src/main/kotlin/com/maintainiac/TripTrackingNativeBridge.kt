@@ -195,6 +195,10 @@ class TripTrackingNativeBridge(
             result.success(false)
             return
         }
+        if (!hasFineLocation()) {
+            result.error("trip_tracking_location_denied", "Precise location permission is required before updating trip tracking.", authorizationMap())
+            return
+        }
         val allowBackground = call.argument<Boolean>("allowBackground") == true
         if (allowBackground && !hasBackgroundLocation()) {
             result.error("trip_tracking_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())

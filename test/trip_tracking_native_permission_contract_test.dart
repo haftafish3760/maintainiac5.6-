@@ -371,11 +371,16 @@ void main() {
       android,
       contains('if (allowBackground && !hasBackgroundLocation())'),
     );
+    expect(android, contains('if (!hasFineLocation())'));
     expect(
       ios,
       contains(
         'let allowBackground = arguments?["allowBackground"] as? Bool ?? false',
       ),
+    );
+    expect(
+      ios,
+      contains('guard authorization["preciseLocation"] as? Bool == true else'),
     );
     expect(
       ios,
