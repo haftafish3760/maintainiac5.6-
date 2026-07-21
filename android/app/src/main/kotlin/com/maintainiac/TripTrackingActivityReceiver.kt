@@ -18,10 +18,13 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
         val result = ActivityRecognitionResult.extractResult(intent) ?: return
         val activity = result.mostProbableActivity ?: return
         val observedAtMillis = result.time
-        // A malformed or implausibly future classifier timestamp must not be
-        // allowed to masquerade as fresh walking evidence. Dart repeats its
-        // own timestamp guard before a sample can affect a trip.
-        if (observedAtMillis <= 0 || observedAtMillis > System.currentTimeMillis() + 120_000L) {
+        val nowMillis = System.currentTimeMillis()
+        // A delayed motion batch can describe earlier walking, but it must
+        // not masquerade as fresh stop evidence for the currently stationary
+        // vehicle. Dart retains its own independent timestamp guard.
+        if (observedAtMillis <= 0 ||
+            observedAtMillis < nowMillis - 120_000L ||
+            observedAtMillis > nowMillis + 120_000L) {
             return
         }
         if (!TripTrackingForegroundService.isActivityEpochActive(epoch, observedAtMillis)) return
