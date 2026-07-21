@@ -80,7 +80,8 @@ void main() {
     expect(summary['organizationMileageSharingEnabled'], isTrue);
     expect(summary['defaultProfile'], 'deliveryVehicle');
     expect(summary['backupNetworkPolicy'], 'wifiOnly');
-    expect(summary['lowBatteryGpsSafetyCutoffPercent'], 20);
+    expect(summary['lowBatteryGpsSafetyCutoffPercent'], 15);
+    expect(summary['lowBatteryGpsWarningPercent'], 20);
     expect(summary['lowBatteryGpsChoiceCanBeChanged'], isTrue);
     expect(
       summary['lowBatteryGpsDefaultAction'],

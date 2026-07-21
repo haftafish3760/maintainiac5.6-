@@ -80,7 +80,8 @@ class TripTrackingPolicy {
     this.walkingConfirmationWindow = const Duration(seconds: 45),
     this.walkingStopConfirmationDuration = const Duration(seconds: 20),
     this.vehicleOnlyStopCandidateDuration = const Duration(seconds: 90),
-    this.lowBatteryGpsCutoffPercent = 20,
+    this.lowBatteryGpsCutoffPercent = 15,
+    this.lowBatteryGpsWarningPercent = 20,
   });
 
   /// Fifteen mph. At or above this speed the requested two-second precision
@@ -120,6 +121,7 @@ class TripTrackingPolicy {
   /// vehicle-only wait, but it never creates an official stop.
   final Duration vehicleOnlyStopCandidateDuration;
   final int lowBatteryGpsCutoffPercent;
+  final int lowBatteryGpsWarningPercent;
 
   TripGpsBatteryDecision gpsBatteryDecision({
     required int? batteryPercent,
@@ -160,8 +162,13 @@ class TripTrackingPolicy {
     final cutoff =
         lowBatteryGpsCutoffPercent >= 1 && lowBatteryGpsCutoffPercent <= 100
         ? lowBatteryGpsCutoffPercent
+        : 15;
+    final warningCutoff =
+        lowBatteryGpsWarningPercent >= cutoff &&
+            lowBatteryGpsWarningPercent <= 100
+        ? lowBatteryGpsWarningPercent
         : 20;
-    if (percent != null && percent >= 0 && percent < cutoff) {
+    if (percent != null && percent >= 0 && percent <= cutoff) {
       if (lowBatteryOverrideEnabled) {
         return _batteryDecision(
           status: TripGpsBatteryDecisionStatus.allowed,
@@ -181,6 +188,14 @@ class TripTrackingPolicy {
       return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.userPromptRequired,
         reasonCode: 'low_battery_requires_user_choice',
+        batteryPercent: percent,
+        cutoffPercent: cutoff,
+      );
+    }
+    if (percent != null && percent > cutoff && percent < warningCutoff) {
+      return _batteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'battery_low_warning',
         batteryPercent: percent,
         cutoffPercent: cutoff,
       );
@@ -299,7 +314,7 @@ TripGpsBatteryDecision _batteryDecision({
     batteryBucket: _batteryBucket(batteryPercent),
     safetyCutoffPercent: cutoffPercent >= 1 && cutoffPercent <= 100
         ? cutoffPercent
-        : 20,
+        : 15,
     promptTitle: _batteryPromptTitle(reasonCode),
     promptBody: _batteryPromptBody(reasonCode),
   );
@@ -317,6 +332,7 @@ String _safeBatteryReasonCode(String reasonCode) {
     'battery_protection_disabled' => 'battery_protection_disabled',
     'device_charging' => 'device_charging',
     'battery_critical_gps_blocked' => 'battery_critical_gps_blocked',
+    'battery_low_warning' => 'battery_low_warning',
     'user_override_low_battery' => 'user_override_low_battery',
     'user_override_low_power_mode' => 'user_override_low_power_mode',
     'low_battery_requires_user_choice' => 'low_battery_requires_user_choice',
@@ -351,7 +367,8 @@ String _batteryPromptTitle(String reasonCode) {
   return switch (reasonCode) {
     'battery_critical_gps_blocked' => 'Battery critically low',
     'low_battery_requires_user_choice' ||
-    'low_battery_gps_blocked_by_saved_choice' => 'Battery below 20%',
+    'low_battery_gps_blocked_by_saved_choice' => 'Battery at or below 15%',
+    'battery_low_warning' => 'Battery below 20%',
     'low_power_mode_requires_user_choice' ||
     'low_power_mode_gps_blocked_by_saved_choice' => 'Battery saver is active',
     _ => 'GPS battery guard',
@@ -364,6 +381,8 @@ String _batteryPromptBody(String reasonCode) {
       'GPS-assisted tracking is paused by default below the safety threshold. Continue only if you want GPS to keep running.',
     'low_battery_gps_blocked_by_saved_choice' =>
       'GPS-assisted tracking is blocked by your saved low-battery choice. You can reverse this in dashboard settings.',
+    'battery_low_warning' =>
+      'Battery is below 20%. Plug in when practical; GPS will ask before continuing at or below 15%.',
     'low_power_mode_requires_user_choice' =>
       'Battery saver may limit GPS reliability. Continue only if you want GPS to keep running.',
     'low_power_mode_gps_blocked_by_saved_choice' =>

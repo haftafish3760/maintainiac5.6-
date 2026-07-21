@@ -561,7 +561,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform(
         batterySnapshot: const TripTrackingBatterySnapshot(
-          batteryPercent: 19,
+          batteryPercent: 15,
           isCharging: false,
           lowPowerModeEnabled: false,
         ),
@@ -589,7 +589,7 @@ void main() {
       expect(native.requestAuthorizationCalls, 0);
       expect(native.startCalls, 0);
       expect(controller.platformStatus, 'low_battery_requires_user_choice');
-      expect(controller.platformError, contains('below 20% battery'));
+      expect(controller.platformError, contains('below 15% battery'));
       expect(
         controller.lifecycleState,
         TripTrackingSessionLifecycleState.failedRecoverable,
@@ -603,7 +603,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform(
         batterySnapshot: const TripTrackingBatterySnapshot(
-          batteryPercent: 19,
+          batteryPercent: 15,
           isCharging: false,
           lowPowerModeEnabled: true,
         ),
@@ -637,14 +637,14 @@ void main() {
         controller.platformStatus,
         'low_battery_gps_blocked_by_saved_choice',
       );
-      expect(controller.platformError, contains('blocked below 20% battery'));
+      expect(controller.platformError, contains('below 15% battery'));
     },
   );
 
   test('low battery override allows GPS startup', () async {
     final native = _FakeTripTrackingPlatform(
       batterySnapshot: const TripTrackingBatterySnapshot(
-        batteryPercent: 19,
+        batteryPercent: 15,
         isCharging: false,
         lowPowerModeEnabled: true,
       ),
@@ -680,7 +680,7 @@ void main() {
   test('low battery override retry clears the previous GPS block', () async {
     final native = _FakeTripTrackingPlatform(
       batterySnapshot: const TripTrackingBatterySnapshot(
-        batteryPercent: 19,
+        batteryPercent: 15,
         isCharging: false,
         lowPowerModeEnabled: false,
       ),
@@ -705,7 +705,7 @@ void main() {
       isFalse,
     );
     expect(controller.platformStatus, 'low_battery_requires_user_choice');
-    expect(controller.platformError, contains('below 20% battery'));
+    expect(controller.platformError, contains('below 15% battery'));
 
     expect(
       await controller.startNativeTracking(
@@ -914,6 +914,52 @@ void main() {
       expect(controller.nativeTracking, isTrue);
       expect(native.stopCalls, 0);
       expect(controller.platformStatus, 'tracking');
+    },
+  );
+
+  test(
+    'runtime battery check warns below twenty percent before the fifteen percent prompt',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      var now = DateTime.utc(2026, 7, 12, 12);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_runtime_low_battery_warning',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.batterySnapshot = const TripTrackingBatterySnapshot(
+        batteryPercent: 19,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+      now = now.add(const Duration(minutes: 6));
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'battery_low_warning',
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(native.stopCalls, 0);
+      expect(controller.platformError, contains('below 20%'));
+      expect(controller.platformError, contains('at or below 15%'));
     },
   );
 

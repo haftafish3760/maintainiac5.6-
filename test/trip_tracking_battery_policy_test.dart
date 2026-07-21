@@ -8,7 +8,7 @@ void main() {
     const settings = TripTrackingSettings();
 
     final decision = policy.gpsBatteryDecision(
-      batteryPercent: 19,
+      batteryPercent: 15,
       isCharging: false,
       lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
       lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
@@ -20,7 +20,7 @@ void main() {
     expect(decision.requiresUserChoice, isTrue);
     expect(decision.reasonCode, 'low_battery_requires_user_choice');
     expect(decision.batteryBucket, 'below_20');
-    expect(decision.promptTitle, 'Battery below 20%');
+    expect(decision.promptTitle, 'Battery at or below 15%');
     expect(
       decision.promptBody,
       contains('paused by default below the safety threshold'),
@@ -31,7 +31,7 @@ void main() {
     const policy = TripTrackingPolicy(lowBatteryGpsCutoffPercent: -1);
 
     final decision = policy.gpsBatteryDecision(
-      batteryPercent: 19,
+      batteryPercent: 15,
       isCharging: false,
       lowBatteryProtectionEnabled: true,
       lowBatteryOverrideEnabled: false,
@@ -40,6 +40,23 @@ void main() {
 
     expect(decision.status, TripGpsBatteryDecisionStatus.userPromptRequired);
     expect(decision.reasonCode, 'low_battery_requires_user_choice');
+  });
+
+  test('battery below 20% warns before the 15% consent cutoff', () {
+    const policy = TripTrackingPolicy();
+
+    final decision = policy.gpsBatteryDecision(
+      batteryPercent: 19,
+      isCharging: false,
+      lowBatteryProtectionEnabled: true,
+      lowBatteryOverrideEnabled: false,
+      lowBatteryWarningDismissed: false,
+    );
+
+    expect(decision.status, TripGpsBatteryDecisionStatus.allowed);
+    expect(decision.reasonCode, 'battery_low_warning');
+    expect(decision.safetyCutoffPercent, 15);
+    expect(decision.promptTitle, 'Battery below 20%');
   });
 
   test('critical battery blocks GPS even after a prior user override', () {
@@ -133,7 +150,7 @@ void main() {
     );
 
     final decision = policy.gpsBatteryDecision(
-      batteryPercent: 19,
+      batteryPercent: 15,
       isCharging: false,
       lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
       lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,

@@ -23,8 +23,8 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
           : 'GPS tracking is blocked while battery saver is active by your saved battery setting.';
     }
     return prompt
-        ? 'Battery is below the GPS safety threshold. Choose whether to continue GPS below 20% battery.'
-        : 'GPS tracking is blocked below 20% battery by your saved battery setting.';
+        ? 'Battery is at or below the GPS safety threshold. Choose whether to continue GPS at or below 15% battery.'
+        : 'GPS tracking is blocked at or below 15% battery by your saved battery setting.';
   }
 
   StreamSubscription<TripTrackingPlatformEvent> _listenToPlatformEvents(
@@ -308,7 +308,15 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       lowBatteryOverrideEnabled: _lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: _lowBatteryWarningDismissed,
     );
-    if (decision.allowsGps) return;
+    if (decision.allowsGps) {
+      if (decision.reasonCode == 'battery_low_warning') {
+        _platformStatus = 'battery_low_warning';
+        _platformError =
+            'Battery is below 20%. GPS will ask before continuing at or below 15% unless the device is charging.';
+        notifyListeners();
+      }
+      return;
+    }
     _platformStatus = decision.reasonCode;
     _platformError = _gpsBatteryMessageFor(decision);
     await _stopNativeTracking();
@@ -413,5 +421,4 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       notifyListeners();
     }
   }
-
 }
