@@ -11,6 +11,28 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     List<TripManualMileageAdjustment>? manualAdjustments,
     List<TripManualEvent>? tripEvents,
     TripOdometerUsageDayClassification? usageDayClassification,
+  }) => _runExclusiveSessionOperation(
+    false,
+    () => _saveCompletionDraft(
+      tripId: tripId,
+      endingOdometerDraft: endingOdometerDraft,
+      clearEndingOdometerDraft: clearEndingOdometerDraft,
+      manualAdjustments: manualAdjustments,
+      tripEvents: tripEvents,
+      usageDayClassification: usageDayClassification,
+    ),
+    busyStatus: 'session_operation_in_progress',
+    busyError:
+        'A trip record is already being updated. Please wait for it to finish.',
+  );
+
+  Future<bool> _saveCompletionDraft({
+    required String tripId,
+    int? endingOdometerDraft,
+    required bool clearEndingOdometerDraft,
+    List<TripManualMileageAdjustment>? manualAdjustments,
+    List<TripManualEvent>? tripEvents,
+    TripOdometerUsageDayClassification? usageDayClassification,
   }) async {
     final review = _sessionStore.reviewForTrip(tripId);
     if (review == null || review.isOdometerConfirmed) return false;

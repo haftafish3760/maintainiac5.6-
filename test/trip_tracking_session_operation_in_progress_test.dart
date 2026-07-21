@@ -29,6 +29,24 @@ class _BlockingPendingSampleStore extends TripTrackingSessionStore {
   }
 }
 
+class _DelayedReviewMutationStore extends TripTrackingSessionStore {
+  _DelayedReviewMutationStore() : super.memory();
+
+  final saveStarted = Completer<void>();
+  final allowSave = Completer<void>();
+  var delayNextSave = false;
+
+  @override
+  Future<void> saveReview(TripTrackingReviewRecord review) async {
+    if (delayNextSave) {
+      delayNextSave = false;
+      saveStarted.complete();
+      await allowSave.future;
+    }
+    await super.saveReview(review);
+  }
+}
+
 class _BlockingRestorePlatform implements TripTrackingNativeGateway {
   _BlockingRestorePlatform(this._isTrackingGate);
 
@@ -465,4 +483,59 @@ void main() {
       expect(controller.activeSession?.updatedAt, firstSampleAt);
     },
   );
+
+  test('completion draft cannot race odometer confirmation', () async {
+    final startedAt = DateTime.utc(2026, 7, 12, 12);
+    final finishedAt = startedAt.add(const Duration(minutes: 1));
+    final store = _DelayedReviewMutationStore();
+    final odometer = TestGlobalOdometerController();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_draft_confirmation_race',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: startedAt,
+    );
+    expect(await controller.finishForReview(finishedAt: finishedAt), isNotNull);
+
+    store.delayNextSave = true;
+    final draftSave = controller.saveCompletionDraft(
+      tripId: 'trip_draft_confirmation_race',
+      endingOdometerDraft: 1010,
+    );
+    await store.saveStarted.future;
+
+    expect(
+      await controller.confirmOdometerReview(
+        reviewId: 'trip_draft_confirmation_race',
+        confirmedEndingOdometer: 1010,
+        confirmedAt: finishedAt.add(const Duration(minutes: 1)),
+        userAcknowledgedReviewPrompt: true,
+      ),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'session_operation_in_progress');
+    expect(odometer.confirmedReading, 1000);
+
+    store.allowSave.complete();
+    expect(await draftSave, isTrue);
+    expect(
+      await controller.confirmOdometerReview(
+        reviewId: 'trip_draft_confirmation_race',
+        confirmedEndingOdometer: 1010,
+        confirmedAt: finishedAt.add(const Duration(minutes: 1)),
+        userAcknowledgedReviewPrompt: true,
+      ),
+      isTrue,
+    );
+    expect(
+      store.reviewForTrip('trip_draft_confirmation_race')?.endingOdometerDraft,
+      1010,
+    );
+    expect(odometer.confirmedReading, 1010);
+  });
 }
