@@ -3865,6 +3865,9 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
+      expect(controller.platformStatus, 'storage_failed');
+      expect(controller.platformError, contains('activity evidence locally'));
+
       native.addLocation(sample(-79.9997, 45));
       await drainNativeTripEventsUntil(
         () =>

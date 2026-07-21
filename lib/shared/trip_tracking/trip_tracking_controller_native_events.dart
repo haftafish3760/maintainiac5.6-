@@ -304,6 +304,13 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         policy: engine.policy,
         profile: engine.profile,
       );
+      // GPS can continue with its last durable checkpoint, but hiding this
+      // failure would make walking-stop assistance appear more reliable than
+      // it is. Keep the global odometer and TripLog untouched.
+      _platformStatus = 'storage_failed';
+      _platformError =
+          'Could not save GPS activity evidence locally; walking stop assistance is temporarily unavailable.';
+      notifyListeners();
       return false;
     }
   }
