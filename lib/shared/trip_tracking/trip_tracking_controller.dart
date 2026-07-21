@@ -1213,6 +1213,9 @@ class TripTrackingController extends ChangeNotifier {
       review.hasValidTimeline &&
       review.id == session.id &&
       review.vehicleId == session.vehicleId &&
+      review.profileId == session.profileId &&
+      review.vehicleConfigurationRevision ==
+          session.vehicleConfigurationRevision &&
       review.startingOdometer == session.startingOdometer &&
       review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;
@@ -2771,6 +2774,7 @@ class TripTrackingController extends ChangeNotifier {
     final cancelled = TripTrackingCancelledSessionRecord(
       sessionId: session.id,
       vehicleId: session.vehicleId,
+      vehicleConfigurationRevision: session.vehicleConfigurationRevision,
       profileId: session.profileId,
       startedAt: session.startedAt,
       cancelledAt: at,
@@ -2910,6 +2914,7 @@ class TripTrackingController extends ChangeNotifier {
     final review = TripTrackingReviewRecord(
       id: session.id,
       vehicleId: session.vehicleId,
+      profileId: session.profileId,
       vehicleConfigurationRevision: session.vehicleConfigurationRevision,
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer: projection.updateAcceptedMeters(

@@ -5,6 +5,7 @@ class TripTrackingCancelledSessionRecord {
     required this.sessionId,
     required this.vehicleId,
     required this.profileId,
+    this.vehicleConfigurationRevision = 0,
     required this.startedAt,
     required this.cancelledAt,
     required this.startingOdometer,
@@ -13,12 +14,13 @@ class TripTrackingCancelledSessionRecord {
     required this.lifecycleBeforeCancellation,
     required this.reasonCode,
     required this.userConfirmed,
-    this.schemaVersion = 1,
+    this.schemaVersion = 2,
   });
 
   final String sessionId;
   final String vehicleId;
   final String profileId;
+  final int vehicleConfigurationRevision;
   final DateTime startedAt;
   final DateTime cancelledAt;
   final int startingOdometer;
@@ -42,6 +44,7 @@ class TripTrackingCancelledSessionRecord {
     'sessionId': sessionId,
     'vehicleId': vehicleId,
     'profileId': profileId,
+    'vehicleConfigurationRevision': vehicleConfigurationRevision,
     'startedAt': startedAt.toUtc().toIso8601String(),
     'cancelledAt': cancelledAt.toUtc().toIso8601String(),
     'startingOdometer': startingOdometer,
@@ -60,7 +63,16 @@ class TripTrackingCancelledSessionRecord {
     final profile = _profileNamed(map['profile']);
     final lifecycle = _lifecycleNamed(map['lifecycleBeforeCancellation']);
     final snapshot = map['engineSnapshot'];
-    if (map['schemaVersion'] != 1 ||
+    final schemaVersion = map['schemaVersion'];
+    final hasValidVehicleConfigurationRevision =
+        schemaVersion == 1 ||
+        (map['vehicleConfigurationRevision'] is int &&
+            (map['vehicleConfigurationRevision'] as int) >= 0);
+    final vehicleConfigurationRevision = schemaVersion == 1
+        ? 0
+        : map['vehicleConfigurationRevision'] as int? ?? 0;
+    if ((schemaVersion != 1 && schemaVersion != 2) ||
+        !hasValidVehicleConfigurationRevision ||
         !_safeId(map['sessionId']) ||
         !_safeId(map['vehicleId']) ||
         !_safeId(map['profileId']) ||
@@ -80,6 +92,7 @@ class TripTrackingCancelledSessionRecord {
       sessionId: map['sessionId'] as String,
       vehicleId: map['vehicleId'] as String,
       profileId: map['profileId'] as String,
+      vehicleConfigurationRevision: vehicleConfigurationRevision,
       startedAt: startedAt.toUtc(),
       cancelledAt: cancelledAt.toUtc(),
       startingOdometer: map['startingOdometer'] as int,
@@ -88,6 +101,7 @@ class TripTrackingCancelledSessionRecord {
       lifecycleBeforeCancellation: lifecycle,
       reasonCode: map['reasonCode'] as String,
       userConfirmed: map['userConfirmed'] as bool,
+      schemaVersion: 2,
     );
   }
 }

@@ -38,7 +38,42 @@ void main() {
         finishedAt: started.add(const Duration(hours: 1)),
       );
       expect(review?.vehicleConfigurationRevision, 4);
+      expect(review?.profileId, 'profile_1');
       expect(store.pendingReviews.single.vehicleConfigurationRevision, 4);
+    },
+  );
+
+  test(
+    'mid-trip context changes cannot rewrite bound review identity',
+    () async {
+      var profileId = 'profile_original';
+      var configurationRevision = 7;
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        activeProfileId: () => profileId,
+        activeVehicleConfigurationRevision: () => configurationRevision,
+        clockNow: () => started.add(const Duration(hours: 2)),
+      );
+      await controller.start(
+        tripId: 'trip_bound_context',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: started,
+      );
+
+      profileId = 'profile_other';
+      configurationRevision = 8;
+      final review = await controller.finishForReview(
+        finishedAt: started.add(const Duration(hours: 1)),
+      );
+
+      expect(review?.profileId, 'profile_original');
+      expect(review?.vehicleConfigurationRevision, 7);
     },
   );
 

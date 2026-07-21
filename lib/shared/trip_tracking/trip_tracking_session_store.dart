@@ -196,6 +196,10 @@ class TripTrackingSessionRecord {
     final safeId = _safeIdentifier(map['id']);
     final safeVehicleId = _safeIdentifier(map['vehicleId']);
     final sourceSchemaVersion = _sessionSchemaVersion(map['schemaVersion']);
+    final hasValidVehicleConfigurationRevision =
+        sourceSchemaVersion < 3 ||
+        (map['vehicleConfigurationRevision'] is int &&
+            (map['vehicleConfigurationRevision'] as int) >= 0);
     final safeProfileId = sourceSchemaVersion == 1
         ? 'legacy-local-profile'
         : _safeIdentifier(map['profileId']);
@@ -277,6 +281,7 @@ class TripTrackingSessionRecord {
           hasValidProfile &&
           hasValidLifecycleState &&
           hasValidHealthState &&
+          hasValidVehicleConfigurationRevision &&
           hasSupportedSchemaVersion,
       schemaVersion: sourceSchemaVersion < 3 ? 3 : sourceSchemaVersion,
     );
@@ -422,6 +427,7 @@ class TripTrackingReviewRecord {
   const TripTrackingReviewRecord({
     required this.id,
     required this.vehicleId,
+    this.profileId = 'legacy-local-profile',
     this.vehicleConfigurationRevision = 0,
     required this.startingOdometer,
     required this.estimatedEndingOdometer,
@@ -443,6 +449,7 @@ class TripTrackingReviewRecord {
 
   final String id;
   final String vehicleId;
+  final String profileId;
   final int vehicleConfigurationRevision;
   final int startingOdometer;
   final int estimatedEndingOdometer;
@@ -495,6 +502,7 @@ class TripTrackingReviewRecord {
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
+      profileId: profileId,
       vehicleConfigurationRevision: vehicleConfigurationRevision,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
@@ -526,6 +534,7 @@ class TripTrackingReviewRecord {
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
     'vehicleId': _safeIdentifier(vehicleId),
+    'profileId': _safeIdentifier(profileId),
     'vehicleConfigurationRevision': vehicleConfigurationRevision,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
@@ -560,6 +569,14 @@ class TripTrackingReviewRecord {
     final finishedAt = DateTime.tryParse('${map['finishedAt'] ?? ''}');
     final id = _safeIdentifier(map['id']);
     final vehicleId = _safeIdentifier(map['vehicleId']);
+    final sourceSchemaVersion = _sessionSchemaVersion(map['schemaVersion']);
+    final safeProfileId = sourceSchemaVersion < 2
+        ? 'legacy-local-profile'
+        : _safeIdentifier(map['profileId']);
+    final hasValidVehicleConfigurationRevision =
+        sourceSchemaVersion < 2 ||
+        (map['vehicleConfigurationRevision'] is int &&
+            (map['vehicleConfigurationRevision'] as int) >= 0);
     final cloudBackupScope = _cloudBackupScopeFromMap(map['cloudBackupScope']);
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
@@ -602,6 +619,7 @@ class TripTrackingReviewRecord {
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
+      profileId: safeProfileId,
       vehicleConfigurationRevision:
           map['vehicleConfigurationRevision'] is int &&
               (map['vehicleConfigurationRevision'] as int) >= 0
@@ -637,14 +655,14 @@ class TripTrackingReviewRecord {
         maxLength: 240,
       ),
       cloudSyncedAt: cloudSyncedAt,
-      schemaVersion: _sessionSchemaVersion(map['schemaVersion']) < 2
-          ? 2
-          : _sessionSchemaVersion(map['schemaVersion']),
+      schemaVersion: sourceSchemaVersion < 2 ? 2 : sourceSchemaVersion,
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
           !finishedAt.isBefore(startedAt) &&
           hasSafeIdentity &&
+          _isSafeStoreIdentifierValue(safeProfileId) &&
+          hasValidVehicleConfigurationRevision &&
           hasValidProfile &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(
@@ -1074,6 +1092,7 @@ class TripTrackingSessionStore {
         if (!_isSafeStoreIdentifier(record.sessionId) ||
             !_isSafeStoreIdentifier(record.vehicleId) ||
             !_isSafeStoreIdentifier(record.profileId) ||
+            record.vehicleConfigurationRevision < 0 ||
             record.cancelledAt.isBefore(record.startedAt) ||
             record.startingOdometer < 0) {
           throw ArgumentError.value(record.sessionId, 'record');
@@ -1421,8 +1440,16 @@ class TripTrackingSessionStore {
             'Trip reviews require a non-empty safe vehicle id.',
           );
         }
+        if (!_isSafeStoreIdentifier(review.profileId)) {
+          throw ArgumentError.value(
+            review.profileId,
+            'review.profileId',
+            'Trip reviews require a non-empty safe profile id.',
+          );
+        }
         if (!review.hasValidTimeline ||
             review.finishedAt.isBefore(review.startedAt) ||
+            review.vehicleConfigurationRevision < 0 ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
@@ -1575,7 +1602,8 @@ void _validateActiveSessionRecord(TripTrackingSessionRecord session) {
   }
   if (!session.hasValidTimeline ||
       session.updatedAt.isBefore(session.startedAt) ||
-      session.revision < session.lastEventSequence) {
+      session.revision < session.lastEventSequence ||
+      session.vehicleConfigurationRevision < 0) {
     throw ArgumentError.value(
       session.id,
       'session',

@@ -33,6 +33,8 @@ void main() {
     final map = <String, Object?>{
       'id': 'review_schema_boundary',
       'vehicleId': 'vehicle_1',
+      'profileId': 'profile_1',
+      'vehicleConfigurationRevision': 0,
       'startingOdometer': 1000,
       'estimatedEndingOdometer': 1002,
       'profile': TripTrackingProfile.roadVehicle.name,
@@ -58,20 +60,20 @@ void main() {
   }
 
   test(
-    'active trip schema versions migrate to current integer version two',
+    'active trip schema versions migrate to current integer version three',
     () {
       for (final schema in const [1.0, 1.5, '1', true, null]) {
         final session = TripTrackingSessionRecord.fromMap(
           sessionMap(schemaVersion: schema),
         );
 
-        expect(session.schemaVersion, 2, reason: '$schema');
+        expect(session.schemaVersion, 3, reason: '$schema');
         expect(session.hasValidTimeline, isFalse, reason: '$schema');
       }
 
       final supported = TripTrackingSessionRecord.fromMap(sessionMap());
 
-      expect(supported.schemaVersion, 2);
+      expect(supported.schemaVersion, 3);
       expect(supported.hasValidTimeline, isTrue);
 
       final current = TripTrackingSessionRecord.fromMap(
@@ -85,14 +87,14 @@ void main() {
         sessionMap(schemaVersion: 99),
       );
 
-      expect(current.schemaVersion, 2);
+      expect(current.schemaVersion, 3);
       expect(current.hasValidTimeline, isTrue);
       expect(future.hasValidTimeline, isFalse);
     },
   );
 
-  test('review schema versions must be integer version one', () {
-    for (final schema in const [1.0, 2, 99, '1', false]) {
+  test('review schema versions migrate to current integer version two', () {
+    for (final schema in const [1.0, 3, 99, '1', false]) {
       final review = TripTrackingReviewRecord.fromMap(
         reviewMap(schemaVersion: schema),
       );
@@ -102,8 +104,14 @@ void main() {
 
     final supported = TripTrackingReviewRecord.fromMap(reviewMap());
 
-    expect(supported.schemaVersion, 1);
+    expect(supported.schemaVersion, 2);
     expect(supported.hasValidTimeline, isTrue);
+
+    final current = TripTrackingReviewRecord.fromMap(
+      reviewMap(schemaVersion: 2),
+    );
+    expect(current.schemaVersion, 2);
+    expect(current.hasValidTimeline, isTrue);
   });
 
   test('unknown cloud sync state cannot become trusted backup progress', () {
