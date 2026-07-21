@@ -95,6 +95,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                     currentSession,
                     receivedAt,
                   ),
+                  revision: currentSession.revision + 1,
                   engineSnapshot: engine.snapshot,
                 );
                 try {
@@ -402,6 +403,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         : session.updatedAt;
     final updatedSession = session.copyWith(
       updatedAt: updatedAt,
+      revision: session.revision + 1,
       engineSnapshot: engine.snapshot,
     );
     try {

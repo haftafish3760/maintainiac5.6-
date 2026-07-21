@@ -4575,6 +4575,7 @@ void main() {
         maxPumps: 48,
       );
 
+      final revisionBeforeFailedActivity = store.activeSession!.revision;
       store.failNextSessionSave = true;
       native.addActivity(
         TripActivityObservation(
@@ -4588,6 +4589,7 @@ void main() {
 
       expect(controller.platformStatus, 'storage_failed');
       expect(controller.platformError, contains('activity evidence locally'));
+      expect(store.activeSession?.revision, revisionBeforeFailedActivity);
 
       native.addLocation(sample(-79.9997, 45));
       await drainNativeTripEventsUntil(
@@ -7630,6 +7632,7 @@ void main() {
         isTrue,
       );
 
+      final revisionBeforeInitialFix = controller.activeSession!.revision;
       native.addLocation(sample(-80, 0));
       await drainNativeTripEventsUntil(
         () => controller.initialFixAssessment != null,
@@ -7643,6 +7646,7 @@ void main() {
         controller.initialFixHistory.single.quality,
         TripInitialFixQuality.staleCached,
       );
+      expect(controller.activeSession?.revision, revisionBeforeInitialFix + 1);
 
       now = now.add(const Duration(seconds: 10));
       native.addLocation(

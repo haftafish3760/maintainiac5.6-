@@ -594,6 +594,7 @@ class TripTrackingController extends ChangeNotifier {
     }
     final next = session.copyWith(
       updatedAt: _nonRegressingSessionTime(session),
+      revision: session.revision + 1,
       backgroundTrackingAllowed: allowBackground,
       activityRecognitionEnabled: activityRecognitionEnabled,
       nativeSampling: nativeSampling,
@@ -624,6 +625,7 @@ class TripTrackingController extends ChangeNotifier {
     if (session == null) return false;
     final next = session.copyWith(
       updatedAt: _nonRegressingSessionTime(session),
+      revision: session.revision + 1,
       batteryStateSummary: summary,
     );
     try {
@@ -654,6 +656,7 @@ class TripTrackingController extends ChangeNotifier {
     final history = [...session.permissionHistory, evidence];
     final next = session.copyWith(
       updatedAt: _nonRegressingSessionTime(session),
+      revision: session.revision + 1,
       permissionHistory: history.length <= 24
           ? history
           : history.skip(history.length - 24).toList(growable: false),
