@@ -282,6 +282,40 @@ ReceiptLineMatch? _matchReceiptLineToActiveCatalog(
       );
     }
   }
+  final masonryConcreteAnchor = _directMasonryConcreteAnchorReceiptMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (masonryConcreteAnchor != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: masonryConcreteAnchor,
+      confidence: _directReceiptConfidence(
+        normalized,
+        masonryConcreteAnchor,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, masonryConcreteAnchor),
+    );
+  }
+  final landscapingDrainage = _directLandscapingDrainageReceiptMatch(
+    normalized,
+    tradeScope: tradeScope,
+  );
+  if (landscapingDrainage != null) {
+    return ReceiptLineMatch(
+      rawText: rawText,
+      item: landscapingDrainage,
+      confidence: _directReceiptConfidence(
+        normalized,
+        landscapingDrainage,
+        tradeScope: tradeScope,
+        originalText: normalized,
+      ),
+      matchedTerms: _directMatchedTerms(normalized, landscapingDrainage),
+    );
+  }
   final plumbingPrecedence = _directPlumbingReceiptPrecedenceMatch(
     normalized,
     tradeScope: tradeScope,
@@ -1122,8 +1156,9 @@ WorkSupplyItem? _directHighSpecificityReceiptMatch(
     }
   }
   if (RegExp(
-    r'\b(manometro presion pozo|manometro de presion|presion pozo|well pressure gauge|pressure gauge|well gauge)\b',
-  ).hasMatch(text) && !RegExp(r'\b(switch|interruptor|presostato)\b').hasMatch(text)) {
+        r'\b(manometro presion pozo|manometro de presion|presion pozo|well pressure gauge|pressure gauge|well gauge)\b',
+      ).hasMatch(text) &&
+      !RegExp(r'\b(switch|interruptor|presostato)\b').hasMatch(text)) {
     for (final item in _activeWorkSupplyCatalogItems) {
       final name = item.name.toLowerCase();
       if (item.trade == 'Plumbing' && name.contains('pressure gauge')) {
@@ -5230,10 +5265,13 @@ bool _matchesHalfByThreeEighthStop(String receiptText, String variant) {
       normalizedVariant.contains('1/2') &&
       normalizedVariant.contains('3/8');
 }
+
 bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   if (tradeScope != null && tradeScope.trim().isNotEmpty) return false;
   if (RegExp(r'\bpvc\b').hasMatch(text) &&
-      !RegExp(r'\b(dwv|drain|sewer|pressure|potable|plumb|conduit|electrical|cond|condensate|hvac)\b').hasMatch(text)) {
+      !RegExp(
+        r'\b(dwv|drain|sewer|pressure|potable|plumb|conduit|electrical|cond|condensate|hvac)\b',
+      ).hasMatch(text)) {
     return true;
   }
   if (RegExp(r'\b(filter|filtro)\b').hasMatch(text) &&

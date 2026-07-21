@@ -44,7 +44,8 @@ Responsibilities:
 - multi-photo long receipt capture
 - retake by segment index
 - ghost/overlap guidance
-- blur, glare, low-light, crop, edge, and bottom-coverage warnings
+- neutral receipt framing, crop, edge, bottom-coverage guidance
+- optional experimental blur, glare, low-light, shadow, and dirty-lens guidance
 - conservative stitching and ordered fallback
 - source preservation and derived-artifact lineage
 - camera handoff to OCR/parser review

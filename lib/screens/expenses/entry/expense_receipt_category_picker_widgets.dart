@@ -160,6 +160,14 @@ List<String> _homeCategoryNames(BuildContext context) {
   return _uniqueCategoryNames(home);
 }
 
+List<String> _availableExpenseCategoryNames(BuildContext context) {
+  final settings = ExpenseSettingsScope.of(context);
+  return _uniqueCategoryNames([
+    ..._expenseCategoryNames,
+    ...settings.customCategoryNames,
+  ]);
+}
+
 List<String> _uniqueCategoryNames(Iterable<String> categories) {
   final output = <String>[];
   for (final category in categories) {

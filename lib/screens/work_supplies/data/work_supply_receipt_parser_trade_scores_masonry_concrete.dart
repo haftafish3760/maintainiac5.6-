@@ -216,3 +216,33 @@ int _masonryConcreteReceiptScore(
   }
   return score;
 }
+
+WorkSupplyItem? _directMasonryConcreteAnchorReceiptMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  final scopedTrade = tradeScope?.trim().toLowerCase();
+  if (scopedTrade != null &&
+      scopedTrade.isNotEmpty &&
+      scopedTrade != 'masonry and concrete') {
+    return null;
+  }
+  if (!RegExp(r'\b(tapcon|concrete screw|masonry screw)\b').hasMatch(text)) {
+    return null;
+  }
+
+  final size = _nominalReceiptSize(text);
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(const [
+    'concrete',
+    'screw',
+    'anchor',
+  ])) {
+    if (item.trade != 'Masonry and Concrete') continue;
+    if (size == null ||
+        _nameMatchesReceiptSize(item.name.toLowerCase(), size) ||
+        _nameMatchesReceiptSize(item.variant.toLowerCase(), size)) {
+      return item;
+    }
+  }
+  return null;
+}

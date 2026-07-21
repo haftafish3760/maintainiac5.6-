@@ -305,3 +305,32 @@ int _landscapingReceiptScore(
   }
   return score;
 }
+
+WorkSupplyItem? _directLandscapingDrainageReceiptMatch(
+  String text, {
+  String? tradeScope,
+}) {
+  final scopedTrade = tradeScope?.trim().toLowerCase();
+  if (scopedTrade != null &&
+      scopedTrade.isNotEmpty &&
+      scopedTrade != 'landscaping') {
+    return null;
+  }
+  if (!RegExp(r'\bez\s+drain\b').hasMatch(text)) return null;
+
+  final size = _nominalReceiptSize(text);
+  for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(const [
+    'ez',
+    'drain',
+  ])) {
+    if (item.trade != 'Landscaping') continue;
+    final itemText = '${item.name} ${item.variant}'.toLowerCase();
+    if (!itemText.contains('ez drain')) continue;
+    if (size == null ||
+        _nameMatchesReceiptSize(item.name.toLowerCase(), size) ||
+        _nameMatchesReceiptSize(item.variant.toLowerCase(), size)) {
+      return item;
+    }
+  }
+  return null;
+}

@@ -243,12 +243,15 @@ void main() {
       ),
       findsWidgets,
     );
+    final weekly = find.text('Weekly');
     await tester.scrollUntilVisible(
-      find.text('Weekly'),
-      220,
+      weekly,
+      120,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.text('Weekly'));
+    await tester.ensureVisible(weekly);
+    await tester.pumpAndSettle();
+    await tester.tap(weekly);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Read Summary'),
@@ -292,6 +295,9 @@ void main() {
     final detailOcrReview = await File(
       'lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart',
     ).readAsString();
+    final detailScreen = await File(
+      'lib/screens/expenses/calendar/expense_receipt_detail_screen.dart',
+    ).readAsString();
     final calendarModels = await File(
       'lib/screens/expenses/calendar/expense_calendar_models.dart',
     ).readAsString();
@@ -303,6 +309,9 @@ void main() {
     expect(calendarActions, contains('calendar_copy_line_failed'));
     expect(calendarActions, contains('calendar_delete_line_failed'));
     expect(calendarActions, contains('That receipt could not be deleted.'));
+    expect(calendarActions, contains('Remove receipt from expenses?'));
+    expect(calendarActions, contains('remains recoverable locally'));
+    expect(calendarActions, contains('restoreReceipt'));
     expect(calendarActions, contains('That receipt line could not be saved.'));
     expect(calendarActions, contains('That receipt line could not be copied.'));
     expect(
@@ -322,6 +331,9 @@ void main() {
     expect(detailOcrReview, contains('Recovery'));
     expect(detailOcrReview, contains('Check area'));
     expect(detailOcrReview, contains('Long receipt overlap'));
+    expect(detailScreen, contains('if (receipt.isDeleted)'));
+    expect(detailScreen, contains("label: const Text('Restore')"));
+    expect(detailScreen, contains('hidden from active expenses'));
     expect(detailInfo, contains('Read needs review'));
     expect(calendarModels, contains('totalForLine(line)'));
     expect(calendarModels, contains('_calendarOcrStatusLabel'));

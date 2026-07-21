@@ -219,6 +219,8 @@ String _clientProofVisibilityFor(ExpenseLineUse use) {
       ReceiptLineClientProofVisibility.reviewBeforeClientShare,
     ExpenseLineUse.business =>
       ReceiptLineClientProofVisibility.reviewForClientProof,
+    ExpenseLineUse.unclassified =>
+      ReceiptLineClientProofVisibility.reviewBeforeClientShare,
   };
 }
 
@@ -249,6 +251,7 @@ String _businessUseFor(ExpenseLineUse use) {
     ExpenseLineUse.personal => 'personal',
     ExpenseLineUse.split => 'split',
     ExpenseLineUse.business => 'business',
+    ExpenseLineUse.unclassified => 'unclassified',
   };
 }
 

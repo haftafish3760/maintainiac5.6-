@@ -26,10 +26,14 @@ class ExpenseReceiptRecord {
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
     this.vehicleId,
+    this.workProfileId,
     this.odometerReading,
     this.sourceScreen = 'expenses',
     this.createdAt,
     this.updatedAt,
+    this.localRevision = 0,
+    this.recordState = MaintainiacRecordState.active,
+    this.deletedAt,
     this.auditEvents = const [],
     this.fileHashSha256 = '',
     this.duplicateCheckStatus = ExpenseDuplicateCheckStatus.notChecked,
@@ -71,10 +75,18 @@ class ExpenseReceiptRecord {
       vehicleId: _expenseString(map['vehicleId']).trim().isEmpty
           ? null
           : _expenseString(map['vehicleId']),
+      workProfileId: _expenseString(map['workProfileId']).trim().isEmpty
+          ? null
+          : _expenseString(map['workProfileId']),
       odometerReading: _expenseInt(map['odometerReading']),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
       createdAt: _expenseDateTime(map['createdAt']),
       updatedAt: _expenseDateTime(map['updatedAt']),
+      localRevision: _expenseInt(map['localRevision']) ?? 0,
+      recordState: MaintainiacRecordState.fromName(
+        _expenseString(map['recordState']),
+      ),
+      deletedAt: _expenseDateTime(map['deletedAt']),
       auditEvents:
           (map['auditEvents'] as List?)?.whereType<String>().toList(
             growable: false,
@@ -125,10 +137,14 @@ class ExpenseReceiptRecord {
   final double? enteredTotal;
   final bool trackMaterialsInInventory;
   final String? vehicleId;
+  final String? workProfileId;
   final int? odometerReading;
   final String sourceScreen;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int localRevision;
+  final MaintainiacRecordState recordState;
+  final DateTime? deletedAt;
   final List<String> auditEvents;
   final String fileHashSha256;
   final ExpenseDuplicateCheckStatus duplicateCheckStatus;
@@ -137,6 +153,9 @@ class ExpenseReceiptRecord {
   final String duplicateOverrideReason;
   final DateTime? duplicateCheckedAt;
   final List<ExpenseReceiptLineRecord> lines;
+
+  bool get isActive => recordState == MaintainiacRecordState.active;
+  bool get isDeleted => recordState == MaintainiacRecordState.deleted;
 
   static const _unset = Object();
 
@@ -163,10 +182,14 @@ class ExpenseReceiptRecord {
     Object? enteredTotal = _unset,
     Object? trackMaterialsInInventory = _unset,
     Object? vehicleId = _unset,
+    Object? workProfileId = _unset,
     Object? odometerReading = _unset,
     Object? sourceScreen = _unset,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? localRevision,
+    Object? recordState = _unset,
+    Object? deletedAt = _unset,
     List<String>? auditEvents,
     Object? fileHashSha256 = _unset,
     Object? duplicateCheckStatus = _unset,
@@ -222,6 +245,9 @@ class ExpenseReceiptRecord {
           ? this.trackMaterialsInInventory
           : trackMaterialsInInventory as bool,
       vehicleId: vehicleId == _unset ? this.vehicleId : vehicleId as String?,
+      workProfileId: workProfileId == _unset
+          ? this.workProfileId
+          : workProfileId as String?,
       odometerReading: odometerReading == _unset
           ? this.odometerReading
           : odometerReading as int?,
@@ -230,6 +256,11 @@ class ExpenseReceiptRecord {
           : sourceScreen as String,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      localRevision: localRevision ?? this.localRevision,
+      recordState: recordState == _unset
+          ? this.recordState
+          : recordState as MaintainiacRecordState,
+      deletedAt: deletedAt == _unset ? this.deletedAt : deletedAt as DateTime?,
       auditEvents: auditEvents ?? this.auditEvents,
       fileHashSha256: fileHashSha256 == _unset
           ? this.fileHashSha256

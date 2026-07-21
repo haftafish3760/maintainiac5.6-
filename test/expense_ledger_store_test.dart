@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
+import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
   late Directory hiveDirectory;
@@ -77,6 +78,59 @@ void main() {
       expect(week.total, 112);
     },
   );
+
+  test(
+    'does not claim a receipt is saved when device storage is full',
+    () async {
+      final ledger = ExpenseLedgerController.memory(
+        storageCheck: () async => const AppStorageCheck(
+          availableBytes: 0,
+          operationBytes: AppStorageGuard.smallRecordWriteBytes,
+          requiredBytes: AppStorageGuard.smallRecordWriteBytes + 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+        ),
+      );
+
+      await expectLater(
+        () => ledger.saveReceipt(
+          ExpenseReceiptRecord(
+            id: 'blocked-storage',
+            receiptDate: DateTime(2026, 7, 15),
+            lines: const [
+              ExpenseReceiptLineRecord(
+                id: 'blocked-storage-line',
+                description: 'Storage test',
+                category: 'Other',
+                use: ExpenseLineUse.unclassified,
+                quantity: 1,
+                unitsPerPackage: 1,
+                unit: 'each',
+                subtotal: 10,
+              ),
+            ],
+          ),
+        ),
+        throwsA(isA<StateError>()),
+      );
+      expect(ledger.receiptById('blocked-storage'), isNull);
+    },
+  );
+
+  test('storage can be checked before receipt proof promotion', () async {
+    final ledger = ExpenseLedgerController.memory(
+      storageCheck: () async => const AppStorageCheck(
+        availableBytes: 0,
+        operationBytes: AppStorageGuard.smallRecordWriteBytes,
+        requiredBytes: AppStorageGuard.smallRecordWriteBytes + 1,
+        purpose: AppStoragePurpose.smallRecordWrite,
+      ),
+    );
+
+    await expectLater(
+      ledger.ensureStorageForLocalSave,
+      throwsA(isA<StateError>()),
+    );
+  });
 
   test(
     'loads around malformed local receipt values without crashing',
@@ -163,6 +217,30 @@ void main() {
       expect(loaded.auditEvents, isNotEmpty);
     },
   );
+
+  test('deleted receipts do not block a new duplicate-proof review', () async {
+    final ledger = ExpenseLedgerController.memory();
+    final deleted = await ledger.saveReceipt(
+      ExpenseReceiptRecord(
+        id: 'deleted-proof',
+        receiptDate: DateTime(2026, 7, 15),
+        fileHashSha256: 'same-proof',
+        lines: const [],
+      ),
+    );
+    await ledger.deleteReceipt(deleted.id);
+
+    final result = ledger.checkDuplicatesFor(
+      ExpenseReceiptRecord(
+        id: 'new-proof',
+        receiptDate: DateTime(2026, 7, 15),
+        fileHashSha256: 'same-proof',
+        lines: const [],
+      ),
+    );
+
+    expect(result.candidates, isEmpty);
+  });
 
   test(
     'calendar day uses receipt date and entered time before entry order',
@@ -292,6 +370,119 @@ void main() {
       expect(ledger.summaryForWeek(DateTime(2026, 5, 12)).total, 125);
       expect(ledger.summaryForMonth(DateTime(2026, 5, 20)).total, 125);
       expect(yearToDate().total, 125);
+    },
+  );
+
+  test(
+    'soft deletes and restores a receipt without corrupting its history',
+    () async {
+      final ledger = await ExpenseLedgerController.create();
+      final saved = await ledger.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-lifecycle',
+          receiptDate: DateTime(2026, 7, 15),
+          ocrReview: const ExpenseReceiptOcrReview(
+            severity: 'review',
+            recoveryAction: 'review_receipt_manually',
+          ),
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-lifecycle',
+              description: 'Receipt proof',
+              category: 'Supplies',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 25,
+            ),
+          ],
+        ),
+      );
+
+      expect(saved.localRevision, 1);
+      expect(saved.isActive, isTrue);
+      expect(ledger.ocrRecoveryActionCounts, {'review_receipt_manually': 1});
+
+      final deleted = await ledger.deleteReceipt(saved.id);
+      expect(deleted, isNotNull);
+      expect(deleted!.isDeleted, isTrue);
+      expect(deleted.deletedAt, isNotNull);
+      expect(deleted.localRevision, 2);
+      expect(ledger.receipts, isEmpty);
+      expect(ledger.receiptsNeedingOcrReview, isEmpty);
+      expect(ledger.ocrRecoveryActionCounts, isEmpty);
+      expect(ledger.summaryForMonth(DateTime(2026, 7)).total, 0);
+      expect(ledger.receiptById(saved.id)!.auditEvents, hasLength(2));
+      expect(
+        ledger.saveReceipt(saved.copyWith(merchantName: 'Stale edit')),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        ledger.replaceLine(receiptId: saved.id, line: saved.lines.single),
+        completion(isNull),
+      );
+      expect(
+        ledger.deleteLine(receiptId: saved.id, lineId: saved.lines.single.id),
+        completion(isNull),
+      );
+
+      final restored = await ledger.restoreReceipt(saved.id);
+      expect(restored, isNotNull);
+      expect(restored!.isActive, isTrue);
+      expect(restored.deletedAt, isNull);
+      expect(restored.localRevision, 3);
+      expect(ledger.receiptsNeedingOcrReview, hasLength(1));
+      expect(ledger.ocrRecoveryActionCounts, {'review_receipt_manually': 1});
+      expect(ledger.summaryForMonth(DateTime(2026, 7)).total, 25);
+      expect(ledger.receiptById(saved.id)!.auditEvents, hasLength(3));
+    },
+  );
+
+  test(
+    'persists a deleted receipt and its restore across a Hive restart',
+    () async {
+      final initial = await ExpenseLedgerController.create();
+      final saved = await initial.saveReceipt(
+        ExpenseReceiptRecord(
+          id: 'EXP-restart-lifecycle',
+          receiptDate: DateTime(2026, 7, 15),
+          lines: const [
+            ExpenseReceiptLineRecord(
+              id: 'LINE-restart-lifecycle',
+              description: 'Saved proof',
+              category: 'Supplies',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 18,
+            ),
+          ],
+        ),
+      );
+      await initial.deleteReceipt(saved.id);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final afterDelete = await ExpenseLedgerController.create();
+      final deleted = afterDelete.receiptById(saved.id)!;
+
+      expect(deleted.isDeleted, isTrue);
+      expect(deleted.localRevision, 2);
+      expect(deleted.deletedAt, isNotNull);
+      expect(afterDelete.receipts, isEmpty);
+
+      await afterDelete.restoreReceipt(saved.id);
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final afterRestore = await ExpenseLedgerController.create();
+      final restored = afterRestore.receiptById(saved.id)!;
+
+      expect(restored.isActive, isTrue);
+      expect(restored.deletedAt, isNull);
+      expect(restored.localRevision, 3);
+      expect(afterRestore.summaryForMonth(DateTime(2026, 7)).total, 18);
     },
   );
 }

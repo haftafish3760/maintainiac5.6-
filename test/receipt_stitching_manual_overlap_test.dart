@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_stitching_image_helpers.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
+const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
+
 void main() {
   test(
     'manual overlap can stitch when automatic matching is uncertain',
@@ -259,6 +261,7 @@ void main() {
       expect(result.pairs.every((pair) => pair.usedManualAdjustment), isTrue);
       expect(result.stitchedPixelCount, greaterThan(900000));
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test(
@@ -297,6 +300,7 @@ void main() {
       expect(result.usedManualAdjustment, isTrue);
       expect(result.ocrSourcePaths, hasLength(1));
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test(

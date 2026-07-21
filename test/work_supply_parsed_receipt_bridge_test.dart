@@ -296,7 +296,7 @@ void main() {
     );
     expect(draft.clientProofImageReviewPlan.sectionCount, 1);
     expect(draft.clientProofImageReviewPlan.reviewSectionCount, 1);
-    expect(draft.clientProofImageReviewPlan.unassignedHiddenLineCount, 1);
+    expect(draft.clientProofImageReviewPlan.unassignedHiddenLineCount, 0);
     expect(
       draft.clientProofRedactionPlan.toPrivacySafeMap().toString(),
       isNot(contains('PERSONAL COPPER')),

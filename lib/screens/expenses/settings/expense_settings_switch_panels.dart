@@ -134,6 +134,133 @@ class _ReceiptReviewStyleChoice extends StatelessWidget {
   }
 }
 
+class _BackupSyncModeSettingsPanel extends StatelessWidget {
+  const _BackupSyncModeSettingsPanel({
+    required this.settings,
+    required this.onBackupNow,
+  });
+
+  final ExpenseSettingsController settings;
+  final Future<void> Function() onBackupNow;
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = settings.backupSyncMode;
+    return IndustrialPanelSurface(
+      dark: true,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Expense Cloud Backup',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Receipt records always save on this device first. Choose when an enabled cloud backup may upload.',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          _BackupSyncModeChoice(
+            title: 'Manual backup',
+            detail: 'Only upload when you tap Back Up Now.',
+            selected: mode == ExpenseBackupSyncMode.manual,
+            onTap: () =>
+                settings.setBackupSyncMode(ExpenseBackupSyncMode.manual),
+          ),
+          const SizedBox(height: 8),
+          _BackupSyncModeChoice(
+            title: 'Back up after each saved change',
+            detail:
+                'Upload after a saved Expense change when cloud backup is enabled.',
+            selected: mode == ExpenseBackupSyncMode.immediate,
+            onTap: () =>
+                settings.setBackupSyncMode(ExpenseBackupSyncMode.immediate),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: onBackupNow,
+            icon: const Icon(Icons.cloud_upload_outlined),
+            label: const Text('Back Up Now'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BackupSyncModeChoice extends StatelessWidget {
+  const _BackupSyncModeChoice({
+    required this.title,
+    required this.detail,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String detail;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final border = selected ? const Color(0xFFFFD166) : const Color(0xFF445159);
+    return Material(
+      color: selected ? const Color(0xFF3A3016) : const Color(0xFF101719),
+      borderRadius: BorderRadius.circular(7),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(7),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: selected
+                    ? const Color(0xFFFFD166)
+                    : const Color(0xFFC8D0D3),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      detail,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 sealed class _SettingsPanelRowData {
   const _SettingsPanelRowData(this.label);
 

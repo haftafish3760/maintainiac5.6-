@@ -95,11 +95,11 @@ Future<void> _deleteReceipt(
     builder: (context) => AlertDialog(
       backgroundColor: const Color(0xFF101719),
       title: const Text(
-        'Delete receipt?',
+        'Remove receipt from expenses?',
         style: TextStyle(color: Color(0xFFF0F4F2), fontWeight: FontWeight.w900),
       ),
       content: Text(
-        'This removes ${receipt.title} and all ${receipt.lines.length} receipt lines.',
+        'This hides ${receipt.title} and its ${receipt.lines.length} receipt lines from your active expenses. It remains recoverable locally.',
         style: const TextStyle(
           color: Color(0xFFC8D0D3),
           fontWeight: FontWeight.w700,
@@ -108,11 +108,11 @@ Future<void> _deleteReceipt(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: const Text('Keep receipt'),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Delete'),
+          child: const Text('Remove'),
         ),
       ],
     ),
@@ -120,6 +120,11 @@ Future<void> _deleteReceipt(
   if (remove != true || !context.mounted) return;
   try {
     await ExpenseLedgerScope.of(context).deleteReceipt(receipt.id);
+    if (!context.mounted) return;
+    final cloudBackup = ExpenseCloudBackupScope.maybeOf(context);
+    if (cloudBackup != null) {
+      unawaited(cloudBackup.queueReceipt(receipt.id));
+    }
   } catch (_) {
     if (context.mounted) {
       ExpenseScreenTelemetryRecorder.record(
@@ -148,6 +153,22 @@ Future<void> _deleteReceipt(
       categoryGroup: receipt.lines.isEmpty
           ? null
           : receipt.lines.first.category,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Receipt removed from active expenses.'),
+        action: SnackBarAction(
+          label: 'Restore',
+          onPressed: () async {
+            await ExpenseLedgerScope.of(context).restoreReceipt(receipt.id);
+            if (!context.mounted) return;
+            final cloudBackup = ExpenseCloudBackupScope.maybeOf(context);
+            if (cloudBackup != null) {
+              unawaited(cloudBackup.queueReceipt(receipt.id));
+            }
+          },
+        ),
+      ),
     );
   }
   if (context.mounted) Navigator.of(context).maybePop();

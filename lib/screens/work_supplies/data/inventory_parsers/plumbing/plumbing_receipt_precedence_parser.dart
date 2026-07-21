@@ -170,8 +170,8 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
   }
 
   final wantsCleanoutPlug =
-      RegExp(r'\b(cleanout|clean\s*out|co)\b').hasMatch(text) &&
-      RegExp(r'\bplug\b').hasMatch(text) &&
+      RegExp(r'\b(cleanout|clean\s*out|co|limpieza)\b').hasMatch(text) &&
+      RegExp(r'\b(plug|tapon)\b').hasMatch(text) &&
       !RegExp(r'\b(abs|black)\b').hasMatch(text);
   if (wantsCleanoutPlug) {
     final size = _nominalReceiptSize(text);

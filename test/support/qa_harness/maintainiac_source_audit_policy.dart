@@ -339,6 +339,37 @@ const maintainiacSourceAuditDebtLedger = MaintainiacSourceAuditDebtLedger([
     splitPlan: 'Split draft, save, review, parser, and sync actions.',
     targetMaxLines: 1000,
   ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/firebase/maintainiac_firestore_documents.dart',
+    owner: 'firebase_sync',
+    reason: 'Firestore document construction remains broader than the app cap.',
+    splitPlan: 'Split expense, trip, and catalog document builders by domain.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/firebase/maintainiac_firestore_upload_policy.dart',
+    owner: 'firebase_sync',
+    reason: 'Firestore upload policy contains several domain-specific flows.',
+    splitPlan: 'Split eligibility, queueing, and domain policy rules.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/shared/trip_tracking/trip_tracking_controller.dart',
+    owner: 'trip_tracking',
+    reason:
+        'Trip tracking controller still combines lifecycle and bridge logic.',
+    splitPlan:
+        'Split lifecycle coordination, durable recovery, and UI bridge code.',
+    targetMaxLines: 1000,
+  ),
+  MaintainiacSourceAuditDebt(
+    path: 'lib/screens/dashboard/active_workday_screen.dart',
+    owner: 'dashboard',
+    reason: 'Active workday screen remains broader than the app file cap.',
+    splitPlan:
+        'Split day actions, dashboard sections, and tracking presentation.',
+    targetMaxLines: 1000,
+  ),
 ]);
 
 String _normalizePath(String path) => path.replaceAll('\\', '/');

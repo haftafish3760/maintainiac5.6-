@@ -5,6 +5,81 @@ import 'package:maintaniac/screens/expenses/reports/expense_recap_models.dart';
 
 void main() {
   test(
+    'backdated receipt changes recalculate daily category averages',
+    () async {
+      final ledger = ExpenseLedgerController.memory();
+      final range = ExpenseDateRange(
+        start: DateTime(2026, 6, 1),
+        end: DateTime(2026, 6, 5),
+      );
+      await ledger.saveReceipt(
+        _recapReceipt(
+          id: 'fuel-first',
+          date: DateTime(2026, 6, 1),
+          category: 'Fuel',
+          amount: 50,
+        ),
+      );
+      await ledger.saveReceipt(
+        _recapReceipt(
+          id: 'meal',
+          date: DateTime(2026, 6, 2),
+          category: 'Meals',
+          amount: 30,
+        ),
+      );
+      await ledger.saveReceipt(
+        _recapReceipt(
+          id: 'fuel-second',
+          date: DateTime(2026, 6, 3),
+          category: 'Fuel',
+          amount: 25,
+        ),
+      );
+
+      var report = ExpenseRecapReport.fromLedger(ledger, range);
+      expect(report.calendarDayCount, 5);
+      expect(report.averageDailyExpense, 21);
+      expect(report.averageDailyForCategory('Fuel'), 15);
+      expect(report.averageDailyForCategory('Meals'), 6);
+
+      final backdated = await ledger.saveReceipt(
+        _recapReceipt(
+          id: 'fuel-backdated',
+          date: DateTime(2026, 6, 2),
+          category: 'Fuel',
+          amount: 25,
+        ),
+      );
+      report = ExpenseRecapReport.fromLedger(ledger, range);
+      expect(report.averageDailyExpense, 26);
+      expect(report.averageDailyForCategory('Fuel'), 20);
+
+      await ledger.replaceLine(
+        receiptId: backdated.id,
+        line: const ExpenseReceiptLineRecord(
+          id: 'fuel-backdated-line',
+          description: 'Fuel',
+          category: 'Fuel',
+          use: ExpenseLineUse.business,
+          quantity: 1,
+          unitsPerPackage: 1,
+          unit: 'each',
+          subtotal: 35,
+        ),
+      );
+      report = ExpenseRecapReport.fromLedger(ledger, range);
+      expect(report.averageDailyExpense, 28);
+      expect(report.averageDailyForCategory('Fuel'), 22);
+
+      await ledger.deleteReceipt(backdated.id);
+      report = ExpenseRecapReport.fromLedger(ledger, range);
+      expect(report.averageDailyExpense, 21);
+      expect(report.averageDailyForCategory('Fuel'), 15);
+    },
+  );
+
+  test(
     'expense recap calculates vehicle contractor and review metrics',
     () async {
       final ledger = ExpenseLedgerController.memory();
@@ -15,6 +90,7 @@ void main() {
           merchantName: 'Fuel Stop',
           hasReceiptProof: true,
           vehicleId: 'truck_1',
+          workProfileId: 'delivery',
           lines: const [
             ExpenseReceiptLineRecord(
               id: 'fuel-line',
@@ -36,6 +112,7 @@ void main() {
           receiptDate: DateTime(2026, 6, 2),
           merchantName: 'Supply House',
           vehicleId: 'truck_2',
+          workProfileId: 'repair',
           lines: const [
             ExpenseReceiptLineRecord(
               id: 'materials-line',
@@ -68,6 +145,7 @@ void main() {
           merchantName: 'Fuel Stop',
           hasReceiptProof: true,
           vehicleId: 'truck_1',
+          workProfileId: 'delivery',
           lines: const [
             ExpenseReceiptLineRecord(
               id: 'fuel-line-2',
@@ -122,52 +200,67 @@ void main() {
       expect(truckOneReport.receiptCount, 2);
       expect(truckOneReport.materialsExpense, 0);
       expect(truckOneReport.fuelExpense, 100);
+
+      final deliveryReport = ExpenseRecapReport.fromLedger(
+        ledger,
+        ExpenseDateRange(
+          start: DateTime(2026, 6, 1),
+          end: DateTime(2026, 6, 30),
+        ),
+        workProfileId: 'delivery',
+      );
+      expect(deliveryReport.totalExpenses, 100);
+      expect(deliveryReport.receiptCount, 2);
+      expect(deliveryReport.materialsExpense, 0);
     },
   );
 
-  test('expense recap uses completed full-to-full fuel cycles for MPG', () async {
-    final ledger = ExpenseLedgerController.memory();
-    for (final receipt in [
-      _fuelCycleReceipt(
-        id: 'full-start',
-        date: DateTime(2026, 6, 1),
-        odometer: 1000,
-        gallons: 10,
-        fillType: 'Full fill-up',
-      ),
-      _fuelCycleReceipt(
-        id: 'partial-middle',
-        date: DateTime(2026, 6, 5),
-        odometer: 1100,
-        gallons: 5,
-        fillType: 'Partial fill',
-      ),
-      _fuelCycleReceipt(
-        id: 'full-end',
-        date: DateTime(2026, 6, 10),
-        odometer: 1200,
-        gallons: 7,
-        fillType: 'Full fill-up',
-      ),
-    ]) {
-      await ledger.saveReceipt(receipt);
-    }
+  test(
+    'expense recap uses completed full-to-full fuel cycles for MPG',
+    () async {
+      final ledger = ExpenseLedgerController.memory();
+      for (final receipt in [
+        _fuelCycleReceipt(
+          id: 'full-start',
+          date: DateTime(2026, 6, 1),
+          odometer: 1000,
+          gallons: 10,
+          fillType: 'Full fill-up',
+        ),
+        _fuelCycleReceipt(
+          id: 'partial-middle',
+          date: DateTime(2026, 6, 5),
+          odometer: 1100,
+          gallons: 5,
+          fillType: 'Partial fill',
+        ),
+        _fuelCycleReceipt(
+          id: 'full-end',
+          date: DateTime(2026, 6, 10),
+          odometer: 1200,
+          gallons: 7,
+          fillType: 'Full fill-up',
+        ),
+      ]) {
+        await ledger.saveReceipt(receipt);
+      }
 
-    final report = ExpenseRecapReport.fromLedger(
-      ledger,
-      ExpenseDateRange(
-        start: DateTime(2026, 6, 1),
-        end: DateTime(2026, 6, 30),
-      ),
-      vehicleId: 'truck_1',
-    );
+      final report = ExpenseRecapReport.fromLedger(
+        ledger,
+        ExpenseDateRange(
+          start: DateTime(2026, 6, 1),
+          end: DateTime(2026, 6, 30),
+        ),
+        vehicleId: 'truck_1',
+      );
 
-    expect(report.odometerMiles, 200);
-    expect(report.fuelUnits, 22);
-    expect(report.completedLiquidFillMiles, 200);
-    expect(report.completedLiquidFillGallons, 12);
-    expect(report.averageMpg, closeTo(16.667, .001));
-  });
+      expect(report.odometerMiles, 200);
+      expect(report.fuelUnits, 22);
+      expect(report.completedLiquidFillMiles, 200);
+      expect(report.completedLiquidFillGallons, 12);
+      expect(report.averageMpg, closeTo(16.667, .001));
+    },
+  );
 
   test('all-vehicle recap keeps fuel metrics isolated by vehicle', () async {
     final ledger = ExpenseLedgerController.memory();
@@ -193,10 +286,7 @@ void main() {
 
     final report = ExpenseRecapReport.fromLedger(
       ledger,
-      ExpenseDateRange(
-        start: DateTime(2026, 6, 1),
-        end: DateTime(2026, 6, 30),
-      ),
+      ExpenseDateRange(start: DateTime(2026, 6, 1), end: DateTime(2026, 6, 30)),
     );
 
     expect(report.fuelUnits, 18);
@@ -415,10 +505,7 @@ void main() {
 
     final report = ExpenseRecapReport.fromLedger(
       ledger,
-      ExpenseDateRange(
-        start: DateTime(2026, 6, 1),
-        end: DateTime(2026, 6, 30),
-      ),
+      ExpenseDateRange(start: DateTime(2026, 6, 1), end: DateTime(2026, 6, 30)),
       vehicleId: 'hydrogen_1',
     );
 
@@ -456,6 +543,30 @@ ExpenseReceiptRecord _fuelCycleReceipt({
         odometerReading: odometer,
         fuelType: 'Gasoline',
         fillType: fillType,
+      ),
+    ],
+  );
+}
+
+ExpenseReceiptRecord _recapReceipt({
+  required String id,
+  required DateTime date,
+  required String category,
+  required double amount,
+}) {
+  return ExpenseReceiptRecord(
+    id: id,
+    receiptDate: date,
+    lines: [
+      ExpenseReceiptLineRecord(
+        id: '$id-line',
+        description: category,
+        category: category,
+        use: ExpenseLineUse.business,
+        quantity: 1,
+        unitsPerPackage: 1,
+        unit: 'each',
+        subtotal: amount,
       ),
     ],
   );

@@ -60,21 +60,22 @@ extension _MaintenanceItemDetailCalculations
     _updateSetupState(() => _lastServiceDate = picked);
   }
 
-  int _nextOdometer(AppStateController appState) {
+  int _nextOdometer(int currentOdometer) {
     final exact = int.tryParse(_lastServiceOdometer.text.trim());
     final distance = int.tryParse(_milesSinceService.text.trim());
     if (_odometerEntryMode == _LastOdometerEntryMode.distance &&
         distance != null &&
         distance > 0) {
-      return (appState.odometer - distance).clamp(0, 9999999) +
+      return (currentOdometer - distance).clamp(0, 9999999) +
           _effectiveMileInterval;
     }
-    return (exact == null || exact == 0 ? appState.odometer : exact) +
+    return (exact == null || exact == 0 ? currentOdometer : exact) +
         _effectiveMileInterval;
   }
 
   Future<void> _save(
     AppStateController appState,
+    int currentOdometer,
     MaintenanceRecord record,
   ) async {
     if (!_canPreviewNextDue) return;
@@ -88,7 +89,7 @@ extension _MaintenanceItemDetailCalculations
     final lastOdometer =
         _odometerEntryMode == _LastOdometerEntryMode.distance &&
             enteredMiles != null
-        ? (appState.odometer - enteredMiles).clamp(0, 9999999)
+        ? (currentOdometer - enteredMiles).clamp(0, 9999999)
         : exactOdometer ?? 0;
     final effectiveMiles = _effectiveMileInterval;
     final effectiveMonths = _effectiveMonthInterval;
@@ -99,7 +100,7 @@ extension _MaintenanceItemDetailCalculations
         ? enteredMiles.clamp(0, 9999999)
         : lastOdometer == 0
         ? record.milesSinceService
-        : (appState.odometer - lastOdometer).clamp(0, 9999999);
+        : (currentOdometer - lastOdometer).clamp(0, 9999999);
     final monthsSince =
         _dateEntryMode == _LastDateEntryMode.elapsed && enteredMonths != null
         ? enteredMonths.clamp(0, 999)

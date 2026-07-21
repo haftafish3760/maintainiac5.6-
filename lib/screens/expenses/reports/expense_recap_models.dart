@@ -79,6 +79,7 @@ class ExpenseRecapReport {
     required this.businessExpenses,
     required this.personalExpenses,
     required this.categoryTotals,
+    required this.categoryDailyAverages,
     required this.vehicleExpense,
     required this.fuelExpense,
     required this.liquidFuelExpense,
@@ -115,8 +116,10 @@ class ExpenseRecapReport {
     ExpenseLedgerController ledger,
     ExpenseDateRange range, {
     String? vehicleId,
+    String? workProfileId,
     Map<String, ExpenseVehicleUsageSnapshot> vehicleUsage = const {},
   }) {
+    final requestedWorkProfileId = workProfileId?.trim();
     final categoryTotals = <String, double>{};
     final includedReceipts = <ExpenseReceiptRecord>[];
     final usageTotals = _VehicleUsageTotals();
@@ -144,6 +147,11 @@ class ExpenseRecapReport {
     for (final receipt in ledger.receipts) {
       if (!range.contains(receipt.receiptDate)) continue;
       if (vehicleId != null && receipt.vehicleId != vehicleId) continue;
+      if (requestedWorkProfileId != null &&
+          requestedWorkProfileId.isNotEmpty &&
+          receipt.workProfileId != requestedWorkProfileId) {
+        continue;
+      }
       includedReceipts.add(receipt);
       receiptCount += 1;
       lineCount += receipt.lines.length;
@@ -195,6 +203,10 @@ class ExpenseRecapReport {
     }
 
     final fuelEconomy = _ExpenseRecapFuelSummary.fromReceipts(includedReceipts);
+    final categoryDailyAverages = <String, double>{
+      for (final entry in categoryTotals.entries)
+        entry.key: entry.value / range.inclusiveDayCount,
+    };
     return ExpenseRecapReport(
       range: range,
       receiptCount: receiptCount,
@@ -203,6 +215,7 @@ class ExpenseRecapReport {
       businessExpenses: businessExpenses,
       personalExpenses: personalExpenses,
       categoryTotals: Map.unmodifiable(categoryTotals),
+      categoryDailyAverages: Map.unmodifiable(categoryDailyAverages),
       vehicleExpense: vehicleExpense,
       fuelExpense: fuelExpense,
       liquidFuelExpense: fuelEconomy.liquidFuelExpense,
@@ -243,6 +256,7 @@ class ExpenseRecapReport {
   final double businessExpenses;
   final double personalExpenses;
   final Map<String, double> categoryTotals;
+  final Map<String, double> categoryDailyAverages;
   final double vehicleExpense;
   final double fuelExpense;
   final double liquidFuelExpense;
@@ -276,6 +290,10 @@ class ExpenseRecapReport {
 
   double get contractorCoreExpense =>
       materialsExpense + toolsExpense + maintenanceExpense + repairExpense;
+  int get calendarDayCount => range.inclusiveDayCount;
+  double get averageDailyExpense => totalExpenses / calendarDayCount;
+  double averageDailyForCategory(String category) =>
+      categoryDailyAverages[_normalizedCategory(category)] ?? 0;
   double get totalVehicleUsageMiles =>
       businessVehicleMiles + personalVehicleMiles;
   double get propulsionFuelExpense =>

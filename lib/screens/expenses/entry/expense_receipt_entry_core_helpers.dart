@@ -243,7 +243,12 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
         'One receipt photo may be incomplete. Review the filled lines against the saved proof before saving.',
     ].join(' ');
     _updateReceiptState(() {
-      _scanningReceiptPhotos = true;
+      // Photo review completes before attachments are installed into the
+      // entry form. Leave this false so the attachment change can start the
+      // actual OCR task; setting it early makes the scan scheduler queue the
+      // new signature behind work that does not exist and leaves the review
+      // screen permanently busy.
+      _scanningReceiptPhotos = false;
       _receiptReviewFlowStarted = true;
       _receiptReadAttemptedWithoutText = false;
       _receiptReadHandoffProofCount = result.photoPaths.length;

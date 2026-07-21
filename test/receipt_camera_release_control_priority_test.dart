@@ -73,7 +73,7 @@ void main() {
     );
     expect(
       expenseBlueprint,
-      contains('experimental blur, glare, low-light, shadow, dirty-lens'),
+      contains('experimental blur, glare, low-light, shadow, and dirty-lens'),
     );
     expect(
       expenseBlueprint,

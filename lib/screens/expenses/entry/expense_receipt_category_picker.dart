@@ -110,7 +110,7 @@ class _ExpenseCategorySearch extends StatelessWidget {
       showDragHandle: true,
       builder: (context) {
         final homeCategories = _homeCategoryNames(context);
-        final otherCategories = _expenseCategoryNames
+        final otherCategories = _availableExpenseCategoryNames(context)
             .where(
               (category) =>
                   category != 'Uncategorized' &&

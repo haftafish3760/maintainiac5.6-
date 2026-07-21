@@ -136,7 +136,7 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
         ..._homeCategoryNames(context),
       ].take(10).toList(growable: false);
     }
-    return _expenseCategoryNames
+    return _availableExpenseCategoryNames(context)
         .where((category) => category.toLowerCase().contains(query))
         .take(10)
         .toList();

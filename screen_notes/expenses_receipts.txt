@@ -67,3 +67,14 @@ glare, long-receipt, and retake guidance instead of leaving blurry or cropped
 photos for OCR/parser logic to guess through. Camera capture, OCR, PDF parsing,
 receipt parsing, catalog matching, and related heavy app workflows should scale
 from a runtime device capability tier rather than hardcoded phone models."
+
+Source: visible user message, 2026-07-16 Camera storage thresholds
+
+- Receipt-camera free-storage status is green at 1 GB or more, yellow from
+  500 MB up to 1 GB, orange above 250 MB and below 500 MB, and red at 250 MB
+  or less.
+- Red/orange storage should recommend available cloud-backup relief when the
+  user has a plan or remaining quota, but cloud remains optional.
+- Storage pressure must never block completion of the current receipt task.
+  Below 250 MB is emergency/minimum-support territory and uses the safest
+  local fallback while preserving completion.

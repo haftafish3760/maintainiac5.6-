@@ -11,6 +11,9 @@ class ExpenseReceiptDetailScreen extends StatelessWidget {
     if (receipt == null) {
       return const _DeletedReceiptScreen();
     }
+    if (receipt.isDeleted) {
+      return _DeletedReceiptScreen(receiptId: receipt.id);
+    }
     final currentEntry = _CalendarExpenseData.fromReceipt(receipt);
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
@@ -69,7 +72,9 @@ class ExpenseReceiptDetailScreen extends StatelessWidget {
 }
 
 class _DeletedReceiptScreen extends StatelessWidget {
-  const _DeletedReceiptScreen();
+  const _DeletedReceiptScreen({this.receiptId});
+
+  final String? receiptId;
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +85,49 @@ class _DeletedReceiptScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              AppScreenHeader(title: 'Receipt Removed'),
-              SizedBox(height: 8),
-              GlobalOdometerHeader(section: AppSection.expenses),
-              SizedBox(height: 8),
-              _CalendarEmptyState(),
+            children: [
+              AppScreenHeader(
+                title: 'Receipt Removed',
+                actions: [
+                  if (receiptId != null)
+                    TextButton.icon(
+                      onPressed: () async {
+                        await ExpenseLedgerScope.of(
+                          context,
+                        ).restoreReceipt(receiptId!);
+                        if (!context.mounted) return;
+                        final cloudBackup = ExpenseCloudBackupScope.maybeOf(
+                          context,
+                        );
+                        if (cloudBackup != null) {
+                          unawaited(cloudBackup.queueReceipt(receiptId!));
+                        }
+                      },
+                      icon: const Icon(Icons.restore_rounded),
+                      label: const Text('Restore'),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const GlobalOdometerHeader(section: AppSection.expenses),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF122A34),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF295E73)),
+                ),
+                child: Text(
+                  receiptId == null
+                      ? 'This receipt is no longer available on this device.'
+                      : 'This receipt is hidden from active expenses. Restore it to review or edit it again.',
+                  style: const TextStyle(
+                    color: Color(0xFFC8D0D3),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

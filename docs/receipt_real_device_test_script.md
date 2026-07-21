@@ -173,7 +173,8 @@ Steps:
 1. Start a new receipt expense.
 2. Take the top section of a long receipt.
 3. Add another photo.
-4. Capture the next section with enough visual continuity for later reconstruction.
+4. Use the ghost/overlap guide and repeat 3-5 readable lines while capturing
+   the next section for later reconstruction.
 6. Add a third section if needed.
 7. Review photo order.
 8. Move one photo out of order, then put it back.

@@ -24,6 +24,8 @@ class ExpenseDateRange {
     final day = DateTime(value.year, value.month, value.day);
     return !day.isBefore(start) && !day.isAfter(end);
   }
+
+  int get inclusiveDayCount => end.difference(start).inDays.abs() + 1;
 }
 
 String _formatNumber(double value) =>

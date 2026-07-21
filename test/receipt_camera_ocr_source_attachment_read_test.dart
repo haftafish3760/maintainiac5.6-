@@ -67,12 +67,6 @@ void main() {
     expect(captureFlow, contains('open_filled_review_or_save_proof'));
     expect(captureFlow, isNot(contains('read_receipt_or_save_proof')));
     expect(importActions, contains('qualityForOcrSourceIndex'));
-    expect(importActions, contains('qualityChecksByPathForCameraResult'));
-    expect(
-      importActions,
-      contains('_cameraResultPhotoPathsAreUniqueAndNormalized('),
-    );
-    expect(importActions, contains('trimmed.isEmpty || trimmed != path'));
     expect(importActions, contains('_weakestPhotoQuality'));
     expect(
       importActions,

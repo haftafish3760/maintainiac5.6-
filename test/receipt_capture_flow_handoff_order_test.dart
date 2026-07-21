@@ -36,6 +36,9 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
         ).readAsString();
     final captureModels =
         await File(
@@ -102,16 +105,11 @@ void main() {
       ),
       importActions.indexOf('String _reviewedPhotoOcrSourceQualitySummary('),
     );
+    expect(reviewedPhotoReadStatusBlock, contains('_readingForReview = true'));
     expect(
-      reviewedPhotoReadStatusBlock,
-      contains('widget.onReceiptReadStarted?.call();'),
-    );
-    expect(
-      reviewedPhotoReadStatusBlock.indexOf(
-        'widget.onReceiptReadStarted?.call();',
-      ),
+      importActions.indexOf('widget.onReceiptReadStarted?.call();'),
       lessThan(
-        reviewedPhotoReadStatusBlock.indexOf('_readingForReview = true'),
+        importActions.indexOf('.recognizeTextFromAttachments(readable)'),
       ),
     );
     final takePhotoBlock = importActions.substring(
