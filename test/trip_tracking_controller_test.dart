@@ -4053,6 +4053,52 @@ void main() {
   );
 
   test(
+    'a failed native location checkpoint does not poison later platform events',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = _FailingNextSessionSaveStore();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_native_queue_checkpoint_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      native.addLocation(sample(-80, 0, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => store.activeSession?.engineSnapshot.lastAccepted != null,
+        maxPumps: 48,
+      );
+
+      store.failNextSessionSave = true;
+      native.addLocation(sample(-79.999, 60, speed: 8));
+      await drainNativeTripEventsUntil(
+        () =>
+            controller.platformError ==
+            'GPS event could not be processed safely.',
+        maxPumps: 48,
+      );
+
+      native.addLocation(sample(-79.998, 120, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.acceptedMeters > 0,
+        maxPumps: 48,
+      );
+
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.acceptedMeters, greaterThan(0));
+    },
+  );
+
+  test(
     'native walking evidence persists across sparse location callbacks',
     () async {
       final native = _FakeTripTrackingPlatform(
