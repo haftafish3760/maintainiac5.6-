@@ -136,6 +136,7 @@ extension TripTrackingControllerIngestion on TripTrackingController {
         // while the durable revision clock must never move backwards when a
         // monotonic device clock proves ordering across a wall-clock rollback.
         updatedAt: durableSampleTime,
+        revision: session.revision + 1,
         engineSnapshot: engine.snapshot,
         advisories: advisories,
         lifecycleState: naturalLifecycleState,
