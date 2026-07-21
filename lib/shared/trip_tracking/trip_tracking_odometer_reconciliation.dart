@@ -276,6 +276,9 @@ class TripOdometerEntryValidation {
     int materialUntrackedGapMiles = 50,
     double highMileageMultiplier = 2.5,
     double minimumReviewBufferMiles = 50,
+    double gpsAssistedDistanceMeters = 0,
+    int nearZeroOdometerMiles = 1,
+    double meaningfulGpsMiles = 5,
   }) {
     if (startingOdometer < 0 ||
         endingOdometer < 0 ||
@@ -286,6 +289,11 @@ class TripOdometerEntryValidation {
         highMileageMultiplier < 1 ||
         !minimumReviewBufferMiles.isFinite ||
         minimumReviewBufferMiles < 0 ||
+        !gpsAssistedDistanceMeters.isFinite ||
+        gpsAssistedDistanceMeters < 0 ||
+        nearZeroOdometerMiles < 0 ||
+        !meaningfulGpsMiles.isFinite ||
+        meaningfulGpsMiles < 0 ||
         (averageDailyMiles != null &&
             (!averageDailyMiles.isFinite || averageDailyMiles < 0))) {
       return _entryValidation(
@@ -330,6 +338,16 @@ class TripOdometerEntryValidation {
     }
 
     final deltaMiles = endingOdometer - startingOdometer;
+    final gpsMiles = gpsAssistedDistanceMeters / 1609.344;
+    if (deltaMiles <= nearZeroOdometerMiles && gpsMiles >= meaningfulGpsMiles) {
+      return _entryValidation(
+        status: TripOdometerEntryValidationStatus.reviewRecommended,
+        startingOdometer: startingOdometer,
+        endingOdometer: endingOdometer,
+        previousConfirmedEndingOdometer: previousConfirmedEndingOdometer,
+        reasonCode: 'near_zero_odometer_after_meaningful_gps_movement',
+      );
+    }
     final average = averageDailyMiles ?? 0;
     if (average > 0) {
       final highThreshold =
@@ -422,6 +440,7 @@ String _safeEntryValidationReason(String value) {
     'large_untracked_odometer_gap' => clean,
     'unusually_high_odometer_delta' => clean,
     'unusually_low_odometer_delta' => clean,
+    'near_zero_odometer_after_meaningful_gps_movement' => clean,
     'odometer_entry_validated' => clean,
     _ => 'invalid_odometer_entry_input',
   };

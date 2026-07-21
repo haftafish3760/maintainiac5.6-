@@ -106,7 +106,21 @@ void main() {
 
 bool _touchesOdometerTruth(String source) {
   final lower = source.toLowerCase();
-  return lower.contains('odometer') ||
-      lower.contains('mileage') ||
-      lower.contains('calibration');
+  return lower.contains('confirmedodometer') ||
+      lower.contains('startingodometer') ||
+      lower.contains('endingodometer') ||
+      lower.contains('liveodometer') ||
+      lower.contains('odometerprojection') ||
+      lower.contains('odometerusage') ||
+      lower.contains('odometrystate') ||
+      lower.contains('odometerreview') ||
+      lower.contains('odometerreconciliation') ||
+      lower.contains('odometercalibration') ||
+      lower.contains('odometer') && lower.contains('reconcil') ||
+      lower.contains('odometer') && lower.contains('confirm') ||
+      lower.contains('mileage') && lower.contains('distance') ||
+      lower.contains('mileage') && lower.contains('difference') ||
+      lower.contains('mileage') && lower.contains('anomaly') ||
+      lower.contains('mileage') && lower.contains('projection') ||
+      lower.contains('calibration') && lower.contains('multiplier');
 }

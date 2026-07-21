@@ -23,6 +23,9 @@ TripTrackingEngine restoreTripTrackingEngineSnapshot(
       recoveredSnapshot.lastContinuousMonotonicElapsedNanos ??
       recoveredSnapshot.lastAccepted?.monotonicElapsedNanos;
   engine._totalAcceptedMeters = recoveredSnapshot.totalAcceptedMeters;
+  engine._signalGaps.addAll(recoveredSnapshot.signalGaps);
+  engine._initialFixAssessment = recoveredSnapshot.initialFixAssessment;
+  engine._initialFixHistory.addAll(recoveredSnapshot.initialFixHistory);
   final strategy = TripTrackingProfileStrategy.forProfile(
     profile,
     policy: policy,
@@ -81,11 +84,15 @@ TripTrackingEngine restoreTripTrackingEngineSnapshot(
     };
   } else {
     engine._walkingReviewSuggested = false;
-    engine._motionState =
-        recoveredSnapshot.motionState == TripMotionState.stopCandidate ||
-            recoveredSnapshot.motionState == TripMotionState.stopped
-        ? TripMotionState.unknown
-        : recoveredSnapshot.motionState;
+    engine._motionState = switch (recoveredSnapshot.motionState) {
+      TripMotionState.moving when recoveredSnapshot.vehicleMovementObserved =>
+        TripMotionState.moving,
+      TripMotionState.stopCandidate
+          when recoveredSnapshot.vehicleMovementObserved &&
+              recoveredStationaryStartedAt != null =>
+        TripMotionState.stopCandidate,
+      _ => TripMotionState.unknown,
+    };
   }
   engine._vehicleMovementObserved = recoveredSnapshot.vehicleMovementObserved;
   engine._stationaryStartedAt = recoveredStationaryStartedAt;

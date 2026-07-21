@@ -13,6 +13,23 @@ void main() {
         ),
         isTrue,
       );
+      for (final state in const [
+        TripTrackingSessionLifecycleState.ready,
+        TripTrackingSessionLifecycleState.starting,
+        TripTrackingSessionLifecycleState.permissionRequired,
+        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.recovering,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      ]) {
+        expect(
+          TripTrackingSessionStateMachine.canTransition(
+            state,
+            TripTrackingSessionLifecycleState.stopping,
+          ),
+          isTrue,
+          reason: '${state.name} must support user-directed completion',
+        );
+      }
       expect(
         TripTrackingSessionStateMachine.canTransition(
           TripTrackingSessionLifecycleState.degraded,
@@ -47,6 +64,34 @@ void main() {
           TripTrackingSessionLifecycleState.disabled,
         ),
         isFalse,
+      );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.failedTerminal,
+        ),
+        isTrue,
+      );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.paused,
+          TripTrackingSessionLifecycleState.failedTerminal,
+        ),
+        isTrue,
+      );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.degraded,
+          TripTrackingSessionLifecycleState.failedTerminal,
+        ),
+        isTrue,
+      );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.interrupted,
+          TripTrackingSessionLifecycleState.failedTerminal,
+        ),
+        isTrue,
       );
     },
   );

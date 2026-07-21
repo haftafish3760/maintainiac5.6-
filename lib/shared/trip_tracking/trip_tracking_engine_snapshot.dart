@@ -16,6 +16,9 @@ class TripTrackingEngineSnapshot {
     this.lastObservedMonotonicElapsedNanos,
     this.lastContinuousMonotonicElapsedNanos,
     this.walkingEvidence = const [],
+    this.signalGaps = const [],
+    this.initialFixAssessment,
+    this.initialFixHistory = const [],
   });
 
   final TripLocationSample? lastAccepted;
@@ -25,6 +28,9 @@ class TripTrackingEngineSnapshot {
   final int? lastContinuousMonotonicElapsedNanos;
   final double totalAcceptedMeters;
   final List<TripActivityObservation> walkingEvidence;
+  final List<TripTrackingSignalGap> signalGaps;
+  final TripInitialFixAssessment? initialFixAssessment;
+  final List<TripInitialFixAssessment> initialFixHistory;
   final bool walkingReviewSuggested;
   final TripMotionState motionState;
   final bool vehicleMovementObserved;
@@ -32,6 +38,40 @@ class TripTrackingEngineSnapshot {
   final TripTrackingDiagnostics diagnostics;
   final int schemaVersion;
   final String algorithmVersion;
+
+  /// Derived from the single persisted engine snapshot so recovery does not
+  /// create a second source of truth for temporary-stop evidence.
+  TripStopCandidate? get currentStopCandidate {
+    if (motionState != TripMotionState.stopCandidate &&
+        motionState != TripMotionState.stopped) {
+      return null;
+    }
+    final hasWalkingEvidence = walkingEvidence.isNotEmpty;
+    final candidateStartedAt =
+        stationaryStartedAt ??
+        (hasWalkingEvidence ? walkingEvidence.first.recordedAt : null);
+    final candidateDetectedAt =
+        lastObservedAt ??
+        (hasWalkingEvidence ? walkingEvidence.last.recordedAt : null);
+    if (candidateStartedAt == null ||
+        candidateDetectedAt == null ||
+        candidateDetectedAt.isBefore(candidateStartedAt)) {
+      return null;
+    }
+    return TripStopCandidate(
+      startedAt: candidateStartedAt,
+      detectedAt: candidateDetectedAt,
+      confidence:
+          motionState == TripMotionState.stopped && walkingReviewSuggested
+          ? TripTrackingConfidence.high
+          : hasWalkingEvidence
+          ? TripTrackingConfidence.medium
+          : TripTrackingConfidence.low,
+      evidence: hasWalkingEvidence
+          ? TripStopCandidateEvidence.walkingAssisted
+          : TripStopCandidateEvidence.stationaryGps,
+    );
+  }
 
   Map<String, Object?> toMap() {
     final evidence = _boundedWalkingEvidence(
@@ -46,6 +86,12 @@ class TripTrackingEngineSnapshot {
           lastContinuousMonotonicElapsedNanos,
       'totalAcceptedMeters': _safeAcceptedMeters(totalAcceptedMeters),
       'walkingEvidence': evidence.map((item) => item.toMap()).toList(),
+      'signalGaps': signalGaps.map((item) => item.toMap()).toList(),
+      'initialFixAssessment': initialFixAssessment?.toMap(),
+      'initialFixHistory': initialFixHistory
+          .skip(initialFixHistory.length > 8 ? initialFixHistory.length - 8 : 0)
+          .map((item) => item.toMap())
+          .toList(growable: false),
       'walkingReviewSuggested': _safeWalkingReviewSuggested(
         walkingReviewSuggested,
         vehicleMovementObserved: vehicleMovementObserved,
@@ -61,6 +107,29 @@ class TripTrackingEngineSnapshot {
   }
 
   factory TripTrackingEngineSnapshot.fromMap(Map<dynamic, dynamic> map) {
+    final legacyInitialFix = map['initialFixAssessment'] is Map
+        ? TripInitialFixAssessment.tryFromMap(
+            map['initialFixAssessment'] as Map,
+          )
+        : null;
+    final parsedInitialFixHistory = map['initialFixHistory'] is Iterable
+        ? (map['initialFixHistory'] as Iterable)
+              .whereType<Map>()
+              .map(TripInitialFixAssessment.tryFromMap)
+              .whereType<TripInitialFixAssessment>()
+              .toList(growable: false)
+        : const <TripInitialFixAssessment>[];
+    final initialFixHistory = parsedInitialFixHistory.isNotEmpty
+        ? parsedInitialFixHistory
+              .skip(
+                parsedInitialFixHistory.length > 8
+                    ? parsedInitialFixHistory.length - 8
+                    : 0,
+              )
+              .toList(growable: false)
+        : legacyInitialFix == null
+        ? const <TripInitialFixAssessment>[]
+        : <TripInitialFixAssessment>[legacyInitialFix];
     final rawEvidence = map['walkingEvidence'];
     final parsedWalkingEvidence = rawEvidence is Iterable
         ? rawEvidence
@@ -110,6 +179,11 @@ class TripTrackingEngineSnapshot {
       lastContinuousMonotonicElapsedNanos: lastContinuousMonotonicElapsedNanos,
       totalAcceptedMeters: _safeAcceptedMeters(map['totalAcceptedMeters']),
       walkingEvidence: walkingEvidence,
+      signalGaps: _safeSignalGaps(map['signalGaps']),
+      initialFixAssessment: initialFixHistory.isEmpty
+          ? legacyInitialFix
+          : initialFixHistory.last,
+      initialFixHistory: initialFixHistory,
       walkingReviewSuggested: _safeWalkingReviewSuggested(
         map['walkingReviewSuggested'] == true,
         vehicleMovementObserved: vehicleMovementObserved,
@@ -130,6 +204,23 @@ class TripTrackingEngineSnapshot {
       algorithmVersion: _safeAlgorithmVersion(map['algorithmVersion']),
     );
   }
+}
+
+List<TripTrackingSignalGap> _safeSignalGaps(Object? value) {
+  if (value is! Iterable) return const [];
+  final recovered = <TripTrackingSignalGap>[];
+  for (final raw in value.whereType<Map>()) {
+    final gap = TripTrackingSignalGap.tryFromMap(raw);
+    if (gap == null) continue;
+    if (recovered.isNotEmpty) {
+      final previous = recovered.last;
+      if (previous.isOpen || gap.startedAt.isBefore(previous.startedAt)) {
+        continue;
+      }
+    }
+    recovered.add(gap);
+  }
+  return List.unmodifiable(recovered);
 }
 
 const _maxPersistedWalkingEvidence = 12;

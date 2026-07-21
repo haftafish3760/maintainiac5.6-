@@ -9,6 +9,14 @@ enum TripOdometerUsageAnomalyStatus {
   reviewRecommended,
 }
 
+enum TripOdometerUsageReviewAction {
+  confirmAsEntered,
+  correctEntry,
+  markExceptional,
+  markOutOfTown,
+  dismiss,
+}
+
 class TripOdometerUsageAnomalySignal {
   const TripOdometerUsageAnomalySignal({
     required this.status,
@@ -33,6 +41,9 @@ class TripOdometerUsageAnomalySignal {
   /// This signal can prompt a driver to review a surprising mileage entry, but
   /// it must never rewrite the confirmed odometer or TripLog on its own.
   bool get canAutoCorrectOdometer => false;
+
+  List<TripOdometerUsageReviewAction> get availableReviewActions =>
+      shouldPromptUser ? TripOdometerUsageReviewAction.values : const [];
 
   bool get shouldPromptUser =>
       status == TripOdometerUsageAnomalyStatus.reviewRecommended;
@@ -147,6 +158,7 @@ class TripOdometerUsageAnomalySignal {
     final orderedHistory = history.toList(growable: false)
       ..sort(_compareReviewRecency);
     final dailyMiles = <String, double>{};
+    final excludedDayKeys = <String>{};
     var inspectedRecords = 0;
     var ignoredRecords = 0;
     for (final review in orderedHistory) {
@@ -183,6 +195,17 @@ class TripOdometerUsageAnomalySignal {
         continue;
       }
       final dayKey = _usageDayKey(review.startedAt.toUtc());
+      if (review.usageDayClassification !=
+          TripOdometerUsageDayClassification.regular) {
+        excludedDayKeys.add(dayKey);
+        dailyMiles.remove(dayKey);
+        ignoredRecords += 1;
+        continue;
+      }
+      if (excludedDayKeys.contains(dayKey)) {
+        ignoredRecords += 1;
+        continue;
+      }
       dailyMiles.update(
         dayKey,
         (value) => value + miles,
@@ -208,15 +231,29 @@ class TripOdometerUsageAnomalySignal {
       (sum, miles) => sum + miles,
     );
     final average = totalMiles / dailyMiles.length;
+    final robustCenter = _median(dailyMiles.values);
+    final robustSpread =
+        _median(
+          dailyMiles.values.map((miles) => (miles - robustCenter).abs()),
+        ) *
+        1.4826;
     final threshold = math.max(
-      average * reviewMultiplier,
-      average + minimumReviewBufferMiles,
+      math.max(
+        robustCenter * reviewMultiplier,
+        robustCenter + minimumReviewBufferMiles,
+      ),
+      robustCenter + (robustSpread * 3),
     );
-    final lowThreshold = _lowUsageReviewThreshold(
-      averageDailyMiles: average,
-      reviewMultiplier: reviewMultiplier,
-      minimumReviewBufferMiles: minimumReviewBufferMiles,
-    );
+    final lowThreshold = math
+        .min(
+          _lowUsageReviewThreshold(
+            averageDailyMiles: robustCenter,
+            reviewMultiplier: reviewMultiplier,
+            minimumReviewBufferMiles: minimumReviewBufferMiles,
+          ),
+          math.max(0.0, robustCenter - (robustSpread * 3)),
+        )
+        .toDouble();
     final shouldReviewHigh = currentOdometerMiles > threshold;
     final shouldReviewLow = currentOdometerMiles < lowThreshold;
     return TripOdometerUsageAnomalySignal(
@@ -236,6 +273,15 @@ class TripOdometerUsageAnomalySignal {
           : 'odometer_usage_within_review_threshold',
     );
   }
+}
+
+double _median(Iterable<double> values) {
+  final ordered = values.toList(growable: false)..sort();
+  if (ordered.isEmpty) return 0;
+  final middle = ordered.length ~/ 2;
+  return ordered.length.isOdd
+      ? ordered[middle]
+      : (ordered[middle - 1] + ordered[middle]) / 2;
 }
 
 int _compareReviewRecency(

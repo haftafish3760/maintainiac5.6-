@@ -132,6 +132,70 @@ void main() {
     },
   );
 
+  test(
+    'cancel trip command requires active session and user confirmation when meaningful',
+    () {
+      final noSession = TripTrackingCommandPolicy.evaluate(
+        context(command: TripTrackingDashboardCommand.cancelActiveTrip),
+      );
+      final tentative = TripTrackingCommandPolicy.evaluate(
+        context(
+          command: TripTrackingDashboardCommand.cancelActiveTrip,
+          activeTripInProgress: true,
+          localSessionAvailable: true,
+        ),
+      );
+      final confirmed = TripTrackingCommandPolicy.evaluate(
+        context(
+          command: TripTrackingDashboardCommand.cancelActiveTrip,
+          activeTripInProgress: true,
+          localSessionAvailable: true,
+          userConfirmedAction: true,
+        ),
+      );
+
+      expect(noSession.status, TripTrackingCommandStatus.blocked);
+      expect(noSession.reasonCode, 'active_local_trip_required');
+      expect(tentative.status, TripTrackingCommandStatus.allowed);
+      expect(tentative.reasonCode, 'trip_cancel_ready');
+      expect(confirmed.reasonCode, 'trip_cancel_confirmed');
+      final safe = confirmed.toSafeDashboardCommandMap();
+      expect(safe['requiresStopReview'], isFalse);
+      expect(safe['requiresOdometerReview'], isFalse);
+    },
+  );
+
+  test(
+    'remote command cannot cancel active trip without explicit local-user source',
+    () {
+      final remote = TripTrackingCommandPolicy.evaluate(
+        context(
+          command: TripTrackingDashboardCommand.cancelActiveTrip,
+          source: TripTrackingCommandSource.employerDashboard,
+          activeTripInProgress: true,
+          localSessionAvailable: true,
+        ),
+      );
+
+      expect(remote.status, TripTrackingCommandStatus.blocked);
+      expect(remote.reasonCode, 'remote_or_third_party_command_not_authorized');
+    },
+  );
+
+  test('cancel command emits renderable safe summary for UI consumers', () {
+    final summary = TripTrackingCommandPolicy.evaluate(
+      context(
+        command: TripTrackingDashboardCommand.cancelActiveTrip,
+        activeTripInProgress: true,
+        localSessionAvailable: true,
+      ),
+    ).toSafeDashboardCommandMap();
+    final validation = TripTrackingCommandSummaryValidation.fromSummary(summary);
+
+    expect(validation.isRenderable, isTrue);
+    expect(validation.reasons, isEmpty);
+  });
+
   test('ending a trip opens odometer review instead of confirming mileage', () {
     final decision = TripTrackingCommandPolicy.evaluate(
       context(

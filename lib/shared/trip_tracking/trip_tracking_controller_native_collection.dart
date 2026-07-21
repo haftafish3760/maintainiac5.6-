@@ -52,6 +52,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     if (!await _tryTransitionSession(
       TripTrackingSessionLifecycleState.starting,
       health: TripTrackingHealthState.healthy,
+      source: 'native_start',
+      reasonCode: 'native_start_request',
     )) {
       return false;
     }
@@ -67,6 +69,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_capabilities_read_failed',
       );
       notifyListeners();
       return false;
@@ -76,6 +80,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_location_unavailable',
       );
       notifyListeners();
       return false;
@@ -85,6 +91,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_background_unavailable',
       );
       notifyListeners();
       return false;
@@ -114,12 +122,26 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
     );
+    if (!await _persistBatteryStateSummary(
+      TripTrackingBatteryStateSummary(
+        observedAt: _clockNow(),
+        batteryPercent: batterySnapshot.batteryPercent,
+        isCharging: batterySnapshot.isCharging,
+        lowPowerModeEnabled: batterySnapshot.lowPowerModeEnabled,
+        allowsGps: batteryDecision.allowsGps,
+        reasonCode: batteryDecision.reasonCode,
+      ),
+    )) {
+      return false;
+    }
     if (!batteryDecision.allowsGps) {
       _platformStatus = batteryDecision.reasonCode;
       _platformError = _gpsBatteryMessageFor(batteryDecision);
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'battery_protection_triggered',
       );
       notifyListeners();
       return false;
@@ -138,8 +160,16 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.permissionBlocked,
+        source: 'native_start',
+        reasonCode: 'native_permission_request_failed',
       );
       notifyListeners();
+      return false;
+    }
+    if (!await _persistPermissionEvidence(
+      authorization,
+      source: 'native_start',
+    )) {
       return false;
     }
     if (!authorization.canTrackPrecisely ||
@@ -150,6 +180,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.permissionRequired,
         health: TripTrackingHealthState.permissionBlocked,
+        source: 'native_start',
+        reasonCode: 'native_permission_denied',
       );
       notifyListeners();
       return false;
@@ -189,6 +221,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_preferences_persist_failed',
       );
       return false;
     }
@@ -216,6 +250,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_platform_start_failed',
       );
       notifyListeners();
       return false;
@@ -238,6 +274,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_battery_critical_stop',
       );
       notifyListeners();
       return false;
@@ -249,6 +287,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: 'native_not_started',
       );
       notifyListeners();
       return false;
@@ -269,16 +309,25 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
           : authorizationRevokedDuringStart
           ? 'Precise location permission was removed while trip tracking was starting.'
           : 'GPS updates stopped while trip tracking was starting.';
+      final startFailureReason = authorizationRevokedDuringStart
+          ? 'native_permission_revoked_during_start'
+          : preferenceSaveFailedDuringStart
+          ? 'native_collection_preference_failed'
+          : 'native_tracking_stopped_during_start';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
         health: authorizationRevokedDuringStart
             ? TripTrackingHealthState.permissionBlocked
             : TripTrackingHealthState.unavailable,
+        source: 'native_start',
+        reasonCode: startFailureReason,
       );
       notifyListeners();
       return false;
     }
     _nativeTracking = true;
+    _awaitingInitialFix = true;
+    _engine?.recordInitialFixAssessment(null);
     _nativeSampling = request.sampling;
     _nativeSamplingPlan = samplingPlan;
     _lastNativeHeartbeatUtc = _clockNow().toUtc();
@@ -297,6 +346,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     if (!await _tryTransitionSession(
       TripTrackingSessionLifecycleState.active,
       health: TripTrackingHealthState.healthy,
+      source: 'native_start',
+      reasonCode: 'native_tracking_started',
     )) {
       try {
         await platform.stop();

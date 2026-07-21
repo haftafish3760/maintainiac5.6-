@@ -207,6 +207,54 @@ void main() {
     expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
   });
 
+  test('one legitimate long day cannot distort the robust review range', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 150,
+      history: [
+        ..._history(dailyMiles: 40),
+        _review(day: 9, startingOdometer: 2000, confirmedEndingOdometer: 2600),
+      ],
+      vehicleId: 'vehicle_1',
+    );
+
+    expect(signal.reviewedDayCount, 8);
+    expect(signal.averageDailyMiles, 110);
+    expect(signal.reviewThresholdMiles, 100);
+    expect(signal.status, TripOdometerUsageAnomalyStatus.reviewRecommended);
+    expect(signal.canAutoCorrectOdometer, isFalse);
+  });
+
+  test('user-marked out-of-town day is excluded from the baseline', () {
+    final signal = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: 150,
+      history: [
+        ..._history(dailyMiles: 40),
+        _review(
+          day: 9,
+          startingOdometer: 2000,
+          confirmedEndingOdometer: 2600,
+          usageDayClassification: TripOdometerUsageDayClassification.outOfTown,
+        ),
+      ],
+      vehicleId: 'vehicle_1',
+    );
+
+    expect(signal.reviewedDayCount, 7);
+    expect(signal.ignoredHistoryRecordCount, 1);
+    expect(signal.averageDailyMiles, 40);
+    expect(
+      signal.availableReviewActions,
+      containsAll([
+        TripOdometerUsageReviewAction.confirmAsEntered,
+        TripOdometerUsageReviewAction.correctEntry,
+        TripOdometerUsageReviewAction.markExceptional,
+        TripOdometerUsageReviewAction.markOutOfTown,
+        TripOdometerUsageReviewAction.dismiss,
+      ]),
+    );
+    expect(signal.canAutoCorrectOdometer, isFalse);
+  });
+
   test('usage anomaly rejects malformed maximum trusted day threshold', () {
     final signal = TripOdometerUsageAnomalySignal.evaluate(
       currentOdometerMiles: 90,
@@ -395,6 +443,8 @@ TripTrackingReviewRecord _review({
   int confirmedEndingOdometer = 1040,
   String vehicleId = 'vehicle_1',
   DateTime? confirmedAt,
+  TripOdometerUsageDayClassification usageDayClassification =
+      TripOdometerUsageDayClassification.regular,
 }) {
   final startedAt = DateTime.utc(2026, 7, 1 + day, 8);
   final finishedAt = DateTime.utc(2026, 7, 1 + day, 10);
@@ -414,5 +464,6 @@ TripTrackingReviewRecord _review({
           (confirmedEndingOdometer - startingOdometer) * 1609.344,
       walkingReviewSuggested: false,
     ),
+    usageDayClassification: usageDayClassification,
   );
 }

@@ -1,3 +1,4 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_controller.dart';
 
 /// Sends validated native samples through the shared engine while preserving
@@ -89,6 +90,9 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     // survive the local-first durability boundary.
     final previousEngineSnapshot = engine.snapshot;
     final previousMotionState = engine.motionState;
+    if (sample.mockedLocation != true) {
+      engine.completeSignalGap(sample.recordedAt);
+    }
     final decision = engine.ingest(sample, activity: safeActivity);
     final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
       session,

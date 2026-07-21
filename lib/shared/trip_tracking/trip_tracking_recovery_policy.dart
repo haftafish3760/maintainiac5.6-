@@ -198,6 +198,7 @@ bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
       TripTrackingSessionLifecycleState.permissionRequired ||
       TripTrackingSessionLifecycleState.awaitingReview ||
       TripTrackingSessionLifecycleState.completed ||
+      TripTrackingSessionLifecycleState.cancelled ||
       TripTrackingSessionLifecycleState.failedTerminal => false,
     };
 

@@ -1,3 +1,4 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_controller.dart';
 
 /// Serializes native location/activity events and enforces runtime battery
@@ -56,6 +57,8 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         await _tryTransitionSession(
           TripTrackingSessionLifecycleState.interrupted,
           health: TripTrackingHealthState.interrupted,
+          source: 'native_interruption_event',
+          reasonCode: 'native_stream_interruption',
         );
       }
       notifyListeners();
@@ -72,9 +75,55 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
           if (event.type == TripTrackingPlatformEventType.location &&
               event.location != null) {
             if (!_nativeTracking) return;
+            final receivedAt = _clockNow().toUtc();
+            if (_awaitingInitialFix) {
+              final engine = _engine;
+              final currentSession = _session;
+              if (engine == null || currentSession == null) return;
+              final assessment = _initialFixClassifier.classify(
+                sample: event.location,
+                receivedAt: receivedAt,
+                locationServicesAvailable:
+                    _lastKnownCapabilities?.locationAvailable == true,
+                preciseLocationAuthorized: true,
+                recentKnownLocation: engine.snapshot.lastAccepted,
+              );
+              engine.recordInitialFixAssessment(assessment);
+              if (!assessment.mayUseProvisionally) {
+                final nextSession = currentSession.copyWith(
+                  updatedAt: _nonRegressingSessionTime(
+                    currentSession,
+                    receivedAt,
+                  ),
+                  engineSnapshot: engine.snapshot,
+                );
+                try {
+                  await _sessionStore.save(nextSession);
+                  _session = nextSession;
+                  _platformStatus = switch (assessment.quality) {
+                    TripInitialFixQuality.staleCached => 'initial_fix_stale',
+                    TripInitialFixQuality.approximateOnly =>
+                      'initial_fix_approximate',
+                    TripInitialFixQuality.unavailable =>
+                      'initial_fix_unavailable',
+                    _ => 'initial_fix_rejected',
+                  };
+                } catch (_) {
+                  _platformStatus = 'storage_failed';
+                  _platformError =
+                      'Could not save initial GPS fix evidence locally.';
+                  _deferPlatformCleanup(
+                    () => _stopNativeTracking(interrupted: true),
+                  );
+                }
+                notifyListeners();
+                return;
+              }
+              _awaitingInitialFix = false;
+            }
             // A received provider event is a runtime heartbeat. Deliberately
             // use receive time, not the untrusted payload timestamp.
-            _lastNativeHeartbeatUtc = _clockNow().toUtc();
+            _lastNativeHeartbeatUtc = receivedAt;
             _lastNativeLocationReceivedUtc = _lastNativeHeartbeatUtc;
             final activity = _latestActivity;
             final decision = await ingest(
@@ -93,6 +142,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               referenceTime: _clockNow().toUtc(),
             );
             await _maybeUpdateNativeSampling(event.location!, decision);
+            await _maybePersistRoutePoint(event.location!, decision);
             if (decision?.accepted == true &&
                 _platformStatus == 'gps_signal_stale') {
               _platformStatus = 'tracking';
@@ -117,6 +167,15 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             final pendingStart = _pendingNativeStartRequest;
             if (!_nativeTracking && pendingStart == null) return;
             final authorization = event.authorization!;
+            if (!await _persistPermissionEvidence(
+              authorization,
+              source: 'native_event',
+            )) {
+              if (_nativeTracking) {
+                _deferPlatformCleanup(_stopNativeTracking);
+              }
+              return;
+            }
             final authorizationStillAllowsTracking =
                 authorization.canTrackPrecisely &&
                 (!(_nativeTracking
@@ -180,6 +239,8 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                 await _tryTransitionSession(
                   TripTrackingSessionLifecycleState.interrupted,
                   health: TripTrackingHealthState.interrupted,
+                  source: 'native_signal_event',
+                  reasonCode: 'native_location_stream_stopped',
                 );
               } else if (expectedStop &&
                   (_session?.lifecycleState ==
@@ -188,6 +249,9 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                           TripTrackingSessionLifecycleState.degraded)) {
                 await _tryTransitionSession(
                   TripTrackingSessionLifecycleState.paused,
+                  pauseKind: TripTrackingPauseKind.system,
+                  source: 'native_signal_event',
+                  reasonCode: 'native_tracking_stopped',
                 );
               }
             } else if (status == 'tracking' && _nativeTracking) {
@@ -267,6 +331,53 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
           _platformError = 'GPS event could not be processed safely.';
           notifyListeners();
         });
+  }
+
+  Future<void> _maybePersistRoutePoint(
+    TripLocationSample sample,
+    TripSampleDecision? decision,
+  ) async {
+    if (decision?.accepted != true) return;
+    final store = _routePointStore;
+    final settingsProvider = _routeSettings;
+    final dayKeyProvider = _localRouteDayKey;
+    final session = _session;
+    if (store == null ||
+        settingsProvider == null ||
+        dayKeyProvider == null ||
+        session == null) {
+      return;
+    }
+    final settings = settingsProvider();
+    final lastSavedAt = _lastRoutePointPersistedAtUtc;
+    final sampleAt = sample.recordedAt.toUtc();
+    if (lastSavedAt != null &&
+        sampleAt.difference(lastSavedAt) <
+            Duration(seconds: settings.mapRouteHistorySampleIntervalSeconds)) {
+      return;
+    }
+    try {
+      final result = await store.persist(
+        payload: {
+          'schemaVersion': 1,
+          'tripId': session.id,
+          'source': 'gps',
+          'sequence': store.nextSequenceForTrip(session.id),
+          'recordedAt': sampleAt.toIso8601String(),
+          'latitude': sample.latitude,
+          'longitude': sample.longitude,
+          'horizontalAccuracyMeters': sample.horizontalAccuracyMeters,
+        },
+        expectedTripId: session.id,
+        localDayKey: dayKeyProvider(sampleAt),
+        nowUtc: _clockNow().toUtc(),
+        settings: settings,
+      );
+      _routeStorageStatus = result.reasonCode;
+      if (result.saved) _lastRoutePointPersistedAtUtc = sampleAt;
+    } catch (_) {
+      _routeStorageStatus = 'route_storage_failed_gps_continues';
+    }
   }
 
   Future<bool> _persistNativeActivityEvidence(
@@ -360,6 +471,19 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       lowBatteryOverrideEnabled: _lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: _lowBatteryWarningDismissed,
     );
+    if (!await _persistBatteryStateSummary(
+      TripTrackingBatteryStateSummary(
+        observedAt: _clockNow(),
+        batteryPercent: snapshot.batteryPercent,
+        isCharging: snapshot.isCharging,
+        lowPowerModeEnabled: snapshot.lowPowerModeEnabled,
+        allowsGps: decision.allowsGps,
+        reasonCode: decision.reasonCode,
+      ),
+    )) {
+      await _stopNativeTracking();
+      return;
+    }
     if (decision.allowsGps) {
       if (decision.reasonCode == 'battery_low_warning') {
         _platformStatus = 'battery_low_warning';
@@ -413,6 +537,8 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.degraded,
         health: TripTrackingHealthState.reduced,
+        source: 'native_signal_stale',
+        reasonCode: 'native_gps_signal_gap',
       );
     }
   }

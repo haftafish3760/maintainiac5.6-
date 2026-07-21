@@ -1,16 +1,55 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
+
+shopt -s nullglob
+
+usage() {
+  cat <<'EOF'
+Usage:
+  trip_tracking_qa_gate.sh [options] [paths...]
+
+  No args       Run all trip-tracking tests (test/trip_tracking_*_test.dart)
+  --all         Same as no args
+  --analyze     flutter analyze with explicit files/folders
+  --android-debug  flutter build apk --debug
+  -h, --help    Show this help
+EOF
+}
+
+readonly DEFAULT_PATTERN='test/trip_tracking_*_test.dart'
+log_file="${TMPDIR:-/tmp}/maintainiac_trip_qa_$(date +%s).log"
+
+collect_trip_tracking_tests() {
+  local -a tests=($DEFAULT_PATTERN)
+  if [ ${#tests[@]} -eq 0 ]; then
+    echo "TRIP_QA_FAIL no_trip_tracking_tests_found"
+    exit 1
+  fi
+  echo "${tests[@]}"
+}
 
 if [ "$#" -eq 0 ]; then
-  echo "TRIP_QA_FAIL missing_target"
+  test_targets=($(collect_trip_tracking_tests))
+  command=(flutter test "${test_targets[@]}" --reporter compact)
+elif [ "$1" = "--all" ]; then
+  shift
+  if [ "$#" -ne 0 ]; then
+    echo "TRIP_QA_FAIL --all takes no additional args"
+    exit 64
+  fi
+  test_targets=($(collect_trip_tracking_tests))
+  command=(flutter test "${test_targets[@]}" --reporter compact)
+elif [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  usage
   exit 64
-fi
-
-log_file="${TMPDIR:-/tmp}/maintainiac_trip_qa_$(date +%s).log"
-if [ "$1" = "--android-debug" ]; then
+elif [ "$1" = "--android-debug" ]; then
   command=(flutter build apk --debug)
 elif [ "$1" = "--analyze" ]; then
   shift
+  if [ "$#" -eq 0 ]; then
+    echo "TRIP_QA_FAIL --analyze requires at least one path"
+    exit 64
+  fi
   command=(flutter analyze "$@")
 else
   command=(flutter test "$@" --reporter compact)

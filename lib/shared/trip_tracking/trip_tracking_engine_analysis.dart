@@ -1,3 +1,4 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_engine.dart';
 
 /// Motion, activity, and provider-evidence analysis for the shared engine.

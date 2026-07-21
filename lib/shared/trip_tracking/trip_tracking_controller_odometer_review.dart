@@ -1,8 +1,62 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_controller.dart';
 
 /// GPS-assisted calibration and review orchestration. Confirmed mileage stays
 /// with the independent global odometer controller.
 extension TripTrackingControllerOdometerReview on TripTrackingController {
+  TripOdometerEndReviewDecision? evaluateOdometerEndReview({
+    required String reviewId,
+    required int endingOdometer,
+    bool anomalyAlertsEnabled = true,
+    bool calibrationAssistEnabled = false,
+    bool userAcknowledgedReviewPrompt = false,
+    bool userAcknowledgedUsageAnomaly = false,
+    DateTime? nowUtc,
+  }) {
+    final review = _sessionStore.reviewForTrip(reviewId);
+    if (review == null || review.isOdometerConfirmed) return null;
+    final now = (nowUtc ?? _clockNow()).toUtc();
+    final entry = TripOdometerEntryValidation.validate(
+      startingOdometer: review.startingOdometer,
+      endingOdometer: endingOdometer,
+      previousConfirmedEndingOdometer: _previousConfirmedReviewFor(
+        review,
+      )?.confirmedEndingOdometer,
+      gpsAssistedDistanceMeters: review.engineSnapshot.totalAcceptedMeters,
+    );
+    final reconciliation = TripOdometerReconciliation.compare(
+      review: review,
+      confirmedEndingOdometer: endingOdometer,
+    );
+    final usage = TripOdometerUsageAnomalySignal.evaluate(
+      currentOdometerMiles: (endingOdometer - review.startingOdometer)
+          .clamp(0, 999999)
+          .toDouble(),
+      history: _sessionStore.pendingReviews,
+      vehicleId: review.vehicleId,
+      nowUtc: now,
+      anomalyAlertsEnabled: anomalyAlertsEnabled,
+    );
+    final calibrationPrompt = TripOdometerCalibrationPromptPolicy.evaluate(
+      signal: odometerCalibrationSignal(
+        vehicleId: review.vehicleId,
+        nowUtc: now,
+      ),
+      userEnabledCalibrationAssist: calibrationAssistEnabled,
+      userDismissedPrompt: false,
+      snoozedUntilUtc: null,
+      nowUtc: now,
+    );
+    return TripOdometerEndReviewPolicy.evaluate(
+      entryValidation: entry,
+      reconciliation: reconciliation,
+      calibrationPrompt: calibrationPrompt,
+      usageAnomaly: usage,
+      userAcknowledgedReviewPrompt: userAcknowledgedReviewPrompt,
+      userAcknowledgedUsageAnomaly: userAcknowledgedUsageAnomaly,
+    );
+  }
+
   void refreshGpsAssistanceCalibration({required bool enabled}) {
     final signal = odometerCalibrationSignal();
     final guard = _calibrationApplyGuard(
@@ -133,19 +187,25 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     required String reviewId,
     required int confirmedEndingOdometer,
     DateTime? confirmedAt,
+    bool userAcknowledgedReviewPrompt = false,
   }) => _runExclusiveSessionOperation(
     false,
     () => _confirmOdometerReview(
       reviewId: reviewId,
       confirmedEndingOdometer: confirmedEndingOdometer,
       confirmedAt: confirmedAt,
+      userAcknowledgedReviewPrompt: userAcknowledgedReviewPrompt,
     ),
+    busyStatus: 'session_operation_in_progress',
+    busyError:
+        'A trip is already starting or ending. Please wait for it to finish.',
   );
 
   Future<bool> _confirmOdometerReview({
     required String reviewId,
     required int confirmedEndingOdometer,
     DateTime? confirmedAt,
+    required bool userAcknowledgedReviewPrompt,
   }) async {
     final review = _sessionStore.reviewForTrip(reviewId);
     if (review == null ||
@@ -183,11 +243,24 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
       previousConfirmedEndingOdometer: _previousConfirmedReviewFor(
         review,
       )?.confirmedEndingOdometer,
+      gpsAssistedDistanceMeters: review.engineSnapshot.totalAcceptedMeters,
     );
     if (entryValidation.shouldBlockConfirmation) {
       _platformStatus = 'odometer_entry_invalid';
       _platformError =
           'Review the starting and ending odometer readings before confirming this trip.';
+      notifyListeners();
+      return false;
+    }
+    final reconciliation = TripOdometerReconciliation.compare(
+      review: review,
+      confirmedEndingOdometer: confirmedEndingOdometer,
+    );
+    if ((entryValidation.shouldPromptUser || reconciliation.shouldPromptUser) &&
+        !userAcknowledgedReviewPrompt) {
+      _platformStatus = 'odometer_review_acknowledgement_required';
+      _platformError =
+          'Review the GPS-assisted comparison, then explicitly confirm the physical odometer value.';
       notifyListeners();
       return false;
     }
@@ -238,10 +311,6 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     _calibrationState = _calibrationState.refreshEnabled(
       signal: odometerCalibrationSignal(),
       canApplyToFutureGpsProjection: false,
-    );
-    final reconciliation = TripOdometerReconciliation.compare(
-      review: review,
-      confirmedEndingOdometer: confirmedEndingOdometer,
     );
     if (reconciliation.status ==
         TripOdometerReconciliationStatus.reviewRecommended) {

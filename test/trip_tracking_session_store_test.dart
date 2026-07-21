@@ -61,6 +61,183 @@ void main() {
     },
   );
 
+  test('active session transition audits persist and stay bounded', () async {
+    final store = TripTrackingSessionStore.memory();
+    final session = TripTrackingSessionRecord(
+      id: 'trip_transition_audit',
+      vehicleId: 'vehicle_audit',
+      startingOdometer: 1200,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 12, 8),
+      updatedAt: DateTime.utc(2026, 7, 12, 8, 1),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 100,
+        walkingReviewSuggested: false,
+      ),
+      revision: 3,
+      transitionAudits: List.generate(
+        36,
+        (index) => TripTrackingSessionTransitionAudit(
+          id: 'audit_$index',
+          sessionId: 'trip_transition_audit',
+          vehicleId: 'vehicle_audit',
+          profile: TripTrackingProfile.roadVehicle,
+          profileId: 'roadVehicle',
+          fromState: TripTrackingSessionLifecycleState.ready,
+          toState: TripTrackingSessionLifecycleState.starting,
+          eventTimestamp: DateTime.utc(
+            2026,
+            7,
+            12,
+            8,
+          ).add(Duration(seconds: index)),
+          sequenceNumber: index + 1,
+          reasonCode: 'gps_session_transition_allowed',
+          initiatingSource: 'controller',
+          revision: index + 2,
+          permissionState: 'permission_granted',
+          confidenceState: 'healthy',
+          trackingQualityMode: 'high_quality',
+        ),
+      ),
+    );
+
+    await store.save(session);
+
+    final restored = store.activeSession;
+    expect(restored?.revision, 3);
+    expect(restored?.transitionAudits, hasLength(32));
+    expect(restored?.transitionAudits.first.id, 'audit_4');
+    expect(restored?.transitionAudits.last.id, 'audit_35');
+    expect(restored?.transitionAudits.last.sequenceNumber, 36);
+    expect(restored?.transitionAudits.last.revision, 37);
+    expect(
+      restored?.transitionAudits.last.reasonCode,
+      'gps_session_transition_allowed',
+    );
+  });
+
+  test(
+    'restored transition audits prefer monotonic sequence over wall time',
+    () {
+      final session = TripTrackingSessionRecord.fromMap({
+        'id': 'trip_transition_ordering',
+        'vehicleId': 'vehicle_audit_ordering',
+        'startingOdometer': 900,
+        'profile': 'roadVehicle',
+        'startedAt': DateTime.utc(2026, 7, 20, 8).toIso8601String(),
+        'updatedAt': DateTime.utc(2026, 7, 20, 8, 9).toIso8601String(),
+        'engineSnapshot': const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 11,
+          walkingReviewSuggested: false,
+        ).toMap(),
+        'transitionAudits': [
+          {
+            'id': 'late',
+            'sessionId': 'trip_transition_ordering',
+            'vehicleId': 'vehicle_audit_ordering',
+            'profile': 'roadVehicle',
+            'profileId': 'roadVehicle',
+            'fromState': 'ready',
+            'toState': 'starting',
+            'eventTimestamp': DateTime.utc(
+              2026,
+              7,
+              20,
+              8,
+              1,
+              30,
+            ).toIso8601String(),
+            'sequenceNumber': 10,
+            'reasonCode': 'gps_session_transition_allowed',
+            'initiatingSource': 'controller',
+            'revision': 1,
+            'permissionState': 'permission_granted',
+            'confidenceState': 'low',
+            'trackingQualityMode': 'high_quality',
+          },
+          {
+            'id': 'early',
+            'sessionId': 'trip_transition_ordering',
+            'vehicleId': 'vehicle_audit_ordering',
+            'profile': 'roadVehicle',
+            'profileId': 'roadVehicle',
+            'fromState': 'ready',
+            'toState': 'starting',
+            'eventTimestamp': DateTime.utc(
+              2026,
+              7,
+              20,
+              8,
+              1,
+              10,
+            ).toIso8601String(),
+            'sequenceNumber': 2,
+            'reasonCode': 'gps_session_transition_allowed',
+            'initiatingSource': 'controller',
+            'revision': 1,
+            'permissionState': 'permission_granted',
+            'confidenceState': 'low',
+            'trackingQualityMode': 'high_quality',
+          },
+          {
+            'id': 'middle',
+            'sessionId': 'trip_transition_ordering',
+            'vehicleId': 'vehicle_audit_ordering',
+            'profile': 'roadVehicle',
+            'profileId': 'roadVehicle',
+            'fromState': 'ready',
+            'toState': 'starting',
+            'eventTimestamp': DateTime.utc(
+              2026,
+              7,
+              20,
+              8,
+              1,
+              20,
+            ).toIso8601String(),
+            'sequenceNumber': 1,
+            'reasonCode': 'gps_session_transition_allowed',
+            'initiatingSource': 'controller',
+            'revision': 1,
+            'permissionState': 'permission_granted',
+            'confidenceState': 'low',
+            'trackingQualityMode': 'high_quality',
+          },
+          {
+            'id': 'duplicate_sequence',
+            'sessionId': 'trip_transition_ordering',
+            'vehicleId': 'vehicle_audit_ordering',
+            'profile': 'roadVehicle',
+            'profileId': 'roadVehicle',
+            'fromState': 'ready',
+            'toState': 'starting',
+            'eventTimestamp': DateTime.utc(
+              2026,
+              7,
+              20,
+              8,
+              1,
+              25,
+            ).toIso8601String(),
+            'sequenceNumber': 2,
+            'reasonCode': 'gps_session_transition_allowed',
+            'initiatingSource': 'duplicate_callback',
+            'revision': 2,
+            'permissionState': 'permission_granted',
+            'confidenceState': 'low',
+            'trackingQualityMode': 'high_quality',
+          },
+        ],
+      });
+
+      expect(
+        session.transitionAudits.map((event) => event.id).toList(),
+        equals(['middle', 'early', 'late']),
+      );
+    },
+  );
+
   test('unknown persisted trip profiles are marked invalid', () {
     final session = TripTrackingSessionRecord.fromMap({
       'id': 'trip_unknown_profile',

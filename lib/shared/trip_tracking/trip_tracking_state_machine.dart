@@ -7,7 +7,20 @@ class TripTrackingSessionStateMachine {
   static bool canTransition(
     TripTrackingSessionLifecycleState from,
     TripTrackingSessionLifecycleState to,
-  ) => from == to || (_legalTransitions[from]?.contains(to) ?? false);
+  ) =>
+      from == to ||
+      _isCancellationTransition(from, to) ||
+      (_legalTransitions[from]?.contains(to) ?? false);
+
+  static bool _isCancellationTransition(
+    TripTrackingSessionLifecycleState from,
+    TripTrackingSessionLifecycleState to,
+  ) =>
+      to == TripTrackingSessionLifecycleState.cancelled &&
+      from != TripTrackingSessionLifecycleState.disabled &&
+      from != TripTrackingSessionLifecycleState.completed &&
+      from != TripTrackingSessionLifecycleState.cancelled &&
+      from != TripTrackingSessionLifecycleState.failedTerminal;
 
   static void requireTransition(
     TripTrackingSessionLifecycleState from,
@@ -48,14 +61,18 @@ class TripTrackingSessionStateMachine {
         },
         TripTrackingSessionLifecycleState.permissionRequired: {
           TripTrackingSessionLifecycleState.ready,
+          TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.ready: {
           TripTrackingSessionLifecycleState.starting,
+          TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.disabled,
         },
         TripTrackingSessionLifecycleState.starting: {
           TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.paused,
+          TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.permissionRequired,
         },
@@ -69,10 +86,12 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.paused: {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.degraded: {
           TripTrackingSessionLifecycleState.starting,
@@ -81,17 +100,21 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.interrupted: {
           TripTrackingSessionLifecycleState.recovering,
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.recovering: {
           TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.awaitingReview,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.awaitingReview: {
           TripTrackingSessionLifecycleState.completed,
@@ -99,6 +122,7 @@ class TripTrackingSessionStateMachine {
         TripTrackingSessionLifecycleState.stopping: {
           TripTrackingSessionLifecycleState.completed,
           TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.completed: {},
         TripTrackingSessionLifecycleState.failedRecoverable: {
@@ -106,11 +130,81 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.awaitingReview,
+          TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.failedTerminal: {
           TripTrackingSessionLifecycleState.disabled,
         },
+        TripTrackingSessionLifecycleState.cancelled: {
+          TripTrackingSessionLifecycleState.disabled,
+        },
       };
+}
+
+class TripTrackingSessionContractStateMachine {
+  const TripTrackingSessionContractStateMachine._();
+
+  static bool canTransition(
+    TripTrackingSessionLifecycleContractState from,
+    TripTrackingSessionLifecycleContractState to,
+  ) => TripTrackingSessionStateMachine.canTransition(
+    from.toRuntimeState(),
+    to.toRuntimeState(),
+  );
+
+  static void requireTransition(
+    TripTrackingSessionLifecycleContractState from,
+    TripTrackingSessionLifecycleContractState to,
+  ) {
+    if (!canTransition(from, to)) {
+      throw StateError(
+        'Illegal contract lifecycle transition: ${from.name} -> ${to.name}',
+      );
+    }
+  }
+
+  static TripTrackingLifecycleContractTransitionDecision evaluateTransition(
+    TripTrackingSessionLifecycleContractState from,
+    TripTrackingSessionLifecycleContractState to,
+  ) {
+    final runtimeDecision = TripTrackingSessionStateMachine.evaluateTransition(
+      from.toRuntimeState(),
+      to.toRuntimeState(),
+    );
+
+    return TripTrackingLifecycleContractTransitionDecision(
+      from: from,
+      to: to,
+      allowed: runtimeDecision.allowed,
+      reasonCode: runtimeDecision.reasonCode,
+      requiresUserReview: runtimeDecision.requiresUserReview,
+    );
+  }
+}
+
+class TripTrackingLifecycleContractTransitionDecision {
+  const TripTrackingLifecycleContractTransitionDecision({
+    required this.from,
+    required this.to,
+    required this.allowed,
+    required this.reasonCode,
+    required this.requiresUserReview,
+  });
+
+  final TripTrackingSessionLifecycleContractState from;
+  final TripTrackingSessionLifecycleContractState to;
+  final bool allowed;
+  final String reasonCode;
+  final bool requiresUserReview;
+
+  Map<String, Object?> toSafeSummary() => {
+    'schemaVersion': 1,
+    'from': from.name,
+    'to': to.name,
+    'allowed': allowed,
+    'reasonCode': _safeTransitionReason(reasonCode),
+    'requiresUserReview': requiresUserReview,
+  };
 }
 
 class TripTrackingLifecycleTransitionDecision {

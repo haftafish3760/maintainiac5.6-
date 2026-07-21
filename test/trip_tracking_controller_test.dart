@@ -12,7 +12,9 @@ import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart'
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart'
     as global_odometer;
-import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_initial_fix_classifier.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart'
+    as production;
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_firebase_bridge.dart';
@@ -21,6 +23,32 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
+
+/// The controller suite intentionally uses a fixed historical route clock.
+/// Freshness classification itself is covered with real age boundaries in the
+/// dedicated initial-fix tests, while this harness keeps older lifecycle and
+/// motion fixtures focused on their stated behavior.
+class TripTrackingController extends production.TripTrackingController {
+  TripTrackingController({
+    required super.sessionStore,
+    required super.odometer,
+    super.platform,
+    super.policy,
+    super.cloudMirror,
+    super.durableRecordBridge,
+    super.tripLogProposalSink,
+    super.routePointStore,
+    super.routeSettings,
+    super.localRouteDayKey,
+    super.gpsAssistanceCalibrationMultiplier,
+    super.clockNow,
+    super.heartbeatNow,
+  }) : super(
+         initialFixClassifier: const TripInitialFixClassifier(
+           maximumFreshAge: Duration(days: 3650),
+         ),
+       );
+}
 
 /// Keeps controller tests aligned with production: GPS sessions are started
 /// for the currently selected odometer vehicle unless a test explicitly
@@ -212,8 +240,288 @@ void main() {
       expect(controller.platformStatus, 'storage_failed');
       expect(
         controller.platformError,
-        contains('Could not save the trip locally'),
+        anyOf(
+          contains('Could not evaluate local trip recovery data'),
+          contains('Could not save the trip locally'),
+        ),
       );
+    },
+  );
+
+  test('starting another trip while one is active is rejected', () async {
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    addTearDown(controller.dispose);
+
+    expect(
+      await controller.start(
+        tripId: 'trip_active_one',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    expect(controller.activeSession?.id, 'trip_active_one');
+
+    expect(
+      await controller.start(
+        tripId: 'trip_active_two',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'trip_already_active');
+    expect(
+      controller.platformError,
+      contains('Finish or cancel it before starting another'),
+    );
+    expect(controller.activeSession?.id, 'trip_active_one');
+  });
+
+  test(
+    'starting a trip while a recoverable local session exists is rejected',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final storedSession = TripTrackingSessionRecord(
+        id: 'trip_in_store',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start.add(const Duration(minutes: 1)),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1200,
+          walkingReviewSuggested: false,
+          algorithmVersion: 'gps-v1',
+        ),
+      );
+      await store.save(storedSession);
+
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_new_attempt',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'trip_already_active');
+      expect(controller.platformError, contains('already stored locally'));
+      expect(controller.activeSession?.id, 'trip_in_store');
+    },
+  );
+
+  test(
+    'starting a trip is blocked when a trip review already exists for the trip id',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      await store.saveReview(
+        TripTrackingReviewRecord(
+          id: 'trip_review_exists',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1003,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+          finishedAt: start.add(const Duration(minutes: 1)),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1609.344,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_review_exists',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'trip_review_exists');
+      expect(
+        controller.platformError,
+        contains('A review already exists for this trip'),
+      );
+      expect(store.reviewForTrip('trip_review_exists'), isNotNull);
+      expect(controller.isTracking, isFalse);
+    },
+  );
+
+  test(
+    'starting a trip is blocked when a completion-pending local session exists',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final storedSession = TripTrackingSessionRecord(
+        id: 'trip_completion_pending',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start.add(const Duration(minutes: 1)),
+        lifecycleState: TripTrackingSessionLifecycleState.awaitingReview,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 800,
+          walkingReviewSuggested: false,
+          algorithmVersion: 'gps-v1',
+        ),
+      );
+      await store.save(storedSession);
+
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_new_attempt',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'completion_pending');
+      expect(controller.platformError, contains('requires completion actions'));
+      expect(store.activeSession?.id, 'trip_completion_pending');
+    },
+  );
+
+  test(
+    'starting a trip is blocked when a recoverable trip is for a different profile',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final storedSession = TripTrackingSessionRecord(
+        id: 'trip_other_profile',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.rideshareVehicle,
+        startedAt: start,
+        updatedAt: start.add(const Duration(minutes: 1)),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 400,
+          walkingReviewSuggested: false,
+          algorithmVersion: 'gps-v1',
+        ),
+      );
+      await store.save(storedSession);
+
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_new_attempt',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'profile_mismatch');
+      expect(
+        controller.platformError,
+        contains('Switch profiles to resume, review, or complete it'),
+      );
+      expect(controller.activeSession?.id, isNull);
+      expect(store.activeSession?.id, 'trip_other_profile');
+    },
+  );
+
+  test(
+    'starting a trip is blocked when a native collector is already running',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      await native.start(
+        const TripTrackingNativeRequest(
+          profile: TripTrackingProfile.roadVehicle,
+          sampling: TripSamplingRecommendation(
+            mode: TripSamplingMode.balanced,
+            interval: Duration(seconds: 5),
+            minimumDisplacementMeters: 5,
+          ),
+        ),
+      );
+
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_native_running',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'native_service_running');
+      expect(
+        controller.platformError,
+        contains('A native GPS collector is already running'),
+      );
+      expect(native.startCalls, 1);
+      expect(store.activeSession, isNull);
+    },
+  );
+
+  test(
+    'starting a trip is blocked if native collector state cannot be verified',
+    () async {
+      final native = _FakeTripTrackingPlatform(throwOnIsTracking: true);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_native_probe_failure',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'native_service_state_unknown');
+      expect(
+        controller.platformError,
+        contains('Could not verify whether the GPS service is already running'),
+      );
+      expect(native.startCalls, 0);
     },
   );
 
@@ -288,6 +596,47 @@ void main() {
     );
     expect(store.activeSession, isNull);
     expect(odometer.hasLiveTripProjection, isFalse);
+    expect(controller.platformStatus, 'trip_identity_invalid');
+    expect(
+      controller.platformError,
+      contains('Trip and vehicle identifiers must be safe values'),
+    );
+  });
+
+  test('GPS tracking cannot start when live projection cannot begin', () async {
+    final store = TripTrackingSessionStore.memory();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+    );
+    addTearDown(controller.dispose);
+
+    expect(
+      odometer.beginLiveTripProjection(
+        tripId: 'existing_projection',
+        startingOdometer: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      await controller.start(
+        tripId: 'trip_projection_busy',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      ),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'odometer_projection_unavailable');
+    expect(
+      controller.platformError,
+      contains('Could not start live trip projection'),
+    );
+    odometer.clearLiveTripProjection(tripId: 'existing_projection');
   });
 
   test('GPS tracking cannot start with a future start timestamp', () async {
@@ -339,6 +688,41 @@ void main() {
     expect(controller.platformStatus, 'storage_failed');
     expect(controller.platformError, contains('Could not read local trip'));
   });
+
+  test(
+    'restore preserves completion-pending session without clearing it',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      await store.save(
+        TripTrackingSessionRecord(
+          id: 'trip_completion_pending_restore',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+          updatedAt: start.add(const Duration(minutes: 1)),
+          lifecycleState: TripTrackingSessionLifecycleState.awaitingReview,
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1200,
+            walkingReviewSuggested: false,
+            algorithmVersion: 'gps-v1',
+          ),
+        ),
+      );
+
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      addTearDown(controller.dispose);
+
+      expect(await controller.restore(), isFalse);
+      expect(controller.isTracking, isFalse);
+      expect(store.activeSession?.id, 'trip_completion_pending_restore');
+      expect(controller.platformStatus, 'completion_pending');
+      expect(controller.platformError, contains('requires completion actions'));
+    },
+  );
 
   test(
     'a failed review checkpoint keeps the trip recoverable for retry',
@@ -1316,7 +1700,7 @@ void main() {
       final store = TripTrackingSessionStore.memory(
         storageCheck: () async {
           storageChecks += 1;
-          final available = storageChecks == 3 ? 0 : 1024 * 1024;
+          final available = storageChecks == 4 ? 0 : 1024 * 1024;
           return AppStorageCheck(
             availableBytes: available,
             operationBytes: 1024,
@@ -1351,11 +1735,11 @@ void main() {
       expect(controller.platformStatus, 'storage_failed');
       expect(
         controller.platformError,
-        contains('background tracking permission locally'),
+        contains('GPS permission state locally'),
       );
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.failedRecoverable,
+        TripTrackingSessionLifecycleState.starting,
       );
     },
   );
@@ -1436,6 +1820,7 @@ void main() {
           reviewId: 'trip_latest_review',
           confirmedEndingOdometer: 1002,
           confirmedAt: start.add(const Duration(minutes: 2)),
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -1683,6 +2068,82 @@ void main() {
     },
   );
 
+  test('cross-midnight trip remains a single review session', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+
+    final startBeforeMidnight = DateTime.utc(2026, 7, 17, 23, 30);
+    final finishAfterMidnight = DateTime.utc(2026, 7, 18, 0, 20);
+
+    await controller.start(
+      tripId: 'trip_cross_midnight',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: startBeforeMidnight,
+    );
+
+    await controller.ingest(
+      TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: startBeforeMidnight,
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 11,
+      ),
+    );
+    await controller.ingest(
+      TripLocationSample(
+        latitude: 35.0001,
+        longitude: -79.95,
+        recordedAt: startBeforeMidnight.add(const Duration(minutes: 15)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 11,
+      ),
+    );
+    await controller.ingest(
+      TripLocationSample(
+        latitude: 35.0002,
+        longitude: -79.9,
+        recordedAt: startBeforeMidnight.add(const Duration(minutes: 30)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 11,
+      ),
+    );
+    await controller.ingest(
+      TripLocationSample(
+        latitude: 35.0003,
+        longitude: -79.85,
+        recordedAt: startBeforeMidnight.add(const Duration(minutes: 45)),
+        horizontalAccuracyMeters: 5,
+        speedMetersPerSecond: 11,
+      ),
+    );
+
+    final review = await controller.finishForReview(
+      finishedAt: finishAfterMidnight,
+    );
+
+    expect(review, isNotNull);
+    expect(review!.id, 'trip_cross_midnight');
+    expect(review.startedAt, startBeforeMidnight);
+    expect(review.finishedAt, finishAfterMidnight);
+    expect(review.finishedAt.day, 18);
+    expect(controller.platformStatus, 'stopped');
+    expect(controller.platformError, isNull);
+    expect(
+      controller.lifecycleState,
+      isNot(equals(TripTrackingSessionLifecycleState.failedTerminal)),
+    );
+    expect(controller.isTracking, isFalse);
+    expect(store.reviewForTrip('trip_cross_midnight'), isNotNull);
+  });
+
   test(
     'walking confirmation creates a high-confidence stop after vehicle-only wait',
     () async {
@@ -1850,6 +2311,45 @@ void main() {
     expect(controller.nativeTracking, isFalse);
   });
 
+  test('duplicate stop requests while already stopped are ignored', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_duplicate_stop_requests',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+    await controller.stopNativeTracking();
+    final auditsAfterFirstStop = controller.transitionAudits;
+    expect(auditsAfterFirstStop.length, greaterThanOrEqualTo(3));
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(
+      controller.contractLifecycleState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+    );
+    expect(
+      controller.transitionAudits.last.effectiveToContractState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+    );
+    expect(native.stopCalls, 1);
+
+    await controller.stopNativeTracking();
+    expect(native.stopCalls, 1);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(controller.transitionAudits.length, auditsAfterFirstStop.length);
+  });
+
   test(
     'backgrounding foreground-only tracking stops the native collector',
     () async {
@@ -1880,6 +2380,14 @@ void main() {
       expect(
         controller.lifecycleState,
         TripTrackingSessionLifecycleState.paused,
+      );
+      expect(
+        controller.contractLifecycleState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(
+        controller.transitionAudits.last.effectiveToContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
       );
     },
   );
@@ -2915,16 +3423,19 @@ void main() {
   });
 
   test('recovery survives a failed pending GPS sample replay write', () async {
-    var storageAvailable = true;
+    var storageChecks = 0;
     final store = TripTrackingSessionStore.memory(
-      storageCheck: () async => AppStorageCheck(
-        availableBytes: storageAvailable
-            ? AppStorageGuard.mileageTrackingWriteBytes
-            : 0,
-        operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
-        requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
-        purpose: AppStoragePurpose.mileageTracking,
-      ),
+      storageCheck: () async {
+        storageChecks += 1;
+        return AppStorageCheck(
+          availableBytes: storageChecks == 6
+              ? 0
+              : AppStorageGuard.mileageTrackingWriteBytes,
+          operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+          requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
+          purpose: AppStoragePurpose.mileageTracking,
+        );
+      },
     );
     final original = TripTrackingController(
       sessionStore: store,
@@ -2943,7 +3454,6 @@ void main() {
         sample: sample(-79.98, 90),
       ),
     );
-    storageAvailable = false;
     final recovered = TripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
@@ -5543,6 +6053,7 @@ void main() {
         await controller.confirmOdometerReview(
           reviewId: 'trip_review',
           confirmedEndingOdometer: 1002,
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -5606,6 +6117,137 @@ void main() {
   );
 
   test(
+    'canceling a trip requires explicit confirmation once meaningful distance exists',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_cancel_requires_confirmation',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      await controller.ingest(
+        sample(-79.999, 60),
+        referenceTime: start.add(const Duration(minutes: 1)),
+      );
+      final accepted = await controller.ingest(
+        sample(-79.9995, 61),
+        referenceTime: start.add(const Duration(minutes: 2)),
+      );
+      expect(accepted?.disposition, TripSampleDisposition.acceptedDistance);
+      expect(controller.acceptedMeters, greaterThan(0));
+
+      final unconfirmedCancel = await controller.cancelActiveTrip();
+      expect(unconfirmedCancel, isNull);
+      expect(controller.platformError, contains('requires confirmation'));
+
+      final review = await controller.cancelActiveTrip(
+        userConfirmed: true,
+        canceledAt: start.add(const Duration(minutes: 3)),
+      );
+      expect(review, isNotNull);
+      expect(
+        store.reviewForTrip('trip_cancel_requires_confirmation'),
+        isNotNull,
+      );
+      expect(controller.isTracking, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(store.activeSession, isNull);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(odometer.confirmedReading, 1000);
+      expect(native.stopCalls, 1);
+    },
+  );
+
+  test(
+    'canceling without distance can be discarded without extra confirmation',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      await controller.start(
+        tripId: 'trip_cancel_no_distance',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final review = await controller.cancelActiveTrip();
+      expect(review, isNotNull);
+      expect(review!.estimatedEndingOdometer, 1000);
+      expect(store.reviewForTrip('trip_cancel_no_distance'), isNotNull);
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+    },
+  );
+
+  test(
+    'canceling meaningful GPS evidence without distance requires confirmation',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      await controller.start(
+        tripId: 'trip_cancel_fix_only',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.ingest(
+        sample(-79.999, 60),
+        referenceTime: start.add(const Duration(minutes: 1)),
+      );
+
+      expect(controller.acceptedMeters, 0);
+      expect(await controller.cancelActiveTrip(), isNull);
+      expect(controller.activeSession, isNotNull);
+      expect(controller.platformError, contains('requires confirmation'));
+    },
+  );
+
+  test('canceling an in-flight GPS sample requires confirmation', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_cancel_pending_sample',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    await store.savePending(
+      TripTrackingPendingSample(
+        sessionId: 'trip_cancel_pending_sample',
+        sample: sample(-80, 0),
+      ),
+    );
+
+    expect(await controller.cancelActiveTrip(), isNull);
+    expect(store.activeSession, isNotNull);
+    expect(store.pendingSampleFor('trip_cancel_pending_sample'), isNotNull);
+    expect(controller.platformStatus, 'trip_cancel_confirmation_required');
+  });
+
+  test(
     'durable review backup failure is retryable without changing odometer truth',
     () async {
       var durableStorageAvailable = false;
@@ -5646,6 +6288,7 @@ void main() {
           reviewId: 'trip_durable_retry',
           confirmedEndingOdometer: 1002,
           confirmedAt: start.add(const Duration(minutes: 3)),
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -6048,7 +6691,7 @@ void main() {
     expect(controller.platformStatus, 'odometer_projection_invalid');
   });
 
-  test('restore rejects terminal lifecycle checkpoints safely', () async {
+  test('restore preserves terminal lifecycle checkpoints safely', () async {
     final store = TripTrackingSessionStore.memory();
     await store.save(
       TripTrackingSessionRecord(
@@ -6074,8 +6717,9 @@ void main() {
     );
 
     expect(await controller.restore(), isFalse);
-    expect(store.activeSession, isNull);
+    expect(store.activeSession?.id, 'trip_terminal_restore');
     expect(controller.isTracking, isFalse);
+    expect(controller.platformStatus, 'stored_session_requires_review');
   });
 
   test(
@@ -6104,6 +6748,7 @@ void main() {
       await controller.confirmOdometerReview(
         reviewId: 'trip_cloud_retry',
         confirmedEndingOdometer: 1001,
+        userAcknowledgedReviewPrompt: true,
       );
       await Future<void>.delayed(Duration.zero);
 
@@ -6138,6 +6783,7 @@ void main() {
       await controller.confirmOdometerReview(
         reviewId: 'trip_manual_retry',
         confirmedEndingOdometer: 1001,
+        userAcknowledgedReviewPrompt: true,
       );
       await Future<void>.delayed(Duration.zero);
       expect(controller.cloudMirrorError, contains('pending'));
@@ -6199,6 +6845,7 @@ void main() {
           reviewId: 'trip_confirm_pending_cloud',
           confirmedEndingOdometer: 1001,
           confirmedAt: start.add(const Duration(minutes: 3)),
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -6261,6 +6908,7 @@ void main() {
           reviewId: 'trip_confirm_backup_disabled',
           confirmedEndingOdometer: 1001,
           confirmedAt: start.add(const Duration(minutes: 3)),
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -6518,12 +7166,14 @@ void main() {
       reviewId: review.id,
       confirmedEndingOdometer: 1001,
       confirmedAt: start.add(const Duration(minutes: 2)),
+      userAcknowledgedReviewPrompt: true,
     );
     await store.confirmationSaveStarted.future;
     final second = await controller.confirmOdometerReview(
       reviewId: review.id,
       confirmedEndingOdometer: 1001,
       confirmedAt: start.add(const Duration(minutes: 2)),
+      userAcknowledgedReviewPrompt: true,
     );
     store.allowConfirmationSave.complete();
 
@@ -6651,6 +7301,7 @@ void main() {
         reviewId: review.id,
         confirmedEndingOdometer: 1004,
         confirmedAt: start.add(const Duration(minutes: 2)),
+        userAcknowledgedReviewPrompt: true,
       ),
       isTrue,
     );
@@ -6737,6 +7388,7 @@ void main() {
           reviewId: review.id,
           confirmedEndingOdometer: 1005,
           confirmedAt: start.add(const Duration(minutes: 11)),
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -6881,6 +7533,7 @@ void main() {
           reviewId: current.id,
           confirmedEndingOdometer: 1110,
           confirmedAt: DateTime.utc(2026, 7, 14, 10, 5),
+          userAcknowledgedReviewPrompt: true,
         ),
         isTrue,
       );
@@ -6890,6 +7543,83 @@ void main() {
       expect(store.reviewForTrip(current.id)?.confirmedEndingOdometer, 1110);
       expect(odometer.confirmedReading, 1110);
       expect(mirror.reviews.single.confirmedEndingOdometer, 1110);
+    },
+  );
+
+  test(
+    'strict controller rejects cached initial fix then accepts fresh movement',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = TripTrackingSessionStore.memory();
+      var now = start.add(const Duration(minutes: 5));
+      final controller = production.TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_strict_initial_fix_recovery',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.initialFixAssessment != null,
+      );
+      expect(
+        controller.initialFixAssessment?.quality,
+        TripInitialFixQuality.staleCached,
+      );
+      expect(controller.acceptedMeters, 0);
+      expect(
+        controller.initialFixHistory.single.quality,
+        TripInitialFixQuality.staleCached,
+      );
+
+      now = now.add(const Duration(seconds: 10));
+      native.addLocation(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: now,
+          horizontalAccuracyMeters: 5,
+        ),
+      );
+      await drainNativeTripEventsUntil(
+        () =>
+            controller.initialFixAssessment?.quality ==
+            TripInitialFixQuality.freshPrecise,
+      );
+      expect(controller.acceptedMeters, 0);
+      expect(controller.initialFixHistory.map((item) => item.quality), [
+        TripInitialFixQuality.staleCached,
+        TripInitialFixQuality.freshPrecise,
+      ]);
+      expect(store.activeSession?.engineSnapshot.initialFixHistory.length, 2);
+
+      now = now.add(const Duration(seconds: 20));
+      native.addLocation(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -79.9998,
+          recordedAt: now,
+          horizontalAccuracyMeters: 5,
+        ),
+      );
+      await drainNativeTripEventsUntil(() => controller.acceptedMeters > 0);
+      expect(controller.acceptedMeters, greaterThan(0));
     },
   );
 }

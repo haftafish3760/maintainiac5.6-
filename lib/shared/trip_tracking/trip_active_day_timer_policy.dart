@@ -110,6 +110,13 @@ class TripActiveDayTimerPolicy {
         'timer_completed',
         shouldTickLive: false,
       ),
+      TripTrackingSessionLifecycleState.cancelled => _decision(
+        TripActiveDayTimerStatus.completed,
+        previous + ((completed ?? now).difference(started)),
+        'timer_cancelled_preserved_for_review',
+        shouldTickLive: false,
+        requiresUserReview: true,
+      ),
       TripTrackingSessionLifecycleState.active ||
       TripTrackingSessionLifecycleState.starting ||
       TripTrackingSessionLifecycleState.degraded ||

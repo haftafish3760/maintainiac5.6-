@@ -167,6 +167,28 @@ void main() {
     expect(validation.toSafeDashboardMap()['rawLocationIncluded'], isFalse);
   });
 
+  test('near-zero odometer after meaningful GPS movement requires review', () {
+    final validation = TripOdometerEntryValidation.validate(
+      startingOdometer: 1020,
+      endingOdometer: 1020,
+      gpsAssistedDistanceMeters: 25 * 1609.344,
+    );
+
+    expect(
+      validation.status,
+      TripOdometerEntryValidationStatus.reviewRecommended,
+    );
+    expect(
+      validation.reasonCode,
+      'near_zero_odometer_after_meaningful_gps_movement',
+    );
+    expect(validation.shouldBlockConfirmation, isFalse);
+    expect(
+      validation.toSafeDashboardMap()['gpsCanCorrectEntryAutomatically'],
+      isFalse,
+    );
+  });
+
   test('non-finite reconciliation thresholds fail closed', () {
     final result = TripOdometerReconciliation.compare(
       review: review,

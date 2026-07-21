@@ -1,9 +1,142 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_session_store.dart';
 
 /// Locally durable GPS review state awaiting explicit user confirmation.
 enum TripTrackingCloudSyncState { localOnly, pending, queued, synced, failed }
 
 enum TripTrackingCloudBackupScope { personal, organization }
+
+enum TripManualMileageAdjustmentReason {
+  missedTrip,
+  personalMiles,
+  businessMiles,
+  odometerCorrection,
+  gpsGap,
+  other,
+}
+
+enum TripManualEventType {
+  pickup,
+  dropoff,
+  workStop,
+  fuelStop,
+  loading,
+  unloading,
+  customerWait,
+  personalInterruption,
+  note,
+}
+
+class TripManualEvent {
+  const TripManualEvent({
+    required this.id,
+    required this.type,
+    required this.occurredAt,
+    required this.userConfirmed,
+    this.note,
+  });
+
+  final String id;
+  final TripManualEventType type;
+  final DateTime occurredAt;
+  final bool userConfirmed;
+  final String? note;
+
+  bool get canFinalizeTrip => false;
+  bool get canChangeMileage => false;
+
+  bool get isValid => _safeIdentifier(id).isNotEmpty && userConfirmed;
+
+  Map<String, Object?> toMap() => {
+    'id': _safeIdentifier(id),
+    'type': type.name,
+    'occurredAt': occurredAt.toUtc().toIso8601String(),
+    'userConfirmed': userConfirmed,
+    if (_optionalSafeCloudSyncError(note, maxLength: 240) != null)
+      'note': _optionalSafeCloudSyncError(note, maxLength: 240),
+    'canFinalizeTrip': false,
+    'canChangeMileage': false,
+  };
+
+  static TripManualEvent? tryFromMap(Map<dynamic, dynamic> map) {
+    final types = TripManualEventType.values.where(
+      (value) => value.name == map['type'],
+    );
+    final occurredAt = DateTime.tryParse('${map['occurredAt'] ?? ''}')?.toUtc();
+    if (types.isEmpty || occurredAt == null) return null;
+    final result = TripManualEvent(
+      id: _safeIdentifier(map['id']),
+      type: types.first,
+      occurredAt: occurredAt,
+      userConfirmed: map['userConfirmed'] == true,
+      note: _optionalSafeCloudSyncError(map['note'], maxLength: 240),
+    );
+    return result.isValid ? result : null;
+  }
+}
+
+class TripManualMileageAdjustment {
+  const TripManualMileageAdjustment({
+    required this.id,
+    required this.deltaMiles,
+    required this.reason,
+    required this.createdAt,
+    required this.userConfirmed,
+    this.note,
+  });
+
+  final String id;
+  final double deltaMiles;
+  final TripManualMileageAdjustmentReason reason;
+  final DateTime createdAt;
+  final bool userConfirmed;
+  final String? note;
+
+  bool get canRewriteConfirmedOdometer => false;
+
+  bool get isValid =>
+      _safeIdentifier(id).isNotEmpty &&
+      deltaMiles.isFinite &&
+      deltaMiles.abs() <= 100000 &&
+      userConfirmed;
+
+  Map<String, Object?> toMap() => {
+    'id': _safeIdentifier(id),
+    'deltaMiles': deltaMiles,
+    'reason': reason.name,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'userConfirmed': userConfirmed,
+    if (_optionalSafeCloudSyncError(note, maxLength: 240) != null)
+      'note': _optionalSafeCloudSyncError(note, maxLength: 240),
+    'canRewriteConfirmedOdometer': false,
+  };
+
+  static TripManualMileageAdjustment? tryFromMap(Map<dynamic, dynamic> map) {
+    final reasons = TripManualMileageAdjustmentReason.values.where(
+      (value) => value.name == map['reason'],
+    );
+    final createdAt = DateTime.tryParse('${map['createdAt'] ?? ''}')?.toUtc();
+    final delta = map['deltaMiles'];
+    final result = TripManualMileageAdjustment(
+      id: _safeIdentifier(map['id']),
+      deltaMiles: delta is num ? delta.toDouble() : double.nan,
+      reason: reasons.isEmpty
+          ? TripManualMileageAdjustmentReason.other
+          : reasons.first,
+      createdAt:
+          createdAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      userConfirmed: map['userConfirmed'] == true,
+      note: _optionalSafeCloudSyncError(map['note'], maxLength: 240),
+    );
+    return reasons.isNotEmpty && createdAt != null && result.isValid
+        ? result
+        : null;
+  }
+}
+
+enum TripTrackingTripLogProposalState { pending, submitted }
+
+enum TripOdometerUsageDayClassification { regular, exceptional, outOfTown }
 
 class TripTrackingReviewRecord {
   const TripTrackingReviewRecord({
@@ -12,6 +145,7 @@ class TripTrackingReviewRecord {
     required this.startingOdometer,
     required this.estimatedEndingOdometer,
     required this.profile,
+    this.profileId = '',
     required this.startedAt,
     required this.finishedAt,
     required this.engineSnapshot,
@@ -23,6 +157,18 @@ class TripTrackingReviewRecord {
     this.cloudSyncedAt,
     this.confirmedEndingOdometer,
     this.odometerConfirmedAt,
+    this.endingOdometerDraft,
+    this.manualAdjustments = const [],
+    this.advisories = const [],
+    this.tripEvents = const [],
+    this.transitionAudits = const [],
+    this.batteryStateSummary,
+    this.permissionHistory = const [],
+    this.recoveryCount = 0,
+    this.tripLogProposalState = TripTrackingTripLogProposalState.pending,
+    this.tripLogProposalAttemptCount = 0,
+    this.tripLogProposalLastAttemptAt,
+    this.usageDayClassification = TripOdometerUsageDayClassification.regular,
     this.schemaVersion = 1,
     this.hasValidTimeline = true,
   });
@@ -32,6 +178,10 @@ class TripTrackingReviewRecord {
   final int startingOdometer;
   final int estimatedEndingOdometer;
   final TripTrackingProfile profile;
+  final String profileId;
+  String get effectiveProfileId => _safeIdentifier(profileId).isEmpty
+      ? profile.name
+      : _safeIdentifier(profileId);
   final DateTime startedAt;
   final DateTime finishedAt;
   final TripTrackingEngineSnapshot engineSnapshot;
@@ -46,6 +196,18 @@ class TripTrackingReviewRecord {
   final DateTime? cloudSyncedAt;
   final int? confirmedEndingOdometer;
   final DateTime? odometerConfirmedAt;
+  final int? endingOdometerDraft;
+  final List<TripManualMileageAdjustment> manualAdjustments;
+  final List<TripTrackingAdvisoryEvent> advisories;
+  final List<TripManualEvent> tripEvents;
+  final List<TripTrackingSessionTransitionAudit> transitionAudits;
+  final TripTrackingBatteryStateSummary? batteryStateSummary;
+  final List<TripTrackingPermissionEvidence> permissionHistory;
+  final int recoveryCount;
+  final TripTrackingTripLogProposalState tripLogProposalState;
+  final int tripLogProposalAttemptCount;
+  final DateTime? tripLogProposalLastAttemptAt;
+  final TripOdometerUsageDayClassification usageDayClassification;
   final int schemaVersion;
 
   /// False only for a persisted record whose required timeline could not be
@@ -69,6 +231,19 @@ class TripTrackingReviewRecord {
     DateTime? cloudSyncedAt,
     int? confirmedEndingOdometer,
     DateTime? odometerConfirmedAt,
+    int? endingOdometerDraft,
+    bool clearEndingOdometerDraft = false,
+    List<TripManualMileageAdjustment>? manualAdjustments,
+    List<TripTrackingAdvisoryEvent>? advisories,
+    List<TripManualEvent>? tripEvents,
+    List<TripTrackingSessionTransitionAudit>? transitionAudits,
+    TripTrackingBatteryStateSummary? batteryStateSummary,
+    List<TripTrackingPermissionEvidence>? permissionHistory,
+    int? recoveryCount,
+    TripTrackingTripLogProposalState? tripLogProposalState,
+    int? tripLogProposalAttemptCount,
+    DateTime? tripLogProposalLastAttemptAt,
+    TripOdometerUsageDayClassification? usageDayClassification,
   }) {
     final effectiveScope = cloudBackupScope ?? this.cloudBackupScope;
     final effectiveOrganizationId =
@@ -83,6 +258,7 @@ class TripTrackingReviewRecord {
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: profile,
+      profileId: effectiveProfileId,
       startedAt: startedAt,
       finishedAt: finishedAt,
       engineSnapshot: engineSnapshot,
@@ -102,6 +278,29 @@ class TripTrackingReviewRecord {
       confirmedEndingOdometer:
           confirmedEndingOdometer ?? this.confirmedEndingOdometer,
       odometerConfirmedAt: odometerConfirmedAt ?? this.odometerConfirmedAt,
+      endingOdometerDraft: clearEndingOdometerDraft
+          ? null
+          : endingOdometerDraft ?? this.endingOdometerDraft,
+      manualAdjustments: List.unmodifiable(
+        manualAdjustments ?? this.manualAdjustments,
+      ),
+      advisories: List.unmodifiable(advisories ?? this.advisories),
+      tripEvents: List.unmodifiable(tripEvents ?? this.tripEvents),
+      transitionAudits: List.unmodifiable(
+        transitionAudits ?? this.transitionAudits,
+      ),
+      batteryStateSummary: batteryStateSummary ?? this.batteryStateSummary,
+      permissionHistory: List.unmodifiable(
+        permissionHistory ?? this.permissionHistory,
+      ),
+      recoveryCount: recoveryCount ?? this.recoveryCount,
+      tripLogProposalState: tripLogProposalState ?? this.tripLogProposalState,
+      tripLogProposalAttemptCount:
+          tripLogProposalAttemptCount ?? this.tripLogProposalAttemptCount,
+      tripLogProposalLastAttemptAt:
+          tripLogProposalLastAttemptAt ?? this.tripLogProposalLastAttemptAt,
+      usageDayClassification:
+          usageDayClassification ?? this.usageDayClassification,
       schemaVersion: schemaVersion,
       hasValidTimeline: hasValidTimeline,
     );
@@ -113,6 +312,7 @@ class TripTrackingReviewRecord {
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
+    'profileId': effectiveProfileId,
     'startedAt': startedAt.toIso8601String(),
     'finishedAt': finishedAt.toIso8601String(),
     'engineSnapshot': engineSnapshot.toMap(),
@@ -135,6 +335,39 @@ class TripTrackingReviewRecord {
       ),
     if (odometerConfirmedAt != null)
       'odometerConfirmedAt': odometerConfirmedAt!.toUtc().toIso8601String(),
+    if (_optionalPersistedOdometerValue(endingOdometerDraft) != null)
+      'endingOdometerDraft': _optionalPersistedOdometerValue(
+        endingOdometerDraft,
+      ),
+    'manualAdjustments': manualAdjustments
+        .where((item) => item.isValid)
+        .map((item) => item.toMap())
+        .toList(growable: false),
+    'advisories': advisories
+        .map((item) => item.toMap())
+        .toList(growable: false),
+    'tripEvents': tripEvents
+        .where((item) => item.isValid)
+        .map((item) => item.toMap())
+        .toList(growable: false),
+    'transitionAudits': _boundedTransitionAudits(
+      transitionAudits,
+    ).map((item) => item.toMap()).toList(growable: false),
+    'batteryStateSummary': batteryStateSummary?.toMap(),
+    'permissionHistory': permissionHistory
+        .takeLast(24)
+        .map((item) => item.toMap())
+        .toList(growable: false),
+    'recoveryCount': recoveryCount < 0 ? 0 : recoveryCount,
+    'tripLogProposalState': tripLogProposalState.name,
+    'tripLogProposalAttemptCount': tripLogProposalAttemptCount < 0
+        ? 0
+        : tripLogProposalAttemptCount,
+    if (tripLogProposalLastAttemptAt != null)
+      'tripLogProposalLastAttemptAt': tripLogProposalLastAttemptAt!
+          .toUtc()
+          .toIso8601String(),
+    'usageDayClassification': usageDayClassification.name,
     'schemaVersion': schemaVersion,
   };
 
@@ -150,6 +383,10 @@ class TripTrackingReviewRecord {
     final hasValidProfile = _hasKnownEnumName(
       map['profile'],
       TripTrackingProfile.values.map((value) => value.name),
+    );
+    final safeProfile = TripTrackingProfile.values.firstWhere(
+      (value) => value.name == map['profile'],
+      orElse: () => TripTrackingProfile.roadVehicle,
     );
     final hasValidCloudSyncState = _hasMissingOrKnownEnumName(
       map,
@@ -175,6 +412,67 @@ class TripTrackingReviewRecord {
     final odometerConfirmedAt = DateTime.tryParse(
       '${map['odometerConfirmedAt'] ?? ''}',
     );
+    final endingOdometerDraft = _optionalPersistedOdometerValue(
+      map['endingOdometerDraft'],
+    );
+    final manualAdjustments = map['manualAdjustments'] is Iterable
+        ? (map['manualAdjustments'] as Iterable)
+              .whereType<Map>()
+              .map(TripManualMileageAdjustment.tryFromMap)
+              .whereType<TripManualMileageAdjustment>()
+              .toList(growable: false)
+        : const <TripManualMileageAdjustment>[];
+    final advisories = map['advisories'] is Iterable
+        ? (map['advisories'] as Iterable)
+              .whereType<Map>()
+              .map(TripTrackingAdvisoryEvent.fromMap)
+              .where(
+                (event) =>
+                    event.sessionId == id &&
+                    event.vehicleId == vehicleId &&
+                    startedAt != null &&
+                    finishedAt != null &&
+                    !event.detectedAt.isBefore(startedAt) &&
+                    !event.detectedAt.isAfter(finishedAt),
+              )
+              .toList(growable: false)
+        : const <TripTrackingAdvisoryEvent>[];
+    final tripEvents = map['tripEvents'] is Iterable
+        ? (map['tripEvents'] as Iterable)
+              .whereType<Map>()
+              .map(TripManualEvent.tryFromMap)
+              .whereType<TripManualEvent>()
+              .where(
+                (event) =>
+                    startedAt != null &&
+                    finishedAt != null &&
+                    !event.occurredAt.isBefore(startedAt) &&
+                    !event.occurredAt.isAfter(finishedAt),
+              )
+              .toList(growable: false)
+        : const <TripManualEvent>[];
+    final transitionAudits =
+        _transitionAuditsFromMapValue(
+              map['transitionAudits'],
+              sessionId: id,
+              vehicleId: vehicleId,
+              profile: safeProfile,
+              startedAt:
+                  startedAt ??
+                  DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+            )
+            .where(
+              (event) =>
+                  finishedAt == null ||
+                  !event.eventTimestamp.isAfter(finishedAt),
+            )
+            .toList(growable: false);
+    final batteryStateSummary = TripTrackingBatteryStateSummary.tryFromMap(
+      map['batteryStateSummary'],
+    );
+    final permissionHistory = _permissionHistoryFromMap(
+      map['permissionHistory'],
+    );
     final hasValidConfirmation =
         (confirmedEndingOdometer == null && odometerConfirmedAt == null) ||
         (confirmedEndingOdometer != null &&
@@ -187,10 +485,15 @@ class TripTrackingReviewRecord {
       vehicleId: vehicleId,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
-      profile: TripTrackingProfile.values.firstWhere(
-        (value) => value.name == map['profile'],
-        orElse: () => TripTrackingProfile.roadVehicle,
-      ),
+      profile: safeProfile,
+      profileId: _safeIdentifier(map['profileId']).isEmpty
+          ? TripTrackingProfile.values
+                .firstWhere(
+                  (value) => value.name == map['profile'],
+                  orElse: () => TripTrackingProfile.roadVehicle,
+                )
+                .name
+          : _safeIdentifier(map['profileId']),
       startedAt:
           startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       finishedAt:
@@ -205,6 +508,29 @@ class TripTrackingReviewRecord {
       cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
       confirmedEndingOdometer: confirmedEndingOdometer,
       odometerConfirmedAt: odometerConfirmedAt,
+      endingOdometerDraft: endingOdometerDraft,
+      manualAdjustments: manualAdjustments,
+      advisories: advisories,
+      tripEvents: tripEvents,
+      transitionAudits: transitionAudits,
+      batteryStateSummary: batteryStateSummary,
+      permissionHistory: permissionHistory,
+      recoveryCount: _safeRecoveryCount(map['recoveryCount']),
+      tripLogProposalState: TripTrackingTripLogProposalState.values.firstWhere(
+        (value) => value.name == map['tripLogProposalState'],
+        orElse: () => TripTrackingTripLogProposalState.pending,
+      ),
+      tripLogProposalAttemptCount: _safeRecoveryCount(
+        map['tripLogProposalAttemptCount'],
+      ),
+      tripLogProposalLastAttemptAt: DateTime.tryParse(
+        '${map['tripLogProposalLastAttemptAt'] ?? ''}',
+      )?.toUtc(),
+      usageDayClassification: TripOdometerUsageDayClassification.values
+          .firstWhere(
+            (value) => value.name == map['usageDayClassification'],
+            orElse: () => TripOdometerUsageDayClassification.regular,
+          ),
       cloudBackupScope: cloudBackupScope,
       cloudOrganizationId:
           cloudBackupScope == TripTrackingCloudBackupScope.organization

@@ -34,7 +34,6 @@ import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
-import 'shared/trip_tracking/trip_tracking_firebase_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
 import 'shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -128,7 +127,6 @@ Future<void> main() async {
   final durableRecordStore = await MaintainiacDurableRecordStore.create(
     'maintainiac_durable_records',
   );
-  TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror();
   DashboardFirestoreMirror? dashboardMirror;
   if (firebaseSupported && userProfiles.activeProfile.id.trim().isNotEmpty) {
     final queueStore = await MaintainiacFirestoreUploadQueueStore.create();
@@ -141,44 +139,11 @@ Future<void> main() async {
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
     );
-    cloudMirror = TripTrackingFirebaseMirror(
-      queueStore: queueStore,
-      uploadCoordinator: uploadCoordinator,
-      localStore: tripTrackingStore,
-      orgId: operationalContext.context.companyId.isEmpty
-          ? null
-          : operationalContext.context.companyId,
-      personal: operationalContext.context.companyId.isEmpty,
-      createdByUid: FirebaseAuth.instance.currentUser?.uid,
-      firebaseAuth: FirebaseAuth.instance,
-      backupEnabled: () => userProfiles.activeProfile.cloudBackupEnabled,
-      organizationSharingEnabled: () =>
-          tripTrackingSettings.settings.organizationMileageSharingEnabled,
-    );
-    Future<void> syncCloudBackupConsent() async {
-      if (userProfiles.activeProfile.cloudBackupEnabled) {
-        if (!tripTrackingSettings.settings.organizationMileageSharingEnabled) {
-          await cloudMirror.withdrawOrganizationSharingConsent();
-        }
-        await cloudMirror.flushPending();
-      } else {
-        await cloudMirror.withdrawBackupConsent();
-      }
-    }
-
-    unawaited(syncCloudBackupConsent());
-    userProfiles.addListener(() {
-      unawaited(syncCloudBackupConsent());
-    });
-    tripTrackingSettings.addListener(() {
-      unawaited(syncCloudBackupConsent());
-    });
   }
   final tripTracking = TripTrackingController(
     sessionStore: tripTrackingStore,
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
-    cloudMirror: cloudMirror,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
   );
   await tripTracking.restore();

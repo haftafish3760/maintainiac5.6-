@@ -11,15 +11,19 @@ class TripTrackingBluetoothVehicleLink {
     required this.vehicleId,
     required this.createdAt,
     this.displayName = '',
+    this.schemaVersion = 1,
   });
 
   final String deviceId;
   final String vehicleId;
   final DateTime createdAt;
   final String displayName;
+  final int schemaVersion;
 
   bool get isValid =>
-      _safeId(deviceId).isNotEmpty && _safeId(vehicleId).isNotEmpty;
+      schemaVersion == 1 &&
+      _safeId(deviceId).isNotEmpty &&
+      _safeId(vehicleId).isNotEmpty;
 
   /// The device identifier is never displayed or sent off-device.  This key is
   /// deliberately normalized only for local de-duplication; platform adapters
@@ -27,6 +31,7 @@ class TripTrackingBluetoothVehicleLink {
   String get normalizedDeviceId => _safeId(deviceId);
 
   Map<String, Object?> toMap() => {
+    'schemaVersion': 1,
     'deviceId': normalizedDeviceId,
     'vehicleId': _safeId(vehicleId),
     'createdAt': createdAt.toIso8601String(),
@@ -45,15 +50,23 @@ class TripTrackingBluetoothVehicleLink {
     'rawBluetoothPayloadIncluded': false,
   };
 
-  factory TripTrackingBluetoothVehicleLink.fromMap(Map<dynamic, dynamic> map) =>
-      TripTrackingBluetoothVehicleLink(
-        deviceId: _safeId(map['deviceId']),
-        vehicleId: _safeId(map['vehicleId']),
-        createdAt:
-            DateTime.tryParse('${map['createdAt'] ?? ''}') ??
-            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-        displayName: _safeDisplayName(map['displayName']),
-      );
+  factory TripTrackingBluetoothVehicleLink.fromMap(Map<dynamic, dynamic> map) {
+    final rawSchemaVersion = map['schemaVersion'];
+    final schemaVersion = rawSchemaVersion == null
+        ? 1
+        : rawSchemaVersion is int
+        ? rawSchemaVersion
+        : 0;
+    return TripTrackingBluetoothVehicleLink(
+      deviceId: _safeId(map['deviceId']),
+      vehicleId: _safeId(map['vehicleId']),
+      createdAt:
+          DateTime.tryParse('${map['createdAt'] ?? ''}') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      displayName: _safeDisplayName(map['displayName']),
+      schemaVersion: schemaVersion,
+    );
+  }
 }
 
 /// Local-only, user-approved Bluetooth-to-vehicle associations.
@@ -152,7 +165,9 @@ enum BluetoothVehicleMatchDisposition {
   recognitionDisabled,
   requiresUserConfirmation,
   automaticSwitchAllowed,
+  alreadyActiveVehicle,
   blockedByActiveTrip,
+  blockedByUnfinishedSession,
 }
 
 class BluetoothVehicleMatchDecision {
@@ -190,11 +205,15 @@ BluetoothVehicleMatchDecision resolveBluetoothVehicleMatchDecision({
   required TripTrackingSettings settings,
   required TripTrackingBluetoothVehicleLink? link,
   required bool hasActiveGpsTrip,
+  bool hasUnfinishedStoredSession = false,
+  String? activeVehicleId,
 }) {
   final disposition = resolveBluetoothVehicleMatch(
     settings: settings,
     link: link,
     hasActiveGpsTrip: hasActiveGpsTrip,
+    hasUnfinishedStoredSession: hasUnfinishedStoredSession,
+    activeVehicleId: activeVehicleId,
   );
   return BluetoothVehicleMatchDecision(
     disposition: disposition,
@@ -211,6 +230,8 @@ BluetoothVehicleMatchDisposition resolveBluetoothVehicleMatch({
   required TripTrackingSettings settings,
   required TripTrackingBluetoothVehicleLink? link,
   required bool hasActiveGpsTrip,
+  bool hasUnfinishedStoredSession = false,
+  String? activeVehicleId,
 }) {
   if (!settings.bluetoothVehicleRecognitionEnabled ||
       link == null ||
@@ -219,8 +240,16 @@ BluetoothVehicleMatchDisposition resolveBluetoothVehicleMatch({
         ? BluetoothVehicleMatchDisposition.noMatch
         : BluetoothVehicleMatchDisposition.recognitionDisabled;
   }
+  if (hasActiveGpsTrip &&
+      _safeId(activeVehicleId).isNotEmpty &&
+      _safeId(activeVehicleId) == _safeId(link.vehicleId)) {
+    return BluetoothVehicleMatchDisposition.alreadyActiveVehicle;
+  }
   if (hasActiveGpsTrip) {
     return BluetoothVehicleMatchDisposition.blockedByActiveTrip;
+  }
+  if (hasUnfinishedStoredSession) {
+    return BluetoothVehicleMatchDisposition.blockedByUnfinishedSession;
   }
   return settings.automaticVehicleSwitchEnabled
       ? BluetoothVehicleMatchDisposition.automaticSwitchAllowed
@@ -236,7 +265,11 @@ String _safeMatchReason(BluetoothVehicleMatchDisposition disposition) {
       'bluetooth_vehicle_requires_confirmation',
     BluetoothVehicleMatchDisposition.automaticSwitchAllowed =>
       'bluetooth_vehicle_auto_switch_allowed',
+    BluetoothVehicleMatchDisposition.alreadyActiveVehicle =>
+      'bluetooth_vehicle_already_active',
     BluetoothVehicleMatchDisposition.blockedByActiveTrip =>
       'bluetooth_switch_blocked_by_active_gps_trip',
+    BluetoothVehicleMatchDisposition.blockedByUnfinishedSession =>
+      'bluetooth_switch_blocked_by_unfinished_session',
   };
 }

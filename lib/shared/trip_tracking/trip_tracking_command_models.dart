@@ -7,6 +7,7 @@ enum TripTrackingDashboardCommand {
   addPickupReview,
   addDropoffReview,
   endTripForOdometerReview,
+  cancelActiveTrip,
   reviewMileage,
 }
 

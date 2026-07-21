@@ -1,4 +1,112 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_session_store.dart';
+
+/// Last locally observed battery context that influenced GPS collection.
+/// It is recovery evidence only and has no mileage authority.
+class TripTrackingBatteryStateSummary {
+  const TripTrackingBatteryStateSummary({
+    required this.observedAt,
+    required this.batteryPercent,
+    required this.isCharging,
+    required this.lowPowerModeEnabled,
+    required this.allowsGps,
+    required this.reasonCode,
+  });
+
+  final DateTime observedAt;
+  final int? batteryPercent;
+  final bool isCharging;
+  final bool lowPowerModeEnabled;
+  final bool allowsGps;
+  final String reasonCode;
+
+  Map<String, Object?> toMap() => {
+    'observedAt': observedAt.toUtc().toIso8601String(),
+    'batteryPercent': batteryPercent,
+    'isCharging': isCharging,
+    'lowPowerModeEnabled': lowPowerModeEnabled,
+    'allowsGps': allowsGps,
+    'reasonCode': reasonCode,
+    'authoritativeForMileage': false,
+  };
+
+  static TripTrackingBatteryStateSummary? tryFromMap(Object? value) {
+    if (value is! Map) return null;
+    final observedAt = DateTime.tryParse('${value['observedAt'] ?? ''}');
+    final percent = value['batteryPercent'];
+    final reason = value['reasonCode'];
+    if (observedAt == null ||
+        (percent != null &&
+            (percent is! int || percent < 0 || percent > 100)) ||
+        value['isCharging'] is! bool ||
+        value['lowPowerModeEnabled'] is! bool ||
+        value['allowsGps'] is! bool ||
+        reason is! String ||
+        reason.isEmpty ||
+        reason.length > 80) {
+      return null;
+    }
+    return TripTrackingBatteryStateSummary(
+      observedAt: observedAt.toUtc(),
+      batteryPercent: percent as int?,
+      isCharging: value['isCharging'] as bool,
+      lowPowerModeEnabled: value['lowPowerModeEnabled'] as bool,
+      allowsGps: value['allowsGps'] as bool,
+      reasonCode: reason,
+    );
+  }
+}
+
+/// Bounded, coordinate-free permission evidence for deterministic recovery.
+class TripTrackingPermissionEvidence {
+  const TripTrackingPermissionEvidence({
+    required this.observedAt,
+    required this.state,
+    required this.preciseLocation,
+    required this.canTrackInBackground,
+    required this.source,
+  });
+
+  final DateTime observedAt;
+  final String state;
+  final bool preciseLocation;
+  final bool canTrackInBackground;
+  final String source;
+
+  Map<String, Object?> toMap() => {
+    'observedAt': observedAt.toUtc().toIso8601String(),
+    'state': state,
+    'preciseLocation': preciseLocation,
+    'canTrackInBackground': canTrackInBackground,
+    'source': source,
+    'authoritativeForMileage': false,
+  };
+
+  static TripTrackingPermissionEvidence? tryFromMap(Object? value) {
+    if (value is! Map) return null;
+    final observedAt = DateTime.tryParse('${value['observedAt'] ?? ''}');
+    final state = value['state'];
+    final source = value['source'];
+    if (observedAt == null ||
+        state is! String ||
+        state.isEmpty ||
+        state.length > 32 ||
+        source is! String ||
+        source.isEmpty ||
+        source.length > 48 ||
+        value['preciseLocation'] is! bool ||
+        value['canTrackInBackground'] is! bool) {
+      return null;
+    }
+    return TripTrackingPermissionEvidence(
+      observedAt: observedAt.toUtc(),
+      state: state,
+      preciseLocation: value['preciseLocation'] as bool,
+      canTrackInBackground: value['canTrackInBackground'] as bool,
+      source: source,
+    );
+  }
+}
 
 /// Versioned, locally durable active GPS-session state.
 class TripTrackingSessionRecord {
@@ -7,12 +115,14 @@ class TripTrackingSessionRecord {
     required this.vehicleId,
     required this.startingOdometer,
     required this.profile,
+    this.profileId = '',
     required this.startedAt,
     required this.updatedAt,
     required this.engineSnapshot,
     this.advisories = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.ready,
     this.healthState = TripTrackingHealthState.healthy,
+    this.pauseKind,
     this.backgroundTrackingAllowed = false,
     this.activityRecognitionEnabled = false,
     this.nativeSampling,
@@ -21,20 +131,36 @@ class TripTrackingSessionRecord {
     this.lowBatteryProtectionEnabled = true,
     this.lowBatteryOverrideEnabled = false,
     this.lowBatteryWarningDismissed = false,
+    this.batteryStateSummary,
+    this.permissionHistory = const [],
     this.hasValidTimeline = true,
     this.schemaVersion = 1,
+    this.revision = 1,
+    this.recoveryCount = 0,
+    this.transitionAudits = const [],
   });
 
   final String id;
   final String vehicleId;
   final int startingOdometer;
   final TripTrackingProfile profile;
+  final String profileId;
+  String get effectiveProfileId => _safeIdentifier(profileId).isEmpty
+      ? profile.name
+      : _safeIdentifier(profileId);
   final DateTime startedAt;
   final DateTime updatedAt;
   final TripTrackingEngineSnapshot engineSnapshot;
   final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
+  final TripTrackingPauseKind? pauseKind;
+  TripTrackingSessionLifecycleContractState get effectiveContractState =>
+      lifecycleState == TripTrackingSessionLifecycleState.paused
+      ? pauseKind == TripTrackingPauseKind.system
+            ? TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM
+            : TripTrackingSessionLifecycleContractState.PAUSED_BY_USER
+      : lifecycleState.toContractState();
 
   /// Locally persisted consent for a collector that survives an app restart.
   /// Missing legacy values default to false; recovery never assumes consent.
@@ -53,8 +179,13 @@ class TripTrackingSessionRecord {
   final bool lowBatteryProtectionEnabled;
   final bool lowBatteryOverrideEnabled;
   final bool lowBatteryWarningDismissed;
+  final TripTrackingBatteryStateSummary? batteryStateSummary;
+  final List<TripTrackingPermissionEvidence> permissionHistory;
   final bool hasValidTimeline;
   final int schemaVersion;
+  final int revision;
+  final int recoveryCount;
+  final List<TripTrackingSessionTransitionAudit> transitionAudits;
 
   TripTrackingSessionRecord copyWith({
     DateTime? updatedAt,
@@ -62,6 +193,8 @@ class TripTrackingSessionRecord {
     List<TripTrackingAdvisoryEvent>? advisories,
     TripTrackingSessionLifecycleState? lifecycleState,
     TripTrackingHealthState? healthState,
+    TripTrackingPauseKind? pauseKind,
+    bool clearPauseKind = false,
     bool? backgroundTrackingAllowed,
     bool? activityRecognitionEnabled,
     TripSamplingRecommendation? nativeSampling,
@@ -72,8 +205,13 @@ class TripTrackingSessionRecord {
     bool? lowBatteryProtectionEnabled,
     bool? lowBatteryOverrideEnabled,
     bool? lowBatteryWarningDismissed,
+    TripTrackingBatteryStateSummary? batteryStateSummary,
+    List<TripTrackingPermissionEvidence>? permissionHistory,
     bool? hasValidTimeline,
     int? schemaVersion,
+    int? revision,
+    int? recoveryCount,
+    List<TripTrackingSessionTransitionAudit>? transitionAudits,
   }) {
     final nextSamplingCeiling = clearSamplingCeiling
         ? null
@@ -89,12 +227,14 @@ class TripTrackingSessionRecord {
       vehicleId: vehicleId,
       startingOdometer: startingOdometer,
       profile: profile,
+      profileId: effectiveProfileId,
       startedAt: startedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       engineSnapshot: engineSnapshot ?? this.engineSnapshot,
       advisories: advisories ?? this.advisories,
       lifecycleState: lifecycleState ?? this.lifecycleState,
       healthState: healthState ?? this.healthState,
+      pauseKind: clearPauseKind ? null : pauseKind ?? this.pauseKind,
       backgroundTrackingAllowed:
           backgroundTrackingAllowed ?? this.backgroundTrackingAllowed,
       activityRecognitionEnabled:
@@ -109,8 +249,13 @@ class TripTrackingSessionRecord {
           lowBatteryOverrideEnabled ?? this.lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed:
           lowBatteryWarningDismissed ?? this.lowBatteryWarningDismissed,
+      batteryStateSummary: batteryStateSummary ?? this.batteryStateSummary,
+      permissionHistory: permissionHistory ?? this.permissionHistory,
       hasValidTimeline: hasValidTimeline ?? this.hasValidTimeline,
       schemaVersion: schemaVersion ?? this.schemaVersion,
+      revision: revision ?? this.revision,
+      recoveryCount: recoveryCount ?? this.recoveryCount,
+      transitionAudits: transitionAudits ?? this.transitionAudits,
     );
   }
 
@@ -119,6 +264,7 @@ class TripTrackingSessionRecord {
     'vehicleId': _safeIdentifier(vehicleId),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
+    'profileId': effectiveProfileId,
     'startedAt': startedAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     'engineSnapshot': engineSnapshot.toMap(),
@@ -127,6 +273,7 @@ class TripTrackingSessionRecord {
     ).map((item) => item.toMap()).toList(),
     'lifecycleState': lifecycleState.name,
     'healthState': healthState.name,
+    if (pauseKind != null) 'pauseKind': pauseKind!.name,
     'backgroundTrackingAllowed': backgroundTrackingAllowed,
     'activityRecognitionEnabled': activityRecognitionEnabled,
     'nativeSampling': _samplingToMap(nativeSampling),
@@ -135,7 +282,17 @@ class TripTrackingSessionRecord {
     'lowBatteryProtectionEnabled': lowBatteryProtectionEnabled,
     'lowBatteryOverrideEnabled': lowBatteryOverrideEnabled,
     'lowBatteryWarningDismissed': lowBatteryWarningDismissed,
+    'batteryStateSummary': batteryStateSummary?.toMap(),
+    'permissionHistory': permissionHistory
+        .takeLast(24)
+        .map((item) => item.toMap())
+        .toList(),
     'schemaVersion': schemaVersion,
+    'revision': revision,
+    'recoveryCount': recoveryCount < 0 ? 0 : recoveryCount,
+    'transitionAudits': _boundedTransitionAudits(
+      transitionAudits,
+    ).map((item) => item.toMap()).toList(),
   };
 
   factory TripTrackingSessionRecord.fromMap(Map<dynamic, dynamic> map) {
@@ -180,6 +337,9 @@ class TripTrackingSessionRecord {
       vehicleId: safeVehicleId,
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
       profile: safeProfile,
+      profileId: _safeIdentifier(map['profileId']).isEmpty
+          ? safeProfile.name
+          : _safeIdentifier(map['profileId']),
       startedAt: safeStartedAt,
       updatedAt:
           updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
@@ -204,6 +364,9 @@ class TripTrackingSessionRecord {
         (value) => value.name == map['healthState'],
         orElse: () => TripTrackingHealthState.healthy,
       ),
+      pauseKind: TripTrackingPauseKind.values
+          .where((value) => value.name == map['pauseKind'])
+          .firstOrNull,
       backgroundTrackingAllowed: map['backgroundTrackingAllowed'] == true,
       activityRecognitionEnabled: map['activityRecognitionEnabled'] == true,
       nativeSampling: nativeSampling,
@@ -215,6 +378,10 @@ class TripTrackingSessionRecord {
       lowBatteryProtectionEnabled: map['lowBatteryProtectionEnabled'] != false,
       lowBatteryOverrideEnabled: map['lowBatteryOverrideEnabled'] == true,
       lowBatteryWarningDismissed: map['lowBatteryWarningDismissed'] == true,
+      batteryStateSummary: TripTrackingBatteryStateSummary.tryFromMap(
+        map['batteryStateSummary'],
+      ),
+      permissionHistory: _permissionHistoryFromMap(map['permissionHistory']),
       hasValidTimeline:
           startedAt != null &&
           updatedAt != null &&
@@ -224,12 +391,37 @@ class TripTrackingSessionRecord {
           hasValidLifecycleState &&
           hasValidHealthState &&
           hasSupportedSchemaVersion,
+      revision: _safeTransitionRevision(map['revision']),
+      recoveryCount: _safeRecoveryCount(map['recoveryCount']),
       schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
+      transitionAudits: _transitionAuditsFromMapValue(
+        map['transitionAudits'],
+        sessionId: safeId,
+        vehicleId: safeVehicleId,
+        profile: safeProfile,
+        startedAt: safeStartedAt,
+      ),
     );
   }
 }
 
+List<TripTrackingPermissionEvidence> _permissionHistoryFromMap(Object? value) {
+  if (value is! List) return const [];
+  return value
+      .map(TripTrackingPermissionEvidence.tryFromMap)
+      .whereType<TripTrackingPermissionEvidence>()
+      .toList(growable: false)
+      .takeLast(24)
+      .toList(growable: false);
+}
+
+int _safeRecoveryCount(Object? value) {
+  if (value is! int || value < 0) return 0;
+  return value > 1000000 ? 1000000 : value;
+}
+
 const _maxPersistedAdvisories = 24;
+const _maxPersistedTransitionAudits = 32;
 
 Map<String, Object?>? _samplingToMap(TripSamplingRecommendation? sampling) {
   if (sampling == null ||
@@ -307,6 +499,85 @@ Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
   return items.takeLast(_maxPersistedAdvisories);
 }
 
+Iterable<TripTrackingSessionTransitionAudit> _boundedTransitionAudits(
+  Iterable<TripTrackingSessionTransitionAudit> audits,
+) {
+  final items = audits.toList(growable: false);
+  return items.takeLast(_maxPersistedTransitionAudits);
+}
+
+List<TripTrackingSessionTransitionAudit> _transitionAuditsFromMapValue(
+  Object? value, {
+  required String sessionId,
+  required String vehicleId,
+  required TripTrackingProfile profile,
+  required DateTime startedAt,
+}) {
+  if (value is! Iterable) return const [];
+  final ordered = value
+      .whereType<Map>()
+      .map(TripTrackingSessionTransitionAudit.fromMap)
+      .where(
+        (event) =>
+            event.schemaVersion == 1 &&
+            _transitionAuditBelongsToSession(
+              event,
+              sessionId: sessionId,
+              vehicleId: vehicleId,
+              profile: profile,
+              startedAt: startedAt,
+            ),
+      )
+      .toList(growable: false)
+      ._sortByMonotonicEvent();
+  final seenIds = <String>{};
+  final seenSequences = <int>{};
+  final unique = ordered.where(
+    (event) => seenIds.add(event.id) && seenSequences.add(event.sequenceNumber),
+  );
+  return unique
+      .toList(growable: false)
+      .takeLast(_maxPersistedTransitionAudits)
+      .toList(growable: false);
+}
+
+extension _TripTrackingTransitionAuditSort
+    on List<TripTrackingSessionTransitionAudit> {
+  List<TripTrackingSessionTransitionAudit> _sortByMonotonicEvent() {
+    sort((a, b) {
+      final sequenceDiff = a.sequenceNumber.compareTo(b.sequenceNumber);
+      if (sequenceDiff != 0) return sequenceDiff;
+      final revisionDiff = a.revision.compareTo(b.revision);
+      if (revisionDiff != 0) return revisionDiff;
+      final eventDiff = a.eventTimestamp.compareTo(b.eventTimestamp);
+      if (eventDiff != 0) return eventDiff;
+      return a.id.compareTo(b.id);
+    });
+    return this;
+  }
+}
+
+bool _transitionAuditBelongsToSession(
+  TripTrackingSessionTransitionAudit event, {
+  required String sessionId,
+  required String vehicleId,
+  required TripTrackingProfile profile,
+  required DateTime startedAt,
+}) {
+  if (event.sessionId != sessionId || event.vehicleId != vehicleId) {
+    return false;
+  }
+  if (event.profile != profile) {
+    return false;
+  }
+  final tripStart = startedAt.toUtc();
+  final eventAt = event.eventTimestamp.toUtc();
+  if (eventAt.isBefore(tripStart)) {
+    return false;
+  }
+  return !eventAt.isAfter(tripStart.add(const Duration(days: 30)));
+}
+
 List<TripTrackingAdvisoryEvent> _advisoriesFromMapValue(
   Object? value, {
   required String sessionId,
@@ -348,4 +619,10 @@ bool _advisoryBelongsToSession(
   final detectedAt = event.detectedAt.toUtc();
   if (detectedAt.isBefore(tripStart)) return false;
   return !detectedAt.isAfter(tripStart.add(const Duration(days: 30)));
+}
+
+int _safeTransitionRevision(Object? value) {
+  if (value is! num || !value.isFinite) return 1;
+  final parsed = value.toInt();
+  return parsed < 1 ? 1 : parsed;
 }

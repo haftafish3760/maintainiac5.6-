@@ -18,6 +18,7 @@ void main() {
       expect(settings.defaultProfile, TripTrackingProfile.roadVehicle);
       expect(settings.bluetoothVehicleRecognitionEnabled, isFalse);
       expect(settings.automaticVehicleSwitchEnabled, isFalse);
+      expect(settings.automaticStartAssistanceEnabled, isFalse);
       expect(settings.adaptiveSamplingEnabled, isFalse);
       expect(settings.activityRecognitionEnabled, isFalse);
       expect(settings.lowBatteryGpsProtectionEnabled, isTrue);
@@ -33,6 +34,25 @@ void main() {
       );
     },
   );
+
+  test('automatic start assistance requires GPS opt-in', () {
+    const settings = TripTrackingSettings();
+    expect(
+      settings
+          .copyWith(automaticStartAssistanceEnabled: true)
+          .automaticStartAssistanceEnabled,
+      isFalse,
+    );
+    expect(
+      settings
+          .copyWith(
+            gpsAssistedTrackingEnabled: true,
+            automaticStartAssistanceEnabled: true,
+          )
+          .automaticStartAssistanceEnabled,
+      isTrue,
+    );
+  });
 
   test(
     'automatic vehicle switching cannot be enabled without Bluetooth consent',

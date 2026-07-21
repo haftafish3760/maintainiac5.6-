@@ -34,11 +34,52 @@ class TripTrackingEngine {
   var _motionState = TripMotionState.unknown;
   var _vehicleMovementObserved = false;
   DateTime? _stationaryStartedAt;
+  final List<TripTrackingSignalGap> _signalGaps = [];
+  TripInitialFixAssessment? _initialFixAssessment;
+  final List<TripInitialFixAssessment> _initialFixHistory = [];
   var _diagnostics = const TripTrackingDiagnostics();
 
   double get totalAcceptedMeters => _totalAcceptedMeters;
   bool get needsWalkingReview => _walkingReviewSuggested;
   TripMotionState get motionState => _motionState;
+  TripStopCandidate? get currentStopCandidate => snapshot.currentStopCandidate;
+  List<TripTrackingSignalGap> get signalGaps => List.unmodifiable(_signalGaps);
+  TripInitialFixAssessment? get initialFixAssessment => _initialFixAssessment;
+  List<TripInitialFixAssessment> get initialFixHistory =>
+      List.unmodifiable(_initialFixHistory);
+
+  void recordInitialFixAssessment(TripInitialFixAssessment? assessment) {
+    _initialFixAssessment = assessment;
+    if (assessment == null) return;
+    _initialFixHistory.add(assessment);
+    if (_initialFixHistory.length > 8) _initialFixHistory.removeAt(0);
+  }
+
+  bool beginSignalGap(
+    DateTime startedAt, {
+    required TripTrackingSignalGapReason reason,
+  }) {
+    if (_signalGaps.isNotEmpty && _signalGaps.last.isOpen) return false;
+    var safeStartedAt = startedAt.toUtc();
+    final lastObservedAt = _lastObservedAt?.toUtc();
+    if (lastObservedAt != null && safeStartedAt.isBefore(lastObservedAt)) {
+      safeStartedAt = lastObservedAt;
+    }
+    _signalGaps.add(
+      TripTrackingSignalGap(startedAt: safeStartedAt, reason: reason),
+    );
+    return true;
+  }
+
+  bool completeSignalGap(DateTime endedAt) {
+    if (_signalGaps.isEmpty || !_signalGaps.last.isOpen) return false;
+    final safeEndedAt = endedAt.toUtc();
+    final openGap = _signalGaps.last;
+    if (safeEndedAt.isBefore(openGap.startedAt)) return false;
+    _signalGaps[_signalGaps.length - 1] = openGap.closeAt(safeEndedAt);
+    return true;
+  }
+
   bool get odometerIsGlobalTruth => true;
   bool get calibrationRequiresTrustedGpsWindow => true;
   bool get poorGpsDaysExcludedFromCalibration => true;
@@ -105,6 +146,9 @@ class TripTrackingEngine {
     lastContinuousMonotonicElapsedNanos: _lastContinuousMonotonicElapsedNanos,
     totalAcceptedMeters: _totalAcceptedMeters,
     walkingEvidence: List.unmodifiable(_walkingEvidence),
+    signalGaps: List.unmodifiable(_signalGaps),
+    initialFixAssessment: _initialFixAssessment,
+    initialFixHistory: List.unmodifiable(_initialFixHistory),
     walkingReviewSuggested: _walkingReviewSuggested,
     motionState: _motionState,
     vehicleMovementObserved: _vehicleMovementObserved,

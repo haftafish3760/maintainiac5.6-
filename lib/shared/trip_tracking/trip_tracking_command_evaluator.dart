@@ -1,5 +1,9 @@
 part of 'trip_tracking_command_policy.dart';
 
+// odometerIsGlobalTruth: true. Commands are policy gates; they never override
+// or replace official odometer truth and only route to the mandatory review flow.
+const bool odometerIsGlobalTruth = true;
+
 class TripTrackingCommandPolicy {
   const TripTrackingCommandPolicy._();
 
@@ -29,6 +33,7 @@ class TripTrackingCommandPolicy {
         context,
         'dropoff_review_ready',
       ),
+      TripTrackingDashboardCommand.cancelActiveTrip => _cancelActiveTrip(context),
       TripTrackingDashboardCommand.endTripForOdometerReview => _endTrip(
         context,
       ),
@@ -85,6 +90,22 @@ TripTrackingCommandDecision _reviewEvent(
     reasonCode: reasonCode,
     gpsTrackingRequested: context.deviceConsentDecision.canStartGpsTracking,
     requiresStopReview: true,
+    warning: _storageWarning(context),
+  );
+}
+
+TripTrackingCommandDecision _cancelActiveTrip(
+  TripTrackingCommandContext context,
+) {
+  if (!context.activeTripInProgress || !context.localSessionAvailable) {
+    return _blocked(context, 'active_local_trip_required');
+  }
+  return _allowed(
+    context,
+    reasonCode: context.userConfirmedAction
+        ? 'trip_cancel_confirmed'
+        : 'trip_cancel_ready',
+    gpsTrackingRequested: false,
     warning: _storageWarning(context),
   );
 }
@@ -193,6 +214,7 @@ bool _requiresLocalSession(TripTrackingDashboardCommand command) {
     TripTrackingDashboardCommand.addStopReview ||
     TripTrackingDashboardCommand.addPickupReview ||
     TripTrackingDashboardCommand.addDropoffReview ||
+    TripTrackingDashboardCommand.cancelActiveTrip ||
     TripTrackingDashboardCommand.endTripForOdometerReview ||
     TripTrackingDashboardCommand.reviewMileage => true,
   };
@@ -209,6 +231,8 @@ String _safeReason(String value) {
     'pickup_review_ready' ||
     'dropoff_review_ready' ||
     'end_trip_requires_odometer_review' ||
+    'trip_cancel_ready' ||
+    'trip_cancel_confirmed' ||
     'odometer_review_ready' ||
     'remote_or_third_party_command_not_authorized' ||
     'local_text_record_storage_blocked' ||

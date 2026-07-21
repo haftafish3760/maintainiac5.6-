@@ -115,6 +115,8 @@ class TripTrackingSessionStore {
 
   static const boxName = 'active_gps_trip_tracking_session';
   static const _activeSessionKey = 'activeSession';
+  static const _previousSessionKey = 'previousCommittedSession';
+  static const _pendingSessionWriteKey = 'pendingSessionWrite';
   static const _reviewPrefix = 'review:';
   static const _pendingPrefix = 'pending:';
 
@@ -123,7 +125,7 @@ class TripTrackingSessionStore {
   final Map<String, TripTrackingReviewRecord> _memoryReviews = {};
   final Map<String, TripTrackingPendingSample> _memoryPending = {};
   final TripTrackingSessionStorageCheck? _storageCheck;
-  Future<void> _writeTail = Future<void>.value();
+  static Future<void> _sharedWriteTail = Future<void>.value();
 
   static Future<TripTrackingSessionStore> create({
     TripTrackingSessionStorageCheck? storageCheck,
@@ -134,9 +136,23 @@ class TripTrackingSessionStore {
 
   TripTrackingSessionRecord? get activeSession {
     final value = _box == null ? _memorySession : _box.get(_activeSessionKey);
-    if (value is TripTrackingSessionRecord) return value;
-    if (value is Map) return TripTrackingSessionRecord.fromMap(value);
-    return null;
+    final active = _validSessionFromValue(value);
+    if (active != null) return active;
+    return _box == null
+        ? null
+        : _validSessionFromValue(_box.get(_previousSessionKey));
+  }
+
+  TripTrackingPendingWriteState get pendingWriteState {
+    if (_box == null) return TripTrackingPendingWriteState.none;
+    final pendingValue = _box.get(_pendingSessionWriteKey);
+    if (pendingValue == null) return TripTrackingPendingWriteState.none;
+    final pending = _validSessionFromValue(pendingValue);
+    if (pending == null) return TripTrackingPendingWriteState.malformed;
+    final active = _validSessionFromValue(_box.get(_activeSessionKey));
+    return active != null && active.revision >= pending.revision
+        ? TripTrackingPendingWriteState.committedCleanupPending
+        : TripTrackingPendingWriteState.interrupted;
   }
 
   List<TripTrackingReviewRecord> get pendingReviews {
@@ -182,7 +198,46 @@ class TripTrackingSessionStore {
     return null;
   }
 
-  Future<void> save(TripTrackingSessionRecord session) => _enqueue(() async {
+  Future<void> save(TripTrackingSessionRecord session) =>
+      _enqueue(() => _saveSession(session));
+
+  Future<bool> createIfNoSessionEvidence(
+    TripTrackingSessionRecord session,
+  ) async {
+    final reserved = await _enqueue(() async {
+      final hasEvidence = _box == null
+          ? _memorySession != null
+          : _box.containsKey(_activeSessionKey) ||
+                _box.containsKey(_previousSessionKey) ||
+                _box.containsKey(_pendingSessionWriteKey);
+      if (hasEvidence) return false;
+      if (_box == null) {
+        _memorySession = session;
+      } else {
+        await _box.put(_pendingSessionWriteKey, session.toMap());
+      }
+      return true;
+    });
+    if (!reserved) return false;
+    try {
+      // Preserve dynamic dispatch so test and platform stores can enforce their
+      // normal write behavior after this store-wide atomic reservation.
+      await save(session);
+      return true;
+    } catch (_) {
+      await _releaseFailedMemoryReservation(session.id);
+      rethrow;
+    }
+  }
+
+  Future<void> _releaseFailedMemoryReservation(String sessionId) =>
+      _enqueue(() async {
+        if (_box == null && _memorySession?.id == sessionId) {
+          _memorySession = null;
+        }
+      });
+
+  Future<void> _saveSession(TripTrackingSessionRecord session) async {
     if (!_isSafeStoreIdentifier(session.id)) {
       throw ArgumentError.value(
         session.id,
@@ -214,15 +269,56 @@ class TripTrackingSessionStore {
     }
     if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
-      _memorySession = session;
+      final boundedTransitionAudits = _boundedTransitionAudits(
+        session.transitionAudits,
+      ).toList();
+      _memorySession =
+          session.transitionAudits.length == boundedTransitionAudits.length
+          ? session
+          : TripTrackingSessionRecord(
+              id: session.id,
+              vehicleId: session.vehicleId,
+              startingOdometer: session.startingOdometer,
+              profile: session.profile,
+              profileId: session.effectiveProfileId,
+              startedAt: session.startedAt,
+              updatedAt: session.updatedAt,
+              engineSnapshot: session.engineSnapshot,
+              advisories: session.advisories,
+              lifecycleState: session.lifecycleState,
+              healthState: session.healthState,
+              backgroundTrackingAllowed: session.backgroundTrackingAllowed,
+              activityRecognitionEnabled: session.activityRecognitionEnabled,
+              nativeSampling: session.nativeSampling,
+              samplingCeiling: session.samplingCeiling,
+              adaptiveSamplingEnabled: session.adaptiveSamplingEnabled,
+              lowBatteryProtectionEnabled: session.lowBatteryProtectionEnabled,
+              lowBatteryOverrideEnabled: session.lowBatteryOverrideEnabled,
+              lowBatteryWarningDismissed: session.lowBatteryWarningDismissed,
+              hasValidTimeline: session.hasValidTimeline,
+              schemaVersion: session.schemaVersion,
+              revision: session.revision,
+              recoveryCount: session.recoveryCount,
+              transitionAudits: boundedTransitionAudits,
+            );
     } else {
-      await _box.put(_activeSessionKey, session.toMap());
+      final next = session.toMap();
+      final current = _box.get(_activeSessionKey);
+      final writes = <String, Object?>{_pendingSessionWriteKey: next};
+      if (current != null) writes[_previousSessionKey] = current;
+      await _box.putAll(writes);
+      await _box.put(_activeSessionKey, next);
+      await _box.delete(_pendingSessionWriteKey);
     }
-  });
+  }
 
   Future<void> clear() => _enqueue(() async {
     _memorySession = null;
-    await _box?.delete(_activeSessionKey);
+    await _box?.deleteAll([
+      _activeSessionKey,
+      _previousSessionKey,
+      _pendingSessionWriteKey,
+    ]);
   });
 
   TripTrackingPendingSample? pendingSampleFor(String sessionId) {
@@ -328,14 +424,37 @@ class TripTrackingSessionStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
-    if (_box == null && _storageCheck == null) return operation();
-    final next = _writeTail.then((_) => operation());
-    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    final next = _sharedWriteTail.then((_) => operation());
+    _sharedWriteTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
 
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.mileageTracking);
+}
+
+enum TripTrackingPendingWriteState {
+  none,
+  interrupted,
+  committedCleanupPending,
+  malformed,
+}
+
+TripTrackingSessionRecord? _validSessionFromValue(Object? value) {
+  final session = value is TripTrackingSessionRecord
+      ? value
+      : value is Map
+      ? TripTrackingSessionRecord.fromMap(value)
+      : null;
+  if (session == null ||
+      !session.hasValidTimeline ||
+      !_isSafeStoreIdentifier(session.id) ||
+      !_isSafeStoreIdentifier(session.vehicleId) ||
+      session.startingOdometer < 0 ||
+      session.updatedAt.isBefore(session.startedAt)) {
+    return null;
+  }
+  return session;
 }
 
 bool _isSafePendingSessionId(Object? value) =>

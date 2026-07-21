@@ -96,6 +96,7 @@ void main() {
         reviewId: currentReview.id,
         confirmedEndingOdometer: 1700,
         confirmedAt: currentReview.finishedAt.add(const Duration(minutes: 5)),
+        userAcknowledgedReviewPrompt: true,
       );
 
       expect(confirmed, isTrue);

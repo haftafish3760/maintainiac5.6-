@@ -180,6 +180,7 @@ void main() {
     expect((map['deviceId'] as String), hasLength(160));
     expect((map['vehicleId'] as String), hasLength(160));
     expect((map['displayName'] as String), hasLength(80));
+    expect(map['schemaVersion'], 1);
     expect(map['deviceId'], isNot(contains('\n')));
     expect(map['vehicleId'], isNot(contains('\t')));
     expect(map['displayName'], isNot(contains('\n')));
@@ -207,6 +208,32 @@ void main() {
 
     expect(link.createdAt, DateTime.fromMillisecondsSinceEpoch(0, isUtc: true));
   });
+
+  test(
+    'Bluetooth link schema migrates legacy and rejects future versions',
+    () async {
+      final legacy = TripTrackingBluetoothVehicleLink.fromMap({
+        'deviceId': 'legacy-head-unit',
+        'vehicleId': 'vehicle_1',
+        'createdAt': DateTime.utc(2026, 7, 13, 8).toIso8601String(),
+      });
+      final future = TripTrackingBluetoothVehicleLink.fromMap({
+        'schemaVersion': 2,
+        'deviceId': 'future-head-unit',
+        'vehicleId': 'vehicle_1',
+        'createdAt': DateTime.utc(2026, 7, 13, 8).toIso8601String(),
+      });
+
+      expect(legacy.schemaVersion, 1);
+      expect(legacy.isValid, isTrue);
+      expect(future.schemaVersion, 2);
+      expect(future.isValid, isFalse);
+      await expectLater(
+        TripTrackingBluetoothVehicleLinkStore.memory().save(future),
+        throwsArgumentError,
+      );
+    },
+  );
 
   test('Bluetooth lookups and removals use normalized local ids', () async {
     final store = TripTrackingBluetoothVehicleLinkStore.memory();

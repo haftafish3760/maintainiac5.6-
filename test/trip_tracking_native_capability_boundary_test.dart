@@ -109,6 +109,7 @@ void main() {
           initialReading: 1000,
         ),
         platform: native,
+        clockNow: () => startedAt.add(const Duration(seconds: 20)),
       );
       addTearDown(controller.dispose);
 

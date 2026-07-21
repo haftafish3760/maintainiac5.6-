@@ -1,3 +1,4 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_controller.dart';
 
 /// Stops, pauses, and checks native collection while retaining local TripLog
@@ -92,7 +93,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
             state != AppLifecycleState.detached)) {
       return;
     }
-    await _stopNativeTracking();
+    await _stopNativeTracking(interrupted: true);
   });
 
   /// Reconciles the expected native collector after an app resume. This never
@@ -159,6 +160,8 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
         await _tryTransitionSession(
           TripTrackingSessionLifecycleState.degraded,
           health: TripTrackingHealthState.reduced,
+          source: 'heartbeat_watchdog',
+          reasonCode: 'heartbeat_stale',
         );
         notifyListeners();
         break;
@@ -178,6 +181,8 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
   Future<void> _stopNativeTracking({bool interrupted = false}) async {
     final platform = _platform;
     final wasNativeTracking = _nativeTracking;
+    final engine = _engine;
+    final engineBeforeGap = engine?.snapshot;
     if (wasNativeTracking) _nativeStopRequested = true;
     if (platform != null && wasNativeTracking) {
       try {
@@ -197,6 +202,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     // final credible sample cannot be dropped before review is recorded.
     await _platformEventQueue;
     _nativeTracking = false;
+    _awaitingInitialFix = false;
     _nativeSampling = null;
     _nativeSamplingPlan = null;
     _lastNativeHeartbeatUtc = null;
@@ -210,7 +216,31 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
         _session?.lifecycleState ==
             TripTrackingSessionLifecycleState.degraded) {
-      await _tryTransitionSession(TripTrackingSessionLifecycleState.paused);
+      if (wasNativeTracking && engine != null) {
+        engine.beginSignalGap(
+          _clockNow(),
+          reason: interrupted
+              ? TripTrackingSignalGapReason.systemPause
+              : TripTrackingSignalGapReason.userPause,
+        );
+      }
+      final transitioned = await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.paused,
+        pauseKind: interrupted
+            ? TripTrackingPauseKind.system
+            : TripTrackingPauseKind.user,
+        source: 'native_stop_tracking',
+        reasonCode: interrupted
+            ? 'native_tracking_interrupted_stop'
+            : 'native_tracking_stopped',
+      );
+      if (!transitioned && engineBeforeGap != null) {
+        _engine = TripTrackingEngine.fromSnapshot(
+          engineBeforeGap,
+          policy: engine!.policy,
+          profile: engine.profile,
+        );
+      }
     }
     notifyListeners();
   }

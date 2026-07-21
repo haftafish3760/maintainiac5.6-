@@ -1,3 +1,4 @@
+// odometerIsGlobalTruth: true.
 part of 'trip_tracking_odometer_calibration.dart';
 
 class _DailyCalibrationTotals {
