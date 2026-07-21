@@ -14,6 +14,7 @@ class TripTrackingTripLogProposal {
   final TripTrackingReviewRecord review;
 
   String get proposalId => review.id;
+  int get reviewRevision => review.revision;
   String get vehicleId => review.vehicleId;
   String get profileId => review.effectiveProfileId;
   DateTime get startedAt => review.startedAt;
@@ -29,8 +30,9 @@ class TripTrackingTripLogProposal {
   bool get canConfirmMileage => false;
 
   Map<String, Object?> toMap() => {
-    'schemaVersion': 1,
+    'schemaVersion': 2,
     'proposalId': proposalId,
+    'reviewRevision': reviewRevision,
     'vehicleId': vehicleId,
     'profileId': profileId,
     'startedAt': startedAt.toUtc().toIso8601String(),

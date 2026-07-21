@@ -51,6 +51,9 @@ void main() {
       expect(proposal.requiresTripLogConfirmation, isTrue);
       expect(proposal.canFinalizeTripLog, isFalse);
       expect(proposal.canConfirmMileage, isFalse);
+      expect(proposal.reviewRevision, review.revision);
+      expect(proposal.toMap()['schemaVersion'], 2);
+      expect(proposal.toMap()['reviewRevision'], review.revision);
       expect(proposal.toMap()['coordinatesIncluded'], isFalse);
       expect(review.confirmedEndingOdometer, isNull);
       final saved = store.reviewForTrip('trip_log_proposal')!;
@@ -104,6 +107,10 @@ void main() {
     expect(await controller.retryTripLogProposal('trip_log_retry'), isTrue);
     expect(controller.tripLogProposalError, isNull);
     expect(sink.proposals, hasLength(1));
+    expect(
+      sink.proposals.single.reviewRevision,
+      store.reviewForTrip('trip_log_retry')!.revision - 1,
+    );
     expect(
       store.reviewForTrip('trip_log_retry')!.tripLogProposalState,
       TripTrackingTripLogProposalState.submitted,
