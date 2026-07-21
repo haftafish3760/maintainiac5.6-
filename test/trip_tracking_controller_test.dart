@@ -3822,6 +3822,66 @@ void main() {
   );
 
   test(
+    'native walking evidence persists across sparse location callbacks',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_sparse_native_walking_stop',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.moving,
+        maxPumps: 48,
+      );
+      for (final seconds in [30, 45, 60]) {
+        native.addActivity(
+          TripActivityObservation(
+            activity: TripActivity.walking,
+            confidence: 95,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          ),
+        );
+      }
+      await drainNativeTripEventsUntil(
+        () =>
+            (store.activeSession?.engineSnapshot.walkingEvidence.length ?? 0) ==
+            3,
+        maxPumps: 48,
+      );
+
+      native.addLocation(sample(-79.9997, 60));
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.stopped,
+        maxPumps: 48,
+      );
+
+      expect(controller.motionState, TripMotionState.stopped);
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+    },
+  );
+
+  test(
     'native traffic delay without walking evidence is not a completed stop',
     () async {
       final native = _FakeTripTrackingPlatform(

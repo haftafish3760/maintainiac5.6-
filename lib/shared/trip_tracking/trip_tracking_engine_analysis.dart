@@ -215,6 +215,17 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
             stationaryConflict) &&
         _vehicleMovementObserved) {
       _stationaryStartedAt ??= sample.recordedAt;
+      // Motion callbacks can arrive more often than location callbacks while
+      // the vehicle is stationary. Previously, that buffered, time-spaced
+      // walking evidence was ignored unless another walking callback happened
+      // to share this exact GPS sample. A stationary fix may now evaluate the
+      // already-validated evidence; it remains review-only and never adds
+      // vehicle distance or changes odometer truth.
+      if (_strategy.usesWalkingStopEvidence &&
+          _hasWalkingStopEvidence(sample.recordedAt)) {
+        _motionState = TripMotionState.stopped;
+        return;
+      }
       final stationaryStartedAt = _stationaryStartedAt;
       if (_walkingEvidence.isEmpty &&
           stationaryStartedAt != null &&

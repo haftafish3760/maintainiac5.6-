@@ -1226,6 +1226,32 @@ void main() {
     },
   );
 
+  test('buffered walking evidence survives sparse location callbacks', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+
+    for (final seconds in [30, 45, 60]) {
+      expect(
+        engine.recordActivityEvidence(
+          walking(seconds),
+          observedAt: start.add(Duration(seconds: seconds)),
+        ),
+        isTrue,
+      );
+    }
+    final decision = engine.ingest(sample(-79.9997, 60));
+
+    expect(decision.walkingReviewSuggested, isTrue);
+    expect(engine.motionState, TripMotionState.stopped);
+    expect(engine.totalAcceptedMeters, greaterThan(0));
+  });
+
   test('a traffic light without walking evidence is not an actual stop', () {
     final engine = TripTrackingEngine();
     final automotive = TripActivityObservation(

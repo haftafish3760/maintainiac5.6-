@@ -70,6 +70,32 @@ class TripTrackingEngine {
     }
   }
 
+  /// Retains a validated native motion observation until the next location
+  /// sample can evaluate it against stationary GPS evidence. Motion remains
+  /// advisory-only: this never changes distance, odometer truth, or TripLog.
+  bool recordActivityEvidence(
+    TripActivityObservation activity, {
+    required DateTime observedAt,
+  }) {
+    final eventAt = activity.recordedAt.toUtc();
+    final referenceAt = observedAt.toUtc();
+    final confirmationWindow = _safePositiveDuration(
+      policy.walkingConfirmationWindow,
+      _defaultWalkingConfirmationWindow,
+    );
+    if (activity.confidence < 0 ||
+        activity.confidence > 100 ||
+        eventAt.isAfter(referenceAt.add(policy.maximumFutureSampleSkew)) ||
+        referenceAt.difference(eventAt) > confirmationWindow) {
+      return false;
+    }
+    final priorCount = _walkingEvidence.length;
+    final priorReview = _walkingReviewSuggested;
+    _recordActivity(activity, observedAt: referenceAt);
+    return priorCount != _walkingEvidence.length ||
+        priorReview != _walkingReviewSuggested;
+  }
+
   TripTrackingEngineSnapshot get snapshot => TripTrackingEngineSnapshot(
     lastAccepted: _lastAccepted,
     lastObservedAt: _lastObservedAt,

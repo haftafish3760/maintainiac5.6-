@@ -105,6 +105,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             // confirmed that the device can provide it.
             if (!_nativeTracking || !_activityRecognitionEnabled) return;
             _latestActivity = event.activity;
+            await _persistNativeActivityEvidence(event.activity!);
           } else if (event.type ==
                   TripTrackingPlatformEventType.authorization &&
               event.authorization != null) {
@@ -261,6 +262,43 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
           _platformError = 'GPS event could not be processed safely.';
           notifyListeners();
         });
+  }
+
+  Future<void> _persistNativeActivityEvidence(
+    TripActivityObservation activity,
+  ) async {
+    final session = _session;
+    final engine = _engine;
+    if (session == null || engine == null) return;
+    final activityAt = activity.recordedAt.toUtc();
+    if (activityAt.isBefore(session.startedAt.toUtc()) ||
+        activityAt.isAfter(
+          _clockNow().toUtc().add(engine.policy.maximumFutureSampleSkew),
+        )) {
+      return;
+    }
+    final previousSnapshot = engine.snapshot;
+    if (!engine.recordActivityEvidence(activity, observedAt: activityAt)) {
+      return;
+    }
+    final updatedAt = activityAt.isAfter(session.updatedAt.toUtc())
+        ? activityAt
+        : session.updatedAt;
+    final updatedSession = session.copyWith(
+      updatedAt: updatedAt,
+      engineSnapshot: engine.snapshot,
+    );
+    try {
+      await _sessionStore.save(updatedSession);
+      _session = updatedSession;
+      notifyListeners();
+    } catch (_) {
+      _engine = TripTrackingEngine.fromSnapshot(
+        previousSnapshot,
+        policy: engine.policy,
+        profile: engine.profile,
+      );
+    }
   }
 
   void _scheduleRuntimeBatterySafetyCheck() {
