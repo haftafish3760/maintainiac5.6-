@@ -2693,6 +2693,89 @@ void main() {
     },
   );
 
+  test(
+    'foreground tracking survives a background-only permission downgrade',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_foreground_permission_downgrade',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.addAuthorization(
+        const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.whileInUse,
+          preciseLocation: true,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.nativeTracking, isTrue);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.active,
+      );
+      expect(native.stopCalls, isZero);
+    },
+  );
+
+  test(
+    'background permission downgrade interrupts an active background trip',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_active_background_permission_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+
+      native.addAuthorization(
+        const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.whileInUse,
+          preciseLocation: true,
+        ),
+      );
+      await drainNativeTripEventsUntil(
+        () => controller.nativeTracking == false,
+        maxPumps: 48,
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(controller.healthState, TripTrackingHealthState.interrupted);
+      expect(native.stopCalls, 1);
+      expect(
+        controller.platformError,
+        contains('Background location permission'),
+      );
+    },
+  );
+
   test('duplicate fatal platform errors issue one native stop', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TripTrackingController(
