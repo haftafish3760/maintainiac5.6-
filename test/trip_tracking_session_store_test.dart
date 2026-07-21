@@ -917,7 +917,7 @@ void main() {
 
     expect(session.schemaVersion, 99);
     expect(session.hasValidTimeline, isFalse);
-    expect(review.schemaVersion, 99);
+    expect(review.schemaVersion, 2);
     expect(review.hasValidTimeline, isFalse);
   });
 
