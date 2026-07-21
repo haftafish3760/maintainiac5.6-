@@ -1942,6 +1942,24 @@ void main() {
     expect(restored.motionState, TripMotionState.unknown);
   });
 
+  test('direct recovery retains a fresh corroborated walking stop', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot(
+        lastAccepted: sample(-79.9997, 60),
+        lastObservedAt: start.add(const Duration(seconds: 60)),
+        totalAcceptedMeters: 17,
+        vehicleMovementObserved: true,
+        walkingReviewSuggested: true,
+        motionState: TripMotionState.stopped,
+        walkingEvidence: [walking(30), walking(45), walking(60)],
+      ),
+    );
+
+    expect(restored.snapshot.walkingEvidence, hasLength(3));
+    expect(restored.needsWalkingReview, isTrue);
+    expect(restored.motionState, TripMotionState.stopped);
+  });
+
   test('direct recovery input cannot restore a future stationary start', () {
     final restored = TripTrackingEngine.fromSnapshot(
       TripTrackingEngineSnapshot(
