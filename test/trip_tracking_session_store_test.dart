@@ -1019,6 +1019,42 @@ void main() {
     expect(store.reviewForTrip(' trip_bad_key '), isNull);
   });
 
+  test('review revisions reject stale or conflicting overwrites', () async {
+    final store = TripTrackingSessionStore.memory();
+    final review = TripTrackingReviewRecord(
+      id: 'trip_review_revision_guard',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1001,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 14, 12),
+      finishedAt: DateTime.utc(2026, 7, 14, 13),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 1609.344,
+        walkingReviewSuggested: false,
+      ),
+      revision: 3,
+    );
+    await store.saveReview(review);
+    await store.saveReview(review);
+
+    await expectLater(
+      store.saveReview(review.copyWith(revision: 2, endingOdometerDraft: 1001)),
+      throwsStateError,
+    );
+    await expectLater(
+      store.saveReview(review.copyWith(revision: 3, endingOdometerDraft: 1001)),
+      throwsStateError,
+    );
+    expect(store.reviewForTrip(review.id)?.endingOdometerDraft, isNull);
+
+    await store.saveReview(
+      review.copyWith(revision: 4, endingOdometerDraft: 1001),
+    );
+    expect(store.reviewForTrip(review.id)?.revision, 4);
+    expect(store.reviewForTrip(review.id)?.endingOdometerDraft, 1001);
+  });
+
   test(
     'invalid restored reviews cannot be saved back into the store',
     () async {

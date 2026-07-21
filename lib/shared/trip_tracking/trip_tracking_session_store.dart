@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
@@ -407,6 +409,17 @@ class TripTrackingSessionStore {
             'review',
             'Trip reviews require a sane timeline and odometer range.',
           );
+        }
+        final existing = reviewForTrip(review.id);
+        if (existing != null) {
+          if (review.revision < existing.revision ||
+              (review.revision == existing.revision &&
+                  jsonEncode(review.toMap()) != jsonEncode(existing.toMap()))) {
+            throw StateError(
+              'A stale trip review cannot overwrite newer local evidence.',
+            );
+          }
+          if (review.revision == existing.revision) return;
         }
         if (_storageCheck != null) await _ensureStorageForWrite();
         if (_box == null) {
