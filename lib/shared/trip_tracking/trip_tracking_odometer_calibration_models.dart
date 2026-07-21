@@ -1,0 +1,486 @@
+part of 'trip_tracking_odometer_calibration.dart';
+
+enum TripOdometerCalibrationStatus {
+  insufficientHistory,
+  stable,
+  reviewRecommended,
+}
+
+class TripOdometerCalibrationSignal {
+  const TripOdometerCalibrationSignal({
+    required this.status,
+    required this.eligibleSampleCount,
+    required this.averageGpsToOdometerRatio,
+    required this.averageDifferencePercent,
+    required this.reasonCode,
+    this.differenceSpreadPercent = 0,
+    this.trustedGpsWindowCount,
+    this.excludedPoorGpsDayCount = 0,
+  });
+
+  final TripOdometerCalibrationStatus status;
+  final int eligibleSampleCount;
+  final double averageGpsToOdometerRatio;
+  final double averageDifferencePercent;
+  final double differenceSpreadPercent;
+  final String reasonCode;
+  final int? trustedGpsWindowCount;
+  final int excludedPoorGpsDayCount;
+
+  bool get canOverwriteConfirmedOdometer => false;
+
+  bool get shouldPromptUser =>
+      status == TripOdometerCalibrationStatus.reviewRecommended;
+
+  bool get maySuggestTireOrSpeedometerReview =>
+      shouldPromptUser &&
+      averageDifferencePercent.isFinite &&
+      averageDifferencePercent >= 4;
+
+  String get userReviewPrompt {
+    if (!maySuggestTireOrSpeedometerReview) return '';
+    final direction = averageGpsToOdometerRatio > 1
+        ? 'higher than'
+        : 'lower than';
+    return 'GPS-assisted mileage has been consistently $direction your confirmed odometer mileage across $eligibleSampleCount reviewed driving days. Review tire size, speedometer calibration, or GPS settings before applying any advisory calibration.';
+  }
+
+  Map<String, Object?> toSafeDashboardMap() => {
+    'schemaVersion': 1,
+    'status': status.name,
+    'eligibleSampleCount': eligibleSampleCount < 0 ? 0 : eligibleSampleCount,
+    'trustedGpsWindowCount': _safeCount(
+      trustedGpsWindowCount ?? eligibleSampleCount,
+    ),
+    'excludedPoorGpsDayCount': _safeCount(excludedPoorGpsDayCount),
+    'averageDifferencePercent': _safeRoundedPercent(averageDifferencePercent),
+    'differenceSpreadPercent': _safeRoundedPercent(differenceSpreadPercent),
+    'reasonCode': _safeCalibrationReason(reasonCode),
+    'shouldPromptUser': _safeCalibrationShouldPrompt(
+      status: status,
+      reasonCode: reasonCode,
+    ),
+    'maySuggestTireOrSpeedometerReview':
+        _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
+        maySuggestTireOrSpeedometerReview,
+    'tireSizeReviewSuggested':
+        _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
+        maySuggestTireOrSpeedometerReview,
+    'speedometerCalibrationReviewSuggested':
+        _safeCalibrationShouldPrompt(status: status, reasonCode: reasonCode) &&
+        maySuggestTireOrSpeedometerReview,
+    'canOverwriteConfirmedOdometer': false,
+    'calibrationCanSetGlobalTruth': false,
+    'calibrationCanChangeGlobalTruth': false,
+    'calibrationCanConfirmOfficialMileage': false,
+    'calibrationRequiresUserOptIn': true,
+    'calibrationRequiresMultipleReviewedTrips': true,
+    'continuousCalibrationAverageRequired': true,
+    'poorGpsDaysExcludedFromCalibration': true,
+    'calibrationRequiresTrustedGpsWindow': true,
+    'controllerRequiresTrustedSignalDiagnostics': true,
+    'unknownSignalDiagnosticsFailNeutralInController': true,
+    'poorGpsDaysCannotCountAsTrustedWindow': true,
+    'unknownSignalDiagnosticsCannotCountAsTrustedWindow': true,
+    'unknownSignalDiagnosticsExcludedByDefault': true,
+    'excludedPoorGpsCannotBecomeCalibrationProof': true,
+    'singleDayCalibrationRejected': true,
+    'calibrationRequiresVehicleScopedHistory': true,
+    'calibrationCanRewritePastTrips': false,
+    'canApplySilently': false,
+    'gpsAssistCanOnlyScaleFutureProjectionAfterOptIn': true,
+    'calibrationCanChangeDisplayedConfirmedMiles': false,
+    'calibrationCanMutateTripLog': false,
+    'calibrationCanLowerConfirmedOdometer': false,
+    'calibrationCanCreateMaintenanceRecord': false,
+    'mapboxRouteDistanceCanBecomeOfficial': false,
+    'calibrationTrustedAfterReviewedHistoryOnly': true,
+    'remoteHistoryCanCreateCalibration': false,
+    'remoteCalibrationCanApplySilently': false,
+    'remoteCalibrationCanEnableSetting': false,
+    'remoteCalibrationCanResetPrompt': false,
+    'firestoreCanOverrideCalibration': false,
+    'mapboxRouteCanCreateCalibration': false,
+    'mapboxCanOverrideCalibration': false,
+    'mapboxCanTriggerTirePrompt': false,
+    'gpsCanAutoApplyCalibration': false,
+    'gpsAssistanceCalibrationMultiplier': _safeRoundedMultiplier(
+      gpsAssistanceCalibrationMultiplier,
+    ),
+    'odometerIsGlobalTruth': true,
+    'odometerRemainsCanonical': true,
+    'physicalOdometerRequiredForOfficialMileage': true,
+    'confirmedOdometerOverridesExternalMileage': true,
+    'externalMileageCannotBecomeGlobalTruth': true,
+    'gpsDistanceCanOnlyAdviseMileageReview': true,
+    'mapMatchingCanOnlyAdviseMileageReview': true,
+    'optimizationCannotChangeOfficialMileage': true,
+    'gpsAssistAdvisoryOnly': true,
+    'mapboxAssistAdvisoryOnly': true,
+    'rawReviewedTripsIncluded': false,
+    'rawLocationIncluded': false,
+    'tokensIncluded': false,
+  };
+
+  double get gpsAssistanceCalibrationMultiplier {
+    if (!averageGpsToOdometerRatio.isFinite || averageGpsToOdometerRatio <= 0) {
+      return 1;
+    }
+    return (1 / averageGpsToOdometerRatio)
+        .clamp(
+          _minimumGpsAssistanceCalibrationMultiplier,
+          _maximumGpsAssistanceCalibrationMultiplier,
+        )
+        .toDouble();
+  }
+
+  static TripOdometerCalibrationSignal evaluate({
+    required Iterable<TripOdometerReconciliation> history,
+    int minimumSamples = 7,
+    double minimumOdometerMiles = 5,
+    double reviewDifferencePercent = 4,
+    double maximumDifferenceSpreadPercent = 5,
+    double maximumEligibleDifferencePercent = 25,
+    int excludedPoorGpsDayCount = 0,
+  }) {
+    if (minimumSamples <= 0 ||
+        minimumOdometerMiles <= 0 ||
+        !minimumOdometerMiles.isFinite ||
+        !reviewDifferencePercent.isFinite ||
+        reviewDifferencePercent < 0 ||
+        !maximumDifferenceSpreadPercent.isFinite ||
+        maximumDifferenceSpreadPercent < 0 ||
+        !maximumEligibleDifferencePercent.isFinite ||
+        maximumEligibleDifferencePercent < reviewDifferencePercent) {
+      return const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: 0,
+        trustedGpsWindowCount: 0,
+        excludedPoorGpsDayCount: 0,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'invalid_calibration_threshold',
+      );
+    }
+
+    final eligible = <MapEntry<TripOdometerReconciliation, double>>[];
+    for (final sample in history) {
+      final recomputedDifferencePercent =
+          _recomputedCalibrationDifferencePercent(sample);
+      if (sample.status == TripOdometerReconciliationStatus.invalid ||
+          !isTrustedCalibrationGpsWindow(sample) ||
+          !sample.confirmedOdometerDeltaMiles.isFinite ||
+          sample.confirmedOdometerDeltaMiles < minimumOdometerMiles ||
+          !sample.filteredGpsMiles.isFinite ||
+          sample.filteredGpsMiles <= 0 ||
+          recomputedDifferencePercent == null ||
+          recomputedDifferencePercent > maximumEligibleDifferencePercent) {
+        continue;
+      }
+      eligible.add(MapEntry(sample, recomputedDifferencePercent));
+    }
+    if (eligible.length < minimumSamples) {
+      return TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: eligible.length,
+        trustedGpsWindowCount: eligible.length,
+        excludedPoorGpsDayCount: _safeCount(excludedPoorGpsDayCount),
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'needs_more_reviewed_days',
+      );
+    }
+
+    var odometerMilesTotal = 0.0;
+    var gpsMilesTotal = 0.0;
+    var differenceMilesTotal = 0.0;
+    var smallestDifferencePercent = double.infinity;
+    var largestDifferencePercent = 0.0;
+    for (final entry in eligible) {
+      final sample = entry.key;
+      odometerMilesTotal += sample.confirmedOdometerDeltaMiles;
+      gpsMilesTotal += sample.filteredGpsMiles;
+      differenceMilesTotal +=
+          (sample.confirmedOdometerDeltaMiles - sample.filteredGpsMiles).abs();
+      smallestDifferencePercent = math.min(
+        smallestDifferencePercent,
+        entry.value,
+      );
+      largestDifferencePercent = math.max(
+        largestDifferencePercent,
+        entry.value,
+      );
+    }
+    final averageRatio = gpsMilesTotal / odometerMilesTotal;
+    final averagePercent = (differenceMilesTotal / odometerMilesTotal) * 100;
+    final differenceSpreadPercent =
+        (largestDifferencePercent - smallestDifferencePercent)
+            .clamp(0, 100)
+            .toDouble();
+    final persistentSameDirection =
+        eligible.every(
+          (entry) =>
+              entry.key.filteredGpsMiles >
+              entry.key.confirmedOdometerDeltaMiles,
+        ) ||
+        eligible.every(
+          (entry) =>
+              entry.key.filteredGpsMiles <
+              entry.key.confirmedOdometerDeltaMiles,
+        );
+
+    final consistentDifference =
+        differenceSpreadPercent <= maximumDifferenceSpreadPercent;
+    final shouldReview =
+        persistentSameDirection &&
+        consistentDifference &&
+        averagePercent >= reviewDifferencePercent;
+    return TripOdometerCalibrationSignal(
+      status: shouldReview
+          ? TripOdometerCalibrationStatus.reviewRecommended
+          : TripOdometerCalibrationStatus.stable,
+      eligibleSampleCount: eligible.length,
+      trustedGpsWindowCount: eligible.length,
+      excludedPoorGpsDayCount: _safeCount(excludedPoorGpsDayCount),
+      averageGpsToOdometerRatio: averageRatio,
+      averageDifferencePercent: averagePercent,
+      differenceSpreadPercent: differenceSpreadPercent,
+      reasonCode: shouldReview
+          ? 'persistent_gps_odometer_drift'
+          : !consistentDifference
+          ? 'gps_odometer_variance_too_high'
+          : 'calibration_stable',
+    );
+  }
+
+  static TripOdometerCalibrationSignal evaluateConfirmedReviews({
+    required Iterable<TripTrackingReviewRecord> reviews,
+    String? vehicleId,
+    DateTime? nowUtc,
+    int minimumSamples = 7,
+    int maximumReviewedDays = 30,
+    int? recentCalibrationDays,
+    double minimumOdometerMiles = 5,
+    double reviewDifferencePercent = 4,
+    double maximumEligibleDifferencePercent = 25,
+    bool requireTrustedSignalDiagnostics = true,
+    Map<String, TripGpsDependabilityRollupDecision>
+        dailyGpsDependabilityRollups =
+        const {},
+  }) {
+    final calibrationWindowDays = recentCalibrationDays ?? minimumSamples;
+    if (maximumReviewedDays < minimumSamples ||
+        calibrationWindowDays < minimumSamples ||
+        calibrationWindowDays > maximumReviewedDays) {
+      return const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: 0,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'invalid_calibration_threshold',
+      );
+    }
+    final requestedVehicleId = vehicleId?.trim();
+    final trustedNowUtc = nowUtc?.toUtc();
+    final oldestEligibleStartedAtUtc = trustedNowUtc?.subtract(
+      Duration(days: maximumReviewedDays),
+    );
+    final confirmedReviews = reviews
+        .where(
+          (review) =>
+              review.isOdometerConfirmed &&
+              review.hasValidTimeline &&
+              (trustedNowUtc == null ||
+                  !review.odometerConfirmedAt!.toUtc().isAfter(
+                    trustedNowUtc,
+                  )) &&
+              (oldestEligibleStartedAtUtc == null ||
+                  !review.startedAt.toUtc().isBefore(
+                    oldestEligibleStartedAtUtc,
+                  )) &&
+              review.vehicleId.trim().isNotEmpty &&
+              (requestedVehicleId == null ||
+                  requestedVehicleId.isEmpty ||
+                  review.vehicleId.trim() == requestedVehicleId),
+        )
+        .toList(growable: false);
+    final vehicleIds = confirmedReviews
+        .map((review) => review.vehicleId.trim())
+        .toSet();
+    if ((requestedVehicleId == null || requestedVehicleId.isEmpty) &&
+        vehicleIds.length > 1) {
+      return const TripOdometerCalibrationSignal(
+        status: TripOdometerCalibrationStatus.insufficientHistory,
+        eligibleSampleCount: 0,
+        averageGpsToOdometerRatio: 1,
+        averageDifferencePercent: 0,
+        reasonCode: 'mixed_vehicle_calibration_history',
+      );
+    }
+
+    final dailyTotals = <String, _DailyCalibrationTotals>{};
+    final poorGpsDayKeys = <String>{};
+    for (final review in confirmedReviews) {
+      final dayKey = _calibrationDayKey(review.startedAt.toUtc());
+      final gpsRollup = dailyGpsDependabilityRollups[dayKey];
+      if (gpsRollup != null && !gpsRollup.canUseForCalibrationEvidence) {
+        poorGpsDayKeys.add(dayKey);
+        dailyTotals.remove(dayKey);
+        continue;
+      }
+      final reconciliation = TripOdometerReconciliation.compare(
+        review: review,
+        confirmedEndingOdometer: review.confirmedEndingOdometer!,
+      );
+      if (reconciliation.status == TripOdometerReconciliationStatus.invalid) {
+        continue;
+      }
+      if (!_reviewHasTrustedCalibrationGpsWindow(
+        review,
+        reconciliation,
+        requireTrustedSignalDiagnostics: requireTrustedSignalDiagnostics,
+      )) {
+        poorGpsDayKeys.add(dayKey);
+        dailyTotals.remove(dayKey);
+        continue;
+      }
+      if (poorGpsDayKeys.contains(dayKey)) {
+        continue;
+      }
+      dailyTotals
+          .putIfAbsent(dayKey, _DailyCalibrationTotals.new)
+          .add(reconciliation);
+    }
+    final recentDayKeys = dailyTotals.keys.toList(growable: false)..sort();
+    final boundedDayKeys = recentDayKeys.length > maximumReviewedDays
+        ? recentDayKeys.skip(recentDayKeys.length - maximumReviewedDays)
+        : recentDayKeys;
+    // A vehicle can change tires or have its speedometer recalibrated. Keep a
+    // multi-day minimum, but use the newest trusted cohort so stale history
+    // cannot mask a persistent new odometer/GPS relationship indefinitely.
+    final calibrationDayKeys = boundedDayKeys.length > calibrationWindowDays
+        ? boundedDayKeys.skip(boundedDayKeys.length - calibrationWindowDays)
+        : boundedDayKeys;
+    final reconciliations = calibrationDayKeys.map(
+      (key) => dailyTotals[key]!.toReconciliation(),
+    );
+    return evaluate(
+      history: reconciliations,
+      minimumSamples: minimumSamples,
+      minimumOdometerMiles: minimumOdometerMiles,
+      reviewDifferencePercent: reviewDifferencePercent,
+      maximumEligibleDifferencePercent: maximumEligibleDifferencePercent,
+      excludedPoorGpsDayCount: poorGpsDayKeys.length,
+    );
+  }
+
+  static bool isTrustedCalibrationGpsWindow(
+    TripOdometerReconciliation sample, {
+    double minimumAcceptedMiles = 5,
+  }) {
+    if (!minimumAcceptedMiles.isFinite || minimumAcceptedMiles <= 0) {
+      return false;
+    }
+    if (sample.status == TripOdometerReconciliationStatus.invalid ||
+        !sample.filteredGpsMiles.isFinite ||
+        sample.filteredGpsMiles < minimumAcceptedMiles) {
+      return false;
+    }
+    final recomputedDifferencePercent = _recomputedCalibrationDifferencePercent(
+      sample,
+    );
+    return recomputedDifferencePercent != null;
+  }
+}
+
+double _safeRoundedPercent(double value) {
+  if (!value.isFinite || value < 0) return 0;
+  return (value * 10).round() / 10;
+}
+
+int _safeCount(int value) => value < 0
+    ? 0
+    : value > 366
+    ? 366
+    : value;
+
+double _safeRoundedMultiplier(double value) {
+  if (!value.isFinite || value <= 0) return 1;
+  return double.parse(value.toStringAsFixed(4));
+}
+
+String _safeCalibrationReason(String value) {
+  final clean = value.trim();
+  return switch (clean) {
+    'invalid_calibration_threshold' => clean,
+    'needs_more_reviewed_days' => clean,
+    'mixed_vehicle_calibration_history' => clean,
+    'persistent_gps_odometer_drift' => clean,
+    'gps_odometer_variance_too_high' => clean,
+    'calibration_stable' => clean,
+    _ => 'unknown_calibration_state',
+  };
+}
+
+bool _safeCalibrationShouldPrompt({
+  required TripOdometerCalibrationStatus status,
+  required String reasonCode,
+}) =>
+    status == TripOdometerCalibrationStatus.reviewRecommended &&
+    _safeCalibrationReason(reasonCode) == 'persistent_gps_odometer_drift';
+
+bool _reviewHasTrustedCalibrationGpsWindow(
+  TripTrackingReviewRecord review,
+  TripOdometerReconciliation reconciliation, {
+  required bool requireTrustedSignalDiagnostics,
+}) {
+  if (!TripOdometerCalibrationSignal.isTrustedCalibrationGpsWindow(
+    reconciliation,
+  )) {
+    return false;
+  }
+  final diagnostics = review.engineSnapshot.diagnostics;
+  final received = diagnostics.receivedSamples;
+  final accepted = diagnostics.acceptedSamples;
+  if (received <= 0) return !requireTrustedSignalDiagnostics;
+  if (accepted <= 0 || accepted > received) return false;
+  final acceptanceRatio = accepted / received;
+  final rejectedAccuracy =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedAccuracy] ??
+      0;
+  final rejectedMock =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedMockLocation] ??
+      0;
+  final rejectedInvalid =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedInvalid] ?? 0;
+  final rejectedFuture =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedFutureTimestamp] ??
+      0;
+  final rejectedOutOfOrder =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedOutOfOrder] ??
+      0;
+  final rejectedImplausibleSpeed =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedImplausibleSpeed] ??
+      0;
+  final rejectedSpeedConflict =
+      diagnostics.dispositionCounts[TripSampleDisposition
+          .rejectedSpeedConflict] ??
+      0;
+  final rejectedGap =
+      diagnostics.dispositionCounts[TripSampleDisposition.rejectedGap] ?? 0;
+  final criticalRejected =
+      rejectedMock +
+      rejectedInvalid +
+      rejectedFuture +
+      rejectedOutOfOrder +
+      rejectedImplausibleSpeed +
+      rejectedSpeedConflict +
+      rejectedGap;
+  if (criticalRejected > 0) return false;
+  final hardRejected = rejectedAccuracy + criticalRejected;
+  if (hardRejected > 0 && hardRejected / received > .2) return false;
+  return acceptanceRatio >= .65;
+}

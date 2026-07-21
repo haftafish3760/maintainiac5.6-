@@ -1,0 +1,86 @@
+part of 'trip_tracking_platform.dart';
+
+/// code reports measurements and lifecycle state while [TripTrackingEngine]
+/// remains the single place that decides whether distance is credible.
+abstract interface class TripTrackingNativeGateway {
+  Stream<TripTrackingPlatformEvent> get events;
+
+  Future<TripTrackingPlatformCapabilities> readCapabilities();
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot();
+  Future<TripTrackingAuthorization> requestAuthorization({
+    required bool allowBackground,
+    required bool activityRecognitionEnabled,
+  });
+  Future<bool> start(TripTrackingNativeRequest request);
+  Future<bool> update(TripTrackingNativeRequest request);
+  Future<void> stop();
+  Future<bool> get isTracking;
+}
+
+class TripTrackingPlatform implements TripTrackingNativeGateway {
+  TripTrackingPlatform({MethodChannel? commands, EventChannel? events})
+    : _commands = commands ?? const MethodChannel(_commandChannelName),
+      _events = events ?? const EventChannel(_eventChannelName);
+
+  static const _commandChannelName = 'maintainiac/trip_tracking/commands';
+  static const _eventChannelName = 'maintainiac/trip_tracking/events';
+
+  final MethodChannel _commands;
+  final EventChannel _events;
+
+  @override
+  Stream<TripTrackingPlatformEvent> get events => _events
+      .receiveBroadcastStream()
+      .map(TripTrackingPlatformEvent.fromNativePayload);
+
+  @override
+  Future<TripTrackingPlatformCapabilities> readCapabilities() async {
+    final raw = await _commands.invokeMethod<Object?>('readCapabilities');
+    return TripTrackingPlatformCapabilities.fromMap(
+      raw is Map ? raw : const {},
+    );
+  }
+
+  @override
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot() async {
+    final raw = await _commands.invokeMethod<Object?>('readBatterySnapshot');
+    return TripTrackingBatterySnapshot.fromMap(raw is Map ? raw : const {});
+  }
+
+  @override
+  Future<TripTrackingAuthorization> requestAuthorization({
+    required bool allowBackground,
+    required bool activityRecognitionEnabled,
+  }) async {
+    final raw = await _commands.invokeMethod<Object?>('requestAuthorization', {
+      'allowBackground': allowBackground,
+      'activityRecognitionEnabled': activityRecognitionEnabled,
+    });
+    return TripTrackingAuthorization.fromMap(raw is Map ? raw : const {});
+  }
+
+  @override
+  Future<bool> start(TripTrackingNativeRequest request) async {
+    final started = await _commands.invokeMethod<Object?>(
+      'start',
+      request.toMap(),
+    );
+    return started == true;
+  }
+
+  @override
+  Future<bool> update(TripTrackingNativeRequest request) async {
+    final updated = await _commands.invokeMethod<Object?>(
+      'update',
+      request.toMap(),
+    );
+    return updated == true;
+  }
+
+  @override
+  Future<void> stop() => _commands.invokeMethod<void>('stop');
+
+  @override
+  Future<bool> get isTracking async =>
+      await _commands.invokeMethod<Object?>('isTracking') == true;
+}
