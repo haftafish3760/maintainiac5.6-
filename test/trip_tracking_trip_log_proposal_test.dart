@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
@@ -111,15 +113,81 @@ void main() {
       2,
     );
   });
+
+  test(
+    'TripLog retry cannot overwrite a concurrent completion draft',
+    () async {
+      final at = DateTime.utc(2026, 7, 21, 16);
+      final sink = _ProposalSink()..fail = true;
+      final store = TripTrackingSessionStore.memory();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 14000,
+        ),
+        tripLogProposalSink: sink,
+        clockNow: () => at.add(const Duration(minutes: 5)),
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_log_retry_draft_race',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: at,
+      );
+      await controller.finishForReview(
+        finishedAt: at.add(const Duration(minutes: 5)),
+      );
+
+      sink
+        ..fail = false
+        ..proposalStarted = Completer<void>()
+        ..allowProposal = Completer<void>();
+      final retry = controller.retryTripLogProposal(
+        'trip_log_retry_draft_race',
+      );
+      await sink.proposalStarted!.future;
+
+      expect(
+        await controller.saveCompletionDraft(
+          tripId: 'trip_log_retry_draft_race',
+          endingOdometerDraft: 14010,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'session_operation_in_progress');
+
+      sink.allowProposal!.complete();
+      expect(await retry, isTrue);
+      expect(
+        await controller.saveCompletionDraft(
+          tripId: 'trip_log_retry_draft_race',
+          endingOdometerDraft: 14010,
+        ),
+        isTrue,
+      );
+      final saved = store.reviewForTrip('trip_log_retry_draft_race')!;
+      expect(
+        saved.tripLogProposalState,
+        TripTrackingTripLogProposalState.submitted,
+      );
+      expect(saved.endingOdometerDraft, 14010);
+    },
+  );
 }
 
 class _ProposalSink implements TripTrackingTripLogProposalSink {
   bool fail = false;
+  Completer<void>? proposalStarted;
+  Completer<void>? allowProposal;
   final proposals = <TripTrackingTripLogProposal>[];
 
   @override
   Future<void> propose(TripTrackingTripLogProposal proposal) async {
     if (fail) throw StateError('proposal unavailable');
+    proposalStarted?.complete();
+    if (allowProposal != null) await allowProposal!.future;
     proposals.add(proposal);
   }
 }

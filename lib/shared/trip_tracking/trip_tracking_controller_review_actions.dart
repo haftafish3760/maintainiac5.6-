@@ -123,7 +123,17 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
   /// Backward-compatible walking stop review hook used by existing UI/tests.
   Future<void> acknowledgeWalkingReview() => acknowledgeLatestStopReview();
 
-  Future<bool> retryTripLogProposal(String tripId) async {
+  Future<bool> retryTripLogProposal(
+    String tripId,
+  ) => _runExclusiveSessionOperation(
+    false,
+    () => _retryTripLogProposal(tripId),
+    busyStatus: 'session_operation_in_progress',
+    busyError:
+        'A trip record is already being updated. Please wait for it to finish.',
+  );
+
+  Future<bool> _retryTripLogProposal(String tripId) async {
     final review = _sessionStore.reviewForTrip(tripId);
     if (review == null || _tripLogProposalSink == null) return false;
     if (review.tripLogProposalState ==
