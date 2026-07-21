@@ -72,6 +72,16 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
 
   Future<void> reviewLatestStopAdvisory(
     TripTrackingAdvisoryDisposition disposition,
+  ) => _runExclusiveSessionOperation<void>(
+    null,
+    () => _reviewLatestStopAdvisory(disposition),
+    busyStatus: 'session_operation_in_progress',
+    busyError:
+        'A trip record is already being updated. Please wait for it to finish.',
+  );
+
+  Future<void> _reviewLatestStopAdvisory(
+    TripTrackingAdvisoryDisposition disposition,
   ) async {
     if (!TripStopAdvisoryReviewer.isFinalReviewDisposition(disposition)) {
       return;

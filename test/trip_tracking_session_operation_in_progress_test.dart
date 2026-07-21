@@ -47,6 +47,24 @@ class _DelayedReviewMutationStore extends TripTrackingSessionStore {
   }
 }
 
+class _BlockingNextSessionSaveStore extends TripTrackingSessionStore {
+  _BlockingNextSessionSaveStore() : super.memory();
+
+  final saveStarted = Completer<void>();
+  final allowSave = Completer<void>();
+  var blockNextSave = false;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) async {
+    if (blockNextSave) {
+      blockNextSave = false;
+      saveStarted.complete();
+      await allowSave.future;
+    }
+    await super.save(session);
+  }
+}
+
 class _BlockingRestorePlatform implements TripTrackingNativeGateway {
   _BlockingRestorePlatform(this._isTrackingGate);
 
@@ -537,5 +555,75 @@ void main() {
       1010,
     );
     expect(odometer.confirmedReading, 1010);
+  });
+
+  test('stop review cannot race a later GPS sample', () async {
+    final startedAt = DateTime.utc(2026, 7, 12, 12);
+    final store = _BlockingNextSessionSaveStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: TestGlobalOdometerController(),
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_stop_review_ingestion_race',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      startedAt: startedAt,
+    );
+    TripLocationSample sample(double longitude, int seconds) =>
+        TripLocationSample(
+          latitude: 35,
+          longitude: longitude,
+          recordedAt: startedAt.add(Duration(seconds: seconds)),
+          horizontalAccuracyMeters: 5,
+        );
+    TripActivityObservation activity(TripActivity type, int seconds) =>
+        TripActivityObservation(
+          activity: type,
+          confidence: 90,
+          recordedAt: startedAt.add(Duration(seconds: seconds)),
+        );
+    await controller.ingest(
+      sample(-80, 0),
+      activity: activity(TripActivity.automotive, 0),
+      referenceTime: startedAt,
+    );
+    await controller.ingest(
+      sample(-79.9997, 15),
+      activity: activity(TripActivity.automotive, 15),
+      referenceTime: startedAt.add(const Duration(seconds: 15)),
+    );
+    for (final seconds in [30, 45, 60]) {
+      await controller.ingest(
+        sample(-79.9997, seconds),
+        activity: activity(TripActivity.walking, seconds),
+        referenceTime: startedAt.add(Duration(seconds: seconds)),
+      );
+    }
+    expect(controller.needsWalkingReview, isTrue);
+
+    store.blockNextSave = true;
+    final review = controller.acknowledgeLatestStopReview();
+    await store.saveStarted.future;
+    expect(
+      await controller.ingest(
+        sample(-79.9994, 75),
+        referenceTime: startedAt.add(const Duration(seconds: 75)),
+      ),
+      isNull,
+    );
+    store.allowSave.complete();
+    await review;
+
+    expect(controller.needsWalkingReview, isFalse);
+    expect(
+      controller.advisories.single.disposition,
+      TripTrackingAdvisoryDisposition.confirmed,
+    );
+    expect(
+      controller.activeSession?.engineSnapshot.lastObservedAt,
+      startedAt.add(const Duration(seconds: 60)),
+    );
   });
 }
