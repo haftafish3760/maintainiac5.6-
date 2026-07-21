@@ -1,5 +1,6 @@
 import '../records/maintainiac_durable_record_store.dart';
 import 'trip_route_history_models.dart';
+import 'trip_tracking_daily_bundle_bridge.dart';
 import 'trip_tracking_session_store.dart';
 
 class TripTrackingDurableRecordBridge {
@@ -14,19 +15,23 @@ class TripTrackingDurableRecordBridge {
     int? expectedRevision,
     DateTime? now,
     TripRouteHistorySummary? routeSummary,
-  }) {
+  }) async {
     final safeReview = _validatedReview(review);
     final safeTripId = _safeDurableTripId(safeReview.id);
     if (safeTripId == null) {
       throw ArgumentError('A durable trip record requires a safe trip id.');
     }
-    return store.save(
+    final record = await store.save(
       module: module,
       id: safeTripId,
       payload: _payloadFor(safeReview, routeSummary: routeSummary),
       expectedRevision: expectedRevision,
       now: now,
     );
+    await TripTrackingDailyBundleBridge(
+      store,
+    ).upsertReviewedTrip(safeReview, now: now);
+    return record;
   }
 
   TripTrackingReviewRecord? reviewForTrip(String tripId) {
@@ -281,6 +286,8 @@ Map<String, dynamic> _payloadFor(
   map['rawMapboxGeometryIncluded'] = false;
   map['routeGeometryIncluded'] = false;
   map['tokensIncluded'] = false;
+  map['syncEligible'] = false;
+  map['dailyBundleRequiredForSync'] = true;
   return map;
 }
 
