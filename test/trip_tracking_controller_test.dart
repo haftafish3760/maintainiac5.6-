@@ -119,9 +119,10 @@ void main() {
   );
 
   test('monotonic ordering cannot regress the durable session clock', () async {
+    final odometer = GlobalOdometerController(initialReading: 1000);
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
-      odometer: GlobalOdometerController(initialReading: 1000),
+      odometer: odometer,
     );
     await controller.start(
       tripId: 'trip_monotonic_wall_clock_rollback',
@@ -135,15 +136,21 @@ void main() {
       sample(-80, 60, monotonicElapsedNanos: 10000000000),
     );
     final rollback = await controller.ingest(
-      sample(-80, 30, monotonicElapsedNanos: 30000000000),
+      sample(-79.985, 30, monotonicElapsedNanos: 70000000000),
     );
 
-    expect(rollback?.disposition, TripSampleDisposition.rejectedDrift);
+    expect(rollback?.disposition, TripSampleDisposition.acceptedDistance);
     expect(controller.activeSession?.updatedAt, latestWallClock);
     expect(
       controller.activeSession?.engineSnapshot.lastObservedAt,
       start.add(const Duration(seconds: 30)),
     );
+    expect(
+      controller.lifecycleState,
+      isNot(TripTrackingSessionLifecycleState.failedRecoverable),
+    );
+    expect(odometer.reading, greaterThan(1000));
+    expect(odometer.liveTripUpdatedAt, latestWallClock);
   });
 
   test(

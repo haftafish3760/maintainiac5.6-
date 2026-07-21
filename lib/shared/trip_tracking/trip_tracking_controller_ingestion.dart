@@ -117,6 +117,10 @@ extension TripTrackingControllerIngestion on TripTrackingController {
         decision.disposition == TripSampleDisposition.rejectedSpeedConflict ||
         decision.disposition == TripSampleDisposition.excludedWalking;
     if (persistsRecoveryState) {
+      final durableSampleTime = _nonRegressingSessionTime(
+        session,
+        sample.recordedAt,
+      );
       final naturalLifecycleState = _lifecycleAfterDecision(
         session.lifecycleState,
         decision,
@@ -131,7 +135,7 @@ extension TripTrackingControllerIngestion on TripTrackingController {
         // The raw sample time remains in the engine snapshot for evidence,
         // while the durable revision clock must never move backwards when a
         // monotonic device clock proves ordering across a wall-clock rollback.
-        updatedAt: _nonRegressingSessionTime(session, sample.recordedAt),
+        updatedAt: durableSampleTime,
         engineSnapshot: engine.snapshot,
         advisories: advisories,
         lifecycleState: naturalLifecycleState,
@@ -155,8 +159,8 @@ extension TripTrackingControllerIngestion on TripTrackingController {
       final liveProjectionUpdated = _odometer.updateLiveTripProjection(
         tripId: session.id,
         estimatedOdometer: estimatedOdometer,
-        observedAtUtc: sample.recordedAt,
-        receivedAtUtc: projectionReceivedAt,
+        observedAtUtc: durableSampleTime,
+        receivedAtUtc: _nonRegressingSessionTime(session, projectionReceivedAt),
       );
       final liveProjectionFailed =
           decision.accepted &&
