@@ -60,10 +60,11 @@ TripTrackingEngine restoreTripTrackingEngineSnapshot(
             )
           : Duration.zero,
     );
-    engine._walkingReviewSuggested =
+    final hasRecoveredWalkingStopReview =
         recoveredSnapshot.walkingReviewSuggested &&
         recoveredSnapshot.vehicleMovementObserved &&
         hasRecoveredWalkingStopEvidence;
+    engine._walkingReviewSuggested = hasRecoveredWalkingStopReview;
     engine._motionState = switch (recoveredSnapshot.motionState) {
       TripMotionState.moving when recoveredSnapshot.vehicleMovementObserved =>
         TripMotionState.moving,
@@ -74,7 +75,7 @@ TripTrackingEngine restoreTripTrackingEngineSnapshot(
         TripMotionState.stopCandidate,
       TripMotionState.stopped
           when recoveredSnapshot.vehicleMovementObserved &&
-              hasRecoveredWalkingStopEvidence =>
+              hasRecoveredWalkingStopReview =>
         TripMotionState.stopped,
       _ => TripMotionState.unknown,
     };

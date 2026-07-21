@@ -1960,6 +1960,23 @@ void main() {
     expect(restored.motionState, TripMotionState.stopped);
   });
 
+  test('recovery cannot restore a stopped state without its review cue', () {
+    final restored = TripTrackingEngine.fromSnapshot(
+      TripTrackingEngineSnapshot(
+        lastAccepted: sample(-79.9997, 60),
+        lastObservedAt: start.add(const Duration(seconds: 60)),
+        totalAcceptedMeters: 17,
+        vehicleMovementObserved: true,
+        walkingReviewSuggested: false,
+        motionState: TripMotionState.stopped,
+        walkingEvidence: [walking(30), walking(45), walking(60)],
+      ),
+    );
+
+    expect(restored.needsWalkingReview, isFalse);
+    expect(restored.motionState, TripMotionState.unknown);
+  });
+
   test('direct recovery input cannot restore a future stationary start', () {
     final restored = TripTrackingEngine.fromSnapshot(
       TripTrackingEngineSnapshot(
