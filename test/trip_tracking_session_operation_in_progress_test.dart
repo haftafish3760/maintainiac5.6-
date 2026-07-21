@@ -519,6 +519,9 @@ void main() {
       startedAt: startedAt,
     );
     expect(await controller.finishForReview(finishedAt: finishedAt), isNotNull);
+    final initialReviewRevision = store
+        .reviewForTrip('trip_draft_confirmation_race')!
+        .revision;
 
     store.delayNextSave = true;
     final draftSave = controller.saveCompletionDraft(
@@ -542,6 +545,10 @@ void main() {
     store.allowSave.complete();
     expect(await draftSave, isTrue);
     expect(
+      store.reviewForTrip('trip_draft_confirmation_race')?.revision,
+      initialReviewRevision + 1,
+    );
+    expect(
       await controller.confirmOdometerReview(
         reviewId: 'trip_draft_confirmation_race',
         confirmedEndingOdometer: 1010,
@@ -555,6 +562,10 @@ void main() {
       1010,
     );
     expect(odometer.confirmedReading, 1010);
+    expect(
+      store.reviewForTrip('trip_draft_confirmation_race')?.revision,
+      initialReviewRevision + 2,
+    );
   });
 
   test('stop review cannot race a later GPS sample', () async {

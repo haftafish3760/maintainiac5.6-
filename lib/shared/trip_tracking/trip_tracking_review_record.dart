@@ -169,7 +169,8 @@ class TripTrackingReviewRecord {
     this.tripLogProposalAttemptCount = 0,
     this.tripLogProposalLastAttemptAt,
     this.usageDayClassification = TripOdometerUsageDayClassification.regular,
-    this.schemaVersion = 1,
+    this.revision = 0,
+    this.schemaVersion = 2,
     this.hasValidTimeline = true,
   });
 
@@ -208,6 +209,7 @@ class TripTrackingReviewRecord {
   final int tripLogProposalAttemptCount;
   final DateTime? tripLogProposalLastAttemptAt;
   final TripOdometerUsageDayClassification usageDayClassification;
+  final int revision;
   final int schemaVersion;
 
   /// False only for a persisted record whose required timeline could not be
@@ -244,6 +246,7 @@ class TripTrackingReviewRecord {
     int? tripLogProposalAttemptCount,
     DateTime? tripLogProposalLastAttemptAt,
     TripOdometerUsageDayClassification? usageDayClassification,
+    int? revision,
   }) {
     final effectiveScope = cloudBackupScope ?? this.cloudBackupScope;
     final effectiveOrganizationId =
@@ -301,7 +304,10 @@ class TripTrackingReviewRecord {
           tripLogProposalLastAttemptAt ?? this.tripLogProposalLastAttemptAt,
       usageDayClassification:
           usageDayClassification ?? this.usageDayClassification,
-      schemaVersion: schemaVersion,
+      revision:
+          revision ??
+          (this.revision >= 2147483646 ? this.revision : this.revision + 1),
+      schemaVersion: 2,
       hasValidTimeline: hasValidTimeline,
     );
   }
@@ -368,7 +374,8 @@ class TripTrackingReviewRecord {
           .toUtc()
           .toIso8601String(),
     'usageDayClassification': usageDayClassification.name,
-    'schemaVersion': schemaVersion,
+    'revision': revision < 0 ? 0 : revision,
+    'schemaVersion': 2,
   };
 
   factory TripTrackingReviewRecord.fromMap(Map<dynamic, dynamic> map) {
@@ -531,6 +538,7 @@ class TripTrackingReviewRecord {
             (value) => value.name == map['usageDayClassification'],
             orElse: () => TripOdometerUsageDayClassification.regular,
           ),
+      revision: _safeRecoveryCount(map['revision']),
       cloudBackupScope: cloudBackupScope,
       cloudOrganizationId:
           cloudBackupScope == TripTrackingCloudBackupScope.organization
@@ -541,7 +549,7 @@ class TripTrackingReviewRecord {
         maxLength: 240,
       ),
       cloudSyncedAt: cloudSyncedAt,
-      schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
+      schemaVersion: 2,
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
@@ -592,7 +600,7 @@ int _sessionSchemaVersion(Object? value) {
 bool _hasSupportedSessionSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 1;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 2;
 }
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {

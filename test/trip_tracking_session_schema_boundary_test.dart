@@ -73,8 +73,8 @@ void main() {
     expect(supported.hasValidTimeline, isTrue);
   });
 
-  test('review schema versions must be integer version one', () {
-    for (final schema in const [1.0, 2, 99, '1', false]) {
+  test('review schema versions migrate through integer version two', () {
+    for (final schema in const [1.0, 3, 99, '1', false]) {
       final review = TripTrackingReviewRecord.fromMap(
         reviewMap(schemaVersion: schema),
       );
@@ -84,8 +84,16 @@ void main() {
 
     final supported = TripTrackingReviewRecord.fromMap(reviewMap());
 
-    expect(supported.schemaVersion, 1);
+    expect(supported.schemaVersion, 2);
+    expect(supported.revision, 0);
     expect(supported.hasValidTimeline, isTrue);
+
+    final current = TripTrackingReviewRecord.fromMap(
+      reviewMap(schemaVersion: 2)..['revision'] = 7,
+    );
+    expect(current.schemaVersion, 2);
+    expect(current.revision, 7);
+    expect(current.copyWith(endingOdometerDraft: 1002).revision, 8);
   });
 
   test('unknown cloud sync state cannot become trusted backup progress', () {

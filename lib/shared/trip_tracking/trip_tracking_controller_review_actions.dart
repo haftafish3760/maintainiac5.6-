@@ -344,6 +344,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       batteryStateSummary: session.batteryStateSummary,
       permissionHistory: session.permissionHistory,
       recoveryCount: session.recoveryCount,
+      revision: session.revision,
     );
   }
 
