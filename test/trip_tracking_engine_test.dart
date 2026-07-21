@@ -1252,6 +1252,63 @@ void main() {
     expect(engine.totalAcceptedMeters, greaterThan(0));
   });
 
+  test(
+    'buffered walking evidence survives local recovery before the next fix',
+    () {
+      final engine = TripTrackingEngine();
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      engine.ingest(sample(-80, 0), activity: automotive);
+      engine.ingest(sample(-79.9997, 15), activity: automotive);
+      for (final seconds in [30, 45, 60]) {
+        engine.recordActivityEvidence(
+          walking(seconds),
+          observedAt: start.add(Duration(seconds: seconds)),
+        );
+      }
+
+      final restored = TripTrackingEngine.fromSnapshot(engine.snapshot);
+      final decision = restored.ingest(sample(-79.9997, 60));
+
+      expect(decision.walkingReviewSuggested, isTrue);
+      expect(restored.motionState, TripMotionState.stopped);
+      expect(restored.totalAcceptedMeters, engine.totalAcceptedMeters);
+    },
+  );
+
+  test('stale or future buffered walking evidence cannot create a stop', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+
+    expect(
+      engine.recordActivityEvidence(
+        walking(30),
+        observedAt: start.add(const Duration(seconds: 120)),
+      ),
+      isFalse,
+    );
+    expect(
+      engine.recordActivityEvidence(
+        walking(180),
+        observedAt: start.add(const Duration(seconds: 30)),
+      ),
+      isFalse,
+    );
+    final decision = engine.ingest(sample(-79.9997, 60));
+
+    expect(decision.walkingReviewSuggested, isFalse);
+    expect(engine.motionState, isNot(TripMotionState.stopped));
+  });
+
   test('a traffic light without walking evidence is not an actual stop', () {
     final engine = TripTrackingEngine();
     final automotive = TripActivityObservation(
