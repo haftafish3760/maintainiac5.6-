@@ -6383,6 +6383,32 @@ void main() {
     expect(controller.platformError, contains('Review remains recoverable'));
   });
 
+  test('cancel review save failure remains retryable', () async {
+    final store = _FailingFirstReviewSaveStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_cancel_review_retry',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(await controller.cancelActiveTrip(), isNull);
+    expect(controller.platformStatus, 'cancel_review_save_failed');
+    expect(
+      store.activeSession!.lifecycleState,
+      TripTrackingSessionLifecycleState.cancelled,
+    );
+    expect(store.reviewForTrip('trip_cancel_review_retry'), isNull);
+
+    expect(await controller.cancelActiveTrip(), isNotNull);
+    expect(store.reviewForTrip('trip_cancel_review_retry'), isNotNull);
+    expect(store.activeSession, isNull);
+  });
+
   test('completion surfaces transient GPS cleanup failure', () async {
     final store = _FailingPendingCleanupStore();
     final controller = TripTrackingController(
@@ -8129,6 +8155,21 @@ class _FailingReviewCleanupStore extends TripTrackingSessionStore {
   @override
   Future<void> clear() async {
     throw StateError('stale recovery cleanup failed');
+  }
+}
+
+class _FailingFirstReviewSaveStore extends TripTrackingSessionStore {
+  _FailingFirstReviewSaveStore() : super.memory();
+
+  var failNextReviewSave = true;
+
+  @override
+  Future<void> saveReview(TripTrackingReviewRecord review) async {
+    if (failNextReviewSave) {
+      failNextReviewSave = false;
+      throw StateError('review save failed');
+    }
+    await super.saveReview(review);
   }
 }
 

@@ -267,12 +267,14 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       notifyListeners();
       return null;
     }
-    final transitioned = await _tryTransitionSession(
-      TripTrackingSessionLifecycleState.cancelled,
-      reasonCode: 'trip_cancelled',
-      source: 'user_cancel',
-    );
-    if (!transitioned) return null;
+    if (session.lifecycleState != TripTrackingSessionLifecycleState.cancelled) {
+      final transitioned = await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.cancelled,
+        reasonCode: 'trip_cancelled',
+        source: 'user_cancel',
+      );
+      if (!transitioned) return null;
+    }
     await stopNativeTracking();
     final cancelledSession = _session;
     if (cancelledSession == null) return null;
