@@ -1,8 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-import '../../shared/firebase/maintainiac_auth_service.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -11,7 +8,6 @@ import '../../shared/widgets/app_screen_shell.dart';
 import 'trip_tracking_gps_opt_in_flow.dart';
 
 part 'trip_tracking_settings_map_controls.dart';
-part 'trip_tracking_settings_account_panel.dart';
 
 /// Shared preference surface opened from both Dashboard Settings and Menu.
 class TripTrackingSettingsScreen extends StatelessWidget {
@@ -30,13 +26,6 @@ class TripTrackingSettingsScreen extends StatelessWidget {
         children: [
           const GlobalOdometerHeader(),
           const SizedBox(height: 12),
-          if (Firebase.apps.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: _FirebaseBackupAccountPanel(),
-            ),
-            const SizedBox(height: 8),
-          ],
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _TripTrackingSettingsPanel(
