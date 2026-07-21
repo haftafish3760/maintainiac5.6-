@@ -21,6 +21,7 @@ class TripTrackingSessionRecord {
     required this.updatedAt,
     required this.engineSnapshot,
     this.profileId = 'legacy-local-profile',
+    this.vehicleConfigurationRevision = 0,
     this.revision = 0,
     this.lastEventSequence = 0,
     this.advisories = const [],
@@ -35,12 +36,13 @@ class TripTrackingSessionRecord {
     this.lowBatteryOverrideEnabled = false,
     this.lowBatteryWarningDismissed = false,
     this.hasValidTimeline = true,
-    this.schemaVersion = 2,
+    this.schemaVersion = 3,
   });
 
   final String id;
   final String vehicleId;
   final String profileId;
+  final int vehicleConfigurationRevision;
   final int revision;
   final int lastEventSequence;
   final int startingOdometer;
@@ -74,6 +76,7 @@ class TripTrackingSessionRecord {
 
   TripTrackingSessionRecord copyWith({
     String? profileId,
+    int? vehicleConfigurationRevision,
     int? revision,
     int? lastEventSequence,
     DateTime? updatedAt,
@@ -107,6 +110,8 @@ class TripTrackingSessionRecord {
       id: id,
       vehicleId: vehicleId,
       profileId: profileId ?? this.profileId,
+      vehicleConfigurationRevision:
+          vehicleConfigurationRevision ?? this.vehicleConfigurationRevision,
       revision: revision ?? this.revision,
       lastEventSequence: lastEventSequence ?? this.lastEventSequence,
       startingOdometer: startingOdometer,
@@ -140,6 +145,7 @@ class TripTrackingSessionRecord {
     'id': _safeIdentifier(id),
     'vehicleId': _safeIdentifier(vehicleId),
     'profileId': _safeIdentifier(profileId),
+    'vehicleConfigurationRevision': vehicleConfigurationRevision,
     'revision': revision,
     'lastEventSequence': lastEventSequence,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
@@ -201,6 +207,11 @@ class TripTrackingSessionRecord {
             (map['lastEventSequence'] as int) >= 0
         ? map['lastEventSequence'] as int
         : 0;
+    final vehicleConfigurationRevision =
+        map['vehicleConfigurationRevision'] is int &&
+            (map['vehicleConfigurationRevision'] as int) >= 0
+        ? map['vehicleConfigurationRevision'] as int
+        : 0;
     final safeProfile = TripTrackingProfile.values.firstWhere(
       (value) => value.name == map['profile'],
       orElse: () => TripTrackingProfile.roadVehicle,
@@ -216,6 +227,7 @@ class TripTrackingSessionRecord {
       id: safeId,
       vehicleId: safeVehicleId,
       profileId: safeProfileId,
+      vehicleConfigurationRevision: vehicleConfigurationRevision,
       revision: revision,
       lastEventSequence: lastEventSequence,
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
@@ -266,7 +278,7 @@ class TripTrackingSessionRecord {
           hasValidLifecycleState &&
           hasValidHealthState &&
           hasSupportedSchemaVersion,
-      schemaVersion: sourceSchemaVersion == 1 ? 2 : sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion < 3 ? 3 : sourceSchemaVersion,
     );
   }
 }
@@ -410,6 +422,7 @@ class TripTrackingReviewRecord {
   const TripTrackingReviewRecord({
     required this.id,
     required this.vehicleId,
+    this.vehicleConfigurationRevision = 0,
     required this.startingOdometer,
     required this.estimatedEndingOdometer,
     required this.profile,
@@ -424,12 +437,13 @@ class TripTrackingReviewRecord {
     this.cloudSyncedAt,
     this.confirmedEndingOdometer,
     this.odometerConfirmedAt,
-    this.schemaVersion = 1,
+    this.schemaVersion = 2,
     this.hasValidTimeline = true,
   });
 
   final String id;
   final String vehicleId;
+  final int vehicleConfigurationRevision;
   final int startingOdometer;
   final int estimatedEndingOdometer;
   final TripTrackingProfile profile;
@@ -481,6 +495,7 @@ class TripTrackingReviewRecord {
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
+      vehicleConfigurationRevision: vehicleConfigurationRevision,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: profile,
@@ -511,6 +526,7 @@ class TripTrackingReviewRecord {
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
     'vehicleId': _safeIdentifier(vehicleId),
+    'vehicleConfigurationRevision': vehicleConfigurationRevision,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
@@ -586,6 +602,11 @@ class TripTrackingReviewRecord {
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
+      vehicleConfigurationRevision:
+          map['vehicleConfigurationRevision'] is int &&
+              (map['vehicleConfigurationRevision'] as int) >= 0
+          ? map['vehicleConfigurationRevision'] as int
+          : 0,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: TripTrackingProfile.values.firstWhere(
@@ -616,7 +637,9 @@ class TripTrackingReviewRecord {
         maxLength: 240,
       ),
       cloudSyncedAt: cloudSyncedAt,
-      schemaVersion: _sessionSchemaVersion(map['schemaVersion']),
+      schemaVersion: _sessionSchemaVersion(map['schemaVersion']) < 2
+          ? 2
+          : _sessionSchemaVersion(map['schemaVersion']),
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
@@ -670,13 +693,13 @@ bool _hasSupportedActiveSessionSchemaVersion(
 ) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 2;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 3;
 }
 
 bool _hasSupportedReviewSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion == 1;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 2;
 }
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {

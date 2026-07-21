@@ -45,7 +45,7 @@ void main() {
         TripTrackingProfile.lowSpeedEquipment,
       );
       expect(store.activeSession?.engineSnapshot.totalAcceptedMeters, 804.672);
-      expect(store.activeSession?.schemaVersion, 2);
+      expect(store.activeSession?.schemaVersion, 3);
       expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isTrue);
       expect(store.activeSession?.nativeSampling?.interval.inSeconds, 15);
@@ -137,30 +137,33 @@ void main() {
     expect(result.event.accepted, isFalse);
   });
 
-  test('schema one active record migrates deterministically to schema two', () {
-    final migrated = TripTrackingSessionRecord.fromMap({
-      'schemaVersion': 1,
-      'id': 'trip_legacy',
-      'vehicleId': 'vehicle_1',
-      'startingOdometer': 1000,
-      'profile': 'roadVehicle',
-      'startedAt': DateTime.utc(2026, 7, 20, 12).toIso8601String(),
-      'updatedAt': DateTime.utc(2026, 7, 20, 12, 1).toIso8601String(),
-      'engineSnapshot': const TripTrackingEngineSnapshot(
-        totalAcceptedMeters: 0,
-        walkingReviewSuggested: false,
-      ).toMap(),
-    });
+  test(
+    'schema one active record migrates deterministically to schema three',
+    () {
+      final migrated = TripTrackingSessionRecord.fromMap({
+        'schemaVersion': 1,
+        'id': 'trip_legacy',
+        'vehicleId': 'vehicle_1',
+        'startingOdometer': 1000,
+        'profile': 'roadVehicle',
+        'startedAt': DateTime.utc(2026, 7, 20, 12).toIso8601String(),
+        'updatedAt': DateTime.utc(2026, 7, 20, 12, 1).toIso8601String(),
+        'engineSnapshot': const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ).toMap(),
+      });
 
-    expect(migrated.schemaVersion, 2);
-    expect(migrated.profileId, 'legacy-local-profile');
-    expect(migrated.revision, 0);
-    expect(migrated.hasValidTimeline, isTrue);
-    expect(
-      TripTrackingSessionRecord.fromMap(migrated.toMap()).toMap(),
-      migrated.toMap(),
-    );
-  });
+      expect(migrated.schemaVersion, 3);
+      expect(migrated.profileId, 'legacy-local-profile');
+      expect(migrated.revision, 0);
+      expect(migrated.hasValidTimeline, isTrue);
+      expect(
+        TripTrackingSessionRecord.fromMap(migrated.toMap()).toMap(),
+        migrated.toMap(),
+      );
+    },
+  );
 
   test('unknown persisted trip profiles are marked invalid', () {
     final session = TripTrackingSessionRecord.fromMap({
@@ -661,7 +664,7 @@ void main() {
       'engineSnapshot': {'totalAcceptedMeters': 0},
     });
 
-    expect(session.schemaVersion, 2);
+    expect(session.schemaVersion, 3);
     expect(session.hasValidTimeline, isFalse);
     expect(session.engineSnapshot.schemaVersion, 1);
     expect(session.engineSnapshot.algorithmVersion, 'gps-v1');
@@ -804,8 +807,8 @@ void main() {
       'schemaVersion': double.infinity,
     });
 
-    expect(session.schemaVersion, 2);
-    expect(review.schemaVersion, 1);
+    expect(session.schemaVersion, 3);
+    expect(review.schemaVersion, 2);
     expect(session.hasValidTimeline, isFalse);
     expect(review.hasValidTimeline, isFalse);
   });

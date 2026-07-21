@@ -46,6 +46,7 @@ class TripTrackingController extends ChangeNotifier {
     DateTime Function()? clockNow,
     DateTime Function()? heartbeatNow,
     String Function()? activeProfileId,
+    int Function()? activeVehicleConfigurationRevision,
     TripRouteHistoryStore? routeHistoryStore,
     TripTrackingSettings Function()? trackingSettings,
   }) : _sessionStore = sessionStore,
@@ -58,6 +59,7 @@ class TripTrackingController extends ChangeNotifier {
          gpsAssistanceCalibrationMultiplier,
        ),
        _activeProfileId = activeProfileId,
+       _activeVehicleConfigurationRevision = activeVehicleConfigurationRevision,
        _routeHistoryStore = routeHistoryStore,
        _trackingSettings = trackingSettings,
        _clockNow = clockNow ?? heartbeatNow ?? DateTime.now;
@@ -69,6 +71,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingBackupPort _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
   final String Function()? _activeProfileId;
+  final int Function()? _activeVehicleConfigurationRevision;
   final TripRouteHistoryStore? _routeHistoryStore;
   final TripTrackingSettings Function()? _trackingSettings;
 
@@ -197,6 +200,7 @@ class TripTrackingController extends ChangeNotifier {
   }) => TripOdometerCalibrationSignal.evaluateConfirmedReviews(
     reviews: _sessionStore.pendingReviews,
     vehicleId: vehicleId ?? _odometer.vehicleId,
+    vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
     // Persisted reviews are an external trust boundary. A caller that does
     // not supply a reference clock must still not let future-dated records
     // influence advisory GPS calibration.
@@ -266,6 +270,10 @@ class TripTrackingController extends ChangeNotifier {
       if (review.vehicleId != _odometer.vehicleId || confirmedAt == null) {
         continue;
       }
+      if (review.vehicleConfigurationRevision !=
+          _currentVehicleConfigurationRevision) {
+        continue;
+      }
       if (confirmedAt.toUtc().isAfter(latestAllowed) ||
           review.finishedAt.toUtc().isAfter(latestAllowed)) {
         continue;
@@ -284,7 +292,12 @@ class TripTrackingController extends ChangeNotifier {
         -1;
     final ratio = signal.averageGpsToOdometerRatio;
     final stableRatio = ratio.isFinite ? ratio.toStringAsFixed(8) : 'invalid';
-    return '${_odometer.vehicleId}|${signal.status.name}|${signal.eligibleSampleCount}|$stableRatio|$latest';
+    return '${_odometer.vehicleId}|$_currentVehicleConfigurationRevision|${signal.status.name}|${signal.eligibleSampleCount}|$stableRatio|$latest';
+  }
+
+  int get _currentVehicleConfigurationRevision {
+    final revision = _activeVehicleConfigurationRevision?.call() ?? 0;
+    return revision < 0 ? 0 : revision;
   }
 
   TripOdometerUsageAnomalySignal odometerUsageAnomalySignal({
@@ -781,6 +794,7 @@ class TripTrackingController extends ChangeNotifier {
       id: tripId,
       vehicleId: vehicleId,
       profileId: boundProfileId,
+      vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
       startingOdometer: startingOdometer,
       profile: profile,
       startedAt: started,
@@ -2896,6 +2910,7 @@ class TripTrackingController extends ChangeNotifier {
     final review = TripTrackingReviewRecord(
       id: session.id,
       vehicleId: session.vehicleId,
+      vehicleConfigurationRevision: session.vehicleConfigurationRevision,
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer: projection.updateAcceptedMeters(
         engine.totalAcceptedMeters,

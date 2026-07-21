@@ -147,6 +147,8 @@ Future<void> main() async {
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
     activeProfileId: () => userProfiles.activeProfile.id,
+    activeVehicleConfigurationRevision: () =>
+        appState.activeVehicle?.tireConfigurationRevision ?? 0,
     routeHistoryStore: tripRouteHistoryStore,
     trackingSettings: () => tripTrackingSettings.settings,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
