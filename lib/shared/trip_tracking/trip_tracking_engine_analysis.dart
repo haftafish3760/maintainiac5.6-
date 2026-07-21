@@ -261,12 +261,21 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
   }
 
   bool _hasWalkingStopEvidence(DateTime observedAt) {
+    final latest = _walkingEvidence.isEmpty
+        ? null
+        : _walkingEvidence.last.recordedAt;
+    if (latest == null || observedAt.isBefore(latest)) return false;
+    if (observedAt.difference(latest) >
+        _safePositiveDuration(
+          policy.walkingConfirmationWindow,
+          _defaultWalkingConfirmationWindow,
+        )) {
+      return false;
+    }
     return _strategy.hasWalkingStopEvidence(
       walkingEvidenceCount: _walkingEvidence.length,
       observedAt: observedAt,
-      latestWalkingEvidenceAt: _walkingEvidence.isEmpty
-          ? null
-          : _walkingEvidence.last.recordedAt,
+      latestWalkingEvidenceAt: latest,
       walkingEvidenceSpan: _walkingEvidenceSpan,
     );
   }

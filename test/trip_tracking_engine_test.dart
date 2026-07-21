@@ -1309,6 +1309,27 @@ void main() {
     expect(engine.motionState, isNot(TripMotionState.stopped));
   });
 
+  test('a delayed walking batch cannot stop the vehicle later', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+    for (final seconds in [30, 45, 60]) {
+      engine.recordActivityEvidence(
+        walking(seconds),
+        observedAt: start.add(Duration(seconds: seconds)),
+      );
+    }
+
+    engine.ingest(sample(-79.9997, 180));
+
+    expect(engine.motionState, isNot(TripMotionState.stopped));
+  });
+
   test('a traffic light without walking evidence is not an actual stop', () {
     final engine = TripTrackingEngine();
     final automotive = TripActivityObservation(
