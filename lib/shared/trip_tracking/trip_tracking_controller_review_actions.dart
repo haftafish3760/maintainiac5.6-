@@ -65,6 +65,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
           preferHighConfidence: reviewingWalkingStop,
         );
     if (!reviewingWalkingStop && latestPendingStopIndex < 0) return;
+    final previousEngineSnapshot = engine.snapshot;
     if (reviewingWalkingStop) engine.acknowledgeWalkingReview();
     final reviewedAdvisories = [...session.advisories];
     if (latestPendingStopIndex >= 0) {
@@ -73,14 +74,28 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
             disposition: disposition,
           );
     }
-    _session = session.copyWith(
+    final reviewedSession = session.copyWith(
       updatedAt: _nonRegressingSessionTime(session),
       revision: session.revision + 1,
       engineSnapshot: engine.snapshot,
       advisories: reviewedAdvisories,
     );
-    await _sessionStore.save(_session!);
-    notifyListeners();
+    try {
+      await _sessionStore.save(reviewedSession);
+      _session = reviewedSession;
+      notifyListeners();
+    } catch (_) {
+      _session = session;
+      _engine = TripTrackingEngine.fromSnapshot(
+        previousEngineSnapshot,
+        policy: engine.policy,
+        profile: engine.profile,
+      );
+      _platformStatus = 'storage_failed';
+      _platformError =
+          'Could not save the GPS stop review locally. It remains available for retry.';
+      notifyListeners();
+    }
   }
 
   /// Backward-compatible walking stop review hook used by existing UI/tests.

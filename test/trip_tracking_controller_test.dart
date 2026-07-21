@@ -2321,6 +2321,66 @@ void main() {
     },
   );
 
+  test('failed stop review checkpoint remains retryable', () async {
+    final store = _FailingNextSessionSaveStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_failed_stop_review',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      startedAt: start,
+    );
+    TripActivityObservation activity(TripActivity type, int seconds) =>
+        TripActivityObservation(
+          activity: type,
+          confidence: 90,
+          recordedAt: start.add(Duration(seconds: seconds)),
+        );
+
+    await controller.ingest(
+      sample(-80, 0),
+      activity: activity(TripActivity.automotive, 0),
+    );
+    await controller.ingest(
+      sample(-79.9997, 15),
+      activity: activity(TripActivity.automotive, 15),
+    );
+    for (final seconds in [30, 45, 60]) {
+      await controller.ingest(
+        sample(-79.9997, seconds),
+        activity: activity(TripActivity.walking, seconds),
+      );
+    }
+    expect(controller.needsWalkingReview, isTrue);
+    final revisionBeforeReview = controller.activeSession!.revision;
+
+    store.failNextSessionSave = true;
+    await controller.reviewLatestStopAdvisory(
+      TripTrackingAdvisoryDisposition.dismissed,
+    );
+
+    expect(controller.platformStatus, 'storage_failed');
+    expect(controller.needsWalkingReview, isTrue);
+    expect(
+      controller.advisories.single.disposition,
+      TripTrackingAdvisoryDisposition.pending,
+    );
+    expect(controller.activeSession?.revision, revisionBeforeReview);
+
+    await controller.reviewLatestStopAdvisory(
+      TripTrackingAdvisoryDisposition.dismissed,
+    );
+    expect(controller.needsWalkingReview, isFalse);
+    expect(
+      controller.advisories.single.disposition,
+      TripTrackingAdvisoryDisposition.dismissed,
+    );
+    expect(controller.activeSession?.revision, revisionBeforeReview + 1);
+  });
+
   test('overlapping native start and stop requests are serialized', () async {
     final startGate = Completer<void>();
     final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
