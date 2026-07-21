@@ -351,6 +351,14 @@ void main() {
         'locationManager.showsBackgroundLocationIndicator = allowBackground && state == "always"',
       ),
     );
+    expect(
+      bridge,
+      contains('locationManager.allowsBackgroundLocationUpdates = false'),
+    );
+    expect(
+      bridge,
+      contains('locationManager.showsBackgroundLocationIndicator = false'),
+    );
   });
 
   test('native sampling updates revalidate background authorization', () {
@@ -372,6 +380,7 @@ void main() {
       contains('if (allowBackground && !hasBackgroundLocation())'),
     );
     expect(android, contains('if (!hasFineLocation())'));
+    expect(android, contains('if (!locationServicesEnabled(locationManager))'));
     expect(
       ios,
       contains(
@@ -381,6 +390,10 @@ void main() {
     expect(
       ios,
       contains('guard authorization["preciseLocation"] as? Bool == true else'),
+    );
+    expect(
+      ios,
+      contains('guard CLLocationManager.locationServicesEnabled() else'),
     );
     expect(
       ios,

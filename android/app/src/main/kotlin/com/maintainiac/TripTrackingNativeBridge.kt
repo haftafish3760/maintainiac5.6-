@@ -195,6 +195,11 @@ class TripTrackingNativeBridge(
             result.success(false)
             return
         }
+        val locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (!locationServicesEnabled(locationManager)) {
+            result.error("trip_tracking_gps_unavailable", "Device location is unavailable. Turn on Location Services before updating trip tracking.", authorizationMap())
+            return
+        }
         if (!hasFineLocation()) {
             result.error("trip_tracking_location_denied", "Precise location permission is required before updating trip tracking.", authorizationMap())
             return

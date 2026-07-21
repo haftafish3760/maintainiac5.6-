@@ -302,6 +302,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       result(false)
       return
     }
+    guard CLLocationManager.locationServicesEnabled() else {
+      result(FlutterError(code: "trip_tracking_gps_unavailable", message: "Device location is unavailable. Turn on Location Services before updating trip tracking.", details: nil))
+      return
+    }
     let arguments = call.arguments as? [String: Any]
     let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
@@ -455,6 +459,12 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     trackingStartedAt = nil
     stopHeartbeat()
     locationManager.stopUpdatingLocation()
+    if #available(iOS 9.0, *) {
+      locationManager.allowsBackgroundLocationUpdates = false
+    }
+    if #available(iOS 11.0, *) {
+      locationManager.showsBackgroundLocationIndicator = false
+    }
     setActivityRecognitionEnabled(false)
   }
 
