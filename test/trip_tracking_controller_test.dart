@@ -3822,6 +3822,63 @@ void main() {
   );
 
   test(
+    'failed activity evidence checkpoint cannot influence a later GPS sample',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final store = _FailingNextSessionSaveStore();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_failed_activity_checkpoint',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.motionState == TripMotionState.moving,
+        maxPumps: 48,
+      );
+
+      store.failNextSessionSave = true;
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start.add(const Duration(seconds: 30)),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      native.addLocation(sample(-79.9997, 45));
+      await drainNativeTripEventsUntil(
+        () =>
+            store.activeSession?.updatedAt ==
+            start.add(const Duration(seconds: 45)),
+        maxPumps: 48,
+      );
+
+      expect(store.activeSession?.engineSnapshot.walkingEvidence, isEmpty);
+      expect(controller.needsWalkingReview, isFalse);
+    },
+  );
+
+  test(
     'native walking evidence persists across sparse location callbacks',
     () async {
       final native = _FakeTripTrackingPlatform(

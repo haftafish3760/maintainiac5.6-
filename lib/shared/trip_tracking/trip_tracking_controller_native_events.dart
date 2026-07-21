@@ -104,8 +104,13 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             // unless this tracking session both asked for it and the platform
             // confirmed that the device can provide it.
             if (!_nativeTracking || !_activityRecognitionEnabled) return;
-            _latestActivity = event.activity;
-            await _persistNativeActivityEvidence(event.activity!);
+            // Retain activity for the next location callback only after its
+            // engine snapshot is durable. Otherwise a failed local write
+            // could later influence GPS assistance despite being absent from
+            // crash recovery.
+            if (await _persistNativeActivityEvidence(event.activity!)) {
+              _latestActivity = event.activity;
+            }
           } else if (event.type ==
                   TripTrackingPlatformEventType.authorization &&
               event.authorization != null) {
@@ -264,22 +269,22 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         });
   }
 
-  Future<void> _persistNativeActivityEvidence(
+  Future<bool> _persistNativeActivityEvidence(
     TripActivityObservation activity,
   ) async {
     final session = _session;
     final engine = _engine;
-    if (session == null || engine == null) return;
+    if (session == null || engine == null) return false;
     final activityAt = activity.recordedAt.toUtc();
     if (activityAt.isBefore(session.startedAt.toUtc()) ||
         activityAt.isAfter(
           _clockNow().toUtc().add(engine.policy.maximumFutureSampleSkew),
         )) {
-      return;
+      return false;
     }
     final previousSnapshot = engine.snapshot;
     if (!engine.recordActivityEvidence(activity, observedAt: activityAt)) {
-      return;
+      return false;
     }
     final updatedAt = activityAt.isAfter(session.updatedAt.toUtc())
         ? activityAt
@@ -292,12 +297,14 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       await _sessionStore.save(updatedSession);
       _session = updatedSession;
       notifyListeners();
+      return true;
     } catch (_) {
       _engine = TripTrackingEngine.fromSnapshot(
         previousSnapshot,
         policy: engine.policy,
         profile: engine.profile,
       );
+      return false;
     }
   }
 
