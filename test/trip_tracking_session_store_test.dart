@@ -808,7 +808,7 @@ void main() {
     });
 
     expect(session.schemaVersion, 4);
-    expect(review.schemaVersion, 3);
+    expect(review.schemaVersion, 4);
     expect(session.hasValidTimeline, isFalse);
     expect(review.hasValidTimeline, isFalse);
   });

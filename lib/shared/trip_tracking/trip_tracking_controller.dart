@@ -1218,9 +1218,28 @@ class TripTrackingController extends ChangeNotifier {
       review.profileId == session.profileId &&
       review.vehicleConfigurationRevision ==
           session.vehicleConfigurationRevision &&
+      _reviewAdvisoriesMatchSession(review, session) &&
       review.startingOdometer == session.startingOdometer &&
       review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;
+
+  bool _reviewAdvisoriesMatchSession(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) {
+    if (review.advisories.length != session.advisories.length) return false;
+    for (var index = 0; index < review.advisories.length; index += 1) {
+      final saved = review.advisories[index];
+      final active = session.advisories[index];
+      if (saved.id != active.id ||
+          saved.type != active.type ||
+          saved.disposition != active.disposition ||
+          saved.detectedAt != active.detectedAt) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   Future<TripSampleDecision?> ingest(
     TripLocationSample sample, {
@@ -2931,6 +2950,7 @@ class TripTrackingController extends ChangeNotifier {
       finishedTimeZoneOffsetMinutes: completedAt.timeZoneOffset.inMinutes,
       finishedTimeZoneName: completedAt.timeZoneName,
       engineSnapshot: engine.snapshot,
+      advisories: session.advisories,
     );
     try {
       await _sessionStore.saveReview(review);

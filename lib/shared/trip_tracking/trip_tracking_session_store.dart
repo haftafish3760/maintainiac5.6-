@@ -454,6 +454,7 @@ class TripTrackingReviewRecord {
     required this.startedAt,
     required this.finishedAt,
     required this.engineSnapshot,
+    this.advisories = const [],
     this.startedTimeZoneOffsetMinutes = 0,
     this.startedTimeZoneName = 'UTC',
     this.finishedTimeZoneOffsetMinutes = 0,
@@ -466,7 +467,7 @@ class TripTrackingReviewRecord {
     this.cloudSyncedAt,
     this.confirmedEndingOdometer,
     this.odometerConfirmedAt,
-    this.schemaVersion = 3,
+    this.schemaVersion = 4,
     this.hasValidTimeline = true,
   });
 
@@ -484,6 +485,7 @@ class TripTrackingReviewRecord {
   final int finishedTimeZoneOffsetMinutes;
   final String finishedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
+  final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingCloudSyncState cloudSyncState;
   final String? cloudAccountUid;
 
@@ -541,6 +543,7 @@ class TripTrackingReviewRecord {
       finishedTimeZoneOffsetMinutes: finishedTimeZoneOffsetMinutes,
       finishedTimeZoneName: finishedTimeZoneName,
       engineSnapshot: engineSnapshot,
+      advisories: advisories,
       cloudSyncState: cloudSyncState ?? this.cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(
         cloudAccountUid ?? this.cloudAccountUid,
@@ -577,6 +580,9 @@ class TripTrackingReviewRecord {
     'finishedTimeZoneOffsetMinutes': finishedTimeZoneOffsetMinutes,
     'finishedTimeZoneName': _safeTimeZoneName(finishedTimeZoneName),
     'engineSnapshot': engineSnapshot.toMap(),
+    'advisories': _boundedAdvisories(
+      advisories,
+    ).map((item) => item.toMap()).toList(growable: false),
     'cloudSyncState': cloudSyncState.name,
     if (_optionalSafeCloudToken(cloudAccountUid) != null)
       'cloudAccountUid': _optionalSafeCloudToken(cloudAccountUid),
@@ -618,6 +624,8 @@ class TripTrackingReviewRecord {
             _isSafeTimeZoneName(map['startedTimeZoneName']) &&
             _isValidTimeZoneOffset(map['finishedTimeZoneOffsetMinutes']) &&
             _isSafeTimeZoneName(map['finishedTimeZoneName']));
+    final hasValidAdvisoryHistory =
+        sourceSchemaVersion < 4 || map['advisories'] is Iterable;
     final cloudBackupScope = _cloudBackupScopeFromMap(map['cloudBackupScope']);
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
@@ -657,6 +665,23 @@ class TripTrackingReviewRecord {
             odometerConfirmedAt != null &&
             finishedAt != null &&
             !odometerConfirmedAt.isBefore(finishedAt));
+    final safeProfile = TripTrackingProfile.values.firstWhere(
+      (value) => value.name == map['profile'],
+      orElse: () => TripTrackingProfile.roadVehicle,
+    );
+    final safeStartedAt =
+        startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final safeFinishedAt =
+        finishedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final advisories = sourceSchemaVersion < 4
+        ? const <TripTrackingAdvisoryEvent>[]
+        : _advisoriesFromMapValue(
+            map['advisories'],
+            sessionId: id,
+            vehicleId: vehicleId,
+            profile: safeProfile,
+            startedAt: safeStartedAt,
+          );
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
@@ -668,14 +693,9 @@ class TripTrackingReviewRecord {
           : 0,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
-      profile: TripTrackingProfile.values.firstWhere(
-        (value) => value.name == map['profile'],
-        orElse: () => TripTrackingProfile.roadVehicle,
-      ),
-      startedAt:
-          startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      finishedAt:
-          finishedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      profile: safeProfile,
+      startedAt: safeStartedAt,
+      finishedAt: safeFinishedAt,
       startedTimeZoneOffsetMinutes: sourceSchemaVersion < 3
           ? 0
           : _safeTimeZoneOffset(map['startedTimeZoneOffsetMinutes']),
@@ -694,6 +714,7 @@ class TripTrackingReviewRecord {
               totalAcceptedMeters: 0,
               walkingReviewSuggested: false,
             ),
+      advisories: advisories,
       cloudSyncState: cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
       confirmedEndingOdometer: confirmedEndingOdometer,
@@ -708,7 +729,7 @@ class TripTrackingReviewRecord {
         maxLength: 240,
       ),
       cloudSyncedAt: cloudSyncedAt,
-      schemaVersion: sourceSchemaVersion < 3 ? 3 : sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion < 4 ? 4 : sourceSchemaVersion,
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
@@ -717,6 +738,7 @@ class TripTrackingReviewRecord {
           _isSafeStoreIdentifierValue(safeProfileId) &&
           hasValidVehicleConfigurationRevision &&
           hasValidTimeZoneContext &&
+          hasValidAdvisoryHistory &&
           hasValidProfile &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(
@@ -771,8 +793,19 @@ bool _hasSupportedActiveSessionSchemaVersion(
 bool _hasSupportedReviewSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 3;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 4;
 }
+
+bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
+    review.advisories.every(
+      (event) =>
+          _isSafeStoreIdentifier(event.id) &&
+          event.sessionId == review.id &&
+          event.vehicleId == review.vehicleId &&
+          event.profile == review.profile &&
+          !event.detectedAt.isBefore(review.startedAt) &&
+          !event.detectedAt.isAfter(review.finishedAt),
+    );
 
 bool _isValidTimeZoneOffset(Object? value) =>
     value is int && value >= -840 && value <= 840;
@@ -1525,6 +1558,7 @@ class TripTrackingSessionStore {
             !_isSafeTimeZoneName(review.startedTimeZoneName) ||
             !_isValidTimeZoneOffset(review.finishedTimeZoneOffsetMinutes) ||
             !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
+            !_reviewAdvisoriesAreValid(review) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(

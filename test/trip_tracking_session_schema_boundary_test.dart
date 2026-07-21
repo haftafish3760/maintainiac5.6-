@@ -51,6 +51,7 @@ void main() {
         totalAcceptedMeters: 3218.688,
         walkingReviewSuggested: false,
       ).toMap(),
+      'advisories': const <Object?>[],
       'schemaVersion': schemaVersion,
     };
     void addOptional(String key, Object? value) {
@@ -100,8 +101,8 @@ void main() {
     },
   );
 
-  test('review schema versions migrate to current integer version three', () {
-    for (final schema in const [1.0, 4, 99, '1', false]) {
+  test('review schema versions migrate to current integer version four', () {
+    for (final schema in const [1.0, 5, 99, '1', false]) {
       final review = TripTrackingReviewRecord.fromMap(
         reviewMap(schemaVersion: schema),
       );
@@ -111,13 +112,13 @@ void main() {
 
     final supported = TripTrackingReviewRecord.fromMap(reviewMap());
 
-    expect(supported.schemaVersion, 3);
+    expect(supported.schemaVersion, 4);
     expect(supported.hasValidTimeline, isTrue);
 
     final current = TripTrackingReviewRecord.fromMap(
-      reviewMap(schemaVersion: 3),
+      reviewMap(schemaVersion: 4),
     );
-    expect(current.schemaVersion, 3);
+    expect(current.schemaVersion, 4);
     expect(current.hasValidTimeline, isTrue);
   });
 

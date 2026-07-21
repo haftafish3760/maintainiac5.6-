@@ -104,7 +104,7 @@ void main() {
       expect(session.vehicleConfigurationRevision, 0);
       expect(session.schemaVersion, 4);
       expect(review.vehicleConfigurationRevision, 0);
-      expect(review.schemaVersion, 3);
+      expect(review.schemaVersion, 4);
     },
   );
 

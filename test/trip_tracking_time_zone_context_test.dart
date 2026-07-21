@@ -62,7 +62,7 @@ void main() {
       ).toMap(),
     });
 
-    expect(legacy.schemaVersion, 3);
+    expect(legacy.schemaVersion, 4);
     expect(legacy.startedTimeZoneName, 'unknown');
     expect(legacy.finishedTimeZoneName, 'unknown');
     expect(legacy.hasValidTimeline, isTrue);
