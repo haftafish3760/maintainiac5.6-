@@ -6,6 +6,7 @@ import 'trip_tracking_profile_strategy.dart';
 import 'trip_vehicle_only_dwell_policy.dart';
 
 part 'trip_tracking_engine_analysis.dart';
+part 'trip_tracking_engine_recovery.dart';
 
 /// Deterministic, platform-neutral evidence filter. Native adapters provide
 /// samples; this engine decides what is safe to count and what needs review.
@@ -115,95 +116,11 @@ class TripTrackingEngine {
     TripTrackingEngineSnapshot snapshot, {
     TripTrackingPolicy policy = const TripTrackingPolicy(),
     TripTrackingProfile profile = TripTrackingProfile.roadVehicle,
-  }) {
-    final engine = TripTrackingEngine(policy: policy, profile: profile);
-    // This public constructor is also a recovery boundary. Normalize direct
-    // in-memory snapshots through the same versioned rules used for persisted
-    // snapshots so malformed anchors or timestamps cannot poison a resumed
-    // trip merely by bypassing map decoding.
-    final recoveredSnapshot = TripTrackingEngineSnapshot.fromMap(
-      snapshot.toMap(),
-    );
-    engine._lastAccepted = recoveredSnapshot.lastAccepted;
-    engine._lastObservedAt = recoveredSnapshot.lastObservedAt;
-    engine._lastContinuousAt =
-        recoveredSnapshot.lastContinuousAt ??
-        recoveredSnapshot.lastAccepted?.recordedAt;
-    engine._lastObservedMonotonicElapsedNanos =
-        recoveredSnapshot.lastObservedMonotonicElapsedNanos ??
-        recoveredSnapshot.lastAccepted?.monotonicElapsedNanos;
-    engine._lastContinuousMonotonicElapsedNanos =
-        recoveredSnapshot.lastContinuousMonotonicElapsedNanos ??
-        recoveredSnapshot.lastAccepted?.monotonicElapsedNanos;
-    engine._totalAcceptedMeters = recoveredSnapshot.totalAcceptedMeters;
-    final strategy = TripTrackingProfileStrategy.forProfile(
-      profile,
-      policy: policy,
-    );
-    final recoveredWalkingEvidence = sanitizeRecoveredWalkingEvidence(
-      recoveredSnapshot.walkingEvidence,
-      lastObservedAt: engine._lastObservedAt,
-      maximumEvidenceAge: _safePositiveDuration(
-        policy.walkingConfirmationWindow,
-        _defaultWalkingConfirmationWindow,
-      ),
-    );
-    final recoveredStationaryStartedAt =
-        TripTrackingEngineAnalysis._safeRecoveredStationaryStartedAt(
-          recoveredSnapshot.stationaryStartedAt,
-          vehicleMovementObserved: recoveredSnapshot.vehicleMovementObserved,
-          lastObservedAt: engine._lastObservedAt,
-        );
-    if (strategy.usesWalkingStopEvidence) {
-      engine._walkingEvidence.addAll(recoveredWalkingEvidence);
-      final hasRecoveredWalkingEvidence = recoveredWalkingEvidence.isNotEmpty;
-      final latestWalkingEvidenceAt = hasRecoveredWalkingEvidence
-          ? recoveredWalkingEvidence.last.recordedAt
-          : null;
-      final hasRecoveredWalkingStopEvidence = strategy.hasWalkingStopEvidence(
-        walkingEvidenceCount: recoveredWalkingEvidence.length,
-        observedAt:
-            engine._lastObservedAt ??
-            latestWalkingEvidenceAt ??
-            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-        latestWalkingEvidenceAt: latestWalkingEvidenceAt,
-        walkingEvidenceSpan: hasRecoveredWalkingEvidence
-            ? latestWalkingEvidenceAt!.difference(
-                recoveredWalkingEvidence.first.recordedAt,
-              )
-            : Duration.zero,
-      );
-      engine._walkingReviewSuggested =
-          recoveredSnapshot.walkingReviewSuggested &&
-          recoveredSnapshot.vehicleMovementObserved &&
-          hasRecoveredWalkingStopEvidence;
-      engine._motionState = switch (recoveredSnapshot.motionState) {
-        TripMotionState.moving when recoveredSnapshot.vehicleMovementObserved =>
-          TripMotionState.moving,
-        TripMotionState.stopCandidate
-            when recoveredSnapshot.vehicleMovementObserved &&
-                (recoveredStationaryStartedAt != null ||
-                    hasRecoveredWalkingStopEvidence) =>
-          TripMotionState.stopCandidate,
-        TripMotionState.stopped
-            when recoveredSnapshot.vehicleMovementObserved &&
-                hasRecoveredWalkingStopEvidence =>
-          TripMotionState.stopped,
-        _ => TripMotionState.unknown,
-      };
-    } else {
-      engine._walkingReviewSuggested = false;
-      engine._motionState =
-          recoveredSnapshot.motionState == TripMotionState.stopCandidate ||
-              recoveredSnapshot.motionState == TripMotionState.stopped
-          ? TripMotionState.unknown
-          : recoveredSnapshot.motionState;
-    }
-    engine._vehicleMovementObserved = recoveredSnapshot.vehicleMovementObserved;
-    engine._stationaryStartedAt = recoveredStationaryStartedAt;
-    engine._diagnostics = recoveredSnapshot.diagnostics;
-    return engine;
-  }
+  }) => restoreTripTrackingEngineSnapshot(
+    snapshot,
+    policy: policy,
+    profile: profile,
+  );
 
   TripSamplingRecommendation samplingRecommendation({
     double? speedMetersPerSecond,
