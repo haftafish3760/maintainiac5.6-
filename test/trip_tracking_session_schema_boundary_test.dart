@@ -10,6 +10,9 @@ void main() {
   Map<String, Object?> sessionMap({Object? schemaVersion = 1}) => {
     'id': 'trip_schema_boundary',
     'vehicleId': 'vehicle_1',
+    'vehicleConfigurationRevision': 0,
+    'startedTimeZoneOffsetMinutes': 0,
+    'startedTimeZoneName': 'UTC',
     'startingOdometer': 1000,
     'profile': TripTrackingProfile.roadVehicle.name,
     'startedAt': startedAt.toIso8601String(),
@@ -35,6 +38,10 @@ void main() {
       'vehicleId': 'vehicle_1',
       'profileId': 'profile_1',
       'vehicleConfigurationRevision': 0,
+      'startedTimeZoneOffsetMinutes': 0,
+      'startedTimeZoneName': 'UTC',
+      'finishedTimeZoneOffsetMinutes': 0,
+      'finishedTimeZoneName': 'UTC',
       'startingOdometer': 1000,
       'estimatedEndingOdometer': 1002,
       'profile': TripTrackingProfile.roadVehicle.name,
@@ -60,24 +67,24 @@ void main() {
   }
 
   test(
-    'active trip schema versions migrate to current integer version three',
+    'active trip schema versions migrate to current integer version four',
     () {
       for (final schema in const [1.0, 1.5, '1', true, null]) {
         final session = TripTrackingSessionRecord.fromMap(
           sessionMap(schemaVersion: schema),
         );
 
-        expect(session.schemaVersion, 3, reason: '$schema');
+        expect(session.schemaVersion, 4, reason: '$schema');
         expect(session.hasValidTimeline, isFalse, reason: '$schema');
       }
 
       final supported = TripTrackingSessionRecord.fromMap(sessionMap());
 
-      expect(supported.schemaVersion, 3);
+      expect(supported.schemaVersion, 4);
       expect(supported.hasValidTimeline, isTrue);
 
       final current = TripTrackingSessionRecord.fromMap(
-        sessionMap(schemaVersion: 2)..addAll({
+        sessionMap(schemaVersion: 4)..addAll({
           'profileId': 'profile_1',
           'revision': 1,
           'lastEventSequence': 1,
@@ -87,14 +94,14 @@ void main() {
         sessionMap(schemaVersion: 99),
       );
 
-      expect(current.schemaVersion, 3);
+      expect(current.schemaVersion, 4);
       expect(current.hasValidTimeline, isTrue);
       expect(future.hasValidTimeline, isFalse);
     },
   );
 
-  test('review schema versions migrate to current integer version two', () {
-    for (final schema in const [1.0, 3, 99, '1', false]) {
+  test('review schema versions migrate to current integer version three', () {
+    for (final schema in const [1.0, 4, 99, '1', false]) {
       final review = TripTrackingReviewRecord.fromMap(
         reviewMap(schemaVersion: schema),
       );
@@ -104,13 +111,13 @@ void main() {
 
     final supported = TripTrackingReviewRecord.fromMap(reviewMap());
 
-    expect(supported.schemaVersion, 2);
+    expect(supported.schemaVersion, 3);
     expect(supported.hasValidTimeline, isTrue);
 
     final current = TripTrackingReviewRecord.fromMap(
-      reviewMap(schemaVersion: 2),
+      reviewMap(schemaVersion: 3),
     );
-    expect(current.schemaVersion, 2);
+    expect(current.schemaVersion, 3);
     expect(current.hasValidTimeline, isTrue);
   });
 

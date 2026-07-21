@@ -20,6 +20,8 @@ class TripTrackingSessionRecord {
     required this.startedAt,
     required this.updatedAt,
     required this.engineSnapshot,
+    this.startedTimeZoneOffsetMinutes = 0,
+    this.startedTimeZoneName = 'UTC',
     this.profileId = 'legacy-local-profile',
     this.vehicleConfigurationRevision = 0,
     this.revision = 0,
@@ -36,7 +38,7 @@ class TripTrackingSessionRecord {
     this.lowBatteryOverrideEnabled = false,
     this.lowBatteryWarningDismissed = false,
     this.hasValidTimeline = true,
-    this.schemaVersion = 3,
+    this.schemaVersion = 4,
   });
 
   final String id;
@@ -49,6 +51,8 @@ class TripTrackingSessionRecord {
   final TripTrackingProfile profile;
   final DateTime startedAt;
   final DateTime updatedAt;
+  final int startedTimeZoneOffsetMinutes;
+  final String startedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
   final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingSessionLifecycleState lifecycleState;
@@ -118,6 +122,8 @@ class TripTrackingSessionRecord {
       profile: profile,
       startedAt: startedAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      startedTimeZoneOffsetMinutes: startedTimeZoneOffsetMinutes,
+      startedTimeZoneName: startedTimeZoneName,
       engineSnapshot: engineSnapshot ?? this.engineSnapshot,
       advisories: advisories ?? this.advisories,
       lifecycleState: lifecycleState ?? this.lifecycleState,
@@ -150,8 +156,10 @@ class TripTrackingSessionRecord {
     'lastEventSequence': lastEventSequence,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
-    'startedAt': startedAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
+    'startedAt': startedAt.toUtc().toIso8601String(),
+    'updatedAt': updatedAt.toUtc().toIso8601String(),
+    'startedTimeZoneOffsetMinutes': startedTimeZoneOffsetMinutes,
+    'startedTimeZoneName': _safeTimeZoneName(startedTimeZoneName),
     'engineSnapshot': engineSnapshot.toMap(),
     'advisories': _boundedAdvisories(
       advisories,
@@ -200,6 +208,10 @@ class TripTrackingSessionRecord {
         sourceSchemaVersion < 3 ||
         (map['vehicleConfigurationRevision'] is int &&
             (map['vehicleConfigurationRevision'] as int) >= 0);
+    final hasValidStartedTimeZone =
+        sourceSchemaVersion < 4 ||
+        (_isValidTimeZoneOffset(map['startedTimeZoneOffsetMinutes']) &&
+            _isSafeTimeZoneName(map['startedTimeZoneName']));
     final safeProfileId = sourceSchemaVersion == 1
         ? 'legacy-local-profile'
         : _safeIdentifier(map['profileId']);
@@ -239,6 +251,12 @@ class TripTrackingSessionRecord {
       startedAt: safeStartedAt,
       updatedAt:
           updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      startedTimeZoneOffsetMinutes: sourceSchemaVersion < 4
+          ? 0
+          : _safeTimeZoneOffset(map['startedTimeZoneOffsetMinutes']),
+      startedTimeZoneName: sourceSchemaVersion < 4
+          ? 'unknown'
+          : _safeTimeZoneName(map['startedTimeZoneName']),
       engineSnapshot: map['engineSnapshot'] is Map
           ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
           : const TripTrackingEngineSnapshot(
@@ -282,8 +300,9 @@ class TripTrackingSessionRecord {
           hasValidLifecycleState &&
           hasValidHealthState &&
           hasValidVehicleConfigurationRevision &&
+          hasValidStartedTimeZone &&
           hasSupportedSchemaVersion,
-      schemaVersion: sourceSchemaVersion < 3 ? 3 : sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion < 4 ? 4 : sourceSchemaVersion,
     );
   }
 }
@@ -435,6 +454,10 @@ class TripTrackingReviewRecord {
     required this.startedAt,
     required this.finishedAt,
     required this.engineSnapshot,
+    this.startedTimeZoneOffsetMinutes = 0,
+    this.startedTimeZoneName = 'UTC',
+    this.finishedTimeZoneOffsetMinutes = 0,
+    this.finishedTimeZoneName = 'UTC',
     this.cloudSyncState = TripTrackingCloudSyncState.localOnly,
     this.cloudAccountUid,
     this.cloudBackupScope,
@@ -443,7 +466,7 @@ class TripTrackingReviewRecord {
     this.cloudSyncedAt,
     this.confirmedEndingOdometer,
     this.odometerConfirmedAt,
-    this.schemaVersion = 2,
+    this.schemaVersion = 3,
     this.hasValidTimeline = true,
   });
 
@@ -456,6 +479,10 @@ class TripTrackingReviewRecord {
   final TripTrackingProfile profile;
   final DateTime startedAt;
   final DateTime finishedAt;
+  final int startedTimeZoneOffsetMinutes;
+  final String startedTimeZoneName;
+  final int finishedTimeZoneOffsetMinutes;
+  final String finishedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
   final TripTrackingCloudSyncState cloudSyncState;
   final String? cloudAccountUid;
@@ -509,6 +536,10 @@ class TripTrackingReviewRecord {
       profile: profile,
       startedAt: startedAt,
       finishedAt: finishedAt,
+      startedTimeZoneOffsetMinutes: startedTimeZoneOffsetMinutes,
+      startedTimeZoneName: startedTimeZoneName,
+      finishedTimeZoneOffsetMinutes: finishedTimeZoneOffsetMinutes,
+      finishedTimeZoneName: finishedTimeZoneName,
       engineSnapshot: engineSnapshot,
       cloudSyncState: cloudSyncState ?? this.cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(
@@ -539,8 +570,12 @@ class TripTrackingReviewRecord {
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
-    'startedAt': startedAt.toIso8601String(),
-    'finishedAt': finishedAt.toIso8601String(),
+    'startedAt': startedAt.toUtc().toIso8601String(),
+    'finishedAt': finishedAt.toUtc().toIso8601String(),
+    'startedTimeZoneOffsetMinutes': startedTimeZoneOffsetMinutes,
+    'startedTimeZoneName': _safeTimeZoneName(startedTimeZoneName),
+    'finishedTimeZoneOffsetMinutes': finishedTimeZoneOffsetMinutes,
+    'finishedTimeZoneName': _safeTimeZoneName(finishedTimeZoneName),
     'engineSnapshot': engineSnapshot.toMap(),
     'cloudSyncState': cloudSyncState.name,
     if (_optionalSafeCloudToken(cloudAccountUid) != null)
@@ -577,6 +612,12 @@ class TripTrackingReviewRecord {
         sourceSchemaVersion < 2 ||
         (map['vehicleConfigurationRevision'] is int &&
             (map['vehicleConfigurationRevision'] as int) >= 0);
+    final hasValidTimeZoneContext =
+        sourceSchemaVersion < 3 ||
+        (_isValidTimeZoneOffset(map['startedTimeZoneOffsetMinutes']) &&
+            _isSafeTimeZoneName(map['startedTimeZoneName']) &&
+            _isValidTimeZoneOffset(map['finishedTimeZoneOffsetMinutes']) &&
+            _isSafeTimeZoneName(map['finishedTimeZoneName']));
     final cloudBackupScope = _cloudBackupScopeFromMap(map['cloudBackupScope']);
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
@@ -635,6 +676,18 @@ class TripTrackingReviewRecord {
           startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       finishedAt:
           finishedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      startedTimeZoneOffsetMinutes: sourceSchemaVersion < 3
+          ? 0
+          : _safeTimeZoneOffset(map['startedTimeZoneOffsetMinutes']),
+      startedTimeZoneName: sourceSchemaVersion < 3
+          ? 'unknown'
+          : _safeTimeZoneName(map['startedTimeZoneName']),
+      finishedTimeZoneOffsetMinutes: sourceSchemaVersion < 3
+          ? 0
+          : _safeTimeZoneOffset(map['finishedTimeZoneOffsetMinutes']),
+      finishedTimeZoneName: sourceSchemaVersion < 3
+          ? 'unknown'
+          : _safeTimeZoneName(map['finishedTimeZoneName']),
       engineSnapshot: map['engineSnapshot'] is Map
           ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
           : const TripTrackingEngineSnapshot(
@@ -655,7 +708,7 @@ class TripTrackingReviewRecord {
         maxLength: 240,
       ),
       cloudSyncedAt: cloudSyncedAt,
-      schemaVersion: sourceSchemaVersion < 2 ? 2 : sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion < 3 ? 3 : sourceSchemaVersion,
       hasValidTimeline:
           startedAt != null &&
           finishedAt != null &&
@@ -663,6 +716,7 @@ class TripTrackingReviewRecord {
           hasSafeIdentity &&
           _isSafeStoreIdentifierValue(safeProfileId) &&
           hasValidVehicleConfigurationRevision &&
+          hasValidTimeZoneContext &&
           hasValidProfile &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(
@@ -711,14 +765,31 @@ bool _hasSupportedActiveSessionSchemaVersion(
 ) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 3;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 4;
 }
 
 bool _hasSupportedReviewSchemaVersion(Map<dynamic, dynamic> map, String key) {
   if (!map.containsKey(key)) return true;
   final rawVersion = map[key];
-  return rawVersion is int && rawVersion >= 1 && rawVersion <= 2;
+  return rawVersion is int && rawVersion >= 1 && rawVersion <= 3;
 }
+
+bool _isValidTimeZoneOffset(Object? value) =>
+    value is int && value >= -840 && value <= 840;
+
+int _safeTimeZoneOffset(Object? value) =>
+    _isValidTimeZoneOffset(value) ? value as int : 0;
+
+bool _isSafeTimeZoneName(Object? value) {
+  if (value is! String) return false;
+  final clean = value.trim();
+  return clean.isNotEmpty &&
+      clean.length <= 64 &&
+      !clean.contains(RegExp(r'[\x00-\x1F\x7F]'));
+}
+
+String _safeTimeZoneName(Object? value) =>
+    _isSafeTimeZoneName(value) ? (value as String).trim() : 'unknown';
 
 TripTrackingCloudBackupScope? _cloudBackupScopeFromMap(Object? value) {
   if (value is! String) return null;
@@ -1450,6 +1521,10 @@ class TripTrackingSessionStore {
         if (!review.hasValidTimeline ||
             review.finishedAt.isBefore(review.startedAt) ||
             review.vehicleConfigurationRevision < 0 ||
+            !_isValidTimeZoneOffset(review.startedTimeZoneOffsetMinutes) ||
+            !_isSafeTimeZoneName(review.startedTimeZoneName) ||
+            !_isValidTimeZoneOffset(review.finishedTimeZoneOffsetMinutes) ||
+            !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
@@ -1603,7 +1678,9 @@ void _validateActiveSessionRecord(TripTrackingSessionRecord session) {
   if (!session.hasValidTimeline ||
       session.updatedAt.isBefore(session.startedAt) ||
       session.revision < session.lastEventSequence ||
-      session.vehicleConfigurationRevision < 0) {
+      session.vehicleConfigurationRevision < 0 ||
+      !_isValidTimeZoneOffset(session.startedTimeZoneOffsetMinutes) ||
+      !_isSafeTimeZoneName(session.startedTimeZoneName)) {
     throw ArgumentError.value(
       session.id,
       'session',

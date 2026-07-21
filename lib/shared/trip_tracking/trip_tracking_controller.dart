@@ -799,6 +799,8 @@ class TripTrackingController extends ChangeNotifier {
       profile: profile,
       startedAt: started,
       updatedAt: started,
+      startedTimeZoneOffsetMinutes: started.timeZoneOffset.inMinutes,
+      startedTimeZoneName: started.timeZoneName,
       engineSnapshot: _engine!.snapshot,
       lifecycleState: initialLifecycleState,
     );
@@ -2924,6 +2926,10 @@ class TripTrackingController extends ChangeNotifier {
       profile: session.profile,
       startedAt: session.startedAt,
       finishedAt: completedAt,
+      startedTimeZoneOffsetMinutes: session.startedTimeZoneOffsetMinutes,
+      startedTimeZoneName: session.startedTimeZoneName,
+      finishedTimeZoneOffsetMinutes: completedAt.timeZoneOffset.inMinutes,
+      finishedTimeZoneName: completedAt.timeZoneName,
       engineSnapshot: engine.snapshot,
     );
     try {
