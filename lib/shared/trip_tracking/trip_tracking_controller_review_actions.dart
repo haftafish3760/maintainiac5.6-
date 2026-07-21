@@ -300,7 +300,8 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     try {
       await _sessionStore.clearPending(session.id);
     } catch (_) {
-      if (_platformStatus == null) {
+      if (_platformStatus == null ||
+          (_platformStatus == 'stopped' && _platformError == null)) {
         _platformStatus = 'pending_cleanup_failed';
         _platformError = 'Could not clear transient GPS recovery data.';
       }
@@ -310,8 +311,9 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     _engine = null;
     _projection = null;
     _activeTripCalibrationMultiplier = 1;
-    _platformStatus = null;
-    _platformError = null;
+    if (_platformStatus == 'stopped' && _platformError == null) {
+      _platformStatus = null;
+    }
     notifyListeners();
     return review;
   }
@@ -494,7 +496,8 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       // the review itself is durable.
       await _sessionStore.clearPending(session.id);
     } catch (error) {
-      if (_platformStatus == null) {
+      if (_platformStatus == null ||
+          (_platformStatus == 'stopped' && _platformError == null)) {
         _platformStatus = 'pending_cleanup_failed';
         _platformError = 'Could not clear transient GPS recovery data.';
       }

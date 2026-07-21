@@ -6365,6 +6365,50 @@ void main() {
     expect(controller.platformStatus, 'trip_cancel_confirmation_required');
   });
 
+  test('cancel preserves active-session cleanup failure diagnostics', () async {
+    final store = _FailingReviewCleanupStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_cancel_cleanup_failure',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(await controller.cancelActiveTrip(), isNotNull);
+    expect(controller.platformStatus, 'cancel_cleanup_failed');
+    expect(controller.platformError, contains('Review remains recoverable'));
+  });
+
+  test('completion surfaces transient GPS cleanup failure', () async {
+    final store = _FailingPendingCleanupStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_finish_pending_cleanup_failure',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.finishForReview(
+        finishedAt: start.add(const Duration(minutes: 1)),
+      ),
+      isNotNull,
+    );
+    expect(controller.platformStatus, 'pending_cleanup_failed');
+    expect(
+      controller.platformError,
+      contains('Could not clear transient GPS recovery data'),
+    );
+  });
+
   test(
     'durable review backup failure is retryable without changing odometer truth',
     () async {
