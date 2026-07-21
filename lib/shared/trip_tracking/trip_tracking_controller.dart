@@ -379,6 +379,11 @@ class TripTrackingController extends ChangeNotifier {
     }
     _sessionOperationInProgress = true;
     try {
+      // A completion, cancellation, restore, or start boundary must observe
+      // every sample that was already accepted into the ingestion queue.
+      // While the queue drains, new ingestion is rejected by [ingest], so an
+      // older captured session cannot overwrite or outlive the boundary.
+      await _ingestionQueue;
       return await operation();
     } finally {
       _sessionOperationInProgress = false;

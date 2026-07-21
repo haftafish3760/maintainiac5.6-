@@ -8,9 +8,14 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     TripLocationSample sample, {
     TripActivityObservation? activity,
     DateTime? referenceTime,
-  }) => _enqueueIngestion(
-    () => _ingest(sample, activity: activity, referenceTime: referenceTime),
-  );
+  }) {
+    if (_isDisposed || _sessionOperationInProgress) {
+      return Future<TripSampleDecision?>.value();
+    }
+    return _enqueueIngestion(
+      () => _ingest(sample, activity: activity, referenceTime: referenceTime),
+    );
+  }
 
   Future<TripSampleDecision?> _ingest(
     TripLocationSample sample, {

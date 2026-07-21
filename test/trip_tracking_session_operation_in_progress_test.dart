@@ -15,6 +15,20 @@ class TestGlobalOdometerController
     : super(vehicleId: 'vehicle_1', initialReading: 1000);
 }
 
+class _BlockingPendingSampleStore extends TripTrackingSessionStore {
+  _BlockingPendingSampleStore() : super.memory();
+
+  final pendingSaveStarted = Completer<void>();
+  final allowPendingSave = Completer<void>();
+
+  @override
+  Future<void> savePending(TripTrackingPendingSample pending) async {
+    if (!pendingSaveStarted.isCompleted) pendingSaveStarted.complete();
+    await allowPendingSave.future;
+    await super.savePending(pending);
+  }
+}
+
 class _BlockingRestorePlatform implements TripTrackingNativeGateway {
   _BlockingRestorePlatform(this._isTrackingGate);
 
@@ -25,38 +39,35 @@ class _BlockingRestorePlatform implements TripTrackingNativeGateway {
       const Stream<TripTrackingPlatformEvent>.empty();
 
   @override
-  Future<TripTrackingPlatformCapabilities> readCapabilities() =>
-      Future.value(
-        const TripTrackingPlatformCapabilities(
-          locationAvailable: true,
-          backgroundTrackingAvailable: true,
-          activityRecognitionAvailable: true,
-        ),
-      );
+  Future<TripTrackingPlatformCapabilities> readCapabilities() => Future.value(
+    const TripTrackingPlatformCapabilities(
+      locationAvailable: true,
+      backgroundTrackingAvailable: true,
+      activityRecognitionAvailable: true,
+    ),
+  );
 
   @override
-  Future<TripTrackingBatterySnapshot> readBatterySnapshot() =>
-      Future.value(
-        const TripTrackingBatterySnapshot(
-          batteryPercent: 100,
-          isCharging: false,
-          lowPowerModeEnabled: false,
-        ),
-      );
+  Future<TripTrackingBatterySnapshot> readBatterySnapshot() => Future.value(
+    const TripTrackingBatterySnapshot(
+      batteryPercent: 100,
+      isCharging: false,
+      lowPowerModeEnabled: false,
+    ),
+  );
 
   @override
   Future<TripTrackingAuthorization> requestAuthorization({
     required bool allowBackground,
     required bool activityRecognitionEnabled,
-  }) =>
-      Future.value(
-        TripTrackingAuthorization(
-          state: allowBackground
-              ? TripTrackingAuthorizationState.always
-              : TripTrackingAuthorizationState.whileInUse,
-          preciseLocation: true,
-        ),
-      );
+  }) => Future.value(
+    TripTrackingAuthorization(
+      state: allowBackground
+          ? TripTrackingAuthorizationState.always
+          : TripTrackingAuthorizationState.whileInUse,
+      preciseLocation: true,
+    ),
+  );
 
   @override
   Future<bool> start(TripTrackingNativeRequest request) async => true;
@@ -393,6 +404,65 @@ void main() {
 
       storageGate.complete();
       expect(await first, isTrue);
+    },
+  );
+
+  test(
+    'session boundary drains queued GPS evidence and blocks later ingestion',
+    () async {
+      final startedAt = DateTime.utc(2026, 7, 12, 12);
+      final store = _BlockingPendingSampleStore();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: TestGlobalOdometerController(),
+      );
+      addTearDown(controller.dispose);
+      expect(
+        await controller.start(
+          tripId: 'trip_ingestion_boundary',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: startedAt,
+        ),
+        isTrue,
+      );
+
+      final firstSampleAt = startedAt.add(const Duration(seconds: 10));
+      final firstIngestion = controller.ingest(
+        TripLocationSample(
+          latitude: 35,
+          longitude: -80,
+          recordedAt: firstSampleAt,
+          horizontalAccuracyMeters: 5,
+        ),
+        referenceTime: firstSampleAt,
+      );
+      await store.pendingSaveStarted.future;
+
+      var cancellationCompleted = false;
+      final cancellation = controller
+          .cancelActiveTrip(canceledAt: firstSampleAt)
+          .whenComplete(() => cancellationCompleted = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(cancellationCompleted, isFalse);
+
+      final lateSample = await controller.ingest(
+        TripLocationSample(
+          latitude: 35.0001,
+          longitude: -80,
+          recordedAt: firstSampleAt.add(const Duration(seconds: 1)),
+          horizontalAccuracyMeters: 5,
+        ),
+        referenceTime: firstSampleAt.add(const Duration(seconds: 1)),
+      );
+      expect(lateSample, isNull);
+
+      store.allowPendingSave.complete();
+      expect((await firstIngestion)?.accepted, isTrue);
+      expect(await cancellation, isNull);
+      expect(controller.platformStatus, 'trip_cancel_confirmation_required');
+      expect(controller.activeSession, isNotNull);
+      expect(controller.activeSession?.updatedAt, firstSampleAt);
     },
   );
 }
