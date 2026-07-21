@@ -195,6 +195,11 @@ class TripTrackingNativeBridge(
             result.success(false)
             return
         }
+        val allowBackground = call.argument<Boolean>("allowBackground") == true
+        if (allowBackground && !hasBackgroundLocation()) {
+            result.error("trip_tracking_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())
+            return
+        }
         val intent = Intent(activity, TripTrackingForegroundService::class.java).apply {
             putExtra(TripTrackingForegroundService.intervalMillisExtra, (call.argument<Number>("intervalMillis")?.toLong() ?: 5000L).coerceIn(1000L, 60000L))
             putExtra(TripTrackingForegroundService.minimumDisplacementExtra, (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(1f, 100f))

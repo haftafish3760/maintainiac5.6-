@@ -353,6 +353,44 @@ void main() {
     );
   });
 
+  test('native sampling updates revalidate background authorization', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final ios = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+
+    expect(
+      android,
+      contains(
+        'val allowBackground = call.argument<Boolean>("allowBackground") == true',
+      ),
+    );
+    expect(
+      android,
+      contains('if (allowBackground && !hasBackgroundLocation())'),
+    );
+    expect(
+      ios,
+      contains(
+        'let allowBackground = arguments?["allowBackground"] as? Bool ?? false',
+      ),
+    );
+    expect(
+      ios,
+      contains(
+        'guard state == "always" || (!allowBackground && state == "whileInUse") else',
+      ),
+    );
+    expect(
+      ios,
+      contains(
+        'locationManager.allowsBackgroundLocationUpdates = allowBackground && state == "always"',
+      ),
+    );
+  });
+
   test('native collectors emit revocation errors and release resources', () {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',

@@ -305,8 +305,21 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let arguments = call.arguments as? [String: Any]
     let intervalMillis = (arguments?["intervalMillis"] as? NSNumber)?.int64Value ?? 5000
     let displacement = arguments?["minimumDisplacementMeters"] as? Double ?? 5
+    let allowBackground = arguments?["allowBackground"] as? Bool ?? false
     let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
+    let authorization = authorizationMap()
+    let state = authorization["state"] as? String
+    guard state == "always" || (!allowBackground && state == "whileInUse") else {
+      result(FlutterError(code: "trip_tracking_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
+      return
+    }
     applySampling(intervalMillis: intervalMillis, displacement: displacement)
+    if #available(iOS 9.0, *) {
+      locationManager.allowsBackgroundLocationUpdates = allowBackground && state == "always"
+    }
+    if #available(iOS 11.0, *) {
+      locationManager.showsBackgroundLocationIndicator = allowBackground && state == "always"
+    }
     setActivityRecognitionEnabled(activityEnabled)
     result(true)
   }
