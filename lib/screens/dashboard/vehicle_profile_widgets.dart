@@ -13,6 +13,11 @@ class VehicleProfilePreview {
     required this.odometer,
     required this.status,
     this.usage = VehicleUsage.businessPersonal,
+    this.tireSizeStatus = VehicleTireSizeStatus.unknown,
+    this.speedometerCalibrationStatus =
+        VehicleSpeedometerCalibrationStatus.unknown,
+    this.tireConfigurationRevision = 0,
+    this.tireConfigurationUpdatedAt,
   });
 
   final String id;
@@ -23,6 +28,10 @@ class VehicleProfilePreview {
   final String odometer;
   final String status;
   final VehicleUsage usage;
+  final VehicleTireSizeStatus tireSizeStatus;
+  final VehicleSpeedometerCalibrationStatus speedometerCalibrationStatus;
+  final int tireConfigurationRevision;
+  final DateTime? tireConfigurationUpdatedAt;
 }
 
 class VehicleFormBackground extends StatelessWidget {

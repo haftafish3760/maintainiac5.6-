@@ -4,6 +4,7 @@ import '../../shared/odometer/odometer_vehicle_snapshot.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/theme/app_action_colors.dart';
 import 'vehicle_profile_widgets.dart';
+import 'vehicle_tire_configuration_selector.dart';
 
 class VehicleProfileDetailOutcome {
   const VehicleProfileDetailOutcome.updated(this.vehicle) : deleted = false;
@@ -47,6 +48,12 @@ class _VehicleProfileDetailScreenState
   late final _initialModel = widget.vehicle.model;
   late final _initialUsage = widget.vehicle.usage;
   late var _usage = widget.vehicle.usage;
+  late final _initialTireSizeStatus = widget.vehicle.tireSizeStatus;
+  late final _initialSpeedometerCalibrationStatus =
+      widget.vehicle.speedometerCalibrationStatus;
+  late var _tireSizeStatus = widget.vehicle.tireSizeStatus;
+  late var _speedometerCalibrationStatus =
+      widget.vehicle.speedometerCalibrationStatus;
   var _leaving = false;
 
   @override
@@ -103,6 +110,15 @@ class _VehicleProfileDetailScreenState
               VehicleUsageSelector(
                 value: _usage,
                 onChanged: (usage) => setState(() => _usage = usage),
+              ),
+              const SizedBox(height: 16),
+              VehicleTireConfigurationSelector(
+                tireSizeStatus: _tireSizeStatus,
+                speedometerCalibrationStatus: _speedometerCalibrationStatus,
+                onTireSizeChanged: (value) =>
+                    setState(() => _tireSizeStatus = value),
+                onSpeedometerCalibrationChanged: (value) =>
+                    setState(() => _speedometerCalibrationStatus = value),
               ),
               const SizedBox(height: 16),
               _ProfileFactRow(label: 'Odometer', value: odometerValue),
@@ -167,11 +183,16 @@ class _VehicleProfileDetailScreenState
         _yearController.text != _initialYear ||
         _makeController.text != _initialMake ||
         _modelController.text != _initialModel ||
-        _usage != _initialUsage;
+        _usage != _initialUsage ||
+        _tireSizeStatus != _initialTireSizeStatus ||
+        _speedometerCalibrationStatus != _initialSpeedometerCalibrationStatus;
   }
 
   void _saveChanges() {
     FocusManager.instance.primaryFocus?.unfocus();
+    final tireConfigurationChanged =
+        _tireSizeStatus != _initialTireSizeStatus ||
+        _speedometerCalibrationStatus != _initialSpeedometerCalibrationStatus;
     Navigator.of(context).pop(
       VehicleProfileDetailOutcome.updated(
         VehicleProfilePreview(
@@ -185,6 +206,14 @@ class _VehicleProfileDetailScreenState
           odometer: widget.vehicle.odometer,
           status: widget.vehicle.status,
           usage: _usage,
+          tireSizeStatus: _tireSizeStatus,
+          speedometerCalibrationStatus: _speedometerCalibrationStatus,
+          tireConfigurationRevision: tireConfigurationChanged
+              ? widget.vehicle.tireConfigurationRevision + 1
+              : widget.vehicle.tireConfigurationRevision,
+          tireConfigurationUpdatedAt: tireConfigurationChanged
+              ? DateTime.now().toUtc()
+              : widget.vehicle.tireConfigurationUpdatedAt,
         ),
       ),
     );
