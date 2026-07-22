@@ -73,7 +73,7 @@ extension _ExpenseReceiptEntryNoLineRecoveryPanel
             ),
             _ReceiptNoLineRecoveryChip(
               icon: Icons.call_split_rounded,
-              label: 'Split Total 50/50',
+              label: 'Split Total',
               color: const Color(0xFFFFD166),
               onPressed: () => _addReceiptTotalLine(
                 use: _ExpenseLineUse.split,

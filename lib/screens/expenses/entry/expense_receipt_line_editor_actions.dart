@@ -14,6 +14,22 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
       );
       return;
     }
+    final enteredBusinessPercent = _use == _ExpenseLineUse.split
+        ? _enteredBusinessPercent
+        : null;
+    if (_use == _ExpenseLineUse.split && enteredBusinessPercent == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Enter a business percentage from 0 to 100 before saving this split line.',
+          ),
+        ),
+      );
+      return;
+    }
+    final splitAllocation = enteredBusinessPercent == null
+        ? null
+        : _splitAllocationForEditedLine(enteredBusinessPercent);
     final rule = expenseReceiptRuleForCategory(category);
     final isFuel = rule.isFuel;
     final odometerReading = int.tryParse(
@@ -120,9 +136,8 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         unitsPerPackage: unitsPerPackage,
         stockUnit: stockUnit,
         subtotal: subtotal,
-        businessPercent: _use == _ExpenseLineUse.split
-            ? _businessPercent
-            : null,
+        businessPercent: enteredBusinessPercent,
+        splitAllocation: splitAllocation,
         odometerReading: isFuel ? odometerReading : null,
         fuelType: isFuel ? _fuelType : null,
         fillType: isFuel ? _fillType : null,
@@ -141,6 +156,23 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         parserReviewReason: parserReviewReason,
         parserNeedsReview: false,
       ),
+    );
+  }
+
+  ExpenseSplitAllocation _splitAllocationForEditedLine(double percent) {
+    final existing = widget.initial.splitAllocation;
+    if (existing != null) {
+      final existingPercent = existing.businessPercentFor(
+        widget.initial.toLedgerLine(),
+      );
+      if (existingPercent != null &&
+          (existingPercent - percent).abs() < .0001) {
+        return existing;
+      }
+    }
+    return ExpenseSplitAllocation(
+      method: ExpenseSplitAllocationMethod.percentage,
+      businessValue: percent,
     );
   }
 
@@ -199,7 +231,9 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         category != widget.initial.category ||
         _use != widget.initial.use ||
         subtotal != widget.initial.subtotal ||
-        _businessPercent != widget.initial.effectiveBusinessPercent ||
+        (_use == _ExpenseLineUse.split &&
+            _enteredBusinessPercent !=
+                widget.initial.effectiveBusinessPercent) ||
         quantity != widget.initial.quantity ||
         unitsPerPackage != widget.initial.unitsPerPackage ||
         stockUnit != widget.initial.stockUnit ||

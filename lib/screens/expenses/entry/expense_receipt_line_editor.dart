@@ -131,7 +131,7 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
                 const SizedBox(height: 10),
                 _SplitAllocationFields(
                   businessPercentController: _businessPercentController,
-                  businessPercent: _businessPercent,
+                  businessPercent: _enteredBusinessPercent,
                 ),
               ],
               const SizedBox(height: 10),

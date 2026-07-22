@@ -20,6 +20,10 @@ calendar/detail, reports, reminders, settings, and work profiles exist.
 
 - `VERIFIED SUBSET`: checkpoint `361a85e0` reconciled Basic, Detailed Items,
   and Quick Classify total fields; analyzer clean and 12 focused tests passed.
+- `VERIFIED SUBSET`: the Receipt OCR history reconciliation removed silent
+  50/50 split ownership, requires an explicit allocation, and preserves an
+  unchanged amount/quantity split method; analyzer clean and 26 focused tests
+  passed. Record the final checkpoint hash in the next rolling update.
 - Mandatory user review and receipt ownership rules live in
   `docs/expense_receipt_storage_and_duplicate_contract.md`.
 - `DEFERRED`: configurable draft retention and visual duplicate review are
@@ -31,3 +35,5 @@ calendar/detail, reports, reminders, settings, and work profiles exist.
 
 - 2026-07-22: Split Expenses from the former combined OCR/camera handoff and
   recorded the verified review-mode totals checkpoint.
+- 2026-07-22: Reconciled source commits `7b053a05b` and `27694e9d1`; integrated
+  explicit split ownership and retained the newer 5.7 evidence-display model.

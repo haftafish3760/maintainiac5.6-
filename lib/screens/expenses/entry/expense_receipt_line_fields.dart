@@ -127,11 +127,11 @@ class _SplitAllocationFields extends StatelessWidget {
   });
 
   final TextEditingController businessPercentController;
-  final double businessPercent;
+  final double? businessPercent;
 
   @override
   Widget build(BuildContext context) {
-    final personalPercent = 1 - businessPercent;
+    final enteredBusinessPercent = businessPercent;
     return Container(
       padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
       decoration: BoxDecoration(
@@ -160,7 +160,9 @@ class _SplitAllocationFields extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Business ${_percent(businessPercent)} | Personal ${_percent(personalPercent)}',
+            enteredBusinessPercent == null
+                ? 'Allocation required before this split line can be saved.'
+                : 'Business ${_percent(enteredBusinessPercent)} | Personal ${_percent(1 - enteredBusinessPercent)}',
             style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 12,

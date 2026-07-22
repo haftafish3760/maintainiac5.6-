@@ -89,6 +89,10 @@ The product owner stated that it is not being implemented during consolidation.
   passed.
 - `361a85e0`: reconciled Basic, Detailed Items, and Quick Classify receipt
   amount fields; analyzer clean and 12 focused tests passed.
+- Pending checkpoint after `361a85e0`: source commits `7b053a05b` and
+  `27694e9d1` were semantically reconciled. Silent 50/50 split ownership was
+  removed, explicit allocation is required, and unchanged amount/quantity
+  split methods are preserved; analyzer clean and 26 focused tests passed.
 
 ## Consolidation And Validation Boundary
 
@@ -109,3 +113,5 @@ final project-wide tests remain required before final consolidation completion.
 - 2026-07-22: Recorded verified checkpoints through `63e2d49c`.
 - 2026-07-22: Split current routing into dedicated Expenses and Receipt System
   handoffs and recorded checkpoint `361a85e0`.
+- 2026-07-22: Recorded explicit split ownership reconciliation from the OCR
+  source history.

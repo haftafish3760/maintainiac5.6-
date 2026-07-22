@@ -5,9 +5,12 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
     final quantity = double.tryParse(_quantityController.text) ?? 0;
     final units = double.tryParse(_unitsPerPackageController.text) ?? 1;
     final totalUnits = quantity * units;
-    final split = _use == _ExpenseLineUse.split
-        ? ' Business ${_percent(_businessPercent)}, personal ${_percent(1 - _businessPercent)}.'
-        : '';
+    final enteredBusinessPercent = _enteredBusinessPercent;
+    final split = _use != _ExpenseLineUse.split
+        ? ''
+        : enteredBusinessPercent == null
+        ? ' Enter the business allocation; the remainder is personal.'
+        : ' Business ${_percent(enteredBusinessPercent)}, personal ${_percent(1 - enteredBusinessPercent)}.';
     if (!_usesMeasuredLine) {
       return '${_categoryRule.guidance}$split';
     }
@@ -29,14 +32,14 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
 
   bool get _isFuelLine => _categoryRule.isFuel;
 
-  double get _businessPercent {
+  double? get _enteredBusinessPercent {
     final raw = _businessPercentController.text.trim();
+    if (raw.isEmpty) return null;
     final normalized = raw.replaceAll('%', '').replaceAll(',', '').trim();
     final numeric = double.tryParse(normalized);
-    if (numeric == null) return .5;
+    if (numeric == null || !numeric.isFinite) return null;
     final percent = numeric > 1 ? numeric / 100 : numeric;
-    if (percent < 0) return 0;
-    if (percent > 1) return 1;
+    if (percent < 0 || percent > 1) return null;
     return percent;
   }
 

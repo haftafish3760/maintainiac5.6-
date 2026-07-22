@@ -165,9 +165,8 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
           use: use,
           businessPercent: null,
           splitAllocation: null,
-          // The convenience 50% value is only a preview. It is not user
-          // intent, so keep the line blocked until the user confirms or
-          // edits the allocation in review.
+          // A mixed receipt is not permission to invent an ownership split.
+          // Keep every line blocked until the user chooses its allocation.
           parserNeedsReview:
               use == _ExpenseLineUse.unclassified ||
               use == _ExpenseLineUse.split,
@@ -184,7 +183,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
             _ExpenseLineUse.personal =>
               'User marked the full receipt as personal.',
             _ExpenseLineUse.split =>
-              'Mixed receipt lines default to 50% business for review only; confirm each allocation before saving.',
+              'Mixed receipt lines require the user to choose each allocation before saving.',
           },
         );
       }

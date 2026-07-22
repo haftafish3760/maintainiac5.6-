@@ -28,6 +28,10 @@ long-receipt support exist. This is suggestion-only intelligence.
 
 - `VERIFIED SUBSET`: `16ef2f82` recovery/cleanup (38 focused tests), `6bf01ced`
   OCR evidence/recovery (39), `63e2d49c` editable candidate handoff (25).
+- `VERIFIED SUBSET`: source commits `7b053a05b` and `27694e9d1` were compared.
+  Explicit split ownership was integrated; printed receipt evidence was already
+  preserved by the newer 5.7 display/source/provenance separation. Analyzer
+  clean and 26 focused tests passed.
 - `DEFERRED`: user-selectable retention, 90-day default, seven-day reminder,
   advance warning, similarity evidence, proof thumbnail, and Review/Save/Keep/
   Delete workflow. This is a dedicated future subsystem, not consolidation work.
@@ -39,3 +43,5 @@ long-receipt support exist. This is suggestion-only intelligence.
 
 - 2026-07-22: Created as the receipt-intelligence system record and preserved
   the product-owner-approved ownership, review, and deferred-draft boundaries.
+- 2026-07-22: Recorded the explicit split-allocation semantic checkpoint; mode
+  visibility differences remain a separate product-flow review.

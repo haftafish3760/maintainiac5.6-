@@ -247,7 +247,7 @@ class _ReceiptWholeUseReviewPanel extends StatelessWidget {
         _ReceiptWholeUseButton(
           label: 'Mixed Receipt',
           helper:
-              'Review each line below and mark Business, Personal, or Split. Split starts at 50/50 and can be edited.',
+              'Review each line below and mark Business, Personal, or Split. Every split requires your allocation.',
           icon: Icons.call_split_rounded,
           color: const Color(0xFF3B7C73),
           onPressed: hasLines ? onMarkMixed : null,

@@ -340,7 +340,8 @@ void main() {
     expect(entryScreen, contains('_addReceiptTotalLine'));
     expect(entryScreen, contains('Use Total As Business'));
     expect(entryScreen, contains('Use Total As Personal'));
-    expect(entryScreen, contains('Split Total 50/50'));
+    expect(entryScreen, contains("label: 'Split Total'"));
+    expect(entryScreen, contains('Every split requires your allocation.'));
     expect(entryScreen, contains("'Review item lines': review"));
     expect(entryScreen, contains("'Check material matches': review"));
     expect(

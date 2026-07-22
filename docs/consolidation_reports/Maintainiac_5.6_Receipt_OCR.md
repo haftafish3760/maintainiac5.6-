@@ -150,3 +150,22 @@
 - Added focused candidate and photo-selection tests and extended timeout/warning tests.
 - Validation: `flutter analyze` passed with no issues. The focused OCR evidence, layout, warning, source-quality, and review suite passed 39 tests.
 - This is a verified semantic subset of the source history. Remaining source-only expense and OCR changes continue to require feature-level comparison; they are not considered rejected merely because the old batch trial failed.
+
+## Explicit allocation reconciliation
+
+- Compared source commits `7b053a05b` and `27694e9d1` against the newer 5.7
+  split-allocation model and receipt evidence boundaries.
+- Removed the remaining silent 50/50 ownership default from the full line
+  editor, mixed-receipt guidance, and no-line recovery label. A split line now
+  requires an explicit 0-to-100 business allocation before the editor saves.
+- Existing dollar-amount or quantity allocation methods are preserved when the
+  displayed equivalent percentage is not changed; an edited percentage becomes
+  an explicit percentage allocation instead of silently losing user intent.
+- The source's direct replacement of a parsed description with raw evidence was
+  not copied. Current 5.7 already uses `receiptDisplayText` while retaining raw,
+  source, normalized, interpretation, and OCR provenance separately.
+- The source's Basic/Quick/Detailed visibility changes were not applied in this
+  checkpoint because they are a product-flow choice rather than a duplicate or
+  ownership correction.
+- Validation: `flutter analyze` passed. The corrected split-allocation, line
+  record, parser allocation, and receipt save-guardrail batch passed 26 tests.
