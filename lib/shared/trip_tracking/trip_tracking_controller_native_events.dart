@@ -87,6 +87,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                 locationServicesAvailable:
                     _lastKnownCapabilities?.locationAvailable == true,
                 preciseLocationAuthorized: true,
+                sessionStartedAt: currentSession.startedAt,
                 recentKnownLocation: engine.snapshot.lastAccepted,
               );
               engine.recordInitialFixAssessment(assessment);

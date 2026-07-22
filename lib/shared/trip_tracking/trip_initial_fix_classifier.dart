@@ -24,6 +24,7 @@ class TripInitialFixClassifier {
     required DateTime receivedAt,
     required bool locationServicesAvailable,
     required bool preciseLocationAuthorized,
+    DateTime? sessionStartedAt,
     TripLocationSample? recentKnownLocation,
   }) {
     final assessedAt = receivedAt.toUtc();
@@ -40,7 +41,10 @@ class TripInitialFixClassifier {
     if (!sample.hasValidCoordinate ||
         !sample.hasValidAccuracy ||
         !sample.hasValidReportedSpeed ||
-        !sample.hasValidReportedSpeedAccuracy) {
+        !sample.hasValidReportedSpeedAccuracy ||
+        !sample.hasValidReportedBearing ||
+        !sample.hasValidMonotonicElapsedNanos ||
+        sample.mockedLocation == true) {
       return _result(
         TripInitialFixQuality.rejected,
         assessedAt: assessedAt,
@@ -48,6 +52,15 @@ class TripInitialFixClassifier {
       );
     }
     final age = assessedAt.difference(sample.recordedAt.toUtc());
+    if (sessionStartedAt != null &&
+        sample.recordedAt.toUtc().isBefore(sessionStartedAt.toUtc())) {
+      return _result(
+        TripInitialFixQuality.staleCached,
+        assessedAt: assessedAt,
+        sample: sample,
+        age: age.isNegative ? Duration.zero : age,
+      );
+    }
     if (age < -maximumFutureSkew ||
         sample.horizontalAccuracyMeters > maximumUsableAccuracyMeters ||
         _relationshipIsImplausible(sample, recentKnownLocation)) {

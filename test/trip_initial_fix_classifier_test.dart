@@ -83,6 +83,50 @@ void main() {
     expect(implausible.canConfirmMileage, isFalse);
   });
 
+  test('rejects mocked and malformed native initial-fix evidence', () {
+    final mocked = classifier.classify(
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: now,
+        horizontalAccuracyMeters: 5,
+        mockedLocation: true,
+      ),
+      receivedAt: now,
+      locationServicesAvailable: true,
+      preciseLocationAuthorized: true,
+    );
+    final malformedMonotonic = classifier.classify(
+      sample: TripLocationSample(
+        latitude: 35,
+        longitude: -80,
+        recordedAt: now,
+        horizontalAccuracyMeters: 5,
+        monotonicElapsedNanos: -1,
+      ),
+      receivedAt: now,
+      locationServicesAvailable: true,
+      preciseLocationAuthorized: true,
+    );
+
+    expect(mocked.quality, TripInitialFixQuality.rejected);
+    expect(mocked.mayUseProvisionally, isFalse);
+    expect(malformedMonotonic.quality, TripInitialFixQuality.rejected);
+  });
+
+  test('fixes predating the active session remain stale cached evidence', () {
+    final result = classifier.classify(
+      sample: sample(now.subtract(const Duration(seconds: 1))),
+      receivedAt: now,
+      sessionStartedAt: now,
+      locationServicesAvailable: true,
+      preciseLocationAuthorized: true,
+    );
+
+    expect(result.quality, TripInitialFixQuality.staleCached);
+    expect(result.mayUseProvisionally, isFalse);
+  });
+
   test('assessment survives coordinate-free persistence', () {
     final assessment = classifier.classify(
       sample: sample(now),
