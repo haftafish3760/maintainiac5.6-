@@ -22,17 +22,14 @@ void main() {
       lessThan(attachmentOcr.indexOf('_receiptReadStatusMessage = message;')),
     );
     expect(
-      attachmentOcr.indexOf('widget.onReceiptReadStarted?.call();'),
+      attachmentOcr.indexOf('_notifyReceiptReadStarted();'),
       lessThan(attachmentOcr.indexOf('recognizeTextFromAttachments')),
     );
     expect(importActions, contains('_readReviewedPhotosForReceiptForm'));
     expect(importActions, contains('settings?.appAssistedEnabledFor'));
     expect(importActions, contains('result.ocrSourcePhotoPaths.isEmpty'));
     expect(importActions, contains('widget.onReceiptReadStarted?.call();'));
-    expect(
-      importActions,
-      contains('widget.onReceiptPhotoReviewAccepted?.call(result);'),
-    );
+    expect(importActions, contains('_notifyReviewedPhotoAccepted(result)'));
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(
       importActions,
@@ -55,17 +52,17 @@ void main() {
     expect(
       importActions,
       contains(
-        'final readResult = await _readReviewedPhotosForReceiptForm(result);',
+        'final readResult = await _readAcceptedPhotosForReceiptForm(result);',
       ),
     );
     expect(
       importActions.indexOf('_publishAttachmentChange();'),
       lessThan(
-        importActions.indexOf('_readReviewedPhotosForReceiptForm(result);'),
+        importActions.indexOf('_readAcceptedPhotosForReceiptForm(result);'),
       ),
     );
     expect(
-      importActions.indexOf('_readReviewedPhotosForReceiptForm(result);'),
+      importActions.indexOf('_readAcceptedPhotosForReceiptForm(result);'),
       lessThan(
         importActions.indexOf('keptReceiptPhotoPaths: result.photoPaths'),
       ),
@@ -259,7 +256,7 @@ void main() {
     expect(photoPreviewControls, contains('message: label'));
     expect(photoPreviewControls, contains('strings.addAnotherReceiptPhoto'));
     expect(photoControls, contains('Check Photo Match'));
-    expect(photoControls, contains('Use this photo'));
+    expect(photoControls, contains('Use this receipt'));
     expect(photoControls, contains("'Use Receipt'"));
     expect(entryScreen, contains("'legacyTapFocusSuppressedAfterZoomTotal'"));
     expect(entryScreen, isNot(contains("'tapFocusSuppressedAfterZoomTotal'")));

@@ -224,7 +224,7 @@ class _ReceiptMiniRecoveryButton extends StatelessWidget {
         icon: Icon(icon, size: 15),
         label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 32),
+          minimumSize: const Size(0, 38),
           padding: const EdgeInsets.symmetric(horizontal: 8),
           backgroundColor: emphasized
               ? const Color(0xFFFFB020)

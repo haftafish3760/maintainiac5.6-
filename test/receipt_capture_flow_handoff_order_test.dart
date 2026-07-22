@@ -92,6 +92,35 @@ void main() {
       importActions,
       contains('await _readReviewedPhotosForReceiptForm(result);'),
     );
+    expect(
+      importActions,
+      contains('_readAcceptedPhotosForReceiptForm(result)'),
+    );
+    expect(importActions, contains('_reviewedPhotoReadInFlight'));
+    final acceptedReadBlock = importActions.substring(
+      importActions.indexOf(
+        'Future<_ReceiptAttachmentReadResult?> _readAcceptedPhotosForReceiptForm(',
+      ),
+      importActions.indexOf('void _startReviewedPhotoReadStatus('),
+    );
+    expect(
+      acceptedReadBlock,
+      contains(
+        "showPickerMessage('Receipt details are already being prepared.');",
+      ),
+    );
+    expect(
+      acceptedReadBlock.indexOf('_reviewedPhotoReadInFlight = true'),
+      lessThan(
+        acceptedReadBlock.indexOf(
+          'await _readReviewedPhotosForReceiptForm(result)',
+        ),
+      ),
+    );
+    expect(
+      acceptedReadBlock.indexOf('_reviewedPhotoReadInFlight = false'),
+      lessThan(acceptedReadBlock.indexOf('deleteTemporaryOcrPhotos(')),
+    );
     expect(reviewedReadActions, contains('_notifyReceiptReadStarted();'));
     expect(receiptReadActions, contains('void _notifyReceiptReadStarted()'));
     expect(receiptReadActions, contains('void _notifyReceiptOcrCompleted('));
