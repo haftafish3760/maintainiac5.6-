@@ -11,6 +11,7 @@ import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_live_status_policy.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
+import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
@@ -125,6 +126,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   onStart: _startGpsTrip,
                   onStop: _stopGpsTrip,
                   onReviewLatest: _reviewLatestGpsTrip,
+                  onReviewWalkingStop: _reviewWalkingStop,
                   startInFlight: _gpsStartInFlight,
                   stopInFlight: _gpsStopInFlight,
                 ),
@@ -380,6 +382,51 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     if (saved == true) {
       await _recordStoredEvent(type, note: note);
     }
+  }
+
+  Future<void> _reviewWalkingStop() async {
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (tripTracking?.needsWalkingReview != true) return;
+    final shouldAddStop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF101719),
+        title: const Text(
+          'Possible Stop Detected',
+          style: TextStyle(
+            color: Color(0xFFF0F4F2),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: const Text(
+          'Driving followed by verified walking suggests that you stopped. '
+          'Add it to your day, or dismiss it if you did not stop. This will '
+          'not end GPS tracking or change your mileage.',
+          style: TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Not a Stop'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Add Stop'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || shouldAddStop == null) return;
+    if (shouldAddStop) {
+      await _openStopDialog('Stop', ActiveWorkdayEventType.stop);
+      return;
+    }
+    await tripTracking!.reviewLatestStopAdvisory(
+      TripTrackingAdvisoryDisposition.dismissed,
+    );
   }
 
   String _timeLabel(DateTime value) {
@@ -795,6 +842,7 @@ class _GpsTripPanel extends StatelessWidget {
     required this.onStart,
     required this.onStop,
     required this.onReviewLatest,
+    required this.onReviewWalkingStop,
     required this.startInFlight,
     required this.stopInFlight,
   });
@@ -802,6 +850,7 @@ class _GpsTripPanel extends StatelessWidget {
   final Future<void> Function() onStart;
   final Future<void> Function() onStop;
   final Future<void> Function() onReviewLatest;
+  final Future<void> Function() onReviewWalkingStop;
   final bool startInFlight;
   final bool stopInFlight;
 
@@ -1001,6 +1050,18 @@ class _GpsTripPanel extends StatelessWidget {
                       color: Color(0xFFFFD166),
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: onReviewWalkingStop,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.only(top: 3, right: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('REVIEW POSSIBLE STOP'),
                     ),
                   ),
                 ],

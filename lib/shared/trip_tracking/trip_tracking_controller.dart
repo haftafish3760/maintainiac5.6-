@@ -436,6 +436,9 @@ class TripTrackingController extends ChangeNotifier {
       next,
     );
     final nextRevision = session.revision + 1;
+    final nextTransitionSequence = session.transitionAudits.isEmpty
+        ? nextRevision
+        : session.transitionAudits.last.sequenceNumber + 1;
     final observedAt = _clockNow().toUtc();
     final previousUpdatedAt = session.updatedAt.toUtc();
     final now = observedAt.isBefore(previousUpdatedAt)
@@ -467,7 +470,7 @@ class TripTrackingController extends ChangeNotifier {
             pauseKind: pauseKind,
           ),
           eventTimestamp: now.toUtc(),
-          sequenceNumber: nextRevision,
+          sequenceNumber: nextTransitionSequence,
           reasonCode: evaluatedReason,
           initiatingSource: _safeTransitionSource(source),
           revision: nextRevision,
@@ -504,6 +507,9 @@ class TripTrackingController extends ChangeNotifier {
         );
     if (!transitionDecision.allowed) {
       final nextRevision = session.revision + 1;
+      final nextTransitionSequence = session.transitionAudits.isEmpty
+          ? nextRevision
+          : session.transitionAudits.last.sequenceNumber + 1;
       final observedAt = _clockNow();
       final eventAt = observedAt.isBefore(session.updatedAt)
           ? session.updatedAt
@@ -522,7 +528,7 @@ class TripTrackingController extends ChangeNotifier {
           pauseKind: pauseKind,
         ),
         eventTimestamp: eventAt.toUtc(),
-        sequenceNumber: nextRevision,
+        sequenceNumber: nextTransitionSequence,
         reasonCode: transitionDecision.reasonCode,
         initiatingSource: _safeTransitionSource(source),
         revision: nextRevision,

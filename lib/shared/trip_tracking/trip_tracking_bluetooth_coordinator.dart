@@ -73,3 +73,5 @@ class TripTrackingBluetoothCoordinator {
     );
   }
 }
+
+// odometerIsGlobalTruth: true. Bluetooth may identify a vehicle, never mileage.
