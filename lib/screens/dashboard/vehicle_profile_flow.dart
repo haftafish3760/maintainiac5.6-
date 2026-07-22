@@ -6,6 +6,7 @@ import '../../shared/theme/app_action_colors.dart';
 import '../../shared/widgets/app_back_button.dart';
 import 'vehicle_profile_detail.dart';
 import 'vehicle_profile_widgets.dart';
+import 'vehicle_tire_configuration_selector.dart';
 
 VehicleProfilePreview _previewForVehicle(VehicleProfile vehicle) {
   return VehicleProfilePreview(
@@ -17,6 +18,10 @@ VehicleProfilePreview _previewForVehicle(VehicleProfile vehicle) {
     odometer: '',
     status: 'Available',
     usage: vehicle.usage,
+    tireSizeStatus: vehicle.tireSizeStatus,
+    speedometerCalibrationStatus: vehicle.speedometerCalibrationStatus,
+    tireConfigurationRevision: vehicle.tireConfigurationRevision,
+    tireConfigurationUpdatedAt: vehicle.tireConfigurationUpdatedAt,
   );
 }
 
@@ -222,6 +227,10 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
         make: edited.make,
         model: edited.model,
         usage: edited.usage,
+        tireSizeStatus: edited.tireSizeStatus,
+        speedometerCalibrationStatus: edited.speedometerCalibrationStatus,
+        tireConfigurationRevision: edited.tireConfigurationRevision,
+        tireConfigurationUpdatedAt: edited.tireConfigurationUpdatedAt,
       ),
     );
     if (mounted) setState(() => _selectedVehicle = edited);
@@ -328,6 +337,9 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
   final _makeFocus = FocusNode();
   final _modelFocus = FocusNode();
   var _usage = VehicleUsage.businessPersonal;
+  var _tireSizeStatus = VehicleTireSizeStatus.unknown;
+  var _speedometerCalibrationStatus =
+      VehicleSpeedometerCalibrationStatus.unknown;
 
   @override
   void dispose() {
@@ -401,6 +413,15 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
               onChanged: (usage) => setState(() => _usage = usage),
             ),
             const SizedBox(height: 18),
+            VehicleTireConfigurationSelector(
+              tireSizeStatus: _tireSizeStatus,
+              speedometerCalibrationStatus: _speedometerCalibrationStatus,
+              onTireSizeChanged: (value) =>
+                  setState(() => _tireSizeStatus = value),
+              onSpeedometerCalibrationChanged: (value) =>
+                  setState(() => _speedometerCalibrationStatus = value),
+            ),
+            const SizedBox(height: 18),
             Align(
               alignment: Alignment.center,
               child: FilledButton.icon(
@@ -429,6 +450,10 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
       make: _makeController.text.trim(),
       model: _modelController.text.trim(),
       usage: _usage,
+      tireSizeStatus: _tireSizeStatus,
+      speedometerCalibrationStatus: _speedometerCalibrationStatus,
+      tireConfigurationRevision: 1,
+      tireConfigurationUpdatedAt: DateTime.now().toUtc(),
     );
     await AppStateScope.of(context).addVehicle(vehicle);
     if (!mounted) return;

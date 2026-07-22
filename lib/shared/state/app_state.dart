@@ -61,6 +61,11 @@ class VehicleProfile {
     this.make = '',
     this.model = '',
     this.usage = VehicleUsage.businessPersonal,
+    this.tireSizeStatus = VehicleTireSizeStatus.unknown,
+    this.speedometerCalibrationStatus =
+        VehicleSpeedometerCalibrationStatus.unknown,
+    this.tireConfigurationRevision = 0,
+    this.tireConfigurationUpdatedAt,
     this.archivedAt,
   });
 
@@ -73,6 +78,13 @@ class VehicleProfile {
   final String make;
   final String model;
   final VehicleUsage usage;
+  final VehicleTireSizeStatus tireSizeStatus;
+  final VehicleSpeedometerCalibrationStatus speedometerCalibrationStatus;
+
+  /// Changes only when the driver updates tire/calibration context. This lets
+  /// advisory GPS comparison code avoid blending evidence across configurations.
+  final int tireConfigurationRevision;
+  final DateTime? tireConfigurationUpdatedAt;
   final DateTime? archivedAt;
 
   bool get isArchived => archivedAt != null;
@@ -97,6 +109,22 @@ class VehicleProfile {
         (usage) => usage.name == map['usage']?.toString(),
         orElse: () => VehicleUsage.businessPersonal,
       ),
+      tireSizeStatus: VehicleTireSizeStatus.values.firstWhere(
+        (status) => status.name == map['tireSizeStatus']?.toString(),
+        orElse: () => VehicleTireSizeStatus.unknown,
+      ),
+      speedometerCalibrationStatus: VehicleSpeedometerCalibrationStatus.values
+          .firstWhere(
+            (status) =>
+                status.name == map['speedometerCalibrationStatus']?.toString(),
+            orElse: () => VehicleSpeedometerCalibrationStatus.unknown,
+          ),
+      tireConfigurationRevision: _nonNegativeInt(
+        map['tireConfigurationRevision'],
+      ),
+      tireConfigurationUpdatedAt: DateTime.tryParse(
+        '${map['tireConfigurationUpdatedAt'] ?? ''}',
+      ),
       archivedAt: DateTime.tryParse('${map['archivedAt'] ?? ''}'),
     );
   }
@@ -108,6 +136,12 @@ class VehicleProfile {
     'make': make,
     'model': model,
     'usage': usage.name,
+    'tireSizeStatus': tireSizeStatus.name,
+    'speedometerCalibrationStatus': speedometerCalibrationStatus.name,
+    'tireConfigurationRevision': tireConfigurationRevision,
+    'tireConfigurationUpdatedAt': tireConfigurationUpdatedAt
+        ?.toUtc()
+        .toIso8601String(),
     'archivedAt': archivedAt?.toUtc().toIso8601String(),
   };
 
@@ -118,6 +152,11 @@ class VehicleProfile {
     String? make,
     String? model,
     VehicleUsage? usage,
+    VehicleTireSizeStatus? tireSizeStatus,
+    VehicleSpeedometerCalibrationStatus? speedometerCalibrationStatus,
+    int? tireConfigurationRevision,
+    DateTime? tireConfigurationUpdatedAt,
+    bool clearTireConfigurationUpdatedAt = false,
     DateTime? archivedAt,
     bool clearArchivedAt = false,
   }) => VehicleProfile(
@@ -127,8 +166,34 @@ class VehicleProfile {
     make: make ?? this.make,
     model: model ?? this.model,
     usage: usage ?? this.usage,
+    tireSizeStatus: tireSizeStatus ?? this.tireSizeStatus,
+    speedometerCalibrationStatus:
+        speedometerCalibrationStatus ?? this.speedometerCalibrationStatus,
+    tireConfigurationRevision:
+        tireConfigurationRevision ?? this.tireConfigurationRevision,
+    tireConfigurationUpdatedAt: clearTireConfigurationUpdatedAt
+        ? null
+        : tireConfigurationUpdatedAt ?? this.tireConfigurationUpdatedAt,
     archivedAt: clearArchivedAt ? null : archivedAt ?? this.archivedAt,
   );
+}
+
+enum VehicleTireSizeStatus {
+  factoryEquivalent,
+  largerThanRecommended,
+  smallerThanRecommended,
+  unknown,
+}
+
+enum VehicleSpeedometerCalibrationStatus {
+  calibratedForCurrentTires,
+  notCalibratedForCurrentTires,
+  unknown,
+}
+
+int _nonNegativeInt(Object? value) {
+  final parsed = value is int ? value : int.tryParse('$value');
+  return parsed == null || parsed < 0 ? 0 : parsed;
 }
 
 class WorkProfile {
