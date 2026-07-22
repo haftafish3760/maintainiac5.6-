@@ -270,6 +270,54 @@ void main() {
     expect(controller.history.length, 1);
   });
 
+  test('rollover and unit changes cannot silently lower the odometer', () {
+    for (final reason in [
+      OdometerCorrectionReason.odometerRolledOver,
+      OdometerCorrectionReason.unitsChanged,
+    ]) {
+      final controller = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 999990,
+      );
+
+      final result = controller.updateFromText(
+        '12',
+        correctionReview: OdometerCorrectionReview(reason: reason),
+      );
+
+      expect(result.ok, isFalse);
+      expect(controller.confirmedReading, 999990);
+      expect(controller.history, hasLength(1));
+    }
+  });
+
+  test(
+    'rollover correction preserves both physical readings in audit history',
+    () async {
+      final controller = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 999990,
+      );
+
+      await controller.applyAuditCorrection(
+        rawValue: '12',
+        correctedAt: DateTime.utc(2026, 7, 20),
+        correctionReview: const OdometerCorrectionReview(
+          reason: OdometerCorrectionReason.odometerRolledOver,
+          note: 'Six-digit mechanical odometer rollover confirmed by user.',
+        ),
+      );
+
+      expect(controller.confirmedReading, 12);
+      expect(controller.history.last.previousReading, 999990);
+      expect(controller.history.last.reading, 12);
+      expect(
+        controller.history.last.correctionReview?.reason,
+        OdometerCorrectionReason.odometerRolledOver,
+      );
+    },
+  );
+
   test(
     'audit correction can replace current odometer with audit event',
     () async {
