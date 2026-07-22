@@ -133,3 +133,10 @@
 - Changed-file analysis exposed 49 errors: the Dart additions depended on older companion models, storage APIs, and expense controllers that are not compatible with the current 5.7 baseline.
 - All eight candidate copies were therefore rejected from 5.7; their originals and full decision evidence remain preserved in the read-only source and its pushed Git history.
 - The source has 33 commits not reachable from 5.7, so those commits require batch history evaluation rather than isolated file copying.
+
+## History-batch validation
+
+- A non-committing merge trial evaluated all 33 source-only commits together while retaining the 5.7 side of textual conflicts.
+- The trial changed 163 files and produced 262 analyzer issues across mutually dependent expense allocation, receipt models, storage, settings, camera guidance, and tests.
+- The trial was aborted completely; none of that incompatible batch entered 5.7.
+- These unique implementations remain preserved on GitHub and in the detailed manual-review evidence for later feature-level reconciliation.
