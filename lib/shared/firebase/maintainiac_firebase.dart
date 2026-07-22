@@ -2,7 +2,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../firebase_options.dart';
+import 'maintainiac_firebase_options.dart';
 
 class MaintainiacFirebase {
   const MaintainiacFirebase._();
@@ -16,9 +16,13 @@ class MaintainiacFirebase {
       return true;
     }
 
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    final options = MaintainiacFirebaseOptions.currentPlatformOrNull;
+    if (options == null) return false;
+    try {
+      await Firebase.initializeApp(options: options);
+    } on FirebaseException {
+      return false;
+    }
     await FirebaseAppCheck.instance.activate(
       providerAndroid: kReleaseMode
           ? const AndroidPlayIntegrityProvider()

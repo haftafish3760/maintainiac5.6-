@@ -15,6 +15,9 @@ abuse controls, feature bridges, rules, indexes, and emulator tests exist.
   `lib/screens/expenses/data/`
 - Guidance: `docs/firebase_sync_schema_spec.md` and
   `docs/firebase_production_deploy_checklist.md`
+- Build-safe options owner:
+  `lib/shared/firebase/maintainiac_firebase_options.dart`
+- Local configuration template: `config/firebase_dart_defines.example.json`
 
 ## Boundaries And Remaining
 
@@ -28,9 +31,20 @@ abuse controls, feature bridges, rules, indexes, and emulator tests exist.
   direct sink, proof transport, and deletion queue were compared to the newer
   centralized queue, secure proof grant/finalization/reference, restore, and
   tombstone owners; the focused cross-system persistence batch passed 124 tests.
+- `VERIFIED SUBSET`: a clean Git checkout no longer requires ignored Firebase
+  credentials to analyze or compile. Mobile Firebase initializes only when the
+  required `MAINTAINIAC_FIREBASE_*` values are supplied with
+  `--dart-define-from-file`; otherwise the existing local-first app starts with
+  hosted Firebase disabled. Android's Google Services plugin is applied only
+  when a local `google-services.json` exists. The ignored iOS plist is no longer
+  a mandatory Xcode resource. This is transfer/build safety, not deployed
+  Firebase readiness.
 
 ## Rolling Log
 
 - 2026-07-22: Created with local evidence separated from production readiness.
 - 2026-07-22: Recorded semantic supersession of the Receipt OCR repository's
   parallel cloud owners; no production deployment claim was made.
+- 2026-07-22: Removed the clean-checkout dependency on ignored Firebase files,
+  added compile-time build options and an example configuration, and retained
+  secrets as machine-local inputs only.

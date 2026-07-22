@@ -37,6 +37,11 @@ field label, amount, warning, and status must be reviewed in its owning screen.
 - Regression guard: `test/app_accessibility_text_scaling_contract_test.dart`
 - The guard verifies that the app shell keeps `MaterialApp` and contains no
   global no-scaling, clamped-scaling, or fixed-scaler override.
+- `tool/accessibility_text_risk_scan.dart` inventories candidates by owning
+  system without rewriting code. Its 2026-07-22 report scanned 1,411 production
+  Dart files, found 612 candidates in 135 files, and found zero global text
+  scale overrides. Exact file/line evidence is in
+  `docs/consolidation_reports/accessibility_text_risk_inventory_2026_07_22.json`.
 
 ## Remaining Work
 
@@ -53,3 +58,6 @@ field label, amount, warning, and status must be reviewed in its owning screen.
 - 2026-07-22: Verified that the 5.7 app shell preserves the operating system
   text scaler, added a regression contract, and recorded screen-by-screen
   responsive layout QA as required future work.
+- 2026-07-22: Added the bounded accessibility text-risk scanner and generated
+  the first owner-grouped inventory. Work Supplies is included with 76
+  candidates; no screen was mechanically rewritten.

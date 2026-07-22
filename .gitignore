@@ -59,6 +59,7 @@ firebase_emulator_tests/.firebase/
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
+config/firebase_dart_defines.local.json
 
 # Local secrets and server credentials must never be committed.
 .env

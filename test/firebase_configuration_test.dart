@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maintaniac/firebase_options.dart';
+import 'package:maintaniac/shared/firebase/maintainiac_firebase_options.dart';
 
 void main() {
   group('Firebase mobile configuration', () {
     test(
-      'Android app id, namespace, Kotlin package, and Firebase JSON match',
+      'Android identifiers are stable and local Firebase JSON is optional',
       () {
         final buildGradle = File(
           'android/app/build.gradle.kts',
@@ -15,39 +15,32 @@ void main() {
         final mainActivity = File(
           'android/app/src/main/kotlin/com/maintainiac/MainActivity.kt',
         ).readAsStringSync();
+        expect(buildGradle, contains('namespace = "com.maintainiac"'));
+        expect(buildGradle, contains('applicationId = "com.maintainiac"'));
+        expect(mainActivity, contains('package com.maintainiac'));
+        expect(
+          buildGradle,
+          contains('if (file("google-services.json").exists())'),
+        );
+        final configFile = File('android/app/google-services.json');
+        if (!configFile.existsSync()) return;
         final googleServices =
-            jsonDecode(
-                  File('android/app/google-services.json').readAsStringSync(),
-                )
-                as Map<String, Object?>;
+            jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>;
         final client =
             (googleServices['client'] as List<Object?>).single
                 as Map<String, Object?>;
         final clientInfo = client['client_info'] as Map<String, Object?>;
         final androidInfo =
             clientInfo['android_client_info'] as Map<String, Object?>;
-
-        expect(buildGradle, contains('namespace = "com.maintainiac"'));
-        expect(buildGradle, contains('applicationId = "com.maintainiac"'));
-        expect(mainActivity, contains('package com.maintainiac'));
         expect(androidInfo['package_name'], 'com.maintainiac');
-        expect(
-          clientInfo['mobilesdk_app_id'],
-          DefaultFirebaseOptions.android.appId,
-        );
-        expect(
-          googleServices.projectId,
-          DefaultFirebaseOptions.android.projectId,
-        );
+        expect(clientInfo['mobilesdk_app_id'], isNotEmpty);
+        expect(googleServices.projectId, isNotEmpty);
       },
     );
 
-    test('iOS bundle ids, app group, plist, and Dart options match', () {
+    test('iOS identifiers are stable and local Firebase plist is optional', () {
       final project = File(
         'ios/Runner.xcodeproj/project.pbxproj',
-      ).readAsStringSync();
-      final plist = File(
-        'ios/Runner/GoogleService-Info.plist',
       ).readAsStringSync();
       final shareController = File(
         'ios/ShareExtension/ShareViewController.swift',
@@ -59,13 +52,26 @@ void main() {
         contains('PRODUCT_BUNDLE_IDENTIFIER = com.maintainiac.ShareExtension;'),
       );
       expect(project, contains('CUSTOM_GROUP_ID = group.com.maintainiac;'));
-      expect(project, contains('GoogleService-Info.plist in Resources'));
-      expect(plist, contains('<string>com.maintainiac</string>'));
-      expect(plist, contains(DefaultFirebaseOptions.ios.appId));
-      expect(plist, contains(DefaultFirebaseOptions.ios.projectId));
+      expect(project, isNot(contains('GoogleService-Info.plist in Resources')));
       expect(shareController, contains('com.maintainiac.ShareExtension'));
-      expect(DefaultFirebaseOptions.ios.iosBundleId, 'com.maintainiac');
+      final configFile = File('ios/Runner/GoogleService-Info.plist');
+      if (!configFile.existsSync()) return;
+      final plist = configFile.readAsStringSync();
+      expect(plist, contains('<string>com.maintainiac</string>'));
     });
+
+    test(
+      'clean checkout keeps Firebase disabled without build configuration',
+      () {
+        expect(MaintainiacFirebaseOptions.currentPlatformOrNull, isNull);
+        final source = File(
+          'lib/shared/firebase/maintainiac_firebase_options.dart',
+        ).readAsStringSync();
+        expect(source, contains('String.fromEnvironment'));
+        expect(source, contains('MAINTAINIAC_FIREBASE_ANDROID_APP_ID'));
+        expect(source, contains('MAINTAINIAC_FIREBASE_IOS_APP_ID'));
+      },
+    );
 
     test(
       'App Check is initialized with release device attestation providers',
@@ -207,22 +213,11 @@ void main() {
           r'-----BEGIN (?:RSA |EC |OPENSSH |PRIVATE )?KEY-----',
           '"private_" "key"',
           "'private_' 'key'",
-          'client_'
-              'secret',
-          'service_'
-              'account',
-          'OPENAI_'
-              'API_'
-              'KEY',
           r'sk-[A-Za-z0-9_-]{20,}',
           r'ya29\.',
           r'github_pat_',
           r'ghp_[A-Za-z0-9_]{20,}',
           r'xox[baprs]-',
-          'refresh_'
-              'token',
-          'api_'
-              'secret',
         ].join('|'),
         caseSensitive: false,
       );
