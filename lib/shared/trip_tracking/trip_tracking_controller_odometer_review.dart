@@ -119,6 +119,10 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
       if (review.vehicleId != _odometer.vehicleId || confirmedAt == null) {
         continue;
       }
+      if (review.vehicleConfigurationRevision !=
+          _currentVehicleConfigurationRevision) {
+        continue;
+      }
       if (confirmedAt.toUtc().isAfter(latestAllowed) ||
           review.finishedAt.toUtc().isAfter(latestAllowed)) {
         continue;
@@ -137,7 +141,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
         -1;
     final ratio = signal.averageGpsToOdometerRatio;
     final stableRatio = ratio.isFinite ? ratio.toStringAsFixed(8) : 'invalid';
-    return '${_odometer.vehicleId}|${signal.status.name}|${signal.eligibleSampleCount}|$stableRatio|$latest';
+    return '${_odometer.vehicleId}|$_currentVehicleConfigurationRevision|${signal.status.name}|${signal.eligibleSampleCount}|$stableRatio|$latest';
   }
 
   TripOdometerUsageAnomalySignal odometerUsageAnomalySignal({

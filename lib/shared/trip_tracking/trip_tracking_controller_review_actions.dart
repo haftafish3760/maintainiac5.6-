@@ -333,6 +333,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     return TripTrackingReviewRecord(
       id: session.id,
       vehicleId: session.vehicleId,
+      vehicleConfigurationRevision: session.vehicleConfigurationRevision,
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer:
           estimatedEndingOdometer < session.startingOdometer

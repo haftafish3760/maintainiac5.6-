@@ -185,6 +185,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     _session = TripTrackingSessionRecord(
       id: tripId,
       vehicleId: vehicleId,
+      vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
       startingOdometer: startingOdometer,
       profile: profile,
       profileId: effectiveProfileId,

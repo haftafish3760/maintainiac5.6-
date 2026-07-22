@@ -62,6 +62,7 @@ class TripTrackingController extends ChangeNotifier {
     double gpsAssistanceCalibrationMultiplier = 1,
     DateTime Function()? clockNow,
     DateTime Function()? heartbeatNow,
+    int Function()? activeVehicleConfigurationRevision,
   }) : _sessionStore = sessionStore,
        _odometer = odometer,
        _platform = platform,
@@ -76,6 +77,7 @@ class TripTrackingController extends ChangeNotifier {
        _calibrationState = TripTrackingCalibrationState.initial(
          gpsAssistanceCalibrationMultiplier,
        ),
+       _activeVehicleConfigurationRevision = activeVehicleConfigurationRevision,
        _clockNow = clockNow ?? heartbeatNow ?? DateTime.now;
 
   final TripTrackingSessionStore _sessionStore;
@@ -89,6 +91,12 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingRoutePointStore? _routePointStore;
   final TripTrackingSettings Function()? _routeSettings;
   final String Function(DateTime utc)? _localRouteDayKey;
+  final int Function()? _activeVehicleConfigurationRevision;
+
+  int get _currentVehicleConfigurationRevision {
+    final revision = _activeVehicleConfigurationRevision?.call() ?? 0;
+    return revision < 0 ? 0 : revision;
+  }
 
   /// One wall-clock authority for native timestamps, recovery, and review
   /// validation. Keeping these checks on the same clock prevents a delayed or
@@ -295,6 +303,7 @@ class TripTrackingController extends ChangeNotifier {
   }) => TripOdometerCalibrationSignal.evaluateConfirmedReviews(
     reviews: _sessionStore.pendingReviews,
     vehicleId: vehicleId ?? _odometer.vehicleId,
+    vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
     // Persisted reviews are an external trust boundary. A caller that does
     // not supply a reference clock must still not let future-dated records
     // influence advisory GPS calibration.

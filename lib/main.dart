@@ -144,6 +144,8 @@ Future<void> main() async {
     sessionStore: tripTrackingStore,
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
+    activeVehicleConfigurationRevision: () =>
+        appState.activeVehicle?.tireConfigurationRevision ?? 0,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
   );
   await tripTracking.restore();

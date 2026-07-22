@@ -113,6 +113,7 @@ class TripTrackingSessionRecord {
   const TripTrackingSessionRecord({
     required this.id,
     required this.vehicleId,
+    this.vehicleConfigurationRevision = 0,
     required this.startingOdometer,
     required this.profile,
     this.profileId = '',
@@ -142,6 +143,7 @@ class TripTrackingSessionRecord {
 
   final String id;
   final String vehicleId;
+  final int vehicleConfigurationRevision;
   final int startingOdometer;
   final TripTrackingProfile profile;
   final String profileId;
@@ -225,6 +227,7 @@ class TripTrackingSessionRecord {
     return TripTrackingSessionRecord(
       id: id,
       vehicleId: vehicleId,
+      vehicleConfigurationRevision: vehicleConfigurationRevision,
       startingOdometer: startingOdometer,
       profile: profile,
       profileId: effectiveProfileId,
@@ -262,6 +265,9 @@ class TripTrackingSessionRecord {
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
     'vehicleId': _safeIdentifier(vehicleId),
+    'vehicleConfigurationRevision': vehicleConfigurationRevision < 0
+        ? 0
+        : vehicleConfigurationRevision,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
     'profileId': effectiveProfileId,
@@ -335,6 +341,9 @@ class TripTrackingSessionRecord {
     return TripTrackingSessionRecord(
       id: safeId,
       vehicleId: safeVehicleId,
+      vehicleConfigurationRevision: _safeRecoveryCount(
+        map['vehicleConfigurationRevision'],
+      ),
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
       profile: safeProfile,
       profileId: _safeIdentifier(map['profileId']).isEmpty

@@ -256,6 +256,7 @@ class TripOdometerCalibrationSignal {
   static TripOdometerCalibrationSignal evaluateConfirmedReviews({
     required Iterable<TripTrackingReviewRecord> reviews,
     String? vehicleId,
+    int? vehicleConfigurationRevision,
     DateTime? nowUtc,
     int minimumSamples = 7,
     int maximumReviewedDays = 30,
@@ -299,6 +300,9 @@ class TripOdometerCalibrationSignal {
                     oldestEligibleStartedAtUtc,
                   )) &&
               review.vehicleId.trim().isNotEmpty &&
+              (vehicleConfigurationRevision == null ||
+                  review.vehicleConfigurationRevision ==
+                      vehicleConfigurationRevision) &&
               (requestedVehicleId == null ||
                   requestedVehicleId.isEmpty ||
                   review.vehicleId.trim() == requestedVehicleId),

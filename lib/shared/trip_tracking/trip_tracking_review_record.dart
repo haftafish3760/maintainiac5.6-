@@ -142,6 +142,7 @@ class TripTrackingReviewRecord {
   const TripTrackingReviewRecord({
     required this.id,
     required this.vehicleId,
+    this.vehicleConfigurationRevision = 0,
     required this.startingOdometer,
     required this.estimatedEndingOdometer,
     required this.profile,
@@ -176,6 +177,7 @@ class TripTrackingReviewRecord {
 
   final String id;
   final String vehicleId;
+  final int vehicleConfigurationRevision;
   final int startingOdometer;
   final int estimatedEndingOdometer;
   final TripTrackingProfile profile;
@@ -258,6 +260,7 @@ class TripTrackingReviewRecord {
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
+      vehicleConfigurationRevision: vehicleConfigurationRevision,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: profile,
@@ -315,6 +318,9 @@ class TripTrackingReviewRecord {
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
     'vehicleId': _safeIdentifier(vehicleId),
+    'vehicleConfigurationRevision': vehicleConfigurationRevision < 0
+        ? 0
+        : vehicleConfigurationRevision,
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
@@ -490,6 +496,9 @@ class TripTrackingReviewRecord {
     return TripTrackingReviewRecord(
       id: id,
       vehicleId: vehicleId,
+      vehicleConfigurationRevision: _safeRecoveryCount(
+        map['vehicleConfigurationRevision'],
+      ),
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: safeProfile,
