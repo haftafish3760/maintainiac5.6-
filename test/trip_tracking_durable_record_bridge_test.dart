@@ -150,6 +150,8 @@ void main() {
       'rawMapboxGeometryIncluded': false,
       'routeGeometryIncluded': false,
       'tokensIncluded': false,
+      'individualTripSyncEligible': false,
+      'dailyBundleRequiredForSync': true,
     });
   });
 
@@ -182,6 +184,8 @@ void main() {
               'confirmedBackupCannotAutoDeleteDeviceRecord': false,
               'durableRecordSharedAcrossModules': false,
               'moduleScopedDurableBucketRequired': false,
+              'individualTripSyncEligible': true,
+              'dailyBundleRequiredForSync': false,
               'odometerIsGlobalTruth': false,
               'confirmedOdometerRemainsCanonical': false,
               'durableRecordCanCreateCalibration': true,
