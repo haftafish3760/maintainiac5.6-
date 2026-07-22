@@ -55,6 +55,14 @@ by design because source histories were not merged wholesale.
   `Runner.app`. Neither build was installed on a physical device.
 - This was consolidation validation, not exhaustive feature QA or real-device validation.
 
+## Transfer self-containment follow-up
+
+A fresh GitHub clone at commit `739907fd` passed full analysis, 24 bounded
+transfer contracts, an Android debug build, and an unsigned iOS device build
+without any ignored Firebase credentials. Existing Mac-local Android/iOS
+Firebase configuration paths were separately preserved and compile-verified.
+See `TRANSFER_SELF_CONTAINMENT_VERIFICATION_2026_07_22.md`.
+
 ## Evidence locations
 
 - Human-readable reports: `docs/consolidation_reports/*.md`

@@ -12,7 +12,7 @@
 
 ## Current 5.7 result
 
-- Maintainiac-owned code files scanned: **1,608**
+- Maintainiac-owned code files scanned: **1,610**
 - Exact duplicate file groups: **0**
 - Repeated block groups: **220**
 - Unique repeated-block fingerprints: **158**
@@ -41,6 +41,10 @@ method, and the focused 26-test verifier contract passed afterward. The one
 current fingerprint that differs from the baseline is the updated paired
 Android/iOS receipt-camera settings contract; it replaces one older paired
 baseline fingerprint rather than adding another group.
+
+The final transfer-verification rescan includes the build-safe Firebase options
+owner and accessibility inventory tool. It remains at zero exact duplicate
+files and 220 repeated groups, so those additions introduced no new group.
 
 ## Interpretation
 
