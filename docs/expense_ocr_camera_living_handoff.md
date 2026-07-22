@@ -93,6 +93,10 @@ The product owner stated that it is not being implemented during consolidation.
   `27694e9d1` were semantically reconciled. Silent 50/50 split ownership was
   removed, explicit allocation is required, and unchanged amount/quantity
   split methods are preserved; analyzer clean and 26 focused tests passed.
+- Source commits `7c6f3acdd` through `5f1392d04` in the evidence/capture cluster
+  were reconciled to newer 5.7 owners; 33 focused tests passed. Benchmark commits
+  `3137cc972` through `78d78ebb1` plus the benchmark part of `8ea7fd15f` were
+  also reconciled; 7 focused tests passed, without making an accuracy claim.
 
 ## Consolidation And Validation Boundary
 
@@ -115,3 +119,4 @@ final project-wide tests remain required before final consolidation completion.
   handoffs and recorded checkpoint `361a85e0`.
 - 2026-07-22: Recorded explicit split ownership reconciliation from the OCR
   source history.
+- 2026-07-22: Recorded evidence/capture handoff and benchmark-history audits.

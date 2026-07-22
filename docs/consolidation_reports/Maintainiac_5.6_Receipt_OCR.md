@@ -169,3 +169,37 @@
   ownership correction.
 - Validation: `flutter analyze` passed. The corrected split-allocation, line
   record, parser allocation, and receipt save-guardrail batch passed 26 tests.
+
+## Evidence and capture handoff reconciliation
+
+- Compared source commits `7c6f3acdd`, `e5facada2`, `c946098cb`, `b7671a3b2`,
+  `e3d319cf8`, `c79cae9fd`, `e2ddfa5ea`, and `5f1392d04` file-by-file against
+  current 5.7.
+- Current 5.7 already keeps source fragments, tab-delimited source evidence,
+  natural user-visible spacing, normalized text, token references, bounds,
+  confidence, and interpretations as separate fields. The older source change
+  that displayed tabs to users was not copied.
+- Current 5.7 already uses the structured `onReceiptOcrResultForReview`
+  callback, with the legacy text callback only as fallback. This supersedes the
+  source's older `onReceiptOcrReadyForReview` contract.
+- Crop loading/recovery, full-screen iOS capture settings, runtime settings
+  notes, single-photo handoff, Use Receipt flow, native evidence handoff, and
+  OCR candidate fallback are present in their newer 5.7 forms. Three absent
+  source contract-test filenames were not copied because current tests cover
+  the renamed/newer owners and behavior.
+- Validation: the OCR layout/candidates, editable handoff, capture order,
+  review controls, and iOS settings batch passed 33 tests.
+
+## OCR benchmark reconciliation
+
+- Compared source commits `3137cc972`, `6e250dd81`, `ee09f08db`, `78d78ebb1`,
+  and the benchmark portion of `8ea7fd15f`.
+- Current 5.7 already has the separate OCR accuracy metrics, privacy-safe
+  provenance checks, labeled fixture, scenario coverage, minimum real-case
+  counts, synthetic-only release rejection, and photo quality selection. Its
+  runner is a refactored newer equivalent and retains the source release gates.
+- The sample benchmark scored all populated metrics at 1.0 but deliberately
+  does not satisfy the real-evidence release gate. No accuracy or release claim
+  is made from the sample.
+- Validation: benchmark metrics, runner, provenance, release-gate, and photo
+  selection tests passed 7 tests.

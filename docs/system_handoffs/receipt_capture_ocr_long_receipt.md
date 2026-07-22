@@ -32,6 +32,14 @@ long-receipt support exist. This is suggestion-only intelligence.
   Explicit split ownership was integrated; printed receipt evidence was already
   preserved by the newer 5.7 display/source/provenance separation. Analyzer
   clean and 26 focused tests passed.
+- `VERIFIED SUBSET`: source commits `7c6f3acdd` through `5f1392d04` in the
+  evidence/capture handoff cluster were compared. Newer 5.7 structured handoff,
+  provenance, crop recovery, settings, and review owners already cover the
+  unique behavior; 33 focused tests passed.
+- `VERIFIED SUBSET`: benchmark commits `3137cc972` through `78d78ebb1` plus the
+  benchmark portion of `8ea7fd15f` were compared. Current 5.7 retains the
+  privacy-safe real-evidence release gates; 7 focused tests passed. The bundled
+  synthetic sample is not release evidence.
 - `DEFERRED`: user-selectable retention, 90-day default, seven-day reminder,
   advance warning, similarity evidence, proof thumbnail, and Review/Save/Keep/
   Delete workflow. This is a dedicated future subsystem, not consolidation work.
@@ -45,3 +53,5 @@ long-receipt support exist. This is suggestion-only intelligence.
   the product-owner-approved ownership, review, and deferred-draft boundaries.
 - 2026-07-22: Recorded the explicit split-allocation semantic checkpoint; mode
   visibility differences remain a separate product-flow review.
+- 2026-07-22: Recorded evidence/capture and OCR benchmark clusters as present in
+  newer 5.7 equivalents after 33-test and 7-test targeted gates.
