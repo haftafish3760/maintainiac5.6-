@@ -22,6 +22,12 @@ void main() {
         ),
         AppStorageGuard.mileageTrackingWriteBytes,
       );
+      expect(
+        AppStorageGuard.deviceReserveBytesFor(
+          AppStoragePurpose.smallRecordWrite,
+        ),
+        AppStorageGuard.textRecordDeviceReserveBytes,
+      );
     });
 
     test(
@@ -134,6 +140,21 @@ void main() {
     });
 
     test(
+      'red storage still permits physically safe text record writes',
+      () async {
+        final check = await AppStorageGuard.checkForBytes(
+          operationBytes: AppStorageGuard.smallRecordWriteBytes,
+          purpose: AppStoragePurpose.smallRecordWrite,
+          freeStorageReader: () async => 50,
+        );
+
+        expect(check.level, AppStorageLevel.red);
+        expect(check.hasEnoughSpace, isTrue);
+        expect(check.shouldWarnLowStorage, isTrue);
+      },
+    );
+
+    test(
       'unknown storage is permissive but gives a recovery message',
       () async {
         final check = await AppStorageGuard.checkForBytes(
@@ -149,16 +170,32 @@ void main() {
       },
     );
 
-    test('non-positive storage readings are treated as unknown', () async {
-      final check = await AppStorageGuard.checkForBytes(
-        operationBytes: 10 * 1024 * 1024,
-        purpose: AppStoragePurpose.receiptPdfImport,
-        freeStorageReader: () async => 0,
-      );
+    test(
+      'zero storage is known full storage and blocks protected writes',
+      () async {
+        final check = await AppStorageGuard.checkForBytes(
+          operationBytes: 10 * 1024 * 1024,
+          purpose: AppStoragePurpose.receiptPdfImport,
+          freeStorageReader: () async => 0,
+        );
 
-      expect(check.canVerify, isFalse);
-      expect(check.hasEnoughSpace, isTrue);
-      expect(check.unknownMessage(), contains('could not verify'));
+        expect(check.canVerify, isTrue);
+        expect(check.availableBytes, 0);
+        expect(check.hasEnoughSpace, isFalse);
+        expect(check.level, AppStorageLevel.red);
+      },
+    );
+
+    test('negative and non-finite storage readings are unknown', () async {
+      for (final reading in <double>[-1, double.nan, double.infinity]) {
+        final check = await AppStorageGuard.checkForBytes(
+          operationBytes: 1,
+          purpose: AppStoragePurpose.smallRecordWrite,
+          freeStorageReader: () async => reading,
+        );
+        expect(check.canVerify, isFalse);
+        expect(check.hasEnoughSpace, isTrue);
+      }
     });
 
     test('receipt guard delegates to the shared storage policy', () {

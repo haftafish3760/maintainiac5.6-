@@ -64,7 +64,7 @@ class AppStorageGuard {
       final freeMb = freeStorageReader != null
           ? await freeStorageReader()
           : await readAppFreeDiskSpaceMb();
-      if (freeMb == null || freeMb <= 0) {
+      if (freeMb == null || !freeMb.isFinite || freeMb < 0) {
         return AppStorageCheck.unknown(
           operationBytes: operationBytes,
           requiredBytes: protectedBytes,
@@ -99,7 +99,9 @@ class AppStorageGuard {
 
   static int deviceReserveBytesFor(AppStoragePurpose purpose) {
     return switch (purpose) {
+      AppStoragePurpose.appStartup ||
       AppStoragePurpose.dashboardRecord ||
+      AppStoragePurpose.smallRecordWrite ||
       AppStoragePurpose.mileageTracking => textRecordDeviceReserveBytes,
       _ => minimumDeviceReserveBytes,
     };
@@ -121,7 +123,7 @@ class AppStorageGuard {
 
   static String purposeLabel(AppStoragePurpose purpose) {
     return switch (purpose) {
-      AppStoragePurpose.appStartup => 'start Maintaniac',
+      AppStoragePurpose.appStartup => 'start Maintainiac',
       AppStoragePurpose.dashboardRecord => 'save dashboard records',
       AppStoragePurpose.smallRecordWrite => 'save this record',
       AppStoragePurpose.mileageTracking => 'save mileage tracking',
@@ -209,16 +211,16 @@ class AppStorageCheck {
     return 'There is not enough free storage to ${AppStorageGuard.purposeLabel(purpose)}. '
         'Available: $availableLabel. Minimum needed: $minimumLabel '
         '($operationLabel for this action plus a $reserveLabel device safety reserve). '
-        'Please free up storage space first. Maintaniac will not delete anything from your phone without your approval.';
+        'Please free up storage space first. Maintainiac will not delete anything from your phone without your approval.';
   }
 
   String unknownMessage() {
-    return 'Maintaniac could not verify free storage before ${AppStorageGuard.purposeLabel(purpose)}. '
+    return 'Maintainiac could not verify free storage before ${AppStorageGuard.purposeLabel(purpose)}. '
         'Minimum recommended free space: $minimumLabel, including a $reserveLabel device safety reserve. '
         'If saving fails, free up storage and try again.';
   }
 
   String warningMessage() {
-    return 'Your device is getting low on storage. Maintaniac can continue, but saving photos, PDFs, exports, or backups may fail until more space is available.';
+    return 'Your device is getting low on storage. Maintainiac can continue, but saving photos, PDFs, exports, or backups may fail until more space is available.';
   }
 }
