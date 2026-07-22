@@ -32,6 +32,7 @@ Before editing, read these files:
 - `PROJECT_RULES.md`
 - `docs/maintainiac_production_operating_directive.md`
 - `docs/expense_release_one_blueprint.md`
+- `docs/expense_receipt_storage_and_duplicate_contract.md`
 - `docs/receipt_camera_release_one_blueprint.md`
 - `docs/expense_screen_full_design.md`
 - `docs/expense_command_center_ocr_contract.md`
@@ -174,6 +175,11 @@ Examples:
 - malformed subtotal
 - mixed business/personal receipt
 - parser tries to overwrite user-confirmed total
+- app cleanup touches an imported original or selected proof without an
+  explicit in-app delete action
+- an interrupted receipt draft loses its app-private proof copies
+- a duplicate receipt is silently deleted, merged, overwritten, or saved
+  without the duplicate-review flow
 
 ## Privacy Rules
 

@@ -8,6 +8,12 @@ Codex workers without letting the work drift into unrelated modules.
 The dedicated second-worker handoff lives in
 `docs/expense_codex_b_handoff.md`.
 
+The mandatory receipt ownership, app-private cleanup, draft recovery, proof
+deletion, and duplicate-warning contract lives in
+`docs/expense_receipt_storage_and_duplicate_contract.md`. Every Codex worker
+touching Expense receipt intake, storage, drafts, proof, OCR, or cloud restore
+must read it before editing.
+
 ## Release-One Target
 
 Release one should make expenses dependable enough for real users to record
@@ -29,6 +35,11 @@ clear, saved records are stable, and each known bug becomes a regression test.
 - Original receipt captures and imported files are source evidence. Cropped,
   stitched, OCR-ready, compressed, redacted, and PDF-rendered copies are derived
   artifacts.
+- Maintainiac never deletes a gallery, Files, shared-provider, or other
+  user-owned source. Cleanup is restricted to Maintainiac's app-private copies
+  and follows the explicit lifecycle contract linked above.
+- A possible duplicate produces a user warning and review choice. Maintainiac
+  never silently deletes, merges, or overwrites either receipt.
 
 ## Major Lanes
 
@@ -295,6 +306,9 @@ Evidence:
 - OCR/parser suggestions require confirmation
 - line numbers and receipt proof references survive save/edit/export
 - every low-confidence parser result requires review
+- receipt storage ownership and draft cleanup follow
+  `docs/expense_receipt_storage_and_duplicate_contract.md`
+- exact and probable duplicate receipts require user review before save
 
 ### Milestone 5 - Fuel Expense Ready
 
