@@ -1,0 +1,3277 @@
+{
+  "engine_version": "1",
+  "source": "/Users/rbbie/Documents/Maintainiac_5.6_Long_Receipt",
+  "target": "/Users/rbbie/Documents/Maintainiac_5.7_Active",
+  "generated_at": "2026-07-22T03:55:42-0400",
+  "applied": true,
+  "git": {
+    "is_git": true,
+    "branch": "codex/long-receipt-hardening-20260714",
+    "head": "6af96ab624a56354939409f0dc52121189d9b5e0",
+    "target_head": "b3327bdcc20526860d325a4e72bdeda17db50855",
+    "merge_base": "cd4f3b4765fb2b2f426bf840ea1f6a352595a321",
+    "unique_commits": [
+      "6af96ab624a56354939409f0dc52121189d9b5e0\tPass 2864 2026-07-16 07:01 PM EDT: reduce receipt review guidance clutter",
+      "61db549be04f5537cb25476d0d8cdad5e0d2e036\tPass 2863 2026-07-16 07:00 PM EDT: simplify receipt review decisions",
+      "44b4057fbec28e6368e416e2d5086a2316411c8e\tPass 2862 2026-07-16 06:58 PM EDT: align active receipt QA coverage",
+      "ad86ef179c23ff00cf0a055eb2a44b15ad3473b7\tPass 2861 2026-07-16 06:46 PM EDT: align system camera release contract",
+      "522ebf682f1fa799a98194f60ee45173194eb69c\tPass 2860 2026-07-16 06:40 PM EDT: verify receipt OCR handoff contracts",
+      "2bfebda938486930fe25e2683f001ca6370db3cd\tPass 2859 2026-07-16 06:33 PM EDT: align long receipt phase gates",
+      "50dfa3bba0a12af1418330a6caa1e25e21a9071a\tPass 2858 2026-07-16 06:29 PM EDT: require capture evidence for receipt continuation",
+      "b570d280fcd9ddd65fd0bc78b01f3c8afc1a9625\tPass 2857 2026-07-16 06:28 PM EDT: align receipt lifecycle regression gate",
+      "0744b2a1f6002001c1dfa7ae714fd224769b508e\tPass 2856 2026-07-16 06:22 PM EDT: cover three section receipt review",
+      "8bbc1c7504b7092cd97486d1852bbc6ca38ca54c\tPass 2855 2026-07-16 06:20 PM EDT: keep receipt review actions clear",
+      "ff9a6d9c83018c9ddddda7c35683ab13d0794fce\tPass 2854 2026-07-16 06:18 PM EDT: honor long receipt guidance setting",
+      "150bc0d1f0c8360718828f7bd8d9a9a3b4eebd3c\tPass 2853 2026-07-16 06:17 PM EDT: simplify long receipt overlap guide",
+      "1b14aeda9f9a6fff027ce4a0bc787db48a473261\tPass 2852 2026-07-16 06:15 PM EDT: remove technical receipt review detours",
+      "2cfe24620eee2026f5ff8065ea12e83700443932\tPass 2851 2026-07-16 06:14 PM EDT: align long receipt device flow",
+      "bc1cb5e01bd820d02110bde3a6250e8ad60370f5\tPass 2850 2026-07-16 06:13 PM EDT: clarify receipt review flow",
+      "ea31a37aa6977959d8c575e20d3e024bb744d8d4\tPass 2849 2026-07-16 06:09 PM EDT: cover narrow receipt review layout",
+      "67558ba4c69c99ae66fa9f2a2c05881c9c76def4\tPass 2848 2026-07-16 06:08 PM EDT: prevent review controls overflow",
+      "75f60fd5cf18a7054655cf769c8fbcc08c0078e2\tPass 2847 2026-07-16 06:02 PM EDT: show receipt preparation progress",
+      "6c2ee9801a2173d85ce8fb903744f71458212a5c\tPass 2846 2026-07-16 06:00 PM EDT: clarify system camera overlap guidance",
+      "50f32d55a452930f3eb637e5af27c32f0350495e\tPass 2845 2026-07-16 05:57 PM EDT: simplify multi-photo receipt review",
+      "b532f33366f3e76e01c38bcd2b38189d7e004805\tPass 2844 2026-07-16 05:52 PM EDT: simplify receipt fallback language",
+      "29193a17483b75417b2145b154bb77cf62cec565\tPass 2843 2026-07-16 17:49 EDT: preserve incomplete receipt confirmation",
+      "62e93a6c599ead2dfae475dabc111e568474ba50\tPass 2842 2026-07-16 17:46 EDT: align receipt device script with system camera",
+      "e23e66506978560660d0496cf3aff2abe5437376\tPass 2841 2026-07-16 17:45 EDT: confirm incomplete receipt before use",
+      "372c0673ec445825b98b76891698896db091707c\tPass 2840 2026-07-16 17:42 EDT: clarify system camera receipt alignment",
+      "602fa207688339e875c3bee1b6dac213a4bfab34\tPass 2839 2026-07-16 17:40 EDT: clarify long receipt continuation flow",
+      "b3301e222617b96441eafd69c0e40195e90af07c\tPass 2838 2026-07-16 17:37 EDT: remove unsupported receipt brightness prompts",
+      "2a7bfda0dba5333dd35643bab3e7870005d2d42e\tPass 2837 2026-07-16 19:13 EDT: clarify receipt review handoff",
+      "aa6192be96b4dcdafe05e1cd09579a5378b979a3\tPass 2836 2026-07-16 19:03 EDT: simplify receipt import controls",
+      "e00d11dd8a2cfed022273cf84f88df75ea5a3870\tPass 2835 2026-07-16 18:50 EDT: align receipt settings with phone camera",
+      "ba36a4f5182dc544b443f8da32aa2c7ae8d562d2\tPass 2834 2026-07-16 18:43 EDT: make system camera primary receipt flow",
+      "aa79d3db1af4f3a7d3c523bead61fd1cfd3c1c93\tPass 2833 2026-07-16 18:22 EDT simplify receipt stitch review decisions",
+      "bf69524ab41ce9902931d01c4b0c7b4aeb37be42\tPass 2832 2026-07-16 18:17 EDT prioritize clear receipt review action",
+      "6de7af14d86fcb0256cdcdfe3055b788a4c11a87\tPass 2831 2026-07-16 18:16 EDT document system receipt capture",
+      "6f652a0a850487fbe79f323366ab233e50eadf67\tPass 2830 2026-07-16 18:14 EDT remove speculative receipt review warnings",
+      "9ffb7054a3c45f7cb786136101cdeeb393f583ab\tPass 2829 2026-07-16 18:13 EDT require receipt assist choice for uploads",
+      "9bf37b91a07e3c4ef0d5e6b71f675ba42f5cfbae\tPass 2828 2026-07-16 18:12 EDT align native receipt continuation copy",
+      "cb8e88f0ea4d2870af1683457cecdc8386134ae4\tPass 2827 2026-07-16 18:09 EDT neutralize receipt continuation flow",
+      "a91c78b90fd4ce8e89d69ea31b5ef8ec00b3f526\tPass 2826 2026-07-16 05:05 PM EDT: streamline receipt assist choice",
+      "10c56f86526129fb7cb5df41b37de0544fdf2474\tPass 2825 2026-07-16 05:03 PM EDT: refresh receipt help flow QA",
+      "3081cb1d9383995ee5e10028705a8f4dcedf4f9c\tPass 2824 2026-07-16 05:02 PM EDT: keep receipt continuation user-directed",
+      "99388dd97812dcba08b39553c15e14bee4324000\tPass 2823 2026-07-16 04:58 PM EDT: refresh receipt flow QA contracts",
+      "0efe0eed30fcec19d644599cc4aeb407b466e58b\tPass 2822 2026-07-16 04:57 PM EDT: align long receipt UI regression",
+      "289f68a36018ac6b1426a454225768187f70b688\tPass 2821 2026-07-16 04:55 PM EDT: keep receipt review user-directed",
+      "809df3e674ceb13656450877573ea6310e250d0a\tPass 2820 2026-07-16 04:55 PM EDT: keep review regression formatter safe",
+      "7e3a969963ac89d8d4728da04f1c08d04bdb1d36\tPass 2819 2026-07-16 04:55 PM EDT: lock system managed receipt capture",
+      "ad9eb78b746b3bd19b0f11a76c0f4cbbfcafcccf\tPass 2818 2026-07-16 04:53 PM EDT: simplify receipt review decisions",
+      "4cd3c8130bfa073045233849787b6521d0113e0c\tPass 2817 2026-07-16 04:51 PM EDT: restore long receipt overlap guide",
+      "f14843cd60c7117f878bd6bcc4b276b14e592b21\tPass 2816 2026-07-16 04:41 PM EDT: simplify system receipt capture flow",
+      "19659597e0245f7fd71c61b65ccf5161831256b3\tPass 2815 2026-07-16 03:32 AM EDT: protect high-overlap receipt tails",
+      "224aeb6ad2ba983966e6a55b567ba868b6995995\tLong receipt handoff 2026-07-15 04:14 PM EDT: define cross-platform UI lane",
+      "5e2f86ee4d88a56f9fe56e3a75ab46d2a3731995\tPass 2814 2026-07-15 04:12 PM EDT: support high-overlap receipt tails",
+      "d689e2fa20d32e09e0a7c20accad6c46a68025eb\tPass 2811 2026-07-14 08:05 AM EDT: gate real receipt probe contracts",
+      "0610ad1c09bb68aff2ece9dd342eb4d63f2a860c\tPass 2810 2026-07-14 08:03 AM EDT: fail closed on source mutation",
+      "31d0a596541b6357224fe4a8642519f3eb26e601\tPass 2809 2026-07-14 08:02 AM EDT: exercise real section probe harness",
+      "6f4625c76fdb243d1491c5bda5429bed2c51f9f5\tPass 2808 2026-07-14 08:01 AM EDT: validate real stitch window probes",
+      "a7737de7071c355f04afa2d3667f6f6cb8791687\tPass 2807 2026-07-14 07:57 AM EDT: guard real window receipt sources",
+      "a9b2f3cc579a02153749de26c216ae00a2e6b0db\tPass 2806 2026-07-14 07:54 AM EDT: verify real receipt source integrity",
+      "90f0ab410c799dde528e29f87bd5226a4391ea81\tPass 2805 2026-07-14 07:24 AM EDT: preserve mixed receipt originals",
+      "51ee8f98cfece4285561f44f4c235e884a6ae125\tPass 2804 2026-07-14 07:21 AM EDT: cover mixed-source receipt stitching",
+      "63142e2c55e161b6a8d06b5b8672c060b7567157\tPass 2803 2026-07-14 04:47 AM EDT: orient long-receipt ghost slices",
+      "1cc6686170f89b1a353797b99c6e0abc2af8a015\tPass 2802 2026-07-14 04:39 AM EDT: stabilize long-stack stitch QA"
+    ],
+    "origin": "https://github.com/haftafish3760/maintainiac5.6-.git"
+  },
+  "counts": {
+    "add": 1,
+    "manual_merge": 452,
+    "manual_review": 4,
+    "manual_text_difference": 2,
+    "skip_duplicate": 6189,
+    "skip_generated": 749
+  },
+  "features": {
+    "expenses_payments": 1201,
+    "firebase_storage": 1857,
+    "jobs_maintenance_calendar": 511,
+    "mapbox_dashboard_profiles": 376,
+    "pdf_invoices_estimates": 613,
+    "receipt_ocr_camera": 2641,
+    "trip_tracking": 198,
+    "work_supplies_materials": 1196
+  },
+  "source_guard": {
+    "git": "",
+    "tree": "9382960c32bb43731b91b3547f377af10e964deca0d848856086ba4fe30cb83d"
+  },
+  "decision_log": "Maintainiac_5.6_Long_Receipt.decisions.jsonl.gz",
+  "manual_total": 458,
+  "manual_preview": [
+    {
+      "path": ".flutter-plugins-dependencies",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": ".gitignore",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:.gitignore"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "firebase.json",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:firebase.json"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "firestore.indexes.json",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:firestore.indexes.json"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "firestore.rules",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:firestore.rules"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "pubspec.lock",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:pubspec.lock"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "pubspec.yaml",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:pubspec.yaml"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "storage.rules",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:storage.rules"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "android/build.gradle.kts",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/build.gradle.kts"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "android/app/build.gradle.kts",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates"
+      ]
+    },
+    {
+      "path": "android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java"
+      ],
+      "block_overlap": 0.026,
+      "features": [
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt",
+        "ios/Runner/AppDelegate.swift"
+      ],
+      "block_overlap": 0.069,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt",
+        "test/support/qa_harness/maintainiac_qa_environment.dart"
+      ],
+      "block_overlap": 0.066,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt"
+      ],
+      "block_overlap": 0.0495,
+      "features": [
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraCaptureClose.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraCaptureClose.kt"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraCaptureClose.kt",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift"
+      ],
+      "block_overlap": 0.2,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt"
+      ],
+      "block_overlap": 0.6458,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt"
+      ],
+      "block_overlap": 1.0,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt"
+      ],
+      "block_overlap": 0.4487,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraLiveReadabilitySignals.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraLiveReadabilitySignals.kt"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.6087,
+      "features": [
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPhotoQuality.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPhotoQuality.kt"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.3,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPreCaptureExposure.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPreCaptureExposure.kt"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.4615,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraPreviousSectionGuide.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityBridge.kt",
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsLabels.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSessionArguments.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt",
+        "android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.2047,
+      "features": [
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "docs/expense_release_one_blueprint.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:docs/expense_release_one_blueprint.md"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "docs/firebase_sync_schema_spec.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:docs/firebase_sync_schema_spec.md"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "docs/firestore_data_model.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:docs/firestore_data_model.md"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "docs/receipt_bug_regression_ledger.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "docs/receipt_camera_completion_map.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "docs/receipt_camera_ocr_master_pass_plan.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "docs/receipt_camera_release_one_blueprint.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "docs/receipt_camera_roadmap.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "docs/receipt_real_device_result_template.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:docs/receipt_real_device_result_template.md"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "docs/receipt_real_device_test_script.md",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "firebase_emulator_tests/test/firestoreRules.test.mjs",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:firebase_emulator_tests/test/firestoreRules.test.mjs"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "ios/Podfile.lock",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Podfile.lock"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "ios/Flutter/Generated.xcconfig",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "ios/Flutter/flutter_export_environment.sh",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/AppDelegate.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/MainActivity.kt",
+        "ios/Runner/AppDelegate.swift",
+        "ios/Runner/DeviceCapabilityBridge.swift"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/GeneratedPluginRegistrant.m",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.1176,
+      "features": [
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "ios/Runner/Info.plist",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/DeviceCapabilityBridge.swift",
+        "ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift",
+        "ios/Runner/ReceiptCameraViewController.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/TripTrackingNativeBridge.swift",
+        "ios/ShareExtension/ShareViewController.swift"
+      ],
+      "block_overlap": 0.5541,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewController.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewController.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/DeviceCapabilityBridge.swift",
+        "ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift",
+        "ios/Runner/ReceiptCameraViewController.swift",
+        "ios/Runner/TripTrackingNativeBridge.swift",
+        "ios/ShareExtension/ShareViewController.swift"
+      ],
+      "block_overlap": 0.0435,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerCapture.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.1692,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerDiagnostics.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.5506,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerLabels.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift",
+        "lib/shared/state/expense_settings_store.dart"
+      ],
+      "block_overlap": 0.9605,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerLayout.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift",
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerLiveReadability.swift"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraExposureControls.kt",
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.6835,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.4615,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerSessionSettings.swift"
+      ],
+      "symbol_conflicts": [
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.0088,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "symbol_conflicts": [
+        "android/app/src/main/kotlin/com/maintainiac/ReceiptCameraSettingsDialog.kt",
+        "ios/Runner/ReceiptCameraViewControllerCapture.swift",
+        "ios/Runner/ReceiptCameraViewControllerCaptureClose.swift",
+        "ios/Runner/ReceiptCameraViewControllerControls.swift",
+        "ios/Runner/ReceiptCameraViewControllerDiagnostics.swift",
+        "ios/Runner/ReceiptCameraViewControllerLabels.swift",
+        "ios/Runner/ReceiptCameraViewControllerLayout.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift",
+        "ios/Runner/ReceiptCameraViewControllerLiveReadability.swift",
+        "ios/Runner/ReceiptCameraViewControllerOrientation.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQuality.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualityClassifiers.swift",
+        "ios/Runner/ReceiptCameraViewControllerPhotoQualitySampling.swift",
+        "ios/Runner/ReceiptCameraViewControllerPreviousSectionGuide.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionArguments.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionRecovery.swift",
+        "ios/Runner/ReceiptCameraViewControllerSessionSettings.swift",
+        "ios/Runner/ReceiptCameraViewControllerSettingsCopy.swift"
+      ],
+      "block_overlap": 0.1765,
+      "features": [
+        "receipt_ocr_camera"
+      ]
+    },
+    {
+      "path": "ios/Runner.xcodeproj/project.pbxproj",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": []
+    },
+    {
+      "path": "lib/main.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/main.dart",
+        "test/account_abuse_policy_test.dart",
+        "test/active_workday_actions_test.dart",
+        "test/active_workday_gps_contract_test.dart",
+        "test/active_workday_odometer_alerts_test.dart",
+        "test/active_workday_store_test.dart",
+        "test/ai_abuse_security_telemetry_test.dart",
+        "test/android_receipt_share_manifest_test.dart",
+        "test/app_business_telemetry_test.dart",
+        "test/app_document_store_test.dart",
+        "test/app_generated_pdf_export_estimator_test.dart",
+        "test/app_generated_pdf_export_quota_test.dart",
+        "test/app_generated_pdf_export_request_test.dart",
+        "test/app_generated_pdf_export_verifier_test.dart",
+        "test/app_generated_pdf_preview_screen_test.dart",
+        "test/app_generated_pdf_report_renderer_test.dart",
+        "test/app_generated_pdf_service_test.dart",
+        "test/app_generated_pdf_share_content_test.dart",
+        "test/app_installation_identity_test.dart",
+        "test/app_signature_capture_test.dart",
+        "test/app_signature_store_test.dart",
+        "test/app_storage_guard_test.dart",
+        "test/cloud_backup_manifest_test.dart",
+        "test/cloud_backup_pdf_policy_test.dart",
+        "test/cloud_backup_quota_test.dart",
+        "test/cloud_backup_sync_attempt_store_test.dart",
+        "test/contractor_dashboard_screen_test.dart",
+        "test/dashboard_firestore_mirror_operational_context_test.dart",
+        "test/dashboard_firestore_mirror_test.dart",
+        "test/dashboard_firestore_privacy_rules_test.dart",
+        "test/dashboard_firestore_summary_rules_alignment_test.dart",
+        "test/dashboard_firestore_summary_test.dart",
+        "test/dashboard_live_odometer_block_test.dart",
+        "test/dashboard_mapbox_assist_summary_test.dart",
+        "test/dashboard_trip_tracking_profile_tokens_test.dart",
+        "test/dashboard_trip_tracking_summary_reporter_test.dart",
+        "test/dashboard_trip_tracking_summary_test.dart",
+        "test/device_capability_classifier_test.dart",
+        "test/device_capability_native_contract_test.dart",
+        "test/device_capability_scope_test.dart",
+        "test/device_feature_capability_parser_test.dart",
+        "test/device_operational_policy_test.dart",
+        "test/device_storage_status_test.dart",
+        "test/duplicate_code_scan_test.dart",
+        "test/employee_directory_store_test.dart",
+        "test/expense_admin_diagnostic_contract_test.dart",
+        "test/expense_backup_draft_guard_test.dart",
+        "test/expense_backup_schedule_test.dart",
+        "test/expense_categories_contract_test.dart",
+        "test/expense_category_store_test.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/app/incoming_receipt_destination_screen.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/app/incoming_receipt_destination_screen.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_scaffold.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart"
+      ],
+      "block_overlap": 0.6047,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "lib/app/incoming_receipt_destination_widgets.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/app/incoming_receipt_destination_widgets.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.869,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "lib/app/maintaniac_app.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/app/maintaniac_app.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.2727,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/active_workday_actions.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/active_workday_actions.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart"
+      ],
+      "block_overlap": 0.0189,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/active_workday_context_bar.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/active_workday_context_bar.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.8421,
+      "features": [
+        "trip_tracking",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/active_workday_quick_action_editor.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.0179,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/active_workday_screen.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_calendar_models.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_scaffold.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/dashboard.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.025,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/dashboard_panels.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/dashboard_panels.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_line_mode_helpers.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_scaffold.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/vehicle_profile_detail.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/vehicle_profile_detail.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.1591,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/vehicle_profile_flow.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/vehicle_profile_flow.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_scaffold.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart"
+      ],
+      "block_overlap": 0.0183,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/vehicle_profile_widgets.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/vehicle_profile_widgets.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_calendar_painter.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/contractor/contractor_dashboard_models.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/contractor/contractor_dashboard_models.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/contractor/contractor_dashboard_models.dart"
+      ],
+      "block_overlap": 0.8772,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/contractor/contractor_dashboard_screen.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_line_mode_helpers.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart"
+      ],
+      "block_overlap": 0.0312,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/contractor/contractor_dashboard_sections.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_line_mode_helpers.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_scaffold.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart"
+      ],
+      "block_overlap": 0.1667,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_handoff_panel.dart"
+      ],
+      "block_overlap": 0.775,
+      "features": [
+        "work_supplies_materials",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/dashboard/data/active_workday_store.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_category_store.dart",
+        "lib/screens/expenses/data/expense_cloud_backup_service.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_proof_coordinator.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_draft_store.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_ledger_store.dart",
+        "lib/screens/expenses/data/expense_line_record_serialization.dart",
+        "lib/screens/expenses/data/expense_materials_receipt_bridge.dart",
+        "lib/screens/expenses/data/expense_receipt_draft_record.dart",
+        "lib/screens/expenses/data/expense_receipt_duplicate_models.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory_store.dart",
+        "lib/screens/expenses/data/expense_receipt_ocr_review.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_record.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+        "lib/screens/expenses/data/expense_receipt_record_serialization.dart",
+        "lib/screens/expenses/data/expense_reminder_draft.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_failure_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_firestore_bridge.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_record.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_store.dart",
+        "lib/screens/expenses/data/expense_split_allocation.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/expenses/data/fuel_parser_improvement_metadata.dart",
+        "lib/screens/invoices/data/invoice_ledger_models.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/invoices/data/invoice_record.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_health_event.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_pack_payload.dart",
+        "lib/screens/work_supplies/data/work_supply_custom_catalog_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_settings_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_store.dart",
+        "lib/screens/work_supplies/data/work_supply_item_identity_store.dart",
+        "lib/screens/work_supplies/data/work_supply_parser_candidate_models.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_base_bundle_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_delivery_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_manifest.dart",
+        "lib/shared/backup/cloud_backup_manifest.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_models.dart",
+        "lib/shared/context/operational_context_store.dart"
+      ],
+      "block_overlap": 0.0224,
+      "features": [
+        "trip_tracking",
+        "expenses_payments",
+        "firebase_storage",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/calendar/expense_calendar.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/calendar/expense_calendar.dart"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/calendar/expense_calendar_actions.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart"
+      ],
+      "block_overlap": 0.2424,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/calendar/expense_receipt_detail_screen.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/app/incoming_receipt_destination_screen.dart",
+        "lib/app/incoming_receipt_destination_sheets.dart",
+        "lib/app/incoming_receipt_destination_widgets.dart",
+        "lib/app/maintaniac_app.dart",
+        "lib/screens/dashboard/active_workday_context_bar.dart",
+        "lib/screens/dashboard/active_workday_quick_action_editor.dart",
+        "lib/screens/dashboard/active_workday_screen.dart",
+        "lib/screens/dashboard/active_workday_session_widgets.dart",
+        "lib/screens/dashboard/contractor/contractor_active_shift_panel.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_pulse.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_screen.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_sections.dart",
+        "lib/screens/dashboard/contractor/contractor_dashboard_tiles.dart",
+        "lib/screens/dashboard/dashboard.dart",
+        "lib/screens/dashboard/dashboard_detail_screen.dart",
+        "lib/screens/dashboard/dashboard_panels.dart",
+        "lib/screens/dashboard/dashboard_screen.dart",
+        "lib/screens/dashboard/dashboard_shortcuts.dart",
+        "lib/screens/dashboard/start_day_panel.dart",
+        "lib/screens/dashboard/vehicle_profile_detail.dart",
+        "lib/screens/dashboard/vehicle_profile_flow.dart",
+        "lib/screens/dashboard/vehicle_profile_widgets.dart",
+        "lib/screens/expenses/calendar/expense_calendar_actions.dart",
+        "lib/screens/expenses/calendar/expense_calendar_context_header.dart",
+        "lib/screens/expenses/calendar/expense_day_entries.dart",
+        "lib/screens/expenses/calendar/expense_day_screen.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_recap_panels.dart",
+        "lib/screens/expenses/calendar/expense_day_summary_sections.dart",
+        "lib/screens/expenses/calendar/expense_month_calendar.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_info.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_line_items.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_ocr_review.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_proof_preview.dart",
+        "lib/screens/expenses/calendar/expense_receipt_detail_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker.dart",
+        "lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart",
+        "lib/screens/expenses/entry/expense_receipt_detail_mode_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_duplicate_dialog.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_odometer_panel.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_scaffold.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_screen.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_split_percent_button.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_start_guide.dart",
+        "lib/screens/expenses/entry/expense_receipt_header.dart",
+        "lib/screens/expenses/entry/expense_receipt_inventory_prompt.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_actions.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_editor.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_parse_review_details.dart"
+      ],
+      "block_overlap": 0.0426,
+      "features": [
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_draft_store.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_draft_store.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_category_store.dart",
+        "lib/screens/expenses/data/expense_cloud_backup_service.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_proof_coordinator.dart",
+        "lib/screens/expenses/data/expense_draft_store.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_ledger_store.dart",
+        "lib/screens/expenses/data/expense_materials_receipt_bridge.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory_store.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+        "lib/screens/expenses/data/expense_reminder_draft.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_firestore_bridge.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_store.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/work_supplies/data/work_supply_custom_catalog_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_settings_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_store.dart",
+        "lib/screens/work_supplies/data/work_supply_item_identity_store.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_store.dart",
+        "lib/shared/device_capabilities/device_capability_scope.dart",
+        "lib/shared/documents/app_document_store.dart",
+        "lib/shared/firebase/maintainiac_hosted_cache.dart",
+        "lib/shared/localization/maintaniac_localizations.dart",
+        "lib/shared/odometer/odometer_store.dart",
+        "lib/shared/profiles/employee_directory_store.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/profiles/user_profile_store.dart",
+        "lib/shared/signatures/app_signature_store.dart",
+        "lib/shared/state/app_state.dart",
+        "lib/shared/state/expense_settings_scope.dart",
+        "lib/shared/state/global_odometer.dart",
+        "lib/shared/trip_tracking/trip_tracking_bluetooth.dart",
+        "lib/shared/trip_tracking/trip_tracking_controller.dart",
+        "lib/shared/trip_tracking/trip_tracking_route_point_store.dart",
+        "lib/shared/trip_tracking/trip_tracking_session_store.dart",
+        "lib/shared/trip_tracking/trip_tracking_settings_store.dart",
+        "lib/shared/widgets/receipt_capture/incoming_receipt_share.dart",
+        "lib/shared/widgets/receipt_capture/receipt_capture_settings_store.dart",
+        "test/helpers/pdf_torture_fixtures.dart",
+        "test/trip_tracking_controller_test.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_export_handoff.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_export_handoff.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_cloud_proof_cache.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_codec.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_export_handoff.dart",
+        "lib/screens/expenses/data/expense_export_models.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory_store.dart",
+        "lib/screens/invoices/data/invoice_pdf_template_renderer.dart",
+        "lib/screens/invoices/home/invoice_info_screens.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_export.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_store_mappers.dart",
+        "lib/screens/work_supplies/data/work_supply_item_identity_store.dart",
+        "lib/shared/pdf/app_generated_pdf_report_renderer.dart",
+        "lib/shared/pdf/app_generated_pdf_share_content.dart",
+        "lib/shared/profiles/employee_directory_models.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/records/maintainiac_record_lifecycle.dart",
+        "test/support/work_supply_parser_qa/work_supply_parser_boundary_qa.dart"
+      ],
+      "block_overlap": 0.0276,
+      "features": [
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_export_store.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_export_store.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_category_store.dart",
+        "lib/screens/expenses/data/expense_cloud_backup_service.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_draft_store.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_ledger_store.dart",
+        "lib/screens/expenses/data/expense_line_record_serialization.dart",
+        "lib/screens/expenses/data/expense_materials_receipt_bridge.dart",
+        "lib/screens/expenses/data/expense_receipt_draft_record.dart",
+        "lib/screens/expenses/data/expense_receipt_duplicate_models.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory_store.dart",
+        "lib/screens/expenses/data/expense_receipt_ocr_review.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_record.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+        "lib/screens/expenses/data/expense_receipt_record_serialization.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_failure_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_firestore_bridge.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_record.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_store.dart",
+        "lib/screens/expenses/data/expense_split_allocation.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/expenses/data/fuel_parser_improvement_metadata.dart",
+        "lib/screens/invoices/data/invoice_ledger_models.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/invoices/data/invoice_record.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_health_event.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_pack_payload.dart",
+        "lib/screens/work_supplies/data/work_supply_custom_catalog_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_settings_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_store.dart",
+        "lib/screens/work_supplies/data/work_supply_item_identity_store.dart",
+        "lib/screens/work_supplies/data/work_supply_parser_candidate_models.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_base_bundle_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_delivery_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_manifest.dart",
+        "lib/shared/backup/cloud_backup_manifest.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_models.dart",
+        "lib/shared/context/operational_context_store.dart",
+        "lib/shared/device_capabilities/device_capability_scope.dart",
+        "lib/shared/documents/app_document_models.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_firestore_documents.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_firestore_documents.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_firestore_documents.dart",
+        "lib/screens/expenses/home/expenses_home_models.dart",
+        "lib/screens/expenses/reports/expense_export_widgets.dart",
+        "lib/screens/expenses/reports/expense_recap_screen.dart",
+        "lib/screens/settings/master_export_widgets.dart",
+        "lib/shared/maps/mapbox_response_validation.dart",
+        "lib/shared/widgets/receipt_capture/receipt_native_capture_staging_manifest_helpers.dart"
+      ],
+      "block_overlap": 0.0282,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_ledger_models.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_ledger_models.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_ledger_models.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_ledger_store.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_ledger_store.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_category_store.dart",
+        "lib/screens/expenses/data/expense_cloud_backup_service.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_proof_coordinator.dart",
+        "lib/screens/expenses/data/expense_draft_store.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_ledger_store.dart",
+        "lib/screens/expenses/data/expense_materials_receipt_bridge.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory_store.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+        "lib/screens/expenses/data/expense_reminder_draft.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_firestore_bridge.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_store.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/work_supplies/data/work_supply_custom_catalog_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_settings_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_store.dart",
+        "lib/screens/work_supplies/data/work_supply_item_identity_store.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_store.dart",
+        "lib/shared/device_capabilities/device_capability_scope.dart",
+        "lib/shared/documents/app_document_store.dart",
+        "lib/shared/firebase/maintainiac_hosted_cache.dart",
+        "lib/shared/localization/maintaniac_localizations.dart",
+        "lib/shared/odometer/odometer_store.dart",
+        "lib/shared/profiles/employee_directory_store.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/profiles/user_profile_store.dart",
+        "lib/shared/signatures/app_signature_store.dart",
+        "lib/shared/state/app_state.dart",
+        "lib/shared/state/expense_settings_scope.dart",
+        "lib/shared/state/global_odometer.dart",
+        "lib/shared/trip_tracking/trip_tracking_bluetooth.dart",
+        "lib/shared/trip_tracking/trip_tracking_controller.dart",
+        "lib/shared/trip_tracking/trip_tracking_route_point_store.dart",
+        "lib/shared/trip_tracking/trip_tracking_session_store.dart",
+        "lib/shared/trip_tracking/trip_tracking_settings_store.dart",
+        "lib/shared/widgets/receipt_capture/incoming_receipt_share.dart",
+        "lib/shared/widgets/receipt_capture/receipt_capture_settings_store.dart",
+        "test/helpers/pdf_torture_fixtures.dart",
+        "test/trip_tracking_controller_test.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_ledger_summary.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_ledger_summary.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_cloud_restore_proof_coordinator.dart",
+        "lib/screens/expenses/data/expense_ledger_summary.dart",
+        "lib/screens/expenses/data/fuel_economy_recap_metrics.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_support.dart",
+        "lib/screens/maintenance/maintenance_item_detail_utils.dart",
+        "lib/screens/work_supplies/calendar/work_supply_inventory_calendar_sections.dart",
+        "lib/screens/work_supplies/entry/add_items_field_sections.dart",
+        "lib/screens/work_supplies/entry/add_items_screen_helpers.dart",
+        "lib/screens/work_supplies/home/work_supply_home_calendar_sections.dart",
+        "lib/screens/work_supplies/inventory/inventory_helpers.dart",
+        "test/support/qa_harness/maintainiac_sensitive_field_registry.dart"
+      ],
+      "block_overlap": 0.5,
+      "features": [
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_line_record.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_line_record.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_line_record.dart",
+        "lib/screens/expenses/data/expense_receipt_duplicate_models.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_split_allocation.dart",
+        "lib/shared/documents/app_document_models.dart",
+        "lib/shared/records/maintainiac_record_lifecycle.dart",
+        "lib/shared/state/expense_backup_schedule.dart",
+        "lib/shared/state/expense_settings_store.dart",
+        "lib/shared/widgets/receipt_capture/receipt_assistance_policy_enums.dart",
+        "lib/shared/widgets/receipt_capture/receipt_attachment_storage_models.dart"
+      ],
+      "block_overlap": 0.1257,
+      "features": [
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_line_record_serialization.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_line_record_serialization.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_line_record_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_draft_record.dart",
+        "lib/screens/expenses/data/expense_receipt_duplicate_models.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory.dart",
+        "lib/screens/expenses/data/expense_receipt_ocr_review.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_record.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_record_serialization.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_failure_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_record.dart",
+        "lib/screens/expenses/data/expense_split_allocation.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/expenses/data/fuel_parser_improvement_metadata.dart",
+        "lib/screens/invoices/data/invoice_ledger_models.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/invoices/data/invoice_record.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_health_event.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_pack_payload.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart",
+        "lib/screens/work_supplies/data/work_supply_parser_candidate_models.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_base_bundle_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_delivery_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_manifest.dart",
+        "lib/shared/backup/cloud_backup_manifest.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_models.dart",
+        "lib/shared/documents/app_document_models.dart",
+        "lib/shared/firebase/maintainiac_firestore_upload_queue.dart",
+        "lib/shared/firebase/maintainiac_hosted_cache.dart",
+        "lib/shared/media/app_media_asset.dart",
+        "lib/shared/odometer/odometer_correction_review.dart",
+        "lib/shared/odometer/odometer_mileage_review.dart",
+        "lib/shared/odometer/odometer_validation.dart",
+        "lib/shared/odometer/odometer_vehicle_snapshot.dart",
+        "lib/shared/profiles/employee_directory_models.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/profiles/user_profile_models.dart",
+        "lib/shared/receipts/receipt_line_models_serialization.dart",
+        "lib/shared/records/maintainiac_durable_record_store.dart",
+        "lib/shared/records/maintainiac_record_lifecycle.dart",
+        "lib/shared/security/ai_abuse_security_telemetry.dart",
+        "lib/shared/state/app_state.dart",
+        "lib/shared/trip_tracking/trip_automatic_start_detector.dart"
+      ],
+      "block_overlap": 0.2,
+      "features": [
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_classification_models.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_classification_models.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_classification_models.dart"
+      ],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_classifier.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_classifier.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_classifier.dart",
+        "lib/shared/widgets/receipt_capture/receipt_pdf_inspector.dart"
+      ],
+      "block_overlap": 0.0364,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "pdf_invoices_estimates",
+        "expenses_payments",
+        "jobs_maintenance_calendar"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_draft_record.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_draft_record.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_line_record_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_draft_record.dart",
+        "lib/screens/expenses/data/expense_receipt_duplicate_models.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory.dart",
+        "lib/screens/expenses/data/expense_receipt_ocr_review.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_record.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_record_serialization.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_failure_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_record.dart",
+        "lib/screens/expenses/data/expense_split_allocation.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/expenses/data/fuel_parser_improvement_metadata.dart",
+        "lib/screens/invoices/data/invoice_ledger_models.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/invoices/data/invoice_record.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_health_event.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_pack_payload.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart",
+        "lib/screens/work_supplies/data/work_supply_parser_candidate_models.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_base_bundle_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_delivery_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_manifest.dart",
+        "lib/shared/backup/cloud_backup_manifest.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_models.dart",
+        "lib/shared/documents/app_document_models.dart",
+        "lib/shared/firebase/maintainiac_firestore_upload_queue.dart",
+        "lib/shared/firebase/maintainiac_hosted_cache.dart",
+        "lib/shared/media/app_media_asset.dart",
+        "lib/shared/odometer/odometer_correction_review.dart",
+        "lib/shared/odometer/odometer_mileage_review.dart",
+        "lib/shared/odometer/odometer_validation.dart",
+        "lib/shared/odometer/odometer_vehicle_snapshot.dart",
+        "lib/shared/profiles/employee_directory_models.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/profiles/user_profile_models.dart",
+        "lib/shared/receipts/receipt_line_models_serialization.dart",
+        "lib/shared/records/maintainiac_durable_record_store.dart",
+        "lib/shared/records/maintainiac_record_lifecycle.dart",
+        "lib/shared/security/ai_abuse_security_telemetry.dart",
+        "lib/shared/state/app_state.dart",
+        "lib/shared/trip_tracking/trip_automatic_start_detector.dart"
+      ],
+      "block_overlap": 0.12,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_fuel_parser.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_fuel_parser.dart",
+        "lib/screens/expenses/data/expense_receipt_fuel_signal_normalization.dart"
+      ],
+      "block_overlap": 0.0847,
+      "features": [
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_fuel_quantity_logic.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_fuel_quantity_logic.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_fuel_quantity_logic.dart",
+        "lib/screens/expenses/data/expense_receipt_parser_field_confidence_logic.dart",
+        "lib/screens/expenses/data/expense_receipt_parser_merchant_totals_logic.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_failure_copy_helpers.dart",
+        "lib/screens/work_supplies/data/inventory_parsers/hvac/hvac_air_drain_and_duct_parser.dart",
+        "lib/screens/work_supplies/data/inventory_parsers/plumbing/plumbing_fast_matcher.dart",
+        "lib/screens/work_supplies/data/work_supply_receipt_parser.dart",
+        "lib/screens/work_supplies/data/work_supply_receipt_parser_electrical_service_matcher.dart",
+        "lib/screens/work_supplies/data/work_supply_receipt_parser_terms.dart",
+        "lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_low_voltage_tools.dart",
+        "lib/shared/firebase/maintainiac_firestore_upload_queue.dart",
+        "lib/shared/receipts/receipt_text_quality_contract.dart",
+        "lib/shared/trip_tracking/trip_tracking_platform_events.dart",
+        "lib/shared/trip_tracking/trip_tracking_review_record.dart",
+        "lib/shared/widgets/receipt_capture/receipt_ocr_parser_text_signals.dart",
+        "test/support/qa_harness/maintainiac_qa_quality_gates.dart",
+        "test/support/qa_harness/qa_harness.dart",
+        "test/support/work_supply_parser_qa/work_supply_parser_catalog_expansion_lifecycle_qa.dart",
+        "test/support/work_supply_parser_qa/work_supply_parser_metamorphic_qa.dart",
+        "test/support/work_supply_parser_qa/work_supply_parser_review_safety_qa.dart",
+        "test/support/work_supply_parser_qa/work_supply_parser_surgical_rerun_qa.dart"
+      ],
+      "block_overlap": 0.8905,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_parser.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_parser.dart"
+      ],
+      "symbol_conflicts": [],
+      "block_overlap": 0.7619,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_parser_category_match_logic.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/expenses/calendar/expense_calendar_models.dart",
+        "lib/screens/expenses/data/expense_receipt_parser_category_match_logic.dart",
+        "lib/screens/expenses/data/expense_receipt_parser_merchant_totals_logic.dart",
+        "lib/screens/expenses/entry/expense_receipt_line_support.dart",
+        "lib/screens/expenses/home/expenses_home_models.dart",
+        "lib/screens/expenses/reports/expense_allocation_models.dart",
+        "lib/screens/expenses/reports/expense_export_widgets.dart",
+        "lib/screens/expenses/reports/expense_recap_screen.dart",
+        "lib/screens/expenses/reports/expense_recap_tile_definitions.dart",
+        "lib/screens/invoices/data/invoice_ledger_models.dart",
+        "lib/screens/invoices/data/invoice_pdf_template_renderer.dart",
+        "lib/screens/invoices/data/invoice_record.dart",
+        "lib/screens/invoices/home/invoice_day_screen.dart",
+        "lib/screens/invoices/home/invoice_form_screen.dart",
+        "lib/screens/settings/master_export_widgets.dart",
+        "lib/screens/work_supplies/calendar/work_supply_inventory_calendar_sections.dart",
+        "lib/screens/work_supplies/entry/add_items_screen_helpers.dart",
+        "lib/screens/work_supplies/home/work_supply_home_calendar_sections.dart",
+        "lib/screens/work_supplies/inventory/inventory_helpers.dart",
+        "lib/screens/work_supplies/jobs/work_supply_jobs_day_sections.dart",
+        "lib/shared/pdf/app_generated_pdf_report_renderer.dart",
+        "lib/shared/profiles/employee_preview_data.dart",
+        "lib/shared/profiles/employee_profile_metric_models.dart",
+        "test/expense_receipt_parser_fuel_synthetic_matrix_fixtures_test.dart",
+        "tool/fuel_synthetic_parser_ev_layouts.dart",
+        "tool/work_supply_parser_qa_generate_fixtures.dart"
+      ],
+      "block_overlap": 0.4892,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_parser_description_cleanup_logic.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_parser_description_cleanup_logic.dart"
+      ],
+      "block_overlap": 0.4181,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_parser_line_item_logic.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_parser_line_item_logic.dart"
+      ],
+      "block_overlap": 0.0924,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_parser_support_models.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_parser_support_models.dart"
+      ],
+      "block_overlap": 0.3065,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_parser_text_entry_logic.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [],
+      "block_overlap": 0.0,
+      "features": [
+        "work_supplies_materials",
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "jobs_maintenance_calendar",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/expenses/data/expense_category_store.dart",
+        "lib/screens/expenses/data/expense_draft_store.dart",
+        "lib/screens/expenses/data/expense_materials_receipt_bridge.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory_store.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_firestore_bridge.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_store.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/work_supplies/data/work_supply_custom_catalog_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_settings_store.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_store.dart",
+        "lib/screens/work_supplies/data/work_supply_item_identity_store.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/documents/app_document_store.dart",
+        "lib/shared/firebase/maintainiac_firestore_upload_store.dart",
+        "lib/shared/firebase/maintainiac_hosted_cache.dart",
+        "lib/shared/profiles/employee_directory_store.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/signatures/app_signature_store.dart",
+        "lib/shared/trip_tracking/trip_tracking_bluetooth.dart",
+        "lib/shared/trip_tracking/trip_tracking_route_point_store.dart",
+        "lib/shared/trip_tracking/trip_tracking_settings_store.dart",
+        "lib/shared/widgets/receipt_capture/receipt_capture_settings_store.dart",
+        "test/helpers/pdf_torture_fixtures.dart"
+      ],
+      "block_overlap": 0.359,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "firebase_storage"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_record.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_record.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_record.dart"
+      ],
+      "block_overlap": 0.0638,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_record_computed_fields.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_record_computed_fields.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_receipt_parse_result.dart",
+        "lib/screens/expenses/data/expense_receipt_record_computed_fields.dart",
+        "lib/screens/expenses/entry/expense_receipt_entry_totals_helpers.dart"
+      ],
+      "block_overlap": 0.3667,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_receipt_record_serialization.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/expense_receipt_record_serialization.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/dashboard/active_workday_actions.dart",
+        "lib/screens/dashboard/data/active_workday_store.dart",
+        "lib/screens/expenses/data/expense_cloud_restore_session.dart",
+        "lib/screens/expenses/data/expense_export_store.dart",
+        "lib/screens/expenses/data/expense_line_record_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_draft_record.dart",
+        "lib/screens/expenses/data/expense_receipt_duplicate_models.dart",
+        "lib/screens/expenses/data/expense_receipt_item_memory.dart",
+        "lib/screens/expenses/data/expense_receipt_ocr_review.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_record.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_serialization.dart",
+        "lib/screens/expenses/data/expense_receipt_record_serialization.dart",
+        "lib/screens/expenses/data/expense_reminder_store.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_failure_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_models.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_record.dart",
+        "lib/screens/expenses/data/expense_split_allocation.dart",
+        "lib/screens/expenses/data/expense_work_profile_store.dart",
+        "lib/screens/expenses/data/fuel_parser_improvement_metadata.dart",
+        "lib/screens/invoices/data/invoice_ledger_models.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/invoices/data/invoice_record.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_health_event.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_hosted_manifest.dart",
+        "lib/screens/work_supplies/data/work_supply_catalog_pack_payload.dart",
+        "lib/screens/work_supplies/data/work_supply_inventory_receipt_models.dart",
+        "lib/screens/work_supplies/data/work_supply_parser_candidate_models.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_base_bundle_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_delivery_policy.dart",
+        "lib/screens/work_supplies/data/work_supply_trade_pack_manifest.dart",
+        "lib/shared/backup/cloud_backup_manifest.dart",
+        "lib/shared/business/app_business_telemetry.dart",
+        "lib/shared/context/operational_context_models.dart",
+        "lib/shared/documents/app_document_models.dart",
+        "lib/shared/firebase/maintainiac_firestore_upload_queue.dart",
+        "lib/shared/firebase/maintainiac_hosted_cache.dart",
+        "lib/shared/media/app_media_asset.dart",
+        "lib/shared/odometer/odometer_correction_review.dart",
+        "lib/shared/odometer/odometer_mileage_review.dart",
+        "lib/shared/odometer/odometer_validation.dart",
+        "lib/shared/odometer/odometer_vehicle_snapshot.dart",
+        "lib/shared/profiles/employee_directory_models.dart",
+        "lib/shared/profiles/employee_permission_pack_store.dart",
+        "lib/shared/profiles/user_profile_models.dart",
+        "lib/shared/receipts/receipt_line_models_serialization.dart",
+        "lib/shared/records/maintainiac_durable_record_store.dart",
+        "lib/shared/records/maintainiac_record_lifecycle.dart",
+        "lib/shared/security/ai_abuse_security_telemetry.dart",
+        "lib/shared/state/app_state.dart",
+        "lib/shared/trip_tracking/trip_automatic_start_detector.dart"
+      ],
+      "block_overlap": 0.5,
+      "features": [
+        "work_supplies_materials",
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/expense_screen_telemetry_recorder.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/expense_draft_store.dart",
+        "lib/screens/expenses/data/expense_receipt_privacy_event_store_hive.dart",
+        "lib/screens/expenses/data/expense_screen_telemetry_recorder.dart",
+        "lib/screens/invoices/data/invoice_ledger_store.dart",
+        "lib/screens/maintenance/maintenance_draft_store.dart",
+        "lib/shared/backup/cloud_backup_sync_attempt_store.dart",
+        "lib/shared/context/operational_context_store.dart",
+        "lib/shared/firebase/maintainiac_firestore_upload_store.dart",
+        "lib/shared/widgets/receipt_capture/receipt_native_capture_recovery_store.dart"
+      ],
+      "block_overlap": 0.3421,
+      "features": [
+        "receipt_ocr_camera",
+        "expenses_payments",
+        "mapbox_dashboard_profiles"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/fuel_economy_helpers.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/fuel_economy_helpers.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/fuel_economy_helpers.dart"
+      ],
+      "block_overlap": 0.033,
+      "features": [
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    },
+    {
+      "path": "lib/screens/expenses/data/fuel_economy_metrics.dart",
+      "action": "manual_merge",
+      "reason": "same target path has different content",
+      "target_matches": [],
+      "prior_matches": [
+        "source:Maintainiac_5.6_Fuel_System:lib/screens/expenses/data/fuel_economy_metrics.dart"
+      ],
+      "symbol_conflicts": [
+        "lib/screens/expenses/data/fuel_economy_metrics.dart",
+        "lib/screens/expenses/reports/expense_recap_models.dart"
+      ],
+      "block_overlap": 0.0645,
+      "features": [
+        "trip_tracking",
+        "receipt_ocr_camera",
+        "expenses_payments"
+      ]
+    }
+  ]
+}
