@@ -4,45 +4,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../firebase/maintainiac_firestore_documents.dart';
 import '../firebase/maintainiac_firestore_upload_queue.dart';
+import 'trip_tracking_backup_port.dart';
 import 'trip_tracking_backup_scope_policy.dart';
 import 'trip_tracking_session_store.dart';
 
-abstract interface class TripTrackingCloudMirror {
-  Future<void> queueReview(TripTrackingReviewRecord review);
-
-  Future<void> flushPending();
-
-  /// Withdraws backup consent without touching locally stored trip reviews.
-  Future<void> withdrawBackupConsent();
-
-  /// Stops unsent organization sharing without changing private backup consent.
-  Future<void> withdrawOrganizationSharingConsent();
-
-  void dispose();
-}
-
-class NoopTripTrackingCloudMirror implements TripTrackingCloudMirror {
-  const NoopTripTrackingCloudMirror();
-
-  @override
-  Future<void> queueReview(TripTrackingReviewRecord review) async {}
-
-  @override
-  Future<void> flushPending() async {}
-
-  @override
-  Future<void> withdrawBackupConsent() async {}
-
-  @override
-  Future<void> withdrawOrganizationSharingConsent() async {}
-
-  @override
-  void dispose() {}
-}
+export 'trip_tracking_backup_port.dart';
 
 /// Queues only reviewed mileage summaries. It never mirrors live coordinates
 /// or raw tracking evidence and never becomes the source of truth for a trip.
-class TripTrackingFirebaseMirror implements TripTrackingCloudMirror {
+class TripTrackingFirebaseMirror implements TripTrackingBackupPort {
   TripTrackingFirebaseMirror({
     required MaintainiacFirestoreUploadQueueStore queueStore,
     required MaintainiacFirestoreUploadCoordinator uploadCoordinator,
