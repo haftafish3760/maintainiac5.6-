@@ -36,6 +36,7 @@ not implemented during the current work:
 | Local Storage, Backup, Export | Verified subset; reconciliation required | `docs/system_handoffs/local_storage_backup_export.md` |
 | Firebase, Firestore, Storage, Cloud Sync | Verified subset; reconciliation required | `docs/system_handoffs/firebase_cloud_sync.md` |
 | Device Capabilities, Settings, Policy | Verified subset; reconciliation required | `docs/system_handoffs/device_capabilities_settings.md` |
+| Accessibility and responsive text | Device scaling preserved; screen QA deferred | `docs/system_handoffs/accessibility_responsive_ui.md` |
 | Localization and units | Present; unverified | `docs/system_handoffs/localization_units.md` |
 | Administration and security | Documented; partially present | `docs/system_handoffs/admin_security.md` |
 | Monetization and AI assistant | Documented; unverified | `docs/system_handoffs/monetization_ai_assistant.md` |
