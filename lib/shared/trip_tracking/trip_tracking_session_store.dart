@@ -422,6 +422,7 @@ class TripTrackingSessionStore {
             !_isSafeTimeZoneName(review.startedTimeZoneName) ||
             !_isValidTimeZoneOffset(review.finishedTimeZoneOffsetMinutes) ||
             !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
+            !_reviewAdvisoriesAreValid(review) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
@@ -508,3 +509,14 @@ bool _isSafeStoreIdentifierValue(Object? value) =>
     value.isNotEmpty &&
     value.length <= 160 &&
     _safeIdentifier(value) == value;
+
+bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
+    review.advisories.every(
+      (event) =>
+          _isSafeStoreIdentifier(event.id) &&
+          event.sessionId == review.id &&
+          event.vehicleId == review.vehicleId &&
+          event.profile == review.profile &&
+          !event.detectedAt.isBefore(review.startedAt) &&
+          !event.detectedAt.isAfter(review.finishedAt),
+    );

@@ -49,7 +49,7 @@ class TripTrackingSessionRecoveryValidation {
     if (session.startingOdometer < 0) {
       reasons.add('negative_starting_odometer');
     }
-    if (!_supportedSchema(session.schemaVersion)) {
+    if (!_supportedSessionSchema(session.schemaVersion)) {
       reasons.add('unsupported_session_schema');
     }
     if (!_safeEngineSnapshot(session.engineSnapshot)) {
@@ -87,7 +87,7 @@ class TripTrackingSessionRecoveryValidation {
     if (review.estimatedEndingOdometer < review.startingOdometer) {
       reasons.add('ending_below_starting_odometer');
     }
-    if (!_supportedSchema(review.schemaVersion)) {
+    if (!_supportedReviewSchema(review.schemaVersion)) {
       reasons.add('unsupported_review_schema');
     }
     if (!_safeEngineSnapshot(review.engineSnapshot)) {
@@ -199,7 +199,9 @@ bool _hasSensitiveAdvisoryText(
       _containsSensitiveText(event.tripLogReference),
 );
 
-bool _supportedSchema(int value) => value == 1;
+bool _supportedSessionSchema(int value) => value == 1;
+
+bool _supportedReviewSchema(int value) => value == 1 || value == 2;
 
 Duration _safeCheckpointAge(Duration value) {
   if (value <= Duration.zero) return const Duration(hours: 1);
