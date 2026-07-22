@@ -65,13 +65,25 @@ class _ReceiptNextReviewLabel extends StatelessWidget {
         secondary: 'Bottom Section',
       );
     }
+    if (normalized == 'Add Another Photo') {
+      return const _ReceiptStackedButtonLabel(
+        primary: 'Add Another',
+        secondary: 'Photo',
+      );
+    }
+    if (normalized == 'Save & Continue') {
+      return const _ReceiptStackedButtonLabel(
+        primary: 'Save',
+        secondary: '& Continue',
+      );
+    }
     if (normalized == 'Check Photo Match') {
       return const _ReceiptStackedButtonLabel(
         primary: 'Check',
         secondary: 'Match',
       );
     }
-    return Text(normalized, maxLines: 1, overflow: TextOverflow.ellipsis);
+    return Text(normalized, maxLines: 2, textAlign: TextAlign.center);
   }
 }
 
@@ -92,7 +104,6 @@ class _ReceiptStackedButtonLabel extends StatelessWidget {
         Text(
           primary,
           maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontSize: 12.5,
             height: 1,
@@ -103,7 +114,6 @@ class _ReceiptStackedButtonLabel extends StatelessWidget {
         Text(
           secondary,
           maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontSize: 9.5,
             height: 1,

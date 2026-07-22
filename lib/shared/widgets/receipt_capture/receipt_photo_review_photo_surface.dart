@@ -12,17 +12,6 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
           behavior: HitTestBehavior.opaque,
           onDoubleTapDown: (details) => _lastPhotoPreviewDoubleTap = details,
           onDoubleTap: _togglePhotoPreviewZoom,
-          onTap: () {
-            final interactionLocked = _openingCamera || _savingPhotos;
-            if (interactionLocked && _controlsVisible) return;
-            _updateReviewState(() {
-              if (interactionLocked) {
-                _controlsVisible = true;
-              } else {
-                _controlsVisible = !_controlsVisible;
-              }
-            });
-          },
           child: InteractiveViewer(
             transformationController: _photoPreviewTransformController,
             minScale: 1,

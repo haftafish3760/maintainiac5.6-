@@ -128,11 +128,11 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                         icon: const Icon(Icons.camera_alt_rounded, size: 16),
                         label: Text(
                           retakeLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          textAlign: TextAlign.center,
                         ),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 38),
+                          minimumSize: const Size(0, 48),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           foregroundColor: const Color(0xFFE8ECEE),
                           disabledForegroundColor: const Color(0xFF758188),
@@ -160,13 +160,9 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: savingPhotos ? null : onAddPhoto,
                         icon: const Icon(Icons.add_a_photo_rounded, size: 16),
-                        label: Text(
-                          addPhotoLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        label: _ReceiptNextReviewLabel(label: addPhotoLabel),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 38),
+                          minimumSize: const Size(0, 48),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           foregroundColor: const Color(0xFFE8ECEE),
                           disabledForegroundColor: const Color(0xFF758188),
@@ -222,7 +218,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                                 ),
                               ),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 38),
+                          minimumSize: const Size(0, 48),
                           backgroundColor: uiConfig.primaryActionColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(

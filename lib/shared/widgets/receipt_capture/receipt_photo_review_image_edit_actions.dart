@@ -64,7 +64,6 @@ extension _ReceiptPhotoReviewImageEditActions
     _resetPhotoPreviewZoom();
     _updateReviewState(() {
       _reviewMode = mode;
-      _controlsVisible = true;
     });
     _resetToolControlsScrollPosition();
   }

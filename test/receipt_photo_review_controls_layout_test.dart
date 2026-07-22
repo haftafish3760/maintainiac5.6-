@@ -137,7 +137,8 @@ void main() {
     expect(reviewScreen, contains('TransformationController()'));
     expect(reviewScreen, contains('onDoubleTapDown'));
     expect(reviewScreen, contains('onDoubleTap: _togglePhotoPreviewZoom'));
-    expect(reviewScreen, contains('_ReceiptShowReviewControlsButton'));
+    expect(reviewScreen, contains('_ReceiptReviewThumbnailStrip'));
+    expect(reviewScreen, contains('openReceiptReviewSettings'));
     expect(
       reviewScreen,
       contains('transformationController: _photoPreviewTransformController'),
@@ -145,27 +146,22 @@ void main() {
     expect(reviewScreen, contains('boundaryMargin: const EdgeInsets.all(48)'));
     expect(reviewScreen, contains('void _togglePhotoPreviewZoom()'));
     expect(reviewScreen, contains('void _resetPhotoPreviewZoom()'));
+    expect(reviewScreen, contains('onOpenSettings: openReceiptReviewSettings'));
+    expect(reviewScreen, isNot(contains('_controlsVisible')));
     expect(
       reviewScreen,
-      contains('onHideControls: _openingCamera || _savingPhotos'),
+      contains("part 'receipt_photo_review_thumbnail_strip.dart'"),
     );
-    expect(
-      reviewScreen,
-      contains('final interactionLocked = _openingCamera || _savingPhotos;'),
-    );
-    expect(
-      reviewScreen,
-      contains('if (interactionLocked && _controlsVisible) return;'),
-    );
-    expect(reviewScreen, contains('if (interactionLocked) {'));
-    expect(reviewScreen, contains('_controlsVisible = true;'));
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
     expect(previewControls, contains('minimumSize: const Size(40, 40)'));
     expect(previewControls, contains("label: const Text('Crop')"));
     expect(previewControls, contains("label: 'Crop receipt photo'"));
-    expect(previewControls, contains('onPressed: savingPhotos ? null : onCrop'));
+    expect(
+      previewControls,
+      contains('onPressed: savingPhotos ? null : onCrop'),
+    );
     expect(previewControls, contains('height: 32'));
-    expect(previewControls, contains('minimumSize: const Size(0, 38)'));
+    expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
     expect(cropControls, contains('height: 52'));
@@ -242,6 +238,13 @@ void main() {
     expect(controls, contains('SingleChildScrollView('));
     expect(commonControls, contains('class _ReceiptNextReviewLabel'));
     expect(commonControls, contains('class _ReceiptStackedButtonLabel'));
+    expect(commonControls, contains("normalized == 'Add Another Photo'"));
+    expect(commonControls, contains("normalized == 'Save & Continue'"));
+    expect(
+      commonControls,
+      contains('maxLines: 2, textAlign: TextAlign.center'),
+    );
+    expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(previewControls, contains('Tooltip('));
     expect(previewControls, contains('Semantics('));
     expect(previewControls, contains('message: savingPhotos'));

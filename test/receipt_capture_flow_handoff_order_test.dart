@@ -70,7 +70,14 @@ void main() {
 
     expect(
       importActions,
-      contains('widget.onReceiptPhotoReviewAccepted?.call(result);'),
+      contains('if (!_notifyReviewedPhotoAccepted(result)) return false;'),
+    );
+    expect(importActions, contains('bool _notifyReviewedPhotoAccepted'));
+    expect(
+      importActions,
+      contains(
+        'Receipt photo saved, but the receipt details screen could not open.',
+      ),
     );
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(
@@ -85,13 +92,16 @@ void main() {
       importActions,
       contains('await _readReviewedPhotosForReceiptForm(result);'),
     );
-    expect(
-      reviewedReadActions,
-      contains('widget.onReceiptReadStarted?.call();'),
-    );
+    expect(reviewedReadActions, contains('_notifyReceiptReadStarted();'));
+    expect(receiptReadActions, contains('void _notifyReceiptReadStarted()'));
+    expect(receiptReadActions, contains('void _notifyReceiptOcrCompleted('));
+    expect(receiptReadActions, contains('void _notifyReceiptReadFinished('));
+    expect(receiptReadActions, contains('_notifyReceiptReadStarted();'));
+    expect(receiptReadActions, contains('_notifyReceiptOcrCompleted(result);'));
+    expect(receiptReadActions, contains('_notifyReceiptReadFinished(false);'));
     expect(
       importActions.indexOf(
-        'widget.onReceiptPhotoReviewAccepted?.call(result);',
+        'if (!_notifyReviewedPhotoAccepted(result)) return false;',
       ),
       lessThan(importActions.indexOf('_startReviewedPhotoReadStatus(result);')),
     );

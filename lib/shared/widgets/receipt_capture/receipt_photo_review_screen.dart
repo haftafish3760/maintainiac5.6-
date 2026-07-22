@@ -66,6 +66,8 @@ part 'receipt_photo_review_async_work.dart';
 part 'receipt_photo_review_stitch_preview_async.dart';
 part 'receipt_photo_review_stitch_preview_widgets.dart';
 part 'receipt_photo_review_stitch_pair_preview.dart';
+part 'receipt_photo_review_thumbnail_strip.dart';
+part 'receipt_photo_review_settings.dart';
 
 enum _ReceiptReviewMode { preview, crop, order, stitch, dataSaver }
 
@@ -121,7 +123,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   late ReceiptDataSaverLevel _dataSaverLevel = widget.initialDataSaverLevel;
   late var _selectedIndex = _initialSelectedIndex();
   var _openingCamera = false;
-  var _controlsVisible = true;
+  var _showThumbnailStrip = true;
   late var _reviewMode = _initialReviewMode();
   var _cropProcessing = false;
   var _savingPhotos = false;

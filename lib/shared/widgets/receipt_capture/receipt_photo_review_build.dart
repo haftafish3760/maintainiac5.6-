@@ -20,34 +20,25 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
           maintainBottomViewPadding: true,
           child: Column(
             children: [
-              AnimatedSize(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOutCubic,
-                child: _controlsVisible && widget.uiConfig.showTopBar
-                    ? Padding(
-                        padding: EdgeInsets.only(
-                          bottom: widget.uiConfig.topBarBottomSpacing,
-                        ),
-                        child: _ReceiptReviewTopBar(
-                          current: effectiveSelectedIndex + 1,
-                          total: _photoPaths.length,
-                          reviewMode: _reviewMode,
-                          bestShotCandidateMode: widget.bestShotCandidateMode,
-                          openingCamera: _openingCamera,
-                          savingPhotos: _savingPhotos,
-                          onClose: _reviewMode == _ReceiptReviewMode.crop
-                              ? _cancelCropReview
-                              : leaveReceiptReviewWithoutSaving,
-                          onHideControls: _openingCamera || _savingPhotos
-                              ? null
-                              : () => _updateReviewState(
-                                  () => _controlsVisible = false,
-                                ),
-                          onMenuSelected: handleReviewMenuAction,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              if (widget.uiConfig.showTopBar)
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: widget.uiConfig.topBarBottomSpacing,
+                  ),
+                  child: _ReceiptReviewTopBar(
+                    current: effectiveSelectedIndex + 1,
+                    total: _photoPaths.length,
+                    reviewMode: _reviewMode,
+                    bestShotCandidateMode: widget.bestShotCandidateMode,
+                    openingCamera: _openingCamera,
+                    savingPhotos: _savingPhotos,
+                    onClose: _reviewMode == _ReceiptReviewMode.crop
+                        ? _cancelCropReview
+                        : leaveReceiptReviewWithoutSaving,
+                    onOpenSettings: openReceiptReviewSettings,
+                    onMenuSelected: handleReviewMenuAction,
+                  ),
+                ),
               Expanded(
                 child: Stack(
                   fit: StackFit.expand,
@@ -65,32 +56,23 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                                 _reviewMode == _ReceiptReviewMode.dataSaver &&
                                 dataSaverPreviewPath == null,
                           ),
-                    if (!_controlsVisible)
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: _ReceiptShowReviewControlsButton(
-                            onPressed: () => _updateReviewState(
-                              () => _controlsVisible = true,
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOutCubic,
-                child: _controlsVisible
-                    ? ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: _reviewBottomControlsMaxHeight(context),
-                        ),
-                        child: _buildReviewBottomControls(photoPath),
-                      )
-                    : const SizedBox.shrink(),
+              if (_showThumbnailStrip)
+                _ReceiptReviewThumbnailStrip(
+                  photoPaths: _photoPaths,
+                  selectedIndex: effectiveSelectedIndex,
+                  onPhotoSelected: (index) {
+                    _resetPhotoPreviewZoom();
+                    _updateReviewState(() => _selectedIndex = index);
+                  },
+                ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: _reviewBottomControlsMaxHeight(context),
+                ),
+                child: _buildReviewBottomControls(photoPath),
               ),
             ],
           ),

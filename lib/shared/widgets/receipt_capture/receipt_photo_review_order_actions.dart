@@ -154,7 +154,6 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
         _selectedStitchPairIndex = maxPairIndex;
       }
       _reviewMode = _ReceiptReviewMode.preview;
-      _controlsVisible = true;
       _savingPhotos = false;
       _cropProcessing = false;
       _cropSourcePath = null;
